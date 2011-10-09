@@ -890,6 +890,7 @@ static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
 static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 {
 	Object *ob= (Object*)ptr->id.data;
+	const int was_navmesh= (ob->gameflag & OB_NAVMESH);
 	ob->body_type= value;
 
 	switch (ob->body_type) {
@@ -906,8 +907,10 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		ob->gameflag |= OB_NAVMESH;
 		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
 
-		/* could be moved into mesh UI but for now ensure mesh data layer */
-		BKE_mesh_ensure_navmesh(ob->data);
+		if (ob->type == OB_MESH) {
+			/* could be moved into mesh UI but for now ensure mesh data layer */
+			BKE_mesh_ensure_navmesh(ob->data);
+		}
 
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
@@ -940,6 +943,14 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 			ob->bsoft = bsbNew();
 		break;
 	}
+
+	if (was_navmesh != (ob->gameflag & OB_NAVMESH)) {
+		if (ob->type == OB_MESH) {
+			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+			WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
+		}
+	}
+
 }
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)

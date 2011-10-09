@@ -353,7 +353,7 @@ endif()
 
 if(WITH_GAMEENGINE)
 	list(APPEND INC_SYS
-	../../../extern/recastnavigation
+		../../../extern/recastnavigation
 	)
 	list(APPEND SRC
 		intern/navmesh_conversion.c

@@ -2113,7 +2113,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 #ifdef WITH_GAMEENGINE
 	/* NavMesh - this is a hack but saves having a NavMesh modifier */
-	if (ob->body_type == OB_BODY_TYPE_NAVMESH && finaldm->type == DM_TYPE_CDDM) {
+	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
 		DerivedMesh *tdm;
 		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
 		if (finaldm != tdm) {
@@ -2966,7 +2966,7 @@ BM_INLINE int navmesh_bit(int a, int b)
 	return (a & (1 << b)) >> b;
 }
 
-BM_INLINE void navmesh_intToCol(int i, float* col)
+static void navmesh_intToCol(int i, float* col)
 {
 	int	r = navmesh_bit(i, 0) + navmesh_bit(i, 3) * 2 + 1;
 	int	g = navmesh_bit(i, 1) + navmesh_bit(i, 4) * 2 + 1;
@@ -3034,8 +3034,8 @@ static void navmesh_DM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFac
 }
 
 static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
-								float (*partial_redraw_planes)[4],
-								int UNUSED(fast), int (*setMaterial)(int, void *attribs))
+                                      float (*partial_redraw_planes)[4],
+                                      int UNUSED(fast), int (*setMaterial)(int, void *attribs))
 {
 	(void) partial_redraw_planes;
 	(void) setMaterial;
@@ -3056,54 +3056,50 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	int res;
 
 	result = CDDM_copy(dm);
-	if (!CustomData_has_layer(&result->faceData, CD_RECAST))
-	{
+	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
 		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
 		CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
 			sourceRecastData, maxFaces, "recastData");
 	}
 	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+
+	/* note: This is not good design! - really should not be doing this */
 	result->drawFacesTex =  navmesh_DM_drawFacesTex;
 	result->drawFacesSolid = navmesh_DM_drawFacesSolid;
 
 
-	//process mesh
+	/* process mesh */
 	res  = buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nverts, &verts, &ndtris, &dtris,
-										&npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap,
-										&trisToFacesMap);
-	if (res)
-	{
+	                                     &npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap,
+	                                     &trisToFacesMap);
+	if (res) {
 		size_t polyIdx;
 
-		//invalidate concave polygon
-		for (polyIdx=0; polyIdx<(size_t)npolys; polyIdx++)
-		{
+		/* invalidate concave polygon */
+		for (polyIdx=0; polyIdx<(size_t)npolys; polyIdx++) {
 			unsigned short* poly = &polys[polyIdx*2*vertsPerPoly];
-			if (!polyIsConvex(poly, vertsPerPoly, verts))
-			{
-				//set negative polygon idx to all faces
+			if (!polyIsConvex(poly, vertsPerPoly, verts)) {
+				/* set negative polygon idx to all faces */
 				unsigned short *dmesh = &dmeshes[4*polyIdx];
 				unsigned short tbase = dmesh[2];
 				unsigned short tnum = dmesh[3];
 				unsigned short ti;
 
-				for (ti=0; ti<tnum; ti++)
-				{
+				for (ti=0; ti<tnum; ti++) {
 					unsigned short triidx = dtrisToTrisMap[tbase+ti];
 					unsigned short faceidx = trisToFacesMap[triidx];
-					if (recastData[faceidx]>0)
+					if (recastData[faceidx] > 0) {
 						recastData[faceidx] = -recastData[faceidx];
+					}
 				}
 			}
 		}
-
 	}
-	else
-	{
+	else {
 		printf("Error during creation polygon infos\n");
 	}
 
-	//clean up
+	/* clean up */
 	if (verts!=NULL)
 		MEM_freeN(verts);
 	if (dtris!=NULL)

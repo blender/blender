@@ -47,8 +47,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
         layout.prop(game, "physics_type")
         layout.separator()
 
-        #if game.physics_type == 'DYNAMIC':
-        if game.physics_type in {'DYNAMIC', 'RIGID_BODY'}:
+        physics_type = game.physics_type
+
+        if physics_type in {'DYNAMIC', 'RIGID_BODY'}:
             split = layout.split()
 
             col = split.column()
@@ -108,7 +109,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             col.prop(game, "lock_rotation_y", text="Y")
             col.prop(game, "lock_rotation_z", text="Z")
 
-        elif game.physics_type == 'SOFT_BODY':
+        elif physics_type == 'SOFT_BODY':
             col = layout.column()
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
@@ -143,7 +144,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             sub.active = (soft.use_cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
             sub.prop(soft, "cluster_iterations", text="Iterations")
 
-        elif game.physics_type == 'STATIC':
+        elif physics_type == 'STATIC':
             col = layout.column()
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
@@ -164,9 +165,10 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             subsub.active = game.use_anisotropic_friction
             subsub.prop(game, "friction_coefficients", text="", slider=True)
 
-        elif game.physics_type in {'SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'}:
+        elif physics_type in {'SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'}:
             layout.prop(ob, "hide_render", text="Invisible")
-        elif game.physics_type == 'NAVMESH':
+
+        elif physics_type == 'NAVMESH':
             layout.operator("mesh.assign_navpolygon")
             layout.operator("mesh.assign_new_navpolygon")
 
