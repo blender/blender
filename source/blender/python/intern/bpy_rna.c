@@ -3655,12 +3655,22 @@ static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 	Py_RETURN_NONE;
 }
 
+static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
+{
+	PointerRNA tptr;
+	RNA_pointer_create(NULL, &RNA_Property, self->prop, &tptr);
+	return pyrna_struct_Subtype(&tptr);
+}
+
+
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 
 static PyGetSetDef pyrna_prop_getseters[]= {
 	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"rna_type", (getter)pyrna_struct_get_rna_type, (setter)NULL, (char *)"The property type for introspection", NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
