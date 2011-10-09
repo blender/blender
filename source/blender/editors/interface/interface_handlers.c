@@ -1368,7 +1368,7 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 	return changed;
 }
 
-static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
+static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump, int jump_all)
 {
 	const char *str= data->str;
 	const int len= strlen(str);
@@ -1377,11 +1377,16 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 
 	/* special case, quit selection and set cursor */
 	if (has_sel && !select) {
-		if (direction) {
-			but->selsta = but->pos = but->selend;
+		if (jump_all) {
+			but->selsta = but->selend= but->pos = direction ? len : 0;
 		}
 		else {
-			but->pos = but->selend = but->selsta;
+			if (direction) {
+				but->selsta = but->pos = but->selend;
+			}
+			else {
+				but->pos = but->selend = but->selsta;
+			}
 		}
 		data->selextend = 0;
 	}
@@ -1393,7 +1398,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 				 * list of special character, ctr -> */
 				while(but->pos < len) {
 					but->pos++;
-					if(test_special_char(str[but->pos])) break;
+					if(!jump_all && test_special_char(str[but->pos])) break;
 				}
 			}
 			else {
@@ -1408,7 +1413,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 				 * list of special character, ctr -> */
 				while(but->pos > 0){
 					but->pos--;
-					if(test_special_char(str[but->pos])) break;
+					if(!jump_all && test_special_char(str[but->pos])) break;
 				}
 			}
 			else {
@@ -1460,30 +1465,6 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 					but->selsta= but->pos;
 				}
 			}
-		}
-	}
-}
-
-static void ui_textedit_move_end(uiBut *but, uiHandleButtonData *data, int direction, int select)
-{
-	const char *str= data->str;
-
-	if(direction) { /* right */
-		if(select) {
-			but->selsta = but->pos;
-			but->selend = strlen(str);
-			data->selextend = EXTEND_RIGHT;
-		} else {
-			but->selsta = but->selend = but->pos= strlen(str);
-		}
-	}
-	else { /* left */
-		if(select) {
-			but->selend = but->pos;
-			but->selsta = 0;
-			data->selextend = EXTEND_LEFT;
-		} else {
-			but->selsta = but->selend = but->pos= 0;
 		}
 	}
 }
@@ -1820,11 +1801,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				break;
 			case RIGHTARROWKEY:
-				ui_textedit_move(but, data, 1, event->shift, event->ctrl);
+				ui_textedit_move(but, data, 1, event->shift, event->ctrl, FALSE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
-				ui_textedit_move(but, data, 0, event->shift, event->ctrl);
+				ui_textedit_move(but, data, 0, event->shift, event->ctrl, FALSE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DOWNARROWKEY:
@@ -1834,7 +1815,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case ENDKEY:
-				ui_textedit_move_end(but, data, 1, event->shift);
+				ui_textedit_move(but, data, 1, event->shift, TRUE, TRUE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case UPARROWKEY:
@@ -1844,7 +1825,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case HOMEKEY:
-				ui_textedit_move_end(but, data, 0, event->shift);
+				ui_textedit_move(but, data, 0, event->shift, TRUE, TRUE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
