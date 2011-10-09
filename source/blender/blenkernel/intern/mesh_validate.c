@@ -326,6 +326,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, totedge, totface = mesh->totface;
+	int med_index;
 
 	if(mesh->totedge==0)
 		update= 0;
@@ -345,7 +346,9 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			MLoop *l= &mesh->mloop[mp->loopstart];
 			int j, l_prev= (l + (mp->totloop-1))->v;
 			for (j=0; j < mp->totloop; j++, l++) {
-				BLI_edgehash_insert(eh, l_prev, l->v, NULL);
+				if (!BLI_edgehash_haskey(eh, l_prev, l->v)) {
+					BLI_edgehash_insert(eh, l_prev, l->v, NULL);
+				}
 				l_prev= l->v;
 			}
 		}
@@ -387,8 +390,28 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
 			med->flag = ME_EDGEDRAW|ME_EDGERENDER|SELECT; /* select for newly created meshes which are selected [#25595] */
 		}
+
+		/* store the new edge index in the hash value */
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
 	}
 	BLI_edgehashIterator_free(ehi);
+
+	if (mesh->totpoly) {
+		/* second pass, iterate through all loops again and assign
+		   the newly created edges to them. */
+		MPoly *mp= mesh->mpoly;
+		for(i=0; i < mesh->totpoly; i++, mp++) {
+			MLoop *l= &mesh->mloop[mp->loopstart];
+			MLoop *l_prev= (l + (mp->totloop-1));
+			int j;
+			for (j=0; j < mp->totloop; j++, l++) {
+				/* lookup hashed edge index */
+				med_index = BLI_edgehash_lookup(eh, l_prev->v, l->v);
+				l_prev->e = med_index;
+				l_prev= l;
+			}
+		}
+	}
 
 	/* free old CustomData and assign new one */
 	CustomData_free(&mesh->edata, mesh->totedge);

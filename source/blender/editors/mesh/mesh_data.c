@@ -629,13 +629,24 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 {
-	if(calc_edges || (mesh->totface && mesh->totedge == 0))
-		BKE_mesh_calc_edges(mesh, calc_edges);
-
 	if(mesh->totface > 0 && mesh->totpoly == 0)
 		convert_mfaces_to_mpolys(mesh);
 
+	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
+		BKE_mesh_calc_edges(mesh, calc_edges);
+
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+
+	mesh->totface = mesh_recalcTesselation(
+		&mesh->fdata,
+		&mesh->ldata,
+		&mesh->pdata,
+		mesh->mvert,
+		mesh->totface,
+		mesh->totloop,
+		mesh->totpoly,
+		0,
+		0);
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
