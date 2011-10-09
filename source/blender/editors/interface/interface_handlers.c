@@ -1307,12 +1307,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
-		float aspect= (but->block->aspect);
+		const float aspect_sqrt= sqrtf(but->block->aspect);
 		
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
+		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
