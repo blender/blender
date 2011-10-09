@@ -275,7 +275,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 					part->end = 250.0f;
 					part->ren_as = PART_DRAW_NOT;
 					part->draw_as = PART_DRAW_DOT;
-					sprintf(psys->name, "SmokeParticles");
+					BLI_strncpy(psys->name, "SmokeParticles", sizeof(psys->name));
 					psys->recalc |= (PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
 					DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 				}
