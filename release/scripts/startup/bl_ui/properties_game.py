@@ -166,6 +166,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
 
         elif game.physics_type in {'SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'}:
             layout.prop(ob, "hide_render", text="Invisible")
+        elif game.physics_type == 'NAVMESH':
+            layout.operator("mesh.assign_navpolygon")
+            layout.operator("mesh.assign_new_navpolygon")
 
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):

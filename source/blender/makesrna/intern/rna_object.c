@@ -905,6 +905,10 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 	case OB_BODY_TYPE_NAVMESH:
 		ob->gameflag |= OB_NAVMESH;
 		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
+
+		/* could be moved into mesh UI but for now ensure mesh data layer */
+		BKE_mesh_ensure_navmesh(ob->data);
+
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
 		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);

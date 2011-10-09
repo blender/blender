@@ -161,6 +161,8 @@ int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 
 void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 
+void BKE_mesh_ensure_navmesh(struct Mesh *me);
+
 #ifdef __cplusplus
 }
 #endif
