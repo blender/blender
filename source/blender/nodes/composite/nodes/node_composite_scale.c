@@ -110,6 +110,25 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
 	}
+	else if (node->custom1==CMP_SCALE_ABSOLUTE) {
+		CompBuf *stackbuf;
+		int a, x, y;
+		float *fp;
+
+		x = MAX2((int)in[1]->vec[0], 1);
+		y = MAX2((int)in[2]->vec[0], 1);
+
+		stackbuf = alloc_compbuf(x, y, CB_RGBA, 1);
+		fp = stackbuf->rect;
+
+		a = stackbuf->x * stackbuf->y;
+		while(a--) {
+			copy_v4_v4(fp, in[0]->vec);
+			fp += 4;
+		}
+
+		out[0]->data= stackbuf;
+	}
 }
 
 void register_node_type_cmp_scale(ListBase *lb)
