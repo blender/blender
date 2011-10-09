@@ -1892,17 +1892,26 @@ static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numT
 		int side, corners;
 		
 		corners = multires_mdisp_corners(fd);
-		side = sqrt(fd->totdisp / corners);
 		
-		for (i=0; i<tot; i++, disps += side*side, ld++) {
-			ld->totdisp = side*side;
+		if (corners == 0) {
+			/* Empty MDisp layers appear in at least one of the sintel.blend files.
+			   Not sure why this happens, but it seems fine to just ignore them here.
+			   If corners==0 for a non-empty layer though, something went wrong. */
+			BLI_assert(fd->totdisp == 0);
+		}
+		else {
+			side = sqrt(fd->totdisp / corners);
+		
+			for (i=0; i<tot; i++, disps += side*side, ld++) {
+				ld->totdisp = side*side;
 			
-			if (ld->disps)
-				BLI_cellalloc_free(ld->disps);
+				if (ld->disps)
+					BLI_cellalloc_free(ld->disps);
 			
-			ld->disps = BLI_cellalloc_calloc(sizeof(float)*3*side*side, "converted loop mdisps");
-			if (fd->disps) {
-				memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+				ld->disps = BLI_cellalloc_calloc(sizeof(float)*3*side*side, "converted loop mdisps");
+				if (fd->disps) {
+					memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+				}
 			}
 		}
 	}
