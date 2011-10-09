@@ -91,7 +91,7 @@ class CameraIntrinsics {
       \note This is the reference implementation using floating point images.
   */
   void Distort(const float* src, float* dst,
-               int width, int height, int channels);
+               int width, int height, double overscan, int channels);
   /*!
       Distort an image using the current camera instrinsics
 
@@ -101,7 +101,7 @@ class CameraIntrinsics {
       \note This version is much faster.
   */
   void Distort(const unsigned char* src, unsigned char* dst,
-               int width, int height, int channels);
+               int width, int height, double overscan, int channels);
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -111,7 +111,7 @@ class CameraIntrinsics {
       \note This is the reference implementation using floating point images.
   */
   void Undistort(const float* src, float* dst,
-                 int width, int height, int channels);
+                 int width, int height, double overscan, int channels);
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -121,12 +121,12 @@ class CameraIntrinsics {
       \note This version is much faster.
   */
   void Undistort(const unsigned char* src, unsigned char* dst,
-                 int width, int height, int channels);
+                 int width, int height, double overscan, int channels);
 
  private:
-  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height);
-  void CheckUndistortLookupGrid(int width, int height);
-  void CheckDistortLookupGrid(int width, int height);
+  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height, double overscan);
+  void CheckUndistortLookupGrid(int width, int height, double overscan);
+  void CheckDistortLookupGrid(int width, int height, double overscan);
   void FreeLookupGrid();
 
   // The traditional intrinsics matrix from x = K[R|t]X.

@@ -9,3 +9,4 @@ high_distortion_crash_fix.patch
 mingw.patch
 msvc2010.patch
 scaled_distortion.patch
+overscan.patch

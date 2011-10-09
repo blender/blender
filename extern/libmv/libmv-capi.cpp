@@ -592,40 +592,40 @@ void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics
 }
 
 void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
 
-	intrinsics->Undistort(src, dst, width, height, channels);
+	intrinsics->Undistort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
-			float *src, float *dst, int width, int height, int channels)
+			float *src, float *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
 
-	intrinsics->Undistort(src, dst, width, height, channels);
+	intrinsics->Undistort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
-	intrinsics->Distort(src, dst, width, height, channels);
+	intrinsics->Distort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
-			float *src, float *dst, int width, int height, int channels)
+			float *src, float *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
 
-	intrinsics->Distort(src, dst, width, height, channels);
+	intrinsics->Distort(src, dst, width, height, overscan, channels);
 }
 
 /* ************ distortion ************ */
 
 void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics intrinsics;
 
@@ -633,11 +633,11 @@ void libmv_undistortByte(double focal_length, double principal_x, double princip
 	intrinsics.SetPrincipalPoint(principal_x, principal_y);
 	intrinsics.SetRadialDistortion(k1, k2, k3);
 
-	intrinsics.Undistort(src, dst, width, height, channels);
+	intrinsics.Undistort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			float *src, float *dst, int width, int height, int channels)
+			float *src, float *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics intrinsics;
 
@@ -645,11 +645,11 @@ void libmv_undistortFloat(double focal_length, double principal_x, double princi
 	intrinsics.SetPrincipalPoint(principal_x, principal_y);
 	intrinsics.SetRadialDistortion(k1, k2, k3);
 
-	intrinsics.Undistort(src, dst, width, height, channels);
+	intrinsics.Undistort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics intrinsics;
 
@@ -657,11 +657,11 @@ void libmv_distortByte(double focal_length, double principal_x, double principal
 	intrinsics.SetPrincipalPoint(principal_x, principal_y);
 	intrinsics.SetRadialDistortion(k1, k2, k3);
 
-	intrinsics.Distort(src, dst, width, height, channels);
+	intrinsics.Distort(src, dst, width, height, overscan, channels);
 }
 
 void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			float *src, float *dst, int width, int height, int channels)
+			float *src, float *dst, int width, int height, float overscan, int channels)
 {
 	libmv::CameraIntrinsics intrinsics;
 
@@ -669,7 +669,7 @@ void libmv_distortFloat(double focal_length, double principal_x, double principa
 	intrinsics.SetPrincipalPoint(principal_x, principal_y);
 	intrinsics.SetRadialDistortion(k1, k2, k3);
 
-	intrinsics.Distort(src, dst, width, height, channels);
+	intrinsics.Distort(src, dst, width, height, overscan, channels);
 }
 
 /* ************ utils ************ */

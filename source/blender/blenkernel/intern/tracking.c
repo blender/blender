@@ -1940,7 +1940,7 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 }
 
 ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *tracking,
-			ImBuf *ibuf, int width, int height, int undistort)
+			ImBuf *ibuf, int width, int height, float overscan, int undistort)
 {
 	ImBuf *resibuf;
 
@@ -1953,11 +1953,11 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 		if(undistort) {
 			libmv_CameraIntrinsicsUndistortFloat(distortion->intrinsics,
 						ibuf->rect_float, resibuf->rect_float,
-						ibuf->x, ibuf->y, ibuf->channels);
+						ibuf->x, ibuf->y, overscan, ibuf->channels);
 		} else {
 			libmv_CameraIntrinsicsDistortFloat(distortion->intrinsics,
 						ibuf->rect_float, resibuf->rect_float,
-						ibuf->x, ibuf->y, ibuf->channels);
+						ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 #endif
 
@@ -1967,11 +1967,11 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 		if(undistort) {
 				libmv_CameraIntrinsicsUndistortByte(distortion->intrinsics,
 							(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
-							ibuf->x, ibuf->y, ibuf->channels);
+							ibuf->x, ibuf->y, overscan, ibuf->channels);
 		} else {
 			libmv_CameraIntrinsicsDistortByte(distortion->intrinsics,
 						(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
-						ibuf->x, ibuf->y, ibuf->channels);
+						ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 #endif
 	}
@@ -1988,22 +1988,22 @@ void BKE_tracking_distortion_destroy(MovieDistortion *distortion)
 	MEM_freeN(distortion);
 }
 
-ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
+ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf, int width, int height, float overscan)
 {
 	MovieTrackingCamera *camera= &tracking->camera;
 
 	if(camera->intrinsics == NULL)
 		camera->intrinsics= BKE_tracking_distortion_create();
 
-	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, 1);
+	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, overscan, 1);
 }
 
-ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
+ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf, int width, int height, float overscan)
 {
 	MovieTrackingCamera *camera= &tracking->camera;
 
 	if(camera->intrinsics == NULL)
 		camera->intrinsics= BKE_tracking_distortion_create();
 
-	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, 0);
+	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, overscan, 0);
 }

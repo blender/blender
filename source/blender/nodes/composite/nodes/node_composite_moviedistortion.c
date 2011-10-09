@@ -62,6 +62,7 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 				ImBuf *obuf;
 				MovieTracking *tracking= &clip->tracking;
 				int width, height;
+				float overscan= 0.f;
 
 				ibuf->rect_float= cbuf->rect;
 
@@ -71,9 +72,9 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 					node->storage= BKE_tracking_distortion_create();
 
 				if(node->custom1==0)
-					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, 1);
+					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
 				else
-					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, 0);
+					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 0);
 
 				stackbuf->rect= obuf->rect_float;
 				stackbuf->malloc= 1;
