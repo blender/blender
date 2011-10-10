@@ -764,11 +764,15 @@ class ConstraintButtonsPanel():
         row = layout.row()
         row.prop(con, "reference", expand=True)
 
+        layout.operator("clip.constraint_to_fcurve")
+
     def CAMERA_SOLVER(self, context, layout, con):
         layout.prop(con, "use_default_clip")
 
         if not con.use_default_clip:
             layout.prop(con, "clip")
+
+        layout.operator("clip.constraint_to_fcurve")
 
     def SCRIPT(self, context, layout, con):
         layout.label("Blender 2.5 has no py-constraints")

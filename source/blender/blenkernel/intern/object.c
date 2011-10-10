@@ -3361,9 +3361,9 @@ void object_relink(Object *ob)
 	ID_NEW(ob->proxy_group);
 }
 
-MovieClip *object_get_movieclip(Scene *scene, Object *ob)
+MovieClip *object_get_movieclip(Scene *scene, Object *ob, int use_default)
 {
-	MovieClip *clip= scene->clip;
+	MovieClip *clip= use_default ? scene->clip : NULL;
 	bConstraint *con= ob->constraints.first, *scon= NULL;
 
 	while(con){
@@ -3379,6 +3379,8 @@ MovieClip *object_get_movieclip(Scene *scene, Object *ob)
 		bCameraSolverConstraint *solver= scon->data;
 		if((solver->flag&CAMERASOLVER_DEFAULTCLIP)==0)
 			clip= solver->clip;
+		else
+			clip= scene->clip;
 	}
 
 	return clip;

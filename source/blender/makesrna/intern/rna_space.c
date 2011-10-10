@@ -853,6 +853,23 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
+static BGpic *rna_BackgroundImage_add(View3D *v3d)
+{
+	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
+
+	bgpic->size= 5.0;
+	bgpic->blend= 0.5;
+	bgpic->iuser.fie_ima= 2;
+	bgpic->iuser.ok= 1;
+	bgpic->view= 0; /* 0 for all */
+
+	BLI_addtail(&v3d->bgpicbase, bgpic);
+
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return bgpic;
+}
+
 /* Space Node Editor */
 
 static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
@@ -1235,6 +1252,24 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
+static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BackgroundImages");
+	srna= RNA_def_struct(brna, "BackgroundImages", NULL);
+	RNA_def_struct_sdna(srna, "View3D");
+	RNA_def_struct_ui_text(srna, "Background Images", "Collection of background images");
+
+	func= RNA_def_function(srna, "add", "rna_BackgroundImage_add");
+	RNA_def_function_ui_description(func, "Add new background image");
+
+	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
+	RNA_def_function_return(func, parm);
+}
+
 static void rna_def_space_view3d(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1408,6 +1443,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "BackgroundImage");
 	RNA_def_property_ui_text(prop, "Background Images", "List of background images");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	rna_def_backgroundImages(brna, prop);
 
 	prop= RNA_def_property(srna, "show_background_images", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DISPBGPICS);

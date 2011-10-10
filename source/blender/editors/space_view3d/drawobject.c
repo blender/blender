@@ -1598,7 +1598,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	int i;
 	float drawsize;
 	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
-	MovieClip *clip= object_get_movieclip(scene, base->object);
+	MovieClip *clip= object_get_movieclip(scene, base->object, 0);
 
 	/* draw data for movie clip set as active for scene */
 	if(clip)

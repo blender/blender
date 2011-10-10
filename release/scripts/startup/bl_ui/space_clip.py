@@ -619,6 +619,18 @@ class CLIP_PT_footage(Panel):
             layout.operator("clip.open", icon='FILESEL')
 
 
+class CLIP_PT_tools_clip(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "CLip"
+
+    def draw(self, context):
+        layout = self.layout
+        clip = context.space_data.clip
+
+        layout.operator("clip.set_viewport_background")
+
+
 class CLIP_MT_view(Menu):
     bl_label = "View"
 

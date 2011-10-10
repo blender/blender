@@ -155,7 +155,7 @@ void camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4
 
 void object_relink(struct Object *ob);
 
-struct MovieClip *object_get_movieclip(struct Scene *scene, struct Object *ob);
+struct MovieClip *object_get_movieclip(struct Scene *scene, struct Object *ob, int use_default);
 
 #ifdef __cplusplus
 }

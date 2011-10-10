@@ -139,3 +139,137 @@ class CLIP_OT_delete_proxy(Operator):
             pass
 
         return {'FINISHED'}
+
+
+class CLIP_OT_set_viewport_background(Operator):
+    bl_idname = "clip.set_viewport_background"
+    bl_label = "Set as Background"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.space_data.type != 'CLIP_EDITOR':
+            return False
+
+        sc = context.space_data
+
+        return sc.clip
+
+    def _set_background(self, space_v3d, clip, user):
+        bgpic = None
+
+        for x in space_v3d.background_images:
+            if x.source == 'MOVIE':
+                bgpic = x
+                break
+
+        if not bgpic:
+            bgpic = space_v3d.background_images.add()
+
+        bgpic.source = 'MOVIE'
+        bgpic.clip = clip
+        bgpic.clip_user.proxy_render_size = user.proxy_render_size
+        bgpic.clip_user.use_render_undistorted = user.use_render_undistorted
+        bgpic.use_camera_clip = False
+
+    def execute(self, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        for area in context.window.screen.areas:
+            if area.type == 'VIEW_3D':
+                for space in area.spaces:
+                    if space.type == 'VIEW_3D':
+                        self._set_background(space, clip, sc.clip_user)
+
+        return {'FINISHED'}
+
+
+class CLIP_OT_constraint_to_fcurve(Operator):
+    bl_idname = "clip.constraint_to_fcurve"
+    bl_label = "Constraint to F-Curve"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def _bake_object(self, scene, ob):
+        con = None
+        clip = None
+        sfra = None
+        efra = None
+        frame_current = scene.frame_current
+        matrices = []
+
+        # Find constraint which would eb converting
+        # TODO: several camera solvers and track followers would fail,
+        #       but can't think about eal workflow where it'll be useful
+        for x in ob.constraints:
+            if x.type in ('CAMERA_SOLVER', 'FOLLOW_TRACK'):
+                con = x
+
+        if not con:
+            return
+
+        if con.type == 'FOLLOW_TRACK' and con.reference == 'BUNDLE':
+            mat = ob.matrix_world.copy()
+            ob.constraints.remove(con)
+            ob.matrix_world = mat
+
+            return
+
+        # Get clip used for parenting
+        if con.use_default_clip:
+            clip = scene.clip
+        else:
+            clip = con.clip
+
+        if not clip:
+            return
+
+        # Find start and end frames
+        for track in clip.tracking.tracks:
+            if sfra is None:
+                sfra = track.markers[0].frame
+            else:
+                sfra = min(sfra, track.markers[0].frame)
+
+            if efra is None:
+                efra = track.markers[-1].frame
+            else:
+                efra = max(efra, track.markers[-1].frame)
+
+        if sfra is None or efra is None:
+           return
+
+        # Store object matrices
+        for x in range(sfra, efra+1):
+            scene.frame_set(x)
+            matrices.append(ob.matrix_world.copy())
+
+        ob.animation_data_create()
+
+        # Apply matrices on object and insert keyframes
+        i = 0
+        for x in range(sfra, efra+1):
+            scene.frame_set(x)
+            ob.matrix_world = matrices[i]
+
+            ob.keyframe_insert("location")
+
+            if ob.rotation_mode == 'QUATERNION':
+                ob.keyframe_insert("rotation_quaternion")
+            else:
+                ob.keyframe_insert("rotation_euler")
+
+            i += 1
+
+        ob.constraints.remove(con)
+
+        scene.frame_set(frame_current)
+
+    def execute(self, context):
+        scene = context.scene
+
+        for ob in scene.objects:
+            if ob.select:
+                self._bake_object(scene, ob)
+
+        return {'FINISHED'}
