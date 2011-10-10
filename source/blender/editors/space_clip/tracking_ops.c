@@ -1410,7 +1410,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	track_markers_initjob(C, tmj, backwards);
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen
@@ -1437,7 +1437,7 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 {
 	/* no running blender, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
-		return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 
 	/* running tracking */
 	switch (event->type) {
@@ -1500,7 +1500,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	float error;
 
 	if(!check_solve_track_count(tracking)) {
-		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
+		BKE_report(op->reports, RPT_ERROR, "At least 8 tracks on both of keyframes are needed for reconstruction");
 		return OPERATOR_CANCELLED;
 	}
 
