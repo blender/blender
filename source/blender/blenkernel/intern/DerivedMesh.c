@@ -3001,7 +3001,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	glEnable(GL_LIGHTING);*/
 
 	glDisable(GL_LIGHTING);
-	if(GPU_buffer_legacy(dm) ) {
+	/*  if(GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
 		DEBUG_VBO( "Using legacy code. drawNavMeshColored\n" );
 		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);
@@ -3062,8 +3062,10 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	result = CDDM_copy(dm);
 	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
 		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
-		CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
-			sourceRecastData, maxFaces, "recastData");
+		if (sourceRecastData) {
+			CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
+			                           sourceRecastData, maxFaces, "recastData");
+		}
 	}
 	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
 

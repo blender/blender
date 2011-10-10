@@ -946,6 +946,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 
 	if (was_navmesh != (ob->gameflag & OB_NAVMESH)) {
 		if (ob->type == OB_MESH) {
+			/* this is needed to refresh the derived meshes draw func */
 			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 			WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 		}
@@ -1424,8 +1425,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "body_type");
 	RNA_def_property_enum_items(prop, body_type_items);
-	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get",
-	                            "rna_GameObjectSettings_physics_type_set", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get", "rna_GameObjectSettings_physics_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
