@@ -1,7 +1,4 @@
-/*  blender.c   jan 94     MIXED MODEL
- * 
- * common help functions and data
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

@@ -4564,7 +4564,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				seq->scene_sound = NULL;
 				if(seq->scene) {
 					seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
-					seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+					if(seq->scene) {
+						seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+					}
 				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if(seq->sound) {
@@ -12262,12 +12264,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					if(mtex) {
 						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
-							if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
-								Tex *tex= newlibadr(fd, lib, mtex->tex);
+							if((mtex->mapto&MAP_DISPLACE)==0) {
+								if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
+									Tex *tex= newlibadr(fd, lib, mtex->tex);
 
-								if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
-									mtex->norfac= -mtex->norfac;
-									mtex->texflag|= MTEX_BUMP_FLIPPED;
+									if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
+										mtex->norfac= -mtex->norfac;
+										mtex->texflag|= MTEX_BUMP_FLIPPED;
+									}
 								}
 							}
 						}

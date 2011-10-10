@@ -189,7 +189,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 	float cfra= FLT_MAX;
 	const char *group_name= NULL;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw,
 	                               "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
@@ -237,7 +237,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 	float cfra= FLT_MAX;
 	const char *group_name= NULL;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw,
 	                               "s|ifs:bpy_struct.keyframe_delete()",
@@ -280,7 +280,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	const char *path, *path_full;
 	int index= -1;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
@@ -356,7 +356,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 	const char *path, *path_full;
 	int index= -1;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index))
 		return NULL;

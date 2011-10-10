@@ -1,5 +1,4 @@
-/*  image.c
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

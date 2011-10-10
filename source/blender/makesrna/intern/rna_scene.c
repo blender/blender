@@ -1746,13 +1746,13 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Agent Radius", "Radius of the agent");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "max_climb", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "climb_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "agentmaxclimb");
 	RNA_def_property_ui_range(prop, 0.1, 5, 1, 2);
 	RNA_def_property_ui_text(prop, "Max Climb", "Maximum height between grid cells the agent can climb");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "max_slope", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "slope_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "agentmaxslope");
 	RNA_def_property_range(prop, 0, M_PI/2);
 	RNA_def_property_ui_text(prop, "Max Slope", "Maximum walkable slope angle in degrees");
