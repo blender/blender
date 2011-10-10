@@ -238,6 +238,26 @@ void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	}
 }
 
+void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
+{
+	copy_v2_v2(nco, co);
+
+	if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+		MovieClip *clip= ED_space_clip(sc);
+		float aspy= 1.f/clip->tracking.camera.pixel_aspect;
+		int width, height;
+
+		ED_space_clip_size(sc, &width, &height);
+
+		nco[0]*= width;
+		nco[1]*= height*aspy;
+
+		BKE_tracking_invert_intrinsics(&clip->tracking, nco, nco);
+		nco[0]/= width;
+		nco[1]/= height*aspy;
+	}
+}
+
 void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *yr)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -258,6 +278,18 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 
 	*xr= pos[0]/width;
 	*yr= pos[1]/height;
+
+	if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+		MovieClip *clip= ED_space_clip(sc);
+		MovieTracking *tracking= &clip->tracking;
+		float aspy= 1.f/tracking->camera.pixel_aspect;
+		float tmp[2]= {*xr*width, *yr*height*aspy};
+
+		BKE_tracking_apply_intrinsics(tracking, tmp, tmp);
+
+		*xr= tmp[0]/width;
+		*yr= tmp[1]/(height*aspy);
+	}
 }
 
 void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])

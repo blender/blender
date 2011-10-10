@@ -284,12 +284,13 @@ typedef struct MovieClipImBufCacheKey {
 	short render_flag;
 } MovieClipImBufCacheKey;
 
-static void moviecache_keydata(void *userkey, int *framenr, int *proxy)
+static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)
 {
 	MovieClipImBufCacheKey *key= (MovieClipImBufCacheKey*)userkey;
 
 	*framenr= key->framenr;
 	*proxy= key->proxy;
+	*render_flags= key->render_flag;
 }
 
 static unsigned int moviecache_hashhash(const void *keyv)
@@ -610,7 +611,6 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 
 	if(ibuf) {
 		clip->lastframe= framenr;
-
 		real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 
 		/* put undistorted frame to cache */
@@ -637,7 +637,7 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached undistorted image first */
-	if(need_undistorted_cache(user, clip->flag)) {
+	if(need_undistorted_cache(user, flag)) {
 		ibuf= get_undistorted_cache(clip, user);
 		if(!ibuf)
 			cache_undistorted= 1;
@@ -792,7 +792,7 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip, MovieClipUser *user, int 
 	if(clip->cache) {
 		int proxy= rendersize_to_proxy(user, clip->flag);
 
-		BKE_moviecache_get_cache_segments(clip->cache->moviecache, proxy, totseg_r, points_r);
+		BKE_moviecache_get_cache_segments(clip->cache->moviecache, proxy, user->render_flag, totseg_r, points_r);
 	}
 }
 
@@ -889,8 +889,24 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 				if(ibuf && ibuf->rect) {
 					ImBuf *tmpibuf;
+					MovieTrackingMarker undist_marker= *marker;
 
-					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, 1, 1, scopes->track_pos, NULL);
+					if(user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
+						int width, height;
+						float aspy= 1.f/clip->tracking.camera.pixel_aspect;;
+
+						BKE_movieclip_acquire_size(clip, user, &width, &height);
+
+						undist_marker.pos[0]*= width;
+						undist_marker.pos[1]*= height*aspy;
+
+						BKE_tracking_invert_intrinsics(&clip->tracking, undist_marker.pos, undist_marker.pos);
+
+						undist_marker.pos[0]/= width;
+						undist_marker.pos[1]/= height*aspy;
+					}
+
+					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, &undist_marker, 1, 1, scopes->track_pos, NULL);
 
 					if(tmpibuf->rect_float)
 						IMB_rect_from_float(tmpibuf);

@@ -932,6 +932,13 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_clip_set(NULL, sc, (MovieClip*)value.data);
 }
 
+static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	sc->scopes.ok= 0;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -2725,7 +2732,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Current clip editor mode");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
 
 	/* show pattern */
 	prop= RNA_def_property(srna, "show_marker_pattern", PROP_BOOLEAN, PROP_NONE);

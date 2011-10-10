@@ -75,6 +75,9 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	ARegion *ar;
 
+	if(sc->mode!=SC_MODE_TRACKING)
+		return;
+
 	/* only while proeprties are visible */
 	for (ar=sa->regionbase.first; ar; ar=ar->next) {
 		if (ar->regiontype == RGN_TYPE_UI && ar->flag & RGN_FLAG_HIDDEN)

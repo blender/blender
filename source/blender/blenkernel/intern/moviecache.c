@@ -58,7 +58,7 @@ typedef struct MovieCache {
 	int keysize;
 	unsigned long curtime;
 
-	int totseg, *points, points_proxy;	/* for visual statistics optimization */
+	int totseg, *points, proxy, render_flags;	/* for visual statistics optimization */
 	int pad;
 } MovieCache;
 
@@ -212,7 +212,7 @@ struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashC
 	cache->hashfp= hashfp;
 	cache->cmpfp= cmpfp;
 	cache->getdatafp= getdatafp;
-	cache->points_proxy= -1;
+	cache->proxy= -1;
 
 	return cache;
 }
@@ -294,7 +294,7 @@ void BKE_moviecache_free(MovieCache *cache)
 }
 
 /* get segments of cached frames. useful for debugging cache policies */
-void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int *totseg_r, int **points_r)
+void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r)
 {
 	*totseg_r= 0;
 	*points_r= NULL;
@@ -302,7 +302,7 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int *totseg
 	if(!cache->getdatafp)
 		return;
 
-	if(cache->points_proxy!=proxy) {
+	if(cache->proxy!=proxy || cache->render_flags!=render_flags) {
 		if(cache->points)
 			MEM_freeN(cache->points);
 
@@ -323,12 +323,12 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int *totseg
 		while(!BLI_ghashIterator_isDone(iter)) {
 			MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
 			MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
-			int framenr, curproxy;
+			int framenr, curproxy, curflags;
 
 			if(item->ibuf) {
-				cache->getdatafp(key->userkey, &framenr, &curproxy);
+				cache->getdatafp(key->userkey, &framenr, &curproxy, &curflags);
 
-				if(curproxy==proxy)
+				if(curproxy==proxy && curflags==render_flags)
 					frames[a++]= framenr;
 			}
 
@@ -374,6 +374,8 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int *totseg
 
 			cache->totseg= totseg;
 			cache->points= points;
+			cache->proxy= proxy;
+			cache->render_flags= render_flags;
 		}
 	}
 }
