@@ -2089,10 +2089,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
+			if (BM_Selected(bm, eve)) {
 				BM_SetIndex(eve, SELECT);
-			else
+			}
+			else {
 				BM_SetIndex(eve, 0);
+			}
 		}
 	}
 	else if(selectmode & SCE_SELECT_EDGE) {
@@ -2103,8 +2105,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 		eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		for( ; eed; eed=BMIter_Step(&iter)) {
-			if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
-				BM_SetIndex(eed->v1, SELECT), BM_SetIndex(eed->v2, SELECT);
+			if (BM_Selected(bm, eed)) {
+				BM_SetIndex(eed->v1, SELECT);
+				BM_SetIndex(eed->v2, SELECT);
+			}
 		}
 	}
 	else {
@@ -2114,7 +2118,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 		efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 		for( ; efa; efa=BMIter_Step(&iter)) {
-			if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
+			if (BM_Selected(bm, efa)) {
 				BMIter liter;
 				BMLoop *l;
 
@@ -2133,17 +2137,17 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
 		BLI_array_growone(selstate);
 
-		if(!BM_TestHFlag(eve, BM_HIDDEN)) {	
-			if(BM_GetIndex(eve)) {
-				selstate[a] = 1;
-				countsel++;
-			}
-			if(propmode) count++;
+		if(BM_GetIndex(eve)) {
+			selstate[a] = 1;
+			countsel++;
 		}
+		if(propmode) count++;
 	}
 
-	 /* note: in prop mode we need at least 1 selected */
-	if (countsel==0) return;
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel == 0) {
+		goto cleanup;
+	}
 
 	/* check active */
 	if (em->bm->selected.last) {
@@ -2284,7 +2288,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
-	
+
+cleanup:
 	/* crazy space free */
 	if(quats)
 		MEM_freeN(quats);
