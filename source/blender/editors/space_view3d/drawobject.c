@@ -1775,7 +1775,9 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
 		view3d_project_short_clip(data->vc.ar, cent, s, 1);
 
-		data->func(data->userData, efa, s[0], s[1], index);
+		if (s[0] != IS_CLIPPED) {
+			data->func(data->userData, efa, s[0], s[1], index);
+		}
 	}
 }
 
