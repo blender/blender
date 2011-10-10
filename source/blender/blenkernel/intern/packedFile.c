@@ -1,6 +1,4 @@
 /*
- * blenkernel/packedFile.c - (cleaned up mar-01 nzc)
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
