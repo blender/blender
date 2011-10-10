@@ -380,7 +380,7 @@ extern StructRNA RNA_OperatorFileListElement;
 extern StructRNA RNA_OperatorMousePath;
 extern StructRNA RNA_OperatorProperties;
 extern StructRNA RNA_OperatorStrokeElement;
-extern StructRNA RNA_OperatorTypeMacro;
+extern StructRNA RNA_OperatorMacro;
 extern StructRNA RNA_OrController;
 extern StructRNA RNA_OutflowFluidSettings;
 extern StructRNA RNA_PackedFile;
@@ -808,6 +808,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *t_ptr);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
+int RNA_property_collection_assign_int(PointerRNA *ptr, PropertyRNA *prop, const int key, const PointerRNA *assign_ptr);
 int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 
 /* efficient functions to set properties for arrays */

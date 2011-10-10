@@ -530,7 +530,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-		uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+
+		/* pose/object only however we want to allow in weight paint mode too
+		 * so dont be totally strict and just check not-editmode for now */
+		if (obedit == NULL) {
+			uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		}
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);

@@ -218,7 +218,8 @@ static void *tslot_thread_start(void *tslot_p)
 	return tslot->do_thread(tslot->callerdata);
 }
 
-int BLI_thread_is_main(void) {
+int BLI_thread_is_main(void)
+{
 	return pthread_equal(pthread_self(), mainid);
 }
 

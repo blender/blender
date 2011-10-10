@@ -79,7 +79,7 @@ static inline dword			STR_gHash(dword inDWord)
 	key ^=  (key >> 13);
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
-  	return key;
+	return key;
 }
 
 enum { GOLDEN_RATIO = 0x9e3779b9 }; // arbitrary value to initialize hash funtion, well not so arbitrary

@@ -44,7 +44,8 @@
 
 /* implementation */
 
-void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
+void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size)
+{
 	int x, y,i, rowstride;
 	unsigned char *buf;
 	AviBitmapInfoHeader *bi;
@@ -116,7 +117,8 @@ void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *bu
 	}
 }
 
-void *avi_converter_to_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
+void *avi_converter_to_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size)
+{
 	int y, x, i, rowstride;
 	unsigned char *buf;
 

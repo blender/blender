@@ -137,7 +137,7 @@ static void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 void EM_automerge(Scene *scene, Object *obedit, int update)
 {
 	Mesh *me= obedit ? obedit->data : NULL; /* can be NULL */
-	int len;
+	/* int len; */ /* UNUSED */
 
 	if ((scene->toolsettings->automerge) &&
 		(obedit && obedit->type==OB_MESH && (obedit->mode & OB_MODE_EDIT))
@@ -145,7 +145,7 @@ void EM_automerge(Scene *scene, Object *obedit, int update)
 		EditMesh *em= me->edit_mesh;
 		int totvert= em->totvert, totedge= em->totedge, totface= em->totface;
 
-		len = removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
+		/* len = */ /* UNUSED */ removedoublesflag(em, 1, 1, scene->toolsettings->doublimit);
 		if (totvert != em->totvert || totedge != em->totedge || totface != em->totface) {
 			if (update) {
 				DAG_id_tag_update(&me->id, 0);

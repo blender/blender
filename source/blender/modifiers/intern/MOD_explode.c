@@ -543,7 +543,8 @@ static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 	}
 }
 
-static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm){
+static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
+{
 	DerivedMesh *splitdm;
 	MFace *mf=NULL,*df1=NULL;
 	MFace *mface=dm->getFaceArray(dm);
@@ -557,7 +558,9 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
 	int *fs, totesplit=0,totfsplit=0,curdupface=0;
-	int i,j,v1,v2,v3,v4,esplit, v[4], uv[4];
+	int i,j,v1,v2,v3,v4,esplit,
+	    v[4]  = {0, 0, 0, 0}, /* To quite gcc barking... */
+	    uv[4] = {0, 0, 0, 0}; /* To quite gcc barking... */
 	int numlayer;
 
 	edgehash= BLI_edgehash_new();

@@ -163,7 +163,7 @@ def range_str(val):
 
 
 def example_extract_docstring(filepath):
-    file = open(filepath, 'r')
+    file = open(filepath, "r", encoding="utf-8")
     line = file.readline()
     line_no = 0
     text = []
@@ -362,7 +362,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     if module_all:
         module_dir = module_all
 
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf-8")
 
     fw = file.write
 
@@ -518,7 +518,7 @@ def pycontext2sphinx(BASEPATH):
     # Only use once. very irregular
 
     filepath = os.path.join(BASEPATH, "bpy.context.rst")
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf-8")
     fw = file.write
     fw("Context Access (bpy.context)\n")
     fw("============================\n\n")
@@ -706,7 +706,7 @@ def pyrna2sphinx(BASEPATH):
         #    return
 
         filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % struct.identifier)
-        file = open(filepath, "w")
+        file = open(filepath, "w", encoding="utf-8")
         fw = file.write
 
         base_id = getattr(struct.base, "identifier", "")
@@ -920,7 +920,7 @@ def pyrna2sphinx(BASEPATH):
 
         def fake_bpy_type(class_value, class_name, descr_str, use_subclasses=True):
             filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % class_name)
-            file = open(filepath, "w")
+            file = open(filepath, "w", encoding="utf-8")
             fw = file.write
 
             write_title(fw, class_name, "=")
@@ -971,7 +971,7 @@ def pyrna2sphinx(BASEPATH):
 
         for op_module_name, ops_mod in op_modules.items():
             filepath = os.path.join(BASEPATH, "bpy.ops.%s.rst" % op_module_name)
-            file = open(filepath, "w")
+            file = open(filepath, "w", encoding="utf-8")
             fw = file.write
 
             title = "%s Operators" % op_module_name.replace("_", " ").title()
@@ -1025,7 +1025,7 @@ def rna2sphinx(BASEPATH):
 
     # conf.py - empty for now
     filepath = os.path.join(BASEPATH, "conf.py")
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
     version_string = ".".join(str(v) for v in bpy.app.version)
@@ -1061,7 +1061,7 @@ def rna2sphinx(BASEPATH):
 
     # main page needed for sphinx (index.html)
     filepath = os.path.join(BASEPATH, "contents.rst")
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
     fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
@@ -1179,7 +1179,7 @@ def rna2sphinx(BASEPATH):
     # internal modules
     if "bpy.ops" not in EXCLUDE_MODULES:
         filepath = os.path.join(BASEPATH, "bpy.ops.rst")
-        file = open(filepath, "w")
+        file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw("Operators (bpy.ops)\n")
         fw("===================\n\n")
@@ -1191,7 +1191,7 @@ def rna2sphinx(BASEPATH):
 
     if "bpy.types" not in EXCLUDE_MODULES:
         filepath = os.path.join(BASEPATH, "bpy.types.rst")
-        file = open(filepath, "w")
+        file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw("Types (bpy.types)\n")
         fw("=================\n\n")
@@ -1204,7 +1204,7 @@ def rna2sphinx(BASEPATH):
         # not actually a module, only write this file so we
         # can reference in the TOC
         filepath = os.path.join(BASEPATH, "bpy.data.rst")
-        file = open(filepath, "w")
+        file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw("Data Access (bpy.data)\n")
         fw("======================\n\n")
@@ -1298,7 +1298,7 @@ def rna2sphinx(BASEPATH):
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
-        file = open(filepath, "w")
+        file = open(filepath, "w", encoding="utf-8")
         fw = file.write
 
         fw("\n")

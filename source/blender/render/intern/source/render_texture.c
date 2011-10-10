@@ -1748,7 +1748,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 	float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	const float bf = 0.04f*Tnor*mtex->norfac;
+	const float bf = -0.04f*Tnor*mtex->norfac;
 	int rgbnor;
 	// disable internal bump eval
 	float* nvec = texres->nor;
@@ -1904,7 +1904,14 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	float Hscale = Tnor*mtex->norfac;
+
+	// The negate on Hscale is done because the
+	// normal in the renderer points inward which corresponds
+	// to inverting the bump map. The normals are generated
+	// this way in calc_vertexnormals(). Should this ever change
+	// this negate must be removed.
+	float Hscale = -Tnor*mtex->norfac;
+
 	int dimx=512, dimy=512;
 	const int imag_tspace_dimension_x = 1024;		// only used for texture space variant
 	float aspect = 1.0f;

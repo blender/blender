@@ -72,7 +72,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         flow.prop(arm, "use_deform_preserve_volume", text="Quaternion")
 
         if context.scene.render.engine == "BLENDER_GAME":
-            layout.row().prop(arm, "vert_deformer", expand=True)
+            layout.row().prop(arm, "deform_method", expand=True)
 
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):

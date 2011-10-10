@@ -127,9 +127,9 @@ public:
 	 * Removes all events for a window from the stack.
 	 * @param	window	The window to remove events for.
 	 */
-	 	virtual void
-	 removeWindowEvents(
-	 	GHOST_IWindow* window
+		virtual void
+	removeWindowEvents(
+		GHOST_IWindow* window
 	 );
 
 	/**

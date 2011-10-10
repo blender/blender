@@ -84,8 +84,8 @@ type 3 is unsupported as of jul 05 2000 Frank.
 static int jpeg_default_quality;
 static int ibuf_ftype;
 
-int imb_is_a_jpeg(unsigned char *mem) {
-
+int imb_is_a_jpeg(unsigned char *mem)
+{
 	if ((mem[0]== 0xFF) && (mem[1] == 0xD8))return 1;
 	return 0;
 }

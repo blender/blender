@@ -741,7 +741,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	MDeformVert *dvert = NULL;
 	Cloth *clothObj = NULL;
 	int numverts;
-	float goalfac = 0;
+	/* float goalfac = 0; */ /* UNUSED */
 	ClothVertex *verts = NULL;
 
 	if (!clmd || !dm) return;
@@ -764,7 +764,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ))
 					{
 						verts->goal = dvert->dw [j].weight;
-						goalfac= 1.0f;
+						/* goalfac= 1.0f; */ /* UNUSED */
 						
 						/*
 						// Kicking goal factor to simplify things...who uses that anyway?

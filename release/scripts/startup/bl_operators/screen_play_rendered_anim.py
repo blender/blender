@@ -136,7 +136,8 @@ class PlayRenderedAnim(Operator):
             del process
             # -----------------------------------------------------------------
 
-            opts = ["-a", "-f", str(rd.fps), str(rd.fps_base), file]
+            opts = ["-a", "-f", str(rd.fps), str(rd.fps_base),
+                    "-j", str(scene.frame_step), file]
             cmd.extend(opts)
         elif preset == 'DJV':
             opts = [file, "-playback_speed", "%d" % int(rd.fps / rd.fps_base)]
@@ -166,9 +167,8 @@ class PlayRenderedAnim(Operator):
         print("Executing command:\n  %r" % " ".join(cmd))
 
         try:
-            process = subprocess.Popen(cmd)
+            subprocess.Popen(cmd)
         except Exception as e:
-            import traceback
             self.report({'ERROR'},
                         "Couldn't run external animation player with command "
                         "%r\n%s" % (" ".join(cmd), str(e)))

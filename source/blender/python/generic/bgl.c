@@ -286,8 +286,8 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 	Buffer *buffer;
 	int dimensions[MAX_DIMENSIONS];
 	
-	int i, type;
-	int ndimensions = 0;
+	int type;
+	Py_ssize_t i, ndimensions = 0;
 
 	if(kwds && PyDict_Size(kwds)) {
 		PyErr_SetString(PyExc_TypeError,

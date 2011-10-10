@@ -767,9 +767,9 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Game Settings", "Game Engine settings for a Material datablock");
 	
-	prop= RNA_def_property(srna, "back_culling", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_BACKCULL); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Back Culling", "Hide Back of the face in Game Engine ");
+	RNA_def_property_ui_text(prop, "Backface Culling", "Hide Back of the face in Game Engine ");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "text", PROP_BOOLEAN, PROP_NONE);
@@ -2040,8 +2040,7 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 	/* mtex */
 	prop= RNA_def_property(srna, "texture_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end",
-	                                  "rna_iterator_array_dereference_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures");
 	rna_def_texture_slots(brna, prop, structname, structname_slots);
 

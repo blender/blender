@@ -1567,6 +1567,7 @@ static int pack_test(bContext *C, wmOperator *op)
 
 static int pack_exec(bContext *C, wmOperator *op)
 {
+	struct Main *bmain= CTX_data_main(C);
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
@@ -1582,7 +1583,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	if(as_png)
 		BKE_image_memorypack(ima);
 	else
-		ima->packedfile= newPackedFile(op->reports, ima->name);
+		ima->packedfile= newPackedFile(op->reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	

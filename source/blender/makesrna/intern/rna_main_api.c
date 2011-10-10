@@ -345,12 +345,12 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		            mb->id.name+2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	VFont *font;
 
 	errno= 0;
-	font= load_vfont(filepath);
+	font= load_vfont(bmain, filepath);
 
 	if(!font)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -688,7 +688,7 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "BlendDataMaterials");
 	srna= RNA_def_struct(brna, "BlendDataMaterials", NULL);
 	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main Material", "Collection of materials");
+	RNA_def_struct_ui_text(srna, "Main Materials", "Collection of materials");
 
 	func= RNA_def_function(srna, "new", "rna_Main_materials_new");
 	RNA_def_function_ui_description(func, "Add a new material to the main database");
@@ -967,7 +967,7 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "BlendDataMetaBalls");
 	srna= RNA_def_struct(brna, "BlendDataMetaBalls", NULL);
 	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main MetaBall", "Collection of metaballs");
+	RNA_def_struct_ui_text(srna, "Main MetaBalls", "Collection of metaballs");
 
 	func= RNA_def_function(srna, "new", "rna_Main_metaballs_new");
 	RNA_def_function_ui_description(func, "Add a new metaball to the main database");

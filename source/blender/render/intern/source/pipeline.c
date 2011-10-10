@@ -1203,7 +1203,7 @@ Render *RE_NewRender(const char *name)
 		/* new render data struct */
 		re= MEM_callocN(sizeof(Render), "new render");
 		BLI_addtail(&RenderGlobal.renderlist, re);
-		strncpy(re->name, name, RE_MAXNAME);
+		BLI_strncpy(re->name, name, RE_MAXNAME);
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	

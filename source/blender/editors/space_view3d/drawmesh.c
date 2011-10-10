@@ -309,16 +309,24 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
-	int istex, solidtex= 0;
+	int istex, solidtex;
 
 	// XXX scene->obedit warning
-	if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
+
+	/* texture draw is abused for mask selection mode, do this so wire draw
+	 * with face selection in weight paint is not lit. */
+	if((v3d->drawtype <= OB_WIRE) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+		solidtex= FALSE;
+		Gtexdraw.islit= 0;
+	}
+	else if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
-		solidtex= 1;
+		solidtex= TRUE;
 		Gtexdraw.islit= -1;
 	}
 	else {
 		/* draw with lights in the scene otherwise */
+		solidtex= FALSE;
 		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
@@ -442,9 +450,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
+				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
-				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
+				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[2]);
 			}
 		} else if (!mcol) {
 			if (tface) {
@@ -463,9 +471,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					else copy_v3_v3(col, &ma->r);
 					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = FTOCHAR(col[2]);
+						finalCol[i*4+j].b = FTOCHAR(col[0]);
 						finalCol[i*4+j].g = FTOCHAR(col[1]);
-						finalCol[i*4+j].r = FTOCHAR(col[0]);
+						finalCol[i*4+j].r = FTOCHAR(col[2]);
 					}
 				}
 				else
@@ -477,9 +485,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].b = mcol[i*4+j].r;
+				finalCol[i*4+j].r = mcol[i*4+j].r;
 				finalCol[i*4+j].g = mcol[i*4+j].g;
-				finalCol[i*4+j].r = mcol[i*4+j].b;
+				finalCol[i*4+j].b = mcol[i*4+j].b;
 			}
 		}
 	}

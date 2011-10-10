@@ -1223,41 +1223,47 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			retval= ot->modal(C, op, event);
 			OPERATOR_RETVAL_CHECK(retval);
 
-			if(ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
-				wm->op_undo_depth--;
+			/* when this is _not_ the case the modal modifier may have loaded
+			 * a new blend file (demo mode does this), so we have to assume
+			 * the event, operator etc have all been freed. - campbell */
+			if(CTX_wm_manager(C) == wm) {
 
-			/* putting back screen context, reval can pass trough after modal failures! */
-			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
-				CTX_wm_area_set(C, area);
-				CTX_wm_region_set(C, region);
-			}
-			else {
-				/* this special cases is for areas and regions that get removed */
-				CTX_wm_area_set(C, NULL);
-				CTX_wm_region_set(C, NULL);
-			}		
+				if(ot->flag & OPTYPE_UNDO)
+					wm->op_undo_depth--;
 
-			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED))
-				wm_operator_reports(C, op, retval, 0);
-			
-			if(retval & OPERATOR_FINISHED) {
-				wm_operator_finished(C, op, 0);
-				handler->op= NULL;
-			}
-			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				WM_operator_free(op);
-				handler->op= NULL;
-			}
-			
-			/* remove modal handler, operator itself should have been cancelled and freed */
-			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				WM_cursor_ungrab(CTX_wm_window(C));
+				/* putting back screen context, reval can pass trough after modal failures! */
+				if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
+					CTX_wm_area_set(C, area);
+					CTX_wm_region_set(C, region);
+				}
+				else {
+					/* this special cases is for areas and regions that get removed */
+					CTX_wm_area_set(C, NULL);
+					CTX_wm_region_set(C, NULL);
+				}
 
-				BLI_remlink(handlers, handler);
-				wm_event_free_handler(handler);
-				
-				/* prevent silly errors from operator users */
-				//retval &= ~OPERATOR_PASS_THROUGH;
+				if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED))
+					wm_operator_reports(C, op, retval, 0);
+
+				if(retval & OPERATOR_FINISHED) {
+					wm_operator_finished(C, op, 0);
+					handler->op= NULL;
+				}
+				else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+					WM_operator_free(op);
+					handler->op= NULL;
+				}
+
+				/* remove modal handler, operator itself should have been cancelled and freed */
+				if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+					WM_cursor_ungrab(CTX_wm_window(C));
+
+					BLI_remlink(handlers, handler);
+					wm_event_free_handler(handler);
+
+					/* prevent silly errors from operator users */
+					//retval &= ~OPERATOR_PASS_THROUGH;
+				}
 			}
 			
 		}
@@ -1270,6 +1276,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		if(ot)
 			retval= wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
 	}
+	/* Finished and pass through flag as handled */
 
 	/* Finished and pass through flag as handled */
 	if(retval == (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH))

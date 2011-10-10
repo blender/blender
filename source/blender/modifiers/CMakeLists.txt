@@ -65,7 +65,6 @@ set(SRC
 	intern/MOD_meshdeform.c
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
-	intern/MOD_navmesh.c
 	intern/MOD_none.c
 	intern/MOD_particleinstance.c
 	intern/MOD_particlesystem.c

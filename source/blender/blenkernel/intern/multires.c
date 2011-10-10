@@ -1029,7 +1029,7 @@ static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 	int nvert = (mface->v4)? 4: 3;
 	int newtotdisp = multires_grid_tot[newlvl]*nvert;
 	int x, y, S;
-	float (*disps)[3], (*out)[3], u, v;
+	float (*disps)[3], (*out)[3], u = 0.0f, v = 0.0f; /* Quite gcc barking. */
 
 	disps = MEM_callocN(sizeof(float) * 3 * newtotdisp, "multires disps");
 

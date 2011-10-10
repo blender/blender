@@ -62,6 +62,10 @@
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 
+#ifdef WITH_GAMEENGINE
+#include "BKE_navmesh_conversion.h"
+#endif
+
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "GL/glew.h"
@@ -72,6 +76,8 @@
 #include "GPU_material.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
+
+static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -691,9 +697,11 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				else {
 					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
 					if (shade_type != shade_prev) {
-						glShadeModel((shade_prev= shade_type));
+						if(poly_prev != GL_ZERO) glEnd();
+						glShadeModel((shade_prev= shade_type)); /* same as below but switch shading */
+						glBegin((poly_prev= poly_type));
 					}
-					if(poly_type != poly_prev) {
+					else if(poly_type != poly_prev) {
 						if(poly_prev != GL_ZERO) glEnd();
 						glBegin((poly_prev= poly_type));
 					}
@@ -756,9 +764,11 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				else {
 					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
 					if (shade_type != shade_prev) {
-						glShadeModel((shade_prev= shade_type));
+						if(poly_prev != GL_ZERO) glEnd();
+						glShadeModel((shade_prev= shade_type)); /* same as below but switch shading */
+						glBegin((poly_prev= poly_type));
 					}
-					if(poly_type != poly_prev) {
+					else if(poly_type != poly_prev) {
 						if(poly_prev != GL_ZERO) glEnd();
 						glBegin((poly_prev= poly_type));
 					}
@@ -2107,6 +2117,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			add_orco_dm(ob, NULL, *deform_r, NULL, CD_ORCO);
 	}
 
+#ifdef WITH_GAMEENGINE
+	/* NavMesh - this is a hack but saves having a NavMesh modifier */
+	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
+		DerivedMesh *tdm;
+		tdm= navmesh_dm_createNavMeshForVisualization(finaldm);
+		if (finaldm != tdm) {
+			finaldm->release(finaldm);
+			finaldm= tdm;
+		}
+	}
+#endif /* WITH_GAMEENGINE */
+
 	*final_r = finaldm;
 
 	if(orcodm)
@@ -2941,3 +2963,170 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 
 	boundbox_set_from_min_max(ob->bb, min, max);
 }
+
+/* --- NAVMESH (begin) --- */
+#ifdef WITH_GAMEENGINE
+
+BM_INLINE int navmesh_bit(int a, int b)
+{
+	return (a & (1 << b)) >> b;
+}
+
+BM_INLINE void navmesh_intToCol(int i, float col[3])
+{
+	int	r = navmesh_bit(i, 0) + navmesh_bit(i, 3) * 2 + 1;
+	int	g = navmesh_bit(i, 1) + navmesh_bit(i, 4) * 2 + 1;
+	int	b = navmesh_bit(i, 2) + navmesh_bit(i, 5) * 2 + 1;
+	col[0] = 1 - r*63.0f/255.0f;
+	col[1] = 1 - g*63.0f/255.0f;
+	col[2] = 1 - b*63.0f/255.0f;
+}
+
+static void navmesh_drawColored(DerivedMesh *dm)
+{
+	int a, glmode;
+	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
+	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
+	int *polygonIdx = (int *)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	float col[3];
+
+	if (!polygonIdx)
+		return;
+
+	/*
+	//UI_ThemeColor(TH_WIRE);
+	glDisable(GL_LIGHTING);
+	glLineWidth(2.0);
+	dm->drawEdges(dm, 0, 1);
+	glLineWidth(1.0);
+	glEnable(GL_LIGHTING);*/
+
+	glDisable(GL_LIGHTING);
+	/*  if(GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
+		DEBUG_VBO( "Using legacy code. drawNavMeshColored\n" );
+		//glShadeModel(GL_SMOOTH);
+		glBegin(glmode = GL_QUADS);
+		for(a = 0; a < dm->numFaceData; a++, mface++) {
+			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
+			int pi = polygonIdx[a];
+			if (pi <= 0) {
+				zero_v3(col);
+			}
+			else {
+				navmesh_intToCol(pi, col);
+			}
+
+			if(new_glmode != glmode) {
+				glEnd();
+				glBegin(glmode = new_glmode);
+			}
+			glColor3fv(col);
+			glVertex3fv(mvert[mface->v1].co);
+			glVertex3fv(mvert[mface->v2].co);
+			glVertex3fv(mvert[mface->v3].co);
+			if(mface->v4) {
+				glVertex3fv(mvert[mface->v4].co);
+			}
+		}
+		glEnd();
+	}
+	glEnable(GL_LIGHTING);
+}
+
+static void navmesh_DM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
+{
+	(void) setDrawOptions;
+
+	navmesh_drawColored(dm);
+}
+
+static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
+                                      float (*partial_redraw_planes)[4],
+                                      int UNUSED(fast), int (*setMaterial)(int, void *attribs))
+{
+	(void) partial_redraw_planes;
+	(void) setMaterial;
+
+	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
+	navmesh_drawColored(dm);
+}
+
+static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
+{
+	DerivedMesh *result;
+	int maxFaces = dm->getNumFaces(dm);
+	int *recastData;
+	int vertsPerPoly=0, nverts=0, ndtris=0, npolys=0;
+	float* verts=NULL;
+	unsigned short *dtris=NULL, *dmeshes=NULL, *polys=NULL;
+	int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
+	int res;
+
+	result = CDDM_copy(dm);
+	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
+		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+		if (sourceRecastData) {
+			CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE,
+			                           sourceRecastData, maxFaces, "recastData");
+		}
+	}
+	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+
+	/* note: This is not good design! - really should not be doing this */
+	result->drawFacesTex =  navmesh_DM_drawFacesTex;
+	result->drawFacesSolid = navmesh_DM_drawFacesSolid;
+
+
+	/* process mesh */
+	res  = buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nverts, &verts, &ndtris, &dtris,
+	                                     &npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap,
+	                                     &trisToFacesMap);
+	if (res) {
+		size_t polyIdx;
+
+		/* invalidate concave polygon */
+		for (polyIdx=0; polyIdx<(size_t)npolys; polyIdx++) {
+			unsigned short* poly = &polys[polyIdx*2*vertsPerPoly];
+			if (!polyIsConvex(poly, vertsPerPoly, verts)) {
+				/* set negative polygon idx to all faces */
+				unsigned short *dmesh = &dmeshes[4*polyIdx];
+				unsigned short tbase = dmesh[2];
+				unsigned short tnum = dmesh[3];
+				unsigned short ti;
+
+				for (ti=0; ti<tnum; ti++) {
+					unsigned short triidx = dtrisToTrisMap[tbase+ti];
+					unsigned short faceidx = trisToFacesMap[triidx];
+					if (recastData[faceidx] > 0) {
+						recastData[faceidx] = -recastData[faceidx];
+					}
+				}
+			}
+		}
+	}
+	else {
+		printf("Error during creation polygon infos\n");
+	}
+
+	/* clean up */
+	if (verts!=NULL)
+		MEM_freeN(verts);
+	if (dtris!=NULL)
+		MEM_freeN(dtris);
+	if (dmeshes!=NULL)
+		MEM_freeN(dmeshes);
+	if (polys!=NULL)
+		MEM_freeN(polys);
+	if (dtrisToPolysMap!=NULL)
+		MEM_freeN(dtrisToPolysMap);
+	if (dtrisToTrisMap!=NULL)
+		MEM_freeN(dtrisToTrisMap);
+	if (trisToFacesMap!=NULL)
+		MEM_freeN(trisToFacesMap);
+
+	return result;
+}
+
+#endif /* WITH_GAMEENGINE */
+
+/* --- NAVMESH (end) --- */

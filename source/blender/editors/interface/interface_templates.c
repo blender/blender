@@ -412,10 +412,10 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		if(id->us > 1) {
 			char str[32];
 
-			sprintf(str, "%d", id->us);
+			BLI_snprintf(str, sizeof(str), "%d", id->us);
 
 			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0,
-						UI_translate_do_tooltip(_("Displays number of users of this data. Click to make a single-user copy")));
+			              UI_translate_do_tooltip(_("Display number of users of this data (click to make a single-user copy)")));
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
@@ -724,7 +724,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		block= uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
 		// XXX this is not used now, since these cannot be accessed via RNA
-		sprintf(str, "%s parent deform", md->name);
+		BLI_snprintf(str, sizeof(str), "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 		
 		but = uiDefBut(block, BUT, 0, UI_translate_do_iface(N_("Make Real")), 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0,
@@ -959,13 +959,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	cti= constraint_get_typeinfo(con);
 	if (cti == NULL) {
 		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
-		if (con->type == CONSTRAINT_TYPE_NULL)
-			strcpy(typestr, "Null");
-		else
-			strcpy(typestr, "Unknown");
+		BLI_strncpy(typestr, (con->type == CONSTRAINT_TYPE_NULL) ? "Null" : "Unknown", sizeof(typestr));
 	}
 	else
-		strcpy(typestr, cti->name);
+		BLI_strncpy(typestr, cti->name, sizeof(typestr));
 		
 	/* determine whether constraint is proxy protected or not */
 	if (proxylocked_constraints_owner(ob, pchan))
@@ -1043,7 +1040,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		
 		/* enabled */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiItemR(row, &ptr, "mute", 0, "", (con->flag & CONSTRAINT_OFF) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
+		uiItemR(row, &ptr, "mute", 0, "", (con->flag & CONSTRAINT_OFF) ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
@@ -2112,7 +2109,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			manode= give_node_material(ma);
 			if(manode) {
 				char str[MAX_ID_NAME + 12];
-				sprintf(str, "Node %s", manode->id.name+2);
+				BLI_snprintf(str, sizeof(str), "Node %s", manode->id.name+2);
 				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
 			}
 			else if(ma->use_nodes) {
@@ -2281,7 +2278,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			uiItemL(row, "", ICON_NONE);
 
 		/* next/prev button */
-		sprintf(str, "%d :", i);
+		BLI_snprintf(str, sizeof(str), "%d :", i);
 		but= uiDefIconTextButR_prop(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
 		if(i == 0)
 			uiButSetFlag(but, UI_BUT_DISABLED);
@@ -2543,5 +2540,63 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+}
+
+/********************************* Keymap *************************************/
+
+static void keymap_item_modified(bContext *UNUSED(C), void *kmi_p, void *UNUSED(unused))
+{
+	wmKeyMapItem *kmi= (wmKeyMapItem*)kmi_p;
+	WM_keyconfig_update_tag(NULL, kmi);
+}
+
+static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
+{
+	uiLayout *flow;
+
+	uiItemS(layout);
+
+	if(title)
+		uiItemL(layout, title, ICON_NONE);
+	
+	flow= uiLayoutColumnFlow(layout, 2, 0);
+
+	RNA_STRUCT_BEGIN(ptr, prop) {
+		int flag= RNA_property_flag(prop);
+
+		if(flag & PROP_HIDDEN)
+			continue;
+
+		/* recurse for nested properties */
+		if(RNA_property_type(prop) == PROP_POINTER) {
+			PointerRNA propptr= RNA_property_pointer_get(ptr, prop);
+			const char *name= RNA_property_ui_name(prop);
+
+			if(propptr.data && RNA_struct_is_a(propptr.type, &RNA_OperatorProperties)) {
+				template_keymap_item_properties(layout, name, &propptr);
+				continue;
+			}
+		}
+
+		/* add property */
+		uiItemR(flow, ptr, RNA_property_identifier(prop), 0, NULL, ICON_NONE);
+	}
+	RNA_STRUCT_END;
+}
+
+void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
+{
+	PointerRNA propptr= RNA_pointer_get(ptr, "properties");
+
+	if(propptr.data) {
+		uiBut *but= uiLayoutGetBlock(layout)->buttons.last;
+
+		template_keymap_item_properties(layout, NULL, &propptr);
+
+		/* attach callbacks to compensate for missing properties update,
+		   we don't know which keymap (item) is being modified there */
+		for(; but; but=but->next)
+			uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
+	}
 }
 

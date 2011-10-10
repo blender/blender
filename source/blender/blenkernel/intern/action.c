@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -270,7 +272,7 @@ bActionGroup *action_groups_add_new (bAction *act, const char name[])
 	
 	/* make it selected, with default name */
 	agrp->flag = AGRP_SELECTED;
-	strncpy(agrp->name, name[0] ? name : "Group", sizeof(agrp->name));
+	BLI_strncpy(agrp->name, name[0] ? name : "Group", sizeof(agrp->name));
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);

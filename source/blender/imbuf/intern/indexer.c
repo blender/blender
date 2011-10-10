@@ -183,9 +183,9 @@ struct anim_index * IMB_indexer_open(const char * name)
 
 	BLI_strncpy(idx->name, name, sizeof(idx->name));
 	
-       	fseek(fp, 0, SEEK_END);
+	fseek(fp, 0, SEEK_END);
 
-	idx->num_entries = (ftell(fp) - 12) 
+	idx->num_entries = (ftell(fp) - 12)
 		/ (sizeof(int) // framepos
 		   + sizeof(unsigned long long) // seek_pos
 		   + sizeof(unsigned long long) // seek_pos_dts

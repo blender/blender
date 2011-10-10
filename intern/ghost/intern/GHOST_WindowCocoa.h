@@ -305,13 +305,13 @@ protected:
 					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color);
 					
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
-    
- 	/** The window containing the OpenGL view */
-    CocoaWindow *m_window;
+
+	/** The window containing the OpenGL view */
+	CocoaWindow *m_window;
 	
 	/** The openGL view */
 	CocoaOpenGLView *m_openGLView; 
-    
+
 	/** The opgnGL drawing context */
 	NSOpenGLContext *m_openGLContext;
 	

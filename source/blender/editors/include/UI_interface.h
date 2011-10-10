@@ -34,6 +34,7 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+#include "BLO_sys_types.h" /* size_t */
 #include "RNA_types.h"
 #include "DNA_userdef_types.h"
 
@@ -576,7 +577,7 @@ void uiButSetFocusOnEnter	(struct wmWindow *win, uiBut *but);
 
 typedef struct AutoComplete AutoComplete;
 
-AutoComplete *autocomplete_begin(const char *startname, int maxlen);
+AutoComplete *autocomplete_begin(const char *startname, size_t maxlen);
 void autocomplete_do_name(AutoComplete *autocpl, const char *name);
 void autocomplete_end(AutoComplete *autocpl, char *autoname);
 
@@ -748,6 +749,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
+void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
 
@@ -786,6 +788,7 @@ void UI_buttons_operatortypes(void);
 
 /* Helpers for Operators */
 void uiContextActiveProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void uiContextActivePropertyHandle(struct bContext *C);
 void uiContextAnimUpdate(const struct bContext *C);
 void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);

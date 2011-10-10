@@ -1221,7 +1221,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						BKE_text_to_curve(scene, base->object, 0);		/* needed? */
+						BKE_text_to_curve(bmain, scene, base->object, 0); /* needed? */
 
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
@@ -1368,7 +1368,7 @@ static void UNUSED_FUNCTION(copy_attr_menu)(Main *bmain, Scene *scene, View3D *v
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
 	
-// XXX	if (OB_SUPPORT_MATERIAL(ob)) {
+// XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 //		strcat(str, "|Texture Space%x17");
 //	}	
 	

@@ -74,7 +74,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 
 	ibuf= BKE_image_get_ibuf(ima, iuser);
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
- 		return NULL;
+		return NULL;
 	}
 
 	if (ibuf->rect_float == NULL) {

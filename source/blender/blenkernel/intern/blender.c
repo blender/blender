@@ -1,7 +1,4 @@
-/*  blender.c   jan 94     MIXED MODEL
- * 
- * common help functions and data
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -518,7 +515,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	
 	/* make new */
 	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
-	strncpy(uel->name, name, MAXUNDONAME-1);
+	BLI_strncpy(uel->name, name, sizeof(uel->name));
 	BLI_addtail(&undobase, uel);
 	
 	/* and limit amount to the maximum */

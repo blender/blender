@@ -752,7 +752,7 @@ int UI_icon_get_width(int icon_id)
 	
 	if (icon==NULL) {
 		if (G.f & G_DEBUG)
-			printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
+			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
 	
@@ -777,7 +777,7 @@ int UI_icon_get_height(int icon_id)
 	
 	if (icon==NULL) {
 		if (G.f & G_DEBUG)
-			printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
+			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
 	
@@ -825,7 +825,7 @@ static void icon_create_rect(struct PreviewImage* prv_img, enum eIconSizes size)
 
 	if (!prv_img) {
 		if (G.f & G_DEBUG)
-			printf("Error: requested preview image does not exist");
+			printf("%s, error: requested preview image does not exist", __func__);
 	}
 	if (!prv_img->rect[size]) {
 		prv_img->w[size] = render_size;
@@ -842,7 +842,7 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, enum eIco
 {
 	if (!prv_img) {
 		if (G.f & G_DEBUG)
-			printf("No preview image for this ID: %s\n", id->name);
+			printf("%s: no preview image for this ID: %s\n", __func__, id->name);
 		return;
 	}	
 
@@ -858,7 +858,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 
 	/* sanity check */
 	if(w<=0 || h<=0 || w>2000 || h>2000) {
-		printf("icon_draw_rect: icons are %i x %i pixels?\n", w, h);
+		printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
 		BLI_assert(!"invalid icon size");
 		return;
 	}
@@ -948,19 +948,19 @@ static int get_draw_size(enum eIconSizes size)
 	return 0;
 }
 
-static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, enum eIconSizes size, int draw_size, int UNUSED(nocreate), int is_preview)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size= UI_DPI_ICON_FAC*draw_size;
+	float fdraw_size= is_preview ? draw_size : (draw_size * UI_DPI_ICON_FAC);
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
 	
 	if (icon==NULL) {
 		if (G.f & G_DEBUG)
-			printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
+			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return;
 	}
 
@@ -1018,9 +1018,9 @@ static void ui_id_icon_render(bContext *C, ID *id, int big)
 		{
 			/* create the rect if necessary */				
 			
-			icon_set_image(C, id, pi, 0);		/* icon size */
+			icon_set_image(C, id, pi, ICON_SIZE_ICON);		/* icon size */
 			if (big)
-				icon_set_image(C, id, pi, 1);	/* bigger preview size */
+				icon_set_image(C, id, pi, ICON_SIZE_PREVIEW);	/* bigger preview size */
 			
 			pi->changed[0] = 0;
 		}
@@ -1030,7 +1030,7 @@ static void ui_id_icon_render(bContext *C, ID *id, int big)
 static void ui_id_brush_render(bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
-	int i;
+	enum eIconSizes i;
 	
 	if(!pi)
 		return;

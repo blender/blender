@@ -463,10 +463,8 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
-	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
-	BLI_strncpy(value, path, strlen(path)+1);
+	BLI_join_dirfile(value, FILE_MAX, seq->strip->dir, seq->strip->stripdata->name);
 }
 
 static int rna_Sequence_filepath_length(PointerRNA *ptr)
@@ -475,7 +473,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	char path[FILE_MAX];
 
 	BLI_join_dirfile(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
-	return strlen(path)+1;
+	return strlen(path);
 }
 
 static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
@@ -491,10 +489,8 @@ static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
 {
 	StripProxy *proxy= (StripProxy*)(ptr->data);
-	char path[FILE_MAX];
 
-	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
-	BLI_strncpy(value, path, strlen(path)+1);
+	BLI_join_dirfile(value, FILE_MAX, proxy->dir, proxy->file);
 }
 
 static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
@@ -503,7 +499,7 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 	char path[FILE_MAX];
 
 	BLI_join_dirfile(path, sizeof(path), proxy->dir, proxy->file);
-	return strlen(path)+1;
+	return strlen(path);
 }
 
 static void rna_Sequence_volume_set(PointerRNA *ptr, float value)
@@ -563,7 +559,8 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
+	if(ed)
+		free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -824,16 +821,14 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem seq_tc_items[]= {
-		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""}, 
+		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""},
 		{SEQ_PROXY_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run",
-		 "use images in the order as they are recorded"}, 
-		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", 
-		 "use global timestamp written by recording device"}, 
-		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 
-		 0, "Free Run (rec date)", 
-		 "interpolate a global timestamp using the "
-		 "record date and time written by recording "
-		 "device"}, 
+		                          "Use images in the order as they are recorded"},
+		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run",
+		                        "Use global timestamp written by recording device"},
+		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)",
+		                                        "Interpolate a global timestamp using the "
+		                                        "record date and time written by recording device"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
@@ -1179,13 +1174,13 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Sequences", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", NULL, NULL, NULL, NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEditor_meta_stack_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SequenceEditor_meta_stack_get", NULL, NULL, NULL, NULL);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
@@ -1355,7 +1350,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", NULL, NULL, NULL);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1421,7 +1416,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "MPEG Preseek", "For MPEG movies, preseek this many frames");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "streamindex", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "stream_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "streamindex");
 	RNA_def_property_range(prop, 0, 20);
 	RNA_def_property_ui_text(prop, "Streamindex", "For files with several movie streams, use the stream with the given index");
@@ -1431,7 +1426,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File", "");

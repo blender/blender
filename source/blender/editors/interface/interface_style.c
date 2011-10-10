@@ -42,6 +42,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 
@@ -315,14 +316,14 @@ void uiStyleInit(void)
 		font= MEM_callocN(sizeof(uiFont), "ui font");
 		BLI_addtail(&U.uifonts, font);
 		
-		strcpy(font->filename, "default");
+		BLI_strncpy(font->filename, "default", sizeof(font->filename));
 		font->uifont_id= UIFONT_DEFAULT;
 	}
 	
 	for(font= U.uifonts.first; font; font= font->next) {
 		
 		if(font->uifont_id==UIFONT_DEFAULT) {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 			int font_size= datatoc_bfont_ttf_size;
 			unsigned char *font_ttf= (unsigned char*)datatoc_bfont_ttf;
 			static int last_font_size = 0;
@@ -357,7 +358,7 @@ void uiStyleInit(void)
 
 		if (font->blf_id == -1) {
 			if (G.f & G_DEBUG)
-				printf("uiStyleInit error, no fonts available\n");
+				printf("%s: error, no fonts available\n", __func__);
 		}
 		else {
 			/* ? just for speed to initialize?

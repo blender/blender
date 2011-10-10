@@ -253,7 +253,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	/* ... set up some parameters ...                                        */
 	/* missing here: the 'floorloc' of the actor's shadow */
 
- 	mindistsq= m_minHeight*m_minHeight;
+	mindistsq= m_minHeight*m_minHeight;
 	maxdistsq= m_maxHeight*m_maxHeight;
 
 	/* C1: not checked... is a future option                                 */

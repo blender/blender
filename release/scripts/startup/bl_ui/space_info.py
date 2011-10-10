@@ -360,7 +360,7 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-259/'
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-260/'
 
         layout.separator()
 

@@ -96,6 +96,7 @@ set(APISRC
 	rna_actuator_api.c
 	rna_animation_api.c
 	rna_armature_api.c
+	rna_camera_api.c
 	rna_controller_api.c
 	rna_fcurve_api.c
 	rna_image_api.c
@@ -221,7 +222,7 @@ if(WITH_OPENCOLLADA)
 endif()
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DINTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 # Build makesrna executable

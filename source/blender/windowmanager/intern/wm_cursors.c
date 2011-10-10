@@ -317,8 +317,8 @@ are for */
 #define BEGIN_CURSOR_BLOCK {
 #define END_CURSOR_BLOCK   }
 
-void wm_init_cursor_data(void){
-
+void wm_init_cursor_data(void)
+{
 	/********************** NW_ARROW Cursor **************************/
 BEGIN_CURSOR_BLOCK
 		static char nw_sbm[]={

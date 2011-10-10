@@ -356,16 +356,19 @@ endif()
 
 if(WITH_GAMEENGINE)
 	list(APPEND INC_SYS
-	../../../extern/recastnavigation
+		../../../extern/recastnavigation
 	)
 	list(APPEND SRC
 		intern/navmesh_conversion.c
 		BKE_navmesh_conversion.h
 	)
+
+	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-if(MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
-endif()
+## Warnings as errors, this is too strict!
+#if(MSVC)
+#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+#endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}")

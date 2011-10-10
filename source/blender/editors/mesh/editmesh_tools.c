@@ -1591,7 +1591,7 @@ static void fill_quad_single(EditMesh *em, EditFace *efa, struct GHash *gh, int 
 	EditEdge *cedge=NULL;
 	EditVert *v[4], **verts;
 	EditFace *hold;
-	short start=0, end, left, right, vertsize,i;
+	short start=0, /* end, */ /* UNUSED */ left, right, vertsize,i;
 
 	v[0] = efa->v1;
 	v[1] = efa->v2;
@@ -1613,7 +1613,7 @@ static void fill_quad_single(EditMesh *em, EditFace *efa, struct GHash *gh, int 
 	// the array to the correct direction
 
 	if(verts[0] != v[start]) {flipvertarray(verts,numcuts+2);}
-	end	= (start+1)%4;
+	/* end	= (start+1)%4; */ /* UNUSED */
 	left   = (start+2)%4;
 	right  = (start+3)%4;
 
@@ -1677,7 +1677,7 @@ static void fill_tri_single(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 	EditEdge *cedge=NULL;
 	EditVert *v[3], **verts;
 	EditFace *hold;
-	short start=0, end, op, vertsize,i;
+	short start=0, /* end, */ /* UNUSED */ op, vertsize,i;
 
 	v[0] = efa->v1;
 	v[1] = efa->v2;
@@ -1697,8 +1697,8 @@ static void fill_tri_single(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 	// the array to the correct direction
 
 	if(verts[0] != v[start]) {flipvertarray(verts,numcuts+2);}
-	   end	= (start+1)%3;
-	   op	 = (start+2)%3;
+	/* end = (start+1)%3; */ /* UNUSED */
+	op = (start+2)%3;
 
 	/*
 	We should have something like this now
@@ -1888,7 +1888,7 @@ static void fill_quad_double_adj_fan(EditMesh *em, EditFace *efa, struct GHash *
 	EditEdge *cedge[2]={NULL, NULL};
 	EditVert *v[4], *op=NULL, **verts[2];
 	EditFace *hold;
-	short start=0, start2=0, vertsize,i;
+	short start=0, start2=0, /* vertsize, */ /* UNUSED */ i;
 
 	v[0] = efa->v1;
 	v[1] = efa->v2;
@@ -1905,7 +1905,7 @@ static void fill_quad_double_adj_fan(EditMesh *em, EditFace *efa, struct GHash *
 	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
 	verts[1] = BLI_ghash_lookup(gh, cedge[1]);
 	//This is the index size of the verts array
-	vertsize = numcuts+2;
+	/* vertsize = numcuts+2; */ /* UNUSED */
 
 	// Is the original v1 the same as the first vert on the selected edge?
 	// if not, the edge is running the opposite direction in this face so flip
@@ -1952,7 +1952,7 @@ static void fill_quad_double_adj_inner(EditMesh *em, EditFace *efa, struct GHash
 	EditEdge *cedge[2]={NULL, NULL};
 	EditVert *v[4], *op=NULL, **verts[2],**inner;
 	EditFace *hold;
-	short start=0, start2=0, vertsize,i;
+	short start=0, start2=0, /* vertsize, */ /* UNUSED */ i;
 	float co[3];
 
 	v[0] = efa->v1;
@@ -1970,7 +1970,7 @@ static void fill_quad_double_adj_inner(EditMesh *em, EditFace *efa, struct GHash
 	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
 	verts[1] = BLI_ghash_lookup(gh, cedge[1]);
 	//This is the index size of the verts array
-	vertsize = numcuts+2;
+	/* vertsize = numcuts+2; */ /* UNUSED */
 
 	// Is the original v1 the same as the first vert on the selected edge?
 	// if not, the edge is running the opposite direction in this face so flip
@@ -2297,7 +2297,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	EditVert **verts[4], ***innerverts;
 	EditFace *hold;
 	EditEdge temp;
-	short vertsize, i, j;
+	short /* vertsize, */ /* UNUSED */ i, j;
 
 	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
 	verts[0] = BLI_ghash_lookup(gh, efa->e1);
@@ -2306,7 +2306,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	verts[3] = BLI_ghash_lookup(gh, efa->e4);
 
 	//This is the index size of the verts array
-	vertsize = numcuts+2;
+	/* vertsize = numcuts+2; */ /* UNUSED */
 
 	// Is the original v1 the same as the first vert on the selected edge?
 	// if not, the edge is running the opposite direction in this face so flip
@@ -2392,7 +2392,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int numcuts, float smooth, float fractal, int beauty)
 {
 	EditVert **verts[3], ***innerverts;
-	short vertsize, i, j;
+	short /* vertsize, */ /* UNUSED */ i, j;
 	EditFace *hold;
 	EditEdge temp;
 
@@ -2402,7 +2402,7 @@ static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 	verts[2] = BLI_ghash_lookup(gh, efa->e3);
 
 	//This is the index size of the verts array
-	vertsize = numcuts+2;
+	/* vertsize = numcuts+2; */ /* UNUSED */
 
 	// Is the original v1 the same as the first vert on the selected edge?
 	// if not, the edge is running the opposite direction in this face so flip
@@ -2547,7 +2547,7 @@ static void fill_quad_singlevert(EditMesh *em, EditFace *efa, struct GHash *gh)
 	EditEdge *cedge=NULL;
 	EditVert *v[4], **verts;
 	EditFace *hold;
-	short start=0, end, left, right, vertsize;
+	short start=0, end, left, right /* , vertsize */ /* UNUSED */;
 
 	v[0] = efa->v1;
 	v[1] = efa->v2;
@@ -2562,7 +2562,7 @@ static void fill_quad_singlevert(EditMesh *em, EditFace *efa, struct GHash *gh)
 	// Point verts to the array of new verts for cedge
 	verts = BLI_ghash_lookup(gh, cedge);
 	//This is the index size of the verts array
-	vertsize = 3;
+	/* vertsize = 3; */ /* UNUSED */
 
 	// Is the original v1 the same as the first vert on the selected edge?
 	// if not, the edge is running the opposite direction in this face so flip
@@ -3629,7 +3629,7 @@ static const EnumPropertyItem axis_items_xy[]= {
 static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 {
 	EditVert **verts[2];
-	EditFace *face[2], *efa, *newFace[2];
+	EditFace *face[2], *efa /* , *newFace[2] */ /* UNUSED */;
 	EditEdge **edges[2], **hiddenedges, *srchedge;
 	int facecount, p1, p2, p3, p4, fac1, fac2, i, j;
 	int numhidden, numshared, p[2][4];
@@ -3720,16 +3720,16 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	if(fac1 == 3 && fac2 == 3) {
 		/* no need of reverse setup */
 
-		newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
-		newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
+		/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
+		/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 	}
 	else if(fac1 == 4 && fac2 == 3) {
 		if(dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 		} else if (dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
 
 			verts[0][p[0][2]]->f |= SELECT;
 			verts[1][p[1][1]]->f |= SELECT;
@@ -3737,11 +3737,11 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	}
 	else if(fac1 == 3 && fac2 == 4) {
 		if(dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
 		} else if (dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
 
 			verts[0][p[0][1]]->f |= SELECT;
 			verts[1][p[1][2]]->f |= SELECT;
@@ -3750,11 +3750,11 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	}
 	else if(fac1 == 4 && fac2 == 4) {
 		if(dir == DIRECTION_CCW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
 		} else if (dir == DIRECTION_CW) {
-			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
-			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
+			/* newFace[0]= */ /* UNUSED */EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
+			/* newFace[1]= */ /* UNUSED */EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
 
 			verts[0][p[0][2]]->f |= SELECT;
 			verts[1][p[1][2]]->f |= SELECT;

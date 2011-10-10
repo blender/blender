@@ -17,7 +17,7 @@ BF_PYTHON_LIB = 'python32'
 BF_PYTHON_DLL = '${BF_PYTHON_LIB}'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
-WITH_BF_OPENAL = False 
+WITH_BF_OPENAL = True
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include '
 BF_OPENAL_LIB = 'wrap_oal'
@@ -39,11 +39,6 @@ BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
-
-BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
-BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
-BF_LIBSAMPLERATE_LIB = 'libsamplerate'
-BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
@@ -155,6 +150,8 @@ BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader Open
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
 WITH_BF_3DMOUSE = True
+
+WITH_BF_OPENMP = True
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True

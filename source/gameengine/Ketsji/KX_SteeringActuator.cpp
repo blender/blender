@@ -46,38 +46,38 @@
 /* ------------------------------------------------------------------------- */
 
 KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj, 
-									int mode,
-									KX_GameObject *target,
-									KX_GameObject *navmesh,
-									float distance,
-									float velocity, 
-									float acceleration,									
-									float turnspeed,
-									bool  isSelfTerminated,
-									int pathUpdatePeriod,
-									KX_ObstacleSimulation* simulation,
-									short facingmode,
-									bool normalup,
-									bool enableVisualization)	 : 
-	SCA_IActuator(gameobj, KX_ACT_STEERING),
-	m_mode(mode),
-	m_target(target),
-	m_distance(distance),
-	m_velocity(velocity),
-	m_acceleration(acceleration),
-	m_turnspeed(turnspeed),
-	m_isSelfTerminated(isSelfTerminated),
-	m_pathUpdatePeriod(pathUpdatePeriod),
-	m_updateTime(0),
-	m_isActive(false),	
-	m_simulation(simulation),	
-	m_enableVisualization(enableVisualization),
-	m_facingMode(facingmode),
-	m_normalUp(normalup),
-	m_obstacle(NULL),
-	m_pathLen(0),
-	m_wayPointIdx(-1),
-	m_steerVec(MT_Vector3(0, 0, 0))
+                                         int mode,
+                                         KX_GameObject *target,
+                                         KX_GameObject *navmesh,
+                                         float distance,
+                                         float velocity,
+                                         float acceleration,
+                                         float turnspeed,
+                                         bool  isSelfTerminated,
+                                         int pathUpdatePeriod,
+                                         KX_ObstacleSimulation* simulation,
+                                         short facingmode,
+                                         bool normalup,
+                                         bool enableVisualization)
+    : SCA_IActuator(gameobj, KX_ACT_STEERING),
+      m_target(target),
+      m_mode(mode),
+      m_distance(distance),
+      m_velocity(velocity),
+      m_acceleration(acceleration),
+      m_turnspeed(turnspeed),
+      m_simulation(simulation),
+      m_updateTime(0),
+      m_obstacle(NULL),
+      m_isActive(false),
+      m_isSelfTerminated(isSelfTerminated),
+      m_enableVisualization(enableVisualization),
+      m_facingMode(facingmode),
+      m_normalUp(normalup),
+      m_pathLen(0),
+      m_pathUpdatePeriod(pathUpdatePeriod),
+      m_wayPointIdx(-1),
+      m_steerVec(MT_Vector3(0, 0, 0))
 {
 	m_navmesh = static_cast<KX_NavMeshObject*>(navmesh);
 	if (m_navmesh)
@@ -325,9 +325,9 @@ inline float vdot2(const float* a, const float* b)
 static bool barDistSqPointToTri(const float* p, const float* a, const float* b, const float* c)
 {
 	float v0[3], v1[3], v2[3];
-	vsub(v0, c,a);
-	vsub(v1, b,a);
-	vsub(v2, p,a);
+	rcVsub(v0, c,a);
+	rcVsub(v1, b,a);
+	rcVsub(v2, p,a);
 
 	const float dot00 = vdot2(v0, v0);
 	const float dot01 = vdot2(v0, v1);

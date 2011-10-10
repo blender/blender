@@ -109,7 +109,7 @@ void RegisterBlendExtension(void) {
 	lresult = RegCreateKeyEx(root, "blendfile", 0,
 		NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 	if (lresult == ERROR_SUCCESS) {
-		sprintf(buffer,"%s","Blender File");
+		strcpy(buffer,"Blender File");
 		lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE*)buffer, strlen(buffer) + 1);
 		RegCloseKey(hkey);
 	}
@@ -301,7 +301,7 @@ char* dirname(char *path)
 {
 	char *p;
 	if( path == NULL || *path == '\0' )
-	return ".";
+		return ".";
 	p = path + strlen(path) - 1;
 	while( *p == '/' ) {
 		if( p == path )
@@ -309,11 +309,11 @@ char* dirname(char *path)
 		*p-- = '\0';
 	}
 	while( p >= path && *p != '/' )
-	p--;
+		p--;
 	return
-	p < path ? "." :
-	p == path ? "/" :
-	(*p = '\0', path);
+		p < path ? "." :
+		p == path ? "/" :
+		(*p = '\0', path);
 }
 /* End of copied part */
 

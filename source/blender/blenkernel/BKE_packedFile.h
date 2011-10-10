@@ -45,7 +45,7 @@ struct ReportList;
 struct VFont;
 
 /* pack */
-struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename);
+struct PackedFile *newPackedFile(struct ReportList *reports, const char *filename, const char *relabase);
 struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 
 void packAll(struct Main *bmain, struct ReportList *reports);

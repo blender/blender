@@ -132,8 +132,14 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 
 		while(eit != m_factory->m_entries.end())
 		{
-			handle = new AUD_SequencerHandle(*eit, m_device);
-			handles.push_front(handle);
+			try
+			{
+				handle = new AUD_SequencerHandle(*eit, m_device);
+				handles.push_front(handle);
+			}
+			catch(AUD_Exception&)
+			{
+			}
 			eit++;
 		}
 

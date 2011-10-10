@@ -476,7 +476,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.label(text="Integration:")
             col.prop(part, "integrator", text="")
             col.prop(part, "timestep")
-            col.prop(part, "subframes")
+            sub = col.row()
+            if part.adaptive_subframes:
+                sub.prop(part, "courant_target", text="Threshold")
+            else:
+                sub.prop(part, "subframes")
+            sub.prop(part, "adaptive_subframes", text="")
 
             row = layout.row()
             row.prop(part, "use_size_deflect")
@@ -983,7 +988,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         col.label(text="Color:")
         col.prop(part, "draw_color", text="")
         sub = col.row()
-        sub.active = part.draw_color in ('VELOCITY', 'ACCELERATION')
+        sub.active = (part.draw_color in {'VELOCITY', 'ACCELERATION'})
         sub.prop(part, "color_maximum", text="Max")
 
         if (path):

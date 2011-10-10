@@ -39,6 +39,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_particle.h"
@@ -69,7 +70,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->fac = smd->fac;
 	tsmd->repeat = smd->repeat;
 	tsmd->flag = smd->flag;
-	strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
+	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
 }
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))

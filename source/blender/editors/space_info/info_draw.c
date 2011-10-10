@@ -87,7 +87,7 @@ static void info_report_color(unsigned char *fg, unsigned char *bg, Report *repo
 			if (bool) { bg[0]=220; bg[1]=128; bg[2]=96;  }
 			else      { bg[0]=214; bg[1]=122; bg[2]=90;  }
 		}
-#if 0 // XXX: this looks like the selected colour, so don't use this
+#if 0 // XXX: this looks like the selected color, so don't use this
 		else if (report->type & RPT_OPERATOR_ALL) {
 			if (bool) { bg[0]=96;  bg[1]=128; bg[2]=255; }
 			else      { bg[0]=90;  bg[1]=122; bg[2]=249; }

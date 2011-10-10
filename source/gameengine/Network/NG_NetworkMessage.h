@@ -72,7 +72,7 @@ public:
 	{
 		if (! --m_refcount)
 		{
- 			delete this;
+			delete this;
 		}
 	}
 

@@ -71,12 +71,12 @@ void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short 
 	if (timecodes) {
 		int hours=0, minutes=0, seconds=0, frames=0;
 		float raw_seconds= cfra;
-		char neg[2]= "";
+		char neg[2]= {'\0'};
 		
 		/* get cframes */
 		if (cfra < 0) {
 			/* correction for negative cfraues */
-			sprintf(neg, "-");
+			neg[0]= '-';
 			cfra = -cfra;
 		}
 		if (cfra >= 3600) {

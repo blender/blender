@@ -1538,6 +1538,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), Poi
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "index", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_smooth_mask", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1938,7 +1939,7 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
 /* only once called */
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
-    ntype->uifuncbut = NULL;
+	ntype->uifuncbut = NULL;
 	if( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
 		ntype->uifunc = node_texture_buts_proc;
 	}

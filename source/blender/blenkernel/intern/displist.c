@@ -1,6 +1,4 @@
-/*  displist.c
- * 
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -1207,7 +1205,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		if(cu->path) free_path(cu->path);
 		cu->path= NULL;
 
-		if(ob->type==OB_FONT) BKE_text_to_curve(scene, ob, 0);
+		if(ob->type==OB_FONT) BKE_text_to_curve(G.main, scene, ob, 0);
 
 		if(!forOrco) curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 
@@ -1406,7 +1404,8 @@ void makeDispListCurveTypes_forOrco(struct Scene *scene, struct Object *ob, stru
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
-float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender) {
+float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender)
+{
 	float *orco;
 
 	if (derivedFinal == NULL)

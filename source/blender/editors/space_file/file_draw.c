@@ -111,8 +111,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	/* Button layout. */
 	const int max_x      = ar->winx - 10;
-	const int line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
-	const int line2_y    = IMASEL_BUTTONS_MARGIN;
+	const int line1_y    = ar->winy - (IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN);
+	const int line2_y    = line1_y - (IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN);
 	const int input_minw = 20;
 	const int btn_h      = UI_UNIT_Y;
 	const int btn_fn_w   = UI_UNIT_X;
@@ -520,7 +520,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 		} else {
-			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_WIDTH_SCALE);
+			file_draw_icon(block, file->path, sx, sy-(UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_HEIGHT_SCALE);
 			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
 		}
 

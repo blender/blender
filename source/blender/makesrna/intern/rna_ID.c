@@ -317,6 +317,14 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 	return prop->len;
 }
 
+int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
+{
+	ID *id=           ptr->id.data;
+	Material *mat_id= assign_ptr->id.data;
+	assign_material_id(id, mat_id, key + 1);
+	return 1;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -370,7 +378,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "idp_array", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PropertyGroup");
-	RNA_def_property_collection_funcs(prop, "rna_IDPArray_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_IDPArray_length", NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_IDPArray_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_IDPArray_length", NULL, NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	// never tested, maybe its useful to have this?

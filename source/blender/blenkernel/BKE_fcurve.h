@@ -231,7 +231,7 @@ short fcurve_is_keyframable(struct FCurve *fcu);
 /* -------- Curve Sanity --------  */
 
 void calchandles_fcurve(struct FCurve *fcu);
-void testhandles_fcurve(struct FCurve *fcu);
+void testhandles_fcurve(struct FCurve *fcu, const short use_handle);
 void sort_time_fcurve(struct FCurve *fcu);
 short test_time_fcurve(struct FCurve *fcu);
 

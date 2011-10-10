@@ -148,9 +148,9 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "spacedata", NULL);
 	RNA_def_property_struct_type(prop, "Space");
 	RNA_def_property_ui_text(prop, "Spaces",
-	                         "Spaces contained in this area, the first being the active space. "
-	                         "NOTE: Useful for example to restore a previously used 3d view space "
-	                         "in a certain area to get the old view orientation");
+	                         "Spaces contained in this area, the first being the active space "
+	                         "(NOTE: Useful for example to restore a previously used 3D view space "
+	                         "in a certain area to get the old view orientation)");
 	rna_def_area_spaces(brna, prop);
 
 	prop= RNA_def_property(srna, "regions", PROP_COLLECTION, PROP_NONE);
