@@ -408,64 +408,71 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer& iFaceLa
 }
 
 FEdge * ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer& ifl){
+  WOEdge *woea, *woeb;
+  real ta, tb;
   SVertex *va, *vb;
   FEdgeSmooth *fe;
   // retrieve exact silhouette data
   WXSmoothEdge *se = ifl.fl->getSmoothEdge();
 
+  if (ifl.order) {
+    woea = se->woea();
+    woeb = se->woeb();
+	ta = se->ta();
+	tb = se->tb();
+  } else {
+    woea = se->woeb();
+    woeb = se->woea();
+	ta = se->tb();
+	tb = se->ta();
+  }
+
   Vec3r normal;
   // Make the 2 Svertices
   if(feprevious == 0){ // that means that we don't have any vertex already built for that face
-    real ta = se->ta();
-    Vec3r A1(se->woea()->GetaVertex()->GetVertex());
-    Vec3r A2(se->woea()->GetbVertex()->GetVertex());
+    Vec3r A1(woea->GetaVertex()->GetVertex());
+    Vec3r A2(woea->GetbVertex()->GetVertex());
     Vec3r A(A1+ta*(A2-A1));
     
-    va = MakeSVertex(A);
+    va = MakeSVertex(A, false);
     // Set normal:
-    Vec3r NA1(ifl.fl->getFace()->GetVertexNormal(se->woea()->GetaVertex()));
-    Vec3r NA2(ifl.fl->getFace()->GetVertexNormal(se->woea()->GetbVertex()));
+    Vec3r NA1(ifl.fl->getFace()->GetVertexNormal(woea->GetaVertex()));
+    Vec3r NA2(ifl.fl->getFace()->GetVertexNormal(woea->GetbVertex()));
     Vec3r na((1 - ta) * NA1 + ta * NA2);
     na.normalize();
     va->AddNormal(na);
     normal = na;
 
     // Set CurvatureInfo
-    CurvatureInfo* curvature_info_a = new CurvatureInfo(*(dynamic_cast<WXVertex*>(se->woea()->GetaVertex())->curvatures()),
-							*(dynamic_cast<WXVertex*>(se->woea()->GetbVertex())->curvatures()),
-							ta);
+    CurvatureInfo* curvature_info_a = new CurvatureInfo(
+		*(dynamic_cast<WXVertex*>(woea->GetaVertex())->curvatures()),
+		*(dynamic_cast<WXVertex*>(woea->GetbVertex())->curvatures()),
+		ta);
     va->setCurvatureInfo(curvature_info_a);
   }
   else
     va = feprevious->vertexB();
 
-  real tb = se->tb();
-  Vec3r B1(se->woeb()->GetaVertex()->GetVertex());
-  Vec3r B2(se->woeb()->GetbVertex()->GetVertex());
+  Vec3r B1(woeb->GetaVertex()->GetVertex());
+  Vec3r B2(woeb->GetbVertex()->GetVertex());
   Vec3r B(B1+tb*(B2-B1));
 
-  vb = MakeSVertex(B);
+  vb = MakeSVertex(B, false);
   // Set normal:
-  Vec3r NB1(ifl.fl->getFace()->GetVertexNormal(se->woeb()->GetaVertex()));
-  Vec3r NB2(ifl.fl->getFace()->GetVertexNormal(se->woeb()->GetbVertex()));
+  Vec3r NB1(ifl.fl->getFace()->GetVertexNormal(woeb->GetaVertex()));
+  Vec3r NB2(ifl.fl->getFace()->GetVertexNormal(woeb->GetbVertex()));
   Vec3r nb((1 - tb) * NB1 + tb * NB2);
   nb.normalize();
   normal += nb;
   vb->AddNormal(nb);
 
   // Set CurvatureInfo
-  CurvatureInfo* curvature_info_b = new CurvatureInfo(*(dynamic_cast<WXVertex*>(se->woeb()->GetaVertex())->curvatures()),
-						      *(dynamic_cast<WXVertex*>(se->woeb()->GetbVertex())->curvatures()),
-						      tb);
+  CurvatureInfo* curvature_info_b = new CurvatureInfo(
+	  *(dynamic_cast<WXVertex*>(woeb->GetaVertex())->curvatures()),
+	  *(dynamic_cast<WXVertex*>(woeb->GetbVertex())->curvatures()),
+	  tb);
   vb->setCurvatureInfo(curvature_info_b);
 
-  // if the order is false we must swap va and vb
-  if(!ifl.order){
-    SVertex *tmp = va;
-    va = vb;
-    vb = tmp;
-  }
-  
   // Creates the corresponding feature edge
   fe = new FEdgeSmooth(va, vb);
   fe->setNature(ifl.fl->nature());
@@ -580,8 +587,8 @@ FEdge * ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
     wxVB = (WXVertex*)iwe.e->GetaVertex();
   }
   // Make the 2 SVertex
-  va = MakeSVertex(wxVA->GetVertex());
-  vb = MakeSVertex(wxVB->GetVertex());
+  va = MakeSVertex(wxVA->GetVertex(), true);
+  vb = MakeSVertex(wxVB->GetVertex(), true);
 
   // get the faces normals and the material indices
   Vec3r normalA, normalB;
@@ -643,21 +650,28 @@ bool ViewEdgeXBuilder::stopSharpViewEdge(WXEdge *iEdge){
 }
 
 SVertex * ViewEdgeXBuilder::MakeSVertex(Vec3r& iPoint){
+  SVertex *va = new SVertex(iPoint, _currentSVertexId);
+  SilhouetteGeomEngine::ProjectSilhouette(va);
+  ++_currentSVertexId;
+  // Add the svertex to the SShape svertex list:
+  _pCurrentSShape->AddNewVertex(va);
+  return va;
+}
+
+SVertex * ViewEdgeXBuilder::MakeSVertex(Vec3r& iPoint, bool shared){
   SVertex *va;
-  // Check whether the vertices are already in the table:
-  // fisrt vertex
-  // -------------
-  SVertexMap::const_iterator found = _SVertexMap.find(iPoint);
-  if (found != _SVertexMap.end()) {
-    va = (*found).second;
-  }else{
-    va = new SVertex(iPoint, _currentSVertexId);
-    SilhouetteGeomEngine::ProjectSilhouette(va);
-    ++_currentSVertexId;
-    // Add the svertex to the SShape svertex list:
-    _pCurrentSShape->AddNewVertex(va);
-    // Add the svertex in the table using its id:
-    _SVertexMap[iPoint] = va; 
+  if (!shared) {
+	va = MakeSVertex(iPoint);
+  } else {
+	// Check whether the iPoint is already in the table
+	SVertexMap::const_iterator found = _SVertexMap.find(iPoint);
+	if (shared && found != _SVertexMap.end()) {
+	  va = (*found).second;
+	}else{
+	  va = MakeSVertex(iPoint);
+	  // Add the svertex into the table using iPoint as the key
+	  _SVertexMap[iPoint] = va; 
+	}
   }
   return va;
 }

@@ -287,7 +287,7 @@ class ThicknessDistanceFromObjectShader(CurveMappingModifier):
 # Material modifiers
 
 def iter_material_color(stroke, material_attr):
-    func = MaterialF0D()
+    func = CurveMaterialF0D()
     it = stroke.strokeVerticesBegin()
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())
@@ -305,7 +305,7 @@ def iter_material_color(stroke, material_attr):
         it.increment()
 
 def iter_material_value(stroke, material_attr):
-    func = MaterialF0D()
+    func = CurveMaterialF0D()
     it = stroke.strokeVerticesBegin()
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())

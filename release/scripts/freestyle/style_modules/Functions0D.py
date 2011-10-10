@@ -1,5 +1,16 @@
 from freestyle_init import *
 
+class CurveMaterialF0D(UnaryFunction0DMaterial):
+	# A replacement of the built-in MaterialF0D for stroke creation.
+	# MaterialF0D does not work with Curves and Strokes.
+	def getName(self):
+		return "CurveMaterialF0D"
+	def __call__(self, inter):
+		cp = inter.getObject()
+		assert(isinstance(cp, CurvePoint))
+		fe = cp.A().getFEdge(cp.B())
+		assert(fe is not None)
+		return fe.material() if fe.isSmooth() else fe.bMaterial()
 
 class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):
 	def getName(self):
