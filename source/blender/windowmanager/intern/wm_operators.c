@@ -1626,7 +1626,15 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	} 
 	else {
 		/* XXX TODO solve where to get last linked library from */
-		RNA_string_set(op->ptr, "filepath", G.lib);
+		if(G.lib[0] != '\0') {
+			RNA_string_set(op->ptr, "filepath", G.lib);
+		}
+		else if(G.relbase_valid) {
+			char path[FILE_MAX];
+			BLI_strncpy(path, G.main->name, sizeof(G.main->name));
+			BLI_parent_dir(path);
+			RNA_string_set(op->ptr, "filepath", path);
+		}
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
