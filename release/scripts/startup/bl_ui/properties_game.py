@@ -169,8 +169,13 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             layout.prop(ob, "hide_render", text="Invisible")
 
         elif physics_type == 'NAVMESH':
-            layout.operator("mesh.assign_navpolygon")
-            layout.operator("mesh.assign_new_navpolygon")
+            layout.operator("mesh.navmesh_face_copy")
+            layout.operator("mesh.navmesh_face_add")
+
+            layout.separator()
+
+            layout.operator("mesh.navmesh_reset")
+            layout.operator("mesh.navmesh_clear")
 
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):

@@ -258,9 +258,11 @@ void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
 
 /* ******************* mesh_navmesh.c */
-void MESH_OT_create_navmesh(struct wmOperatorType *ot);
-void MESH_OT_assign_navpolygon(struct wmOperatorType *ot);
-void MESH_OT_assign_new_navpolygon(struct wmOperatorType *ot);
+void MESH_OT_navmesh_make(struct wmOperatorType *ot);
+void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot);
+void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
+void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
+void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 
