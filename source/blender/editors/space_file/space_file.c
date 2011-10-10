@@ -399,7 +399,7 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	/* keys for all areas */
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "File Browser", SPACE_FILE, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_bookmark_toggle", TKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_bookmark_add", BKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
