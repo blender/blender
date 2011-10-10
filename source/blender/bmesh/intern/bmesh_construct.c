@@ -429,6 +429,9 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 
 static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMVert *source_vertex, BMVert *target_vertex)
 {
+	if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
+		return;
+	}
 	copy_v3_v3(target_vertex->no, source_vertex->no);
 	CustomData_bmesh_free_block(&target_mesh->vdata, &target_vertex->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
@@ -436,18 +439,27 @@ static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, cons
 
 static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMEdge *source_edge, BMEdge *target_edge)
 {
+	if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
+		return;
+	}
 	CustomData_bmesh_free_block(&target_mesh->edata, &target_edge->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->head.data, &target_edge->head.data);
 }
 
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMLoop *source_loop, BMLoop *target_loop)
 {
+	if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
+		return;
+	}
 	CustomData_bmesh_free_block(&target_mesh->ldata, &target_loop->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->head.data, &target_loop->head.data);
 }
 
 static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMFace *source_face, BMFace *target_face)
 {
+	if ((source_mesh == target_mesh) && (source_face == target_face)) {
+		return;
+	}
 	copy_v3_v3(target_face->no, source_face->no);
 	CustomData_bmesh_free_block(&target_mesh->pdata, &target_face->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->head.data, &target_face->head.data);	

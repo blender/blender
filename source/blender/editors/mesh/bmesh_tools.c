@@ -4793,7 +4793,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		
 		BMO_Exec_Op(em->bm, &bmop);
-		BMO_Finish_Op(em->bm, &bmop);
+		if (!EDBM_FinishOp(em, &bmop, op, 1))
+			return OPERATOR_CANCELLED;
 	}
 	
 	BM_free_data_layer_n(em->bm, &em->bm->edata, CD_MASK_PROP_FLT, li);
