@@ -52,7 +52,6 @@
 #include <string.h>
 
 #define SELECT 1
-	#define BM_EDGEVERT	(1<<14)
 
 /*prototypes*/
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
@@ -645,7 +644,7 @@ int BMFlags_To_MEFlags(void *element) {
 		if (src_flag & BM_SEAM)          dst_flag |= ME_SEAM;
 		if (src_flag & BM_SHARP)         dst_flag |= ME_SHARP;
 		if (BM_Wire_Edge(NULL, element)) dst_flag |= ME_LOOSEEDGE;
-		dst_flag |= ME_EDGEDRAW;
+		dst_flag |= ME_EDGEDRAW | ME_EDGERENDER;
 	} else if (src_type == BM_VERT) {
 		if (src_flag & BM_SELECT)        dst_flag |= SELECT;
 	}

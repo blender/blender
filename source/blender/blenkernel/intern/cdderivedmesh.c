@@ -1963,7 +1963,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		med->v1 = BM_GetIndex(eed->v1);
 		med->v2 = BM_GetIndex(eed->v2);
-		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 
 		if (has_crease)
 			med->crease = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_CREASE)*255.0f);

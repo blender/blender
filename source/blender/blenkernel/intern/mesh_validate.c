@@ -406,7 +406,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			int j;
 			for (j=0; j < mp->totloop; j++, l++) {
 				/* lookup hashed edge index */
-				med_index = BLI_edgehash_lookup(eh, l_prev->v, l->v);
+				med_index = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, l_prev->v, l->v));
 				l_prev->e = med_index;
 				l_prev= l;
 			}

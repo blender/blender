@@ -2418,43 +2418,6 @@ static EditVert *subdivideedgenum(EditEdge *edge, int curpoint, int totpoint, fl
 	return ev;
 }
 
-#if 1
-#include "bmesh.h"
-
-void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
-{
-	BMesh *bm;
-	BMOperator subdop, conv;
-	EditMesh *em = G.editMesh;
-	BMEdge **list, *bed;
-	BMIter iter;
-	int tot;
-	
-	/*convert from editmesh*/
-	bm = editmesh_to_bmesh(G.editMesh);
-
-	BMO_Init_Op(&subdop, BMOP_ESUBDIVIDE);
-	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
-		if (BM_Selected(bm, bed)) tot++;
-	}
-	
-	list = MEM_callocN(sizeof(void*)*tot, "vert ptr list");
-
-	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
-		if (BM_Selected(bm, bed)) list[tot++] = bed;
-	}
-	
-	BMO_Set_PntBuf(&subdop, BMOP_ESUBDIVIDE_EDGES, list, tot);
-	BMO_Exec_Op(bm, &subdop);
-	BMO_Finish_Op(bm, &subdop);
-
-	free_editMesh(G.editMesh);
-	bmesh_to_editmesh(bm);
-	BM_Free_Mesh(bm);
-
-	if (list) MEM_freeN(list);
-}
-#else
 void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 {
 	EditMesh *em = G.editMesh;
@@ -2828,7 +2791,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
-#endif
 
 static int count_selected_edges(EditEdge *ed)
 {

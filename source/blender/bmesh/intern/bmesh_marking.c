@@ -362,7 +362,9 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 int BM_Selected(BMesh *UNUSED(bm), const void *element)
 {
 	const BMHeader *head = element;
-	return BM_TestHFlag(head, BM_SELECT);
+	int selected = BM_TestHFlag(head, BM_SELECT);
+	BLI_assert(!selected || !BM_TestHFlag(head, BM_HIDDEN));
+	return selected;
 }
 
 /* this replaces the active flag used in uv/face mode */

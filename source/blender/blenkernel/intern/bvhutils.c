@@ -583,9 +583,15 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if(tree != NULL)
 			{
-				/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
 				BMEditMesh *em= data->em_evil;
 				if(em) {
+					/*data->em_evil is only set for snapping, and only for the mesh of the object
+					  which is currently open in edit mode. When set, the bvhtree should not contain
+					  faces that will interfere with snapping (e.g. faces that are hidden/selected
+					  or faces that have selected verts).*/
+
+					/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
+
 					/*Insert BMesh-tesselation triangles into the bvh tree, unless they are hidden
 					  and/or selected. Even if the faces themselves are not selected for the snapped
 					  transform, having a vertex selected means the face (and thus it's tesselated

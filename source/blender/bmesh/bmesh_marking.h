@@ -38,7 +38,7 @@ void BM_Select_Face(struct BMesh *bm, struct BMFace *f, int select);
 void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 
 /*counts number of elements with flag set*/
-int BM_CountFlag(struct BMesh *bm, int type, int flag, int respectflag);
+int BM_CountFlag(struct BMesh *bm, int type, int flag, int respecthide);
 
 /*edit selection stuff*/
 void BM_set_actFace(BMesh *em, BMFace *f);

@@ -54,7 +54,7 @@
 
 #define EDGE_MARK	1
 
-DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob)
+static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *ob)
 {
 	BMesh *bm;
 	BMEditMesh *em;

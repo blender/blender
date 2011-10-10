@@ -1228,9 +1228,7 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 		edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, e, CD_CREASE)*255.0f);
 	}
 
-	/* Should this be set in BMFlags_To_MEFlags? */
-	edge_r->flag = ME_EDGERENDER;
-	edge_r->flag |= BMFlags_To_MEFlags(e);
+	edge_r->flag = BMFlags_To_MEFlags(e);
 	
 	edge_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v1));
 	edge_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v2));
@@ -1308,9 +1306,7 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_CREASE)*255.0f);
 		}
 
-		/* Should this be set in BMFlags_To_MEFlags? */
-		edge_r->flag = ME_EDGERENDER;
-		edge_r->flag |= BMFlags_To_MEFlags(ee);
+		edge_r->flag = BMFlags_To_MEFlags(ee);
 
 		edge_r->v1 = (int)BM_GetIndex(ee->v1);
 		edge_r->v2 = (int)BM_GetIndex(ee->v2);
