@@ -112,10 +112,18 @@ class CLIP_OT_delete_proxy(Operator):
 
         return wm.invoke_confirm(self, event)
 
+    def _rmproxy(self, abspath):
+        if not os.path.exists(abspath):
+            return
+
+        if os.path.isdir(abspath):
+            shutil.rmtree(abspath)
+        else:
+            os.remove(abspath)
+
     def execute(self, context):
         sc = context.space_data
         clip = sc.clip
-
         if clip.use_proxy_custom_directory:
             proxydir = clip.proxy.directory
         else:
@@ -126,10 +134,25 @@ class CLIP_OT_delete_proxy(Operator):
         proxy = os.path.join(proxydir, clipfile)
         absproxy = bpy.path.abspath(proxy)
 
-        if os.path.exists(absproxy):
-            shutil.rmtree(absproxy)
-        else:
-            return {'CANCELLED'}
+        # proxy_<quality>[_undostorted]
+        for x in (25, 50, 75, 100):
+            d = os.path.join(absproxy, 'proxy_' + str(x))
+
+            self._rmproxy(d)
+            self._rmproxy(d + '_undistorted')
+            self._rmproxy(os.path.join(absproxy, 'proxy_' + str(x) + '.avi'))
+
+        tc = ('free_run.blen_tc', 'interp_free_run.blen_tc', \
+              'record_run.blen_tc')
+
+        for x in tc:
+            self._rmproxy(os.path.join(absproxy, x))
+
+        # remove proxy per-clip directory
+        try:
+            os.rmdir(absproxy)
+        except OSError:
+            pass
 
         # remove [custom] proxy directory if empty
         try:
