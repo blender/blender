@@ -21,9 +21,11 @@
 #define EXT_KEEP  2
 #define EXT_DEL   4
 
-#define VERT_NONMAN 1
-#define EDGE_NONMAN 1
+#define VERT_MARK 1
+#define EDGE_MARK 1
 #define FACE_MARK 1
+#define VERT_NONMAN 2
+#define EDGE_NONMAN 2
 
 void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 {
@@ -341,13 +343,47 @@ static void calc_solidify_normals(BMesh *bm)
 	BMIter viter, eiter, fiter;
 	BMVert *v;
 	BMEdge *e;
-	BMLoop *l;
 	BMFace *f, *f1, *f2;
 	float edge_normal[3];
+	int i;
 
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, NULL) {
-		/* Mark the non-manifold edges and the vertices they connect */
-		if (BM_Nonmanifold_Edge(bm, e)) {
+	BM_Compute_Normals(bm);
+
+	/* Clear indices of verts & edges */
+	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, 0);
+	}
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_SetIndex(e, 0);
+	}
+
+	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+		if (!BMO_TestFlag(bm, f, FACE_MARK)) {
+			continue;
+		}
+
+		BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f) {
+			i = BM_GetIndex(e);
+			/* Count number of marked faces using each edge */
+			BM_SetIndex(e, i+1);
+
+			/* And mark the edges and verts around marked faces */
+			BMO_SetFlag(bm, e, EDGE_MARK);
+			BMO_SetFlag(bm, e->v1, VERT_MARK);
+			BMO_SetFlag(bm, e->v2, VERT_MARK);
+		}
+	}
+
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
+		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
+			continue;
+		}
+
+		i = BM_GetIndex(e);
+
+		if (i == 0 || i > 2) {
+			/* Edge & vertices are non-manifold even when considering
+			   only marked faces */
 			BMO_SetFlag(bm, e, EDGE_NONMAN);
 			BMO_SetFlag(bm, e->v1, VERT_NONMAN);
 			BMO_SetFlag(bm, e->v2, VERT_NONMAN);
@@ -355,24 +391,41 @@ static void calc_solidify_normals(BMesh *bm)
 	}
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, 0);
-		zero_v3(v->no);
+		if (BM_Nonmanifold_Vert(bm, v)) {
+			BMO_SetFlag(bm, v, VERT_NONMAN);
+			continue;
+		}
+
+		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			zero_v3(v->no);
+		}
 	}
 
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 		float angle;
-
-		if (BMO_TestFlag(bm, e, EDGE_NONMAN)) {
+		
+		if (!BMO_TestFlag(bm, e, EDGE_MARK) || BMO_TestFlag(bm, e, EDGE_NONMAN)) {
 			continue;
 		}
 
-		l = e->l;
-		f1 = l->f;
-		f2 = bmesh_radial_nextloop(l)->f;
+		f1 = f2 = NULL;
 
-		angle = angle_normalized_v3v3(f1->no, f2->no);
+		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+			if (BMO_TestFlag(bm, f, FACE_MARK)) {
+				if (f1 == NULL) {
+					f1 = f;
+				}
+				else if (f2 == NULL) {
+					f2 = f;
+				}
+			}
+		}
 
-		if (f1 != f2) {
+		BLI_assert(f1 != NULL);
+
+		if (f2 != NULL) {
+			angle = angle_normalized_v3v3(f1->no, f2->no);
+
 			if (angle > 0.0f) {
 				/* two faces using this edge, calculate the edges normal
 				 * using the angle between the faces as a weighting */
@@ -402,6 +455,10 @@ static void calc_solidify_normals(BMesh *bm)
 
 	/* normalize accumulated vertex normals*/
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BMO_TestFlag(bm, v, VERT_MARK)) {
+			continue;
+		}
+
 		if (BMO_TestFlag(bm, v, VERT_NONMAN)) {
 			/* use standard normals for vertices connected to non-manifold
 			   edges */
@@ -409,11 +466,13 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 		else if (normalize_v3(v->no) == 0.0f && BM_GetIndex(v) < 0) {
 			/* exceptional case, totally flat. use the normal
-			   of any face around the vertex */
-			f = BMIter_New(&fiter, bm, BM_FACES_OF_VERT, v);
-			if (f) {
-				copy_v3_v3(v->no, f->no);
+			   of any marked face around the vertex */
+			BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, v) {
+				if (BMO_TestFlag(bm, f, FACE_MARK)) {
+					break;
+				}
 			}
+			copy_v3_v3(v->no, f->no);
 		}	
 	}
 }
@@ -493,8 +552,6 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_Exec_Op(bm, &reverseop);
 	BMO_Finish_Op(bm, &reverseop);
 
-	calc_solidify_normals(bm);
-
 	/* Extrude the region */
 	BMO_InitOpf(bm, &extrudeop, "extrudefaceregion alwayskeeporig=%i", 1);
 	BMO_CopySlot(op, &extrudeop, "geom", "edgefacein");
@@ -502,6 +559,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* Push the verts of the extruded faces inward to create thickness */
 	BMO_Flag_Buffer(bm, &extrudeop, "geomout", FACE_MARK, BM_FACE);
+	calc_solidify_normals(bm);
 	solidify_add_thickness(bm, thickness);
 
 	BMO_CopySlot(&extrudeop, op, "geomout", "geomout");
