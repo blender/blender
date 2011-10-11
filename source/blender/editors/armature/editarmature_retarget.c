@@ -1889,7 +1889,7 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 	RigEdge *edge;
 	int large_angle = 0;
 	float avg_angle = 0;
-	float avg_length = 0;
+	/* float avg_length = 0; */ /* UNUSED */
 	int nb_edges = 0;
 	
 	
@@ -1901,7 +1901,7 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 	
 	avg_angle /= nb_edges - 1; /* -1 because last edge doesn't have an angle */
 
-	avg_length = iarc->length / nb_edges;
+	/* avg_length = iarc->length / nb_edges; */  /* UNUSED */
 	
 	
 	if (nb_edges > 2)
@@ -2202,7 +2202,9 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 	float angle_weight = 1.0; // GET FROM CONTEXT
 	float length_weight = 1.0;
 	float distance_weight = 1.0;
+#ifndef USE_THREADS
 	float min_cost = FLT_MAX;
+#endif
 	float *vec0, *vec1;
 	int *best_positions;
 	int nb_edges = BLI_countlist(&iarc->edges);
@@ -2245,7 +2247,9 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 		int nb_positions = earc->bcount;
 		int nb_memo_nodes = nb_positions * nb_positions * (nb_joints + 1);
 		MemoNode *table = MEM_callocN(nb_memo_nodes * sizeof(MemoNode), "memoization table");
+#ifndef USE_THREADS
 		MemoNode *result;
+#endif
 		float **positions_cache = MEM_callocN(sizeof(float*) * (nb_positions + 2), "positions cache");
 		int i;
 		
@@ -2260,11 +2264,15 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 			positions_cache[i] = bucket->p;
 		}
 
+#ifndef USE_THREADS
 		result = solveJoints(table, iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints, angle_weight, length_weight, distance_weight);
-		
 		min_cost = result->weight;
+#else
+		solveJoints(table, iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints, angle_weight, length_weight, distance_weight);
+#endif
+
 		copyMemoPositions(best_positions, table, earc->bcount, nb_joints);
-		
+
 		MEM_freeN(table);
 		MEM_freeN(positions_cache);
 	}

@@ -74,7 +74,7 @@ typedef enum ModifierType {
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
-	eModifierType_NavMesh,
+	eModifierType_EmptySlot,    /* keep so DynamicPaint keep loading, can re-use later */
 	eModifierType_DynamicPaint, /* reserve slot */
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -751,10 +751,6 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
-typedef struct NavMeshModifierData {
-	ModifierData modifier;
-} NavMeshModifierData;
-
 typedef struct WarpModifierData {
 	ModifierData modifier;
 
@@ -808,7 +804,7 @@ typedef struct WeightVGEditModifierData {
 	/* Mapping stuff. */
 	struct CurveMapping *cmap_curve;  /* The custom mapping curve! */
 
- 	/* The add/remove vertices weight thresholds. */
+	/* The add/remove vertices weight thresholds. */
 	float	add_threshold, rem_threshold;
 
 	/* Masking options. */

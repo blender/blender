@@ -23,11 +23,6 @@ BF_FFMPEG_LIBPATH = LIBDIR + '/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/ffmpeg/include'
 BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-53.dll ${BF_FFMPEG_LIBPATH}/avcodec-53.dll ${BF_FFMPEG_LIBPATH}/avdevice-53.dll ${BF_FFMPEG_LIBPATH}/avutil-51.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
 
-BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
-BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
-BF_LIBSAMPLERATE_LIB = 'libsamplerate'
-BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
-
 WITH_BF_JACK = False
 BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include'

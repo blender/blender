@@ -94,7 +94,7 @@ static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	node= node_add_node(snode, bmain, scene, ntemp, snode->mx, snode->my);
+	/* node= */ node_add_node(snode, bmain, scene, ntemp, snode->mx, snode->my);
 	
 	/* select previous selection before autoconnect */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {

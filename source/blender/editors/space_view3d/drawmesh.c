@@ -315,16 +315,24 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
-	int istex, solidtex= 0;
+	int istex, solidtex;
 
 	// XXX scene->obedit warning
-	if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
+
+	/* texture draw is abused for mask selection mode, do this so wire draw
+	 * with face selection in weight paint is not lit. */
+	if((v3d->drawtype <= OB_WIRE) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+		solidtex= FALSE;
+		Gtexdraw.islit= 0;
+	}
+	else if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
-		solidtex= 1;
+		solidtex= TRUE;
 		Gtexdraw.islit= -1;
 	}
 	else {
 		/* draw with lights in the scene otherwise */
+		solidtex= FALSE;
 		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
@@ -368,7 +376,7 @@ static void draw_textured_end(void)
 	glPopMatrix();
 }
 
-static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
+static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 	int validtexture=0;
@@ -383,7 +391,7 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 	} else if (ma && ma->shade_flag&MA_OBCOLOR) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
-	} else if (!mcol) {
+	} else if (!has_mcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			if(ma) {
@@ -400,7 +408,7 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 		return 1; /* Set color from mcol */
 	}
 }
-static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
+static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 
@@ -410,7 +418,7 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
-	} else if (!mcol) {
+	} else if (!has_mcol) {
 		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
@@ -448,9 +456,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
+				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
-				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
+				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[2]);
 			}
 		} else if (!mcol) {
 			if (tface) {
@@ -469,9 +477,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					else copy_v3_v3(col, &ma->r);
 					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = FTOCHAR(col[2]);
+						finalCol[i*4+j].b = FTOCHAR(col[0]);
 						finalCol[i*4+j].g = FTOCHAR(col[1]);
-						finalCol[i*4+j].r = FTOCHAR(col[0]);
+						finalCol[i*4+j].r = FTOCHAR(col[2]);
 					}
 				}
 				else
@@ -483,9 +491,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].b = mcol[i*4+j].r;
+				finalCol[i*4+j].r = mcol[i*4+j].r;
 				finalCol[i*4+j].g = mcol[i*4+j].g;
-				finalCol[i*4+j].r = mcol[i*4+j].b;
+				finalCol[i*4+j].b = mcol[i*4+j].b;
 			}
 		}
 	}
@@ -497,38 +505,34 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	Mesh *me = (Mesh*)userData;
 	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
 	MFace *mface = &me->mface[index];
-	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
 	const int matnr = mface->mat_nr;
 	if (mface->flag & ME_HIDE) return 0;
-	return draw_tface__set_draw(tface, mcol, matnr);
+	return draw_tface__set_draw(tface, (me->mcol != NULL), matnr);
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	EditMesh *em = userData;
+	struct {EditMesh *em; short has_mcol; short has_mtface;} *data = userData;
+	EditMesh *em = data->em;
 	EditFace *efa= EM_get_face_for_index(index);
 	MTFace *tface;
-	MCol *mcol;
 	int matnr;
 
 	if (efa->h)
 		return 0;
 
-	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-	mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+	tface = data->has_mtface ? CustomData_em_get(&em->fdata, efa->data, CD_MTFACE) : NULL;
 	matnr = efa->mat_nr;
 
-	return draw_tface__set_draw_legacy(tface, mcol, matnr);
+	return draw_tface__set_draw_legacy(tface, data->has_mcol, matnr);
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->mface) {
-		short matnr= me->mface[index].mat_nr;
-		Material *ma= me->mat[matnr];
-
+	if (me->mat && me->mface) {
+		Material *ma= me->mat[me->mface[index].mat_nr];
 		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
 			return 0;
 		}
@@ -638,7 +642,13 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if(ob->mode & OB_MODE_EDIT) {
-		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
+		struct {EditMesh *em; short has_mcol; short has_mtface;} data;
+
+		data.em= me->edit_mesh;
+		data.has_mcol= CustomData_has_layer(&me->edit_mesh->fdata, CD_MCOL);
+		data.has_mtface= CustomData_has_layer(&me->edit_mesh->fdata, CD_MTFACE);
+
+		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, &data);
 	}
 	else if(faceselect) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)

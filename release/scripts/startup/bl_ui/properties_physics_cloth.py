@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
-from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
     point_cache_ui,
@@ -71,50 +70,50 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
             col = split.column()
 
-            col.label(text=_("Presets:"))
+            col.label(text="Presets:")
             sub = col.row(align=True)
             sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
             sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
             sub.operator("cloth.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-            col.label(text=_("Quality:"))
-            col.prop(cloth, "quality", text=_("Steps"), slider=True)
+            col.label(text="Quality:")
+            col.prop(cloth, "quality", text="Steps", slider=True)
 
-            col.label(text=_("Material:"))
+            col.label(text="Material:")
             col.prop(cloth, "mass")
-            col.prop(cloth, "structural_stiffness", text=_("Structural"))
-            col.prop(cloth, "bending_stiffness", text=_("Bending"))
+            col.prop(cloth, "structural_stiffness", text="Structural")
+            col.prop(cloth, "bending_stiffness", text="Bending")
 
             col = split.column()
 
-            col.label(text=_("Damping:"))
-            col.prop(cloth, "spring_damping", text=_("Spring"))
-            col.prop(cloth, "air_damping", text=_("Air"))
+            col.label(text="Damping:")
+            col.prop(cloth, "spring_damping", text="Spring")
+            col.prop(cloth, "air_damping", text="Air")
 
-            col.prop(cloth, "use_pin_cloth", text=_("Pinning"))
+            col.prop(cloth, "use_pin_cloth", text="Pinning")
             sub = col.column()
             sub.active = cloth.use_pin_cloth
             sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
-            sub.prop(cloth, "pin_stiffness", text=_("Stiffness"))
+            sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
-            col.label(text=_("Pre roll:"))
-            col.prop(cloth, "pre_roll", text=_("Frame"))
+            col.label(text="Pre roll:")
+            col.prop(cloth, "pre_roll", text="Frame")
 
             # Disabled for now
             """
             if cloth.vertex_group_mass:
-                layout.label(text=_("Goal:"))
+                layout.label(text="Goal:")
 
                 col = layout.column_flow()
-                col.prop(cloth, "goal_default", text=_("Default"))
-                col.prop(cloth, "goal_spring", text=_("Stiffness"))
-                col.prop(cloth, "goal_friction", text=_("Friction"))
+                col.prop(cloth, "goal_default", text="Default")
+                col.prop(cloth, "goal_spring", text="Stiffness")
+                col.prop(cloth, "goal_friction", text="Friction")
             """
 
             key = ob.data.shape_keys
 
             if key:
-                col.label(text=_("Rest Shape Key:"))
+                col.label(text="Rest Shape Key:")
                 col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
@@ -156,18 +155,18 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(cloth, "collision_quality", slider=True, text=_("Quality"))
-        col.prop(cloth, "distance_min", slider=True, text=_("Distance"))
-        col.prop(cloth, "repel_force", slider=True, text=_("Repel"))
-        col.prop(cloth, "distance_repel", slider=True, text=_("Repel Distance"))
+        col.prop(cloth, "collision_quality", slider=True, text="Quality")
+        col.prop(cloth, "distance_min", slider=True, text="Distance")
+        col.prop(cloth, "repel_force", slider=True, text="Repel")
+        col.prop(cloth, "distance_repel", slider=True, text="Repel Distance")
         col.prop(cloth, "friction")
 
         col = split.column()
-        col.prop(cloth, "use_self_collision", text=_("Self Collision"))
+        col.prop(cloth, "use_self_collision", text="Self Collision")
         sub = col.column()
         sub.active = cloth.use_self_collision
-        sub.prop(cloth, "self_collision_quality", slider=True, text=_("Quality"))
-        sub.prop(cloth, "self_distance_min", slider=True, text=_("Distance"))
+        sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
+        sub.prop(cloth, "self_distance_min", slider=True, text="Distance")
 
         layout.prop(cloth, "group")
 
@@ -198,14 +197,14 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Structural Stiffness:"))
+        col.label(text="Structural Stiffness:")
         col.prop_search(cloth, "vertex_group_structural_stiffness", ob, "vertex_groups", text="")
-        col.prop(cloth, "structural_stiffness_max", text=_("Max"))
+        col.prop(cloth, "structural_stiffness_max", text="Max")
 
         col = split.column()
-        col.label(text=_("Bending Stiffness:"))
+        col.label(text="Bending Stiffness:")
         col.prop_search(cloth, "vertex_group_bending", ob, "vertex_groups", text="")
-        col.prop(cloth, "bending_stiffness_max", text=_("Max"))
+        col.prop(cloth, "bending_stiffness_max", text="Max")
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):

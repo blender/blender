@@ -1,7 +1,4 @@
-
-/*  curve.c 
- * 
- *  
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -2457,72 +2454,77 @@ void makeBevelList(Object *ob)
 void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 {
 	float *p1,*p2,*p3, pt[3];
-	float dx1,dy1,dz1,dx,dy,dz,vx,vy,vz,len,len1,len2;
+	float dvec_a[3], dvec_b[3];
+	float len, len_a, len_b;
 	const float eps= 1e-5;
 
-	if(bezt->h1==0 && bezt->h2==0) return;
+	if(bezt->h1==0 && bezt->h2==0) {
+		return;
+	}
 
 	p2= bezt->vec[1];
 
 	if(prev==NULL) {
 		p3= next->vec[1];
-		pt[0]= 2*p2[0]- p3[0];
-		pt[1]= 2*p2[1]- p3[1];
-		pt[2]= 2*p2[2]- p3[2];
+		pt[0]= 2.0f*p2[0] - p3[0];
+		pt[1]= 2.0f*p2[1] - p3[1];
+		pt[2]= 2.0f*p2[2] - p3[2];
 		p1= pt;
 	}
-	else p1= prev->vec[1];
+	else {
+		p1= prev->vec[1];
+	}
 
 	if(next==NULL) {
-		pt[0]= 2*p2[0]- p1[0];
-		pt[1]= 2*p2[1]- p1[1];
-		pt[2]= 2*p2[2]- p1[2];
+		pt[0]= 2.0f*p2[0] - p1[0];
+		pt[1]= 2.0f*p2[1] - p1[1];
+		pt[2]= 2.0f*p2[2] - p1[2];
 		p3= pt;
 	}
-	else p3= next->vec[1];
+	else {
+		p3= next->vec[1];
+	}
 
-	dx= p2[0]- p1[0];
-	dy= p2[1]- p1[1];
-	dz= p2[2]- p1[2];
-	
-	if(mode) len1= dx;
-	else len1= (float)sqrt(dx*dx+dy*dy+dz*dz);
-	
-	dx1= p3[0]- p2[0];
-	dy1= p3[1]- p2[1];
-	dz1= p3[2]- p2[2];
-	
-	if(mode) len2= dx1;
-	else len2= (float)sqrt(dx1*dx1+dy1*dy1+dz1*dz1);
+	sub_v3_v3v3(dvec_a, p2, p1);
+	sub_v3_v3v3(dvec_b, p3, p2);
 
-	if(len1==0.0f) len1=1.0f;
-	if(len2==0.0f) len2=1.0f;
+	if (mode != 0) {
+		len_a= dvec_a[0];
+		len_b= dvec_b[0];
+	}
+	else {
+		len_a= len_v3(dvec_a);
+		len_b= len_v3(dvec_b);
+	}
+
+	if(len_a==0.0f) len_a=1.0f;
+	if(len_b==0.0f) len_b=1.0f;
 
 
 	if(ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) || ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {    /* auto */
-		vx= dx1/len2 + dx/len1;
-		vy= dy1/len2 + dy/len1;
-		vz= dz1/len2 + dz/len1;
-		len= 2.5614f*(float)sqrt(vx*vx + vy*vy + vz*vz);
+		float tvec[3];
+		tvec[0]= dvec_b[0]/len_b + dvec_a[0]/len_a;
+		tvec[1]= dvec_b[1]/len_b + dvec_a[1]/len_a;
+		tvec[2]= dvec_b[2]/len_b + dvec_a[2]/len_a;
+		len= len_v3(tvec) * 2.5614f;
+
 		if(len!=0.0f) {
 			int leftviolate=0, rightviolate=0;	/* for mode==2 */
 			
-			if(len1>5.0f*len2) len1= 5.0f*len2;	
-			if(len2>5.0f*len1) len2= 5.0f*len1;
+			if(len_a>5.0f*len_b) len_a= 5.0f*len_b;
+			if(len_b>5.0f*len_a) len_b= 5.0f*len_a;
 			
 			if(ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM)) {
-				len1/=len;
-				*(p2-3)= *p2-vx*len1;
-				*(p2-2)= *(p2+1)-vy*len1;
-				*(p2-1)= *(p2+2)-vz*len1;
+				len_a/=len;
+				madd_v3_v3v3fl(p2-3, p2, tvec, -len_a);
 				
-				if((bezt->h1==HD_AUTO_ANIM) && next && prev) {	// keep horizontal if extrema
+				if((bezt->h1==HD_AUTO_ANIM) && next && prev) { /* keep horizontal if extrema */
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
 					if( (ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f) ) {
 						bezt->vec[0][1]= bezt->vec[1][1];
 					}
-					else {						// handles should not be beyond y coord of two others
+					else { /* handles should not be beyond y coord of two others */
 						if(ydiff1 <= 0.0f) {
 							if(prev->vec[1][1] > bezt->vec[0][1]) {
 								bezt->vec[0][1]= prev->vec[1][1]; 
@@ -2539,18 +2541,16 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 				}
 			}
 			if(ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
-				len2/=len;
-				*(p2+3)= *p2+vx*len2;
-				*(p2+4)= *(p2+1)+vy*len2;
-				*(p2+5)= *(p2+2)+vz*len2;
+				len_b/=len;
+				madd_v3_v3v3fl(p2+3, p2, tvec,  len_b);
 				
-				if((bezt->h2==HD_AUTO_ANIM) && next && prev) {	// keep horizontal if extrema
+				if((bezt->h2==HD_AUTO_ANIM) && next && prev) { /* keep horizontal if extrema */
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
 					if( (ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f) ) {
 						bezt->vec[2][1]= bezt->vec[1][1];
 					}
-					else {						// handles should not be beyond y coord of two others
+					else { /* andles should not be beyond y coord of two others */
 						if(ydiff1 <= 0.0f) {
 							if(next->vec[1][1] < bezt->vec[2][1]) {
 								bezt->vec[2][1]= next->vec[1][1]; 
@@ -2566,25 +2566,25 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 					}
 				}
 			}
-			if(leftviolate || rightviolate) {	/* align left handle */
+			if(leftviolate || rightviolate) { /* align left handle */
 				float h1[3], h2[3];
+				float dot;
 				
 				sub_v3_v3v3(h1, p2-3, p2);
 				sub_v3_v3v3(h2, p2, p2+3);
-				len1= normalize_v3(h1);
-				len2= normalize_v3(h2);
 
-				vz= dot_v3v3(h1, h2);
+				len_a= normalize_v3(h1);
+				len_b= normalize_v3(h2);
+
+				dot= dot_v3v3(h1, h2);
 
 				if(leftviolate) {
-					*(p2+3)= *(p2)   - vz*len2*h1[0];
-					*(p2+4)= *(p2+1) - vz*len2*h1[1];
-					*(p2+5)= *(p2+2) - vz*len2*h1[2];
+					mul_v3_fl(h1, dot * len_b);
+					sub_v3_v3v3(p2+3, p2, h1);
 				}
 				else {
-					*(p2-3)= *(p2)   + vz*len1*h2[0];
-					*(p2-2)= *(p2+1) + vz*len1*h2[1];
-					*(p2-1)= *(p2+2) + vz*len1*h2[2];
+					mul_v3_fl(h2, dot * len_a);
+					add_v3_v3v3(p2-3, p2, h2);
 				}
 			}
 			
@@ -2592,60 +2592,50 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	}
 
 	if(bezt->h1==HD_VECT) {	/* vector */
-		dx/=3.0f;
-		dy/=3.0f;
-		dz/=3.0f;
-		*(p2-3)= *p2-dx;
-		*(p2-2)= *(p2+1)-dy;
-		*(p2-1)= *(p2+2)-dz;
+		madd_v3_v3v3fl(p2-3, p2, dvec_a, -1.0f/3.0f);
 	}
 	if(bezt->h2==HD_VECT) {
-		dx1/=3.0f;
-		dy1/=3.0f;
-		dz1/=3.0f;
-		*(p2+3)= *p2+dx1;
-		*(p2+4)= *(p2+1)+dy1;
-		*(p2+5)= *(p2+2)+dz1;
+		madd_v3_v3v3fl(p2+3, p2, dvec_b,  1.0f/3.0f);
 	}
 
-	len2= len_v3v3(p2, p2+3);
-	len1= len_v3v3(p2, p2-3);
-	if(len1==0.0f) len1= 1.0f;
-	if(len2==0.0f) len2= 1.0f;
+	len_b= len_v3v3(p2, p2+3);
+	len_a= len_v3v3(p2, p2-3);
+	if(len_a==0.0f) len_a= 1.0f;
+	if(len_b==0.0f) len_b= 1.0f;
 
 	if(bezt->f1 & SELECT) { /* order of calculation */
-		if(bezt->h2==HD_ALIGN) {	/* aligned */
-			if(len1>eps) {
-				len= len2/len1;
-				p2[3]= p2[0]+len*(p2[0]-p2[-3]);
-				p2[4]= p2[1]+len*(p2[1]-p2[-2]);
-				p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+		if(bezt->h2==HD_ALIGN) { /* aligned */
+			if(len_a>eps) {
+				len= len_b/len_a;
+				p2[3]= p2[0]+len*(p2[0] - p2[-3]);
+				p2[4]= p2[1]+len*(p2[1] - p2[-2]);
+				p2[5]= p2[2]+len*(p2[2] - p2[-1]);
 			}
 		}
 		if(bezt->h1==HD_ALIGN) {
-			if(len2>eps) {
-				len= len1/len2;
-				p2[-3]= p2[0]+len*(p2[0]-p2[3]);
-				p2[-2]= p2[1]+len*(p2[1]-p2[4]);
-				p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			if(len_b>eps) {
+				len= len_a/len_b;
+				p2[-3]= p2[0]+len*(p2[0] - p2[3]);
+				p2[-2]= p2[1]+len*(p2[1] - p2[4]);
+				p2[-1]= p2[2]+len*(p2[2] - p2[5]);
 			}
 		}
 	}
 	else {
 		if(bezt->h1==HD_ALIGN) {
-			if(len2>eps) {
-				len= len1/len2;
-				p2[-3]= p2[0]+len*(p2[0]-p2[3]);
-				p2[-2]= p2[1]+len*(p2[1]-p2[4]);
-				p2[-1]= p2[2]+len*(p2[2]-p2[5]);
+			if(len_b>eps) {
+				len= len_a/len_b;
+				p2[-3]= p2[0]+len*(p2[0] - p2[3]);
+				p2[-2]= p2[1]+len*(p2[1] - p2[4]);
+				p2[-1]= p2[2]+len*(p2[2] - p2[5]);
 			}
 		}
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
-			if(len1>eps) {
-				len= len2/len1;
-				p2[3]= p2[0]+len*(p2[0]-p2[-3]);
-				p2[4]= p2[1]+len*(p2[1]-p2[-2]);
-				p2[5]= p2[2]+len*(p2[2]-p2[-1]);
+			if(len_a>eps) {
+				len= len_b/len_a;
+				p2[3]= p2[0]+len*(p2[0] - p2[-3]);
+				p2[4]= p2[1]+len*(p2[1] - p2[-2]);
+				p2[5]= p2[2]+len*(p2[2] - p2[-1]);
 			}
 		}
 	}

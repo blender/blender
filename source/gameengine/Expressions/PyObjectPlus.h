@@ -215,7 +215,7 @@ typedef struct PyObjectPlus_Proxy {
 		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(...) - " BGE_PROXY_ERROR_MSG); return NULL; } \
 		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args, kwds);		\
 	}; \
-    static const char method_name##_doc[]; \
+	static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* args); \
@@ -223,7 +223,7 @@ typedef struct PyObjectPlus_Proxy {
 		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(...) - " BGE_PROXY_ERROR_MSG); return NULL; } \
 		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args);		\
 	}; \
-    static const char method_name##_doc[]; \
+	static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_O(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* value); \
@@ -231,7 +231,7 @@ typedef struct PyObjectPlus_Proxy {
 		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(value) - " BGE_PROXY_ERROR_MSG); return NULL; } \
 		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(value);		\
 	}; \
-    static const char method_name##_doc[]; \
+	static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(); \
@@ -239,7 +239,7 @@ typedef struct PyObjectPlus_Proxy {
 		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "() - " BGE_PROXY_ERROR_MSG); return NULL; } \
 		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name();		\
 	}; \
-    static const char method_name##_doc[]; \
+	static const char method_name##_doc[]; \
 
 
 /* The line above should remain empty */
@@ -563,7 +563,7 @@ public:
 	
 	/** enable/disable display of deprecation warnings */
 	static void			SetDeprecationWarnings(bool ignoreDeprecationWarnings);
- 	/** Shows a deprecation warning */
+	/** Shows a deprecation warning */
 	static void			ShowDeprecationWarning_func(const char* method,const char* prop);
 	static void			ClearDeprecationWarning();
 	

@@ -110,6 +110,7 @@ typedef enum PropertySubType {
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
 	PROP_FILENAME = 3,
+	PROP_TRANSLATE = 4, /* a string which should be translated */
 
 	/* numbers */
 	PROP_UNSIGNED = 13,
@@ -229,8 +230,8 @@ typedef struct CollectionPropertyIterator {
 	int level;
 
 	/* external */
-	int valid;
 	PointerRNA ptr;
+	int valid;
 } CollectionPropertyIterator;
 
 typedef struct CollectionPointerLink {
@@ -273,13 +274,13 @@ typedef struct ParameterList {
 	/* storage for parameters */
 	void *data;
 
+	/* function passed at creation time */
+	struct FunctionRNA *func;
+
 	/* store the parameter size */
 	int alloc_size;
 
 	int arg_count, ret_count;
-
-	/* function passed at creation time */
-	struct FunctionRNA *func;
 } ParameterList;
 
 typedef struct ParameterIterator {

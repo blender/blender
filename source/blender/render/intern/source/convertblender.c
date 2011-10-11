@@ -1349,7 +1349,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	int totsplit = bb->uv_split * bb->uv_split;
 	int tile, x, y;
 	/* Tile offsets */
- 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
+	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -4359,9 +4359,9 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 /* Database																	 */
 /* ------------------------------------------------------------------------- */
 
-static int render_object_type(int type) 
+static int render_object_type(short type)
 {
-	return ELEM5(type, OB_FONT, OB_CURVE, OB_SURF, OB_MESH, OB_MBALL);
+	return OB_TYPE_SUPPORT_MATERIAL(type);
 }
 
 static void find_dupli_instances(Render *re, ObjectRen *obr)
@@ -4852,8 +4852,13 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * NULL is just for init */
 	set_dupli_tex_mat(NULL, NULL, NULL);
 
-	for(SETLOOPER(re->scene, sce_iter, base)) {
-		ob= base->object;
+	/* loop over all objects rather then using SETLOOPER because we may
+	 * reference an mtex-mapped object which isnt rendered or is an
+	 * empty in a dupli group. We could scan all render material/lamp/world
+	 * mtex's for mapto objects but its easier just to set the
+	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
+	* See bug: [#28744] - campbell */
+	for(ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 		invert_m4_m4(ob->imat_ren, mat);
@@ -5021,7 +5026,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
 	re->i.cfra= scene->r.cfra;
-	strncpy(re->i.scenename, scene->id.name+2, 20);
+	BLI_strncpy(re->i.scenename, scene->id.name+2, sizeof(re->i.scenename));
 	
 	/* XXX add test if dbase was filled already? */
 	
@@ -5304,11 +5309,13 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 
 static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
 {
-	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq), (*winspeed)[4];  /* int's can wrap on large images */
-	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
-	int a;
-
 	if(mesh->co && mesh->prevco && mesh->nextco) {
+		float winsq= (float)re->winx*(float)re->winy; /* int's can wrap on large images */
+		float winroot= sqrt(winsq);
+		float (*winspeed)[4];
+		float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
+		int a;
+
 		if(obi->flag & R_TRANSFORMED)
 			mul_m4_m4m4(winmat, obi->mat, re->winmat);
 		else

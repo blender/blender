@@ -98,7 +98,7 @@ class Mem_IStream: public IStream
 public:
 	
 	Mem_IStream (unsigned char *exrbuf, size_t exrsize):
-    IStream("dummy"), _exrpos (0), _exrsize(exrsize)  { _exrbuf = exrbuf; }
+	    IStream("dummy"), _exrpos (0), _exrsize(exrsize)  { _exrbuf = exrbuf; }
 	
 	virtual bool	read (char c[], int n);
 	virtual Int64	tellg ();
@@ -107,8 +107,8 @@ public:
 	//virtual ~Mem_IStream() {}; // unused
 	
 private:
-		
-		Int64 _exrpos;
+
+	Int64 _exrpos;
 	Int64 _exrsize;
 	unsigned char *_exrbuf;
 };
@@ -116,11 +116,11 @@ private:
 bool Mem_IStream::read (char c[], int n)
 {
 	if (n + _exrpos <= _exrsize)
-    {
+	{
 		memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
 		_exrpos += n;
 		return true;
-    }
+	}
 	else
 		return false;
 }
@@ -308,7 +308,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		delete [] pixels;
 	}
 	catch (const std::exception &exc)
-	{      
+	{
 		printf("OpenEXR-save: ERROR: %s\n", exc.what());
 		if (ibuf) IMB_freeImBuf(ibuf);
 		
@@ -365,7 +365,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		delete file;
 	}
 	catch (const std::exception &exc)
-	{      
+	{
 		printf("OpenEXR-save: ERROR: %s\n", exc.what());
 		if (ibuf) IMB_freeImBuf(ibuf);
 		

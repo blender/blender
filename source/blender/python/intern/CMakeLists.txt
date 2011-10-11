@@ -99,4 +99,8 @@ if(WITH_CYCLES)
 	add_definitions(-DWITH_CYCLES)
 endif()
 
+if(WITH_INTERNATIONAL)
+        add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

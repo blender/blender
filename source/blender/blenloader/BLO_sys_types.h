@@ -99,7 +99,7 @@ unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 
 #else
 
-	/* FreeBSD, Irix, Solaris */
+	/* FreeBSD, Solaris */
 #include <sys/types.h>
 
 #endif /* ifdef platform for types */
@@ -118,7 +118,7 @@ unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 #include <sys/param.h>
 #elif defined (__APPLE__)
 #include <sys/types.h>
-#else  /* irix sun linux */
+#else  /* sun linux */
 #include <netinet/in.h>
 #endif /* ifdef platform for htonl/ntohl */
 

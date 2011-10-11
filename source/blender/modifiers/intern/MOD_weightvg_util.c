@@ -26,11 +26,8 @@
  *
  */
 
-/*
- * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this...
- *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
- *     Or the WeightPaint mode code itself?
+/** \file blender/modifiers/intern/MOD_weightvg_util.c
+ *  \ingroup modifiers
  */
 
 #include "BLI_math.h"
@@ -228,7 +225,8 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 }
 
 /* Adds the given vertex to the specified vertex group, with given weight. */
-static void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float weight) {
+static void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float weight)
+{
 	/* TODO, move into deform.c as a generic function. This assumes the vertex
 	 * groups have already been checked, so this has to remain low level. */
 	MDeformWeight *newdw;
@@ -247,7 +245,8 @@ static void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float we
 /* Removes the given vertex from the vertex group, specified either by its defgrp_idx,
  * or directly by its MDeformWeight pointer, if dw is not NULL.
  * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
-static void defvert_remove_from_group(MDeformVert *dv, int defgrp_idx, MDeformWeight *dw) {
+static void defvert_remove_from_group(MDeformVert *dv, int defgrp_idx, MDeformWeight *dw)
+{
 	/* TODO, move this into deform.c as a generic function. */
 	MDeformWeight *newdw;
 	int i;

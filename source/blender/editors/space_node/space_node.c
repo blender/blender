@@ -180,6 +180,9 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
 					break;
+				case ND_COMPO_RESULT:
+					ED_area_tag_redraw(sa);
+					break;
 				case ND_TRANSFORM_DONE:
 					if(type==NTREE_COMPOSIT) {
 						if(snode->flag & SNODE_AUTO_RENDER) {

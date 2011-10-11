@@ -47,6 +47,8 @@ int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
 int BLF_load_unique(const char *name);
 int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
 
+void BLF_unload(const char *name);
+
 /* Attach a file with metrics information from memory. */
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 

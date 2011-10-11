@@ -1815,6 +1815,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_FILEPATH: return "PROP_FILEPATH";
 		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
+		case PROP_TRANSLATE: return "PROP_TRANSLATE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
 		case PROP_FACTOR: return "PROP_FACTOR";
@@ -2278,7 +2279,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			 }
 			case PROP_COLLECTION: {
 				CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, ", rna_function_string(cprop->begin), rna_function_string(cprop->next), rna_function_string(cprop->end), rna_function_string(cprop->get), rna_function_string(cprop->length), rna_function_string(cprop->lookupint), rna_function_string(cprop->lookupstring));
+				fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, %s, ", rna_function_string(cprop->begin), rna_function_string(cprop->next), rna_function_string(cprop->end), rna_function_string(cprop->get), rna_function_string(cprop->length), rna_function_string(cprop->lookupint), rna_function_string(cprop->lookupstring), rna_function_string(cprop->assignint));
 				if(cprop->item_type) fprintf(f, "&RNA_%s\n", (char*)cprop->item_type);
 				else fprintf(f, "NULL\n");
 				break;
@@ -2431,7 +2432,7 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},
 	{"rna_brush.c", NULL, RNA_def_brush},
-	{"rna_camera.c", NULL, RNA_def_camera},
+	{"rna_camera.c", "rna_camera_api.c", RNA_def_camera},
 	{"rna_cloth.c", NULL, RNA_def_cloth},
 	{"rna_color.c", NULL, RNA_def_color},
 	{"rna_constraint.c", NULL, RNA_def_constraint},

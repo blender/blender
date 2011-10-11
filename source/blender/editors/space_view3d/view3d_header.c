@@ -285,14 +285,14 @@ static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
 	static char string[256];
-	const char *title= N_("Mode: %%t");
+	const char *title= N_("Mode: %t");
 	char *str = string;
 
 	if(U.transopts&USER_TR_IFACE)
 		title= BLF_gettext(title);
 
-	sprintf(str, title);
-	
+	BLI_strncpy(str, title, sizeof(string));
+
 	str += modeselect_addmode(str, N_("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
 	if(ob==NULL || ob->data==NULL) return string;
@@ -530,7 +530,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-		uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+
+		/* pose/object only however we want to allow in weight paint mode too
+		 * so dont be totally strict and just check not-editmode for now */
+		if (obedit == NULL) {
+			uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		}
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);

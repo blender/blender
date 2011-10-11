@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# $Id:
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -25,29 +25,43 @@
 
 import subprocess
 import os
+import sys
 
-CURRENT_DIR = os.path.dirname(__file__)
+GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 LOCALE_DIR = os.path.join(SOURCE_DIR, "release", "bin", ".blender", "locale")
 
 DOMAIN = "blender"
 
 
-def main():
-    for po in os.listdir(CURRENT_DIR):
-        if po.endswith(".po"):
-            lang = po[:-3]
-            # show stats
-            cmd = ("msgfmt",
-                "--statistics",
-                os.path.join(CURRENT_DIR, "%s.po" % lang),
-                "-o",
-                os.path.join(LOCALE_DIR, lang, "LC_MESSAGES", "%s.mo" % DOMAIN),
-                )
+def process_po(po):
+    lang = os.path.basename(po)[:-3]
 
-            print(" ".join(cmd))
-            process = subprocess.Popen(cmd)
-            process.wait()
+    # show stats
+    cmd = (GETTEXT_MSGFMT_EXECUTABLE,
+        "--statistics",
+        os.path.join(CURRENT_DIR, "%s.po" % lang),
+        "-o",
+        os.path.join(LOCALE_DIR, lang, "LC_MESSAGES", "%s.mo" % DOMAIN),
+        )
+
+    print(" ".join(cmd))
+    process = subprocess.Popen(cmd)
+    process.wait()
+
+
+def main():
+    if len(sys.argv) > 1:
+        for lang in sys.argv[1:]:
+            po = os.path.join(CURRENT_DIR, lang + '.po')
+
+            if os.path.exists(po):
+                process_po(po)
+    else:
+        for po in os.listdir(CURRENT_DIR):
+            if po.endswith(".po"):
+                process_po(po)
 
 if __name__ == "__main__":
     print("\n\n *** Running %r *** \n" % __file__)

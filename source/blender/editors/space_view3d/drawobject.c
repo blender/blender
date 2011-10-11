@@ -1369,14 +1369,11 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
-	float vec[8][4], facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
+	float tvec[3];
+	float vec[4][3], asp[2], shift[2], scale[3];
 	int i;
 	float drawsize;
 	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
-
-	const float scax= 1.0f / len_v3(ob->obmat[0]);
-	const float scay= 1.0f / len_v3(ob->obmat[1]);
-	const float scaz= 1.0f / len_v3(ob->obmat[2]);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if(is_view && !(G.f & G_PICKSEL)) {
@@ -1387,82 +1384,43 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 #endif
 
 	cam= ob->data;
-	aspx= (float) scene->r.xsch*scene->r.xasp;
-	aspy= (float) scene->r.ysch*scene->r.yasp;
 
-	if(aspx < aspy) {
-		caspx= aspx / aspy;
-		caspy= 1.0;
-	}
-	else {
-		caspx= 1.0;
-		caspy= aspy / aspx;
-	}
-	
+	scale[0]= 1.0f / len_v3(ob->obmat[0]);
+	scale[1]= 1.0f / len_v3(ob->obmat[1]);
+	scale[2]= 1.0f / len_v3(ob->obmat[2]);
+
+	camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
+	                     asp, shift, &drawsize, vec);
+
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
-	
-	if(cam->type==CAM_ORTHO) {
-		facx= 0.5f * cam->ortho_scale * caspx * scax;
-		facy= 0.5f * cam->ortho_scale * caspy * scay;
-		shx= cam->shiftx * cam->ortho_scale * scax;
-		shy= cam->shifty * cam->ortho_scale * scay;
-		depth= is_view ? -((cam->clipsta * scaz) + 0.1f) : - cam->drawsize * cam->ortho_scale * scaz;
-		
-		drawsize= 0.5f * cam->ortho_scale;
-	}
-	else {
-		/* that way it's always visible - clipsta+0.1 */
-		float fac;
-		drawsize= cam->drawsize / ((scax + scay + scaz) / 3.0f);
-
-		if(is_view) {
-			/* fixed depth, variable size (avoids exceeding clipping range) */
-			depth = -(cam->clipsta + 0.1f);
-			fac = depth / (cam->lens/-16.0f * scaz);
-		}
-		else {
-			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
-			depth= drawsize * cam->lens/-16.0f * scaz;
-			fac= drawsize;
-		}
-
-		facx= fac * caspx * scax;
-		facy= fac * caspy * scay;
-		shx= cam->shiftx*fac*2 * scax;
-		shy= cam->shifty*fac*2 * scay;
-	}
-	
-	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.0;
-	vec[1][0]= shx + facx; vec[1][1]= shy + facy; vec[1][2]= depth;
-	vec[2][0]= shx + facx; vec[2][1]= shy - facy; vec[2][2]= depth;
-	vec[3][0]= shx - facx; vec[3][1]= shy - facy; vec[3][2]= depth;
-	vec[4][0]= shx - facx; vec[4][1]= shy + facy; vec[4][2]= depth;
 
 	/* camera frame */
 	glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[1]); 
-		glVertex3fv(vec[2]); 
-		glVertex3fv(vec[3]); 
-		glVertex3fv(vec[4]);
+	glVertex3fv(vec[0]);
+	glVertex3fv(vec[1]);
+	glVertex3fv(vec[2]);
+	glVertex3fv(vec[3]);
 	glEnd();
 
 	if(is_view)
 		return;
 
+	zero_v3(tvec);
+
 	/* center point to camera frame */
 	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec[2]); 
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[1]);
-		glVertex3fv(vec[4]);
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[3]); 
+	glVertex3fv(vec[1]);
+	glVertex3fv(tvec);
+	glVertex3fv(vec[0]);
+	glVertex3fv(vec[3]);
+	glVertex3fv(tvec);
+	glVertex3fv(vec[2]);
 	glEnd();
 
 
 	/* arrow on top */
-	vec[0][2]= depth;
+	tvec[2]= vec[1][2]; /* copy the depth */
 
 
 	/* draw an outline arrow for inactive cameras and filled
@@ -1473,16 +1431,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 
-		vec[0][0]= shx + ((-0.7f * drawsize) * scax);
-		vec[0][1]= shy + ((drawsize * (caspy + 0.1f)) * scay);
-		glVertex3fv(vec[0]); /* left */
+		tvec[0]= shift[0] + ((-0.7f * drawsize) * scale[0]);
+		tvec[1]= shift[1] + ((drawsize * (asp[1] + 0.1f)) * scale[1]);
+		glVertex3fv(tvec); /* left */
 		
-		vec[0][0]= shx + ((0.7f * drawsize) * scax);
-		glVertex3fv(vec[0]); /* right */
+		tvec[0]= shift[0] + ((0.7f * drawsize) * scale[0]);
+		glVertex3fv(tvec); /* right */
 		
-		vec[0][0]= shx;
-		vec[0][1]= shy + ((1.1f * drawsize * (caspy + 0.7f)) * scay);
-		glVertex3fv(vec[0]); /* top */
+		tvec[0]= shift[0];
+		tvec[1]= shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
+		glVertex3fv(tvec); /* top */
 	
 		glEnd();
 	}
@@ -1756,7 +1714,8 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, 
 	}
 }
 
-static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
+static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
+{
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();
@@ -1815,7 +1774,9 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
 		view3d_project_short_clip(data->vc.ar, cent, s, 1);
 
-		data->func(data->userData, efa, s[0], s[1], index);
+		if (s[0] != IS_CLIPPED) {
+			data->func(data->userData, efa, s[0], s[1], index);
+		}
 	}
 }
 
@@ -5110,6 +5071,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	const float tot_inv= (1.0f / (float)CIRCLE_RESOL);
 	int a;
 	char inverse= FALSE;
+	float x, y, fac;
 
 	if (start < 0) {
 		inverse = TRUE;
@@ -5119,38 +5081,54 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	copy_v3_v3(vec, cent);
+	glBegin(GL_LINE_STRIP);
 
 	if (inverse==0) {
+		copy_v3_v3(vec, cent);
+		glVertex3fv(vec);
+
 		for(a=0; a<CIRCLE_RESOL; a++) {
-			if (a+start>31)
+			if (a+start>=CIRCLE_RESOL)
 				start=-a + 1;
-			glBegin(GL_LINES);							
+
+			fac= (float)a * tot_inv;
+			x= sinval[a+start] * fac;
+			y= cosval[a+start] * fac;
+
+			vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+			vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+			vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
+
 			glVertex3fv(vec);
-			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)a * tot_inv) + cosval[a+start] * (vy[0] * (float)a * tot_inv);
-			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)a * tot_inv) + cosval[a+start] * (vy[1] * (float)a * tot_inv);
-			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)a * tot_inv) + cosval[a+start] * (vy[2] * (float)a * tot_inv);
-			glVertex3fv(vec);
-			glEnd();
 		}
 	}
 	else {
-		a=0;
-		vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
-		vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
-		vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
+		fac= (float)(CIRCLE_RESOL-1) * tot_inv;
+		x= sinval[start] * fac;
+		y= cosval[start] * fac;
+
+		vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+		vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+		vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
+
+		glVertex3fv(vec);
+
 		for(a=0; a<CIRCLE_RESOL; a++) {
-			if (a+start>31)
+			if (a+start>=CIRCLE_RESOL)
 				start=-a + 1;
-			glBegin(GL_LINES);							
+
+			fac= (float)(-a+(CIRCLE_RESOL-1)) * tot_inv;
+			x= sinval[a+start] * fac;
+			y= cosval[a+start] * fac;
+
+			vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+			vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+			vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
 			glVertex3fv(vec);
-			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
-			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
-			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
-			glVertex3fv(vec);
-			glEnd();
 		}
 	}
+
+	glEnd();
 }
 
 /* draws a circle on x-z plane given the scaling of the circle, assuming that 

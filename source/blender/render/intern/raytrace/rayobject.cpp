@@ -441,7 +441,7 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 	}
 	else {
 		assert(0);
-    	return 0;
+		return 0;
 	}
 }
 

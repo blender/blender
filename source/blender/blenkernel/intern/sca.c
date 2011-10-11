@@ -641,6 +641,8 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 	bMessageActuator *ma;
 	bParentActuator *para;
 	bArmatureActuator *aa;
+	bSteeringActuator *sta;
+
 
 	sens= obt->sensors.first;
 	while(sens) {
@@ -688,6 +690,10 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			if (aa->target == ob) aa->target = NULL;
 			if (aa->subtarget == ob) aa->subtarget = NULL;
 			break;
+		case ACT_STEERING:
+			sta = act->data;
+			if (sta->navmesh == ob) sta->navmesh = NULL;
+			if (sta->target == ob) sta->target = NULL;
 		}
 		act= act->next;
 	}	

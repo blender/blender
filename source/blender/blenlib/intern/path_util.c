@@ -785,7 +785,8 @@ void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
 /* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
    as default location to save documents */
-const char *BLI_getDefaultDocumentFolder(void) {
+const char *BLI_getDefaultDocumentFolder(void)
+{
 	#if !defined(WIN32)
 		return getenv("HOME");
 
@@ -1155,8 +1156,8 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 
 void BLI_setenv(const char *env, const char*val)
 {
-	/* SGI or free windows */
-#if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
+	/* free windows */
+#if (defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)
 	char *envstr= MEM_mallocN(sizeof(char) * (strlen(env) + strlen(val) + 2), "envstr"); /* one for = another for \0 */
 
 	sprintf(envstr, "%s=%s", env, val);
@@ -1206,7 +1207,8 @@ void BLI_char_switch(char *string, char from, char to)
 	}
 }
 
-void BLI_make_exist(char *dir) {
+void BLI_make_exist(char *dir)
+{
 	int a;
 
 	BLI_char_switch(dir, ALTSEP, SEP);
@@ -1431,16 +1433,16 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file)
 {
 	int sl_dir;
-	
+
 	if(string != dir) /* compare pointers */
-		BLI_strncpy(string, dir, maxlen);
+		BLI_strncpy(string, dir, maxlen -(file ? 1 : 0));
 
 	if (!file)
 		return;
-	
+
 	sl_dir= BLI_add_slash(string);
 	
-	if (sl_dir <FILE_MAX) {
+	if (sl_dir < maxlen) {
 		BLI_strncpy(string + sl_dir, file, maxlen - sl_dir);
 	}
 }
@@ -1550,7 +1552,8 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	return 1;
 }
 
-char *BLI_first_slash(char *string) {
+char *BLI_first_slash(char *string)
+{
 	char *ffslash, *fbslash;
 	
 	ffslash= strchr(string, '/');	
@@ -1563,7 +1566,8 @@ char *BLI_first_slash(char *string) {
 	else return fbslash;
 }
 
-char *BLI_last_slash(const char *string) {
+char *BLI_last_slash(const char *string)
+{
 	char *lfslash, *lbslash;
 	
 	lfslash= strrchr(string, '/');	
@@ -1577,33 +1581,23 @@ char *BLI_last_slash(const char *string) {
 }
 
 /* adds a slash if there isnt one there already */
-int BLI_add_slash(char *string) {
+int BLI_add_slash(char *string)
+{
 	int len = strlen(string);
-#ifdef WIN32
-	if (len==0 || string[len-1]!='\\') {
-		string[len] = '\\';
+	if (len==0 || string[len-1] != SEP) {
+		string[len] = SEP;
 		string[len+1] = '\0';
 		return len+1;
 	}
-#else
-	if (len==0 || string[len-1]!='/') {
-		string[len] = '/';
-		string[len+1] = '\0';
-		return len+1;
-	}
-#endif
 	return len;
 }
 
 /* removes a slash if there is one */
-void BLI_del_slash(char *string) {
+void BLI_del_slash(char *string)
+{
 	int len = strlen(string);
 	while (len) {
-#ifdef WIN32
-		if (string[len-1]=='\\') {
-#else
-		if (string[len-1]=='/') {
-#endif
+		if (string[len-1] == SEP) {
 			string[len-1] = '\0';
 			len--;
 		} else {

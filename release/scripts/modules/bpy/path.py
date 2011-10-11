@@ -40,7 +40,7 @@ import bpy as _bpy
 import os as _os
 
 
-def abspath(path, start=None):
+def abspath(path, start=None, library=None):
     """
     Returns the absolute path relative to the current blend file
     using the "//" prefix.
@@ -48,8 +48,13 @@ def abspath(path, start=None):
     :arg start: Relative to this path,
        when not set the current filename is used.
     :type start: string
+    :arg library: The library this path is from. This is only included for
+       convenience, when the library is not None its path replaces *start*.
+    :type library: :class:`bpy.types.Library`
     """
     if path.startswith("//"):
+        if library:
+            start = abspath(_os.path.dirname(library.filepath))
         return _os.path.join(_os.path.dirname(_bpy.data.filepath)
                              if start is None else start,
                              path[2:],
@@ -263,7 +268,7 @@ def module_names(path, recursive=False):
 
 def basename(path):
     """
-    Equivalent to os.path.basename, but skips a "//" suffix.
+    Equivalent to os.path.basename, but skips a "//" prefix.
 
     Use for Windows compatibility.
     """

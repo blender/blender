@@ -785,7 +785,7 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 }
 
 /* ********************************************************* */
-/* DRAG-ZOOM OPERATOR					 				 */
+/* DRAG-ZOOM OPERATOR									 */
 
 /* 	MMB Drag - allows non-uniform scaling by dragging mouse
  *

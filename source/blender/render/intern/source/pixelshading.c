@@ -226,8 +226,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		}
 		
 		/* shadow  */
-		if(i> -0.41f) {			/* heuristic valua! */
-			shadfac= 1.0;
+		if(i> -0.41f) { /* heuristic valua! */
 			if(lar->shb) {
 				shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 				if(shadfac==0.0f) continue;

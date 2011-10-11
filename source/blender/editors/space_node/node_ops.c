@@ -108,19 +108,22 @@ void ED_operatormacros_node(void)
 	wmOperatorTypeMacro *mot;
 	
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Duplicate selected nodes and move them";
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	/* modified operator call for duplicating with input links */
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Duplicate selected nodes keeping input links and move them";
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 		RNA_boolean_set(mot->ptr, "keep_inputs", 1);
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
+	ot->description = "Select node and link it to a viewer node";
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
-	}
+}
 
 void node_keymap(struct wmKeyConfig *keyconf)
 {

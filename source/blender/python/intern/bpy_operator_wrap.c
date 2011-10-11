@@ -125,7 +125,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 
 	otmacro= WM_operatortype_macro_define(ot, opname);
 
-	RNA_pointer_create(NULL, &RNA_OperatorTypeMacro, otmacro, &ptr_otmacro);
+	RNA_pointer_create(NULL, &RNA_OperatorMacro, otmacro, &ptr_otmacro);
 
 	return pyrna_struct_CreatePyObject(&ptr_otmacro);
 }

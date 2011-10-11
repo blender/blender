@@ -76,7 +76,8 @@ struct bArgs {
 	int	  *passes;
 };
 
-static unsigned int case_strhash(const void *ptr) {
+static unsigned int case_strhash(const void *ptr)
+{
 	const char *s= ptr;
 	unsigned int i= 0;
 	unsigned char c;

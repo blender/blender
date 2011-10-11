@@ -508,7 +508,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 {
 	Text *text;
 	TextLine *linep;
-	int i, j, start, end, chars, max, chop;
+	int i, j, start, end, max, chop;
 	char ch;
 
 	*offl= *offc= 0;
@@ -546,9 +546,9 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 		start= 0;
 		end= max;
 		chop= 1;
-		chars= 0;
 		*offc= 0;
 		for(i=0, j=0; linep->line[j]!='\0'; j++) {
+			int chars;
 
 			/* Mimic replacement of tabs */
 			ch= linep->line[j];
@@ -557,8 +557,9 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 				if(linep==linein && i<cursin) cursin += chars-1;
 				ch= ' ';
 			}
-			else
+			else {
 				chars= 1;
+			}
 
 			while(chars--) {
 				if(i-start>=max) {
@@ -1420,8 +1421,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 
 		y -= st->lheight;
 
-		strncpy(str, item->name, SUGG_LIST_WIDTH);
-		str[SUGG_LIST_WIDTH] = '\0';
+		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
 
 		w = text_font_width(st, str);
 		

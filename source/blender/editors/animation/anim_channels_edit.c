@@ -366,7 +366,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 /* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
  *	- anim_data: list of the all the anim channels that can be chosen
  *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
- *	 	  then the channels under closed expanders get ignored...
+ *		  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
  *	- setting: type of setting to set

@@ -182,6 +182,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_NLA_ACTCHANGE:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_ANIMCHAN:
+					if(wmn->action==NA_SELECTED)
+						ED_region_tag_redraw(ar);
+					break;
 			}
 			break;
 	}

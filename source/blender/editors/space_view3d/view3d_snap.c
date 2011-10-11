@@ -65,6 +65,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_curve.h" /* for curve_editnurbs */
 
@@ -494,6 +495,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	
 	}
 	else {
+		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
@@ -522,6 +524,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 									pchan->loc[0]= vecN[1];
 								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)	
 									pchan->loc[0]= vecN[2];
+
+								/* auto-keyframing */
+								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 							}
 							/* if the bone has a parent and is connected to the parent, 
 							 * don't do anything - will break chain unless we do auto-ik. 
@@ -531,8 +536,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 				
-				/* auto-keyframing */
-// XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
@@ -556,7 +559,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 					ob->loc[2]+= vec[2];
 				
 				/* auto-keyframing */
-// XXX				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
+				ED_autokeyframe_object(C, scene, ob, ks);
 			}
 		}
 		CTX_DATA_END;
@@ -622,6 +625,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		
 	}
 	else {
+		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
+
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
@@ -648,6 +653,9 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 									pchan->loc[1]= curspn[1];
 								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)	
 									pchan->loc[2]= curspn[2];
+
+								/* auto-keyframing */
+								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 							}
 							/* if the bone has a parent and is connected to the parent, 
 							 * don't do anything - will break chain unless we do auto-ik. 
@@ -657,8 +665,6 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 				
-				/* auto-keyframing */
-// XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
@@ -680,9 +686,9 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 					ob->loc[1]+= vec[1];
 				if ((ob->protectflag & OB_LOCK_LOCZ)==0)
 					ob->loc[2]+= vec[2];
-				
+
 				/* auto-keyframing */
-// XXX				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
+				ED_autokeyframe_object(C, scene, ob, ks);
 			}
 		}
 		CTX_DATA_END;

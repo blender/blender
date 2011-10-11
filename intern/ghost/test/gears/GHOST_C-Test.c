@@ -190,16 +190,16 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 
 static void drawGearGL(int id)
 {
-    static GLfloat pos[4] = { 5.0f, 5.0f, 10.0f, 1.0f };
-    static GLfloat ared[4] = { 0.8f, 0.1f, 0.0f, 1.0f };
-    static GLfloat agreen[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
-    static GLfloat ablue[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
+	static GLfloat pos[4] = { 5.0f, 5.0f, 10.0f, 1.0f };
+	static GLfloat ared[4] = { 0.8f, 0.1f, 0.0f, 1.0f };
+	static GLfloat agreen[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
+	static GLfloat ablue[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
 	
-    glLightfv(GL_LIGHT0, GL_POSITION, pos);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_DEPTH_TEST);
 	
 	switch (id)
 	{
@@ -218,40 +218,40 @@ static void drawGearGL(int id)
 	default:
 		break;
 	}
-    glEnable(GL_NORMALIZE);
+	glEnable(GL_NORMALIZE);
 }
 
 
 static void drawGL(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-    glPushMatrix();
+	glPushMatrix();
 	
-    glRotatef(view_rotx, 1.0, 0.0, 0.0);
-    glRotatef(view_roty, 0.0, 1.0, 0.0);
-    glRotatef(view_rotz, 0.0, 0.0, 1.0);
+	glRotatef(view_rotx, 1.0, 0.0, 0.0);
+	glRotatef(view_roty, 0.0, 1.0, 0.0);
+	glRotatef(view_rotz, 0.0, 0.0, 1.0);
 	
-    glPushMatrix();
-    glTranslatef(-3.0, -2.0, 0.0);
-    glRotatef(fAngle, 0.0, 0.0, 1.0);
-    drawGearGL(1);
-    glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-3.0, -2.0, 0.0);
+	glRotatef(fAngle, 0.0, 0.0, 1.0);
+	drawGearGL(1);
+	glPopMatrix();
 	
-    glPushMatrix();
-    glTranslatef(3.1f, -2.0f, 0.0f);
-    glRotatef((float)(-2.0*fAngle-9.0), 0.0, 0.0, 1.0);
-    drawGearGL(2);
-    glPopMatrix();
+	glPushMatrix();
+	glTranslatef(3.1f, -2.0f, 0.0f);
+	glRotatef((float)(-2.0*fAngle-9.0), 0.0, 0.0, 1.0);
+	drawGearGL(2);
+	glPopMatrix();
 	
-    glPushMatrix();
-    glTranslatef(-3.1f, 2.2f, -1.8f);
-    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef((float)(2.0*fAngle-2.0), 0.0, 0.0, 1.0);
-    drawGearGL(3);
-    glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-3.1f, 2.2f, -1.8f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	glRotatef((float)(2.0*fAngle-2.0), 0.0, 0.0, 1.0);
+	drawGearGL(3);
+	glPopMatrix();
 	
-    glPopMatrix();
+	glPopMatrix();
 }
 
 
@@ -260,21 +260,21 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
 	GHOST_RectangleHandle hRect = NULL;
 	GLfloat w, h;
 	
-    GHOST_ActivateWindowDrawingContext(hWindow);
-    hRect = GHOST_GetClientBounds(hWindow);
+	GHOST_ActivateWindowDrawingContext(hWindow);
+	hRect = GHOST_GetClientBounds(hWindow);
 	
-    w = (float)GHOST_GetWidthRectangle(hRect) / (float)GHOST_GetHeightRectangle(hRect);
-    h = 1.0;
+	w = (float)GHOST_GetWidthRectangle(hRect) / (float)GHOST_GetHeightRectangle(hRect);
+	h = 1.0;
 	
 	glViewport(0, 0, GHOST_GetWidthRectangle(hRect), GHOST_GetHeightRectangle(hRect));
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-    glFrustum(-w, w, -h, h, 5.0, 60.0);
+	glFrustum(-w, w, -h, h, 5.0, 60.0);
 	/* glOrtho(0, bnds.getWidth(), 0, bnds.getHeight(), -10, 10); */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-    glTranslatef(0.0, 0.0, -40.0);
+	glTranslatef(0.0, 0.0, -40.0);
 	
 	glClearColor(.2f,0.0f,0.0f,0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -541,8 +541,8 @@ int main(int argc, char** argv)
 static void gearsTimerProc(GHOST_TimerTaskHandle hTask, GHOST_TUns64 time)
 {
 	GHOST_WindowHandle hWindow = NULL;
-    fAngle += 2.0;
-    view_roty += 1.0;
+	fAngle += 2.0;
+	view_roty += 1.0;
 	hWindow = (GHOST_WindowHandle)GHOST_GetTimerTaskUserData(hTask);
 	if (GHOST_GetFullScreen(shSystem))
 	{

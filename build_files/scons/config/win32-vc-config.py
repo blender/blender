@@ -29,11 +29,6 @@ BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
-BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
-BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
-BF_LIBSAMPLERATE_LIB = 'libsamplerate'
-BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
-
 WITH_BF_JACK = False
 BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include ${BF_FFMPEG}/include/msvc'
@@ -151,6 +146,8 @@ BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader Open
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
 WITH_BF_3DMOUSE = True
+
+WITH_BF_OPENMP = True
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True

@@ -84,7 +84,7 @@ static void api_ui_item_common(FunctionRNA *func)
 {
 	PropertyRNA *prop;
 
-	RNA_def_string(func, "text", "", 0, "", "Override automatic text of the item");
+	RNA_def_string_translate(func, "text", "", 0, "", "Override automatic text of the item");
 
 	prop= RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);
@@ -309,7 +309,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "type_property", "", 0, "",
 	                     "Identifier of property in data giving the type of the ID-blocks to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI");
+	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func= RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
@@ -318,7 +318,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "root", "ID", "", "ID-block from which path is evaluated from");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
-	RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI");
+	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -447,6 +447,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "template_texture_user", "uiTemplateTextureUser");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "template_keymap_item_properties", "uiTemplateKeymapItemProperties");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
 	parm= RNA_def_string(func, "string", "", 1024*1024, "Descr", "DESCR");

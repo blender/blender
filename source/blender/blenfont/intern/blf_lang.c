@@ -36,7 +36,7 @@
 
 #include "BLF_api.h"
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 
 #include <locale.h>
 
@@ -81,8 +81,8 @@ static const char *locales[] = {
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
 	"ptb", "pt_BR",
-	"chs", "zh_CN",
-	"cht", "zh_TW",
+	"Chinese (Simplified)_China.1252", "zh_CN",
+	"Chinese (Traditional)_China.1252", "zh_TW",
 	"russian", "ru_RU",
 	"croatian", "hr_HR",
 	"serbian", "sr_RS",
@@ -94,6 +94,7 @@ static const char *locales[] = {
 	"greek", "el_GR",
 	"korean", "ko_KR",
 	"nepali", "ne_NP",
+	"persian", "fa_PE",
 };
 
 void BLF_lang_init(void)
@@ -115,7 +116,7 @@ void BLF_lang_set(const char *str)
 	char *locreturn;
 	const char *short_locale;
 	int ok= 1;
-#if defined (_WIN32)
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
 	char *long_locale = locales[ 2 * U.language];
 #endif
 
@@ -127,7 +128,7 @@ void BLF_lang_set(const char *str)
 	else
 		short_locale = locales[ 2 * U.language + 1];
 
-#if defined (_WIN32)
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
 	if(short_locale) {
 		char *envStr;
 
@@ -158,7 +159,7 @@ void BLF_lang_set(const char *str)
 				char *s;
 
 				/* store defaul locale */
-				strncpy(default_locale, env_language, sizeof(default_locale));
+				BLI_strncpy(default_locale, env_language, sizeof(default_locale));
 
 				/* use first language as default */
 				s= strchr(default_locale, ':');
@@ -209,7 +210,7 @@ void BLF_lang_encoding(const char *str)
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
 }
 
-#else /* ! INTERNATIONAL */
+#else /* ! WITH_INTERNATIONAL */
 
 void BLF_lang_init(void)
 {
@@ -228,4 +229,4 @@ void BLF_lang_set(const char *str)
 	return;
 }
 
-#endif /* INTERNATIONAL */
+#endif /* WITH_INTERNATIONAL */

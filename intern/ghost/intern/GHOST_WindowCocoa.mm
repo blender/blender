@@ -1009,7 +1009,7 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
 			if (!getValid()) break;
-            				
+
 			pixelFormat = [m_openGLView pixelFormat];
 			tmpOpenGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
 															  shareContext:s_firstOpenGLcontext];
@@ -1332,7 +1332,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 	
 
 	cursorImageRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil
-														  	 pixelsWide:sizex
+															 pixelsWide:sizex
 															 pixelsHigh:sizey
 														  bitsPerSample:1 
 														samplesPerPixel:2

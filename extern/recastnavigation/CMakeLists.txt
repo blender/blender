@@ -53,18 +53,19 @@ set(SRC
 		Detour/Include/DetourTileNavMeshBuilder.h
 
 		Recast/Source/Recast.cpp
+		Recast/Source/RecastAlloc.cpp
+		Recast/Source/RecastArea.cpp
 		Recast/Source/RecastContour.cpp
 		Recast/Source/RecastFilter.cpp
-		Recast/Source/RecastLog.cpp
+		Recast/Source/RecastLayers.cpp
 		Recast/Source/RecastMesh.cpp
 		Recast/Source/RecastMeshDetail.cpp
 		Recast/Source/RecastRasterization.cpp
 		Recast/Source/RecastRegion.cpp
-		Recast/Source/RecastTimer.cpp
 
 		Recast/Include/Recast.h
-		Recast/Include/RecastLog.h
-		Recast/Include/RecastTimer.h
+		Recast/Include/RecastAlloc.h
+		Recast/Include/RecastAssert.h
 )
 
 blender_add_lib(extern_recastnavigation "${SRC}" "${INC}" "${INC_SYS}")

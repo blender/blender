@@ -1867,7 +1867,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Link to Viewer Node";
-	ot->description = "Link to Viewer Node";
+	ot->description = "Link to viewer node";
 	ot->idname= "NODE_OT_link_viewer";
 	
 	/* api callbacks */
@@ -2337,7 +2337,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes";
+	ot->description = "Duplicate selected nodes";
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
@@ -2965,12 +2965,13 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	Render *re= RE_NewRender(curscene->id.name);
 
 	WM_cursor_wait(1);
-
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
-	snode_notify(C, snode);
-	snode_dag_update(C, snode);
-	
 	WM_cursor_wait(0);
+
+	/* note we are careful to send the right notifier, as otherwise the
+	   compositor would reexecute and overwrite the full sample result */
+	WM_event_add_notifier(C, NC_SCENE|ND_COMPO_RESULT, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3327,7 +3328,8 @@ void NODE_OT_delete(wmOperatorType *ot)
 }
 
 /* ****************** Delete with reconnect ******************* */
-static int is_connected_to_input_socket(bNode* node, bNodeLink* link) {
+static int is_connected_to_input_socket(bNode* node, bNodeLink* link)
+{
 	bNodeSocket *sock;
 	if (link->tonode == node) {
 		for(sock= node->inputs.first; sock; sock= sock->next) {

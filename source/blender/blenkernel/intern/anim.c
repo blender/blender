@@ -1,4 +1,6 @@
-/* 
+/*
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1514,7 +1516,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 	
 	/* in par the family name is stored, use this to find the other objects */
 	
-	chartransdata= BKE_text_to_curve(scene, par, FO_DUPLI);
+	chartransdata= BKE_text_to_curve(G.main, scene, par, FO_DUPLI);
 	if(chartransdata==NULL) return;
 
 	cu= par->data;

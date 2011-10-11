@@ -633,7 +633,7 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 
 	const float ivmax = 1.0f / vmax;
 
-	float adir[2], adist;
+	float adir[2] /*, adist */;
 	vcpy(adir, activeObst->pvel);
 	if (vlen(adir) > 0.01f)
 		vnorm(adir);
@@ -641,7 +641,7 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 		vset(adir,0,0);
 	float activeObstPos[2];
 	vset(activeObstPos, activeObst->m_pos.x(), activeObst->m_pos.y()); 
-	adist = vdot(adir, activeObstPos);
+	/* adist = vdot(adir, activeObstPos); */
 
 	float minPenalty = FLT_MAX;
 

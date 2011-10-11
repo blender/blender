@@ -1,4 +1,4 @@
-# $Id:
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # Write out messages.txt from blender
 
@@ -26,79 +26,341 @@
 
 import os
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 
 FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")
+COMMENT_PREFIX = "#~ "
 
 
-def dump_messages():
+def dump_messages_rna(messages):
     import bpy
+
+    def classBlackList():
+        blacklist_rna_class = [
+                               # core classes
+                               "Context", "Event", "Function", "UILayout",
+                               "BlendData",
+                               # registerable classes
+                               "Panel", "Menu", "Header", "RenderEngine",
+                               "Operator", "OperatorMacro", "Macro",
+                               "KeyingSetInfo", "UnknownType",
+                               # window classes
+                               "WindowManager", "Window"
+                               ]
+
+        # ---------------------------------------------------------------------
+        # Collect internal operators
+
+        # extend with all internal operators
+        # note that this uses internal api introspection functions
+        # all possible operator names
+        op_names = list(sorted(set(
+            [cls.bl_rna.identifier for cls in
+             bpy.types.OperatorProperties.__subclasses__()] +
+            [cls.bl_rna.identifier for cls in
+             bpy.types.Operator.__subclasses__()] +
+            [cls.bl_rna.identifier for cls in
+             bpy.types.OperatorMacro.__subclasses__()]
+            )))
+
+        get_inatance = __import__("_bpy").ops.get_instance
+        path_resolve = type(bpy.context).__base__.path_resolve
+        for idname in op_names:
+            op = get_inatance(idname)
+            if 'INTERNAL' in path_resolve(op, "bl_options"):
+                blacklist_rna_class.append(idname)
+
+        # ---------------------------------------------------------------------
+        # Collect builtin classes we dont need to doc
+        blacklist_rna_class.append("Property")
+        blacklist_rna_class.extend(
+                [cls.__name__ for cls in
+                 bpy.types.Property.__subclasses__()])
+
+        # ---------------------------------------------------------------------
+        # Collect classes which are attached to collections, these are api
+        # access only.
+        collection_props = set()
+        for cls_id in dir(bpy.types):
+            cls = getattr(bpy.types, cls_id)
+            for prop in cls.bl_rna.properties:
+                if prop.type == 'COLLECTION':
+                    prop_cls = prop.srna
+                    if prop_cls is not None:
+                        collection_props.add(prop_cls.identifier)
+        blacklist_rna_class.extend(sorted(collection_props))
+
+        return blacklist_rna_class
+
+    blacklist_rna_class = classBlackList()
+
+    def filterRNA(bl_rna):
+        id = bl_rna.identifier
+        if id in blacklist_rna_class:
+            print("  skipping", id)
+            return True
+        return False
 
     # -------------------------------------------------------------------------
     # Function definitions
 
-    def _putMessage(messages, msg):
-        if len(msg):
-            messages[msg] = True
-
-    def _walkProperties(properties, messages):
+    def walkProperties(bl_rna):
         import bpy
-        for prop in properties:
-            _putMessage(messages, prop.name)
-            _putMessage(messages, prop.description)
+
+        # get our parents properties not to export them multiple times
+        bl_rna_base = bl_rna.base
+        if bl_rna_base:
+            bl_rna_base_props = bl_rna_base.properties.values()
+        else:
+            bl_rna_base_props = ()
+
+        for prop in bl_rna.properties:
+            # only write this property is our parent hasn't got it.
+            if prop in bl_rna_base_props:
+                continue
+            if prop.identifier == "rna_type":
+                continue
+
+            msgsrc = "bpy.types.%s.%s" % (bl_rna.identifier, prop.identifier)
+            if prop.name and prop.name != prop.identifier:
+                messages.setdefault(prop.name, []).append(msgsrc)
+            if prop.description:
+                messages.setdefault(prop.description, []).append(msgsrc)
 
             if isinstance(prop, bpy.types.EnumProperty):
                 for item in prop.enum_items:
-                    _putMessage(messages, item.name)
-                    _putMessage(messages, item.description)
+                    msgsrc = "bpy.types.%s.%s, '%s'" % (bl_rna.identifier,
+                                                        prop.identifier,
+                                                        item.identifier,
+                                                        )
+                    # Here identifier and name can be the same!
+                    if item.name: # and item.name != item.identifier:
+                        messages.setdefault(item.name, []).append(msgsrc)
+                    if item.description:
+                        messages.setdefault(item.description, []).append(msgsrc)
 
-    def _walkRNA(bl_rna, messages):
+    def walkRNA(bl_rna):
+
+        if filterRNA(bl_rna):
+            return
+
+        msgsrc = "bpy.types.%s" % bl_rna.identifier
+
         if bl_rna.name and bl_rna.name != bl_rna.identifier:
-            _putMessage(messages, bl_rna.name)
+            messages.setdefault(bl_rna.name, []).append(msgsrc)
 
         if bl_rna.description:
-            _putMessage(messages, bl_rna.description)
+            messages.setdefault(bl_rna.description, []).append(msgsrc)
 
-        _walkProperties(bl_rna.properties, messages)
+        if hasattr(bl_rna, 'bl_label') and  bl_rna.bl_label:
+            messages.setdefault(bl_rna.bl_label, []).append(msgsrc)
 
-    def _walkClass(cls, messages):
-        _walkRNA(cls.bl_rna, messages)
+        walkProperties(bl_rna)
 
-    def _walk_keymap_hierarchy(hier, messages):
+    def walkClass(cls):
+        walkRNA(cls.bl_rna)
+
+    def walk_keymap_hierarchy(hier, msgsrc_prev):
         for lvl in hier:
-            _putMessage(messages, lvl[0])
+            msgsrc = "%s.%s" % (msgsrc_prev, lvl[1])
+            messages.setdefault(lvl[0], []).append(msgsrc)
 
             if lvl[3]:
-                _walk_keymap_hierarchy(lvl[3], messages)
+                walk_keymap_hierarchy(lvl[3], msgsrc)
 
     # -------------------------------------------------------------------------
     # Dump Messages
 
-    messages = {}
+    def full_class_id(cls):
+        """ gives us 'ID.Lamp.AreaLamp' which is best for sorting.
+        """
+        cls_id = ""
+        bl_rna = cls.bl_rna
+        while bl_rna:
+            cls_id = "%s.%s" % (bl_rna.identifier, cls_id)
+            bl_rna = bl_rna.base
+        return cls_id
 
-    for cls in type(bpy.context).__base__.__subclasses__():
-        _walkClass(cls, messages)
+    cls_list = type(bpy.context).__base__.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
 
-    for cls in bpy.types.Space.__subclasses__():
-        _walkClass(cls, messages)
+    cls_list = bpy.types.Space.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
 
-    for cls in bpy.types.Operator.__subclasses__():
-        _walkClass(cls, messages)
+    cls_list = bpy.types.Operator.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
 
-    from bl_ui.space_userpref_keymap import KM_HIERARCHY
+    cls_list = bpy.types.OperatorProperties.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
 
-    _walk_keymap_hierarchy(KM_HIERARCHY, messages)
+    cls_list = bpy.types.Menu.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
 
-    message_file = open(FILE_NAME_MESSAGES, 'w')
-    message_file.writelines("\n".join(messages))
+    from bpy_extras.keyconfig_utils import KM_HIERARCHY
+
+    walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
+
+
+def dump_messages_pytext(messages):
+    """ dumps text inlined in the python user interface: eg.
+
+        layout.prop("someprop", text="My Name")
+    """
+    import ast
+
+    # -------------------------------------------------------------------------
+    # Gather function names
+
+    import bpy
+    # key: func_id
+    # val: [(arg_kw, arg_pos), (arg_kw, arg_pos), ...]
+    func_translate_args = {}
+
+    # so far only 'text' keywords, but we may want others translated later
+    translate_kw = ("text", )
+
+    for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
+        # check it has a 'text' argument
+        for (arg_pos, (arg_kw, arg)) in enumerate(func.parameters.items()):
+            if ((arg_kw in translate_kw) and
+                (arg.is_output == False) and
+                (arg.type == 'STRING')):
+
+                func_translate_args.setdefault(func_id, []).append((arg_kw,
+                                                                    arg_pos))
+    # print(func_translate_args)
+
+    # -------------------------------------------------------------------------
+    # Function definitions
+
+    def extract_strings(fp_rel, node_container):
+        """ Recursively get strings, needed incase we have "Blah" + "Blah",
+            passed as an argument in that case it wont evaluate to a string.
+        """
+
+        for node in ast.walk(node_container):
+            if type(node) == ast.Str:
+                eval_str = ast.literal_eval(node)
+                if eval_str:
+                    # print("%s:%d: %s" % (fp, node.lineno, eval_str))
+                    msgsrc = "%s:%s" % (fp_rel, node.lineno)
+                    messages.setdefault(eval_str, []).append(msgsrc)
+
+    def extract_strings_from_file(fp):
+        filedata = open(fp, 'r', encoding="utf8")
+        root_node = ast.parse(filedata.read(), fp, 'exec')
+        filedata.close()
+
+        fp_rel = os.path.relpath(fp, SOURCE_DIR)
+
+        for node in ast.walk(root_node):
+            if type(node) == ast.Call:
+                # print("found function at")
+                # print("%s:%d" % (fp, node.lineno))
+
+                # lambda's
+                if type(node.func) == ast.Name:
+                    continue
+
+                # getattr(self, con.type)(context, box, con)
+                if not hasattr(node.func, "attr"):
+                    continue
+
+                translate_args = func_translate_args.get(node.func.attr, ())
+
+                # do nothing if not found
+                for arg_kw, arg_pos in translate_args:
+                    if arg_pos < len(node.args):
+                        extract_strings(fp_rel, node.args[arg_pos])
+                    else:
+                        for kw in node.keywords:
+                            if kw.arg == arg_kw:
+                                extract_strings(fp_rel, kw.value)
+
+    # -------------------------------------------------------------------------
+    # Dump Messages
+
+    mod_dir = os.path.join(SOURCE_DIR,
+                           "release",
+                           "scripts",
+                           "startup",
+                           "bl_ui")
+
+    files = [os.path.join(mod_dir, fn)
+             for fn in sorted(os.listdir(mod_dir))
+             if not fn.startswith("_")
+             if fn.endswith("py")
+             ]
+
+    for fp in files:
+        extract_strings_from_file(fp)
+
+
+def dump_messages():
+
+    def filter_message(msg):
+
+        # check for strings like ": %d"
+        msg_test = msg
+        for ignore in ("%d", "%s", "%r",  # string formatting
+                       "*", ".", "(", ")", "-", "/", "\\", "+", ":", "#", "%"
+                       "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                       "x",  # used on its own eg: 100x200
+                       "X", "Y", "Z",  # used alone. no need to include
+                       ):
+            msg_test = msg_test.replace(ignore, "")
+        msg_test = msg_test.strip()
+        if not msg_test:
+            # print("Skipping: '%s'" % msg)
+            return True
+
+        # we could filter out different strings here
+
+        return False
+
+    if 1:
+        import collections
+        messages = collections.OrderedDict()
+    else:
+        messages = {}
+
+    messages[""] = []
+
+    # get strings from RNA
+    dump_messages_rna(messages)
+
+    # get strings from UI layout definitions text="..." args
+    dump_messages_pytext(messages)
+
+    del messages[""]
+
+    message_file = open(FILE_NAME_MESSAGES, 'w', encoding="utf8")
+    # message_file.writelines("\n".join(sorted(messages)))
+
+    for key, value in messages.items():
+
+        # filter out junk values
+        if filter_message(key):
+            continue
+
+        for msgsrc in value:
+            message_file.write("%s%s\n" % (COMMENT_PREFIX, msgsrc))
+        message_file.write("%s\n" % key)
+
     message_file.close()
+
     print("Written %d messages to: %r" % (len(messages), FILE_NAME_MESSAGES))
-
-    # XXX. what is this supposed to do, we wrote the file already???
-    _walkClass(bpy.types.SpaceDopeSheetEditor, messages)
-
-    return {'FINISHED'}
 
 
 def main():

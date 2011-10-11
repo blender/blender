@@ -321,6 +321,9 @@ typedef struct DupliObject {
 /* 23 and 24 are for life and sector (old file compat.) */
 #define	OB_ARMATURE		25
 
+/* check if the object type supports materials */
+#define OB_TYPE_SUPPORT_MATERIAL(_type) ((_type)  >= OB_MESH && (_type) <= OB_MBALL)
+
 /* partype: first 4 bits: type */
 #define PARTYPE			15
 #define PAROBJECT		0

@@ -93,7 +93,7 @@ void bpy_import_main_set(struct Main *maggie)
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 {
-	BLI_snprintf(fn, fn_len, "%s%c%s", text->id.lib ? text->id.lib->filepath : bpy_import_main->name, SEP, text->id.name+2);
+	BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bpy_import_main, &text->id), SEP, text->id.name+2);
 }
 
 PyObject *bpy_text_import(Text *text)
@@ -120,7 +120,7 @@ PyObject *bpy_text_import(Text *text)
 	}
 
 	len= strlen(text->id.name+2);
-	strncpy(modulename, text->id.name+2, len);
+	BLI_strncpy(modulename, text->id.name+2, len);
 	modulename[len - 3]= '\0'; /* remove .py */
 	return PyImport_ExecCodeModule(modulename, text->compiled);
 }

@@ -342,6 +342,7 @@ void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, char *name, int icon){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}
 char *uiLayoutIntrospect(struct uiLayout *layout){return (char *)NULL;}
+void UI_reinit_font() {}
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text){}
@@ -373,6 +374,7 @@ void uiTemplateNodeLink(struct uiLayout *layout, struct bNodeTree *ntree, struct
 void uiTemplateNodeView(struct uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input) {}
 void uiTemplateTextureUser(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateTextureShow(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop) {}
+void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *ptr){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

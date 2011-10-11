@@ -408,12 +408,51 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	return (PyObject *)pyrna;
 }
 
+static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
+{
+	wmOperatorType *ot;
+	wmOperator *op;
+	PointerRNA ptr;
+	char *opname= _PyUnicode_AsString(value);
+	BPy_StructRNA *pyrna= NULL;
+
+	if(opname==NULL) {
+		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_instance() expects a string argument");
+		return NULL;
+	}
+	ot= WM_operatortype_find(opname, TRUE);
+	if(ot==NULL) {
+		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_instance(\"%s\") not found", opname);
+		return NULL;
+	}
+
+#ifdef PYRNA_FREE_SUPPORT
+	op= MEM_callocN(sizeof(wmOperator), __func__);
+#else
+	op= PyMem_MALLOC(sizeof(wmOperator));
+	memset(op, 0, sizeof(wmOperator));
+#endif
+	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* incase its needed */
+	op->type= ot;
+
+	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);
+
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+#ifdef PYRNA_FREE_SUPPORT
+	pyrna->freeptr= TRUE;
+#endif
+	op->ptr= &pyrna->ptr;
+
+	return (PyObject *)pyrna;
+}
+
 static struct PyMethodDef bpy_ops_methods[]= {
 	{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL},
 	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
 	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
 	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
-	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},
+	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},           /* only for introspection, leaks memory */
+	{"get_instance", (PyCFunction) pyop_getinstance, METH_O, NULL}, /* only for introspection, leaks memory */
 	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

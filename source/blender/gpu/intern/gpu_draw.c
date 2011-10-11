@@ -717,7 +717,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 			}
 			else {
 				/* Do partial drawing. 'buffer' holds only the changed part. Needed for color corrected result */
- 				float *buffer = (float *)MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
+				float *buffer = (float *)MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
 				IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
 				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 				glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
@@ -1138,6 +1138,9 @@ int GPU_enable_material(int nr, void *attribs)
 		GMS.lastretval = !GMS.lastretval;
 
 	if(GMS.lastretval) {
+		/* for alpha pass, use alpha blend */
+		alphablend = (GMS.alphapass)? GPU_BLEND_ALPHA: GPU_BLEND_SOLID;
+
 		if(gattribs && GMS.gmatbuf[nr]) {
 			/* bind glsl material and get attributes */
 			Material *mat = GMS.gmatbuf[nr];
@@ -1147,7 +1150,11 @@ int GPU_enable_material(int nr, void *attribs)
 			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
-			alphablend= mat->game.alpha_blend;
+
+			/* for glsl use alpha blend mode, unless it's set to solid and
+			   we are already drawing in an alpha pass */
+			if(mat->game.alpha_blend != GPU_BLEND_SOLID)
+				alphablend= mat->game.alpha_blend;
 
 			if(GMS.alphapass) glDepthMask(1);
 		}
@@ -1156,11 +1163,9 @@ int GPU_enable_material(int nr, void *attribs)
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GMS.matbuf[nr].diff);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, GMS.matbuf[nr].spec);
 			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, GMS.matbuf[nr].hard);
-			alphablend= GPU_BLEND_SOLID;
 		}
 
 		/* set (alpha) blending mode */
-		if(!GMS.alphapass) alphablend= GPU_BLEND_SOLID;
 		GPU_set_material_alpha_blend(alphablend);
 	}
 

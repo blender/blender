@@ -48,11 +48,11 @@ def get_platform(filename):
     tokens = filename.split("-")
     platforms = ('osx', 'mac', 'bsd',
                  'win', 'linux', 'source',
-                 'irix', 'solaris')
+                 'solaris')
     platform_tokens = []
     found = False
 
-    for i, token in enumerate(tokens):
+    for token in tokens:
         if not found:
             for platform in platforms:
                 if platform in token.lower():

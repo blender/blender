@@ -816,7 +816,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 						double aspect = camera->getAspectRatio().getValue();
 						double xfov = aspect*yfov;
 						// xfov is in degrees, cam->lens is in millimiters
-						cam->lens = angle_to_lens(DEG2RADF(xfov));;
+						cam->lens = angle_to_lens(DEG2RADF(xfov));
 					}
 					break;
 			}

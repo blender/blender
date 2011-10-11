@@ -174,7 +174,8 @@ static void group_move_outputs(bNode *node, bNodeStack **out, bNodeStack *gstack
 }
 
 /* Free internal buffers */
-static void group_free_internal(bNodeTreeExec *gexec) {
+static void group_free_internal(bNodeTreeExec *gexec)
+{
 	bNodeStack *ns;
 	int i;
 	

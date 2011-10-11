@@ -747,7 +747,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
-	float result[ 8 ];
+	float result[8]= {0.0f};
 
 	texres->tin= 0.0;
 
@@ -1748,7 +1748,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 	float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	const float bf = 0.04f*Tnor*mtex->norfac;
+	const float bf = -0.04f*Tnor*mtex->norfac;
 	int rgbnor;
 	// disable internal bump eval
 	float* nvec = texres->nor;
@@ -1904,8 +1904,17 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	// temp TexResult
 
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-	float Hscale = Tnor*mtex->norfac;
+
+	// The negate on Hscale is done because the
+	// normal in the renderer points inward which corresponds
+	// to inverting the bump map. The normals are generated
+	// this way in calc_vertexnormals(). Should this ever change
+	// this negate must be removed.
+	float Hscale = -Tnor*mtex->norfac;
+
 	int dimx=512, dimy=512;
+	const int imag_tspace_dimension_x = 1024;		// only used for texture space variant
+	float aspect = 1.0f;
 
 	// 2 channels for 2D texture and 3 for 3D textures.
 	const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
@@ -1938,6 +1947,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if (ibuf) {
 			dimx = ibuf->x;
 			dimy = ibuf->y;
+			aspect = ((float) dimy) / dimx;
 		}
 	}
 	
@@ -2111,12 +2121,13 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if(tex->ima) {
 			// crazy hack solution that gives results similar to normal mapping - part 2
 			float vec[2];
+			const float imag_tspace_dimension_y = aspect*imag_tspace_dimension_x;
 			
-			vec[0] = dimx*dxt[0];
-			vec[1] = dimy*dxt[1];
+			vec[0] = imag_tspace_dimension_x*dxt[0];
+			vec[1] = imag_tspace_dimension_y*dxt[1];
 			dHdx *= 1.0f/len_v2(vec);
-			vec[0] = dimx*dyt[0];
-			vec[1] = dimy*dyt[1];
+			vec[0] = imag_tspace_dimension_x*dyt[0];
+			vec[1] = imag_tspace_dimension_y*dyt[1];
 			dHdy *= 1.0f/len_v2(vec);
 		}
 	}

@@ -540,8 +540,8 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		
 	/* get first constraint and determine type of keyframe constraints to check for 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
-	 *	  ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
-	 *  	  those structs, allowing us to identify the owner of the data 
+	 *    ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
+	 *    those structs, allowing us to identify the owner of the data
 	 */
 	if (ptr->type == &RNA_Object) {
 		/* Object */
@@ -1748,3 +1748,56 @@ short id_frame_has_keyframe (ID *id, float frame, short filter)
 }
 
 /* ************************************************** */
+
+int ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
+{
+	/* auto keyframing */
+	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+		ListBase dsources = {NULL, NULL};
+
+		/* now insert the keyframe(s) using the Keying Set
+		 *	1) add datasource override for the Object
+		 *	2) insert keyframes
+		 *	3) free the extra info
+		 */
+		ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL);
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		BLI_freelistN(&dsources);
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+int ED_autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pchan, KeyingSet *ks)
+{
+	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+		ListBase dsources = {NULL, NULL};
+
+		/* now insert the keyframe(s) using the Keying Set
+		 *	1) add datasource override for the PoseChannel
+		 *	2) insert keyframes
+		 *	3) free the extra info
+		 */
+		ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
+		ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		BLI_freelistN(&dsources);
+
+		/* clear any unkeyed tags */
+		if (pchan->bone) {
+			pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+
+		return TRUE;
+	}
+	else {
+		/* add unkeyed tags */
+		if (pchan->bone) {
+			pchan->bone->flag |= BONE_UNKEYED;
+		}
+
+		return FALSE;
+	}
+}

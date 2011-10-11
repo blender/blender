@@ -551,8 +551,8 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	}
 	
 	/* delete the group instance. this also removes old input links! */
- 	nodeFreeNode(ntree, gnode);
- 	
+	nodeFreeNode(ntree, gnode);
+
 	/* free the group tree (takes care of user count) */
 	free_libblock(&G.main->nodetree, wgroup);
 	
@@ -567,7 +567,7 @@ bNodeSocket *node_group_add_socket(bNodeTree *ngroup, const char *name, int type
 	bNodeSocketType *stype = ntreeGetSocketType(type);
 	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 	
-	strncpy(gsock->name, name, sizeof(gsock->name));
+	BLI_strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
 	/* group sockets are dynamically added */
 	gsock->flag |= SOCK_DYNAMIC;

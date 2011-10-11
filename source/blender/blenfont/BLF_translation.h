@@ -37,7 +37,7 @@
 
 /* blf_translation.c  */
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
 #endif

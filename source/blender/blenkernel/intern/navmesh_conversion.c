@@ -1,31 +1,35 @@
-/**
-* $Id$ 
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
-* All rights reserved.
-*
-* The Original Code is: all of this file.
-*
-* Contributor(s): none yet.
-*
-* ***** END GPL LICENSE BLOCK *****
-*/
+/*
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/blenkernel/intern/navmesh_conversion.c
+ *  \ingroup bke
+ */
 
 #include <math.h>
 #include <stdlib.h>
@@ -328,14 +332,10 @@ struct SortContext
 	const int* trisToFacesMap;
 };
 
-/* XXX: not thread-safe, but it's called only from modifiers stack
-        which isn't threaded. Anyway, better to avoid this in the future */
-static struct SortContext *_qsort_context;
-
-static int compareByData(const void * a, const void * b)
+static int compareByData(void *ctx, const void * a, const void * b)
 {
-	return ( _qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)a]] -
-			_qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)b]] );
+	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)a]] -
+			((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)b]] );
 }
 
 int buildNavMeshData(const int nverts, const float* verts, 
@@ -367,8 +367,7 @@ int buildNavMeshData(const int nverts, const float* verts,
 		trisMapping[i]=i;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
-	_qsort_context = &context;
-	qsort(trisMapping, ntris, sizeof(int), compareByData);
+	recast_qsort(trisMapping, ntris, sizeof(int), &context, compareByData);
 
 	//search first valid triangle - triangle of convex polygon
 	validTriStart = -1;

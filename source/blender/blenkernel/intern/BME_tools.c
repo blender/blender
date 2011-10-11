@@ -393,19 +393,19 @@ static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int 
  * and transform properties, and set the max limits.
  * Finally, return the split vert. */
 static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, BME_Loop *l, float *up_vec, float value, BME_TransData_Head *td) {
-	BME_TransData *vtd, *vtd1, *vtd2;
-	BME_Vert *sv, *v2, *v3, *ov;
+	BME_TransData *vtd, *vtd1 /* , *vtd2 */ /* UNUSED */;
+	BME_Vert *sv, *v2, *v3 /* , *ov */ /* UNUSED */;
 	BME_Loop *lv1, *lv2;
 	BME_Edge *ne, *e1, *e2;
 	float maxfactor, scale, len, dis, vec1[3], vec2[3], t_up_vec[3];
-	int is_edge, forward, is_split_vert;
+	int is_edge, forward /* , is_split_vert */ /* UNUSED */;
 
 	if (l == NULL) {
 		/* what you call operator overloading in C :)
 		 * I wanted to use the same function for both wire edges and poly loops
 		 * so... here we walk around edges to find the needed verts */
 		forward = 1;
-		is_split_vert = 0;
+		/* is_split_vert = 0; */ /* UNUSED */
 		if (v->edge == NULL) {
 			//printf("We can't split a loose vert's edge!\n");
 			return NULL;
@@ -428,7 +428,7 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		else {
 			e1 = e2;
 		}
-		ov = BME_edge_getothervert(e1,v);
+		/* ov = BME_edge_getothervert(e1,v); */ /* UNUSED */
 		sv = BME_split_edge(bm,v,e1,&ne,0);
 		//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
 		//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
@@ -464,14 +464,14 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		}
 
 		if (BME_bevel_is_split_vert(lv1)) {
-			is_split_vert = 1;
+			/* is_split_vert = 1; */ /* UNUSED */
 			sv = v1;
 			if (forward) v1 = l->next->next->v;
 			else v1 = l->prev->v;
 		}
 		else {
-			is_split_vert = 0;
-			ov = BME_edge_getothervert(l->e,v);
+			/* is_split_vert = 0; */ /* UNUSED */
+			/* ov = BME_edge_getothervert(l->e,v); */ /* UNUSED */
 			sv = BME_split_edge(bm,v,l->e,&ne,0);
 			//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
 			//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
@@ -494,7 +494,7 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 
 	vtd = BME_get_transdata(td, sv);
 	vtd1 = BME_get_transdata(td, v);
-	vtd2 = BME_get_transdata(td,v1);
+	/* vtd2 = BME_get_transdata(td,v1); */ /* UNUSED */
 
 	if (vtd1->loc == NULL) {
 		/* this is a vert with data only for calculating initial weights */
@@ -717,7 +717,7 @@ static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int UNUS
 
 static BME_Loop *BME_bevel_vert(BME_Mesh *bm, BME_Loop *l, float value, int UNUSED(options), float *up_vec, BME_TransData_Head *td) {
 	BME_Vert *v1, *v2;
-	BME_Poly *f;
+	/* BME_Poly *f; */ /* UNUSED */
 
 	/* get/make the first vert to be used in SFME */
 	/* may need to split the previous edge */
@@ -730,7 +730,7 @@ static BME_Loop *BME_bevel_vert(BME_Mesh *bm, BME_Loop *l, float value, int UNUS
 	l = l->next->next;
 
 	/* "cut off" this corner */
-	f = BME_split_face(bm,l->f,v2,v1,NULL,l->e);
+	/* f = */ /* UNUSED */ BME_split_face(bm,l->f,v2,v1,NULL,l->e);
 
 	return l;
 }
@@ -929,16 +929,16 @@ static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int UNUSED(defg
 	BME_Vert *v;
 	BME_Edge *e;
 	BME_Poly *f;
-	BME_TransData *vtd;
-	MDeformVert *dvert;
-	MDeformWeight *dw;
+	/* BME_TransData *vtd; */ /* UNUSED */
+	/* MDeformVert *dvert; */ /* UNUSED */
+	/* MDeformWeight *dw; */ /* UNUSED */
 	int len;
 	float weight, threshold;
 
 	/* vert pass */
 	for (v=bm->verts.first; v; v=v->next) {
-		dvert = NULL;
-		dw = NULL;
+		/* dvert = NULL; */ /* UNUSED */
+		/* dw = NULL; */ /* UNUSED */
 		v->tflag1 = BME_BEVEL_ORIG;
 		/* originally coded, a vertex gets tagged with BME_BEVEL_BEVEL in this pass if
 		 * the vert is manifold (or is shared by only two edges - wire bevel)
@@ -962,7 +962,7 @@ static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int UNUSED(defg
 		else {
 			len = BME_cycle_length(BME_disk_getpointer(v->edge,v));
 			/* we'll assign a default transform data to every vert (except the loose ones) */
-			vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
+			/* vtd = */ /* UNUSED */ BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
 		}
 
 		/* check for non-manifold vert */
@@ -990,11 +990,11 @@ static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int UNUSED(defg
 					//~ }
 					//~ if (!dw || dw->weight == 0.0) continue;
 					if (v->bweight == 0.0) continue;
-					vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, v->bweight, -1, NULL);
+					/* vtd = */ /* UNUSED */ BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, v->bweight, -1, NULL);
 					v->tflag1 |= BME_BEVEL_BEVEL;
 				}
 				else {
-					vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, 1.0, -1, NULL);
+					/* vtd = */ /* UNUSED */ BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, 1.0, -1, NULL);
 					v->tflag1 |= BME_BEVEL_BEVEL;
 				}
 			}

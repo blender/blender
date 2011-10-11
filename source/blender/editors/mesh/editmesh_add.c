@@ -1472,6 +1472,8 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Circle";
 	ot->description= "Construct a circle mesh";
@@ -1487,7 +1489,8 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, "Vertices", "", 3, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1513,6 +1516,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Cylinder";
 	ot->description= "Construct a cylinder mesh";
@@ -1528,8 +1533,10 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1554,6 +1561,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Cone";
 	ot->description= "Construct a conic mesh (ends filled)";
@@ -1569,8 +1578,10 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, "Vertices", "", 2, 500);
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	prop = RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 	RNA_def_boolean(ot->srna, "cap_end", 1, "Cap End", "");
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1595,6 +1606,8 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Grid";
 	ot->description= "Construct a grid mesh";
@@ -1611,7 +1624,8 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, "X Subdivisions", "", 3, 1000);
 	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, "Y Subdivisions", "", 3, 1000);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, FLT_MAX);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1668,6 +1682,8 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add UV Sphere";
 	ot->description= "Construct a UV sphere mesh";
@@ -1684,7 +1700,8 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, "Segments", "", 3, 500);
 	RNA_def_int(ot->srna, "ring_count", 16, 3, INT_MAX, "Rings", "", 3, 500);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
+	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1707,6 +1724,8 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Ico Sphere";
 	ot->description= "Construct an Icosphere mesh";
@@ -1722,7 +1741,8 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, "Subdivisions", "", 1, 8);
-	RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, "Size", "", 0.001f, 100.00);
+	prop = RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, "Size", "", 0.001f, 100.00);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
 
 	ED_object_add_generic_props(ot, TRUE);
 }

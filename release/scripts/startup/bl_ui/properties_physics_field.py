@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
     basic_force_field_settings_ui,
@@ -54,13 +53,13 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
         field = ob.field
 
         split = layout.split(percentage=0.2)
-        split.label(text=_("Type:"))
+        split.label(text="Type:")
 
         split.prop(field, "type", text="")
 
         if field.type not in {'NONE', 'GUIDE', 'TEXTURE'}:
             split = layout.split(percentage=0.2)
-            split.label(text=_("Shape:"))
+            split.label(text="Shape:")
             split.prop(field, "shape", text="")
         elif field.type == 'TEXTURE':
             split = layout.split(percentage=0.2)
@@ -80,7 +79,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
             col.prop(field, "use_guide_path_weight")
 
             col = split.column()
-            col.label(text=_("Clumping:"))
+            col.label(text="Clumping:")
             col.prop(field, "guide_clump_amount")
             col.prop(field, "guide_clump_shape")
 
@@ -120,7 +119,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
         if field.type not in {'NONE', 'GUIDE'}:
 
-            layout.label(text=_("Falloff:"))
+            layout.label(text="Falloff:")
             layout.prop(field, "falloff_type", expand=True)
 
             basic_force_field_falloff_ui(self, context, field)
@@ -131,20 +130,20 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
                 split = layout.split(percentage=0.35)
 
                 col = split.column()
-                col.label(text=_("Angular:"))
-                col.prop(field, "use_radial_min", text=_("Use Minimum"))
-                col.prop(field, "use_radial_max", text=_("Use Maximum"))
+                col.label(text="Angular:")
+                col.prop(field, "use_radial_min", text="Use Minimum")
+                col.prop(field, "use_radial_max", text="Use Maximum")
 
                 col = split.column()
-                col.prop(field, "radial_falloff", text=_("Power"))
+                col.prop(field, "radial_falloff", text="Power")
 
                 sub = col.column()
                 sub.active = field.use_radial_min
-                sub.prop(field, "radial_min", text=_("Angle"))
+                sub.prop(field, "radial_min", text="Angle")
 
                 sub = col.column()
                 sub.active = field.use_radial_max
-                sub.prop(field, "radial_max", text=_("Angle"))
+                sub.prop(field, "radial_max", text="Angle")
 
             elif field.falloff_type == 'TUBE':
                 layout.separator()
@@ -152,20 +151,20 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
                 split = layout.split(percentage=0.35)
 
                 col = split.column()
-                col.label(text=_("Radial:"))
-                col.prop(field, "use_radial_min", text=_("Use Minimum"))
-                col.prop(field, "use_radial_max", text=_("Use Maximum"))
+                col.label(text="Radial:")
+                col.prop(field, "use_radial_min", text="Use Minimum")
+                col.prop(field, "use_radial_max", text="Use Maximum")
 
                 col = split.column()
-                col.prop(field, "radial_falloff", text=_("Power"))
+                col.prop(field, "radial_falloff", text="Power")
 
                 sub = col.column()
                 sub.active = field.use_radial_min
-                sub.prop(field, "radial_min", text=_("Distance"))
+                sub.prop(field, "radial_min", text="Distance")
 
                 sub = col.column()
                 sub.active = field.use_radial_max
-                sub.prop(field, "radial_max", text=_("Distance"))
+                sub.prop(field, "radial_max", text="Distance")
 
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
@@ -195,31 +194,31 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.label(text=_("Particle:"))
+            col.label(text="Particle:")
             col.prop(settings, "permeability", slider=True)
             col.prop(settings, "stickness")
             col.prop(settings, "use_particle_kill")
-            col.label(text=_("Particle Damping:"))
+            col.label(text="Particle Damping:")
             sub = col.column(align=True)
-            sub.prop(settings, "damping_factor", text=_("Factor"), slider=True)
-            sub.prop(settings, "damping_random", text=_("Random"), slider=True)
+            sub.prop(settings, "damping_factor", text="Factor", slider=True)
+            sub.prop(settings, "damping_random", text="Random", slider=True)
 
-            col.label(text=_("Particle Friction:"))
+            col.label(text="Particle Friction:")
             sub = col.column(align=True)
-            sub.prop(settings, "friction_factor", text=_("Factor"), slider=True)
-            sub.prop(settings, "friction_random", text=_("Random"), slider=True)
+            sub.prop(settings, "friction_factor", text="Factor", slider=True)
+            sub.prop(settings, "friction_random", text="Random", slider=True)
 
             col = split.column()
-            col.label(text=_("Soft Body and Cloth:"))
+            col.label(text="Soft Body and Cloth:")
             sub = col.column(align=True)
-            sub.prop(settings, "thickness_outer", text=_("Outer"), slider=True)
-            sub.prop(settings, "thickness_inner", text=_("Inner"), slider=True)
+            sub.prop(settings, "thickness_outer", text="Outer", slider=True)
+            sub.prop(settings, "thickness_inner", text="Inner", slider=True)
 
-            col.label(text=_("Soft Body Damping:"))
-            col.prop(settings, "damping", text=_("Factor"), slider=True)
+            col.label(text="Soft Body Damping:")
+            col.prop(settings, "damping", text="Factor", slider=True)
 
-            col.label(text=_("Force Fields:"))
-            col.prop(settings, "absorption", text=_("Absorption"))
+            col.label(text="Force Fields:")
+            col.prop(settings, "absorption", text="Absorption")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

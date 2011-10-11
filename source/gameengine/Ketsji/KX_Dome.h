@@ -57,22 +57,21 @@ class KX_Dome
 {
 public:
 	/// constructor
-	KX_Dome (
-	RAS_ICanvas* m_canvas,
-    /// rasterizer
-    RAS_IRasterizer* m_rasterizer,
-    /// render tools
-    RAS_IRenderTools* m_rendertools,
-    /// engine
-    KX_KetsjiEngine* m_engine,
+	KX_Dome (RAS_ICanvas* m_canvas,
+	         /// rasterizer
+	         RAS_IRasterizer* m_rasterizer,
+	         /// render tools
+	         RAS_IRenderTools* m_rendertools,
+	         /// engine
+	         KX_KetsjiEngine* m_engine,
 
-	short res,
-	short mode,
-	short angle,
-	float resbuf,
-	short tilt,
-	struct Text* warptext
-	);
+	         short res,
+	         short mode,
+	         short angle,
+	         float resbuf,
+	         short tilt,
+	         struct Text* warptext
+	         );
 
 	/// destructor
 	virtual ~KX_Dome (void);
@@ -180,14 +179,14 @@ protected:
 	/// rendered scene
 	KX_Scene * m_scene;
 
-    /// canvas
-    RAS_ICanvas* m_canvas;
-    /// rasterizer
-    RAS_IRasterizer* m_rasterizer;
-    /// render tools
-    RAS_IRenderTools* m_rendertools;
-    /// engine
-    KX_KetsjiEngine* m_engine;
+	/// canvas
+	RAS_ICanvas* m_canvas;
+	/// rasterizer
+	RAS_IRasterizer* m_rasterizer;
+	/// render tools
+	RAS_IRenderTools* m_rendertools;
+	/// engine
+	KX_KetsjiEngine* m_engine;
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

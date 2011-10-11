@@ -444,7 +444,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	int  pnl_icons;
 	const char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	activename= UI_translate_do_iface(activename);
 #endif
 

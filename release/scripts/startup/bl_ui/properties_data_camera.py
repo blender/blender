@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from blf import gettext as _
+
 
 class CameraButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -91,14 +91,14 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.label(text=_("Shift:"))
+        col.label(text="Shift:")
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
 
         col = split.column(align=True)
-        col.label(text=_("Clipping:"))
-        col.prop(cam, "clip_start", text=_("Start"))
-        col.prop(cam, "clip_end", text=_("End"))
+        col.label(text="Clipping:")
+        col.prop(cam, "clip_start", text="Start")
+        col.prop(cam, "clip_end", text="End")
 
 class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     bl_label = "Depth of Field"
@@ -115,7 +115,7 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         col = split.column()
 
         col.active = cam.dof_object is None
-        col.prop(cam, "dof_distance", text=_("Distance"))
+        col.prop(cam, "dof_distance", text="Distance")
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
@@ -129,19 +129,19 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(cam, "show_limits", text=_("Limits"))
-        col.prop(cam, "show_mist", text=_("Mist"))
-        col.prop(cam, "show_title_safe", text=_("Title Safe"))
-        col.prop(cam, "show_name", text=_("Name"))
+        col.prop(cam, "show_limits", text="Limits")
+        col.prop(cam, "show_mist", text="Mist")
+        col.prop(cam, "show_title_safe", text="Title Safe")
+        col.prop(cam, "show_name", text="Name")
         col.prop_menu_enum(cam, "show_guide")
 
         col = split.column()
-        col.prop(cam, "draw_size", text=_("Size"))
+        col.prop(cam, "draw_size", text="Size")
         col.separator()
-        col.prop(cam, "show_passepartout", text=_("Passepartout"))
+        col.prop(cam, "show_passepartout", text="Passepartout")
         sub = col.column()
         sub.active = cam.show_passepartout
-        sub.prop(cam, "passepartout_alpha", text=_("Alpha"), slider=True)
+        sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):

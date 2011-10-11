@@ -1,6 +1,3 @@
-/** \file blender/blenkernel/intern/writeframeserver.c
- *  \ingroup bke
- */
 /*
  * $Id$
  *
@@ -20,6 +17,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
+ */
+
+/** \file blender/blenkernel/intern/writeframeserver.c
+ *  \ingroup bke
  */
 
 #ifdef WITH_FRAMESERVER
@@ -257,7 +258,11 @@ int frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 	struct timeval tv;
 	struct sockaddr_in      addr;
 	int len, rval;
+#ifdef FREE_WINDOWS
+	int socklen;
+#else
 	unsigned int socklen;
+#endif
 	char buf[4096];
 
 	if (connsock != -1) {

@@ -353,14 +353,26 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
 
     # custom properties
     def doCustomProps(ksi, ks, bone):
+
+        prop_type_compat = {bpy.types.BooleanProperty,
+                            bpy.types.IntProperty,
+                            bpy.types.FloatProperty}
+
         # go over all custom properties for bone
-        for prop, val in bone.items():
+        for prop in bone.keys():
             # ignore special "_RNA_UI" used for UI editing
             if prop == "_RNA_UI":
                 continue
 
             # for now, just add all of 'em
-            ksi.addProp(ks, bone, '["%s"]' % (prop))
+            prop_rna = type(bone).bl_rna.properties.get(prop, None)
+            if prop_rna is None:
+                prop_path = '["%s"]' % prop
+                if bone.path_resolve(prop_path, False).rna_type in prop_type_compat:
+                    ksi.addProp(ks, bone, prop_path)
+            elif prop_rna.is_animatable:
+                ksi.addProp(ks, bone, prop)
+
 
 ###############################
 

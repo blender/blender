@@ -176,12 +176,18 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, fl
 
 /********************* Add Object Operator ********************/
 
+void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(scene), struct PointerRNA *ptr)
+{
+	RNA_struct_idprops_unset(ptr, "rotation");
+}
+
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
+	prop= RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
+	RNA_def_property_update_runtime(prop, view_align_update);
 
 	if(do_editmode) {
 		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");

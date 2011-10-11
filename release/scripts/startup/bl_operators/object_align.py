@@ -140,7 +140,7 @@ def align_objects(align_x,
 
     for obj, bb_world in objs:
 
-        if bb_quality:
+        if bb_quality and obj.type == 'MESH':
             GBB = GlobalBB_HQ(obj)
         else:
             GBB = GlobalBB_LQ(bb_world)
@@ -204,7 +204,7 @@ def align_objects(align_x,
         matrix_world = obj.matrix_world.copy()
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
 
-        if bb_quality:
+        if bb_quality and obj.type == 'MESH':
             GBB = GlobalBB_HQ(obj)
         else:
             GBB = GlobalBB_LQ(bb_world)

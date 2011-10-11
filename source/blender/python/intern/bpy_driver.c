@@ -41,6 +41,9 @@
 
 #include "bpy_driver.h"
 
+extern void BPY_update_rna_module(void);
+
+
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict= NULL;
 
@@ -163,6 +166,10 @@ float BPY_driver_exec(ChannelDriver *driver)
 
 	if(use_gil)
 		gilstate= PyGILState_Ensure();
+
+	/* needed since drivers are updated directly after undo where 'main' is
+	 * re-allocated [#28807] */
+	BPY_update_rna_module();
 
 	/* init global dictionary for py-driver evaluation settings */
 	if (!bpy_pydriver_Dict) {

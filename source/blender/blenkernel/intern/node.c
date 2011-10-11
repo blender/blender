@@ -1686,7 +1686,7 @@ void node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwid
 void node_type_storage(bNodeType *ntype, const char *storagename, void (*freestoragefunc)(struct bNode *), void (*copystoragefunc)(struct bNode *, struct bNode *))
 {
 	if (storagename)
-		strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
+		BLI_strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
 	else
 		ntype->storagename[0] = '\0';
 	ntype->copystoragefunc = copystoragefunc;
