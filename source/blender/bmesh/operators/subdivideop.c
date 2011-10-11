@@ -212,7 +212,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 			vec1[2]+= fac*nor2[2];
 	
 			/* falloff for multi subdivide */
-			smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(perc)));
+			smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(0.5f-perc)));
 	
 			vec1[0]*= smooth*len;
 			vec1[1]*= smooth*len;

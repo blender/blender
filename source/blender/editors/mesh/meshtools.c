@@ -1162,7 +1162,7 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, struct BMEditMesh *e
 		BMVert *v;
 		
 		index = 0;
-		BM_ITER(v, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (v == eve)
 				break;
 			index++;
