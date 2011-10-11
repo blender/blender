@@ -459,12 +459,14 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 
 		MEM_freeN(verts);
 		MEM_freeN(tris);
+
+		return OPERATOR_FINISHED;
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No mesh objects found");
-	}
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_navmesh_make(wmOperatorType *ot)
