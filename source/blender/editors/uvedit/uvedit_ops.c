@@ -154,7 +154,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		return;
 	}
 
-	if(scene_use_new_shading_system(scene)) {
+	if(scene_use_new_shading_nodes(scene)) {
 		/* new shading system, assign image in material */
 		int sloppy= 1;
 		EditFace *efa= EM_get_actFace(em, sloppy);

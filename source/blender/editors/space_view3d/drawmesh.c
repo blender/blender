@@ -775,7 +775,7 @@ static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
-	if(!scene_use_new_shading_system(scene)) {
+	if(!scene_use_new_shading_nodes(scene)) {
 		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, faceselect);
 		return;
 	}

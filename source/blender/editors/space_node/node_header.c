@@ -232,7 +232,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	if(snode->treetype==NTREE_SHADER) {
 		uiItemMenuF(layout, IFACE_(N_("Input")), 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
 		uiItemMenuF(layout, IFACE_(N_("Output")), 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
-		if(scene_use_new_shading_system(scene)) {
+		if(scene_use_new_shading_nodes(scene)) {
 			uiItemMenuF(layout, IFACE_(N_("Shader")), 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_SHADER));
 			uiItemMenuF(layout, IFACE_(N_("Texture")), 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
 		}

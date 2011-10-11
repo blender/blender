@@ -2142,9 +2142,11 @@ class VIEW3D_PT_view3d_display(Panel):
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
-        col = layout.column()
-        col.label(text="Shading:")
-        col.prop(gs, "material_mode", text="")
+        if not scene.render.use_shading_nodes:
+            col = layout.column()
+            col.label(text="Shading:")
+            col.prop(gs, "material_mode", text="")
+            col.prop(view, "show_textured_solid")
 
         layout.separator()
 

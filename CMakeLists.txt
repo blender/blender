@@ -1462,12 +1462,6 @@ add_subdirectory(source)
 add_subdirectory(intern)
 add_subdirectory(extern)
 
-#-----------------------------------------------------------------------------
-# Cycles
-
-if(WITH_CYCLES)
-	add_subdirectory(intern/cycles)
-endif()
 
 #-----------------------------------------------------------------------------
 # Blender Application

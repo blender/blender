@@ -268,11 +268,11 @@ int RE_engine_render(Render *re, int do_all)
 	/* verify if we can render */
 	if(!type->render)
 		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
+	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
-	if(do_all && !(type->flag & RE_DO_ALL))
+	if(do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
-	if(!do_all && (type->flag & RE_DO_ALL))
+	if(!do_all && (type->flag & RE_USE_POSTPROCESS))
 		return 0;
 
 	/* create render result */

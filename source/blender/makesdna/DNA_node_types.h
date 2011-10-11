@@ -104,7 +104,7 @@ typedef struct bNodeSocket {
 #define SOCK_FLOAT			0
 #define SOCK_VECTOR			1
 #define SOCK_RGBA			2
-#define	SOCK_SHADER			3
+#define SOCK_SHADER			3
 #define SOCK_BOOLEAN		4
 #define SOCK_MESH			5
 #define SOCK_INT			6

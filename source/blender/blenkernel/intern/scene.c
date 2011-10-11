@@ -74,6 +74,8 @@
 
 #include "BKE_sound.h"
 
+#include "RE_engine.h"
+
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
@@ -1137,8 +1139,9 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 	return NULL;
 }
 
-int scene_use_new_shading_system(Scene *scene)
+int scene_use_new_shading_nodes(Scene *scene)
 {
-	return (strcmp(scene->r.engine, "CYCLES") == 0);
+	RenderEngineType *type= RE_engines_find(scene->r.engine);
+	return (type->flag & RE_USE_SHADING_NODES);
 }
 

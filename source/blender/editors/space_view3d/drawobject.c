@@ -107,7 +107,8 @@
 
 /* this condition has been made more complex since editmode can draw textures */
 #define CHECK_OB_DRAWTEXTURE(vd, dt) \
-	((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt>OB_SOLID))
+	((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt>OB_SOLID) || \
+	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
 static void draw_bounding_volume(Scene *scene, Object *ob);
 
@@ -129,6 +130,9 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 
 	/* if its drawing textures with zbuf sel, then dont draw dots */
 	if(dt==OB_TEXTURE && vd->drawtype==OB_TEXTURE)
+		return 0;
+
+	if(vd->drawtype>=OB_SOLID && vd->flag2 & V3D_SOLID_TEX)
 		return 0;
 
 	return 1;
@@ -213,7 +217,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
-	if(scene_use_new_shading_system(scene))
+	if(scene_use_new_shading_nodes(scene))
 		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);

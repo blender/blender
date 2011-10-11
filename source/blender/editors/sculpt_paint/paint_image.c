@@ -487,7 +487,7 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 {
 	Image *ima;
 
-	if(scene_use_new_shading_system(s->scene)) {
+	if(scene_use_new_shading_nodes(s->scene)) {
 		MFace *mf = s->me->mface+face_index;
 		ED_object_get_active_image(s->ob, mf->mat_nr, &ima, NULL);
 	}
@@ -503,7 +503,7 @@ static Image *project_paint_face_image(const ProjPaintState *ps, int face_index)
 {
 	Image *ima;
 
-	if(scene_use_new_shading_system(ps->scene)) {
+	if(scene_use_new_shading_nodes(ps->scene)) {
 		MFace *mf = ps->dm_mface+face_index;
 		ED_object_get_active_image(ps->ob, mf->mat_nr, &ima, NULL);
 	}

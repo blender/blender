@@ -410,7 +410,6 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
         #Only for Material based textures, not for Lamp/World...
         if slot and isinstance(idblock, bpy.types.Material):
-            slot = context.texture_slot
             col.prop(tex, "use_normal_map")
             row = col.row()
             row.active = tex.use_normal_map

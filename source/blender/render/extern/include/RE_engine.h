@@ -48,10 +48,11 @@ struct Scene;
 
 /* External Engine */
 
-#define RE_INTERNAL			1
-#define RE_GAME				2
-#define RE_DO_PREVIEW		4
-#define RE_DO_ALL			8
+#define RE_INTERNAL				1
+#define RE_GAME					2
+#define RE_USE_PREVIEW			4
+#define RE_USE_POSTPROCESS		8
+#define RE_USE_SHADING_NODES	16
 
 extern ListBase R_engines;
 

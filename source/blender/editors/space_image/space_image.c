@@ -594,7 +594,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		EditMesh *em= BKE_mesh_get_editmesh(me);
 		int sloppy= 1; /* partially selected face is ok */
 
-		if(scene_use_new_shading_system(scene)) {
+		if(scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
 			EditFace *efa= EM_get_actFace(em, sloppy);
 
