@@ -1042,7 +1042,9 @@ def rna2sphinx(BASEPATH):
         fw("html_theme = 'blender-org'\n")
         fw("html_theme_path = ['../']\n")
 
-    fw("html_favicon = 'favicon.ico'\n")
+        # copied with the theme, exclude else we get an error [#28873]
+        fw("html_favicon = 'favicon.ico'\n")
+
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
