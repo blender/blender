@@ -187,6 +187,9 @@ static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x
 		if(!seq->sound->waveform)
 			sound_read_waveform(seq->sound);
 
+		if(!seq->sound->waveform)
+			return; /* zero length sound */
+
 		waveform = seq->sound->waveform;
 
 		startsample = floor((seq->startofs + seq->anim_startofs)/FPS * SOUND_WAVE_SAMPLES_PER_SECOND);
