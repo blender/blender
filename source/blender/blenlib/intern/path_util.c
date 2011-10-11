@@ -1433,16 +1433,16 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file)
 {
 	int sl_dir;
-	
+
 	if(string != dir) /* compare pointers */
-		BLI_strncpy(string, dir, maxlen);
+		BLI_strncpy(string, dir, maxlen -(file ? 1 : 0));
 
 	if (!file)
 		return;
-	
+
 	sl_dir= BLI_add_slash(string);
 	
-	if (sl_dir <FILE_MAX) {
+	if (sl_dir < maxlen) {
 		BLI_strncpy(string + sl_dir, file, maxlen - sl_dir);
 	}
 }
@@ -1584,19 +1584,11 @@ char *BLI_last_slash(const char *string)
 int BLI_add_slash(char *string)
 {
 	int len = strlen(string);
-#ifdef WIN32
-	if (len==0 || string[len-1]!='\\') {
-		string[len] = '\\';
+	if (len==0 || string[len-1] != SEP) {
+		string[len] = SEP;
 		string[len+1] = '\0';
 		return len+1;
 	}
-#else
-	if (len==0 || string[len-1]!='/') {
-		string[len] = '/';
-		string[len+1] = '\0';
-		return len+1;
-	}
-#endif
 	return len;
 }
 
@@ -1605,11 +1597,7 @@ void BLI_del_slash(char *string)
 {
 	int len = strlen(string);
 	while (len) {
-#ifdef WIN32
-		if (string[len-1]=='\\') {
-#else
-		if (string[len-1]=='/') {
-#endif
+		if (string[len-1] == SEP) {
 			string[len-1] = '\0';
 			len--;
 		} else {
