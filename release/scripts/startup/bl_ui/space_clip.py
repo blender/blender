@@ -622,7 +622,7 @@ class CLIP_PT_footage(Panel):
 class CLIP_PT_tools_clip(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = "CLip"
+    bl_label = "Clip"
 
     def draw(self, context):
         layout = self.layout
