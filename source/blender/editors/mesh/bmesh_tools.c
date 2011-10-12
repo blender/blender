@@ -168,7 +168,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "How to subdivide quad corners (anything other then Straight Cut will prevent ngons)");
 
-	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
@@ -2347,13 +2347,15 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMesh *bm = em->bm;
 	BMOperator bmop;
 	BMBVHTree *bvhtree;
 	BMOIter siter;
 	BMIter iter, eiter, liter;
 	BMLoop *l;
 	BMEdge *e, *e2, *closest = NULL;
-	BMVert *v;
+	BMVert *v, *ripvert = NULL;
+	BMFace *f;
 	int side = 0, i, singlesel = 0;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX, d;
@@ -2369,11 +2371,11 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/*handle case of one vert selected.  identify
 	  closest edge around that vert to mouse cursor,
 	  then rip two adjacent edges in the vert fan.*/
-	if (em->bm->totvertsel == 1 && em->bm->totedgesel == 0 && em->bm->totfacesel == 0) {
+	if (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0) {
 		singlesel = 1;
 
 		/*find selected vert*/
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(v, BM_SELECT))
 				break;
 		}
@@ -2382,9 +2384,14 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (!v)
 			return OPERATOR_CANCELLED;
 
+		if (!v->e || !v->e->l) {
+			BKE_report(op->reports, RPT_ERROR, "Selected vertex has no faces");
+			return OPERATOR_CANCELLED;
+		}
+
 		/*find closest edge to mouse cursor*/
 		e2 = NULL;
-		BM_ITER(e, &iter, em->bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
 			d = mesh_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, event->mval);
 			if (d < dist) {
 				dist = d;
@@ -2396,31 +2403,33 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 
 		/*rip two adjacent edges*/
-		if (BM_Edge_FaceCount(e2) == 1) {
+		if (BM_Edge_FaceCount(e2) == 1 || BM_Vert_FaceCount(v) == 2) {
 			l = e2->l;
-			e = BM_OtherFaceLoop(e2, l->f, v)->e;
+			ripvert = BM_Rip_Vertex(bm, l->f, v);
 
-			BM_SetIndex(e, 1);
-			BM_Select(em->bm, e, 1);
+			BLI_assert(ripvert);
+			if (!ripvert) {
+				return OPERATOR_CANCELLED;
+			}
 		} else if (BM_Edge_FaceCount(e2) == 2) {
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetIndex(e, 1);
-			BM_Select(em->bm, e, 1);
+			BM_Select(bm, e, 1);
 			
 			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetIndex(e, 1);
-			BM_Select(em->bm, e, 1);
+			BM_Select(bm, e, 1);
 		}
 
 		dist = FLT_MAX;
 	} else {
 		/*expand edge selection*/
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			e2 = NULL;
 			i = 0;
-			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
+			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 				if (BM_GetIndex(e)) {
 					e2 = e;
 					i++;
@@ -2433,7 +2442,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				l = BM_OtherFaceLoop(l->e, l->f, v);
 
 				if (l)
-					BM_Select(em->bm, l->e, 1);
+					BM_Select(bm, l->e, 1);
 			}
 		}
 	}
@@ -2442,13 +2451,13 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 	
-	BMO_Exec_Op(em->bm, &bmop);
+	BMO_Exec_Op(bm, &bmop);
 
 	/*build bvh tree for edge visibility tests*/
 	bvhtree = BMBVH_NewBVH(em, 0, NULL, NULL);
 
 	for (i=0; i<2; i++) {
-		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
+		BMO_ITER(e, &siter, bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
 			float cent[3] = {0, 0, 0}, mid[3], vec[3];
 
 			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
@@ -2459,7 +2468,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			 * for each edge: calculate face center, then made a vector
 			 * from edge midpoint to face center.  offset edge midpoint
 			 * by a small amount along this vector. */
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->l->f) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, e->l->f) {
 				add_v3_v3(cent, l->v->co);
 			}
 			mul_v3_fl(cent, 1.0f/(float)e->l->f->len);
@@ -2483,20 +2492,22 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
-	EDBM_clear_flag_all(em, BM_SELECT);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, side?"edgeout2":"edgeout1", BM_SELECT, BM_EDGE);
+	BMBVH_FreeBVH(bvhtree);
 
-	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+	EDBM_clear_flag_all(em, BM_SELECT);
+	BMO_HeaderFlag_Buffer(bm, &bmop, side?"edgeout2":"edgeout1", BM_SELECT, BM_EDGE);
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT))
 			BM_SetIndex(e, 1);
 		else BM_SetIndex(e, 0);
 	}
 
 	/*constrict edge selection again*/
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		e2 = NULL;
 		i = 0;
-		BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
 			if (BM_GetIndex(e)) {
 				e2 = e;
 				i++;
@@ -2505,21 +2516,28 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if (i == 1)  {
 			if (singlesel)
-				BM_Select(em->bm, v, 0);
+				BM_Select(bm, v, 0);
 			else
-				BM_Select(em->bm, e2, 0);
+				BM_Select(bm, e2, 0);
 		}
 	}
 
+	if (ripvert) {
+		BM_Select(bm, ripvert, 1);
+	}
+
 	EDBM_selectmode_flush(em);
-	
+
+	BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
+
 	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
-		BMBVH_FreeBVH(bvhtree);
+		return OPERATOR_CANCELLED;
+	}
+
+	if (bm->totvertsel == 0) {
 		return OPERATOR_CANCELLED;
 	}
 	
-	BMBVH_FreeBVH(bvhtree);
-
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 

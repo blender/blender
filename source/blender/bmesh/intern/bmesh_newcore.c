@@ -203,7 +203,7 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len) {
 		/*just return NULL for now*/
 		return NULL;
 	}
-	
+
 	f = BLI_mempool_calloc(bm->fpool);
 	bm->totface += 1;
 	f->head.type = BM_FACE;
@@ -531,10 +531,9 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
 	len = bmesh_loop_length(l);
 
 	for(i=0, curloop = l; i< len; i++, curloop= curloop->next) {
-		bmesh_radial_remove_loop(curloop, curloop->e);
-		/*in case of border edges we HAVE to zero out curloop->radial Next/Prev*/
-		curloop->radial_next = curloop->radial_prev = NULL;
-		BLI_array_append(edar, curloop->e);
+		BMEdge *curedge = curloop->e;
+		bmesh_radial_remove_loop(curloop, curedge);
+		BLI_array_append(edar, curedge);
 	}
 
 	/*actually reverse the loop.*/
@@ -1398,7 +1397,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 
 	/*validate direction of f2's loop cycle is compatible.*/
 	if(f1loop->v == f2loop->v) return NULL;
-	
+
 	/*
 		validate that for each face, each vertex has another edge in its disk cycle that is 
 		not e, and not shared.
@@ -1479,4 +1478,296 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	if(!edok) bmesh_error();
 	
 	return f1;
+}
+
+/*
+ * BMESH SPLICE VERT
+ *
+ * merges two verts into one (v into vtarget).
+ */
+static int bmesh_splicevert(BMesh *bm, BMVert *v, BMVert *vtarget)
+{
+	BMEdge *e;
+	BMLoop *l;
+	BMIter liter;
+
+	/* verts already spliced */
+	if (v == vtarget) {
+		return 0;
+	}
+
+	/* retarget all the loops of v to vtarget */
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		l->v = vtarget;
+	}
+
+	/* move all the edges from v's disk to vtarget's disk */
+	e = v->e;
+	while (e != NULL) {
+		bmesh_disk_remove_edge(e, v);
+		bmesh_edge_swapverts(e, v, vtarget);
+		bmesh_disk_append_edge(e, vtarget);
+		e = v->e;
+	}
+
+	/* v is unused now, and can be killed */
+	BM_Kill_Vert(bm, v);
+
+	return 1;
+}
+
+/* BMESH CUT VERT
+ *
+ * cut all disjoint fans that meet at a vertex, making a unique
+ * vertex for each region. returns an array of all resulting
+ * vertices.
+ */
+static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
+{
+	BMEdge **stack = NULL;
+	BLI_array_declare(stack);
+	BMVert **verts = NULL;
+	GHash *visithash;
+	BMIter eiter, liter;
+	BMLoop *l;
+	BMEdge *e;
+	int i, maxindex;
+	BMLoop *nl;
+
+	visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh_cutvert visithash");
+
+	maxindex = 0;
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+		if (BLI_ghash_haskey(visithash, e)) {
+			continue;
+		}
+
+		/* Prime the stack with this unvisited edge */
+		BLI_array_append(stack, e);
+
+		/* Walk over edges that:
+		   1) have v as one of the vertices
+		   2) are connected to e through face loop cycles 
+		   assigning a unique index to that group of edges */
+		while (e = BLI_array_pop(stack)) {
+			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
+			BM_SetIndex(e, maxindex);
+
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
+				nl = (l->v == v) ? l->prev : l->next;
+				if (!BLI_ghash_haskey(visithash, nl->e)) {
+					BLI_array_append(stack, nl->e);
+				}
+			}
+		}
+
+		maxindex++;
+	}
+
+	/* Make enough verts to split v for each group */
+	verts = MEM_callocN(sizeof(BMVert *) * maxindex, "bmesh_cutvert");
+	verts[0] = v;
+	for (i = 1; i < maxindex; i++) {
+		verts[i] = BM_Make_Vert(bm, v->co, v);
+	}
+
+	/* Replace v with the new verts in each group */
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_VERT, v) {
+		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, l->e));
+		if (i == 0) {
+			continue;
+		}
+
+		if (l->v == v) {
+			l->v = verts[i];
+		}
+		if (l->next->v == v) {
+			l->next->v = verts[i];
+		}
+	}
+
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+		i = GET_INT_FROM_POINTER(BLI_ghash_lookup(visithash, e));
+		if (i == 0) {
+			continue;
+		}
+
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
+			if (l->v == v) {
+				l->v = verts[i];
+			}
+			if (l->next->v == v) {
+				l->next->v = verts[i];
+			}
+		}
+
+		if (e->v1 == v || e->v2 == v) {
+			bmesh_disk_remove_edge(e, v);
+			bmesh_edge_swapverts(e, v, verts[i]);
+			bmesh_disk_append_edge(e, verts[i]);
+		}
+	}
+
+	BLI_ghash_free(visithash, NULL, NULL);
+	BLI_array_free(stack);
+
+	*vout = verts;
+	*len = maxindex;
+
+	return 1;
+}
+
+/* BMESH SPLICE EDGE
+ *
+ * splice two unique edges which share the same two vertices into one edge.
+ *
+ * edges must already have the same vertices
+ */
+static int bmesh_spliceedge(BMesh *bm, BMEdge *e, BMEdge *etarget)
+{
+	BMLoop *l;
+
+	if (!BM_Vert_In_Edge(e, etarget->v1) || !BM_Vert_In_Edge(e, etarget->v2)) {
+		/* not the same vertices can't splice */
+		return 0;
+	}
+
+	while (e->l) {
+		l = e->l;
+		bmesh_radial_remove_loop(l, e);
+		bmesh_radial_append(etarget, l);
+	}
+
+	BM_Kill_Edge(bm, e);
+
+	return 1;
+}
+
+/*
+ * BMESH CUT EDGE
+ *
+ * Cuts a single edge into two edge: the original edge and
+ * a new edge that has only "cutl" in its radial.
+ *
+ * Does nothing if cutl is already the only loop in the
+ * edge radial.
+ */
+static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
+{
+	BMEdge *ne;
+
+	BLI_assert(cutl->e == e);
+	BLI_assert(e->l);
+	
+	if (bmesh_radial_length(e->l) < 2) {
+		/* no cut required */
+		return 1;
+	}
+
+	if (cutl == e->l) {
+		e->l = cutl->radial_next;
+	}
+
+	ne = BM_Make_Edge(bm, e->v1, e->v2, e, 0);
+	bmesh_radial_remove_loop(cutl, e);
+	bmesh_radial_append(ne, cutl);
+	cutl->e = ne;
+
+	return 1;
+}
+
+/*
+ * BMESH UNGLUE REGION MAKE VERT
+ *
+ * Disconnects a face from its vertex fan at loop sl.
+ */
+static BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
+{
+	BMVert **vtar;
+	int len, i;
+	BMVert *nv = NULL;
+	BMVert *sv = sl->v;
+
+	/* peel the face from the edge radials on both sides of the
+	   loop vert, disconnecting the face from its fan */
+	bmesh_cutedge(bm, sl->e, sl);
+	bmesh_cutedge(bm, sl->prev->e, sl->prev);
+
+	if (bmesh_disk_count(sv) == 2) {
+		/* If there are still only two edges out of sv, then
+		   this whole URMV was just a no-op, so exit now. */
+		return sv;
+	}
+
+	/* Update the disk start, so that v->e points to an edge
+	   not touching the split loop. This is so that bmesh_cutvert
+	   will leave the original sv on some *other* fan (not the
+	   one-face fan that holds the unglue face). */
+	while (sv->e == sl->e || sv->e == sl->prev->e) {
+		sv->e = bmesh_disk_nextedge(sv->e, sv);
+	}
+
+	/* Split all fans connected to the vert, duplicating it for
+	   each fans. */
+	bmesh_cutvert(bm, sv, &vtar, &len);
+
+	/* There should have been at least two fans cut apart here,
+	   otherwise the early exit would have kicked in. */
+	BLI_assert(len >= 2);
+
+	nv = sl->v;
+
+	/* Desired result here is that a new vert should always be
+	   created for the unglue face. This is so we can glue any
+	   extras back into the original vert. */
+	BLI_assert(nv != sv);
+	BLI_assert(sv == vtar[0]);
+
+	/* If there are more than two verts as a result, glue together
+	   all the verts except the one this URMV intended to create */
+	if (len > 2) {
+		for (i = 0; i < len; i++) {
+			if (vtar[i] == nv) {
+				break;
+			}
+		}
+
+		if (i != len) {
+			/* Swap the single vert that was needed for the
+			   unglue into the last array slot */
+			SWAP(BMVert *, vtar[i], vtar[len - 1]);
+
+			/* And then glue the rest back together */
+			for (i = 1; i < len - 1; i++) {
+				bmesh_splicevert(bm, vtar[i], vtar[0]);
+			}
+		}
+	}
+
+	MEM_freeN(vtar);
+
+	return nv;
+}
+
+/*
+ * BMESH UNGLUE REGION MAKE VERT
+ *
+ * Disconnects a face from its vertex fan at loop sl.
+ */
+BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
+{
+	BMLoop *hl, *sl;
+
+	hl = sl = bm_firstfaceloop(sf);
+	do {
+		if (sl->v == sv) break;
+		sl = sl->next;
+	} while (sl != hl);
+		
+	if (sl->v != sv) {
+		/* sv is not part of sf */
+		return NULL;
+	}
+
+	return bmesh_urmv_loop(bm, sl);
 }

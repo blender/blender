@@ -361,8 +361,21 @@ int bmesh_radial_validate(int radlen, BMLoop *l)
 	return 1;
 }
 
+/*
+ * BMESH RADIAL REMOVE LOOP
+ *
+ * Removes a loop from an radial cycle. If edge e is non-NULL
+ * it should contain the radial cycle, and it will also get
+ * updated (in the case that the edge's link into the radial
+ * cycle was the loop which is being removed from the cycle).
+ */
 void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 {
+	/* if e is non-NULL, l must be in the radial cycle of e */
+	if (e && e != l->e) {
+		bmesh_error();
+	}
+
 	if (l->radial_next != l) {
 		if (e && l == e->l)
 			e->l = l->radial_next;
@@ -370,12 +383,20 @@ void bmesh_radial_remove_loop(BMLoop *l, BMEdge *e)
 		l->radial_next->radial_prev = l->radial_prev;
 		l->radial_prev->radial_next = l->radial_next;
 	} else {
-		l->radial_next = l->radial_prev = NULL;
-		if (e && l == e->l)
-			e->l = NULL;
-		else if (e)
-			bmesh_error();
+		if (e) {
+			if (l == e->l) {
+				e->l = NULL;
+			}
+			else {
+				bmesh_error();
+			}
+		}
 	}
+
+	/* l is no longer in a radial cycle; empty the links
+	   to the cycle and the link back to an edge */
+	l->radial_next = l->radial_prev = NULL;
+	l->e = NULL;
 }
 
 
@@ -423,14 +444,17 @@ int bmesh_radial_length(BMLoop *l)
 
 	do {
 		if (!l2) {
+			/* radial cycle is broken (not a circulat loop) */
 			bmesh_error();
 			return 0;
 		}
 		
 		i++;
 		l2 = l2->radial_next;
-		if (i >= 555555)
+		if (i >= 555555) {
+			bmesh_error();
 			return -1;
+		}
 	} while (l2 != l);
 
 	return i;
@@ -449,6 +473,13 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l){
 
 		e->l = l;
 	}
+
+	if (l->e && l->e != e) {
+		/* l is already in a radial cycle for a different edge */
+		bmesh_error();
+	}
+	
+	l->e = e;
 }
 
 int bmesh_radial_find_face(BMEdge *e, BMFace *f)

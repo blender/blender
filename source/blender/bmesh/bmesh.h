@@ -201,6 +201,9 @@ BMEdge *BM_Connect_Verts ( BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf );
   (if ccw is 1).*/
 BMEdge *BM_Rotate_Edge ( BMesh *bm, BMEdge *e, int ccw );
 
+/* Rip a single face from a vertex fan */
+BMVert *BM_Rip_Vertex ( BMesh *bm, BMFace *sf, BMVert *sv);
+
 /*updates a face normal*/
 void BM_Face_UpdateNormal ( BMesh *bm, BMFace *f );
 

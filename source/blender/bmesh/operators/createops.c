@@ -486,11 +486,15 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				cross_v3_v3v3(n1, vec1, vec2);
 				cross_v3_v3v3(n2, vec2, vec3);
 				cross_v3_v3v3(n3, vec1, vec3);
-				
+
+				/* Other way to determine if two vectors approach are (nearly) parallel: the
+				   cross product of the two vectors will approach zero */
+				s1 = (dot_v3v3(n1, n1) < (0.0f + FLT_EPSILON*10));
+				s2 = (dot_v3v3(n2, n2) < (0.0f + FLT_EPSILON*10));
+				s3 = (totedge < 3) ? 0 : (dot_v3v3(n3, n3) < (0.0f + FLT_EPSILON*10));
+								
 				normalize_v3(n1); normalize_v3(n2); normalize_v3(n3);
 				
-				s1 = STRAIGHT(vec1, vec2); s2 = STRAIGHT(vec2, vec3); s3 = STRAIGHT(vec1, vec3);
-								
 				if (s1 || s2 || s3) {
 					fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
 				}

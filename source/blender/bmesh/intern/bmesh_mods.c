@@ -499,7 +499,6 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 	}
 
 	BLI_array_free(faces);
-
 	return ne;
 }
 
@@ -563,7 +562,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS) && e->l && nv) {
 		int i, j;
-		
+
 		/*interpolate new/changed loop data from copied old faces*/
 		for (j=0; j<2; j++) {
 			for (i=0; i<BLI_array_count(oldfaces); i++) {
@@ -722,4 +721,9 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 		return NULL;
 
 	return nl->e;
+}
+
+BMVert *BM_Rip_Vertex ( BMesh *bm, BMFace *sf, BMVert *sv)
+{
+	return bmesh_urmv(bm, sf, sv);
 }
