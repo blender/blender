@@ -123,6 +123,7 @@ void register_node_type_sh_tex_blend(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_TEX_BLEND, "Blend Texture", NODE_CLASS_TEXTURE, 0);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_blend_in, sh_node_tex_blend_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tex_blend);

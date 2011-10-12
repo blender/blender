@@ -56,6 +56,7 @@ void register_node_type_sh_blend_weight(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_BLEND_WEIGHT, "Blend Weight", NODE_CLASS_INPUT, 0);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_blend_weight_in, sh_node_blend_weight_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);

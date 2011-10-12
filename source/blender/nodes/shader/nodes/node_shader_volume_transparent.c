@@ -46,7 +46,7 @@ static void node_shader_exec_volume_transparent(void *UNUSED(data), bNode *UNUSE
 {
 }
 
-static int node_shader_gpu_volume_transparent(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_volume_transparent(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
 	return 0;
 }
@@ -57,6 +57,7 @@ void register_node_type_sh_volume_transparent(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_VOLUME_TRANSPARENT, "Transparent Volume", NODE_CLASS_SHADER, 0);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_volume_transparent_in, sh_node_volume_transparent_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);

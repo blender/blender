@@ -63,6 +63,7 @@ void register_node_type_sh_output_texture(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_OUTPUT_TEXTURE, "Texture Output", NODE_CLASS_OUTPUT, 0);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_output_texture_in, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_init(&ntype, NULL);

@@ -176,7 +176,7 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, void *nodedata, GPUN
 	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
 	
 	group_gpu_copy_inputs(node, in, exec->stack);
-	ntreeExecGPUNodes(exec, NULL, mat, (node->flag & NODE_GROUP_EDIT));
+	ntreeExecGPUNodes(exec, mat, (node->flag & NODE_GROUP_EDIT));
 	group_gpu_move_outputs(node, out, exec->stack);
 	
 	return 1;
@@ -187,6 +187,7 @@ void register_node_type_sh_group(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING|NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -249,6 +250,7 @@ void register_node_type_sh_forloop(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, NODE_FORLOOP, "For", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -311,6 +313,7 @@ void register_node_type_sh_whileloop(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, NODE_WHILELOOP, "While", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);

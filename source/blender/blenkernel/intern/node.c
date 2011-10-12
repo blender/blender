@@ -1752,6 +1752,10 @@ void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMate
 	ntype->gpuextfunc = gpuextfunc;
 }
 
+void node_type_compatibility(struct bNodeType *ntype, short compatibility)
+{
+	ntype->compatibility = compatibility;
+}
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
 {
@@ -1856,20 +1860,33 @@ static void registerShaderNodes(ListBase *ntypelist)
 {
 	register_node_type_frame(ntypelist);
 
+	register_node_type_sh_group(ntypelist);
+	//register_node_type_sh_forloop(ntypelist);
+	//register_node_type_sh_whileloop(ntypelist);
+
+	register_node_type_sh_output(ntypelist);
+	register_node_type_sh_material(ntypelist);
+	register_node_type_sh_camera(ntypelist);
 	register_node_type_sh_value(ntypelist);
 	register_node_type_sh_rgb(ntypelist);
+	register_node_type_sh_mix_rgb(ntypelist);
+	register_node_type_sh_valtorgb(ntypelist);
+	register_node_type_sh_rgbtobw(ntypelist);
+	register_node_type_sh_texture(ntypelist);
+	register_node_type_sh_normal(ntypelist);
+	register_node_type_sh_geom(ntypelist);
+	register_node_type_sh_mapping(ntypelist);
+	register_node_type_sh_curve_vec(ntypelist);
+	register_node_type_sh_curve_rgb(ntypelist);
 	register_node_type_sh_math(ntypelist);
 	register_node_type_sh_vect_math(ntypelist);
-	
-	register_node_type_sh_group(ntypelist);
-//	register_node_type_sh_forloop(ntypelist);
-//	register_node_type_sh_whileloop(ntypelist);
-	
-	//register_node_type_sh_output(ntypelist);
-	register_node_type_sh_mix_rgb(ntypelist);
-	register_node_type_sh_rgbtobw(ntypelist);
-	register_node_type_sh_mapping(ntypelist);
-	//register_node_type_sh_texture(ntypelist);
+	register_node_type_sh_squeeze(ntypelist);
+	//register_node_type_sh_dynamic(ntypelist);
+	register_node_type_sh_material_ext(ntypelist);
+	register_node_type_sh_invert(ntypelist);
+	register_node_type_sh_seprgb(ntypelist);
+	register_node_type_sh_combrgb(ntypelist);
+	register_node_type_sh_hue_sat(ntypelist);
 
 	register_node_type_sh_attribute(ntypelist);
 	register_node_type_sh_geometry(ntypelist);
@@ -1880,15 +1897,16 @@ static void registerShaderNodes(ListBase *ntypelist)
 
 	register_node_type_sh_background(ntypelist);
 	register_node_type_sh_bsdf_diffuse(ntypelist);
-	register_node_type_sh_bsdf_glass(ntypelist);
 	register_node_type_sh_bsdf_glossy(ntypelist);
+	register_node_type_sh_bsdf_glass(ntypelist);
+	//register_node_type_sh_bsdf_anisotropic(ntypelist);
 	register_node_type_sh_bsdf_translucent(ntypelist);
 	register_node_type_sh_bsdf_transparent(ntypelist);
 	register_node_type_sh_bsdf_velvet(ntypelist);
 	register_node_type_sh_emission(ntypelist);
+	register_node_type_sh_holdout(ntypelist);
 	register_node_type_sh_volume_transparent(ntypelist);
 	register_node_type_sh_volume_isotropic(ntypelist);
-	register_node_type_sh_holdout(ntypelist);
 	register_node_type_sh_mix_shader(ntypelist);
 	register_node_type_sh_add_shader(ntypelist);
 
@@ -1897,19 +1915,16 @@ static void registerShaderNodes(ListBase *ntypelist)
 	//register_node_type_sh_output_texture(ntypelist);
 	register_node_type_sh_output_world(ntypelist);
 
-	register_node_type_sh_tex_blend(ntypelist);
-	register_node_type_sh_tex_clouds(ntypelist);
-	register_node_type_sh_tex_distnoise(ntypelist);
 	register_node_type_sh_tex_image(ntypelist);
 	register_node_type_sh_tex_environment(ntypelist);
+	register_node_type_sh_tex_sky(ntypelist);
+	register_node_type_sh_tex_voronoi(ntypelist);
+	register_node_type_sh_tex_blend(ntypelist);
 	register_node_type_sh_tex_magic(ntypelist);
 	register_node_type_sh_tex_marble(ntypelist);
-	register_node_type_sh_tex_musgrave(ntypelist);
-	register_node_type_sh_tex_noise(ntypelist);
-	register_node_type_sh_tex_sky(ntypelist);
-	register_node_type_sh_tex_stucci(ntypelist);
-	register_node_type_sh_tex_voronoi(ntypelist);
+	register_node_type_sh_tex_clouds(ntypelist);
 	register_node_type_sh_tex_wood(ntypelist);
+	register_node_type_sh_tex_musgrave(ntypelist);
 }
 
 static void registerTextureNodes(ListBase *ntypelist)

@@ -46,7 +46,7 @@ static void node_shader_exec_volume_isotropic(void *UNUSED(data), bNode *UNUSED(
 {
 }
 
-static int node_shader_gpu_volume_isotropic(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_volume_isotropic(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
 	return 0;
 }
@@ -57,6 +57,7 @@ void register_node_type_sh_volume_isotropic(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_VOLUME_ISOTROPIC, "Isotropic Volume", NODE_CLASS_SHADER, 0);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_volume_isotropic_in, sh_node_volume_isotropic_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
