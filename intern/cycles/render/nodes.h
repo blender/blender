@@ -28,9 +28,35 @@ CCL_NAMESPACE_BEGIN
 class ImageManager;
 class Shadr;
 
+/* Texture Mapping */
+
+class TextureMapping {
+public:
+	TextureMapping();
+	Transform compute_transform();
+	bool skip();
+	void compile(SVMCompiler& compiler, int offset_in, int offset_out);
+
+	float3 translation;
+	float3 rotation;
+	float3 scale;
+
+	enum Mapping { X=0, Y=1, Z=2, NONE };
+	Mapping x_mapping, y_mapping, z_mapping;
+
+	enum Projection { FLAT, CUBE, TUBE, SPHERE };
+	Projection projection;
+};
+
 /* Nodes */
 
-class ImageTextureNode : public ShaderNode {
+class TextureNode : public ShaderNode {
+public:
+	TextureNode(const char *name) : ShaderNode(name) {}
+	TextureMapping tex_mapping;
+};
+
+class ImageTextureNode : public TextureNode {
 public:
 	SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
 	~ImageTextureNode();
@@ -44,7 +70,7 @@ public:
 	static ShaderEnum color_space_enum;
 };
 
-class EnvironmentTextureNode : public ShaderNode {
+class EnvironmentTextureNode : public TextureNode {
 public:
 	SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
 	~EnvironmentTextureNode();
@@ -58,7 +84,7 @@ public:
 	static ShaderEnum color_space_enum;
 };
 
-class SkyTextureNode : public ShaderNode {
+class SkyTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(SkyTextureNode)
 
@@ -71,12 +97,12 @@ public:
 	SHADER_NODE_CLASS(OutputNode)
 };
 
-class NoiseTextureNode : public ShaderNode {
+class NoiseTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(NoiseTextureNode)
 };
 
-class BlendTextureNode : public ShaderNode {
+class BlendTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(BlendTextureNode)
 
@@ -87,7 +113,7 @@ public:
 	static ShaderEnum axis_enum;
 };
 
-class CloudsTextureNode : public ShaderNode {
+class CloudsTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(CloudsTextureNode)
 
@@ -98,7 +124,7 @@ public:
 	static ShaderEnum basis_enum;
 };
 
-class VoronoiTextureNode : public ShaderNode {
+class VoronoiTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(VoronoiTextureNode)
 
@@ -109,7 +135,7 @@ public:
 	static ShaderEnum coloring_enum;
 };
 
-class MusgraveTextureNode : public ShaderNode {
+class MusgraveTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(MusgraveTextureNode)
 
@@ -120,7 +146,7 @@ public:
 	static ShaderEnum basis_enum;
 };
 
-class MarbleTextureNode : public ShaderNode {
+class MarbleTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(MarbleTextureNode)
 
@@ -135,14 +161,14 @@ public:
 	static ShaderEnum basis_enum;
 };
 
-class MagicTextureNode : public ShaderNode {
+class MagicTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(MagicTextureNode)
 
 	int depth;
 };
 
-class StucciTextureNode : public ShaderNode {
+class StucciTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(StucciTextureNode)
 
@@ -154,7 +180,7 @@ public:
 	static ShaderEnum basis_enum;
 };
 
-class DistortedNoiseTextureNode : public ShaderNode {
+class DistortedNoiseTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(DistortedNoiseTextureNode)
 
@@ -163,7 +189,7 @@ public:
 	static ShaderEnum basis_enum;
 };
 
-class WoodTextureNode : public ShaderNode {
+class WoodTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(WoodTextureNode)
 
@@ -181,10 +207,7 @@ class MappingNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MappingNode)
 
-	Transform compute_transform();
-	float3 translation;
-	float3 rotation;
-	float3 scale;
+	TextureMapping tex_mapping;
 };
 
 class ConvertNode : public ShaderNode {

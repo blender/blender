@@ -162,9 +162,12 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_MAPPING: {
 			BL::ShaderNodeMapping b_mapping_node(b_node);
 			MappingNode *mapping = new MappingNode();
-			mapping->translation = get_float3(b_mapping_node.location());
-			mapping->rotation = get_float3(b_mapping_node.rotation());
-			mapping->scale = get_float3(b_mapping_node.scale());
+
+			TextureMapping *tex_mapping = &mapping->tex_mapping;
+			tex_mapping->translation = get_float3(b_mapping_node.location());
+			tex_mapping->rotation = get_float3(b_mapping_node.rotation());
+			tex_mapping->scale = get_float3(b_mapping_node.scale());
+
 			node = mapping;
 			break;
 		}
