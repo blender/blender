@@ -749,9 +749,9 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 			       "  FRAME DONE: "
 				"next_pts=%lld pkt_pts=%lld\n",
 				(anim->pFrame->pts == AV_NOPTS_VALUE) ? 
-				-1 : anim->pFrame->pts, 
+				-1 : (long long int)anim->pFrame->pts,
 				(anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ?
-				-1 : anim->pFrame->pkt_pts);
+				-1 : (long long int)anim->pFrame->pkt_pts);
 			anim->next_pts = 
 				av_get_pts_from_frame(anim->pFormatCtx,
 						      anim->pFrame);
@@ -771,9 +771,9 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 		       anim->next_packet.stream_index, 
 		       anim->videoStream,
 		       (anim->next_packet.dts == AV_NOPTS_VALUE) ? -1:
-		       anim->next_packet.dts,
+		       (long long int)anim->next_packet.dts,
 		       (anim->next_packet.pts == AV_NOPTS_VALUE) ? -1:
-		       anim->next_packet.pts,
+		       (long long int)anim->next_packet.pts,
 		       (anim->next_packet.flags & AV_PKT_FLAG_KEY) ? 
 		       " KEY" : "");
 		if (anim->next_packet.stream_index == anim->videoStream) {
@@ -800,11 +800,11 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 				       "  FRAME DONE: next_pts=%lld "
 				       "pkt_pts=%lld, guessed_pts=%lld\n",
 				       (anim->pFrame->pts == AV_NOPTS_VALUE) ?
-				       -1 : anim->pFrame->pts, 
+				       -1 : (long long int)anim->pFrame->pts,
 				       (anim->pFrame->pkt_pts 
 					== AV_NOPTS_VALUE) ?
-				       -1 : anim->pFrame->pkt_pts,
-					anim->next_pts);
+				       -1 : (long long int)anim->pFrame->pkt_pts,
+					(long long int)anim->next_pts);
 			}
 		}
 		av_free_packet(&anim->next_packet);
@@ -828,13 +828,13 @@ static void ffmpeg_decode_video_frame_scan(
 	av_log(anim->pFormatCtx,
 	       AV_LOG_DEBUG, 
 	       "SCAN start: considering pts=%lld in search of %lld\n", 
-	       anim->next_pts, pts_to_search);
+	       (long long int)anim->next_pts, (long long int)pts_to_search);
 
 	while (count > 0 && anim->next_pts < pts_to_search) {
 		av_log(anim->pFormatCtx,
 		       AV_LOG_DEBUG, 
 		       "  WHILE: pts=%lld in search of %lld\n", 
-		       anim->next_pts, pts_to_search);
+		       (long long int)anim->next_pts, (long long int)pts_to_search);
 		if (!ffmpeg_decode_video_frame(anim)) {
 			break;
 		}
@@ -845,7 +845,7 @@ static void ffmpeg_decode_video_frame_scan(
 		       AV_LOG_ERROR, 
 		       "SCAN failed: completely lost in stream, "
 		       "bailing out at PTS=%lld, searching for PTS=%lld\n", 
-		       anim->next_pts, pts_to_search);
+		       (long long int)anim->next_pts, (long long int)pts_to_search);
 	}
 	if (anim->next_pts == pts_to_search) {
 		av_log(anim->pFormatCtx,
@@ -942,13 +942,13 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 	       "FETCH: looking for PTS=%lld "
 	       "(pts_timebase=%g, frame_rate=%g, st_time=%lld)\n", 
-	       pts_to_search, pts_time_base, frame_rate, st_time);
+	       (long long int)pts_to_search, pts_time_base, frame_rate, st_time);
 
 	if (anim->last_frame && 
 	    anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search){
 		av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 		       "FETCH: frame repeat: last: %lld next: %lld\n",
-		       anim->last_pts, anim->next_pts);
+		       (long long int)anim->last_pts, (long long int)anim->next_pts);
 		IMB_refImBuf(anim->last_frame);
 		anim->curposition = position;
 		return anim->last_frame;
@@ -961,7 +961,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 		av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 		       "FETCH: no seek necessary: "
 			"next: %lld next undecoded: %lld\n",
-			anim->next_pts, anim->next_undecoded_pts);
+			(long long int)anim->next_pts,
+		    (long long int)anim->next_undecoded_pts);
 
 		/* we are already done :) */
 
@@ -1035,7 +1036,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 			       "FETCH: "
 			       "error while seeking to DTS = %lld "
 			       "(frameno = %d, PTS = %lld): errcode = %d\n", 
-			       pos, position, pts_to_search, ret);
+			       pos, position, (long long int)pts_to_search, ret);
 		}
 
 		avcodec_flush_buffers(anim->pCodecCtx);
