@@ -2105,8 +2105,12 @@ static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 				if(strcmp(sock->name, "Shader2") == 0)
 					strcpy(sock->name, "Shader");
 
-				if(strcmp(sock->name, "Surface") == 0)
-					strcpy(sock->name, "Shader");
+				if(node->type == SH_NODE_OUTPUT_MATERIAL ||
+				   node->type == SH_NODE_OUTPUT_WORLD ||
+				   node->type == SH_NODE_OUTPUT_LAMP) {
+					if(strcmp(sock->name, "Shader") == 0)
+						strcpy(sock->name, "Surface");
+				}
 
 				if(strcmp(sock->name, "Fresnel") == 0) {
 					strcpy(sock->name, "IOR");

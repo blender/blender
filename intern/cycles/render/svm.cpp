@@ -107,7 +107,7 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	image_manager = image_manager_;
 	sunsky = NULL;
 	max_stack_use = 0;
-	current_type = SHADER_TYPE_CLOSURE;
+	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
 	background = false;
 	mix_weight_offset = SVM_STACK_INVALID;
@@ -467,8 +467,6 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 			current_shader->has_surface_emission = true;
 		if(node->name == ustring("transparent"))
 			current_shader->has_surface_transparent = true;
-		if(node->name == ustring("volume"))
-			current_shader->has_volume = true;
 
 		/* end node is added outside of this */
 	}
@@ -579,8 +577,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	ShaderNode *node = graph->output();
 	ShaderInput *clin = NULL;
 	
-	if(type == SHADER_TYPE_CLOSURE)
-		clin = node->input("Closure");
+	if(type == SHADER_TYPE_SURFACE)
+		clin = node->input("Surface");
+	else if(type == SHADER_TYPE_VOLUME)
+		clin = node->input("Volume");
 	else if(type == SHADER_TYPE_DISPLACEMENT)
 		clin = node->input("Displacement");
 	else
@@ -599,9 +599,15 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 	if(clin->link) {
 		bool generate = false;
-		if(type == SHADER_TYPE_CLOSURE) {
+		if(type == SHADER_TYPE_SURFACE) {
 			/* generate surface shader */
 			generate = true;
+			shader->has_surface = true;
+		}
+		else if(type == SHADER_TYPE_VOLUME) {
+			/* generate volume shader */
+			generate = true;
+			shader->has_volume = true;
 		}
 		else if(type == SHADER_TYPE_DISPLACEMENT) {
 			/* generate displacement shader */
@@ -630,7 +636,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	/* copy graph for shader with bump mapping */
 	ShaderNode *node = shader->graph->output();
 
-	if(node->input("Closure")->link && node->input("Displacement")->link)
+	if(node->input("Surface")->link && node->input("Displacement")->link)
 		if(!shader->graph_bump)
 			shader->graph_bump = shader->graph->copy();
 
@@ -641,22 +647,29 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 
 	current_shader = shader;
 
+	shader->has_surface = false;
 	shader->has_surface_emission = false;
 	shader->has_surface_transparent = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
 
 	/* generate surface shader */
-	compile_type(shader, shader->graph, SHADER_TYPE_CLOSURE);
+	compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 	global_svm_nodes[index*2 + 0].y = global_svm_nodes.size();
 	global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
 	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 
 	if(shader->graph_bump) {
-		compile_type(shader, shader->graph_bump, SHADER_TYPE_CLOSURE);
+		compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
 		global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 	}
+
+	/* generate volume shader */
+	compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
+	global_svm_nodes[index*2 + 0].z = global_svm_nodes.size();
+	global_svm_nodes[index*2 + 1].z = global_svm_nodes.size();
+	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 
 	/* generate displacement shader */
 	compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);

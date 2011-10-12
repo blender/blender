@@ -39,8 +39,8 @@ struct float3;
 
 /* Shader describing the appearance of a Mesh, Light or Background.
  *
- * While there is only a single shader graph, it has two outputs: shader,
- * displacement, that the shader manager will compile and execute
+ * While there is only a single shader graph, it has three outputs: surface,
+ * volume and displacement, that the shader manager will compile and execute
  * separately. */
 
 class Shader {
@@ -65,10 +65,11 @@ public:
 	bool need_update_attributes;
 
 	/* information about shader after compiling */
+	bool has_surface;
 	bool has_surface_emission;
 	bool has_surface_transparent;
-	bool has_displacement;
 	bool has_volume;
+	bool has_displacement;
 
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;

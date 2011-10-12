@@ -166,7 +166,8 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 
 		switch(node.x) {
 			case NODE_SHADER_JUMP: {
-				if(type == SHADER_TYPE_CLOSURE) offset = node.y;
+				if(type == SHADER_TYPE_SURFACE) offset = node.y;
+				else if(type == SHADER_TYPE_VOLUME) offset = node.z;
 				else if(type == SHADER_TYPE_DISPLACEMENT) offset = node.w;
 				else return;
 				break;

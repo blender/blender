@@ -42,6 +42,7 @@ Shader::Shader()
 	sample_as_light = true;
 	homogeneous_volume = false;
 
+	has_surface = false;
 	has_surface_transparent = false;
 	has_surface_emission = false;
 	has_volume = false;
@@ -209,7 +210,7 @@ void ShaderManager::add_default(Scene *scene)
 		closure->input("Color")->value = make_float3(0.8f, 0.8f, 0.8f);
 		out = graph->output();
 
-		graph->connect(closure->output("BSDF"), out->input("Closure"));
+		graph->connect(closure->output("BSDF"), out->input("Surface"));
 
 		shader = new Shader();
 		shader->name = "default_surface";
@@ -227,7 +228,7 @@ void ShaderManager::add_default(Scene *scene)
 		closure->input("Strength")->value.x = 0.0f;
 		out = graph->output();
 
-		graph->connect(closure->output("Emission"), out->input("Closure"));
+		graph->connect(closure->output("Emission"), out->input("Surface"));
 
 		shader = new Shader();
 		shader->name = "default_light";
@@ -244,7 +245,7 @@ void ShaderManager::add_default(Scene *scene)
 		closure->input("Color")->value = make_float3(0.8f, 0.8f, 0.8f);
 		out = graph->output();
 
-		graph->connect(closure->output("Background"), out->input("Closure"));
+		graph->connect(closure->output("Background"), out->input("Surface"));
 
 		shader = new Shader();
 		shader->name = "default_background";
