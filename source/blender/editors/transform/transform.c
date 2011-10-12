@@ -4645,7 +4645,7 @@ void projectSVData(TransInfo *t, int final)
 			BMIter liter2;
 			BMFace *copyf, *copyf2;
 			BMLoop *l2;
-			int sel, do_vdata;
+			int sel, hide, do_vdata;
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
@@ -4653,8 +4653,10 @@ void projectSVData(TransInfo *t, int final)
 			BLI_smallhash_insert(&visit, (uintptr_t)f, NULL);
 			
 			/*the face attributes of the copied face will get
-			  copied over, so its necessary to save the selection state*/
+			  copied over, so its necessary to save the selection
+			  and hidden state*/
 			sel = BM_TestHFlag(f, BM_SELECT);
+			hide = BM_TestHFlag(f, BM_HIDDEN);
 			
 			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
@@ -4693,10 +4695,9 @@ void projectSVData(TransInfo *t, int final)
 			/*make sure face-attributes are correct (e.g. MTexPoly)*/
 			BM_Copy_Attributes(em->bm, em->bm, copyf2, f);
 			
-			/*restore selection, and undo hidden flag*/
-			BM_ClearHFlag(f, BM_HIDDEN);
-			if (sel)
-				BM_Select(em->bm, f, sel);
+			/*restore selection and hidden flags*/
+			BM_Select(em->bm, f, sel);
+			BM_Hide(em->bm, f, hide);
 		}
 	}
 	
