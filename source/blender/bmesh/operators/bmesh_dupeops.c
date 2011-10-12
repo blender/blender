@@ -103,8 +103,8 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
  *
 */
 static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
-			 BMFace *source_face, BMesh *target_mesh, 
-			 BMEdge **edar, GHash *vhash, GHash *ehash)
+                         BMFace *source_face, BMesh *target_mesh, 
+                         BMVert **vtar, BMEdge **edar, GHash *vhash, GHash *ehash)
 {
 	BMVert *target_vert1, *target_vert2;
 	BMLoop *source_loop, *target_loop;
@@ -119,11 +119,12 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	/*lookup edges*/
 	for (i=0,source_loop=BMIter_New(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face); 
 		     source_loop; source_loop=BMIter_Step(&iter), i++) {
+		vtar[i] = BLI_ghash_lookup(vhash, source_loop->v);
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 	}
 	
 	/*create new face*/
-	target_face = BM_Make_Ngon(target_mesh, target_vert1, target_vert2, edar, source_face->len, 0);	
+	target_face = BM_Make_Face(target_mesh, vtar, edar, source_face->len);
 	BMO_Insert_MapPointer(source_mesh, op, 
 	         "facemap", source_face, target_face);
 	BMO_Insert_MapPointer(source_mesh, op, 
@@ -146,16 +147,16 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 
 	return target_face;
 }
-	/*
+
+/*
  * COPY MESH
  *
  * Internal Copy function.
-*/
-
+ */
 static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 {
 
-	BMVert *v = NULL, *v2;
+	BMVert *v = NULL, *v2, **vtar = NULL;
 	BMEdge *e = NULL, **edar = NULL;
 	BMFace *f = NULL;
 	
@@ -177,6 +178,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 		if(f->len > maxlength) maxlength = f->len;
 	}
 	edar = MEM_callocN(sizeof(BMEdge*) * maxlength, "BM copy mesh edge pointer array");
+	vtar = MEM_callocN(sizeof(BMVert*) * maxlength, "BM copy mesh vert pointer array");
 	
 	for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH, source); v; v = BMIter_Step(&verts)){
 		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))){
@@ -244,7 +246,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 					BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE);
 				}
 			}
-			copy_face(op, source, f, target, edar, vhash, ehash);
+			copy_face(op, source, f, target, vtar, edar, vhash, ehash);
 			BMO_SetFlag(source, (BMHeader*)f, DUPE_DONE);
 		}
 	}
@@ -254,8 +256,12 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	BLI_ghash_free(ehash, NULL, NULL);	
 
 	/*free edge pointer array*/
-	if(edar)
+	if (edar) {
 		MEM_freeN(edar);
+	}
+	if (vtar) {
+		MEM_freeN(vtar);
+	}
 }
 
 /*
