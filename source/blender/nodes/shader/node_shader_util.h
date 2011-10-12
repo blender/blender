@@ -131,6 +131,6 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);
 void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);
 
-void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct bNode *tex_node, struct GPUMaterial *mat, int do_outputs);
+void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, int do_outputs);
 
 #endif

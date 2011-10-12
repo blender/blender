@@ -80,7 +80,6 @@ typedef enum DynMatProperty {
 struct GPUMaterial {
 	Scene *scene;
 	Material *ma;
-	int drawtype;
 
 	/* for creating the material */
 	ListBase nodes;
@@ -352,11 +351,6 @@ void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
 {
 	if(!material->outlink)
 		material->outlink= link;
-}
-
-int GPU_material_drawtype(GPUMaterial *material)
-{
-	return material->drawtype;
 }
 
 void GPU_material_enable_alpha(GPUMaterial *material)
@@ -1413,27 +1407,19 @@ static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
 	return shr.combined;
 }
 
-GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, int drawtype)
+GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 {
 	GPUMaterial *mat;
 	GPUNodeLink *outlink;
 	LinkData *link;
 
-	/* find an existing glsl shader that is already compiled */
-	for(link=ma->gpumaterial.first; link; link=link->next) {
-		mat= (GPUMaterial*)link->data;
-		if(mat->scene == scene && mat->drawtype == drawtype)
+	for(link=ma->gpumaterial.first; link; link=link->next)
+		if(((GPUMaterial*)link->data)->scene == scene)
 			return link->data;
-	}
-
-	/* in texture draw mode, we need an active texture node */
-	if(drawtype == OB_TEXTURE && (!ma->use_nodes || !nodeGetActiveTexture(ma->nodetree)))
-		return NULL;
 
 	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
-	mat->drawtype = drawtype;
 
 	if(!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
 		/* create nodes */
@@ -1443,11 +1429,14 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, int drawtype)
 		/* create material */
 		outlink = GPU_blender_material(mat, ma);
 		GPU_material_output_link(mat, outlink);
+	}
 
+	if(!scene_use_new_shading_nodes(scene)) {
 		if(gpu_do_color_management(mat))
 			if(mat->outlink)
 				GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 	}
+
 
 	GPU_material_construct_end(mat);
 
@@ -1730,7 +1719,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	if(!GPU_glsl_support())
 		return NULL;
 
-	mat = GPU_material_from_blender(scene, ma, OB_TEXTURE);
+	mat = GPU_material_from_blender(scene, ma);
 	pass = (mat)? mat->pass: NULL;
 
 	if(pass && pass->fragmentcode && pass->vertexcode) {

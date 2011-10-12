@@ -267,29 +267,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 	return NULL;
 }
 
-static void ntreeGPUOutputLink(GPUMaterial *mat, bNode *node, bNodeStack *nsout[MAX_SOCKET])
-{
-	bNodeSocket *sock;
-	int i;
-
-	/* link the first socket output as the material output, for viewing
-	   individual textures in texture draw mode */
-	for(sock=node->outputs.first, i=0; sock; sock=sock->next, i++) {
-		if(nsout[i]->data) {
-			GPUNodeLink *result= nsout[i]->data;
-
-			/* for shader sockets, we can output the color directly, for others we
-			   apply diffuse shading so we don't have flat colors */
-			if(sock->type != SOCK_SHADER)
-				GPU_link(mat, "node_bsdf_diffuse", result, GPU_builtin(GPU_VIEW_NORMAL), &result);
-
-			GPU_material_output_link(mat, result);
-			break;
-		}
-	}
-}
-
-void ntreeExecGPUNodes(bNodeTreeExec *exec, bNode *tex_node, GPUMaterial *mat, int do_outputs)
+void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 {
 	bNodeExec *nodeexec;
 	bNode *node;
@@ -319,90 +297,16 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, bNode *tex_node, GPUMaterial *mat, i
 				node_get_stack(node, stack, nsin, nsout);
 				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
 				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-
-				if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout)) {
+				if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
 					data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
-
-					/* for textured draw, output active node */
-					if(node == tex_node)
-						ntreeGPUOutputLink(mat, node, nsout);
-				}
 			}
 			else if(node->typeinfo->gpuextfunc) {
 				node_get_stack(node, stack, nsin, nsout);
 				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
 				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-				if(node->typeinfo->gpuextfunc(mat, node, nodeexec->data, gpuin, gpuout)) {
+				if(node->typeinfo->gpuextfunc(mat, node, nodeexec->data, gpuin, gpuout))
 					data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
-
-					/* for textured draw, output active node */
-					if(node == tex_node)
-						ntreeGPUOutputLink(mat, node, nsout);
-				}
-
 			}
 		}
 	}
-
-#if 0
-	if((ntree->init & NTREE_EXEC_INIT)==0)
-		ntreeBeginExecTree(ntree);
-
-	stack= ntree->stack;
-
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->gpufunc) {
-			node_get_stack(node, stack, nsin, nsout, NULL);
-			gpu_from_node_stack(&node->inputs, nsin, gpuin);
-			gpu_from_node_stack(&node->outputs, nsout, gpuout);
-
-			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout)) {
-				data_from_gpu_stack(&node->outputs, nsout, gpuout);
-
-				/* for textured draw, output active node */
-				if(node == tex_node)
-					ntreeGPUOutputLink(mat, node, nsout);
-			}
-		}
-		else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout, NULL);
-			gpu_node_group_execute(stack, mat, node, nsin);
-		}
-
-	bNode *node, *tex_node;
-	bNodeStack *stack;
-	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
-
-	if(GPU_material_drawtype(mat) == OB_TEXTURE)
-		tex_node= nodeGetActiveTexture(ntree);
-	else
-		tex_node= NULL;
-
-	if((ntree->init & NTREE_EXEC_INIT)==0)
-		ntreeBeginExecTree(ntree);
-
-	stack= ntree->stack;
-
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->gpufunc) {
-			node_get_stack(node, stack, nsin, nsout, NULL);
-			gpu_from_node_stack(&node->inputs, nsin, gpuin);
-			gpu_from_node_stack(&node->outputs, nsout, gpuout);
-
-			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout)) {
-				data_from_gpu_stack(&node->outputs, nsout, gpuout);
-
-				/* for textured draw, output active node */
-				if(node == tex_node)
-					ntreeGPUOutputLink(mat, node, nsout);
-			}
-		}
-		else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout, NULL);
-			gpu_node_group_execute(stack, mat, node, nsin);
-		}
-#endif
 }
-

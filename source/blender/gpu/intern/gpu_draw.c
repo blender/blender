@@ -64,7 +64,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-
+#include "BKE_scene.h"
 
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
@@ -941,7 +941,6 @@ static struct GPUMaterialState {
 	Material *gboundmat;
 	Object *gob;
 	Scene *gscene;
-	int gdrawtype;
 	int glay;
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
@@ -955,15 +954,17 @@ static struct GPUMaterialState {
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
-static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob)
+static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes)
 {
-	if (bmat->mode & MA_SHLESS) {
+	if(new_shading_nodes || bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
 		smat->diff[3]= 1.0;
 
-		if(gamma) {
+		if(gamma)
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
-		}	
+
+		zero_v4(smat->spec);
+		smat->hard= 0;
 	}
 	else {
 		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
@@ -1004,6 +1005,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	int new_shading_nodes = scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -1013,7 +1015,6 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
-	GMS.gdrawtype = v3d->drawtype;
 	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
 	GMS.glay= v3d->lay;
 	GMS.gviewmat= rv3d->viewmat;
@@ -1036,14 +1037,14 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob);
+		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes);
 
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
 
 		if(glsl) {
 			GMS.gmatbuf[0]= &defmaterial;
-			GPU_material_from_blender(GMS.gscene, &defmaterial, GMS.gdrawtype);
+			GPU_material_from_blender(GMS.gscene, &defmaterial);
 		}
 
 		GMS.alphablend[0]= GPU_BLEND_SOLID;
@@ -1053,11 +1054,11 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	for(a=1; a<=ob->totcol; a++) {
 		/* find a suitable material */
 		ma= give_current_material(ob, a);
-		if(!glsl) ma= gpu_active_node_material(ma);
+		if(!glsl && !new_shading_nodes) ma= gpu_active_node_material(ma);
 		if(ma==NULL) ma= &defmaterial;
 
 		/* create glsl material if requested */
-		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma, GMS.gdrawtype): NULL;
+		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma): NULL;
 
 		if(gpumat) {
 			/* do glsl only if creating it succeed, else fallback */
@@ -1066,7 +1067,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		}
 		else {
 			/* fixed function opengl materials */
-			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob);
+			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
 
 			alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 			if(do_alpha_pass && GMS.alphapass)
@@ -1127,7 +1128,7 @@ int GPU_enable_material(int nr, void *attribs)
 	/* unbind glsl material */
 	if(GMS.gboundmat) {
 		if(GMS.alphapass) glDepthMask(0);
-		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat, GMS.gdrawtype));
+		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
 		GMS.gboundmat= NULL;
 	}
 
@@ -1145,7 +1146,7 @@ int GPU_enable_material(int nr, void *attribs)
 			/* bind glsl material and get attributes */
 			Material *mat = GMS.gmatbuf[nr];
 
-			gpumat = GPU_material_from_blender(GMS.gscene, mat, GMS.gdrawtype);
+			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
 			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
@@ -1193,7 +1194,7 @@ void GPU_disable_material(void)
 
 	if(GMS.gboundmat) {
 		if(GMS.alphapass) glDepthMask(0);
-		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat, GMS.gdrawtype));
+		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
 		GMS.gboundmat= NULL;
 	}
 

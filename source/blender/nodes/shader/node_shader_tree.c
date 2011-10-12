@@ -123,14 +123,10 @@ bNodeTreeType ntreeType_Shader = {
 void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 {
 	bNodeTreeExec *exec;
-	bNode *tex_node = NULL;
-
-	if(GPU_material_drawtype(mat) == OB_TEXTURE)
-		tex_node= nodeGetActiveTexture(ntree);
 
 	exec = ntreeShaderBeginExecTree(ntree, 1);
 
-	ntreeExecGPUNodes(exec, tex_node, mat, 1);
+	ntreeExecGPUNodes(exec, mat, 1);
 
 	ntreeShaderEndExecTree(exec, 1);
 }

@@ -2156,8 +2156,15 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 	if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if(v3d->drawtype == OB_MATERIAL || scene->gm.matmode == GAME_MAT_GLSL)
-			mask |= CD_MASK_ORCO;
+		if(scene_use_new_shading_nodes(scene)) {
+			/* todo: use orco in textured draw mode */
+			if(v3d->drawtype == OB_MATERIAL)
+				mask |= CD_MASK_ORCO;
+		}
+		else {
+			if(scene->gm.matmode == GAME_MAT_GLSL)
+				mask |= CD_MASK_ORCO;
+		}
 	}
 
 	return mask;

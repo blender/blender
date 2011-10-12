@@ -463,8 +463,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return False
-        #return context.material and CyclesButtonsPanel.poll(context)
+        return context.material and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -472,6 +471,9 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         mat = context.material
         cmat = mat.cycles
 
+        layout.prop(mat, "diffuse_color", text="Viewport Color")
+
+        """
         split = layout.split()
     
         col = split.column()
@@ -479,6 +481,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(cmat, "homogeneous_volume")
+        """
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""

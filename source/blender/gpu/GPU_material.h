@@ -121,13 +121,12 @@ int GPU_link(GPUMaterial *mat, const char *name, ...);
 int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
-int GPU_material_drawtype(GPUMaterial *material);
 void GPU_material_enable_alpha(GPUMaterial *material);
 GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
 /* High level functions to create and use GPU materials */
 
-GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma, int drawtype);
+GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma);
 void GPU_material_free(struct Material *ma);
 
 void GPU_materials_free(void);
