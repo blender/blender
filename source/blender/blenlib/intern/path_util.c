@@ -1430,21 +1430,40 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 }
 
 /* simple appending of filename to dir, does not check for valid path! */
-void BLI_join_dirfile(char *string, const size_t maxlen, const char *dir, const char *file)
+void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const char *file)
 {
-	int sl_dir;
+	size_t dirlen= BLI_strnlen(dir, maxlen);
 
-	if(string != dir) /* compare pointers */
-		BLI_strncpy(string, dir, maxlen -(file ? 1 : 0));
-
-	if (!file)
-		return;
-
-	sl_dir= BLI_add_slash(string);
-	
-	if (sl_dir < maxlen) {
-		BLI_strncpy(string + sl_dir, file, maxlen - sl_dir);
+	if (dst != dir) {
+		if(dirlen  == maxlen) {
+			memcpy(dst, dir, dirlen);
+			dst[dirlen - 1]= '\0';
+			return; /* dir fills the path */
+		}
+		else {
+			memcpy(dst, dir, dirlen + 1);
+		}
 	}
+
+	if (dirlen + 1 >= maxlen) {
+		return; /* fills the path */
+	}
+
+	/* inline BLI_add_slash */
+	if (dst[dirlen - 1] != SEP) {
+		dst[dirlen++]= SEP;
+		dst[dirlen  ]= '\0';
+	}
+
+	if (dirlen >= maxlen) {
+		return; /* fills the path */
+	}
+
+	if (file == NULL) {
+		return;
+	}
+
+	BLI_strncpy(dst + dirlen, file, maxlen - dirlen);
 }
 
 /* like pythons os.path.basename( ) */
