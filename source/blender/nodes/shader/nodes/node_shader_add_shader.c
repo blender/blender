@@ -32,8 +32,8 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_add_shader_in[]= {
-	{	SOCK_SHADER, 1, "Shader1"},
-	{	SOCK_SHADER, 1, "Shader2"},
+	{	SOCK_SHADER, 1, "Shader"},
+	{	SOCK_SHADER, 1, "Shader"},
 	{	-1, 0, ""	}
 };
 

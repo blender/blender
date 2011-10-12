@@ -33,8 +33,8 @@
 
 static bNodeSocketTemplate sh_node_mix_shader_in[]= {
 	{	SOCK_FLOAT,  1, "Fac",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_SHADER, 1, "Shader1"},
-	{	SOCK_SHADER, 1, "Shader2"},
+	{	SOCK_SHADER, 1, "Shader"},
+	{	SOCK_SHADER, 1, "Shader"},
 	{	-1, 0, ""	}
 };
 

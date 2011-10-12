@@ -50,36 +50,26 @@ void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders)
 
 /* Graph */
 
-static BL::NodeSocket get_node_input(BL::Node *b_group_node, BL::Node b_node, const string& name)
+static BL::NodeSocket get_node_input(BL::Node *b_group_node, BL::NodeSocket b_in)
 {
-	BL::Node::inputs_iterator b_in;
+	if(b_group_node) {
 
-	for(b_node.inputs.begin(b_in); b_in != b_node.inputs.end(); ++b_in) {
-		if(b_in->name() == name) {
-			if(b_group_node) {
+		BL::NodeTree b_ntree = BL::NodeGroup(*b_group_node).node_tree();
+		BL::NodeTree::links_iterator b_link;
 
-				BL::NodeTree b_ntree = BL::NodeGroup(*b_group_node).node_tree();
-				BL::NodeTree::links_iterator b_link;
+		for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
+			if(b_link->to_socket().ptr.data == b_in.ptr.data) {
+				BL::Node::inputs_iterator b_gin;
 
-				for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
-					if(b_link->to_socket().ptr.data == b_in->ptr.data) {
-						BL::Node::inputs_iterator b_gin;
+				for(b_group_node->inputs.begin(b_gin); b_gin != b_group_node->inputs.end(); ++b_gin)
+					if(b_gin->group_socket().ptr.data == b_link->from_socket().ptr.data)
+						return *b_gin;
 
-						for(b_group_node->inputs.begin(b_gin); b_gin != b_group_node->inputs.end(); ++b_gin)
-							if(b_gin->group_socket().ptr.data == b_link->from_socket().ptr.data)
-								return *b_gin;
-
-					}
-				}
 			}
-
-			return *b_in;
 		}
 	}
 
-	assert(0);
-
-	return *b_in;
+	return b_in;
 }
 
 static BL::NodeSocket get_node_output(BL::Node b_node, const string& name)
@@ -414,18 +404,52 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 	return node;
 }
 
-static const char *node_socket_map_name(const char *name)
+static SocketPair node_socket_map_pair(PtrNodeMap& node_map, BL::Node b_node, BL::NodeSocket b_socket)
 {
-	if(strstr(name, "Shader")) {
-		if(strcmp(name, "Shader") == 0)
-			return "Closure";
-		if(strcmp(name, "Shader1") == 0)
-			return "Closure1";
-		if(strcmp(name, "Shader2") == 0)
-			return "Closure2";
+	BL::Node::inputs_iterator b_input;
+	BL::Node::outputs_iterator b_output;
+	string name = b_socket.name();
+	bool found = false;
+	int counter = 0, total = 0;
+
+	/* find in inputs */
+	for(b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
+		if(b_input->name() == name) {
+			if(!found)
+				counter++;
+			total++;
+		}
+
+		if(b_input->ptr.data == b_socket.ptr.data)
+			found = true;
 	}
 
-	return name;
+	if(!found) {
+		/* find in outputs */
+		found = false;
+		counter = 0;
+		total = 0;
+
+		for(b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
+			if(b_output->name() == name) {
+				if(!found)
+					counter++;
+				total++;
+			}
+
+			if(b_output->ptr.data == b_socket.ptr.data)
+				found = true;
+		}
+	}
+
+	/* rename if needed */
+	if(name == "Shader")
+		name = "Closure";
+
+	if(total > 1)
+		name = string_printf("%s%d", name.c_str(), counter);
+
+	return SocketPair(node_map[b_node.ptr.data], name);
 }
 
 static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::Node *b_group_node, PtrSockMap& sockets_map)
@@ -453,8 +477,9 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 				node_map[b_node->ptr.data] = node;
 
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-					ShaderInput *input = node->input(node_socket_map_name(b_input->name().c_str()));
-					BL::NodeSocket sock(get_node_input(b_group_node, *b_node, b_input->name()));
+					SocketPair pair = node_socket_map_pair(node_map, *b_node, *b_input);
+					ShaderInput *input = pair.first->input(pair.second.c_str());
+					BL::NodeSocket sock(get_node_input(b_group_node, *b_input));
 
 					assert(input);
 
@@ -500,55 +525,50 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 		if(b_group_node) {
 			if(!b_from_node) {
 				sockets_map[b_from_sock.ptr.data] =
-					SocketPair(node_map[b_to_node.ptr.data], b_to_sock.name());
+					node_socket_map_pair(node_map, b_to_node, b_to_sock);
 
 				continue;
 			}
 			else if(!b_to_node) {
 				sockets_map[b_to_sock.ptr.data] =
-					SocketPair(node_map[b_from_node.ptr.data], b_from_sock.name());
+					node_socket_map_pair(node_map, b_from_node, b_from_sock);
 
 				continue;
 			}
 		}
 
-		ShaderNode *from_node, *to_node;
-		string from_name, to_name;
+		SocketPair from_pair, to_pair;
 
 		/* from sock */
 		if(b_from_node.is_a(&RNA_NodeGroup)) {
 			/* group node */
 			BL::NodeSocket group_sock = b_from_sock.group_socket();
-			SocketPair& pair = node_groups[b_from_node.ptr.data][group_sock.ptr.data];
-
-			from_node = pair.first;
-			from_name = pair.second;
+			from_pair = node_groups[b_from_node.ptr.data][group_sock.ptr.data];
 		}
 		else {
 			/* regular node */
-			from_node = node_map[b_from_node.ptr.data];
-			from_name = b_from_sock.name();
+			from_pair = node_socket_map_pair(node_map, b_from_node, b_from_sock);
 		}
 
 		/* to sock */
 		if(b_to_node.is_a(&RNA_NodeGroup)) {
 			/* group node */
 			BL::NodeSocket group_sock = b_to_sock.group_socket();
-			SocketPair& pair = node_groups[b_to_node.ptr.data][group_sock.ptr.data];
-
-			to_node = pair.first;
-			to_name = pair.second;
+			to_pair = node_groups[b_to_node.ptr.data][group_sock.ptr.data];
 		}
 		else {
 			/* regular node */
-			to_node = node_map[b_to_node.ptr.data];
-			to_name = b_to_sock.name();
+			to_pair = node_socket_map_pair(node_map, b_to_node, b_to_sock);
 		}
 
 		/* in case of groups there may not actually be a node inside the group
 		   that the group socket connects to, so from_node or to_node may be NULL */
-		if(from_node && to_node)
-			graph->connect(from_node->output(node_socket_map_name(from_name.c_str())), to_node->input(node_socket_map_name(to_name.c_str())));
+		if(from_pair.first && to_pair.first) {
+			ShaderOutput *output = from_pair.first->output(from_pair.second.c_str());
+			ShaderInput *input = to_pair.first->input(to_pair.second.c_str());
+
+			graph->connect(output, input);
+		}
 	}
 }
 

@@ -2082,9 +2082,28 @@ static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 			for(sock=node->inputs.first; sock; sock=sock->next) {
 				if(strcmp(sock->name, "Closure1") == 0)
 					strcpy(sock->name, "Shader1");
-
 				if(strcmp(sock->name, "Closure2") == 0)
 					strcpy(sock->name, "Shader2");
+
+				if(strcmp(sock->name, "Color1") == 0)
+					strcpy(sock->name, "Color");
+				if(strcmp(sock->name, "Color2") == 0)
+					strcpy(sock->name, "Color");
+
+				if(strcmp(sock->name, "Vector1") == 0)
+					strcpy(sock->name, "Vector");
+				if(strcmp(sock->name, "Vector2") == 0)
+					strcpy(sock->name, "Vector");
+
+				if(strcmp(sock->name, "Value1") == 0)
+					strcpy(sock->name, "Value");
+				if(strcmp(sock->name, "Value2") == 0)
+					strcpy(sock->name, "Value");
+
+				if(strcmp(sock->name, "Shader1") == 0)
+					strcpy(sock->name, "Shader");
+				if(strcmp(sock->name, "Shader2") == 0)
+					strcpy(sock->name, "Shader");
 
 				if(strcmp(sock->name, "Surface") == 0)
 					strcpy(sock->name, "Shader");
