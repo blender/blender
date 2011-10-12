@@ -840,8 +840,8 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 				start_pts_set = TRUE;
 			}
 
-			frameno = round((pts - start_pts) 
-				* pts_time_base * frame_rate);
+			frameno = floor((pts - start_pts)
+				* pts_time_base * frame_rate + 0.5f);
 
 			/* decoding starts *always* on I-Frames,
 			   so: P-Frames won't work, even if all the
