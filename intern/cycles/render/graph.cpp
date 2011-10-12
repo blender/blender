@@ -117,9 +117,14 @@ ShaderOutput *ShaderNode::add_output(const char *name, ShaderSocketType type)
 
 void ShaderNode::attributes(AttributeRequestSet *attributes)
 {
-	foreach(ShaderInput *input, inputs)
-		if(!input->link && input->default_value == ShaderInput::TEXTURE_COORDINATE)
-			attributes->add(Attribute::STD_GENERATED);
+	foreach(ShaderInput *input, inputs) {
+		if(!input->link) {
+			if(input->default_value == ShaderInput::TEXTURE_GENERATED)
+				attributes->add(Attribute::STD_GENERATED);
+			else if(input->default_value == ShaderInput::TEXTURE_UV)
+				attributes->add(Attribute::STD_UV);
+		}
+	}
 }
 
 /* Graph */
@@ -347,11 +352,17 @@ void ShaderGraph::default_inputs(bool do_osl)
 	foreach(ShaderNode *node, nodes) {
 		foreach(ShaderInput *input, node->inputs) {
 			if(!input->link && !(input->osl_only && !do_osl)) {
-				if(input->default_value == ShaderInput::TEXTURE_COORDINATE) {
+				if(input->default_value == ShaderInput::TEXTURE_GENERATED) {
 					if(!texco)
 						texco = new TextureCoordinateNode();
 
 					connect(texco->output("Generated"), input);
+				}
+				else if(input->default_value == ShaderInput::TEXTURE_UV) {
+					if(!texco)
+						texco = new TextureCoordinateNode();
+
+					connect(texco->output("UV"), input);
 				}
 				else if(input->default_value == ShaderInput::INCOMING) {
 					if(!geom)

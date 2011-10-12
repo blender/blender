@@ -96,7 +96,8 @@ protected:
 class ShaderInput {
 public:
 	enum DefaultValue {
-		TEXTURE_COORDINATE,
+		TEXTURE_GENERATED,
+		TEXTURE_UV,
 		INCOMING,
 		NORMAL,
 		POSITION,

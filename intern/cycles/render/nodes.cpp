@@ -47,7 +47,7 @@ ImageTextureNode::ImageTextureNode()
 	filename = "";
 	color_space = ustring("sRGB");
 
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Alpha", SHADER_SOCKET_FLOAT);
 }
@@ -285,7 +285,7 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 NoiseTextureNode::NoiseTextureNode()
 : ShaderNode("noise_texture")
 {
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -350,7 +350,7 @@ BlendTextureNode::BlendTextureNode()
 	progression = ustring("Linear");
 	axis = ustring("Horizontal");
 
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
 
@@ -402,7 +402,7 @@ CloudsTextureNode::CloudsTextureNode()
 	depth = 2;
 
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
@@ -479,7 +479,7 @@ VoronoiTextureNode::VoronoiTextureNode()
 	add_input("Weight3", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("Weight4", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("Exponent", SHADER_SOCKET_FLOAT, 2.5f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
@@ -557,7 +557,7 @@ MusgraveTextureNode::MusgraveTextureNode()
 	add_input("Offset", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("Gain", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -641,7 +641,7 @@ MarbleTextureNode::MarbleTextureNode()
 
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
 	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -684,7 +684,7 @@ MagicTextureNode::MagicTextureNode()
 	depth = 2;
 
 	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 	add_output("Color", SHADER_SOCKET_COLOR);
 }
 
@@ -734,7 +734,7 @@ StucciTextureNode::StucciTextureNode()
 
 	add_input("Size", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Turbulence", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -780,7 +780,7 @@ DistortedNoiseTextureNode::DistortedNoiseTextureNode()
 
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
 	add_input("Distortion", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -840,7 +840,7 @@ WoodTextureNode::WoodTextureNode()
 
 	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
 	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
