@@ -131,13 +131,23 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UN
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
+#if 0
 	PTCacheEdit *edit = PE_get_current(scene, ob);
-	
-	if(edit && edit->psys) {
-		if(edit->psys->flag & PSYS_GLOBAL_HAIR)
+	ParticleSystem *psys= edit ? edit->psys : NULL;
+#else
+	/* use this rather than PE_get_current() - because the editing cache is
+	 * dependant on the cache being updated which can happen after this UI
+	 * draws causing a glitch [#28883] */
+	ParticleSystem *psys= psys_get_current(ob);
+#endif
+
+	if(psys) {
+		if(psys->flag & PSYS_GLOBAL_HAIR) {
 			return particle_edit_disconnected_hair_brush_items;
-		else
+		}
+		else {
 			return particle_edit_hair_brush_items;
+		}
 	}
 
 	return particle_edit_cache_brush_items;
