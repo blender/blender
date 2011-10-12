@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
@@ -44,6 +45,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 
 #include "RNA_access.h"
 
@@ -271,7 +273,7 @@ static int ui_compatible_sockets(int typeA, int typeB)
 	return (typeA == typeB);
 }
 
-static void ui_node_menu_column(Main *bmain, NodeLinkArg *arg, uiLayout *layout, const char *cname, int nclass)
+static void ui_node_menu_column(Main *bmain, NodeLinkArg *arg, uiLayout *layout, const char *cname, int nclass, int compatibility)
 {
 	bNodeTree *ntree = arg->ntree;
 	bNodeSocket *sock = arg->sock;
@@ -342,6 +344,9 @@ static void ui_node_menu_column(Main *bmain, NodeLinkArg *arg, uiLayout *layout,
 			char name[UI_MAX_NAME_STR];
 			int i, j, num = 0;
 
+			if(!(ntype->compatibility & compatibility))
+				continue;
+
 			if(ntype->nclass != nclass)
 				continue;
 
@@ -392,22 +397,29 @@ static void ui_node_menu_column(Main *bmain, NodeLinkArg *arg, uiLayout *layout,
 static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_p)
 {
 	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiBut *but = (uiBut*)but_p;
 	uiLayout *split, *column;
 	NodeLinkArg *arg = (NodeLinkArg*)but->func_argN;
 	bNodeSocket *sock = arg->sock;
+	int compatibility;
+
+	if(scene_use_new_shading_nodes(scene))
+		compatibility= NODE_NEW_SHADING;
+	else
+		compatibility= NODE_OLD_SHADING;
 	
 	uiBlockSetCurLayout(block, layout);
 	split= uiLayoutSplit(layout, 0, 0);
 
-	ui_node_menu_column(bmain, arg, split, "Input", NODE_CLASS_INPUT);
-	ui_node_menu_column(bmain, arg, split, "Output", NODE_CLASS_OUTPUT);
-	ui_node_menu_column(bmain, arg, split, "Shader", NODE_CLASS_SHADER);
-	ui_node_menu_column(bmain, arg, split, "Texture", NODE_CLASS_TEXTURE);
-	ui_node_menu_column(bmain, arg, split, "Color", NODE_CLASS_OP_COLOR);
-	ui_node_menu_column(bmain, arg, split, "Vector", NODE_CLASS_OP_VECTOR);
-	ui_node_menu_column(bmain, arg, split, "Convertor", NODE_CLASS_CONVERTOR);
+	ui_node_menu_column(bmain, arg, split, "Input", NODE_CLASS_INPUT, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Output", NODE_CLASS_OUTPUT, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Shader", NODE_CLASS_SHADER, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Texture", NODE_CLASS_TEXTURE, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Color", NODE_CLASS_OP_COLOR, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Vector", NODE_CLASS_OP_VECTOR, compatibility);
+	ui_node_menu_column(bmain, arg, split, "Convertor", NODE_CLASS_CONVERTOR, compatibility);
 
 	column= uiLayoutColumn(split, 0);
 	uiBlockSetCurLayout(block, column);
@@ -426,7 +438,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 		uiButSetNFunc(but, ui_node_link, MEM_dupallocN(arg), SET_INT_IN_POINTER(UI_NODE_LINK_DISCONNECT));
 	}
 
-	ui_node_menu_column(bmain, arg, column, "Group", NODE_CLASS_GROUP);
+	ui_node_menu_column(bmain, arg, column, "Group", NODE_CLASS_GROUP, compatibility);
 }
 
 void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
