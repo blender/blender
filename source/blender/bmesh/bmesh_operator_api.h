@@ -217,7 +217,10 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...);
    plus EDBM_CallOpf in bmeshutils.c.*/
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *fmt, va_list vlist);
 
-/*get a point to a slot.  this may be removed layer on from the public API.*/
+/*test whether a named slot exists*/
+int BMO_HasSlot(struct BMOperator *op, const char *slotname);
+
+/*get a pointer to a slot.  this may be removed layer on from the public API.*/
 BMOpSlot *BMO_GetSlot(struct BMOperator *op, const char *slotname);
 
 /*copies the data of a slot from one operator to another.  src and dst are the

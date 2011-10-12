@@ -18,6 +18,7 @@ static void alloc_flag_layer(BMesh *bm);
 static void free_flag_layer(BMesh *bm);
 static void clear_flag_layer(BMesh *bm);
 static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name);
+static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name);
 static int bmesh_opname_to_opcode(const char *opname);
 
 static const char *bmop_error_messages[] = {
@@ -47,6 +48,9 @@ const int BMOP_OPSLOT_TYPEINFO[] = {
 	sizeof(void*),	/* pointer buffer */
 	sizeof(element_mapping)
 };
+
+/* Dummy slot so there is something to return when slot name lookup fails */
+static BMOpSlot BMOpEmptySlot = { 0 };
 
 void BMO_Set_OpFlag(BMesh *UNUSED(bm), BMOperator *op, int flag)
 {
@@ -176,6 +180,20 @@ void BMO_Finish_Op(BMesh *UNUSED(bm), BMOperator *op)
 }
 
 /*
+ * BMESH OPSTACK HAS SLOT
+ *
+ * Returns 1 if the named slot exists on the given operator,
+ * otherwise returns 0.
+ *
+*/
+
+int BMO_HasSlot(BMOperator *op, const char *slotname)
+{
+	int slotcode = bmesh_name_to_slotcode(opdefines[op->type], slotname);
+	return (slotcode >= 0);
+}
+
+/*
  * BMESH OPSTACK GET SLOT
  *
  * Returns a pointer to the slot of  
@@ -185,7 +203,11 @@ void BMO_Finish_Op(BMesh *UNUSED(bm), BMOperator *op)
 
 BMOpSlot *BMO_GetSlot(BMOperator *op, const char *slotname)
 {
-	int slotcode = bmesh_name_to_slotcode(opdefines[op->type], slotname);
+	int slotcode = bmesh_name_to_slotcode_check(opdefines[op->type], slotname);
+
+	if (slotcode < 0) {
+		return &BMOpEmptySlot;
+	}
 
 	return &(op->slots[slotcode]);
 }
@@ -500,16 +522,16 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 }
 
 static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len){
-	int slotcode = bmesh_name_to_slotcode(opdefines[op->type], slotname);
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
 	/*check if its actually a buffer*/
-	if( !(op->slots[slotcode].slottype > BMOP_OPSLOT_VEC) )
+	if( !(slot->slottype > BMOP_OPSLOT_VEC) )
 		return NULL;
 	
-	op->slots[slotcode].len = len;
+	slot->len = len;
 	if(len)
-		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * len);
-	return op->slots[slotcode].data.buf;
+		slot->data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[slot->slottype] * len);
+	return slot->data.buf;
 }
 
 
@@ -1071,20 +1093,17 @@ static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
 		if (!strcmp(name, def->slottypes[i].name)) return i;
 	}
 
-	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
-	return 0;
+	return -1;
 }
 
 static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name)
 {
-	int i;
-
-	for (i=0; def->slottypes[i].type; i++) {
-		if (!strcmp(name, def->slottypes[i].name)) return i;
+	int i = bmesh_name_to_slotcode(def, name);
+	if (i < 0) {
+		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
 	}
 
-	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
-	return -1;
+	return i;
 }
 
 static int bmesh_opname_to_opcode(const char *opname) {

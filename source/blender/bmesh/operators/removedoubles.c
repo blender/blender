@@ -452,7 +452,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 	BMVert **verts=NULL;
 	BLI_array_declare(verts);
 	float dist, dist3;
-	int i, j, len, keepvert;
+	int i, j, len, keepvert = 0;
 
 	dist = BMO_Get_Float(op, "dist");
 	dist3 = dist * 3.0f;
@@ -463,12 +463,18 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 		verts[i++] = v;
 	}
 
-	keepvert = BMO_IterNew(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
+	/* Test whether keepverts arg exists and is non-empty */
+	if (BMO_HasSlot(op, "keepverts")) {
+		keepvert = BMO_IterNew(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
+	}
 
 	/*sort by vertex coordinates added together*/
 	qsort(verts, BLI_array_count(verts), sizeof(void*), vergaverco);
-	
-	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP, BM_VERT);
+
+	/* Flag keepverts */
+	if (keepvert) {
+		BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP, BM_VERT);
+	}
 
 	len = BLI_array_count(verts);
 	for (i=0; i<len; i++) {
