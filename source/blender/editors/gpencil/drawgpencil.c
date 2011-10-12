@@ -114,12 +114,14 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		/* don't draw stroke at all! */
 	}
 	else {
-		float oldpressure = 0.0f;
+		float oldpressure = points[0].pressure;
 		
 		/* draw stroke curve */
 		if (G.f & G_DEBUG) setlinestyle(2);
-		
+
+		glLineWidth(oldpressure * thickness);
 		glBegin(GL_LINE_STRIP);
+
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
 			/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
 			 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
@@ -144,6 +146,9 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 				glVertex2f(pt->x, pt->y);
 		}
 		glEnd();
+
+		/* reset for pradictable OpenGL context */
+		glLineWidth(1.0f);
 		
 		if (G.f & G_DEBUG) setlinestyle(0);
 	}
