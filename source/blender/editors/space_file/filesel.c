@@ -125,6 +125,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		const short is_filepath= (RNA_struct_find_property(op->ptr, "filepath") != NULL);
 		const short is_filename= (RNA_struct_find_property(op->ptr, "filename") != NULL);
 		const short is_directory= (RNA_struct_find_property(op->ptr, "directory") != NULL);
+		const short is_relative_path= (RNA_struct_find_property(op->ptr, "relative_path") != NULL);
 
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 
@@ -228,6 +229,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->display= FILE_SHORTDISPLAY;
 		}
 
+		if (is_relative_path) {
+			if (!RNA_property_is_set(op->ptr, "relative_path")) {
+				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+			}
+		}
 	}
 	else {
 		/* default values, if no operator */

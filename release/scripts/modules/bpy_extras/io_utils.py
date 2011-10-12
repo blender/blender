@@ -350,6 +350,7 @@ def path_reference(filepath,
                    mode='AUTO',
                    copy_subdir="",
                    copy_set=None,
+                   library=None,
                    ):
     """
     Return a filepath relative to a destination directory, for use with
@@ -372,12 +373,15 @@ def path_reference(filepath,
     :arg copy_set: collect from/to pairs when mode='COPY',
        pass to *path_reference_copy* when exportign is done.
     :type copy_set: set
+    :arg library: The library this path is relative to.
+    :type library: :class:`bpy.types.Library` or None
     :return: the new filepath.
     :rtype: string
     """
     import os
     is_relative = filepath.startswith("//")
-    filepath_abs = os.path.normpath(bpy.path.abspath(filepath, base_src))
+    filepath_abs = bpy.path.abspath(filepath, base_src, library)
+    filepath_abs = os.path.normpath(filepath_abs)
 
     if mode in {'ABSOLUTE', 'RELATIVE', 'STRIP'}:
         pass
@@ -385,13 +389,12 @@ def path_reference(filepath,
         mode = 'RELATIVE' if is_relative else 'ABSOLUTE'
     elif mode == 'AUTO':
         mode = ('RELATIVE'
-                if bpy.path.is_subdir(filepath, base_dst)
+                if bpy.path.is_subdir(filepath_abs, base_dst)
                 else 'ABSOLUTE')
     elif mode == 'COPY':
+        subdir_abs = os.path.normpath(base_dst)
         if copy_subdir:
-            subdir_abs = os.path.join(os.path.normpath(base_dst), copy_subdir)
-        else:
-            subdir_abs = os.path.normpath(base_dst)
+            subdir_abs = os.path.join(subdir_abs, copy_subdir)
 
         filepath_cpy = os.path.join(subdir_abs, os.path.basename(filepath))
 

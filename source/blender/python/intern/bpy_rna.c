@@ -1928,10 +1928,10 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 }
 
 
+/* notice getting the length of the collection is avoided unless negative
+ * index is used or to detect internal error with a valid index.
+ * This is done for faster lookups. */
 #define PYRNA_PROP_COLLECTION_ABS_INDEX(ret_err)                              \
-	/* notice getting the length of the collection is avoided unless negative \
-	 * index is used or to detect internal error with a valid index.          \
-	 * This is done for faster lookups. */                                    \
 	if(keynum < 0) {                                                          \
 		keynum_abs += RNA_property_collection_length(&self->ptr, self->prop); \
 		if(keynum_abs < 0) {                                                  \
@@ -1984,11 +1984,18 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self, Py_ssi
 	PYRNA_PROP_COLLECTION_ABS_INDEX(-1);
 
 	if(RNA_property_collection_assign_int(&self->ptr, self->prop, keynum_abs, ptr) == 0) {
+		const int len= RNA_property_collection_length(&self->ptr, self->prop);
+		if(keynum_abs >= len) {
+			PyErr_Format(PyExc_IndexError,
+			             "bpy_prop_collection[index] = value: "
+			             "index %d out of range, size %d", keynum, len);
+		}
+		else {
 
-		PyErr_Format(PyExc_IndexError,
-		             "bpy_prop_collection[index] = value: "
-		             "failed assignment (unknown reason)", keynum);
-
+			PyErr_Format(PyExc_IndexError,
+			             "bpy_prop_collection[index] = value: "
+			             "failed assignment (unknown reason)", keynum);
+		}
 		return -1;
 	}
 

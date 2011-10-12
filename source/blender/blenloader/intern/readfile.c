@@ -7209,6 +7209,19 @@ void convert_tface_mt(FileData *fd, Main *main)
 	}
 }
 
+static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
+			/* default Image output value should have 0 alpha */
+			sock = node->outputs.first;
+			((bNodeSocketValueRGBA*)sock->default_value)->value[3] = 0.0f;
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -12285,6 +12298,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
+		{
+			/* set default alpha value of Image outputs in image and render layer nodes to 0 */
+			Scene *sce;
+			bNodeTree *ntree;
+			
+			for (sce=main->scene.first; sce; sce=sce->id.next) {
+				/* there are files with invalid audio_channels value, the real cause
+				   is unknown, but we fix it here anyway to avoid crashes */
+				if(sce->r.ffcodecdata.audio_channels == 0)
+					sce->r.ffcodecdata.audio_channels = 2;
+
+				if (sce->nodetree)
+					do_versions_nodetree_image_default_alpha_output(sce->nodetree);
+			}
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_image_default_alpha_output(ntree);
+		}
+
 		{
 			bScreen *sc;
 			Camera *cam;

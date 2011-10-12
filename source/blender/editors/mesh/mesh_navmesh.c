@@ -424,36 +424,49 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	return obedit;
 }
 
-static int create_navmesh_exec(bContext *C, wmOperator *UNUSED(op))
+static int create_navmesh_exec(bContext *C, wmOperator *op)
 {
 	Scene* scene= CTX_data_scene(C);
-	int nverts= 0, ntris= 0;
-	float *verts= NULL;
-	int *tris= 0;
-	struct recast_polyMesh *pmesh= NULL;
-	struct recast_polyMeshDetail *dmesh= NULL;
 	LinkNode* obs= NULL;
 	Base* navmeshBase= NULL;
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		if(base->object->body_type==OB_BODY_TYPE_NAVMESH) {
-			if(!navmeshBase || base == scene->basact)
-				navmeshBase= base;
+		if (base->object->type == OB_MESH) {
+			if (base->object->body_type==OB_BODY_TYPE_NAVMESH) {
+				if (!navmeshBase || base == scene->basact) {
+					navmeshBase= base;
+				}
+			}
+			else {
+				BLI_linklist_append(&obs, (void*)base->object);
+			}
 		}
-		else
-			BLI_linklist_append(&obs, (void*)base->object);
 	}
 	CTX_DATA_END;
 
-	createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris);
-	BLI_linklist_free(obs, NULL);
-	buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh);
-	createRepresentation(C, pmesh, dmesh, navmeshBase);
+	if (obs) {
+		struct recast_polyMesh *pmesh= NULL;
+		struct recast_polyMeshDetail *dmesh= NULL;
 
-	MEM_freeN(verts);
-	MEM_freeN(tris);
+		int nverts= 0, ntris= 0;
+		int *tris= 0;
+		float *verts= NULL;
 
-	return OPERATOR_FINISHED;
+		createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris);
+		BLI_linklist_free(obs, NULL);
+		buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh);
+		createRepresentation(C, pmesh, dmesh, navmeshBase);
+
+		MEM_freeN(verts);
+		MEM_freeN(tris);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No mesh objects found");
+
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_navmesh_make(wmOperatorType *ot)

@@ -201,6 +201,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_set(op->ptr, path_prop, str);
 		MEM_freeN(str);
 
+		/* normally ED_fileselect_get_params would handle this but we need to because of stupid
+		 * user-prefs exception - campbell */
 		if(RNA_struct_find_property(op->ptr, "relative_path")) {
 			if(!RNA_property_is_set(op->ptr, "relative_path")) {
 				/* annoying exception!, if were dealign with the user prefs, default relative to be off */
