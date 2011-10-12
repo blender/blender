@@ -482,7 +482,7 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 #else
 
 #ifdef __SVM__
-	svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, randb, path_flag);
+	svm_eval_nodes(kg, sd, SHADER_TYPE_CLOSURE, randb, path_flag);
 #else
 	bsdf_diffuse_setup(sd, &sd->closure);
 	sd->closure.weight = make_float3(0.8f, 0.8f, 0.8f);
@@ -500,7 +500,7 @@ __device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int pa
 #else
 
 #ifdef __SVM__
-	svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, 0.0f, path_flag);
+	svm_eval_nodes(kg, sd, SHADER_TYPE_CLOSURE, 0.0f, path_flag);
 
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -562,7 +562,7 @@ __device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 #ifdef __OSL__
 	OSLShader::eval_volume(kg, sd, randb, path_flag);
 #else
-	svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, randb, path_flag);
+	svm_eval_nodes(kg, sd, SHADER_TYPE_CLOSURE, randb, path_flag);
 #endif
 #endif
 }

@@ -228,7 +228,7 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         sub.prop(ccam, "aperture_rotation", text="Rotation")
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+    bl_label = ""
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
 
@@ -400,8 +400,8 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         elif lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp.")
    
-class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
-    bl_label = "Nodes"
+class CyclesLamp_PT_shader(CyclesButtonsPanel, Panel):
+    bl_label = "Shader"
     bl_context = "data"
 
     @classmethod
@@ -412,10 +412,10 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.lamp
-        panel_node_draw(layout, mat, 'OUTPUT_LAMP', 'Surface')
+        panel_node_draw(layout, mat, 'OUTPUT_LAMP', 'Shader')
 
-class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+class CyclesWorld_PT_shader(CyclesButtonsPanel, Panel):
+    bl_label = "Shader"
     bl_context = "world"
 
     @classmethod
@@ -426,25 +426,10 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.world
-        panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Surface')
+        panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Shader')
 
-class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
-    bl_label = "Volume"
-    bl_context = "world"
-
-    @classmethod
-    def poll(cls, context):
-        return context.world and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.active = False
-
-        world = context.world
-        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
-
-class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+class CyclesMaterial_PT_shader(CyclesButtonsPanel, Panel):
+    bl_label = "Shader"
     bl_context = "material"
 
     @classmethod
@@ -455,26 +440,7 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface')
-
-class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
-    bl_label = "Volume"
-    bl_context = "material"
-
-    @classmethod
-    def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.active = False
-
-        mat = context.material
-        cmat = mat.cycles
-
-        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
-
-        layout.prop(cmat, "homogeneous_volume")
+        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Shader')
 
 class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"

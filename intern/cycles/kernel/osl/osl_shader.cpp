@@ -218,8 +218,8 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	/* execute shader for this point */
 	int shader = sd->shader & SHADER_MASK;
 
-	if(kg->osl.surface_state[shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.surface_state[shader]), *globals);
+	if(kg->osl.state[shader])
+		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.state[shader]), *globals);
 
 	/* flatten closure tree */
 	sd->num_closure = 0;
@@ -355,8 +355,8 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 	/* execute shader */
 	int shader = sd->shader & SHADER_MASK;
 
-	if(kg->osl.volume_state[shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.volume_state[shader]), *globals);
+	if(kg->osl.state[shader])
+		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.state[shader]), *globals);
 
 	/* retrieve resulting closures */
 	sd->osl_closure.volume_sample_sum = 0.0f;

@@ -2114,8 +2114,8 @@ void node_light_path(
 
 /* output */
 
-void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)
+void node_output_material(vec4 shader, float displacement, out vec4 result)
 {
-	result = surface;
+	result = shader;
 }
 

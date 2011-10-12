@@ -1945,8 +1945,7 @@ void BlendWeightNode::compile(OSLCompiler& compiler)
 OutputNode::OutputNode()
 : ShaderNode("output")
 {
-	add_input("Surface", SHADER_SOCKET_CLOSURE);
-	add_input("Volume", SHADER_SOCKET_CLOSURE);
+	add_input("Closure", SHADER_SOCKET_CLOSURE);
 	add_input("Displacement", SHADER_SOCKET_FLOAT);
 }
 
@@ -1964,10 +1963,8 @@ void OutputNode::compile(SVMCompiler& compiler)
 
 void OutputNode::compile(OSLCompiler& compiler)
 {
-	if(compiler.output_type() == SHADER_TYPE_SURFACE)
-		compiler.add(this, "node_output_surface");
-	else if(compiler.output_type() == SHADER_TYPE_VOLUME)
-		compiler.add(this, "node_output_volume");
+	if(compiler.output_type() == SHADER_TYPE_CLOSURE)
+		compiler.add(this, "node_output_closure");
 	else if(compiler.output_type() == SHADER_TYPE_DISPLACEMENT)
 		compiler.add(this, "node_output_displacement");
 }

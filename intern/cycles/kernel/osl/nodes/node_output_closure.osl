@@ -18,8 +18,8 @@
 
 #include "stdosl.h"
 
-volume node_output_volume(closure color Volume = background())
+surface node_output_surface(closure color Closure = background())
 {
-	Ci = Volume;
+	Ci = Closure;
 }
 

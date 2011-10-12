@@ -257,8 +257,7 @@ typedef enum NodeBlendWeightType {
 } NodeBlendWeightType;
 
 typedef enum ShaderType {
-	SHADER_TYPE_SURFACE,
-	SHADER_TYPE_VOLUME,
+	SHADER_TYPE_CLOSURE,
 	SHADER_TYPE_DISPLACEMENT
 } ShaderType;
 

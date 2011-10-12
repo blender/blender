@@ -102,7 +102,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	/* setup shader engine */
 	og->ss = ss;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
-	og->background_state = og->surface_state[background_id];
+	og->background_state = og->state[background_id];
 	og->use = true;
 
 	tls_create(OSLGlobals::ThreadData, og->thread_data);
@@ -128,8 +128,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 
 	tls_delete(OSLGlobals::ThreadData, og->thread_data);
 
-	og->surface_state.clear();
-	og->volume_state.clear();
+	og->state.clear();
 	og->displacement_state.clear();
 	og->background_state.reset();
 }
@@ -139,7 +138,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 OSLCompiler::OSLCompiler(void *shadingsys_)
 {
 	shadingsys = shadingsys_;
-	current_type = SHADER_TYPE_SURFACE;
+	current_type = SHADER_TYPE_CLOSURE;
 	current_shader = NULL;
 	background = false;
 }
@@ -170,9 +169,7 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 	   depending on the current shader type */
 
 	if(node->name == ustring("output")) {
-		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)
-			return true;
-		if(strcmp(input->name, "Volume") == 0 && current_type != SHADER_TYPE_VOLUME)
+		if(strcmp(input->name, "Closure") == 0 && current_type != SHADER_TYPE_CLOSURE)
 			return true;
 		if(strcmp(input->name, "Displacement") == 0 && current_type != SHADER_TYPE_DISPLACEMENT)
 			return true;
@@ -223,9 +220,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 	 * because "volume" and "displacement" don't work yet in OSL. the shaders
 	 * work fine, but presumably these values would be used for more strict
 	 * checking, so when that is fixed, we should update the code here too. */
-	if(current_type == SHADER_TYPE_SURFACE)
-		ss->Shader("surface", name, id(node).c_str());
-	else if(current_type == SHADER_TYPE_VOLUME)
+	if(current_type == SHADER_TYPE_CLOSURE)
 		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_DISPLACEMENT)
 		ss->Shader("surface", name, id(node).c_str());
@@ -346,6 +341,8 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 						current_shader->has_surface_emission = true;
 					if(node->name == ustring("transparent"))
 						current_shader->has_surface_transparent = true;
+					if(node->name == ustring("volume"))
+						current_shader->has_volume = true;
 				}
 				else
 					nodes_done = false;
@@ -365,15 +362,9 @@ void OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	ShaderNode *output = graph->output();
 	set<ShaderNode*> dependencies;
 
-	if(type == SHADER_TYPE_SURFACE) {
+	if(type == SHADER_TYPE_CLOSURE) {
 		/* generate surface shader */
-		find_dependencies(dependencies, output->input("Surface"));
-		generate_nodes(dependencies);
-		output->compile(*this);
-	}
-	else if(type == SHADER_TYPE_VOLUME) {
-		/* generate volume shader */
-		find_dependencies(dependencies, output->input("Volume"));
+		find_dependencies(dependencies, output->input("Closure"));
 		generate_nodes(dependencies);
 		output->compile(*this);
 	}
@@ -396,7 +387,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 	ShaderNode *output = (graph)? graph->output(): NULL;
 
 	/* copy graph for shader with bump mapping */
-	if(output->input("Surface")->link && output->input("Displacement")->link)
+	if(output->input("Closure")->link && output->input("Displacement")->link)
 		if(!shader->graph_bump)
 			shader->graph_bump = shader->graph->copy();
 
@@ -407,46 +398,29 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 
 	current_shader = shader;
 
-	shader->has_surface = false;
 	shader->has_surface_emission = false;
 	shader->has_surface_transparent = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
 
 	/* generate surface shader */
-	if(graph && output->input("Surface")->link) {
-		compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
-		og->surface_state.push_back(ss->state());
+	if(graph && output->input("Closure")->link) {
+		compile_type(shader, shader->graph, SHADER_TYPE_CLOSURE);
+		og->state.push_back(ss->state());
 
 		if(shader->graph_bump) {
 			ss->clear_state();
-			compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
-			og->surface_state.push_back(ss->state());
+			compile_type(shader, shader->graph_bump, SHADER_TYPE_CLOSURE);
+			og->state.push_back(ss->state());
 		}
 		else
-			og->surface_state.push_back(ss->state());
+			og->state.push_back(ss->state());
 
-		ss->clear_state();
-
-		shader->has_surface = true;
-	}
-	else {
-		og->surface_state.push_back(OSL::ShadingAttribStateRef());
-		og->surface_state.push_back(OSL::ShadingAttribStateRef());
-	}
-
-	/* generate volume shader */
-	if(graph && output->input("Volume")->link) {
-		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
-		shader->has_volume = true;
-
-		og->volume_state.push_back(ss->state());
-		og->volume_state.push_back(ss->state());
 		ss->clear_state();
 	}
 	else {
-		og->volume_state.push_back(OSL::ShadingAttribStateRef());
-		og->volume_state.push_back(OSL::ShadingAttribStateRef());
+		og->state.push_back(OSL::ShadingAttribStateRef());
+		og->state.push_back(OSL::ShadingAttribStateRef());
 	}
 
 	/* generate displacement shader */

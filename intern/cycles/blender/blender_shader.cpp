@@ -584,7 +584,7 @@ void BlenderSync::sync_materials()
 				closure->input("Color")->value = get_float3(b_mat->diffuse_color());
 				out = graph->output();
 
-				graph->connect(closure->output("BSDF"), out->input("Surface"));
+				graph->connect(closure->output("BSDF"), out->input("Closure"));
 			}
 
 			/* settings */
@@ -625,7 +625,7 @@ void BlenderSync::sync_world()
 			closure->input("Color")->value = get_float3(b_world.horizon_color());
 			out = graph->output();
 
-			graph->connect(closure->output("Background"), out->input("Surface"));
+			graph->connect(closure->output("Background"), out->input("Closure"));
 		}
 
 		shader->set_graph(graph);
@@ -675,7 +675,7 @@ void BlenderSync::sync_lamps()
 				closure->input("Strength")->value.x = b_lamp->energy()*10.0f;
 				out = graph->output();
 
-				graph->connect(closure->output("Emission"), out->input("Surface"));
+				graph->connect(closure->output("Emission"), out->input("Closure"));
 			}
 
 			shader->set_graph(graph);

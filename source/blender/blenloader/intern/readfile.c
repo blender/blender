@@ -2086,6 +2086,9 @@ static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 				if(strcmp(sock->name, "Closure2") == 0)
 					strcpy(sock->name, "Shader2");
 
+				if(strcmp(sock->name, "Surface") == 0)
+					strcpy(sock->name, "Shader");
+
 				if(strcmp(sock->name, "Fresnel") == 0) {
 					strcpy(sock->name, "IOR");
 					sock->ns.vec[0] = 1.0f/MAX2(1.0f - sock->ns.vec[0], 1e-5f);
