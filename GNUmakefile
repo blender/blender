@@ -145,6 +145,9 @@ help:
 	@echo "  * check_splint    - run blenders source through splint (C only)"
 	@echo "  * check_sparse    - run blenders source through sparse (C only)"
 	@echo ""
+	@echo "Documentation Targets"
+	@echo "  * doc_py   - generate sphinx python api docs"
+	@echo ""
 
 # -----------------------------------------------------------------------------
 # Packages
@@ -220,6 +223,17 @@ check_splint:
 check_sparse:
 	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
+
+
+# -----------------------------------------------------------------------------
+# Documentation
+#
+
+# Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
+doc_py:
+	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
+	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
+	@echo "docs written into: 'doc/python_api/sphinx-out/index.html'"
 
 
 clean:
