@@ -85,7 +85,9 @@ static PyObject* pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
 #define BPY_DOC_ID_PROP_TYPE_NOTE \
-"   .. note:: Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n" \
+"   .. note::\n" \
+"\n" \
+"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n" \
 "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
 
 
