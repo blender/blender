@@ -83,8 +83,8 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
 	{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 	{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-	{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
-	{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+	{OB_BOUND_CONVEX_HULL, "CONVEX_HULL", 0, "Convex Hull", ""},
+	{OB_BOUND_TRIANGLE_MESH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
 	{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -430,8 +430,8 @@ static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *UNUSED(C), 
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
-	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_POLYH);
-	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_POLYT);
+	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_TRIANGLE_MESH);
+	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CONVEX_HULL);
 
 	if(ob->body_type!=OB_BODY_TYPE_SOFT) {
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CONE);
@@ -934,9 +934,9 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER|OB_SENSOR|OB_NAVMESH);
 
 		/* assume triangle mesh, if no bounds chosen for soft body */
-		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
+		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_TRIANGLE_MESH))
 		{
-			ob->boundtype=OB_BOUND_POLYH;
+			ob->boundtype= OB_BOUND_TRIANGLE_MESH;
 		}
 		/* create a BulletSoftBody structure if not already existing */
 		if (!ob->bsoft)
@@ -1804,7 +1804,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", "Draw bounds as sphere"},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", "Draw bounds as cylinder"},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", "Draw bounds as cone"},
-		{OB_BOUND_POLYH, "POLYHEDRON", 0, "Polyhedron", "Draw bounds as polyhedron"},
+		{OB_BOUND_TRIANGLE_MESH, "POLYHEDRON", 0, "Polyhedron", "Draw bounds as polyhedron"},
 		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", "Draw bounds as capsule"},
 		{0, NULL, 0, NULL, NULL}};
 
