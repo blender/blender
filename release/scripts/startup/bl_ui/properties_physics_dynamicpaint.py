@@ -183,8 +183,13 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         
         # per type settings
         if (surface.surface_type == "DISPLACE"):
-            layout.prop(surface, "disp_clamp")
             layout.prop(surface, "incremental_disp")
+            if (surface.surface_format == "VERTEX"):
+                split = layout.split()
+                col = split.column()
+                col.prop(surface, "depth_clamp")
+                col = split.column()
+                col.prop(surface, "disp_factor")
             
         if (surface.surface_type == "WAVE"):
             layout.prop(surface, "wave_open_borders")
@@ -284,6 +289,9 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(surface, "output_name", text="Filename: ")
                 if (surface.surface_type == "DISPLACE"):
                     col.prop(surface, "disp_type", text="Displace Type")
+                    col.prop(surface, "depth_clamp")
+                if (surface.surface_type == "WAVE"):
+                    col.prop(surface, "depth_clamp", text="Wave Clamp")
             
             layout.separator()
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')

@@ -49,7 +49,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 static void freeData(ModifierData *md)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
-	dynamicPaint_Modifier_free (pmd);
+	dynamicPaint_Modifier_free(pmd);
 }
 
 static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)

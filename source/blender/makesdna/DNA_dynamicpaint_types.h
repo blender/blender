@@ -91,8 +91,7 @@ typedef struct DynamicPaintSurface {
 	int flags, effect;
 
 	int image_resolution, substeps;
-	int start_frame, end_frame;
-	int pad;
+	int start_frame, end_frame, pad;
 
 	/* initial color */
 	float init_color[4];
@@ -100,13 +99,15 @@ typedef struct DynamicPaintSurface {
 	char init_layername[40];
 
 	int dry_speed, diss_speed;
-	float disp_clamp;
+	float depth_clamp, disp_factor;
 
 	float spread_speed, color_spread_speed, shrink_speed;
 	float drip_vel, drip_acc;
 
 	/* wave settings */
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
+
+	int pad_;
 
 	char uvlayer_name[32];
 	char image_output_path[240];

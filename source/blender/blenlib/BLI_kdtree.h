@@ -47,13 +47,6 @@ typedef struct KDTreeNearest {
 	float co[3];
 } KDTreeNearest;
 
-typedef struct KDTreeNode {
-	struct KDTreeNode *left, *right;
-	float co[3], nor[3];
-	int index;
-	short d;
-} KDTreeNode;
-
 /* Creates or free a kdtree */
 KDTree* BLI_kdtree_new(int maxsize);
 void BLI_kdtree_free(KDTree *tree);

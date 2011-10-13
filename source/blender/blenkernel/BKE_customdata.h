@@ -280,6 +280,8 @@ const char *CustomData_layertype_name(int type);
 /* make sure the name of layer at index is unique */
 void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
+void CustomData_validate_layer_name(const struct CustomData *data, int type, char *name, char *outname);
+
 /* for file reading compatibility, returns false if the layer was freed,
    only after this test passes, layer->data should be assigned */
 int CustomData_verify_versions(struct CustomData *data, int index);

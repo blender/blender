@@ -70,6 +70,7 @@ int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
 void dynamicPaint_freeSurface(struct DynamicPaintSurface *surface);
 void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
+void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);
 
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 int  dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
@@ -79,6 +80,20 @@ void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, char
 void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);
 struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
 
-int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op);
+/* image sequence baking */
+int dynamicPaint_createUVSurface(struct DynamicPaintSurface *surface);
+int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface, struct Scene *scene, struct Object *cObject, int frame);
+void dynamicPaint_outputImage(struct DynamicPaintSurface *surface, char* filename, short format, short type);
+
+
+/* surface -> image file flags */
+#define DPOUTPUT_JPEG 0
+#define DPOUTPUT_PNG 1
+#define DPOUTPUT_OPENEXR 2
+
+#define DPOUTPUT_PAINT 0
+#define DPOUTPUT_WET 1
+#define DPOUTPUT_DISPLACE 2
+#define DPOUTPUT_WAVES 3
 
 #endif /* BKE_DYNAMIC_PAINT_H_ */

@@ -43,6 +43,13 @@
 #define SWAP(type, a, b) { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 #endif
 
+typedef struct KDTreeNode {
+	struct KDTreeNode *left, *right;
+	float co[3], nor[3];
+	int index;
+	short d;
+} KDTreeNode;
+
 struct KDTree {
 	KDTreeNode *nodes;
 	int totnode;

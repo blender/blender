@@ -107,7 +107,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 			char uvname[32];
 			MTFace *tf;
 
-			validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);
+			CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);
 			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 			/* verts are given the UV from the first face that uses them */
@@ -176,25 +176,6 @@ void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 			break;
 	}
 	/* lattice/mesh modifier too */
-}
-
-void validate_layer_name(const CustomData *data, int type, char *name, char *outname)
-{
-	int index = -1;
-
-	/* if a layer name was given, try to find that layer */
-	if(name[0])
-		index = CustomData_get_named_layer_index(data, type, name);
-
-	if(index < 0) {
-		/* either no layer was specified, or the layer we want has been
-		* deleted, so assign the active layer to name
-		*/
-		index = CustomData_get_active_layer_index(data, type);
-		strcpy(outname, data->layers[index].name);
-	}
-	else
-		strcpy(outname, name);
 }
 
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
