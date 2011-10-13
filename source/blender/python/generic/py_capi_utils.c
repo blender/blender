@@ -43,13 +43,13 @@ int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObje
 	int value_len;
 	int i;
 
-	if(!(value_fast=PySequence_Fast(value, error_prefix))) {
+	if (!(value_fast=PySequence_Fast(value, error_prefix))) {
 		return -1;
 	}
 
 	value_len= PySequence_Fast_GET_SIZE(value_fast);
 
-	if(value_len != length) {
+	if (value_len != length) {
 		Py_DECREF(value);
 		PyErr_Format(PyExc_TypeError,
 		             "%.200s: invalid sequence length. expected %d, got %d",
@@ -58,30 +58,30 @@ int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObje
 	}
 
 	/* for each type */
-	if(type == &PyFloat_Type) {
-		if(is_double) {
+	if (type == &PyFloat_Type) {
+		if (is_double) {
 			double *array_double= array;
-			for(i=0; i<length; i++) {
+			for (i=0; i<length; i++) {
 				array_double[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 			}
 		}
 		else {
 			float *array_float= array;
-			for(i=0; i<length; i++) {
+			for (i=0; i<length; i++) {
 				array_float[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
 			}
 		}
 	}
-	else if(type == &PyLong_Type) {
+	else if (type == &PyLong_Type) {
 		/* could use is_double for 'long int' but no use now */
 		int *array_int= array;
-		for(i=0; i<length; i++) {
+		for (i=0; i<length; i++) {
 			array_int[i]= PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
-	else if(type == &PyBool_Type) {
+	else if (type == &PyBool_Type) {
 		int *array_bool= array;
-		for(i=0; i<length; i++) {
+		for (i=0; i<length; i++) {
 			array_bool[i]= (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
 		}
 	}
@@ -95,7 +95,7 @@ int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObje
 
 	Py_DECREF(value_fast);
 
-	if(PyErr_Occurred()) {
+	if (PyErr_Occurred()) {
 		PyErr_Format(PyExc_TypeError,
 		             "%s: one or more items could not be used as a %s",
 		             error_prefix, type->tp_name);
@@ -119,7 +119,7 @@ void PyC_ObSpit(const char *name, PyObject *var)
 		fprintf(stderr, " ptr:%p", (void *)var);
 		
 		fprintf(stderr, " type:");
-		if(Py_TYPE(var))
+		if (Py_TYPE(var))
 			fprintf(stderr, "%s", Py_TYPE(var)->tp_name);
 		else
 			fprintf(stderr, "<NIL>");
@@ -134,7 +134,7 @@ void PyC_LineSpit(void)
 	int lineno;
 
 	/* Note, allow calling from outside python (RNA) */
-	if(!PYC_INTERPRETER_ACTIVE) {
+	if (!PYC_INTERPRETER_ACTIVE) {
 		fprintf(stderr, "python line lookup failed, interpreter inactive\n");
 		return;
 	}
@@ -162,18 +162,18 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	}
 
 	/* when executing a module */
-	if(filename && *filename == NULL) {
+	if (filename && *filename == NULL) {
 		/* try an alternative method to get the filename - module based
 		 * references below are all borrowed (double checked) */
 		PyObject *mod_name= PyDict_GetItemString(PyEval_GetGlobals(), "__name__");
-		if(mod_name) {
+		if (mod_name) {
 			PyObject *mod= PyDict_GetItem(PyImport_GetModuleDict(), mod_name);
-			if(mod) {
+			if (mod) {
 				*filename= PyModule_GetFilename(mod);
 			}
 
 			/* unlikely, fallback */
-			if(*filename == NULL) {
+			if (*filename == NULL) {
 				*filename= _PyUnicode_AsString(mod_name);
 			}
 		}
@@ -225,7 +225,7 @@ PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *for
 	error_value_prefix= PyUnicode_FromFormatV(format, args); /* can fail and be NULL */
 	va_end(args);
 
-	if(PyErr_Occurred()) {
+	if (PyErr_Occurred()) {
 		PyObject *error_type, *error_value, *error_traceback;
 		PyErr_Fetch(&error_type, &error_value, &error_traceback);
 		PyErr_Format(exception_type_prefix,
@@ -259,7 +259,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	PyObject *format_tb_func= NULL;
 	PyObject *ret= NULL;
 
-	if(! (traceback_mod= PyImport_ImportModule("traceback")) ) {
+	if (! (traceback_mod= PyImport_ImportModule("traceback")) ) {
 		goto error_cleanup;
 	}
 	else if (! (format_tb_func= PyObject_GetAttrString(traceback_mod, "format_exc"))) {
@@ -268,7 +268,7 @@ PyObject *PyC_ExceptionBuffer(void)
 
 	ret= PyObject_CallObject(format_tb_func, NULL);
 
-	if(ret == Py_None) {
+	if (ret == Py_None) {
 		Py_DECREF(ret);
 		ret= NULL;
 	}
@@ -303,7 +303,7 @@ PyObject *PyC_ExceptionBuffer(void)
 	 * string_io = io.StringIO()
 	 */
 
-	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
+	if (! (string_io_mod= PyImport_ImportModule("io")) ) {
 		goto error_cleanup;
 	}
 	else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
@@ -360,7 +360,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
 	result= _PyUnicode_AsString(py_str);
 
-	if(result) {
+	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
 		 * chars since blender doesnt limit this */
 		return result;
@@ -368,7 +368,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 	else {
 		PyErr_Clear();
 
-		if(PyBytes_Check(py_str)) {
+		if (PyBytes_Check(py_str)) {
 			return PyBytes_AS_STRING(py_str);
 		}
 		else {
@@ -380,7 +380,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 PyObject *PyC_UnicodeFromByte(const char *str)
 {
 	PyObject *result= PyUnicode_FromString(str);
-	if(result) {
+	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
 		 * chars since blender doesnt limit this */
 		return result;
@@ -412,7 +412,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	PyDict_SetItemString(interp->modules, "__main__", mod_main);
 	Py_DECREF(mod_main); /* sys.modules owns now */
 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-	if(filename)
+	if (filename)
 		PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
 	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
 	Py_INCREF(interp->builtins); /* AddObject steals a reference */
@@ -437,7 +437,7 @@ void PyC_MainModule_Restore(PyObject *main_mod)
 /* must be called before Py_Initialize, expects output of BLI_get_folder(BLENDER_PYTHON, NULL) */
 void PyC_SetHomePath(const char *py_path_bundle)
 {
-	if(py_path_bundle==NULL) {
+	if (py_path_bundle==NULL) {
 		/* Common enough to have bundled *nix python but complain on OSX/Win */
 #if defined(__APPLE__) || defined(_WIN32)
 		fprintf(stderr, "Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)\n");
@@ -450,7 +450,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 #ifdef __APPLE__
 	/* OSX allow file/directory names to contain : character (represented as / in the Finder)
 	 but current Python lib (release 3.1.1) doesn't handle these correctly */
-	if(strchr(py_path_bundle, ':'))
+	if (strchr(py_path_bundle, ':'))
 		printf("Warning : Blender application is located in a path containing : or / chars\
 			   \nThis may make python import function fail\n");
 #endif
@@ -481,7 +481,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 {
 	FILE *fp= fopen(filepath, "r");
 
-	if(fp) {
+	if (fp) {
 		PyGILState_STATE gilstate= PyGILState_Ensure();
 
 		va_list vargs;	
@@ -508,13 +508,13 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 			ret= PyObject_CallFunction(calcsize, (char *)"s", format);
 
-			if(ret) {
+			if (ret) {
 				sizes[i]= PyLong_AsSsize_t(ret);
 				Py_DECREF(ret);
 				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
 			}
 
-			if(ret == NULL) {
+			if (ret == NULL) {
 				printf("PyC_InlineRun error, line:%d\n", __LINE__);
 				PyErr_Print();
 				PyErr_Clear();
@@ -525,7 +525,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 				sizes[i]= 0;
 			}
 			else {
-				if(PyTuple_GET_SIZE(ret) == 1) {
+				if (PyTuple_GET_SIZE(ret) == 1) {
 					/* convenience, convert single tuples into single values */
 					PyObject *tmp= PyTuple_GET_ITEM(ret, 0);
 					Py_INCREF(tmp);
@@ -545,13 +545,13 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 		fclose(fp);
 
-		if(py_result) {
+		if (py_result) {
 
 			/* we could skip this but then only slice assignment would work
 			 * better not be so strict */
 			values= PyDict_GetItemString(py_dict, "values");
 
-			if(values && PyList_Check(values)) {
+			if (values && PyList_Check(values)) {
 
 				/* dont use the result */
 				Py_DECREF(py_result);
@@ -567,10 +567,10 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 					PyObject *item_new;
 					/* prepend the string formatting and remake the tuple */
 					item= PyList_GET_ITEM(values, i);
-					if(PyTuple_CheckExact(item)) {
+					if (PyTuple_CheckExact(item)) {
 						int ofs= PyTuple_GET_SIZE(item);
 						item_new= PyTuple_New(ofs + 1);
-						while(ofs--) {
+						while (ofs--) {
 							PyObject *member= PyTuple_GET_ITEM(item, ofs);
 							PyTuple_SET_ITEM(item_new, ofs + 1, member);
 							Py_INCREF(member);
@@ -584,7 +584,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 
 					ret = PyObject_Call(pack, item_new, NULL);
 
-					if(ret) {
+					if (ret) {
 						/* copy the bytes back into memory */
 						memcpy(ptr, PyBytes_AS_STRING(ret), sizes[i]);
 						Py_DECREF(ret);

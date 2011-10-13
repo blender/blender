@@ -100,14 +100,14 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 {
 	py_call_level++;
 
-	if(gilstate)
+	if (gilstate)
 		*gilstate= PyGILState_Ensure();
 
-	if(py_call_level==1) {
+	if (py_call_level==1) {
 		bpy_context_update(C);
 
 #ifdef TIME_PY_RUN
-		if(bpy_timer_count==0) {
+		if (bpy_timer_count==0) {
 			/* record time from the beginning */
 			bpy_timer= PIL_check_seconds_timer();
 			bpy_timer_run= bpy_timer_run_tot= 0.0;
@@ -125,13 +125,13 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 {
 	py_call_level--;
 
-	if(gilstate)
+	if (gilstate)
 		PyGILState_Release(*gilstate);
 
-	if(py_call_level < 0) {
+	if (py_call_level < 0) {
 		fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
 	}
-	else if(py_call_level==0) {
+	else if (py_call_level==0) {
 		// XXX - Calling classes currently wont store the context :\, cant set NULL because of this. but this is very flakey still.
 		//BPy_SetContext(NULL);
 		//bpy_import_main_set(NULL);
@@ -146,7 +146,7 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 
 void BPY_text_free_code(Text *text)
 {
-	if(text->compiled) {
+	if (text->compiled) {
 		Py_DECREF((PyObject *)text->compiled);
 		text->compiled= NULL;
 	}
@@ -273,10 +273,10 @@ void BPY_python_end(void)
 	printf("*bpy stats* - ");
 	printf("tot exec: %d,  ", bpy_timer_count);
 	printf("tot run: %.4fsec,  ", bpy_timer_run_tot);
-	if(bpy_timer_count>0)
+	if (bpy_timer_count>0)
 		printf("average run: %.6fsec,  ", (bpy_timer_run_tot/bpy_timer_count));
 
-	if(bpy_timer>0.0)
+	if (bpy_timer>0.0)
 		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer)*100.0);
 
 	printf("\n");
@@ -292,7 +292,7 @@ static void python_script_error_jump_text(struct Text *text)
 	int lineno;
 	int offset;
 	python_script_error_jump(text->id.name+2, &lineno, &offset);
-	if(lineno != -1) {
+	if (lineno != -1) {
 		/* select the line with the error */
 		txt_move_to(text, lineno - 1, INT_MAX, FALSE);
 		txt_move_to(text, lineno - 1, offset, TRUE);
@@ -332,22 +332,22 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
-		if(text->compiled == NULL) {	/* if it wasn't already compiled, do it now */
+		if (text->compiled == NULL) {	/* if it wasn't already compiled, do it now */
 			char *buf= txt_to_buf(text);
 
 			text->compiled= Py_CompileString(buf, fn_dummy, Py_file_input);
 
 			MEM_freeN(buf);
 
-			if(PyErr_Occurred()) {
-				if(do_jump) {
+			if (PyErr_Occurred()) {
+				if (do_jump) {
 					python_script_error_jump_text(text);
 				}
 				BPY_text_free_code(text);
 			}
 		}
 
-		if(text->compiled) {
+		if (text->compiled) {
 			py_dict= PyC_DefaultNameSpace(fn_dummy);
 			py_result=  PyEval_EvalCode(text->compiled, py_dict, py_dict);
 		}
@@ -356,7 +356,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 	else {
 		FILE *fp= fopen(fn, "r");
 
-		if(fp) {
+		if (fp) {
 			py_dict= PyC_DefaultNameSpace(fn);
 
 #ifdef _WIN32
@@ -390,8 +390,8 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 	}
 
 	if (!py_result) {
-		if(text) {
-			if(do_jump) {
+		if (text) {
+			if (do_jump) {
 				python_script_error_jump_text(text);
 			}
 		}
@@ -401,7 +401,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text, st
 		Py_DECREF(py_result);
 	}
 
-	if(py_dict) {
+	if (py_dict) {
 #ifdef PYMODULE_CLEAR_WORKAROUND
 		PyModuleObject *mmod= (PyModuleObject *)PyDict_GetItemString(PyThreadState_GET()->interp->modules, "__main__");
 		PyObject *dict_back= mmod->md_dict;
@@ -450,7 +450,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 	
 	if (!value || !expr) return -1;
 
-	if(expr[0]=='\0') {
+	if (expr[0]=='\0') {
 		*value= 0.0;
 		return error_ret;
 	}
@@ -479,13 +479,13 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 	else {
 		double val;
 
-		if(PyTuple_Check(retval)) {
+		if (PyTuple_Check(retval)) {
 			/* Users my have typed in 10km, 2m
 			 * add up all values */
 			int i;
 			val= 0.0;
 
-			for(i=0; i<PyTuple_GET_SIZE(retval); i++) {
+			for (i=0; i<PyTuple_GET_SIZE(retval); i++) {
 				val+= PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
 			}
 		}
@@ -494,7 +494,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 		}
 		Py_DECREF(retval);
 		
-		if(val==-1 && PyErr_Occurred()) {
+		if (val==-1 && PyErr_Occurred()) {
 			error_ret= -1;
 		}
 		else if (!finite(val)) {
@@ -505,8 +505,8 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 		}
 	}
 	
-	if(error_ret) {
-		if(verbose) {
+	if (error_ret) {
+		if (verbose) {
 			BPy_errors_to_report(CTX_wm_reports(C));
 		}
 		else {
@@ -531,7 +531,7 @@ int BPY_string_exec(bContext *C, const char *expr)
 
 	if (!expr) return -1;
 
-	if(expr[0]=='\0') {
+	if (expr[0]=='\0') {
 		return error_ret;
 	}
 
@@ -572,20 +572,20 @@ void BPY_modules_load_user(bContext *C)
 	Text *text;
 
 	/* can happen on file load */
-	if(bmain==NULL)
+	if (bmain==NULL)
 		return;
 
 	/* update pointers since this can run from a nested script
 	 * on file load */
-	if(py_call_level) {
+	if (py_call_level) {
 		bpy_context_update(C);
 	}
 
 	bpy_context_set(C, &gilstate);
 
-	for(text=CTX_data_main(C)->text.first; text; text= text->id.next) {
-		if(text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
-			if(!(G.f & G_SCRIPT_AUTOEXEC)) {
+	for (text=CTX_data_main(C)->text.first; text; text= text->id.next) {
+		if (text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
+			if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 				printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name+2);
 			}
 			else {
@@ -611,13 +611,13 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	PointerRNA *ptr= NULL;
 	int done= 0;
 
-	if(item==NULL) {
+	if (item==NULL) {
 		/* pass */
 	}
-	else if(item==Py_None) {
+	else if (item==Py_None) {
 		/* pass */
 	}
-	else if(BPy_StructRNA_Check(item)) {
+	else if (BPy_StructRNA_Check(item)) {
 		ptr= &(((BPy_StructRNA *)item)->ptr);
 
 		//result->ptr= ((BPy_StructRNA *)item)->ptr;
@@ -633,10 +633,10 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 		else {
 			int len= PySequence_Fast_GET_SIZE(seq_fast);
 			int i;
-			for(i= 0; i < len; i++) {
+			for (i= 0; i < len; i++) {
 				PyObject *list_item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
-				if(BPy_StructRNA_Check(list_item)) {
+				if (BPy_StructRNA_Check(list_item)) {
 					/*
 					CollectionPointerLink *link= MEM_callocN(sizeof(CollectionPointerLink), "bpy_context_get");
 					link->ptr= ((BPy_StructRNA *)item)->ptr;
@@ -656,12 +656,12 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 		}
 	}
 
-	if(done==0) {
+	if (done==0) {
 		if (item)	printf("PyContext '%s' not a valid type\n", member);
 		else		printf("PyContext '%s' not found\n", member);
 	}
 	else {
-		if(G.f & G_DEBUG) {
+		if (G.f & G_DEBUG) {
 			printf("PyContext '%s' found\n", member);
 		}
 	}
@@ -759,7 +759,7 @@ PyInit_bpy(void)
 	dealloc_obj_Type.tp_dealloc= dealloc_obj_dealloc;
 	dealloc_obj_Type.tp_flags= Py_TPFLAGS_DEFAULT;
 	
-	if(PyType_Ready(&dealloc_obj_Type) < 0)
+	if (PyType_Ready(&dealloc_obj_Type) < 0)
 		return NULL;
 
 	dob= (dealloc_obj *) dealloc_obj_Type.tp_alloc(&dealloc_obj_Type, 0);

@@ -50,7 +50,7 @@ static void operator_properties_init(wmOperatorType *ot)
 	 * later */
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
-	if(pyrna_deferred_register_class(ot->srna, py_class) != 0) {
+	if (pyrna_deferred_register_class(ot->srna, py_class) != 0) {
 		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
@@ -72,8 +72,9 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 
 		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 		prop= RNA_struct_find_property(&ptr, "type");
-		if(prop)
+		if (prop) {
 			ot->prop= prop;
+		}
 	}
 }
 
