@@ -123,11 +123,11 @@ static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
 	PyObject *self= NULL;
 	/* first get self */
 	/* operators can store their own instance for later use */
-	if(ptr->data) {
+	if (ptr->data) {
 		void **instance= RNA_struct_instance(ptr);
 
-		if(instance) {
-			if(*instance) {
+		if (instance) {
+			if (*instance) {
 				self= *instance;
 				Py_INCREF(self);
 			}
@@ -135,7 +135,7 @@ static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
 	}
 
 	/* in most cases this will run */
-	if(self == NULL) {
+	if (self == NULL) {
 		self= pyrna_struct_CreatePyObject(ptr);
 	}
 
@@ -167,7 +167,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 	PyTuple_SET_ITEM(ret, 0, func);
 	Py_INCREF(func);
 
-	if(kw==NULL)
+	if (kw==NULL)
 		kw= PyDict_New();
 	else
 		Py_INCREF(kw);
@@ -190,7 +190,7 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 
 	BLI_assert(py_data != NULL);
 
-	if(!is_write_ok) {
+	if (!is_write_ok) {
 		pyrna_write_set(TRUE);
 	}
 
@@ -209,11 +209,11 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 
 	Py_DECREF(args);
 
-	if(ret == NULL) {
+	if (ret == NULL) {
 		printf_func_error(py_func);
 	}
 	else {
-		if(ret != Py_None) {
+		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
 			printf_func_error(py_func);
 		}
@@ -223,15 +223,15 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 
 	bpy_context_clear(C, &gilstate);
 
-	if(!is_write_ok) {
+	if (!is_write_ok) {
 		pyrna_write_set(FALSE);
 	}
 }
 
 static int bpy_prop_callback_check(PyObject *py_func, int argcount)
 {
-	if(py_func) {
-		if(!PyFunction_Check(py_func)) {
+	if (py_func) {
+		if (!PyFunction_Check(py_func)) {
 			PyErr_Format(PyExc_TypeError,
 			             "update keyword: expected a function type, not a %.200s",
 			             Py_TYPE(py_func)->tp_name);
@@ -255,7 +255,7 @@ static int bpy_prop_callback_check(PyObject *py_func, int argcount)
 static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_cb)
 {
 	/* assume this is already checked for type and arg length */
-	if(update_cb) {
+	if (update_cb) {
 		PyObject **py_data= MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, "bpy_prop_callback_assign");
 		RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
 		py_data[BPY_DATA_CB_SLOT_UPDATE]= update_cb;
@@ -270,7 +270,7 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 /* utility function we need for parsing int's in an if statement */
 static int py_long_as_int(PyObject *py_long, int *r_int)
 {
-	if(PyLong_CheckExact(py_long)) {
+	if (PyLong_CheckExact(py_long)) {
 		*r_int= (int)PyLong_AS_LONG(py_long);
 		return 0;
 	}
@@ -295,8 +295,8 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 		return NULL; \
 	} \
 	srna= srna_from_self(self, #_func"(...):"); \
-	if(srna==NULL) { \
-		if(PyErr_Occurred()) \
+	if (srna==NULL) { \
+		if (PyErr_Occurred()) \
 			return NULL; \
 		return bpy_prop_deferred_return((void *)pymeth_##_func, kw); \
 	} \
@@ -304,24 +304,24 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 /* terse macros for error checks shared between all funcs cant use function
  * calls because of static strins passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items) \
-	if(id_len >= MAX_IDPROP_NAME) { \
+	if (id_len >= MAX_IDPROP_NAME) { \
 		PyErr_Format(PyExc_TypeError, \
 		             #_func"(): '%.200s' too long, max length is %d", \
 		             id, MAX_IDPROP_NAME-1); \
 		return NULL; \
 	} \
-	if(RNA_def_property_free_identifier(srna, id) == -1) { \
+	if (RNA_def_property_free_identifier(srna, id) == -1) { \
 		PyErr_Format(PyExc_TypeError, \
 		             #_func"(): '%s' is defined as a non-dynamic type", \
 		             id); \
 		return NULL; \
 	} \
-	if(pyopts && pyrna_set_to_enum_bitfield(_property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
+	if (pyopts && pyrna_set_to_enum_bitfield(_property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
 		return NULL; \
 
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype) \
 	BPY_PROPDEF_CHECK(_func, _property_flag_items) \
-	if(pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
+	if (pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
 		PyErr_Format(PyExc_TypeError, \
 		             #_func"(subtype='%s'): invalid subtype", \
 		             pysubtype); \
@@ -380,7 +380,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	BPY_PROPDEF_HEAD(BoolProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -412,9 +412,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_boolean_default(prop, def);
 		RNA_def_property_ui_text(prop, name, description);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -446,7 +446,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
 	BPY_PROPDEF_HEAD(BoolVectorProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "options", "subtype", "size", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -472,12 +472,12 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
 		BPY_PROPDEF_SUBTYPE_CHECK(BoolVectorProperty, property_flag_items, property_subtype_array_items)
 
-		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+		if (size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, FALSE, "BoolVectorProperty(default=sequence)") < 0)
+		if (pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, FALSE, "BoolVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -487,12 +487,12 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		// prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
 		prop= RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
 		RNA_def_property_array(prop, size);
-		if(pydef) RNA_def_property_boolean_array_default(prop, def);
+		if (pydef) RNA_def_property_boolean_array_default(prop, def);
 		RNA_def_property_ui_text(prop, name, description);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -520,7 +520,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	BPY_PROPDEF_HEAD(IntProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -555,9 +555,9 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_ui_text(prop, name, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -588,7 +588,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
 	BPY_PROPDEF_HEAD(IntVectorProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -616,12 +616,12 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
 		BPY_PROPDEF_SUBTYPE_CHECK(IntVectorProperty, property_flag_items, property_subtype_array_items)
 
-		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+		if (size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, FALSE, "IntVectorProperty(default=sequence)") < 0)
+		if (pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, FALSE, "IntVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -630,14 +630,14 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 
 		prop= RNA_def_property(srna, id, PROP_INT, subtype);
 		RNA_def_property_array(prop, size);
-		if(pydef) RNA_def_property_int_array_default(prop, def);
+		if (pydef) RNA_def_property_int_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -666,7 +666,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	BPY_PROPDEF_HEAD(FloatProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -695,7 +695,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_flag_items, property_subtype_number_items)
 
-		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
+		if (pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
 			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit", pyunit);
 			return NULL;
 		}
@@ -710,9 +710,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_ui_text(prop, name, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -744,7 +744,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 	BPY_PROPDEF_HEAD(FloatVectorProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", "size", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -774,17 +774,17 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_flag_items, property_subtype_array_items)
 
-		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
+		if (pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(unit='%s'): invalid unit", pyunit);
 			return NULL;
 		}
 
-		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+		if (size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, FALSE, "FloatVectorProperty(default=sequence)") < 0)
+		if (pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, FALSE, "FloatVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -793,14 +793,14 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype | unit);
 		RNA_def_property_array(prop, size);
-		if(pydef) RNA_def_property_float_array_default(prop, def);
+		if (pydef) RNA_def_property_float_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -827,7 +827,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 
 	BPY_PROPDEF_HEAD(StringProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "name", "description", "default", "maxlen", "options", "subtype", "update", NULL};
 		const char *id=NULL, *name="", *description="", *def="";
 		int id_len;
@@ -856,13 +856,13 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		}
 
 		prop= RNA_def_property(srna, id, PROP_STRING, subtype);
-		if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1); /* +1 since it includes null terminator */
-		if(def) RNA_def_property_string_default(prop, def);
+		if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1); /* +1 since it includes null terminator */
+		if (def) RNA_def_property_string_default(prop, def);
 		RNA_def_property_ui_text(prop, name, description);
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -878,7 +878,7 @@ static size_t strswapbufcpy(char *buf, const char **orig)
 	char *dst= buf;
 	size_t i= 0;
 	*orig= buf;
-	while((*dst= *src)) { dst++; src++; i++; }
+	while ((*dst= *src)) { dst++; src++; i++; }
 	return i + 1; /* include '\0' */
 }
 #endif
@@ -893,12 +893,12 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	short def_used= 0;
 	const char *def_cmp= NULL;
 
-	if(is_enum_flag) {
-		if(seq_len > RNA_ENUM_BITFLAG_SIZE) {
+	if (is_enum_flag) {
+		if (seq_len > RNA_ENUM_BITFLAG_SIZE) {
 			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): maximum " STRINGIFY(RNA_ENUM_BITFLAG_SIZE) " members for a ENUM_FLAG type property");
 			return NULL;
 		}
-		if(def && !PySet_Check(def)) {
+		if (def && !PySet_Check(def)) {
 			PyErr_Format(PyExc_TypeError,
 			             "EnumProperty(...): default option must be a 'set' "
 			             "type when ENUM_FLAG is enabled, not a '%.200s'",
@@ -907,9 +907,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		}
 	}
 	else {
-		if(def) {
+		if (def) {
 			def_cmp= _PyUnicode_AsString(def);
-			if(def_cmp==NULL) {
+			if (def_cmp==NULL) {
 				PyErr_Format(PyExc_TypeError,
 				             "EnumProperty(...): default option must be a 'str' "
 				             "type when ENUM_FLAG is disabled, not a '%.200s'",
@@ -924,7 +924,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 	items= MEM_callocN(sizeof(EnumPropertyItem) * (seq_len + 1), "enum_items_from_py1");
 
-	for(i=0; i<seq_len; i++) {
+	for (i=0; i<seq_len; i++) {
 		EnumPropertyItem tmp= {0, "", 0, "", ""};
 		Py_ssize_t item_size;
 		Py_ssize_t id_str_size;
@@ -933,7 +933,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 		item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
-		if(		(PyTuple_CheckExact(item)) &&
+		if (    (PyTuple_CheckExact(item)) &&
 		        (item_size= PyTuple_GET_SIZE(item)) &&
 		        (item_size == 3 || item_size == 4) &&
 		        (tmp.identifier=  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
@@ -941,22 +941,22 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		        (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
 		        (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) /* TODO, number isnt ensured to be unique from the script author */
 		) {
-			if(is_enum_flag) {
-				if(item_size < 4) {
+			if (is_enum_flag) {
+				if (item_size < 4) {
 					tmp.value= 1<<i;
 				}
 
-				if(def && PySet_Contains(def, PyTuple_GET_ITEM(item, 0))) {
+				if (def && PySet_Contains(def, PyTuple_GET_ITEM(item, 0))) {
 					*defvalue |= tmp.value;
 					def_used++;
 				}
 			}
 			else {
-				if(item_size < 4) {
+				if (item_size < 4) {
 					tmp.value= i;
 				}
 
-				if(def && def_used == 0 && strcmp(def_cmp, tmp.identifier)==0) {
+				if (def && def_used == 0 && strcmp(def_cmp, tmp.identifier)==0) {
 					*defvalue= tmp.value;
 					def_used++; /* only ever 1 */
 				}
@@ -978,9 +978,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 	}
 
-	if(is_enum_flag) {
+	if (is_enum_flag) {
 		/* strict check that all set members were used */
-		if(def && def_used != PySet_GET_SIZE(def)) {
+		if (def && def_used != PySet_GET_SIZE(def)) {
 			MEM_freeN(items);
 
 			PyErr_Format(PyExc_TypeError,
@@ -990,7 +990,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		}
 	}
 	else {
-		if(def && def_used == 0) {
+		if (def && def_used == 0) {
 			MEM_freeN(items);
 
 			PyErr_Format(PyExc_TypeError,
@@ -1012,7 +1012,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		EnumPropertyItem *items_ptr= items_dup;
 		char *buf= ((char *)items_dup) + (sizeof(EnumPropertyItem) * (seq_len + 1));
 		memcpy(items_dup, items, sizeof(EnumPropertyItem) * (seq_len + 1));
-		for(i=0; i<seq_len; i++, items_ptr++) {
+		for (i=0; i<seq_len; i++, items_ptr++) {
 			buf += strswapbufcpy(buf, &items_ptr->identifier);
 			buf += strswapbufcpy(buf, &items_ptr->name);
 			buf += strswapbufcpy(buf, &items_ptr->description);
@@ -1052,14 +1052,14 @@ static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *pt
 
 	Py_DECREF(args);
 
-	if(items==NULL) {
+	if (items==NULL) {
 		err= -1;
 	}
 	else {
 		PyObject *items_fast;
 		int defvalue_dummy=0;
 
-		if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): return value from the callback was not a sequence"))) {
+		if (!(items_fast= PySequence_Fast(items, "EnumProperty(...): return value from the callback was not a sequence"))) {
 			err= -1;
 		}
 		else {
@@ -1067,7 +1067,7 @@ static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *pt
 
 			Py_DECREF(items_fast);
 
-			if(!eitems) {
+			if (!eitems) {
 				err= -1;
 			}
 		}
@@ -1075,7 +1075,7 @@ static EnumPropertyItem *bpy_props_enum_itemf(struct bContext *C, PointerRNA *pt
 		Py_DECREF(items);
 	}
 
-	if(err != -1) { /* worked */
+	if (err != -1) { /* worked */
 		*free= 1;
 	}
 	else {
@@ -1118,7 +1118,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 	BPY_PROPDEF_HEAD(EnumProperty)
 	
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "items", "name", "description", "default", "options", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		PyObject *def= NULL;
@@ -1149,16 +1149,16 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 
 		/* items can be a list or a callable */
-		if(PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
+		if (PyFunction_Check(items)) { /* dont use PyCallable_Check because we need the function code for errors */
 			PyCodeObject *f_code= (PyCodeObject *)PyFunction_GET_CODE(items);
-			if(f_code->co_argcount != 2) {
+			if (f_code->co_argcount != 2) {
 				PyErr_Format(PyExc_ValueError,
 				             "EnumProperty(...): expected 'items' function to take 2 arguments, not %d",
 				             f_code->co_argcount);
 				return NULL;
 			}
 
-			if(def) {
+			if (def) {
 				/* note, using type error here is odd but python does this for invalid arguments */
 				PyErr_SetString(PyExc_TypeError,
 				                "EnumProperty(...): 'default' can't be set when 'items' is a function");
@@ -1169,7 +1169,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			eitems= DummyRNA_NULL_items;
 		}
 		else {
-			if(!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items or a function"))) {
+			if (!(items_fast= PySequence_Fast(items, "EnumProperty(...): expected a sequence of tuples for the enum items or a function"))) {
 				return NULL;
 			}
 
@@ -1177,28 +1177,28 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 			Py_DECREF(items_fast);
 
-			if(!eitems) {
+			if (!eitems) {
 				return NULL;
 			}
 		}
 
-		if(opts & PROP_ENUM_FLAG)	prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
-		else						prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
+		if (opts & PROP_ENUM_FLAG)  prop= RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
+		else                        prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
 
-		if(is_itemf) {
+		if (is_itemf) {
 			RNA_def_enum_funcs(prop, bpy_props_enum_itemf);
 			RNA_def_enum_py_data(prop, (void *)items);
 			/* Py_INCREF(items); */ /* watch out!, if user is tricky they can probably crash blender if they manage to free the callback, take care! */
 		}
 
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
 
-		if(is_itemf == FALSE) {
+		if (is_itemf == FALSE) {
 			MEM_freeN(eitems);
 		}
 	}
@@ -1210,8 +1210,8 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	StructRNA *srna;
 
 	srna= srna_from_self(value, "");
-	if(!srna) {
-		if(PyErr_Occurred()) {
+	if (!srna) {
+		if (PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
 			char *msg_char= _PyUnicode_AsString(msg);
 			PyErr_Format(PyExc_TypeError,
@@ -1227,7 +1227,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 		return NULL;
 	}
 
-	if(!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
+	if (!RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
 		PyErr_Format(PyExc_TypeError,
 		             "%.200s expected an RNA type derived from PropertyGroup",
 		             error_prefix);
@@ -1256,7 +1256,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 
 	BPY_PROPDEF_HEAD(PointerProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "type", "name", "description", "options", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -1280,7 +1280,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 		BPY_PROPDEF_CHECK(PointerProperty, property_flag_items)
 
 		ptype= pointer_type_from_py(type, "PointerProperty(...):");
-		if(!ptype)
+		if (!ptype)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -1288,9 +1288,9 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 		}
 
 		prop= RNA_def_pointer_runtime(srna, id, ptype, name, description);
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -1316,7 +1316,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 
 	BPY_PROPDEF_HEAD(CollectionProperty)
 
-	if(srna) {
+	if (srna) {
 		static const char *kwlist[]= {"attr", "type", "name", "description", "options", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
@@ -1338,13 +1338,13 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 		BPY_PROPDEF_CHECK(CollectionProperty, property_flag_items)
 
 		ptype= pointer_type_from_py(type, "CollectionProperty(...):");
-		if(!ptype)
+		if (!ptype)
 			return NULL;
 
 		prop= RNA_def_collection_runtime(srna, id, ptype, name, description);
-		if(pyopts) {
-			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+		if (pyopts) {
+			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
 	}
@@ -1363,7 +1363,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 {
 	StructRNA *srna;
 
-	if(PyTuple_GET_SIZE(args) == 1) {
+	if (PyTuple_GET_SIZE(args) == 1) {
 		PyObject *ret;
 		self= PyTuple_GET_ITEM(args, 0);
 		args= PyTuple_New(0);
@@ -1377,10 +1377,10 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 	}
 
 	srna= srna_from_self(self, "RemoveProperty(...):");
-	if(srna==NULL && PyErr_Occurred()) {
+	if (srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
-	else if(srna==NULL) {
+	else if (srna==NULL) {
 		PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type");
 		return NULL;
 	}
@@ -1396,7 +1396,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 			return NULL;
 		}
 
-		if(RNA_def_property_free_identifier(srna, id) != 1) {
+		if (RNA_def_property_free_identifier(srna, id) != 1) {
 			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
 			return NULL;
 		}

@@ -246,20 +246,32 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, cons
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-			FCurve *fcu= (FCurve *)ale->key_data;
-			float tmin, tmax;
-			
-			/* get range and apply necessary scaling before processing */
-			calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
-			
-			if (adt) {
-				tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
-				tmax= BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
+			if (ale->datatype == ALE_GPFRAME) {
+				bGPDlayer *gpl= ale->data;
+				bGPDframe *gpf;
+
+				/* find gp-frame which is less than or equal to cframe */
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					*min= MIN2(*min, gpf->framenum);
+					*max= MAX2(*max, gpf->framenum);
+				}
 			}
-			
-			/* try to set cur using these values, if they're more extreme than previously set values */
-			*min= MIN2(*min, tmin);
-			*max= MAX2(*max, tmax);
+			else {
+				FCurve *fcu= (FCurve *)ale->key_data;
+				float tmin, tmax;
+
+				/* get range and apply necessary scaling before processing */
+				calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
+
+				if (adt) {
+					tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
+					tmax= BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
+				}
+
+				/* try to set cur using these values, if they're more extreme than previously set values */
+				*min= MIN2(*min, tmin);
+				*max= MAX2(*max, tmax);
+			}
 		}
 		
 		/* free memory */

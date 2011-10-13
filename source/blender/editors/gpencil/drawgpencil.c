@@ -147,7 +147,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		}
 		glEnd();
 
-		/* reset for pradictable OpenGL context */
+		/* reset for predictable OpenGL context */
 		glLineWidth(1.0f);
 		
 		if (G.f & G_DEBUG) setlinestyle(0);

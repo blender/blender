@@ -53,10 +53,11 @@ SET(_opencollada_FIND_COMPONENTS
 )
 
 # Fedora openCOLLADA package links these statically
+# note that order is important here ot it wont link
 SET(_opencollada_FIND_STATIC_COMPONENTS
-  UTF
-  ftoa
   buffer
+  ftoa
+  UTF
 )
 
 SET(_opencollada_SEARCH_DIRS

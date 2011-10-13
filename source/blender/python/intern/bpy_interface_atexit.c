@@ -68,7 +68,7 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 	Py_DECREF(atexit_func);
 	Py_DECREF(args);
 
-	if(ret) {
+	if (ret) {
 		Py_DECREF(ret);
 	}
 	else { /* should never happen */

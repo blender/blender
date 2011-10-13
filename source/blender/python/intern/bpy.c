@@ -109,7 +109,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 
 	list= PyList_New(0);
 
-	for(BLI_bpathIterator_init(&bpi, G.main, G.main->name, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
+	for (BLI_bpathIterator_init(&bpi, G.main, G.main->name, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
 		/* build the list */
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
@@ -149,10 +149,10 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	
 	/* stupid string compare */
-	if     (!strcmp(type, "DATAFILES"))	folder_id= BLENDER_USER_DATAFILES;
-	else if(!strcmp(type, "CONFIG"))	folder_id= BLENDER_USER_CONFIG;
-	else if(!strcmp(type, "SCRIPTS"))	folder_id= BLENDER_USER_SCRIPTS;
-	else if(!strcmp(type, "AUTOSAVE"))	folder_id= BLENDER_USER_AUTOSAVE;
+	if     (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
+	else if (!strcmp(type, "CONFIG"))   folder_id= BLENDER_USER_CONFIG;
+	else if (!strcmp(type, "SCRIPTS"))  folder_id= BLENDER_USER_SCRIPTS;
+	else if (!strcmp(type, "AUTOSAVE")) folder_id= BLENDER_USER_AUTOSAVE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
@@ -193,9 +193,9 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 
 	/* stupid string compare */
-	if     (!strcmp(type, "USER"))		folder_id= BLENDER_RESOURCE_PATH_USER;
-	else if(!strcmp(type, "LOCAL"))		folder_id= BLENDER_RESOURCE_PATH_LOCAL;
-	else if(!strcmp(type, "SYSTEM"))	folder_id= BLENDER_RESOURCE_PATH_SYSTEM;
+	if     (!strcmp(type, "USER"))     folder_id= BLENDER_RESOURCE_PATH_USER;
+	else if (!strcmp(type, "LOCAL"))   folder_id= BLENDER_RESOURCE_PATH_LOCAL;
+	else if (!strcmp(type, "SYSTEM"))  folder_id= BLENDER_RESOURCE_PATH_SYSTEM;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
@@ -215,7 +215,7 @@ static PyMethodDef meth_bpy_resource_path= {"resource_path", (PyCFunction)bpy_re
 static PyObject *bpy_import_test(const char *modname)
 {
 	PyObject *mod= PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
-	if(mod) {
+	if (mod) {
 		Py_DECREF(mod);
 	}
 	else {
@@ -238,7 +238,7 @@ void BPy_init_modules(void)
 
 	/* Needs to be first since this dir is needed for future modules */
 	char *modpath= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
-	if(modpath) {
+	if (modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
 		PyObject *py_modpath= PyUnicode_FromString(modpath);
