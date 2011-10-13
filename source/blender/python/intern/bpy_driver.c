@@ -41,6 +41,9 @@
 
 #include "bpy_driver.h"
 
+extern void BPY_update_rna_module(void);
+
+
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict= NULL;
 
@@ -96,7 +99,7 @@ void BPY_driver_reset(void)
 	PyGILState_STATE gilstate;
 	int use_gil= 1; /* !PYC_INTERPRETER_ACTIVE; */
 
-	if(use_gil)
+	if (use_gil)
 		gilstate= PyGILState_Ensure();
 
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
@@ -105,7 +108,7 @@ void BPY_driver_reset(void)
 		bpy_pydriver_Dict= NULL;
 	}
 
-	if(use_gil)
+	if (use_gil)
 		PyGILState_Release(gilstate);
 
 	return;
@@ -154,31 +157,35 @@ float BPY_driver_exec(ChannelDriver *driver)
 	if ((expr == NULL) || (expr[0]=='\0'))
 		return 0.0f;
 
-	if(!(G.f & G_SCRIPT_AUTOEXEC)) {
+	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
 		return 0.0f;
 	}
 
 	use_gil= 1; /* !PYC_INTERPRETER_ACTIVE; */
 
-	if(use_gil)
+	if (use_gil)
 		gilstate= PyGILState_Ensure();
+
+	/* needed since drivers are updated directly after undo where 'main' is
+	 * re-allocated [#28807] */
+	BPY_update_rna_module();
 
 	/* init global dictionary for py-driver evaluation settings */
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
-			if(use_gil)
+			if (use_gil)
 				PyGILState_Release(gilstate);
 			return 0.0f;
 		}
 	}
 
-	if(driver->expr_comp==NULL)
+	if (driver->expr_comp==NULL)
 		driver->flag |= DRIVER_FLAG_RECOMPILE;
 
 	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
-	if(driver->flag & DRIVER_FLAG_RECOMPILE) {
+	if (driver->flag & DRIVER_FLAG_RECOMPILE) {
 		Py_XDECREF(driver->expr_comp);
 		driver->expr_comp= PyTuple_New(2);
 
@@ -192,7 +199,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 		expr_code= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
 	}
 
-	if(driver->flag & DRIVER_FLAG_RENAMEVAR) {
+	if (driver->flag & DRIVER_FLAG_RENAMEVAR) {
 		/* may not be set */
 		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
 		Py_XDECREF(expr_vars);
@@ -253,7 +260,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 	if (retval == NULL) {
 		pydriver_error(driver);
 	}
-	else if((result= PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
+	else if ((result= PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
 		pydriver_error(driver);
 		Py_DECREF(retval);
 		result= 0.0;
@@ -264,10 +271,10 @@ float BPY_driver_exec(ChannelDriver *driver)
 		Py_DECREF(retval);
 	}
 
-	if(use_gil)
+	if (use_gil)
 		PyGILState_Release(gilstate);
 
-	if(finite(result)) {
+	if (finite(result)) {
 		return (float)result;
 	}
 	else {

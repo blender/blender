@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -419,12 +419,10 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 	}
 
 	if(bezt->h1==HD_VECT) {	/* vector */
-		mul_v2_fl(dvec_a, 1.0f/3.0f);
-		sub_v2_v2v2(p2-3, p2, dvec_a);
+		madd_v2_v2v2fl(p2-3, p2, dvec_a, -1.0f/3.0f);
 	}
 	if(bezt->h2==HD_VECT) {
-		mul_v2_fl(dvec_b, 1.0f/3.0f);
-		sub_v2_v2v2(p2+3, p2, dvec_b);
+		madd_v2_v2v2fl(p2+3, p2, dvec_b,  1.0f/3.0f);
 	}
 }
 

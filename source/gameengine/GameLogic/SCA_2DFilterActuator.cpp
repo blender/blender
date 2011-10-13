@@ -134,7 +134,7 @@ PyTypeObject SCA_2DFilterActuator::Type = {
 
 PyMethodDef SCA_2DFilterActuator::Methods[] = {
 	/* add python functions to deal with m_msg... */
-    {NULL,NULL}
+	{NULL,NULL}
 };
 
 PyAttributeDef SCA_2DFilterActuator::Attributes[] = {

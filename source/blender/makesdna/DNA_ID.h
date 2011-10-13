@@ -206,6 +206,8 @@ typedef struct PreviewImage {
 
 #define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM))
 
+#define ID_BLEND_PATH(_bmain, _id) ((_id)->lib ? (_id)->lib->filepath : (_bmain)->name)
+
 #ifdef GS
 #undef GS
 #endif

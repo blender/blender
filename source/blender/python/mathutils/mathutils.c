@@ -49,14 +49,14 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	int i, size;
 
 	/* non list/tuple cases */
-	if(!(value_fast=PySequence_Fast(value, error_prefix))) {
+	if (!(value_fast=PySequence_Fast(value, error_prefix))) {
 		/* PySequence_Fast sets the error */
 		return -1;
 	}
 
 	size= PySequence_Fast_GET_SIZE(value_fast);
 
-	if(size > array_max || size < array_min) {
+	if (size > array_max || size < array_min) {
 		if (array_max == array_min)	{
 			PyErr_Format(PyExc_ValueError,
 			             "%.200s: sequence size is %d, expected %d",
@@ -74,7 +74,7 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	i= size;
 	do {
 		i--;
-		if(((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) && PyErr_Occurred()) {
+		if (((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) && PyErr_Occurred()) {
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s: sequence index %d expected a number, "
 			             "found '%.200s' type, ",
@@ -82,7 +82,7 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 			Py_DECREF(value_fast);
 			return -1;
 		}
-	} while(i);
+	} while (i);
 
 	Py_XDECREF(value_fast);
 	return size;
@@ -94,16 +94,16 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 #if 1 /* approx 6x speedup for mathutils types */
 	int size;
 
-	if(     (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
+	if (    (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
 	        (size= EulerObject_Check(value)      ? 3 : 0) ||
 	        (size= QuaternionObject_Check(value) ? 4 : 0) ||
 	        (size= ColorObject_Check(value)      ? 3 : 0))
 	{
-		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
+		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 
-		if(size > array_max || size < array_min) {
+		if (size > array_max || size < array_min) {
 			if (array_max == array_min)	{
 				PyErr_Format(PyExc_ValueError,
 				             "%.200s: sequence size is %d, expected %d",
@@ -129,8 +129,8 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix)
 {
-	if(EulerObject_Check(value)) {
-		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
+	if (EulerObject_Check(value)) {
+		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 		else {
@@ -139,7 +139,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		}
 	}
 	else if (QuaternionObject_Check(value)) {
-		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
+		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
 		else {
@@ -150,10 +150,10 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		}
 	}
 	else if (MatrixObject_Check(value)) {
-		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
+		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
-		else if(((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
+		else if (((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
 			PyErr_Format(PyExc_ValueError,
 			             "%.200s: matrix must have minimum 3x3 dimensions",
 			             error_prefix);
@@ -202,7 +202,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 {
 	int x;
-	for (x=0; x< size; x++){
+	for (x=0; x< size; x++) {
 		if (EXPP_FloatsAreEqual(vecA[x], vecB[x], floatSteps) == 0)
 			return 0;
 	}
@@ -220,8 +220,8 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 	int i;
 	
 	/* find the first free slot */
-	for(i= 0; mathutils_callbacks[i]; i++) {
-		if(mathutils_callbacks[i]==cb) /* already registered? */
+	for (i= 0; mathutils_callbacks[i]; i++) {
+		if (mathutils_callbacks[i]==cb) /* already registered? */
 			return i;
 	}
 	
@@ -233,10 +233,10 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self, self->cb_subtype) != -1)
+	if (cb->get(self, self->cb_subtype) != -1)
 		return 0;
 
-	if(!PyErr_Occurred()) {
+	if (!PyErr_Occurred()) {
 		PyErr_Format(PyExc_RuntimeError,
 		             "%s read, user has become invalid",
 		             Py_TYPE(self)->tp_name);
@@ -247,10 +247,10 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self, self->cb_subtype) != -1)
+	if (cb->set(self, self->cb_subtype) != -1)
 		return 0;
 
-	if(!PyErr_Occurred()) {
+	if (!PyErr_Occurred()) {
 		PyErr_Format(PyExc_RuntimeError,
 		             "%s write, user has become invalid",
 		             Py_TYPE(self)->tp_name);
@@ -261,10 +261,10 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get_index(self, self->cb_subtype, index) != -1)
+	if (cb->get_index(self, self->cb_subtype, index) != -1)
 		return 0;
 
-	if(!PyErr_Occurred()) {
+	if (!PyErr_Occurred()) {
 		PyErr_Format(PyExc_RuntimeError,
 		             "%s read index, user has become invalid",
 		             Py_TYPE(self)->tp_name);
@@ -275,10 +275,10 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set_index(self, self->cb_subtype, index) != -1)
+	if (cb->set_index(self, self->cb_subtype, index) != -1)
 		return 0;
 
-	if(!PyErr_Occurred()) {
+	if (!PyErr_Occurred()) {
 		PyErr_Format(PyExc_RuntimeError,
 		             "%s write index, user has become invalid",
 		             Py_TYPE(self)->tp_name);
@@ -316,11 +316,11 @@ int BaseMathObject_clear(BaseMathObject *self)
 void BaseMathObject_dealloc(BaseMathObject *self)
 {
 	/* only free non wrapped */
-	if(self->wrapped != Py_WRAP) {
+	if (self->wrapped != Py_WRAP) {
 		PyMem_Free(self->data);
 	}
 
-	if(self->cb_user) {
+	if (self->cb_user) {
 		PyObject_GC_UnTrack(self);
 		BaseMathObject_clear(self);
 	}
@@ -350,15 +350,15 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	PyObject *submodule;
 	PyObject *item;
 
-	if(PyType_Ready(&vector_Type) < 0)
+	if (PyType_Ready(&vector_Type) < 0)
 		return NULL;
-	if(PyType_Ready(&matrix_Type) < 0)
+	if (PyType_Ready(&matrix_Type) < 0)
 		return NULL;	
-	if(PyType_Ready(&euler_Type) < 0)
+	if (PyType_Ready(&euler_Type) < 0)
 		return NULL;
-	if(PyType_Ready(&quaternion_Type) < 0)
+	if (PyType_Ready(&quaternion_Type) < 0)
 		return NULL;
-	if(PyType_Ready(&color_Type) < 0)
+	if (PyType_Ready(&color_Type) < 0)
 		return NULL;
 
 	submodule = PyModule_Create(&M_Mathutils_module_def);

@@ -1,9 +1,5 @@
-/* blenkernel/script.c
- *
- *
+/*
  * $Id$
- *
- * Function(s) related to struct script management.
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

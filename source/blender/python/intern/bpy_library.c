@@ -184,7 +184,7 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 	const char* filename= NULL;
 	int is_rel= 0, is_link= 0;
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "s|ii:load", (char **)kwlist, &filename, &is_link, &is_rel))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|ii:load", (char **)kwlist, &filename, &is_link, &is_rel))
 		return NULL;
 
 	ret= PyObject_New(BPy_Library, &bpy_lib_Type);
@@ -210,10 +210,10 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 
 	names= BLO_blendhandle_get_datablock_names(self->blo_handle, blocktype, &totnames);
 
-	if(names) {
+	if (names) {
 		int counter= 0;
 		list= PyList_New(totnames);
-		for(l= names; l; l= l->next) {
+		for (l= names; l; l= l->next) {
 			PyList_SET_ITEM(list, counter, PyUnicode_FromString((char *)l->link));
 			counter++;
 		}
@@ -237,8 +237,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 
 	self->blo_handle= BLO_blendhandle_from_file(self->abspath, &reports);
 
-	if(self->blo_handle == NULL) {
-		if(BPy_reports_to_error(&reports, PyExc_IOError, TRUE) != -1) {
+	if (self->blo_handle == NULL) {
+		if (BPy_reports_to_error(&reports, PyExc_IOError, TRUE) != -1) {
 			PyErr_Format(PyExc_IOError,
 			             "load: %s failed to open blend file",
 			             self->abspath);
@@ -247,8 +247,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 	}
 	else {
 		int i= 0, code;
-		while((code= BKE_idcode_iter_step(&i))) {
-			if(BKE_idcode_is_linkable(code)) {
+		while ((code= BKE_idcode_iter_step(&i))) {
+			if (BKE_idcode_is_linkable(code)) {
 				const char *name_plural= BKE_idcode_to_name_plural(code);
 				PyObject *str= PyUnicode_FromString(name_plural);
 				PyDict_SetItem(self->dict, str, PyList_New(0));
@@ -322,27 +322,27 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
 	{
 		int i= 0, code;
-		while((code= BKE_idcode_iter_step(&i))) {
-			if(BKE_idcode_is_linkable(code)) {
+		while ((code= BKE_idcode_iter_step(&i))) {
+			if (BKE_idcode_is_linkable(code)) {
 				const char *name_plural= BKE_idcode_to_name_plural(code);
 				PyObject *ls= PyDict_GetItemString(self->dict, name_plural);
 				// printf("lib: %s\n", name_plural);
-				if(ls && PyList_Check(ls)) {
+				if (ls && PyList_Check(ls)) {
 					/* loop */
 					Py_ssize_t size= PyList_GET_SIZE(ls);
 					Py_ssize_t i;
 					PyObject *item;
 					const char *item_str;
 
-					for(i= 0; i < size; i++) {
+					for (i= 0; i < size; i++) {
 						item= PyList_GET_ITEM(ls, i);
 						item_str= _PyUnicode_AsString(item);
 
 						// printf("  %s\n", item_str);
 
-						if(item_str) {
+						if (item_str) {
 							ID *id= BLO_library_append_named_part(mainl, &(self->blo_handle), item_str, code);
-							if(id) {
+							if (id) {
 #ifdef USE_RNA_DATABLOCKS
 								PointerRNA id_ptr;
 								RNA_id_pointer_create(id, &id_ptr);
@@ -382,7 +382,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		}
 	}
 
-	if(err == -1) {
+	if (err == -1) {
 		/* exception raised above, XXX, this leaks some memory */
 		BLO_blendhandle_close(self->blo_handle);
 		self->blo_handle= NULL;
@@ -399,10 +399,10 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 			recalc_all_library_objects(G.main);
 
 			/* append, rather than linking */
-			if((self->flag & FILE_LINK)==0) {
+			if ((self->flag & FILE_LINK)==0) {
 				Library *lib= BLI_findstring(&G.main->library, self->abspath, offsetof(Library, name));
-				if(lib)	all_local(lib, 1);
-				else	BLI_assert(!"cant find name of just added library!");
+				if (lib)  all_local(lib, 1);
+				else      BLI_assert(!"cant find name of just added library!");
 			}
 		}
 
@@ -426,7 +426,7 @@ int bpy_lib_init(PyObject *mod_par)
 	/* some compilers dont like accessing this directly, delay assignment */
 	bpy_lib_Type.tp_getattro= PyObject_GenericGetAttr;
 
-	if(PyType_Ready(&bpy_lib_Type) < 0)
+	if (PyType_Ready(&bpy_lib_Type) < 0)
 		return -1;
 
 	return 0;

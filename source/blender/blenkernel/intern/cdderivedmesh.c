@@ -1,41 +1,41 @@
 /*
-* $Id$
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software  Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) 2006 Blender Foundation.
-* All rights reserved.
-*
-* The Original Code is: all of this file.
-*
-* Contributor(s): Ben Batt <benbatt@gmail.com>
-*
-* ***** END GPL LICENSE BLOCK *****
-*
-* Implementation of CDDerivedMesh.
-*
-* BKE_cdderivedmesh.h contains the function prototypes for this file.
-*
-*/
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2006 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Ben Batt <benbatt@gmail.com>
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ * Implementation of CDDerivedMesh.
+ *
+ * BKE_cdderivedmesh.h contains the function prototypes for this file.
+ *
+ */
 
 /** \file blender/blenkernel/intern/cdderivedmesh.c
  *  \ingroup bke
  */
- 
+
 #include "GL/glew.h"
 
 #include "BLI_blenlib.h"
@@ -756,9 +756,10 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				unsigned char *colors = MEM_mallocN(dm->getNumFaces(dm)*4*3*sizeof(unsigned char), "cdDM_drawFacesTex_common");
 				for( i=0; i < dm->getNumFaces(dm); i++ ) {
 					for( j=0; j < 4; j++ ) {
-						colors[i*12+j*3] = col[i*4+j].r;
+						/* bgr -> rgb is intentional (and stupid), but how its stored internally */
+						colors[i*12+j*3] = col[i*4+j].b;
 						colors[i*12+j*3+1] = col[i*4+j].g;
-						colors[i*12+j*3+2] = col[i*4+j].b;
+						colors[i*12+j*3+2] = col[i*4+j].r;
 					}
 				}
 				GPU_color3_upload(dm,colors);

@@ -1,7 +1,4 @@
-
-/*  material.c
- *
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -1108,8 +1105,17 @@ int object_remove_material_slot(Object *ob)
 	short *totcolp;
 	short a, actcol;
 	
-	if(ob==NULL || ob->totcol==0) return FALSE;
-	
+	if (ob==NULL || ob->totcol==0) {
+		return FALSE;
+	}
+
+	/* this should never happen and used to crash */
+	if (ob->actcol <= 0) {
+		printf("%s: invalid material index %d, report a bug!\n", __func__, ob->actcol);
+		BLI_assert(0);
+		return FALSE;
+	}
+
 	/* take a mesh/curve/mball as starting point, remove 1 index,
 	 * AND with all objects that share the ob->data
 	 * 
@@ -1122,10 +1128,8 @@ int object_remove_material_slot(Object *ob)
 	if(*matarar==NULL) return FALSE;
 
 	/* we delete the actcol */
-	if(ob->totcol) {
-		mao= (*matarar)[ob->actcol-1];
-		if(mao) mao->id.us--;
-	}
+	mao= (*matarar)[ob->actcol-1];
+	if(mao) mao->id.us--;
 	
 	for(a=ob->actcol; a<ob->totcol; a++)
 		(*matarar)[a-1]= (*matarar)[a];
@@ -1995,6 +1999,11 @@ int do_version_tface(Main *main, int fileload)
 				}
 			}
 		}
+		/* material is not used by faces with texface
+		 * set the default flag - do it only once */
+		else
+			 if (fileload)
+					ma->game.flag = GEMAT_BACKCULL;
 	}
 
 	return nowarning;

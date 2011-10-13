@@ -136,7 +136,7 @@ static void init_genrand(unsigned long s)
 {
 	int j;
 	state[0] = s & 0xffffffffUL;
-	for(j = 1; j < N; j++) {
+	for (j = 1; j < N; j++) {
 		state[j] =
 			(1812433253UL *
 			  (state[j - 1] ^ (state[j - 1] >> 30)) + j);
@@ -157,16 +157,16 @@ static void next_state(void)
 
 	/* if init_genrand() has not been called, */
 	/* a default initial seed is used         */
-	if(initf == 0)
+	if (initf == 0)
 		init_genrand(5489UL);
 
 	left = N;
 	next = state;
 
-	for(j = N - M + 1; --j; p++)
+	for (j = N - M + 1; --j; p++)
 		*p = p[M] ^ TWIST(p[0], p[1]);
 
-	for(j = M; --j; p++)
+	for (j = M; --j; p++)
 		*p = p[M - N] ^ TWIST(p[0], p[1]);
 
 	*p = p[M - N] ^ TWIST(p[0], state[0]);
@@ -176,7 +176,7 @@ static void next_state(void)
 
 static void setRndSeed(int seed)
 {
-	if(seed == 0)
+	if (seed == 0)
 		init_genrand(time(NULL));
 	else
 		init_genrand(seed);
@@ -187,7 +187,7 @@ static float frand(void)
 {
 	unsigned long y;
 
-	if(--left == 0)
+	if (--left == 0)
 		next_state();
 	y = *next++;
 
@@ -207,7 +207,7 @@ static void randuvec(float v[3])
 {
 	float r;
 	v[2] = 2.f * frand() - 1.f;
-	if((r = 1.f - v[2] * v[2]) > 0.f) {
+	if ((r = 1.f - v[2] * v[2]) > 0.f) {
 		float a = (float)(6.283185307f * frand());
 		r = (float)sqrt(r);
 		v[0] = (float)(r * cosf(a));
@@ -237,7 +237,7 @@ static PyObject *Noise_random_unit_vector(PyObject *UNUSED(self))
 static PyObject *Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
 {
 	int s;
-	if(!PyArg_ParseTuple(args, "i:seed_set", &s))
+	if (!PyArg_ParseTuple(args, "i:seed_set", &s))
 		return NULL;
 	setRndSeed(s);
 	Py_RETURN_NONE;
@@ -251,7 +251,7 @@ static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)|i:noise", &x, &y, &z, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)|i:noise", &x, &y, &z, &nb))
 		return NULL;
 
 	return PyFloat_FromDouble((2.0f * BLI_gNoise(1.0f, x, y, z, 0, nb) - 1.0f));
@@ -275,7 +275,7 @@ static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, v[3];
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)|i:vector", &x, &y, &z, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)|i:vector", &x, &y, &z, &nb))
 		return NULL;
 	noise_vector(x, y, z, nb, v);
 	return Py_BuildValue("[fff]", v[0], v[1], v[2]);
@@ -292,15 +292,15 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 	int i;
 	amp = 1.f;
 	out = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
-	if(hard)
+	if (hard)
 		out = (float)fabs(out);
-	for(i = 1; i < oct; i++) {
+	for (i = 1; i < oct; i++) {
 		amp *= ampscale;
 		x *= freqscale;
 		y *= freqscale;
 		z *= freqscale;
 		t = (float)(amp * (2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f));
-		if(hard)
+		if (hard)
 			t = (float)fabs(t);
 		out += t;
 	}
@@ -312,7 +312,7 @@ static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
 	float x, y, z;
 	int oct, hd, nb = 1;
 	float as = 0.5, fs = 2.0;
-	if(!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
+	if (!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
 		return NULL;
 
 	return PyFloat_FromDouble(turb(x, y, z, oct, hd, nb, as, fs));
@@ -329,18 +329,18 @@ static void vTurb(float x, float y, float z, int oct, int hard, int nb,
 	int i;
 	amp = 1.f;
 	noise_vector(x, y, z, nb, v);
-	if(hard) {
+	if (hard) {
 		v[0] = (float)fabs(v[0]);
 		v[1] = (float)fabs(v[1]);
 		v[2] = (float)fabs(v[2]);
 	}
-	for(i = 1; i < oct; i++) {
+	for (i = 1; i < oct; i++) {
 		amp *= ampscale;
 		x *= freqscale;
 		y *= freqscale;
 		z *= freqscale;
 		noise_vector(x, y, z, nb, t);
-		if(hard) {
+		if (hard) {
 			t[0] = (float)fabs(t[0]);
 			t[1] = (float)fabs(t[1]);
 			t[2] = (float)fabs(t[2]);
@@ -356,7 +356,7 @@ static PyObject *Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args)
 	float x, y, z, v[3];
 	int oct, hd, nb = 1;
 	float as = 0.5, fs = 2.0;
-	if(!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence_vector", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
+	if (!PyArg_ParseTuple(args, "(fff)ii|iff:turbulence_vector", &x, &y, &z, &oct, &hd, &nb, &as, &fs))
 		return NULL;
 	vTurb(x, y, z, oct, hd, nb, as, fs, v);
 	return Py_BuildValue("[fff]", v[0], v[1], v[2]);
@@ -370,7 +370,7 @@ static PyObject *Noise_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)fff|i:fractal", &x, &y, &z, &H, &lac, &oct, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)fff|i:fractal", &x, &y, &z, &H, &lac, &oct, &nb))
 		return NULL;
 	return PyFloat_FromDouble(mg_fBm(x, y, z, H, lac, oct, nb));
 }
@@ -381,7 +381,7 @@ static PyObject *Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)fff|i:multi_fractal", &x, &y, &z, &H, &lac, &oct, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)fff|i:multi_fractal", &x, &y, &z, &H, &lac, &oct, &nb))
 		return NULL;
 
 	return PyFloat_FromDouble(mg_MultiFractal(x, y, z, H, lac, oct, nb));
@@ -393,7 +393,7 @@ static PyObject *Noise_vl_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, d;
 	int nt1 = 1, nt2 = 1;
-	if(!PyArg_ParseTuple(args, "(fff)f|ii:vl_vector", &x, &y, &z, &d, &nt1, &nt2))
+	if (!PyArg_ParseTuple(args, "(fff)f|ii:vl_vector", &x, &y, &z, &d, &nt1, &nt2))
 		return NULL;
 	return PyFloat_FromDouble(mg_VLNoise(x, y, z, d, nt1, nt2));
 }
@@ -404,7 +404,7 @@ static PyObject *Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct, ofs;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)ffff|i:hetero_terrain", &x, &y, &z, &H, &lac, &oct, &ofs, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)ffff|i:hetero_terrain", &x, &y, &z, &H, &lac, &oct, &ofs, &nb))
 		return NULL;
 
 	return PyFloat_FromDouble(mg_HeteroTerrain(x, y, z, H, lac, oct, ofs, nb));
@@ -416,7 +416,7 @@ static PyObject *Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *ar
 {
 	float x, y, z, H, lac, oct, ofs, gn;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)fffff|i:hybrid_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)fffff|i:hybrid_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
 		return NULL;
 	
 	return PyFloat_FromDouble(mg_HybridMultiFractal(x, y, z, H, lac, oct, ofs, gn, nb));
@@ -428,7 +428,7 @@ static PyObject *Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *ar
 {
 	float x, y, z, H, lac, oct, ofs, gn;
 	int nb = 1;
-	if(!PyArg_ParseTuple(args, "(fff)fffff|i:ridged_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
+	if (!PyArg_ParseTuple(args, "(fff)fffff|i:ridged_multi_fractal", &x, &y, &z, &H, &lac, &oct, &ofs, &gn, &nb))
 		return NULL;
 	return PyFloat_FromDouble(mg_RidgedMultiFractal(x, y, z, H, lac, oct, ofs, gn, nb));
 }
@@ -440,7 +440,7 @@ static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	float x, y, z, da[4], pa[12];
 	int dtype = 0;
 	float me = 2.5;		/* default minkovsky exponent */
-	if(!PyArg_ParseTuple(args, "(fff)|if:voronoi", &x, &y, &z, &dtype, &me))
+	if (!PyArg_ParseTuple(args, "(fff)|if:voronoi", &x, &y, &z, &dtype, &me))
 		return NULL;
 	voronoi(x, y, z, da, pa, me, dtype);
 	return Py_BuildValue("[[ffff][[fff][fff][fff][fff]]]",
@@ -455,7 +455,7 @@ static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z;
-	if(!PyArg_ParseTuple(args, "(fff):cell", &x, &y, &z))
+	if (!PyArg_ParseTuple(args, "(fff):cell", &x, &y, &z))
 		return NULL;
 
 	return PyFloat_FromDouble(cellNoise(x, y, z));
@@ -466,7 +466,7 @@ static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args)
 static PyObject *Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, ca[3];
-	if(!PyArg_ParseTuple(args, "(fff):cell_vector", &x, &y, &z))
+	if (!PyArg_ParseTuple(args, "(fff):cell_vector", &x, &y, &z))
 		return NULL;
 	cellNoiseV(x, y, z, ca);
 	return Py_BuildValue("[fff]", ca[0], ca[1], ca[2]);
@@ -698,7 +698,7 @@ PyObject *BPyInit_noise(void)
 	setRndSeed(0);	
 
 	/* Constant noisetype dictionary */
-	if(submodule) {
+	if (submodule) {
 		static PyStructSequence_Field noise_types_fields[] = {
 			{(char *)"BLENDER", NULL},
 			{(char *)"STDPERLIN", NULL},
@@ -747,7 +747,7 @@ PyObject *BPyInit_noise(void)
 		PyModule_AddObject(submodule, "types", noise_types);
 	}
 	
-	if(submodule) {
+	if (submodule) {
 		static PyStructSequence_Field distance_metrics_fields[] = {
 			{(char *)"DISTANCE", NULL},
 			{(char *)"DISTANCE_SQUARED", NULL},

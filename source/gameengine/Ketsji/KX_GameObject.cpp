@@ -110,9 +110,9 @@ KX_GameObject::KX_GameObject(
       m_pGraphicController(NULL),
       m_xray(false),
       m_pHitObject(NULL),
+      m_pObstacleSimulation(NULL),
       m_actionManager(NULL),
-      m_isDeformable(false),
-      m_pObstacleSimulation(NULL)
+      m_isDeformable(false)
 #ifdef WITH_PYTHON
     , m_attr_dict(NULL)
 #endif

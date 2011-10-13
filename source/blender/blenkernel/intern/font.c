@@ -1,6 +1,4 @@
-/*  font.c
- *  
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -284,7 +282,7 @@ struct TmpFont *vfont_find_tmpfont(VFont *vfont)
 	return tmpfnt;
 }
 
-static VFontData *vfont_get_data(VFont *vfont)
+static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
 	PackedFile *tpf;
@@ -319,11 +317,11 @@ static VFontData *vfont_get_data(VFont *vfont)
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			} else {
-				pf= newPackedFile(NULL, vfont->name);
+				pf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 				
 				if(!tmpfnt)
 				{
-					tpf= newPackedFile(NULL, vfont->name);
+					tpf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 					
 					// Add temporary packed file to globals
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
@@ -351,7 +349,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	return vfont->data;	
 }
 
-VFont *load_vfont(const char *name)
+VFont *load_vfont(Main *bmain, const char *name)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont= NULL;
@@ -371,8 +369,8 @@ VFont *load_vfont(const char *name)
 		BLI_strncpy(dir, name, sizeof(dir));
 		BLI_splitdirstring(dir, filename);
 
-		pf= newPackedFile(NULL, name);
-		tpf= newPackedFile(NULL, name);		
+		pf= newPackedFile(NULL, name, bmain->name);
+		tpf= newPackedFile(NULL, name, bmain->name);
 		
 		is_builtin= 0;
 	}
@@ -382,7 +380,7 @@ VFont *load_vfont(const char *name)
 
 		vfd= BLI_vfontdata_from_freetypefont(pf);
 		if (vfd) {
-			vfont = alloc_libblock(&G.main->vfont, ID_VF, filename);
+			vfont = alloc_libblock(&bmain->vfont, ID_VF, filename);
 			vfont->data = vfd;
 
 			/* if there's a font name, use it for the ID name */
@@ -439,7 +437,7 @@ VFont *get_builtin_font(void)
 		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return vf;
 	
-	return load_vfont(FO_BUILTIN_NAME);
+	return load_vfont(G.main, FO_BUILTIN_NAME);
 }
 
 static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
@@ -500,7 +498,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 
 }
 
-static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float ofsx, float ofsy, float rot, int charidx)
+static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo *info, float ofsx, float ofsy, float rot, int charidx)
 {
 	BezTriple *bezt1, *bezt2;
 	Nurb *nu1 = NULL, *nu2 = NULL;
@@ -509,7 +507,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	VChar *che = NULL;
 	int i;
 
-	vfd= vfont_get_data(which_vfont(cu, info));	
+	vfd= vfont_get_data(bmain, which_vfont(cu, info));
 	if (!vfd) return;
 
 	/*
@@ -548,7 +546,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 			nu2->knotsu = nu2->knotsv = NULL;
 			nu2->flag= CU_SMOOTH;
 			nu2->charidx = charidx;
-			if (info->mat_nr) {
+			if (info->mat_nr > 0) {
 				nu2->mat_nr= info->mat_nr-1;
 			}
 			else {
@@ -662,7 +660,7 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode) 
+struct chartrans *BKE_text_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
@@ -714,7 +712,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	if (cu->tb==NULL)
 		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBox compat");
 
-	vfd= vfont_get_data(vfont);
+	vfd= vfont_get_data(bmain, vfont);
 
 	/* The VFont Data can not be found */
 	if(!vfd) {
@@ -792,7 +790,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		}
 
 		if (vfont != oldvfont) {
-			vfd= vfont_get_data(vfont);
+			vfd= vfont_get_data(bmain, vfont);
 			oldvfont = vfont;
 		}
 
@@ -1157,7 +1155,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				}
 				// We do not want to see any character for \n or \r
 				if(cha != '\n' && cha != '\r')
-					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);
+					buildchar(bmain, cu, cha, info, ct->xof, ct->yof, ct->rot, i);
 				
 				if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
 					float ulwidth, uloverlap= 0.0f;

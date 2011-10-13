@@ -189,6 +189,6 @@ $Id$
     need changes elsewhere in the system, as it is handled automatically
     with the central library repository.
 
-    Enjoy the new system!
+    Enjoy the new system!!
 
     /Nathan Letwory (jesterKing)

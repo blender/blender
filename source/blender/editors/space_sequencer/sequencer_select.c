@@ -1048,7 +1048,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 	}
 	SEQ_END;
 
-	seq->tmp= SET_INT_IN_POINTER(TRUE);
+	actseq->tmp= SET_INT_IN_POINTER(TRUE);
 
 	for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {
 		seq = iter.seq;

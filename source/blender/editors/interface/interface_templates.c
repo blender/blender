@@ -2569,3 +2569,61 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 }
 
+/********************************* Keymap *************************************/
+
+static void keymap_item_modified(bContext *UNUSED(C), void *kmi_p, void *UNUSED(unused))
+{
+	wmKeyMapItem *kmi= (wmKeyMapItem*)kmi_p;
+	WM_keyconfig_update_tag(NULL, kmi);
+}
+
+static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
+{
+	uiLayout *flow;
+
+	uiItemS(layout);
+
+	if(title)
+		uiItemL(layout, title, ICON_NONE);
+	
+	flow= uiLayoutColumnFlow(layout, 2, 0);
+
+	RNA_STRUCT_BEGIN(ptr, prop) {
+		int flag= RNA_property_flag(prop);
+
+		if(flag & PROP_HIDDEN)
+			continue;
+
+		/* recurse for nested properties */
+		if(RNA_property_type(prop) == PROP_POINTER) {
+			PointerRNA propptr= RNA_property_pointer_get(ptr, prop);
+			const char *name= RNA_property_ui_name(prop);
+
+			if(propptr.data && RNA_struct_is_a(propptr.type, &RNA_OperatorProperties)) {
+				template_keymap_item_properties(layout, name, &propptr);
+				continue;
+			}
+		}
+
+		/* add property */
+		uiItemR(flow, ptr, RNA_property_identifier(prop), 0, NULL, ICON_NONE);
+	}
+	RNA_STRUCT_END;
+}
+
+void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
+{
+	PointerRNA propptr= RNA_pointer_get(ptr, "properties");
+
+	if(propptr.data) {
+		uiBut *but= uiLayoutGetBlock(layout)->buttons.last;
+
+		template_keymap_item_properties(layout, NULL, &propptr);
+
+		/* attach callbacks to compensate for missing properties update,
+		   we don't know which keymap (item) is being modified there */
+		for(; but; but=but->next)
+			uiButSetFunc(but, keymap_item_modified, ptr->data, NULL);
+	}
+}
+

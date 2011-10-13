@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -182,8 +184,8 @@ bGPDlayer *gpencil_layer_addnew (bGPdata *gpd)
 	gpl->thickness = 3;
 	
 	/* auto-name */
-	sprintf(gpl->info, "GP_Layer");
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), sizeof(gpl->info));
+	strcpy(gpl->info, "GP_Layer");
+	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 	
 	/* make this one the active one */
 	gpencil_layer_setactive(gpd, gpl);

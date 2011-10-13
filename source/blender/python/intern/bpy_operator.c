@@ -76,7 +76,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C= (bContext *)BPy_GetContext();
 	
-	if(C==NULL) {
+	if (C==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
 		return NULL;
 	}
@@ -93,8 +93,8 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
-	if(context_str) {
-		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
+	if (context_str) {
+		if (RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
 			char *enum_str= BPy_enum_as_string(operator_context_items);
 			PyErr_Format(PyExc_TypeError,
 			             "Calling operator \"bpy.ops.%s.poll\" error, "
@@ -105,7 +105,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 		}
 	}
 	
-	if(context_dict==NULL || context_dict==Py_None) {
+	if (context_dict==NULL || context_dict==Py_None) {
 		context_dict= NULL;
 	}
 	else if (!PyDict_Check(context_dict)) {
@@ -150,7 +150,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C= (bContext *)BPy_GetContext();
 	
-	if(C==NULL) {
+	if (C==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
 		return NULL;
 	}
@@ -167,7 +167,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 	
-	if(!pyrna_write_check()) {
+	if (!pyrna_write_check()) {
 		PyErr_Format(PyExc_RuntimeError,
 		             "Calling operator \"bpy.ops.%s\" error, "
 		             "can't modify blend data in this state (drawing/rendering)",
@@ -175,8 +175,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
-	if(context_str) {
-		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
+	if (context_str) {
+		if (RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
 			char *enum_str= BPy_enum_as_string(operator_context_items);
 			PyErr_Format(PyExc_TypeError,
 			             "Calling operator \"bpy.ops.%s\" error, "
@@ -187,7 +187,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		}
 	}
 
-	if(context_dict==NULL || context_dict==Py_None) {
+	if (context_dict==NULL || context_dict==Py_None) {
 		context_dict= NULL;
 	}
 	else if (!PyDict_Check(context_dict)) {
@@ -203,7 +203,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	CTX_py_dict_set(C, (void *)context_dict);
 	Py_XINCREF(context_dict); /* so we done loose it */
 
-	if(WM_operator_poll_context((bContext*)C, ot, context) == FALSE) {
+	if (WM_operator_poll_context((bContext*)C, ot, context) == FALSE) {
 		const char *msg= CTX_wm_operator_poll_msg_get(C);
 		PyErr_Format(PyExc_RuntimeError,
 		             "Operator bpy.ops.%.200s.poll() %.200s",
@@ -215,7 +215,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		WM_operator_properties_create_ptr(&ptr, ot);
 		WM_operator_properties_sanitize(&ptr, 0);
 
-		if(kw && PyDict_Size(kw))
+		if (kw && PyDict_Size(kw))
 			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
 
 
@@ -245,10 +245,10 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			error_val= BPy_reports_to_error(reports, PyExc_RuntimeError, FALSE);
 
 			/* operator output is nice to have in the terminal/console too */
-			if(reports->list.first) {
+			if (reports->list.first) {
 				char *report_str= BKE_reports_string(reports, 0); /* all reports */
 	
-				if(report_str) {
+				if (report_str) {
 					PySys_WriteStdout("%s\n", report_str);
 					MEM_freeN(report_str);
 				}
@@ -315,7 +315,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
 	bContext *C= (bContext *)BPy_GetContext();
 
-	if(C==NULL) {
+	if (C==NULL) {
 		PyErr_SetString(PyExc_RuntimeError, "Context is None, cant get the string representation of this object.");
 		return NULL;
 	}
@@ -336,7 +336,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	/* Save another lookup */
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 
-	if(kw && PyDict_Size(kw))
+	if (kw && PyDict_Size(kw))
 		error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
 
 	if (error_val==0)
@@ -348,7 +348,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
-	if(buf) {
+	if (buf) {
 		pybuf= PyUnicode_FromString(buf);
 		MEM_freeN(buf);
 	}
@@ -364,7 +364,7 @@ static PyObject *pyop_dir(PyObject *UNUSED(self))
 	GHashIterator *iter= WM_operatortype_iter();
 	PyObject *list= PyList_New(0), *name;
 
-	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+	for ( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
 		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
 
 		name= PyUnicode_FromString(ot->idname);
@@ -383,12 +383,12 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	char *opname= _PyUnicode_AsString(value);
 	BPy_StructRNA *pyrna= NULL;
 	
-	if(opname==NULL) {
+	if (opname==NULL) {
 		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_rna() expects a string argument");
 		return NULL;
 	}
 	ot= WM_operatortype_find(opname, TRUE);
-	if(ot==NULL) {
+	if (ot==NULL) {
 		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_rna(\"%s\") not found", opname);
 		return NULL;
 	}
@@ -408,12 +408,51 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	return (PyObject *)pyrna;
 }
 
+static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
+{
+	wmOperatorType *ot;
+	wmOperator *op;
+	PointerRNA ptr;
+	char *opname= _PyUnicode_AsString(value);
+	BPy_StructRNA *pyrna= NULL;
+
+	if (opname==NULL) {
+		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_instance() expects a string argument");
+		return NULL;
+	}
+	ot= WM_operatortype_find(opname, TRUE);
+	if (ot==NULL) {
+		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_instance(\"%s\") not found", opname);
+		return NULL;
+	}
+
+#ifdef PYRNA_FREE_SUPPORT
+	op= MEM_callocN(sizeof(wmOperator), __func__);
+#else
+	op= PyMem_MALLOC(sizeof(wmOperator));
+	memset(op, 0, sizeof(wmOperator));
+#endif
+	BLI_strncpy(op->idname, op->idname, sizeof(op->idname)); /* incase its needed */
+	op->type= ot;
+
+	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);
+
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+#ifdef PYRNA_FREE_SUPPORT
+	pyrna->freeptr= TRUE;
+#endif
+	op->ptr= &pyrna->ptr;
+
+	return (PyObject *)pyrna;
+}
+
 static struct PyMethodDef bpy_ops_methods[]= {
 	{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL},
 	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
 	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
 	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
-	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},
+	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},           /* only for introspection, leaks memory */
+	{"get_instance", (PyCFunction) pyop_getinstance, METH_O, NULL}, /* only for introspection, leaks memory */
 	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

@@ -44,15 +44,15 @@
 
 class GHOST_SystemPathsCocoa : public GHOST_SystemPaths {
 public:
-    /**
-     * Constructor.
-     */
-    GHOST_SystemPathsCocoa();
-    
-    /** 
-     * Destructor.
-     */
-    ~GHOST_SystemPathsCocoa();
+	/**
+	 * Constructor.
+	 */
+	GHOST_SystemPathsCocoa();
+
+	/**
+	 * Destructor.
+	 */
+	~GHOST_SystemPathsCocoa();
 
 	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use

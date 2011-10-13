@@ -250,16 +250,20 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(bmain, scene);
+	if (scene) {
+		DAG_scene_sort(bmain, scene);
+	}
 	WM_main_add_notifier(NC_OBJECT|ND_PARENT, ptr->id.data);
 }
 
 /* when changing the selection flag the scene needs updating */
 static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
-	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(object_in_scene(ob, scene), mode);
+	if (scene) {
+		Object *ob= (Object*)ptr->id.data;
+		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
+		ED_base_object_select(object_in_scene(ob, scene), mode);
+	}
 }
 
 static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -886,6 +890,7 @@ static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
 static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 {
 	Object *ob= (Object*)ptr->id.data;
+	const int was_navmesh= (ob->gameflag & OB_NAVMESH);
 	ob->body_type= value;
 
 	switch (ob->body_type) {
@@ -901,6 +906,12 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 	case OB_BODY_TYPE_NAVMESH:
 		ob->gameflag |= OB_NAVMESH;
 		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
+
+		if (ob->type == OB_MESH) {
+			/* could be moved into mesh UI but for now ensure mesh data layer */
+			BKE_mesh_ensure_navmesh(ob->data);
+		}
+
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
 		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);
@@ -932,6 +943,15 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 			ob->bsoft = bsbNew();
 		break;
 	}
+
+	if (was_navmesh != (ob->gameflag & OB_NAVMESH)) {
+		if (ob->type == OB_MESH) {
+			/* this is needed to refresh the derived meshes draw func */
+			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+			WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
+		}
+	}
+
 }
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
@@ -1405,8 +1425,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "body_type");
 	RNA_def_property_enum_items(prop, body_type_items);
-	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get",
-	                            "rna_GameObjectSettings_physics_type_set", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get", "rna_GameObjectSettings_physics_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

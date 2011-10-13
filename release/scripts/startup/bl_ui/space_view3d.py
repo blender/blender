@@ -721,11 +721,14 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_quick_effects")
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_object_game")
 
         layout.separator()
 
-        layout.operator("object.join_uvs")
         layout.operator("object.join")
 
         layout.separator()
@@ -879,8 +882,8 @@ class VIEW3D_MT_object_parent(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.parent_set", text="Set")
-        layout.operator("object.parent_clear", text="Clear")
+        layout.operator_menu_enum("object.parent_set", "type", text="Set")
+        layout.operator_menu_enum("object.parent_clear", "type", text="Clear")
 
 
 class VIEW3D_MT_object_track(Menu):
@@ -889,8 +892,8 @@ class VIEW3D_MT_object_track(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.track_set", text="Set")
-        layout.operator("object.track_clear", text="Clear")
+        layout.operator_menu_enum("object.track_set", "type", text="Set")
+        layout.operator_menu_enum("object.track_clear", "type", text="Clear")
 
 
 class VIEW3D_MT_object_group(Menu):
@@ -917,6 +920,18 @@ class VIEW3D_MT_object_constraints(Menu):
         layout.operator("object.constraint_add_with_targets")
         layout.operator("object.constraints_copy")
         layout.operator("object.constraints_clear")
+
+
+class VIEW3D_MT_object_quick_effects(Menu):
+    bl_label = "Quick Effects"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.quick_fur")
+        layout.operator("object.quick_explode")
+        layout.operator("object.quick_smoke")
+        layout.operator("object.quick_fluid")
 
 
 class VIEW3D_MT_object_showhide(Menu):
@@ -968,6 +983,7 @@ class VIEW3D_MT_make_links(Menu):
 
         layout.operator_enum("object.make_links_data", "type")  # inline
 
+        layout.operator("object.join_uvs")  # stupid place to add this!
 
 class VIEW3D_MT_object_game(Menu):
     bl_label = "Game"

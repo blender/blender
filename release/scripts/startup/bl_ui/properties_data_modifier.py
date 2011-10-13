@@ -382,10 +382,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
 
-    def NAVMESH(self, layout, ob, md):
-        layout.operator("mesh.assign_navpolygon")
-        layout.operator("mesh.assign_new_navpolygon")
-
     def MULTIRES(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)
 

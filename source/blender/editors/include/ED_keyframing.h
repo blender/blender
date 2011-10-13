@@ -313,6 +313,11 @@ typedef enum eAnimFilterFlags {
 	ANIMFILTER_KEYS_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
 
+/* utility funcs for auto keyframe */
+int ED_autokeyframe_object(struct bContext *C, struct Scene *scene, struct Object *ob, struct KeyingSet *ks);
+int ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, struct KeyingSet *ks);
+
+
 #ifdef __cplusplus
 }
 #endif

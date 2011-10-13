@@ -66,7 +66,7 @@ protected:
 	btIDebugDraw*	m_debugDrawer;
 	
 	class btDefaultCollisionConfiguration* m_collisionConfiguration;
-    class btBroadphaseInterface*		m_broadphase;	// broadphase for dynamic world
+	class btBroadphaseInterface*		m_broadphase;	// broadphase for dynamic world
 	// for culling only
 	btOverlappingPairCache*				m_cullingCache;
 	struct btDbvtBroadphase*			m_cullingTree;	// broadphase for culling

@@ -17,7 +17,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # Write out messages.txt from blender
 
@@ -35,6 +35,72 @@ COMMENT_PREFIX = "#~ "
 
 def dump_messages_rna(messages):
     import bpy
+
+    def classBlackList():
+        blacklist_rna_class = [
+                               # core classes
+                               "Context", "Event", "Function", "UILayout",
+                               "BlendData",
+                               # registerable classes
+                               "Panel", "Menu", "Header", "RenderEngine",
+                               "Operator", "OperatorMacro", "Macro",
+                               "KeyingSetInfo", "UnknownType",
+                               # window classes
+                               "WindowManager", "Window"
+                               ]
+
+        # ---------------------------------------------------------------------
+        # Collect internal operators
+
+        # extend with all internal operators
+        # note that this uses internal api introspection functions
+        # all possible operator names
+        op_names = list(sorted(set(
+            [cls.bl_rna.identifier for cls in
+             bpy.types.OperatorProperties.__subclasses__()] +
+            [cls.bl_rna.identifier for cls in
+             bpy.types.Operator.__subclasses__()] +
+            [cls.bl_rna.identifier for cls in
+             bpy.types.OperatorMacro.__subclasses__()]
+            )))
+
+        get_inatance = __import__("_bpy").ops.get_instance
+        path_resolve = type(bpy.context).__base__.path_resolve
+        for idname in op_names:
+            op = get_inatance(idname)
+            if 'INTERNAL' in path_resolve(op, "bl_options"):
+                blacklist_rna_class.append(idname)
+
+        # ---------------------------------------------------------------------
+        # Collect builtin classes we dont need to doc
+        blacklist_rna_class.append("Property")
+        blacklist_rna_class.extend(
+                [cls.__name__ for cls in
+                 bpy.types.Property.__subclasses__()])
+
+        # ---------------------------------------------------------------------
+        # Collect classes which are attached to collections, these are api
+        # access only.
+        collection_props = set()
+        for cls_id in dir(bpy.types):
+            cls = getattr(bpy.types, cls_id)
+            for prop in cls.bl_rna.properties:
+                if prop.type == 'COLLECTION':
+                    prop_cls = prop.srna
+                    if prop_cls is not None:
+                        collection_props.add(prop_cls.identifier)
+        blacklist_rna_class.extend(sorted(collection_props))
+
+        return blacklist_rna_class
+
+    blacklist_rna_class = classBlackList()
+
+    def filterRNA(bl_rna):
+        id = bl_rna.identifier
+        if id in blacklist_rna_class:
+            print("  skipping", id)
+            return True
+        return False
 
     # -------------------------------------------------------------------------
     # Function definitions
@@ -57,8 +123,10 @@ def dump_messages_rna(messages):
                 continue
 
             msgsrc = "bpy.types.%s.%s" % (bl_rna.identifier, prop.identifier)
-            messages.setdefault(prop.name, []).append(msgsrc)
-            messages.setdefault(prop.description, []).append(msgsrc)
+            if prop.name and prop.name != prop.identifier:
+                messages.setdefault(prop.name, []).append(msgsrc)
+            if prop.description:
+                messages.setdefault(prop.description, []).append(msgsrc)
 
             if isinstance(prop, bpy.types.EnumProperty):
                 for item in prop.enum_items:
@@ -66,10 +134,17 @@ def dump_messages_rna(messages):
                                                         prop.identifier,
                                                         item.identifier,
                                                         )
-                    messages.setdefault(item.name, []).append(msgsrc)
-                    messages.setdefault(item.description, []).append(msgsrc)
+                    # Here identifier and name can be the same!
+                    if item.name: # and item.name != item.identifier:
+                        messages.setdefault(item.name, []).append(msgsrc)
+                    if item.description:
+                        messages.setdefault(item.description, []).append(msgsrc)
 
     def walkRNA(bl_rna):
+
+        if filterRNA(bl_rna):
+            return
+
         msgsrc = "bpy.types.%s" % bl_rna.identifier
 
         if bl_rna.name and bl_rna.name != bl_rna.identifier:
