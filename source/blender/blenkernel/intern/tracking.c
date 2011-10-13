@@ -1526,14 +1526,18 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 }
 #endif
 
-void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int count, int min_distance)
+void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int min_trackness, int count, int min_distance, int fast)
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
 	unsigned char *pixels= acquire_ucharbuf(ibuf);
 	int a;
 
-	features= libmv_detectFeatures(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
+	if(fast) 
+		features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
+	else
+		features= libmv_detectFeaturesMORAVEC(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
+
 	MEM_freeN(pixels);
 
 	a= libmv_countFeatures(features);

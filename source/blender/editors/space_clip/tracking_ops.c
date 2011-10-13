@@ -2214,7 +2214,9 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &sc->user, 0);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
+	int detector= RNA_enum_get(op->ptr, "detector");
 	int margin= RNA_int_get(op->ptr, "margin");
+	int min_trackness= RNA_int_get(op->ptr, "min_trackness");
 	int count= RNA_int_get(op->ptr, "count");
 	int min_distance= RNA_int_get(op->ptr, "min_distance");
 
@@ -2227,7 +2229,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr, margin, count, min_distance);
+	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, count, min_distance, detector==0);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2236,8 +2238,40 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static void detect_features_draw(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	PointerRNA ptr;
+	int detector= RNA_enum_get(op->ptr, "detector");
+	PropertyRNA *prop_min_trackness;
+	PropertyRNA *prop_count;
+
+	prop_min_trackness= RNA_struct_find_property(op->ptr, "min_trackness");
+	prop_count= RNA_struct_find_property(op->ptr, "count");
+
+	if(detector==0) {
+		RNA_def_property_clear_flag(prop_min_trackness, PROP_HIDDEN);
+		RNA_def_property_flag(prop_count, PROP_HIDDEN);
+	} else {
+		RNA_def_property_flag(prop_min_trackness, PROP_HIDDEN);
+		RNA_def_property_clear_flag(prop_count, PROP_HIDDEN);
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+	/* main draw call */
+	uiDefAutoButsRNA(layout, &ptr, NULL, 'V');
+}
+
 void CLIP_OT_detect_features(wmOperatorType *ot)
 {
+	static EnumPropertyItem detector_items[] = {
+			{0, "FAST",		0, "FAST",		"FAST corner detector"},
+			{1, "MORAVEC",	0, "Moravec",	"Moravec corner detector"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name= "Detect Features";
 	ot->description= "Automatically detect features to track";
@@ -2246,12 +2280,15 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= detect_features_exec;
 	ot->poll= space_clip_frame_poll;
+	ot->ui= detect_features_draw;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
+	RNA_def_enum(ot->srna, "detector", detector_items, 0, "Detector", "Detector using for detecting features");
 	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
+	RNA_def_int(ot->srna, "min_trackness", 16, 0, INT_MAX, "Trackness", "Minimum score to add a corner", 0, 300);
 	RNA_def_int(ot->srna, "count", 50, 1, INT_MAX, "Count", "Count of corners to detect", 0, 300);
 	RNA_def_int(ot->srna, "min_distance", 120, 0, INT_MAX, "Distance", "Minimal distance accepted between two corners", 0, 300);
 }

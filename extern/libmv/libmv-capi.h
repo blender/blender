@@ -72,7 +72,9 @@ double libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction
 void libmv_destroyReconstruction(struct libmv_Reconstruction *libmv_reconstruction);
 
 /* feature detector */
-struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int height, int stride,
+struct libmv_Features *libmv_detectFeaturesFAST(unsigned char *data, int width, int height, int stride,
+			int margin, int min_trackness, int min_distance);
+struct libmv_Features *libmv_detectFeaturesMORAVEC(unsigned char *data, int width, int height, int stride,
 			int margin, int count, int min_distance);
 int libmv_countFeatures(struct libmv_Features *libmv_features);
 void libmv_getFeature(struct libmv_Features *libmv_features, int number, double *x, double *y, double *score, double *size);

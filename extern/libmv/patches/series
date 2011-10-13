@@ -10,3 +10,4 @@ mingw.patch
 msvc2010.patch
 scaled_distortion.patch
 overscan.patch
+detect.patch

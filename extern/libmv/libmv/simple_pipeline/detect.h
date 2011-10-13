@@ -25,27 +25,52 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_DETECT_H_
 #define LIBMV_SIMPLE_PIPELINE_DETECT_H_
 
-#ifdef __cplusplus
+#include <vector>
+
 namespace libmv {
-#endif
 
 typedef unsigned char ubyte;
 
 /*!
-    \a Feature is the 2D location of a detected feature in an image.
+    A Feature is the 2D location of a detected feature in an image.
 
-    \a x, \a y is the position of the center in pixels (from image top-left).
-    \a score is an estimate of how well the pattern will be tracked.
-    \a size can be used as an initial size to track the pattern.
+    \a x, \a y is the position of the feature in pixels from the top left corner.
+    \a score is an estimate of how well the feature will be tracked.
+    \a size can be used as an initial pattern size to track the feature.
 
     \sa Detect
 */
 struct Feature {
+  /// Position in pixels (from top-left corner)
+  /// \note libmv might eventually support subpixel precision.
   float x, y;
+  /// Trackness of the feature
   float score;
+  /// Size of the feature in pixels
   float size;
 };
- //radius for non maximal suppression
+
+/*!
+    Detect features in an image.
+
+    You need to input a single channel 8-bit image using pointer to image \a data,
+    \a width, \a height and \a stride (i.e bytes per line).
+
+    You can tweak the count of detected features using \a min_trackness, which is
+    the minimum score to add a feature, and \a min_distance which is the minimal
+    distance accepted between two featuress.
+
+    \note You can binary search over \a min_trackness to get a given feature count.
+
+    \note a way to get an uniform distribution of a given feature count is:
+          \a min_distance = \a width * \a height / desired_feature_count ^ 2
+
+    \return All detected feartures matching given parameters
+*/
+std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height,
+                           int stride, int min_trackness = 128,
+                           int min_distance = 120);
+
 /*!
     Detect features in an image.
 
@@ -63,10 +88,8 @@ struct Feature {
     \note \a You can crop the image (to avoid detecting markers near the borders) without copying:
              image += marginY*stride+marginX, width -= 2*marginX, height -= 2*marginY;
 */
-void Detect(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance /*=32*/, ubyte* pattern /*=0*/);
+void DetectMORAVEC(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance /*=32*/, ubyte* pattern /*=0*/);
 
-#ifdef __cplusplus
 }
-#endif
 
 #endif

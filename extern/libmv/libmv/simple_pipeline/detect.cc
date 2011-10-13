@@ -23,15 +23,59 @@
 ****************************************************************************/
 
 #include "libmv/simple_pipeline/detect.h"
+#include <third_party/fast/fast.h>
 #include <stdlib.h>
-#include <string.h>
+#include <memory.h>
+
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
 
 namespace libmv {
 
 typedef unsigned int uint;
 
+std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height, int stride,
+                           int min_trackness, int min_distance) {
+  std::vector<Feature> features;
+  // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
+  int num_features;
+  xy* all = fast9_detect(data, width, height,
+                         stride, min_trackness, &num_features);
+  if(num_features == 0) {
+    free(all);
+    return features;
+  }
+  int* scores = fast9_score(data, stride, all, num_features, min_trackness);
+  // TODO: merge with close feature suppression
+  xy* nonmax = nonmax_suppression(all, scores, num_features, &num_features);
+  free(all);
+  // Remove too close features
+  // TODO(MatthiasF): A resolution independent parameter would be better than distance
+  // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
+  // FIXME(MatthiasF): this method will not necessarily give all maximum markers
+  if(num_features) features.reserve(num_features);
+  for(int i = 0; i < num_features; ++i) {
+    xy xy = nonmax[i];
+    Feature a = { xy.x, xy.y, scores[i], 7 };
+    // compare each feature against filtered set
+    for(int j = 0; j < features.size(); j++) {
+      Feature& b = features[j];
+      if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
+        // already a nearby feature
+        goto skip;
+      }
+    }
+    // otherwise add the new feature
+    features.push_back(a);
+    skip: ;
+  }
+  free(scores);
+  free(nonmax);
+  return features;
+}
+
 #ifdef __SSE2__
-#include <emmintrin.h>
 static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strideB) {
   __m128i a = _mm_setzero_si128();
   for(int i = 0; i < 16; i++) {
@@ -52,7 +96,7 @@ static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strid
 }
 #endif
 
-void Detect(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance, ubyte* pattern) {
+void DetectMORAVEC(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance, ubyte* pattern) {
   unsigned short histogram[256];
   memset(histogram,0,sizeof(histogram));
   ubyte* scores = new ubyte[width*height];

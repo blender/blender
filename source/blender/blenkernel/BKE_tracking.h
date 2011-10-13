@@ -87,7 +87,7 @@ void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr,
 void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float nco[2]);
 void BKE_tracking_invert_intrinsics(struct MovieTracking *tracking, float co[2], float nco[2]);
 
-void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, int framenr, int margin, int count, int min_distance);
+void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, int framenr, int margin, int min_trackness, int count, int min_distance, int fast);
 
 struct MovieTrackingTrack *BKE_tracking_indexed_bundle(struct MovieTracking *tracking, int bundlenr);
 

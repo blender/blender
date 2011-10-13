@@ -502,11 +502,13 @@ void libmv_destroyReconstruction(libmv_Reconstruction *libmv_reconstruction)
 
 /* ************ feature detector ************ */
 
-struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int height, int stride,
-			int margin, int count, int min_distance)
+struct libmv_Features *libmv_detectFeaturesFAST(unsigned char *data, int width, int height, int stride,
+			int margin, int min_trackness, int min_distance)
 {
-	libmv::Feature *features = new libmv::Feature[count];
-	libmv_Features *libmv_features = new libmv_Features;
+	libmv::Feature *features = NULL;
+	std::vector<libmv::Feature> v;
+	libmv_Features *libmv_features = new libmv_Features();
+	int i= 0, count;
 
 	if(margin) {
 		data += margin*stride+margin;
@@ -514,13 +516,47 @@ struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int 
 		height -= 2*margin;
 	}
 
-	libmv::Detect(data, stride, width, height, features, &count, min_distance, NULL);
+	v = libmv::DetectFAST(data, width, height, stride, min_trackness, min_distance);
 
-	libmv_features->count= count;
-	libmv_features->margin= margin;
-	libmv_features->features= features;
+	count = v.size();
 
-	return libmv_features ;
+	if(count) {
+		features= new libmv::Feature[count];
+
+		for(std::vector<libmv::Feature>::iterator it = v.begin(); it != v.end(); it++) {
+			features[i++]= *it;
+		}
+	}
+
+	libmv_features->features = features;
+	libmv_features->count = count;
+	libmv_features->margin = margin;
+
+	return (libmv_Features *)libmv_features;
+}
+
+struct libmv_Features *libmv_detectFeaturesMORAVEC(unsigned char *data, int width, int height, int stride,
+			int margin, int count, int min_distance)
+{
+	libmv::Feature *features = NULL;
+	libmv_Features *libmv_features = new libmv_Features;
+
+	if(count) {
+		if(margin) {
+			data += margin*stride+margin;
+			width -= 2*margin;
+			height -= 2*margin;
+		}
+
+		features = new libmv::Feature[count];
+		libmv::DetectMORAVEC(data, stride, width, height, features, &count, min_distance, NULL);
+	}
+
+	libmv_features->count = count;
+	libmv_features->margin = margin;
+	libmv_features->features = features;
+
+	return libmv_features;
 }
 
 int libmv_countFeatures(struct libmv_Features *libmv_features)
@@ -530,7 +566,7 @@ int libmv_countFeatures(struct libmv_Features *libmv_features)
 
 void libmv_getFeature(struct libmv_Features *libmv_features, int number, double *x, double *y, double *score, double *size)
 {
-	libmv::Feature feature = libmv_features->features[number];
+	libmv::Feature feature= libmv_features->features[number];
 
 	*x = feature.x + libmv_features->margin;
 	*y = feature.y + libmv_features->margin;
@@ -540,7 +576,10 @@ void libmv_getFeature(struct libmv_Features *libmv_features, int number, double 
 
 void libmv_destroyFeatures(struct libmv_Features *libmv_features)
 {
-	delete (libmv::Feature *)libmv_features;
+	if(libmv_features->features)
+		delete [] libmv_features->features;
+
+	delete libmv_features;
 }
 
 /* ************ camera intrinsics ************ */
