@@ -259,10 +259,11 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             if not is_surf:
                 split = layout.split()
                 col = split.column()
-                col.active = (curve.dimensions == '3D')
 
                 col.label(text="Interpolation:")
-                col.prop(act_spline, "tilt_interpolation", text="Tilt")
+                colsub = col.column()
+                colsub.active = (curve.dimensions == '3D')
+                colsub.prop(act_spline, "tilt_interpolation", text="Tilt")
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")
