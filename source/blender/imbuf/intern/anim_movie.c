@@ -418,7 +418,6 @@ static int startffmpeg(struct anim * anim) {
 	int frs_num;
 	double frs_den;
 	int streamcount;
-	int width, height;
 
 #ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 	/* The following for color space determination */
@@ -475,9 +474,6 @@ static int startffmpeg(struct anim * anim) {
 
 	pCodecCtx->workaround_bugs = 1;
 
-	width = pCodecCtx->width;
-	height = pCodecCtx->height;
-
 	if(avcodec_open(pCodecCtx, pCodec) < 0) {
 		av_close_input_file(pFormatCtx);
 		return -1;
@@ -502,8 +498,8 @@ static int startffmpeg(struct anim * anim) {
 
 	anim->params = 0;
 
-	anim->x = width;
-	anim->y = height;
+	anim->x = pCodecCtx->width;
+	anim->y = pCodecCtx->height;
 	anim->interlacing = 0;
 	anim->orientation = 0;
 	anim->framesize = anim->x * anim->y * 4;
