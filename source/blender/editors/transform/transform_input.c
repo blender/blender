@@ -312,6 +312,11 @@ static void calcSpringFactor(MouseInput *mi)
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 {
+	/* may have been allocated previously */
+	if(mi->data) {
+		MEM_freeN(mi->data);
+		mi->data= NULL;
+	}
 
 	switch(mode)
 	{
