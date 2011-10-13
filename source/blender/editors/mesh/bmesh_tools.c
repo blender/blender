@@ -2355,7 +2355,6 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMLoop *l;
 	BMEdge *e, *e2, *closest = NULL;
 	BMVert *v, *ripvert = NULL;
-	BMFace *f;
 	int side = 0, i, singlesel = 0;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX, d;

@@ -131,7 +131,7 @@ struct BMVert *BM_Make_Vert ( struct BMesh *bm, float co[3], const struct BMVert
 struct BMEdge *BM_Make_Edge ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, const struct BMEdge *example, int nodouble );
 struct BMFace *BM_Make_Quadtriangle ( struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, const struct BMFace *example, int nodouble );
 
-BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len);
+BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nodouble);
 
 /*more easier to use version of BM_Make_Quadtriangle.
   creates edges if necassary.*/

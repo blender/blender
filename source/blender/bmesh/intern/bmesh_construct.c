@@ -207,7 +207,7 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, 0);
 		}
 	
-		f = BM_Make_Face(bm, verts, edar, len);
+		f = BM_Make_Face(bm, verts, edar, len, 0);
 	
 		if(example && f)
 			BM_Copy_Attributes(bm, bm, example, f);
@@ -353,15 +353,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 			goto err;
 	}
 
-	/*check if face already exists*/
-	if(nodouble)
-		overlap = BM_Face_Exists(bm, verts, len, &f);
-
-	/*create the face, if necassary*/
-	if (!f && !overlap)
-		f = BM_Make_Face(bm, verts, edges2, len);
-	else if (!overlap)
-		f = NULL;
+	f = BM_Make_Face(bm, verts, edges2, len, nodouble);
 
 	/*clean up flags*/
 	for (i=0; i<len; i++) {

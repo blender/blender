@@ -179,7 +179,7 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	
-	f2 = BM_Make_Face(bm, verts, edges, f->len);
+	f2 = BM_Make_Face(bm, verts, edges, f->len, 0);
 	
 	BM_Copy_Attributes(bm, bm, f, f2);
 	
@@ -194,16 +194,27 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 	return f2;
 }
 
-BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len) {
-	BMFace *f;
+BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nodouble) {
+	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
-	int i;
+	int i, overlap;
 	
 	if (len == 0) {
 		/*just return NULL for now*/
 		return NULL;
 	}
 
+	if (nodouble) {
+		/* Check if face already exists */
+		overlap = BM_Face_Exists(bm, verts, len, &f);
+		if (overlap) {
+			return f;
+		}
+		else {
+			BLI_assert(f == NULL);
+		}
+	}
+	
 	f = BLI_mempool_calloc(bm->fpool);
 	bm->totface += 1;
 	f->head.type = BM_FACE;
@@ -1752,7 +1763,7 @@ static BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *sl)
 /*
  * BMESH UNGLUE REGION MAKE VERT
  *
- * Disconnects a face from its vertex fan at loop sl.
+ * Disconnects sf from the vertex fan at sv
  */
 BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
 {

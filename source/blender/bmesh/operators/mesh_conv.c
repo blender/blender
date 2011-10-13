@@ -59,7 +59,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	float (*keyco)[3]= NULL;
 	int *keyi;
 	int set_key = BMO_Get_Int(op, "set_shapekey");
-	int totuv, i, j, li, allocsize[4] = {512, 512, 2048, 512};
+	int totuv, i, j, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) return; /*sanity check*/
 	
@@ -191,7 +191,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	}
 
 	mpoly = me->mpoly;
-	li = 0;
 	for (i=0; i<me->totpoly; i++, mpoly++) {
 		BMVert *v1, *v2;
 		BMIter iter;
@@ -220,7 +219,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 			v2 = fedges[0]->v1;
 		}
 	
-		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop);
+		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, 0);
 
 		if (!f) {
 			printf("Warning! Bad face in mesh"
@@ -241,7 +240,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart+j, &l->head.data);
-			li++;
 			j++;
 		}
 

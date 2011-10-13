@@ -90,7 +90,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 
 	edges_tmp[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
 
-	f2 = BM_Make_Face(bm, verts, edges_tmp, f->len);
+	f2 = BM_Make_Face(bm, verts, edges_tmp, f->len, 0);
 	if (!f2) {
 		return NULL;
 	}

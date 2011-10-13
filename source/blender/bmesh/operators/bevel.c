@@ -128,10 +128,8 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 	}
 #else
 	/*oddly, this simplistic method seems to work the best*/
-	mul_v3_fl(vec1, fac);
-	mul_v3_fl(vec2, fac);
 	add_v3_v3(vec1, vec2);
-	mul_v3_fl(vec1, 0.5);
+	mul_v3_fl(vec1, fac * 0.5);
 
 	if (inv)
 		negate_v3(vec1);
@@ -151,7 +149,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	BMFace **faces = NULL, *f;
 	LoopTag *tags=NULL, *tag;
-	EdgeTag *etags = NULL, *etag;
+	EdgeTag *etags = NULL;
 	BMVert **verts = NULL;
 	BMEdge **edges = NULL;
 	BLI_array_declare(faces);
@@ -186,7 +184,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMEdge *edges[2] = {e, BM_Make_Edge(bm, e->v1, e->v2, e, 0)};
 			
 			BMO_SetFlag(bm, edges[1], BEVEL_FLAG);
-			BM_Make_Face(bm, verts, edges, 2);
+			BM_Make_Face(bm, verts, edges, 2, 0);
 		}
 #endif
 	}
@@ -383,7 +381,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	/*create new faces*/
+	/*create new faces inset from original faces*/
 	for (i=0; i<BLI_array_count(faces); i++) {
 		BMLoop *l;
 		BMIter liter;
@@ -411,8 +409,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 			lastv=tag->newv;
 			
-			etag = etags + BM_GetIndex(l->e);
-			v2 = l->next->v == l->e->v1 ? etag->newv1 : etag->newv2;
+			v2 = ETAG_GET(l->e, l->next->v);
 			
 			tag = tags + BM_GetIndex(l->next);
 			if (!BMO_TestFlag(bm, l->e, BEVEL_FLAG) && v2 && v2 != tag->newv) {
@@ -431,9 +428,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BM_Copy_Attributes(bm, bm, bm_firstfaceloop(faces[i])->prev->e, e);
 		BLI_array_append(edges, e);
 		
-		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(verts), 0);
+		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 0);
 		if (!f) {
-			printf("eck!!\n");
+			printf("eek!!\n");
 			continue;
 		}
 			
@@ -463,6 +460,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					v4 = tags[BM_GetIndex(l->radial_next->next)].newv;
 				}
 			} else {
+				/*the loop is on a boundary*/
 				v3 = l->next->v;
 				v4 = l->v;
 				
@@ -628,7 +626,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		/*find edges that exist between vertices in verts.  this is basically
-          a topological walk of the edges connecting them.*/
+		  a topological walk of the edges connecting them.*/
 		vstart = vstart ? vstart : verts[0];
 		vv = vstart;
 		do {
@@ -661,8 +659,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			continue;
 		
 		/*there may not be a complete loop of edges, so start again and make
-          final edge afterwards.  in this case, the previous loop worked to
-          find one of the two edges at the extremes.*/
+		  final edge afterwards.  in this case, the previous loop worked to
+		  find one of the two edges at the extremes.*/
 		if (vv != vstart) {
 			/*undo previous tagging*/
 			for (i=0; i<BLI_array_count(verts); i++) {
@@ -791,7 +789,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 #if 0
-	/*clean up any remainin 2-edged faces*/
+	/*clean up any remaining 2-edged faces*/
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (f->len == 2) {
 			BMFace *faces[2] = {f, bm_firstfaceloop(f)->radial_next->f};

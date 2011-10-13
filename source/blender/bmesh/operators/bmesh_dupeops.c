@@ -124,7 +124,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	}
 	
 	/*create new face*/
-	target_face = BM_Make_Face(target_mesh, vtar, edar, source_face->len);
+	target_face = BM_Make_Face(target_mesh, vtar, edar, source_face->len, 0);
 	BMO_Insert_MapPointer(source_mesh, op, 
 	         "facemap", source_face, target_face);
 	BMO_Insert_MapPointer(source_mesh, op, 
@@ -259,6 +259,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	if (edar) {
 		MEM_freeN(edar);
 	}
+	/*free vert pointer array*/
 	if (vtar) {
 		MEM_freeN(vtar);
 	}

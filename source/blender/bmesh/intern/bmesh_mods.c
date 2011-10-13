@@ -470,7 +470,7 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 			l = l->next;
 		} while (l != bm_firstfaceloop(f));
 		
-		f2 = BM_Make_Face(bm, verts, edges, BLI_array_count(verts));
+		f2 = BM_Make_Face(bm, verts, edges, BLI_array_count(verts), 0);
 		l = bm_firstfaceloop(f2);
 		i = 0;
 		do {
