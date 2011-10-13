@@ -2017,7 +2017,8 @@ static PyObject *pyrna_prop_array_subscript_int(BPy_PropertyArrayRNA *self, int 
 	if (keynum >= 0 && keynum < len)
 		return pyrna_prop_array_to_py_index(self, keynum);
 
-	PyErr_Format(PyExc_IndexError, "bpy_prop_array[index]: index %d out of range", keynum);
+	PyErr_Format(PyExc_IndexError,
+	             "bpy_prop_array[index]: index %d out of range", keynum);
 	return NULL;
 }
 
@@ -2503,7 +2504,8 @@ static int prop_subscript_ass_array_int(BPy_PropertyArrayRNA *self, Py_ssize_t k
 	if (keynum >= 0 && keynum < len)
 		return pyrna_py_to_prop_array_index(self, keynum, value);
 
-	PyErr_SetString(PyExc_IndexError, "bpy_prop_array[index] = value: index out of range");
+	PyErr_SetString(PyExc_IndexError,
+	                "bpy_prop_array[index] = value: index out of range");
 	return -1;
 }
 
@@ -2936,7 +2938,7 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 		if (r_prop) {
 			if (index != -1) {
 				if (index >= RNA_property_array_length(&r_ptr, r_prop) || index < 0) {
-					PyErr_Format(PyExc_TypeError,
+					PyErr_Format(PyExc_IndexError,
 					             "%.200s.path_resolve(\"%.200s\") index out of range",
 					             RNA_struct_identifier(self->ptr.type), path);
 					return NULL;
@@ -2959,7 +2961,7 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 		}
 	}
 	else {
-		PyErr_Format(PyExc_TypeError,
+		PyErr_Format(PyExc_ValueError,
 		             "%.200s.path_resolve(\"%.200s\") could not be resolved",
 		             RNA_struct_identifier(self->ptr.type), path);
 		return NULL;
@@ -2993,7 +2995,7 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 	if (name) {
 		prop= RNA_struct_find_property(&self->ptr, name);
 		if (prop==NULL) {
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_AttributeError,
 			             "%.200s.path_from_id(\"%.200s\") not found",
 			             RNA_struct_identifier(self->ptr.type), name);
 			return NULL;
@@ -3007,12 +3009,12 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 
 	if (path==NULL) {
 		if (name) {
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_ValueError,
 			             "%.200s.path_from_id(\"%s\") found but does not support path creation",
 			             RNA_struct_identifier(self->ptr.type), name);
 		}
 		else {
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_ValueError,
 			             "%.200s.path_from_id() does not support path creation for this type",
 			             RNA_struct_identifier(self->ptr.type));
 		}
@@ -3042,7 +3044,7 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
 
 	if (path==NULL) {
-		PyErr_Format(PyExc_TypeError,
+		PyErr_Format(PyExc_ValueError,
 		             "%.200s.%.200s.path_from_id() does not support path creation for this type",
 		             RNA_struct_identifier(self->ptr.type), RNA_property_identifier(prop));
 		return NULL;
