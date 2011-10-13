@@ -2558,3 +2558,19 @@ void mesh_translate(Mesh *me, float offset[3], int do_keys)
 		}
 	}
 }
+
+
+void BKE_mesh_ensure_navmesh(Mesh *me)
+{
+	if (!CustomData_has_layer(&me->fdata, CD_RECAST)) {
+		int i;
+		int numFaces = me->totface;
+		int* recastData;
+		CustomData_add_layer_named(&me->fdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
+		recastData = (int*)CustomData_get_layer(&me->fdata, CD_RECAST);
+		for (i=0; i<numFaces; i++) {
+			recastData[i] = i+1;
+		}
+		CustomData_add_layer_named(&me->fdata, CD_RECAST, CD_REFERENCE, recastData, numFaces, "recastData");
+	}
+}

@@ -660,7 +660,9 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 				else {
 					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
 					if (shade_type != shade_prev) {
-						glShadeModel((shade_prev= shade_type));
+						if(poly_prev != GL_ZERO) glEnd();
+						glShadeModel((shade_prev= shade_type)); /* same as below but switch shading */
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
 					}
 					if(poly_type != poly_prev) {
 						if(poly_prev != GL_ZERO) glEnd();
@@ -726,7 +728,9 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 				else {
 					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
 					if (shade_type != shade_prev) {
-						glShadeModel((shade_prev= shade_type));
+						if(poly_prev != GL_ZERO) glEnd();
+						glShadeModel((shade_prev= shade_type)); /* same as below but switch shading */
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
 					}
 					if(poly_type != poly_prev) {
 						if(poly_prev != GL_ZERO) glEnd();

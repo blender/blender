@@ -787,9 +787,10 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				unsigned char *colors = MEM_mallocN(dm->getNumTessFaces(dm)*4*3*sizeof(unsigned char), "cdDM_drawFacesTex_common");
 				for( i=0; i < dm->getNumTessFaces(dm); i++ ) {
 					for( j=0; j < 4; j++ ) {
-						colors[i*12+j*3] = col[i*4+j].r;
+						/* bgr -> rgb is intentional (and stupid), but how its stored internally */
+						colors[i*12+j*3] = col[i*4+j].b;
 						colors[i*12+j*3+1] = col[i*4+j].g;
-						colors[i*12+j*3+2] = col[i*4+j].b;
+						colors[i*12+j*3+2] = col[i*4+j].r;
 					}
 				}
 				GPU_color3_upload(dm,colors);

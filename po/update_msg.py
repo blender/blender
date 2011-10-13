@@ -123,8 +123,10 @@ def dump_messages_rna(messages):
                 continue
 
             msgsrc = "bpy.types.%s.%s" % (bl_rna.identifier, prop.identifier)
-            messages.setdefault(prop.name, []).append(msgsrc)
-            messages.setdefault(prop.description, []).append(msgsrc)
+            if prop.name and prop.name != prop.identifier:
+                messages.setdefault(prop.name, []).append(msgsrc)
+            if prop.description:
+                messages.setdefault(prop.description, []).append(msgsrc)
 
             if isinstance(prop, bpy.types.EnumProperty):
                 for item in prop.enum_items:
@@ -132,8 +134,11 @@ def dump_messages_rna(messages):
                                                         prop.identifier,
                                                         item.identifier,
                                                         )
-                    messages.setdefault(item.name, []).append(msgsrc)
-                    messages.setdefault(item.description, []).append(msgsrc)
+                    # Here identifier and name can be the same!
+                    if item.name: # and item.name != item.identifier:
+                        messages.setdefault(item.name, []).append(msgsrc)
+                    if item.description:
+                        messages.setdefault(item.description, []).append(msgsrc)
 
     def walkRNA(bl_rna):
 

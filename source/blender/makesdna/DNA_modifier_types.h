@@ -74,7 +74,6 @@ typedef enum ModifierType {
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
-	eModifierType_NavMesh,
 	eModifierType_DynamicPaint, /* reserve slot */
 
 	/* BMESH ONLY - keeps getting bumped by new modifiers in trunk */
@@ -759,10 +758,6 @@ typedef struct NgonInterpModifierData {
 	ModifierData modifier;
 	int		resolution, pad0;
 } NgonInterpModifierData;
-
-typedef struct NavMeshModifierData {
-	ModifierData modifier;
-} NavMeshModifierData;
 
 typedef struct WarpModifierData {
 	ModifierData modifier;

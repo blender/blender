@@ -453,9 +453,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
+				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
-				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
+				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[2]);
 			}
 		} else if (!mcol) {
 			if (tface) {
@@ -474,9 +474,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					else copy_v3_v3(col, &ma->r);
 					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = FTOCHAR(col[2]);
+						finalCol[i*4+j].b = FTOCHAR(col[0]);
 						finalCol[i*4+j].g = FTOCHAR(col[1]);
-						finalCol[i*4+j].r = FTOCHAR(col[0]);
+						finalCol[i*4+j].r = FTOCHAR(col[2]);
 					}
 				}
 				else
@@ -488,9 +488,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].b = mcol[i*4+j].r;
+				finalCol[i*4+j].r = mcol[i*4+j].r;
 				finalCol[i*4+j].g = mcol[i*4+j].g;
-				finalCol[i*4+j].r = mcol[i*4+j].b;
+				finalCol[i*4+j].b = mcol[i*4+j].b;
 			}
 		}
 	}

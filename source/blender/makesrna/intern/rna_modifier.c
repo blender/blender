@@ -91,7 +91,6 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
 	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
 	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
-	{eModifierType_NavMesh, "NAVMESH", ICON_MOD_PHYSICS, "Navigation mesh", ""},
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
@@ -192,8 +191,6 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_ScrewModifier;
 		case eModifierType_Warp:
 			return &RNA_WarpModifier;
-		case eModifierType_NavMesh:
-			return &RNA_NavMeshModifier;
 		case eModifierType_WeightVGEdit:
 			return &RNA_VertexWeightEditModifier;
 		case eModifierType_WeightVGMix:
@@ -2493,17 +2490,6 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
-static void rna_def_modifier_navmesh(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	/* PropertyRNA *prop; */ /* UNUSED */
-
-	srna= RNA_def_struct(brna, "NavMeshModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "NavMesh Modifier", "NavMesh modifier");
-	RNA_def_struct_sdna(srna, "NavMeshModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
-}
-
 static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
@@ -2915,7 +2901,6 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
-	rna_def_modifier_navmesh(brna);
 	rna_def_modifier_weightvgedit(brna);
 	rna_def_modifier_weightvgmix(brna);
 	rna_def_modifier_weightvgproximity(brna);

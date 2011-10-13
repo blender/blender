@@ -196,6 +196,8 @@ int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 
 void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 
+void BKE_mesh_ensure_navmesh(struct Mesh *me);
+
 /*convert a triangle of loop facedata to mface facedata*/
 void mesh_loops_to_tri_corners(struct CustomData *fdata, struct CustomData *ldata, 
 			   struct CustomData *pdata, int lindex[3], int findex, 

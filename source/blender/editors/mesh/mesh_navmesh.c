@@ -296,7 +296,6 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	int i,j, k;
 	unsigned short* v;
 	int face[3];
-	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object* obedit;
 	int createob= base==NULL;
@@ -305,7 +304,6 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	unsigned int *meshes;
 	float bmin[3], cs, ch, *dverts;
 	unsigned char *tris;
-	ModifierData *md;
 
 	zero_v3(co);
 	zero_v3(rot);
@@ -419,11 +417,8 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		obedit->body_type= OB_BODY_TYPE_NAVMESH;
 		rename_id((ID *)obedit, "Navmesh");
 	}
-	
-	md= modifiers_findByType(obedit, eModifierType_NavMesh);
-	if(!md) {
-		ED_object_modifier_add(NULL, bmain, scene, obedit, NULL, eModifierType_NavMesh);
-	}
+
+	BKE_mesh_ensure_navmesh(obedit->data);
 
 	return obedit;
 }

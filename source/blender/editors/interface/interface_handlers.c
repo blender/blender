@@ -1481,13 +1481,12 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 	}
 }
 
-static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int direction, int all)
+static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int direction, const int all, const int jump)
 {
-	char *str;
-	int len, x, changed= 0;
+	char *str= data->str;
+	const int len= strlen(str);
 
-	str= data->str;
-	len= strlen(str);
+	int x, changed= 0;
 
 	if(all) {
 		if(len) changed=1;
@@ -1499,9 +1498,24 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 			changed= ui_textedit_delete_selection(but, data);
 		}
 		else if(but->pos>=0 && but->pos<len) {
+			int step;
+
+			if (jump) {
+				x = but->pos;
+				step= 0;
+				while(x < len) {
+					x++;
+					step++;
+					if(test_special_char(str[x])) break;
+				}
+			}
+			else {
+				step= 1;
+			}
+
 			for(x=but->pos; x<len; x++)
-				str[x]= str[x+1];
-			str[len-1]='\0';
+				str[x]= str[x+step];
+			str[len-step]='\0';
 			changed= 1;
 		}
 	}
@@ -1511,11 +1525,26 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				changed= ui_textedit_delete_selection(but, data);
 			}
 			else if(but->pos>0) {
-				for(x=but->pos; x<len; x++)
-					str[x-1]= str[x];
-				str[len-1]='\0';
+				int step;
 
-				but->pos--;
+				if (jump) {
+					x = but->pos;
+					step= 0;
+					while(x > 0) {
+						x--;
+						step++;
+						if((step > 1) && test_special_char(str[x])) break;
+					}
+				}
+				else {
+					step= 1;
+				}
+
+				for(x=but->pos; x<len; x++)
+					str[x-step]= str[x];
+				str[len-step]='\0';
+
+				but->pos -= step;
 				changed= 1;
 			}
 		} 
@@ -1846,12 +1875,12 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DELKEY:
-				changed= ui_textedit_delete(but, data, 1, 0);
+				changed= ui_textedit_delete(but, data, 1, 0, event->ctrl);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 
 			case BACKSPACEKEY:
-				changed= ui_textedit_delete(but, data, 0, event->shift);
+				changed= ui_textedit_delete(but, data, 0, event->shift, event->ctrl);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 				
