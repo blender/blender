@@ -116,7 +116,8 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 			else {
 				/* Only two new edges should be created from each original edge
 				   for edge split operation */
-				BLI_assert(et->newe1 == l2->e || et->newe2 == l2->e);
+				//BLI_assert(et->newe1 == l2->e || et->newe2 == l2->e);
+				et->newe2 = l2->e;
 			}
 
 			if (BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
@@ -140,7 +141,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 	BMLoop *l, *startl;
 	BMEdge *e;
 	BMVert *v;
-	int i, ok;
+	int i, j, ok;
 	
 	ok=0;
 	while (ok++ < 100000) {		
@@ -164,6 +165,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			
 			v = i ? l->next->v : l->v;
 
+			j = 0;
 			while (1) {
 				et = etags + BM_GetIndex(l->e);
 				if (et->newe1 == l->e) {
@@ -201,6 +203,25 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				}
 
 				v = (l->v == v) ? l->next->v : l->v;
+
+				/*
+				 * temporary workaround for #28869: this inner loop is hanging
+				 * on loading some file with edge split modifier. the loop visits
+				 * vertices, and shouldn't execute more iterations than there are
+				 * vertices in the mesh.
+				 *
+				 * clear tags and bail if things start to seem flaky.
+				 */
+				if (++j > bm->totvert) {
+					BLI_assert(0);
+
+					BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+						BMO_SetFlag(bm, e, EDGE_RET1);
+						BMO_SetFlag(bm, e, EDGE_RET2);
+					}
+
+					return;
+				}
 			}
 		}
 	}
