@@ -295,7 +295,10 @@ void sound_cache(struct bSound* sound)
 		AUD_unload(sound->cache);
 
 	sound->cache = AUD_bufferSound(sound->handle);
-	sound->playback_handle = sound->cache;
+	if(sound->cache)
+		sound->playback_handle = sound->cache;
+	else
+		sound->playback_handle = sound->handle;
 }
 
 void sound_cache_notifying(struct Main* main, struct bSound* sound)
@@ -331,6 +334,8 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			sound->handle = NULL;
 			sound->playback_handle = NULL;
 		}
+
+		sound_free_waveform(sound);
 
 // XXX unused currently
 #if 0
@@ -625,7 +630,7 @@ float sound_sync_scene(struct Scene *scene)
 		else
 			return AUD_getPosition(scene->sound_scene_handle);
 	}
-	return 0.0f;
+	return .0f/.0f;
 }
 
 int sound_scene_playing(struct Scene *scene)
@@ -782,7 +787,7 @@ static void sound_start_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
-float sound_sync_scene(struct Scene *UNUSED(scene)) { return 0.0f; }
+float sound_sync_scene(struct Scene *UNUSED(scene)) { return .0f/.0f; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
 void sound_read_waveform(struct bSound* sound) { (void)sound; }
