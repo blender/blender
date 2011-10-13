@@ -2972,7 +2972,7 @@ PyDoc_STRVAR(pyrna_struct_path_from_id_doc,
 "   :arg property: Optional property name which can be used if the path is\n"
 "      to a property of this object.\n"
 "   :type property: string\n"
-"   :return: The path from :class:`bpy_struct.id_data`\n"
+"   :return: The path from :class:`bpy.types.bpy_struct.id_data`\n"
 "      to this struct and property (when given).\n"
 "   :rtype: str\n"
 );
@@ -3028,7 +3028,7 @@ PyDoc_STRVAR(pyrna_prop_path_from_id_doc,
 "\n"
 "   Returns the data path from the ID to this property (string).\n"
 "\n"
-"   :return: The path from :class:`bpy_struct.id_data` to this property.\n"
+"   :return: The path from :class:`bpy.types.bpy_struct.id_data` to this property.\n"
 "   :rtype: str\n"
 );
 static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
@@ -3059,7 +3059,7 @@ PyDoc_STRVAR(pyrna_struct_type_recast_doc,
 "   such as textures can be changed at runtime.\n"
 "\n"
 "   :return: a new instance of this object with the type initialized again.\n"
-"   :rtype: subclass of :class:`bpy_struct`\n"
+"   :rtype: subclass of :class:`bpy.types.bpy_struct`\n"
 );
 static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
@@ -3664,6 +3664,11 @@ static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 	Py_RETURN_NONE;
 }
 
+static PyObject *pyrna_struct_get_pointer_data(BPy_DummyPointerRNA *self)
+{
+	return pyrna_struct_CreatePyObject(&self->ptr);
+}
+
 static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
 {
 	PointerRNA tptr;
@@ -3679,6 +3684,7 @@ static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
 
 static PyGetSetDef pyrna_prop_getseters[]= {
 	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`bpy.types.ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"data", (getter)pyrna_struct_get_pointer_data, (setter)NULL, (char *)"The data this property is using, *type* :class:`bpy.types.bpy_struct`", NULL},
 	{(char *)"rna_type", (getter)pyrna_struct_get_rna_type, (setter)NULL, (char *)"The property type for introspection", NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
