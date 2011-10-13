@@ -820,7 +820,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
 	BMIter iter;
-	// BLI_mempool *oldpool = olddata->pool;
+	BLI_mempool *oldpool = olddata->pool;
 	void *block;
 
 	CustomData_bmesh_init_pool(data, data==&bm->ldata ? 2048 : 512);
@@ -871,6 +871,10 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 				}
 			}
 		}
+	}
+
+	if (oldpool) {
+		BLI_mempool_destroy(oldpool);
 	}
 }
 
