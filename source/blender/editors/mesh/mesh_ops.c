@@ -164,9 +164,11 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_bridge_edge_loops);
 
 #ifdef WITH_GAMEENGINE
-	WM_operatortype_append(MESH_OT_create_navmesh);
-	WM_operatortype_append(MESH_OT_assign_navpolygon);
-	WM_operatortype_append(MESH_OT_assign_new_navpolygon);
+	WM_operatortype_append(MESH_OT_navmesh_make);
+	WM_operatortype_append(MESH_OT_navmesh_face_copy);
+	WM_operatortype_append(MESH_OT_navmesh_face_add);
+	WM_operatortype_append(MESH_OT_navmesh_reset);
+	WM_operatortype_append(MESH_OT_navmesh_clear);
 #endif
 }
 

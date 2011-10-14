@@ -1,6 +1,4 @@
 /*
- * smoke.c
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

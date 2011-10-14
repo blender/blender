@@ -1094,8 +1094,10 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length, int samples_pe
 	specs.specs = reader->getSpecs();
 	int len;
 	float samplejump = specs.rate / samples_per_second;
-	float min, max, power;
+	float min, max, power, overallmax;
 	bool eos;
+
+	overallmax = 0;
 
 	for(int i = 0; i < length; i++)
 	{
@@ -1121,10 +1123,23 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length, int samples_pe
 		buffer[i * 3 + 1] = max;
 		buffer[i * 3 + 2] = sqrt(power) / len;
 
+		if(overallmax < max)
+			overallmax = max;
+		if(overallmax < -min)
+			overallmax = -min;
+
 		if(eos)
 		{
 			length = i;
 			break;
+		}
+	}
+
+	if(overallmax > 1.0f)
+	{
+		for(int i = 0; i < length * 3; i++)
+		{
+			buffer[i] /= overallmax;
 		}
 	}
 

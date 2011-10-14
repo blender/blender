@@ -1,7 +1,8 @@
+/* $Id$ */
+
 /** \file blender/blenkernel/intern/CCGSubSurf.c
  *  \ingroup bke
  */
-/* $Id$ */
 
 #include <stdlib.h>
 #include <string.h>

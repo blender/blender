@@ -11,7 +11,7 @@ $Id$
     3. Obtaining Dependencies
     4. Deciding on a Build Environment
     5. Configuring the build for the first time
-    6. Configuring the build after CVS updates
+    6. Configuring the build after SVN updates
     7. Specify alternate Python library versions and locations
 
 
@@ -36,7 +36,7 @@ $Id$
     http://www.blender.org/cms/Getting_Dependencies.135.0.html that you
     have all dependencies needed for building Blender. Note that for
     windows many of these dependencies already come in the lib/windows
-    module from CVS.
+    module from SVN.
 
     4. Deciding on a Build Environment
     ----------------------------------
@@ -47,8 +47,8 @@ $Id$
     have been successfully used to generate build files for the following 
     environments:
 
-    1. Microsoft Visual Studio 2005. There is a free version available
-       at http://msdn.microsoft.com/vstudio/express/visualc/.
+    1. Microsoft Visual Studio 2008. There is a free version available
+       at http://http://www.microsoft.com/visualstudio/en-us/products/2008-editions/express
 
     2. Xcode on Mac OSX
 
@@ -65,7 +65,7 @@ $Id$
     with different Blender configurations (Audio/NoAudio, GameEngine/NoGameEngine etc.)
     while maintaining a clean source tree. It also makes it possible to generate files
     for different build systems on the same source tree. This also has benefits for 
-    general CVS management for the developer as patches and submit logs are much cleaner.
+    general SVN management for the developer as patches and submit logs are much cleaner.
 
     Create a directory outside the blender source tree where you would like to build
     Blender (from now on called $BLENDERBUILD). On the commandline you can then run
@@ -78,27 +78,27 @@ $Id$
         % cd $BLENDERBUILD
         % cmake
 
-		...
-		...
-		--version [file]            = Show program name/version banner and exit.
+        ...
+        ...
+        --version [file]            = Show program name/version banner and exit.
 
-		Generators
+        Generators
 
-		The following generators are available on this platform:
-		  KDevelop3                   = Generates KDevelop 3 project files.
-		  Unix Makefiles              = Generates standard UNIX makefiles.
-		  Xcode                       = Generate XCode project files.
+        The following generators are available on this platform:
+          KDevelop3                   = Generates KDevelop 3 project files.
+          Unix Makefiles              = Generates standard UNIX makefiles.
+          Xcode                       = Generate XCode project files.
 
 
 
         % cmake -G Xcode $BLENDERSOURCE
-		...
-		...
-		-- Configuring blender
-		-- Configuring blenderplayer
-		-- Configuring done
-		-- Generating done
-		-- Build files have been written to: $BLENDERBUILD 
+        ...
+        ...
+        -- Configuring blender
+        -- Configuring blenderplayer
+        -- Configuring done
+        -- Generating done
+        -- Build files have been written to: $BLENDERBUILD 
 
     This will generate the build files with default values. Specific features can
     be enabled or disabled by running the ccmake "GUI" from $BLENDERBUILD as follows:
@@ -114,15 +114,15 @@ $Id$
     It is also possible to use the commandline of 'cmake' to override certain
     of these settings. 
 
-    6. Configuring the build after CVS updates
+    6. Configuring the build after SVN updates
     ------------------------------------------
 
     The $BLENDERBUILD directory maintains a file called CMakeCache.txt which 
     remembers the initial run's settings for subsequent generation runs. After
-    every CVS update it may be a good idea to rerun the generation before building
+    every SVN update it may be a good idea to rerun the generation before building
     Blender again. Just rerun the original 'cmake' run to do this, the settings
     will be remembered. For the example above the following will do after every
-    'cvs up':
+    'svn up':
 
         % cmake -G Xcode $BLENDERSOURCE
 
@@ -132,9 +132,9 @@ $Id$
     The commandline can be used to override detected/default settings, e.g:
  
     On Unix: 
-      cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INCLUDE_DIRS=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
+      cmake -D PYTHON_LIBRARY=/usr/local/lib/python3.2/config/libpython3.2.so -D PYTHON_INCLUDE_DIR=/usr/local/include/python3.2 ../blender
     On Macs: 
-      cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -G Xcode ../blender
+      cmake -D PYTHON_INCLUDE_DIRS=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 -G Xcode ../blender
 
     Mote that this should only be needed once per build directory generation because it will keep the overrides in CMakeCache.txt for subsequent runs.
 
@@ -153,4 +153,3 @@ $Id$
        on the various platforms.    
 
     /Jacques Beaurain (jbinto)
-

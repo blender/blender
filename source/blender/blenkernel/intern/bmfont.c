@@ -1,8 +1,4 @@
 /*
- * bmfont.c
- *
- * 04-10-2000 frank
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -26,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 04-10-2000 frank.
  *
  * ***** END GPL LICENSE BLOCK *****
  *

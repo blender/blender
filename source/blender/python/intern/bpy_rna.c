@@ -375,7 +375,7 @@ static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	return self->prop ? 0 : -1;
 }
@@ -384,7 +384,7 @@ static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -406,7 +406,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -457,7 +457,7 @@ static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int UNUSED(subtyp
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -470,7 +470,7 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -514,7 +514,7 @@ static int mathutils_rna_matrix_get(BaseMathObject *bmo, int UNUSED(subtype))
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -527,7 +527,7 @@ static int mathutils_rna_matrix_set(BaseMathObject *bmo, int UNUSED(subtype))
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	if(self->prop==NULL)
 		return -1;
@@ -868,7 +868,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	char type_fmt[64]= "";
 	int type;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	type= RNA_property_type(self->prop);
 
@@ -931,7 +931,7 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 	PyObject *ret;
 	const char *path;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	if(id == NULL)
 		return pyrna_prop_str(self); /* fallback */
@@ -1810,7 +1810,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 static PyObject *pyrna_prop_array_to_py_index(BPy_PropertyArrayRNA *self, int index)
 {
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 	return pyrna_py_from_array_index(self, &self->ptr, self->prop, index);
 }
 
@@ -1889,7 +1889,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 //---------------sequence-------------------------------------------
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyArrayRNA *self)
 {
-	PYRNA_PROP_CHECK_INT((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_INT((BPy_PropertyRNA *)self);
 
 	if (RNA_property_array_dimension(&self->ptr, self->prop, NULL) > 1)
 		return RNA_property_multi_array_length(&self->ptr, self->prop, self->arraydim);
@@ -1899,7 +1899,7 @@ static Py_ssize_t pyrna_prop_array_length(BPy_PropertyArrayRNA *self)
 
 static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self)
 {
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	return RNA_property_collection_length(&self->ptr, self->prop);
 }
@@ -1908,7 +1908,7 @@ static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self)
  * of 1000's of items in a linked list for eg. */
 static int pyrna_prop_array_bool(BPy_PropertyRNA *self)
 {
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	return RNA_property_array_length(&self->ptr, self->prop) ? 1 : 0;
 }
@@ -1919,7 +1919,7 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 	CollectionPropertyIterator iter;
 	int test;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 	test= iter.valid;
@@ -1928,10 +1928,10 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 }
 
 
+/* notice getting the length of the collection is avoided unless negative
+ * index is used or to detect internal error with a valid index.
+ * This is done for faster lookups. */
 #define PYRNA_PROP_COLLECTION_ABS_INDEX(ret_err)                              \
-	/* notice getting the length of the collection is avoided unless negative \
-	 * index is used or to detect internal error with a valid index.          \
-	 * This is done for faster lookups. */                                    \
 	if(keynum < 0) {                                                          \
 		keynum_abs += RNA_property_collection_length(&self->ptr, self->prop); \
 		if(keynum_abs < 0) {                                                  \
@@ -1948,7 +1948,7 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
 	PointerRNA newptr;
 	Py_ssize_t keynum_abs= keynum;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	PYRNA_PROP_COLLECTION_ABS_INDEX(NULL);
 
@@ -1979,16 +1979,23 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self, Py_ssi
 	Py_ssize_t keynum_abs= keynum;
 	const PointerRNA *ptr= (value == Py_None) ? (&PointerRNA_NULL) : &((BPy_StructRNA *)value)->ptr;
 
-	PYRNA_PROP_CHECK_INT(self)
+	PYRNA_PROP_CHECK_INT(self);
 
 	PYRNA_PROP_COLLECTION_ABS_INDEX(-1);
 
 	if(RNA_property_collection_assign_int(&self->ptr, self->prop, keynum_abs, ptr) == 0) {
+		const int len= RNA_property_collection_length(&self->ptr, self->prop);
+		if(keynum_abs >= len) {
+			PyErr_Format(PyExc_IndexError,
+			             "bpy_prop_collection[index] = value: "
+			             "index %d out of range, size %d", keynum, len);
+		}
+		else {
 
-		PyErr_Format(PyExc_IndexError,
-		             "bpy_prop_collection[index] = value: "
-		             "failed assignment (unknown reason)", keynum);
-
+			PyErr_Format(PyExc_IndexError,
+			             "bpy_prop_collection[index] = value: "
+			             "failed assignment (unknown reason)", keynum);
+		}
 		return -1;
 	}
 
@@ -1999,7 +2006,7 @@ static PyObject *pyrna_prop_array_subscript_int(BPy_PropertyArrayRNA *self, int 
 {
 	int len;
 
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 
 	len= pyrna_prop_array_length(self);
 
@@ -2016,7 +2023,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
 {
 	PointerRNA newptr;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	if(RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
 		return pyrna_struct_CreatePyObject(&newptr);
@@ -2034,7 +2041,7 @@ static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py
 	PyObject *list;
 	PyObject *item;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	list= PyList_New(0);
 
@@ -2073,11 +2080,11 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 	int count, totdim;
 	PyObject *tuple;
 
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 
 	tuple= PyTuple_New(stop - start);
 
-	/* PYRNA_PROP_CHECK_OBJ(self) isn't needed, internal use only */
+	/* PYRNA_PROP_CHECK_OBJ(self); isn't needed, internal use only */
 
 	totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
@@ -2148,7 +2155,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 
 static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject *key)
 {
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	if (PyUnicode_Check(key)) {
 		return pyrna_prop_collection_subscript_str(self, _PyUnicode_AsString(key));
@@ -2329,7 +2336,7 @@ static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self, PyObject *
 
 static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject *key)
 {
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 
 	/*if (PyUnicode_Check(key)) {
 		return pyrna_prop_array_subscript_str(self, _PyUnicode_AsString(key));
@@ -2485,7 +2492,7 @@ static int prop_subscript_ass_array_int(BPy_PropertyArrayRNA *self, Py_ssize_t k
 {
 	int len;
 
-	PYRNA_PROP_CHECK_INT((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_INT((BPy_PropertyRNA *)self);
 
 	len= pyrna_prop_array_length(self);
 
@@ -2620,7 +2627,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 	IDProperty *group;
 	const char *name= _PyUnicode_AsString(value);
 
-	PYRNA_STRUCT_CHECK_INT(self)
+	PYRNA_STRUCT_CHECK_INT(self);
 
 	if (!name) {
 		PyErr_SetString(PyExc_TypeError, "bpy_struct.__contains__: expected a string");
@@ -2685,7 +2692,7 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
 	IDProperty *group, *idprop;
 	const char *name= _PyUnicode_AsString(key);
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString(PyExc_TypeError, "this type doesn't support IDProperties");
@@ -2718,7 +2725,7 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
 {
 	IDProperty *group;
 
-	PYRNA_STRUCT_CHECK_INT(self)
+	PYRNA_STRUCT_CHECK_INT(self);
 
 	group= RNA_struct_idprops(&self->ptr, 1);
 
@@ -2841,7 +2848,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 	const char *name;
 	int ret;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s:is_property_set", &name))
 		return NULL;
@@ -2884,7 +2891,7 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 	PropertyRNA *prop;
 	const char *name;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name))
 		return NULL;
@@ -2918,7 +2925,7 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 	PropertyRNA *r_prop;
 	int index= -1;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s|O!:path_resolve", &path, &PyBool_Type, &coerce))
 		return NULL;
@@ -2976,7 +2983,7 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 	PropertyRNA *prop;
 	PyObject *ret;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "|s:path_from_id", &name))
 		return NULL;
@@ -3058,7 +3065,7 @@ static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
 	PointerRNA r_ptr;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	RNA_pointer_recast(&self->ptr, &r_ptr);
 	return pyrna_struct_CreatePyObject(&r_ptr);
@@ -3139,7 +3146,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 	PyObject *ret;
 	PyObject *pystring;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	/* Include this incase this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
@@ -3186,7 +3193,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 	PropertyRNA *prop;
 	FunctionRNA *func;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if(name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __getattr__ must be a string");
@@ -3407,7 +3414,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 	const char *name= _PyUnicode_AsString(pyname);
 	PropertyRNA *prop= NULL;
 
-	PYRNA_STRUCT_CHECK_INT(self)
+	PYRNA_STRUCT_CHECK_INT(self);
 
 #ifdef USE_PEDANTIC_WRITE
 	if(rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
@@ -3794,7 +3801,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 	const char *key;
 	PyObject* def= Py_None;
 
-	PYRNA_STRUCT_CHECK_OBJ(self)
+	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
 		return NULL;
@@ -3851,7 +3858,7 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
 	const char *key;
 	PyObject* def= Py_None;
 
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
 		return NULL;
@@ -4124,7 +4131,7 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_get_doc,
 );
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	return foreach_getset(self, args, 0);
 }
@@ -4144,7 +4151,7 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_set_doc,
 );
 static PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {
-	PYRNA_PROP_CHECK_OBJ(self)
+	PYRNA_PROP_CHECK_OBJ(self);
 
 	return foreach_getset(self, args, 1);
 }
@@ -4158,7 +4165,7 @@ static PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
 	PyObject *iter= NULL;
 	int len;
 
-	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self)
+	PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
 
 	len= pyrna_prop_array_length(self);
 	ret= pyrna_prop_array_subscript_slice(self, &self->ptr, self->prop, 0, len, len);

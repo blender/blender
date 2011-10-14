@@ -316,5 +316,12 @@ void MESH_OT_bevel(struct wmOperatorType *ot);
 
 void MESH_OT_bridge_edge_loops(struct wmOperatorType *ot);
 
+/* ******************* mesh_navmesh.c */
+void MESH_OT_navmesh_make(struct wmOperatorType *ot);
+void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot);
+void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
+void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
+void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
+
 #endif // MESH_INTERN_H
 

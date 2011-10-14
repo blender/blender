@@ -1149,7 +1149,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	bPoseChannel *chan;
 	int flip= RNA_boolean_get(op->ptr, "flipped");
 	int selOnly= RNA_boolean_get(op->ptr, "selected_mask");
-	
+
+	/* get KeyingSet to use */
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
+
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
 		return OPERATOR_CANCELLED;
@@ -1166,7 +1169,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)
 			selOnly = 0;
 	}
-	
+
 	/* Safely merge all of the channels in the buffer pose into any existing pose */
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
@@ -1175,30 +1178,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 			
 			if (pchan) {
 				/* keyframing tagging for successful paste */
-				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-					ListBase dsources = {NULL, NULL};
-					
-					/* get KeyingSet to use */
-					KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
-					
-					/* now insert the keyframe(s) using the Keying Set
-					 *	1) add datasource override for the PoseChannel
-					 *	2) insert keyframes
-					 *	3) free the extra info 
-					 */
-					ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
-					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					BLI_freelistN(&dsources);
-					
-					/* clear any unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag &= ~BONE_UNKEYED;
-				}
-				else {
-					/* add unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag |= BONE_UNKEYED;
-				}
+				ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 			}
 		}
 	}
@@ -2194,29 +2174,8 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
 			negate_v4(pchan->quat);
-			
-			/* tagging */
-			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				ListBase dsources = {NULL, NULL};
-				
-				/* now insert the keyframe(s) using the Keying Set
-				 *	1) add datasource override for the PoseChannel
-				 *	2) insert keyframes
-				 *	3) free the extra info 
-				 */
-				ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
-				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-				BLI_freelistN(&dsources);
-				
-				/* clear any unkeyed tags */
-				if (pchan->bone)
-					pchan->bone->flag &= ~BONE_UNKEYED;
-			}
-			else {
-				/* add unkeyed tags */
-				if (pchan->bone)
-					pchan->bone->flag |= BONE_UNKEYED;
-			}
+
+			ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 		}
 	}
 	CTX_DATA_END;

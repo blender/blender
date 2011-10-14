@@ -1,6 +1,3 @@
-/** \file blender/blenkernel/intern/writeffmpeg.c
- *  \ingroup bke
- */
 /*
  * $Id$
  *
@@ -18,6 +15,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
+ */
+
+/** \file blender/blenkernel/intern/writeffmpeg.c
+ *  \ingroup bke
  */
 
 #ifdef WITH_FFMPEG

@@ -47,6 +47,7 @@
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_report.h"
 
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
@@ -423,44 +424,57 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	return obedit;
 }
 
-static int create_navmesh_exec(bContext *C, wmOperator *UNUSED(op))
+static int create_navmesh_exec(bContext *C, wmOperator *op)
 {
 	Scene* scene= CTX_data_scene(C);
-	int nverts= 0, ntris= 0;
-	float *verts= NULL;
-	int *tris= 0;
-	struct recast_polyMesh *pmesh= NULL;
-	struct recast_polyMeshDetail *dmesh= NULL;
 	LinkNode* obs= NULL;
 	Base* navmeshBase= NULL;
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		if(base->object->body_type==OB_BODY_TYPE_NAVMESH) {
-			if(!navmeshBase || base==CTX_data_active_base(C))
-				navmeshBase= base;
+		if (base->object->type == OB_MESH) {
+			if (base->object->body_type==OB_BODY_TYPE_NAVMESH) {
+				if (!navmeshBase || base == scene->basact) {
+					navmeshBase= base;
+				}
+			}
+			else {
+				BLI_linklist_append(&obs, (void*)base->object);
+			}
 		}
-		else
-			BLI_linklist_append(&obs, (void*)base->object);
 	}
 	CTX_DATA_END;
 
-	createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris);
-	BLI_linklist_free(obs, NULL);
-	buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh);
-	createRepresentation(C, pmesh, dmesh, navmeshBase);
+	if (obs) {
+		struct recast_polyMesh *pmesh= NULL;
+		struct recast_polyMeshDetail *dmesh= NULL;
 
-	MEM_freeN(verts);
-	MEM_freeN(tris);
+		int nverts= 0, ntris= 0;
+		int *tris= 0;
+		float *verts= NULL;
 
-	return OPERATOR_FINISHED;
+		createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris);
+		BLI_linklist_free(obs, NULL);
+		buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh);
+		createRepresentation(C, pmesh, dmesh, navmeshBase);
+
+		MEM_freeN(verts);
+		MEM_freeN(tris);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No mesh objects found");
+
+		return OPERATOR_CANCELLED;
+	}
 }
 
-void MESH_OT_create_navmesh(wmOperatorType *ot)
+void MESH_OT_navmesh_make(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create navigation mesh";
 	ot->description= "Create navigation mesh for selected objects";
-	ot->idname= "MESH_OT_create_navmesh";
+	ot->idname= "MESH_OT_navmesh_make";
 
 	/* api callbacks */
 	ot->exec= create_navmesh_exec;
@@ -469,35 +483,35 @@ void MESH_OT_create_navmesh(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int assign_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
+static int navmesh_face_copy_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	/* do work here */
-	int targetPolyIdx= -1;
-	EditFace *ef, *efa;
-	efa= EM_get_actFace(em, 0);
+	EditFace *efa_act= EM_get_actFace(em, 0);
 
-	if(efa) {
+	if(efa_act) {
 		if(CustomData_has_layer(&em->fdata, CD_RECAST)) {
-			targetPolyIdx= *(int*)CustomData_em_get(&em->fdata, efa->data, CD_RECAST);
+			EditFace *efa;
+			int targetPolyIdx= *(int*)CustomData_em_get(&em->fdata, efa_act->data, CD_RECAST);
 			targetPolyIdx= targetPolyIdx>=0? targetPolyIdx : -targetPolyIdx;
 
-			if(targetPolyIdx>0) {
+			if(targetPolyIdx > 0) {
 				/* set target poly idx to other selected faces */
-				ef= (EditFace*)em->faces.last;
-				while(ef)  {
-					if((ef->f & SELECT )&& ef!=efa)  {
-						int* recastDataBlock= (int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
+				for (efa= (EditFace *)em->faces.first; efa; efa= efa->next) {
+					if((efa->f & SELECT) && efa != efa_act)  {
+						int* recastDataBlock= (int*)CustomData_em_get(&em->fdata, efa->data, CD_RECAST);
 						*recastDataBlock= targetPolyIdx;
 					}
-					ef= ef->prev;
 				}
 			}
-		}		
+			else {
+				BKE_report(op->reports, RPT_ERROR, "Active face has no index set");
+			}
+		}
 	}
-	
+
 	DAG_id_tag_update((ID*)obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -506,16 +520,16 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_assign_navpolygon(struct wmOperatorType *ot)
+void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign polygon index";
-	ot->description= "Assign polygon index to face by active face";
-	ot->idname= "MESH_OT_assign_navpolygon";
+	ot->name= "NavMesh Copy Face Index";
+	ot->description= "Copy the index from the active face";
+	ot->idname= "MESH_OT_navmesh_face_copy";
 
 	/* api callbacks */
 	ot->poll= ED_operator_editmesh;
-	ot->exec= assign_navpolygon_exec;
+	ot->exec= navmesh_face_copy_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -556,7 +570,7 @@ static int findFreeNavPolyIndex(EditMesh* em)
 	return freeIdx;
 }
 
-static int assign_new_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
+static int navmesh_face_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -585,16 +599,93 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_assign_new_navpolygon(struct wmOperatorType *ot)
+void MESH_OT_navmesh_face_add(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign new polygon index";
-	ot->description= "Assign new polygon index to face";
-	ot->idname= "MESH_OT_assign_new_navpolygon";
+	ot->name= "NavMesh New Face Index";
+	ot->description= "Add a new index and assign it to selected faces";
+	ot->idname= "MESH_OT_navmesh_face_add";
 
 	/* api callbacks */
 	ot->poll= ED_operator_editmesh;
-	ot->exec= assign_new_navpolygon_exec;
+	ot->exec= navmesh_face_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int navmesh_obmode_data_poll(bContext *C)
+{
+	Object *ob = ED_object_active_context(C);
+	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
+		Mesh *me= ob->data;
+		return CustomData_has_layer(&me->fdata, CD_RECAST);
+	}
+	return FALSE;
+}
+
+static int navmesh_obmode_poll(bContext *C)
+{
+	Object *ob = ED_object_active_context(C);
+	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static int navmesh_reset_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_active_context(C);
+	Mesh *me= ob->data;
+
+	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+
+	BKE_mesh_ensure_navmesh(me);
+
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, &me->id);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_navmesh_reset(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "NavMesh Reset Index Values";
+	ot->description= "Assign a new index to every face";
+	ot->idname= "MESH_OT_navmesh_reset";
+
+	/* api callbacks */
+	ot->poll= navmesh_obmode_poll;
+	ot->exec= navmesh_reset_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int navmesh_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = ED_object_active_context(C);
+	Mesh *me= ob->data;
+
+	CustomData_free_layers(&me->fdata, CD_RECAST, me->totface);
+
+	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, &me->id);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_navmesh_clear(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "NavMesh Clear Data";
+	ot->description= "Remove navmesh data from this mesh";
+	ot->idname= "MESH_OT_navmesh_clear";
+
+	/* api callbacks */
+	ot->poll= navmesh_obmode_data_poll;
+	ot->exec= navmesh_clear_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -1,6 +1,4 @@
-/*  effect.c
- * 
- * 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****

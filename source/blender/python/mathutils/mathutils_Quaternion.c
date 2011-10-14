@@ -193,7 +193,7 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 }
 
 PyDoc_STRVAR(Quaternion_rotation_difference_doc,
-".. function:: difference(other)\n"
+".. function:: rotation_difference(other)\n"
 "\n"
 "   Returns a quaternion representing the rotational difference.\n"
 "\n"

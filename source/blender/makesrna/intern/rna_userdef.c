@@ -2532,11 +2532,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{18, "UKRAINIAN", 0, N_("Ukrainian (Український)"), "uk_UA"},
 		{19, "POLISH", 0, N_("Polish (Polski)"), "pl_PL"},
 		{20, "ROMANIAN", 0, N_("Romanian (Român)"), "ro_RO"},
-		{21, "ARABIC", 0, N_("Arabic (العربية)"), "ar_EG"},
+		/* using the utf8 flipped form of Arabic (العربية) */
+		{21, "ARABIC", 0, N_("Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"), "ar_EG"},
 		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
 		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
 		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
-		/*{25, "Nepali", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
+		/*{25, "NEPALI", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
+		/* using the utf8 flipped form of Persian (فارسی) */
+		{26, "PERSIAN", 0, N_("Persian (ﺱﺭﺎﻓ)"), "fa_PE"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
@@ -2661,8 +2664,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
-	RNA_def_property_ui_text(prop, "VBOs",
-	                         "Use Vertex Buffer Objects (or Vertex Arrays, if unsupported) for viewport rendering");
+	RNA_def_property_ui_text(prop, "VBOs", "Use Vertex Buffer Objects (or Vertex Arrays, if unsupported) for viewport rendering");
+	RNA_def_property_update(prop, NC_WINDOW, NULL); /* this isnt essential but nice to check if VBO draws any differently */
 
 	prop= RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_AA);

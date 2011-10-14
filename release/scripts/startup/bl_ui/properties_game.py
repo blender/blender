@@ -169,8 +169,13 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             layout.prop(ob, "hide_render", text="Invisible")
 
         elif physics_type == 'NAVMESH':
-            layout.operator("mesh.assign_navpolygon")
-            layout.operator("mesh.assign_new_navpolygon")
+            layout.operator("mesh.navmesh_face_copy")
+            layout.operator("mesh.navmesh_face_add")
+
+            layout.separator()
+
+            layout.operator("mesh.navmesh_reset")
+            layout.operator("mesh.navmesh_clear")
 
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
@@ -417,7 +422,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.game_settings.recast_data
 
-        layout.operator("mesh.create_navmesh", text='Build navigation mesh')
+        layout.operator("mesh.navmesh_make", text='Build navigation mesh')
 
         col = layout.column()
         col.label(text="Rasterization:")
@@ -434,8 +439,8 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
         col.prop(rd, "agent_radius", text="Radius")
 
         col = split.column()
-        col.prop(rd, "max_slope")
-        col.prop(rd, "max_climb")
+        col.prop(rd, "slope_max")
+        col.prop(rd, "climb_max")
 
         col = layout.column()
         col.label(text="Region:")

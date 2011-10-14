@@ -264,8 +264,15 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	EditFont *ef= cu->editfont;
 	cu->curinfo = ef->textbufinfo[cu->pos?cu->pos-1:0];
 	
-	if(obedit->totcol>0)
+	if(obedit->totcol > 0) {
 		obedit->actcol= ef->textbufinfo[cu->pos?cu->pos-1:0].mat_nr;
+
+		/* since this array is calloc'd, it can be 0 even though we try ensure
+		 * (mat_nr > 0) almost everywhere */
+		if (obedit->actcol < 1) {
+			obedit->actcol= 1;
+		}
+	}
 
 	if(mode == FO_EDIT)
 		update_string(cu);
@@ -1700,10 +1707,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	}
 
 	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
-	
-	if(!RNA_property_is_set(op->ptr, "relative_path"))
-		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
-		
+
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 
