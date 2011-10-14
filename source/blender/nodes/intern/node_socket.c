@@ -128,6 +128,21 @@ static bNodeSocketType node_socket_type_boolean = {
 	/* buttonfunc */		NULL,
 };
 
+/****************** SHADER ******************/
+
+static bNodeSocketType node_socket_type_shader = {
+	/* type */				SOCK_SHADER,
+	/* ui_name */			"Shader",
+	/* ui_description */	"Shader",
+	/* ui_icon */			0,
+	/* ui_color */			{100,200,100,255},
+
+	/* value_structname */	NULL,
+	/* value_structsize */	0,
+
+	/* buttonfunc */		NULL,
+};
+
 /****************** MESH ******************/
 
 static bNodeSocketType node_socket_type_mesh = {
@@ -153,6 +168,7 @@ void node_socket_type_init(bNodeSocketType *types[])
 	INIT_TYPE(rgba);
 	INIT_TYPE(int);
 	INIT_TYPE(boolean);
+	INIT_TYPE(shader);
 	INIT_TYPE(mesh);
 	
 	#undef INIT_TYPE
@@ -241,6 +257,17 @@ struct bNodeSocket *nodeAddOutputRGBA(struct bNodeTree *ntree, struct bNode *nod
 	return sock;
 }
 
+struct bNodeSocket *nodeAddInputShader(struct bNodeTree *ntree, struct bNode *node, const char *name)
+{
+	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_SHADER);
+	return sock;
+}
+struct bNodeSocket *nodeAddOutputShader(struct bNodeTree *ntree, struct bNode *node, const char *name)
+{
+	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_OUT, name, SOCK_SHADER);
+	return sock;
+}
+
 struct bNodeSocket *nodeAddInputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name)
 {
 	bNodeSocket *sock= nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_MESH);
@@ -271,6 +298,9 @@ struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct
 	case SOCK_RGBA:
 		sock = nodeAddInputRGBA(ntree, node, stemp->name, stemp->val1, stemp->val2, stemp->val3, stemp->val4);
 		break;
+	case SOCK_SHADER:
+		sock = nodeAddInputShader(ntree, node, stemp->name);
+		break;
 	case SOCK_MESH:
 		sock = nodeAddInputMesh(ntree, node, stemp->name);
 		break;
@@ -298,6 +328,9 @@ struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struc
 		break;
 	case SOCK_RGBA:
 		sock = nodeAddOutputRGBA(ntree, node, stemp->name);
+		break;
+	case SOCK_SHADER:
+		sock = nodeAddOutputShader(ntree, node, stemp->name);
 		break;
 	case SOCK_MESH:
 		sock = nodeAddOutputMesh(ntree, node, stemp->name);
