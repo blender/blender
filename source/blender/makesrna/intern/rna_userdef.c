@@ -2514,7 +2514,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, "", 0, "Nearly done", ""},
 		{0, "DEFAULT", 0, N_("Default (Default)"), ""},
 		{1, "ENGLISH", 0, N_("English (English)"), "en_US"},
-		{8, "FRENCH", 0, N_("French (Française)"), "fr_FR"},
+		{8, "FRENCH", 0, N_("French (Français)"), "fr_FR"},
 		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
 		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
 		{0, "", 0, "In progress", ""},
