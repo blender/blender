@@ -360,14 +360,13 @@ static int isect_point_quad_v2_d(double pt[2], double v1[2], double v2[2], doubl
 
 mdisps is a grid of displacements, ordered thus:
 
-v1/center -- v4/next -> x
-|                 |
-|				  |
-v2/prev ---- v3/cur
-|
-V
-
-y
+ v1/center----v4/next -> x
+     |           |
+     |           |
+  v2/prev------v3/cur
+     |
+     V
+     y
 */
 
 static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3], double v4[3], double e1[3], double e2[3])
@@ -611,15 +610,15 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		/*****
 		mdisps is a grid of displacements, ordered thus:
 		
-		              v4/next
-		                |		                
-		 |       v1/cent-mid2 ---> x
-		 |       |       | 
-		 |       |       |
-		v2/prev--mid1--v3/cur
-		         |
-		         V
-		         y
+		                   v4/next
+		                     |		                
+		 |      v1/cent-----mid2 ---> x
+		 |         |         | 
+		 |         |         |
+		v2/prev---mid1-----v3/cur
+		           |
+		           V
+		           y
 		*****/
 		  
 		sides = sqrt(mdp->totdisp);
@@ -642,15 +641,15 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		/*****
 		mdisps is a grid of displacements, ordered thus:
 		
-		              v4/next
-		                |		                
-		 |       v1/cent-mid2 ---> x
-		 |       |       | 
-		 |       |       |
-		v2/prev--mid1--v3/cur
-		         |
-		         V
-		         y
+		                   v4/next
+		                     |		                
+		 |      v1/cent-----mid2 ---> x
+		 |         |         | 
+		 |         |         |
+		v2/prev---mid1-----v3/cur
+		           |
+		           V
+		           y
 		*****/
 		 
 		if (l->radial_next == l)
@@ -737,8 +736,8 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	else if(yn>=xn && yn>=zn) {ax= 0; ay= 2;}
 	else {ax= 1; ay= 2;} 
 	
-	/*scale source face coordinates a bit, so points sitting directonly on an
-      edge will work.*/
+	/* scale source face coordinates a bit, so points sitting directonly on an
+	   edge will work.*/
 	mul_v3_fl(cent, 1.0f/(float)source->len);
 	for (i=0; i<source->len; i++) {
 		float vec[3], tmp[3];

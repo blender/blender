@@ -1667,6 +1667,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, &mesh->id, mesh->pv->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->pv->totedge, &mesh->edata,
 					CD_MEDGE, mesh->totedge);
+				/* BMESH_TODO: probably need to deal with polys here */
 				write_customdata(wd, &mesh->id, mesh->pv->totface, &mesh->fdata,
 					CD_MFACE, mesh->totface);
 			}

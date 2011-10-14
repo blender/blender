@@ -69,27 +69,49 @@
 
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting) */
+
 void paintface_flush_flags(Object *ob)
 {
-	Mesh *me= get_mesh(ob);
-	DerivedMesh *dm= ob->derivedFinal;
-	MPoly *mf_orig, *mp;
-	int *index = NULL;
-	int totface;
+	Mesh *me = get_mesh(ob);
+	DerivedMesh *dm = ob->derivedFinal;
+	MPoly *polys, *mp_orig;
+	MFace *faces, *mf;
+	int *index_array = NULL;
+	int totface, totpoly;
 	int i;
 	
-	if(me==NULL || dm==NULL)
+	if (me==NULL || dm==NULL) {
 		return;
+	}
 
-	totface = dm->getNumFaces(dm);
-	index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-	mp = dm->getPolyArray(dm);
-	for (i=0; i<dm->numPolyData; i++, index++, mp++) {
-		if (!index)
-			break;
+	/*
+	 * Try to push updated mesh poly flags to two other data sets:
+	 *  - Mesh polys => Mesh tess faces
+	 *  - Mesh polys => Final derived mesh polys
+	 */
 
-		mf_orig = me->mpoly + *index;
-		mp->flag = mf_orig->flag;
+	if (index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX)) {
+		faces = me->mface;
+		totface = me->totface;
+		
+		/* loop over tessfaces */
+		for (i= 0; i<totface; i++) {
+			/* Copy flags onto the tessface from its poly */
+			mp_orig = me->mpoly + index_array[i];
+			faces[i].flag = mp_orig->flag;
+		}
+	}
+
+	if (index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX)) {
+		polys = dm->getPolyArray(dm);
+		totpoly = dm->getNumFaces(dm);
+
+		/* loop over final derived polys */
+		for (i= 0; i<totpoly; i++) {
+			/* Copy flags onto the mesh poly from its final derived poly */
+			mp_orig = me->mpoly + index_array[i];
+			polys[i].flag = mp_orig->flag;
+		}
 	}
 }
 
