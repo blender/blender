@@ -1596,7 +1596,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 					objprop.m_boundclass = KX_BOUNDPOLYTOPE;
 					break;
 				}
-				// Object is not a mesh... fall through OB_BOUND_POLYH to 
+				// Object is not a mesh... fall through OB_BOUND_TRIANGLE_MESH to
 				// OB_BOUND_SPHERE
 			case OB_BOUND_TRIANGLE_MESH:
 				if (blenderobject->type == OB_MESH)
