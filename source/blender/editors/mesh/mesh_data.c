@@ -648,6 +648,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 		0,
 		0);
 
+	mesh_update_customdata_pointers(mesh);
+
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
 }
