@@ -62,7 +62,7 @@ void bpy_import_init(PyObject *builtins)
 	/* move reload here
 	 * XXX, use import hooks */
 	mod= PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
-	if(mod) {
+	if (mod) {
 		PyDict_SetItemString(PyModule_GetDict(mod), "reload", item=PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
 		Py_DECREF(mod);
 	}
@@ -74,7 +74,7 @@ void bpy_import_init(PyObject *builtins)
 
 static void free_compiled_text(Text *text)
 {
-	if(text->compiled) {
+	if (text->compiled) {
 		Py_DECREF((PyObject *)text->compiled);
 	}
 	text->compiled= NULL;
@@ -102,7 +102,7 @@ PyObject *bpy_text_import(Text *text)
 	char modulename[24];
 	int len;
 
-	if(!text->compiled) {
+	if (!text->compiled) {
 		char fn_dummy[256];
 		bpy_text_filename_get(fn_dummy, sizeof(fn_dummy), text);
 
@@ -110,7 +110,7 @@ PyObject *bpy_text_import(Text *text)
 		text->compiled= Py_CompileString(buf, fn_dummy, Py_file_input);
 		MEM_freeN(buf);
 
-		if(PyErr_Occurred()) {
+		if (PyErr_Occurred()) {
 			PyErr_Print();
 			PyErr_Clear();
 			PySys_SetObject("last_traceback", NULL);
@@ -135,7 +135,7 @@ PyObject *bpy_text_import_name(char *name, int *found)
 	
 	*found= 0;
 
-	if(!maggie) {
+	if (!maggie) {
 		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
 		return NULL;
 	}
@@ -147,7 +147,7 @@ PyObject *bpy_text_import_name(char *name, int *found)
 
 	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
 
-	if(!text)
+	if (!text)
 		return NULL;
 	else
 		*found= 1;
@@ -169,7 +169,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
 	
-	if(!maggie) {
+	if (!maggie) {
 		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
 		return NULL;
 	}
@@ -177,24 +177,24 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	*found= 0;
 	
 	/* get name, filename from the module itself */
-	if((name= PyModule_GetName(module)) == NULL)
+	if ((name= PyModule_GetName(module)) == NULL)
 		return NULL;
 
-	if((filepath= (char *)PyModule_GetFilename(module)) == NULL)
+	if ((filepath= (char *)PyModule_GetFilename(module)) == NULL)
 		return NULL;
 
 	/* look up the text object */
 	text= BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
-	if(!text)
+	if (!text)
 		return NULL;
 	else
 		*found= 1;
 
 	/* if previously compiled, free the object */
 	/* (can't see how could be NULL, but check just in case) */ 
-	if(text->compiled){
+	if (text->compiled) {
 		Py_DECREF((PyObject *)text->compiled);
 	}
 
@@ -204,7 +204,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 	MEM_freeN(buf);
 
 	/* if compile failed.... return this error */
-	if(PyErr_Occurred()) {
+	if (PyErr_Occurred()) {
 		PyErr_Print();
 		PyErr_Clear();
 		PySys_SetObject("last_traceback", NULL);
@@ -229,14 +229,14 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	//PyObject_Print(args, stderr, 0);
 	static const char *kwlist[]= {"name", "globals", "locals", "fromlist", "level", NULL};
 	
-	if(!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
 				   &name, &globals, &locals, &fromlist, &level))
 		return NULL;
 
 	/* import existing builtin modules or modules that have been imported already */
 	newmodule= PyImport_ImportModuleLevel(name, globals, locals, fromlist, level);
 	
-	if(newmodule)
+	if (newmodule)
 		return newmodule;
 	
 	PyErr_Fetch(&exception, &err, &tb);	/* get the python error incase we cant import as blender text either */
@@ -244,7 +244,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	/* importing from existing modules failed, see if we have this module as blender text */
 	newmodule= bpy_text_import_name(name, &found);
 	
-	if(newmodule) {/* found module as blender text, ignore above exception */
+	if (newmodule) {/* found module as blender text, ignore above exception */
 		PyErr_Clear();
 		Py_XDECREF(exception);
 		Py_XDECREF(err);
@@ -278,14 +278,14 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 
 	/* try reimporting from file */
 	newmodule= PyImport_ReloadModule(module);
-	if(newmodule)
+	if (newmodule)
 		return newmodule;
 
 	/* no file, try importing from memory */
 	PyErr_Fetch(&exception, &err, &tb);	/*restore for probable later use */
 
 	newmodule= bpy_text_reimport(module, &found);
-	if(newmodule) {/* found module as blender text, ignore above exception */
+	if (newmodule) {/* found module as blender text, ignore above exception */
 		PyErr_Clear();
 		Py_XDECREF(exception);
 		Py_XDECREF(err);
@@ -359,10 +359,10 @@ void bpy_text_clear_modules(int clear_all)
 	 */
 	while (PyDict_Next(modules, &pos, &key, &value)) {
 		fname= PyModule_GetFilename(value);
-		if(fname) {
+		if (fname) {
 			if (clear_all || ((strstr(fname, SEPSTR))==0)) { /* no path ? */
 				file_extension= strstr(fname, ".py");
-				if(file_extension && (*(file_extension + 3) == '\0' || *(file_extension + 4) == '\0')) { /* .py or pyc extension? */
+				if (file_extension && (*(file_extension + 3) == '\0' || *(file_extension + 4) == '\0')) { /* .py or pyc extension? */
 					/* now we can be fairly sure its a python import from the blendfile */
 					PyList_Append(list, key); /* free'd with the list */
 				}
@@ -374,7 +374,7 @@ void bpy_text_clear_modules(int clear_all)
 	}
 	
 	/* remove all our modules */
-	for(pos=0; pos < PyList_GET_SIZE(list); pos++) {
+	for (pos=0; pos < PyList_GET_SIZE(list); pos++) {
 		/* PyObject_Print(key, stderr, 0); */
 		key= PyList_GET_ITEM(list, pos);
 		PyDict_DelItem(modules, key);

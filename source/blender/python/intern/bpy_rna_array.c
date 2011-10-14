@@ -67,7 +67,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	if (dim + 1 < totdim) {
 		/* check that a sequence contains dimsize[dim] items */
 		const Py_ssize_t seq_size= PySequence_Size(seq);
-		if(seq_size == -1) {
+		if (seq_size == -1) {
 			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
 			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
@@ -77,7 +77,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 			int ok= 1;
 			item= PySequence_GetItem(seq, i);
 
-			if(item == NULL) {
+			if (item == NULL) {
 				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d",
 				             error_prefix, Py_TYPE(seq)->tp_name, i);
 				ok= 0;
@@ -112,7 +112,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 	else {
 		/* check that items are of correct type */
 		const int seq_size= PySequence_Size(seq);
-		if(seq_size == -1) {
+		if (seq_size == -1) {
 			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
 			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
 			return -1;
@@ -120,7 +120,7 @@ static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[]
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 
-			if(item == NULL) {
+			if (item == NULL) {
 				PyErr_Format(PyExc_TypeError, "%s sequence type '%s' failed to retrieve index %d",
 				             error_prefix, Py_TYPE(seq)->tp_name, i);
 				return -1;
@@ -146,15 +146,15 @@ static int count_items(PyObject *seq, int dim)
 {
 	int totitem= 0;
 
-	if(dim > 1) {
+	if (dim > 1) {
 		const Py_ssize_t seq_size= PySequence_Size(seq);
 		Py_ssize_t i;
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
-			if(item) {
+			if (item) {
 				const int tot= count_items(item, dim - 1);
 				Py_DECREF(item);
-				if(tot != -1) {
+				if (tot != -1) {
 					totitem += tot;
 				}
 				else {
@@ -184,7 +184,7 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
 	tot= count_items(rvalue, totdim - lvalue_dim);
 
-	if(tot == -1) {
+	if (tot == -1) {
 		PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, error validating the sequence length",
 		             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 		return -1;
@@ -294,13 +294,13 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 
 	/* Note that 'data can be NULL' */
 
-	if(seq_size == -1) {
+	if (seq_size == -1) {
 		return NULL;
 	}
 
 	for (i= 0; i < seq_size; i++) {
 		PyObject *item= PySequence_GetItem(seq, i);
-		if(item) {
+		if (item) {
 			if (dim + 1 < totdim) {
 				data= copy_values(item, ptr, prop, dim + 1, data, item_size, index, convert_item, rna_set_index);
 			}
@@ -334,7 +334,7 @@ static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *
 
 	if (totitem) {
 		/* note: this code is confusing */
-		if(param_data && RNA_property_flag(prop) & PROP_DYNAMIC) {
+		if (param_data && RNA_property_flag(prop) & PROP_DYNAMIC) {
 			/* not freeing allocated mem, RNA_parameter_list_free() will do this */
 			ParameterDynAlloc *param_alloc= (ParameterDynAlloc *)param_data;
 			param_alloc->array_tot= (int)totitem;
@@ -351,7 +351,7 @@ static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *
 
 		/* will only fail in very rare cases since we already validated the
 		 * python data, the check here is mainly for completeness. */
-		if(copy_values(seq, ptr, prop, 0, data, item_size, NULL, convert_item, NULL) != NULL) {
+		if (copy_values(seq, ptr, prop, 0, data, item_size, NULL, convert_item, NULL) != NULL) {
 			if (param_data==NULL) {
 				/* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
 				rna_set_array(ptr, prop, data);
@@ -396,8 +396,8 @@ static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, i
 
 	index += arrayoffset;
 
-	if(lvalue_dim == totdim) { /* single item, assign directly */
-		if(!check_item_type(py)) {
+	if (lvalue_dim == totdim) { /* single item, assign directly */
+		if (!check_item_type(py)) {
 			PyErr_Format(PyExc_TypeError, "%s %.200s.%.200s, expected a %s type, not %s",
 			             error_prefix, RNA_struct_identifier(ptr->type),
 			             RNA_property_identifier(prop), item_type_str,
@@ -628,7 +628,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 	int type;
 	int i;
 
-	if(len==0) /* possible with dynamic arrays */
+	if (len==0) /* possible with dynamic arrays */
 		return 0;
 
 	if (RNA_property_array_dimension(ptr, prop, NULL) > 1) {
@@ -642,7 +642,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 		case PROP_FLOAT:
 		{
 			float value_f= PyFloat_AsDouble(value);
-			if(value_f==-1 && PyErr_Occurred()) {
+			if (value_f==-1 && PyErr_Occurred()) {
 				PyErr_Clear();
 				return 0;
 			}
@@ -650,7 +650,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				float tmp[32];
 				float *tmp_arr;
 
-				if(len * sizeof(float) > sizeof(tmp)) {
+				if (len * sizeof(float) > sizeof(tmp)) {
 					tmp_arr= PyMem_MALLOC(len * sizeof(float));
 				}
 				else {
@@ -659,11 +659,13 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 
 				RNA_property_float_get_array(ptr, prop, tmp_arr);
 
-				for(i=0; i<len; i++)
-					if(tmp_arr[i] == value_f)
+				for (i=0; i<len; i++) {
+					if (tmp_arr[i] == value_f) {
 						break;
+					}
+				}
 
-				if(tmp_arr != tmp)
+				if (tmp_arr != tmp)
 					PyMem_FREE(tmp_arr);
 
 				return i<len ? 1 : 0;
@@ -674,7 +676,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 		case PROP_INT:
 		{
 			int value_i= PyLong_AsSsize_t(value);
-			if(value_i==-1 && PyErr_Occurred()) {
+			if (value_i==-1 && PyErr_Occurred()) {
 				PyErr_Clear();
 				return 0;
 			}
@@ -682,23 +684,25 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				int tmp[32];
 				int *tmp_arr;
 
-				if(len * sizeof(int) > sizeof(tmp)) {
+				if (len * sizeof(int) > sizeof(tmp)) {
 					tmp_arr= PyMem_MALLOC(len * sizeof(int));
 				}
 				else {
 					tmp_arr= tmp;
 				}
 
-				if(type==PROP_BOOLEAN)
+				if (type==PROP_BOOLEAN)
 					RNA_property_boolean_get_array(ptr, prop, tmp_arr);
 				else
 					RNA_property_int_get_array(ptr, prop, tmp_arr);
 
-				for(i=0; i<len; i++)
-					if(tmp_arr[i] == value_i)
+				for (i=0; i<len; i++) {
+					if (tmp_arr[i] == value_i) {
 						break;
+					}
+				}
 
-				if(tmp_arr != tmp)
+				if (tmp_arr != tmp)
 					PyMem_FREE(tmp_arr);
 
 				return i<len ? 1 : 0;

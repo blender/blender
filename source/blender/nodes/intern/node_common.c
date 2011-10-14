@@ -199,6 +199,9 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 		}
 	}
 	
+	/* node groups don't use internal cached data */
+	ntreeFreeCache(ngroup);
+	
 	/* make group node */
 	ntemp.type = NODE_GROUP;
 	ntemp.ngroup = ngroup;

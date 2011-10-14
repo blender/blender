@@ -123,11 +123,11 @@ static PyObject *Vector_normalize(VectorObject *self)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for(i = 0; i < self->size; i++) {
+	for (i = 0; i < self->size; i++) {
 		norm += self->vec[i] * self->vec[i];
 	}
 	norm = (float) sqrt(norm);
-	for(i = 0; i < self->size; i++) {
+	for (i = 0; i < self->size; i++) {
 		self->vec[i] /= norm;
 	}
 
@@ -251,11 +251,11 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 		return NULL;
 	}
 
-	if(self->size == 2){
+	if(self->size == 2) {
 		self->vec[2] = 0.0f;
 		self->vec[3] = 1.0f;
 	}
-	else if(self->size == 3){
+	else if(self->size == 3) {
 		self->vec[3] = 1.0f;
 	}
 	self->size = 4;
@@ -332,12 +332,12 @@ static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits)
 	ret= PyTuple_New(self->size);
 
 	if(ndigits >= 0) {
-		for(i = 0; i < self->size; i++) {
+		for (i = 0; i < self->size; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->vec[i], ndigits)));
 		}
 	}
 	else {
-		for(i = 0; i < self->size; i++) {
+		for (i = 0; i < self->size; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->vec[i]));
 		}
 	}
@@ -581,7 +581,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 	if(mathutils_array_parse(tvec, self->size, self->size, value, "Vector.dot(other), invalid 'other' arg") == -1)
 		return NULL;
 
-	for(x = 0; x < self->size; x++) {
+	for (x = 0; x < self->size; x++) {
 		dot += (double)(self->vec[x] * tvec[x]);
 	}
 
@@ -621,11 +621,11 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	if(mathutils_array_parse(tvec, size, size, value, "Vector.angle(other), invalid 'other' arg") == -1)
 		return NULL;
 
-	for(x = 0; x < size; x++) {
+	for (x = 0; x < size; x++) {
 		test_v1 += (double)(self->vec[x] * self->vec[x]);
 		test_v2 += (double)(tvec[x] * tvec[x]);
 	}
-	if (!test_v1 || !test_v2){
+	if (!test_v1 || !test_v2) {
 		/* avoid exception */
 		if(fallback) {
 			Py_INCREF(fallback);
@@ -640,7 +640,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	}
 
 	//dot product
-	for(x = 0; x < self->size; x++) {
+	for (x = 0; x < self->size; x++) {
 		dot += (double)(self->vec[x] * tvec[x]);
 	}
 	dot /= (sqrt(test_v1) * sqrt(test_v2));
@@ -714,13 +714,13 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 		return NULL;
 
 	//get dot products
-	for(x = 0; x < size; x++) {
+	for (x = 0; x < size; x++) {
 		dot += (double)(self->vec[x] * tvec[x]);
 		dot2 += (double)(tvec[x] * tvec[x]);
 	}
 	//projection
 	dot /= dot2;
-	for(x = 0; x < size; x++) {
+	for (x = 0; x < size; x++) {
 		vec[x] = (float)dot * tvec[x];
 	}
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
@@ -757,7 +757,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 
 	ifac= 1.0f - fac;
 
-	for(x = 0; x < size; x++) {
+	for (x = 0; x < size; x++) {
 		vec[x] = (ifac * self->vec[x]) + (fac * tvec[x]);
 	}
 	return newVectorObject(vec, size, Py_NEW, Py_TYPE(self));
@@ -872,7 +872,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 
 	if(i<0)	i= self->size-i;
 
-	if(i < 0 || i >= self->size){
+	if(i < 0 || i >= self->size) {
 		if(is_attr) {
 			PyErr_Format(PyExc_AttributeError,
 			             "Vector.%c = x: unavailable on %dd vector",
@@ -912,7 +912,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 	begin= MIN2(begin, end);
 
 	tuple= PyTuple_New(end - begin);
-	for(count = begin; count < end; count++) {
+	for (count = begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin, PyFloat_FromDouble(self->vec[count]));
 	}
 
@@ -936,7 +936,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 		return -1;
 
 	/*parsed well - now set in vector*/
-	for(y = 0; y < size; y++){
+	for (y = 0; y < size; y++) {
 		self->vec[begin + y] = vec[y];
 	}
 
@@ -1088,7 +1088,7 @@ int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, 
 	double dot = 0.0f;
 	int x, y, z = 0;
 
-	if(mat->row_size != vec->size){
+	if(mat->row_size != vec->size) {
 		if(mat->row_size == 4 && vec->size == 3) {
 			vec_cpy[3] = 1.0f;
 		}
@@ -1105,8 +1105,8 @@ int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, 
 
 	rvec[3] = 1.0f;
 
-	for(x = 0; x < mat->col_size; x++) {
-		for(y = 0; y < mat->row_size; y++) {
+	for (x = 0; x < mat->col_size; x++) {
+		for (y = 0; y < mat->row_size; y++) {
 			dot += (double)(mat->matrix[y][x] * vec_cpy[y]);
 		}
 		rvec[z++] = (float)dot;
@@ -1153,7 +1153,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 		}
 
 		/*dot product*/
-		for(i = 0; i < vec1->size; i++) {
+		for (i = 0; i < vec1->size; i++) {
 			dot += (double)(vec1->vec[i] * vec2->vec[i]);
 		}
 		return PyFloat_FromDouble(dot);
@@ -1325,7 +1325,7 @@ static PyObject *Vector_div(PyObject *v1, PyObject *v2)
 		return NULL;
 	}
 
-	for(i = 0; i < vec1->size; i++) {
+	for (i = 0; i < vec1->size; i++) {
 		vec[i] = vec1->vec[i] /	scalar;
 	}
 	return newVectorObject(vec, vec1->size, Py_NEW, Py_TYPE(v1));
@@ -1354,7 +1354,7 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
 		                "divide by zero error");
 		return NULL;
 	}
-	for(i = 0; i < vec1->size; i++) {
+	for (i = 0; i < vec1->size; i++) {
 		vec1->vec[i] /=	scalar;
 	}
 
@@ -1383,7 +1383,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 	double dot = 0.0f;
 	int i;
 
-	for(i=0; i<size; i++){
+	for (i=0; i<size; i++) {
 		dot += (double)data[i];
 	}
 	/*return (double)sqrt(dot);*/
@@ -1403,8 +1403,8 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	double epsilon = .000001f;
 	double lenA, lenB;
 
-	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)){
-		if (comparison_type == Py_NE){
+	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)) {
+		if (comparison_type == Py_NE) {
 			Py_RETURN_TRUE;
 		}
 		else {
@@ -1417,8 +1417,8 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	if(BaseMath_ReadCallback(vecA) == -1 || BaseMath_ReadCallback(vecB) == -1)
 		return NULL;
 
-	if (vecA->size != vecB->size){
-		if (comparison_type == Py_NE){
+	if (vecA->size != vecB->size) {
+		if (comparison_type == Py_NE) {
 			Py_RETURN_TRUE;
 		}
 		else {
@@ -1426,18 +1426,18 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		}
 	}
 
-	switch (comparison_type){
+	switch (comparison_type) {
 		case Py_LT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if(lenA < lenB){
+			if(lenA < lenB) {
 				result = 1;
 			}
 			break;
 		case Py_LE:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if(lenA < lenB){
+			if(lenA < lenB) {
 				result = 1;
 			}
 			else {
@@ -1453,14 +1453,14 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		case Py_GT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if(lenA > lenB){
+			if(lenA > lenB) {
 				result = 1;
 			}
 			break;
 		case Py_GE:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
 			lenB = vec_magnitude_nosqrt(vecB->vec, vecB->size);
-			if(lenA > lenB){
+			if(lenA > lenB) {
 				result = 1;
 			}
 			else {
@@ -1471,7 +1471,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 			printf("The result of the comparison could not be evaluated");
 			break;
 	}
-	if (result == 1){
+	if (result == 1) {
 		Py_RETURN_TRUE;
 	}
 	else {
@@ -1631,7 +1631,7 @@ static PyObject *Vector_getLength(VectorObject *self, void *UNUSED(closure))
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for(i = 0; i < self->size; i++){
+	for (i = 0; i < self->size; i++) {
 		dot += (double)(self->vec[i] * self->vec[i]);
 	}
 	return PyFloat_FromDouble(sqrt(dot));
@@ -1661,7 +1661,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 		return 0;
 	}
 
-	for(i = 0; i < self->size; i++){
+	for (i = 0; i < self->size; i++) {
 		dot += (double)(self->vec[i] * self->vec[i]);
 	}
 
@@ -1675,7 +1675,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 
 	dot= dot/param;
 
-	for(i = 0; i < self->size; i++){
+	for (i = 0; i < self->size; i++) {
 		self->vec[i]= self->vec[i] / (float)dot;
 	}
 
@@ -1693,7 +1693,7 @@ static PyObject *Vector_getLengthSquared(VectorObject *self, void *UNUSED(closur
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for(i = 0; i < self->size; i++){
+	for (i = 0; i < self->size; i++) {
 		dot += (double)(self->vec[i] * self->vec[i]);
 	}
 	return PyFloat_FromDouble(dot);
@@ -1778,7 +1778,7 @@ static int Vector_setSwizzle(VectorObject *self, PyObject *value, void *closure)
 
 	if (((scalarVal=PyFloat_AsDouble(value)) == -1 && PyErr_Occurred())==0) {
 		int i;
-		for(i=0; i < MAX_DIMENSIONS; i++)
+		for (i=0; i < MAX_DIMENSIONS; i++)
 			vec_assign[i]= scalarVal;
 
 		size_from= axis_from;
@@ -2219,8 +2219,8 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	double dot = 0.0f;
 	int x, y, z= 0, vec_size= vec->size;
 
-	if(mat->col_size != vec_size){
-		if(mat->col_size == 4 && vec_size != 3){
+	if(mat->col_size != vec_size) {
+		if(mat->col_size == 4 && vec_size != 3) {
 			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
@@ -2235,11 +2235,11 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 		return -1;
 
 	memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
-printf("asasas\n");
+
 	rvec[3] = 1.0f;
 	//muliplication
-	for(x = 0; x < mat->row_size; x++) {
-		for(y = 0; y < mat->col_size; y++) {
+	for (x = 0; x < mat->row_size; x++) {
+		for (y = 0; y < mat->col_size; y++) {
 			dot += mat->matrix[x][y] * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;

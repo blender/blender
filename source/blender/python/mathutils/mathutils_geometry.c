@@ -86,16 +86,16 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 	float det, inv_det, u, v, t;
 	int clip= 1;
 
-	if(!PyArg_ParseTuple(args, "O!O!O!O!O!|i:intersect_ray_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
+	if (!PyArg_ParseTuple(args, "O!O!O!O!O!|i:intersect_ray_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
 		return NULL;
 	}
-	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
+	if (vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
 		PyErr_SetString(PyExc_ValueError,
 		                "only 3D vectors for all parameters");
 		return NULL;
 	}
 
-	if(BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(ray) == -1 || BaseMath_ReadCallback(ray_off) == -1)
+	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(ray) == -1 || BaseMath_ReadCallback(ray_off) == -1)
 		return NULL;
 
 	VECCOPY(v1, vec1->vec);
@@ -174,19 +174,19 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 	VectorObject *vec1, *vec2, *vec3, *vec4;
 	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
 
-	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
 		return NULL;
 	}
-	if(vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
+	if (vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
 		PyErr_SetString(PyExc_ValueError,
 		                "vectors must be of the same size");
 		return NULL;
 	}
 
-	if(BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(vec4) == -1)
+	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(vec4) == -1)
 		return NULL;
 
-	if(vec1->size == 3 || vec1->size == 2) {
+	if (vec1->size == 3 || vec1->size == 2) {
 		int result;
 
 		if (vec1->size == 3) {
@@ -257,42 +257,42 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject* args)
 	VectorObject *vec1, *vec2, *vec3, *vec4;
 	float n[3];
 
-	if(PyTuple_GET_SIZE(args) == 3) {
-		if(!PyArg_ParseTuple(args, "O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
+	if (PyTuple_GET_SIZE(args) == 3) {
+		if (!PyArg_ParseTuple(args, "O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
 			return NULL;
 		}
-		if(vec1->size != vec2->size || vec1->size != vec3->size) {
+		if (vec1->size != vec2->size || vec1->size != vec3->size) {
 			PyErr_SetString(PyExc_ValueError,
 			                "vectors must be of the same size");
 			return NULL;
 		}
-		if(vec1->size < 3) {
+		if (vec1->size < 3) {
 			PyErr_SetString(PyExc_ValueError,
 			                "2D vectors unsupported");
 			return NULL;
 		}
 
-		if(BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1)
+		if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1)
 			return NULL;
 
 		normal_tri_v3(n, vec1->vec, vec2->vec, vec3->vec);
 	}
 	else {
-		if(!PyArg_ParseTuple(args, "O!O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
+		if (!PyArg_ParseTuple(args, "O!O!O!O!:normal", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4)) {
 			return NULL;
 		}
-		if(vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
+		if (vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
 			PyErr_SetString(PyExc_ValueError,
 			                "vectors must be of the same size");
 			return NULL;
 		}
-		if(vec1->size < 3) {
+		if (vec1->size < 3) {
 			PyErr_SetString(PyExc_ValueError,
 			                "2D vectors unsupported");
 			return NULL;
 		}
 
-		if(BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(vec4) == -1)
+		if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(vec4) == -1)
 			return NULL;
 
 		normal_quad_v3(n, vec1->vec, vec2->vec, vec3->vec, vec4->vec);
@@ -320,17 +320,17 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec1, *vec2, *vec3;
 
-	if(!PyArg_ParseTuple(args, "O!O!O!:area_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
+	if (!PyArg_ParseTuple(args, "O!O!O!:area_tri", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3)) {
 		return NULL;
 	}
 
-	if(vec1->size != vec2->size || vec1->size != vec3->size) {
+	if (vec1->size != vec2->size || vec1->size != vec3->size) {
 		PyErr_SetString(PyExc_ValueError,
 		                "vectors must be of the same size");
 		return NULL;
 	}
 
-	if(BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1)
+	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1)
 		return NULL;
 
 	if (vec1->size == 3) {
@@ -367,7 +367,7 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject *UNUSED(self), PyObj
 {
 	VectorObject *line_a1, *line_a2, *line_b1, *line_b2;
 	float vi[2];
-	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line_2d",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:intersect_line_line_2d",
 	  &vector_Type, &line_a1,
 	  &vector_Type, &line_a2,
 	  &vector_Type, &line_b1,
@@ -376,10 +376,10 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject *UNUSED(self), PyObj
 		return NULL;
 	}
 	
-	if(BaseMath_ReadCallback(line_a1) == -1 || BaseMath_ReadCallback(line_a2) == -1 || BaseMath_ReadCallback(line_b1) == -1 || BaseMath_ReadCallback(line_b2) == -1)
+	if (BaseMath_ReadCallback(line_a1) == -1 || BaseMath_ReadCallback(line_a2) == -1 || BaseMath_ReadCallback(line_b1) == -1 || BaseMath_ReadCallback(line_b2) == -1)
 		return NULL;
 
-	if(isect_seg_seg_v2_point(line_a1->vec, line_a2->vec, line_b1->vec, line_b2->vec, vi) == 1) {
+	if (isect_seg_seg_v2_point(line_a1->vec, line_a2->vec, line_b1->vec, line_b2->vec, vi) == 1) {
 		return newVectorObject(vi, 2, Py_NEW, NULL);
 	}
 	else {
@@ -411,7 +411,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	VectorObject *line_a, *line_b, *plane_co, *plane_no;
 	int no_flip= 0;
 	float isect[3];
-	if(!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_line_plane",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &plane_co,
@@ -421,7 +421,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	if (		BaseMath_ReadCallback(line_a) == -1 ||
 	        BaseMath_ReadCallback(line_b) == -1 ||
 	        BaseMath_ReadCallback(plane_co) == -1 ||
 	        BaseMath_ReadCallback(plane_no) == -1
@@ -429,14 +429,14 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	if(ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
+	if (ELEM4(2, line_a->size, line_b->size, plane_co->size, plane_no->size)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_plane(...): "
 		                " can't use 2D Vectors");
 		return NULL;
 	}
 
-	if(isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec, no_flip) == 1) {
+	if (isect_line_plane_v3(isect, line_a->vec, line_b->vec, plane_co->vec, plane_no->vec, no_flip) == 1) {
 		return newVectorObject(isect, 3, Py_NEW, NULL);
 	}
 	else {
@@ -471,7 +471,7 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 	float isect_a[3];
 	float isect_b[3];
 
-	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere",
+	if (!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &sphere_co,
@@ -480,14 +480,14 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	if (		BaseMath_ReadCallback(line_a) == -1 ||
 	        BaseMath_ReadCallback(line_b) == -1 ||
 	        BaseMath_ReadCallback(sphere_co) == -1
 	) {
 		return NULL;
 	}
 
-	if(ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
+	if (ELEM3(2, line_a->size, line_b->size, sphere_co->size)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "geometry.intersect_line_sphere(...): "
 		                " can't use 2D Vectors");
@@ -502,22 +502,22 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 
 		switch(isect_line_sphere_v3(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 		case 1:
-			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
 			use_b= FALSE;
 			break;
 		case 2:
-			if(!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
-			if(!(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v3(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v3(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
 			break;
 		default:
 			use_a= FALSE;
 			use_b= FALSE;
 		}
 
-		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL)); }
+		if (use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 3, Py_NEW, NULL)); }
 		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
 
-		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL)); }
+		if (use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 3, Py_NEW, NULL)); }
 		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
 
 		return ret;
@@ -551,7 +551,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 	float isect_a[3];
 	float isect_b[3];
 
-	if(!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere_2d",
+	if (!PyArg_ParseTuple(args, "O!O!O!f|i:intersect_line_sphere_2d",
 	  &vector_Type, &line_a,
 	  &vector_Type, &line_b,
 	  &vector_Type, &sphere_co,
@@ -560,7 +560,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 		return NULL;
 	}
 
-	if(		BaseMath_ReadCallback(line_a) == -1 ||
+	if (		BaseMath_ReadCallback(line_a) == -1 ||
 	        BaseMath_ReadCallback(line_b) == -1 ||
 	        BaseMath_ReadCallback(sphere_co) == -1
 	) {
@@ -575,22 +575,22 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 
 		switch(isect_line_sphere_v2(line_a->vec, line_b->vec, sphere_co->vec, sphere_radius, isect_a, isect_b)) {
 		case 1:
-			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
 			use_b= FALSE;
 			break;
 		case 2:
-			if(!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
-			if(!(!clip || (((lambda= line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v2(isect_a, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_a= FALSE;
+			if (!(!clip || (((lambda= line_point_factor_v2(isect_b, line_a->vec, line_b->vec)) >= 0.0f) && (lambda <= 1.0f)))) use_b= FALSE;
 			break;
 		default:
 			use_a= FALSE;
 			use_b= FALSE;
 		}
 
-		if(use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL)); }
+		if (use_a) { PyTuple_SET_ITEM(ret, 0,  newVectorObject(isect_a, 2, Py_NEW, NULL)); }
 		else      { PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None); }
 
-		if(use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL)); }
+		if (use_b) { PyTuple_SET_ITEM(ret, 1,  newVectorObject(isect_b, 2, Py_NEW, NULL)); }
 		else      { PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None); }
 
 		return ret;
@@ -617,7 +617,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	float lambda;
 	PyObject *ret;
 	
-	if(!PyArg_ParseTuple(args, "O!O!O!:intersect_point_line",
+	if (!PyArg_ParseTuple(args, "O!O!O!:intersect_point_line",
 		&vector_Type, &pt,
 		&vector_Type, &line_1,
 		&vector_Type, &line_2)
@@ -625,7 +625,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 	
-	if(BaseMath_ReadCallback(pt) == -1 || BaseMath_ReadCallback(line_1) == -1 || BaseMath_ReadCallback(line_2) == -1)
+	if (BaseMath_ReadCallback(pt) == -1 || BaseMath_ReadCallback(line_1) == -1 || BaseMath_ReadCallback(line_2) == -1)
 		return NULL;
 	
 	/* accept 2d verts */
@@ -666,7 +666,7 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject *UNUSED(self), PyObj
 {
 	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
 	
-	if(!PyArg_ParseTuple(args, "O!O!O!O!:intersect_point_tri_2d",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!:intersect_point_tri_2d",
 		  &vector_Type, &pt_vec,
 		  &vector_Type, &tri_p1,
 		  &vector_Type, &tri_p2,
@@ -675,7 +675,7 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject *UNUSED(self), PyObj
 		return NULL;
 	}
 	
-	if(BaseMath_ReadCallback(pt_vec) == -1 || BaseMath_ReadCallback(tri_p1) == -1 || BaseMath_ReadCallback(tri_p2) == -1 || BaseMath_ReadCallback(tri_p3) == -1)
+	if (BaseMath_ReadCallback(pt_vec) == -1 || BaseMath_ReadCallback(tri_p1) == -1 || BaseMath_ReadCallback(tri_p2) == -1 || BaseMath_ReadCallback(tri_p3) == -1)
 		return NULL;
 	
 	return PyLong_FromLong(isect_point_tri_v2(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
@@ -702,7 +702,7 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 {
 	VectorObject *pt_vec, *quad_p1, *quad_p2, *quad_p3, *quad_p4;
 	
-	if(!PyArg_ParseTuple(args, "O!O!O!O!O!:intersect_point_quad_2d",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!O!:intersect_point_quad_2d",
 		  &vector_Type, &pt_vec,
 		  &vector_Type, &quad_p1,
 		  &vector_Type, &quad_p2,
@@ -712,7 +712,7 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 		return NULL;
 	}
 	
-	if(BaseMath_ReadCallback(pt_vec) == -1 || BaseMath_ReadCallback(quad_p1) == -1 || BaseMath_ReadCallback(quad_p2) == -1 || BaseMath_ReadCallback(quad_p3) == -1 || BaseMath_ReadCallback(quad_p4) == -1)
+	if (BaseMath_ReadCallback(pt_vec) == -1 || BaseMath_ReadCallback(quad_p1) == -1 || BaseMath_ReadCallback(quad_p2) == -1 || BaseMath_ReadCallback(quad_p3) == -1 || BaseMath_ReadCallback(quad_p4) == -1)
 		return NULL;
 	
 	return PyLong_FromLong(isect_point_quad_v2(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
@@ -747,7 +747,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 	VectorObject *vec_t1_src, *vec_t2_src, *vec_t3_src;
 	float vec[3];
 
-	if(!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!:barycentric_transform",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!:barycentric_transform",
 		  &vector_Type, &vec_pt,
 		  &vector_Type, &vec_t1_src,
 		  &vector_Type, &vec_t2_src,
@@ -759,7 +759,7 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if(	vec_pt->size != 3 ||
+	if (	vec_pt->size != 3 ||
 		vec_t1_src->size != 3 ||
 		vec_t2_src->size != 3 ||
 		vec_t3_src->size != 3 ||
@@ -814,7 +814,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject*
 	float h2[4]= {0.0, 0.0, 0.0, 0.0};
 
 
-	if(!PyArg_ParseTuple(args, "O!O!O!O!i:interpolate_bezier",
+	if (!PyArg_ParseTuple(args, "O!O!O!O!i:interpolate_bezier",
 	  &vector_Type, &vec_k1,
 	  &vector_Type, &vec_h1,
 	  &vector_Type, &vec_h2,
@@ -823,30 +823,30 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject*
 		return NULL;
 	}
 
-	if(resolu <= 1) {
+	if (resolu <= 1) {
 		PyErr_SetString(PyExc_ValueError,
 		                "resolution must be 2 or over");
 		return NULL;
 	}
 
-	if(BaseMath_ReadCallback(vec_k1) == -1 || BaseMath_ReadCallback(vec_h1) == -1 || BaseMath_ReadCallback(vec_k2) == -1 || BaseMath_ReadCallback(vec_h2) == -1)
+	if (BaseMath_ReadCallback(vec_k1) == -1 || BaseMath_ReadCallback(vec_h1) == -1 || BaseMath_ReadCallback(vec_k2) == -1 || BaseMath_ReadCallback(vec_h2) == -1)
 		return NULL;
 
 	dims= MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
 
-	for(i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
-	for(i=0; i < vec_h1->size; i++) h1[i]= vec_h1->vec[i];
-	for(i=0; i < vec_k2->size; i++) k2[i]= vec_k2->vec[i];
-	for(i=0; i < vec_h2->size; i++) h2[i]= vec_h2->vec[i];
+	for (i=0; i < vec_k1->size; i++) k1[i]= vec_k1->vec[i];
+	for (i=0; i < vec_h1->size; i++) h1[i]= vec_h1->vec[i];
+	for (i=0; i < vec_k2->size; i++) k2[i]= vec_k2->vec[i];
+	for (i=0; i < vec_h2->size; i++) h2[i]= vec_h2->vec[i];
 
 	coord_array= MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
-	for(i=0; i<dims; i++) {
+	for (i=0; i<dims; i++) {
 		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array+i, resolu-1, sizeof(float)*dims);
 	}
 
 	list= PyList_New(resolu);
 	fp= coord_array;
-	for(i=0; i<resolu; i++, fp= fp+dims) {
+	for (i=0; i<resolu; i++, fp= fp+dims) {
 		PyList_SET_ITEM(list, i, newVectorObject(fp, dims, Py_NEW, NULL));
 	}
 	MEM_freeN(coord_array);
@@ -875,7 +875,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 	float *fp; /*pointer to the array of malloced dl->verts to set the points from the vectors */
 	int index, *dl_face, totpoints=0;
 
-	if(!PySequence_Check(polyLineSeq)) {
+	if (!PySequence_Check(polyLineSeq)) {
 		PyErr_SetString(PyExc_TypeError,
 		                "expected a sequence of poly lines");
 		return NULL;
@@ -883,7 +883,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 
 	len_polylines= PySequence_Size(polyLineSeq);
 
-	for(i= 0; i < len_polylines; ++i) {
+	for (i= 0; i < len_polylines; ++i) {
 		polyLine= PySequence_GetItem(polyLineSeq, i);
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
@@ -914,16 +914,16 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 			dl->verts= fp= MEM_callocN(sizeof(float)*3*len_polypoints, "dl verts");
 			dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
 
-			for(index= 0; index<len_polypoints; ++index, fp+=3) {
+			for (index= 0; index<len_polypoints; ++index, fp+=3) {
 				polyVec= PySequence_GetItem(polyLine, index);
-				if(VectorObject_Check(polyVec)) {
+				if (VectorObject_Check(polyVec)) {
 
-					if(BaseMath_ReadCallback((VectorObject *)polyVec) == -1)
+					if (BaseMath_ReadCallback((VectorObject *)polyVec) == -1)
 						ls_error= 1;
 
 					fp[0]= ((VectorObject *)polyVec)->vec[0];
 					fp[1]= ((VectorObject *)polyVec)->vec[1];
-					if(((VectorObject *)polyVec)->size > 2)
+					if (((VectorObject *)polyVec)->size > 2)
 						fp[2]= ((VectorObject *)polyVec)->vec[2];
 					else
 						fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
@@ -939,7 +939,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		Py_DECREF(polyLine);
 	}
 
-	if(ls_error) {
+	if (ls_error) {
 		freedisplist(&dispbase); /* possible some dl was allocated */
 		PyErr_SetString(PyExc_TypeError,
 		                "A point in one of the polylines "
@@ -955,7 +955,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 		dl= dispbase.first;
 
 		tri_list= PyList_New(dl->parts);
-		if(!tri_list) {
+		if (!tri_list) {
 			freedisplist(&dispbase);
 			PyErr_SetString(PyExc_RuntimeError,
 			                "failed to make a new list");
@@ -964,7 +964,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 
 		index= 0;
 		dl_face= dl->index;
-		while(index < dl->parts) {
+		while (index < dl->parts) {
 			PyList_SET_ITEM(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]));
 			dl_face+= 3;
 			index++;
@@ -989,7 +989,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 
 	/* Error checking must already be done */
-	if(!PyList_Check(value)) {
+	if (!PyList_Check(value)) {
 		PyErr_SetString(PyExc_TypeError,
 		                "can only back a list of [x, y, w, h]");
 		return -1;
@@ -1000,9 +1000,9 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	(*boxarray)= MEM_mallocN(len*sizeof(boxPack), "boxPack box");
 
 
-	for(i= 0; i < len; i++) {
+	for (i= 0; i < len; i++) {
 		list_item= PyList_GET_ITEM(value, i);
-		if(!PyList_Check(list_item) || PyList_GET_SIZE(list_item) < 4) {
+		if (!PyList_Check(list_item) || PyList_GET_SIZE(list_item) < 4) {
 			MEM_freeN(*boxarray);
 			PyErr_SetString(PyExc_TypeError,
 			                "can only pack a list of [x, y, w, h]");
@@ -1040,7 +1040,7 @@ static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
 
 	len= PyList_GET_SIZE(value);
 
-	for(i= 0; i < len; i++) {
+	for (i= 0; i < len; i++) {
 		box= (*boxarray)+i;
 		list_item= PyList_GET_ITEM(value, box->index);
 		PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
@@ -1066,7 +1066,7 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 
 	PyObject *ret;
 
-	if(!PyList_Check(boxlist)) {
+	if (!PyList_Check(boxlist)) {
 		PyErr_SetString(PyExc_TypeError,
 		                "expected a list of boxes [[x, y, w, h], ... ]");
 		return NULL;
@@ -1075,7 +1075,7 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 	len= PyList_GET_SIZE(boxlist);
 	if (len) {
 		boxPack *boxarray= NULL;
-		if(boxPack_FromPyObject(boxlist, &boxarray) == -1) {
+		if (boxPack_FromPyObject(boxlist, &boxarray) == -1) {
 			return NULL; /* exception set */
 		}
 

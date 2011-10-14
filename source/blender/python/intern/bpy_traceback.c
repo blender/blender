@@ -114,19 +114,19 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 
 	PyErr_Fetch(&exception, &value, (PyObject **)&tb);
 
-	if(exception && PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
+	if (exception && PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
 		/* no traceback available when SyntaxError.
 		 * python has no api's to this. reference parse_syntax_error() from pythonrun.c */
 		PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
 		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
 
-		if(value) { /* should always be true */
+		if (value) { /* should always be true */
 			PyObject *message;
 			const char *filename, *text;
 
-			if(parse_syntax_error(value, &message, &filename, lineno, offset, &text)) {
+			if (parse_syntax_error(value, &message, &filename, lineno, offset, &text)) {
 				/* python adds a '/', prefix, so check for both */
-				if(	(strcmp(filename, filepath) == 0) || 
+				if ((strcmp(filename, filepath) == 0) ||
 					((filename[0] == '\\' || filename[0] == '/') && strcmp(filename + 1, filepath) == 0)
 				) {
 					/* good */
@@ -145,13 +145,13 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
 		PyErr_Print();
 
-		for(tb= (PyTracebackObject *)PySys_GetObject("last_traceback"); tb && (PyObject *)tb != Py_None; tb= tb->tb_next) {
+		for (tb= (PyTracebackObject *)PySys_GetObject("last_traceback"); tb && (PyObject *)tb != Py_None; tb= tb->tb_next) {
 			PyObject *coerce;
 			const char *tb_filepath= traceback_filepath(tb, &coerce);
 			const int match= strcmp(tb_filepath, filepath) != 0;
 			Py_DECREF(coerce);
 
-			if(match) {
+			if (match) {
 				*lineno= tb->tb_lineno;
 				break;
 			}
