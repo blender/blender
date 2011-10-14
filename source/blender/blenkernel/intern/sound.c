@@ -630,7 +630,7 @@ float sound_sync_scene(struct Scene *scene)
 		else
 			return AUD_getPosition(scene->sound_scene_handle);
 	}
-	return .0f/.0f;
+	return SOUND_ERR_FLT;
 }
 
 int sound_scene_playing(struct Scene *scene)
@@ -787,7 +787,7 @@ static void sound_start_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
-float sound_sync_scene(struct Scene *UNUSED(scene)) { return .0f/.0f; }
+float sound_sync_scene(struct Scene *UNUSED(scene)) { return SOUND_ERR_FLT; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
 void sound_read_waveform(struct bSound* sound) { (void)sound; }

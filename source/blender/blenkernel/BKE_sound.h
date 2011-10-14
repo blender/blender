@@ -35,6 +35,7 @@
  *  \author nzc
  */
 
+#define SOUND_ERR_FLT FLT_MIN
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
 struct PackedFile;
