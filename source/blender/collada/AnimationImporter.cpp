@@ -962,30 +962,32 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 			for (unsigned int j = 0; j < matBinds.getCount(); j++) {
 				const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
 				const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
-				const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
-				COLLADAFW::EffectCommon *efc = commonEffects[0];
-				if((animType->material & MATERIAL_SHININESS) != 0){
-					const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
-					const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
-					Assign_float_animations( listid, AnimCurves , "specular_hardness" );
-				}
+				if (ef != NULL) { /* can be NULL [#28909] */
+					const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+					COLLADAFW::EffectCommon *efc = commonEffects[0];
+					if((animType->material & MATERIAL_SHININESS) != 0){
+						const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
+						const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
+						Assign_float_animations( listid, AnimCurves , "specular_hardness" );
+					}
 
-				if((animType->material & MATERIAL_IOR) != 0){
-					const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
-					const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
-					Assign_float_animations( listid, AnimCurves , "raytrace_transparency.ior" );
-				}
+					if((animType->material & MATERIAL_IOR) != 0){
+						const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
+						const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
+						Assign_float_animations( listid, AnimCurves , "raytrace_transparency.ior" );
+					}
 
-				if((animType->material & MATERIAL_SPEC_COLOR) != 0){
-					const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
-					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
-					Assign_color_animations( listid, AnimCurves , "specular_color" );
-				}
+					if((animType->material & MATERIAL_SPEC_COLOR) != 0){
+						const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
+						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
+						Assign_color_animations( listid, AnimCurves , "specular_color" );
+					}
 
-				if((animType->material & MATERIAL_DIFF_COLOR) != 0){
-					const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
-					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
-					Assign_color_animations( listid, AnimCurves , "diffuse_color" );
+					if((animType->material & MATERIAL_DIFF_COLOR) != 0){
+						const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
+						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
+						Assign_color_animations( listid, AnimCurves , "diffuse_color" );
+					}
 				}
 			}
 		}	
@@ -1051,14 +1053,16 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 		for (unsigned int j = 0; j < matBinds.getCount(); j++) {
 			const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
 			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
-			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
-			if(!commonEffects.empty()) {
-				COLLADAFW::EffectCommon *efc = commonEffects[0];
-				types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
-				types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
-				types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
-				// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
-				types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			if (ef != NULL) { /* can be NULL [#28909] */
+				const COLLADAFW::CommonEffectPointerArray& commonEffects = ef->getCommonEffects();
+				if(!commonEffects.empty()) {
+					COLLADAFW::EffectCommon *efc = commonEffects[0];
+					types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
+					types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
+					types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
+					// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
+					types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+				}
 			}
 		}
 	}
@@ -1067,10 +1071,10 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 
 int AnimationImporter::setAnimType ( const COLLADAFW::Animatable * prop , int types, int addition)
 {
-		const COLLADAFW::UniqueId& listid =  prop->getAnimationList();
-		if (animlist_map.find(listid) != animlist_map.end()) 
-				return types|addition;
-		else return types;
+	const COLLADAFW::UniqueId& listid =  prop->getAnimationList();
+	if (animlist_map.find(listid) != animlist_map.end())
+		return types|addition;
+	else return types;
 }		
 
 // Is not used anymore.
