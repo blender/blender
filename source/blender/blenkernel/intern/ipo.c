@@ -1034,12 +1034,14 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 					/* first bone target */
 				dtar= &dvar->targets[0];
 				dtar->id= (ID *)idriver->ob;
+				dtar->idtype= ID_OB;
 				if (idriver->name[0])
 					BLI_strncpy(dtar->pchan_name, idriver->name, sizeof(dtar->pchan_name));
 				
 					/* second bone target (name was stored in same var as the first one) */
 				dtar= &dvar->targets[1];
 				dtar->id= (ID *)idriver->ob;
+				dtar->idtype= ID_OB;
 				if (idriver->name[0]) // xxx... for safety
 					BLI_strncpy(dtar->pchan_name, idriver->name+DRIVER_NAME_OFFS, sizeof(dtar->pchan_name));
 			}
@@ -1051,6 +1053,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				/* only requires a single target */
 				dtar= &dvar->targets[0];
 				dtar->id= (ID *)idriver->ob;
+				dtar->idtype= ID_OB;
 				if (idriver->name[0])
 					BLI_strncpy(dtar->pchan_name, idriver->name, sizeof(dtar->pchan_name));
 				dtar->transChan= adrcode_to_dtar_transchan(idriver->adrcode);
@@ -1065,6 +1068,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				/* only requires single target */
 			dtar= &dvar->targets[0];
 			dtar->id= (ID *)idriver->ob;
+			dtar->idtype= ID_OB;
 			dtar->transChan= adrcode_to_dtar_transchan(idriver->adrcode);
 		}
 	}

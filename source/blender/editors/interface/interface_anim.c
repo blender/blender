@@ -179,6 +179,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 				
 				dtar = &dvar->targets[0];
 				dtar->id = (ID *)CTX_data_scene(C); // XXX: should we check that C is valid first?
+				dtar->idtype= ID_SCE;
 				dtar->rna_path = BLI_sprintfN("frame_current");
 			}
 			
