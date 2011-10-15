@@ -341,7 +341,7 @@ typedef struct bPose {
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 	
 	bAnimVizSettings avs;		/* settings for visualisation of bone animation */
-	char proxy_act_bone[32];           /*proxy active bone name*/
+	char proxy_act_bone[32];    /* proxy active bone name*/
 } bPose;
 
 
@@ -423,6 +423,8 @@ typedef enum eItasc_Solver {
  * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
  * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly related
  * to Action-Groups.
+ *
+ * Note that these two uses each have their own RNA 'ActionGroup' and 'BoneGroup'.
  */
 typedef struct bActionGroup {
 	struct bActionGroup *next, *prev;
