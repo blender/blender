@@ -2977,7 +2977,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
 		RNA_string_get(op->ptr, "directory", directory);
 		if (is_relative_path) {
-			/* TODO, shouldnt this already be relative from the filesel?
+			/* TODO, shouldn't this already be relative from the filesel?
 			 * (as the 'filepath' is) for now just make relative here,
 			 * but look into changing after 2.60 - campbell */
 			BLI_path_rel(directory, bmain->name);

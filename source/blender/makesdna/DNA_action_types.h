@@ -340,7 +340,7 @@ typedef struct bPose {
 	void *ikdata;				/* temporary IK data, depends on the IK solver. Not saved in file */
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 	
-	bAnimVizSettings avs;		/* settings for visualisation of bone animation */
+	bAnimVizSettings avs;		/* settings for visualization of bone animation */
 	char proxy_act_bone[32];    /* proxy active bone name*/
 } bPose;
 
@@ -653,7 +653,7 @@ typedef enum eAnimEdit_AutoSnap {
  * Constraint Channels in certain situations. 
  *
  * Action-Channels can only belong to one group at a time, but they still live the Action's
- * list of achans (to preserve backwards compatability, and also minimise the code
+ * list of achans (to preserve backwards compatibility, and also minimize the code
  * that would need to be recoded). Grouped achans are stored at the start of the list, according
  * to the position of the group in the list, and their position within the group. 
  */

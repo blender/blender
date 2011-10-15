@@ -575,7 +575,7 @@ static void ui_draw_links(uiBlock *block)
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
 static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 {
-	/* various properties are being compared here, hopfully sufficient
+	/* various properties are being compared here, hopefully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
 	if(but->retval != oldbut->retval) return 0;
 	if(but->rnapoin.data != oldbut->rnapoin.data) return 0;
@@ -640,7 +640,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 //				but->flag= oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
-				 * perhaps it should only copy spesific flags rather than all. */
+				 * perhaps it should only copy specific flags rather than all. */
 //				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
 //				but->active= oldbut->active;
@@ -748,7 +748,7 @@ static int ui_but_is_rna_undo(uiBut *but)
 	if(but->rnapoin.id.data) {
 		/* avoid undo push for buttons who's ID are screen or wm level
 		 * we could disable undo for buttons with no ID too but may have
-		 * unforseen conciquences, so best check for ID's we _know_ are not
+		 * unforeseen consequences, so best check for ID's we _know_ are not
 		 * handled by undo - campbell */
 		ID *id= but->rnapoin.id.data;
 		if(ID_CHECK_UNDO(id) == FALSE) {
@@ -865,7 +865,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* inherit flags from 'old' buttons that was drawn here previous, based
 	 * on matching buttons, we need this to make button event handling non
-	 * blocking, while still alowing buttons to be remade each redraw as it
+	 * blocking, while still allowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for(but=block->buttons.first; but; but=but->next) {
 		if(ui_but_update_from_old_block(C, block, &but))
