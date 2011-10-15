@@ -88,14 +88,11 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		float mis_weight = power_heuristic(pdf, bsdf_pdf);
 		*eval *= mis_weight;
 	}
-	else if(!(ls.shader & SHADER_AREA_LIGHT)) {
-		/* ensure point light works in Watts, this should be handled
-		 * elsewhere but for now together with the diffuse emission
-		 * closure it works out to the right value */
-		*eval *= 0.25f;
-
-		/* XXX verify with other light types */
-	}
+	/* todo: clean up these weights */
+	else if(ls.shader & SHADER_AREA_LIGHT)
+		*eval *= 0.25f; /* area lamp */
+	else if(ls.t != FLT_MAX)
+		*eval *= 0.25f*M_1_PI_F; /* point lamp */
 
 	if(ls.shader & SHADER_CAST_SHADOW) {
 		/* setup ray */

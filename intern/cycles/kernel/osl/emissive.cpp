@@ -64,7 +64,7 @@ public:
     Color3 eval (const Vec3 &Ng, const Vec3 &omega_out) const
     {
         float cosNO = fabsf(Ng.dot(omega_out));
-        float res = cosNO > 0 ? 1.0f / float(M_PI) : 0.0f;
+        float res = cosNO > 0 ? 1.0f: 0.0f;
         return Color3(res, res, res);
     }
 
@@ -91,7 +91,7 @@ public:
                const Vec3 &omega_out) const
     {
         float cosNO = Ng.dot(omega_out);
-        return cosNO > 0 ? 1.0f / float(M_PI) : 0.0f;
+        return cosNO > 0 ? 1.0f: 0.0f;
     }
 };
 

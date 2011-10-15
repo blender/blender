@@ -2057,6 +2057,30 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 	}
 }
 
+static void ntree_tmp_cycles_emission_version_patch(FileData *fd, Library *lib, bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeSocketValueFloat *valfloat;
+
+	for(node=ntree->nodes.first; node; node=node->next) {
+		if(node->type == SH_NODE_EMISSION) {
+			for(sock=node->inputs.first; sock; sock=sock->next) {
+				if(strcmp(sock->name, "Strength") == 0) {
+					valfloat= sock->default_value;
+					valfloat->value /= M_PI;
+				}
+			}
+		}
+		else if(node->type == NODE_GROUP) {
+			bNodeTree *ntree= newlibadr(fd, lib, node->id);
+
+			if(ntree)
+				ntree_tmp_cycles_emission_version_patch(fd, lib, ntree);
+		}
+	}
+}
+
 static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 {
 	bNode *node;
@@ -12294,6 +12318,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
+	}
+
+	if(main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 5)) {
+		Scene *sce;
+		Base *base;
+		Material *ma;
+
+		/* compatibility tweak */
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(strcmp(sce->r.engine, "CYCLES") == 0) {
+				for(base = sce->base.first; base; base=base->next) {
+					Object *ob= newlibadr(fd, lib, base->object);
+
+					if(ob && ob->type == OB_LAMP) {
+						Lamp *la= newlibadr(fd, lib, ob->data);
+						if(la)
+							la->area_size= 0.0f;
+					}
+				}
+			}
+		}
+
+		for(ma = main->mat.first; ma; ma= ma->id.next)
+			if(ma->nodetree)
+				ntree_tmp_cycles_emission_version_patch(fd, lib, ma->nodetree);
 	}
 
 	/* put compatibility code here until next subversion bump */

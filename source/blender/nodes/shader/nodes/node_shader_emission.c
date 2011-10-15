@@ -33,7 +33,7 @@
 
 static bNodeSocketTemplate sh_node_emission_in[]= {
 	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Strength",	30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
+	{	SOCK_FLOAT, 1, "Strength",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
 	{	-1, 0, ""	}
 };
 

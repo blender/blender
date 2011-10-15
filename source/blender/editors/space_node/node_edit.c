@@ -331,6 +331,16 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	fromsock= in->outputs.first;
 	tosock= out->inputs.first;
 	nodeAddLink(ntree, in, fromsock, out, tosock);
+
+	if(GS(id->name) == ID_LA) {
+		Lamp *la= (Lamp*)id;
+
+		if(la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA) {
+			bNodeSocket *sock= in->inputs.last;
+			bNodeSocketValueFloat *default_value= sock->default_value;
+			default_value->value= 100.0f;
+		}
+	}
 	
 	ntreeUpdateTree(ntree);
 }

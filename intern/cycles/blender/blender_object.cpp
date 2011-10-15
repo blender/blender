@@ -91,14 +91,11 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 	BL::Lamp b_lamp(b_ob.data());
 
 	/* type */
-#if 0
 	switch(b_lamp.type()) {
 		case BL::Lamp::type_POINT: {
 			BL::PointLamp b_point_lamp(b_lamp);
 			light->size = b_point_lamp.shadow_soft_size();
-#endif
 			light->type = LIGHT_POINT;
-#if 0
 			break;
 		}
 		case BL::Lamp::type_SPOT: {
@@ -132,11 +129,10 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 			break;
 		}
 	}
-#endif
 
-	/* location */
+	/* location and (inverted!) direction */
 	light->co = make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-	light->dir = make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
+	light->dir = -make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
 
 	/* shader */
 	vector<uint> used_shaders;
@@ -149,8 +145,8 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 	light->shader = used_shaders[0];
 
 	/* shadow */
-	//PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
-	//light->cast_shadow = get_boolean(clamp, "cast_shadow");
+	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
+	light->cast_shadow = get_boolean(clamp, "cast_shadow");
 
 	/* tag */
 	light->tag_update(scene);

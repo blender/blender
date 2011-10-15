@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 __device float3 emissive_eval(const float3 Ng, const float3 I)
 {
 	float cosNO = fabsf(dot(Ng, I));
-	float res = (cosNO > 0.0f)? M_1_PI_F: 0.0f;
+	float res = (cosNO > 0.0f)? 1.0f: 0.0f;
 	
 	return make_float3(res, res, res);
 }
@@ -48,7 +48,7 @@ __device float3 emissive_eval(const float3 Ng, const float3 I)
 __device float emissive_pdf(const float3 Ng, const float3 I)
 {
 	float cosNO = fabsf(dot(Ng, I));
-	return (cosNO > 0.0f)? M_1_PI_F: 0.0f;
+	return (cosNO > 0.0f)? 1.0f: 0.0f;
 }
 
 __device float3 svm_emissive_eval(ShaderData *sd, ShaderClosure *sc)

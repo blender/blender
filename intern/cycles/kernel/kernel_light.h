@@ -75,8 +75,8 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 			D = distant_light_sample(D, size, randu, randv);
 
 		ls->P = D;
-		ls->Ng = -D;
-		ls->D = D;
+		ls->Ng = D;
+		ls->D = -D;
 		ls->t = FLT_MAX;
 	}
 	else {
@@ -120,9 +120,9 @@ __device float regular_light_pdf(KernelGlobals *kg,
 	if(t == FLT_MAX)
 		return pdf;
 
-	float cos_pi = fabsf(dot(Ng, I));
+	float cos_pi = dot(Ng, I);
 
-	if(cos_pi == 0.0f)
+	if(cos_pi <= 0.0f)
 		return 0.0f;
 
 	return t*t*pdf/cos_pi;
