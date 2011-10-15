@@ -334,9 +334,10 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 }
 
 /*
- *  Compute higher-quality vertex normals used by solidify.
- *  Note that this will not work for non-manifold regions.
- *
+ * Compute higher-quality vertex normals used by solidify.
+ * Only considers geometry in the marked solidify region.
+ * Note that this does not work so well for non-manifold
+ * regions.
  */
 static void calc_solidify_normals(BMesh *bm)
 {
@@ -346,8 +347,6 @@ static void calc_solidify_normals(BMesh *bm)
 	BMFace *f, *f1, *f2;
 	float edge_normal[3];
 	int i;
-
-	BM_Compute_Normals(bm);
 
 	/* Clear indices of verts & edges */
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
@@ -363,11 +362,12 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f) {
+			/* Count number of marked faces using e */
 			i = BM_GetIndex(e);
-			/* Count number of marked faces using each edge */
 			BM_SetIndex(e, i+1);
 
-			/* And mark the edges and verts around marked faces */
+			/* And mark all edges and vertices on the
+			   marked faces */
 			BMO_SetFlag(bm, e, EDGE_MARK);
 			BMO_SetFlag(bm, e->v1, VERT_MARK);
 			BMO_SetFlag(bm, e->v2, VERT_MARK);
@@ -404,7 +404,15 @@ static void calc_solidify_normals(BMesh *bm)
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 		float angle;
 		
-		if (!BMO_TestFlag(bm, e, EDGE_MARK) || BMO_TestFlag(bm, e, EDGE_NONMAN)) {
+		/* If the edge is not part of a the solidify region
+		   its normal should not be considered */
+		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
+			continue;
+		}
+
+		/* If the edge joins more than two marked faces high
+		   quality normal computation won't work */
+		if (BMO_TestFlag(bm, e, EDGE_NONMAN)) {
 			continue;
 		}
 
@@ -415,7 +423,8 @@ static void calc_solidify_normals(BMesh *bm)
 				if (f1 == NULL) {
 					f1 = f;
 				}
-				else if (f2 == NULL) {
+				else {
+					BLI_assert(f2 == NULL);
 					f2 = f;
 				}
 			}
@@ -427,7 +436,7 @@ static void calc_solidify_normals(BMesh *bm)
 			angle = angle_normalized_v3v3(f1->no, f2->no);
 
 			if (angle > 0.0f) {
-				/* two faces using this edge, calculate the edges normal
+				/* two faces using this edge, calculate the edge normal
 				 * using the angle between the faces as a weighting */
 				add_v3_v3v3(edge_normal, f1->no, f2->no);
 				normalize_v3(edge_normal);
