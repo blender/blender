@@ -1259,7 +1259,6 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 void ui_set_but_vectorf(uiBut *but, const float vec[3])
 {
 	PropertyRNA *prop;
-	int a, tot;
 
 	if(but->editvec) {
 		copy_v3_v3(but->editvec, vec);
@@ -1269,11 +1268,15 @@ void ui_set_but_vectorf(uiBut *but, const float vec[3])
 		prop= but->rnaprop;
 
 		if(RNA_property_type(prop) == PROP_FLOAT) {
+			int tot;
+			int a;
+
 			tot= RNA_property_array_length(&but->rnapoin, prop);
 			tot= MIN2(tot, 3);
 
-			for(a=0; a<tot; a++)
+			for (a=0; a<tot; a++) {
 				RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
+			}
 		}
 	}
 	else if(but->pointype == CHA) {
