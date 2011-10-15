@@ -344,7 +344,7 @@ static void ui_node_menu_column(Main *bmain, NodeLinkArg *arg, uiLayout *layout,
 			char name[UI_MAX_NAME_STR];
 			int i, j, num = 0;
 
-			if(!(ntype->compatibility & compatibility))
+			if(compatibility && !(ntype->compatibility & compatibility))
 				continue;
 
 			if(ntype->nclass != nclass)
@@ -403,12 +403,14 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 	uiLayout *split, *column;
 	NodeLinkArg *arg = (NodeLinkArg*)but->func_argN;
 	bNodeSocket *sock = arg->sock;
-	int compatibility;
+	int compatibility= 0;
 
-	if(scene_use_new_shading_nodes(scene))
-		compatibility= NODE_NEW_SHADING;
-	else
-		compatibility= NODE_OLD_SHADING;
+	if(arg->ntree->type == NTREE_SHADER) {
+		if(scene_use_new_shading_nodes(scene))
+			compatibility= NODE_NEW_SHADING;
+		else
+			compatibility= NODE_OLD_SHADING;
+	}
 	
 	uiBlockSetCurLayout(block, layout);
 	split= uiLayoutSplit(layout, 0, 0);

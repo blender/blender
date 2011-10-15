@@ -175,7 +175,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree;
 	int nodeclass= GET_INT_FROM_POINTER(arg_nodeclass);
-	int event, compatibility;
+	int event, compatibility= 0;
 	
 	ntree = snode->nodetree;
 	
@@ -184,10 +184,12 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		return;
 	}
 
-	if(scene_use_new_shading_nodes(scene))
-		compatibility= NODE_NEW_SHADING;
-	else
-		compatibility= NODE_OLD_SHADING;
+	if(ntree->type == NTREE_SHADER) {
+		if(scene_use_new_shading_nodes(scene))
+			compatibility= NODE_NEW_SHADING;
+		else
+			compatibility= NODE_OLD_SHADING;
+	}
 	
 	if (nodeclass==NODE_CLASS_GROUP) {
 		bNodeTree *ngroup;
@@ -219,8 +221,9 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		uiLayoutSetFunc(layout, do_node_add_static, NULL);
 		
 		for (ntype=ntreeGetType(ntree->type)->node_types.first; ntype; ntype=ntype->next) {
-			if(ntype->nclass==nodeclass && ntype->name && (ntype->compatibility&compatibility))
-				uiItemV(layout, ntype->name, 0, ntype->type);
+			if (ntype->nclass==nodeclass && ntype->name)
+				if (!compatibility || (ntype->compatibility & compatibility))
+					uiItemV(layout, ntype->name, 0, ntype->type);
 		}
 	}
 }

@@ -1924,6 +1924,9 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_tex_marble(ntypelist);
 	register_node_type_sh_tex_clouds(ntypelist);
 	register_node_type_sh_tex_wood(ntypelist);
+	register_node_type_sh_tex_stucci(ntypelist);
+	register_node_type_sh_tex_noise(ntypelist);
+	register_node_type_sh_tex_distnoise(ntypelist);
 	register_node_type_sh_tex_musgrave(ntypelist);
 }
 
