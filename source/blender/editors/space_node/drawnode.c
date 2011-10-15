@@ -1006,6 +1006,11 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 	}
 }*/
 
+static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "attribute_name", 0, "Name", ICON_NONE);
+}
+
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
@@ -1169,6 +1174,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_GEOM:
 			ntype->uifunc= node_shader_buts_geometry;
+			break;
+		case SH_NODE_ATTRIBUTE:
+			ntype->uifunc= node_shader_buts_attribute;
 			break;
 		case SH_NODE_TEX_SKY:
 			ntype->uifunc= node_shader_buts_tex_sky;

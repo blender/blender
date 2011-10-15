@@ -487,6 +487,10 @@ typedef struct NodeTexWood {
 	int hard;
 } NodeTexWood;
 
+typedef struct NodeShaderAttribute {
+	char name[64];
+} NodeShaderAttribute;
+
 /* TEX_output */
 typedef struct TexNodeOutput {
 	char name[32];

@@ -196,8 +196,9 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			break;
 		}
 		case BL::ShaderNode::type_ATTRIBUTE: {
+			BL::ShaderNodeAttribute b_attr_node(b_node);
 			AttributeNode *attr = new AttributeNode();
-			attr->attribute = "";
+			attr->attribute = b_attr_node.attribute_name();
 			node = attr;
 			break;
 		}

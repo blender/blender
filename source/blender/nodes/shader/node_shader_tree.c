@@ -244,4 +244,3 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	if(shr->combined[1]<0.0f) shr->combined[1]= 0.0f;
 	if(shr->combined[2]<0.0f) shr->combined[2]= 0.0f;
 }
-

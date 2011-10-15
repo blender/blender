@@ -121,17 +121,18 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			size_t i = 0;
 
 			for(l->data.begin(c); c != l->data.end(); ++c, ++i) {
-				fdata[0] =  get_float3(c->color1());
-				fdata[1] =  get_float3(c->color2());
-				fdata[2] =  get_float3(c->color3());
-				fdata += 3;
+				fdata[0] = color_srgb_to_scene_linear(get_float3(c->color1()));
+				fdata[1] = color_srgb_to_scene_linear(get_float3(c->color2()));
+				fdata[2] = color_srgb_to_scene_linear(get_float3(c->color3()));
 
 				if(nverts[i] == 4) {
-					fdata[0] =  get_float3(c->color1());
-					fdata[1] =  get_float3(c->color3());
-					fdata[2] =  get_float3(c->color4());
-					fdata += 3;
+					fdata[3] = fdata[0];
+					fdata[4] = fdata[2];
+					fdata[5] = color_srgb_to_scene_linear(get_float3(c->color4()));
+					fdata += 6;
 				}
+				else
+					fdata += 3;
 			}
 		}
 	}
