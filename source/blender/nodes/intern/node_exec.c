@@ -180,7 +180,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	
 	/* prepare group tree inputs */
 	for (sock=ntree->inputs.first; sock; sock=sock->next) {
-		ns = setup_stack(exec->stack, sock);
+		/* ns = */ setup_stack(exec->stack, sock);
 	}
 	/* prepare all internal nodes for execution */
 	for(n=0, nodeexec= exec->nodeexec; n < totnodes; ++n, ++nodeexec) {
@@ -198,7 +198,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 		
 		/* tag all outputs */
 		for (sock=node->outputs.first; sock; sock=sock->next) {
-			ns = setup_stack(exec->stack, sock);
+			/* ns = */ setup_stack(exec->stack, sock);
 		}
 		
 		if(node->typeinfo->initexecfunc)
