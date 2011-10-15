@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
@@ -1495,7 +1496,6 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 }
 
 #ifdef WITH_LIBMV
-/* flips upside-down */
 static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 {
 	int x, y;
@@ -1504,18 +1504,16 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 	fp= pixels= MEM_callocN(ibuf->x*ibuf->y*sizeof(unsigned char), "tracking ucharBuf");
 	for(y= 0; y<ibuf->y; y++) {
 		for (x= 0; x<ibuf->x; x++) {
-			int pixel= ibuf->x*(ibuf->y-y-1) + x;
+			int pixel= ibuf->x*y + x;
 
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + pixel*4;
 
-				//*fp= 0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2];
-				*fp= (11*rrgbf[0]+16*rrgbf[1]+5*rrgbf[2])/32;
+				*fp= 0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2];
 			} else {
 				char *rrgb= (char*)ibuf->rect + pixel*4;
 
-				//*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
-				*fp= (11*rrgb[0]+16*rrgb[1]+5*rrgb[2])/32;
+				*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
 			}
 
 			fp++;
@@ -1526,32 +1524,106 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 }
 #endif
 
-void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int min_trackness, int count, int min_distance, int fast)
+static int point_in_stroke(bGPDstroke *stroke, float x, float y)
+{
+	int i, prev;
+	int count= 0;
+	bGPDspoint *points= stroke->points;
+
+	prev= stroke->totpoints-1;
+
+	for(i= 0; i<stroke->totpoints; i++) {
+		if((points[i].y<y && points[prev].y>=y) || (points[prev].y<y && points[i].y>=y)) {
+			float fac= (y-points[i].y)/(points[prev].y-points[i].y);
+
+			if (points[i].x+fac*(points[prev].x-points[i].x)<x)
+				count++;
+		}
+
+		prev= i;
+	}
+
+	return count%2;
+}
+
+static int point_in_layer(bGPDlayer *layer, float x, float y)
+{
+	bGPDframe *frame= layer->frames.first;
+
+	while(frame) {
+		bGPDstroke *stroke= frame->strokes.first;
+		while(stroke) {
+			if(point_in_stroke(stroke, x, y))
+				return 1;
+
+			stroke= stroke->next;
+		}
+		frame= frame->next;
+	}
+
+	return 0;
+}
+
+static void retrive_libmv_features(MovieTracking *tracking, struct libmv_Features *features,
+			int framenr, int width, int height, bGPDlayer *layer)
 {
 #ifdef WITH_LIBMV
-	struct libmv_Features *features;
-	unsigned char *pixels= acquire_ucharbuf(ibuf);
 	int a;
-
-	if(fast) 
-		features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
-	else
-		features= libmv_detectFeaturesMORAVEC(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
-
-	MEM_freeN(pixels);
 
 	a= libmv_countFeatures(features);
 	while(a--) {
 		MovieTrackingTrack *track;
 		double x, y, size, score;
+		int ok= 1;
+		float xu, yu;
 
 		libmv_getFeature(features, a, &x, &y, &score, &size);
 
-		track= BKE_tracking_add_track(tracking, x/ibuf->x, 1.0f-(y/ibuf->y), framenr, ibuf->x, ibuf->y);
-		track->flag|= SELECT;
-		track->pat_flag|= SELECT;
-		track->search_flag|= SELECT;
+		xu= x/width;
+		yu= y/height;
+
+		if(layer)
+			ok= point_in_layer(layer, xu, yu);
+
+		if(ok) {
+			track= BKE_tracking_add_track(tracking, xu, yu, framenr, width, height);
+			track->flag|= SELECT;
+			track->pat_flag|= SELECT;
+			track->search_flag|= SELECT;
+		}
 	}
+#endif
+}
+
+void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
+			int framenr, int margin, int min_trackness, int min_distance, bGPDlayer *layer)
+{
+#ifdef WITH_LIBMV
+	struct libmv_Features *features;
+	unsigned char *pixels= acquire_ucharbuf(ibuf);
+
+	features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
+
+	MEM_freeN(pixels);
+
+	retrive_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
+
+	libmv_destroyFeatures(features);
+#endif
+}
+
+void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
+			int framenr, int margin, int count, int min_distance, bGPDlayer *layer)
+{
+#ifdef WITH_LIBMV
+	struct libmv_Features *features;
+	unsigned char *pixels= acquire_ucharbuf(ibuf);
+
+	features= libmv_detectFeaturesMORAVEC(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
+
+	MEM_freeN(pixels);
+
+	retrive_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
 
 	libmv_destroyFeatures(features);
 #endif

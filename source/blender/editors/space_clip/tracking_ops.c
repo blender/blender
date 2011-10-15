@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
@@ -2208,6 +2209,24 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 
 /********************** detect features operator *********************/
 
+static bGPDlayer *detect_get_layer(MovieClip *clip)
+{
+	bGPDlayer *layer;
+
+	if(!clip->gpd)
+		return NULL;
+
+	layer= clip->gpd->layers.first;
+	while(layer) {
+		if(layer->flag&GP_LAYER_ACTIVE)
+			return layer;
+
+		layer= layer->next;
+	}
+
+	return NULL;
+}
+
 static int detect_features_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -2215,10 +2234,15 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	ImBuf *ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &sc->user, 0);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
 	int detector= RNA_enum_get(op->ptr, "detector");
+	int use_grease_pencil= RNA_boolean_get(op->ptr, "use_grease_pencil");
 	int margin= RNA_int_get(op->ptr, "margin");
 	int min_trackness= RNA_int_get(op->ptr, "min_trackness");
 	int count= RNA_int_get(op->ptr, "count");
 	int min_distance= RNA_int_get(op->ptr, "min_distance");
+	bGPDlayer *layer= NULL;
+
+	if(use_grease_pencil)
+		layer= detect_get_layer(clip);
 
 	/* deselect existing tracks */
 	while(track) {
@@ -2229,7 +2253,10 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, count, min_distance, detector==0);
+	if(detector==0)
+		BKE_tracking_detect_fast(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, min_distance, layer);
+	else
+		BKE_tracking_detect_moravec(&clip->tracking, ibuf, sc->user.framenr, margin, count, min_distance, layer);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2287,6 +2314,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "detector", detector_items, 0, "Detector", "Detector using for detecting features");
+	RNA_def_boolean(ot->srna, "use_grease_pencil", 0, "Use Grease Pencil", "Use grease pencil strokes from active layer to define zones where detection should happen");
 	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
 	RNA_def_int(ot->srna, "min_trackness", 16, 0, INT_MAX, "Trackness", "Minimum score to add a corner", 0, 300);
 	RNA_def_int(ot->srna, "count", 50, 1, INT_MAX, "Count", "Count of corners to detect", 0, 300);

@@ -35,6 +35,14 @@ namespace libmv {
 
 typedef unsigned int uint;
 
+int featurecmp(const void *a_v, const void *b_v)
+{
+  Feature *a = (Feature*)a_v;
+  Feature *b = (Feature*)b_v;
+
+  return b->score - a->score;
+}
+
 std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height, int stride,
                            int min_trackness, int min_distance) {
   std::vector<Feature> features;
@@ -54,21 +62,43 @@ std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
   // FIXME(MatthiasF): this method will not necessarily give all maximum markers
-  if(num_features) features.reserve(num_features);
-  for(int i = 0; i < num_features; ++i) {
-    xy xy = nonmax[i];
-    Feature a = { xy.x, xy.y, scores[i], 7 };
-    // compare each feature against filtered set
-    for(int j = 0; j < features.size(); j++) {
-      Feature& b = features[j];
-      if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
-        // already a nearby feature
-        goto skip;
+  if(num_features) {
+    Feature *all_features = new Feature[num_features];
+
+    for(int i = 0; i < num_features; ++i) {
+      Feature a = { nonmax[i].x, nonmax[i].y, scores[i], 0 };
+      all_features[i] = a;
+    }
+
+    qsort((void *)all_features, num_features, sizeof(Feature), featurecmp);
+
+    features.reserve(num_features);
+
+    int prev_score = all_features[0].score;
+    for(int i = 0; i < num_features; ++i) {
+      bool ok = true;
+      Feature a = all_features[i];
+      if(a.score>prev_score)
+        abort();
+      prev_score = a.score;
+
+      // compare each feature against filtered set
+      for(int j = 0; j < features.size(); j++) {
+        Feature& b = features[j];
+        if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
+          // already a nearby feature
+          ok = false;
+          break;
+        }
+      }
+
+      if(ok) {
+        // add the new feature
+        features.push_back(a);
       }
     }
-    // otherwise add the new feature
-    features.push_back(a);
-    skip: ;
+
+    delete [] all_features;
   }
   free(scores);
   free(nonmax);
