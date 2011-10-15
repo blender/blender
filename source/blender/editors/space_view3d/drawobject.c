@@ -6723,7 +6723,10 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		}
 		else {
 			Mesh *me= ob->data;
-			if(me->editflag & ME_EDIT_VERT_SEL) {
+			if(     (me->editflag & ME_EDIT_VERT_SEL) &&
+			        /* currently vertex select only supports weight paint */
+			        (ob->mode & OB_MODE_WEIGHT_PAINT))
+			{
 				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 				glColor3ub(0, 0, 0);
 
