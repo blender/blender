@@ -985,6 +985,7 @@ class VIEW3D_MT_make_links(Menu):
 
         layout.operator("object.join_uvs")  # stupid place to add this!
 
+
 class VIEW3D_MT_object_game(Menu):
     bl_label = "Game"
 
