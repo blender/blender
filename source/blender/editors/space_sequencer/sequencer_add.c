@@ -321,7 +321,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		char dir_only[FILE_MAX];
 		char file_only[FILE_MAX];
 
-		BLI_split_dirfile(seq_load.path, dir_only, NULL);
+		BLI_split_dirfile(seq_load.path, dir_only, NULL, sizeof(dir_only), 0);
 
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", file_only);

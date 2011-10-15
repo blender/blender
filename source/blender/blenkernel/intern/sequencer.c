@@ -3647,7 +3647,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	/* we only need 1 element to store the filename */
 	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
-	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
+	BLI_split_dirfile(seq_load->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
 
@@ -3706,7 +3706,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	/* we only need 1 element for MOVIE strips */
 	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
-	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
+	BLI_split_dirfile(seq_load->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
 	calc_sequence_disp(scene, seq);
 
