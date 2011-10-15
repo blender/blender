@@ -108,8 +108,6 @@ void ED_node_changed_update(ID *id, bNode *node)
 			WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, id);
 		else if(GS(id->name) == ID_WO)
 			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
-		else if(GS(id->name) == ID_TE)
-			WM_main_add_notifier(NC_TEXTURE|ND_NODES, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
 		NodeTagChanged(edittree, node);

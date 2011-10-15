@@ -485,12 +485,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "recalc", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Recalc", "Datablock is tagged for recalculation.");
+	RNA_def_property_ui_text(prop, "Recalc", "Datablock is tagged for recalculation");
 
 	prop= RNA_def_property(srna, "recalc_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC_DATA);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Recalc Data", "Datablock data is tagged for recalculation.");
+	RNA_def_property_ui_text(prop, "Recalc Data", "Datablock data is tagged for recalculation");
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");

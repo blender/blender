@@ -64,6 +64,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
@@ -279,7 +280,7 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_shader_default(ID *id)
+void ED_node_shader_default(Scene *scene, ID *id)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
@@ -292,8 +293,15 @@ void ED_node_shader_default(ID *id)
 	switch(GS(id->name)) {
 		case ID_MA:
 			((Material*)id)->nodetree = ntree;
-			output_type = SH_NODE_OUTPUT_MATERIAL;
-			shader_type = SH_NODE_BSDF_DIFFUSE;
+
+			if(scene_use_new_shading_nodes(scene)) {
+				output_type = SH_NODE_OUTPUT_MATERIAL;
+				shader_type = SH_NODE_BSDF_DIFFUSE;
+			}
+			else {
+				output_type = SH_NODE_OUTPUT;
+				shader_type = SH_NODE_MATERIAL;
+			}
 			break;
 		case ID_WO:
 			((World*)id)->nodetree = ntree;
@@ -304,11 +312,6 @@ void ED_node_shader_default(ID *id)
 			((Lamp*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_LAMP;
 			shader_type = SH_NODE_EMISSION;
-			break;
-		case ID_TE:
-			((Tex*)id)->nodetree = ntree;
-			output_type = SH_NODE_OUTPUT_TEXTURE;
-			shader_type = SH_NODE_TEX_CLOUDS;
 			break;
 		default:
 			printf("ED_node_shader_default called on wrong ID type.\n");
@@ -376,9 +379,6 @@ void ED_node_composit_default(Scene *sce)
 /* called from shading buttons or header */
 void ED_node_texture_default(Tex *tx)
 {
-	ED_node_shader_default(&tx->id);
-
-#if 0
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
 	bNodeTemplate ntemp;
@@ -406,7 +406,6 @@ void ED_node_texture_default(Tex *tx)
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
 	ntreeUpdateTree(tx->nodetree);
-#endif
 }
 
 /* id is supposed to contain a node tree */
@@ -438,7 +437,7 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 		}
 		else if(idtype == ID_TE) {
 			*ntree= ((Tex*)id)->nodetree;
-			if(treetype) *treetype= (*ntree)? (*ntree)->type: NTREE_SHADER;
+			if(treetype) *treetype= NTREE_TEXTURE;
 		}
 		else {
 			if(treetype) *treetype= 0;
@@ -3663,6 +3662,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
+
 	if(prop) {
 		RNA_id_pointer_create(&ntree->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
@@ -3698,4 +3698,3 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", nodetree_type_items, NTREE_COMPOSIT, "Tree Type", "");
 	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME-2, "Name", "");
 }
-

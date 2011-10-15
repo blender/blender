@@ -234,13 +234,11 @@ static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 			if(for_texture && give_current_material_texture_node(ma))
 				return 1;
 			
-#if 0
 			ma= give_node_material(ma);
 			if(ma) {
 				RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 				path->len++;
 			}			
-#endif
 			return 1;
 		}
 	}
@@ -371,139 +369,141 @@ static int buttons_context_path_brush(ButsContextPath *path)
 
 static int buttons_context_path_texture(ButsContextPath *path, ButsContextTexture *ct)
 {
-	PointerRNA *ptr= &path->ptr[path->len-1];
-	ID *id;
+	if(ct) {
+		/* new shading system */
+		PointerRNA *ptr= &path->ptr[path->len-1];
+		ID *id;
 
-	/* if we already have a (pinned) texture, we're done */
-	if(RNA_struct_is_a(ptr->type, &RNA_Texture))
-		return 1;
+		/* if we already have a (pinned) texture, we're done */
+		if(RNA_struct_is_a(ptr->type, &RNA_Texture))
+			return 1;
 
-	if(!(ct && ct->user))
-		return 0;
-	
-	id= ct->user->id;
-
-	if(id) {
-		if(GS(id->name) == ID_BR)
-			buttons_context_path_brush(path);
-		else if(GS(id->name) == ID_MA)
-			buttons_context_path_material(path, 0);
-		else if(GS(id->name) == ID_WO)
-			buttons_context_path_world(path);
-		else if(GS(id->name) == ID_LA)
-			buttons_context_path_data(path, OB_LAMP);
-		else if(GS(id->name) == ID_PA)
-			buttons_context_path_particle(path);
-		else if(GS(id->name) == ID_OB)
-			buttons_context_path_object(path);
-	}
-	
-	if(ct->texture) {
-		RNA_id_pointer_create(&ct->texture->id, &path->ptr[path->len]);
-		path->len++;
-	}
-
-	return 1;
-
-
-#if 0
-	Material *ma;
-	Lamp *la;
-	Brush *br;
-	World *wo;
-	ParticleSystem *psys;
-	Tex *tex;
-	PointerRNA *ptr= &path->ptr[path->len-1];
-	int orig_len = path->len;
-
-	/* if we already have a (pinned) texture, we're done */
-	if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
-		return 1;
-	}
-	/* try brush */
-	if((path->tex_ctx == SB_TEXC_BRUSH) && buttons_context_path_brush(path)) {
-		br= path->ptr[path->len-1].data;
+		if(!ct->user)
+			return 0;
 		
-		if(br) {
-			tex= give_current_brush_texture(br);
+		id= ct->user->id;
 
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+		if(id) {
+			if(GS(id->name) == ID_BR)
+				buttons_context_path_brush(path);
+			else if(GS(id->name) == ID_MA)
+				buttons_context_path_material(path, 0);
+			else if(GS(id->name) == ID_WO)
+				buttons_context_path_world(path);
+			else if(GS(id->name) == ID_LA)
+				buttons_context_path_data(path, OB_LAMP);
+			else if(GS(id->name) == ID_PA)
+				buttons_context_path_particle(path);
+			else if(GS(id->name) == ID_OB)
+				buttons_context_path_object(path);
 		}
+		
+		if(ct->texture) {
+			RNA_id_pointer_create(&ct->texture->id, &path->ptr[path->len]);
+			path->len++;
+		}
+
+		return 1;
 	}
-	/* try world */
-	if((path->tex_ctx == SB_TEXC_WORLD) && buttons_context_path_world(path)) {
-		wo= path->ptr[path->len-1].data;
+	else {
+		/* old shading system */
+		Material *ma;
+		Lamp *la;
+		Brush *br;
+		World *wo;
+		ParticleSystem *psys;
+		Tex *tex;
+		PointerRNA *ptr= &path->ptr[path->len-1];
+		int orig_len = path->len;
 
-		if(wo && GS(wo->id.name)==ID_WO) {
-			tex= give_current_world_texture(wo);
-
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
+		/* if we already have a (pinned) texture, we're done */
+		if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
 			return 1;
 		}
-	}
-	/* try particles */
-	if((path->tex_ctx == SB_TEXC_PARTICLES) && buttons_context_path_particle(path)) {
-		if(path->ptr[path->len-1].type == &RNA_ParticleSettings) {
-			ParticleSettings *part = path->ptr[path->len-1].data;
-
-			tex= give_current_particle_texture(part);
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
-		}
-		else {
-			psys= path->ptr[path->len-1].data;
-
-			if(psys && psys->part && GS(psys->part->id.name)==ID_PA) {
-				tex= give_current_particle_texture(psys->part);
+		/* try brush */
+		if((path->tex_ctx == SB_TEXC_BRUSH) && buttons_context_path_brush(path)) {
+			br= path->ptr[path->len-1].data;
+			
+			if(br) {
+				tex= give_current_brush_texture(br);
 
 				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 				path->len++;
 				return 1;
 			}
 		}
-	}
-	/* try material */
-	if(buttons_context_path_material(path, 1)) {
-		ma= path->ptr[path->len-1].data;
+		/* try world */
+		if((path->tex_ctx == SB_TEXC_WORLD) && buttons_context_path_world(path)) {
+			wo= path->ptr[path->len-1].data;
 
-		if(ma) {
-			tex= give_current_material_texture(ma);
+			if(wo && GS(wo->id.name)==ID_WO) {
+				tex= give_current_world_texture(wo);
 
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
-	}
-	/* try lamp */
-	if(buttons_context_path_data(path, OB_LAMP)) {
-		la= path->ptr[path->len-1].data;
+		/* try particles */
+		if((path->tex_ctx == SB_TEXC_PARTICLES) && buttons_context_path_particle(path)) {
+			if(path->ptr[path->len-1].type == &RNA_ParticleSettings) {
+				ParticleSettings *part = path->ptr[path->len-1].data;
 
-		if(la) {
-			tex= give_current_lamp_texture(la);
+				tex= give_current_particle_texture(part);
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
+			else {
+				psys= path->ptr[path->len-1].data;
 
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+				if(psys && psys->part && GS(psys->part->id.name)==ID_PA) {
+					tex= give_current_particle_texture(psys->part);
+
+					RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
 		}
-	}
-	/* try brushes again in case of no material, lamp, etc */
-	path->len = orig_len;
-	if(buttons_context_path_brush(path)) {
-		br= path->ptr[path->len-1].data;
-		
-		if(br) {
-			tex= give_current_brush_texture(br);
+		/* try material */
+		if(buttons_context_path_material(path, 1)) {
+			ma= path->ptr[path->len-1].data;
+
+			if(ma) {
+				tex= give_current_material_texture(ma);
+
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
+		}
+		/* try lamp */
+		if(buttons_context_path_data(path, OB_LAMP)) {
+			la= path->ptr[path->len-1].data;
+
+			if(la) {
+				tex= give_current_lamp_texture(la);
+
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
+		}
+		/* try brushes again in case of no material, lamp, etc */
+		path->len = orig_len;
+		if(buttons_context_path_brush(path)) {
+			br= path->ptr[path->len-1].data;
 			
-			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+			if(br) {
+				tex= give_current_brush_texture(br);
+				
+				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
 	}
-#endif
 
 	/* no path to a texture possible */
 	return 0;
@@ -747,9 +747,15 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if(CTX_data_equals(member, "texture")) {
 		ButsContextTexture *ct= sbuts->texuser;
-		
-		if(ct)
+
+		if(ct) {
+			/* new shading system */
 			CTX_data_pointer_set(result, &ct->texture->id, &RNA_Texture, ct->texture);
+		}
+		else {
+			/* old shading system */
+			set_pointer_type(path, result, &RNA_Texture);
+		}
 
 		return 1;
 	}
@@ -772,7 +778,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if(CTX_data_equals(member, "texture_user")) {
 		ButsContextTexture *ct= sbuts->texuser;
 
-		if(ct && ct->user && ct->user->ptr.data) {
+		if(!ct)
+			return 0; /* old shading system */
+
+		if(ct->user && ct->user->ptr.data) {
 			ButsTextureUser *user= ct->user; 
 			CTX_data_pointer_set(result, user->ptr.id.data, user->ptr.type, user->ptr.data);
 		}
@@ -782,28 +791,35 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if(CTX_data_equals(member, "texture_node")) {
 		ButsContextTexture *ct= sbuts->texuser;
 
-		if(ct && ct->user && ct->user->node)
-			CTX_data_pointer_set(result, &ct->user->ntree->id, &RNA_Node, ct->user->node);
+		if(ct) {
+			/* new shading system */
+			if(ct->user && ct->user->node)
+				CTX_data_pointer_set(result, &ct->user->ntree->id, &RNA_Node, ct->user->node);
 
-		return 1;
-	}
-#if 0
-	else if(CTX_data_equals(member, "texture_node")) {
-		PointerRNA *ptr;
-
-		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data;
-
-			if(ma) {
-				bNode *node= give_current_material_texture_node(ma);
-				CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
-			}
+			return 1;
 		}
+		else {
+			/* old shading system */
+			PointerRNA *ptr;
 
-		return 1;
+			if((ptr=get_pointer_type(path, &RNA_Material))) {
+				Material *ma= ptr->data;
+
+				if(ma) {
+					bNode *node= give_current_material_texture_node(ma);
+					CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
+				}
+			}
+
+			return 1;
+		}
 	}
 	else if(CTX_data_equals(member, "texture_slot")) {
+		ButsContextTexture *ct= sbuts->texuser;
 		PointerRNA *ptr;
+
+		if(ct)
+			return 0; /* new shading system */
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
 			Material *ma= ptr->data;
@@ -851,7 +867,6 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
-#endif
 	else if(CTX_data_equals(member, "bone")) {
 		set_pointer_type(path, result, &RNA_Bone);
 		return 1;

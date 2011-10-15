@@ -1362,9 +1362,9 @@ int multitex_ext_safe(Tex *tex, float *texvec, TexResult *texres)
 {
 	int use_nodes= tex->use_nodes, retval;
 	
-	// XXX tex->use_nodes= 0;
+	tex->use_nodes= 0;
 	retval= multitex_nodes(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL);
-	// XXX tex->use_nodes= use_nodes;
+	tex->use_nodes= use_nodes;
 	
 	return retval;
 }

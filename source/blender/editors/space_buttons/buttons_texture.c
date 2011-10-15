@@ -58,6 +58,7 @@
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 
 #include "RNA_access.h"
 
@@ -252,6 +253,17 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 	/* gatheravailable texture users in context. runs on every draw of
 	   properties editor, before the buttons are created. */
 	ButsContextTexture *ct= sbuts->texuser;
+	Scene *scene= CTX_data_scene(C);
+
+	if(!scene_use_new_shading_nodes(scene)) {
+		if(ct) {
+			MEM_freeN(ct);
+			BLI_freelistN(&ct->users);
+			sbuts->texuser= NULL;
+		}
+		
+		return;
+	}
 
 	if(!ct) {
 		ct= MEM_callocN(sizeof(ButsContextTexture), "ButsContextTexture");

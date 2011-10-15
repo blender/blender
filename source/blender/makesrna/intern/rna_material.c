@@ -271,13 +271,14 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 		ma->ramp_spec= add_colorband(0);
 }
 
-static void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
+static void rna_Material_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
 
-	ma->use_nodes= value;
 	if(ma->use_nodes && ma->nodetree==NULL)
-		ED_node_shader_default(&ma->id);
+		ED_node_shader_default(scene, &ma->id);
+	
+	rna_Material_update(bmain, scene, ptr);
 }
 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
@@ -1956,9 +1957,9 @@ void RNA_def_material(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_use_nodes_update");
 
 	prop= RNA_def_property(srna, "active_node_material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");

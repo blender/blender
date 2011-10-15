@@ -49,7 +49,6 @@
 #include "node_util.h"
 #include "NOD_texture.h"
 #include "node_texture_util.h"
-#include "../shader/node_shader_util.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -217,57 +216,36 @@ int ntreeTexExecTree(
 	ShadeInput *shi,
 	MTex *mtex
 ){
+	TexCallData data;
+	float *nor= texres->nor;
+	int retval = TEX_INT;
 	bNodeThreadStack *nts = NULL;
 	bNodeTreeExec *exec= nodes->execdata;
 
-	if(nodes->type == NTREE_SHADER) {
-		ShaderCallData scd;
+	data.co = co;
+	data.dxt = dxt;
+	data.dyt = dyt;
+	data.osatex = osatex;
+	data.target = texres;
+	data.do_preview = preview;
+	data.thread = thread;
+	data.which_output = which_output;
+	data.cfra= cfra;
+	data.mtex= mtex;
+	data.shi= shi;
+	
+	if (!exec)
+		exec = ntreeTexBeginExecTree(nodes, 1);
+	
+	nts= ntreeGetThreadStack(exec, thread);
+	ntreeExecThreadNodes(exec, nts, &data, thread);
+	ntreeReleaseThreadStack(nts);
 
-		memset(&scd, 0, sizeof(scd));
-		scd.texres = texres;
-		scd.co = co;
-		scd.dxt = dxt;
-		scd.dyt = dyt;
+	if(texres->nor) retval |= TEX_NOR;
+	retval |= TEX_RGB;
+	/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
+	   however, the texture code checks this for other reasons (namely, a normal is required for material) */
+	texres->nor= nor;
 
-		if (!exec)
-			exec = nodes->execdata = ntreeShaderBeginExecTree(nodes, 1);
-		
-		nts= ntreeGetThreadStack(exec, thread);
-		ntreeExecThreadNodes(exec, nts, &scd, thread);
-		ntreeReleaseThreadStack(nts);
-
-		return TEX_INT|TEX_RGB;
-	}
-	else {
-		TexCallData data;
-		float *nor= texres->nor;
-		int retval = TEX_INT;
-
-		data.co = co;
-		data.dxt = dxt;
-		data.dyt = dyt;
-		data.osatex = osatex;
-		data.target = texres;
-		data.do_preview = preview;
-		data.thread = thread;
-		data.which_output = which_output;
-		data.cfra= cfra;
-		data.mtex= mtex;
-		data.shi= shi;
-		
-		if (!exec)
-			exec = ntreeTexBeginExecTree(nodes, 1);
-		
-		nts= ntreeGetThreadStack(exec, thread);
-		ntreeExecThreadNodes(exec, nts, &data, thread);
-		ntreeReleaseThreadStack(nts);
-
-		if(texres->nor) retval |= TEX_NOR;
-		retval |= TEX_RGB;
-		/* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
-		   however, the texture code checks this for other reasons (namely, a normal is required for material) */
-		texres->nor= nor;
-
-		return retval;
-	}
+	return retval;
 }

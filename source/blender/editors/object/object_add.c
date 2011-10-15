@@ -77,6 +77,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
+#include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 
@@ -701,6 +702,7 @@ static const char *get_lamp_defname(int type)
 
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	Lamp *la;
 	int type= RNA_enum_get(op->ptr, "type");
@@ -719,8 +721,10 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	rename_id(&ob->id, get_lamp_defname(type));
 	rename_id(&la->id, get_lamp_defname(type));
 
-	ED_node_shader_default(&la->id);
-	la->use_nodes= 1;
+	if(scene_use_new_shading_nodes(scene)) {
+		ED_node_shader_default(scene, &la->id);
+		la->use_nodes= 1;
+	}
 	
 	return OPERATOR_FINISHED;
 }

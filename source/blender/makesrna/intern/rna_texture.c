@@ -347,6 +347,16 @@ static void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
 		ED_node_texture_default(tex);
 }
 
+static void rna_Texture_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Tex *tex= (Tex*)ptr->data;
+
+	if(tex->use_nodes && tex->nodetree==NULL)
+		ED_node_shader_default(scene, &tex->id);
+	
+	rna_Texture_nodes_update(bmain, scene, ptr);
+}
+
 static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
@@ -1831,8 +1841,9 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_nodes_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Use Nodes", "Make this a node-based texture");
-	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_use_nodes_update");
 	
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");

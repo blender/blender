@@ -366,6 +366,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene= CTX_data_scene(C);
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
@@ -376,8 +377,11 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else {
 		ma= add_material("Material");
-		ED_node_shader_default(&ma->id);
-		ma->use_nodes= 1;
+
+		if(scene_use_new_shading_nodes(scene)) {
+			ED_node_shader_default(scene, &ma->id);
+			ma->use_nodes= 1;
+		}
 	}
 
 	/* hook into UI */
@@ -421,14 +425,10 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 	PropertyRNA *prop;
 
 	/* add or copy texture */
-	if(tex) {
+	if(tex)
 		tex= copy_texture(tex);
-	}
-	else {
+	else
 		tex= add_texture("Texture");
-		ED_node_shader_default(&tex->id);
-		tex->use_nodes= 1;
-	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -466,6 +466,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 
 static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene= CTX_data_scene(C);
 	World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
@@ -476,8 +477,11 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else {
 		wo= add_world("World");
-		ED_node_shader_default(&wo->id);
-		wo->use_nodes= 1;
+
+		if(scene_use_new_shading_nodes(scene)) {
+			ED_node_shader_default(scene, &wo->id);
+			wo->use_nodes= 1;
+		}
 	}
 
 	/* hook into UI */
