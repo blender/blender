@@ -1211,7 +1211,7 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
  * an edit override pointer while dragging for example */
 
 /* for buttons pointing to color for example */
-void ui_get_but_vectorf(uiBut *but, float *vec)
+void ui_get_but_vectorf(uiBut *but, float vec[3])
 {
 	PropertyRNA *prop;
 	int a, tot;
@@ -1249,16 +1249,20 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 			vec[0]= vec[1]= vec[2]= 0.0f;
 		}
 	}
+
+	if (but->type == BUT_NORMAL) {
+		normalize_v3(vec);
+	}
 }
 
 /* for buttons pointing to color for example */
-void ui_set_but_vectorf(uiBut *but, float *vec)
+void ui_set_but_vectorf(uiBut *but, const float vec[3])
 {
 	PropertyRNA *prop;
 	int a, tot;
 
 	if(but->editvec) {
-		VECCOPY(but->editvec, vec);
+		copy_v3_v3(but->editvec, vec);
 	}
 
 	if(but->rnaprop) {
@@ -1280,7 +1284,7 @@ void ui_set_but_vectorf(uiBut *but, float *vec)
 	}
 	else if(but->pointype == FLO) {
 		float *fp= (float *)but->poin;
-		VECCOPY(fp, vec);
+		copy_v3_v3(fp, vec);
 	}
 }
 

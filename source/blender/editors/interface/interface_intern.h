@@ -350,8 +350,8 @@ extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
 extern double ui_get_but_val(uiBut *but);
 extern void ui_set_but_val(uiBut *but, double value);
 extern void ui_set_but_hsv(uiBut *but);
-extern void ui_get_but_vectorf(uiBut *but, float *vec);
-extern void ui_set_but_vectorf(uiBut *but, float *vec);
+extern void ui_get_but_vectorf(uiBut *but, float vec[3]);
+extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
