@@ -2437,6 +2437,9 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 	BMFace *f;
 	BMEdge *e;
 	BMIter iter;
+	ViewContext vc;
+	
+	em_setup_viewcontext(C, &vc);
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		BM_SetIndex(e, 0);
@@ -2465,8 +2468,17 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 		if (BM_GetIndex(e) && !BM_TestHFlag(e, BM_HIDDEN))
 			BM_Select_Edge(em->bm, e, 1);
 	}
-	
+
+	/* If in face-only select mode, switch to edge select mode so that
+	   an edge-only selection is not inconsistent state */
+	if (em->selectmode == SCE_SELECT_FACE) {
+		em->selectmode = SCE_SELECT_EDGE;
+		EDBM_selectmode_set(em);
+		EDBM_selectmode_to_scene(C);
+	}
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2628,7 +2640,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	BMFace *f;
 	int selbigger = RNA_boolean_get(op->ptr, "select_bigger");
 	int a, b;
-	
+
 	/*find the set of regions with smallest number of total faces*/
  	a = loop_find_regions(em, selbigger);
 	b = loop_find_regions(em, !selbigger);

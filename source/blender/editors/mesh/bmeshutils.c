@@ -252,14 +252,19 @@ int EDBM_CallOpfSilent(BMEditMesh *em, const char *fmt, ...)
 	return EDBM_FinishOp(em, &bmop, NULL, 0);
 }
 
-void EDBM_selectmode_to_scene(Scene *scene, Object *obedit)
+void EDBM_selectmode_to_scene(bContext *C)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 
 	if (!em)
 		return;
 
 	scene->toolsettings->selectmode = em->selectmode;
+
+	/* Request redraw of header buttons (to show new select mode) */
+	WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, scene);
 }
 
 void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
