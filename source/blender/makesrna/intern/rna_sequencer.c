@@ -443,7 +443,6 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
-	char dir[FILE_MAX], name[FILE_MAX];
 
 	if(seq->type == SEQ_SOUND && seq->sound) {
 		/* for sound strips we need to update the sound as well.
@@ -453,11 +452,11 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 		PointerRNA id_ptr;
 		RNA_id_pointer_create((ID *)seq->sound, &id_ptr);
 		RNA_string_set(&id_ptr, "filepath", value);
+		sound_load(G.main, seq->sound);
+		sound_update_scene_sound(seq->scene_sound, seq->sound);
 	}
 
-	BLI_split_dirfile(value, dir, name);
-	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
-	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+	BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir), sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
@@ -479,11 +478,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 {
 	StripProxy *proxy= (StripProxy*)(ptr->data);
-	char dir[FILE_MAX], name[FILE_MAX];
-
-	BLI_split_dirfile(value, dir, name);
-	BLI_strncpy(proxy->dir, dir, sizeof(proxy->dir));
-	BLI_strncpy(proxy->file, name, sizeof(proxy->file));
+	BLI_split_dirfile(value, proxy->dir, proxy->file, sizeof(proxy->dir), sizeof(proxy->file));
 }
 
 static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
@@ -539,20 +534,13 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 /*static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
-	char dir[FILE_MAX], name[FILE_MAX];
-
-	BLI_split_dirfile(value, dir, name);
-	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
-	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
+	BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir), sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 {
 	StripElem *elem= (StripElem*)(ptr->data);
-	char name[FILE_MAX];
-
-	BLI_split_dirfile(value, NULL, name);
-	BLI_strncpy(elem->name, name, sizeof(elem->name));
+	BLI_split_dirfile(value, NULL, elem->name, 0, sizeof(elem->name));
 }*/
 
 static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)

@@ -3966,7 +3966,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, f
 		copy_v2_v2(handles[a].mval, pos);
 		copy_v2_v2(handles[a].prevmval, lastpos);
 		
-		/* thread spesific */
+		/* thread specific */
 		handles[a].thread_index = a;
 		
 		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena_mt[a], ps->image_tot * sizeof(ProjPaintImage));

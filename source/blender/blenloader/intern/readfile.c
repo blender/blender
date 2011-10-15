@@ -1051,7 +1051,7 @@ void blo_freefiledata(FileData *fd)
 
 /* ************ DIV ****************** */
 
-int BLO_has_bfile_extension(char *str)
+int BLO_has_bfile_extension(const char *str)
 {
 	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend") || BLI_testextensie(str, ".blend.gz"));
 }

@@ -340,7 +340,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 	int sel, b;
 	
 	/* a single call to GL_LINES here around these calls should be sufficient to still
-	 * get separate line segments, but which aren't wrapped with GL_LINE_STRIP everytime we
+	 * get separate line segments, but which aren't wrapped with GL_LINE_STRIP every time we
 	 * want a single line
 	 */
 	glBegin(GL_LINES);

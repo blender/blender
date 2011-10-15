@@ -1073,7 +1073,7 @@ static void trackto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		cob->matrix[2][2]=size[2];
 		
 		/* targetmat[2] instead of ownermat[2] is passed to vectomat
-		 * for backwards compatability it seems... (Aligorith)
+		 * for backwards compatibility it seems... (Aligorith)
 		 */
 		sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
 		vectomat(vec, ct->matrix[2], 
@@ -2110,7 +2110,7 @@ static void actcon_new_data (void *cdata)
 {
 	bActionConstraint *data= (bActionConstraint *)cdata;
 	
-	/* set type to 20 (Loc X), as 0 is Rot X for backwards compatability */
+	/* set type to 20 (Loc X), as 0 is Rot X for backwards compatibility */
 	data->type = 20;
 }
 
@@ -2167,7 +2167,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* determine where in transform range target is */
-		/* data->type is mapped as follows for backwards compatability:
+		/* data->type is mapped as follows for backwards compatibility:
 		 *	00,01,02	- rotation (it used to be like this)
 		 * 	10,11,12	- scaling
 		 *	20,21,22	- location

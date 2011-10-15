@@ -505,6 +505,17 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 	return part->type == PART_FLUID;
 }
 
+void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= ptr->id.data;
+	ParticleSystem *part= (ParticleSystem*)ptr->data;
+
+	/* copy the new name into the name slot */
+	BLI_strncpy_utf8(part->name, value, sizeof(part->name));
+
+	BLI_uniquename(&ob->particlesystem, part, "ParticleSystem", '.', offsetof(ParticleSystem, name), sizeof(part->name));
+}
+
 static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
@@ -2617,6 +2628,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Particle system name");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER|NA_RENAME, NULL);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ParticleSystem_name_set");
 	RNA_def_struct_name_property(srna, prop);
 
 	/* access to particle settings is redirected through functions */

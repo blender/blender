@@ -233,7 +233,7 @@ check_sparse:
 doc_py:
 	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
-	@echo "docs written into: 'doc/python_api/sphinx-out/index.html'"
+	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
 
 
 clean:

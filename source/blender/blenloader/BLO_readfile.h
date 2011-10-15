@@ -204,7 +204,7 @@ BLO_blendhandle_close(
 
 #define GROUP_MAX 32
 
-int BLO_has_bfile_extension(char *str);
+int BLO_has_bfile_extension(const char *str);
 
 /* return ok when a blenderfile, in dir is the filename,
  * in group the type of libdata

@@ -169,7 +169,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 	int size= rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
 
-	BLI_split_dirfile(clip->name, clipdir, clipfile);
+	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
 	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 		strcpy(dir, clip->proxy.dir);

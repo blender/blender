@@ -1977,8 +1977,6 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
-	float softrange, softmin, softmax;
-
 	if(but->type == BUT_CURVE) {
 		but->editcumap= (CurveMapping*)but->poin;
 	}
@@ -1988,10 +1986,12 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 	}
 	else if(ELEM3(but->type, BUT_NORMAL, HSVCUBE, HSVCIRCLE)) {
 		ui_get_but_vectorf(but, data->origvec);
-		VECCOPY(data->vec, data->origvec);
+		copy_v3_v3(data->vec, data->origvec);
 		but->editvec= data->vec;
 	}
 	else {
+		float softrange, softmin, softmax;
+
 		data->startvalue= ui_get_but_val(but);
 		data->origvalue= data->startvalue;
 		data->value= data->origvalue;
@@ -3014,6 +3014,9 @@ static int ui_numedit_but_NORMAL(uiBut *but, uiHandleButtonData *data, int mx, i
 	
 	/* button is presumed square */
 	/* if mouse moves outside of sphere, it does negative normal */
+
+	/* note that both data->vec and data->origvec should be normalized
+	 * else we'll get a hamrless but annoying jump when first clicking */
 
 	fp= data->origvec;
 	rad= (but->x2 - but->x1);

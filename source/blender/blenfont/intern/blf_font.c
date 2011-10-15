@@ -217,7 +217,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	unsigned int i= 0;
 	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
-	/* buffer spesific vars*/
+	/* buffer specific vars*/
 	const unsigned char b_col_char[4]= {font->b_col[0] * 255,
 	                                    font->b_col[1] * 255,
 	                                    font->b_col[2] * 255,

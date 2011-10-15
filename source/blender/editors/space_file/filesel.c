@@ -113,7 +113,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file);
+		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		sfile->params->filter_glob[0] = '\0';
 	}
 
@@ -142,7 +142,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 				sfile->params->file[0]= '\0';
 			}
 			else {
-				BLI_split_dirfile(name, sfile->params->dir, sfile->params->file);
+				BLI_split_dirfile(name, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 			}
 		}
 		else {
@@ -613,7 +613,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 		DIR *dir;
 		struct dirent *de;
 		
-		BLI_split_dirfile(str, dirname, NULL);
+		BLI_split_dirfile(str, dirname, NULL, sizeof(dirname), 0);
 
 		dir = opendir(dirname);
 
