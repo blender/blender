@@ -26,18 +26,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_MOVIECACHE_H
-#define BKE_MOVIECACHE_H
+#ifndef IMB_MOVIECACHE_H
+#define IMB_MOVIECACHE_H
 
-/** \file BKE_moviecache.h
- *  \ingroup bke
+/** \file IMB_moviecache.h
+ *  \ingroup imbuf
  *  \author Sergey Sharybin
  */
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-/* Cache system for movie data - now supports stroting ImBufs only
+/* Cache system for movie data - now supports stoting ImBufs only
    Supposed to provide unified cache system for movie clips, sequencer and
    other movie-related areas */
 
@@ -46,13 +46,13 @@ struct MovieCache;
 
 typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr, int *proxy, int *render_flags);
 
-void BKE_moviecache_init(void);
-void BKE_moviecache_destruct(void);
+void IMB_moviecache_init(void);
+void IMB_moviecache_destruct(void);
 
-struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp, MovieCacheGetKeyDataFP getdatafp);
-void BKE_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
-struct ImBuf* BKE_moviecache_get(struct MovieCache *cache, void *userkey);
-void BKE_moviecache_free(struct MovieCache *cache);
-void BKE_moviecache_get_cache_segments(struct MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r);
+struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp, MovieCacheGetKeyDataFP getdatafp);
+void IMB_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
+struct ImBuf* IMB_moviecache_get(struct MovieCache *cache, void *userkey);
+void IMB_moviecache_free(struct MovieCache *cache);
+void IMB_moviecache_get_cache_segments(struct MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r);
 
 #endif

@@ -38,7 +38,7 @@
 #include "DNA_sequence_types.h"
 #include "BKE_sequencer.h"
 
-#include "BKE_moviecache.h"
+#include "IMB_moviecache.h"
 
 typedef struct seqCacheKey 
 {
@@ -48,7 +48,7 @@ typedef struct seqCacheKey
 	seq_stripelem_ibuf_t type;
 } seqCacheKey;
 
-struct MovieCache *moviecache = NULL;
+static struct MovieCache *moviecache = NULL;
 
 static unsigned int seqcache_hashhash(const void *key_)
 {
@@ -94,14 +94,14 @@ static int seqcache_hashcmp(const void *a_, const void *b_)
 void seq_stripelem_cache_destruct(void)
 {
 	if(moviecache)
-		BKE_moviecache_free(moviecache);
+		IMB_moviecache_free(moviecache);
 }
 
 void seq_stripelem_cache_cleanup(void)
 {
 	if(moviecache) {
-		BKE_moviecache_free(moviecache);
-		moviecache = BKE_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
+		IMB_moviecache_free(moviecache);
+		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
 				seqcache_hashcmp, NULL);
 	}
 }
@@ -119,7 +119,7 @@ struct ImBuf * seq_stripelem_cache_get(
 		key.cfra = cfra - seq->start;
 		key.type = type;
 
-		return BKE_moviecache_get(moviecache, &key);
+		return IMB_moviecache_get(moviecache, &key);
 	}
 
 	return NULL;
@@ -136,7 +136,7 @@ void seq_stripelem_cache_put(
 	}
 
 	if(!moviecache) {
-		moviecache = BKE_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
+		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
 				seqcache_hashcmp, NULL);
 	}
 
@@ -145,5 +145,5 @@ void seq_stripelem_cache_put(
 	key.cfra = cfra - seq->start;
 	key.type = type;
 
-	BKE_moviecache_put(moviecache, &key, i);
+	IMB_moviecache_put(moviecache, &key, i);
 }

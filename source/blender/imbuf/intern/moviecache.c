@@ -38,7 +38,7 @@
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 
-#include "BKE_moviecache.h"
+#include "IMB_moviecache.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -157,7 +157,7 @@ static intptr_t IMB_get_size_in_memory(ImBuf *ibuf)
 		channel_size+= sizeof(char);
 
 	if(ibuf->rect_float)
-		channel_size= sizeof(float);
+		channel_size+= sizeof(float);
 
 	size+= channel_size*ibuf->x*ibuf->y*ibuf->channels;
 
@@ -186,18 +186,18 @@ static intptr_t get_item_size (void *p)
 	return size;
 }
 
-void BKE_moviecache_init(void)
+void IMB_moviecache_init(void)
 {
 	limitor= new_MEM_CacheLimiter(IMB_moviecache_destructor, get_item_size);
 }
 
-void BKE_moviecache_destruct(void)
+void IMB_moviecache_destruct(void)
 {
 	if(limitor)
 		delete_MEM_CacheLimiter(limitor);
 }
 
-struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
+struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
 		MovieCacheGetKeyDataFP getdatafp)
 {
 	MovieCache *cache;
@@ -217,13 +217,13 @@ struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashC
 	return cache;
 }
 
-void BKE_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
+void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 {
 	MovieCacheKey *key;
 	MovieCacheItem *item;
 
 	if(!limitor)
-		BKE_moviecache_init();
+		IMB_moviecache_init();
 
 	IMB_refImBuf(ibuf);
 
@@ -256,7 +256,7 @@ void BKE_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	}
 }
 
-ImBuf* BKE_moviecache_get(MovieCache *cache, void *userkey)
+ImBuf* IMB_moviecache_get(MovieCache *cache, void *userkey)
 {
 	MovieCacheKey key;
 	MovieCacheItem *item;
@@ -279,7 +279,7 @@ ImBuf* BKE_moviecache_get(MovieCache *cache, void *userkey)
 	return NULL;
 }
 
-void BKE_moviecache_free(MovieCache *cache)
+void IMB_moviecache_free(MovieCache *cache)
 {
 	BLI_ghash_free(cache->hash, moviecache_keyfree, moviecache_valfree);
 
@@ -294,7 +294,7 @@ void BKE_moviecache_free(MovieCache *cache)
 }
 
 /* get segments of cached frames. useful for debugging cache policies */
-void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r)
+void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r)
 {
 	*totseg_r= 0;
 	*points_r= NULL;
@@ -312,7 +312,7 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 	if(cache->points) {
 		*totseg_r= cache->totseg;
 		*points_r= cache->points;
-	} else if(cache) {
+	} else {
 		int totframe= BLI_ghash_size(cache->hash);
 		int *frames= MEM_callocN(totframe*sizeof(int), "movieclip cache frames");
 		int a, totseg= 0;
@@ -367,8 +367,6 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 					points[b++]= frames[a];
 			}
 
-			MEM_freeN(frames);
-
 			*totseg_r= totseg;
 			*points_r= points;
 
@@ -377,5 +375,7 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 			cache->proxy= proxy;
 			cache->render_flags= render_flags;
 		}
+
+		MEM_freeN(frames);
 	}
 }

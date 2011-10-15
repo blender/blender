@@ -64,6 +64,7 @@
 #include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
+#include "IMB_moviecache.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -80,7 +81,6 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-#include "BKE_moviecache.h"
 
 
 #include "BLO_undofile.h"
@@ -115,7 +115,7 @@ void free_blender(void)
 	BLI_cb_finalize();
 
 	seq_stripelem_cache_destruct();
-	BKE_moviecache_destruct();
+	IMB_moviecache_destruct();
 	
 	free_nodesystem();	
 }

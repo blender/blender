@@ -68,7 +68,7 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
-#include "BKE_moviecache.h"
+#include "IMB_moviecache.h"
 #include "BKE_image.h"	/* openanim */
 #include "BKE_tracking.h"
 
@@ -334,7 +334,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 			key.render_flag= 0;
 		}
 
-		return BKE_moviecache_get(clip->cache->moviecache, &key);
+		return IMB_moviecache_get(clip->cache->moviecache, &key);
 	}
 
 	return NULL;
@@ -347,7 +347,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 	if(!clip->cache) {
 		clip->cache= MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
-		clip->cache->moviecache= BKE_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
+		clip->cache->moviecache= IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
 				moviecache_hashcmp, moviecache_keydata);
 	}
 
@@ -362,7 +362,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 		key.render_flag= 0;
 	}
 
-	BKE_moviecache_put(clip->cache->moviecache, &key, ibuf);
+	IMB_moviecache_put(clip->cache->moviecache, &key, ibuf);
 }
 
 /*********************** common functions *************************/
@@ -792,7 +792,7 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip, MovieClipUser *user, int 
 	if(clip->cache) {
 		int proxy= rendersize_to_proxy(user, clip->flag);
 
-		BKE_moviecache_get_cache_segments(clip->cache->moviecache, proxy, user->render_flag, totseg_r, points_r);
+		IMB_moviecache_get_cache_segments(clip->cache->moviecache, proxy, user->render_flag, totseg_r, points_r);
 	}
 }
 
@@ -806,7 +806,7 @@ void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
 static void free_buffers(MovieClip *clip)
 {
 	if(clip->cache) {
-		BKE_moviecache_free(clip->cache->moviecache);
+		IMB_moviecache_free(clip->cache->moviecache);
 
 		if(clip->cache->stableibuf)
 			IMB_freeImBuf(clip->cache->stableibuf);
