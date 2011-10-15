@@ -1607,8 +1607,8 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 	}
 		
 
-	/* -velocity							*/
-	if(part->randfac != 0.0f){
+	/* -velocity (boids need this even if there's no random velocity) */
+	if(part->randfac != 0.0f || (part->phystype==PART_PHYS_BOIDS && pa->boid)){
 		r_vel[0] = 2.0f * (PSYS_FRAND(p + 10) - 0.5f);
 		r_vel[1] = 2.0f * (PSYS_FRAND(p + 11) - 0.5f);
 		r_vel[2] = 2.0f * (PSYS_FRAND(p + 12) - 0.5f);
