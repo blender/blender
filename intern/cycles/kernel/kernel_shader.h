@@ -517,7 +517,7 @@ __device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int pa
 	if(sd->closure.type == CLOSURE_BACKGROUND_ID)
 		return sd->closure.weight;
 	else
-		return make_float3(0.8f, 0.8f, 0.8f);
+		return make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
 #else
