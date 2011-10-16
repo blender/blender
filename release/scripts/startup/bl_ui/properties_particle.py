@@ -75,6 +75,7 @@ class ParticleButtonsPanel():
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -176,6 +177,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
     bl_label = "Emission"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -245,6 +247,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
     bl_label = "Hair dynamics"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -299,6 +302,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
     bl_label = "Cache"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -323,6 +327,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
     bl_label = "Velocity"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -372,6 +377,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
     bl_label = "Rotation"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -420,6 +426,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
     bl_label = "Physics"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -639,6 +646,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
     bl_label = "Boid Brain"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -738,6 +746,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
     bl_label = "Render"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -919,6 +928,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
     bl_label = "Display"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -977,6 +987,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
     bl_label = "Children"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -1076,6 +1087,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_field_weights(ParticleButtonsPanel, Panel):
     bl_label = "Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -1096,6 +1108,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_force_fields(ParticleButtonsPanel, Panel):
     bl_label = "Force Field Settings"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -1129,6 +1142,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
     bl_label = "Vertexgroups"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -1197,6 +1211,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
 
 
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
     _property_type = bpy.types.ParticleSettings
 
