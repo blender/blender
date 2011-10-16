@@ -42,13 +42,14 @@ class Chain : public Curve
 protected:
   // tmp
   Id * _splittingId;
+  FEdge *_fedgeB; // the last FEdge of the ViewEdge passed to the last call for push_viewedge_back().
 public:
   /*! Defult constructor. */
-  Chain() : Curve() {_splittingId=0;}
+  Chain() : Curve() {_splittingId=0;_fedgeB=0;}
   /*! Builds a chain from its Id. */
-  Chain(const Id& id) : Curve(id) {_splittingId=0;}
+  Chain(const Id& id) : Curve(id) {_splittingId=0;_fedgeB=0;}
   /*! Copy Constructor */
-  Chain(const Chain& iBrother) : Curve(iBrother) {_splittingId=iBrother._splittingId;}
+  Chain(const Chain& iBrother) : Curve(iBrother) {_splittingId=iBrother._splittingId;_fedgeB=iBrother._fedgeB;}
   /*! Destructor. */
   virtual ~Chain() {
     // only the last splitted deletes this id

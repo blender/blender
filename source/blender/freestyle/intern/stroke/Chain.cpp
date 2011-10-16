@@ -50,16 +50,14 @@ void Chain::push_viewedge_back(ViewEdge *iViewEdge, bool orientation)
     else
       --v;
     // Ensure the continuity of underlying FEdges
-    CurvePoint *cp = _Vertices.back();
-    SVertex *sv_last = cp->B();
-    if (!sv_last) sv_last = cp->A();
-    SVertex *sv_curr = (*v);
-    FEdge *fe = (orientation) ? iViewEdge->fedgeA() : iViewEdge->fedgeB();
-    FEdge *fe2 = fe->duplicate();
-    fe2->setVertexA(sv_last);
-    fe2->setVertexB(sv_curr);
-    sv_last->AddFEdge(fe2);
-    sv_curr->AddFEdge(fe2);
+    CurvePoint *cp = _Vertices.back(); // assumed to be instantiated as new CurvePoint(iSVertex, 0, 0.f);
+    SVertex *sv_first = (*vfirst);
+    FEdge *fe = _fedgeB->duplicate();
+    fe->setVertexB(sv_first);
+    fe->vertexA()->shape()->AddEdge(fe);
+    fe->vertexA()->AddFEdge(fe);
+    fe->vertexB()->AddFEdge(fe);
+    cp->setA(sv_first);
   }
   else
     previous = (*v)->point2d(); 
@@ -81,6 +79,8 @@ void Chain::push_viewedge_back(ViewEdge *iViewEdge, bool orientation)
     Curve::push_vertex_back(*v);
     //_Length += (current-previous).norm();
   }
+
+  _fedgeB = (orientation) ? iViewEdge->fedgeB() : iViewEdge->fedgeA();
 } 
 
 void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
@@ -111,9 +111,8 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
     else
       --v;
     // Ensure the continuity of underlying FEdges
-    CurvePoint *cp = _Vertices.front();
+    CurvePoint *cp = _Vertices.front(); // assumed to be instantiated as new CurvePoint(iSVertex, 0, 0.f);
     SVertex *sv_last = cp->A();
-    if (!sv_last) sv_last = cp->B();
     SVertex *sv_curr = (*v);
     FEdge *fe = (orientation) ? iViewEdge->fedgeA() : iViewEdge->fedgeB();
     FEdge *fe2 = fe->duplicate();
@@ -121,6 +120,7 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
     fe2->setVertexB(sv_last);
     sv_last->AddFEdge(fe2);
     sv_curr->AddFEdge(fe2);
+    sv_curr->shape()->AddEdge(fe2);
   }
   else
     previous = (*v)->point2d(); 
@@ -142,6 +142,9 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
     Curve::push_vertex_front(*v);
     //_Length += (current-previous).norm();
   }
+
+  if (!_fedgeB)
+	_fedgeB = (orientation) ? iViewEdge->fedgeB() : iViewEdge->fedgeA();
 }
 
 
