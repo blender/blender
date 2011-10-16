@@ -147,6 +147,8 @@ help:
 	@echo ""
 	@echo "Documentation Targets"
 	@echo "  * doc_py   - generate sphinx python api docs"
+	@echo "  * doc_dna  - generate blender file format reference"
+	@echo "  * doc_man  - generate manpage"
 	@echo ""
 
 # -----------------------------------------------------------------------------
@@ -234,6 +236,13 @@ doc_py:
 	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
+
+doc_dna:
+	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
+	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
+
+doc_man:
+	python3 doc/manpage/blender.1.py $(BUILD_DIR)/bin/blender
 
 
 clean:
