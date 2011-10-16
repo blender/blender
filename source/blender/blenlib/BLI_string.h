@@ -147,6 +147,10 @@ void BLI_ascii_strtoupper(char *str, int len);
 char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy);
 int BLI_utf8_invalid_byte(const char *str, int length);
 int BLI_utf8_invalid_strip(char *str, int length);
+      /* copied from glib */
+char *BLI_str_find_prev_char_utf8(const char *str, const char *p);
+char *BLI_str_find_next_char_utf8(const char *p, const char *end);
+char *BLI_str_prev_char_utf8(const char *p);
 
 #ifdef __cplusplus
 }
