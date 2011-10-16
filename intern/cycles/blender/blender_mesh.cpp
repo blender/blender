@@ -65,6 +65,13 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 		mesh->verts.push_back(get_float3(v->co()));
 
+	/* create vertex normals */
+	Attribute *attr_N = mesh->attributes.add(Attribute::STD_VERTEX_NORMAL);
+	float3 *N = attr_N->data_float3();
+
+	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
+		*N= get_float3(v->normal());
+
 	/* create faces */
 	BL::Mesh::faces_iterator f;
 	vector<int> nverts;
