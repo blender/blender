@@ -49,6 +49,17 @@ void Chain::push_viewedge_back(ViewEdge *iViewEdge, bool orientation)
       ++v;
     else
       --v;
+    // Ensure the continuity of underlying FEdges
+    CurvePoint *cp = _Vertices.back();
+    SVertex *sv_last = cp->B();
+    if (!sv_last) sv_last = cp->A();
+    SVertex *sv_curr = (*v);
+    FEdge *fe = (orientation) ? iViewEdge->fedgeA() : iViewEdge->fedgeB();
+    FEdge *fe2 = fe->duplicate();
+    fe2->setVertexA(sv_last);
+    fe2->setVertexB(sv_curr);
+    sv_last->AddFEdge(fe2);
+    sv_curr->AddFEdge(fe2);
   }
   else
     previous = (*v)->point2d(); 
@@ -99,6 +110,17 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
       ++v;
     else
       --v;
+    // Ensure the continuity of underlying FEdges
+    CurvePoint *cp = _Vertices.front();
+    SVertex *sv_last = cp->A();
+    if (!sv_last) sv_last = cp->B();
+    SVertex *sv_curr = (*v);
+    FEdge *fe = (orientation) ? iViewEdge->fedgeA() : iViewEdge->fedgeB();
+    FEdge *fe2 = fe->duplicate();
+    fe2->setVertexA(sv_curr);
+    fe2->setVertexB(sv_last);
+    sv_last->AddFEdge(fe2);
+    sv_curr->AddFEdge(fe2);
   }
   else
     previous = (*v)->point2d(); 
