@@ -378,7 +378,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 		j = 0;
 
 		foreach(AttributeRequest& req, attributes.requests) {
-			int index = i*attr_map_stride;
+			int index = i*attr_map_stride + j;
 			uint id;
 
 			if(req.std == Attribute::STD_NONE)
