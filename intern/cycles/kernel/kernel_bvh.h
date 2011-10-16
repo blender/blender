@@ -253,7 +253,7 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
-						if(visibility == PATH_RAY_SHADOW && isect->prim != ~0)
+						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
 							return true;
 
 						primAddr++;

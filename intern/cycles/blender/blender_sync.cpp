@@ -146,6 +146,7 @@ void BlenderSync::sync_integrator()
 
 	integrator->transparent_max_bounce = get_int(cscene, "transparent_max_bounces");
 	integrator->transparent_min_bounce = get_int(cscene, "transparent_min_bounces");
+	integrator->transparent_shadows = get_boolean(cscene, "use_transparent_shadows");
 
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
 	integrator->blur_caustics = get_float(cscene, "blur_caustics");

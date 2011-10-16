@@ -70,7 +70,7 @@ typedef struct PathState {
 
 __device_inline void path_state_init(PathState *state)
 {
-	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR;
+	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
 	state->bounce = 0;
 	state->diffuse_bounce = 0;
 	state->glossy_bounce = 0;
@@ -78,13 +78,16 @@ __device_inline void path_state_init(PathState *state)
 	state->transparent_bounce = 0;
 }
 
-__device_inline void path_state_next(PathState *state, int label)
+__device_inline void path_state_next(KernelGlobals *kg, PathState *state, int label)
 {
 	/* ray through transparent keeps same flags from previous ray and is
 	   not counted as a regular bounce, transparent has separate max */
 	if(label & LABEL_TRANSPARENT) {
 		state->flag |= PATH_RAY_TRANSPARENT;
 		state->transparent_bounce++;
+
+		if(!kernel_data.integrator.transparent_shadows)
+			state->flag |= PATH_RAY_MIS_SKIP;
 
 		return;
 	}
@@ -113,16 +116,16 @@ __device_inline void path_state_next(PathState *state, int label)
 	/* diffuse/glossy/singular */
 	if(label & LABEL_DIFFUSE) {
 		state->flag |= PATH_RAY_DIFFUSE;
-		state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR);
+		state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 	}
 	else if(label & LABEL_GLOSSY) {
 		state->flag |= PATH_RAY_GLOSSY;
-		state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR);
+		state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 	}
 	else {
 		kernel_assert(label & LABEL_SINGULAR);
 
-		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR;
+		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
 		state->flag &= ~PATH_RAY_DIFFUSE;
 	}
 }
@@ -167,7 +170,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 	if(ray->t == 0.0f)
 		return false;
 	
-	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW, isect);
+	bool result = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, isect);
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(result && kernel_data.integrator.transparent_shadows) {
@@ -175,11 +178,11 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 		   in cases where we don't need them. after a regular shadow ray is
 		   cast we check if the hit primitive was potentially transparent, and
 		   only in that case start marching. this gives on extra ray cast for
-		   the cases were we do want transparency */
+		   the cases were we do want transparency.
+		   
+		   also note that for this to work correct, multi close sampling must
+		   be used, since we don't pass a random number to shader_eval_surface */
 		if(shader_transparent_shadow(kg, isect)) {
-			/* todo: fix double contribution from indirect for triangle lights */
-			/* if(kernel_data.integrator.transparent_shadows && (path_flag & PATH_RAY_TRANSPARENT)) */
-
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
 			int bounce = state->transparent_bounce;
@@ -192,7 +195,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 					/* todo: get random number somewhere for probabilistic terminate */
 #if 0
 					float probability = average(throughput);
-					float terminate = 0.0f; /* todo: get this random number */
+					float terminate = 0.0f;
 
 					if(terminate >= probability)
 						return true;
@@ -201,22 +204,23 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 #endif
 				}
 
-				/* todo: fix it so we get first hit */
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW, isect)) {
+				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, isect)) {
 					*light_L *= throughput;
 					return false;
 				}
+
 				if(!shader_transparent_shadow(kg, isect))
 					return true;
 
 				ShaderData sd;
 				shader_setup_from_ray(kg, &sd, isect, ray);
-				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW); /* todo: state flag? */
+				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW);
 
 				throughput *= shader_bsdf_transparency(kg, &sd);
 
 				ray->P = ray_offset(sd.P, -sd.Ng);
-				ray->t = (ray->t == FLT_MAX)? FLT_MAX: len(Pend - ray->P);
+				if(ray->t != FLT_MAX)
+					ray->D = normalize_len(Pend - ray->P, &ray->t);
 
 				bounce++;
 			}
@@ -360,7 +364,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 
 		/* update path state */
-		path_state_next(&state, label);
+		path_state_next(kg, &state, label);
 
 		/* setup ray */
 		ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);

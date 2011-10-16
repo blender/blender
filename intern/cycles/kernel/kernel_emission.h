@@ -124,7 +124,7 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 	/* evaluate emissive closure */
 	float3 L = shader_emissive_eval(kg, sd);
 
-	if(!(path_flag & PATH_RAY_SINGULAR) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
+	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
 		/* multiple importance sampling */
 		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);

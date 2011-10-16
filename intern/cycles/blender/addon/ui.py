@@ -67,6 +67,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.label("Transparency:")
         sub.prop(cscene, "transparent_max_bounces", text="Max")
         sub.prop(cscene, "transparent_min_bounces", text="Min")
+        sub.prop(cscene, "use_transparent_shadows", text="Shadows")
         sub.prop(cscene, "no_caustics")
 
         col = split.column()
