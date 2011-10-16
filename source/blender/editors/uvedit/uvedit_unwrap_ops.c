@@ -968,7 +968,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	short implicit= 0;
 
 	if(!uvedit_have_selection(scene, em, implicit)) {
-		return 0;
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* add uvs if they don't exist yet */
