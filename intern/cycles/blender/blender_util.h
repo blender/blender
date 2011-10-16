@@ -56,7 +56,7 @@ CCL_NAMESPACE_BEGIN
 
 static inline BL::Mesh object_to_mesh(BL::Object self, BL::Scene scene, bool apply_modifiers, bool render)
 {
-	ID *data = rna_Object_to_mesh(self.ptr.data, NULL, scene.ptr.data, apply_modifiers, render);
+	ID *data = rna_Object_to_mesh(self.ptr.data, NULL, scene.ptr.data, apply_modifiers, (render)? 2: 1);
 	PointerRNA ptr;
 	RNA_id_pointer_create(data, &ptr);
 	return BL::Mesh(ptr);
