@@ -58,6 +58,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	}
 	
 	bool sunsky_done = false;
+	bool use_multi_closure = (scene->params.use_multi_closure && device->type() != DEVICE_OPENCL);
 
 	for(i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
@@ -70,7 +71,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 			scene->light_manager->need_update = true;
 
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager,
-			scene->params.use_multi_closure);
+			use_multi_closure);
 		compiler.sunsky = (sunsky_done)? NULL: &dscene->data.sunsky;
 		compiler.background = ((int)i == scene->default_background);
 		compiler.compile(shader, svm_nodes, i);

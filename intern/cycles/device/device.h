@@ -75,11 +75,13 @@ class Device {
 protected:
 	Device() {}
 
-	DeviceType type;
+	DeviceType device_type;
 	bool background;
 
 public:
 	virtual ~Device() {}
+
+	DeviceType type() { return device_type; }
 
 	/* info */
 	virtual string description() = 0;

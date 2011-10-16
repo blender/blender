@@ -157,6 +157,8 @@ Device *Device::create(DeviceType type, bool background, int threads)
 			return NULL;
 	}
 
+	device->device_type = type;
+
 	return device;
 }
 

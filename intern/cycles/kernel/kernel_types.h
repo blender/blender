@@ -44,7 +44,7 @@ CCL_NAMESPACE_BEGIN
 #define __EMISSION__
 #define __TEXTURES__
 #define __HOLDOUT__
-//#define __MULTI_CLOSURE__
+#define __MULTI_CLOSURE__
 //#define __TRANSPARENT_SHADOWS__
 //#define __MULTI_LIGHT__
 #endif
