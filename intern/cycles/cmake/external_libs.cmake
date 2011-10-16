@@ -89,8 +89,11 @@ endif()
 # CUDA
 
 if(WITH_CYCLES_CUDA)
-
-	set(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
+	if(WIN32)
+		set(CYCLES_CUDA "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v4.0" CACHE PATH "Path to CUDA installation")
+	else()
+		set(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
+	endif()
 	set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
 	set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
 
