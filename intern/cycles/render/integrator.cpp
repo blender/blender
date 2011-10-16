@@ -80,7 +80,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	kintegrator->blur_caustics = blur_caustics;
 
 	/* sobol directions table */
-	int dimensions = PRNG_BASE_NUM + (max_bounce + 2)*PRNG_BOUNCE_NUM;
+	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);

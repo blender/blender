@@ -55,16 +55,18 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             default=8, min=0, max=1024)
 
         cls.diffuse_bounces = IntProperty(name="Diffuse Bounces", description="Maximum number of diffuse reflection bounces, bounded by total maximum",
-            default=1024, min=0, max=1024)
+            default=128, min=0, max=1024)
         cls.glossy_bounces = IntProperty(name="Glossy Bounces", description="Maximum number of glossy reflection bounces, bounded by total maximum",
-            default=1024, min=0, max=1024)
+            default=128, min=0, max=1024)
         cls.transmission_bounces = IntProperty(name="Transmission Bounces", description="Maximum number of transmission bounces, bounded by total maximum",
-            default=1024, min=0, max=1024)
+            default=128, min=0, max=1024)
 
         cls.transparent_min_bounces = IntProperty(name="Transparent Min Bounces", description="Minimum number of transparent bounces, setting this lower than the maximum enables probalistic path termination (faster but noisier)",
             default=8, min=0, max=1024)
         cls.transparent_max_bounces = IntProperty(name="Transparent Max Bounces", description="Maximum number of transparent bounces",
             default=8, min=0, max=1024)
+        cls.use_transparent_shadows = BoolProperty(name="Transparent Shadows", description="Use transparency of surfaces for rendering shadows",
+            default=True)
 
         cls.film_exposure = FloatProperty(name="Exposure", description="Image brightness scale",
             default=1.0, min=0.0, max=10.0)
