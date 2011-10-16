@@ -69,6 +69,11 @@ public:
 		kernel_globals_free(kg);
 	}
 
+	bool support_full_kernel()
+	{
+		return true;
+	}
+
 	string description()
 	{
 		return system_cpu_brand_string();

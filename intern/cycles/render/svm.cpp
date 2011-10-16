@@ -58,7 +58,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	}
 	
 	bool sunsky_done = false;
-	bool use_multi_closure = (scene->params.use_multi_closure && device->type() != DEVICE_OPENCL);
+	bool use_multi_closure = device->support_full_kernel();
 
 	for(i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];

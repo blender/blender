@@ -90,6 +90,16 @@ public:
 			delete sub.device;
 	}
 
+	bool support_full_kernel()
+	{
+		foreach(SubDevice& sub, devices) {
+			if(!sub.device->support_full_kernel())
+				return false;
+		}
+
+		return true;
+	}
+
 	string description()
 	{
 		/* create map to find duplicate descriptions */

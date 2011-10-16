@@ -44,13 +44,20 @@ CCL_NAMESPACE_BEGIN
 #define __EMISSION__
 #define __TEXTURES__
 #define __HOLDOUT__
-#define __MULTI_CLOSURE__
-#define __TRANSPARENT_SHADOWS__
 //#define __MULTI_LIGHT__
 #endif
 
 #ifdef __KERNEL_CPU__
+#define __MULTI_CLOSURE__
+#define __TRANSPARENT_SHADOWS__
 //#define __OSL__
+#endif
+
+#ifdef __KERNEL_CUDA__
+#if __CUDA_ARCH__ >= 200
+#define __MULTI_CLOSURE__
+#define __TRANSPARENT_SHADOWS__
+#endif
 #endif
 
 //#define __SOBOL_FULL_SCREEN__

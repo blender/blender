@@ -402,6 +402,11 @@ public:
 			clReleaseContext(cxContext);
 	}
 
+	bool support_full_kernel()
+	{
+		return false;
+	}
+
 	string description()
 	{
 		char name[1024];

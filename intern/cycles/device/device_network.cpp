@@ -57,6 +57,11 @@ public:
 	{
 	}
 
+	bool support_full_kernel()
+	{
+		return false;
+	}
+
 	string description()
 	{
 		RPCSend snd(socket, "description");

@@ -181,6 +181,14 @@ public:
 		cuda_assert(cuCtxDetach(cuContext))
 	}
 
+	bool support_full_kernel()
+	{
+		int major, minor;
+		cuDeviceComputeCapability(&major, &minor, cuDevId);
+
+		return (major >= 2);
+	}
+
 	string description()
 	{
 		/* print device information */
