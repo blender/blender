@@ -216,6 +216,12 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 			}
 			break;
+		case NC_OBJECT:
+			if(type==NTREE_SHADER) {
+				if(wmn->data==ND_OB_SHADING)
+					ED_area_tag_refresh(sa);
+			}
+			break;
 		case NC_TEXT:
 			/* pynodes */
 			if(wmn->data==ND_SHADING)
@@ -435,6 +441,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_TEXTURE:
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
+			break;
+		case NC_OBJECT:
+			if(wmn->data==ND_OB_SHADING)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
 			if(wmn->action == NA_RENAME)
