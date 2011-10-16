@@ -1478,7 +1478,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	static EnumPropertyItem rot_mode_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{PART_ROT_NOR, "NOR", 0, "Normal", ""},
-		{PART_ROT_VEL, "VEL", 0, "Velocity", ""},
+		{PART_ROT_VEL, "VEL", 0, "Velocity / Hair", ""},
 		{PART_ROT_GLOB_X, "GLOB_X", 0, "Global X", ""},
 		{PART_ROT_GLOB_Y, "GLOB_Y", 0, "Global Y", ""},
 		{PART_ROT_GLOB_Z, "GLOB_Z", 0, "Global Z", ""},
@@ -1733,7 +1733,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
-	RNA_def_property_ui_text(prop, "Rotation", "Particles initial rotation");
+	RNA_def_property_ui_text(prop, "Rotation", "Particle rotation axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);
@@ -1798,7 +1798,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_global_dupli", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_GLOBAL_OB);
-	RNA_def_property_ui_text(prop, "Use Global", "Use object's global coordinates for duplication");
+	RNA_def_property_ui_text(prop, "Global", "Use object's global coordinates for duplication");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "use_rotation_dupli", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_ROTATE_OB);
+	RNA_def_property_ui_text(prop, "Rotation", "Use object's rotation for duplication (global x-axis is aligned particle rotation axis)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "use_render_adaptive", PROP_BOOLEAN, PROP_NONE);
