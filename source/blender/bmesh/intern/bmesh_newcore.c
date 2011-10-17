@@ -1560,7 +1560,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		   1) have v as one of the vertices
 		   2) are connected to e through face loop cycles 
 		   assigning a unique index to that group of edges */
-		while (e = BLI_array_pop(stack)) {
+		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
 			BM_SetIndex(e, maxindex);
 

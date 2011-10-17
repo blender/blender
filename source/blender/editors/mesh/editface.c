@@ -90,7 +90,7 @@ void paintface_flush_flags(Object *ob)
 	 *  - Mesh polys => Final derived mesh polys
 	 */
 
-	if (index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX)) {
+	if ((index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX))) {
 		faces = me->mface;
 		totface = me->totface;
 		
@@ -102,7 +102,7 @@ void paintface_flush_flags(Object *ob)
 		}
 	}
 
-	if (index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX)) {
+	if ((index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX))) {
 		polys = dm->getPolyArray(dm);
 		totpoly = dm->getNumFaces(dm);
 
