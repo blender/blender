@@ -564,6 +564,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 		ED_clip_view_selection(sc, ar, 0);
 
+		sc->xof+= sc->xlockof;
+		sc->yof+= sc->ylockof;
+
 		if(tmpibuf)
 			IMB_freeImBuf(tmpibuf);
 	}

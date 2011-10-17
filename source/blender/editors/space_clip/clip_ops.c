@@ -300,8 +300,9 @@ void CLIP_OT_unlink(wmOperatorType *ot)
 
 typedef struct ViewPanData {
 	float x, y;
-	float xof, yof;
+	float xof, yof, xorig, yorig;
 	int event_type;
+	float *vec;
 } ViewPanData;
 
 static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -314,8 +315,13 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 
 	vpd->x= event->x;
 	vpd->y= event->y;
-	vpd->xof= sc->xof;
-	vpd->yof= sc->yof;
+
+	if(sc->flag&SC_LOCK_SELECTION) vpd->vec= &sc->xlockof;
+	else vpd->vec= &sc->xof;
+
+	copy_v2_v2(&vpd->xof, vpd->vec);
+	copy_v2_v2(&vpd->xorig, &vpd->xof);
+
 	vpd->event_type= event->type;
 
 	WM_event_add_modal_handler(C, op);
@@ -327,8 +333,8 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 	ViewPanData *vpd= op->customdata;
 
 	if(cancel) {
-		sc->xof= vpd->xof;
-		sc->yof= vpd->yof;
+		copy_v2_v2(vpd->vec, &vpd->xorig);
+
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
@@ -342,8 +348,14 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	float offset[2];
 
 	RNA_float_get_array(op->ptr, "offset", offset);
-	sc->xof += offset[0];
-	sc->yof += offset[1];
+
+	if(sc->flag&SC_LOCK_SELECTION) {
+		sc->xlockof+= offset[0];
+		sc->ylockof+= offset[1];
+	} else {
+		sc->xof+= offset[0];
+		sc->yof+= offset[1];
+	}
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -358,6 +370,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		offset[0]= (event->x - event->prevx)/sc->zoom;
 		offset[1]= (event->y - event->prevy)/sc->zoom;
+
 		RNA_float_set_array(op->ptr, "offset", offset);
 
 		view_pan_exec(C, op);
@@ -377,8 +390,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	switch(event->type) {
 		case MOUSEMOVE:
-			sc->xof= vpd->xof;
-			sc->yof= vpd->yof;
+			copy_v2_v2(vpd->vec, &vpd->xorig);
 			offset[0]= (vpd->x - event->x)/sc->zoom;
 			offset[1]= (vpd->y - event->y)/sc->zoom;
 			RNA_float_set_array(op->ptr, "offset", offset);
@@ -726,6 +738,9 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	ARegion *ar= CTX_wm_region(C);
+
+	sc->xlockof= 0.f;
+	sc->ylockof= 0.f;
 
 	ED_clip_view_selection(sc, ar, 1);
 	ED_region_tag_redraw(CTX_wm_region(C));

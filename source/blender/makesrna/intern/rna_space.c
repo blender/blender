@@ -956,6 +956,14 @@ static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNU
 	sc->scopes.ok= 0;
 }
 
+static void rna_SpaceClipEditor_lock_selection_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	sc->xlockof= 0.f;
+	sc->ylockof= 0.f;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -2786,7 +2794,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Lock to Selection", "Lock viewport to selected markers during playback");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_SELECTION);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_lock_selection_update");
 
 	/* show markers pathes */
 	prop= RNA_def_property(srna, "show_track_path", PROP_BOOLEAN, PROP_NONE);
