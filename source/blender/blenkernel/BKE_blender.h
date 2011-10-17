@@ -43,8 +43,8 @@ extern "C" {
 /* these lines are grep'd, watch out for our not-so-awesome regex
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
-#define BLENDER_VERSION			259
-#define BLENDER_SUBVERSION		4
+#define BLENDER_VERSION			260
+#define BLENDER_SUBVERSION		0
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
