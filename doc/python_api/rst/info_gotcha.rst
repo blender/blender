@@ -223,6 +223,26 @@ While writing scripts that deal with armatures you may find you have to switch b
 This is mainly an issue with editmode since pose data can be manipulated without having to be in pose mode, however for operator access you may still need to enter pose mode.
 
 
+Relative File Paths
+===================
+
+Blenders relative file paths are not compatible with standard python modules such as ``sys`` and ``os``.
+
+Built in python functions don't understand blenders ``//`` prefix which denotes the blend file path.
+
+A common case where you would run into this problem is when exporting a material with assosiated image paths.
+
+>>> bpy.path.abspath(image.filepath)
+
+
+When using blender data from linked libraries there is an unfortunate complication since the path will be relative to the library rather then the open blend file. When the data block may be from an external blend file pass the library argument from the `bpy.types.ID`.
+
+>>> bpy.path.abspath(image.filepath, library=image.library)
+
+
+These returns the absolute path which can be used with native python modules.
+
+
 Unicode Problems
 ================
 
