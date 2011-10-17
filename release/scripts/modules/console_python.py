@@ -50,7 +50,7 @@ def replace_help(namespace):
 def get_console(console_id):
     '''
     helper function for console operators
-    currently each text datablock gets its own
+    currently each text data block gets its own
     console - code.InteractiveConsole()
     ...which is stored in this function.
 
@@ -65,7 +65,7 @@ def get_console(console_id):
         consoles = get_console.consoles = {}
         get_console.consoles_namespace_hash = hash_next
     else:
-        # check if clearning the namespace is needed to avoid a memory leak.
+        # check if clearing the namespace is needed to avoid a memory leak.
         # the window manager is normally loaded with new blend files
         # so this is a reasonable way to deal with namespace clearing.
         # bpy.data hashing is reset by undo so cant be used.
@@ -135,7 +135,7 @@ def execute(context):
     sys.stdout = stdout
     sys.stderr = stderr
 
-    # dont allow the stdin to be used, can lock blender.
+    # don't allow the stdin to be used, can lock blender.
     stdin_backup = sys.stdin
     sys.stdin = None
 
@@ -143,14 +143,14 @@ def execute(context):
         main_mod_back = sys.modules["__main__"]
         sys.modules["__main__"] = console._bpy_main_mod
 
-    # incase exception happens
-    line = ""  # incase of encodingf error
+    # in case exception happens
+    line = ""  # in case of encoding error
     is_multiline = False
 
     try:
         line = line_object.body
 
-        # run the console, "\n" executes a multiline statement
+        # run the console, "\n" executes a multi line statement
         line_exec = line if line.strip() else "\n"
 
         is_multiline = console.push(line_exec)
@@ -222,8 +222,8 @@ def autocomplete(context):
     if not console:
         return {'CANCELLED'}
 
-    # dont allow the stdin to be used, can lock blender.
-    # note: unlikely stdin would be used for autocomp. but its possible.
+    # don't allow the stdin to be used, can lock blender.
+    # note: unlikely stdin would be used for autocomplete. but its possible.
     stdin_backup = sys.stdin
     sys.stdin = None
 
@@ -238,8 +238,8 @@ def autocomplete(context):
         current_line = sc.history[-1]
         line = current_line.body
 
-        # This function isnt aware of the text editor or being an operator
-        # just does the autocomp then copy its results back
+        # This function isn't aware of the text editor or being an operator
+        # just does the autocomplete then copy its results back
         result = intellisense.expand(
                 line=line,
                 cursor=current_line.current_character,
@@ -250,7 +250,7 @@ def autocomplete(context):
         current_line.body, current_line.current_character, scrollback = result
         del result
 
-        # update sel. setting body should really do this!
+        # update selection. setting body should really do this!
         ofs = len(line_new) - len(line)
         sc.select_start += ofs
         sc.select_end += ofs
@@ -263,12 +263,12 @@ def autocomplete(context):
     if _BPY_MAIN_OWN:
         sys.modules["__main__"] = main_mod_back
 
-    # Separate automplete output by command prompts
+    # Separate autocomplete output by command prompts
     if scrollback != '':
         bpy.ops.console.scrollback_append(text=sc.prompt + current_line.body, type='INPUT')
 
     # Now we need to copy back the line from blender back into the
-    # text editor. This will change when we dont use the text editor
+    # text editor. This will change when we don't use the text editor
     # anymore
     if scrollback:
         add_scrollback(scrollback, 'INFO')

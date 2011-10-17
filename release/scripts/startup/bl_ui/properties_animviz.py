@@ -21,8 +21,8 @@
 # Generic Panels (Independent of DataType)
 
 # NOTE:
-# The specialised panel types are derived in their respective UI modules
-# dont register these classes since they are only helpers.
+# The specialized panel types are derived in their respective UI modules
+# don't register these classes since they are only helpers.
 
 
 class MotionPathButtonsPanel():

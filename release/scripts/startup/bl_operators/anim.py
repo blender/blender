@@ -87,7 +87,7 @@ class ANIM_OT_keying_set_export(Operator):
         # --------------------------------------------------------
         # generate and write set of lookups for id's used in paths
 
-        # cache for syncing ID-blocks to bpy paths + shorthands
+        # cache for syncing ID-blocks to bpy paths + shorthand's
         id_to_paths_cache = {}
 
         for ksp in ks.paths:

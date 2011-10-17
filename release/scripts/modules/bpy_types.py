@@ -49,7 +49,7 @@ class Library(bpy_types.ID):
 
     @property
     def users_id(self):
-        """ID datablocks which use this library"""
+        """ID data blocks which use this library"""
         import bpy
 
         # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
@@ -220,9 +220,9 @@ class _GenericBone:
     @property
     def children_recursive_basename(self):
         """
-        Returns a chain of children with the same base name as this bone
-        Only direct chains are supported, forks caused by multiple children with matching basenames will
-        terminate the function and not be returned.
+        Returns a chain of children with the same base name as this bone.
+        Only direct chains are supported, forks caused by multiple children
+        with matching base names will terminate the function and not be returned.
         """
         basename = self.basename
         chain = []
@@ -256,7 +256,7 @@ class _GenericBone:
             bones = id_data.pose.bones
         elif id_data_type == bpy_types.Armature:
             bones = id_data.edit_bones
-            if not bones:  # not in editmode
+            if not bones:  # not in edit mode
                 bones = id_data.bones
 
         return bones
@@ -284,11 +284,11 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
 
     def transform(self, matrix, scale=True, roll=True):
         """
-        Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
+        Transform the the bones head, tail, roll and envelope (when the matrix has a scale component).
 
         :arg matrix: 3x3 or 4x4 transformation matrix.
         :type matrix: :class:`mathutils.Matrix`
-        :arg scale: Scale the bone envalope by the matrix.
+        :arg scale: Scale the bone envelope by the matrix.
         :type scale: bool
         :arg roll: Correct the roll to point in the same relative direction to the head and tail.
         :type roll: bool
@@ -318,7 +318,7 @@ class Mesh(bpy_types.ID):
 
     def from_pydata(self, vertices, edges, faces):
         """
-        Make a mesh from a list of verts/edges/faces
+        Make a mesh from a list of vertices/edges/faces
         Until we have a nicer way to make geometry, use this.
 
         :arg vertices: float triplets each representing (X, Y, Z) eg: [(0.0, 1.0, 0.5), ...].
@@ -553,7 +553,7 @@ class _GenericUI:
                 operator_context_default = self.layout.operator_context
 
                 for func in draw_ls._draw_funcs:
-                    # so bad menu functions dont stop the entire menu from drawing.
+                    # so bad menu functions don't stop the entire menu from drawing
                     try:
                         func(self, context)
                     except:
