@@ -1263,6 +1263,86 @@ static short test_special_char(char ch)
 	return 0;
 }
 
+static int ui_textedit_step_next_utf8(const char *str, size_t maxlen, short *pos)
+{
+	const char *str_end= str + (maxlen + 1);
+	const char *str_pos= str + (*pos);
+	const char *str_next= BLI_str_find_next_char_utf8(str_pos, str_end);
+	if (str_next) {
+		(*pos) += (str_next - str_pos);
+		if((*pos) > maxlen) (*pos)= maxlen;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static int ui_textedit_step_prev_utf8(const char *str, size_t UNUSED(maxlen), short *pos)
+{
+	if((*pos) > 0) {
+		const char *str_pos= str + (*pos);
+		const char *str_prev= BLI_str_find_prev_char_utf8(str, str_pos);
+		if (str_prev) {
+			(*pos) -= (str_pos - str_prev);
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+static void ui_textedit_step_utf8(const char *str, size_t maxlen,
+                                  short *pos, const char direction,
+                                  const short do_jump, const short do_all)
+{
+	const short pos_prev= *pos;
+
+	if(direction) { /* right*/
+		if(do_jump) {
+			/* jump between special characters (/,\,_,-, etc.),
+			 * look at function test_special_char() for complete
+			 * list of special character, ctr -> */
+			while((*pos) < maxlen) {
+				if (ui_textedit_step_next_utf8(str, maxlen, pos)) {
+					if(!do_all && test_special_char(str[(*pos)])) break;
+				}
+				else {
+					break; /* unlikely but just incase */
+				}
+			}
+		}
+		else {
+			ui_textedit_step_next_utf8(str, maxlen, pos);
+		}
+	}
+	else { /* left */
+		if(do_jump) {
+			/* left only: compensate for index/change in direction */
+			ui_textedit_step_prev_utf8(str, maxlen, pos);
+
+			/* jump between special characters (/,\,_,-, etc.),
+			 * look at function test_special_char() for complete
+			 * list of special character, ctr -> */
+			while ((*pos) > 0) {
+				if (ui_textedit_step_prev_utf8(str, maxlen, pos)) {
+					if(!do_all && test_special_char(str[(*pos)])) break;
+				}
+				else {
+					break;
+				}
+			}
+
+			/* left only: compensate for index/change in direction */
+			if(((*pos) != 0) && ABS(pos_prev - (*pos)) > 1) {
+				ui_textedit_step_next_utf8(str, maxlen, pos);
+			}
+		}
+		else {
+			ui_textedit_step_prev_utf8(str, maxlen, pos);
+		}
+	}
+}
+
 static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 {
 	char *str= data->str;
@@ -1305,13 +1385,17 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	/* mouse dragged outside the widget to the left */
 	if (x < startx && but->ofs > 0) {	
-		int i= but->ofs;
+		short i= but->ofs;
 
 		origstr[but->ofs] = 0;
 		
 		while (i > 0) {
-			i--;
-			if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25f) break;	// 0.25 == scale factor for less sensitivity
+			if (ui_textedit_step_prev_utf8(origstr, but->ofs, &i)) {
+				if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25f) break;	// 0.25 == scale factor for less sensitivity
+			}
+			else {
+				break; /* unlikely but possible */
+			}
 		}
 		but->ofs = i;
 		but->pos = but->ofs;
@@ -1325,9 +1409,13 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		/* XXX does not take zoom level into account */
 		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
-			but->pos--;
-			origstr[but->pos+but->ofs] = 0;
-		}		
+			if (ui_textedit_step_prev_utf8(origstr, but->ofs, &but->pos)) {
+				origstr[but->pos+but->ofs] = 0;
+			}
+			else {
+				break; /* unlikely but possible */
+			}
+		}
 		but->pos += but->ofs;
 		if(but->pos<0) but->pos= 0;
 	}
@@ -1402,48 +1490,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 		data->selextend = 0;
 	}
 	else {
-		if(direction) { /* right*/
-			if(jump) {
-				/* jump between special characters (/,\,_,-, etc.),
-				 * look at function test_special_char() for complete
-				 * list of special character, ctr -> */
-				while(but->pos < len) {
-					but->pos++;
-					if(!jump_all && test_special_char(str[but->pos])) break;
-				}
-			}
-			else {
-				but->pos++;
-				if(but->pos > len) but->pos= len;
-			}
-		}
-		else { /* left */
-			if(jump) {
-
-				/* left only: compensate for index/change in direction */
-				if(but->pos > 0) {
-					but->pos--;
-				}
-
-				/* jump between special characters (/,\,_,-, etc.),
-				 * look at function test_special_char() for complete
-				 * list of special character, ctr -> */
-				while(but->pos > 0){
-					but->pos--;
-					if(!jump_all && test_special_char(str[but->pos])) break;
-				}
-
-				/* left only: compensate for index/change in direction */
-				if((but->pos != 0) && ABS(pos_prev - but->pos) > 1) {
-					but->pos++;
-				}
-
-			}
-			else {
-				if(but->pos>0) but->pos--;
-			}
-		}
-
+		ui_textedit_step_utf8(str, len, &but->pos, direction, jump, jump_all);
 
 		if(select) {
 			/* existing selection */
@@ -1509,21 +1556,10 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 			changed= ui_textedit_delete_selection(but, data);
 		}
 		else if(but->pos>=0 && but->pos<len) {
+			short pos= but->pos;
 			int step;
-
-			if (jump) {
-				x = but->pos;
-				step= 0;
-				while(x < len) {
-					x++;
-					step++;
-					if(test_special_char(str[x])) break;
-				}
-			}
-			else {
-				step= 1;
-			}
-
+			ui_textedit_step_utf8(str, len, &pos, direction, jump, all);
+			step= pos - but->pos;
 			for(x=but->pos; x<len; x++)
 				str[x]= str[x+step];
 			str[len-step]='\0';
@@ -1536,20 +1572,11 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				changed= ui_textedit_delete_selection(but, data);
 			}
 			else if(but->pos>0) {
+				short pos= but->pos;
 				int step;
 
-				if (jump) {
-					x = but->pos;
-					step= 0;
-					while(x > 0) {
-						x--;
-						step++;
-						if((step > 1) && test_special_char(str[x])) break;
-					}
-				}
-				else {
-					step= 1;
-				}
+				ui_textedit_step_utf8(str, len, &pos, direction, jump, all);
+				step= but->pos - pos;
 
 				for(x=but->pos; x<len; x++)
 					str[x-step]= str[x];

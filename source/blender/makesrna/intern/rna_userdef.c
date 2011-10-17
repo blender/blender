@@ -2624,7 +2624,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
 		/*{25, "NEPALI", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
 		/* using the utf8 flipped form of Persian (فارسی) */
-		{26, "PERSIAN", 0, N_("Persian (ﺱﺭﺎﻓ)"), "fa_PE"},
+		{26, "PERSIAN", 0, N_("Persian (ﯽﺳﺭﺎﻓ)"), "fa_PE"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);

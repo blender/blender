@@ -34,7 +34,7 @@ USER_FILL_HOLES_QUALITY = None
 def pointInTri2D(v, v1, v2, v3):
     key = v1.x, v1.y, v2.x, v2.y, v3.x, v3.y
 
-    # Commented because its slower to do the bounds check, we should realy cache the bounds info for each face.
+    # Commented because its slower to do the bounds check, we should really cache the bounds info for each face.
     '''
     # BOUNDS CHECK
     xmin= 1000000
@@ -119,7 +119,7 @@ def boundsEdgeLoop(edges):
 """
 
 # Turns the islands into a list of unpordered edges (Non internal)
-# Onlt for UV's
+# Only for UV's
 # only returns outline edges for intersection tests. and unique points.
 
 def island2Edge(island):
@@ -141,7 +141,7 @@ def island2Edge(island):
             else:
                 i1= vIdx;	i2= vIdx-1
 
-            try:	edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
+            try:	edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets any edge with more then 1 user to 0 are not returned.
             except:	edges[ f_uvkey[i1], f_uvkey[i2] ] = (f.uv[i1] - f.uv[i2]).length,
 
     # If 2 are the same then they will be together, but full [a,b] order is not correct.
@@ -162,10 +162,10 @@ def island2Edge(island):
     return length_sorted_edges, [v.to_3d() for v in unique_points.values()]
 
 # ========================= NOT WORKING????
-# Find if a points inside an edge loop, un-orderd.
+# Find if a points inside an edge loop, un-ordered.
 # pt is and x/y
 # edges are a non ordered loop of edges.
-# #offsets are the edge x and y offset.
+# offsets are the edge x and y offset.
 """
 def pointInEdges(pt, edges):
     #
@@ -223,7 +223,7 @@ def islandIntersectUvIsland(source, target, SourceOffset):
         if pointInIsland(pv+SourceOffset, target[0]):
             return 2 # SOURCE INSIDE TARGET
 
-    # 2 test for a part of the target being totaly inside the source.
+    # 2 test for a part of the target being totally inside the source.
     for pv in target[7]:
         if pointInIsland(pv-SourceOffset, source[0]):
             return 3 # PART OF TARGET INSIDE SOURCE.
@@ -242,7 +242,7 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 
     for i, v in enumerate(vecs):
 
-        # Do this allong the way
+        # Do this along the way
         if mat != -1:
             v = vecs[i] = mat * v
             x= v.x
@@ -252,7 +252,7 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
             if x>maxx: maxx= x
             if y>maxy: maxy= y
 
-        # Spesific to this algo, bail out if we get bigger then the current area
+        # Specific to this algo, bail out if we get bigger then the current area
         if bestAreaSoFar != -1 and (maxx-minx) * (maxy-miny) > bestAreaSoFar:
             return (BIG_NUM, None), None
     w = maxx-minx
@@ -262,7 +262,7 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 def optiRotateUvIsland(faces):
     global currentArea
 
-    # Bestfit Rotation
+    # Best-fit Rotation
     def best2dRotation(uvVecs, MAT1, MAT2):
         global currentArea
 
@@ -318,7 +318,7 @@ def optiRotateUvIsland(faces):
         currentArea = newAreaPos
     # 45d done
 
-    # Testcase different rotations and find the onfe that best fits in a square
+    # Testcase different rotations and find the one that best fits in a square
     for ROTMAT in RotMatStepRotation:
         uvVecs = best2dRotation(uvVecs, ROTMAT[0], ROTMAT[1])
 
@@ -409,7 +409,7 @@ def mergeUvIslands(islandList):
     BREAK= False
     while areaIslandIdx < len(decoratedIslandListAreaSort) and not BREAK:
         sourceIsland = decoratedIslandListAreaSort[areaIslandIdx]
-        # Alredy packed?
+        # Already packed?
         if not sourceIsland[0]:
             areaIslandIdx+=1
         else:
@@ -420,7 +420,7 @@ def mergeUvIslands(islandList):
                     BREAK= True
                     break
 
-                # Now we have 2 islands, is the efficience of the islands lowers theres an
+                # Now we have 2 islands, if the efficiency of the islands lowers theres an
                 # increasing likely hood that we can fit merge into the bigger UV island.
                 # this ensures a tight fit.
 
@@ -435,12 +435,12 @@ def mergeUvIslands(islandList):
                     pass
                 else:
 
-                    # ([island, totFaceArea, efficiency, islandArea, w,h])
-                    # Waisted space on target is greater then UV bounding island area.
+                    #~ ([island, totFaceArea, efficiency, islandArea, w,h])
+                    # Wasted space on target is greater then UV bounding island area.
 
 
-                    # if targetIsland[3] > (sourceIsland[2]) and\ #
-                    # print USER_FREE_SPACE_TO_TEST_QUALITY
+                    #~ if targetIsland[3] > (sourceIsland[2]) and\ #
+                    #~ print USER_FREE_SPACE_TO_TEST_QUALITY
                     if targetIsland[2] > (sourceIsland[1] * USER_FREE_SPACE_TO_TEST_QUALITY) and\
                     targetIsland[4] > sourceIsland[4] and\
                     targetIsland[5] > sourceIsland[5]:
@@ -456,7 +456,7 @@ def mergeUvIslands(islandList):
                         boxLeft = 0
 
 
-                        # Distllllance we can move between whilst staying inside the targets bounds.
+                        # Distance we can move between whilst staying inside the targets bounds.
                         testWidth = targetIsland[4] - sourceIsland[4]
                         testHeight = targetIsland[5] - sourceIsland[5]
 
@@ -474,25 +474,25 @@ def mergeUvIslands(islandList):
                         boxLeft = 0 # Start 1 back so we can jump into the loop.
                         boxBottom= 0 #-yIncrement
 
-                        ##testcount= 0
+                        #~ testcount= 0
 
                         while boxBottom <= testHeight:
                             # Should we use this? - not needed for now.
-                            #if Window.GetKeyQualifiers() & ctrl:
-                            #	BREAK= True
-                            #	break
+                            #~ if Window.GetKeyQualifiers() & ctrl:
+                            #~     BREAK= True
+                            #~     break
 
                             ##testcount+=1
                             #print 'Testing intersect'
                             Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, Vector((boxLeft, boxBottom)))
                             #print 'Done', Intersect
-                            if Intersect == 1:  # Line intersect, dont bother with this any more
+                            if Intersect == 1:  # Line intersect, don't bother with this any more
                                 pass
 
                             if Intersect == 2:  # Source inside target
                                 '''
                                 We have an intersection, if we are inside the target
-                                then move us 1 whole width accross,
+                                then move us 1 whole width across,
                                 Its possible this is a bad idea since 2 skinny Angular faces
                                 could join without 1 whole move, but its a lot more optimal to speed this up
                                 since we have already tested for it.
@@ -500,7 +500,7 @@ def mergeUvIslands(islandList):
                                 It gives about 10% speedup with minimal errors.
                                 '''
                                 #print 'ass'
-                                # Move the test allong its width + SMALL_NUM
+                                # Move the test along its width + SMALL_NUM
                                 #boxLeft += sourceIsland[4] + SMALL_NUM
                                 boxLeft += sourceIsland[4]
                             elif Intersect == 0: # No intersection?? Place it.
@@ -551,7 +551,7 @@ def mergeUvIslands(islandList):
                                 break
 
 
-                            # INCREMENR NEXT LOCATION
+                            # INCREMENT NEXT LOCATION
                             if boxLeft > testWidth:
                                 boxBottom += yIncrement
                                 boxLeft = 0.0
@@ -572,8 +572,8 @@ def mergeUvIslands(islandList):
 # Takes groups of faces. assumes face groups are UV groups.
 def getUvIslands(faceGroups, me):
 
-    # Get seams so we dont cross over seams
-    edge_seams = {} # shoudl be a set
+    # Get seams so we don't cross over seams
+    edge_seams = {} # should be a set
     for ed in me.edges:
         if ed.use_seam:
             edge_seams[ed.key] = None # dummy var- use sets!
@@ -609,7 +609,7 @@ def getUvIslands(faceGroups, me):
         # Modes
         # 0 - face not yet touched.
         # 1 - added to island list, and need to search
-        # 2 - touched and searched - dont touch again.
+        # 2 - touched and searched - don't touch again.
         face_modes = [0] * len(faces) # initialize zero - untested.
 
         face_modes[0] = 1 # start the search with face 1
@@ -633,7 +633,7 @@ def getUvIslands(faceGroups, me):
                                     face_modes[ii] = ok = 1 # mark as searched
                                     newIsland.append(faces[ii])
 
-                        # mark as searched, dont look again.
+                        # mark as searched, don't look again.
                         face_modes[i] = 2
 
             islandList.append(newIsland)
@@ -664,8 +664,8 @@ def packIslands(islandList):
 
     # Now we have UV islands, we need to pack them.
 
-    # Make a synchronised list with the islands
-    # so we can box pak the islands.
+    # Make a synchronized list with the islands
+    # so we can box pack the islands.
     packBoxes = []
 
     # Keep a list of X/Y offset so we can save time by writing the
@@ -716,14 +716,14 @@ def packIslands(islandList):
     # print 'Box Packing Time:', time.time() - time1
 
     #if len(pa	ckedLs) != len(islandList):
-    #	raise "Error packed boxes differes from original length"
+    #	raise "Error packed boxes differs from original length"
 
     #print '\tWriting Packed Data to faces'
 #XXX	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
 
     # Sort by ID, so there in sync again
     islandIdx = len(islandList)
-    # Having these here avoids devide by 0
+    # Having these here avoids divide by 0
     if islandIdx:
 
         if USER_STRETCH_ASPECT:
@@ -845,9 +845,9 @@ def main(context,
         time.sleep(10)
     '''
 
-#XXX	if not Draw.PupBlock(ob % len(obList), pup_block):
-#XXX		return
-#XXX	del ob
+#~ XXX	if not Draw.PupBlock(ob % len(obList), pup_block):
+#~ XXX		return
+#~ XXX	del ob
 
     # Convert from being button types
 
@@ -859,10 +859,10 @@ def main(context,
     is_editmode = (context.active_object.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT')
-    # Assume face select mode! an annoying hack to toggle face select mode because Mesh dosent like faceSelectMode.
+    # Assume face select mode! an annoying hack to toggle face select mode because Mesh doesn't like faceSelectMode.
 
     if USER_SHARE_SPACE:
-        # Sort by data name so we get consistant results
+        # Sort by data name so we get consistent results
         obList.sort(key = lambda ob: ob.data.name)
         collected_islandList= []
 
@@ -870,7 +870,7 @@ def main(context,
 
     time1 = time.time()
 
-    # Tag as False se we dont operate on the same mesh twice.
+    # Tag as False so we don't operate on the same mesh twice.
 #XXX	bpy.data.meshes.tag = False
     for me in bpy.data.meshes:
         me.tag = False
@@ -885,7 +885,7 @@ def main(context,
         # Tag as used
         me.tag = True
 
-        if not me.uv_textures: # Mesh has no UV Coords, dont bother.
+        if not me.uv_textures: # Mesh has no UV Coords, don't bother.
             me.uv_textures.new()
 
         uv_layer = me.uv_textures.active.data
@@ -902,7 +902,7 @@ def main(context,
 #XXX		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 
         # =======
-        # Generate a projection list from face normals, this is ment to be smart :)
+        # Generate a projection list from face normals, this is meant to be smart :)
 
         # make a list of face props that are in sync with meshFaces
         # Make a Face List that is sorted by area.
@@ -928,7 +928,7 @@ def main(context,
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.inverted().to_3x3()] # We add to this allong the way
+            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.inverted().to_3x3()] # We add to this along the way
         else:
             projectVecs = []
 
@@ -936,7 +936,7 @@ def main(context,
         newProjectMeshFaces = []	# Popping stuffs it up.
 
 
-        # Predent that the most unique angke is ages away to start the loop off
+        # Pretend that the most unique angle is ages away to start the loop off
         mostUniqueAngle = -1.0
 
         # This is popped
@@ -950,7 +950,7 @@ def main(context,
 
             # add all the faces that are close.
             for fIdx in range(len(tempMeshFaces)-1, -1, -1):
-                # Use half the angle limit so we dont overweight faces towards this
+                # Use half the angle limit so we don't overweight faces towards this
                 # normal and hog all the faces.
                 if newProjectVec.dot(tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
                     newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))

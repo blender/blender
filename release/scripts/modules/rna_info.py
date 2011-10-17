@@ -292,7 +292,7 @@ class InfoPropertyRNA:
         elif as_arg:
             if not self.is_required:
                 type_info.append("optional")
-        else:  # readonly is only useful for selfs, not args
+        else:  # readonly is only useful for self's, not args
             if self.is_readonly:
                 type_info.append("readonly")
 
@@ -519,7 +519,7 @@ def BuildRNAInfo():
 
     # Done ordering structs
 
-    # precalc vars to avoid a lot of looping
+    # precalculate vars to avoid a lot of looping
     for (rna_base, identifier, rna_struct) in structs:
 
         # rna_struct_path = full_rna_struct_path(rna_struct)
@@ -634,7 +634,7 @@ if __name__ == "__main__":
     struct = rna_info.BuildRNAInfo()[0]
     data = []
     for struct_id, v in sorted(struct.items()):
-        struct_id_str = v.identifier  # "".join(sid for sid in struct_id if struct_id)
+        struct_id_str = v.identifier  #~ "".join(sid for sid in struct_id if struct_id)
 
         for base in v.get_bases():
             struct_id_str = base.identifier + "|" + struct_id_str

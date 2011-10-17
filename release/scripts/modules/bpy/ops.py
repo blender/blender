@@ -138,7 +138,7 @@ class BPyOpsSubModOp(object):
     @staticmethod
     def _scene_update(context):
         scene = context.scene
-        if scene:  # None in backgroud mode
+        if scene:  # None in background mode
             scene.update()
         else:
             import bpy

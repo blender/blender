@@ -110,7 +110,7 @@ private:
 	             const GHOST_TEmbedderWindowID parentWindow
 	             );
 
-	/* SDL spesific */
+	/* SDL specific */
 	GHOST_WindowSDL * findGhostWindow(SDL_Window *sdl_win);
 
 	bool

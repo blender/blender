@@ -189,7 +189,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         return context.bone
 
     def draw(self, context):
-        # note. this works ok in editmode but isnt
+        # note. this works ok in edit-mode but isn't
         # all that useful so disabling for now.
         layout = self.layout
 

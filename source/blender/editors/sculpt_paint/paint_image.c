@@ -3387,7 +3387,7 @@ static void project_paint_end(ProjPaintState *ps)
 					}
 					
 					/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
-					 * because allocating the tiles allong the way slows down painting */
+					 * because allocating the tiles along the way slows down painting */
 					
 					if (is_float) {
 						float *rgba_fp = (float *)tilerect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;

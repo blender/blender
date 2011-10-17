@@ -63,7 +63,7 @@ def draw_gpencil_tools(context, layout):
     row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
 
-# ********** default tools for objectmode ****************
+# ********** default tools for object-mode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
     bl_context = "objectmode"
@@ -385,7 +385,7 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
         draw_gpencil_tools(context, layout)
 
 
-# ********** default tools for posemode ****************
+# ********** default tools for pose-mode ****************
 
 
 class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
@@ -1043,7 +1043,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, Panel):
             row = col.row(align=True)
             row.prop(brush, "icon_filepath", text="")
 
-# ********** default tools for weightpaint ****************
+# ********** default tools for weight-paint ****************
 
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
@@ -1097,9 +1097,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):
 #		col.prop(wpaint, "mul", text="")
 
 # Also missing now:
-# Soft, Vgroup, X-Mirror and "Clear" Operator.
+# Soft, Vertex-Group, X-Mirror and "Clear" Operator.
 
-# ********** default tools for vertexpaint ****************
+# ********** default tools for vertex-paint ****************
 
 
 class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
@@ -1128,7 +1128,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
 #		col.label(text="Multiply:")
 #		col.prop(vpaint, "mul", text="")
 
-# ********** default tools for texturepaint ****************
+# ********** default tools for texture-paint ****************
 
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):

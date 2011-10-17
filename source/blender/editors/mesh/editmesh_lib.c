@@ -337,7 +337,7 @@ void EM_editselection_normal(float *normal, EditSelection *ese)
 }
 
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
-also make the plane run allong an axis that is related to the geometry,
+also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
 void EM_editselection_plane(float *plane, EditSelection *ese)
 {
@@ -345,7 +345,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 		EditVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
-		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
+		if (ese->prev) { /*use previously selected data to make a useful vertex plane */
 			EM_editselection_center(vec, ese->prev);
 			sub_v3_v3v3(plane, vec, eve->co);
 		} else {
@@ -361,7 +361,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 	} else if (ese->type==EDITEDGE) {
 		EditEdge *eed= ese->data;
 
-		/*the plane is simple, it runs allong the edge
+		/*the plane is simple, it runs along the edge
 		however selecting different edges can swap the direction of the y axis.
 		this makes it less likely for the y axis of the manipulator
 		(running along the edge).. to flip less often.
