@@ -82,33 +82,21 @@ if(WITH_CYCLES_BLENDER)
 		${CMAKE_SOURCE_DIR}/source/blender/blenloader
 		${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
 
-	ADD_DEFINITIONS(-DBLENDER_PLUGIN)
+	add_definitions(-DBLENDER_PLUGIN)
 endif()
 
 ###########################################################################
 # CUDA
 
 if(WITH_CYCLES_CUDA)
-	FIND_PACKAGE(CUDA) # Try to auto locate CUDA toolkit
+	find_package(CUDA) # Try to auto locate CUDA toolkit
 	if(CUDA_FOUND)
-		set(CYCLES_CUDA ${CUDA_TOOLKIT_ROOT_DIR} CACHE PATH "Path to CUDA installation")
+		message(STATUS "CUDA nvcc = ${CUDA_NVCC_EXECUTABLE}")
+		set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
+		set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
 	else()
-		if(WIN32)
-			set(CYCLES_CUDA "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v4.0" CACHE PATH "Path to CUDA installation")
-		else()
-			set(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
-		endif()
+		message(STATUS "CUDA compiler not found, disabling WITH_CYCLES_CUDA")
+		set(WITH_CYCLES_CUDA OFF)
 	endif()
-	set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
-	set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
-
-	find_program(CUDA_NVCC NAMES nvcc PATHS ${CYCLES_CUDA}/bin NO_DEFAULT_PATH)
-
-	if(CUDA_NVCC)
-		message(STATUS "CUDA nvcc = ${CUDA_NVCC}")
-	else()
-		message(STATUS "CUDA compiler not found")
-	endif()
-
 endif()
 
