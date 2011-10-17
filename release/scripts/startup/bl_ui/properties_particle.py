@@ -404,7 +404,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
             part = context.space_data.pin_id
 
         layout.enabled = particle_panel_enabled(context, psys)
-        
+
         layout.prop(part, "use_dynamic_rotation")
 
         if part.use_dynamic_rotation:
@@ -433,7 +433,6 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
             subsub = sub.column()
             subsub.active = part.angular_velocity_mode != 'NONE'
             subsub.prop(part, "angular_velocity_factor", text="")
-            
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):

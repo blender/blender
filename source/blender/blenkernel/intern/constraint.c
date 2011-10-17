@@ -4351,7 +4351,7 @@ short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
  * constraints either had one or no targets. It used to be called during the main constraint solving
  * loop, but is now only used for the remaining cases for a few constraints. 
  *
- * None of the actual calculations of the matricies should be done here! Also, this function is 
+ * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
 void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime)
