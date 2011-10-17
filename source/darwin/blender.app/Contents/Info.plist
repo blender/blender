@@ -46,7 +46,7 @@
 	<key>LSEnvironment</key>
 	<dict>
 		<key>OMP_NUM_THREADS</key>
-		<string>2</string>
+		<string></string>
 	</dict>
 </dict>
 </plist>
