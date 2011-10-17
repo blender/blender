@@ -910,7 +910,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	else if (G.relbase_valid || lib) {
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 
-		BLI_split_dirfile(blendfilename, NULL, file);
+		BLI_split_dirfile(blendfilename, NULL, file, 0, sizeof(file));
 		i = strlen(file);
 		
 		/* remove .blend */

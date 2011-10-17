@@ -1427,6 +1427,16 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				VECCOPY(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
+
+				/* particle rotation uses x-axis as the aligned axis, so pre-rotate the object accordingly */
+				if((part->draw & PART_DRAW_ROTATE_OB) == 0) {
+					float xvec[3], q[4];
+					xvec[0] = -1.f;
+					xvec[1] = xvec[2] = 0;
+					vec_to_quat(q, xvec, ob->trackflag, ob->upflag);
+					quat_to_mat4(obmat, q);
+					obmat[3][3]= 1.0f;
+				}
 				
 				/* Normal particles and cached hair live in global space so we need to
 				 * remove the real emitter's transformation before 2nd order duplication.
@@ -1445,7 +1455,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					copy_m4_m4(mat, tmat);
 
 				if(part->draw & PART_DRAW_GLOBAL_OB)
-					VECADD(mat[3], mat[3], vec);
+					add_v3_v3v3(mat[3], mat[3], vec);
 
 				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, animated);
 				copy_m4_m4(dob->omat, oldobmat);

@@ -135,10 +135,12 @@ def dump_messages_rna(messages):
                                                         item.identifier,
                                                         )
                     # Here identifier and name can be the same!
-                    if item.name: # and item.name != item.identifier:
-                        messages.setdefault(item.name, []).append(msgsrc)
+                    if item.name:  # and item.name != item.identifier:
+                        messages.setdefault(item.name,
+                                            []).append(msgsrc)
                     if item.description:
-                        messages.setdefault(item.description, []).append(msgsrc)
+                        messages.setdefault(item.description,
+                                            []).append(msgsrc)
 
     def walkRNA(bl_rna):
 

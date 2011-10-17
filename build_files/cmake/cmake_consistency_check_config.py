@@ -27,6 +27,10 @@ IGNORE = (
     "extern/eltopo/common/openglutils.cpp",
     "extern/eltopo/eltopo3d/broadphase_blenderbvh.cpp",
     "source/blender/imbuf/intern/imbuf_cocoa.m",
+    "extern/recastnavigation/Recast/Source/RecastLog.cpp",
+    "extern/recastnavigation/Recast/Source/RecastTimer.cpp",
+    "entern/audaspace/SRC/AUD_SRCResampleFactory.cpp",
+    "entern/audaspace/SRC/AUD_SRCResampleReader.cpp",
 
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.h",
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h",
@@ -50,6 +54,10 @@ IGNORE = (
     "source/blender/bmesh/tools/BME_duplicate.c",
     "source/blender/bmesh/tools/BME_extrude.c",
     "source/blender/bmesh/tools/BME_weld.c",
+    "extern/recastnavigation/Recast/Include/RecastLog.h",
+    "extern/recastnavigation/Recast/Include/RecastTimer.h",
+    "intern/audaspace/SRC/AUD_SRCResampleFactory.h",
+    "intern/audaspace/SRC/AUD_SRCResampleReader.h",
     )
 
 UTF8_CHECK = True

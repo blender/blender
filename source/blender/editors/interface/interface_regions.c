@@ -368,7 +368,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	/* special case, enum rna buttons only have enum item description, use general enum description too before the spesific one */
+	/* special case, enum rna buttons only have enum item description, use general enum description too before the specific one */
 	if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 		const char *descr= RNA_property_description(but->rnaprop);
 		if(descr && descr[0]) {

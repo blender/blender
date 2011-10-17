@@ -1089,7 +1089,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 PyDoc_STRVAR(Matrix_lerp_doc,
 ".. function:: lerp(other, factor)\n"
 "\n"
-"   Returns the interpolation of two matricies.\n"
+"   Returns the interpolation of two matrices.\n"
 "\n"
 "   :arg other: value to interpolate with.\n"
 "   :type other: :class:`Matrix`\n"
@@ -1669,7 +1669,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 		}
 		else {
 			PyErr_SetString(PyExc_IndexError,
-			                "slice steps not supported with matricies");
+			                "slice steps not supported with matrices");
 			return NULL;
 		}
 	}
@@ -1701,7 +1701,7 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 			return Matrix_ass_slice(self, start, stop, value);
 		else {
 			PyErr_SetString(PyExc_IndexError,
-			                "slice steps not supported with matricies");
+			                "slice steps not supported with matrices");
 			return -1;
 		}
 	}

@@ -895,7 +895,7 @@ static int get_path_local(char *targetpath, const char *folder_name, const char 
 	}
 	
 	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL);
+	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
 	
 	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
 	if(test_path(targetpath, bprogdir, blender_version_decimal(ver), relfolder))
@@ -967,7 +967,7 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	char bprogdir[FILE_MAX];
 
 	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL);
+	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
 
 	if(folder_name) {
 		if (subfolder_name) {
@@ -1412,21 +1412,22 @@ int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
  * - dosnt use CWD, or deal with relative paths.
  * - Only fill's in *dir and *file when they are non NULL
  * */
-void BLI_split_dirfile(const char *string, char *dir, char *file)
+void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {
 	char *lslash_str = BLI_last_slash(string);
-	int lslash= lslash_str ? (int)(lslash_str - string) + 1 : 0;
+	size_t lslash= lslash_str ? (size_t)(lslash_str - string) + 1 : 0;
 
 	if (dir) {
 		if (lslash) {
-			BLI_strncpy( dir, string, lslash + 1); /* +1 to include the slash and the last char */
-		} else {
+			BLI_strncpy( dir, string, MIN2(dirlen, lslash + 1)); /* +1 to include the slash and the last char */
+		}
+		else {
 			dir[0] = '\0';
 		}
 	}
 	
 	if (file) {
-		strcpy( file, string+lslash);
+		BLI_strncpy(file, string+lslash, filelen);
 	}
 }
 
@@ -1516,7 +1517,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	if (rel)
 		rel[0]= 0;
 
-	BLI_split_dirfile(base_dir, blend_dir, NULL);
+	BLI_split_dirfile(base_dir, blend_dir, NULL, sizeof(blend_dir), 0);
 
 	if (src_dir[0]=='\0')
 		return 0;
@@ -1527,7 +1528,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	BLI_path_abs(path, base_dir);
 
 	/* get the directory part */
-	BLI_split_dirfile(path, dir, base);
+	BLI_split_dirfile(path, dir, base, sizeof(dir), sizeof(base));
 
 	len= strlen(blend_dir);
 

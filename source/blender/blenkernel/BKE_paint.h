@@ -84,7 +84,7 @@ typedef struct SculptSession {
 	int modifiers_active; /* object is deformed with some modifiers */
 	float (*orig_cos)[3]; /* coords of undeformed mesh */
 	float (*deform_cos)[3]; /* coords of deformed mesh but without stroke displacement */
-	float (*deform_imats)[3][3]; /* crazyspace deformation matricies */
+	float (*deform_imats)[3][3]; /* crazyspace deformation matrices */
 
 	/* Partial redraw */
 	int partial_redraw;

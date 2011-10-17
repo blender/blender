@@ -58,7 +58,7 @@
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	/* collection iterator spesific parts */
+	/* collection iterator specific parts */
 	char relpath[FILE_MAX];
 	char abspath[FILE_MAX]; /* absolute path */
 	BlendHandle *blo_handle;

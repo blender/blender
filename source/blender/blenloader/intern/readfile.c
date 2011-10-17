@@ -1050,7 +1050,7 @@ void blo_freefiledata(FileData *fd)
 
 /* ************ DIV ****************** */
 
-int BLO_has_bfile_extension(char *str)
+int BLO_has_bfile_extension(const char *str)
 {
 	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend") || BLI_testextensie(str, ".blend.gz"));
 }
@@ -12241,6 +12241,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
 				do_versions_nodetree_image_default_alpha_output(ntree);
+		}
+
+		{
+			/* support old particle dupliobject rotation settings */
+			ParticleSettings *part;
+
+			for (part=main->particle.first; part; part=part->id.next) {
+				if(ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+					part->draw |= PART_DRAW_ROTATE_OB;
+
+					if(part->rotmode == 0)
+						part->rotmode = PART_ROT_VEL;
+				}
+			}
 		}
 	}
 

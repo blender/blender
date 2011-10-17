@@ -54,10 +54,11 @@ class VIEW3D_HT_header(Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
-        row = layout.row()
+        
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        row.template_header_3D()
-
+        layout.template_header_3D()
+        
+        row = layout.row()
         if obj:
             # Particle edit
             if obj.mode == 'PARTICLE_EDIT':
@@ -983,6 +984,7 @@ class VIEW3D_MT_make_links(Menu):
         layout.operator_enum("object.make_links_data", "type")  # inline
 
         layout.operator("object.join_uvs")  # stupid place to add this!
+
 
 class VIEW3D_MT_object_game(Menu):
     bl_label = "Game"

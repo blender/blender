@@ -666,7 +666,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 	if((prop= RNA_struct_find_property(op->ptr, "filepath"))) {
 		char filepath[FILE_MAX];
 		RNA_property_string_get(op->ptr, prop, filepath);
-		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 	}
 	else {
 		if((prop= RNA_struct_find_property(op->ptr, "filename"))) {
@@ -1143,7 +1143,7 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		if(BLI_exists(sfile->params->dir) && BLI_is_dir(sfile->params->dir) == 0) {
 			char path[sizeof(sfile->params->dir)];
 			BLI_strncpy(path, sfile->params->dir, sizeof(path));
-			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file);
+			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);

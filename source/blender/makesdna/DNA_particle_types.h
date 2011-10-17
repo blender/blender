@@ -386,7 +386,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_DRAW_HEALTH	16
 #define PART_ABS_PATH_TIME  32
 #define PART_DRAW_COUNT_GR	64
-#define PART_DRAW_BB_LOCK	128
+#define PART_DRAW_BB_LOCK	128	/* used with billboards */
+#define PART_DRAW_ROTATE_OB 128 /* used with dupliobjects/groups */
 #define PART_DRAW_PARENT	256
 #define PART_DRAW_NUM		512
 #define PART_DRAW_RAND_GR	1024

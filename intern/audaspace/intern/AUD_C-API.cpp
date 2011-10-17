@@ -826,42 +826,51 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 	AUD_Reference<AUD_IFactory> file = new AUD_FileFactory(filename);
 
-	AUD_Reference<AUD_IReader> reader = file->createReader();
-	AUD_SampleRate rate = reader->getSpecs().rate;
-
-	sound = new AUD_ChannelMapperFactory(file, specs);
-
-	if(high < rate)
-		sound = new AUD_LowpassFactory(sound, high);
-	if(low > 0)
-		sound = new AUD_HighpassFactory(sound, low);
-
-	sound = new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f);
-	sound = new AUD_LinearResampleFactory(sound, specs);
-
-	if(square)
-		sound = new AUD_SquareFactory(sound, sthreshold);
-
-	if(accumulate)
-		sound = new AUD_AccumulatorFactory(sound, additive);
-	else if(additive)
-		sound = new AUD_SumFactory(sound);
-
-	reader = sound->createReader();
-
-	if(reader.isNull())
-		return NULL;
-
-	int len;
 	int position = 0;
-	bool eos;
-	do
+
+	try
 	{
-		len = samplerate;
-		buffer.resize((position + len) * sizeof(float), true);
-		reader->read(len, eos, buffer.getBuffer() + position);
-		position += len;
-	} while(!eos);
+		AUD_Reference<AUD_IReader> reader = file->createReader();
+
+		AUD_SampleRate rate = reader->getSpecs().rate;
+
+		sound = new AUD_ChannelMapperFactory(file, specs);
+
+		if(high < rate)
+			sound = new AUD_LowpassFactory(sound, high);
+		if(low > 0)
+			sound = new AUD_HighpassFactory(sound, low);
+
+		sound = new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f);
+		sound = new AUD_LinearResampleFactory(sound, specs);
+
+		if(square)
+			sound = new AUD_SquareFactory(sound, sthreshold);
+
+		if(accumulate)
+			sound = new AUD_AccumulatorFactory(sound, additive);
+		else if(additive)
+			sound = new AUD_SumFactory(sound);
+
+		reader = sound->createReader();
+
+		if(reader.isNull())
+			return NULL;
+
+		int len;
+		bool eos;
+		do
+		{
+			len = samplerate;
+			buffer.resize((position + len) * sizeof(float), true);
+			reader->read(len, eos, buffer.getBuffer() + position);
+			position += len;
+		} while(!eos);
+	}
+	catch(AUD_Exception&)
+	{
+		return NULL;
+	}
 
 	float* result = (float*)malloc(position * sizeof(float));
 	memcpy(result, buffer.getBuffer(), position * sizeof(float));

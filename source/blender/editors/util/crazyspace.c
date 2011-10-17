@@ -438,7 +438,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 	int totleft= sculpt_get_first_deform_matrices(scene, ob, deformmats, deformcos);
 
 	if(totleft) {
-		/* there are deformation modifier which doesn't support deformation matricies
+		/* there are deformation modifier which doesn't support deformation matrices
 		   calculation. Need additional crazyspace correction */
 
 		float (*deformedVerts)[3]= *deformcos;
