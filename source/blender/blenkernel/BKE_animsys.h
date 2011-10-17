@@ -146,7 +146,7 @@ void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct An
 void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
 
 
-/* ------------ Specialised API --------------- */
+/* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
  * for standard animation evaluation UNDER ANY CIRCUMSTANCES! 
  *

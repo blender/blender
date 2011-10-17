@@ -146,7 +146,7 @@ bool KX_NetworkMessageSensor::Evaluate()
 	// Return always true if a message was received otherwise we can loose messages
 	if (m_IsUp)
 		return true;
-	// Is it usefull to return also true when the first frame without a message?? 
+	// Is it useful to return also true when the first frame without a message??
 	// This will cause a fast on/off cycle that seems useless!
 	return result;
 }

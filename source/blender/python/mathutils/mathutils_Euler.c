@@ -75,7 +75,7 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return newEulerObject(eul, order, Py_NEW, type);
 }
 
-/* internal use, assuem read callback is done */
+/* internal use, assume read callback is done */
 static const char *euler_order_str(EulerObject *self)
 {
 	static const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};

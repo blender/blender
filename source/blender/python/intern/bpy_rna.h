@@ -149,7 +149,7 @@ typedef struct {
 	PyObject *in_weakreflist;
 #endif
 
-	/* collection iterator spesific parts */
+	/* collection iterator specific parts */
 	CollectionPropertyIterator iter;
 } BPy_PropertyCollectionIterRNA;
 

@@ -13303,7 +13303,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 		if( ob->id.flag & LIB_INDIRECT ) {
 			
 				/* IF below is quite confusing!
-				if we are appending, but this object wasnt just added allong with a group,
+				if we are appending, but this object wasnt just added along with a group,
 				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */

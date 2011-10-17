@@ -70,7 +70,7 @@ public:
 
 	~GHOST_WindowSDL();
 
-	/* SDL spesific */
+	/* SDL specific */
 	SDL_Window *
 	getSDLWindow()
 	{

@@ -947,7 +947,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 /* ANIMATO OPERATIONS */
 /* KeyingSet and Driver Creation - Helper functions */
 
-/* specialised poll callback for these operators to work in Datablocks view only */
+/* specialized poll callback for these operators to work in Datablocks view only */
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
