@@ -121,8 +121,8 @@ If you have a list that you want to add onto another list, rather then...
 
 .. code-block:: python
 
-for l in some_list:
-   my_list.append(l)
+   for l in some_list:
+       my_list.append(l)
 
 Use...
 
