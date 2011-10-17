@@ -194,6 +194,7 @@ class CLIP_OT_set_viewport_background(Operator):
         bgpic.clip_user.proxy_render_size = user.proxy_render_size
         bgpic.clip_user.use_render_undistorted = user.use_render_undistorted
         bgpic.use_camera_clip = False
+        bgpic.view_axis = 'CAMERA'
 
     def execute(self, context):
         sc = context.space_data
