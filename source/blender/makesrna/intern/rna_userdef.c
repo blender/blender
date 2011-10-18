@@ -2521,20 +2521,22 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	static EnumPropertyItem language_items[] = {
+		{0, "", 0, "Nearly done", ""},
 		{0, "DEFAULT", 0, N_("Default (Default)"), ""},
 		{1, "ENGLISH", 0, N_("English (English)"), "en_US"},
+		{8, "FRENCH", 0, N_("French (Français)"), "fr_FR"},
+		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
+		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
+		{0, "", 0, "In progress", ""},
 		{2, "JAPANESE", 0, N_("Japanese (日本語)"), "ja_JP"},
 		{3, "DUTCH", 0, N_("Dutch (Nederlandse taal)"), "nl_NL"},
 		{4, "ITALIAN", 0, N_("Italian (Italiano)"), "it_IT"},
 		{5, "GERMAN", 0, N_("German (Deutsch)"), "de_DE"},
 		{6, "FINNISH", 0, N_("Finnish (Suomi)"), "fi_FI"},
 		{7, "SWEDISH", 0, N_("Swedish (Svenska)"), "sv_SE"},
-		{8, "FRENCH", 0, N_("French (Française)"), "fr_FR"},
-		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
 		{10, "CATALAN", 0, N_("Catalan (Català)"), "ca_AD"},
 		{11, "CZECH", 0, N_("Czech (Český)"), "cs_CZ"},
 		{12, "BRAZILIAN_PORTUGUESE", 0, N_("Brazilian Portuguese (Português do Brasil)"), "pt_BR"},
-		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
 		{14, "TRADITIONAL_CHINESE", 0, N_("Traditional Chinese (繁體中文)"), "zh_TW"},
 		{15, "RUSSIAN", 0, N_("Russian (Русский)"), "ru_RU"},
 		{16, "CROATIAN", 0, N_("Croatian (Hrvatski)"), "hr_HR"},
@@ -2542,11 +2544,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{18, "UKRAINIAN", 0, N_("Ukrainian (Український)"), "uk_UA"},
 		{19, "POLISH", 0, N_("Polish (Polski)"), "pl_PL"},
 		{20, "ROMANIAN", 0, N_("Romanian (Român)"), "ro_RO"},
-		{21, "ARABIC", 0, N_("Arabic (العربية)"), "ar_EG"},
+		/* using the utf8 flipped form of Arabic (العربية) */
+		{21, "ARABIC", 0, N_("Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"), "ar_EG"},
 		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
 		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
 		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
-		/*{25, "Nepali", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
+		/*{25, "NEPALI", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
+		/* using the utf8 flipped form of Persian (فارسی) */
+		{26, "PERSIAN", 0, N_("Persian (ﯽﺳﺭﺎﻓ)"), "fa_PE"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);

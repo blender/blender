@@ -157,7 +157,7 @@ static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 		return;
 	}
 	else {
-		/* reports its own error on failier */
+		/* reports its own error on failure */
 		unpackImage (reports, image, method);
 	}
 }

@@ -119,7 +119,7 @@ def object_data_add(context, obdata, operator=None):
     obj_act = scene.objects.active
 
     # XXX
-    # caused because entering editmodedoes not add a empty undo slot!
+    # caused because entering edit-mode does not add a empty undo slot!
     if context.user_preferences.edit.use_enter_edit_mode:
         if not (obj_act and
                 obj_act.mode == 'EDIT' and

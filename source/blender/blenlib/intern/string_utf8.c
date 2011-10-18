@@ -183,3 +183,83 @@ char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 	return dst_r;
 }
 
+/* copied from glib */
+/**
+ * g_utf8_find_prev_char:
+ * @str: pointer to the beginning of a UTF-8 encoded string
+ * @p: pointer to some position within @str
+ *
+ * Given a position @p with a UTF-8 encoded string @str, find the start
+ * of the previous UTF-8 character starting before @p. Returns %NULL if no
+ * UTF-8 characters are present in @str before @p.
+ *
+ * @p does not have to be at the beginning of a UTF-8 character. No check
+ * is made to see if the character found is actually valid other than
+ * it starts with an appropriate byte.
+ *
+ * Return value: a pointer to the found character or %NULL.
+ **/
+char * BLI_str_find_prev_char_utf8(const char *str, const char *p)
+{
+	for (--p; p >= str; --p) {
+		if ((*p & 0xc0) != 0x80) {
+			return (char *)p;
+		}
+	}
+	return NULL;
+}
+
+/**
+ * g_utf8_find_next_char:
+ * @p: a pointer to a position within a UTF-8 encoded string
+ * @end: a pointer to the byte following the end of the string,
+ * or %NULL to indicate that the string is nul-terminated.
+ *
+ * Finds the start of the next UTF-8 character in the string after @p.
+ *
+ * @p does not have to be at the beginning of a UTF-8 character. No check
+ * is made to see if the character found is actually valid other than
+ * it starts with an appropriate byte.
+ *
+ * Return value: a pointer to the found character or %NULL
+ **/
+char *BLI_str_find_next_char_utf8(const char *p, const char *end)
+{
+	if (*p) {
+		if (end) {
+			for (++p; p < end && (*p & 0xc0) == 0x80; ++p) {
+				/* do nothing */
+			}
+		}
+		else {
+			for (++p; (*p & 0xc0) == 0x80; ++p) {
+				/* do nothing */
+			}
+		}
+	}
+	return (p == end) ? NULL : (char *)p;
+}
+
+/**
+ * g_utf8_prev_char:
+ * @p: a pointer to a position within a UTF-8 encoded string
+ *
+ * Finds the previous UTF-8 character in the string before @p.
+ *
+ * @p does not have to be at the beginning of a UTF-8 character. No check
+ * is made to see if the character found is actually valid other than
+ * it starts with an appropriate byte. If @p might be the first
+ * character of the string, you must use g_utf8_find_prev_char() instead.
+ *
+ * Return value: a pointer to the found character.
+ **/
+char *BLI_str_prev_char_utf8(const char *p)
+{
+	while (1) {
+		p--;
+		if ((*p & 0xc0) != 0x80) {
+			return (char *)p;
+		}
+	}
+}
+/* end glib copy */

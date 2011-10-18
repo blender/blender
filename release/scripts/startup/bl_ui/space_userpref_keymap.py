@@ -262,7 +262,7 @@ class InputKeyMapPanel:
 
         row = subcol.row(align=True)
 
-        #row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
+        #~ row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         if not text:
             text = "Blender (default)"
@@ -270,8 +270,8 @@ class InputKeyMapPanel:
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-#        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
-#        row.operator("wm.keyconfig_remove", text="", icon='X')
+        #~ layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
+        #~ row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(context.space_data, "filter_text", icon="VIEWZOOM")
 

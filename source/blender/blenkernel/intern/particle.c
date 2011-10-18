@@ -4384,33 +4384,50 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		psys_particle_on_emitter(psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 	else
 		psys_particle_on_emitter(psmd,PART_FROM_FACE,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
-		
-	copy_m3_m4(nmat, ob->imat);
-	transpose_m3(nmat);
-	mul_m3_v3(nmat, nor);
-	normalize_v3(nor);
 
-	/* make sure that we get a proper side vector */
-	if(fabs(dot_v3v3(nor,vec))>0.999999) {
-		if(fabs(dot_v3v3(nor,xvec))>0.999999) {
-			nor[0] = 0.0f;
-			nor[1] = 1.0f;
-			nor[2] = 0.0f;
+	if(psys->part->rotmode == PART_ROT_VEL) {
+		copy_m3_m4(nmat, ob->imat);
+		transpose_m3(nmat);
+		mul_m3_v3(nmat, nor);
+		normalize_v3(nor);
+
+		/* make sure that we get a proper side vector */
+		if(fabs(dot_v3v3(nor,vec))>0.999999) {
+			if(fabs(dot_v3v3(nor,xvec))>0.999999) {
+				nor[0] = 0.0f;
+				nor[1] = 1.0f;
+				nor[2] = 0.0f;
+			}
+			else {
+				nor[0] = 1.0f;
+				nor[1] = 0.0f;
+				nor[2] = 0.0f;
+			}
 		}
-		else {
-			nor[0] = 1.0f;
-			nor[1] = 0.0f;
-			nor[2] = 0.0f;
+		cross_v3_v3v3(side, nor, vec);
+		normalize_v3(side);
+
+		/* rotate side vector around vec */
+		if(psys->part->phasefac != 0) {
+			float q_phase[4];
+			float phasefac = psys->part->phasefac;
+			if(psys->part->randphasefac != 0.0f)
+				phasefac += psys->part->randphasefac * PSYS_FRAND((pa-psys->particles) + 20);
+			axis_angle_to_quat( q_phase, vec, phasefac*(float)M_PI);
+
+			mul_qt_v3(q_phase, side);
 		}
+
+		cross_v3_v3v3(nor, vec, side);
+
+		unit_m4(mat);
+		VECCOPY(mat[0], vec);
+		VECCOPY(mat[1], side);
+		VECCOPY(mat[2], nor);
 	}
-	cross_v3_v3v3(side, nor, vec);
-	normalize_v3(side);
-	cross_v3_v3v3(nor, vec, side);
-
-	unit_m4(mat);
-	VECCOPY(mat[0], vec);
-	VECCOPY(mat[1], side);
-	VECCOPY(mat[2], nor);
+	else {
+		quat_to_mat4(mat, pa->state.rot);
+	}
 
 	*scale= len;
 }

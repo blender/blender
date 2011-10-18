@@ -114,7 +114,7 @@ class ImportHelper:
 
 
 # Axis conversion function, not pretty LUT
-# use lookup tabes to convert between any axis
+# use lookup table to convert between any axis
 _axis_convert_matrix = (
     ((-1.0, 0.0, 0.0), (0.0, -1.0, 0.0), (0.0, 0.0, 1.0)),
     ((-1.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, -1.0, 0.0)),
@@ -302,7 +302,7 @@ def free_derived_objects(ob):
 
 def unpack_list(list_of_tuples):
     flat_list = []
-    flat_list_extend = flat_list.extend  # a tich faster
+    flat_list_extend = flat_list.extend  # a tiny bit faster
     for t in list_of_tuples:
         flat_list_extend(t)
     return flat_list
@@ -318,7 +318,7 @@ def unpack_face_list(list_of_tuples):
         if len(t) == 3:
             if t[2] == 0:
                 t = t[1], t[2], t[0]
-        else:  # assuem quad
+        else:  # assume quad
             if t[3] == 0 or t[2] == 0:
                 t = t[2], t[3], t[0], t[1]
 
@@ -350,6 +350,7 @@ def path_reference(filepath,
                    mode='AUTO',
                    copy_subdir="",
                    copy_set=None,
+                   library=None,
                    ):
     """
     Return a filepath relative to a destination directory, for use with
@@ -370,14 +371,17 @@ def path_reference(filepath,
     :arg copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
     :type copy_subdir: string
     :arg copy_set: collect from/to pairs when mode='COPY',
-       pass to *path_reference_copy* when exportign is done.
+       pass to *path_reference_copy* when exporting is done.
     :type copy_set: set
+    :arg library: The library this path is relative to.
+    :type library: :class:`bpy.types.Library` or None
     :return: the new filepath.
     :rtype: string
     """
     import os
     is_relative = filepath.startswith("//")
-    filepath_abs = os.path.normpath(bpy.path.abspath(filepath, base_src))
+    filepath_abs = bpy.path.abspath(filepath, base_src, library)
+    filepath_abs = os.path.normpath(filepath_abs)
 
     if mode in {'ABSOLUTE', 'RELATIVE', 'STRIP'}:
         pass
@@ -385,13 +389,12 @@ def path_reference(filepath,
         mode = 'RELATIVE' if is_relative else 'ABSOLUTE'
     elif mode == 'AUTO':
         mode = ('RELATIVE'
-                if bpy.path.is_subdir(filepath, base_dst)
+                if bpy.path.is_subdir(filepath_abs, base_dst)
                 else 'ABSOLUTE')
     elif mode == 'COPY':
+        subdir_abs = os.path.normpath(base_dst)
         if copy_subdir:
-            subdir_abs = os.path.join(os.path.normpath(base_dst), copy_subdir)
-        else:
-            subdir_abs = os.path.normpath(base_dst)
+            subdir_abs = os.path.join(subdir_abs, copy_subdir)
 
         filepath_cpy = os.path.join(subdir_abs, os.path.basename(filepath))
 
@@ -447,7 +450,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     :arg key: unique item this name belongs to, name_dict[key] will be reused
        when available.
        This can be the object, mesh, material, etc instance its self.
-    :type key: any hashable object assosiated with the *name*.
+    :type key: any hashable object associated with the *name*.
     :arg name: The name used to create a unique value in *name_dict*.
     :type name: string
     :arg name_dict: This is used to cache namespace to ensure no collisions

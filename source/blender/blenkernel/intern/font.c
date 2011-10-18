@@ -546,7 +546,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			nu2->knotsu = nu2->knotsv = NULL;
 			nu2->flag= CU_SMOOTH;
 			nu2->charidx = charidx;
-			if (info->mat_nr) {
+			if (info->mat_nr > 0) {
 				nu2->mat_nr= info->mat_nr-1;
 			}
 			else {

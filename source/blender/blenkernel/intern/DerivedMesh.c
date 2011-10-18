@@ -64,6 +64,7 @@
 
 #ifdef WITH_GAMEENGINE
 #include "BKE_navmesh_conversion.h"
+static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #endif
 
 #include "BLO_sys_types.h" // for intptr_t support
@@ -76,8 +77,6 @@
 #include "GPU_material.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
-
-static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 
 ///////////////////////////////////
 ///////////////////////////////////

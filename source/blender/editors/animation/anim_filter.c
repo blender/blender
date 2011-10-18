@@ -362,7 +362,8 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 			_doSubChannels=2; \
 		else {\
 			filter_mode |= ANIMFILTER_TMP_PEEK; \
-		}
+		} \
+		(void) _doSubChannels;
 		/* ... standard sub-channel filtering can go on here now ... */
 #define END_ANIMFILTER_SUBCHANNELS \
 		filter_mode = _filter; \

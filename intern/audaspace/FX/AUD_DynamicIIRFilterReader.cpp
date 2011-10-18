@@ -32,7 +32,8 @@
 
 AUD_DynamicIIRFilterReader::AUD_DynamicIIRFilterReader(AUD_Reference<AUD_IReader> reader,
 													   AUD_Reference<AUD_DynamicIIRFilterFactory> factory) :
-	AUD_IIRFilterReader(reader, std::vector<float>(), std::vector<float>())
+	AUD_IIRFilterReader(reader, std::vector<float>(), std::vector<float>()),
+	m_factory(factory)
 {
 	sampleRateChanged(reader->getSpecs().rate);
 }

@@ -1049,7 +1049,7 @@ void blo_freefiledata(FileData *fd)
 
 /* ************ DIV ****************** */
 
-int BLO_has_bfile_extension(char *str)
+int BLO_has_bfile_extension(const char *str)
 {
 	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend") || BLI_testextensie(str, ".blend.gz"));
 }
@@ -7257,6 +7257,19 @@ void convert_tface_mt(FileData *fd, Main *main)
 	}
 }
 
+static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
+			/* default Image output value should have 0 alpha */
+			sock = node->outputs.first;
+			((bNodeSocketValueRGBA*)sock->default_value)->value[3] = 0.0f;
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -12334,6 +12347,38 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
+		{
+			/* set default alpha value of Image outputs in image and render layer nodes to 0 */
+			Scene *sce;
+			bNodeTree *ntree;
+			
+			for (sce=main->scene.first; sce; sce=sce->id.next) {
+				/* there are files with invalid audio_channels value, the real cause
+				   is unknown, but we fix it here anyway to avoid crashes */
+				if(sce->r.ffcodecdata.audio_channels == 0)
+					sce->r.ffcodecdata.audio_channels = 2;
+
+				if (sce->nodetree)
+					do_versions_nodetree_image_default_alpha_output(sce->nodetree);
+			}
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_image_default_alpha_output(ntree);
+		}
+
+		{
+			/* support old particle dupliobject rotation settings */
+			ParticleSettings *part;
+
+			for (part=main->particle.first; part; part=part->id.next) {
+				if(ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+					part->draw |= PART_DRAW_ROTATE_OB;
+
+					if(part->rotmode == 0)
+						part->rotmode = PART_ROT_VEL;
+				}
+			}
+		}
 	}
 
 	/* default values in Freestyle settings */
@@ -13500,7 +13545,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 		if( ob->id.flag & LIB_INDIRECT ) {
 			
 				/* IF below is quite confusing!
-				if we are appending, but this object wasnt just added allong with a group,
+				if we are appending, but this object wasnt just added along with a group,
 				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */

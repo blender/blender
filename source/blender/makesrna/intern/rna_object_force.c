@@ -53,7 +53,7 @@ static EnumPropertyItem effector_shape_items[] = {
 
 #ifdef RNA_RUNTIME
 
-/* type spesific return values only used from functions */
+/* type specific return values only used from functions */
 static EnumPropertyItem curve_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},

@@ -575,7 +575,7 @@ static void ui_draw_links(uiBlock *block)
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
 static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 {
-	/* various properties are being compared here, hopfully sufficient
+	/* various properties are being compared here, hopefully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
 	if(but->retval != oldbut->retval) return 0;
 	if(but->rnapoin.data != oldbut->rnapoin.data) return 0;
@@ -640,7 +640,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 //				but->flag= oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
-				 * perhaps it should only copy spesific flags rather than all. */
+				 * perhaps it should only copy specific flags rather than all. */
 //				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
 //				but->active= oldbut->active;
@@ -748,7 +748,7 @@ static int ui_but_is_rna_undo(uiBut *but)
 	if(but->rnapoin.id.data) {
 		/* avoid undo push for buttons who's ID are screen or wm level
 		 * we could disable undo for buttons with no ID too but may have
-		 * unforseen conciquences, so best check for ID's we _know_ are not
+		 * unforeseen consequences, so best check for ID's we _know_ are not
 		 * handled by undo - campbell */
 		ID *id= but->rnapoin.id.data;
 		if(ID_CHECK_UNDO(id) == FALSE) {
@@ -865,7 +865,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* inherit flags from 'old' buttons that was drawn here previous, based
 	 * on matching buttons, we need this to make button event handling non
-	 * blocking, while still alowing buttons to be remade each redraw as it
+	 * blocking, while still allowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for(but=block->buttons.first; but; but=but->next) {
 		if(ui_but_update_from_old_block(C, block, &but))
@@ -1211,7 +1211,7 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
  * an edit override pointer while dragging for example */
 
 /* for buttons pointing to color for example */
-void ui_get_but_vectorf(uiBut *but, float *vec)
+void ui_get_but_vectorf(uiBut *but, float vec[3])
 {
 	PropertyRNA *prop;
 	int a, tot;
@@ -1249,27 +1249,34 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 			vec[0]= vec[1]= vec[2]= 0.0f;
 		}
 	}
+
+	if (but->type == BUT_NORMAL) {
+		normalize_v3(vec);
+	}
 }
 
 /* for buttons pointing to color for example */
-void ui_set_but_vectorf(uiBut *but, float *vec)
+void ui_set_but_vectorf(uiBut *but, const float vec[3])
 {
 	PropertyRNA *prop;
-	int a, tot;
 
 	if(but->editvec) {
-		VECCOPY(but->editvec, vec);
+		copy_v3_v3(but->editvec, vec);
 	}
 
 	if(but->rnaprop) {
 		prop= but->rnaprop;
 
 		if(RNA_property_type(prop) == PROP_FLOAT) {
+			int tot;
+			int a;
+
 			tot= RNA_property_array_length(&but->rnapoin, prop);
 			tot= MIN2(tot, 3);
 
-			for(a=0; a<tot; a++)
+			for (a=0; a<tot; a++) {
 				RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
+			}
 		}
 	}
 	else if(but->pointype == CHA) {
@@ -1280,7 +1287,7 @@ void ui_set_but_vectorf(uiBut *but, float *vec)
 	}
 	else if(but->pointype == FLO) {
 		float *fp= (float *)but->poin;
-		VECCOPY(fp, vec);
+		copy_v3_v3(fp, vec);
 	}
 }
 

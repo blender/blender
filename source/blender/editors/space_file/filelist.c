@@ -736,7 +736,7 @@ static int file_is_blend_backup(const char *str)
 }
 
 
-static int file_extension_type(char *relname)
+static int file_extension_type(const char *relname)
 {
 	if(BLO_has_bfile_extension(relname)) {
 		return BLENDERFILE;
@@ -769,7 +769,7 @@ static int file_extension_type(char *relname)
 	return 0;
 }
 
-int ED_file_extension_icon(char *relname)
+int ED_file_extension_icon(const char *relname)
 {
 	int type= file_extension_type(relname);
 	

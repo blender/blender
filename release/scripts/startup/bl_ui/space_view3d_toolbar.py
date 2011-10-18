@@ -63,7 +63,7 @@ def draw_gpencil_tools(context, layout):
     row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
 
-# ********** default tools for objectmode ****************
+# ********** default tools for object-mode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
     bl_context = "objectmode"
@@ -385,7 +385,7 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
         draw_gpencil_tools(context, layout)
 
 
-# ********** default tools for posemode ****************
+# ********** default tools for pose-mode ****************
 
 
 class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
@@ -484,16 +484,18 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
 
         # XXX This needs a check if psys is editable.
         if context.particle_edit_object:
+            tool = settings.tool
+
             # XXX Select Particle System
             layout.column().prop(settings, "tool", expand=True)
 
-            if settings.tool != 'NONE':
+            if tool != 'NONE':
                 col = layout.column()
                 col.prop(brush, "size", slider=True)
-                if settings.tool != 'ADD':
+                if tool != 'ADD':
                     col.prop(brush, "strength", slider=True)
 
-            if settings.tool == 'ADD':
+            if tool == 'ADD':
                 col.prop(brush, "count")
                 col = layout.column()
                 col.prop(settings, "use_default_interpolate")
@@ -501,15 +503,16 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
                 sub.active = settings.use_default_interpolate
                 sub.prop(brush, "steps", slider=True)
                 sub.prop(settings, "default_key_count", slider=True)
-            elif settings.tool == 'LENGTH':
+            elif tool == 'LENGTH':
                 layout.prop(brush, "length_mode", expand=True)
-            elif settings.tool == 'PUFF':
+            elif tool == 'PUFF':
                 layout.prop(brush, "puff_mode", expand=True)
                 layout.prop(brush, "use_puff_volume")
 
         # Sculpt Mode #
 
         elif context.sculpt_object and brush:
+            tool = brush.sculpt_tool
 
             col = layout.column()
 
@@ -526,12 +529,12 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
 
             row.prop(brush, "use_pressure_size", toggle=True, text="")
 
-            if brush.sculpt_tool not in {'SNAKE_HOOK', 'GRAB', 'ROTATE'}:
+            if tool not in {'SNAKE_HOOK', 'GRAB', 'ROTATE'}:
                 col.separator()
 
                 row = col.row(align=True)
 
-                if brush.use_space and brush.sculpt_tool not in {'SMOOTH'}:
+                if brush.use_space and tool != 'SMOOTH':
                     if brush.use_space_atten:
                         row.prop(brush, "use_space_atten", toggle=True, text="", icon='LOCKED')
                     else:
@@ -540,26 +543,26 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
                 row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_pressure_strength", text="")
 
-            if brush.sculpt_tool not in {'SMOOTH'}:
+            if tool != 'SMOOTH':
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-            if brush.sculpt_tool in {'GRAB', 'SNAKE_HOOK'}:
+            if tool in {'GRAB', 'SNAKE_HOOK'}:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
 
-            if brush.sculpt_tool in {'CREASE', 'BLOB'}:
+            if tool in {'CREASE', 'BLOB'}:
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
 
-            if brush.sculpt_tool not in {'PINCH', 'INFLATE', 'SMOOTH'}:
+            if tool not in {'PINCH', 'INFLATE', 'SMOOTH'}:
                 row = col.row(align=True)
 
                 col.separator()
@@ -571,8 +574,8 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
 
                 row.prop(brush, "sculpt_plane", text="")
 
-            #if brush.sculpt_tool in {'CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'}:
-            if brush.sculpt_tool in {'CLAY', 'FLATTEN', 'FILL', 'SCRAPE'}:
+            #if tool in {'CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'}:
+            if tool in {'CLAY', 'FLATTEN', 'FILL', 'SCRAPE'}:
                 row = col.row(align=True)
                 row.prop(brush, "plane_offset", slider=True)
                 row.prop(brush, "use_offset_pressure", text="")
@@ -585,7 +588,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
                 row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
 
-            if brush.sculpt_tool == 'LAYER':
+            if tool == 'LAYER':
                 row = col.row()
                 row.prop(brush, "height", slider=True, text="Height")
 
@@ -597,12 +600,12 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             col.separator()
             col.row().prop(brush, "direction", expand=True)
 
-            if brush.sculpt_tool in {'DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'}:
+            if tool in {'DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'}:
                 col.separator()
 
                 col.prop(brush, "use_accumulate")
 
-            if brush.sculpt_tool == 'LAYER':
+            if tool == 'LAYER':
                 col.separator()
 
                 ob = context.sculpt_object
@@ -1040,7 +1043,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, Panel):
             row = col.row(align=True)
             row.prop(brush, "icon_filepath", text="")
 
-# ********** default tools for weightpaint ****************
+# ********** default tools for weight-paint ****************
 
 
 class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
@@ -1094,9 +1097,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):
 #		col.prop(wpaint, "mul", text="")
 
 # Also missing now:
-# Soft, Vgroup, X-Mirror and "Clear" Operator.
+# Soft, Vertex-Group, X-Mirror and "Clear" Operator.
 
-# ********** default tools for vertexpaint ****************
+# ********** default tools for vertex-paint ****************
 
 
 class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
@@ -1125,7 +1128,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
 #		col.label(text="Multiply:")
 #		col.prop(vpaint, "mul", text="")
 
-# ********** default tools for texturepaint ****************
+# ********** default tools for texture-paint ****************
 
 
 class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):

@@ -320,9 +320,15 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
 	ID *id=           ptr->id.data;
+	short *totcol= give_totcolp_id(id);
 	Material *mat_id= assign_ptr->id.data;
-	assign_material_id(id, mat_id, key + 1);
-	return 1;
+	if(totcol && (key >= 0 && key < *totcol)) {
+		assign_material_id(id, mat_id, key + 1);
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 #else

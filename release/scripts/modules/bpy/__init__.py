@@ -56,7 +56,7 @@ def main():
     #   from bpy.types import Panel
     sys.modules["bpy.types"] = types
 
-    # if "-d" in sys.argv: # Enable this to measure startup speed
+    #~ if "-d" in sys.argv: # Enable this to measure start up speed
     if 0:
         import cProfile
         cProfile.run('import bpy; bpy.utils.load_scripts()', 'blender.prof')

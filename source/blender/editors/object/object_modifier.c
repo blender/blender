@@ -1163,9 +1163,6 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	if(!RNA_property_is_set(op->ptr, "relative_path"))
-		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
-
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return multires_external_save_exec(C, op);
 	

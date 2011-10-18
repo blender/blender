@@ -87,7 +87,7 @@ anim_index_builder * IMB_index_builder_create(const char * name)
 
 	BLI_make_existing_file(rv->temp_name);
 
-	rv->fp = fopen(rv->temp_name, "w");
+	rv->fp = fopen(rv->temp_name, "wb");
 
 	if (!rv->fp) {
 		fprintf(stderr, "Couldn't open index target: %s! "
@@ -797,7 +797,7 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 
 	while(av_read_frame(iFormatCtx, &next_packet) >= 0) {
 		int frame_finished = 0;
-		float next_progress =  ((int)floor(((double) next_packet.pos) * 100 /
+		float next_progress =  (float)((int)floor(((double) next_packet.pos) * 100 /
 		                                   ((double) stream_size)+0.5)) / 100;
 
 		if (*progress != next_progress) {
@@ -840,8 +840,8 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 				start_pts_set = TRUE;
 			}
 
-			frameno = (pts - start_pts) 
-				* pts_time_base * frame_rate; 
+			frameno = floor((pts - start_pts)
+				* pts_time_base * frame_rate + 0.5f);
 
 			/* decoding starts *always* on I-Frames,
 			   so: P-Frames won't work, even if all the
