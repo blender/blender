@@ -1248,6 +1248,10 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			DM_to_mesh(dm, newob->data, newob);
 
+			/* re-tesselation doesn't happen automatic, calling like this is  */
+			me= newob->data;
+			me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, me->mvert, me->totface, me->totloop, me->totpoly, 0, 0);
+
 			dm->release(dm);
 			object_free_modifiers(newob);	/* after derivedmesh calls! */
 		}
