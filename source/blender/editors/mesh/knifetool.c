@@ -1677,12 +1677,12 @@ static void knifetool_exit (bContext *UNUSED(C), wmOperator *op)
 	/* tag for redraw */
 	ED_region_tag_redraw(kcd->ar);
 
+	if (kcd->cagecos)
+		MEM_freeN(kcd->cagecos);
+
 	/* destroy kcd itself */
 	MEM_freeN(kcd);
 	op->customdata= NULL;
-	
-	if (kcd->cagecos)
-		MEM_freeN(kcd->cagecos);
 }
 
 static void cage_mapped_verts_callback(void *userData, int index, float *co, 
