@@ -1847,6 +1847,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* find edge */
 		find_nearest_uv_edge(scene, ima, em, co, &hit);
 		if(hit.efa == NULL) {
+			BLI_array_free(hitv);
+			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1856,6 +1858,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* find vertex */
 		find_nearest_uv_vert(scene, ima, em, co, penalty, &hit);
 		if(hit.efa == NULL) {
+			BLI_array_free(hitv);
+			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1875,6 +1879,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* find edge */
 		find_nearest_uv_edge(scene, ima, em, co, &hit);
 		if(hit.efa == NULL) {
+			BLI_array_free(hitv);
+			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1898,6 +1904,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* find face */
 		find_nearest_uv_face(scene, ima, em, co, &hit);
 		if(hit.efa == NULL) {
+			BLI_array_free(hitv);
+			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 		
@@ -1922,6 +1930,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
 
 		if(hit.efa==NULL) {
+			BLI_array_free(hitv);
+			BLI_array_free(hituv);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1929,6 +1939,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	}
 	else {
 		hitlen = 0;
+		BLI_array_free(hitv);
+		BLI_array_free(hituv);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2071,7 +2083,10 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-	
+
+	BLI_array_free(hitv);
+	BLI_array_free(hituv);
+
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
 }
 
