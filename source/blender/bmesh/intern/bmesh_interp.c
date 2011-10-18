@@ -873,6 +873,9 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 	}
 
 	if (oldpool) {
+		/* this should never happen but can when dissolve fails - [#28960] */
+		BLI_assert(data->pool != oldpool);
+
 		BLI_mempool_destroy(oldpool);
 	}
 }

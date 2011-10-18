@@ -189,6 +189,9 @@ typedef struct knifetool_opdata {
 
 static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f);
 
+static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
+                                 float r_origin[3], float r_ray[3]);
+
 static void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
 {
 	if (kcd->is_ortho) {
@@ -948,37 +951,47 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 	BLI_smallhash_release(ehash);
 }
 
-static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], float cageco[3], int *is_space)
+static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
+                                 float r_origin[3], float r_ray[3])
 {
-	BMFace *f;
 	bglMats mats;
-	float origin[3], ray[3];
 	float mval[2], imat[3][3];
-	int dist = KMAXDIST; 
-	
+
 	knife_bgl_get_mats(kcd, &mats);
 
-	mval[0] = kcd->vc.mval[0]; mval[1] = kcd->vc.mval[1];
-	
+	mval[0] = (float)mval_i[0];
+	mval[1] = (float)mval_i[1];
+
 	/*unproject to find view ray*/
-	view3d_unproject(&mats, origin, mval[0], mval[1], 0.0f);
+	view3d_unproject(&mats, r_origin, mval[0], mval[1], 0.0f);
 
 	if(kcd->is_ortho)
-		negate_v3_v3(ray, kcd->vc.rv3d->viewinv[2]);
+		negate_v3_v3(r_ray, kcd->vc.rv3d->viewinv[2]);
 	else
-		sub_v3_v3v3(ray, origin, kcd->vc.rv3d->viewinv[3]);
-	normalize_v3(ray);
-	
+		sub_v3_v3v3(r_ray, r_origin, kcd->vc.rv3d->viewinv[3]);
+	normalize_v3(r_ray);
+
 	/*transform into object space*/
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
 	copy_m3_m4(imat, kcd->ob->obmat);
 	invert_m3(imat);
+
+	mul_m4_v3(kcd->ob->imat, r_origin);
+	mul_m3_v3(imat, r_ray);
+}
+
+
+static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], float cageco[3], int *is_space)
+{
+	BMFace *f;
+	float mval[2], imat[3][3];
+	int dist = KMAXDIST; 
+	float origin[3];
+	float ray[3];
 	
-	mul_m4_v3(kcd->ob->imat, origin);
-	mul_m3_v3(imat, ray);
-	
-	copy_v3_v3(co, origin);
-	add_v3_v3(co, ray);
+	/*unproject to find view ray*/
+	knife_input_ray_cast(kcd, kcd->vc.mval, origin, ray);
+	add_v3_v3v3(co, origin, ray);
 
 	f = BMBVH_RayCast(kcd->bmbvh, origin, ray, co, cageco);
 	
@@ -989,10 +1002,10 @@ static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], float
 		/*try to use backbuffer selection method if ray casting failed*/
 		f = EDBM_findnearestface(&kcd->vc, &dist);
 		
-		/*cheat for now; just put in the origin instead 
-		  of a true coordinate on the face*/
-		copy_v3_v3(co, origin);
-		add_v3_v3(co, ray);
+		/* cheat for now; just put in the origin instead
+		 * of a true coordinate on the face.
+		 * This just puts a point 1.0f infront of the view. */
+		add_v3_v3v3(co, origin, ray);
 	}
 	
 	return f;
@@ -1235,6 +1248,19 @@ static int knife_update_active(knifetool_opdata *kcd)
 		kcd->curedge = knife_find_closest_edge(kcd, kcd->vertco, kcd->vertcage, &kcd->curbmface, &kcd->is_space);
 	}
 	
+	/* if no hits are found this would normally default to (0,0,0) so instead
+	 * get a point at the mouse ray closest to the previous point.
+	 * Note that drawing lines in `free-space` isn't properly supported
+	 * but theres no guarantee (0,0,0) has any geometry either - campell */
+	if(kcd->curvert == NULL && kcd->curedge == NULL) {
+			float origin[3], ray[3], co[3];
+
+			knife_input_ray_cast(kcd, kcd->vc.mval, origin, ray);
+			add_v3_v3v3(co, origin, ray);
+
+			closest_to_line_v3(kcd->vertcage, kcd->prevcage, co, origin);
+	}
+
 	if (kcd->mode == MODE_DRAGGING) {
 		knife_find_line_hits(kcd);
 	}
@@ -1334,6 +1360,9 @@ static void remerge_faces(knifetool_opdata *kcd)
 			}
 		}
 	}
+
+	BLI_array_free(stack);
+	BLI_array_free(faces);
 }
 
 /*use edgenet to fill faces.  this is a bit annoying and convoluted.*/
