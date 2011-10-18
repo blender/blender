@@ -70,7 +70,7 @@ def context_path_validate(context, data_path):
             # One of the items in the rna path is None, just ignore this
             value = Ellipsis
         else:
-            # We have a real error in the rna path, dont ignore that
+            # We have a real error in the rna path, don't ignore that
             raise
 
     return value
@@ -103,7 +103,7 @@ def operator_value_is_undo(value):
 
 def operator_path_is_undo(context, data_path):
     # note that if we have data paths that use strings this could fail
-    # luckily we dont do this!
+    # luckily we don't do this!
     #
     # When we cant find the data owner assume no undo is needed.
     data_path_head, data_path_sep, data_path_tail = data_path.rpartition(".")
@@ -425,7 +425,7 @@ class WM_OT_context_cycle_enum(Operator):
         rna_struct_str, rna_prop_str = data_path.rsplit('.', 1)
         i = rna_prop_str.find('[')
 
-        # just incse we get "context.foo.bar[0]"
+        # just in case we get "context.foo.bar[0]"
         if i != -1:
             rna_prop_str = rna_prop_str[0:i]
 
@@ -820,8 +820,7 @@ class WM_OT_doc_view(Operator):
                     class_name = rna_parent.identifier
                     rna_parent = rna_parent.base
 
-                # It so happens that epydoc nests these, not sphinx
-                # class_name_full = self._nested_class_string(class_name)
+                #~ class_name_full = self._nested_class_string(class_name)
                 url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" %
                        (self._prefix, class_name, class_name, class_prop))
 
@@ -1014,7 +1013,7 @@ class WM_OT_properties_edit(Operator):
         item = eval("context.%s" % data_path)
 
         # setup defaults
-        prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # dont create
+        prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # don't create
         if prop_ui:
             self.min = prop_ui.get("min", -1000000000)
             self.max = prop_ui.get("max", 1000000000)
@@ -1162,7 +1161,7 @@ class WM_OT_copy_prev_settings(Operator):
         elif not os.path.isdir(path_src):
             self.report({'ERROR'}, "Source path %r exists" % path_src)
         else:
-            shutil.copytree(path_src, path_dst)
+            shutil.copytree(path_src, path_dst, symlinks=True)
 
             # in 2.57 and earlier windows installers, system scripts were copied
             # into the configuration directory, don't want to copy those
@@ -1171,7 +1170,7 @@ class WM_OT_copy_prev_settings(Operator):
                 shutil.rmtree(os.path.join(path_dst, 'scripts'))
                 shutil.rmtree(os.path.join(path_dst, 'plugins'))
 
-            # dont loose users work if they open the splash later.
+            # don't loose users work if they open the splash later.
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
             else:
@@ -1372,9 +1371,9 @@ class WM_OT_keyitem_add(Operator):
         km = context.keymap
 
         if km.is_modal:
-            km.keymap_items.new_modal("", 'A', 'PRESS')  # kmi
+            km.keymap_items.new_modal("", 'A', 'PRESS')  #~ kmi
         else:
-            km.keymap_items.new("none", 'A', 'PRESS')  # kmi
+            km.keymap_items.new("none", 'A', 'PRESS')  #~ kmi
 
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":
@@ -1556,7 +1555,7 @@ class WM_OT_addon_install(Operator):
         pyfile = self.filepath
 
         if self.target == 'DEFAULT':
-            # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
+            # don't use bpy.utils.script_paths("addons") because we may not be able to write to it.
             path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
         else:
             path_addons = bpy.context.user_preferences.filepaths.script_directory
@@ -1637,7 +1636,7 @@ class WM_OT_addon_install(Operator):
         addons_new.discard("modules")
 
         # disable any addons we may have enabled previously and removed.
-        # this is unlikely but do just incase. bug [#23978]
+        # this is unlikely but do just in case. bug [#23978]
         for new_addon in addons_new:
             addon_utils.disable(new_addon)
 
@@ -1652,11 +1651,11 @@ class WM_OT_addon_install(Operator):
                 context.window_manager.addon_search = info["name"]
                 break
 
-        # incase a new module path was created to install this addon.
+        # in case a new module path was created to install this addon.
         bpy.utils.refresh_script_paths()
 
         # TODO, should not be a warning.
-        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        #~ self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1699,7 +1698,7 @@ class WM_OT_addon_remove(Operator):
             self.report('WARNING', "Addon path %r could not be found" % path)
             return {'CANCELLED'}
 
-        # incase its enabled
+        # in case its enabled
         addon_utils.disable(self.module)
 
         import shutil

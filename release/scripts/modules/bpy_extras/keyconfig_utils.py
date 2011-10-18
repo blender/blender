@@ -21,7 +21,7 @@
 KM_HIERARCHY = [
     ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
-        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
+        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # re-sizing, action corners
         ]),
 
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)

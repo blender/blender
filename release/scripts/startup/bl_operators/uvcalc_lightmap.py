@@ -36,7 +36,7 @@ class prettyface(object):
 
     def __init__(self, data):
         self.has_parent = False
-        self.rot = False  # only used for triables
+        self.rot = False  # only used for triangles
         self.xoff = 0
         self.yoff = 0
 
@@ -157,7 +157,7 @@ class prettyface(object):
                 angles_co.sort()
                 I = [i for a, i in angles_co]
 
-                # fuv = f.uv
+                #~ fuv = f.uv
                 fuv = f.id_data.uv_textures.active.data[f.index].uv  # XXX25
 
                 if self.rot:
@@ -200,8 +200,8 @@ def lightmap_uvpack(meshes,
     '''
     BOX_DIV if the maximum division of the UV map that
     a box may be consolidated into.
-    Basicly, a lower value will be slower but waist less space
-    and a higher value will have more clumpy boxes but more waisted space
+    Basically, a lower value will be slower but waist less space
+    and a higher value will have more clumpy boxes but more wasted space
     '''
     import time
     from math import sqrt
@@ -321,7 +321,7 @@ def lightmap_uvpack(meshes,
             lengths.append(curr_len)
             curr_len = curr_len / 2.0
 
-            # Dont allow boxes smaller then the margin
+            # Don't allow boxes smaller then the margin
             # since we contract on the margin, boxes that are smaller will create errors
             # print(curr_len, side_len/MARGIN_DIV)
             if curr_len / 4.0 < side_len / PREF_MARGIN_DIV:
@@ -371,9 +371,9 @@ def lightmap_uvpack(meshes,
         print("...done")
 
         # Since the boxes are sized in powers of 2, we can neatly group them into bigger squares
-        # this is done hierarchily, so that we may avoid running the pack function
+        # this is done hierarchically, so that we may avoid running the pack function
         # on many thousands of boxes, (under 1k is best) because it would get slow.
-        # Using an off and even dict us usefull because they are packed differently
+        # Using an off and even dict us useful because they are packed differently
         # where w/h are the same, their packed in groups of 4
         # where they are different they are packed in pairs
         #
@@ -393,14 +393,14 @@ def lightmap_uvpack(meshes,
         # Count the number of boxes consolidated, only used for stats.
         c = 0
 
-        # This is tricky. the total area of all packed boxes, then squt that to get an estimated size
+        # This is tricky. the total area of all packed boxes, then sqrt() that to get an estimated size
         # this is used then converted into out INT space so we can compare it with
         # the ints assigned to the boxes size
-        # and divided by BOX_DIV, basicly if BOX_DIV is 8
-        # ...then the maximum box consolidataion (recursive grouping) will have a max width & height
+        # and divided by BOX_DIV, basically if BOX_DIV is 8
+        # ...then the maximum box consolidation (recursive grouping) will have a max width & height
         # ...1/8th of the UV size.
         # ...limiting this is needed or you end up with bug unused texture spaces
-        # ...however if its too high, boxpacking is way too slow for high poly meshes.
+        # ...however if its too high, box-packing is way too slow for high poly meshes.
         float_to_int_factor = lengths_to_ints[0][0]
         if float_to_int_factor > 0:
             max_int_dimension = int(((side_len / float_to_int_factor)) / PREF_BOX_DIV)
@@ -409,7 +409,7 @@ def lightmap_uvpack(meshes,
             max_int_dimension = 0.0  # wont be used
             ok = False
 
-        # RECURSIVE prettyface grouping
+        # RECURSIVE pretty face grouping
         while ok:
             ok = False
 
@@ -456,7 +456,7 @@ def lightmap_uvpack(meshes,
 
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
-        # spin every second prettyface
+        # spin every second pretty-face
         # if there all vertical you get less efficiently used texture space
         i = len(pretty_faces)
         d = 0

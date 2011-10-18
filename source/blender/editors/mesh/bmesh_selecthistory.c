@@ -103,7 +103,7 @@ void EDBM_editselection_normal(float *normal, BMEditSelection *ese)
 }
 
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
-also make the plane run allong an axis that is related to the geometry,
+also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
 void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese)
 {

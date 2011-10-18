@@ -123,7 +123,7 @@ typedef struct bAnimListElem {
 
 
 /* Some types for easier type-testing 
- * NOTE: need to keep the order of these synchronised with the channels define code
+ * NOTE: need to keep the order of these synchronized with the channels define code
  * 		which is used for drawing and handling channel lists for 
  */
 typedef enum eAnim_ChannelType {

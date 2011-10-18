@@ -2971,7 +2971,7 @@ static void brush_puff(PEData *data, int point_index)
 						VECSUB(dco, lastco, co);
 						mul_mat3_m4_v3(imat, dco); /* into particle space */
 
-						/* move the point allong a vector perpendicular to the
+						/* move the point along a vector perpendicular to the
 						 * hairs direction, reduces odd kinks, */
 						cross_v3_v3v3(c1, ofs, dco);
 						cross_v3_v3v3(c2, c1, dco);

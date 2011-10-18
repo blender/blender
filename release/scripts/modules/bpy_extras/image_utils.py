@@ -43,10 +43,10 @@ def load_image(imagepath,
        the end will be ignored.
     :type dirname: string
     :arg place_holder: if True a new place holder image will be created.
-       this is usefull so later you can relink the image to its original data.
+       this is useful so later you can relink the image to its original data.
     :type place_holder: bool
-    :arg recursive: If True, directories will be recursivly searched.
-       Be carefull with this if you have files in your root directory because
+    :arg recursive: If True, directories will be recursively searched.
+       Be careful with this if you have files in your root directory because
        it may take a long time.
     :type recursive: bool
     :arg ncase_cmp: on non windows systems, find the correct case for the file.

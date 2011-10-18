@@ -29,7 +29,7 @@
 
 /** \file BKE_utildefines.h
  *  \ingroup bke
- *  \brief blender format spesific macros
+ *  \brief blender format specific macros
  *  \note generic defines should go in BLI_utildefines.h
  */
 

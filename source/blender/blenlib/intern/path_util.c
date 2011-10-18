@@ -1682,7 +1682,7 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 
 	
 #ifdef WITH_BINRELOC
-	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
+	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
 	path = br_find_exe( NULL );
 	if (path) {
 		BLI_strncpy(fullname, path, maxlen);

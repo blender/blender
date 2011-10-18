@@ -459,7 +459,7 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 }
 
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
-also make the plane run allong an axis that is related to the geometry,
+also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
 void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 {
@@ -467,7 +467,7 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 		BMVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
-		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
+		if (ese->prev) { /*use previously selected data to make a useful vertex plane */
 			BM_editselection_center(bm, vec, ese->prev);
 			sub_v3_v3v3(plane, vec, eve->co);
 		} else {
@@ -483,7 +483,7 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 	} else if (ese->type==BM_EDGE) {
 		BMEdge *eed= ese->data;
 
-		/*the plane is simple, it runs allong the edge
+		/* the plane is simple, it runs along the edge
 		however selecting different edges can swap the direction of the y axis.
 		this makes it less likely for the y axis of the manipulator
 		(running along the edge).. to flip less often.

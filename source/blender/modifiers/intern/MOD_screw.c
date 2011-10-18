@@ -357,7 +357,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if (!totedge) {
 			for (i=0; i < totvert; i++, mv_orig++, mv_new++) {
 				copy_v3_v3(mv_new->co, mv_orig->co);
-				normalize_v3_v3(vc->no, mv_new->co); /* no edges- this is realy a dummy normal */
+				normalize_v3_v3(vc->no, mv_new->co); /* no edges- this is really a dummy normal */
 			}
 		}
 		else {

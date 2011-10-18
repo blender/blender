@@ -179,7 +179,7 @@ typedef struct FlyInfo {
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
-	short axis; /* Axis index to move allong by default Z to move allong the view */
+	short axis; /* Axis index to move along by default Z to move along the view */
 	short pan_view; /* when true, pan the view instead of rotating */
 
 	/* relative view axis locking - xlock, zlock
@@ -725,7 +725,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	RegionView3D *rv3d= fly->rv3d;
 	ARegion *ar = fly->ar;
 
-	float mat[3][3], /* 3x3 copy of the view matrix so we can move allong the view axis */
+	float mat[3][3], /* 3x3 copy of the view matrix so we can move along the view axis */
 	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
 
 	/* Camera Uprighting variables */

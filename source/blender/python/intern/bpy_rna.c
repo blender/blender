@@ -2218,7 +2218,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 }
 
 /* generic check to see if a PyObject is compatible with a collection
- * -1 on failier, 0 on success, sets the error */
+ * -1 on failure, 0 on success, sets the error */
 static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *value)
 {
 	StructRNA *prop_srna;
@@ -3800,7 +3800,7 @@ PyDoc_STRVAR(pyrna_struct_get_doc,
 "   Returns the value of the custom property assigned to key or default\n"
 "   when not found (matches pythons dictionary function of the same name).\n"
 "\n"
-"   :arg key: The key assosiated with the custom property.\n"
+"   :arg key: The key associated with the custom property.\n"
 "   :type key: string\n"
 "   :arg default: Optional argument for the value to return if\n"
 "      *key* is not found.\n"

@@ -27,7 +27,7 @@ __all__ = (
 
 def region_2d_to_vector_3d(region, rv3d, coord):
     """
-    Return a direction vector from the viewport at the spesific 2d region
+    Return a direction vector from the viewport at the specific 2d region
     coordinate.
 
     :arg region: region of the 3D viewport, typically bpy.context.region.

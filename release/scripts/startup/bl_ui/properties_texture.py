@@ -927,9 +927,9 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
                 factor_but(col, "use_map_warp", "warp_factor", "Warp")
                 factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
 
-                #sub = col.column()
-                #sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
-                #sub.prop(tex, "default_value", text="Amount", slider=True)
+                #~ sub = col.column()
+                #~ sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+                #~ sub.prop(tex, "default_value", text="Amount", slider=True)
             elif idblock.type == 'HALO':
                 layout.label(text="Halo:")
 
@@ -1014,7 +1014,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col = split.column()
             col.prop(tex, "blend_type", text="Blend")
             col.prop(tex, "use_rgb_to_intensity")
-            # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
+            # color is used on gray-scale textures even when use_rgb_to_intensity is disabled.
             col.prop(tex, "color", text="")
 
             col = split.column()
@@ -1027,14 +1027,14 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
         if isinstance(idblock, bpy.types.Material):
             layout.label(text="Bump Mapping:")
 
-            # only show bump settings if activated but not for normalmap images
+            # only show bump settings if activated but not for normal-map images
             row = layout.row()
 
             sub = row.row()
             sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and (tex.texture.use_normal_map or tex.texture.use_derivative_map))
             sub.prop(tex, "bump_method", text="Method")
 
-            # the space setting is supported for: derivmaps + bumpmaps (DEFAULT,BEST_QUALITY), not for normalmaps
+            # the space setting is supported for: derivative-maps + bump-maps (DEFAULT,BEST_QUALITY), not for normal-maps
             sub = row.row()
             sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map) and ((tex.bump_method in {'BUMP_DEFAULT', 'BUMP_BEST_QUALITY'}) or (tex.texture.type == 'IMAGE' and tex.texture.use_derivative_map))
             sub.prop(tex, "bump_objectspace", text="Space")
