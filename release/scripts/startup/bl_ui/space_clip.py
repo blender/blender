@@ -45,6 +45,17 @@ class CLIP_HT_header(Header):
 
         if clip:
             layout.prop(sc, "mode", text="")
+            layout.prop(sc, "view", text="", expand=True)
+
+            if sc.view == 'GRAPH':
+                row = layout.row(align=True)
+
+                if sc.show_filters:
+                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN', text="Filters")
+                    row.prop(sc, "show_graph_frames", icon='SEQUENCE', text="")
+                    row.prop(sc, "show_graph_tracks", icon='ANIM', text="")
+                else:
+                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT', text="Filters")
 
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
@@ -890,7 +901,6 @@ class CLIP_MT_stabilize_2d_specials(Menu):
         layout = self.layout
 
         layout.operator('clip.stabilize_2d_select')
-
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

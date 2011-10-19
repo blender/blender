@@ -457,6 +457,37 @@ double libmv_reporojectionErrorForTrack(libmv_Reconstruction *libmv_reconstructi
 	return total_error / num_reprojected;
 }
 
+double libmv_reporojectionErrorForImage(libmv_Reconstruction *libmv_reconstruction, int image)
+{
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+	libmv::vector<libmv::Marker> markers = libmv_reconstruction->tracks.MarkersInImage(image);
+	const libmv::EuclideanCamera *camera = reconstruction->CameraForImage(image);
+	int num_reprojected = 0;
+	double total_error = 0.0;
+
+	if (!camera)
+		return 0;
+
+	for (int i = 0; i < markers.size(); ++i) {
+		const libmv::EuclideanPoint *point = reconstruction->PointForTrack(markers[i].track);
+
+		if (!point) {
+			continue;
+		}
+
+		num_reprojected++;
+
+		libmv::Marker reprojected_marker = ProjectMarker(*point, *camera, *intrinsics);
+		double ex = reprojected_marker.x - markers[i].x;
+		double ey = reprojected_marker.y - markers[i].y;
+
+		total_error += sqrt(ex*ex + ey*ey);
+	}
+
+	return total_error / num_reprojected;
+}
+
 int libmv_reporojectionCameraForImage(libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4])
 {
 	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;

@@ -102,9 +102,12 @@ void CLIP_OT_stabilize_2d_set_rotation(struct wmOperatorType *ot);
 
 void CLIP_OT_clean_tracks(wmOperatorType *ot);
 
-/* clip_draw.c */
+/* clip_draw_main.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void draw_clip_grease_pencil(struct bContext *C, int onlyv2d);
+
+/* clip_draw_graph.c */
+void draw_clip_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);

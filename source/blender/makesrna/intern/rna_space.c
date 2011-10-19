@@ -964,6 +964,12 @@ static void rna_SpaceClipEditor_lock_selection_update(Main *UNUSED(bmain), Scene
 	sc->ylockof= 0.f;
 }
 
+static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ScrArea *sa= rna_area_from_space(ptr);
+	ED_area_tag_refresh(sa);
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -2747,9 +2753,14 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem mode_items[] = {
-		{SC_MODE_TRACKING, "TRACKING", 0, "Tracking", "Show tracking and solving tools"},
-		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", 0, "Reconstruction", "Show tracking/reconstruction tools"},
-		{SC_MODE_DISTORTION, "DISTORTION", 0, "Distortion", "Show distortion tools"},
+		{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
+		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction", "Show tracking/reconstruction tools"},
+		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem view_items[] = {
+		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
+		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceClipEditor", "Space");
@@ -2775,8 +2786,15 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
-	RNA_def_property_ui_text(prop, "Mode", "Current clip editor mode");
+	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
+
+	/* view */
+	prop= RNA_def_property(srna, "view", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "view");
+	RNA_def_property_enum_items(prop, view_items);
+	RNA_def_property_ui_text(prop, "View", "Type of the clip editor view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_view_type_update");
 
 	/* show pattern */
 	prop= RNA_def_property(srna, "show_marker_pattern", PROP_BOOLEAN, PROP_NONE);
@@ -2867,6 +2885,24 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GPENCIL);
 	RNA_def_property_ui_text(prop, "Show Grease Pencil", "Show grease pencil strokes over the footage");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show filters */
+	prop= RNA_def_property(srna, "show_filters", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_FILTERS);
+	RNA_def_property_ui_text(prop, "Show Filters", "Show filters for graph editor");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show graph_frames */
+	prop= RNA_def_property(srna, "show_graph_frames", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_FRAMES);
+	RNA_def_property_ui_text(prop, "Show Frames", "Show curves for frames in graph editor");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show graph_tracks */
+	prop= RNA_def_property(srna, "show_graph_tracks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_TRACKS);
+	RNA_def_property_ui_text(prop, "Show Tracks", "Show curves for tracks in graph editor");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 

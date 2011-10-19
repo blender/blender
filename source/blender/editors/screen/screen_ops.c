@@ -2804,6 +2804,8 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				if(redraws & (TIME_SEQ|TIME_ALL_ANIM_WIN))
 					return 1;
 				break;
+			case SPACE_CLIP:
+				return 1;
 		}
 	}
 	return 0;

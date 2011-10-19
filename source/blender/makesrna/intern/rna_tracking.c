@@ -656,6 +656,12 @@ static void rna_def_reconstructedCamera(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(prop, "Matrix", "Worldspace transformation matrix");
+
+	/* average_error */
+	prop= RNA_def_property(srna, "average_error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "error");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Average Error", "Average error of resonctruction");
 }
 
 static void rna_def_trackingReconstruction(BlenderRNA *brna)

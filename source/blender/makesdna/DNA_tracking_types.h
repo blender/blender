@@ -50,7 +50,8 @@ struct MovieTrackingTrack;
 struct MovieTracking;
 
 typedef struct MovieReconstructedCamera {
-	int framenr, pad;
+	int framenr;
+	float error;
 	float mat[4][4];
 } MovieReconstructedCamera;
 

@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_main.h"
 #include "BKE_context.h"
@@ -69,6 +70,56 @@
 
 
 #include "clip_intern.h"	// own include
+
+static void init_preview_region(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	ar->regiontype= RGN_TYPE_PREVIEW;
+	ar->alignment= RGN_ALIGN_TOP;
+	ar->flag|= RGN_FLAG_HIDDEN;
+
+	ar->v2d.tot.xmin= 0.0f;
+	ar->v2d.tot.ymin= (float)scene->r.sfra - 10.0f;
+	ar->v2d.tot.xmax= (float)scene->r.efra;
+	ar->v2d.tot.ymax= 10.0f;
+
+	ar->v2d.cur= ar->v2d.tot;
+
+	ar->v2d.min[0]= FLT_MIN;
+	ar->v2d.min[1]= FLT_MIN;
+
+	ar->v2d.max[0]= MAXFRAMEF;
+	ar->v2d.max[1]= FLT_MAX;
+
+	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+
+	ar->v2d.keeptot= 0;
+}
+
+static ARegion *clip_has_preview_region(const bContext *C, ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
+	if(ar)
+		return ar;
+
+	/* add subdiv level; after header */
+	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+
+	/* is error! */
+	if(ar==NULL)
+		return NULL;
+
+	arnew= MEM_callocN(sizeof(ARegion), "clip preview region");
+
+	BLI_insertlinkbefore(&sa->regionbase, ar, arnew);
+	init_preview_region(C, arnew);
+
+	return arnew;
+}
 
 static void clip_scopes_tag_refresh(ScrArea *sa)
 {
@@ -101,14 +152,14 @@ static void clip_stabilization_tag_refresh(ScrArea *sa)
 
 /* ******************** default callbacks for clip space ***************** */
 
-static SpaceLink *clip_new(const bContext *UNUSED(C))
+static SpaceLink *clip_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceClip *sc;
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL|SC_MANUAL_CALIBRATION;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
 	sc->scopes.track_preview_height= 120;
@@ -121,7 +172,7 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	ar->alignment= RGN_ALIGN_BOTTOM;
 
 	/* tools view */
-	ar= MEM_callocN(sizeof(ARegion), "tools for logic");
+	ar= MEM_callocN(sizeof(ARegion), "tools for clip");
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype= RGN_TYPE_TOOLS;
@@ -135,11 +186,17 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 
 	/* properties view */
-	ar= MEM_callocN(sizeof(ARegion), "properties for logic");
+	ar= MEM_callocN(sizeof(ARegion), "properties for clip");
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
 	ar->alignment= RGN_ALIGN_RIGHT;
+
+	/* preview view */
+	ar= MEM_callocN(sizeof(ARegion), "preview for clip");
+
+	BLI_addtail(&sc->regionbase, ar);
+	init_preview_region(C, ar);
 
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for clip");
@@ -450,6 +507,13 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_mute_footage");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
+
+	/* ******** Hotkeys avalaible for preview region only ******** */
+
+	keymap= WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
+
+	/* "timeline" */
+	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 }
 
 const char *clip_context_dir[]= {"edit_movieclip", NULL};
@@ -470,9 +534,54 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 	return 0;
 }
 
-static void clip_refresh(const bContext *C, ScrArea *UNUSED(sa))
+static void clip_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *window= CTX_wm_window(C);
+	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
+	ARegion *ar_main= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	ARegion *ar_preview= clip_has_preview_region(C, sa);
+	int view_changed= 0;
+
+	switch (sc->view) {
+		case SC_VIEW_CLIP:
+			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
+				ar_preview->flag |= RGN_FLAG_HIDDEN;
+				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+				WM_event_remove_handlers((bContext*)C, &ar_preview->handlers);
+				view_changed= 1;
+			}
+			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
+				ar_main->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
+				ar_preview->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			break;
+		case SC_VIEW_GRAPH:
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
+				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
+				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+				ar_preview->v2d.cur = ar_preview->v2d.tot;
+				view_changed= 1;
+			}
+			if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
+				ar_main->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
+				ar_preview->alignment= RGN_ALIGN_TOP;
+				view_changed= 1;
+			}
+			break;
+	}
+
+	if(view_changed) {
+		ED_area_initialize(wm, window, sa);
+		ED_area_tag_redraw(sa);
+	}
 
 	BKE_movieclip_user_set_frame(&sc->user, CTX_data_scene(C)->r.cfra);
 }
@@ -601,6 +710,52 @@ static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/****************** preview region ******************/
+
+static void clip_preview_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+
+	/* own keymap */
+	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void clip_preview_area_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	Scene *scene= CTX_data_scene(C);
+	short unitx= V2D_UNIT_FRAMESCALE, unity= V2D_UNIT_VALUES;
+
+	/* clear and setup matrix */
+	UI_ThemeClearColor(TH_BACK);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	UI_view2d_view_ortho(v2d);
+
+	/* data... */
+	draw_clip_graph(sc, ar, scene);
+
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+}
+
+static void clip_preview_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+{
+}
+
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -717,6 +872,17 @@ void ED_spacetype_clip(void)
 	art->draw= clip_main_area_draw;
 	art->listener= clip_main_area_listener;
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_GPENCIL;
+
+	BLI_addhead(&st->regiontypes, art);
+
+	/* preview */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype clip region preview");
+	art->regionid = RGN_TYPE_PREVIEW;
+	art->prefsizey = 240;
+	art->init= clip_preview_area_init;
+	art->draw= clip_preview_area_draw;
+	art->listener= clip_preview_area_listener;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 

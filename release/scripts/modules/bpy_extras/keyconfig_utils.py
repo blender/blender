@@ -94,6 +94,7 @@ KM_HIERARCHY = [
     ('Console', 'CONSOLE', 'WINDOW', []),
     ('Clip', 'CLIP_EDITOR', 'WINDOW', [
         ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
+        ('Clip Graph Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ]),
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),

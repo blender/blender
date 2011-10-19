@@ -60,6 +60,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_view2d.h"
+
 #include "clip_intern.h"	// own include
 
 /** \file blender/editors/space_clip/clip_ops.c
@@ -329,7 +331,6 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
 	ViewPanData *vpd= op->customdata;
 
 	if(cancel) {
@@ -795,16 +796,31 @@ static int frame_from_event(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
+	int framenr= 0;
 
-	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
+	if(ar->regiontype == RGN_TYPE_WINDOW) {
+		float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
 
-	return sfra+event->mval[0]/framelen;
+		framenr= sfra+event->mval[0]/framelen;
+	} else {
+		float viewx, viewy;
+
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+
+		framenr= (int)floor(viewx+0.5f);
+	}
+
+	return framenr;
 }
 
 static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(event->mval[1]>16)
-		return OPERATOR_PASS_THROUGH;
+	ARegion *ar= CTX_wm_region(C);
+
+	if(ar->regiontype == RGN_TYPE_WINDOW) {
+		if(event->mval[1]>16)
+			return OPERATOR_PASS_THROUGH;
+	}
 
 	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 

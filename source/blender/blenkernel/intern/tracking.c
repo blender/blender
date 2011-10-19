@@ -1235,6 +1235,7 @@ static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Recon
 		if(libmv_reporojectionCameraForImage(libmv_reconstruction, a, matd)) {
 			int i, j;
 			float mat[4][4];
+			float error= libmv_reporojectionErrorForImage(libmv_reconstruction, a);
 
 			for(i=0; i<4; i++)
 				for(j= 0; j<4; j++)
@@ -1250,6 +1251,7 @@ static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Recon
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr= a;
+			reconstructed[reconstruction->camnr].error= error;
 			reconstruction->camnr++;
 		} else {
 			ok= 0;

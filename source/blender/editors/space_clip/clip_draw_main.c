@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_draw.c
+/** \file blender/editors/space_clip/clip_draw_main.c
  *  \ingroup spclip
  */
 
@@ -61,6 +61,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -77,7 +78,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	float x;
 	int *points, totseg, i, a;
 	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1), fontsize, fontwidth;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	int fontid= style->widget.uifont_id;
 	char str[32];
 
@@ -179,13 +180,13 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	if(x+fontwidth+6.f<=ar->winx) {
 		glRecti(x, 8.f, x+fontwidth+6.f, 12.f+fontsize);
 
-		glColor3f(0.f, 0.f, 0.f);
+		UI_ThemeColor(TH_TEXT);
 		BLF_position(fontid, x+2.f, 10.f, 0.f);
 		BLF_draw(fontid, str, strlen(str));
 	} else {
 		glRecti(x+framelen, 8.f, x+framelen-fontwidth-6.f, 12.f+fontsize);
 
-		glColor3f(0.f, 0.f, 0.f);
+		UI_ThemeColor(TH_TEXT);
 		BLF_position(fontid, x-2.f-fontwidth+framelen, 10.f, 0.f);
 		BLF_draw(fontid, str, strlen(str));
 	}
@@ -936,6 +937,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				marker= BKE_tracking_get_marker(track, framenr);
 
 				if(MARKER_VISIBLE(sc, marker)) {
+					float npos[2];
 					copy_v4_v4(vec, track->bundle_pos);
 					vec[3]=1;
 
@@ -944,10 +946,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 					pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
 					pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height*aspy;
 
-					if(pos[0]>=0.f && pos[1]>=0.f && pos[0]<=width && pos[1]<=height*aspy) {
-						float npos[2];
-						BKE_tracking_apply_intrinsics(tracking, pos, npos);
+					BKE_tracking_apply_intrinsics(tracking, pos, npos);
 
+					if(npos[0]>=0.f && npos[1]>=0.f && npos[0]<=width && npos[1]<=height*aspy) {
 						vec[0]= (marker->pos[0]+track->offset[0])*width;
 						vec[1]= (marker->pos[1]+track->offset[1])*height*aspy;
 

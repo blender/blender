@@ -1848,6 +1848,17 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Path After", "Color of path after current frame");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Grid", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "cframe");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_themes(BlenderRNA *brna)

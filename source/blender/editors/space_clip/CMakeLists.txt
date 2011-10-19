@@ -41,7 +41,8 @@ set(INC_SYS
 
 set(SRC
 	space_clip.c
-	clip_draw.c
+	clip_draw_graph.c
+	clip_draw_main.c
 	clip_toolbar.c
 	clip_ops.c
 	tracking_ops.c

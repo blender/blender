@@ -842,6 +842,8 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
 	SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
 	SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
+	SETCOL(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
+	SETCOL(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
 }
 
 
@@ -1671,6 +1673,8 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
 				SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
 				SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
+				SETCOL(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
+				SETCOL(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
 			}
 		}
 	}
