@@ -235,7 +235,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	
-	strcpy(seq->name+2, sce_seq->id.name+2);
+	BLI_strncpy(seq->name+2, sce_seq->id.name+2, sizeof(seq->name)-2);
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + strip->len, 0);

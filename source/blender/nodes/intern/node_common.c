@@ -718,7 +718,7 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, ListBase *lb, int in_o
 	if(sock) {
 		sock->groupsock = gsock;
 		
-		strcpy(sock->name, gsock->name);
+		BLI_strncpy(sock->name, gsock->name, sizeof(sock->name));
 		sock->type= gsock->type;
 		
 		/* XXX hack: group socket input/output roles are inverted internally,
@@ -903,7 +903,7 @@ static void loop_sync(bNodeTree *ntree, int sync_in_out)
 					if (mirror->own_index == GET_INT_FROM_POINTER(sock->storage))
 						break;
 				/* make sure the name is the same (only for identification by user, no deeper meaning) */
-				strcpy(mirror->name, sock->name);
+				BLI_strncpy(mirror->name, sock->name, sizeof(mirror->name));
 				/* fix the socket order if necessary */
 				if (mirror != sync) {
 					BLI_remlink(sync_lb, mirror);

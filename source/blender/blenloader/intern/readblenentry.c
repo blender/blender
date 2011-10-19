@@ -288,7 +288,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
 		fd->reports= reports;
-		strcpy(fd->relabase, filename);
+		BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
 		
 		/* clear ob->proxy_from pointers in old main */
 		blo_clear_proxy_pointers_from_lib(oldmain);

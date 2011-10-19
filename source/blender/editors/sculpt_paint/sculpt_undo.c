@@ -262,7 +262,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node)
 	}
 
 	unode= MEM_callocN(sizeof(SculptUndoNode), "SculptUndoNode");
-	strcpy(unode->idname, ob->id.name);
+	BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 	unode->node= node;
 
 	BLI_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
