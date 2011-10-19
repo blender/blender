@@ -27,7 +27,7 @@ For HTML generation
 -------------------
 - Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py
+    ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
   providing ./blender.bin is or links to the blender executable
@@ -94,7 +94,7 @@ else:
     # for quick rebuilds
     """
 rm -rf /b/doc/python_api/sphinx-* && \
-./blender.bin --background --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
+./blender.bin --background -noaudio --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
 sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
     """
