@@ -88,12 +88,14 @@ void RE_engines_exit(void)
 
 static void engine_render(RenderEngine *engine, struct Scene *scene)
 {
+	extern FunctionRNA rna_RenderEngine_render_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "render");
+	func= &rna_RenderEngine_render_func; /* RNA_struct_find_function(&ptr, "render"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
