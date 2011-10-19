@@ -3942,7 +3942,7 @@ static void followtrack_new_data (void *cdata)
 	bFollowTrackConstraint *data= (bFollowTrackConstraint *)cdata;
 
 	data->clip= NULL;
-	data->flag|= FOLLOWTRACK_DEFAULTCLIP;
+	data->flag|= FOLLOWTRACK_ACTIVECLIP;
 	data->reference= FOLLOWTRACK_TRACK;
 }
 
@@ -3960,7 +3960,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	MovieClip *clip= data->clip;
 	MovieTrackingTrack *track;
 
-	if(data->flag&FOLLOWTRACK_DEFAULTCLIP)
+	if(data->flag&FOLLOWTRACK_ACTIVECLIP)
 		clip= scene->clip;
 
 	if(!clip || !data->track[0])
@@ -3992,7 +3992,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			MovieTrackingMarker *marker;
 			float vec[3], disp[3], axis[3], mat[4][4];
 			float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-			float sensor_x, lens, len, d, ortho_scale;
+			float sensor_x, lens, len, d, ortho_scale= 1.f;
 
 			where_is_object_mat(scene, camob, mat);
 
@@ -4010,39 +4010,23 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			len= len_v3(disp);
 
 			if(len>FLT_EPSILON) {
-				float pos[2], rmat[4][4];
-				int is_ortho= 0;
+				float pos[2], rmat[4][4], shiftx= 0.0f, shifty= 0.0f, clipsta= 0.0f, clipend= 0.0f;
+				short is_ortho= 0;
+				Camera *cam= NULL;
 
 				user.framenr= scene->r.cfra;
 				marker= BKE_tracking_get_marker(track, user.framenr);
 
 				add_v2_v2v2(pos, marker->pos, track->offset);
 
-				/* calculate lens and sensor size depends on object type */
-				if(camob->type==OB_CAMERA) {
-					Camera *camera= (Camera *)camob->data;
-
-					sensor_x= camera->sensor_x;
-					lens= camera->lens;
-					is_ortho= camera->type == CAM_ORTHO;
-					ortho_scale= camera->ortho_scale;
-				} else if (camob->type==OB_LAMP) {
-					Lamp *la= camob->data;
-					float fac= cosf((float)M_PI*la->spotsize/360.0f);
-					float phi= acos(fac);
-
-					lens= 16.0f*fac/sinf(phi);
-					sensor_x= 32.f;
-					ortho_scale= 0.f;
-				} else {
-					lens= 16.f;
-					sensor_x= 32.f;
-					ortho_scale= 0.f;
-				}
+				object_camera_intrinsics(camob, &cam, &is_ortho, &shiftx, &shifty, &clipsta, &clipend, &lens, &sensor_x);
 
 				if(is_ortho) {
-					vec[0]= ortho_scale * (pos[0]-0.5f);
-					vec[1]= ortho_scale * (pos[1]-0.5f);
+					if(cam)
+						ortho_scale= cam->ortho_scale;
+
+					vec[0]= ortho_scale * (pos[0]-0.5f+shiftx);
+					vec[1]= ortho_scale * (pos[1]-0.5f+shifty);
 					vec[2]= -len;
 
 					if(aspect>1.f) vec[1]/= aspect;
@@ -4059,8 +4043,8 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				else {
 					d= (len*sensor_x) / (2.f*lens);
 
-					vec[0]= d*(2.f*pos[0]-1.f);
-					vec[1]= d*(2.f*pos[1]-1.f);
+					vec[0]= d*(2.f*(pos[0]+shiftx)-1.f);
+					vec[1]= d*(2.f*(pos[1]+shifty)-1.f);
 					vec[2]= -len;
 
 					if(aspect>1.f) vec[1]/= aspect;
@@ -4103,7 +4087,7 @@ static void camerasolver_new_data (void *cdata)
 	bCameraSolverConstraint *data= (bCameraSolverConstraint *)cdata;
 
 	data->clip= NULL;
-	data->flag|= CAMERASOLVER_DEFAULTCLIP;
+	data->flag|= CAMERASOLVER_ACTIVECLIP;
 }
 
 static void camerasolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -4119,7 +4103,7 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 	bCameraSolverConstraint *data= con->data;
 	MovieClip *clip= data->clip;
 
-	if(data->flag&CAMERASOLVER_DEFAULTCLIP)
+	if(data->flag&CAMERASOLVER_ACTIVECLIP)
 		clip= scene->clip;
 
 	if(clip) {

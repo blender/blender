@@ -408,7 +408,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data = curcon->data;
 
-				if((data->flag&CAMERASOLVER_DEFAULTCLIP)==0) {
+				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0) {
 					if(data->clip != NULL && data->track[0]) {
 						if (!BKE_find_track_by_name(&data->clip->tracking, data->track))
 							curcon->flag |= CONSTRAINT_DISABLE;
@@ -419,7 +419,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
 				bCameraSolverConstraint *data = curcon->data;
 
-				if((data->flag&CAMERASOLVER_DEFAULTCLIP)==0 && data->clip == NULL)
+				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			

@@ -649,7 +649,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data= (bFollowTrackConstraint *)con->data;
 
-				if((data->clip || data->flag&FOLLOWTRACK_DEFAULTCLIP) && data->track[0]) {
+				if((data->clip || data->flag&FOLLOWTRACK_ACTIVECLIP) && data->track[0]) {
 					if(scene->camera) {
 						node2 = dag_get_node(dag, scene->camera);
 						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
@@ -2526,7 +2526,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 
 				for(node= sce->nodetree->nodes.first; node; node= node->next) {
 					if(node->id==id) {
-						NodeTagChanged(sce->nodetree, node);
+						nodeUpdate(sce->nodetree, node);
 					}
 				}
 			}

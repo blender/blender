@@ -40,7 +40,7 @@ static bNodeSocketTemplate cmp_node_movieclip_out[]= {
 	{	SOCK_FLOAT,		1,	"Offset X"},
 	{	SOCK_FLOAT,		1,	"Offset Y"},
 	{	SOCK_FLOAT,		1,	"Scale"},
-	{	SOCK_FLOAT,		1,	"Degr"},
+	{	SOCK_FLOAT,		1,	"Angle"},
 	{	-1, 0, ""	}
 };
 
@@ -146,7 +146,7 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 				out[2]->vec[0]= loc[1];
 
 				out[3]->vec[0]= scale;
-				out[4]->vec[0]= RAD2DEG(angle);
+				out[4]->vec[0]= angle;
 			}
 
 			/* generate preview */

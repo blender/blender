@@ -758,12 +758,12 @@ typedef enum eFollowTrack_Reference {
 } FollowTrack_Reference;
 
 typedef enum eFollowTrack_Flags {
-	FOLLOWTRACK_DEFAULTCLIP	= (1<<0)
+	FOLLOWTRACK_ACTIVECLIP	= (1<<0)
 } eFollowTrack_Flags;
 
 /* CameraSolver Constraint -> flag */
 typedef enum eCameraSolver_Flags {
-	CAMERASOLVER_DEFAULTCLIP	= (1<<0)
+	CAMERASOLVER_ACTIVECLIP	= (1<<0)
 } eCameraSolver_Flags;
 
 /* Rigid-Body Constraint */

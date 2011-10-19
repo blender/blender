@@ -1688,9 +1688,6 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 	loc[0]= (firstmedian[0]-median[0])*width*(*scale);
 	loc[1]= (firstmedian[1]-median[1])*height*(*scale);
 
-	loc[0]-= (firstmedian[0]*(*scale)-firstmedian[0])*width;
-	loc[1]-= (firstmedian[1]*(*scale)-firstmedian[1])*height;
-
 	mul_v2_fl(loc, stab->locinf);
 
 	if(stab->rot_track && stab->rotinf) {
@@ -1713,8 +1710,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 		*angle*= stab->rotinf;
 
 		/* convert to rotation around image center */
-		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x);
-		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y);
+		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x)*(*scale);
+		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y)*(*scale);
 	}
 }
 
@@ -1906,7 +1903,6 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 	/* scale would be handled by matrix transformation when angle is non-zero */
 	if(tscale!=1.f && tangle==0.f) {
 		ImBuf *scaleibuf;
-		float scale= (stab->scale-1.f)*stab->scaleinf+1.f;
 
 		stabilization_auto_scale_factor(tracking, width, height);
 
@@ -1914,7 +1910,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 		stab->scaleibuf= scaleibuf;
 
 		IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
-		IMB_scalefastImBuf(scaleibuf, ibuf->x*scale, ibuf->y*scale);
+		IMB_scalefastImBuf(scaleibuf, ibuf->x*tscale, ibuf->y*tscale);
 
 		ibuf= scaleibuf;
 	}
@@ -1922,7 +1918,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 	if(tangle==0.f) {
 		/* if angle is zero, then it's much faster to use rect copy
 		   but could be issues with subpixel precisions */
-		IMB_rectcpy(tmpibuf, ibuf, tloc[0], tloc[1], 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tmpibuf, ibuf, tloc[0]-(tscale-1.0f)*width/2.0f, tloc[1]-(tscale-1.0f)*height/2.0f, 0, 0, ibuf->x, ibuf->y);
 	} else {
 		float mat[4][4];
 		int i, j;
@@ -1974,7 +1970,7 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
+	mul_serie_m4(mat, lmat, cmat, rmat, smat, icmat, NULL, NULL, NULL);
 }
 
 MovieDistortion *BKE_tracking_distortion_create(void)

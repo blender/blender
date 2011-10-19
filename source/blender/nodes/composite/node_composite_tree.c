@@ -821,7 +821,7 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 			}
 		}
 		else if(ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
-			NodeTagChanged(ntree, node);
+			nodeUpdate(ntree, node);
 			tagged= 1;
 		}
 	}

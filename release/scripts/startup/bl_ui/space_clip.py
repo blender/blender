@@ -36,10 +36,13 @@ class CLIP_HT_header(Header):
         if context.area.show_menus:
             sub = row.row(align=True)
             sub.menu("CLIP_MT_view")
-            sub.menu("CLIP_MT_clip")
 
             if clip:
                 sub.menu("CLIP_MT_select")
+
+            sub.menu("CLIP_MT_clip")
+
+            if clip:
                 sub.menu("CLIP_MT_track")
                 sub.menu("CLIP_MT_reconstruction")
 
@@ -68,23 +71,6 @@ class CLIP_HT_header(Header):
                     (r.average_error))
 
         layout.template_running_jobs()
-
-
-class CLIP_PT_tools(Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_label = "Tools"
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return not clip and sc.mode == 'TRACKING'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator('clip.open')
 
 
 class CLIP_PT_tools_marker(Panel):
@@ -397,27 +383,22 @@ class CLIP_PT_display(Panel):
         layout = self.layout
         sc = context.space_data
 
-        row = layout.row()
-        row.prop(sc, "show_marker_pattern", text="Pattern")
-        row.prop(sc, "show_marker_search", text="Search")
+        layout.prop(sc, "show_marker_pattern", text="Pattern")
+        layout.prop(sc, "show_marker_search", text="Search")
 
-        row = layout.row()
-        row.prop(sc, "show_track_path", text="Path")
-        sub = row.column()
-        sub.active = sc.show_track_path
-        sub.prop(sc, "path_length", text="Length")
+        layout.prop(sc, "show_track_path", text="Path")
+        row = layout.column()
+        row.active = sc.show_track_path
+        row.prop(sc, "path_length", text="Length")
 
-        row = layout.row()
-        row.prop(sc, "show_disabled", text="Disabled")
-        row.prop(sc, "show_bundles", text="Bundles")
+        layout.prop(sc, "show_disabled", text="Disabled")
+        layout.prop(sc, "show_bundles", text="Bundles")
 
-        row = layout.row()
-        row.prop(sc, "show_names", text="Names")
-        row.prop(sc, "show_tiny_markers", text="Tiny Markers")
+        layout.prop(sc, "show_names", text="Names")
+        layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
 
-        row = layout.row()
-        row.prop(sc, "show_grease_pencil", text="Grease Pencil")
-        row.prop(sc, "use_mute_footage", text="Mute")
+        layout.prop(sc, "show_grease_pencil", text="Grease Pencil")
+        layout.prop(sc, "use_mute_footage", text="Mute")
 
         if sc.mode == 'DISTORTION':
             layout.prop(sc, "show_grid", text="Grid")
@@ -635,6 +616,12 @@ class CLIP_PT_tools_clip(Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Clip"
 
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
@@ -681,12 +668,11 @@ class CLIP_MT_clip(Menu):
         sc = context.space_data
         clip = sc.clip
 
-        layout.menu("CLIP_MT_proxy")
+        layout.operator("clip.open")
 
         if clip:
             layout.operator("clip.reload")
-
-        layout.operator("clip.open")
+            layout.menu("CLIP_MT_proxy")
 
 
 class CLIP_MT_proxy(Menu):
@@ -803,11 +789,15 @@ class CLIP_MT_select(Menu):
 
         sc = context.space_data
 
-        layout.menu("CLIP_MT_select_grouped")
         layout.operator("clip.select_border")
         layout.operator("clip.select_circle")
+
+        layout.separator()
+
         layout.operator("clip.select_all", text="Select/Deselect all")
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
+
+        layout.menu("CLIP_MT_select_grouped")
 
 
 class CLIP_MT_select_grouped(Menu):

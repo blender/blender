@@ -754,9 +754,9 @@ class ConstraintButtonsPanel():
         col.prop(con, "rotation_range", text="Pivot When")
 
     def FOLLOW_TRACK(self, context, layout, con):
-        layout.prop(con, "use_default_clip")
+        layout.prop(con, "use_active_clip")
 
-        if not con.use_default_clip:
+        if not con.use_active_clip:
             layout.prop(con, "clip")
 
         layout.prop(con, "track")
@@ -767,9 +767,9 @@ class ConstraintButtonsPanel():
         layout.operator("clip.constraint_to_fcurve")
 
     def CAMERA_SOLVER(self, context, layout, con):
-        layout.prop(con, "use_default_clip")
+        layout.prop(con, "use_active_clip")
 
-        if not con.use_default_clip:
+        if not con.use_active_clip:
             layout.prop(con, "clip")
 
         layout.operator("clip.constraint_to_fcurve")

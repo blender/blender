@@ -2979,27 +2979,19 @@ void object_camera_mode(RenderData *rd, Object *camera)
 	}
 }
 
-/* 'lens' may be set for envmap only */
-void object_camera_matrix(
-		RenderData *rd, Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
-		float *viewdx, float *viewdy
-) {
-	Camera *cam=NULL;
-	float pixsize;
-	float shiftx=0.0, shifty=0.0, winside, viewfac;
-	short is_ortho= FALSE;
+void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
+			float *clipsta, float *clipend, float *lens, float *sensor_x)
+{
+	Camera *cam= NULL;
 
-	/* question mark */
-	(*ycor)= rd->yasp / rd->xasp;
-	if(rd->mode & R_FIELDS)
-		(*ycor) *= 2.0f;
+	(*shiftx)= 0.0f;
+	(*shifty)= 0.0f;
 
 	if(camera->type==OB_CAMERA) {
 		cam= camera->data;
 
 		if(cam->type == CAM_ORTHO) {
-			is_ortho= TRUE;
+			*is_ortho= TRUE;
 		}
 
 		/* solve this too... all time depending stuff is in convertblender.c?
@@ -3012,8 +3004,8 @@ void object_camera_matrix(
 			execute_ipo(&cam->id, cam->ipo);
 		}
 #endif // XXX old animation system
-		shiftx=cam->shiftx;
-		shifty=cam->shifty;
+		(*shiftx)=cam->shiftx;
+		(*shifty)=cam->shifty;
 		(*lens)= cam->lens;
 		(*sensor_x)= cam->sensor_x;
 		(*clipsta)= cam->clipsta;
@@ -3039,6 +3031,27 @@ void object_camera_matrix(
 			(*clipend)= 1000.0f;
 		}
 	}
+
+	(*cam_r)= cam;
+}
+
+/* 'lens' may be set for envmap only */
+void object_camera_matrix(
+		RenderData *rd, Object *camera, int winx, int winy, short field_second,
+		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
+		float *viewdx, float *viewdy
+) {
+	Camera *cam=NULL;
+	float pixsize;
+	float shiftx=0.0, shifty=0.0, winside, viewfac;
+	short is_ortho= FALSE;
+
+	/* question mark */
+	(*ycor)= rd->yasp / rd->xasp;
+	if(rd->mode & R_FIELDS)
+		(*ycor) *= 2.0f;
+
+	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x);
 
 	/* ortho only with camera available */
 	if(cam && is_ortho) {
@@ -3377,7 +3390,7 @@ MovieClip *object_get_movieclip(Scene *scene, Object *ob, int use_default)
 
 	if(scon) {
 		bCameraSolverConstraint *solver= scon->data;
-		if((solver->flag&CAMERASOLVER_DEFAULTCLIP)==0)
+		if((solver->flag&CAMERASOLVER_ACTIVECLIP)==0)
 			clip= solver->clip;
 		else
 			clip= scene->clip;

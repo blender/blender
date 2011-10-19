@@ -163,14 +163,14 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -2.0, 2.0, 1, 3);
 	RNA_def_property_ui_text(prop, "Shift X", "Perspective Camera horizontal shift");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "shift_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shifty");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -2.0, 2.0, 1, 3);
 	RNA_def_property_ui_text(prop, "Shift Y", "Perspective Camera vertical shift");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "YF_dofdist");

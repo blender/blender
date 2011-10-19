@@ -34,18 +34,18 @@
 
 #include "node_composite_util.h"
 
-/* **************** Translate  ******************** */
+/* **************** Transform  ******************** */
 
-static bNodeSocketTemplate cmp_node_stabilize2d_in[]= {
+static bNodeSocketTemplate cmp_node_transform_in[]= {
 	{	SOCK_RGBA,		1,	"Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,		1,	"X",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT,		1,	"Y",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
-	{	SOCK_FLOAT,		1,	"Degr",			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
+	{	SOCK_FLOAT,		1,	"Angle",			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_ANGLE},
 	{	SOCK_FLOAT,		1,	"Scale",			1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_stabilize2d_out[]= {
+static bNodeSocketTemplate cmp_node_transform_out[]= {
 	{	SOCK_RGBA, 0, "Image"},
 	{	-1, 0, ""	}
 };
@@ -72,7 +72,7 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
 	/* compose transformation matrix */
-	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
+	mul_serie_m4(mat, lmat, cmat, rmat, smat, icmat, NULL, NULL, NULL);
 
 	invert_m4(mat);
 
@@ -113,13 +113,13 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 	return stackbuf;
 }
 
-static void node_composit_exec_stabilize2d(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(in[0]->data) {
 		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
 
-		stackbuf= node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], DEG2RAD(in[3]->vec[0]), in[4]->vec[0], node->custom1);
+		stackbuf= node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], in[3]->vec[0], in[4]->vec[0], node->custom1);
 
 		/* pass on output and free */
 		out[0]->data= stackbuf;
@@ -134,9 +134,9 @@ void register_node_type_cmp_transform(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, NODE_OPTIONS);
-	node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
+	node_type_socket_templates(&ntype, cmp_node_transform_in, cmp_node_transform_out);
 	node_type_size(&ntype, 140, 100, 320);
-	node_type_exec(&ntype, node_composit_exec_stabilize2d);
+	node_type_exec(&ntype, node_composit_exec_transform);
 
 	nodeRegisterType(lb, &ntype);
 }

@@ -2067,9 +2067,9 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	/* use default clip */
-	prop= RNA_def_property(srna, "use_default_clip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FOLLOWTRACK_DEFAULTCLIP);
-	RNA_def_property_ui_text(prop, "Default Clip", "Use default clip defined in scene");
+	prop= RNA_def_property(srna, "use_active_clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FOLLOWTRACK_ACTIVECLIP);
+	RNA_def_property_ui_text(prop, "Active Clip", "Use active clip defined in scene");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
@@ -2090,9 +2090,9 @@ static void rna_def_constraint_camera_solver(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
 	/* use default clip */
-	prop= RNA_def_property(srna, "use_default_clip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAMERASOLVER_DEFAULTCLIP);
-	RNA_def_property_ui_text(prop, "Default Clip", "Use default clip defined in scene");
+	prop= RNA_def_property(srna, "use_active_clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAMERASOLVER_ACTIVECLIP);
+	RNA_def_property_ui_text(prop, "Active Clip", "Use active clip defined in scene");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 

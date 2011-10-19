@@ -107,6 +107,12 @@ class CLIP_OT_delete_proxy(Operator):
     bl_label = "Delete Proxy"
     bl_options = {'UNDO', 'REGISTER'}
 
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
     def invoke(self, context, event):
         wm = context.window_manager
 

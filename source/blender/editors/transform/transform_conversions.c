@@ -4813,7 +4813,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if(t->scene->nodetree) {
 			/* tracks can be used for stabilization nodes,
 			   flush update for such nodes */
-			NodeTagIDChanged(t->scene->nodetree, &clip->id);
+			nodeUpdateID(t->scene->nodetree, &clip->id);
 			WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 		}
 	}
