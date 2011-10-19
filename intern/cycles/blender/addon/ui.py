@@ -431,6 +431,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -460,6 +461,7 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
 class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

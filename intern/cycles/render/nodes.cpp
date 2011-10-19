@@ -1370,7 +1370,7 @@ void BackgroundNode::compile(SVMCompiler& compiler)
 	else
 		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value*strength_in->value.x);
 
-	compiler.add_node(NODE_CLOSURE_BACKGROUND, CLOSURE_BACKGROUND_ID);
+	compiler.add_node(NODE_CLOSURE_BACKGROUND, compiler.closure_mix_weight_offset());
 }
 
 void BackgroundNode::compile(OSLCompiler& compiler)

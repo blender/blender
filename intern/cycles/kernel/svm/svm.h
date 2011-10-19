@@ -179,7 +179,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_closure_emission(sd, stack, node);
 				break;
 			case NODE_CLOSURE_BACKGROUND:
-				svm_node_closure_background(sd, node);
+				svm_node_closure_background(sd, stack, node);
 				break;
 			case NODE_CLOSURE_HOLDOUT:
 				svm_node_closure_holdout(sd, stack, node);

@@ -236,7 +236,6 @@ __device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *
 __device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
 #ifdef __MULTI_CLOSURE__
-	ShaderClosure *sc = svm_node_closure_get(sd);
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -245,31 +244,52 @@ __device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node
 		if(mix_weight == 0.0f)
 			return;
 
+		ShaderClosure *sc = svm_node_closure_get(sd);
 		sc->weight *= mix_weight;
+		sc->type = CLOSURE_EMISSION_ID;
 	}
+	else {
+		ShaderClosure *sc = svm_node_closure_get(sd);
+		sc->type = CLOSURE_EMISSION_ID;
+	}
+
 #else
 	ShaderClosure *sc = &sd->closure;
+	sc->type = CLOSURE_EMISSION_ID;
 #endif
 
-	sc->type = CLOSURE_EMISSION_ID;
 	sd->flag |= SD_EMISSION;
 }
 
-__device void svm_node_closure_background(ShaderData *sd, uint4 node)
+__device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
 {
 #ifdef __MULTI_CLOSURE__
-	ShaderClosure *sc = svm_node_closure_get(sd);
+	uint mix_weight_offset = node.y;
+
+	if(stack_valid(mix_weight_offset)) {
+		float mix_weight = stack_load_float(stack, mix_weight_offset);
+
+		if(mix_weight == 0.0f)
+			return;
+
+		ShaderClosure *sc = svm_node_closure_get(sd);
+		sc->weight *= mix_weight;
+		sc->type = CLOSURE_BACKGROUND_ID;
+	}
+	else {
+		ShaderClosure *sc = svm_node_closure_get(sd);
+		sc->type = CLOSURE_BACKGROUND_ID;
+	}
+
 #else
 	ShaderClosure *sc = &sd->closure;
-#endif
-
 	sc->type = CLOSURE_BACKGROUND_ID;
+#endif
 }
 
 __device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
 {
 #ifdef __MULTI_CLOSURE__
-	ShaderClosure *sc = svm_node_closure_get(sd);
 	uint mix_weight_offset = node.y;
 
 	if(stack_valid(mix_weight_offset)) {
@@ -278,17 +298,20 @@ __device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
 		if(mix_weight == 0.0f)
 			return;
 
+		ShaderClosure *sc = svm_node_closure_get(sd);
 		sc->weight = make_float3(mix_weight, mix_weight, mix_weight);
+		sc->type = CLOSURE_HOLDOUT_ID;
 	}
-	else
+	else {
+		ShaderClosure *sc = svm_node_closure_get(sd);
 		sc->weight = make_float3(1.0f, 1.0f, 1.0f);
-
-	sc->sample_weight = 0.0f;
+		sc->type = CLOSURE_HOLDOUT_ID;
+	}
 #else
 	ShaderClosure *sc = &sd->closure;
+	sc->type = CLOSURE_HOLDOUT_ID;
 #endif
 
-	sc->type = CLOSURE_HOLDOUT_ID;
 	sd->flag |= SD_HOLDOUT;
 }
 
