@@ -195,6 +195,11 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 	}
 }
 
+static void update(bNodeTree *ntree)
+{
+	ntreeSetOutput(ntree);
+}
+
 bNodeTreeType ntreeType_Composite = {
 	/* type */				NTREE_COMPOSIT,
 	/* idname */			"NTCompositing Nodetree",
@@ -207,7 +212,7 @@ bNodeTreeType ntreeType_Composite = {
 	/* localize */			localize,
 	/* local_sync */		local_sync,
 	/* local_merge */		local_merge,
-	/* update */			NULL,
+	/* update */			update,
 	/* update_node */		update_node
 };
 
@@ -728,9 +733,9 @@ void ntreeCompositTagRender(Scene *curscene)
 			
 			for(node= sce->nodetree->nodes.first; node; node= node->next) {
 				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
-					NodeTagChanged(sce->nodetree, node);
+					nodeUpdate(sce->nodetree, node);
 				else if(node->type==CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
-					NodeTagChanged(sce->nodetree, node);
+					nodeUpdate(sce->nodetree, node);
 			}
 		}
 	}
@@ -757,7 +762,7 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 		
 		for (index=0; index<len; index++) {
 			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
-				NodeTagChanged(ntree, node);
+				nodeUpdate(ntree, node);
 				return 1;
 			}
 		}
@@ -775,7 +780,7 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 			
 			for (index=0; index<len; index++) {
 				if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
-					NodeTagChanged(ntree, node);
+					nodeUpdate(ntree, node);
 					return 1;
 				}
 			}
@@ -801,18 +806,18 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 		if(node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
 			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				NodeTagChanged(ntree, node);
+				nodeUpdate(ntree, node);
 				tagged= 1;
 			}
 		}
 		else if(node->type==CMP_NODE_TIME) {
-			NodeTagChanged(ntree, node);
+			nodeUpdate(ntree, node);
 			tagged= 1;
 		}
 		/* here was tag render layer, but this is called after a render, so re-composites fail */
 		else if(node->type==NODE_GROUP) {
 			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
-				NodeTagChanged(ntree, node);
+				nodeUpdate(ntree, node);
 			}
 		}
 		else if(ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_TRANSFORM)) {
@@ -834,12 +839,12 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
-			NodeTagChanged(ntree, node);
+			nodeUpdate(ntree, node);
 	}
 }
 
 /* XXX after render animation system gets a refresh, this call allows composite to end clean */
-void ntreeClearTags(bNodeTree *ntree)
+void ntreeCompositClearTags(bNodeTree *ntree)
 {
 	bNode *node;
 	
@@ -848,6 +853,6 @@ void ntreeClearTags(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->need_exec= 0;
 		if(node->type==NODE_GROUP)
-			ntreeClearTags((bNodeTree *)node->id);
+			ntreeCompositClearTags((bNodeTree *)node->id);
 	}
 }

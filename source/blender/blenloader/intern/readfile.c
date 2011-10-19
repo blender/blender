@@ -10356,8 +10356,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			if(scene->ed && scene->ed->seqbasep)
 			{
-				for(seq = scene->ed->seqbasep->first; seq; seq = seq->next)
-				{
+				SEQ_BEGIN(scene->ed, seq) {
 					if(seq->type == SEQ_HD_SOUND)
 					{
 						char str[FILE_MAX];
@@ -10377,6 +10376,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							 seq->strip->dir);
 					}
 				}
+				SEQ_END
 			}
 		}
 

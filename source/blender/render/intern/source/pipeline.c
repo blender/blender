@@ -2261,7 +2261,7 @@ static void ntree_render_scenes(Render *re)
 					restore_scene= (scene != re->scene);
 					node->id->flag &= ~LIB_DOIT;
 					
-					NodeTagChanged(re->scene->nodetree, node);
+					nodeUpdate(re->scene->nodetree, node);
 				}
 			}
 		}

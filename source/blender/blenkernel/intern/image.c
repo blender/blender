@@ -1514,7 +1514,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		Scene *scene;
 		for(scene= G.main->scene.first; scene; scene= scene->id.next) {
 			if(scene->nodetree) {
-				NodeTagIDChanged(scene->nodetree, &ima->id);
+				nodeUpdateID(scene->nodetree, &ima->id);
 			}
 		}
 	}

@@ -1161,7 +1161,7 @@ class WM_OT_copy_prev_settings(Operator):
         elif not os.path.isdir(path_src):
             self.report({'ERROR'}, "Source path %r exists" % path_src)
         else:
-            shutil.copytree(path_src, path_dst)
+            shutil.copytree(path_src, path_dst, symlinks=True)
 
             # in 2.57 and earlier windows installers, system scripts were copied
             # into the configuration directory, don't want to copy those
