@@ -108,7 +108,7 @@ int ntreeTexTagAnimated(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==TEX_NODE_CURVE_TIME) {
-			NodeTagChanged(ntree, node);
+			nodeUpdate(ntree, node);
 			return 1;
 		}
 		else if(node->type==NODE_GROUP) {

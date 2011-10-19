@@ -568,7 +568,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), Repor
 	}
 	else {
 		ntreeUpdateTree(ntree); /* update group node socket links*/
-		NodeTagChanged(ntree, node);
+		nodeUpdate(ntree, node);
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 
 		if (group)
@@ -651,7 +651,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 	ret= nodeAddLink(ntree, fromnode, in, tonode, out);
 	
 	if(ret) {
-		NodeTagChanged(ntree, tonode);
+		nodeUpdate(ntree, tonode);
 
 		ntreeUpdateTree(ntree);
 

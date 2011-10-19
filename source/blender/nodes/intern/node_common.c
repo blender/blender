@@ -239,9 +239,11 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 		}
 	}
 
+	/* update of the group tree */
 	ngroup->update |= NTREE_UPDATE;
 	ntreeUpdateTree(ngroup);
-	ntree->update |= NTREE_UPDATE_NODES|NTREE_UPDATE_LINKS;
+	/* update of the tree containing the group instance node */
+	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 	ntreeUpdateTree(ntree);
 
 	return gnode;
@@ -559,7 +561,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	/* free the group tree (takes care of user count) */
 	free_libblock(&G.main->nodetree, wgroup);
 	
-	ntree->update |= NTREE_UPDATE_NODES|NTREE_UPDATE_LINKS;
+	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 	ntreeUpdateTree(ntree);
 	
 	return 1;
