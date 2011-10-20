@@ -246,7 +246,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             return
 
         # Get clip used for parenting
-        if con.use_default_clip:
+        if con.use_active_clip:
             clip = scene.clip
         else:
             clip = con.clip
