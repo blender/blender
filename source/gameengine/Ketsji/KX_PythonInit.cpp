@@ -1816,7 +1816,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	/* Yet another gotcha in the py api
 	 * Cant run PySys_SetArgv more then once because this adds the
 	 * binary dir to the sys.path each time.
-	 * Id have thaught python being totally restarted would make this ok but
+	 * Id have thought python being totally restarted would make this ok but
 	 * somehow it remembers the sys.path - Campbell
 	 */
 	static bool first_time = true;

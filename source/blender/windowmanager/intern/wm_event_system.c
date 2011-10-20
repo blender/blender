@@ -2578,6 +2578,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
+			strcpy(event.utf8_buf, kd->utf8_buf);
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */

@@ -441,7 +441,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 				}
 			}
 
-			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym);
+			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, NULL);
 		}
 		break;
 	}

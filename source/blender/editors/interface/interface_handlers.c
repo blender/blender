@@ -1428,6 +1428,36 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 	ui_check_but(but);
 }
 
+/* note: utf8 & ascii funcs should be merged */
+static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const char utf8_buf[6])
+{
+	char *str;
+	int len, x, changed= 0;
+	size_t step= BLI_strnlen(utf8_buf, sizeof(utf8_buf));
+
+	str= data->str;
+	len= strlen(str);
+
+	if(len-(but->selend - but->selsta)+1 <= data->maxlen) {
+		/* type over the current selection */
+		if ((but->selend - but->selsta) > 0)
+			changed= ui_textedit_delete_selection(but, data);
+
+		len= strlen(str);
+		if(len+step < data->maxlen) {
+			for(x= data->maxlen; x>but->pos; x--)
+				str[x]= str[x-step];
+			memcpy(&str[but->pos], utf8_buf, step * sizeof(char));
+			str[len+step]= '\0';
+
+			but->pos += step;
+			changed= 1;
+		}
+	}
+
+	return changed;
+}
+
 static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
 {
 	char *str;
@@ -1939,7 +1969,15 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				if(event->type == PADPERIOD && ascii == ',')
 					ascii = '.';
 
-			changed= ui_textedit_type_ascii(but, data, ascii);
+			if(event->utf8_buf[0]) {
+				/* keep this printf until utf8 is well tested */
+				printf("%s: utf8 char '%s'\n", __func__, event->utf8_buf);
+				changed= ui_textedit_type_utf8(but, data, event->utf8_buf);
+			}
+			else {
+				changed= ui_textedit_type_ascii(but, data, ascii);
+			}
+
 			retval= WM_UI_HANDLER_BREAK;
 			
 		}
