@@ -33,8 +33,8 @@
 #define _SCA_JOYSTICK_H_
 
 #include "SCA_JoystickDefines.h"
-#ifndef DISABLE_SDL
-#include "SDL.h"
+#ifdef WITH_SDL
+#  include "SDL.h"
 #endif
 
 /**
@@ -52,7 +52,7 @@ class SCA_Joystick
 	static int m_refCount;
 
 	class PrivateData;
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	PrivateData		*m_private;
 #endif
 	int				m_joyindex;
@@ -89,7 +89,7 @@ class SCA_Joystick
 	bool			m_istrig_button;
 	bool			m_istrig_hat;
 
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	/**
 	 * event callbacks
 	 */
@@ -102,7 +102,7 @@ class SCA_Joystick
 	void OnBallMotion(SDL_Event *sdl_event){}
 #endif
 		
-#endif
+#endif /* WITH_SDL */
 	/**
 	 * Open the joystick
 	 */
@@ -193,7 +193,7 @@ public:
 	 */
 	int Connected(void);
 };
-#ifndef	DISABLE_SDL
+#ifdef WITH_SDL
 void Joystick_HandleEvents( void );
 #endif
 

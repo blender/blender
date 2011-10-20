@@ -1655,7 +1655,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 	
+	char utf8_buf[6]= {'\0'}; /* TODO, unicode input */
 	switch ([event type]) {
+
 		case NSKeyDown:
 		case NSKeyUp:
 			charsIgnoringModifiers = [event charactersIgnoringModifiers];
@@ -1684,10 +1686,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				break; //Cmd-Q is directly handled by Cocoa
 
 			if ([event type] == NSKeyDown) {
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
 				//printf("\nKey down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
 			} else {
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii, utf8_buf) );
 				//printf("\nKey up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
 			}
 			break;

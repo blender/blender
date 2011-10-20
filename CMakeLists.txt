@@ -216,6 +216,10 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_PYTHON_UI_INFO "Allow navigating to UI source from the context menu" OFF)
+mark_as_advanced(WITH_PYTHON_UI_INFO)
+
+
 if(APPLE)
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
@@ -1327,6 +1331,10 @@ endif()
 
 if(WITH_ASSERT_ABORT)
 	add_definitions(-DWITH_ASSERT_ABORT)
+endif()
+
+if(WITH_PYTHON_UI_INFO)
+	add_definitions(-DWITH_PYTHON_UI_INFO)
 endif()
 
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")

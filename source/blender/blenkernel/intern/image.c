@@ -906,8 +906,8 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	
 	if (scene->r.stamp & R_STAMP_MARKER) {
 		char *name = scene_find_last_marker_name(scene, CFRA);
-	
-		if (name)	strcpy(text, name);
+
+		if (name)	BLI_strncpy(text, name, sizeof(text));
 		else 		strcpy(text, "<none>");
 
 		BLI_snprintf(stamp_data->marker, sizeof(stamp_data->marker), do_prefix ? "Marker %s":"%s", text);
@@ -980,7 +980,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
 		Sequence *seq= seq_foreground_frame_get(scene, scene->r.cfra);
 	
-		if (seq) strcpy(text, seq->name+2);
+		if (seq)	BLI_strncpy(text, seq->name+2, sizeof(text));
 		else 		strcpy(text, "<none>");
 
 		BLI_snprintf(stamp_data->strip, sizeof(stamp_data->strip), do_prefix ? "Strip %s":"%s", text);

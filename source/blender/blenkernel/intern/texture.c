@@ -992,7 +992,7 @@ void autotexname(Tex *tex)
 		if(tex->type==TEX_IMAGE) {
 			ima= tex->ima;
 			if(ima) {
-				strcpy(di, ima->name);
+				BLI_strncpy(di, ima->name, sizeof(di));
 				BLI_splitdirstring(di, fi);
 				strcpy(di, "I.");
 				strcat(di, fi);

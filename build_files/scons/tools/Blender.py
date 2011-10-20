@@ -316,8 +316,8 @@ def creator(env):
     if env['WITH_BF_TIFF']:
         defs.append('WITH_TIFF')
 
-    if not env['WITH_BF_SDL']:
-        defs.append('DISABLE_SDL')
+    if env['WITH_BF_SDL']:
+        defs.append('WITH_SDL')
 
     if env['WITH_BF_LIBMV']:
         incs.append('#/extern/libmv')

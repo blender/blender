@@ -374,7 +374,7 @@ void nodeMakeDynamicType(bNode *node)
 		/*node->typeinfo= MEM_dupallocN(ntype);*/
 		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
 		*newtype= *ntype;
-		strcpy(newtype->name, ntype->name);
+		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
 		node->typeinfo= newtype;
 	}
 }

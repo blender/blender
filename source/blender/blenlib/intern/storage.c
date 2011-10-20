@@ -304,15 +304,15 @@ void BLI_adddirstrings(void)
 	for(num=0, file= files; num<actnum; num++, file++){
 #ifdef WIN32
 		mode = 0;
-		strcpy(file->mode1, types[0]);
-		strcpy(file->mode2, types[0]);
-		strcpy(file->mode3, types[0]);
+		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
+		BLI_strncpy(file->mode2, types[0], sizeof(file->mode2));
+		BLI_strncpy(file->mode3, types[0], sizeof(file->mode3));
 #else
 		mode = file->s.st_mode;
 
-		strcpy(file->mode1, types[(mode & 0700) >> 6]);
-		strcpy(file->mode2, types[(mode & 0070) >> 3]);
-		strcpy(file->mode3, types[(mode & 0007)]);
+		BLI_strncpy(file->mode1, types[(mode & 0700) >> 6], sizeof(file->mode1));
+		BLI_strncpy(file->mode2, types[(mode & 0070) >> 3], sizeof(file->mode2));
+		BLI_strncpy(file->mode3, types[(mode & 0007)], sizeof(file->mode3));
 		
 		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2]=='-'))file->mode2[2]='l';
 

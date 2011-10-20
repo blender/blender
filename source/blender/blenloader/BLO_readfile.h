@@ -252,7 +252,7 @@ void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendH
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
-BlendFileData* blo_read_blendafterruntime(int file, char *name, int actualsize, struct ReportList *reports);
+BlendFileData* blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
 
 #ifdef __cplusplus
 } 

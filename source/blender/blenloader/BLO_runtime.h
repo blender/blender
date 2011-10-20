@@ -42,8 +42,8 @@ extern "C" {
 struct BlendFileData;
 struct ReportList;
 
-int BLO_is_a_runtime(char *file);
-struct BlendFileData *BLO_read_runtime(char *file, struct ReportList *reports);
+int BLO_is_a_runtime(const char *file);
+struct BlendFileData *BLO_read_runtime(const char *file, struct ReportList *reports);
 
 #ifdef __cplusplus
 }

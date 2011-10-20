@@ -80,6 +80,8 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 /* wrapper for poll callback */
 static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 {
+	extern FunctionRNA rna_KeyingSetInfo_poll_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
@@ -87,7 +89,7 @@ static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 	int ok;
 
 	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
-	func= RNA_struct_find_function(&ptr, "poll");
+	func= &rna_KeyingSetInfo_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 		/* hook up arguments */
@@ -108,12 +110,14 @@ static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 /* wrapper for iterator callback */
 static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks)
 {
+	extern FunctionRNA rna_KeyingSetInfo_iterator_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
-	func= RNA_struct_find_function(&ptr, "iterator");
+	func= &rna_KeyingSetInfo_iterator_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 		/* hook up arguments */
@@ -129,12 +133,14 @@ static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks
 /* wrapper for generator callback */
 static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks, PointerRNA *data)
 {
+	extern FunctionRNA rna_KeyingSetInfo_generate_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
-	func= RNA_struct_find_function(&ptr, "generate");
+	func= &rna_KeyingSetInfo_generate_func; /* RNA_struct_find_generate(&ptr, "poll"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 		/* hook up arguments */

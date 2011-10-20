@@ -1190,7 +1190,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Overlay Offset", "");
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_overlay_frame_get", "rna_SequenceEditor_overlay_frame_set", NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
-	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
+	RNA_def_property_ui_text(prop, "Active Strip", "Sequencer's active strip");
 }
 
 static void rna_def_filter_video(StructRNA *srna)

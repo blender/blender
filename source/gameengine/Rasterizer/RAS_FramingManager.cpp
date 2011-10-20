@@ -101,7 +101,7 @@ ComputeDefaultOrtho(
 	frustum.x1 = -frustum.x2;
 	frustum.y2 = sizeY;
 	frustum.y1 = -frustum.y2;
-	frustum.camnear = -camfar;
+	frustum.camnear = camnear;
 	frustum.camfar = camfar;
 }
 

@@ -759,18 +759,28 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
 				uiItemR(row, &ptr, "show_in_editmode", 0, "", ICON_NONE);
 		}
-		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
-		{
-			/* -- convert to rna ? */
-			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
-					UI_translate_do_tooltip(N_("Apply modifier to editing cage during Editmode")));
-			if (index < cageIndex)
-				uiButSetFlag(but, UI_BUT_DISABLED);
-			uiButSetFunc(but, modifiers_setOnCage, ob, md);
-		}
 
-		/* tesselation point for curve-typed objects */
-		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		if (ob->type==OB_MESH) {
+			if (modifier_couldBeCage(scene, md) && (index <= lastCageIndex))
+			{
+				/* -- convert to rna ? */
+				but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0,
+						UI_translate_do_tooltip(N_("Apply modifier to editing cage during Editmode")));
+				if (index < cageIndex)
+					uiButSetFlag(but, UI_BUT_DISABLED);
+				uiButSetFunc(but, modifiers_setOnCage, ob, md);
+			}
+			else {
+				uiBlockEndAlign(block);
+
+				/* place holder button */
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				but= uiDefIconBut(block, BUT, 0, ICON_NONE, 0, 0, UI_UNIT_X-2, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, NULL);
+				uiButSetFlag(but, UI_BUT_DISABLED);
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
+		} /* tesselation point for curve-typed objects */
+		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 			/* some modifiers could work with pre-tesselated curves only */
 			if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 				/* add disabled pre-tesselated button, so users could have

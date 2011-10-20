@@ -40,6 +40,12 @@
 #include "GHOST_System.h"
 #include "../GHOST_Types.h"
 
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+#  define GHOST_X11_RES_NAME  "Blender" /* res_name */
+#  define GHOST_X11_RES_CLASS "Blender" /* res_class */
+#endif
+
+
 class GHOST_WindowX11;
 
 /**
@@ -203,6 +209,14 @@ public:
 		return m_display;
 	}	
 
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+		XIM
+	getX11_XIM(
+	) {
+		return m_xim;
+	}
+#endif
+
 	/* Helped function for get data from the clipboard. */
 	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
 			 unsigned char **txt, unsigned long *len,
@@ -258,6 +272,9 @@ public:
 private :
 
 	Display * m_display;
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+	XIM m_xim;
+#endif
 
 	/// The vector of windows that need to be updated.
 	std::vector<GHOST_WindowX11 *> m_dirty_windows;

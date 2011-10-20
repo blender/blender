@@ -437,7 +437,8 @@ typedef struct SpaceLogic {
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceLogic;
 
-
+/* note, this entire struct isnt used anymore!,
+ * may remove some day - campbell */
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */

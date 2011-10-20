@@ -464,7 +464,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Minimize Stretch";
 	ot->idname= "UV_OT_minimize_stretch";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
 	ot->description="Reduce UV stretching by relaxing angles";
 	
 	/* api callbacks */

@@ -881,7 +881,7 @@ static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
 	return (ntree->nodetype==0 && ntree->type == snode->treetype);
 }
 
-static void rna_SpaceNodeEditor_node_tree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceNodeEditor_node_tree_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	SpaceNode *snode= (SpaceNode*)ptr->data;
 	

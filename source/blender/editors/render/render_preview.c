@@ -261,7 +261,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			sce->r.alphamode= R_ADDSKY;
 
 		sce->r.cfra= scene->r.cfra;
-		strcpy(sce->r.engine, scene->r.engine);
+		BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
 		
 		if(id_type==ID_MA) {
 			Material *mat= NULL, *origmat= (Material *)id;
