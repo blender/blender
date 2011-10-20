@@ -679,7 +679,8 @@ static void rna_softbody_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 }
 
 
-static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
+static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                  PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Object *ob= NULL;
 
@@ -725,7 +726,8 @@ static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Point Caches", "Collection of point caches");
 
 	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set", "rna_Cache_active_point_cache_index_range");
+	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set",
+	                           "rna_Cache_active_point_cache_index_range");
 	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
 }
@@ -827,7 +829,8 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	prop= RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
 	rna_def_ptcache_point_caches(brna, prop);
@@ -914,7 +917,8 @@ static void rna_def_collision(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "absorption", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 2);
-	RNA_def_property_ui_text(prop, "Absorption", "How much of effector force gets lost during collision with this object (in percent)");
+	RNA_def_property_ui_text(prop, "Absorption",
+	                         "How much of effector force gets lost during collision with this object (in percent)");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 }
 
@@ -1128,7 +1132,9 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
 	RNA_def_property_enum_items(prop, texture_items);
-	RNA_def_property_ui_text(prop, "Texture Mode", "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
+	RNA_def_property_ui_text(prop, "Texture Mode",
+	                         "How the texture effect is calculated (RGB & Curl need a RGB texture, "
+	                         "else Gradient will be used instead)");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
 	prop= RNA_def_property(srna, "z_direction", PROP_ENUM, PROP_NONE);
@@ -1423,7 +1429,10 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "weld_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "welding");
 	RNA_def_property_range(prop, 0.0f, 0.01f);
-	RNA_def_property_ui_text(prop, "Welding", "Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
+	RNA_def_property_ui_text(prop, "Welding",
+	                         "Welding threshold: distance between nearby vertices to be considered equal "
+	                         "=> set to 0.0 to disable welding test and speed up scene loading "
+	                         "(ok if the mesh has no duplicates)");
 
 	/* Integers */
 	
@@ -1435,7 +1444,7 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "cluster_iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numclusteriterations");
 	RNA_def_property_range(prop, 1, 128);
-	RNA_def_property_ui_text(prop, "Cluster Iterations", "Specify the number of cluster iterations");
+	RNA_def_property_ui_text(prop, "Cluster Iterations", "Number of cluster iterations");
 	
 	/* Booleans */
 	
@@ -1519,7 +1528,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "vertex_group_goal", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vertgroup");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not impossible .. but not supported yet */
-	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get", "rna_SoftBodySettings_goal_vgroup_length", "rna_SoftBodySettings_goal_vgroup_set");
+	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get", "rna_SoftBodySettings_goal_vgroup_length",
+	                              "rna_SoftBodySettings_goal_vgroup_set");
 	RNA_def_property_ui_text(prop, "Goal Vertex Group", "Control point weight values");
 	
 	prop= RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
@@ -1641,7 +1651,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "error_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rklimit");
 	RNA_def_property_range(prop, 0.001f, 10.0f);
-	RNA_def_property_ui_text(prop, "Error Limit", "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+	RNA_def_property_ui_text(prop, "Error Limit",
+	                         "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "step_min", PROP_INT, PROP_NONE);
@@ -1665,7 +1676,8 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fuzzy", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fuzzyness");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collision handling faster but less stable");
+	RNA_def_property_ui_text(prop, "Fuzzy",
+	                         "Fuzziness while on collision, high values make collision handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);

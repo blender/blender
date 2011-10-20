@@ -1197,7 +1197,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Pose";
 	ot->idname= "POSE_OT_paste";
-	ot->description= "Pastes the stored pose on to the current pose";
+	ot->description= "Paste the stored pose on to the current pose";
 	
 	/* api callbacks */
 	ot->exec= pose_paste_exec;

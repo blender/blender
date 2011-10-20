@@ -409,7 +409,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "mistdist");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
-	RNA_def_property_ui_text(prop, "Depth", "The distance over which the mist effect fades in");
+	RNA_def_property_ui_text(prop, "Depth", "Distance over which the mist effect fades in");
 	RNA_def_property_update(prop, 0, "rna_World_draw_mist_update");
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
@@ -433,7 +433,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "WorldStarsSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
 	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "World Stars", "Stars setting for a World data-block");
+	RNA_def_struct_ui_text(srna, "World Stars", "Stars settings for a World data-block");
 
 	prop= RNA_def_property(srna, "use_stars", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);

@@ -1397,7 +1397,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Controller");
 	RNA_def_property_ui_text(prop, "Controllers",
-	                         "Game engine controllers to process events, connecting sensor to actuators");
+	                         "Game engine controllers to process events, connecting sensors to actuators");
 
 	prop= RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Actuator");
@@ -1426,7 +1426,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "body_type");
 	RNA_def_property_enum_items(prop, body_type_items);
 	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get", "rna_GameObjectSettings_physics_type_set", NULL);
-	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
+	RNA_def_property_ui_text(prop, "Physics Type", "Select the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_actor", PROP_BOOLEAN, PROP_NONE);
@@ -1488,20 +1488,20 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	/* lock rotation */
 	prop= RNA_def_property(srna, "lock_rotation_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock X Rotation Axis", "Disable simulation of angular  motion along the X axis");
+	RNA_def_property_ui_text(prop, "Lock X Rotation Axis", "Disable simulation of angular motion along the X axis");
 	
 	prop= RNA_def_property(srna, "lock_rotation_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Y Rotation Axis", "Disable simulation of angular  motion along the Y axis");
+	RNA_def_property_ui_text(prop, "Lock Y Rotation Axis", "Disable simulation of angular motion along the Y axis");
 	
 	prop= RNA_def_property(srna, "lock_rotation_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis");
+	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular motion along the Z axis");
 	
 	/* is this used anywhere ? */
 	prop= RNA_def_property(srna, "use_activity_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflag2", OB_NEVER_DO_ACTIVITY_CULLING);
-	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis");
+	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular motion along the Z axis");
 	
 
 	prop= RNA_def_property(srna, "use_material_physics_fh", PROP_BOOLEAN, PROP_NONE);
@@ -1526,7 +1526,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "anisotropicFriction");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Friction Coefficients",
-	                         "Relative friction coefficient in the in the X, Y and Z directions, "
+	                         "Relative friction coefficients in the in the X, Y and Z directions, "
 	                         "when anisotropic friction is enabled");
 
 	prop= RNA_def_property(srna, "use_collision_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -1537,7 +1537,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, collision_bounds_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_collision_bounds_itemf");
-	RNA_def_property_ui_text(prop, "Collision Bounds",  "Selects the collision type");
+	RNA_def_property_ui_text(prop, "Collision Bounds",  "Select the collision type");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "use_collision_compound", PROP_BOOLEAN, PROP_NONE);

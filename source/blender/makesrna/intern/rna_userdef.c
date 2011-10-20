@@ -813,25 +813,25 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 		prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR_GAMMA);
 		RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Nurb U-lines", "");
+		RNA_def_property_ui_text(prop, "NURBS U-lines", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 		prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR_GAMMA);
 		RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Nurb V-lines", "");
+		RNA_def_property_ui_text(prop, "NURBS V-lines", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 		prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR_GAMMA);
 		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
+		RNA_def_property_ui_text(prop, "NURBS active U-lines", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 		prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR_GAMMA);
 		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
 		RNA_def_property_array(prop, 3);
-		RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
+		RNA_def_property_ui_text(prop, "NURBS active V-lines", "");
 		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 		prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1984,19 +1984,19 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_dir);
-	RNA_def_property_ui_text(prop, "Direction", "The direction that the OpenGL light is shining");
+	RNA_def_property_ui_text(prop, "Direction", "Direction that the OpenGL light is shining");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Diffuse Color", "The diffuse color of the OpenGL light");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the OpenGL light");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Specular Color", "The color of the lights specular highlight");
+	RNA_def_property_ui_text(prop, "Specular Color", "Color of the light's specular highlight");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 }
 

@@ -1368,13 +1368,14 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ipo");
 	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
 	RNA_def_property_ui_text(prop, "Interpolation",
-	                         "Interpolation method to use for segment of the curve from this Keyframe until the next Keyframe");
+	                         "Interpolation method to use for segment of the F-Curve from "
+	                         "this Keyframe until the next Keyframe");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "hide");
 	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
-	RNA_def_property_ui_text(prop, "Type", "The type of keyframe (for visual purposes only");
+	RNA_def_property_ui_text(prop, "Type", "Type of keyframe (for visual purposes only)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Vector values */

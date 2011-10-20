@@ -1703,7 +1703,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "id");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "id", "ID of the item");
+	RNA_def_property_ui_text(prop, "ID", "ID of the item");
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
 	prop= RNA_def_property(srna, "any", PROP_BOOLEAN, PROP_NONE);

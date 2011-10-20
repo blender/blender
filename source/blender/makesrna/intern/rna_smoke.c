@@ -177,14 +177,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Density", "How much density effects smoke motion, higher value results in faster rising smoke");
+	RNA_def_property_ui_text(prop, "Density", "How much density affects smoke motion (higher value results in faster rising smoke)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Heat", "How much heat effects smoke motion, higher value results in faster rising smoke");
+	RNA_def_property_ui_text(prop, "Heat", "How much heat affects smoke motion (higher value results in faster rising smoke)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
@@ -245,7 +245,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "collision_extents", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "border_collisions");
 	RNA_def_property_enum_items(prop, smoke_domain_colli_items);
-	RNA_def_property_ui_text(prop, "Border Collisions", "Selects which domain border will be treated as collision object");
+	RNA_def_property_ui_text(prop, "Border Collisions", "Select which domain border will be treated as collision object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
@@ -313,7 +313,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "initial_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_INITVELOCITY);
-	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke inherits it's velocity from the emitter particle");
+	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke inherits its velocity from the emitter particle");
 
 	prop= RNA_def_property(srna, "velocity_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vel_multi");
