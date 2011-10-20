@@ -1291,8 +1291,20 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 
 	if(val && ascii) {
 		/* handle case like TAB (== 9) */
-		if((ascii > 31 && ascii < 254 && ascii != 127) || (ascii==13) || (ascii==10) || (ascii==8)) {
-			if(accentcode) {
+		if(     (ascii > 31 && ascii < 254 && ascii != 127) ||
+		        (ascii==13) ||
+		        (ascii==10) ||
+		        (ascii==8)  ||
+		        (evt->utf8_buf[0]))
+		{
+
+			if (evt->utf8_buf[0]) {
+				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
+				ascii= inserted_text[0];
+				insert_into_textbuf(obedit, ascii);
+				accentcode= 0;
+			}
+			else if(accentcode) {
 				if(cu->pos>0) {
 					inserted_text[0]= findaccent(ef->textbuf[cu->pos-1], ascii);
 					ef->textbuf[cu->pos-1]= inserted_text[0];

@@ -25,7 +25,7 @@
 #ifndef BLI_STRING_UTF8_H
 #define BLI_STRING_UTF8_H
 
-/** \file BLI_string.h
+/** \file BLI_string_utf8.h
  *  \ingroup bli
  */
 
