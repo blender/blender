@@ -212,7 +212,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 	MovieTrackingMarker *marker;
 	int width, height, ok= 0;
 
-	BKE_movieclip_acquire_size(cb->clip, cb->user, &width, &height);
+	BKE_movieclip_get_size(cb->clip, cb->user, &width, &height);
 
 	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
 
@@ -362,7 +362,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
 		uiLayout *col;
 
-		BKE_movieclip_acquire_size(clip, user, &width, &height);
+		BKE_movieclip_get_size(clip, user, &width, &height);
 
 		if(track->flag&TRACK_LOCKED) {
 			uiLayoutSetActive(layout, 0);

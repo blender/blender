@@ -66,7 +66,7 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 
 				ibuf->rect_float= cbuf->rect;
 
-				BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+				BKE_movieclip_get_size(clip, NULL, &width, &height);
 
 				if(!node->storage)
 					node->storage= BKE_tracking_distortion_create();

@@ -1501,7 +1501,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 					continue;
 
 				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
-				ibuf= BKE_movieclip_acquire_ibuf(clip, &bgpic->cuser);
+				ibuf= BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
 
 				/* working with ibuf from image and clip has got different workflow now.
 				   ibuf acquired from clip is referenced by cache system and should

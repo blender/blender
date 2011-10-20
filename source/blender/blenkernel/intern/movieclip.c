@@ -447,7 +447,7 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	else clip->source= MCLIP_SRC_SEQUENCE;
 
 	user.framenr= 1;
-	BKE_movieclip_acquire_size(clip, &user, &width, &height);
+	BKE_movieclip_get_size(clip, &user, &width, &height);
 	if(width && height) {
 		clip->tracking.camera.principal[0]= ((float)width)/2;
 		clip->tracking.camera.principal[1]= ((float)height)/2;
@@ -572,7 +572,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 	return cache->undistibuf;
 }
 
-ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
+ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
@@ -626,7 +626,7 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
-ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
+ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
@@ -673,12 +673,12 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 	return ibuf;
 }
 
-ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
+ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
 {
 	ImBuf *ibuf, *stableibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
 
-	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+	ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 	if(!ibuf)
 		return NULL;
@@ -745,7 +745,7 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 
 int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 {
-	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+	ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 	if(ibuf) {
 		IMB_freeImBuf(ibuf);
@@ -755,13 +755,13 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 	return 0;
 }
 
-void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
+void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
 	if(!user || user->framenr==clip->lastframe) {
 		*width= clip->lastsize[0];
 		*height= clip->lastsize[1];
 	} else {
-		ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+		ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 		if(ibuf && ibuf->x && ibuf->y) {
 			real_ibuf_size(clip, user, ibuf, width, height);
@@ -883,7 +883,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 			if(marker->flag&MARKER_DISABLED) {
 				scopes->track_disabled= 1;
 			} else {
-				ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+				ImBuf *ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 				scopes->track_disabled= 0;
 
@@ -895,7 +895,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						int width, height;
 						float aspy= 1.f/clip->tracking.camera.pixel_aspect;;
 
-						BKE_movieclip_acquire_size(clip, user, &width, &height);
+						BKE_movieclip_get_size(clip, user, &width, &height);
 
 						undist_marker.pos[0]*= width;
 						undist_marker.pos[1]*= height*aspy;
@@ -906,7 +906,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[1]/= height*aspy;
 					}
 
-					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, &undist_marker, 1, 1, scopes->track_pos, NULL);
+					tmpibuf= BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 1, 1, scopes->track_pos, NULL);
 
 					if(tmpibuf->rect_float)
 						IMB_rect_from_float(tmpibuf);
@@ -975,7 +975,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, struct MovieDistortion *di
 
 	user.framenr= cfra;
 
-	ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &user, 0);
+	ibuf= BKE_movieclip_get_ibuf_flag(clip, &user, 0);
 
 	if(ibuf) {
 		ImBuf *tmpibuf= ibuf;

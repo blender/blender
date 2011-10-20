@@ -50,8 +50,8 @@ void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
-struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);
-struct ImBuf *ED_space_clip_acquire_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
+struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
+struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 void ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);

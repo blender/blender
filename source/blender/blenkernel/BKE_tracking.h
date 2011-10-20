@@ -63,9 +63,9 @@ int BKE_tracking_test_join_tracks(struct MovieTrackingTrack *dst_track, struct M
 void BKE_tracking_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 void BKE_tracking_free(struct MovieTracking *tracking);
 
-struct ImBuf *BKE_tracking_acquire_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
+struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
 			struct MovieTrackingMarker *marker, int margin, int anchored, float pos[2], int origin[2]);
-struct ImBuf *BKE_tracking_acquire_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
+struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
 			struct MovieTrackingMarker *marker, int margin, int anchored, float pos[2], int origin[2]);
 
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,

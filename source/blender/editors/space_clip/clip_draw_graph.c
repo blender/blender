@@ -124,7 +124,7 @@ static void draw_clip_tracks_curves(SpaceClip *sc)
 								{0.f, 1.f, 0.f}};
 
 
-	BKE_movieclip_acquire_size(clip, &sc->user, &size[0], &size[1]);
+	BKE_movieclip_get_size(clip, &sc->user, &size[0], &size[1]);
 
 	if(!size[0] || !size[1])
 		return;

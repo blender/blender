@@ -537,7 +537,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	if(context->num_tracks) {
 		int width, height;
 
-		BKE_movieclip_acquire_size(clip, user, &width, &height);
+		BKE_movieclip_get_size(clip, user, &width, &height);
 
 		/* create tracking data */
 		context->track_context= MEM_callocN(sizeof(TrackContext)*context->num_tracks, "tracking track_context");
@@ -648,7 +648,7 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 	}
 }
 
-static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			float min[2], float max[2], int margin, int anchored, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
@@ -693,20 +693,20 @@ static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTr
 	return tmpibuf;
 }
 
-ImBuf *BKE_tracking_acquire_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int margin, int anchored, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, margin, anchored, pos, origin);
+	return get_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, margin, anchored, pos, origin);
 }
 
-ImBuf *BKE_tracking_acquire_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int margin, int anchored, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, anchored, pos, origin);
+	return get_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, anchored, pos, origin);
 }
 
 #ifdef WITH_LIBMV
-static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int *width_r, int *height_r, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
@@ -716,7 +716,7 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
+	tmpibuf= BKE_tracking_get_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
@@ -746,7 +746,7 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	return pixels;
 }
 
-static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int *width_r, int *height_r, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
@@ -756,7 +756,7 @@ static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *tr
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
+	tmpibuf= BKE_tracking_get_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
@@ -786,21 +786,21 @@ static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *tr
 	return pixels;
 }
 
-static ImBuf *acquire_frame_ibuf(MovieTrackingContext *context, int framenr)
+static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 {
 	ImBuf *ibuf;
 	int framenr_old= context->user.framenr;
 
 	context->user.framenr= framenr;
 
-	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
 
 	context->user.framenr= framenr_old;
 
 	return ibuf;
 }
 
-static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
+static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
 			MovieTrackingMarker *marker, MovieTrackingMarker **marker_keyed)
 {
 	int framenr= marker->framenr;
@@ -819,18 +819,18 @@ static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackin
 		else a--;
 	}
 
-	return acquire_frame_ibuf(context, framenr);
+	return get_frame_ibuf(context, framenr);
 }
 
-static ImBuf *acquire_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+static ImBuf *get_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int curfra, MovieTrackingMarker **marker_keyed)
 {
 	ImBuf *ibuf= NULL;
 
 	if(context->settings.adjframes == 0) {
-		ibuf= acquire_keyframed_ibuf(context, track, marker, marker_keyed);
+		ibuf= get_keyframed_ibuf(context, track, marker, marker_keyed);
 	} else {
-		ibuf= acquire_frame_ibuf(context, curfra);
+		ibuf= get_frame_ibuf(context, curfra);
 
 		/* use current marker as keyframed position */
 		*marker_keyed= marker;
@@ -839,7 +839,7 @@ static ImBuf *acquire_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTr
 	return ibuf;
 }
 
-static void acquire_warped(TrackContext *track_context, int x, int y, int width, unsigned char *image)
+static void get_warped(TrackContext *track_context, int x, int y, int width, unsigned char *image)
 {
 	int i, j;
 
@@ -960,7 +960,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
-	ibuf_new= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
+	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
 	if(!ibuf_new)
 		return 0;
 
@@ -999,17 +999,17 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				if(need_readjust) {
 					/* calculate patch for keyframed position */
-					ibuf= acquire_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
+					ibuf= get_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
 
 					if(track_context->patch)
 						MEM_freeN(track_context->patch);
 
-					track_context->patch= acquire_search_floatbuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
+					track_context->patch= get_search_floatbuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
 					IMB_freeImBuf(ibuf);
 				}
 
-				patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
+				patch_new= get_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
 				x1= pos[0];
 				y1= pos[1];
@@ -1034,9 +1034,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					unsigned char *image;
 
 					/* calculate pattern for keyframed position */
-					ibuf= acquire_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
+					ibuf= get_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
 
-					image= acquire_search_bytebuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
+					image= get_search_bytebuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
 					memset(warp, 0, sizeof(warp));
 					warp[0][0]= 1;
@@ -1056,18 +1056,18 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					IMB_freeImBuf(ibuf);
 				}
 
-				image_new= acquire_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
+				image_new= get_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
 				if(track_context->warped==NULL) {
 					unsigned char *image_old;
 
-					ibuf= acquire_frame_ibuf(context, curfra);
+					ibuf= get_frame_ibuf(context, curfra);
 
 					if(track_context->warped==NULL)
 						track_context->warped= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking warped");
 
-					image_old= acquire_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
-					acquire_warped(track_context, pos[0], pos[1], width, image_old);
+					image_old= get_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
+					get_warped(track_context, pos[0], pos[1], width, image_old);
 					IMB_freeImBuf(ibuf);
 					MEM_freeN(image_old);
 				}
@@ -1086,7 +1086,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				tracked= corr>=context->settings.corr;
 
 				if(tracked)
-					acquire_warped(track_context, x2, y2, width, image_new);
+					get_warped(track_context, x2, y2, width, image_new);
 
 				MEM_freeN(image_new);
 			}
@@ -1498,7 +1498,7 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 }
 
 #ifdef WITH_LIBMV
-static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
+static unsigned char *get_ucharbuf(ImBuf *ibuf)
 {
 	int x, y;
 	unsigned char *pixels, *fp;
@@ -1602,7 +1602,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
-	unsigned char *pixels= acquire_ucharbuf(ibuf);
+	unsigned char *pixels= get_ucharbuf(ibuf);
 
 	features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
 
@@ -1619,7 +1619,7 @@ void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
-	unsigned char *pixels= acquire_ucharbuf(ibuf);
+	unsigned char *pixels= get_ucharbuf(ibuf);
 
 	features= libmv_detectFeaturesMORAVEC(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
 

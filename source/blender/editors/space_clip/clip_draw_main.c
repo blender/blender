@@ -1203,7 +1203,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	if(sc->flag&SC_SHOW_STABLE) {
 		float smat[4][4], ismat[4][4];
 
-		ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
+		ibuf= ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
 		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
 
 		unit_m4(smat);
@@ -1213,7 +1213,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
 	} else {
-		ibuf= ED_space_clip_acquire_buffer(sc);
+		ibuf= ED_space_clip_get_buffer(sc);
 
 		zero_v2(sc->loc);
 		sc->scale= 1.f;
@@ -1246,7 +1246,7 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 		/* if manual calibration is used then grase pencil data is already
 		    drawed in draw_distortion */
 		if((sc->flag&SC_MANUAL_CALIBRATION)==0 || sc->mode!=SC_MODE_DISTORTION) {
-			ibuf= ED_space_clip_acquire_buffer(sc);
+			ibuf= ED_space_clip_get_buffer(sc);
 
 			if(ibuf) {
 				glPushMatrix();

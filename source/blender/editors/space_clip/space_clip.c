@@ -668,7 +668,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		ImBuf *tmpibuf= NULL;
 
 		if(clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, NULL, NULL, NULL);
+			tmpibuf= ED_space_clip_get_stable_buffer(sc, NULL, NULL, NULL);
 		}
 
 		ED_clip_view_selection(sc, ar, 0);

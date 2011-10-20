@@ -1506,7 +1506,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	}
 
 	/* could fail if footage uses images with different sizes */
-	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+	BKE_movieclip_get_size(clip, NULL, &width, &height);
 
 	error= BKE_tracking_solve_reconstruction(tracking, width, height);
 
@@ -2096,7 +2096,7 @@ static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieClip *clip= ED_space_clip(sc);
 	int width, height;
 
-	BKE_movieclip_acquire_size(clip, &sc->user, &width, &height);
+	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
 	if(width==0 || height==0)
 		return OPERATOR_CANCELLED;
@@ -2231,7 +2231,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	ImBuf *ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &sc->user, 0);
+	ImBuf *ibuf= BKE_movieclip_get_ibuf_flag(clip, &sc->user, 0);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
 	int detector= RNA_enum_get(op->ptr, "detector");
 	int use_grease_pencil= RNA_boolean_get(op->ptr, "use_grease_pencil");

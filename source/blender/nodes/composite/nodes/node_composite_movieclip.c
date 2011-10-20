@@ -53,7 +53,7 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 	float *rect;
 	int alloc= FALSE;
 
-	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+	ibuf= BKE_movieclip_get_ibuf(clip, user);
 
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		IMB_freeImBuf(ibuf);

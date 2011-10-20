@@ -81,12 +81,12 @@ MovieClip *ED_space_clip(SpaceClip *sc)
 	return sc->clip;
 }
 
-ImBuf *ED_space_clip_acquire_buffer(SpaceClip *sc)
+ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 {
 	if(sc->clip) {
 		ImBuf *ibuf;
 
-		ibuf= BKE_movieclip_acquire_ibuf(sc->clip, &sc->user);
+		ibuf= BKE_movieclip_get_ibuf(sc->clip, &sc->user);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -98,12 +98,12 @@ ImBuf *ED_space_clip_acquire_buffer(SpaceClip *sc)
 	return NULL;
 }
 
-ImBuf *ED_space_clip_acquire_stable_buffer(SpaceClip *sc, float loc[2], float *scale, float *angle)
+ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale, float *angle)
 {
 	if(sc->clip) {
 		ImBuf *ibuf;
 
-		ibuf= BKE_movieclip_acquire_stable_ibuf(sc->clip, &sc->user, loc, scale, angle);
+		ibuf= BKE_movieclip_get_stable_ibuf(sc->clip, &sc->user, loc, scale, angle);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -121,7 +121,7 @@ void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 		*width= 0;
 		*height= 0;
 	} else
-		BKE_movieclip_acquire_size(sc->clip, &sc->user, width, height);
+		BKE_movieclip_get_size(sc->clip, &sc->user, width, height);
 }
 
 void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)

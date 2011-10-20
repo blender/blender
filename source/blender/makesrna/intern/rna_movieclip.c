@@ -73,7 +73,7 @@ static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	ImBuf *ibuf;
 
-	ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
+	ibuf= BKE_movieclip_get_ibuf(clip, NULL);
 	if (ibuf) {
 		values[0]= ibuf->ppm[0];
 		values[1]= ibuf->ppm[1];
@@ -157,7 +157,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_MovieClip_reload_update");
 }
 
-static void rna_def_moviecliUuser(BlenderRNA *brna)
+static void rna_def_moviecliUser(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -273,7 +273,7 @@ void RNA_def_movieclip(BlenderRNA *brna)
 {
 	rna_def_movieclip(brna);
 	rna_def_movieclip_proxy(brna);
-	rna_def_moviecliUuser(brna);
+	rna_def_moviecliUser(brna);
 	rna_def_movieClipScopes(brna);
 }
 
