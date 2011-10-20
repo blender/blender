@@ -292,7 +292,7 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Curve *cu= (Curve*)ptr->id.data;
 

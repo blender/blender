@@ -133,7 +133,7 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Texture_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
@@ -162,7 +162,7 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 
 
 /* Used for Texture Properties, used (also) for/in Nodes */
-static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
@@ -177,7 +177,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	tex_set_type(tex, value);
 }
 
-void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -388,12 +388,12 @@ static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
 		pd->psys= BLI_findindex(&ob->particlesystem, value.data) + 1;
 }
 
-static char *rna_PointDensity_path(PointerRNA *ptr)
+static char *rna_PointDensity_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("point_density");
 }
 
-static char *rna_VoxelData_path(PointerRNA *ptr)
+static char *rna_VoxelData_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("voxel_data");
 }

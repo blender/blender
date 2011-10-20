@@ -72,7 +72,7 @@ static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static void rna_userdef_dpi_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_dpi_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	U.widget_unit = (U.dpi * 20 + 36)/72;
 	WM_main_add_notifier(NC_WINDOW, NULL);		/* full redraw */

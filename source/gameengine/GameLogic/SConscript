@@ -10,9 +10,8 @@ incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 defs = []
 
 if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
     incs += ' ' + env['BF_SDL_INC']
-else:
-    defs.append('DISABLE_SDL')
 
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']

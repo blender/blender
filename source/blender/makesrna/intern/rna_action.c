@@ -132,7 +132,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 }
 
-static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, const char name[])
+static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= 1;
@@ -550,7 +550,6 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "new", "rna_Action_pose_markers_new");
 	RNA_def_function_ui_description(func, "Add a pose marker to the action");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
