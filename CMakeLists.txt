@@ -525,7 +525,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		set(OPENIMAGEIO_ROOT_DIR ${OPENIMAGEIO})
-		find_package(OpenImageIO)
+		find_package(OpenImageIO REQUIRED)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
