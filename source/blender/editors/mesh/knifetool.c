@@ -858,8 +858,21 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 						copy_v3_v3(hit.realhit, p);
 						
 						if (kcd->snap_midpoints) {
-							interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, 0.5f);
-							interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, 0.5f);
+							float perc = hit.perc;
+
+							/* select the closest from the edge endpoints or the midpoint */
+							if (perc < 0.25f) {
+								perc = 0.0f;
+							}
+							else if (perc < 0.75f) {
+								perc = 0.5f;
+							}
+							else {
+								perc = 1.0f;
+							}
+							
+							interp_v3_v3v3(hit.hit, kfe->v1->co, kfe->v2->co, perc);
+							interp_v3_v3v3(hit.cagehit, kfe->v1->cageco, kfe->v2->cageco, perc);
 						} else {
 							copy_v3_v3(hit.hit, p);
 						}
