@@ -1289,7 +1289,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	else if(event==BACKSPACEKEY)
 		ascii= 0;
 
-	if(val && ascii) {
+	if(val && (ascii || evt->utf8_buf[0])) {
 		/* handle case like TAB (== 9) */
 		if(     (ascii > 31 && ascii < 254 && ascii != 127) ||
 		        (ascii==13) ||
