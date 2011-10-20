@@ -38,6 +38,7 @@
 
 #include "BLI_winstuff.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
