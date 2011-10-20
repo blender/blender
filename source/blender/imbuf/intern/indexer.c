@@ -29,10 +29,11 @@
 #include "AVI_avi.h"
 #include "imbuf.h"
 #include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
-#include "BLI_string.h"
+
 #include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"

@@ -52,12 +52,12 @@
 #include "BLI_path_util.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 
 #include "BKE_context.h"
 #include "BKE_text.h"
-#include "BKE_font.h" /* only for utf8towchar */
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
 
@@ -194,7 +194,7 @@ void BPY_python_start(int argc, const char **argv)
 
 	/* not essential but nice to set our name */
 	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
-	utf8towchar(bprogname_wchar, bprogname);
+	BLI_strncpy_wchar_from_utf8(bprogname_wchar, bprogname, sizeof(bprogname_wchar) / sizeof(wchar_t));
 	Py_SetProgramName(bprogname_wchar);
 
 	/* must run before python initializes */
