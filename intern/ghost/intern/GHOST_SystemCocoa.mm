@@ -1655,8 +1655,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 	
+	char utf8_buf[6]= {'\0'}; /* TODO, unicode input */
 	switch ([event type]) {
-		char utf8_buf[6]= {'\0'}; /* TODO, unicode input */
 
 		case NSKeyDown:
 		case NSKeyUp:
