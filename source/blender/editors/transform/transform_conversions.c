@@ -2947,7 +2947,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 	TransData2D *td2d = *td2dv;
 	int i;
 
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return td;
 
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
