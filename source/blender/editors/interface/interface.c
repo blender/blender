@@ -2559,6 +2559,24 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	if(block->curlayout)
 		ui_layout_add_but(block->curlayout, but);
 
+#ifdef WITH_PYTHON_UI_INFO
+	{
+		extern void PyC_FileAndNum_Safe(const char **filename, int *lineno);
+
+		const char *fn;
+		int lineno= -1;
+		PyC_FileAndNum_Safe(&fn, &lineno);
+		if (lineno != -1) {
+			BLI_strncpy(but->py_dbg_fn, fn, sizeof(but->py_dbg_fn));
+			but->py_dbg_ln= lineno;
+		}
+		else {
+			but->py_dbg_fn[0]= '\0';
+			but->py_dbg_ln= -1;
+		}
+	}
+#endif /* WITH_PYTHON_UI_INFO */
+
 	return but;
 }
 

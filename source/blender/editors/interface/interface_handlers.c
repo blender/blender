@@ -4438,6 +4438,17 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 	}
 
+#ifdef WITH_PYTHON_UI_INFO
+	if (but->py_dbg_ln != -1) {
+		PointerRNA ptr_props;
+
+		WM_operator_properties_create(&ptr_props, "WM_OT_text_edit");
+		RNA_string_set(&ptr_props, "filepath", but->py_dbg_fn);
+		RNA_int_set(&ptr_props, "line", but->py_dbg_ln);
+		uiItemFullO(layout, "WM_OT_text_edit", "Edit Source", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+	}
+#endif /* WITH_PYTHON_UI_INFO */
+
 	uiPupMenuEnd(C, pup);
 
 	return 1;
