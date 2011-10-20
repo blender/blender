@@ -44,6 +44,7 @@
 #include "../generic/bpy_internal_import.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"

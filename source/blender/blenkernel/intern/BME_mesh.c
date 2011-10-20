@@ -37,7 +37,7 @@
  */
 
 
-
+#include "BLI_listbase.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_bmesh.h"
 #include "bmesh_private.h"

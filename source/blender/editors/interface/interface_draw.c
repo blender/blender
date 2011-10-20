@@ -601,13 +601,13 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			wstr[0] = cs;
 			if(strcmp(G.selfont->name, FO_BUILTIN_NAME))
 			{
-				wcs2utf8s((char *)ustr, (wchar_t *)wstr);
+				BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
 			}
 			else
 			{
 				if(G.ui_international == TRUE)
 				{
-					wcs2utf8s((char *)ustr, (wchar_t *)wstr);
+					BLI_strncpy_wchar_as_utf8((char *)ustr, (wchar_t *)wstr, sizeof(ustr));
 				}
 				else
 				{

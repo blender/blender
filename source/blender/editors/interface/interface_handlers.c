@@ -1941,7 +1941,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				break;
 		}
 
-		if(event->ascii && (retval == WM_UI_HANDLER_CONTINUE)) {
+		if((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)) {
 			char ascii = event->ascii;
 
 			/* exception that's useful for number buttons, some keyboard
@@ -1950,7 +1950,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				if(event->type == PADPERIOD && ascii == ',')
 					ascii = '.';
 
-			if(event->utf8_buf[0] || 1) {
+			if(event->utf8_buf[0]) {
 				/* keep this printf until utf8 is well tested */
 				printf("%s: utf8 char '%s'\n", __func__, event->utf8_buf);
 				// strcpy(event->utf8_buf, "12345");

@@ -52,6 +52,9 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"

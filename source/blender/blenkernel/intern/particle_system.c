@@ -70,7 +70,6 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"

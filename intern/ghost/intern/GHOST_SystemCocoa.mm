@@ -1654,8 +1654,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
+
+	/* unicode input - not entirely supported yet
+	 * but we are getting the right byte, Blender is not drawing it though 
+	 * also some languages may need special treatment:
+		  - Japanese: romanji is used as input, and every 2 letters OSX converts the text
+		              to Hiragana/Katakana.
+		  - Korean: one add one letter at a time, and then the OSX join them in the equivalent
+		            combined letter.
+	 */
+	char utf8_buf[6]= {'\0'};
 	
-	char utf8_buf[6]= {'\0'}; /* TODO, unicode input */
 	switch ([event type]) {
 
 		case NSKeyDown:
@@ -1669,7 +1678,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				keyCode = convertKey([event keyCode],0,
 									 [event type] == NSKeyDown?kUCKeyActionDown:kUCKeyActionUp);
 
-				
+			/* ascii */
 			characters = [event characters];
 			if ([characters length]>0) { //Check for dead keys
 				//Convert characters to iso latin 1 encoding
@@ -1681,16 +1690,32 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			}
 			else
 				ascii= 0;
+
+			/* unicode */
+			if ([characters length]>0) {
+				convertedCharacters = [characters dataUsingEncoding:NSUTF8StringEncoding];
+				if ([convertedCharacters length]>0) {
+					utf8_buf[0] = ((char*)[convertedCharacters bytes])[0];
+					utf8_buf[1] = ((char*)[convertedCharacters bytes])[1];
+					utf8_buf[2] = ((char*)[convertedCharacters bytes])[2];
+					utf8_buf[3] = ((char*)[convertedCharacters bytes])[3];
+					utf8_buf[4] = ((char*)[convertedCharacters bytes])[4];
+					utf8_buf[5] = ((char*)[convertedCharacters bytes])[5];
+				}
+				else {
+					utf8_buf[0] = '\0';
+				}
+			}
 			
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
 
 			if ([event type] == NSKeyDown) {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
-				//printf("\nKey down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
+				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			} else {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii, utf8_buf) );
-				//printf("\nKey up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
+				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			break;
 	

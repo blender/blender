@@ -483,7 +483,7 @@ void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
 	cu->strinfo = MEM_callocN( (len+4) *sizeof(CharInfo), "strinfo"); /* don't know why this is +4, just duplicating load_editText() */
 
-	//wcs2utf8s(cu->str, value); // value is not wchar_t
+	//BLI_strncpy_wchar_as_utf8(cu->str, value, len+1); // value is not wchar_t
 	BLI_strncpy(cu->str, value, len+1);
 }
 
