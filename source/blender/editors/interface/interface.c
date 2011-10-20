@@ -1747,7 +1747,9 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	}
 	else if(but->type == TEX) {
 		/* string */
-		BLI_strncpy(but->poin, str, but->hardmax);
+		if(ui_is_but_utf8(but)) BLI_strncpy_utf8(but->poin, str, but->hardmax);
+		else                    BLI_strncpy(but->poin, str, but->hardmax);
+
 		return 1;
 	}
 	else if(but->type == SEARCH_MENU) {
