@@ -31,6 +31,8 @@
  *  \ingroup bke
  */
 
+#include <stdlib.h> /* for qsort */
+
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 

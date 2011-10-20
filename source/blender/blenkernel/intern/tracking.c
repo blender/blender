@@ -46,6 +46,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_path_util.h"
 
 #include "BKE_global.h"
 #include "BKE_tracking.h"
