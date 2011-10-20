@@ -82,7 +82,7 @@ static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 	wmOperator *op= WM_operator_last_redo(C);
 
 	if(op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
-	else BLI_strncpy(pa->drawname, N_("Operator"), sizeof(pa->drawname));
+	else BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
 }
 
 static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
