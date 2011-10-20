@@ -342,55 +342,27 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
-		int xstride = sizeof(float) * 4;
-		int ystride = xstride*width;
-		float *init_to = new float [4 * width*height * sizeof(float)];
-		float *from, *to = init_to;
+		int xstride = sizeof(float) * channels;
+		int ystride = - xstride*width;
+		float *rect[4] = {NULL, NULL, NULL, NULL};
 
-		frameBuffer.insert ("R", Slice (FLOAT,  (char *)init_to, xstride, ystride));
-		frameBuffer.insert ("G", Slice (FLOAT,  (char *)(init_to + 1), xstride, ystride));
-		frameBuffer.insert ("B", Slice (FLOAT,  (char *)(init_to + 2), xstride, ystride));
+		/* last scanline, stride negative */
+		rect[0]= ibuf->rect_float + channels*(height-1)*width;
+		rect[1]= rect[0]+1;
+		rect[2]= rect[0]+2;
+		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isnt written? */
+
+		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
+		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
+		frameBuffer.insert ("B", Slice (FLOAT,  (char *)rect[2], xstride, ystride));
 		if (ibuf->depth==32 && channels >= 4)
-			frameBuffer.insert ("A", Slice (FLOAT,  (char *)(init_to + 3), xstride, ystride));
+			frameBuffer.insert ("A", Slice (FLOAT,  (char *)rect[3], xstride, ystride));
 		if (write_zbuf)
 			frameBuffer.insert ("Z", Slice (FLOAT, (char *) (ibuf->zbuf_float + (height-1)*width),
 											sizeof(float), sizeof(float) * -width));
-
-		if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-			for (int i = ibuf->y-1; i >= 0; i--)
-			{
-				from= ibuf->rect_float + channels*i*width;
-
-				for (int j = ibuf->x; j > 0; j--)
-				{
-					to[0] = from[0];
-					to[1] = from[1];
-					to[2] = from[2];
-					to[3] = (channels >= 4)? from[3]: 1.0f;
-					to+= 4; from += 4;
-				}
-			}
-		}
-		else {
-			for (int i = ibuf->y-1; i >= 0; i--)
-			{
-				from= ibuf->rect_float + channels*i*width;
-
-				for (int j = ibuf->x; j > 0; j--)
-				{
-					to[0] = srgb_to_linearrgb(from[0]);
-					to[1] = srgb_to_linearrgb(from[1]);
-					to[2] = srgb_to_linearrgb(from[2]);
-					to[3] = (channels >= 4)? from[3]: 1.0f;
-					to+= 4; from += 4;
-				}
-			}
-		}
-
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  
 		delete file;
-		delete [] init_to;
 	}
 	catch (const std::exception &exc)
 	{
