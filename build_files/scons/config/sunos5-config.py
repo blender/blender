@@ -132,8 +132,9 @@ CXX = 'g++'
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
 CPPFLAGS = ['-DSUN_OGL_NO_VERTEX_MACROS']
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-REL_CFLAGS = ['-DNDEBUG', '-O2']
+CXXFLAGS = []
+REL_CFLAGS = []
+REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##

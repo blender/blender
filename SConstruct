@@ -30,7 +30,6 @@
 # Then read all SConscripts and build
 #
 # TODO: fix /FORCE:MULTIPLE on windows to get proper debug builds.
-# TODO: cleanup CCFLAGS / CPPFLAGS use, often both are set when we only need one.
 
 import platform as pltfrm
 
@@ -210,7 +209,7 @@ opts.Update(env)
 
 if sys.platform=='win32':
     if bitness==64:
-        env.Append(CFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
+        env.Append(CPPFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
 
 if not env['BF_FANCY']:
     B.bc.disable()
@@ -283,22 +282,17 @@ if env['OURPLATFORM']=='darwin':
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
                 env['CCFLAGS'].append('/openmp')
-                env['CPPFLAGS'].append('/openmp')
         else:
             if env['CC'].endswith('icc'): # to be able to handle CC=/opt/bla/icc case
                 env.Append(LINKFLAGS=['-openmp', '-static-intel'])
                 env['CCFLAGS'].append('-openmp')
-                env['CPPFLAGS'].append('-openmp')
             else:
                 env.Append(CCFLAGS=['-fopenmp']) 
-                env.Append(CPPFLAGS=['-fopenmp'])
 
 if env['WITH_GHOST_COCOA'] == True:
-    env.Append(CFLAGS=['-DGHOST_COCOA']) 
-    env.Append(CPPFLAGS=['-DGHOST_COCOA'])
+    env.Append(CPPFLAGS=['-DGHOST_COCOA']) 
     
 if env['USE_QTKIT'] == True:
-    env.Append(CFLAGS=['-DUSE_QTKIT'])
     env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 
 #check for additional debug libnames
@@ -330,20 +324,15 @@ if 'blendernogame' in B.targets:
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
     env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
-    env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 
 if btools.ENDIAN == "big":
     env['CPPFLAGS'].append('-D__BIG_ENDIAN__')
-    env['CCFLAGS'].append('-D__BIG_ENDIAN__')
 else:
     env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
-    env['CCFLAGS'].append('-D__LITTLE_ENDIAN__')	
-
 
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
-env['CCFLAGS'].append('-DWITH_AUDASPACE')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']

@@ -116,8 +116,9 @@ CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
 CPPFLAGS = []
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-REL_CFLAGS = ['-DNDEBUG', '-O2']
+CXXFLAGS = []
+REL_CFLAGS = []
+REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##

@@ -156,15 +156,17 @@ BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/libGL.a ${BF_OPENGL}/libGLU.a ${BF_OPENGL}/
 CC = 'gcc'
 CXX = 'g++'
 
-CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
+CCFLAGS = ['-pipe', '-funsigned-char', '-fno-strict-aliasing']
 
-CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
-CXXFLAGS = ['-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
-REL_CFLAGS = ['-DNDEBUG', '-O2' ]
+CPPFLAGS = ['-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS']
+CXXFLAGS = []
+
+REL_CFLAGS = []
+REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2' ]
-C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
-CC_WARN = [ '-Wall' ]
+C_WARN = ['-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement']
+CC_WARN = ['-Wall']
 
 
 
