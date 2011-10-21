@@ -364,12 +364,16 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
             if prop == "_RNA_UI":
                 continue
 
-            # for now, just add all of 'em
+            # only do props which are marked as animatable, or those which are "numeric" types...
             prop_rna = type(bone).bl_rna.properties.get(prop, None)
             if prop_rna is None:
                 prop_path = '["%s"]' % prop
-                if bone.path_resolve(prop_path, False).rna_type in prop_type_compat:
-                    ksi.addProp(ks, bone, prop_path)
+
+                # XXX: the check below from r.40868 causes crashes [#28967] on ID-prop groups,
+                # so let's just include everything (doing nothing breaks keying of Sintel face rig)
+                #if bone.path_resolve(prop_path, False).rna_type in prop_type_compat:
+                #    ksi.addProp(ks, bone, prop_path)
+                ksi.addProp(ks, bone, prop_path)
             elif prop_rna.is_animatable:
                 ksi.addProp(ks, bone, prop)
 
