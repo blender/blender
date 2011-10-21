@@ -141,7 +141,8 @@ static int print_version(int argc, const char **argv, void *data);
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
-char bprogname[FILE_MAX]; /* from blenpluginapi:pluginapi.c */
+char bprogname[FILE_MAX];
+char bprogdir[FILE_MAX];
 char btempdir[FILE_MAX];
 
 #define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
@@ -1157,6 +1158,7 @@ int main(int argc, const char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
+	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
 
 	BLI_threadapi_init();
 

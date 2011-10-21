@@ -88,6 +88,7 @@
 #define UNIQUE_NAME_MAX 128
 
 extern char bprogname[];
+extern char bprogdir[];
 
 static int add_win32_extension(char *name);
 static char *blender_version_decimal(const int ver);
@@ -875,7 +876,6 @@ static int test_env_path(char *path, const char *envvar)
 
 static int get_path_local(char *targetpath, const char *folder_name, const char *subfolder_name, const int ver)
 {
-	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
 	
 #ifdef PATH_DEBUG2
@@ -892,10 +892,7 @@ static int get_path_local(char *targetpath, const char *folder_name, const char 
 	else {
 		relfolder[0]= '\0';
 	}
-	
-	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
-	
+
 	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
 	if(test_path(targetpath, bprogdir, blender_version_decimal(ver), relfolder))
 		return 1;
@@ -963,10 +960,6 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	 * these are only used when running blender from source */
 	char cwd[FILE_MAX];
 	char relfolder[FILE_MAX];
-	char bprogdir[FILE_MAX];
-
-	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
 
 	if(folder_name) {
 		if (subfolder_name) {
@@ -1430,6 +1423,16 @@ void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t d
 	}
 }
 
+void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen)
+{
+	BLI_split_dirfile(string, dir, NULL, dirlen, 0);
+}
+
+void BLI_split_file_part(const char *string, char *file, const size_t filelen)
+{
+	BLI_split_dirfile(string, NULL, file, 0, filelen);
+}
+
 /* simple appending of filename to dir, does not check for valid path! */
 void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const char *file)
 {
@@ -1516,7 +1519,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	if (rel)
 		rel[0]= 0;
 
-	BLI_split_dirfile(base_dir, blend_dir, NULL, sizeof(blend_dir), 0);
+	BLI_split_dir_part(base_dir, blend_dir, sizeof(blend_dir));
 
 	if (src_dir[0]=='\0')
 		return 0;

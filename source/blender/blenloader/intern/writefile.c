@@ -2678,8 +2678,8 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	if(write_flags & G_FILE_RELATIVE_REMAP) {
 		char dir1[FILE_MAXDIR+FILE_MAXFILE];
 		char dir2[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_split_dirfile(filepath, dir1, NULL, sizeof(dir1), 0);
-		BLI_split_dirfile(mainvar->name, dir2, NULL, sizeof(dir2), 0);
+		BLI_split_dir_part(filepath, dir1, sizeof(dir1));
+		BLI_split_dir_part(mainvar->name, dir2, sizeof(dir2));
 
 		/* just incase there is some subtle difference */
 		BLI_cleanup_dir(mainvar->name, dir1);

@@ -97,7 +97,7 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 			char src[FILE_MAX];
 			char dir[FILE_MAX];
 			
-			BLI_split_dirfile(this->export_settings->filepath, dir, NULL, sizeof(dir), 0);
+			BLI_split_dir_part(this->export_settings->filepath, dir, sizeof(dir));
 
 			BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.main->name, image->name, dir);
 
