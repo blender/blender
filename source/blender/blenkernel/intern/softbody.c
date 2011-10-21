@@ -208,7 +208,7 @@ static float sb_time_scale(Object *ob)
 	}
 	return (1.0f);
 	/*
-	this would be frames/sec independant timing assuming 25 fps is default
+	this would be frames/sec independent timing assuming 25 fps is default
 	but does not work very well with NLA
 		return (25.0f/scene->r.frs_sec)
 	*/

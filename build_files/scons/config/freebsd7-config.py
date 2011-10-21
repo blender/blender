@@ -172,11 +172,12 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE','-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
 
 CPPFLAGS = []
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE','-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
+CXXFLAGS = []
 if WITH_BF_FFMPEG:
   # libavutil needs UINT64_C()
   CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
-REL_CFLAGS = ['-DNDEBUG', '-O2']
+REL_CFLAGS = []
+REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']
 ##BF_DEPEND = True
 ##

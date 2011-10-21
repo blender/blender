@@ -1534,7 +1534,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				param= _PyUnicode_AsString(value);
 #ifdef WITH_INTERNATIONAL
 				if (subtype == PROP_TRANSLATE) {
-					param= UI_translate_do_iface(param);
+					param= IFACE_(param);
 				}
 #endif // WITH_INTERNATIONAL
 

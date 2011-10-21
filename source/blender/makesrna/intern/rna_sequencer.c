@@ -540,7 +540,7 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 {
 	StripElem *elem= (StripElem*)(ptr->data);
-	BLI_split_dirfile(value, NULL, elem->name, 0, sizeof(elem->name));
+	BLI_split_file_part(value, elem->name, sizeof(elem->name));
 }*/
 
 static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)

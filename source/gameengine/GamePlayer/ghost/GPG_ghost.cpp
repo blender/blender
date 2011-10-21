@@ -117,6 +117,7 @@ const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
 
 char bprogname[FILE_MAX];
+char bprogdir[FILE_MAX];
 
 static void mem_error_cb(const char *errorStr)
 {
@@ -380,6 +381,7 @@ int main(int argc, char** argv)
 #endif /* __alpha__ */
 #endif /* __linux__ */
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
+	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
 #ifdef __APPLE__
 	// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
 	/*

@@ -103,10 +103,13 @@ void BLF_lang_init(void)
 	
 	BLI_strncpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT, sizeof(global_encoding_name));
 	
-	if (messagepath)
+	if (messagepath) {
 		BLI_strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
-	else
+	}
+	else {
+		printf("%s: 'locale' data path for translations not found, continuing\n", __func__);
 		global_messagepath[0]= '\0';
+	}
 	
 }
 

@@ -818,5 +818,9 @@ int UI_translate_tooltips(void);
 const char *UI_translate_do_iface(const char *msgid);
 const char *UI_translate_do_tooltip(const char *msgid);
 
+/* Those macros should be used everywhere in UI code. */
+#define IFACE_(msgid) UI_translate_do_iface(msgid)
+#define TIP_(msgid) UI_translate_do_tooltip(msgid)
+
 #endif /*  UI_INTERFACE_H */
 

@@ -1389,7 +1389,7 @@ static const char *editortype_pup(void)
 		   "|Python Console %x18"
 		   );
 
-	return UI_translate_do_iface(types);
+	return IFACE_(types);
 }
 
 static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
@@ -1411,7 +1411,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, UI_UNIT_X+10, UI_UNIT_Y, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   UI_translate_do_tooltip(N_("Displays current editor type. Click for menu of available types")));
+						   TIP_("Displays current editor type. Click for menu of available types"));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	
