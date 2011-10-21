@@ -289,8 +289,9 @@ static void wm_init_userdef(bContext *C)
 		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
 		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
 	}
+
 	/* update tempdir from user preferences */
-	BLI_where_is_temp(btempdir, FILE_MAX, 1);
+	BLI_init_temporary_dir(U.tempdir);
 }
 
 
@@ -437,17 +438,17 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
 	else if(retval == BKE_READ_EXOTIC_FAIL_OPEN) {
-		BKE_reportf(reports, RPT_ERROR, UI_translate_do_iface(N_("Can't read file: \"%s\", %s.")), filepath,
-				errno ? strerror(errno) : UI_translate_do_iface(N_("Unable to open the file")));
+		BKE_reportf(reports, RPT_ERROR, IFACE_("Can't read file: \"%s\", %s."), filepath,
+				errno ? strerror(errno) : IFACE_("Unable to open the file"));
 	}
 	else if(retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
-		BKE_reportf(reports, RPT_ERROR, UI_translate_do_iface(N_("File format is not supported in file: \"%s\".")), filepath);
+		BKE_reportf(reports, RPT_ERROR, IFACE_("File format is not supported in file: \"%s\"."), filepath);
 	}
 	else if(retval == BKE_READ_EXOTIC_FAIL_PATH) {
-		BKE_reportf(reports, RPT_ERROR, UI_translate_do_iface(N_("File path invalid: \"%s\".")), filepath);
+		BKE_reportf(reports, RPT_ERROR, IFACE_("File path invalid: \"%s\"."), filepath);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, UI_translate_do_iface(N_("Unknown error loading: \"%s\".")), filepath);
+		BKE_reportf(reports, RPT_ERROR, IFACE_("Unknown error loading: \"%s\"."), filepath);
 		BLI_assert(!"invalid 'retval'");
 	}
 
@@ -856,14 +857,14 @@ void wm_autosave_location(char *filepath)
 	 * BLI_make_file_string will create string that has it most likely on C:\
 	 * through get_default_root().
 	 * If there is no C:\tmp autosave fails. */
-	if (!BLI_exists(btempdir)) {
+	if (!BLI_exists(BLI_temporary_dir())) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filepath, savedir, pidstr);
 		return;
 	}
 #endif
 
-	BLI_make_file_string("/", filepath, btempdir, pidstr);
+	BLI_make_file_string("/", filepath, BLI_temporary_dir(), pidstr);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
@@ -921,7 +922,7 @@ void wm_autosave_delete(void)
 
 	if(BLI_exists(filename)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, btempdir, "quit.blend");
+		BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
 		/* if global undo; remove tempsave, otherwise rename */
 		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);

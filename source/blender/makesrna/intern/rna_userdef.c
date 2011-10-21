@@ -295,8 +295,7 @@ static void rna_userdef_addon_remove(bAddon *bext)
 
 static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	extern char btempdir[];
-	BLI_where_is_temp(btempdir, FILE_MAX, 1);
+	BLI_init_temporary_dir(U.tempdir);
 }
 
 static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -2512,36 +2511,36 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	static EnumPropertyItem language_items[] = {
 		{0, "", 0, "Nearly done", ""},
-		{0, "DEFAULT", 0, N_("Default (Default)"), ""},
-		{1, "ENGLISH", 0, N_("English (English)"), "en_US"},
-		{8, "FRENCH", 0, N_("French (Français)"), "fr_FR"},
-		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
-		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
+		{0, "DEFAULT", 0, "Default (Default)", ""},
+		{1, "ENGLISH", 0, "English (English)", "en_US"},
+		{8, "FRENCH", 0, "French (Français)", "fr_FR"},
+		{9, "SPANISH", 0, "Spanish (Español)", "es_ES"},
+		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
 		{0, "", 0, "In progress", ""},
-		{2, "JAPANESE", 0, N_("Japanese (日本語)"), "ja_JP"},
-		{3, "DUTCH", 0, N_("Dutch (Nederlandse taal)"), "nl_NL"},
-		{4, "ITALIAN", 0, N_("Italian (Italiano)"), "it_IT"},
-		{5, "GERMAN", 0, N_("German (Deutsch)"), "de_DE"},
-		{6, "FINNISH", 0, N_("Finnish (Suomi)"), "fi_FI"},
-		{7, "SWEDISH", 0, N_("Swedish (Svenska)"), "sv_SE"},
-		{10, "CATALAN", 0, N_("Catalan (Català)"), "ca_AD"},
-		{11, "CZECH", 0, N_("Czech (Český)"), "cs_CZ"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, N_("Brazilian Portuguese (Português do Brasil)"), "pt_BR"},
-		{14, "TRADITIONAL_CHINESE", 0, N_("Traditional Chinese (繁體中文)"), "zh_TW"},
-		{15, "RUSSIAN", 0, N_("Russian (Русский)"), "ru_RU"},
-		{16, "CROATIAN", 0, N_("Croatian (Hrvatski)"), "hr_HR"},
-		{17, "SERBIAN", 0, N_("Serbian (Српском језику)"), "sr_RS"},
-		{18, "UKRAINIAN", 0, N_("Ukrainian (Український)"), "uk_UA"},
-		{19, "POLISH", 0, N_("Polish (Polski)"), "pl_PL"},
-		{20, "ROMANIAN", 0, N_("Romanian (Român)"), "ro_RO"},
+		{2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
+		{3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
+		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
+		{5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
+		{6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
+		{7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
+		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
+		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
+		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
+		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
+		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
+		{17, "SERBIAN", 0, "Serbian (Српском језику)", "sr_RS"},
+		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
+		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
+		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
 		/* using the utf8 flipped form of Arabic (العربية) */
-		{21, "ARABIC", 0, N_("Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"), "ar_EG"},
-		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
-		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
-		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
-		/*{25, "NEPALI", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
+		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
+		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
+		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
+		/*{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},*/
 		/* using the utf8 flipped form of Persian (فارسی) */
-		{26, "PERSIAN", 0, N_("Persian (ﯽﺳﺭﺎﻓ)"), "fa_PE"},
+		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_PE"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);

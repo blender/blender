@@ -1706,7 +1706,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 					utf8_buf[0] = '\0';
 				}
 			}
-			
+
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
 
@@ -1714,8 +1714,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
 				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			} else {
+			// XXX Font Object bug - backspace or adding new chars are being computed twice (keydown and keyup)
+				utf8_buf[0] = '\0';
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii, utf8_buf) );
-				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
+				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			break;
 	

@@ -2773,10 +2773,7 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 	if ((!tip || tip[0]=='\0') && ot && ot->description) {
 		tip= ot->description;
 
-#ifdef WITH_INTERNATIONAL
-		if(UI_translate_tooltips())
-			tip= BLF_gettext(tip);
-#endif
+		tip = TIP_(tip);
 	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);

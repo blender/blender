@@ -442,11 +442,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	Panel *panel= block->panel;
 	rcti hrect;
 	int  pnl_icons;
-	const char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
-
-#ifdef WITH_INTERNATIONAL
-	activename= UI_translate_do_iface(activename);
-#endif
+	const char *activename= IFACE_(panel->drawname[0] ? panel->drawname : panel->panelname);
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if(panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;

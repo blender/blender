@@ -152,7 +152,7 @@ typedef struct TransData2D {
 	float loc[3];		/* Location of data used to transform (x,y,0) */
 	float *loc2d;		/* Pointer to real 2d location of data */
 
-	float *h1, *h2;     /* Pointer to handle locations, if handles aren't being moved independantly*/
+	float *h1, *h2;     /* Pointer to handle locations, if handles aren't being moved independently */
 	float ih1[2], ih2[2];
 } TransData2D;
 

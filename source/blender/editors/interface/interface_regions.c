@@ -349,7 +349,6 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 	ar->regiondata= NULL;
 }
 
-#define TIP_(msgid) UI_translate_do_tooltip(msgid)
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 {
 	uiStyle *style= UI_GetStyle();
@@ -410,7 +409,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		prop= (but->opptr)? but->opptr->data: NULL;
 
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Shortcut: %s")), buf);
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
 			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
@@ -420,7 +419,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
 		if(buf[0]) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Value: %s")), buf);
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
 			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
@@ -432,7 +431,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if (unit_type == PROP_UNIT_ROTATION) {
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
 				float value= RNA_property_array_check(but->rnaprop) ? RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) : RNA_property_float_get(&but->rnapoin, but->rnaprop);
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Radians: %f")), value);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Radians: %f"), value);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
@@ -441,7 +440,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if(but->flag & UI_BUT_DRIVEN) {
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Expression: %s")), buf);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Expression: %s"), buf);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
@@ -449,7 +448,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		/* rna info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Python: %s.%s")), RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"), RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
@@ -457,7 +456,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if(but->rnapoin.id.data) {
 			ID *id= but->rnapoin.id.data;
 			if(id->lib && id->lib->name) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Library: %s")), id->lib->name);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
@@ -472,7 +471,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		/* operator info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Python: %s")), str);
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), str);
 			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
@@ -486,7 +485,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			WM_operator_poll_context(C, but->optype, but->opcontext);
 			poll_msg= CTX_wm_operator_poll_msg_get(C);
 			if(poll_msg) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Disabled: %s")), poll_msg);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
 				data->color[data->totline]= 0x6666ff; /* alert */
 				data->totline++;			
 			}
@@ -496,7 +495,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
 			if(but->menu_create_func && WM_menutype_contains((MenuType *)but->poin)) {
 				MenuType *mt= (MenuType *)but->poin;
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_(N_("Python: %s")), mt->idname);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), mt->idname);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
@@ -615,7 +614,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	return ar;
 }
-#undef TIP_
 
 void ui_tooltip_free(bContext *C, ARegion *ar)
 {
@@ -2372,7 +2370,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	
 	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
-	pup->block->puphash= ui_popup_menu_hash((char*)title);
+	pup->block->puphash= ui_popup_menu_hash(title);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 

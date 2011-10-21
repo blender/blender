@@ -525,6 +525,9 @@ static void init_internal_icons(void)
 				bbuf= NULL;
 			}
 		}
+		else {
+			printf("%s: 'icons' data path not found, continuing\n", __func__);
+		}
 	}
 	if(bbuf==NULL)
 		bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);

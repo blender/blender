@@ -910,7 +910,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	else if (G.relbase_valid || lib) {
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 
-		BLI_split_dirfile(blendfilename, NULL, file, 0, sizeof(file));
+		BLI_split_file_part(blendfilename, file, sizeof(file));
 		i = strlen(file);
 		
 		/* remove .blend */
@@ -923,8 +923,8 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
-	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	/* temporary directory is assumed to exist and ALWAYS has a trailing slash */
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", BLI_temporary_dir(), abs(getpid()));
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }

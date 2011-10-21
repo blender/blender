@@ -117,7 +117,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 		}
 		case PROP_COLLECTION: {
 			char text[256];
-			BLI_snprintf(text, sizeof(text), UI_translate_do_iface(N_("%d items")), RNA_property_collection_length(ptr, prop));
+			BLI_snprintf(text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
 			but= uiDefBut(block, LABEL, 0, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, NULL);
 			uiButSetFlag(but, UI_BUT_DISABLED);
 			break;

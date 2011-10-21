@@ -64,8 +64,6 @@ struct ListBase;
 
 #include <stdlib.h>
 
-extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

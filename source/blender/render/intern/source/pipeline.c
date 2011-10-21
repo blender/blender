@@ -479,7 +479,7 @@ static void scene_unique_exr_name(Scene *scene, char *str, int sample)
 	else
 		BLI_snprintf(name, sizeof(name), "%s_%s%d.exr", fi, scene->id.name+2, sample);
 
-	BLI_make_file_string("/", str, btempdir, name);
+	BLI_make_file_string("/", str, BLI_temporary_dir(), name);
 }
 
 static void render_unique_exr_name(Render *re, char *str, int sample)

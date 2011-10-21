@@ -198,9 +198,9 @@ void BPY_python_start(int argc, const char **argv)
 	PyThreadState *py_tstate= NULL;
 
 	/* not essential but nice to set our name */
-	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
-	BLI_strncpy_wchar_from_utf8(bprogname_wchar, bprogname, sizeof(bprogname_wchar) / sizeof(wchar_t));
-	Py_SetProgramName(bprogname_wchar);
+	static wchar_t program_path_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
+	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), sizeof(program_path_wchar) / sizeof(wchar_t));
+	Py_SetProgramName(program_path_wchar);
 
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
