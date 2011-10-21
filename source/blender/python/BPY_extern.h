@@ -36,8 +36,6 @@
 #ifndef BPY_EXTERN_H
 #define BPY_EXTERN_H
 
-extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
-
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */

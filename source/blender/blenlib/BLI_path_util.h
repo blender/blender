@@ -181,29 +181,20 @@ void BLI_path_rel(char *file, const char *relfile);
 	 */
 void BLI_char_switch(char *string, char from, char to);
 
-/**
-	 * Checks if name is a fully qualified filename to an executable.
-	 * If not it searches $PATH for the file. On Windows it also
-	 * adds the correct extension (.com .exe etc) from
-	 * $PATHEXT if necessary. Also on Windows it translates
-	 * the name to its 8.3 version to prevent problems with
-	 * spaces and stuff. Final result is returned in fullname.
-	 *
-	 * @param fullname The full path and full name of the executable
-	 * @param name The name of the executable (usually argv[0]) to be checked
-	 */
-void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name);
+	/* Initialize path to program executable */
+void BLI_init_program_path(const char *argv0);
+	/* Initialize path to temporary directory.
+	 * NOTE: On Window userdir will be set to the temporary directory! */
+void BLI_init_temporary_dir(char *userdir);
 
-	/**
-	 * Gets the temp directory when blender first runs.
-	 * If the default path is not found, use try $TEMP
-	 * 
-	 * Also make sure the temp dir has a trailing slash
-	 *
-	 * @param fullname The full path to the temp directory
-	 */
-void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp);
-
+	/* Path to executable */
+const char *BLI_program_path(void);
+	/* Path to directory of executable */
+const char *BLI_program_dir(void);
+	/* Path to temporary directory (with trailing slash) */
+const char *BLI_temporary_dir(void);
+	/* Path to the system temporary directory (with trailing slash) */
+void BLI_system_temporary_dir(char *dir);
 
 #ifdef WITH_ICONV
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);

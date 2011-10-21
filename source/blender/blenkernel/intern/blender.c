@@ -549,7 +549,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		counter= counter % U.undosteps;	
 	
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
-		BLI_make_file_string("/", filepath, btempdir, numstr);
+		BLI_make_file_string("/", filepath, BLI_temporary_dir(), numstr);
 	
 		/* success= */ /* UNUSED */ BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
 		
@@ -719,7 +719,7 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, btempdir, "quit.blend");
+	BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {

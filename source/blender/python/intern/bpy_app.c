@@ -93,8 +93,6 @@ static PyStructSequence_Desc app_info_desc= {
 
 static PyObject *make_app_info(void)
 {
-	extern char bprogname[]; /* argv[0] from creator.c */
-
 	PyObject *app_info;
 	int pos= 0;
 
@@ -118,7 +116,7 @@ static PyObject *make_app_info(void)
 	SetStrItem("");
 #endif
 	SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));
-	SetStrItem(bprogname);
+	SetStrItem(BLI_program_path());
 	SetObjItem(PyBool_FromLong(G.background));
 
 	/* build info */
@@ -200,8 +198,7 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 
 static PyObject *bpy_app_tempdir_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
-	extern char btempdir[];
-	return PyC_UnicodeFromByte(btempdir);
+	return PyC_UnicodeFromByte(BLI_temporary_dir());
 }
 
 static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(closure))

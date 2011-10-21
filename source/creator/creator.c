@@ -62,6 +62,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -140,10 +141,6 @@ static int print_version(int argc, const char **argv, void *data);
 /* for the callbacks: */
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
-
-char bprogname[FILE_MAX];
-char bprogdir[FILE_MAX];
-char btempdir[FILE_MAX];
 
 #define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
@@ -1154,11 +1151,8 @@ int main(int argc, const char **argv)
 	fpsetmask(0);
 #endif
 
-	// copy path to executable in bprogname. playanim and creting runtimes
-	// need this.
-
-	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
-	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
+	// initialize path to executable
+	BLI_init_program_path(argv[0]);
 
 	BLI_threadapi_init();
 
@@ -1213,7 +1207,8 @@ int main(int argc, const char **argv)
 		WM_init(C, argc, argv);
 
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp(btempdir, FILE_MAX, 1); /* call after loading the startup.blend so we can read U.tempdir */
+		/* call after loading the startup.blend so we can read U.tempdir */
+		BLI_init_temporary_dir(U.tempdir);
 
 #ifdef WITH_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1224,7 +1219,8 @@ int main(int argc, const char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp(btempdir, FILE_MAX, 0); /* call after loading the startup.blend so we can read U.tempdir */
+		/* don't use user preferences temp dir */
+		BLI_init_temporary_dir(NULL);
 	}
 #ifdef WITH_PYTHON
 	/**
