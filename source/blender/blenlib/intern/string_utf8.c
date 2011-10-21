@@ -297,12 +297,12 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 		Len = -1;                                                             \
 	}
 
-
-#define UTF8_GET(Result, Chars, Count, Mask, Len)                             \
+/* same as glib define but added an 'Err' arg */
+#define UTF8_GET(Result, Chars, Count, Mask, Len, Err)                        \
 	(Result) = (Chars)[0] & (Mask);                                           \
 	for ((Count) = 1; (Count) < (Len); ++(Count)) {                           \
 		if (((Chars)[(Count)] & 0xc0) != 0x80) {                              \
-			(Result) = -1;                                                    \
+			(Result) = Err;                                                   \
 			break;                                                            \
 		}                                                                     \
 		(Result) <<= 6;                                                       \
@@ -332,7 +332,7 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
   UTF8_COMPUTE (c, mask, len);
   if (len == -1)
     return BLI_UTF8_ERR;
-  UTF8_GET (result, p, i, mask, len);
+  UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 
   return result;
 }
@@ -347,12 +347,13 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 	UTF8_COMPUTE (c, mask, len);
 	if (len == -1)
 		return BLI_UTF8_ERR;
-	UTF8_GET (result, p, i, mask, len);
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 	*index += len;
 	return result;
 }
 
-/* another varient that steps over the index */
+/* another varient that steps over the index,
+ * note, currently this also falls back to latin1 for text drawing. */
 unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 {
 	int i, mask = 0, len;
@@ -372,7 +373,26 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 		*index += (size_t)(p_next - p);
 		return BLI_UTF8_ERR;
 	}
-	UTF8_GET (result, p, i, mask, len);
+
+	/* this is tricky since there are a few ways we can bail out of bad unicode
+	 * values, 3 possible solutions. */
+#if 0
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+#elif 1
+	/* WARNING: this is NOT part of glib, or supported by similar functions.
+	 * this is added for text drawing because some filepaths can have latin1
+	 * characters */
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	if(result == BLI_UTF8_ERR) {
+		len= 1;
+		result= *p;
+	}
+	/* end warning! */
+#else
+	/* without a fallback like '?', text drawing will stop on this value */
+	UTF8_GET (result, p, i, mask, len, '?');
+#endif
+
 	*index += len;
 	return result;
 }

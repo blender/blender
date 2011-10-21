@@ -40,7 +40,6 @@ struct rctf;
 
 unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
-unsigned int blf_utf8_next(const char *buf, size_t *iindex);
 
 char *blf_dir_search(const char *file);
 char *blf_dir_metrics_search(const char *filename);

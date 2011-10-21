@@ -129,7 +129,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 		g= (glyph_ascii_table)[c];                                            \
 		i++;                                                                  \
 	}                                                                         \
-	else if ((c= blf_utf8_next((str), &(i))) != BLI_UTF8_ERR) {               \
+	else if ((c= BLI_str_utf8_as_unicode_step((str), &(i))) != BLI_UTF8_ERR) {               \
 		if ((g= blf_glyph_search((font)->glyph_cache, c)) == NULL) {          \
 			g= blf_glyph_add(font, FT_Get_Char_Index((font)->face, c), c);    \
 		}                                                                     \
