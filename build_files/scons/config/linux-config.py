@@ -97,7 +97,6 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_FREETYPE = '/usr'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
-#WITH_BF_FREETYPE_STATIC = True
 #BF_FREETYPE_LIB_STATIC = '${BF_FREETYPE}/lib/libfreetype.a'
 
 WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME

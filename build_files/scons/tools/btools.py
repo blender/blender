@@ -118,7 +118,7 @@ def validate_arguments(args, bc):
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'WITH_BF_ELTOPO', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_WINTAB', 'BF_WINTAB_INC',
-            'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
+            'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH', 'WITH_BF_STATICFFTW3', 'BF_FFTW3_LIB_STATIC',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
@@ -385,7 +385,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_STATICCXX', 'static link to stdc++', False)),
         ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
 
-        (BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
         ('BF_FREETYPE', 'Freetype base path', ''),
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),

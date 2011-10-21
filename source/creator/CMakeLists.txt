@@ -344,11 +344,6 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
-	install(
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
-	)
-
 	if(WITH_INTERNATIONAL)
 		install(
 			DIRECTORY
@@ -414,11 +409,6 @@ elseif(WIN32)
 	install(  # same as linux!, deduplicate
 		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
-	)
-
-	install(  # same as linux!, deduplicate
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
 	)
 
 	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
@@ -637,11 +627,6 @@ elseif(APPLE)
 	install_dir(
 		${SOURCEDIR}/Contents/Resources
 		\${TARGETDIR}/blender.app/Contents/
-	)
-
-	install(
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
 	)
 
 	# localization
