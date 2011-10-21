@@ -37,6 +37,8 @@
 
 #include "blf_internal.h"
 
+#include "BLI_string_utf8.h"
+
 unsigned int blf_next_p2(unsigned int x)
 {
 	x -= 1;
@@ -72,7 +74,7 @@ unsigned int blf_hash(unsigned int val)
  * The original name: imlib_font_utf8_get_next
  * more info here: http://docs.enlightenment.org/api/imlib2/html/
  */
-int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
+unsigned int blf_utf8_next(const char *buf, size_t *iindex)
 {
 	/* Reads UTF8 bytes from 'buf', starting at 'index' and
 	 * returns the code point of the next valid code point.
@@ -85,7 +87,7 @@ int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
 
 	d= buf[index++];
 	if (!d)
-		return 0;
+		return BLI_UTF8_ERR;
 
 	while (buf[index] && ((buf[index] & 0xc0) == 0x80))
 		index++;

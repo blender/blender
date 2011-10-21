@@ -246,7 +246,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 	while(*src_c && len < maxcpy) {
 		size_t step= 0;
 		unsigned int unicode= BLI_str_utf8_as_unicode_and_size(src_c, &step);
-		if (unicode != (unsigned int)-1) {
+		if (unicode != BLI_UTF8_ERR) {
 			*dst_w= (wchar_t)unicode;
 			src_c += step;
 		}
@@ -331,7 +331,7 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 
   UTF8_COMPUTE (c, mask, len);
   if (len == -1)
-    return (unsigned int)-1;
+    return BLI_UTF8_ERR;
   UTF8_GET (result, p, i, mask, len);
 
   return result;
@@ -346,7 +346,7 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 
 	UTF8_COMPUTE (c, mask, len);
 	if (len == -1)
-		return (unsigned int)-1;
+		return BLI_UTF8_ERR;
 	UTF8_GET (result, p, i, mask, len);
 	*index += len;
 	return result;
@@ -370,7 +370,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 		/* will never return the same pointer unless '\0',
 		 * eternal loop is prevented */
 		*index += (size_t)(p_next - p);
-		return (unsigned int)-1;
+		return BLI_UTF8_ERR;
 	}
 	UTF8_GET (result, p, i, mask, len);
 	*index += len;

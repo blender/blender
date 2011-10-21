@@ -53,7 +53,8 @@ size_t       BLI_strlen_utf8(const char *strc);
 size_t       BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy);
 size_t       BLI_strncpy_wchar_from_utf8(wchar_t *dst, const char *src, const size_t maxcpy);
 
-#define BLI_STRING_MAX_UTF8 6
+#define      BLI_UTF8_MAX 6
+#define      BLI_UTF8_ERR ((unsigned int)-1)
 
 #ifdef __cplusplus
 }
