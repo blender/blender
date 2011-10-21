@@ -823,20 +823,6 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
 
-#if 0
-/* Dependency
- *
- * Experimental code that will generate callbacks for each dependency
- * between ID types. This may end up being useful for UI
- * and evaluation code that needs to know such dependencies for correct
- * redraws and re-evaluations. */
-
-typedef void (*PropDependencyCallback)(void *udata, PointerRNA *from, PointerRNA *to);
-void RNA_test_dependencies_cb(void *udata, PointerRNA *from, PointerRNA *to);
-
-void RNA_generate_dependencies(PointerRNA *mainptr, void *udata, PropDependencyCallback cb);
-#endif
-
 /* Quick name based property access
  *
  * These are just an easier way to access property values without having to
