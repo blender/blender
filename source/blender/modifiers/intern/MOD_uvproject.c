@@ -162,15 +162,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	float scax= umd->scalex ? umd->scalex : 1.0f;
 	float scay= umd->scaley ? umd->scaley : 1.0f;
 	int free_uci= 0;
-	float sensor_x= 32.0f;
-	Scene *scene= umd->modifier.scene;
-	
-	if(scene && scene->camera && scene->camera->type == OB_CAMERA) {
-		Camera *camera= (Camera*)scene->camera->data;
 
-		sensor_x= camera->sensor_x;
-	}
-	
 	aspect = aspx / aspy;
 
 	for(i = 0; i < umd->num_projectors; ++i)
@@ -205,7 +197,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				free_uci= 1;
 			}
 			else {
-				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * sensor_x / cam->lens : cam->ortho_scale;
+				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * cam->sensor_x / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
 				if(aspect > 1.0f) {
