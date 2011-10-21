@@ -8,7 +8,7 @@
 import bge
 
 # variables defined here will only be set once when the
-# module is first imported. Set object spesific vars
+# module is first imported. Set object specific vars
 # inside the function if you intend to use the module
 # with multiple objects.
 

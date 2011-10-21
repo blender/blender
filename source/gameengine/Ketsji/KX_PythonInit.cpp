@@ -502,7 +502,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 		BLI_path_abs(cpath, gp_GamePythonPath);
 	} else {
 		/* Get the dir only */
-		BLI_split_dirfile(gp_GamePythonPath, cpath, NULL);
+		BLI_split_dirfile(gp_GamePythonPath, cpath, NULL, sizeof(cpath), 0);
 	}
 
 	if((dp  = opendir(cpath)) == NULL) {
@@ -1732,7 +1732,7 @@ static void initPySysObjects__append(PyObject *sys_path, char *filename)
 	PyObject *item;
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	
-	BLI_split_dirfile(filename, expanded, NULL); /* get the dir part of filename only */
+	BLI_split_dirfile(filename, expanded, NULL, sizeof(expanded), 0); /* get the dir part of filename only */
 	BLI_path_abs(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
 	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
 	item= PyUnicode_DecodeFSDefault(expanded);
@@ -1816,7 +1816,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	/* Yet another gotcha in the py api
 	 * Cant run PySys_SetArgv more then once because this adds the
 	 * binary dir to the sys.path each time.
-	 * Id have thaught python being totally restarted would make this ok but
+	 * Id have thought python being totally restarted would make this ok but
 	 * somehow it remembers the sys.path - Campbell
 	 */
 	static bool first_time = true;

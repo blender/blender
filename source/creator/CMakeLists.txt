@@ -88,8 +88,8 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-if(NOT WITH_SDL)
-	add_definitions(-DDISABLE_SDL)
+if(WITH_SDL)
+	add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_BINRELOC)
@@ -443,14 +443,6 @@ elseif(WIN32)
 		endif()
 	endif()
 
-	install( # same as linux!, deduplicate
-		DIRECTORY
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-		DESTINATION ${TARGETDIR_VER}/datafiles
-		PATTERN ".svn" EXCLUDE
-	)
-
 	# plugins in blender 2.5 don't work at the moment.
 	#
 	# install(
@@ -664,8 +656,8 @@ elseif(APPLE)
 	if(WITH_INTERNATIONAL)
 		install(
 			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)

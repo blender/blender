@@ -415,14 +415,14 @@ typedef struct DupliObject {
 #define OB_EMPTY_IMAGE	8
 
 /* boundtype */
-#define OB_BOUND_BOX		0
-#define OB_BOUND_SPHERE		1
-#define OB_BOUND_CYLINDER	2
-#define OB_BOUND_CONE		3
-#define OB_BOUND_POLYH		4
-#define OB_BOUND_POLYT		5
+#define OB_BOUND_BOX           0
+#define OB_BOUND_SPHERE        1
+#define OB_BOUND_CYLINDER      2
+#define OB_BOUND_CONE          3
+#define OB_BOUND_TRIANGLE_MESH 4
+#define OB_BOUND_CONVEX_HULL   5
 /* #define OB_BOUND_DYN_MESH   6 */ /*UNUSED*/
-#define OB_BOUND_CAPSULE	7
+#define OB_BOUND_CAPSULE       7
 
 
 /* **************** BASE ********************* */

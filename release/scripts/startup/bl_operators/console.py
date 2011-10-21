@@ -62,7 +62,7 @@ class ConsoleAutocomplete(Operator):
 
 
 class ConsoleBanner(Operator):
-    '''Print a message whem the terminal initializes'''
+    '''Print a message when the terminal initializes'''
     bl_idname = "console.banner"
     bl_label = "Console Banner"
 
@@ -97,7 +97,7 @@ class ConsoleLanguage(Operator):
     def execute(self, context):
         sc = context.space_data
 
-        # defailt to python
+        # default to python
         sc.language = self.language
 
         bpy.ops.console.banner()

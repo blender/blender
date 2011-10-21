@@ -142,7 +142,7 @@ class AddPresetBase():
 
 
 class ExecutePreset(Operator):
-    ''' Executes a preset '''
+    '''Execute a preset'''
     bl_idname = "script.execute_preset"
     bl_label = "Execute a Python Preset"
 

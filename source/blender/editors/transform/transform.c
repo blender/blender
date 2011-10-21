@@ -1922,7 +1922,7 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 			quat[3]= oldquat[3];
 	}
 	else {
-		/* quaternions get limited with euler... (compatability mode) */
+		/* quaternions get limited with euler... (compatibility mode) */
 		float eul[3], oldeul[3], nquat[4], noldquat[4];
 		float qlen;
 

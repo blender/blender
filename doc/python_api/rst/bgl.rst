@@ -20,7 +20,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    See :class:`Image.gl_load` and :class:`Image.gl_load`,
    for example.
    `OpenGL.org <http://www.opengl.org>`_
-   `NeHe GameDev <nehe.gamedev.net>`_
+   `NeHe GameDev <http://nehe.gamedev.net>`_
 
 
 .. function:: glAccum(op, value):

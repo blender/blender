@@ -54,10 +54,11 @@ class VIEW3D_HT_header(Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
-        row = layout.row()
+        
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
+        row = layout.row() #XXX Narrowed down vert/edge/face selector in edit mode/solid drawmode. -DingTo 
         row.template_header_3D()
-
+        
         if obj:
             # Particle edit
             if obj.mode == 'PARTICLE_EDIT':
@@ -986,6 +987,7 @@ class VIEW3D_MT_make_links(Menu):
 
         layout.operator("object.join_uvs")  # stupid place to add this!
 
+
 class VIEW3D_MT_object_game(Menu):
     bl_label = "Game"
 
@@ -1141,7 +1143,7 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         layout.prop(sculpt, "show_brush")
 
-        # TODO, make availabel from paint menu!
+        # TODO, make available from paint menu!
         layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Unify Size")
         layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Unify Strength")
 
@@ -1412,7 +1414,7 @@ class BoneOptions:
             data_path_iter = "selected_bones"
             opt_suffix = ""
             options.append("lock")
-        else:  # posemode
+        else:  # pose-mode
             bone_props = bpy.types.Bone.bl_rna.properties
             data_path_iter = "selected_pose_bones"
             opt_suffix = "bone."
@@ -2172,7 +2174,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
     @classmethod
     def poll(cls, context):
-        # The active object check is needed because of localmode
+        # The active object check is needed because of local-mode
         return (context.active_object and (context.mode == 'EDIT_MESH'))
 
     def draw(self, context):
@@ -2233,7 +2235,7 @@ class VIEW3D_PT_background_image(Panel):
     @classmethod
     def poll(cls, context):
         view = context.space_data
-        # bg = context.space_data.background_image
+        #~ bg = context.space_data.background_image
         return (view)
 
     def draw_header(self, context):

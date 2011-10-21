@@ -185,7 +185,7 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree, bNode *node, int in_out, const char
 	else if (in_out==SOCK_OUT)
 		BLI_addtail(&node->outputs, sock);
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	node->update |= NODE_UPDATE;
 	
 	return sock;
 }
@@ -198,7 +198,7 @@ bNodeSocket *nodeInsertSocket(bNodeTree *ntree, bNode *node, int in_out, bNodeSo
 	else if (in_out==SOCK_OUT)
 		BLI_insertlinkbefore(&node->outputs, next_sock, sock);
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	node->update |= NODE_UPDATE;
 	
 	return sock;
 }
@@ -222,7 +222,7 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 		MEM_freeN(sock->default_value);
 	MEM_freeN(sock);
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	node->update |= NODE_UPDATE;
 }
 
 void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
@@ -247,7 +247,7 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
 	
 	BLI_freelistN(&node->outputs);
 	
-	ntree->update |= NTREE_UPDATE_NODES;
+	node->update |= NODE_UPDATE;
 }
 
 /* finds a node based on its name */
@@ -375,7 +375,7 @@ void nodeMakeDynamicType(bNode *node)
 		/*node->typeinfo= MEM_dupallocN(ntype);*/
 		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
 		*newtype= *ntype;
-		strcpy(newtype->name, ntype->name);
+		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
 		node->typeinfo= newtype;
 	}
 }
@@ -824,7 +824,7 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 		if(link->fromnode==node) {
 			lb= &node->outputs;
 			if (link->tonode)
-				NodeTagChanged(ntree, link->tonode);
+				link->tonode->update |= NODE_UPDATE;
 		}
 		else if(link->tonode==node)
 			lb= &node->inputs;
@@ -1499,18 +1499,19 @@ void ntreeUpdateTree(bNodeTree *ntree)
 		/* update individual nodes */
 		for (n=0; n < totnodes; ++n) {
 			node = deplist[n];
-			if (ntreetype->update_node)
-				ntreetype->update_node(ntree, node);
-			else if (node->typeinfo->updatefunc)
-				node->typeinfo->updatefunc(ntree, node);
+			
+			/* node tree update tags override individual node update flags */
+			if ((node->update & NODE_UPDATE) || (ntree->update & NTREE_UPDATE)) {
+				if (ntreetype->update_node)
+					ntreetype->update_node(ntree, node);
+				else if (node->typeinfo->updatefunc)
+					node->typeinfo->updatefunc(ntree, node);
+			}
+			/* clear update flag */
+			node->update = 0;
 		}
 		
 		MEM_freeN(deplist);
-		
-		/* ensures only a single output node is enabled, texnode allows multiple though */
-		if(ntree->type!=NTREE_TEXTURE)
-			ntreeSetOutput(ntree);
-		
 	}
 	
 	/* general tree updates */
@@ -1522,6 +1523,9 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	if (ntreetype->update)
 		ntreetype->update(ntree);
 	else {
+		/* Trees can be associated with a specific node type (i.e. group nodes),
+		 * in that case a tree update function may be defined by that node type.
+		 */
 		bNodeType *ntype= node_get_type(ntree, ntree->nodetype);
 		if (ntype && ntype->updatetreefunc)
 			ntype->updatetreefunc(ntree);
@@ -1534,24 +1538,24 @@ void ntreeUpdateTree(bNodeTree *ntree)
 	ntree->update = 0;
 }
 
-void NodeTagChanged(bNodeTree *ntree, bNode *node)
+void nodeUpdate(bNodeTree *ntree, bNode *node)
 {
-	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype= ntreeGetType(ntree->type);
 	
-	/* extra null pointer checks here because this is called when unlinking
-	   unknown nodes on file load, so typeinfo pointers may not be set */
-	if (ntreetype && ntreetype->update_node)
+	if (ntreetype->update_node)
 		ntreetype->update_node(ntree, node);
-	else if (node->typeinfo && node->typeinfo->updatefunc)
+	else if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
+	/* clear update flag */
+	node->update = 0;
 }
 
-int NodeTagIDChanged(bNodeTree *ntree, ID *id)
+int nodeUpdateID(bNodeTree *ntree, ID *id)
 {
 	bNodeTreeType *ntreetype;
 	bNode *node;
 	int change = FALSE;
-
+	
 	if(ELEM(NULL, id, ntree))
 		return change;
 	
@@ -1562,6 +1566,8 @@ int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 			if(node->id==id) {
 				change = TRUE;
 				ntreetype->update_node(ntree, node);
+				/* clear update flag */
+				node->update = 0;
 			}
 		}
 	}
@@ -1571,6 +1577,8 @@ int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 				change = TRUE;
 				if (node->typeinfo->updatefunc)
 					node->typeinfo->updatefunc(ntree, node);
+				/* clear update flag */
+				node->update = 0;
 			}
 		}
 	}

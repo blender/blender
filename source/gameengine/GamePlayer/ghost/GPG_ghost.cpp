@@ -309,7 +309,7 @@ static void get_filename(int argc, char **argv, char *filename)
 #endif // !_APPLE
 }
 
-static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL)
+static BlendFileData *load_game_data(const char *progname, char *filename = NULL, char *relativename = NULL)
 {
 	ReportList reports;
 	BlendFileData *bfd = NULL;
@@ -321,7 +321,7 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 		bfd= BLO_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
-			strcpy(bfd->main->name, progname);
+			BLI_strncpy(bfd->main->name, progname, sizeof(bfd->main->name));
 		}
 	} else {
 		bfd= BLO_read_from_file(progname, &reports);
@@ -766,7 +766,7 @@ int main(int argc, char** argv)
 						char basedpath[240];
 						
 						// base the actuator filename relative to the last file
-						strcpy(basedpath, exitstring.Ptr());
+						BLI_strncpy(basedpath, exitstring.Ptr(), sizeof(basedpath));
 						BLI_path_abs(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);

@@ -43,7 +43,7 @@ else()
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no 
-set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
 
 # ------------------------------------------------------------------------------

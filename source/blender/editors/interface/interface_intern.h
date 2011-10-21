@@ -253,6 +253,11 @@ struct uiBut {
 	
 		/* pointer back */
 	uiBlock *block;
+
+#ifdef WITH_PYTHON_UI_INFO
+	char py_dbg_fn[240];
+	int py_dbg_ln;
+#endif
 };
 
 struct uiBlock {
@@ -351,8 +356,8 @@ extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
 extern double ui_get_but_val(uiBut *but);
 extern void ui_set_but_val(uiBut *but, double value);
 extern void ui_set_but_hsv(uiBut *but);
-extern void ui_get_but_vectorf(uiBut *but, float *vec);
-extern void ui_set_but_vectorf(uiBut *but, float *vec);
+extern void ui_get_but_vectorf(uiBut *but, float vec[3]);
+extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
@@ -369,6 +374,7 @@ extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
 extern int  ui_is_but_rna_valid(uiBut *but);
+extern int  ui_is_but_utf8(uiBut *but);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);

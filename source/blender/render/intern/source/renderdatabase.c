@@ -481,12 +481,12 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 		layer= &data->layers[i];
 
 		if (layer->type == CD_MTFACE) {
-			strcpy(obr->mtface[mtfn++], layer->name);
+			BLI_strncpy(obr->mtface[mtfn++], layer->name, sizeof(layer->name));
 			obr->actmtface= CLAMPIS(layer->active_rnd, 0, numtf);
 			obr->bakemtface= layer->active;
 		}
 		else if (layer->type == CD_MCOL) {
-			strcpy(obr->mcol[mcn++], layer->name);
+			BLI_strncpy(obr->mcol[mcn++], layer->name, sizeof(layer->name));
 			obr->actmcol= CLAMPIS(layer->active_rnd, 0, numcol);
 		}
 	}

@@ -33,7 +33,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
@@ -47,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -1152,7 +1152,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
-		if(ISTEXTINPUT(winevent->type) && winevent->ascii) return 1;
+		if(ISTEXTINPUT(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1;
 	if(kmitype!=KM_ANY)
 		if(winevent->type!=kmitype) return 0;
 	
@@ -1796,11 +1796,14 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
-						if(ncfra != scene->r.cfra)	{
-							scene->r.cfra = ncfra;
-							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
-							WM_event_add_notifier(C, NC_WINDOW, NULL);
+						float time = sound_sync_scene(scene);
+						if(finite(time)) {
+							int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
+							if(ncfra != scene->r.cfra)	{
+								scene->r.cfra = ncfra;
+								ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
+								WM_event_add_notifier(C, NC_WINDOW, NULL);
+							}
 						}
 					}
 					
@@ -2581,6 +2584,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
+			strcpy(event.utf8_buf, kd->utf8_buf);
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */

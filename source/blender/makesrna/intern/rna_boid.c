@@ -76,7 +76,7 @@ EnumPropertyItem boidruleset_type_items[] ={
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
-static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Boids_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;

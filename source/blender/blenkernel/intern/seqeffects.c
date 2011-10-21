@@ -827,7 +827,7 @@ static void do_cross_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-/* carefull: also used by speed effect! */
+/* careful: also used by speed effect! */
 
 static struct ImBuf* do_cross_effect(
 	SeqRenderData context, Sequence *UNUSED(seq), float UNUSED(cfra),

@@ -997,11 +997,8 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 			}
 			
 			/* get marker name */
-			if (pld->marker)
-				strcpy(markern, pld->marker->name);
-			else
-				strcpy(markern, "No Matches");
-			
+			BLI_strncpy(markern, pld->marker ? pld->marker->name : "No Matches", sizeof(markern));
+
 			sprintf(pld->headerstr, "PoseLib Previewing Pose: Filter - [%s] | Current Pose - \"%s\"  | Use ScrollWheel or PageUp/Down to change", tempstr, markern);
 			ED_area_headerprint(pld->sa, pld->headerstr);
 		}
@@ -1186,7 +1183,7 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 	/* backup stuff that needs to occur before every operation
 	 *	- make a copy of searchstr, so that we know if cache needs to be rebuilt
 	 */
-	strcpy(pld->searchold, pld->searchstr);
+	BLI_strncpy(pld->searchold, pld->searchstr, sizeof(pld->searchold));
 	
 	/* if we're currently showing the original pose, only certain events are handled */
 	if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {

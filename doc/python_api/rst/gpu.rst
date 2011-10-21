@@ -1,6 +1,9 @@
-
 GPU functions (gpu)
 ===================
+
+.. module:: gpu
+
+This module provides access to materials GLSL shaders.
 
 *****
 Intro
@@ -16,7 +19,6 @@ and in the game engine.
     are are closely related to Blender's internal GLSL code and may change if the GLSL code 
     is modified (e.g. new uniform type). 
 
-.. module:: gpu
 
 *********
 Constants

@@ -27,7 +27,7 @@ For HTML generation
 -------------------
 - Run this script from blenders root path once you have compiled blender
 
-    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py
+    ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
   providing ./blender.bin is or links to the blender executable
@@ -83,6 +83,7 @@ else:
         "aud",
         "bgl",
         "blf",
+        "gpu",
         "mathutils",
         "mathutils.geometry",
     )
@@ -93,7 +94,7 @@ else:
     # for quick rebuilds
     """
 rm -rf /b/doc/python_api/sphinx-* && \
-./blender.bin --background --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
+./blender.bin --background -noaudio --factory-startup --python  doc/python_api/sphinx_doc_gen.py && \
 sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
     """
@@ -1042,7 +1043,9 @@ def rna2sphinx(BASEPATH):
         fw("html_theme = 'blender-org'\n")
         fw("html_theme_path = ['../']\n")
 
-    fw("html_favicon = 'favicon.ico'\n")
+        # copied with the theme, exclude else we get an error [#28873]
+        fw("html_favicon = 'favicon.ico'\n")
+
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
@@ -1120,6 +1123,8 @@ def rna2sphinx(BASEPATH):
         fw("   bgl.rst\n\n")
     if "blf" not in EXCLUDE_MODULES:
         fw("   blf.rst\n\n")
+    if "gpu" not in EXCLUDE_MODULES:
+        fw("   gpu.rst\n\n")
     if "aud" not in EXCLUDE_MODULES:
         fw("   aud.rst\n\n")
     if "bpy_extras" not in EXCLUDE_MODULES:
@@ -1259,6 +1264,13 @@ def rna2sphinx(BASEPATH):
         #del module
         import shutil
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bgl.rst"), BASEPATH)
+
+    if "gpu" not in EXCLUDE_MODULES:
+        #import gpu as module
+        #pymodule2sphinx(BASEPATH, "gpu", module, "GPU Shader Module")
+        #del module
+        import shutil
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "gpu.rst"), BASEPATH)
 
     if "aud" not in EXCLUDE_MODULES:
         import aud as module

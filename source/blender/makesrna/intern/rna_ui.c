@@ -95,6 +95,8 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 
 static int panel_poll(const bContext *C, PanelType *pt)
 {
+	extern FunctionRNA rna_Panel_poll_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
@@ -102,7 +104,7 @@ static int panel_poll(const bContext *C, PanelType *pt)
 	int visible;
 
 	RNA_pointer_create(NULL, pt->ext.srna, NULL, &ptr); /* dummy */
-	func= RNA_struct_find_function(&ptr, "poll");
+	func= &rna_Panel_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -118,12 +120,14 @@ static int panel_poll(const bContext *C, PanelType *pt)
 
 static void panel_draw(const bContext *C, Panel *pnl)
 {
+	extern FunctionRNA rna_Panel_draw_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
-	func= RNA_struct_find_function(&ptr, "draw");
+	func= &rna_Panel_draw_func;/* RNA_struct_find_function(&ptr, "draw"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -134,12 +138,14 @@ static void panel_draw(const bContext *C, Panel *pnl)
 
 static void panel_draw_header(const bContext *C, Panel *pnl)
 {
+	extern FunctionRNA rna_Panel_draw_header_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
-	func= RNA_struct_find_function(&ptr, "draw_header");
+	func= &rna_Panel_draw_header_func; /* RNA_struct_find_function(&ptr, "draw_header"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -249,12 +255,14 @@ static StructRNA* rna_Panel_refine(PointerRNA *ptr)
 
 static void header_draw(const bContext *C, Header *hdr)
 {
+	extern FunctionRNA rna_Header_draw_func;
+
 	PointerRNA htr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->ext.srna, hdr, &htr);
-	func= RNA_struct_find_function(&htr, "draw");
+	func= &rna_Header_draw_func; /* RNA_struct_find_function(&htr, "draw"); */
 
 	RNA_parameter_list_create(&list, &htr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -347,6 +355,8 @@ static StructRNA* rna_Header_refine(PointerRNA *htr)
 
 static int menu_poll(const bContext *C, MenuType *pt)
 {
+	extern FunctionRNA rna_Menu_poll_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
@@ -354,7 +364,7 @@ static int menu_poll(const bContext *C, MenuType *pt)
 	int visible;
 
 	RNA_pointer_create(NULL, pt->ext.srna, NULL, &ptr); /* dummy */
-	func= RNA_struct_find_function(&ptr, "poll");
+	func= &rna_Menu_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -370,12 +380,14 @@ static int menu_poll(const bContext *C, MenuType *pt)
 
 static void menu_draw(const bContext *C, Menu *hdr)
 {
+	extern FunctionRNA rna_Menu_draw_func;
+
 	PointerRNA mtr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->ext.srna, hdr, &mtr);
-	func= RNA_struct_find_function(&mtr, "draw");
+	func= &rna_Menu_draw_func; /* RNA_struct_find_function(&mtr, "draw"); */
 
 	RNA_parameter_list_create(&list, &mtr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);

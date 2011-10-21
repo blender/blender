@@ -64,12 +64,13 @@ void engine_tag_update(RenderEngine *engine)
 
 static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 {
+	extern FunctionRNA rna_RenderEngine_update_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "update");
+	func= &rna_RenderEngine_update_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "data", &bmain);
@@ -81,12 +82,13 @@ static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 
 static void engine_render(RenderEngine *engine)
 {
+	extern FunctionRNA rna_RenderEngine_render_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "render");
+	func= &rna_RenderEngine_render_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	engine->type->ext.call(NULL, &ptr, func, &list);
@@ -96,12 +98,13 @@ static void engine_render(RenderEngine *engine)
 
 static void engine_preview_update(RenderEngine *engine, const struct bContext *context, struct ID *id)
 {
+	extern FunctionRNA rna_RenderEngine_preview_update_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "preview_update");
+	func= &rna_RenderEngine_preview_update_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &context);
@@ -113,12 +116,14 @@ static void engine_preview_update(RenderEngine *engine, const struct bContext *c
 
 static void engine_preview_render(RenderEngine *engine)
 {
+	extern FunctionRNA rna_RenderEngine_preview_render_func;
+
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "preview_render");
+	func= &rna_RenderEngine_preview_render_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	engine->type->ext.call(NULL, &ptr, func, &list);
@@ -128,12 +133,13 @@ static void engine_preview_render(RenderEngine *engine)
 
 static void engine_view_update(RenderEngine *engine, const struct bContext *context)
 {
+	extern FunctionRNA rna_RenderEngine_view_update_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "view_update");
+	func= &rna_RenderEngine_view_update_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &context);
@@ -144,12 +150,13 @@ static void engine_view_update(RenderEngine *engine, const struct bContext *cont
 
 static void engine_view_draw(RenderEngine *engine, const struct bContext *context)
 {
+	extern FunctionRNA rna_RenderEngine_view_draw_func;
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func= RNA_struct_find_function(&ptr, "view_draw");
+	func= &rna_RenderEngine_view_draw_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &context);

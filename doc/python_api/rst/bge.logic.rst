@@ -106,7 +106,7 @@ There are also methods to access the current :class:`bge.types.KX_Scene`
 Matricies as used by the game engine are **row major**
 ``matrix[row][col] = float``
 
-:class:`bge.types.KX_Camera` has some examples using matricies.
+:class:`bge.types.KX_Camera` has some examples using matrices.
 
 *********
 Variables

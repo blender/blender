@@ -70,7 +70,6 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
@@ -1607,8 +1606,8 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 	}
 		
 
-	/* -velocity							*/
-	if(part->randfac != 0.0f){
+	/* -velocity (boids need this even if there's no random velocity) */
+	if(part->randfac != 0.0f || (part->phystype==PART_PHYS_BOIDS && pa->boid)){
 		r_vel[0] = 2.0f * (PSYS_FRAND(p + 10) - 0.5f);
 		r_vel[1] = 2.0f * (PSYS_FRAND(p + 11) - 0.5f);
 		r_vel[2] = 2.0f * (PSYS_FRAND(p + 12) - 0.5f);

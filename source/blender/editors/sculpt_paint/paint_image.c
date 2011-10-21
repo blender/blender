@@ -403,7 +403,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
 	
 	tile= MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
-	strcpy(tile->idname, ima->id.name);
+	BLI_strncpy(tile->idname, ima->id.name, sizeof(tile->idname));
 	tile->x= x_tile;
 	tile->y= y_tile;
 
@@ -411,7 +411,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
 	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
-	strcpy(tile->ibufname, ibuf->name);
+	BLI_strncpy(tile->ibufname, ibuf->name, sizeof(tile->ibufname));
 
 	tile->gen_type= ima->gen_type;
 	tile->source= ima->source;
@@ -3429,7 +3429,7 @@ static void project_paint_end(ProjPaintState *ps)
 					}
 					
 					/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
-					 * because allocating the tiles allong the way slows down painting */
+					 * because allocating the tiles along the way slows down painting */
 					
 					if (is_float) {
 						float *rgba_fp = (float *)tilerect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
@@ -4008,7 +4008,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, f
 		copy_v2_v2(handles[a].mval, pos);
 		copy_v2_v2(handles[a].prevmval, lastpos);
 		
-		/* thread spesific */
+		/* thread specific */
 		handles[a].thread_index = a;
 		
 		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena_mt[a], ps->image_tot * sizeof(ProjPaintImage));

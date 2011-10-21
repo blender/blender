@@ -68,6 +68,7 @@ variables on the UI for now
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
@@ -2818,7 +2819,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
 
 		/* finish matrix and solve */
-#if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be usefull .. so keep that BM
+#if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be useful .. so keep that BM
 		if(nl_flags & NLF_SOLVE){
 			//double sct,sst=PIL_check_seconds_timer();
 			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -3540,7 +3541,7 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 		}
 	}
 
-	/* create some helper edges to enable SB lattice to be usefull at all */
+	/* create some helper edges to enable SB lattice to be useful at all */
 	if (ob->softflag & OB_SB_EDGES){
 		makelatticesprings(lt,ob->soft->bspring,ob->softflag & OB_SB_QUADS,ob);
 		build_bps_springlist(ob); /* link bps to springs */

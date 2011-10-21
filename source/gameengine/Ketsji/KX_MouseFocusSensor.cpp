@@ -240,29 +240,23 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	
 	
 	/*	build the from and to point in normalized device coordinates 
-	 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
-	 *	[0,-1] in z 
+	 *	Normalized device coordinates are [-1,1] in x, y, z
 	 *	
 	 *	The actual z coordinates used don't have to be exact just infront and 
 	 *	behind of the near and far clip planes.
 	 */ 
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
 						1.0 - (2 * (m_y_inv - y_lb) / height),
-						/*cam->GetCameraData()->m_perspective ? 0.0:cdata->m_clipstart,*/ /* real clipstart is scaled in ortho for some reason, zero is ok */
-						0.0, /* nearclip, see above comments */
+						-1.0,
 						1.0 );
 	
 	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
 						1.0 - (2 * (m_y_inv-y_lb) / height),
-						cam->GetCameraData()->m_perspective ? 1.0:cam->GetCameraData()->m_clipend, /* farclip, see above comments */
+						1.0,
 						1.0 );
-
-	/* camera to world  */
-	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
-	MT_Transform cams_wcs_transform;
-	cams_wcs_transform.invert(wcs_camcs_tranform);
 	
-	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
+	/* camera to world  */
+	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cam->GetCameraToWorld());
 
 	/* badly defined, the first time round.... I wonder why... I might
 	 * want to guard against floating point errors here.*/
@@ -272,6 +266,8 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	/* shoot-points: clip to cam to wcs . win to clip was already done.*/
 	frompoint = clip_camcs_matrix * frompoint;
 	topoint   = clip_camcs_matrix * topoint;
+	/* clipstart = - (frompoint[2] / frompoint[3])
+	 * clipend = - (topoint[2] / topoint[3]) */
 	frompoint = camcs_wcs_matrix * frompoint;
 	topoint   = camcs_wcs_matrix * topoint;
 	

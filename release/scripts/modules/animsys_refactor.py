@@ -73,7 +73,7 @@ class DataPathBuilder(object):
                             try:
                                 print("base." + item_new)
                                 base_new = eval("base." + item_new)
-                                break  # found, dont keep looking
+                                break  # found, don't keep looking
                             except:
                                 pass
 

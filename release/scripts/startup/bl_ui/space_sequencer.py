@@ -60,7 +60,6 @@ class SEQUENCER_HT_header(Header):
 
             layout.separator()
             layout.operator("sequencer.refresh_all")
-            layout.template_running_jobs()
         elif st.view_type == 'SEQUENCER_PREVIEW':
             layout.separator()
             layout.operator("sequencer.refresh_all")
@@ -75,6 +74,8 @@ class SEQUENCER_HT_header(Header):
                 if ed.show_overlay:
                     row.prop(ed, "overlay_frame", text="")
                     row.prop(ed, "overlay_lock", text="", icon='LOCKED')
+
+        layout.template_running_jobs()
 
 
 class SEQUENCER_MT_view_toggle(Menu):

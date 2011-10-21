@@ -468,6 +468,7 @@ typedef struct {
 	GHOST_TKey		key;
 	/** The ascii code for the key event ('\0' if none). */
 	char			ascii;
+	char			utf8_buf[6];
 } GHOST_TEventKeyData;
 
 typedef struct {

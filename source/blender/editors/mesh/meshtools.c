@@ -957,7 +957,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 				}
 			} else {
 				for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
-					/* This can make realy big numbers, wrapping around here is fine */
+					/* This can make really big numbers, wrapping around here is fine */
 					MirrTopoHash[medge->v1] += MirrTopoHash_Prev[medge->v2];
 					MirrTopoHash[medge->v2] += MirrTopoHash_Prev[medge->v1];
 				}

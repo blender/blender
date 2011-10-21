@@ -165,7 +165,7 @@ def modules(module_cache):
                 if mod:
                     module_cache[mod_name] = mod
 
-    # just incase we get stale modules, not likely
+    # just in case we get stale modules, not likely
     for mod_stale in modules_stale:
         del module_cache[mod_stale]
     del modules_stale
@@ -209,7 +209,7 @@ def enable(module_name, default_set=True):
 
     :arg module_name: The name of the addon and module.
     :type module_name: string
-    :return: the loaded module or None on failier.
+    :return: the loaded module or None on failure.
     :rtype: module
     """
 
@@ -262,7 +262,7 @@ def enable(module_name, default_set=True):
 
     # * OK loaded successfully! *
     if default_set:
-        # just incase its enabled alredy
+        # just in case its enabled already
         ext = _bpy.context.user_preferences.addons.get(module_name)
         if not ext:
             ext = _bpy.context.user_preferences.addons.new()
@@ -286,7 +286,7 @@ def disable(module_name, default_set=True):
     import sys
     mod = sys.modules.get(module_name)
 
-    # possible this addon is from a previous session and didnt load a
+    # possible this addon is from a previous session and didn't load a
     # module this time. So even if the module is not found, still disable
     # the addon in the user prefs.
     if mod:
@@ -300,7 +300,7 @@ def disable(module_name, default_set=True):
     else:
         print("addon_utils.disable", module_name, "not loaded")
 
-    # could be in more then once, unlikely but better do this just incase.
+    # could be in more then once, unlikely but better do this just in case.
     addons = _bpy.context.user_preferences.addons
 
     if default_set:

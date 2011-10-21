@@ -1619,7 +1619,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			}
 		}
 
-		/* important to normalize after mirror, otherwise mirror gets wight
+		/* important to normalize after mirror, otherwise mirror gets weight
 		 * which has already been scaled down in relation to other weights,
 		 * then scales a second time [#26193]. Tricky multi-paint code doesn't
 		 * suffer from this problem - campbell */

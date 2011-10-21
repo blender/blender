@@ -407,15 +407,15 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 
 static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_out, ListBase *socklist, bNodeSocketTemplate *stemp_first)
 {
-	bNodeSocket *sock;
+	bNodeSocket *sock, *nextsock;
 	bNodeSocketTemplate *stemp;
 	
 	/* no inputs anymore? */
 	if(stemp_first==NULL) {
-		while(socklist->first) {
-			sock = (bNodeSocket*)socklist->first;
+		for (sock = (bNodeSocket*)socklist->first; sock; sock=nextsock) {
+			nextsock = sock->next;
 			if (!(sock->flag & SOCK_DYNAMIC))
-				nodeRemoveSocket(ntree, node, socklist->first);
+				nodeRemoveSocket(ntree, node, sock);
 		}
 	}
 	else {
@@ -426,10 +426,10 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 			stemp++;
 		}
 		/* leftovers are removed */
-		while(socklist->first) {
-			sock = (bNodeSocket*)socklist->first;
+		for (sock = (bNodeSocket*)socklist->first; sock; sock=nextsock) {
+			nextsock = sock->next;
 			if (!(sock->flag & SOCK_DYNAMIC))
-				nodeRemoveSocket(ntree, node, socklist->first);
+				nodeRemoveSocket(ntree, node, sock);
 		}
 		
 		/* and we put back the verified sockets */

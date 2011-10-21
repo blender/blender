@@ -725,7 +725,8 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 									(LPSTR) &ascii, 1,
 									NULL,NULL);
 
-		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
+		/* TODO, last arg is utf8, need to pass utf8 arg */
+		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii, NULL);
 		
 #ifdef GHOST_DEBUG
 		std::cout << ascii << std::endl;

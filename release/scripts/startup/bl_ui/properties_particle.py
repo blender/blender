@@ -402,9 +402,12 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
 
         layout.enabled = particle_panel_enabled(context, psys)
 
-        row = layout.row()
-        row.label(text="Initial Rotation:")
-        row.prop(part, "use_dynamic_rotation")
+        layout.prop(part, "use_dynamic_rotation")
+
+        if part.use_dynamic_rotation:
+            layout.label(text="Initial Rotation Axis:")
+        else:
+            layout.label(text="Rotation Axis:")
 
         split = layout.split()
 
@@ -416,12 +419,17 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
         col.prop(part, "phase_factor", slider=True)
         col.prop(part, "phase_factor_random", text="Random", slider=True)
 
-        col = layout.column()
-        col.label(text="Angular Velocity:")
-        col.row().prop(part, "angular_velocity_mode", expand=True)
-
-        if part.angular_velocity_mode != 'NONE':
-            col.prop(part, "angular_velocity_factor", text="")
+        if part.type != 'HAIR':
+            col = layout.column()
+            if part.use_dynamic_rotation:
+                col.label(text="Initial Angular Velocity:")
+            else:
+                col.label(text="Angular Velocity:")
+            sub = col.row(align=True)
+            sub.prop(part, "angular_velocity_mode", text="")
+            subsub = sub.column()
+            subsub.active = part.angular_velocity_mode != 'NONE'
+            subsub.prop(part, "angular_velocity_factor", text="")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
@@ -824,7 +832,9 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 
         elif part.render_type == 'OBJECT':
             col.prop(part, "dupli_object")
-            col.prop(part, "use_global_dupli")
+            sub = col.row()
+            sub.prop(part, "use_global_dupli")
+            sub.prop(part, "use_rotation_dupli")
         elif part.render_type == 'GROUP':
             col.prop(part, "dupli_group")
             split = layout.split()
@@ -833,13 +843,14 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             col.prop(part, "use_whole_group")
             sub = col.column()
             sub.active = (part.use_whole_group is False)
+            sub.prop(part, "use_group_pick_random")
             sub.prop(part, "use_group_count")
 
             col = split.column()
             sub = col.column()
             sub.active = (part.use_whole_group is False)
             sub.prop(part, "use_global_dupli")
-            sub.prop(part, "use_group_pick_random")
+            sub.prop(part, "use_rotation_dupli")
 
             if part.use_group_count and not part.use_whole_group:
                 row = layout.row()

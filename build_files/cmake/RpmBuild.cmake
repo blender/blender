@@ -3,17 +3,24 @@
 # Authors: Rohit Yadav <rohityadav89@gmail.com>
 #
 
-find_program(RPMBUILD
-    NAMES rpmbuild
-    PATHS "/usr/bin")
+if(NOT DEFINED RPMBUILD)
 
-mark_as_advanced(RPMBUILD)
+	find_program(RPMBUILD
+		NAMES rpmbuild
+		PATHS "/usr/bin")
+
+	mark_as_advanced(RPMBUILD)
+
+	if(RPMBUILD)
+		message(STATUS "RPM Build Found: ${RPMBUILD}")
+	else(RPMBUILD) 
+		message(STATUS "RPM Build Not Found (rpmbuild). RPM generation will not be available")
+	endif()
+
+endif()
 
 if(RPMBUILD)
-    get_filename_component(RPMBUILD_PATH ${RPMBUILD} ABSOLUTE)
-    message(STATUS "Found rpmbuild : ${RPMBUILD_PATH}")
-    set(RPMBUILD_FOUND "YES")
+	set(RPMBUILD_FOUND TRUE)
 else(RPMBUILD) 
-    message(STATUS "rpmbuild NOT found. RPM generation will not be available")
-    set(RPMBUILD_FOUND "NO")
+	set(RPMBUILD_FOUND FALSE)
 endif()

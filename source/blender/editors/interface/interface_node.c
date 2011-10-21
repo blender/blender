@@ -256,10 +256,10 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 			ui_node_remove_linked(ntree, node_prev);
 		}
 
-		NodeTagChanged(ntree, node_from);
+		nodeUpdate(ntree, node_from);
 	}
 
-	NodeTagChanged(ntree, node_to);
+	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(ntree);
 
 	ED_node_generic_update(CTX_data_main(C), ntree, node_to);
