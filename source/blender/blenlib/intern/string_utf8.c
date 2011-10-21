@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * Code from gutf8.c Copyright (C) 1999 Tom Tromey
+ *                   Copyright (C) 2000 Red Hat, Inc.
  * All rights reserved.
  *
  * Contributor(s): Campbell Barton.
@@ -263,7 +265,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 /* end wchar_t / utf8 functions  */
 /* --------------------------------------------------------------------------*/
 
-/* copied from glib */
+/* copied from glib's gutf8.c */
 
 /* note, glib uses unsigned int for unicode, best we do the same,
  * though we dont typedef it - campbell */
