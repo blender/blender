@@ -3146,11 +3146,11 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
 					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 
-				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
+				if(scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
 					continue;
 				}
-				if(scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				if(scene->r.mode & R_TOUCH && !BLI_exists(name)) {
 					BLI_make_existing_file(name); /* makes the dir if its not there */
 					BLI_touch(name);
 				}
@@ -3175,7 +3175,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			if(G.afbreek==1) {
 				/* remove touched file */
 				if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
-					if (scene->r.mode & R_TOUCH && BLI_exist(name) && BLI_filepathsize(name) == 0) {
+					if (scene->r.mode & R_TOUCH && BLI_exists(name) && BLI_filepathsize(name) == 0) {
 						BLI_delete(name, 0, 0);
 					}
 				}

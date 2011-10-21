@@ -195,10 +195,6 @@ int BLI_touch(const char *file)
 	return 0;
 }
 
-int BLI_exists(const char *file) {
-	return BLI_exist(file);
-}
-
 #ifdef WIN32
 
 static char str[MAXPATHLEN+12];

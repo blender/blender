@@ -84,6 +84,18 @@
 
 #endif /* WIN32 */
 
+/* standard paths */
+#ifdef WIN32
+#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#elif defined(__APPLE__)
+#define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
+#else
+#define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
+#endif
+
 /* local */
 #define UNIQUE_NAME_MAX 128
 
@@ -1635,7 +1647,7 @@ static int add_win32_extension(char *name)
 	int retval = 0;
 	int type;
 
-	type = BLI_exist(name);
+	type = BLI_exists(name);
 	if ((type == 0) || S_ISDIR(type)) {
 #ifdef _WIN32
 		char filename[FILE_MAXDIR+FILE_MAXFILE];
@@ -1655,7 +1667,7 @@ static int add_win32_extension(char *name)
 					strcat(filename, extensions);
 				}
 
-				type = BLI_exist(filename);
+				type = BLI_exists(filename);
 				if (type && (! S_ISDIR(type))) {
 					retval = 1;
 					strcpy(name, filename);

@@ -2363,7 +2363,7 @@ void BKE_ptcache_remove(void)
 	
 	ptcache_path(NULL, path);
 
-	if (BLI_exist(path)) {
+	if (BLI_exists(path)) {
 		/* The pointcache dir exists? - remove all pointcache */
 
 		DIR *dir; 
