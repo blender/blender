@@ -872,7 +872,7 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
 					if(pm->data[i] && pm->data_types & (1<<i)) {
-						if(strcmp(ptcache_data_struct[i], "")==0)
+						if(ptcache_data_struct[i][0]=='\0')
 							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
 						else
 							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
@@ -880,7 +880,7 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				}
 
 				for(; extra; extra=extra->next) {
-					if(strcmp(ptcache_extra_struct[extra->type], "")==0)
+					if(ptcache_extra_struct[extra->type][0]=='\0')
 						continue;
 					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
 					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
@@ -2699,6 +2699,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		}
 	}
 
+	userfilename[0]= '\0'; /* ensure its initialized */
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 

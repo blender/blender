@@ -2370,7 +2370,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	
 	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
-	pup->block->puphash= ui_popup_menu_hash((char*)title);
+	pup->block->puphash= ui_popup_menu_hash(title);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 
