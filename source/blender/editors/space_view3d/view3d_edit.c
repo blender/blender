@@ -2941,17 +2941,8 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
-	
-	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
-	bgpic->size= 5.0;
-	bgpic->blend= 0.5;
-	bgpic->iuser.fie_ima= 2;
-	bgpic->iuser.ok= 1;
-	bgpic->view= 0; /* 0 for all */
-	
-	BLI_addtail(&v3d->bgpicbase, bgpic);
-	
-	return bgpic;
+
+	return ED_view3D_background_image_add(v3d);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3533,4 +3524,19 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
 	object_apply_mat4(ob, mat, TRUE, TRUE);
+}
+
+BGpic *ED_view3D_background_image_add(View3D *v3d)
+{
+	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
+
+	bgpic->size= 5.0;
+	bgpic->blend= 0.5;
+	bgpic->iuser.fie_ima= 2;
+	bgpic->iuser.ok= 1;
+	bgpic->view= 0; /* 0 for all */
+
+	BLI_addtail(&v3d->bgpicbase, bgpic);
+
+	return bgpic;
 }

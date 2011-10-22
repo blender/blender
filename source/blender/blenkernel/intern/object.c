@@ -2119,11 +2119,30 @@ void set_no_parent_ipo(int val)
 	no_parent_ipo= val;
 }
 
+static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
+{
+	float *fp1, *fp2;
+	float fac1, fac2;
+	int a;
+
+	// include framerate
+	fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
+	if(fac1 >= 1.0f) return 0;
+	fac2= 1.0f-fac1;
+
+	fp1= obmat[0];
+	fp2= slowmat[0];
+	for(a=0; a<16; a++, fp1++, fp2++) {
+		fp1[0]= fac1*fp1[0] + fac2*fp2[0];
+	}
+
+	return 1;
+}
+
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
-	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime=ctime, fac1, fac2;
-	int a;
+	float slowmat[4][4] = MAT4_UNITY;
+	float stime=ctime;
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
@@ -2157,16 +2176,8 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
 		if(ob->partype & PARSLOW) {
-			// include framerate
-			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
-			if(fac1 >= 1.0f) return;
-			fac2= 1.0f-fac1;
-			
-			fp1= ob->obmat[0];
-			fp2= slowmat[0];
-			for(a=0; a<16; a++, fp1++, fp2++) {
-				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
-			}
+			if(!where_is_object_parslow(ob, ob->obmat, slowmat))
+				return;
 		}
 	}
 	else {
@@ -2196,27 +2207,15 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
    used for bundles orientation in 3d space relative to parented blender camera */
 void where_is_object_mat(Scene *scene, Object *ob, float obmat[4][4])
 {
-	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float fac1, fac2;
-	int a;
+	float slowmat[4][4] = MAT4_UNITY;
 
 	if(ob->parent) {
 		Object *par= ob->parent;
 
 		solve_parenting(scene, ob, par, obmat, slowmat, 1);
 
-		if(ob->partype & PARSLOW) {
-			// include framerate
-			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
-			if(fac1 >= 1.0f) return;
-			fac2= 1.0f-fac1;
-
-			fp1= obmat[0];
-			fp2= slowmat[0];
-			for(a=0; a<16; a++, fp1++, fp2++) {
-				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
-			}
-		}
+		if(ob->partype & PARSLOW)
+			where_is_object_parslow(ob, obmat, slowmat);
 	}
 	else {
 		object_to_mat4(ob, obmat);

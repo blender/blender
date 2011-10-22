@@ -292,4 +292,6 @@ void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return TRUE if */
 int ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
+struct BGpic *ED_view3D_background_image_add(struct View3D *v3d);
+
 #endif /* ED_VIEW3D_H */

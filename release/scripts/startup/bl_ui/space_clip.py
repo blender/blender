@@ -67,7 +67,7 @@ class CLIP_HT_header(Header):
             r = clip.tracking.reconstruction
 
             if r.is_reconstructed:
-                layout.label(text="Average solve error: %.4f" % \
+                layout.label(text="Average solve error: %.4f" %
                     (r.average_error))
 
         layout.template_running_jobs()
@@ -113,25 +113,25 @@ class CLIP_PT_tools_tracking(Panel):
 
         row = layout.row(align=True)
 
-        op = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
-        op.backwards = True
-        op = row.operator("clip.track_markers", text="", \
+        props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
+        props.backwards = True
+        props = row.operator("clip.track_markers", text="",
              icon='PLAY_REVERSE')
-        op.backwards = True
-        op.sequence = True
-        op = row.operator("clip.track_markers", text="", icon='PLAY')
-        op.sequence = True
+        props.backwards = True
+        props.sequence = True
+        props = row.operator("clip.track_markers", text="", icon='PLAY')
+        props.sequence = True
         row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
         col = layout.column(align=True)
-        op = col.operator("clip.clear_track_path", text="Clear After")
-        op.action = 'REMAINED'
+        props = col.operator("clip.clear_track_path", text="Clear After")
+        props.action = 'REMAINED'
 
-        op = col.operator("clip.clear_track_path", text="Clear Before")
-        op.action = 'UPTO'
+        props = col.operator("clip.clear_track_path", text="Clear Before")
+        props.action = 'UPTO'
 
-        op = col.operator("clip.clear_track_path", text="Clear Track Path")
-        op.action = 'ALL'
+        props = col.operator("clip.clear_track_path", text="Clear Track Path")
+        props.action = 'ALL'
 
         layout.operator("clip.join_tracks")
 
@@ -295,8 +295,8 @@ class CLIP_PT_track(Panel):
 
         sub.template_marker(sc, "clip", sc.clip_user, act_track, True)
 
-        icon = 'LOCKED' if act_track.locked else 'UNLOCKED'
-        sub.prop(act_track, "locked", text="", icon=icon)
+        icon = 'LOCKED' if act_track.lock else 'UNLOCKED'
+        sub.prop(act_track, "lock", text="", icon=icon)
 
         layout.template_track(sc, "scopes")
 
@@ -312,9 +312,9 @@ class CLIP_PT_track(Panel):
         row.menu('CLIP_MT_track_color_presets', text=label)
         row.menu('CLIP_MT_track_color_specials', text="", icon="DOWNARROW_HLT")
         row.operator("clip.track_color_preset_add", text="", icon="ZOOMIN")
-        op = row.operator("clip.track_color_preset_add", \
+        props = row.operator("clip.track_color_preset_add",
             text="", icon="ZOOMOUT")
-        op.remove_active = True
+        props.remove_active = True
 
         row = layout.row()
         row.prop(act_track, "use_custom_color")
@@ -348,8 +348,8 @@ class CLIP_PT_tracking_camera(Panel):
         label = bpy.types.CLIP_MT_camera_presets.bl_label
         row.menu('CLIP_MT_camera_presets', text=label)
         row.operator("clip.camera_preset_add", text="", icon="ZOOMIN")
-        op = row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT")
-        op.remove_active = True
+        props = row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT")
+        props.remove_active = True
 
         row = layout.row(align=True)
         sub = row.split(percentage=0.65)
@@ -478,7 +478,7 @@ class CLIP_PT_stabilization(Panel):
         sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
         sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
 
-        sub.menu('CLIP_MT_stabilize_2d_specials', text="", \
+        sub.menu('CLIP_MT_stabilize_2d_specials', text="",
             icon="DOWNARROW_HLT")
 
         layout.prop(stab, "influence_location")
@@ -648,7 +648,7 @@ class CLIP_MT_view(Menu):
 
         layout.separator()
 
-        ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
+        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for a, b in ratios:
             text = "Zoom %d:%d" % (a, b)
@@ -698,14 +698,14 @@ class CLIP_MT_track(Menu):
         layout.operator("clip.solve_camera")
 
         layout.separator()
-        op = layout.operator("clip.clear_track_path", text="Clear After")
-        op.action = 'REMAINED'
+        props = layout.operator("clip.clear_track_path", text="Clear After")
+        props.action = 'REMAINED'
 
-        op = layout.operator("clip.clear_track_path", text="Clear Before")
-        op.action = 'UPTO'
+        props = layout.operator("clip.clear_track_path", text="Clear Before")
+        props.action = 'UPTO'
 
-        op = layout.operator("clip.clear_track_path", text="Clear Track Path")
-        op.action = 'ALL'
+        props = layout.operator("clip.clear_track_path", text="Clear Track Path")
+        props.action = 'ALL'
 
         layout.separator()
         layout.operator("clip.join_tracks")
@@ -714,16 +714,16 @@ class CLIP_MT_track(Menu):
         layout.operator("clip.clean_tracks")
 
         layout.separator()
-        op = layout.operator("clip.track_markers", \
+        props = layout.operator("clip.track_markers",
             text="Track Frame Backwards")
-        op.backwards = True
+        props.backwards = True
 
-        op = layout.operator("clip.track_markers", text="Track Backwards")
-        op.backwards = True
-        op.sequence = True
+        props = layout.operator("clip.track_markers", text="Track Backwards")
+        props.backwards = True
+        props.sequence = True
 
-        op = layout.operator("clip.track_markers", text="Track Forwards")
-        op.sequence = True
+        props = layout.operator("clip.track_markers", text="Track Forwards")
+        props.sequence = True
         layout.operator("clip.track_markers", text="Track Frame Forwards")
 
         layout.separator()
@@ -767,8 +767,8 @@ class CLIP_MT_track_visibility(Menu):
         layout.operator("clip.hide_tracks_clear", text="Show Hidden")
         layout.operator("clip.hide_tracks", text="Hide Selected")
 
-        op = layout.operator("clip.hide_tracks", text="Hide Unselected")
-        op.unselected = True
+        props = layout.operator("clip.hide_tracks", text="Hide Unselected")
+        props.unselected = True
 
 
 class CLIP_MT_track_transform(Menu):
@@ -806,28 +806,7 @@ class CLIP_MT_select_grouped(Menu):
     def draw(self, context):
         layout = self.layout
 
-        sc = context.space_data
-
-        op = layout.operator("clip.select_grouped", text="Select Keyframed")
-        op.group = 'KEYFRAMED'
-
-        op = layout.operator("clip.select_grouped", text="Select Estimated")
-        op.group = 'ESTIMATED'
-
-        op = layout.operator("clip.select_grouped", text="Select Tracked")
-        op.group = 'TRACKED'
-
-        op = layout.operator("clip.select_grouped", text="Select Locked")
-        op.group = 'LOCKED'
-
-        op = layout.operator("clip.select_grouped", text="Select Disabled")
-        op.group = 'DISABLED'
-
-        op = layout.operator("clip.select_grouped", text="Select Failed")
-        op.group = 'FAILED'
-
-        op = layout.operator("clip.select_grouped", text="Select by Color")
-        op.group = 'COLOR'
+        layout.operator_enum("clip.select_grouped", "group")
 
 
 class CLIP_MT_tracking_specials(Menu):
@@ -840,11 +819,11 @@ class CLIP_MT_tracking_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator("clip.disable_markers", text="Enable Markers")
-        op.action = 'ENABLE'
+        props = layout.operator("clip.disable_markers", text="Enable Markers")
+        props.action = 'ENABLE'
 
-        op = layout.operator("clip.disable_markers", text="Disable markers")
-        op.action = 'DISABLE'
+        props = layout.operator("clip.disable_markers", text="Disable markers")
+        props.action = 'DISABLE'
 
         layout.separator()
         layout.operator("clip.set_origin")
@@ -854,11 +833,11 @@ class CLIP_MT_tracking_specials(Menu):
         layout.operator("clip.hide_tracks_clear", text="Show Tracks")
 
         layout.separator()
-        op = layout.operator("clip.lock_tracks", text="Lock Tracks")
-        op.action = 'LOCK'
+        props = layout.operator("clip.lock_tracks", text="Lock Tracks")
+        props.action = 'LOCK'
 
-        op = layout.operator("clip.lock_tracks", text="Unlock Tracks")
-        op.action = 'UNLOCK'
+        props = layout.operator("clip.lock_tracks", text="Unlock Tracks")
+        props.action = 'UNLOCK'
 
 
 class CLIP_MT_camera_presets(Menu):

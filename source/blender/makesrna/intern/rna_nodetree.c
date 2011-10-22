@@ -2448,7 +2448,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, filter_type_items);
-	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter stabilization");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -2471,7 +2471,7 @@ static void def_cmp_moviedistortion(StructRNA *srna)
 	prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, distortion_type_items);
-	RNA_def_property_ui_text(prop, "Distortion", "Distoriton to use to filter image");
+	RNA_def_property_ui_text(prop, "Distortion", "Distortion to use to filter image");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -2488,7 +2488,7 @@ static void dev_cmd_transform(StructRNA *srna)
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, filter_type_items);
-	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter transform");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

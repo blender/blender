@@ -3743,7 +3743,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
 
 	/* acctive MovieClip */
-	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active_clip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clip");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "MovieClip");

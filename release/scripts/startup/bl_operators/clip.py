@@ -21,6 +21,7 @@ import bpy
 import os
 import shutil
 from bpy.types import Operator
+from bpy_extras.io_utils import unpack_list
 
 
 class CLIP_OT_track_to_empty(Operator):
@@ -45,15 +46,10 @@ class CLIP_OT_track_to_empty(Operator):
         constraint = None
         ob = None
 
-        if track.name in bpy.data.objects:
-            if bpy.data.objects[track.name].type == 'Empty':
-                ob = bpy.data.objects[track.name]
-
-        if  not ob:
-            ob = bpy.data.objects.new(name=track.name, object_data=None)
-            ob.select = True
-            bpy.context.scene.objects.link(ob)
-            bpy.context.scene.objects.active = ob
+        ob = bpy.data.objects.new(name=track.name, object_data=None)
+        ob.select = True
+        bpy.context.scene.objects.link(ob)
+        bpy.context.scene.objects.active = ob
 
         for con in ob.constraints:
             if con.type == 'FOLLOW_TRACK':
@@ -89,11 +85,16 @@ class CLIP_OT_bundles_to_mesh(Operator):
         sc = context.space_data
         clip = sc.clip
 
+        new_verts = []
+
         mesh = bpy.data.meshes.new(name="Bundles")
         for track in clip.tracking.tracks:
             if track.has_bundle:
-                mesh.vertices.add(1)
-                mesh.vertices[-1].co = track.bundle
+                new_verts.append(track.bundle)
+
+        if new_verts:
+            mesh.vertices.add(len(new_verts))
+            mesh.vertices.foreach_set("co", unpack_list(new_verts))
 
         ob = bpy.data.objects.new(name="Bundles", object_data=mesh)
 
@@ -247,7 +248,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
 
         # Get clip used for parenting
         if con.use_active_clip:
-            clip = scene.clip
+            clip = scene.active_clip
         else:
             clip = con.clip
 

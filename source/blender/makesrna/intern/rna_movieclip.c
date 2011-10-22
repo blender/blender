@@ -171,13 +171,13 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MovieClipUser", NULL);
-	RNA_def_struct_ui_text(srna, "Movie Clip User", "Parameters defining how an MovieClip datablock is used by another datablock");
+	RNA_def_struct_ui_text(srna, "Movie Clip User", "Parameters defining how a MovieClip datablock is used by another datablock");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "framenr");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Current Frame", "Get frame number user is points to in clip");
+	RNA_def_property_ui_text(prop, "Current Frame", "Current frame number in movie or image sequence");
 
 	/* render size */
 	prop= RNA_def_property(srna, "proxy_render_size", PROP_ENUM, PROP_NONE);

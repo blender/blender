@@ -855,15 +855,7 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 
 static BGpic *rna_BackgroundImage_add(View3D *v3d)
 {
-	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
-
-	bgpic->size= 5.0;
-	bgpic->blend= 0.5;
-	bgpic->iuser.fie_ima= 2;
-	bgpic->iuser.ok= 1;
-	bgpic->view= 0; /* 0 for all */
-
-	BLI_addtail(&v3d->bgpicbase, bgpic);
+	BGpic *bgpic= ED_view3D_background_image_add(v3d);;
 
 	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
@@ -1562,7 +1554,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_CAMERAPATH);
-	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of ameraip");
+	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of camera");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "show_bundle_name", PROP_BOOLEAN, PROP_NONE);
