@@ -874,10 +874,10 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 			shi->alpha= shi->vcol[3];
 	}
 	else if(ma->mode & (MA_VERTEXCOLP)) {
-		float inv_alpha = 1.0f - shi->vcol[3];
-		shi->r= shi->r*inv_alpha + shi->vcol[0]*shi->vcol[3];
-		shi->g= shi->g*inv_alpha + shi->vcol[1]*shi->vcol[3];
-		shi->b= shi->b*inv_alpha + shi->vcol[2]*shi->vcol[3];
+		float neg_alpha = 1.0f - shi->vcol[3];
+		shi->r= shi->r*neg_alpha + shi->vcol[0]*shi->vcol[3];
+		shi->g= shi->g*neg_alpha + shi->vcol[1]*shi->vcol[3];
+		shi->b= shi->b*neg_alpha + shi->vcol[2]*shi->vcol[3];
 	}
 	
 	if(ma->texco)
@@ -1671,10 +1671,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				shi->alpha= shi->vcol[3];
 		}
 		else if(ma->mode & (MA_VERTEXCOLP)) {
-			float inv_alpha = 1.0f - shi->vcol[3];
-			shi->r= shi->r*inv_alpha + shi->vcol[0]*shi->vcol[3];
-			shi->g= shi->g*inv_alpha + shi->vcol[1]*shi->vcol[3];
-			shi->b= shi->b*inv_alpha + shi->vcol[2]*shi->vcol[3];
+			float neg_alpha = 1.0f - shi->vcol[3];
+			shi->r= shi->r*neg_alpha + shi->vcol[0]*shi->vcol[3];
+			shi->g= shi->g*neg_alpha + shi->vcol[1]*shi->vcol[3];
+			shi->b= shi->b*neg_alpha + shi->vcol[2]*shi->vcol[3];
 		}
 		if(ma->texco){
 			do_material_tex(shi);

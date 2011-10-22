@@ -123,8 +123,12 @@ int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int 
 int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres){return 0;}
 int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres){return 0;}
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex) {return 0;}
-void do_material_tex(struct ShadeInput *shi) {}
-void do_volume_tex(struct ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val, struct Render *re) {}
+
+/* material_ext.c */
+struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) {return (struct Material *)NULL;}
+void RE_free_sample_material(struct Material *mat) {}
+void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
+						   int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}
@@ -149,8 +153,6 @@ struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]) { return 0; }
-void cache_voxeldata(struct Tex *tex, int scene_frame){}
-void cache_pointdensity(struct Render *re, struct Tex *tex){}
 
 /* rna */
 float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}

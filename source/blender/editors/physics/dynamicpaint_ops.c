@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_string.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
@@ -333,24 +334,24 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 			/* color map	*/
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 				if (surface->flags & MOD_DPAINT_OUT1) {
-					sprintf(filename, "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
+					BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
 					dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_PAINT);
 				}
 				if (surface->flags & MOD_DPAINT_OUT2) {
-					sprintf(filename, "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name2, pad, (int)frame);
+					BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name2, pad, (int)frame);
 					dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_WET);
 				}
 			}
 
 			/* displacement map	*/
 			else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-				sprintf(filename, "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
+				BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
 				dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_DISPLACE);
 			}
 
 			/* waves	*/
 			else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-				sprintf(filename, "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
+				BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
 				dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_WAVES);
 			}
 		}
@@ -365,6 +366,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = NULL;
+	DynamicPaintCanvasSettings *canvas;
 	Object *ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	int status = 0;
 	double timer = PIL_check_seconds_timer();
@@ -380,15 +382,16 @@ int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	}
 
 	/* Make sure we're dealing with a canvas */
-	if (!pmd->canvas) {
+	canvas = pmd->canvas;
+	if (!canvas) {
 		BKE_report(op->reports, RPT_ERROR, "Bake Failed: Invalid Canvas.");
 		return 0;
 	}
-	surface = get_activeSurface(pmd->canvas);
+	surface = get_activeSurface(canvas);
 
 	/* Set state to baking and init surface */
-	pmd->canvas->error[0] = '\0';
-	pmd->canvas->flags |= MOD_DPAINT_BAKING;
+	canvas->error[0] = '\0';
+	canvas->flags |= MOD_DPAINT_BAKING;
 	G.afbreek= 0;	/* reset blender_test_break*/
 
 	/*  Bake Dynamic Paint	*/
@@ -405,37 +408,20 @@ int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 		/* Format time string	*/
 		char timestr[30];
 		double time = PIL_check_seconds_timer() - timer;
-		int tmp_val;
-		timestr[0] = '\0';
-
-		/* days (just in case someone actually has a very slow pc)	*/
-		tmp_val = (int)floor(time / 86400.0f);
-		if (tmp_val > 0) sprintf(timestr, "%i Day(s) - ", tmp_val);
-		/* hours	*/
-		time -= 86400.0f * tmp_val;
-		tmp_val = (int)floor(time / 3600.0f);
-		if (tmp_val > 0) sprintf(timestr, "%s%i h ", timestr, tmp_val);
-		/* minutes	*/
-		time -= 3600.0f * tmp_val;
-		tmp_val = (int)floor(time / 60.0f);
-		if (tmp_val > 0) sprintf(timestr, "%s%i min ", timestr, tmp_val);
-		/* seconds	*/
-		time -= 60.0f * tmp_val;
-		tmp_val = (int)ceil(time);
-		sprintf(timestr, "%s%i s", timestr, tmp_val);
+		BLI_timestr(time, timestr);
 
 		/* Show bake info */
-		sprintf(pmd->canvas->ui_info, "Bake Complete! (Time: %s)", timestr);
-		printf("%s\n", pmd->canvas->ui_info);
+		BLI_snprintf(canvas->ui_info, sizeof(canvas->ui_info), "Bake Complete! (%s)", timestr);
+		printf("%s\n", canvas->ui_info);
 	}
 	else {
 		if (strlen(pmd->canvas->error)) { /* If an error occured */
-			sprintf(pmd->canvas->ui_info, "Bake Failed: %s", pmd->canvas->error);
-			BKE_report(op->reports, RPT_ERROR, pmd->canvas->ui_info);
+			BLI_snprintf(canvas->ui_info, sizeof(canvas->ui_info), "Bake Failed: %s", pmd->canvas->error);
+			BKE_report(op->reports, RPT_ERROR, canvas->ui_info);
 		}
 		else {	/* User cancelled the bake */
 			sprintf(pmd->canvas->ui_info, "Baking Cancelled!");
-			BKE_report(op->reports, RPT_WARNING, pmd->canvas->ui_info);
+			BKE_report(op->reports, RPT_WARNING, canvas->ui_info);
 		}
 
 		/* Print failed bake to console */

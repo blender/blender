@@ -65,6 +65,5 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 /* Normal is optional, but if given will limit results to points in normal direction from co. */
 /* Remember to free nearest after use! */
 int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KDTreeNearest **nearest);
-int BLI_kdtree_range_search_thread_safe(KDTree *tree, float range, float *co, float *nor, KDTreeNearest *nearest, int limit);
 #endif
 

@@ -710,21 +710,10 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 			{MOD_DPAINT_RAY_ZPLUS, "ZPLUS", 0, "Z-Axis", ""},
 			{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem buttons_dynamicpaint_settings_menu[] = {
-		{0, "GENERAL", ICON_MOD_DYNAMICPAINT, "", "Show general settings"},
-		{1, "VELOCITY", ICON_CURVE_PATH, "", "Show velocity related settings"},
-		{2, "WAVE", ICON_MOD_WAVE, "", "Show wave related settings"},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna = RNA_def_struct(brna, "DynamicPaintBrushSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Brush Settings", "Brush settings");
 	RNA_def_struct_sdna(srna, "DynamicPaintBrushSettings");
 	RNA_def_struct_path_func(srna, "rna_DynamicPaintBrushSettings_path");
-
-	prop= RNA_def_property(srna, "brush_settings_context", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, buttons_dynamicpaint_settings_menu);
-	RNA_def_property_enum_sdna(prop, NULL, "brush_settings_context");
-	RNA_def_property_ui_text(prop, "Brush Context", "");
 
 	/*
 	*   Paint
@@ -767,7 +756,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_wave_type);
-	RNA_def_property_ui_text(prop, "Paint Type", "");
+	RNA_def_property_ui_text(prop, "Brush Effect", "");
 
 	prop= RNA_def_property(srna, "wave_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -2.0, 2.0);

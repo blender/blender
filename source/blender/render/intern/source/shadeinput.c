@@ -1103,6 +1103,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				for (i=0; (mcol=RE_vlakren_get_mcol(obr, vlr, i, &name, 0)); i++) {
 					ShadeInputCol *scol= &shi->col[i];
 					char *cp1, *cp2, *cp3;
+					float a[3];
 					
 					shi->totcol++;
 					scol->name= name;
@@ -1111,18 +1112,21 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					cp2= (char *)(mcol+j2);
 					cp3= (char *)(mcol+j3);
 
-					/* alpha value */
-					scol->col[3]= (l*((float)cp3[0]) - u*((float)cp1[0]) - v*((float)cp2[0]))/255.0f;
-					
-					/* try to prevent invalid color sampling of zero alpha points */
-					if (!cp1[0]) cp1 = cp2; if (!cp1[0]) cp1 = cp3;
-					if (!cp2[0]) cp2 = cp1; if (!cp2[0]) cp2 = cp3;
-					if (!cp3[0]) cp3 = cp1; if (!cp3[0]) cp3 = cp2;
+					/* alpha values */
+					a[0] = ((float)cp1[0])/255.f;
+					a[1] = ((float)cp2[0])/255.f;
+					a[2] = ((float)cp3[0])/255.f;
+					scol->col[3]= l*a[2] - u*a[0] - v*a[1];
 
-					/* sample color value */
-					scol->col[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;
-					scol->col[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0f;
-					scol->col[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0f;
+					/* sample premultiplied color value */
+					scol->col[0]= (l*((float)cp3[3])*a[2] - u*((float)cp1[3])*a[0] - v*((float)cp2[3])*a[1])/255.f;
+					scol->col[1]= (l*((float)cp3[2])*a[2] - u*((float)cp1[2])*a[0] - v*((float)cp2[2])*a[1])/255.f;
+					scol->col[2]= (l*((float)cp3[1])*a[2] - u*((float)cp1[1])*a[0] - v*((float)cp2[1])*a[1])/255.f;
+
+					/* if not zero alpha, restore non-multiplied color */
+					if (scol->col[3]) {
+						mul_v3_fl(scol->col, 1.0f/scol->col[3]);
+					}
 				}
 
 				if(shi->totcol) {

@@ -57,6 +57,10 @@ void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
 int BLI_thread_is_main(void);
 
+
+void BLI_begin_threaded_malloc(void);
+void BLI_end_threaded_malloc(void);
+
 /* System Information */
 
 int		BLI_system_thread_count(void); /* gets the number of threads the system can make use of */

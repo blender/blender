@@ -12,7 +12,7 @@
 *
 */
 
-#include "stddef.h"
+#include <stddef.h>
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -21,8 +21,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_modifier.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_modifier.h"
 
 #include "depsgraph_private.h"
 
@@ -54,12 +54,34 @@ static void freeData(ModifierData *md)
 
 static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 {
+	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*)md;
 	CustomDataMask dataMask = 0;
 
-	dataMask |= (1 << CD_MTFACE);
-	dataMask |= (1 << CD_MCOL);
-	dataMask |= (1 << CD_MDEFORMVERT);
+	if (pmd->canvas) {
+		DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+		for(; surface; surface=surface->next) {
+			/* tface */
+			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
+				surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
+				dataMask |= (1 << CD_MTFACE);
+			}
+			/* mcol */
+			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
+				surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
+				dataMask |= (1 << CD_MCOL);
+			}
+			/* CD_MDEFORMVERT */
+			if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+				dataMask |= (1 << CD_MDEFORMVERT);
+			}
+		}
+	}
 
+	if (pmd->brush) {
+		if (pmd->brush->mat) {
+			dataMask |= (1 << CD_MTFACE);
+		}
+	}
 	return dataMask;
 }
 

@@ -198,9 +198,9 @@ typedef struct DynamicPaintBrushSettings {
 	struct ColorBand *vel_ramp;		/* Velocity paint ramp */
 
 	short proximity_falloff;
-	short brush_settings_context;	/* ui settings display */
 	short wave_type;
 	short ray_dir;
+	short pad;
 
 	float wave_factor, wave_clamp;
 	float max_velocity, smudge_strength;

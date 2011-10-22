@@ -92,59 +92,28 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                     layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
                 else:
                     layout.operator("dpaint.type_toggle", text="Remove Brush", icon='X').type = 'BRUSH'
-                    
-                    layout.prop(brush, "brush_settings_context", expand=True, icon_only=True)
-                    
-                    if (brush.brush_settings_context == "GENERAL"):
-                        split = layout.split()
 
-                        col = split.column()
-                        col.prop(brush, "absolute_alpha")
-                        col.prop(brush, "paint_erase")
-                        col.prop(brush, "paint_wetness", text="Wetness")
-                    
-                        col = split.column()
-                        sub = col.column()
-                        sub.active = (brush.paint_source != "PSYS");
-                        sub.prop(brush, "use_material")
-                        if brush.use_material and brush.paint_source != "PSYS":
-                            col.prop(brush, "material", text="")
-                            col.prop(brush, "paint_alpha", text="Alpha Factor")
-                        else:
-                            col.prop(brush, "paint_color", text="")
-                            col.prop(brush, "paint_alpha", text="Alpha")
-                    
-                    elif (brush.brush_settings_context == "WAVE"):
-                        layout.prop(brush, "wave_type")
-                        if (brush.wave_type != "REFLECT"):
-                            split = layout.split(percentage=0.5)
-                            col = split.column()
-                            col.prop(brush, "wave_factor")
-                            col = split.column()
-                            col.prop(brush, "wave_clamp")
-                    elif (brush.brush_settings_context == "VELOCITY"):
-                        col = layout.row().column()
-                        col.label(text="Velocity Settings:")
-                        split = layout.split()
-                        col = split.column()
-                        col.prop(brush, "velocity_alpha")
-                        col.prop(brush, "velocity_color")
-                        col = split.column()
-                        col.prop(brush, "velocity_depth")
-                        sub = layout.row().column()
-                        sub.active = (brush.velocity_alpha or brush.velocity_color or brush.velocity_depth)
-                        sub.prop(brush, "max_velocity")
-                        sub.template_color_ramp(brush, "velocity_ramp", expand=True)
-                        layout.separator()
-                        layout.label(text="Smudge:")
-                        layout.prop(brush, "do_smudge")
-                        layout.prop(brush, "smudge_strength")
+                    split = layout.split()
+
+                    col = split.column()
+                    col.prop(brush, "absolute_alpha")
+                    col.prop(brush, "paint_erase")
+                    col.prop(brush, "paint_wetness", text="Wetness")
+                
+                    col = split.column()
+                    sub = col.column()
+                    sub.active = (brush.paint_source != "PSYS");
+                    sub.prop(brush, "use_material")
+                    if brush.use_material and brush.paint_source != "PSYS":
+                        col.prop(brush, "material", text="")
+                        col.prop(brush, "paint_alpha", text="Alpha Factor")
                     else:
-                        layout.label(text="-WIP-")
+                        col.prop(brush, "paint_color", text="")
+                        col.prop(brush, "paint_alpha", text="Alpha")
 
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Advanced"
+    bl_label = "Dynamic Paint Advanced"
 
     @classmethod
     def poll(cls, context):
@@ -208,7 +177,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop(surface, "brush_group", text="")
 
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Output"
+    bl_label = "Dynamic Paint Output"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -299,7 +268,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
                 layout.label(text=canvas.ui_info)
 
 class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Initial Color"
+    bl_label = "Dynamic Paint Initial Color"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -332,7 +301,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
             layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Effects"
+    bl_label = "Dynamic Paint Effects"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -383,7 +352,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
 			
 
 class PHYSICS_PT_dp_cache(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Cache"
+    bl_label = "Dynamic Paint Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -401,9 +370,8 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, bpy.types.Panel):
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'DYNAMIC_PAINT')
 
 
-class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Advanced"
-    bl_options = {'DEFAULT_CLOSED'}
+class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Dynamic Paint Source"
 
     @classmethod
     def poll(cls, context):
@@ -450,6 +418,61 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
                 col.separator()
                 col.prop(brush, "prox_ramp_alpha", text="Only Use Alpha")
                 col.template_color_ramp(brush, "paint_ramp", expand=True)
+                
+class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Dynamic Paint Velocity"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.dynamic_paint
+        return md and (md.ui_type == "BRUSH") and (md.brush_settings)
+
+    def draw(self, context):
+        layout = self.layout
+
+        brush = context.dynamic_paint.brush_settings
+        ob = context.object
+		
+        col = layout.row().column()
+        col.label(text="Brush Velocity Settings:")
+        split = layout.split()
+        col = split.column()
+        col.prop(brush, "velocity_alpha")
+        col.prop(brush, "velocity_color")
+        col = split.column()
+        col.prop(brush, "velocity_depth")
+        sub = layout.row().column()
+        sub.active = (brush.velocity_alpha or brush.velocity_color or brush.velocity_depth)
+        sub.prop(brush, "max_velocity")
+        sub.template_color_ramp(brush, "velocity_ramp", expand=True)
+        layout.separator()
+        layout.label(text="Smudge:")
+        layout.prop(brush, "do_smudge")
+        layout.prop(brush, "smudge_strength")
+        
+class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Dynamic Paint Wave"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.dynamic_paint
+        return md and (md.ui_type == "BRUSH") and (md.brush_settings)
+
+    def draw(self, context):
+        layout = self.layout
+
+        brush = context.dynamic_paint.brush_settings
+        ob = context.object
+		
+        layout.prop(brush, "wave_type")
+        if (brush.wave_type != "REFLECT"):
+            split = layout.split(percentage=0.5)
+            col = split.column()
+            col.prop(brush, "wave_factor")
+            col = split.column()
+            col.prop(brush, "wave_clamp")
 
 def register():
     bpy.utils.register_module(__name__)

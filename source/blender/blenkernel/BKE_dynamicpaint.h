@@ -16,8 +16,6 @@
 
 #include "DNA_dynamicpaint_types.h"
 
-struct PaintEffectData;
-struct PaintBakeData;
 struct bContext;
 struct wmOperator;
 

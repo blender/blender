@@ -20,17 +20,19 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_kdtree.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_group_types.h" /*GroupObject*/
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"	/* to get temp file path	*/
+#include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_bvhutils.h"	/* bvh tree	*/
@@ -45,6 +47,7 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -61,19 +64,10 @@
 /* for image output	*/
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "BKE_image.h"
 
-/* uv validate	*/
-#include "intern/MOD_util.h"
-
-/* to read object material color	*/
-#include "DNA_texture_types.h"
-#include "../render/intern/include/pointdensity.h"
-#include "../render/intern/include/render_types.h"
-#include "../render/intern/include/voxeldata.h"
-#include "../render/intern/include/texture.h"
-#include "DNA_material_types.h"
+/* to read material/texture color	*/
 #include "RE_render_ext.h"
+#include "RE_shader_ext.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -216,10 +210,8 @@ typedef struct PaintAdjData {
 */
 static int printError(DynamicPaintCanvasSettings *canvas, char *string)
 {
-	if (strlen(string)>64) string[63] = '\0';
-
 	/* Add error to canvas ui info label */
-	sprintf(canvas->error, string);
+	BLI_snprintf(canvas->error, sizeof(canvas->error), string);
 
 	/* Print console output */
 	printf("DynamicPaint bake failed: %s\n", canvas->error);
@@ -924,7 +916,7 @@ void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd)
 
 /*
 *	Creates a new surface and adds it to the list
-*	If scene is null, frame range of 1-250
+*	If scene is null, frame range of 1-250 is used
 *	A pointer to this surface is returned
 */
 struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas, Scene *scene)
@@ -1124,7 +1116,6 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 			memcpy(tpmd->brush->vel_ramp, pmd->brush->vel_ramp, sizeof(ColorBand));
 
 		tpmd->brush->proximity_falloff = pmd->brush->proximity_falloff;
-		tpmd->brush->brush_settings_context = pmd->brush->brush_settings_context;
 		tpmd->brush->wave_type = pmd->brush->wave_type;
 		tpmd->brush->ray_dir = pmd->brush->ray_dir;
 
@@ -2140,7 +2131,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 	/* Check for validity	*/
 	if (!tface) return printError(canvas, "No UV data on canvas.");
-	if (surface->image_resolution < 16 || surface->image_resolution > 8096) return printError(canvas, "Invalid resolution.");
+	if (surface->image_resolution < 16 || surface->image_resolution > 8192) return printError(canvas, "Invalid resolution.");
 
 	w = h = surface->image_resolution;
 
@@ -2576,9 +2567,9 @@ void dynamicPaint_outputImage(DynamicPaintSurface *surface, char* filename, shor
 
 	if (sData == NULL || sData->type_data == NULL) {printError(surface->canvas, "Image save failed: Invalid surface.");return;}
 
-	if (format == DPOUTPUT_JPEG) sprintf(output_file,"%s.jpg",filename);
-	else if (format == DPOUTPUT_OPENEXR) sprintf(output_file,"%s.exr",filename);
-	else sprintf(output_file,"%s.png",filename);
+	if (format == DPOUTPUT_JPEG) BLI_snprintf(output_file, sizeof(output_file),"%s.jpg",filename);
+	else if (format == DPOUTPUT_OPENEXR) BLI_snprintf(output_file, sizeof(output_file),"%s.exr",filename);
+	else BLI_snprintf(output_file, sizeof(output_file),"%s.png",filename);
 
 	/* Validate output file path	*/
 	BLI_path_abs(output_file, G.main->name);
@@ -2684,208 +2675,6 @@ typedef struct BrushMaterials {
 	int tot;
 } BrushMaterials;
 
-/* A modified part of shadeinput.c -> shade_input_set_uv()
-*  Used for sampling UV mapped texture color */
-static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
-{
-
-	float detsh, t00, t10, t01, t11, xn, yn, zn;
-	int axis1, axis2;
-
-	/* find most stable axis to project */
-	xn= fabs(normal[0]);
-	yn= fabs(normal[1]);
-	zn= fabs(normal[2]);
-
-	if(zn>=xn && zn>=yn) { axis1= 0; axis2= 1; }
-	else if(yn>=xn && yn>=zn) { axis1= 0; axis2= 2; }
-	else { axis1= 1; axis2= 2; }
-
-	/* compute u,v and derivatives */
-	t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
-	t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
-
-	detsh= 1.0f/(t00*t11-t10*t01);
-	t00*= detsh; t01*=detsh; 
-	t10*=detsh; t11*=detsh;
-
-	uv[0] = (hit[axis1]-v3[axis1])*t11-(hit[axis2]-v3[axis2])*t10;
-	uv[1] = (hit[axis2]-v3[axis2])*t00-(hit[axis1]-v3[axis1])*t01;
-
-	/* u and v are in range -1 to 0, we allow a little bit extra but not too much, screws up speedvectors */
-	CLAMP(uv[0], -2.0f, 1.0f);
-	CLAMP(uv[1], -2.0f, 1.0f);
-}
-
-/* a modified part of shadeinput.c -> shade_input_set_shade_texco()
-*  Used for sampling UV mapped texture color */
-static void textured_face_get_uv(float *uv_co, float *normal, float *uv, int faceIndex, short quad, MTFace *tface)
-{
-	float *uv1, *uv2, *uv3;
-	float l;
-
-	l= 1.0f+uv[0]+uv[1];
-		
-	uv1= tface[faceIndex].uv[0];
-	uv2= (quad) ? tface[faceIndex].uv[2] : tface[faceIndex].uv[1];
-	uv3= (quad) ? tface[faceIndex].uv[3] : tface[faceIndex].uv[2];
-				
-	uv_co[0]= -1.0f + 2.0f*(l*uv3[0]-uv[0]*uv1[0]-uv[1]*uv2[0]);
-	uv_co[1]= -1.0f + 2.0f*(l*uv3[1]-uv[0]*uv1[1]-uv[1]*uv2[1]);
-	uv_co[2]= 0.0f;	/* texture.c assumes there are 3 coords */
-}
-
-/*
-*	Generate an updated copy of material to use for brush sampling.
-*	Updates animated textures and calculates inverse matrices
-*	for material related objects in case texture is mapped to an object.
-*	(obj->imat isn't auto-updated)
-*/
-static void dynamicPaint_copyUpdatedMaterial(Material *orig_mat, Scene *scene, Material **mat_target)
-{
-	MTex *mtex = NULL;
-	MTex *orig_mtex = NULL;
-	Tex *tex = NULL;
-	Material *mat;
-	int tex_nr;
-
-	if (orig_mat == NULL) return;
-
-	/* update material anims */
-	BKE_animsys_evaluate_animdata(scene, &orig_mat->id, orig_mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
-
-	/* copy material */
-	mat = MEM_callocN(sizeof(Material), "Temp Brush Material");
-	memcpy(mat, orig_mat, sizeof(Material));
-
-	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
-		if(mat->septex & (1<<tex_nr)) continue;
-	
-		if(mat->mtex[tex_nr]) {
-			orig_mtex = mat->mtex[tex_nr];
-
-			mtex = MEM_callocN(sizeof(MTex), "Temp MTex Copy");
-			memcpy(mtex, orig_mtex, sizeof(MTex));
-			mat->mtex[tex_nr] = mtex;
-			tex= mtex->tex;
-
-			/* Strip non-compatible texflags */
-			mtex->texflag = (orig_mtex->texflag & MTEX_RGBTOINT) | (orig_mtex->texflag & MTEX_STENCIL) |
-							(orig_mtex->texflag & MTEX_NEGATIVE) | (orig_mtex->texflag & MTEX_ALPHAMIX);
-
-			/* depending of material type, strip non-compatible mapping modes */
-			if (mat->material_type == MA_TYPE_SURFACE) {
-				if (mtex->texco!=TEXCO_ORCO && mtex->texco!=TEXCO_OBJECT &&
-					mtex->texco!=TEXCO_GLOB && mtex->texco!=TEXCO_UV) {
-					/* ignore this texture */
-					mtex->texco = 0;
-					continue;
-				}
-				/* strip all mapto flags except color and alpha */
-				mtex->mapto = (orig_mtex->mapto & MAP_COL) | (orig_mtex->mapto & MAP_ALPHA);
-			}
-			else if (mat->material_type == MA_TYPE_VOLUME) {
-				if (mtex->texco!=TEXCO_OBJECT && mtex->texco!=TEXCO_ORCO &&
-					mtex->texco!=TEXCO_GLOB) {
-					/* ignore */
-					mtex->texco = 0;
-					continue;
-				}
-				/* strip all mapto flags except color and alpha */
-				mtex->mapto = (orig_mtex->mapto & MAP_TRANSMISSION_COL) | (orig_mtex->mapto & MAP_REFLECTION_COL) |
-							  (orig_mtex->mapto & MAP_DENSITY);
-			}
-			
-			/* if mapped to an object, calculate inverse matrices */
-			if(mtex->texco==TEXCO_OBJECT) { 
-				Object *ob= mtex->object;
-				if(ob) {
-					invert_m4_m4(ob->imat, ob->obmat);
-					copy_m4_m4(ob->imat_ren, ob->imat);
-				}
-			}
-
-			/* update texture anims */
-			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
-
-			/* if texture type requires caching, create a copy of texture/data too
-			*  to be able to re-cache safely.
-			*  **Remember to also add new types to dynamicPaint_freeMaterialCopy()!** */
-			if (tex->id.us && (tex->type==TEX_VOXELDATA || tex->type==TEX_POINTDENSITY)) {
-				mtex->tex = MEM_callocN(sizeof(Tex), "Temp Tex Copy");
-				memcpy(mtex->tex, tex, sizeof(Tex));
-				tex= mtex->tex;
-
-				/* update cache if voxel data */
-				if(tex->type==TEX_VOXELDATA) {
-					VoxelData *vd = MEM_callocN(sizeof(VoxelData), "Temp VoxelData Copy");
-					memcpy(vd, tex->vd, sizeof(VoxelData));
-					tex->vd = vd;
-					vd->dataset = NULL;
-
-					cache_voxeldata(tex, (int)scene->r.cfra);
-				}
-				if(tex->type==TEX_POINTDENSITY) {
-					Render dummy_re = {0};
-					PointDensity *pd = MEM_callocN(sizeof(PointDensity), "Temp PointDensity Copy");
-					memcpy(pd, tex->pd, sizeof(PointDensity));
-					tex->pd = pd;
-					pd->point_data = pd->point_tree = NULL;
-
-					/* set dummy values for render and do cache */
-					dummy_re.scene = scene;
-					unit_m4(dummy_re.viewinv);
-					unit_m4(dummy_re.viewmat);
-					unit_m4(dummy_re.winmat);
-					dummy_re.winx = dummy_re.winy = 128;
-					cache_pointdensity(&dummy_re, tex);
-				}
-			}
-
-			/* update image sequences and movies */
-			if(tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&tex->iuser, (int)scene->r.cfra, 0);
-			}
-		}
-	}
-	*mat_target = mat;
-}
-
-/* free all duplicate data allocated by dynamicPaint_copyUpdatedMaterial() */
-static void dynamicPaint_freeMaterialCopy(Material *mat)
-{
-	int tex_nr;
-	if (!mat)
-		return;
-
-	/* free mtexes */
-	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
-		if(mat->septex & (1<<tex_nr)) continue;
-		
-		if(mat->mtex[tex_nr]) {
-			MTex *mtex= mat->mtex[tex_nr];
-			Tex *tex= mtex->tex;
-			/* free tex copies */
-			if (tex->id.us && (tex->type==TEX_VOXELDATA || tex->type==TEX_POINTDENSITY)) {
-				if(tex->type==TEX_VOXELDATA && tex->vd) {
-					if (tex->vd->dataset) MEM_freeN(tex->vd->dataset);
-					MEM_freeN(tex->vd);
-				}
-				if(tex->type==TEX_POINTDENSITY && tex->pd) {
-					if (tex->pd->point_tree) BLI_bvhtree_free(tex->pd->point_tree);
-					if (tex->pd->point_data) MEM_freeN(tex->pd->point_data);
-					MEM_freeN(tex->pd);
-				}
-				MEM_freeN(tex);
-			}
-			MEM_freeN(mtex);
-		}
-	}
-
-	MEM_freeN(mat);
-}
-
 /* Initialize materials for brush object:
 *  Calculates inverse matrices for linked objects, updates
 *  volume caches etc. */
@@ -2901,14 +2690,16 @@ static void dynamicPaint_updateBrushMaterials(Object *brushOb, Material *ui_mat,
 		int i, tot=(*give_totcolp(brushOb));
 
 		/* allocate material pointer array */
-		bMats->ob_mats = MEM_callocN(sizeof(Material*)*(tot), "BrushMaterials");
-		for (i=0; i<tot; i++) {
-			dynamicPaint_copyUpdatedMaterial(give_current_material(brushOb,(i+1)), scene, &bMats->ob_mats[i]);
+		if (tot) {
+			bMats->ob_mats = MEM_callocN(sizeof(Material*)*(tot), "BrushMaterials");
+			for (i=0; i<tot; i++) {
+				bMats->ob_mats[i] = RE_init_sample_material(give_current_material(brushOb,(i+1)), scene);
+			}
 		}
 		bMats->tot = tot;
 	}
 	else {
-		dynamicPaint_copyUpdatedMaterial(ui_mat, scene, &bMats->mat);
+		bMats->mat = RE_init_sample_material(ui_mat, scene);
 	}
 }
 
@@ -2919,38 +2710,22 @@ static void dynamicPaint_freeBrushMaterials(BrushMaterials *bMats)
 	if (bMats->ob_mats) {
 		int i;
 		for (i=0; i<bMats->tot; i++) {
-			dynamicPaint_freeMaterialCopy(bMats->ob_mats[i]);
+			RE_free_sample_material(bMats->ob_mats[i]);
 		}
 		MEM_freeN(bMats->ob_mats);
 	}
-	else {
-		dynamicPaint_freeMaterialCopy(bMats->mat);
+	else if (bMats->mat) {
+		RE_free_sample_material(bMats->mat);
 	}
 }
 
 /*
 *	Get material diffuse color and alpha (including linked textures) in given coordinates
-*	
-*	color,alpha : input/output color values
-*	surfaceCoord : canvas surface point coordinates in global space. used if material is volumetric
-*	paintHit : ray hit point on brush object surface in global space. used by "surface" type materials
-*	faceIndex : ray hit face index
-*	orcoDm : orco state derived mesh of paint object
 */
-void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, float surfaceCoord[3], float xyz[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
+void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, const float volume_co[3], const float surface_co[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
 {
-
-	MFace *mface;
-	int v1, v2, v3;
-	MVert *mvert;
-	float uv[3], normal[3];
-
-	ShadeInput shi = {0};
 	Material *mat = bMats->mat;
-
-	/* Get face data	*/
-	mvert = orcoDm->getVertArray(orcoDm);
-	mface = orcoDm->getFaceArray(orcoDm);
+	MFace *mface = orcoDm->getFaceArray(orcoDm);
 
 	/* If no material defined, use the one assigned to the mesh face */
 	if (mat == NULL) {
@@ -2963,89 +2738,7 @@ void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *al
 		else return;
 	}
 
-	if (!mvert || !mface || !mat) return;
-	v1=mface[faceIndex].v1, v2=mface[faceIndex].v2, v3=mface[faceIndex].v3;
-	if (isQuad) {v2=mface[faceIndex].v3; v3=mface[faceIndex].v4;}
-	normal_tri_v3( normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
-
-	/* prepare shadeinput with data required */
-	shi.mat = mat;
-
-	/* Fill shadeinput data depending on texture type */
-	if (mat->material_type == MA_TYPE_SURFACE) {
-		/* global coordinates */
-		VECCOPY(shi.gl, xyz);
-		/* object space coordinates */
-		VECCOPY(shi.co, xyz);
-		mul_m4_v3(brushOb->imat, shi.co);
-		/* orco coordinates */
-		{
-			float l;
-			/* Get generated UV */
-			textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
-			l= 1.0f+uv[0]+uv[1];
-
-			/* calculate generated coordinate
-			*  ** Keep up-to-date with shadeinput.c -> shade_input_set_shade_texco() **/
-			shi.lo[0]= l*mvert[v3].co[0]-uv[0]*mvert[v1].co[0]-uv[1]*mvert[v2].co[0];
-			shi.lo[1]= l*mvert[v3].co[1]-uv[0]*mvert[v1].co[1]-uv[1]*mvert[v2].co[1];
-			shi.lo[2]= l*mvert[v3].co[2]-uv[0]*mvert[v1].co[2]-uv[1]*mvert[v2].co[2];
-		}
-		/* uv coordinates */
-		{
-			int i, layers = CustomData_number_of_layers(&orcoDm->faceData, CD_MTFACE);
-			int layer_index = CustomData_get_layer_index(&orcoDm->faceData, CD_MTFACE);
-
-			/* for every uv layer set coords and name */
-			for (i=0; i<layers; i++) {
-				if(layer_index >= 0) {
-					CustomData *data = &orcoDm->faceData;
-					MTFace *tface = (MTFace*) data->layers[layer_index+i].data;
-					float uv[3];
-					/* point layer name from actual layer data */
-					shi.uv[i].name = data->layers[i].name;
-					/* Get generated coordinates to calculate UV from */
-					textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
-					/* Get UV mapping coordinate */
-					textured_face_get_uv(shi.uv[i].uv, normal, uv, faceIndex, isQuad, tface);
-				}
-			}
-			/* active uv layer */
-			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData,CD_MTFACE) - layer_index;
-			shi.totuv = layers;
-		}
-
-		/* apply initial values from material */
-		shi.r = mat->r;
-		shi.g = mat->g;
-		shi.b = mat->b;
-		shi.alpha = mat->alpha;
-
-		/* do texture */
-		do_material_tex(&shi);
-
-		/* apply result	*/
-		color[0] = shi.r;
-		color[1] = shi.g;
-		color[2] = shi.b;
-		*alpha = shi.alpha;
-	}
-	else if (mat->material_type == MA_TYPE_VOLUME) {
-		ObjectInstanceRen obi = {0};
-		Render re = {0};
-		obi.ob = brushOb;
-		shi.obi = &obi;
-		unit_m4(re.viewinv);
-
-		color[0] = mat->vol.reflection_col[0];
-		color[1] = mat->vol.reflection_col[1];
-		color[2] = mat->vol.reflection_col[2];
-		*alpha = mat->vol.density;
-
-		/* do texture */
-		do_volume_tex(&shi, surfaceCoord, (MAP_TRANSMISSION_COL | MAP_REFLECTION_COL | MAP_DENSITY),
-			color, alpha, &re);
-	}
+	RE_sample_material_color(mat, color, alpha, volume_co, surface_co, faceIndex, isQuad, orcoDm, brushOb);
 }
 
 
@@ -3857,31 +3550,17 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 		return 1;
 	}
 
+	/* begin thread safe malloc */
+	BLI_begin_threaded_malloc();
+
 	/* only continue if particle bb is close enough to canvas bb */
 	if (boundsIntersectDist(&grid->grid_bounds, &part_bb, range))
 	{
 		int c_index;
 		int total_cells = grid->dim[0]*grid->dim[1]*grid->dim[2];
-		int num_of_threads = 1;
-
-		/* nearest particles search array for each thread */
-		KDTreeNearest **nearest_th = NULL;
-		int nearest_limit = particlesAdded/10;
-		if (nearest_limit<10) nearest_limit = 10;
 		
 		/* balance tree	*/
 		BLI_kdtree_balance(tree);
-
-#ifdef _OPENMP
-		num_of_threads = omp_get_max_threads();
-#endif
-
-		nearest_th = MEM_callocN((num_of_threads)*sizeof(KDTreeNearest), "nearest_for_threads");
-
-		if (brush->flags & MOD_DPAINT_PART_RAD)
-		for (c_index=0; c_index<num_of_threads; c_index++) {
-			nearest_th[c_index] = MEM_callocN((nearest_limit)*sizeof(KDTreeNearest), "dp_psys_treefoundstack");
-		}
 
 		/* loop through space partitioning grid */
 		for (c_index=0; c_index<total_cells; c_index++) {
@@ -3945,17 +3624,14 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 					*	If we use per particle radius, we have to sample all particles
 					*	within max radius range
 					*/
-#ifdef _OPENMP
-					KDTreeNearest *nearest = nearest_th[omp_get_thread_num()];
-#else 
-					KDTreeNearest *nearest = nearest_th[0];
-#endif
+					KDTreeNearest *nearest;
+
 					int n, particles = 0;
 					float smooth_range = smooth * (1.0f-strength), dist;
 					/* calculate max range that can have particles with higher influence than the nearest one */
 					float max_range = smooth - strength*smooth + solidradius;
 
-					particles = BLI_kdtree_range_search_thread_safe(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, nearest, nearest_limit);
+					particles = BLI_kdtree_range_search(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
 
 					/* Find particle that produces highest influence */
 					for(n=0; n<particles; n++) {
@@ -3983,6 +3659,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 							surface->type != MOD_DPAINT_SURFACE_T_WAVE)
 							break;
 					}
+
+					if (nearest) MEM_freeN(nearest);
 
 					/* now calculate influence for this particle */
 					{
@@ -4043,14 +3721,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 				}
 			}
 		}
-
-		/* free nearest array */
-		if (brush->flags & MOD_DPAINT_PART_RAD)
-		for (c_index=0; c_index<num_of_threads; c_index++) {
-			if (nearest_th[c_index]) MEM_freeN(nearest_th[c_index]);
-		}
-		if (nearest_th) MEM_freeN(nearest_th);
 	}
+	BLI_end_threaded_malloc();
 	BLI_kdtree_free(tree);
 
 	return 1;
