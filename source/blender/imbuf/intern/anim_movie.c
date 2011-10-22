@@ -1175,7 +1175,7 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	case ANIM_SEQUENCE:
 		ibuf = IMB_loadiffname(anim->name, anim->ib_flags);
 		if (ibuf) {
-			strcpy(anim->first, anim->name);
+			BLI_strncpy(anim->first, anim->name, sizeof(anim->first));
 			anim->duration = 1;
 		}
 		break;

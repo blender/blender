@@ -407,8 +407,7 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 		return;
 	}
 	
-	prop = IDP_GetPropertyFromGroup(
-		rd->ffcodecdata.properties, (char*) prop_name);
+	prop = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, prop_name);
 	if (!prop) {
 		return;
 	}
@@ -1025,8 +1024,7 @@ void ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 		return;
 	}
 
-	group = IDP_GetPropertyFromGroup(
-		rd->ffcodecdata.properties, (char*) type);
+	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);
 	if (group && prop) {
 		IDP_RemFromGroup(group, prop);
 		IDP_FreeProperty(prop);
@@ -1057,11 +1055,10 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 			= IDP_New(IDP_GROUP, val, "ffmpeg"); 
 	}
 
-	group = IDP_GetPropertyFromGroup(
-		rd->ffcodecdata.properties, (char*) type);
+	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);
 	
 	if (!group) {
-		group = IDP_New(IDP_GROUP, val, (char*) type); 
+		group = IDP_New(IDP_GROUP, val, type);
 		IDP_AddToGroup(rd->ffcodecdata.properties, group);
 	}
 

@@ -39,7 +39,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_storage_types.h"
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -666,7 +665,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 	if((prop= RNA_struct_find_property(op->ptr, "filepath"))) {
 		char filepath[FILE_MAX];
 		RNA_property_string_get(op->ptr, prop, filepath);
-		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 	}
 	else {
 		if((prop= RNA_struct_find_property(op->ptr, "filename"))) {
@@ -749,7 +748,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		if (BLI_exist(sfile->params->dir))
+		if (BLI_exists(sfile->params->dir))
 			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
@@ -1042,7 +1041,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create the file */
-	BLI_recurdir_fileops(path);
+	BLI_dir_create_recursive(path);
 
 	if (!BLI_exists(path)) {
 		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder");
@@ -1136,14 +1135,14 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		file_expand_directory(C);
 
 		if (!BLI_exists(sfile->params->dir)) {
-			BLI_recurdir_fileops(sfile->params->dir);
+			BLI_dir_create_recursive(sfile->params->dir);
 		}
 
 		/* special case, user may have pasted a fulepath into the directory */
 		if(BLI_exists(sfile->params->dir) && BLI_is_dir(sfile->params->dir) == 0) {
 			char path[sizeof(sfile->params->dir)];
 			BLI_strncpy(path, sfile->params->dir, sizeof(path));
-			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file);
+			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);

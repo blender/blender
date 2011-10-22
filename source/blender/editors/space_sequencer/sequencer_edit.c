@@ -45,7 +45,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
@@ -883,7 +882,7 @@ static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 			if(seq->type==SEQ_MOVIE) {
 				if(seq->strip && seq->strip->stripdata) {
 					BLI_make_file_string(G.main->name, str, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_touch(seq->name);
+					BLI_file_touch(seq->name);
 				}
 			}
 
@@ -929,11 +928,11 @@ static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
 	if(last_seq==NULL) 
 		return;
 	
-	BLI_strncpy(from, last_seq->strip->dir, FILE_MAX);
+	BLI_strncpy(from, last_seq->strip->dir, sizeof(from));
 // XXX	if (0==sbutton(from, 0, sizeof(from)-1, "From: "))
 //		return;
 	
-	strcpy(to, from);
+	BLI_strncpy(to, from, sizeof(to));
 // XXX	if (0==sbutton(to, 0, sizeof(to)-1, "To: "))
 //		return;
 	
@@ -2977,7 +2976,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
 		RNA_string_get(op->ptr, "directory", directory);
 		if (is_relative_path) {
-			/* TODO, shouldnt this already be relative from the filesel?
+			/* TODO, shouldn't this already be relative from the filesel?
 			 * (as the 'filepath' is) for now just make relative here,
 			 * but look into changing after 2.60 - campbell */
 			BLI_path_rel(directory, bmain->name);

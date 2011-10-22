@@ -69,7 +69,7 @@ def read_blend_rend_chunk(path):
         struct.unpack('>i' if is_big_endian else '<i', blendfile.read(4))[0]
         sizeof_bhead_left -= 4
 
-        # We dont care about the rest of the bhead struct
+        # We don't care about the rest of the bhead struct
         blendfile.read(sizeof_bhead_left)
 
         # Now we want the scene name, start and end frame. this is 32bites long

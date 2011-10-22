@@ -245,7 +245,7 @@ static void set_constraint_nth_target (bConstraint *con, Object *target, const c
 		for (ct=targets.first, i=0; ct; ct= ct->next, i++) {
 			if (i == index) {
 				ct->tar= target;
-				strcpy(ct->subtarget, subtarget);
+				BLI_strncpy(ct->subtarget, subtarget, sizeof(ct->subtarget));
 				break;
 			}
 		}

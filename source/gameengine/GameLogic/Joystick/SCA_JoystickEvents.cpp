@@ -29,15 +29,15 @@
  *  \ingroup gamelogic
  */
 
-#ifndef DISABLE_SDL
-#include <SDL.h>
+#ifdef WITH_SDL
+#  include <SDL.h>
 #endif
 
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
 
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 {
 	if(sdl_event->jaxis.axis >= JOYAXIS_MAX)
@@ -125,4 +125,4 @@ void SCA_Joystick::HandleEvents(void)
 		}
 	}
 }
-#endif
+#endif /* WITH_SDL */

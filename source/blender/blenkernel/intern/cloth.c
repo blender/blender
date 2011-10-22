@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
+#include "BLI_linklist.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
@@ -974,7 +975,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 * SPRING NETWORK BUILDING IMPLEMENTATION BEGIN
 ***************************************************************************************/
 
-// be carefull: implicit solver has to be resettet when using this one!
+// be careful: implicit solver has to be resettet when using this one!
 // --> only for implicit handling of this spring!
 int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
 {

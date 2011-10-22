@@ -133,7 +133,7 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Texture_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
@@ -162,7 +162,7 @@ static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, Pointe
 
 
 /* Used for Texture Properties, used (also) for/in Nodes */
-static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
@@ -177,7 +177,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	tex_set_type(tex, value);
 }
 
-void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -388,12 +388,12 @@ static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
 		pd->psys= BLI_findindex(&ob->particlesystem, value.data) + 1;
 }
 
-static char *rna_PointDensity_path(PointerRNA *ptr)
+static char *rna_PointDensity_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("point_density");
 }
 
-static char *rna_VoxelData_path(PointerRNA *ptr)
+static char *rna_VoxelData_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("voxel_data");
 }
@@ -698,7 +698,7 @@ static EnumPropertyItem prop_noise_basis_items[] = {
 	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle",
 	                      "Noise algorithm - Voronoi Crackle: Voronoi tessellation with sharp edges"},
 	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise",
-	                "Noise algorithm - Cell Noise: Square cell tessallation"},
+	                "Noise algorithm - Cell Noise: Square cell tessellation"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_noise_type[] = {
@@ -1525,13 +1525,13 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "particle_cache_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "psys_cache_space");
 	RNA_def_property_enum_items(prop, particle_cache_items);
-	RNA_def_property_ui_text(prop, "Particle Cache", "Co-ordinate system to cache particles in");
+	RNA_def_property_ui_text(prop, "Particle Cache", "Coordinate system to cache particles in");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "vertex_cache_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ob_cache_space");
 	RNA_def_property_enum_items(prop, vertice_cache_items);
-	RNA_def_property_ui_text(prop, "Vertices Cache", "Co-ordinate system to cache vertices in");
+	RNA_def_property_ui_text(prop, "Vertices Cache", "Coordinate system to cache vertices in");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
@@ -1657,9 +1657,9 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem voxeldata_extension[] = {
-		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
-		{TEX_CLIP, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
-		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
+		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extend by repeating edge pixels of the image"},
+		{TEX_CLIP, "CLIP", 0, "Clip", "Clip to image size and set exterior pixels as transparent"},
+		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Cause the image to repeat horizontally and vertically"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem smoked_type_items[] = {

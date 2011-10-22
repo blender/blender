@@ -34,9 +34,12 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
-BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 BUILD_TYPE:=Release
 BUILD_CMAKE_ARGS:=
+
+ifndef BUILD_DIR
+	BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
+endif
 
 
 # -----------------------------------------------------------------------------
@@ -120,6 +123,9 @@ help:
 	@echo "  * headless  - build without an interface (renderfarm or server automation)"
 	@echo "  * bpy       - build as a python module which can be loaded from python directly"
 	@echo ""
+	@echo "  Note, passing the argument 'BUILD_DIR=path' when calling make will override the default build dir."
+	@echo ""
+	@echo ""
 	@echo "Project Files for IDE's"
 	@echo "  * project_qtcreator - QtCreator Project Files"
 	@echo "  * project_netbeans  - NetBeans Project Files"
@@ -130,9 +136,8 @@ help:
 	@echo "  * package_pacman  - build an arch linux pacmanpackage"
 	@echo "  * package_archive - build an archive package"
 	@echo ""
-	@echo "Other Targets"
+	@echo "Other Targets (not assosiated with building blender)"
 	@echo "  * translations  - update blenders translation files in po/"
-	# TODO, doxygen and sphinx docs
 	@echo ""
 	@echo "Testing Targets (not assosiated with building blender)"
 	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
@@ -145,8 +150,10 @@ help:
 	@echo "  * check_splint    - run blenders source through splint (C only)"
 	@echo "  * check_sparse    - run blenders source through sparse (C only)"
 	@echo ""
-	@echo "Documentation Targets"
+	@echo "Documentation Targets (not assosiated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
+	@echo "  * doc_dna  - generate blender file format reference"
+	@echo "  * doc_man  - generate manpage"
 	@echo ""
 
 # -----------------------------------------------------------------------------
@@ -167,7 +174,7 @@ package_archive:
 # Other Targets
 #
 translations:
-	$(BUILD_DIR)/bin/blender --background --factory-startup --python po/update_msg.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python po/update_msg.py
 	python3 po/update_pot.py
 	python3 po/update_po.py
 	python3 po/update_mo.py
@@ -231,9 +238,16 @@ check_sparse:
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py:
-	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
-	@echo "docs written into: 'doc/python_api/sphinx-out/index.html'"
+	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
+
+doc_dna:
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
+	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
+
+doc_man:
+	python3 doc/manpage/blender.1.py $(BUILD_DIR)/bin/blender
 
 
 clean:

@@ -52,6 +52,10 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
+#include "BLI_listbase.h"
+#include "BLI_linklist.h"
+#include "BLI_string.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"
@@ -86,8 +90,8 @@ ModifierData *modifier_new(int type)
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
 	
-	// FIXME: we need to make the name always be unique somehow...
-	strcpy(md->name, mti->name);
+	/* note, this name must be made unique later */
+	BLI_strncpy(md->name, mti->name, sizeof(md->name));
 
 	md->type = type;
 	md->mode = eModifierMode_Realtime

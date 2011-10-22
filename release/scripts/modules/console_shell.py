@@ -64,7 +64,7 @@ def execute(context):
 
 
 def autocomplete(context):
-    # sc = context.space_data
+    #~ sc = context.space_data
     # TODO
     return {'CANCELLED'}
 

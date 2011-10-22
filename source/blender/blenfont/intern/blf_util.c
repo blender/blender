@@ -37,6 +37,8 @@
 
 #include "blf_internal.h"
 
+#include "BLI_string_utf8.h"
+
 unsigned int blf_next_p2(unsigned int x)
 {
 	x -= 1;
@@ -61,68 +63,4 @@ unsigned int blf_hash(unsigned int val)
 	key += ~(key << 9);
 	key ^= (key >> 17);
 	return key % 257;
-}
-
-/*
- * This function is from Imlib2 library (font_main.c), a
- * library that does image file loading and saving as well
- * as rendering, manipulation, arbitrary polygon support, etc.
- *
- * Copyright (C) 2000 Carsten Haitzler and various contributors
- * The original name: imlib_font_utf8_get_next
- * more info here: http://docs.enlightenment.org/api/imlib2/html/
- */
-int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
-{
-	/* Reads UTF8 bytes from 'buf', starting at 'index' and
-	 * returns the code point of the next valid code point.
-	 * 'index' is updated ready for the next call.
-	 *
-	 * Returns 0 to indicate an error (e.g. invalid UTF8)
-	 */
-	int index= *iindex, len, r;
-	unsigned char d, d2, d3, d4;
-
-	d= buf[index++];
-	if (!d)
-		return 0;
-
-	while (buf[index] && ((buf[index] & 0xc0) == 0x80))
-		index++;
-
-	len= index - *iindex;
-	if (len == 1)
-		r= d;
-	else if (len == 2) {
-		/* 2 byte */
-		d2= buf[*iindex + 1];
-		r= d & 0x1f; /* copy lower 5 */
-		r <<= 6;
-		r |= (d2 & 0x3f); /* copy lower 6 */
-	}
-	else if (len == 3) {
-		/* 3 byte */
-		d2= buf[*iindex + 1];
-		d3= buf[*iindex + 2];
-		r= d & 0x0f; /* copy lower 4 */
-		r <<= 6;
-		r |= (d2 & 0x3f);
-		r <<= 6;
-		r |= (d3 & 0x3f);
-	}
-	else {
-		/* 4 byte */
-		d2= buf[*iindex + 1];
-		d3= buf[*iindex + 2];
-		d4= buf[*iindex + 3];
-		r= d & 0x0f; /* copy lower 4 */
-		r <<= 6;
-		r |= (d2 & 0x3f);
-		r <<= 6;
-		r |= (d3 & 0x3f);
-		r <<= 6;
-		r |= (d4 & 0x3f);
-	}
-	*iindex= index;
-	return r;
 }

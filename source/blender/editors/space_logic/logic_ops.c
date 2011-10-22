@@ -478,7 +478,7 @@ static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 static void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 {
 	ot->name= "Remove Actuator";
-	ot->description= "Remove a actuator from the active object";
+	ot->description= "Remove an actuator from the active object";
 	ot->idname= "LOGIC_OT_actuator_remove";
 	
 	ot->invoke= actuator_remove_invoke;
@@ -533,7 +533,7 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Add Actuator";
-	ot->description = "Add a actuator to the active object";
+	ot->description = "Add an actuator to the active object";
 	ot->idname= "LOGIC_OT_actuator_add";
 	
 	/* api callbacks */

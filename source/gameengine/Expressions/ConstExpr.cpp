@@ -99,7 +99,7 @@ bool CConstExpr::NeedsRecalculated()
 
 CExpression* CConstExpr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks)
 {
-// parent checks if child is still usefull. 
+// parent checks if child is still useful.
 // When for example it's value it's deleted flag set
 // then release Value, and return NULL in case of constexpression
 // else return this...

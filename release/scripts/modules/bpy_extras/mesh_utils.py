@@ -50,7 +50,7 @@ def mesh_linked_faces(mesh):
     face_groups = [[f] for f in mesh.faces]
     face_mapping = list(range(len(mesh.faces)))  # map old, new face location
 
-    # Now clump faces iterativly
+    # Now clump faces iteratively
     ok = True
     while ok:
         ok = False

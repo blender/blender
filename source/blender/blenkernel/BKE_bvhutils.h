@@ -34,7 +34,6 @@
  */
 
 #include "BLI_kdopbvh.h"
-#include "BLI_linklist.h"
 
 /*
  * This header encapsulates necessary code to buld a BVH
@@ -123,7 +122,7 @@ float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *
 #define BVHTREE_FROM_VERTICES	1
 #define BVHTREE_FROM_EDGES		2
 
-typedef LinkNode* BVHCache;
+typedef struct LinkNode* BVHCache;
 
 
 /*

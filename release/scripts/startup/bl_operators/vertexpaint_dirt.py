@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 # --------------------------------------------------------------------------
 
 # <pep8 compliant>
@@ -69,7 +69,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         vec /= tot_con
 
-        # angle is the acos of the dot product between vert and connected verts normals
+        # angle is the acos() of the dot product between vert and connected verts normals
         ang = acos(no.dot(vec))
 
         # enforce min/max
@@ -159,7 +159,7 @@ class VertexPaintDirt(Operator):
             )
     blur_iterations = IntProperty(
             name="Blur Iterations",
-            description="Number times to blur the colors. (higher blurs more)",
+            description="Number times to blur the colors (higher blurs more)",
             min=0, max=40,
             default=1,
             )

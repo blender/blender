@@ -122,7 +122,7 @@ class SelectCamera(Operator):
 
 
 class SelectHierarchy(Operator):
-    '''Select object relative to the active objects position''' \
+    '''Select object relative to the active object's position''' \
     '''in the hierarchy'''
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"
@@ -174,7 +174,7 @@ class SelectHierarchy(Operator):
                 select_new.sort(key=lambda obj_iter: obj_iter.name)
                 act_new = select_new[0]
 
-        # dont edit any object settings above this
+        # don't edit any object settings above this
         if select_new:
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
@@ -331,7 +331,7 @@ class ShapeTransfer(Operator):
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
         orig_normals = me_nos(me.vertices)
-        # the actual mverts location isnt as relyable as the base shape :S
+        # the actual mverts location isn't as reliable as the base shape :S
         # orig_coords = me_cos(me.vertices)
         orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
@@ -721,8 +721,8 @@ class TransformsToDeltasAnim(Operator):
                     fcu.data_path = "delta_rotation_quaternion"
                     obj.rotation_quaternion.identity()
                 # XXX: currently not implemented
-                # elif fcu.data_path == "rotation_axis_angle":
-                #    fcu.data_path = "delta_rotation_axis_angle"
+                #~ elif fcu.data_path == "rotation_axis_angle":
+                #~    fcu.data_path = "delta_rotation_axis_angle"
                 elif fcu.data_path == "scale":
                     fcu.data_path = "delta_scale"
                     obj.scale = 1.0, 1.0, 1.0

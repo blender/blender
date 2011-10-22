@@ -30,7 +30,7 @@ import sys
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
-LOCALE_DIR = os.path.join(SOURCE_DIR, "release", "bin", ".blender", "locale")
+LOCALE_DIR = os.path.join(SOURCE_DIR, "release", "datafiles", "locale")
 
 DOMAIN = "blender"
 

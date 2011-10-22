@@ -88,8 +88,8 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-if(NOT WITH_SDL)
-	add_definitions(-DDISABLE_SDL)
+if(WITH_SDL)
+	add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_BINRELOC)
@@ -344,16 +344,11 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
-	install(
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
-	)
-
 	if(WITH_INTERNATIONAL)
 		install(
 			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/datafiles/locale
+				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -416,16 +411,11 @@ elseif(WIN32)
 		DESTINATION ${TARGETDIR}
 	)
 
-	install(  # same as linux!, deduplicate
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
-	)
-
 	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
 		install(
 			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/datafiles/locale
+				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -442,14 +432,6 @@ elseif(WIN32)
 			)
 		endif()
 	endif()
-
-	install( # same as linux!, deduplicate
-		DIRECTORY
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-		DESTINATION ${TARGETDIR_VER}/datafiles
-		PATTERN ".svn" EXCLUDE
-	)
 
 	# plugins in blender 2.5 don't work at the moment.
 	#
@@ -647,17 +629,12 @@ elseif(APPLE)
 		\${TARGETDIR}/blender.app/Contents/
 	)
 
-	install(
-		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}
-	)
-
 	# localization
 	if(WITH_INTERNATIONAL)
 		install(
 			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/datafiles/locale
+				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)

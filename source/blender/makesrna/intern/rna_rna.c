@@ -167,7 +167,7 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 	return 0;
 }
 
-static int rna_property_builtin(CollectionPropertyIterator *iter, void *data)
+static int rna_property_builtin(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	PropertyRNA *prop= (PropertyRNA*)data;
 
@@ -176,7 +176,7 @@ static int rna_property_builtin(CollectionPropertyIterator *iter, void *data)
 	return (prop->flag & PROP_BUILTIN);
 }
 
-static int rna_function_builtin(CollectionPropertyIterator *iter, void *data)
+static int rna_function_builtin(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	FunctionRNA *func= (FunctionRNA*)data;
 
@@ -775,7 +775,7 @@ static int rna_EnumProperty_default_get(PointerRNA *ptr)
 	return ((EnumPropertyRNA*)prop)->defaultvalue;
 }
 
-static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
+static int rna_enum_check_separator(CollectionPropertyIterator *UNUSED(iter), void *data)
 {
 	EnumPropertyItem *item= (EnumPropertyItem*)data;
 

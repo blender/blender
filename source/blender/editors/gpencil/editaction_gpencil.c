@@ -259,7 +259,7 @@ void duplicate_gplayer_frames (bGPDlayer *gpl)
 /* Copy and Paste Tools */
 /* - The copy/paste buffer currently stores a set of GP_Layers, with temporary
  *	GP_Frames with the necessary strokes
- * - Unless there is only one element in the buffer, names are also tested to check for compatability.
+ * - Unless there is only one element in the buffer, names are also tested to check for compatibility.
  * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
  *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
@@ -311,7 +311,7 @@ void copy_gpdata ()
 		gpln= MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
 		
 		gpln->frames.first= gpln->frames.last= NULL;
-		strcpy(gpln->info, gpls->info);
+		BLI_strncpy(gpln->info, gpls->info, sizeof(gpln->info));
 		
 		BLI_addtail(&gpcopybuf, gpln);
 		

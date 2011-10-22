@@ -947,7 +947,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 /* ANIMATO OPERATIONS */
 /* KeyingSet and Driver Creation - Helper functions */
 
-/* specialised poll callback for these operators to work in Datablocks view only */
+/* specialized poll callback for these operators to work in Datablocks view only */
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -1021,7 +1021,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr= &temnext->rnaptr;
-					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
+					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
 					
 					if(name) {
 						/* if possible, use name as a key in the path */

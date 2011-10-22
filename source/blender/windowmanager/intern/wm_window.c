@@ -506,11 +506,11 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	ED_screen_set(C, win->screen);
 	
 	if(sa->spacetype==SPACE_IMAGE)
-		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender Render")));
+		GHOST_SetTitle(win->ghostwin, IFACE_("Blender Render"));
 	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
-		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender User Preferences")));
+		GHOST_SetTitle(win->ghostwin, IFACE_("Blender User Preferences"));
 	else if(sa->spacetype==SPACE_FILE)
-		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender File View")));
+		GHOST_SetTitle(win->ghostwin, IFACE_("Blender File View"));
 	else
 		GHOST_SetTitle(win->ghostwin, "Blender");
 }

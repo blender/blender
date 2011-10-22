@@ -48,7 +48,7 @@ SPHINXBASE=doc/python_api
 
 if $DO_EXE_BLENDER ; then
 	# dont delete existing docs, now partial updates are used for quick builds.
-	$BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
+	$BLENDER --background -noaudio --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
 fi
 
 

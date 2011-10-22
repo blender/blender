@@ -40,9 +40,8 @@ extern "C"
 #include "BKE_context.h"
 
 /* make dummy file */
-#include "BLI_storage.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_path_util.h"
 
 	int collada_import(bContext *C, const char *filepath)
 	{
@@ -60,9 +59,9 @@ extern "C"
 		export_settings.filepath = (char *)filepath;
 
 		/* annoying, collada crashes if file cant be created! [#27162] */
-		if(!BLI_exist(filepath)) {
+		if(!BLI_exists(filepath)) {
 			BLI_make_existing_file(filepath); /* makes the dir if its not there */
-			if(BLI_touch(filepath) == 0) {
+			if(BLI_file_touch(filepath) == 0) {
 				return 0;
 			}
 		}

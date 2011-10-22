@@ -213,6 +213,10 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_PYTHON_UI_INFO "Allow navigating to UI source from the context menu" OFF)
+mark_as_advanced(WITH_PYTHON_UI_INFO)
+
+
 if(APPLE)
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
@@ -774,7 +778,7 @@ elseif(WIN32)
 		set(PLATFORM_LINKFLAGS_DEBUG "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 	else()
-		# keep GCC spesific stuff here
+		# keep GCC specific stuff here
 		if(CMAKE_COMPILER_IS_GNUCC)
 			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
@@ -1324,6 +1328,10 @@ endif()
 
 if(WITH_ASSERT_ABORT)
 	add_definitions(-DWITH_ASSERT_ABORT)
+endif()
+
+if(WITH_PYTHON_UI_INFO)
+	add_definitions(-DWITH_PYTHON_UI_INFO)
 endif()
 
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")

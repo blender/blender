@@ -76,9 +76,6 @@ extern "C"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
-extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
-extern char btempdir[];		/* use this to store a valid temp directory */
-
 // For BLF
 #include "BLF_api.h"
 #include "BLF_translation.h"
@@ -115,8 +112,6 @@ extern char datatoc_bfont_ttf[];
 
 const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
-
-char bprogname[FILE_MAX];
 
 static void mem_error_cb(const char *errorStr)
 {
@@ -309,7 +304,7 @@ static void get_filename(int argc, char **argv, char *filename)
 #endif // !_APPLE
 }
 
-static BlendFileData *load_game_data(char *progname, char *filename = NULL, char *relativename = NULL)
+static BlendFileData *load_game_data(const char *progname, char *filename = NULL, char *relativename = NULL)
 {
 	ReportList reports;
 	BlendFileData *bfd = NULL;
@@ -321,7 +316,7 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 		bfd= BLO_read_runtime(progname, &reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_RUNTIME;
-			strcpy(bfd->main->name, progname);
+			BLI_strncpy(bfd->main->name, progname, sizeof(bfd->main->name));
 		}
 	} else {
 		bfd= BLO_read_from_file(progname, &reports);
@@ -379,7 +374,8 @@ int main(int argc, char** argv)
 	signal (SIGFPE, SIG_IGN);
 #endif /* __alpha__ */
 #endif /* __linux__ */
-	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
+	BLI_init_program_path(argv[0]);
+	BLI_init_temporary_dir(NULL);
 #ifdef __APPLE__
 	// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
 	/*
@@ -766,7 +762,7 @@ int main(int argc, char** argv)
 						char basedpath[240];
 						
 						// base the actuator filename relative to the last file
-						strcpy(basedpath, exitstring.Ptr());
+						BLI_strncpy(basedpath, exitstring.Ptr(), sizeof(basedpath));
 						BLI_path_abs(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);
@@ -784,7 +780,7 @@ int main(int argc, char** argv)
 					}
 					else
 					{
-						bfd = load_game_data(bprogname, filename[0]? filename: NULL);
+						bfd = load_game_data(BLI_program_path(), filename[0]? filename: NULL);
 					}
 					
 					//::printf("game data loaded from %s\n", filename);

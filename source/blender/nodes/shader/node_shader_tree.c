@@ -85,6 +85,11 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	}
 }
 
+static void update(bNodeTree *ntree)
+{
+	ntreeSetOutput(ntree);
+}
+
 bNodeTreeType ntreeType_Shader = {
 	/* type */				NTREE_SHADER,
 	/* id_name */			"NTShader Nodetree",
@@ -97,7 +102,7 @@ bNodeTreeType ntreeType_Shader = {
 	/* localize */			NULL,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
-	/* update */			NULL,
+	/* update */			update,
 	/* update_node */		NULL
 };
 

@@ -359,7 +359,7 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 #endif
 
 
-/* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
+/* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna along
  * This isnt incorrect since its a python object - but be careful */
 PyDoc_STRVAR(BPy_BoolProperty_doc,
 ".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATABLE'}, subtype='NONE', update=None)\n"

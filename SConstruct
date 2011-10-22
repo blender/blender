@@ -30,7 +30,6 @@
 # Then read all SConscripts and build
 #
 # TODO: fix /FORCE:MULTIPLE on windows to get proper debug builds.
-# TODO: cleanup CCFLAGS / CPPFLAGS use, often both are set when we only need one.
 
 import platform as pltfrm
 
@@ -210,7 +209,7 @@ opts.Update(env)
 
 if sys.platform=='win32':
     if bitness==64:
-        env.Append(CFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
+        env.Append(CPPFLAGS=['-DWIN64']) # -DWIN32 needed too, as it's used all over to target Windows generally
 
 if not env['BF_FANCY']:
     B.bc.disable()
@@ -283,22 +282,17 @@ if env['OURPLATFORM']=='darwin':
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
                 env['CCFLAGS'].append('/openmp')
-                env['CPPFLAGS'].append('/openmp')
         else:
             if env['CC'].endswith('icc'): # to be able to handle CC=/opt/bla/icc case
                 env.Append(LINKFLAGS=['-openmp', '-static-intel'])
                 env['CCFLAGS'].append('-openmp')
-                env['CPPFLAGS'].append('-openmp')
             else:
                 env.Append(CCFLAGS=['-fopenmp']) 
-                env.Append(CPPFLAGS=['-fopenmp'])
 
 if env['WITH_GHOST_COCOA'] == True:
-    env.Append(CFLAGS=['-DGHOST_COCOA']) 
-    env.Append(CPPFLAGS=['-DGHOST_COCOA'])
+    env.Append(CPPFLAGS=['-DGHOST_COCOA']) 
     
 if env['USE_QTKIT'] == True:
-    env.Append(CFLAGS=['-DUSE_QTKIT'])
     env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 
 #check for additional debug libnames
@@ -330,20 +324,15 @@ if 'blendernogame' in B.targets:
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
     env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
-    env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 
 if btools.ENDIAN == "big":
     env['CPPFLAGS'].append('-D__BIG_ENDIAN__')
-    env['CCFLAGS'].append('-D__BIG_ENDIAN__')
 else:
     env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
-    env['CCFLAGS'].append('-D__LITTLE_ENDIAN__')	
-
 
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
-env['CCFLAGS'].append('-DWITH_AUDASPACE')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
@@ -505,64 +494,62 @@ dottargetlist = []
 scriptinstall = []
 
 if env['OURPLATFORM']!='darwin':
-        for dp, dn, df in os.walk('release/bin/.blender'):
-            dp = os.path.normpath(dp)
+    dotblenderinstall = []
+    for targetdir,srcfile in zip(dottargetlist, dotblendlist):
+        td, tf = os.path.split(targetdir)
+        dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+    for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
+        td, tf = os.path.split(targetdir)
+        dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+    
+    if env['WITH_BF_PYTHON']:
+        #-- local/VERSION/scripts
+        scriptpaths=['release/scripts']
+        for scriptpath in scriptpaths:
+            for dp, dn, df in os.walk(scriptpath):
+                if '.svn' in dn:
+                    dn.remove('.svn')
+                if '_svn' in dn:
+                    dn.remove('_svn')
+                if '__pycache__' in dn:  # py3.2 cache dir
+                    dn.remove('__pycache__')
 
-            if '.svn' in dn:
-                dn.remove('.svn')
-            if '_svn' in dn:
-                dn.remove('_svn')
-            
-            for f in df:
-                # This files aren't used anymore
-                if f in (".bfont.ttf", ):
-                    continue
+                dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+                dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
 
-                if not env['WITH_BF_INTERNATIONAL']:
-                    if 'locale' in dp:
-                        continue
-                if not env['WITH_BF_FREETYPE']:
-                    if f.endswith('.ttf'):
-                        continue
-                
-                if 'locale' in dp or 'fonts' in dp:
-                    datafileslist.append(os.path.join(dp,f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[3:]))    # skip bin
-                    datafilestargetlist.append(dir + os.sep + f)
-
-                else:
-                    dotblendlist.append(os.path.join(dp, f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[3:]))    # skip bin
-                    dottargetlist.append(dir + os.sep + f)
-                    
-        dotblenderinstall = []
-        for targetdir,srcfile in zip(dottargetlist, dotblendlist):
-            td, tf = os.path.split(targetdir)
-            dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-        for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
-            td, tf = os.path.split(targetdir)
-            dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+                source=[os.path.join(dp, f) for f in df if not f.endswith(".pyc")]
+                # To ensure empty dirs are created too
+                if len(source)==0:
+                    env.Execute(Mkdir(dir))
+                scriptinstall.append(env.Install(dir=dir,source=source))
+    
+    if env['WITH_BF_INTERNATIONAL']:
+        internationalpaths=['release' + os.sep + 'datafiles']
         
-        if env['WITH_BF_PYTHON']:
-            #-- local/VERSION/scripts
-            scriptpaths=['release/scripts']
-            for scriptpath in scriptpaths:
-                for dp, dn, df in os.walk(scriptpath):
-                    if '.svn' in dn:
-                        dn.remove('.svn')
-                    if '_svn' in dn:
-                        dn.remove('_svn')
-                    if '__pycache__' in dn:  # py3.2 cache dir
-                        dn.remove('__pycache__')
+        def check_path(path, member):
+            return (member in path.split(os.sep))
+        
+        for intpath in internationalpaths:
+            for dp, dn, df in os.walk(intpath):
+                if '.svn' in dn:
+                    dn.remove('.svn')
+                if '_svn' in dn:
+                    dn.remove('_svn')
 
-                    dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
-                    dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
+                # we only care about release/datafiles/fonts, release/datafiles/locales
+                if check_path(dp, "fonts") or check_path(dp, "locale"):
+                    pass
+                else:
+                    continue
+                
+                dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+                dir += os.sep + os.path.basename(intpath) + dp[len(intpath):]
 
-                    source=[os.path.join(dp, f) for f in df if not f.endswith(".pyc")]
-                    # To ensure empty dirs are created too
-                    if len(source)==0:
-                        env.Execute(Mkdir(dir))
-                    scriptinstall.append(env.Install(dir=dir,source=source))
+                source=[os.path.join(dp, f) for f in df if not f.endswith(".pyc")]
+                # To ensure empty dirs are created too
+                if len(source)==0:
+                    env.Execute(Mkdir(dir))
+                scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
 if env['OURPLATFORM']=='linux':

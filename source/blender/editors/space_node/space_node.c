@@ -214,6 +214,12 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 			}
 			break;
+		case NC_OBJECT:
+			if(type==NTREE_SHADER) {
+				if(wmn->data==ND_OB_SHADING)
+					ED_area_tag_refresh(sa);
+			}
+			break;
 		case NC_TEXT:
 			/* pynodes */
 			if(wmn->data==ND_SHADING)
@@ -244,10 +250,10 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				if(type==NTREE_COMPOSIT) {
 					Scene *scene= wmn->window->screen->scene;
 					
-					/* note that NodeTagIDChanged is already called by BKE_image_signal() on all
+					/* note that nodeUpdateID is already called by BKE_image_signal() on all
 					 * scenes so really this is just to know if the images is used in the compo else
 					 * painting on images could become very slow when the compositor is open. */
-					if(NodeTagIDChanged(scene->nodetree, wmn->reference))
+					if(nodeUpdateID(scene->nodetree, wmn->reference))
 						ED_area_tag_refresh(sa);
 				}
 			}

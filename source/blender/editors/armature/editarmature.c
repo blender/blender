@@ -824,7 +824,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 								}
 								else if (strcmp(ct->subtarget, pchan->name)==0) {
 									ct->tar = tarArm;
-									strcpy(ct->subtarget, curbone->name);
+									BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
 								}
 							}
 						}
@@ -871,7 +871,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 							}
 							else if (strcmp(ct->subtarget, pchan->name)==0) {
 								ct->tar = tarArm;
-								strcpy(ct->subtarget, curbone->name);
+								BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
 							}
 						}
 					}
@@ -2503,7 +2503,7 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 								 */
 								if (oldtarget->temp) {
 									newtarget = (EditBone *) oldtarget->temp;
-									strcpy(ct->subtarget, newtarget->name);
+									BLI_strncpy(ct->subtarget, newtarget->name, sizeof(ct->subtarget));
 								}
 							}
 						}

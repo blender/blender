@@ -40,7 +40,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -362,7 +361,7 @@ static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 		PointerRNA itemptr;
 		char dir[FILE_MAX], file[FILE_MAX];
 
-		BLI_split_dirfile(drag->path, dir, file);
+		BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
 		
 		RNA_string_set(drop->ptr, "directory", dir);
 

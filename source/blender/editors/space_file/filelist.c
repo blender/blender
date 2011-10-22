@@ -48,7 +48,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_storage_types.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -736,7 +735,7 @@ static int file_is_blend_backup(const char *str)
 }
 
 
-static int file_extension_type(char *relname)
+static int file_extension_type(const char *relname)
 {
 	if(BLO_has_bfile_extension(relname)) {
 		return BLENDERFILE;
@@ -769,7 +768,7 @@ static int file_extension_type(char *relname)
 	return 0;
 }
 
-int ED_file_extension_icon(char *relname)
+int ED_file_extension_icon(const char *relname)
 {
 	int type= file_extension_type(relname);
 	
@@ -825,10 +824,10 @@ static void filelist_read_dir(struct FileList* filelist)
 	filelist->fidx = NULL;
 	filelist->filelist = NULL;
 
-	BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
+	BLI_current_working_dir(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 	BLI_cleanup_dir(G.main->name, filelist->dir);
-	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
+	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) {} /* fix warning about not checking return value */
 	filelist_setfiletypes(filelist);

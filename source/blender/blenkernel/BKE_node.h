@@ -346,9 +346,8 @@ struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
-void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);
-int				NodeTagIDChanged(struct bNodeTree *ntree, struct ID *id);
-void			ntreeClearTags(struct bNodeTree *ntree);
+void			nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
+int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 
 void			nodeFreePreview(struct bNode *node);
 
@@ -601,7 +600,7 @@ void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
-
+void ntreeCompositClearTags(struct bNodeTree *ntree);
 
 
 /* ************** TEXTURE NODES *************** */

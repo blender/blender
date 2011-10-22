@@ -873,7 +873,7 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
 					if(pm->data[i] && pm->data_types & (1<<i)) {
-						if(strcmp(ptcache_data_struct[i], "")==0)
+						if(ptcache_data_struct[i][0]=='\0')
 							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
 						else
 							writestruct(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
@@ -881,7 +881,7 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 				}
 
 				for(; extra; extra=extra->next) {
-					if(strcmp(ptcache_extra_struct[extra->type], "")==0)
+					if(ptcache_extra_struct[extra->type][0]=='\0')
 						continue;
 					writestruct(wd, DATA, "PTCacheExtra", 1, extra);
 					writestruct(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
@@ -2704,8 +2704,8 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	if(write_flags & G_FILE_RELATIVE_REMAP) {
 		char dir1[FILE_MAXDIR+FILE_MAXFILE];
 		char dir2[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_split_dirfile(filepath, dir1, NULL);
-		BLI_split_dirfile(mainvar->name, dir2, NULL);
+		BLI_split_dir_part(filepath, dir1, sizeof(dir1));
+		BLI_split_dir_part(mainvar->name, dir2, sizeof(dir2));
 
 		/* just incase there is some subtle difference */
 		BLI_cleanup_dir(mainvar->name, dir1);
@@ -2725,6 +2725,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		}
 	}
 
+	userfilename[0]= '\0'; /* ensure its initialized */
 	BLI_make_file_string(G.main->name, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
@@ -2759,7 +2760,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 		/* first write compressed to separate @.gz */
 		BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
-		ret = BLI_gzip(tempname, gzname);
+		ret = BLI_file_gzip(tempname, gzname);
 		
 		if(0==ret) {
 			/* now rename to real file name, and delete temp @ file too */

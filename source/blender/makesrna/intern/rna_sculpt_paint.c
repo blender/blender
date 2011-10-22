@@ -127,7 +127,8 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 
 	pset->brushtype = value;
 }
-static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *UNUSED(free))
+static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+                                                     PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
@@ -275,7 +276,8 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_symmetry_feather", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMMETRY_FEATHER);
-	RNA_def_property_ui_text(prop, "Symmetry Feathering", "Reduce the strength of the brush where it overlaps symmetrical daubs");
+	RNA_def_property_ui_text(prop, "Symmetry Feathering",
+	                         "Reduce the strength of the brush where it overlaps symmetrical daubs");
 
 	prop= RNA_def_property(srna, "use_threaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_USE_OPENMP);
@@ -283,7 +285,9 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_deform_only", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_ONLY_DEFORM);
-	RNA_def_property_ui_text(prop, "Use Deform Only", "Use only deformation modifiers (temporary disable all constructive modifiers except multi-resolution)");
+	RNA_def_property_ui_text(prop, "Use Deform Only",
+	                         "Use only deformation modifiers (temporary disable all "
+	                         "constructive modifiers except multi-resolution)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Sculpt_update");
 }
 
@@ -345,7 +349,8 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
-	RNA_def_property_ui_text(prop, "Clone Layer", "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
+	RNA_def_property_ui_text(prop, "Clone Layer",
+	                         "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
 	
 	/* integers */
 	
@@ -357,7 +362,8 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 90);
 	RNA_def_property_ui_text(prop, "Angle", "Paint most on faces pointing towards the view according to this angle");
 
-	prop= RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size", "Size to capture the image for re-projecting", 0, 0);
+	prop= RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size",
+	                        "Size to capture the image for re-projecting", 0, 0);
 	RNA_def_property_range(prop, 512, 16384);
 }
 
@@ -518,7 +524,8 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_puff_volume", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_BRUSH_DATA_PUFF_VOLUME);
-	RNA_def_property_ui_text(prop, "Puff Volume", "Apply puff to unselected end-points, (helps maintain hair volume when puffing root)");
+	RNA_def_property_ui_text(prop, "Puff Volume",
+	                         "Apply puff to unselected end-points (helps maintain hair volume when puffing root)");
 
 	prop= RNA_def_property(srna, "length_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "invert");

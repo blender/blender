@@ -810,7 +810,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 	}
 
 	/* print name if available */
-	name= RNA_struct_name_get_alloc(&self->ptr, NULL, FALSE);
+	name= RNA_struct_name_get_alloc(&self->ptr, NULL, 0, NULL);
 	if (name) {
 		ret= PyUnicode_FromFormat("<bpy_struct, %.200s(\"%.200s\")>",
 		                          RNA_struct_identifier(self->ptr.type),
@@ -901,7 +901,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	/* if a pointer, try to print name of pointer target too */
 	if (RNA_property_type(self->prop) == PROP_POINTER) {
 		ptr= RNA_property_pointer_get(&self->ptr, self->prop);
-		name= RNA_struct_name_get_alloc(&ptr, NULL, FALSE);
+		name= RNA_struct_name_get_alloc(&ptr, NULL, 0, NULL);
 
 		if (name) {
 			ret= PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s(\"%.200s\")>",
@@ -1257,14 +1257,22 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 				ret= PyUnicode_FromString(enum_item->identifier);
 			}
 			else {
-				const char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, FALSE);
+				const char *ptr_name= RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
 
 				/* prefer not fail silently incase of api errors, maybe disable it later */
-				printf("RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'\n", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+				printf("RNA Warning: Current value \"%d\" "
+					   "matches no enum in '%s', '%s', '%s'\n",
+					   val, RNA_struct_identifier(ptr->type),
+					   ptr_name, RNA_property_identifier(prop));
 
 #if 0			// gives python decoding errors while generating docs :(
 				char error_str[256];
-				BLI_snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+				BLI_snprintf(error_str, sizeof(error_str),
+							 "RNA Warning: Current value \"%d\" "
+							 "matches no enum in '%s', '%s', '%s'",
+							 val, RNA_struct_identifier(ptr->type),
+							 ptr_name, RNA_property_identifier(prop));
+
 				PyErr_Warn(PyExc_RuntimeWarning, error_str);
 #endif
 
@@ -1311,19 +1319,20 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	{
 		int subtype= RNA_property_subtype(prop);
 		const char *buf;
+		int buf_len;
 		char buf_fixed[32];
 
-		buf= RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed));
+		buf= RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed), &buf_len);
 #ifdef USE_STRING_COERCE
 		/* only file paths get special treatment, they may contain non utf-8 chars */
 		if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-			ret= PyC_UnicodeFromByte(buf);
+			ret= PyC_UnicodeFromByteAndSize(buf, buf_len);
 		}
 		else {
-			ret= PyUnicode_FromString(buf);
+			ret= PyUnicode_FromStringAndSize(buf, buf_len);
 		}
 #else // USE_STRING_COERCE
-		ret= PyUnicode_FromString(buf);
+		ret= PyUnicode_FromStringAndSize(buf, buf_len);
 #endif // USE_STRING_COERCE
 		if (buf_fixed != buf) {
 			MEM_freeN((void *)buf);
@@ -1534,7 +1543,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				param= _PyUnicode_AsString(value);
 #ifdef WITH_INTERNATIONAL
 				if (subtype == PROP_TRANSLATE) {
-					param= UI_translate_do_iface(param);
+					param= IFACE_(param);
 				}
 #endif // WITH_INTERNATIONAL
 
@@ -2218,7 +2227,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 }
 
 /* generic check to see if a PyObject is compatible with a collection
- * -1 on failier, 0 on success, sets the error */
+ * -1 on failure, 0 on success, sets the error */
 static int pyrna_prop_collection_type_check(BPy_PropertyRNA *self, PyObject *value)
 {
 	StructRNA *prop_srna;
@@ -3127,14 +3136,15 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
 		 * Collect RNA attributes
 		 */
 		char name[256], *nameptr;
+		int namelen;
 
 		iterprop= RNA_struct_iterator_property(ptr->type);
 
 		RNA_PROP_BEGIN(ptr, itemptr, iterprop) {
-			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
+			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
 
 			if (nameptr) {
-				pystring= PyUnicode_FromString(nameptr);
+				pystring= PyUnicode_FromStringAndSize(nameptr, namelen);
 				PyList_Append(list, pystring);
 				Py_DECREF(pystring);
 
@@ -3716,13 +3726,14 @@ static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 	PyObject *ret= PyList_New(0);
 	PyObject *item;
 	char name[256], *nameptr;
+	int namelen;
 
 	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
-		nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
+		nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
 
 		if (nameptr) {
 			/* add to python list */
-			item= PyUnicode_FromString(nameptr);
+			item= PyUnicode_FromStringAndSize(nameptr, namelen);
 			PyList_Append(ret, item);
 			Py_DECREF(item);
 			/* done */
@@ -3751,15 +3762,16 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 	PyObject *ret= PyList_New(0);
 	PyObject *item;
 	char name[256], *nameptr;
+	int namelen;
 	int i= 0;
 
 	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
 		if (itemptr.data) {
 			/* add to python list */
 			item= PyTuple_New(2);
-			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name));
+			nameptr= RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
 			if (nameptr) {
-				PyTuple_SET_ITEM(item, 0, PyUnicode_FromString(nameptr));
+				PyTuple_SET_ITEM(item, 0, PyUnicode_FromStringAndSize(nameptr, namelen));
 				if (name != nameptr)
 					MEM_freeN(nameptr);
 			}
@@ -3800,7 +3812,7 @@ PyDoc_STRVAR(pyrna_struct_get_doc,
 "   Returns the value of the custom property assigned to key or default\n"
 "   when not found (matches pythons dictionary function of the same name).\n"
 "\n"
-"   :arg key: The key assosiated with the custom property.\n"
+"   :arg key: The key associated with the custom property.\n"
 "   :type key: string\n"
 "   :arg default: Optional argument for the value to return if\n"
 "      *key* is not found.\n"

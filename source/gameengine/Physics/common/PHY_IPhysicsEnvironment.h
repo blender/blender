@@ -63,7 +63,7 @@ struct PHY_RayCastResult
 /**
  * This class replaces the ignoreController parameter of rayTest function. 
  * It allows more sophisticated filtering on the physics controller before computing the ray intersection to save CPU. 
- * It is only used to its full extend by the Ccd physics environement (Bullet).
+ * It is only used to its full extend by the Ccd physics environment (Bullet).
  */
 class PHY_IRayCastFilterCallback
 {

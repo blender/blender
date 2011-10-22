@@ -334,11 +334,9 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
-		if (gob)
-			strcpy(name, gob->id.name+2);
-		else
-			strcpy(name, ob->id.name+2);
-		strcat(name, "_proxy");
+
+		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name);
+
 		rename_id(&newob->id, name);
 		
 		/* set layers OK */
@@ -605,7 +603,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				/* handle types */
 				if (pchan)
-					strcpy(ob->parsubstr, pchan->name);
+					BLI_strncpy(ob->parsubstr, pchan->name, sizeof(ob->parsubstr));
 				else
 					ob->parsubstr[0]= 0;
 					

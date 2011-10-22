@@ -33,7 +33,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
@@ -47,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -78,6 +78,10 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 #include "wm_draw.h"
+
+#ifndef NDEBUG
+#  include "RNA_enum_types.h"
+#endif
 
 static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only);
 
@@ -434,6 +438,35 @@ static void wm_operator_print(bContext *C, wmOperator *op)
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }
+
+/* for debugging only, getting inspecting events manually is tedious */
+#ifndef NDEBUG
+
+void WM_event_print(wmEvent *event)
+{
+	if(event) {
+		const char *unknown= "UNKNOWN";
+		const char *type_id= unknown;
+		const char *val_id= unknown;
+
+		RNA_enum_identifier(event_type_items, event->type, &type_id);
+		RNA_enum_identifier(event_value_items, event->val, &val_id);
+
+		printf("wmEvent - type:%d/%s, val:%d/%s, "
+			   "shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, "
+			   "mouse:(%d,%d), ascii:'%c', utf8:'%.6s', "
+			   "keymap_idname:%s, pointer:%p\n",
+			   event->type, type_id, event->val, val_id,
+			   event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
+			   event->x, event->y, event->ascii, event->utf8_buf,
+			   event->keymap_idname, (void *)event);
+	}
+	else {
+		printf("wmEvent - NULL\n");
+	}
+}
+
+#endif /* NDEBUG */
 
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
 {
@@ -1146,7 +1179,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
-		if(ISTEXTINPUT(winevent->type) && winevent->ascii) return 1;
+		if(ISTEXTINPUT(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1;
 	if(kmitype!=KM_ANY)
 		if(winevent->type!=kmitype) return 0;
 	
@@ -1790,11 +1823,14 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
-						if(ncfra != scene->r.cfra)	{
-							scene->r.cfra = ncfra;
-							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
-							WM_event_add_notifier(C, NC_WINDOW, NULL);
+						float time = sound_sync_scene(scene);
+						if(finite(time)) {
+							int ncfra = sound_sync_scene(scene) * (float)FPS + 0.5f;
+							if(ncfra != scene->r.cfra)	{
+								scene->r.cfra = ncfra;
+								ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
+								WM_event_add_notifier(C, NC_WINDOW, NULL);
+							}
 						}
 					}
 					
@@ -2575,38 +2611,43 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
+			memcpy(event.utf8_buf, kd->utf8_buf,sizeof(event.utf8_buf));/* might be not null terminated*/
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */
-			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>0))
-				event.ascii= '\0';
-			
-			/* modifiers */
-			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
-				event.shift= evt->shift= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->oskey))
-				   event.shift= evt->shift = 3;		// define?
-			} 
-			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
-				event.ctrl= evt->ctrl= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->shift || evt->alt || evt->oskey))
-				   event.ctrl= evt->ctrl = 3;		// define?
-			} 
-			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
-				event.alt= evt->alt= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->shift || evt->oskey))
-				   event.alt= evt->alt = 3;		// define?
-			} 
-			else if (event.type==OSKEY) {
-				event.oskey= evt->oskey= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
-				   event.oskey= evt->oskey = 3;		// define?
+			if(type==GHOST_kEventKeyUp) {
+				if (event.ascii<32 && event.ascii > 0) {
+					event.ascii= '\0';
+				}
+
+				/* ghost should do this already for key up */
+				if (event.utf8_buf[0]) {
+					printf("%s: ghost on you're platform is misbehaving, utf8 events on key up!\n", __func__);
+				}
+				event.utf8_buf[0]= '\0';
 			}
-			else {
+
+			/* modifiers */
+			/* assigning both first and second is strange - campbell */
+			switch(event.type) {
+			case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
+				event.shift= evt->shift= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case LEFTCTRLKEY: case RIGHTCTRLKEY:
+				event.ctrl= evt->ctrl= (event.val==KM_PRESS) ? ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case LEFTALTKEY: case RIGHTALTKEY:
+				event.alt= evt->alt= (event.val==KM_PRESS) ? ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case OSKEY:
+				event.oskey= evt->oskey= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			default:
 				if(event.val==KM_PRESS && event.keymodifier==0)
 					evt->keymodifier= event.type; /* only set in eventstate, for next event */
 				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
 					event.keymodifier= evt->keymodifier= 0;
+				break;
 			}
 
 			/* this case happens on some systems that on holding a key pressed,
@@ -2692,4 +2733,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 
 	}
+
+	/* Handy when debugging checking events */
+	/* WM_event_print(&event); */
+
 }

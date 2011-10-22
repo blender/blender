@@ -131,8 +131,8 @@ if(WITH_SDL)
 	list(APPEND INC_SYS
 		${SDL_INCLUDE_DIR}
 	)
-else()
-	add_definitions(-DDISABLE_SDL)
+
+	add_definitions(-DWITH_SDL)
 endif()
 
 blender_add_lib(ge_logic "${SRC}" "${INC}" "${INC_SYS}")

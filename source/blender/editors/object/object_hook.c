@@ -837,7 +837,7 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Select Hook";
-	ot->description= "Selects effected vertices on mesh";
+	ot->description= "Select affected vertices on mesh";
 	ot->idname= "OBJECT_OT_hook_select";
 	
 	/* callbacks */

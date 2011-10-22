@@ -192,6 +192,9 @@ static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x
 
 		waveform = seq->sound->waveform;
 
+		if(!waveform)
+			return;
+
 		startsample = floor((seq->startofs + seq->anim_startofs)/FPS * SOUND_WAVE_SAMPLES_PER_SECOND);
 		endsample = ceil((seq->startofs + seq->anim_startofs + seq->enddisp - seq->startdisp)/FPS * SOUND_WAVE_SAMPLES_PER_SECOND);
 		samplestep = (endsample-startsample) * stepsize / (x2-x1);

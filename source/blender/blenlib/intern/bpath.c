@@ -400,7 +400,7 @@ static void seq_setpath(struct BPathIterator *bpi, const char *path)
 
 	if (SEQ_HAS_PATH(seq)) {
 		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
-			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
+			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir), sizeof(seq->strip->stripdata->name));
 		}
 		else {
 			/* simple case */
@@ -903,7 +903,7 @@ void findMissingFiles(Main *bmain, const char *str)
 
 	//XXX waitcursor( 1 );
 
-	BLI_split_dirfile(str, dirname, NULL);
+	BLI_split_dir_part(str, dirname, sizeof(dirname));
 
 	BLI_bpathIterator_init(&bpi, bmain, bmain->name, 0);
 
