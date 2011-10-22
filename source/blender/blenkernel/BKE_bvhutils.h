@@ -34,7 +34,6 @@
  */
 
 #include "BLI_kdopbvh.h"
-#include "BLI_linklist.h"
 
 /*
  * This header encapsulates necessary code to buld a BVH
@@ -118,7 +117,7 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 #define BVHTREE_FROM_VERTICES	1
 #define BVHTREE_FROM_EDGES		2
 
-typedef LinkNode* BVHCache;
+typedef struct LinkNode* BVHCache;
 
 
 /*

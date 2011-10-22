@@ -47,7 +47,6 @@
 #include "DNA_ID.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_path_util.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"

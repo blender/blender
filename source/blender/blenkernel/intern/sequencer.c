@@ -51,6 +51,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_storage.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -61,8 +62,9 @@
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
-#include "RNA_access.h"
 #include "BKE_utildefines.h"
+
+#include "RNA_access.h"
 
 #include "RE_pipeline.h"
 

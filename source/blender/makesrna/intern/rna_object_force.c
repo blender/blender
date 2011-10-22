@@ -98,8 +98,6 @@ static EnumPropertyItem empty_vortex_shape_items[] = {
 #include "BKE_pointcache.h"
 #include "BKE_depsgraph.h"
 
-#include "BLI_blenlib.h"
-
 #include "ED_object.h"
 
 static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

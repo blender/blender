@@ -2729,4 +2729,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 
 	}
+
+	/* Handy when debugging checking events */
+	/* WM_event_print(&event); */
+
 }

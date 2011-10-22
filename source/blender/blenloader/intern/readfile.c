@@ -8661,7 +8661,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (wo = main->world.first; wo; wo= wo->id.next) {
 			/* Migrate to Bullet for games, except for the NaN versions */
-			/* People can still explicitely choose for Sumo (after 2.42 is out) */
+			/* People can still explicitly choose for Sumo (after 2.42 is out) */
 			if(main->versionfile > 225)
 				wo->physicsEngine = WOPHY_BULLET;
 			if(WO_AODIST == wo->aomode)
