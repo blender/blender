@@ -35,9 +35,9 @@
 #define RE_ENGINE_H
 
 #include "DNA_listBase.h"
-#include "DNA_vec_types.h"
 #include "RNA_types.h"
 
+struct Object;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;

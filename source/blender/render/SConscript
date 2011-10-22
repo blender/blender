@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('intern/source/*.c') + env.Glob('intern/pipeline/*.c')
+sources = env.Glob('intern/source/*.c')
 raysources = env.Glob('intern/raytrace/*.cpp')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'

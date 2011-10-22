@@ -47,8 +47,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "intern/openexr/openexr_multi.h"
-
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif

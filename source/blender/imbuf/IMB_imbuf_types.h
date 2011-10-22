@@ -169,27 +169,39 @@ typedef struct ImBuf {
 #define JPG				(1 << 27)
 #define BMP				(1 << 26)
 
+#ifdef WITH_QUICKTIME
 #define QUICKTIME		(1 << 25)
+#endif
 
+#ifdef WITH_HDR
 #define RADHDR			(1 << 24)
+#endif
+#ifdef WITH_TIFF
 #define TIF				(1 << 23)
 #define TIF_16BIT		(1 << 8 )
+#endif
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )
 #define OPENEXR_COMPRESS (7)	
 
+#ifdef WITH_CINEON
 #define CINEON			(1 << 21)
 #define DPX				(1 << 20)
+#endif
 
+#ifdef WITH_DDS
 #define DDS				(1 << 19)
+#endif
 
+#ifdef WITH_OPENJPEG
 #define JP2				(1 << 18)
 #define JP2_12BIT		(1 << 17)
 #define JP2_16BIT		(1 << 16)
 #define JP2_YCC			(1 << 15)
 #define JP2_CINE		(1 << 14)
 #define JP2_CINE_48FPS	(1 << 13) 
+#endif
 
 #define RAWTGA	        (TGA | 1)
 

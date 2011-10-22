@@ -56,6 +56,7 @@ set(SRC
 	intern/raytrace/rayobject_vbvh.cpp
 	intern/source/convertblender.c
 	intern/source/envmap.c
+	intern/source/external_engine.c
 	intern/source/gammaCorrectionTables.c
 	intern/source/imagetexture.c
 	intern/source/initrender.c
@@ -78,7 +79,6 @@ set(SRC
 	intern/source/volumetric.c
 	intern/source/voxeldata.c
 	intern/source/zbuf.c
-	intern/pipeline/engine.c
 
 	extern/include/RE_engine.h
 	extern/include/RE_pipeline.h

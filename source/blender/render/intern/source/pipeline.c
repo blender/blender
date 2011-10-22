@@ -965,7 +965,7 @@ static void renderresult_add_names(RenderResult *rr)
 }
 
 /* called for reading temp files, and for external engines */
-static int read_render_result_from_file(const char *filename, RenderResult *rr, int external)
+static int read_render_result_from_file(const char *filename, RenderResult *rr)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -1029,7 +1029,7 @@ static int read_render_result(Render *re, int sample)
 	render_unique_exr_name(re, str, sample);
 	printf("read exr tmp file: %s\n", str);
 
-	if(read_render_result_from_file(str, re->result, 0)) {
+	if(read_render_result_from_file(str, re->result)) {
 		success= TRUE;
 	}
 	else {
