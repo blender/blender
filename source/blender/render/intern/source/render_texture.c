@@ -71,6 +71,8 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "envmap.h"
 #include "pointdensity.h"
 #include "voxeldata.h"
@@ -3606,10 +3608,13 @@ void RE_free_sample_material(Material *mat)
 		if(mat->mtex[tex_nr]) {
 			MTex *mtex= mat->mtex[tex_nr];
 			free_texture(mtex->tex);
+			MEM_freeN(mtex->tex);
+			mtex->tex = NULL;
 		}
 	}
 
 	free_material(mat);
+	MEM_freeN(mat);
 }
 
 
