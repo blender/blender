@@ -98,6 +98,11 @@ enum {
 #define KM_ALT2		64
 #define KM_OSKEY2	128
 
+/* KM_MOD_ flags for wmKeyMapItem and wmEvent.alt/shift/oskey/ctrl  */
+/* note that KM_ANY and FALSE are used with these defines too */
+#define KM_MOD_FIRST  1
+#define KM_MOD_SECOND 2
+
 /* type: defined in wm_event_types.c */
 #define KM_TEXTINPUT	-2
 
