@@ -48,10 +48,10 @@ struct Scene;
 
 /* External Engine */
 
-#define RE_INTERNAL			1
-#define RE_GAME				2
-#define RE_DO_PREVIEW		4
-#define RE_DO_ALL			8
+#define RE_INTERNAL				1
+#define RE_GAME					2
+#define RE_USE_PREVIEW			4
+#define RE_USE_POSTPROCESS		8
 
 extern ListBase R_engines;
 
@@ -71,9 +71,13 @@ typedef struct RenderEngineType {
 
 typedef struct RenderEngine {
 	RenderEngineType *type;
+
 	struct Render *re;
 	ListBase fullresult;
 } RenderEngine;
+
+RenderEngine *RE_engine_create(RenderEngineType *type);
+void RE_engine_free(RenderEngine *engine);
 
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
 void RE_result_load_from_file(struct RenderResult *result, struct ReportList *reports, const char *filename);
@@ -84,6 +88,7 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+void RE_engine_update_progress(RenderEngine *engine, float progress);
 void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);
@@ -92,6 +97,8 @@ int RE_engine_render(struct Render *re, int do_all);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
+
+RenderEngineType *RE_engines_find(const char *idname);
 
 #endif /* RE_ENGINE_H */
 
