@@ -99,6 +99,7 @@ set(SRC
 	BLI_edgehash.h
 	BLI_editVert.h
 	BLI_fileops.h
+	BLI_fileops_types.h
 	BLI_fnmatch.h
 	BLI_ghash.h
 	BLI_graph.h
@@ -125,8 +126,6 @@ set(SRC
 	BLI_rand.h
 	BLI_rect.h
 	BLI_scanfill.h
-	BLI_storage.h
-	BLI_storage_types.h
 	BLI_string.h
 	BLI_string_utf8.h
 	BLI_threads.h

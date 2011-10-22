@@ -39,7 +39,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_storage_types.h"
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -1042,7 +1041,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create the file */
-	BLI_recurdir_fileops(path);
+	BLI_dir_create_recursive(path);
 
 	if (!BLI_exists(path)) {
 		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder");
@@ -1136,7 +1135,7 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		file_expand_directory(C);
 
 		if (!BLI_exists(sfile->params->dir)) {
-			BLI_recurdir_fileops(sfile->params->dir);
+			BLI_dir_create_recursive(sfile->params->dir);
 		}
 
 		/* special case, user may have pasted a fulepath into the directory */

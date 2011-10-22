@@ -33,7 +33,6 @@
 
 
 #include <stddef.h>
-#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <math.h>
 #include <stdlib.h>

@@ -2734,7 +2734,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 		/* first write compressed to separate @.gz */
 		BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", filepath);
-		ret = BLI_gzip(tempname, gzname);
+		ret = BLI_file_gzip(tempname, gzname);
 		
 		if(0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
