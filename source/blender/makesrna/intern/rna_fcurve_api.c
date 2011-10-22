@@ -42,8 +42,6 @@
 
 #include <stddef.h>
 
-#include "BLI_blenlib.h"
-
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 

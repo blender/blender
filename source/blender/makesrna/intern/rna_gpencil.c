@@ -40,8 +40,6 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_path_util.h"
-
 static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
 {
 	bGPDlayer *gpl= (bGPDlayer *)ptr->data;

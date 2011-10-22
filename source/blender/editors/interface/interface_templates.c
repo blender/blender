@@ -2090,7 +2090,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	if(icon == ICON_NONE || icon == ICON_DOT)
 		icon= 0;
 
-	namebuf= RNA_struct_name_get_alloc(itemptr, NULL, 0);
+	namebuf= RNA_struct_name_get_alloc(itemptr, NULL, 0, NULL);
 	name= (namebuf)? namebuf: "";
 
 	/* hardcoded types */
@@ -2275,7 +2275,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 				if(found) {
 					/* create button */
-					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
 					icon= list_item_icon_get(C, &itemptr, rnaicon, 0);
 					uiItemL(row, (name)? name: "", icon);
 

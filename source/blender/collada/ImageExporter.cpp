@@ -110,7 +110,7 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 				// make dest directory if it doesn't exist
 				BLI_make_existing_file(abs);
 			
-				if (BLI_copy_fileops(src, abs) != 0) {
+				if (BLI_copy(src, abs) != 0) {
 					fprintf(stderr, "Cannot copy image to file's directory. \n");
 				}
 			} 

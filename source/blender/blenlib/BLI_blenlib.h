@@ -76,20 +76,11 @@ extern "C" {
 
 #include "BLI_path_util.h"
 
-#include "BLI_storage.h"
-
 #include "BLI_fileops.h"
 
 #include "BLI_rect.h"
 
 #include "BLI_noise.h"
-
-/**
- * @param strct The structure of interest
- * @param member The name of a member field of @a strct
- * @retval The offset in bytes of @a member within @a strct
- */
-#define BLI_STRUCT_OFFSET(strct, member)	((int)(intptr_t) &((strct*) 0)->member)
 
 #ifdef __cplusplus
 }

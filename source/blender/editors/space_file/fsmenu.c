@@ -278,7 +278,7 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 				if (line[len-1] == '\n') {
 					line[len-1] = '\0';
 				}
-				if (BLI_exist(line)) {
+				if (BLI_exists(line)) {
 					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
 				}
 			}

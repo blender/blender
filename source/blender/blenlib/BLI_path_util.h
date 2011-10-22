@@ -65,10 +65,6 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_SYSTEM_PLUGINS		54
 #define BLENDER_SYSTEM_PYTHON		54
 
-#define BLENDER_TEMP				80
-
-#define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
-
 /* for BLI_get_folder_version only */
 #define BLENDER_RESOURCE_PATH_USER		0
 #define BLENDER_RESOURCE_PATH_LOCAL		1
@@ -77,17 +73,6 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_STARTUP_FILE	"startup.blend"
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
 #define BLENDER_HISTORY_FILE	"recent-files.txt"
-
-#ifdef WIN32
-#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#elif defined(__APPLE__)
-#define BLENDER_USER_FORMAT			"%s/Blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
-#else
-#define BLENDER_USER_FORMAT			"%s/.blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
-#endif
 
 #ifdef WIN32
 #define SEP '\\'

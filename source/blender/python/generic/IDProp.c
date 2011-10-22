@@ -67,9 +67,9 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 	switch ( prop->type ) {
 		case IDP_STRING:
 #ifdef USE_STRING_COERCE
-			return PyC_UnicodeFromByte(IDP_Array(prop));
+            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len);
 #else
-			return PyUnicode_FromString(IDP_Array(prop));
+            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len);
 #endif
 		case IDP_INT:
 			return PyLong_FromLong( (long)prop->data.val );
@@ -485,9 +485,9 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 	switch (prop->type) {
 		case IDP_STRING:
 #ifdef USE_STRING_COERCE
-			return PyC_UnicodeFromByte(IDP_Array(prop));
+            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len);
 #else
-			return PyUnicode_FromString(IDP_Array(prop));
+            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len);
 #endif
 			break;
 		case IDP_FLOAT:

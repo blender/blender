@@ -574,7 +574,7 @@ void WM_read_history(void)
 
 	BLI_make_file_string("/", name, cfgdir, BLENDER_HISTORY_FILE);
 
-	lines= BLI_read_file_as_lines(name);
+	lines= BLI_file_read_as_lines(name);
 
 	G.recent_files.first = G.recent_files.last = NULL;
 
@@ -589,7 +589,7 @@ void WM_read_history(void)
 		}
 	}
 	
-	BLI_free_file_lines(lines);
+	BLI_file_free_lines(lines);
 
 }
 

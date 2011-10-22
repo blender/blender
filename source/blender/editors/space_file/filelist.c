@@ -48,7 +48,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_storage_types.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -825,10 +824,10 @@ static void filelist_read_dir(struct FileList* filelist)
 	filelist->fidx = NULL;
 	filelist->filelist = NULL;
 
-	BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
+	BLI_current_working_dir(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 	BLI_cleanup_dir(G.main->name, filelist->dir);
-	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
+	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) {} /* fix warning about not checking return value */
 	filelist_setfiletypes(filelist);

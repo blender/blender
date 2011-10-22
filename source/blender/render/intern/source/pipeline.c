@@ -2762,7 +2762,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		
 		scene_unique_exr_name(scene, str, 0);
 		
-		if (BLI_is_writable(str)==0) {
+		if (BLI_file_is_writable(str)==0) {
 			BKE_report(reports, RPT_ERROR, "Can not save render buffers, check the temp default path");
 			return 0;
 		}
@@ -3155,13 +3155,13 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
 					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 
-				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
+				if(scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
 					continue;
 				}
-				if(scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				if(scene->r.mode & R_TOUCH && !BLI_exists(name)) {
 					BLI_make_existing_file(name); /* makes the dir if its not there */
-					BLI_touch(name);
+					BLI_file_touch(name);
 				}
 			}
 
@@ -3184,7 +3184,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			if(G.afbreek==1) {
 				/* remove touched file */
 				if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
-					if (scene->r.mode & R_TOUCH && BLI_exist(name) && BLI_filepathsize(name) == 0) {
+					if (scene->r.mode & R_TOUCH && BLI_exists(name) && BLI_file_size(name) == 0) {
 						BLI_delete(name, 0, 0);
 					}
 				}

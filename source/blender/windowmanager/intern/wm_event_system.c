@@ -2617,39 +2617,43 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
-			strcpy(event.utf8_buf, kd->utf8_buf);
+			memcpy(event.utf8_buf, kd->utf8_buf,sizeof(event.utf8_buf));/* might be not null terminated*/
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */
-			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>0))
-				event.ascii= '\0';
-			
-			/* modifiers */
-			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
-				event.shift= evt->shift= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->oskey))
-				   event.shift= evt->shift = 3;		// define?
-			} 
-			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
-				event.ctrl= evt->ctrl= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->shift || evt->alt || evt->oskey))
-				   event.ctrl= evt->ctrl = 3;		// define?
-			} 
-			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
-				event.alt= evt->alt= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->shift || evt->oskey))
-				   event.alt= evt->alt = 3;		// define?
-			} 
-			else if (event.type==OSKEY) {
-				event.oskey= evt->oskey= (event.val==KM_PRESS);
-				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
-				   event.oskey= evt->oskey = 3;		// define?
+			if(type==GHOST_kEventKeyUp) {
+				if (event.ascii<32 && event.ascii > 0) {
+					event.ascii= '\0';
+				}
+
+				/* ghost should do this already for key up */
+				if (event.utf8_buf[0]) {
+					printf("%s: ghost on you're platform is misbehaving, utf8 events on key up!\n", __func__);
+				}
+				event.utf8_buf[0]= '\0';
 			}
-			else {
+
+			/* modifiers */
+			/* assigning both first and second is strange - campbell */
+			switch(event.type) {
+			case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
+				event.shift= evt->shift= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case LEFTCTRLKEY: case RIGHTCTRLKEY:
+				event.ctrl= evt->ctrl= (event.val==KM_PRESS) ? ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case LEFTALTKEY: case RIGHTALTKEY:
+				event.alt= evt->alt= (event.val==KM_PRESS) ? ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			case OSKEY:
+				event.oskey= evt->oskey= (event.val==KM_PRESS) ? ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) : FALSE;
+				break;
+			default:
 				if(event.val==KM_PRESS && event.keymodifier==0)
 					evt->keymodifier= event.type; /* only set in eventstate, for next event */
 				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
 					event.keymodifier= evt->keymodifier= 0;
+				break;
 			}
 
 			/* this case happens on some systems that on holding a key pressed,
@@ -2735,4 +2739,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 
 	}
+
+	/* Handy when debugging checking events */
+	/* WM_event_print(&event); */
+
 }

@@ -29,7 +29,7 @@
 #ifndef BLI_MEMPOOL_H
 #define BLI_MEMPOOL_H
 
-/** \file BLI_storage.h
+/** \file BLI_mempool.h
  *  \ingroup bli
  *  \author Geoffrey Bantle
  *  \brief Simple fast memory allocator.

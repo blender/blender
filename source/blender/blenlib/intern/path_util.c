@@ -46,8 +46,6 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_storage.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
@@ -83,6 +81,18 @@
 #endif
 
 #endif /* WIN32 */
+
+/* standard paths */
+#ifdef WIN32
+#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#elif defined(__APPLE__)
+#define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
+#else
+#define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
+#endif
 
 /* local */
 #define UNIQUE_NAME_MAX 128
@@ -728,7 +738,7 @@ int BLI_path_cwd(char *path)
 	
 	if (wasrelative==1) {
 		char cwd[FILE_MAXDIR + FILE_MAXFILE]= "";
-		BLI_getwdN(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
+		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
@@ -974,7 +984,7 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 
 	/* try CWD/release/folder_name */
-	if(BLI_getwdN(cwd, sizeof(cwd))) {
+	if(BLI_current_working_dir(cwd, sizeof(cwd))) {
 		if(test_path(targetpath, cwd, "release", relfolder)) {
 			return 1;
 		}
@@ -1105,7 +1115,7 @@ char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	
 	if (!path) {
 		path = BLI_get_user_folder_notest(folder_id, subfolder);
-		if (path) BLI_recurdir_fileops(path);
+		if (path) BLI_dir_create_recursive(path);
 	}
 	
 	return path;
@@ -1238,7 +1248,7 @@ void BLI_make_existing_file(const char *name)
 	
 	/* test exist */
 	if (BLI_exists(di) == 0) {
-		BLI_recurdir_fileops(di);
+		BLI_dir_create_recursive(di);
 	}
 }
 
@@ -1635,7 +1645,7 @@ static int add_win32_extension(char *name)
 	int retval = 0;
 	int type;
 
-	type = BLI_exist(name);
+	type = BLI_exists(name);
 	if ((type == 0) || S_ISDIR(type)) {
 #ifdef _WIN32
 		char filename[FILE_MAXDIR+FILE_MAXFILE];
@@ -1655,7 +1665,7 @@ static int add_win32_extension(char *name)
 					strcat(filename, extensions);
 				}
 
-				type = BLI_exist(filename);
+				type = BLI_exists(filename);
 				if (type && (! S_ISDIR(type))) {
 					retval = 1;
 					strcpy(name, filename);
@@ -1720,7 +1730,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 		BLI_strncpy(fullname, name, maxlen);
 		if (name[0] == '.') {
 			char wdir[FILE_MAX]= "";
-			BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
+			BLI_current_working_dir(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 			// not needed but avoids annoying /./ in name
 			if(name[1]==SEP)

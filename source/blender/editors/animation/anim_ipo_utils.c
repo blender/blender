@@ -118,7 +118,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				PropertyRNA *nameprop= RNA_struct_name_property(ptr.type);
 				if (nameprop) {
 					/* this gets a string which will need to be freed */
-					structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0);
+					structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0, NULL);
 					free_structname= 1;
 				}
 				else

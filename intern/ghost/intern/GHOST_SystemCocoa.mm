@@ -1655,15 +1655,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
-	/* unicode input - not entirely supported yet
-	 * but we are getting the right byte, Blender is not drawing it though 
-	 * also some languages may need special treatment:
-		  - Japanese: romanji is used as input, and every 2 letters OSX converts the text
-		              to Hiragana/Katakana.
-		  - Korean: one add one letter at a time, and then the OSX join them in the equivalent
-		            combined letter.
-	 */
 	char utf8_buf[6]= {'\0'};
+	ascii = 0;
 	
 	switch ([event type]) {
 
@@ -1678,32 +1671,18 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				keyCode = convertKey([event keyCode],0,
 									 [event type] == NSKeyDown?kUCKeyActionDown:kUCKeyActionUp);
 
-			/* ascii */
+			/* handling both unicode or ascii */
 			characters = [event characters];
-			if ([characters length]>0) { //Check for dead keys
-				//Convert characters to iso latin 1 encoding
-				convertedCharacters = [characters dataUsingEncoding:NSISOLatin1StringEncoding];
-				if ([convertedCharacters length]>0)
-					ascii =((char*)[convertedCharacters bytes])[0];
-				else
-					ascii = 0; //Character not available in iso latin 1 encoding
-			}
-			else
-				ascii= 0;
-
-			/* unicode */
 			if ([characters length]>0) {
 				convertedCharacters = [characters dataUsingEncoding:NSUTF8StringEncoding];
-				if ([convertedCharacters length]>0) {
-					utf8_buf[0] = ((char*)[convertedCharacters bytes])[0];
-					utf8_buf[1] = ((char*)[convertedCharacters bytes])[1];
-					utf8_buf[2] = ((char*)[convertedCharacters bytes])[2];
-					utf8_buf[3] = ((char*)[convertedCharacters bytes])[3];
-					utf8_buf[4] = ((char*)[convertedCharacters bytes])[4];
-					utf8_buf[5] = ((char*)[convertedCharacters bytes])[5];
+				
+				for (int x = 0; x < [convertedCharacters length]; x++) {
+					utf8_buf[x] = ((char*)[convertedCharacters bytes])[x];
 				}
-				else {
-					utf8_buf[0] = '\0';
+
+				/* ascii is a subset of unicode */
+				if ([convertedCharacters length] == 1) {
+					ascii = utf8_buf[0];
 				}
 			}
 
@@ -1714,9 +1693,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
 				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			} else {
-			// XXX Font Object bug - backspace or adding new chars are being computed twice (keydown and keyup)
-				utf8_buf[0] = '\0';
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii, utf8_buf) );
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, 0, '\0') );
 				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			break;

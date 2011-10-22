@@ -310,31 +310,15 @@ static void keymap_event_set(wmKeyMapItem *kmi, short type, short val, int modif
 	kmi->type= type;
 	kmi->val= val;
 	kmi->keymodifier= keymodifier;
-	
+
 	if(modifier == KM_ANY) {
 		kmi->shift= kmi->ctrl= kmi->alt= kmi->oskey= KM_ANY;
 	}
 	else {
-		
-		kmi->shift= kmi->ctrl= kmi->alt= kmi->oskey= 0;
-		
-		/* defines? */
-		if(modifier & KM_SHIFT)
-			kmi->shift= 1;
-		else if(modifier & KM_SHIFT2)
-			kmi->shift= 2;
-		if(modifier & KM_CTRL)
-			kmi->ctrl= 1;
-		else if(modifier & KM_CTRL2)
-			kmi->ctrl= 2;
-		if(modifier & KM_ALT)
-			kmi->alt= 1;
-		else if(modifier & KM_ALT2)
-			kmi->alt= 2;
-		if(modifier & KM_OSKEY)
-			kmi->oskey= 1;
-		else if(modifier & KM_OSKEY2)
-			kmi->oskey= 2;	
+		kmi->shift= (modifier & KM_SHIFT) ? KM_MOD_FIRST : ((modifier & KM_SHIFT2) ? KM_MOD_SECOND : FALSE);
+		kmi->ctrl=  (modifier & KM_CTRL)  ? KM_MOD_FIRST : ((modifier & KM_CTRL2)  ? KM_MOD_SECOND : FALSE);
+		kmi->alt=   (modifier & KM_ALT)   ? KM_MOD_FIRST : ((modifier & KM_ALT2)   ? KM_MOD_SECOND : FALSE);
+		kmi->oskey= (modifier & KM_OSKEY) ? KM_MOD_FIRST : ((modifier & KM_OSKEY2) ? KM_MOD_SECOND : FALSE);
 	}
 }
 
