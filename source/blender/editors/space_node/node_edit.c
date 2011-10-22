@@ -283,16 +283,18 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 void ED_node_shader_default(Scene *scene, ID *id)
 {
 	bNode *in, *out;
-	bNodeSocket *fromsock, *tosock;
+	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
 	bNodeTemplate ntemp;
 	int output_type, shader_type;
+	float color[3], strength = 1.0f;
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
 	switch(GS(id->name)) {
-		case ID_MA:
-			((Material*)id)->nodetree = ntree;
+		case ID_MA: {
+			Material *ma= (Material*)id;
+			ma->nodetree = ntree;
 
 			if(scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
@@ -302,17 +304,36 @@ void ED_node_shader_default(Scene *scene, ID *id)
 				output_type = SH_NODE_OUTPUT;
 				shader_type = SH_NODE_MATERIAL;
 			}
+
+			copy_v3_v3(color, &ma->r);
+			strength= 0.0f;
 			break;
-		case ID_WO:
-			((World*)id)->nodetree = ntree;
+		}
+		case ID_WO: {
+			World *wo= (World*)id;
+
+			wo->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_WORLD;
 			shader_type = SH_NODE_BACKGROUND;
+
+			copy_v3_v3(color, &wo->horr);
+			strength= 1.0f;
 			break;
-		case ID_LA:
+		}
+		case ID_LA: {
+			Lamp *la= (Lamp*)id;
+
 			((Lamp*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_LAMP;
 			shader_type = SH_NODE_EMISSION;
+
+			copy_v3_v3(color, &la->r);
+			if(la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA)
+				strength= 100.0f;
+			else
+				strength= 1.0f;
 			break;
+		}
 		default:
 			printf("ED_node_shader_default called on wrong ID type.\n");
 			return;
@@ -332,13 +353,14 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	tosock= out->inputs.first;
 	nodeAddLink(ntree, in, fromsock, out, tosock);
 
-	if(GS(id->name) == ID_LA) {
-		Lamp *la= (Lamp*)id;
+	/* default values */
+	if(scene_use_new_shading_nodes(scene)) {
+		sock= in->inputs.first;
+		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
 
-		if(la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA) {
-			bNodeSocket *sock= in->inputs.last;
-			bNodeSocketValueFloat *default_value= sock->default_value;
-			default_value->value= 100.0f;
+		if(strength != 0.0f) {
+			sock= in->inputs.last;
+			((bNodeSocketValueFloat*)sock->default_value)->value= strength;
 		}
 	}
 	

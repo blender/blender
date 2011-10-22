@@ -348,7 +348,7 @@ def find_node_input(node, name):
 
 def panel_node_draw(layout, id, output_type, input_name):
     if not id.node_tree:
-        layout.prop(id, "use_nodes")
+        layout.prop(id, "use_nodes", icon='NODETREE')
         return
 
     ntree = id.node_tree
@@ -435,7 +435,8 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.world and CyclesButtonsPanel.poll(context)
+        world = context.world
+        return world and world.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -465,7 +466,8 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
+        mat = context.material
+        return mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -484,7 +486,8 @@ class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
+        mat = context.material
+        return mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
