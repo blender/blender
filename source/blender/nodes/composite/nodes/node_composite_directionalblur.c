@@ -86,8 +86,9 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 					getpix(tmp, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, col);
 
 					/* mix img and transformed tmp */
-					for(j= 0; j < 4; ++j)
-						img->rect[p + j]= AVG2(img->rect[p + j], col[j]);
+					for(j= 0; j < 4; ++j) {
+						img->rect[p + j]= 0.5f * (img->rect[p + j] + col[j]);
+					}
 				}
 			}
 
