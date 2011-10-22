@@ -32,6 +32,7 @@
  */
 
 #include <stdlib.h> /* for qsort */
+#include <memory.h>
 
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
