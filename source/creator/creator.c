@@ -86,6 +86,7 @@
 #include "BPY_extern.h"
 #endif
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 //XXX #include "playanim_ext.h"
