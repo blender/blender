@@ -1221,7 +1221,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 			iconid= ui_id_icon_get((bContext*)C, id, 1);
 		}
 		else {
-			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
+			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
 			iconid = 0;
 		}
 

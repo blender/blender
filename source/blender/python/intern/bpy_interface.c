@@ -203,9 +203,9 @@ void BPY_python_start(int argc, const char **argv)
 	/* allow to use our own included python */
 	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
 
-	/* Python 3.2 now looks for '2.58/python/include/python3.2d/pyconfig.h' to parse
-	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
-	 * alternatively we could copy the file. */
+	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
+	 * parse from the 'sysconfig' module which is used by 'site',
+	 * so for now disable site. alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
 
 	Py_Initialize();
@@ -215,8 +215,11 @@ void BPY_python_start(int argc, const char **argv)
 	{
 		int i;
 		PyObject *py_argv= PyList_New(argc);
-		for (i=0; i<argc; i++)
-			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i])); /* should fix bug #20021 - utf path name problems, by replacing PyUnicode_FromString */
+		for (i=0; i<argc; i++) {
+			/* should fix bug #20021 - utf path name problems, by replacing
+			 * PyUnicode_FromString, with this one */
+			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i]));
+		}
 
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);

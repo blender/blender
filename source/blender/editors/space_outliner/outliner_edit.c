@@ -1021,7 +1021,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr= &temnext->rnaptr;
-					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
+					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
 					
 					if(name) {
 						/* if possible, use name as a key in the path */
