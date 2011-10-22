@@ -725,6 +725,8 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 									(wchar_t*)utf16, 1,
 									(LPSTR) utf8_char, 5,
 									NULL,NULL); else *utf8_char = 0;
+
+		if(!keyDown) utf8_char[0] = '\0';
 		
 		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, (*utf8_char & 0x80)?'?':*utf8_char, utf8_char);
 		
