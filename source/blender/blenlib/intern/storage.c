@@ -438,7 +438,7 @@ size_t BLI_filepathsize(const char *path)
 }
 
 
-int BLI_exist(const char *name)
+int BLI_exists(const char *name)
 {
 #if defined(WIN32) && !defined(__MINGW32__)
 	struct _stat64i32 st;
@@ -471,7 +471,7 @@ int BLI_exist(const char *name)
 /* would be better in fileops.c except that it needs stat.h so add here */
 int BLI_is_dir(const char *file)
 {
-	return S_ISDIR(BLI_exist(file));
+	return S_ISDIR(BLI_exists(file));
 }
 
 LinkNode *BLI_read_file_as_lines(const char *name)

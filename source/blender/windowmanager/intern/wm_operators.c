@@ -1807,7 +1807,7 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	/* load file */
-	BLI_make_file_string("/", filename, btempdir, "quit.blend");
+	BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
 	WM_read_file(C, filename, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;

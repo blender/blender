@@ -386,9 +386,9 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 	}
 }
 
-PyObject *PyC_UnicodeFromByte(const char *str)
+PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
 {
-	PyObject *result= PyUnicode_FromString(str);
+    PyObject *result= PyUnicode_FromStringAndSize(str, size);
 	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
 		 * chars since blender doesnt limit this */
@@ -397,9 +397,14 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 	else {
 		PyErr_Clear();
 		/* this means paths will always be accessible once converted, on all OS's */
-		result= PyUnicode_DecodeFSDefault(str);
+		result= PyUnicode_DecodeFSDefaultAndSize(str, size);
 		return result;
 	}
+}
+
+PyObject *PyC_UnicodeFromByte(const char *str)
+{
+	return PyC_UnicodeFromByteAndSize(str, strlen(str));
 }
 
 /*****************************************************************************

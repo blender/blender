@@ -175,7 +175,6 @@ EnumPropertyItem image_color_mode_items[] ={
 
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
-#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

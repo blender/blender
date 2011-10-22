@@ -54,6 +54,7 @@
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_linklist.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"

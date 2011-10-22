@@ -2210,15 +2210,11 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		
 		/* always set */
 		but->modifier_key = 0;
-		if(event->shift)
-			but->modifier_key |= KM_SHIFT;
-		if(event->alt)
-			but->modifier_key |= KM_ALT;
-		if(event->ctrl)
-			but->modifier_key |= KM_CTRL;
-		if(event->oskey)
-			but->modifier_key |= KM_OSKEY;
-		
+		if(event->shift) but->modifier_key |= KM_SHIFT;
+		if(event->alt)   but->modifier_key |= KM_ALT;
+		if(event->ctrl)  but->modifier_key |= KM_CTRL;
+		if(event->oskey) but->modifier_key |= KM_OSKEY;
+
 		ui_check_but(but);
 		ED_region_tag_redraw(data->region);
 			
@@ -3684,7 +3680,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			if(sel!= -1) {
 				/* ok, we move a point */
 				/* deselect all if this one is deselect. except if we hold shift */
-				if(event->shift==0) {
+				if(event->shift == FALSE) {
 					for(a=0; a<cuma->totpoint; a++)
 						cmp[a].flag &= ~SELECT;
 					cmp[sel].flag |= SELECT;
@@ -3723,7 +3719,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 
 				if(!data->dragchange) {
 					/* deselect all, select one */
-					if(event->shift==0) {
+					if(event->shift == FALSE) {
 						for(a=0; a<cuma->totpoint; a++)
 							cmp[a].flag &= ~SELECT;
 						cmp[data->dragsel].flag |= SELECT;
@@ -4584,7 +4580,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_drop	(C, event, but, data);
 		}
 		/* handle keyframing */
-		else if(event->type == IKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
+		else if(event->type == IKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
@@ -4595,7 +4591,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle drivers */
-		else if(event->type == DKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
+		else if(event->type == DKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
@@ -4606,7 +4602,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle keyingsets */
-		else if(event->type == KKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
+		else if(event->type == KKEY && !ELEM3(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_keyingset(C);
 			else
@@ -6079,9 +6075,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				case ZKEY:
 				{
 					if(	(event->val == KM_PRESS) &&
-						(event->shift == FALSE) &&
-						(event->ctrl == FALSE) &&
-						(event->oskey == FALSE)
+					    (event->shift == FALSE) &&
+					    (event->ctrl ==  FALSE) &&
+					    (event->oskey == FALSE)
 					) {
 						for(but= block->buttons.first; but; but= but->next) {
 

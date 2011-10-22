@@ -1167,7 +1167,7 @@ void init_userdef_do_versions(void)
 	}
 	if(U.mixbufsize==0) U.mixbufsize= 2048;
 	if (strcmp(U.tempdir, "/") == 0) {
-		BLI_where_is_temp(U.tempdir, sizeof(U.tempdir), FALSE);
+		BLI_system_temporary_dir(U.tempdir);
 	}
 	if (U.autokey_mode == 0) {
 		/* 'add/replace' but not on */

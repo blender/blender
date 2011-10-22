@@ -33,17 +33,10 @@
  *  \ingroup bli
  */
 
-#ifdef WIN32
-/* for size_t, only needed on win32 for some reason */
+/* for size_t (needed on windows) */
 #include <stddef.h>
-#endif
 
 struct direntry;
-
-
-void   BLI_adddirstrings(void);
-void   BLI_builddir(const char *dirname, const char *relname);
-int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
 
 size_t BLI_filesize(int file);
 size_t BLI_filepathsize(const char *path);
@@ -51,28 +44,24 @@ double BLI_diskfree(const char *dir);
 char *BLI_getwdN(char *dir, const int maxncpy);
 
 unsigned int BLI_getdir(const char *dirname, struct direntry **filelist);
-/**
- * @attention Do not confuse with BLI_exists
- */
-int    BLI_exist(const char *name);
-/**
-	 * Read a file as ASCII lines. An empty list is
-	 * returned if the file cannot be opened or read.
-	 * 
-	 * @attention The returned list should be free'd with
-	 * BLI_free_file_lines.
-	 * 
-	 * @param name The name of the file to read.
-	 * @retval A list of strings representing the file lines.
-	 */
 
+	/* test if file or directory exists */
+int BLI_exists(const char *name);
+	/* test if there is a directory at the specified path */
 int BLI_is_dir(const char *file);
 
-struct LinkNode *BLI_read_file_as_lines(const char *name);
+/**
+ * Read a file as ASCII lines. An empty list is
+ * returned if the file cannot be opened or read.
+ * 
+ * @attention The returned list should be free'd with
+ * BLI_free_file_lines.
+ * 
+ * @param name The name of the file to read.
+ * @retval A list of strings representing the file lines.
+ */
 
-	/**
-	 * Free the list returned by BLI_read_file_as_lines.
-	 */
+struct LinkNode *BLI_read_file_as_lines(const char *name);
 void BLI_free_file_lines(struct LinkNode *lines);
 
 	/* Compare if one was last modified before the other */

@@ -40,7 +40,6 @@
 
 #include <stddef.h>
 
-#include "BLI_blenlib.h"
 #include "BKE_armature.h"
 
 void rna_EditBone_align_roll(EditBone *ebo, float no[3])

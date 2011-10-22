@@ -64,8 +64,6 @@ struct ListBase;
 
 #include <stdlib.h>
 
-extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,13 +83,6 @@ extern "C" {
 #include "BLI_rect.h"
 
 #include "BLI_noise.h"
-
-/**
- * @param strct The structure of interest
- * @param member The name of a member field of @a strct
- * @retval The offset in bytes of @a member within @a strct
- */
-#define BLI_STRUCT_OFFSET(strct, member)	((int)(intptr_t) &((strct*) 0)->member)
 
 #ifdef __cplusplus
 }

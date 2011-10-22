@@ -96,7 +96,7 @@ static int fluidsim_find_lastframe(FluidsimSettings *fss)
 	do {
 		BLI_strncpy(targetFile, targetDir, sizeof(targetFile));
 		BLI_path_frame(targetFile, curFrame++, 0);
-	} while(BLI_exist(targetFile));
+	} while(BLI_exists(targetFile));
 
 	return curFrame - 1;
 }
