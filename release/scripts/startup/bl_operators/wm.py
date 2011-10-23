@@ -1179,7 +1179,31 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
+class WM_OT_blenderplayer_start(Operator):
+    '''Launches the Blenderplayer with the current blendfile'''
+    bl_idname = "wm.blenderplayer_start"
+    bl_label = "Start"
+    
+    import os
+    blender_bin_path = bpy.app.binary_path
+    blender_bin_dir = os.path.dirname(blender_bin_path)
+    ext = os.path.splitext(blender_bin_path)[-1]
+    player_path = os.path.join(blender_bin_dir, 'blenderplayer' + ext)
+    
+    def execute(self, context):
+        import sys
+        import subprocess
+        import os
 
+        if sys.platform == 'darwin':
+            self.player_path = os.path.join(self.blender_bin_dir, '../../../blenderplayer.app/Contents/MacOS/blenderplayer')
+	
+        filepath = bpy.app.tempdir + "game.blend"
+        bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
+        subprocess.call([self.player_path, filepath])
+        return {'FINISHED'}
+
+        
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
@@ -1451,7 +1475,7 @@ class WM_OT_operator_cheat_sheet(Operator):
 class WM_OT_addon_enable(Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
-    bl_label = "Enable Add-On"
+    bl_label = "Enable Addon"
 
     module = StringProperty(
             name="Module",
@@ -1482,7 +1506,7 @@ class WM_OT_addon_enable(Operator):
 class WM_OT_addon_disable(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_disable"
-    bl_label = "Disable Add-On"
+    bl_label = "Disable Addon"
 
     module = StringProperty(
             name="Module",
@@ -1499,7 +1523,7 @@ class WM_OT_addon_disable(Operator):
 class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Add-On..."
+    bl_label = "Install Addon..."
 
     overwrite = BoolProperty(
             name="Overwrite",
@@ -1667,7 +1691,7 @@ class WM_OT_addon_install(Operator):
 class WM_OT_addon_remove(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_remove"
-    bl_label = "Remove Add-On"
+    bl_label = "Remove Addon"
 
     module = StringProperty(
             name="Module",
@@ -1722,7 +1746,7 @@ class WM_OT_addon_remove(Operator):
 
 
 class WM_OT_addon_expand(Operator):
-    "Display more information on this add-on"
+    "Display more information on this addon"
     bl_idname = "wm.addon_expand"
     bl_label = ""
 

@@ -310,9 +310,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 static void id_local_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
-		tselem->id->lib= NULL;
-		tselem->id->flag= LIB_LOCAL;
-		new_id(NULL, tselem->id, NULL);
+		id_clear_lib_data(NULL, tselem->id);
 	}
 }
 

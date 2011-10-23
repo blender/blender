@@ -3,7 +3,6 @@
  *
  *	Functions for changing the topology of a mesh.
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

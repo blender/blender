@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -296,15 +294,16 @@ void make_local_material(Material *ma)
 		*/
 	
 	if(ma->id.lib==NULL) return;
-	if(ma->id.us==1) {
-		ma->id.lib= NULL;
-		ma->id.flag= LIB_LOCAL;
 
-		new_id(&bmain->mat, (ID *)ma, NULL);
+	/* One local user; set flag and return. */
+	if(ma->id.us==1) {
+		id_clear_lib_data(&bmain->mat, (ID *)ma);
 		extern_local_material(ma);
 		return;
 	}
-	
+
+	/* Check which other IDs reference this one to determine if it's used by
+	   lib or local */
 	/* test objects */
 	ob= bmain->object.first;
 	while(ob) {
@@ -357,14 +356,13 @@ void make_local_material(Material *ma)
 		}
 		mb= mb->id.next;
 	}
-	
-	if(local && lib==0) {
-		ma->id.lib= NULL;
-		ma->id.flag= LIB_LOCAL;
 
-		new_id(&bmain->mat, (ID *)ma, NULL);
+	/* Only local users. */
+	if(local && lib==0) {
+		id_clear_lib_data(&bmain->mat, (ID *)ma);
 		extern_local_material(ma);
 	}
+	/* Both user and local, so copy. */
 	else if(local && lib) {
 		
 		man= copy_material(ma);

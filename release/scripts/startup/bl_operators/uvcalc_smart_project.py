@@ -1105,8 +1105,8 @@ from bpy.props import FloatProperty
 
 
 class SmartProject(Operator):
-    '''This script projection unwraps the selected faces of a mesh. ''' \
-    '''it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces'''
+    '''This script projection unwraps the selected faces of a mesh ''' \
+    '''(it operates on all selected mesh objects, and can be used to unwrap selected faces, or all faces)'''
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"
     bl_options = {'REGISTER', 'UNDO'}

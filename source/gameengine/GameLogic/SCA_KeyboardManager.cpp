@@ -1,7 +1,6 @@
 /*
  * Manager for keyboard events
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

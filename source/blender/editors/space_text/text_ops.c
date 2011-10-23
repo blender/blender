@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -2226,7 +2224,7 @@ static int scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		text_update_character_width(st);
 		
 		tsc->old[0] = event->x;
-		tsc->old[1] = event->x;
+		tsc->old[1] = event->y;
 		/* Sensitivity of scroll set to 4pix per line/char */
 		tsc->delta[0] = (event->x - event->prevx)*st->cwidth/4;
 		tsc->delta[1] = (event->y - event->prevy)*st->lheight/4;

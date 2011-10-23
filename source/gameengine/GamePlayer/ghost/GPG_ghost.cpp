@@ -1,6 +1,4 @@
 /*
-* $Id$
-*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +23,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-* Start up of the Blender Player on GHOST.
-*/
+ * Start up of the Blender Player on GHOST.
+ */
 
 /** \file gameengine/GamePlayer/ghost/GPG_ghost.cpp
  *  \ingroup player
@@ -178,8 +176,8 @@ static BOOL scr_saver_init(int argc, char **argv)
 void usage(const char* program, bool isBlenderPlayer)
 {
 	const char * consoleoption;
-	const char * filename = "";
-	const char * pathname = "";
+	const char * example_filename = "";
+	const char * example_pathname = "";
 
 #ifdef _WIN32
 	consoleoption = "-c ";
@@ -188,16 +186,16 @@ void usage(const char* program, bool isBlenderPlayer)
 #endif
 
 	if (isBlenderPlayer) {
-		filename = "filename.blend";
+		example_filename = "filename.blend";
 #ifdef _WIN32
-		pathname = "c:\\";
+		example_pathname = "c:\\";
 #else
-		pathname = "//home//user//";
+		example_pathname = "/home/user/";
 #endif
 	}
 	
 	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, filename);
+		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, example_filename);
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
@@ -252,9 +250,9 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("\n");
 	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
 	printf("\n");
-	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, pathname, filename);
-	printf("example: %s -g show_framerate = 0 %s%s\n", program, pathname, filename);
-	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, pathname, filename);
+	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, example_pathname, example_filename);
+	printf("example: %s -g show_framerate = 0 %s%s\n", program, example_pathname, example_filename);
+	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, example_pathname, example_filename);
 }
 
 static void get_filename(int argc, char **argv, char *filename)
@@ -367,6 +365,7 @@ int main(int argc, char** argv)
 	GHOST_TEmbedderWindowID parentWindow = 0;
 	bool isBlenderPlayer = false;
 	int validArguments=0;
+	bool samplesParFound = false;
 	GHOST_TUns16 aasamples = 0;
 	
 #ifdef __linux__
@@ -408,6 +407,8 @@ int main(int argc, char** argv)
 	
 	initglobals();
 
+	// Blender's VBOs cause odd problems with modifiers (we have our own vbo code)
+	U.gameflags |= USER_DISABLE_VBO;
 	// We load our own G.main, so free the one that initglobals() gives us
 	free_main(G.main);
 	G.main = NULL;
@@ -583,8 +584,14 @@ int main(int argc, char** argv)
 				break;
 			case 'm':
 				i++;
+				samplesParFound = true;
 				if ((i+1) <= validArguments )
-				aasamples = atoi(argv[i++]);
+					aasamples = atoi(argv[i++]);
+				else
+				{
+					error = true;
+					printf("error: No argument supplied for -m");
+				}
 				break;
 			case 'c':
 				i++;
@@ -820,7 +827,7 @@ int main(int argc, char** argv)
 						if ((!fullScreenParFound) && (!windowParFound))
 						{
 							// Only use file settings when command line did not override
-							if (scene->gm.fullscreen) {
+							if ((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
 								//printf("fullscreen option found in Blender file\n");
 								fullScreen = true;
 								fullScreenWidth= scene->gm.xplay;
@@ -848,6 +855,9 @@ int main(int argc, char** argv)
 						}
 						else
 							scene->gm.stereoflag = STEREO_ENABLED;
+
+						if (!samplesParFound)
+							aasamples = scene->gm.aasamples;
 
 						if (stereoFlag == STEREO_DOME){
 							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
@@ -894,7 +904,7 @@ int main(int argc, char** argv)
 #endif
 								{
 									app.startFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-										stereoWindow, stereomode, aasamples);
+										stereoWindow, stereomode, aasamples, (scene->gm.playerflag & GAME_PLAYER_DESKTOP_RESOLUTION));
 								}
 							}
 							else

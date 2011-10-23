@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -257,9 +255,7 @@ void make_local_lattice(Lattice *lt)
 	
 	if(lt->id.lib==NULL) return;
 	if(lt->id.us==1) {
-		lt->id.lib= NULL;
-		lt->id.flag= LIB_LOCAL;
-		new_id(&bmain->latt, (ID *)lt, NULL);
+		id_clear_lib_data(&bmain->latt, (ID *)lt);
 		return;
 	}
 	
@@ -271,9 +267,7 @@ void make_local_lattice(Lattice *lt)
 	}
 	
 	if(local && lib==0) {
-		lt->id.lib= NULL;
-		lt->id.flag= LIB_LOCAL;
-		new_id(&bmain->latt, (ID *)lt, NULL);
+		id_clear_lib_data(&bmain->latt, (ID *)lt);
 	}
 	else if(local && lib) {
 		Lattice *ltn= copy_lattice(lt);

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -243,38 +241,25 @@ Mesh *copy_mesh(Mesh *me)
 	return men;
 }
 
-static void make_local_tface(Main *bmain, Mesh *me)
-{
-	MTFace *tface;
-	Image *ima;
-	int a, i;
-	
-	for(i=0; i<me->fdata.totlayer; i++) {
-		if(me->fdata.layers[i].type == CD_MTFACE) {
-			tface= (MTFace*)me->fdata.layers[i].data;
-			
-			for(a=0; a<me->totface; a++, tface++) {
-				/* special case: ima always local immediately */
-				if(tface->tpage) {
-					ima= tface->tpage;
-					if(ima->id.lib) {
-						ima->id.lib= NULL;
-						ima->id.flag= LIB_LOCAL;
-						new_id(&bmain->image, (ID *)ima, NULL);
-					}
-				}
-			}
-		}
-	}
-}
-
-static void expand_local_mesh(Main *bmain, Mesh *me)
+static void expand_local_mesh(Mesh *me)
 {
 	id_lib_extern((ID *)me->texcomesh);
 
 	if(me->mtface) {
-		/* why is this an exception? - should not really make local when extern'ing - campbell */
-		make_local_tface(bmain, me);
+		MTFace *tface;
+		int a, i;
+
+		for(i=0; i<me->fdata.totlayer; i++) {
+			if(me->fdata.layers[i].type == CD_MTFACE) {
+				tface= (MTFace*)me->fdata.layers[i].data;
+
+				for(a=0; a<me->totface; a++, tface++) {
+					if(tface->tpage) {
+						id_lib_extern((ID *)tface->tpage);
+					}
+				}
+			}
+		}
 	}
 
 	if(me->mat) {
@@ -295,11 +280,8 @@ void make_local_mesh(Mesh *me)
 
 	if(me->id.lib==NULL) return;
 	if(me->id.us==1) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+		id_clear_lib_data(&bmain->mesh, (ID *)me);
+		expand_local_mesh(me);
 		return;
 	}
 
@@ -311,11 +293,8 @@ void make_local_mesh(Mesh *me)
 	}
 
 	if(local && lib==0) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+		id_clear_lib_data(&bmain->mesh, (ID *)me);
+		expand_local_mesh(me);
 	}
 	else if(local && lib) {
 		Mesh *men= copy_mesh(me);

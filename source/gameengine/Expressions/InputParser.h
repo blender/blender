@@ -2,7 +2,6 @@
  * Parser.h: interface for the CParser class.
  * Eindhoven University of Technology 1997
  * OOPS team (Serge vd Boom, Erwin Coumans, Tom Geelen, Wynke Stuylemeier)
- * $Id$
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
  *
  * Permission to use, copy, modify, distribute and sell this software

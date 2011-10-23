@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +37,7 @@
 struct BPathIterator;
 struct ReportList;
 struct Main;
+struct ID;
 
 void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir, const int flag);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
@@ -51,6 +51,13 @@ int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
 void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
 void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
 void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path);
+
+/* Function that does something with an ID's file path. Should return 1 if the
+   path has changed, and in that case, should write the result to pathOut. */
+typedef int (*bpath_visitor)(void *userdata, char *pathIn, char *pathOut);
+/* Executes 'visit' for each path associated with 'id'. */
+void bpath_traverse_id(struct ID *id, bpath_visitor visit, void *userdata);
+int bpath_relocate_visitor(void *oldbasepath, char *pathIn, char *pathOut);
 
 /* high level funcs */
 

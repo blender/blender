@@ -1,6 +1,4 @@
 /*
- * $Id$ 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -134,19 +132,6 @@ struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
 
 void IMB_refImBuf(struct ImBuf *ibuf);
 struct ImBuf * IMB_makeSingleUser(struct ImBuf *ibuf);
-
-/**
- *
- * @attention Defined in allocimbuf.c
- */
-void IMB_cache_limiter_insert(struct ImBuf *i);
-void IMB_cache_limiter_unmanage(struct ImBuf *i);
-void IMB_cache_limiter_touch(struct ImBuf *i);
-void IMB_cache_limiter_ref(struct ImBuf *i);
-void IMB_cache_limiter_unref(struct ImBuf *i);
-int IMB_cache_limiter_get_refcount(struct ImBuf *i);
-
-void IMB_free_cache_limiter(void);
 
 /**
  *

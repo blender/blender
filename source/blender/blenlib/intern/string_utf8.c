@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -320,6 +318,8 @@ int BLI_str_utf8_size(const char *p)
     unsigned char c = (unsigned char) *p;
 
     UTF8_COMPUTE (c, mask, len);
+
+	(void)mask; /* quiet warning */
 
 	return len;
 }

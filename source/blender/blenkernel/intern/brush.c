@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -183,6 +181,7 @@ void free_brush(Brush *brush)
 static void extern_local_brush(Brush *brush)
 {
 	id_lib_extern((ID *)brush->mtex.tex);
+	id_lib_extern((ID *)brush->clone.image);
 }
 
 void make_local_brush(Brush *brush)
@@ -200,10 +199,9 @@ void make_local_brush(Brush *brush)
 	if(brush->id.lib==NULL) return;
 
 	if(brush->clone.image) {
-		/* special case: ima always local immediately */
-		brush->clone.image->id.lib= NULL;
-		brush->clone.image->id.flag= LIB_LOCAL;
-		new_id(&bmain->brush, (ID *)brush->clone.image, NULL);
+		/* special case: ima always local immediately. Clone image should only
+		   have one user anyway. */
+		id_clear_lib_data(&bmain->brush, (ID *)brush->clone.image);
 		extern_local_brush(brush);
 	}
 
@@ -215,9 +213,7 @@ void make_local_brush(Brush *brush)
 	}
 
 	if(local && lib==0) {
-		brush->id.lib= NULL;
-		brush->id.flag= LIB_LOCAL;
-		new_id(&bmain->brush, (ID *)brush, NULL);
+		id_clear_lib_data(&bmain->brush, (ID *)brush);
 		extern_local_brush(brush);
 
 		/* enable fake user by default */

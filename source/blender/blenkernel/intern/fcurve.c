@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -435,7 +433,8 @@ int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short
 /* ...................................... */
 
 /* helper for calc_fcurve_* functions -> find first and last BezTriple to be used */
-static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple **last, const short selOnly)
+static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple **last,
+                                      const short do_sel_only)
 {
 	/* init outputs */
 	*first = NULL;
@@ -446,7 +445,7 @@ static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple 
 		return;
 	
 	/* only include selected items? */
-	if (selOnly) {
+	if (do_sel_only) {
 		BezTriple *bezt;
 		unsigned int i;
 		
@@ -477,11 +476,12 @@ static void get_fcurve_end_keyframes (FCurve *fcu, BezTriple **first, BezTriple 
 
 
 /* Calculate the extents of F-Curve's data */
-void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
+void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                         const short do_sel_only)
 {
 	float xminv=999999999.0f, xmaxv=-999999999.0f;
 	float yminv=999999999.0f, ymaxv=-999999999.0f;
-	short foundvert=0;
+	short foundvert= FALSE;
 	unsigned int i;
 	
 	if (fcu->totvert) {
@@ -490,7 +490,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 			
 			if (xmin || xmax) {
 				/* get endpoint keyframes */
-				get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, selOnly);
+				get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only);
 				
 				if (bezt_first) {
 					BLI_assert(bezt_last != NULL);
@@ -505,11 +505,12 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				BezTriple *bezt;
 				
 				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-					if ((selOnly == 0) || BEZSELECTED(bezt)) {
+					if ((do_sel_only == 0) || BEZSELECTED(bezt)) {
 						if (bezt->vec[1][1] < yminv)
 							yminv= bezt->vec[1][1];
 						if (bezt->vec[1][1] > ymaxv)
 							ymaxv= bezt->vec[1][1];
+						foundvert= TRUE;
 					}
 				}
 			}
@@ -530,11 +531,11 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 						yminv= fpt->vec[1];
 					if (fpt->vec[1] > ymaxv)
 						ymaxv= fpt->vec[1];
+
+					foundvert= TRUE;
 				}
 			}
 		}
-		
-		foundvert=1;
 	}
 	
 	if (foundvert) {
@@ -557,43 +558,50 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 }
 
 /* Calculate the extents of F-Curve's keyframes */
-void calc_fcurve_range (FCurve *fcu, float *start, float *end, const short selOnly)
+void calc_fcurve_range (FCurve *fcu, float *start, float *end,
+                        const short do_sel_only, const short do_min_length)
 {
 	float min=999999999.0f, max=-999999999.0f;
-	short foundvert=0;
+	short foundvert= FALSE;
 
 	if (fcu->totvert) {
 		if (fcu->bezt) {
 			BezTriple *bezt_first= NULL, *bezt_last= NULL;
 			
 			/* get endpoint keyframes */
-			get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, selOnly);
-			
+			get_fcurve_end_keyframes(fcu, &bezt_first, &bezt_last, do_sel_only);
+
 			if (bezt_first) {
 				BLI_assert(bezt_last != NULL);
-				
+
 				min= MIN2(min, bezt_first->vec[1][0]);
 				max= MAX2(max, bezt_last->vec[1][0]);
+
+				foundvert= TRUE;
 			}
 		}
 		else if (fcu->fpt) {
 			min= MIN2(min, fcu->fpt[0].vec[0]);
 			max= MAX2(max, fcu->fpt[fcu->totvert-1].vec[0]);
+
+			foundvert= TRUE;
 		}
 		
-		foundvert=1;
 	}
 	
-	/* minimum length is 1 frame */
-	if (foundvert) {
-		if (min == max) max += 1.0f;
-		*start= min;
-		*end= max;
+	if (foundvert == FALSE) {
+		min= max= 0.0f;
 	}
-	else {
-		*start= 0.0f;
-		*end= 1.0f;
+
+	if (do_min_length) {
+		/* minimum length is 1 frame */
+		if (min == max) {
+			max += 1.0f;
+		}
 	}
+
+	*start= min;
+	*end= max;
 }
 
 /* ----------------- Status Checks -------------------------- */

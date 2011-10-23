@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -26,6 +25,8 @@
 
 # Otherwise we get warnings here that we cant fix in external projects
 remove_strict_flags()
+
+add_subdirectory(colamd)
 
 if(WITH_BULLET)
 	add_subdirectory(bullet2)

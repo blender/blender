@@ -1,7 +1,6 @@
 /*
  * BKE_fluidsim.h 
  *	
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

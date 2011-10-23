@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -257,10 +255,7 @@ void make_local_curve(Curve *cu)
 	if(cu->id.lib==NULL) return;
 
 	if(cu->id.us==1) {
-		cu->id.lib= NULL;
-		cu->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->curve, (ID *)cu, NULL);
+		id_clear_lib_data(&bmain->curve, (ID *)cu);
 		extern_local_curve(cu);
 		return;
 	}
@@ -273,10 +268,7 @@ void make_local_curve(Curve *cu)
 	}
 
 	if(local && lib==0) {
-		cu->id.lib= NULL;
-		cu->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->curve, (ID *)cu, NULL);
+		id_clear_lib_data(&bmain->curve, (ID *)cu);
 		extern_local_curve(cu);
 	}
 	else if(local && lib) {

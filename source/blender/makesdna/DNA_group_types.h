@@ -1,7 +1,6 @@
 /*
  * blenlib/DNA_group_types.h (mar-2001 nzc)
  *	
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

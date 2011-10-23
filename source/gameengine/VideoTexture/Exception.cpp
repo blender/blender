@@ -1,7 +1,4 @@
-/** \file gameengine/VideoTexture/Exception.cpp
- *  \ingroup bgevideotex
- */
-/* $Id$
+/*
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 
@@ -23,6 +20,9 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file gameengine/VideoTexture/Exception.cpp
+ *  \ingroup bgevideotex
+ */
 
 #include <sstream>
 #include <fstream>

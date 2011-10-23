@@ -3,7 +3,6 @@
  *
  * 04-10-2000 frank
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

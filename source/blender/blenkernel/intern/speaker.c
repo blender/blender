@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -89,9 +87,7 @@ void make_local_speaker(Speaker *spk)
 
 	if(spk->id.lib==NULL) return;
 	if(spk->id.us==1) {
-		spk->id.lib= NULL;
-		spk->id.flag= LIB_LOCAL;
-		new_id(&bmain->speaker, (ID *)spk, NULL);
+		id_clear_lib_data(&bmain->speaker, (ID *)spk);
 		return;
 	}
 
@@ -105,9 +101,7 @@ void make_local_speaker(Speaker *spk)
 	}
 
 	if(local && lib==0) {
-		spk->id.lib= NULL;
-		spk->id.flag= LIB_LOCAL;
-		new_id(&bmain->speaker, (ID *)spk, NULL);
+		id_clear_lib_data(&bmain->speaker, (ID *)spk);
 	}
 	else if(local && lib) {
 		Speaker *spkn= copy_speaker(spk);

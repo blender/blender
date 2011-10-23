@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * This is external code.
  *

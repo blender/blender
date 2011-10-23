@@ -1,8 +1,7 @@
 /*
-* global game stuff
-*
-* $Id$
-*
+ * global game stuff
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +26,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file gameengine/Ketsji/KX_GameActuator.cpp
  *  \ingroup ketsji

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -816,6 +814,10 @@ Tex *localize_texture(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
+static void extern_local_texture(Tex *tex) {
+	id_lib_extern((ID *)tex->ima);
+}
+
 void make_local_texture(Tex *tex)
 {
 	Main *bmain= G.main;
@@ -834,18 +836,9 @@ void make_local_texture(Tex *tex)
 	
 	if(tex->id.lib==NULL) return;
 
-	/* special case: ima always local immediately */
-	if(tex->ima) {
-		tex->ima->id.lib= NULL;
-		tex->ima->id.flag= LIB_LOCAL;
-		new_id(&bmain->image, (ID *)tex->ima, NULL);
-	}
-
 	if(tex->id.us==1) {
-		tex->id.lib= NULL;
-		tex->id.flag= LIB_LOCAL;
-		new_id(&bmain->tex, (ID *)tex, NULL);
-
+		id_clear_lib_data(&bmain->tex, (ID *)tex);
+		extern_local_texture(tex);
 		return;
 	}
 	
@@ -899,9 +892,8 @@ void make_local_texture(Tex *tex)
 	}
 	
 	if(local && lib==0) {
-		tex->id.lib= NULL;
-		tex->id.flag= LIB_LOCAL;
-		new_id(&bmain->tex, (ID *)tex, NULL);
+		id_clear_lib_data(&bmain->tex, (ID *)tex);
+		extern_local_texture(tex);
 	}
 	else if(local && lib) {
 		texn= copy_texture(tex);

@@ -1,4 +1,3 @@
-# $Id$
 """
 Documentation for the PhysicsConstraints module.
 ================================================

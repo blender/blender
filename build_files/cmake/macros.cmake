@@ -1,5 +1,4 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
-# $Id$
 
 
 # foo_bar.spam --> foo_barMySuffix.spam
@@ -17,7 +16,7 @@ macro(file_suffix
 	unset(_file_name_EXT)
 endmacro()
 
-# usefil for adding debug suffix to library lists:
+# useful for adding debug suffix to library lists:
 # /somepath/foo.lib --> /somepath/foo_d.lib
 macro(file_list_suffix
 	fp_list_new fp_list fn_suffix
@@ -412,6 +411,32 @@ macro(remove_strict_flags)
 	endif()
 
 endmacro()
+
+# note, we can only append flags on a single file so we need to negate the options.
+# at the moment we cant shut up ffmpeg deprecations, so use this, but will
+# probably add more removals here.
+macro(remove_strict_flags_file
+	filenames)
+
+	foreach(_SOURCE ${ARGV})
+
+		if(CMAKE_COMPILER_IS_GNUCC)
+			set_source_files_properties(${_SOURCE}
+				PROPERTIES
+					COMPILE_FLAGS "-Wno-deprecated-declarations"
+			)
+		endif()
+
+		if(MSVC)
+			# TODO
+		endif()
+
+	endforeach()	
+
+	unset(_SOURCE)
+
+endmacro()
+
 
 macro(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS

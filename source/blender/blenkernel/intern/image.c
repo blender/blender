@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -62,10 +60,14 @@
 #include "DNA_camera_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_brush_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_bpath.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_global.h"
@@ -313,6 +315,132 @@ Image *copy_image(Image *ima)
 	nima->aspy= ima->aspy;
 
 	return nima;
+}
+
+static void extern_local_image(Image *UNUSED(ima))
+{
+	/* Nothing to do: images don't link to other IDs. This function exists to
+	   match id_make_local pattern. */
+}
+
+void make_local_image(struct Image *ima) {
+	Main *bmain= G.main;
+	Tex *tex;
+	Brush *brush;
+	Mesh *me;
+	int local=0, lib=0;
+
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+
+	if(ima->id.lib==NULL) return;
+
+	/* Can't take short cut here: must check meshes at least because of bogus
+	   texface ID refs. - z0r */
+#if(0)
+	if(ima->id.us==1) {
+		id_clear_lib_data(&bmain->image, (ID *)ima);
+		extern_local_image(ima);
+		return;
+	}
+#endif
+
+	for(tex= bmain->tex.first; tex; tex= tex->id.next) {
+		if(tex->ima == ima) {
+			if(tex->id.lib) lib= 1;
+			else local= 1;
+		}
+	}
+	for(brush= bmain->brush.first; brush; brush= brush->id.next) {
+		if(brush->clone.image == ima) {
+			if(brush->id.lib) lib= 1;
+			else local= 1;
+		}
+	}
+	for(me= bmain->mesh.first; me; me= me->id.next) {
+		if(me->mtface) {
+			MTFace *tface;
+			int a, i;
+
+			for(i=0; i<me->fdata.totlayer; i++) {
+				if(me->fdata.layers[i].type == CD_MTFACE) {
+					tface= (MTFace*)me->fdata.layers[i].data;
+
+					for(a=0; a<me->totface; a++, tface++) {
+						if(tface->tpage == ima) {
+							if(me->id.lib) lib=1;
+							else local= 1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if(local && lib==0) {
+		id_clear_lib_data(&bmain->image, (ID *)ima);
+		extern_local_image(ima);
+	}
+	else if(local && lib) {
+		Image *iman= copy_image(ima);
+		iman->id.us= 0;
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id((ID *)iman, bpath_relocate_visitor,
+		                     ((ID *)ima)->lib->filepath);
+
+		tex= bmain->tex.first;
+		while(tex) {
+			if(tex->id.lib==NULL) {
+				if(tex->ima==ima) {
+					tex->ima = iman;
+					iman->id.us++;
+					ima->id.us--;
+				}
+			}
+			tex= tex->id.next;
+		}
+		brush= bmain->brush.first;
+		while(brush) {
+			if(brush->id.lib==NULL) {
+				if(brush->clone.image==ima) {
+					brush->clone.image = iman;
+					iman->id.us++;
+					ima->id.us--;
+				}
+			}
+			brush= brush->id.next;
+		}
+		/* Transfer references in texfaces. Texfaces don't add to image ID
+		   user count *unless* there are no other users. See
+		   readfile.c:lib_link_mtface. */
+		me= bmain->mesh.first;
+		while(me) {
+			if(me->mtface) {
+				MTFace *tface;
+				int a, i;
+
+				for(i=0; i<me->fdata.totlayer; i++) {
+					if(me->fdata.layers[i].type == CD_MTFACE) {
+						tface= (MTFace*)me->fdata.layers[i].data;
+
+						for(a=0; a<me->totface; a++, tface++) {	
+							if(tface->tpage == ima) {
+								tface->tpage = iman;
+								if(iman->id.us == 0) {
+									tface->tpage->id.us= 1;
+								}
+								id_lib_extern((ID*)iman);
+							}
+						}
+					}
+				}
+			}
+			me= me->id.next;
+		}
+	}
 }
 
 void BKE_image_merge(Image *dest, Image *source)

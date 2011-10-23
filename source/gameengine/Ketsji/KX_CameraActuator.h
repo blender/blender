@@ -1,7 +1,6 @@
 /*
  * KX_CameraActuator.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

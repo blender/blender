@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -139,19 +137,14 @@ void make_local_action(bAction *act)
 	
 	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
 	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
-		act->id.lib= NULL;
-		act->id.flag= LIB_LOCAL;
-		new_id(&bmain->action, (ID *)act, NULL);
+		id_clear_lib_data(&bmain->action, (ID *)act);
 		return;
 	}
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
 	if (mlac.local && mlac.lib==0) {
-		act->id.lib= NULL;
-		act->id.flag= LIB_LOCAL;
-		//make_local_action_channels(act);
-		new_id(&bmain->action, (ID *)act, NULL);
+		id_clear_lib_data(&bmain->action, (ID *)act);
 	}
 	else if (mlac.local && mlac.lib) {
 		mlac.actn= copy_action(act);
@@ -883,7 +876,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				
 				/* get extents for this curve */
 				// TODO: allow enabling/disabling this?
-				calc_fcurve_range(fcu, &nmin, &nmax, FALSE);
+				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
 				min= MIN2(min, nmin);

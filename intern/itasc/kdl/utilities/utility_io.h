@@ -9,7 +9,6 @@
  *		- $log$
  *
  *	\par Release
- *		$Id$
  *		$Name:  $ 
  *
  *  \file   utility_io.h

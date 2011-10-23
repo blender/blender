@@ -1,7 +1,6 @@
 /*
  * Property sensor
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

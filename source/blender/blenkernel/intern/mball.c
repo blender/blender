@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -158,9 +156,7 @@ void make_local_mball(MetaBall *mb)
 	
 	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		mb->id.lib= NULL;
-		mb->id.flag= LIB_LOCAL;
-		new_id(&bmain->mball, (ID *)mb, NULL);
+		id_clear_lib_data(&bmain->mball, (ID *)mb);
 		extern_local_mball(mb);
 		
 		return;
@@ -174,10 +170,7 @@ void make_local_mball(MetaBall *mb)
 	}
 	
 	if(local && lib==0) {
-		mb->id.lib= NULL;
-		mb->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mball, (ID *)mb, NULL);
+		id_clear_lib_data(&bmain->mball, (ID *)mb);
 		extern_local_mball(mb);
 	}
 	else if(local && lib) {

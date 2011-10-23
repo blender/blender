@@ -2,7 +2,6 @@
 #define __ffmpeg_compat_h_included__ 1
 
 /*
- * $Id$
  *
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)
@@ -151,7 +150,8 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 	if (pts == AV_NOPTS_VALUE) {
 		pts = 0;
 	}
-	
+
+	(void)avctx;
 	return pts;
 }
 

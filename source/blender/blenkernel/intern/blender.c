@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -63,6 +61,7 @@
 #include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
+#include "IMB_moviecache.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -113,6 +112,7 @@ void free_blender(void)
 	BLI_cb_finalize();
 
 	seq_stripelem_cache_destruct();
+	IMB_moviecache_destruct();
 	
 	free_nodesystem();	
 }

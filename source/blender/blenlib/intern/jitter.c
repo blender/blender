@@ -1,7 +1,6 @@
 /*
  * Jitter offset table
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -4,8 +4,11 @@ defs = []
 sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
 incs = '#/intern/guardedalloc #/intern/iksolver/extern ../makesdna ../blenlib'
-incs += ' ../blenkernel ../include ../ikplugin #/intern/itasc #/extern/Eigen2'
+incs += ' ../blenkernel ../include ../ikplugin #/intern/itasc #/extern/Eigen3'
 
 defs.append('WITH_IK_ITASC')
+
+if env['PLATFORM'] == 'win32':
+    defs.append('EIGEN_DONT_ALIGN_STATICALLY')
 
 env.BlenderLib ( 'bf_ikplugin', sources, Split(incs), defs, libtype=['core','player'], priority=[180, 190] )

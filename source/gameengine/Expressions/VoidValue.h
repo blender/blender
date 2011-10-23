@@ -1,6 +1,5 @@
 /*
  * VoidValue.h: interface for the CVoidValue class.
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -143,9 +141,7 @@ void make_local_armature(bArmature *arm)
 
 	if (arm->id.lib==NULL) return;
 	if (arm->id.us==1) {
-		arm->id.lib= NULL;
-		arm->id.flag= LIB_LOCAL;
-		new_id(&bmain->armature, (ID*)arm, NULL);
+		id_clear_lib_data(&bmain->armature, (ID *)arm);
 		return;
 	}
 
@@ -157,9 +153,7 @@ void make_local_armature(bArmature *arm)
 	}
 
 	if(local && lib==0) {
-		arm->id.lib= NULL;
-		arm->id.flag= LIB_LOCAL;
-		new_id(&bmain->armature, (ID *)arm, NULL);
+		id_clear_lib_data(&bmain->armature, (ID *)arm);
 	}
 	else if(local && lib) {
 		bArmature *armn= copy_armature(arm);

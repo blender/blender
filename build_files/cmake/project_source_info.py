@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -41,7 +40,7 @@ def is_c_header(filename):
 
 def is_c(filename):
     ext = os.path.splitext(filename)[1]
-    return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc"))
+    return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl"))
 
 
 def is_c_any(filename):

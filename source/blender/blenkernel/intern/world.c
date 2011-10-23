@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -162,9 +160,7 @@ void make_local_world(World *wrld)
 	
 	if(wrld->id.lib==NULL) return;
 	if(wrld->id.us==1) {
-		wrld->id.lib= NULL;
-		wrld->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)wrld, NULL);
+		id_clear_lib_data(&bmain->world, (ID *)wrld);
 		return;
 	}
 	
@@ -176,9 +172,7 @@ void make_local_world(World *wrld)
 	}
 
 	if(local && lib==0) {
-		wrld->id.lib= NULL;
-		wrld->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)wrld, NULL);
+		id_clear_lib_data(&bmain->world, (ID *)wrld);
 	}
 	else if(local && lib) {
 		World *wrldn= copy_world(wrld);

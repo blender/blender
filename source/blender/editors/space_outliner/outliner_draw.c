@@ -310,11 +310,19 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 			}					
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {
-				char expanded[FILE_MAXDIR + FILE_MAXFILE];
-				BLI_strncpy(expanded, ((Library *)tselem->id)->name, FILE_MAXDIR + FILE_MAXFILE);
+				Library *lib= (Library *)tselem->id;
+				char expanded[FILE_MAX];
+
+				BLI_strncpy(expanded, lib->name, sizeof(expanded));
+
+				/* even though we already set the name this syncs the absolute
+				 * path, this is intentionally not already expanded yet to
+				 * avoid copying lib->name to its self. */
+				BKE_library_filepath_set(lib, expanded);
+
 				BLI_path_abs(expanded, G.main->name);
 				if (!BLI_exists(expanded)) {
-					BKE_report(CTX_wm_reports(C), RPT_ERROR, "This path does not exist, correct this before saving");
+					BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Library path '%s' does not exist, correct this before saving", expanded);
 				}
 			}
 		}

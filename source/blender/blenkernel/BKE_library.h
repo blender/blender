@@ -1,6 +1,4 @@
 /*
- * $Id$ 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -52,6 +50,7 @@ void *copy_libblock(void *rt);
 void copy_libblock_data(struct ID *id, const struct ID *id_from, const short do_action);
 
 void id_lib_extern(struct ID *id);
+void BKE_library_filepath_set(struct Library *lib, const char *filepath);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 int id_make_local(struct ID *id, int test);
@@ -60,6 +59,7 @@ int id_copy(struct ID *id, struct ID **newid, int test);
 int id_unlink(struct ID *id, int test);
 
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
+void id_clear_lib_data(struct ListBase *lb, struct ID *id);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 

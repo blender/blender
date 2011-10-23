@@ -6,7 +6,6 @@
  * convert to different types/distributions elsewhere. This just 
  * delivers a clean, random bitvector.
  *
- * $Id$
  */
 
 /* A C-program for MT19937: Real number version                */

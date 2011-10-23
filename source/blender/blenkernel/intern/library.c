@@ -1,6 +1,4 @@
-/* 
- * $Id$
- * 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -76,7 +74,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
-
+#include "BLI_bpath.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -110,6 +108,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_speaker.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -196,7 +195,8 @@ int id_make_local(ID *id, int test)
 			if(!test) make_local_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			return 0; /* not implemented */
+			if(!test) make_local_image((Image*)id);
+			return 1;
 		case ID_LT:
 			if(!test) {
 				make_local_lattice((Lattice*)id);
@@ -1248,6 +1248,16 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	return result;
 }
 
+/* Pull an ID out of a library (make it local). Only call this for IDs that
+   don't have other library users. */
+void id_clear_lib_data(ListBase *lb, ID *id)
+{
+	bpath_traverse_id(id, bpath_relocate_visitor, id->lib->filepath);
+	id->lib= NULL;
+	id->flag= LIB_LOCAL;
+	new_id(lb, id, NULL);
+}
+
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
 void clear_id_newpoins(void)
 {
@@ -1462,4 +1472,22 @@ void name_uiprefix_id(char *name, ID *id)
 	name[2] = ' ';
 
 	strcpy(name+3, id->name+2);
+}
+
+void BKE_library_filepath_set(Library *lib, const char *filepath)
+{
+	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
+	BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
+
+	/* not essential but set filepath is an absolute copy of value which
+	 * is more useful if its kept in sync */
+	if (strncmp(lib->filepath, "//", 2) == 0) {
+		/* note that the file may be unsaved, in this case, setting the
+		 * filepath on an indirectly linked path is not allowed from the
+		 * outliner, and its not really supported but allow from here for now
+		 * since making local could cause this to be directly linked - campbell
+		 */
+		const char *basepath= lib->parent ? lib->parent->filepath : G.main->name;
+		BLI_path_abs(lib->filepath, basepath);
+	}
 }
