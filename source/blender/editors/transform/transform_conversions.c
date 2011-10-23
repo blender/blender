@@ -2947,7 +2947,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 	TransData2D *td2d = *td2dv;
 	int i;
 
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return td;
 
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -4590,7 +4590,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doScale) {
-				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 		}
@@ -4705,7 +4705,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doScale) {
-						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}

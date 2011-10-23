@@ -1839,7 +1839,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	}
 	
 	/* wire draw over solid only in posemode */
-	if ((dt <= OB_WIRE) || (arm->flag & ARM_POSEMODE) || (arm->drawtype==ARM_LINE)) {
+	if ((dt <= OB_WIRE) || (arm->flag & ARM_POSEMODE) || ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* draw line check first. we do selection indices */
 		if ELEM(arm->drawtype, ARM_LINE, ARM_WIRE) {
 			if (arm->flag & ARM_POSEMODE) 
@@ -2512,7 +2512,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return 1;
 	
-	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
+	if(dt>OB_WIRE && !ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
 		glEnable(GL_COLOR_MATERIAL);

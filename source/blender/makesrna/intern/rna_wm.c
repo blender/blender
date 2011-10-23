@@ -460,14 +460,14 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
-	wmEvent *event= (wmEvent*)ptr->id.data;
+	wmEvent *event= (wmEvent*)ptr->data;
 	value[0]= event->ascii;
 	value[1]= '\0';
 }
 
 static int rna_Event_ascii_length(PointerRNA *ptr)
 {
-	wmEvent *event= (wmEvent*)ptr->id.data;
+	wmEvent *event= (wmEvent*)ptr->data;
 	return (event->ascii)? 1 : 0;
 }
 

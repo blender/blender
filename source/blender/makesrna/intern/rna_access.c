@@ -2885,7 +2885,7 @@ int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointer
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
 	*r_ptr= *ptr;
-	return ((r_ptr->type = prop->srna) ? 1:0);
+	return ((r_ptr->type = rna_ensure_property(prop)->srna) ? 1:0);
 }
 
 int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array)
