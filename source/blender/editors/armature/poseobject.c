@@ -1151,7 +1151,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	int selOnly= RNA_boolean_get(op->ptr, "selected_mask");
 
 	/* get KeyingSet to use */
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOC_ROT_SCALE_ID);
 
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -2165,7 +2165,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
-	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOC_ROT_SCALE_ID);
 	
 	/* loop through all selected pchans, flipping and keying (as needed) */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)

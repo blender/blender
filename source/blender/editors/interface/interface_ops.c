@@ -648,10 +648,12 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		ARegion *ar= CTX_wm_region(C);
 		int ret;
 
+		/* needed else the active button does not get tested */
 		uiFreeActiveButtons(C, CTX_wm_screen(C));
 
 		// printf("%s: begin\n", __func__);
 
+		/* take care not to return before calling ui_editsource_active_but_clear */
 		ui_editsource_active_but_set(but);
 
 		/* redraw and get active button python info */
