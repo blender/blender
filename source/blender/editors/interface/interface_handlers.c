@@ -4443,16 +4443,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 	}
 
-#ifdef WITH_PYTHON_UI_INFO
-	if (but->py_dbg_ln != -1) {
-		PointerRNA ptr_props;
-
-		WM_operator_properties_create(&ptr_props, "WM_OT_text_edit");
-		RNA_string_set(&ptr_props, "filepath", but->py_dbg_fn);
-		RNA_int_set(&ptr_props, "line", but->py_dbg_ln);
-		uiItemFullO(layout, "WM_OT_text_edit", "Edit Source", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
-	}
-#endif /* WITH_PYTHON_UI_INFO */
+	/* perhaps we should move this into (G.f & G_DEBUG) - campbell */
+	uiItemFullO(layout, "UI_OT_editsource", "Edit Source", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
 	uiPupMenuEnd(C, pup);
 
@@ -5146,9 +5138,10 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 	}
 }
 
-static uiBut *ui_context_rna_button_active(const bContext *C)
+/* returns the active button with an optional checking function */
+static uiBut *ui_context_button_active(const bContext *C, int (*but_check_cb)(uiBut *))
 {
-	uiBut *rnabut= NULL;
+	uiBut *but_found= NULL;
 
 	ARegion *ar= CTX_wm_region(C);
 
@@ -5166,26 +5159,40 @@ static uiBut *ui_context_rna_button_active(const bContext *C)
 			}
 		}
 
-		if(activebut && activebut->rnapoin.data) {
+		if(activebut && (but_check_cb == NULL || but_check_cb(activebut))) {
 			uiHandleButtonData *data= activebut->active;
 
-			rnabut= activebut;
+			but_found= activebut;
 
 			/* recurse into opened menu, like colorpicker case */
 			if(data && data->menu && (ar != data->menu->region)) {
 				ar = data->menu->region;
 			}
 			else {
-				return rnabut;
+				return but_found;
 			}
 		}
 		else {
 			/* no active button */
-			return rnabut;
+			return but_found;
 		}
 	}
 
-	return rnabut;
+	return but_found;
+}
+
+static int ui_context_rna_button_active_test(uiBut *but)
+{
+	return (but->rnapoin.data != NULL);
+}
+static uiBut *ui_context_rna_button_active(const bContext *C)
+{
+	return ui_context_button_active(C, ui_context_rna_button_active_test);
+}
+
+uiBut *uiContextActiveButton(const struct bContext *C)
+{
+	return ui_context_button_active(C, NULL);
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */

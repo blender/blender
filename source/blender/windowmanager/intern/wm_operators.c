@@ -104,11 +104,6 @@
 
 static GHash *global_ops_hash= NULL;
 
-#ifdef WITH_PYTHON_UI_INFO
-#  include "DNA_text_types.h"
-#  include "BKE_text.h"
-#endif
-
 /* ************ operator API, exported ********** */
 
 
@@ -3509,79 +3504,6 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 	MEM_freeN(ot);
 }
 
-#ifdef WITH_PYTHON_UI_INFO
-
-static ScrArea *biggest_text_view(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_TEXT) {
-			size= sa->winx * sa->winy;
-			if(size > maxsize) {
-				maxsize= size;
-				big= sa;
-			}
-		}
-	}
-	return big;
-}
-
-static int wm_text_edit_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain= CTX_data_main(C);
-	Text *text;
-
-	char filepath[240];
-	int line= RNA_int_get(op->ptr, "line");
-	RNA_string_get(op->ptr, "filepath", filepath);
-
-	for (text=bmain->text.first; text; text=text->id.next) {
-		if (text->name && BLI_path_cmp(text->name, filepath) == 0) {
-			break;
-		}
-	}
-
-	if (text == NULL) {
-		text= add_text(filepath, bmain->name);
-	}
-
-	if (text == NULL) {
-		BKE_reportf(op->reports, RPT_WARNING, "file: '%s' can't be opened", filepath);
-		return OPERATOR_CANCELLED;
-	}
-	else {
-		/* naughty!, find text area to set, not good behavior
-		 * but since this is a dev tool lets allow it - campbell */
-		ScrArea *sa= biggest_text_view(C);
-		if(sa) {
-			SpaceText *st= sa->spacedata.first;
-			st->text= text;
-		}
-
-		txt_move_toline(text, line - 1, FALSE);
-		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-static void WM_OT_text_edit(wmOperatorType *ot)
-{
-	ot->name= "Edit Text File";
-	ot->idname= "WM_OT_text_edit";
-
-	ot->exec= wm_text_edit_exec;
-
-	RNA_def_string_file_path(ot->srna, "filepath", "", FILE_MAX, "Path", "");
-	RNA_def_int(ot->srna, "line", 0, INT_MIN, INT_MAX, "Line", "", 0, INT_MAX);
-}
-
-#endif /* WITH_PYTHON_UI_INFO */
-
-
 /* ******************************************************* */
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
@@ -3624,11 +3546,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_collada_export);
 	WM_operatortype_append(WM_OT_collada_import);
 #endif
-
-#ifdef WITH_PYTHON_UI_INFO
-	WM_operatortype_append(WM_OT_text_edit);
-#endif
-
 }
 
 /* circleselect-like modal operators */
