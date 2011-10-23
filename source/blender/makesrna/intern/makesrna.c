@@ -40,7 +40,7 @@
 
 #include "rna_internal.h"
 
-#define RNA_VERSION_DATE "$Id$"
+#define RNA_VERSION_DATE "$Id: makesrna.c 41227 2011-10-23 17:52:20Z campbellbarton $"
 
 #ifdef _WIN32
 #ifndef snprintf

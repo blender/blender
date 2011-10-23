@@ -1,3 +1,4 @@
+$Id: scons.txt 39584 2011-08-21 13:31:46Z nazgul $
 
     Blenders SCons build scripts
     ============================

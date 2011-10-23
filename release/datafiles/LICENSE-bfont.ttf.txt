@@ -98,3 +98,4 @@ dealings in this Font Software without prior written authorization
 from Tavmjong Bah. For further information, contact: tavmjong @ free
 . fr.
 
+$Id: LICENSE-bfont.ttf.txt 19820 2009-04-20 15:06:46Z blendix $

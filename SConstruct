@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+# $Id: SConstruct 41169 2011-10-21 04:23:26Z campbellbarton $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -30,8 +30,6 @@
 # Then read all SConscripts and build
 #
 # TODO: fix /FORCE:MULTIPLE on windows to get proper debug builds.
-# TODO: directory copy functions are far too complicated, see:
-#       http://wiki.blender.org/index.php/User:Ideasman42/SConsNotSimpleInstallingFiles
 
 import platform as pltfrm
 

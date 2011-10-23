@@ -48,7 +48,7 @@
  * numbers give more output.
  * */
 
-#define DNA_VERSION_DATE "$Id$"
+#define DNA_VERSION_DATE "$Id: makesdna.c 41227 2011-10-23 17:52:20Z campbellbarton $"
 
 #include <string.h>
 #include <stdlib.h>
