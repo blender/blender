@@ -473,7 +473,7 @@ double CopyPose::getMaxTimestep(double& timestep)
 	// CopyPose should not have any limit on linear velocity: 
 	// in case the target is out of reach, this can be very high.
 	// We will simply limit on rotation
-	e_scalar maxChidot = m_chidot.block(3,0,3,1).array().abs().maxCoeff();
+	e_scalar maxChidot = m_chidot.block(3,0,3,1).cwise().abs().maxCoeff();
 	if (timestep*maxChidot > m_maxDeltaChi) {
 		timestep = m_maxDeltaChi/maxChidot;
 	}
