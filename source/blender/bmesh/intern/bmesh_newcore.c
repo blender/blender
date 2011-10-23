@@ -1521,6 +1521,9 @@ static int bmesh_splicevert(BMesh *bm, BMVert *v, BMVert *vtarget)
 		e = v->e;
 	}
 
+	CHECK_ELEMENT(bm, v);
+	CHECK_ELEMENT(bm, vtarget);
+
 	/* v is unused now, and can be killed */
 	BM_Kill_Vert(bm, v);
 
@@ -1556,10 +1559,8 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		/* Prime the stack with this unvisited edge */
 		BLI_array_append(stack, e);
 
-		/* Walk over edges that:
-		   1) have v as one of the vertices
-		   2) are connected to e through face loop cycles 
-		   assigning a unique index to that group of edges */
+		/* Considering only edges and faces incident on vertex v, walk
+		   the edges & faces and assign an index to each connected set */
 		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
 			BM_SetIndex(e, maxindex);
@@ -1589,11 +1590,14 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 			continue;
 		}
 
+		/* Loops here should alway refer to an edge that has v as an
+		   endpoint. For each appearance of this vert in a face, there
+		   will actually be two iterations: one for the loop heading
+		   towards vertex v, and another for the loop heading out from
+		   vertex v. Only need to swap the vertex on one of those times,
+		   on the outgoing loop. */
 		if (l->v == v) {
 			l->v = verts[i];
-		}
-		if (l->next->v == v) {
-			l->next->v = verts[i];
 		}
 	}
 
@@ -1603,27 +1607,29 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 			continue;
 		}
 
-		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
-			if (l->v == v) {
-				l->v = verts[i];
-			}
-			if (l->next->v == v) {
-				l->next->v = verts[i];
-			}
-		}
-
-		if (e->v1 == v || e->v2 == v) {
-			bmesh_disk_remove_edge(e, v);
-			bmesh_edge_swapverts(e, v, verts[i]);
-			bmesh_disk_append_edge(e, verts[i]);
-		}
+		BLI_assert(e->v1 == v || e->v2 == v);
+		bmesh_disk_remove_edge(e, v);
+		bmesh_edge_swapverts(e, v, verts[i]);
+		bmesh_disk_append_edge(e, verts[i]);
 	}
 
 	BLI_ghash_free(visithash, NULL, NULL);
 	BLI_array_free(stack);
 
-	*vout = verts;
-	*len = maxindex;
+	for (i = 0; i < maxindex; i++) {
+		CHECK_ELEMENT(bm, verts[i]);
+	}
+
+	if (len != NULL) {
+		*len = maxindex;
+	}
+
+	if (vout != NULL) {
+		*vout = verts;
+	}
+	else {
+		MEM_freeN(verts);
+	}
 
 	return 1;
 }
@@ -1645,9 +1651,16 @@ static int bmesh_spliceedge(BMesh *bm, BMEdge *e, BMEdge *etarget)
 
 	while (e->l) {
 		l = e->l;
+		BLI_assert(BM_Vert_In_Edge(etarget, l->v));
+		BLI_assert(BM_Vert_In_Edge(etarget, l->next->v));
 		bmesh_radial_remove_loop(l, e);
 		bmesh_radial_append(etarget, l);
 	}
+
+	BLI_assert(bmesh_radial_length(e->l) == 0);
+
+	CHECK_ELEMENT(bm, e);
+	CHECK_ELEMENT(bm, etarget);
 
 	BM_Kill_Edge(bm, e);
 
@@ -1666,11 +1679,13 @@ static int bmesh_spliceedge(BMesh *bm, BMEdge *e, BMEdge *etarget)
 static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
 {
 	BMEdge *ne;
+	int radlen;
 
 	BLI_assert(cutl->e == e);
 	BLI_assert(e->l);
 	
-	if (bmesh_radial_length(e->l) < 2) {
+	radlen = bmesh_radial_length(e->l);
+	if (radlen < 2) {
 		/* no cut required */
 		return 1;
 	}
@@ -1683,6 +1698,12 @@ static int bmesh_cutedge(BMesh *bm, BMEdge *e, BMLoop *cutl)
 	bmesh_radial_remove_loop(cutl, e);
 	bmesh_radial_append(ne, cutl);
 	cutl->e = ne;
+
+	BLI_assert(bmesh_radial_length(e->l) == radlen - 1);
+	BLI_assert(bmesh_radial_length(ne->l) == 1);
+
+	CHECK_ELEMENT(bm, ne);
+	CHECK_ELEMENT(bm, e);
 
 	return 1;
 }
