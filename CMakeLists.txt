@@ -137,7 +137,7 @@ mark_as_advanced(WITH_GHOST_SDL)
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
 
-option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
+option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what your doing!)" ON)
 mark_as_advanced(WITH_AUDASPACE)
 
 

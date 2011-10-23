@@ -298,7 +298,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		tselem->id= NULL;
 
 		/* XXX: tree management normally happens from draw_outliner(), but when
-		        you're clicking to fast on Delete object from context menu in
+		        your clicking to fast on Delete object from context menu in
 		        outliner several mouse events can be handled in one cycle without
 		        handling notifiers/redraw which leads to deleting the same object twice.
 		        cleanup tree here to prevent such cases. */

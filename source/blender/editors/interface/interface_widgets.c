@@ -1787,7 +1787,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
-	 * Useful for color correction tools where you're only interested in hue. */
+	 * Useful for color correction tools where your only interested in hue. */
 	if (but->flag & UI_BUT_COLOR_LOCK)
 		hsv[2] = 1.f;
 	else if (color_profile)

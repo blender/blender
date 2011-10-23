@@ -612,7 +612,7 @@ static void rna_def_action(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idroot");
 	RNA_def_property_enum_items(prop, id_type_items);
-	RNA_def_property_ui_text(prop, "ID Root Type", "Type of ID-block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING");
+	RNA_def_property_ui_text(prop, "ID Root Type", "Type of ID-block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOUR DOING");
 	
 	/* API calls */
 	RNA_api_action(srna);
