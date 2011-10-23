@@ -65,10 +65,10 @@ bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& yd
     if(ret<0)
         return false;
 
-    m_WqV = (Wq*m_V).lazy();
+    m_WqV.noalias() = Wq*m_V;
 
     //Wy*ydot
-	m_Wy_ydot = Wy.cwise() * ydot;
+	m_Wy_ydot = Wy.array() * ydot.array();
     //S^-1*U'*Wy*ydot
 	e_scalar maxDeltaS = e_scalar(0.0);
 	e_scalar prevS = e_scalar(0.0);
@@ -85,7 +85,7 @@ bool WDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& yd
 		}
 		lambda = (S < m_epsilon) ? (e_scalar(1.0)-KDL::sqr(S/m_epsilon))*m_lambda*m_lambda : e_scalar(0.0);
 		alpha = m_U.col(i).dot(m_Wy_ydot)*S/(S*S+lambda);
-		vmax = m_WqV.col(i).cwise().abs().maxCoeff();
+		vmax = m_WqV.col(i).array().abs().maxCoeff();
 		norm = fabs(alpha*vmax);
 		if (norm > m_qmax) {
 			qdot += m_WqV.col(i)*(alpha*m_qmax/norm);
