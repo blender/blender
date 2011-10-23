@@ -110,7 +110,7 @@ static SpaceLink *graph_new(const bContext *C)
 	sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 	sipo->ads->source= (ID *)scene;
 	
-	/* settings for making it easier by default to just see what your interested in tweaking */
+	/* settings for making it easier by default to just see what you're interested in tweaking */
 	sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
 	sipo->flag |= SIPO_SELVHANDLESONLY;
 	
