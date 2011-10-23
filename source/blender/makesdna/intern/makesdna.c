@@ -48,7 +48,7 @@
  * numbers give more output.
  * */
 
-#define DNA_VERSION_DATE "$Id: makesdna.c 41227 2011-10-23 17:52:20Z campbellbarton $"
+#define DNA_VERSION_DATE "FIXME-DNA_VERSION_DATE"
 
 #include <string.h>
 #include <stdlib.h>

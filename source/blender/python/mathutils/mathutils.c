@@ -1,6 +1,4 @@
 /* 
- * $Id: mathutils.c 40976 2011-10-13 01:29:08Z campbellbarton $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

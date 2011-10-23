@@ -1,5 +1,4 @@
 /**
- * $Id: blur.c 36276 2011-04-21 15:53:30Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

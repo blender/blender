@@ -1,5 +1,3 @@
-$Id: scons-dev.txt 40939 2011-10-11 17:30:08Z jesterking $
-
 
     Internals of Blenders SCons scripts
     ===================================

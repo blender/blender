@@ -1,5 +1,4 @@
 /**
- * $Id: clouds2.c 26841 2010-02-12 13:34:04Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,5 +1,4 @@
 /*
- * $Id: mathutils_Matrix.c 41074 2011-10-17 02:20:53Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
