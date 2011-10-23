@@ -1447,7 +1447,7 @@ static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const cha
 	len= strlen(str);
 
 	if(len-(but->selend - but->selsta)+1 <= data->maxlen) {
-		int step= BLI_strnlen(utf8_buf, sizeof(utf8_buf));
+		int step= BLI_str_utf8_size(utf8_buf);
 
 		/* type over the current selection */
 		if ((but->selend - but->selsta) > 0) {
