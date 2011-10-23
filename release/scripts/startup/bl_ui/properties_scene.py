@@ -115,8 +115,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
-            op = subcol.operator("anim.keying_set_export", text="Export to File")
-            op.filepath = "keyingset.py"
+            subcol.operator("anim.keying_set_export", text="Export to File").filepath = "keyingset.py"
 
             col = row.column()
             col.label(text="Keyframing Settings:")

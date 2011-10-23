@@ -51,8 +51,7 @@ class MESH_MT_shape_key_specials(Menu):
         layout.operator("object.shape_key_transfer", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.join_shapes", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
-        op = layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix")
-        op.from_mix = True
+        layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix").from_mix = True
 
 
 class MeshButtonsPanel():
@@ -207,8 +206,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
         col = row.column()
 
         sub = col.column(align=True)
-        op = sub.operator("object.shape_key_add", icon='ZOOMIN', text="")
-        op.from_mix = False
+        sub.operator("object.shape_key_add", icon='ZOOMIN', text="").from_mix = False
         sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="")
         sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 

@@ -16,6 +16,7 @@ def invert(f):
 
 uuid_store = {}
 
+
 def slow_value(value, fac, uuid):
     """ Delay the value by a factor, use a unique string to allow
         use in multiple drivers without conflict:
