@@ -2616,15 +2616,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			/* exclude arrow keys, esc, etc from text input */
 			if(type==GHOST_kEventKeyUp) {
-				if (event.ascii<32 && event.ascii > 0) {
-					event.ascii= '\0';
-				}
+				event.ascii= '\0';
 
 				/* ghost should do this already for key up */
 				if (event.utf8_buf[0]) {
 					printf("%s: ghost on you're platform is misbehaving, utf8 events on key up!\n", __func__);
 				}
 				event.utf8_buf[0]= '\0';
+			}
+			else if (event.ascii<32 && event.ascii > 0) {
+				event.ascii= '\0';
+				/* TODO. should this also zero utf8?, dont for now, campbell */
 			}
 
 			/* modifiers */
