@@ -282,7 +282,6 @@ class VIEW3D_MT_view(Menu):
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
         layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-        layout.operator("view3d.tool_properties", icon='MENU_PANEL')
 
         layout.separator()
 
