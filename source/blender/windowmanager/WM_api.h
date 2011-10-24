@@ -267,6 +267,9 @@ void		WM_gestures_remove(struct bContext *C);
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
+#ifndef NDEBUG
+void		WM_event_print(struct wmEvent *event);
+#endif
 
 			/* drag and drop */
 struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);

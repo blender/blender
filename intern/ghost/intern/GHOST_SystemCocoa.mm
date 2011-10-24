@@ -1706,6 +1706,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 					utf8_buf[0] = '\0';
 				}
 			}
+
+			/* XXX the above code gives us the right utf8, however if we pass it along Font Object doesn't work.
+			   let's leave utf8 disabled for OSX before we fix that */
+			utf8_buf[0] = '\0';//to be removed once things are working
 			
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa

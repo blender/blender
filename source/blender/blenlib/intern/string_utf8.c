@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * Code from gutf8.c Copyright (C) 1999 Tom Tromey
+ *                   Copyright (C) 2000 Red Hat, Inc.
  * All rights reserved.
  *
  * Contributor(s): Campbell Barton.
@@ -34,7 +36,7 @@
 #include <wchar.h>
 #include <wctype.h>
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).
@@ -189,45 +191,11 @@ char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 /* --------------------------------------------------------------------------*/
 /* wchar_t / utf8 functions  */
 
-/* UTF-8 <-> wchar transformations */
-static size_t chtoutf8(const unsigned long c, char o[4])
-{
-	// Variables and initialization
-/*	memset(o, 0, 4);	*/
-
-	// Create the utf-8 string
-	if (c < 0x80) {
-		o[0] = (char) c;
-		return 1;
-	}
-	else if (c < 0x800) {
-		o[0] = (0xC0 | (c>>6));
-		o[1] = (0x80 | (c & 0x3f));
-		return 2;
-	}
-	else if (c < 0x10000) {
-		o[0] = (0xe0 | (c >> 12));
-		o[1] = (0x80 | (c >>6 & 0x3f));
-		o[2] = (0x80 | (c & 0x3f));
-		return 3;
-	}
-	else if (c < 0x200000) {
-		o[0] = (0xf0 | (c>>18));
-		o[1] = (0x80 | (c >>12 & 0x3f));
-		o[2] = (0x80 | (c >> 6 & 0x3f));
-		o[3] = (0x80 | (c & 0x3f));
-		return 4;
-	}
-
-	/* should we assert here? */
-	return 0;
-}
-
 size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy)
 {
 	size_t len = 0;
 	while(*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isnt known :| */
-		len += chtoutf8(*src++, dst+len);
+		len += BLI_str_utf8_from_unicode(*src++, dst+len);
 	}
 
 	dst[len]= '\0';
@@ -238,11 +206,10 @@ size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t max
 /* wchar len in utf8 */
 size_t BLI_wstrlen_utf8(const wchar_t *src)
 {
-	char ch_dummy[4];
 	size_t len = 0;
 
 	while(*src) {
-		len += chtoutf8(*src++, ch_dummy);
+		len += BLI_str_utf8_from_unicode(*src++, NULL);
 	}
 
 	return len;
@@ -272,26 +239,6 @@ size_t BLI_strlen_utf8(const char *strc)
 	return len;
 }
 
-
-/* Converts Unicode to wchar
-
-According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
-(http://tools.ietf.org/html/rfc3629), the valid UTF-8 encoding are:
-
-  Char. number range  |        UTF-8 octet sequence
-	  (hexadecimal)    |              (binary)
-   --------------------+---------------------------------------------
-   0000 0000-0000 007F | 0xxxxxxx
-   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
-   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
-   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-If the encoding incidated by the first character is incorrect (because the
-1 to 3 following characters do not match 10xxxxxx), the output is a '?' and
-only a single input character is consumed.
-
-*/
-
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size_t maxcpy)
 {
 	int len=0;
@@ -299,32 +246,16 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 	if(dst_w==NULL || src_c==NULL) return(0);
 
 	while(*src_c && len < maxcpy) {
-		if ((*src_c & 0xe0) == 0xc0) {
-			if((src_c[1] & 0x80) && (src_c[1] & 0x40) == 0x00) {
-				*dst_w=((src_c[0] &0x1f)<<6) | (src_c[1]&0x3f);
-				src_c++;
-			} else {
-				*dst_w = '?';
-			}
-		} else if ((*src_c & 0xf0) == 0xe0) {
-			if((src_c[1] & src_c[2] & 0x80) && ((src_c[1] | src_c[2]) & 0x40) == 0x00) {
-				*dst_w=((src_c[0] & 0x0f)<<12) | ((src_c[1]&0x3f)<<6) | (src_c[2]&0x3f);
-				src_c += 2;
-			} else {
-				*dst_w = '?';
-			}
-		} else if ((*src_c & 0xf8) == 0xf0) {
-			if((src_c[1] & src_c[2] & src_c[3] & 0x80) && ((src_c[1] | src_c[2] | src_c[3]) & 0x40) == 0x00) {
-				*dst_w=((src_c[0] & 0x07)<<18) | ((src_c[1]&0x1f)<<12) | ((src_c[2]&0x3f)<<6) | (src_c[3]&0x3f);
-				src_c += 3;
-			} else {
-				*dst_w = '?';
-			}
-		} else {
-			*dst_w=(src_c[0] & 0x7f);
+		size_t step= 0;
+		unsigned int unicode= BLI_str_utf8_as_unicode_and_size(src_c, &step);
+		if (unicode != BLI_UTF8_ERR) {
+			*dst_w= (wchar_t)unicode;
+			src_c += step;
 		}
-
-		src_c++;
+		else {
+			*dst_w = '?';
+			src_c= BLI_str_find_next_char_utf8(src_c, NULL);
+		}
 		dst_w++;
 		len++;
 	}
@@ -334,13 +265,198 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 /* end wchar_t / utf8 functions  */
 /* --------------------------------------------------------------------------*/
 
+/* copied from glib's gutf8.c */
+
+/* note, glib uses unsigned int for unicode, best we do the same,
+ * though we dont typedef it - campbell */
+
+#define UTF8_COMPUTE(Char, Mask, Len)                                         \
+	if (Char < 128) {                                                         \
+		Len = 1;                                                              \
+		Mask = 0x7f;                                                          \
+	}                                                                         \
+	else if ((Char & 0xe0) == 0xc0) {                                         \
+		Len = 2;                                                              \
+		Mask = 0x1f;                                                          \
+	}                                                                         \
+	else if ((Char & 0xf0) == 0xe0) {                                         \
+		Len = 3;                                                              \
+		Mask = 0x0f;                                                          \
+	}                                                                         \
+	else if ((Char & 0xf8) == 0xf0) {                                         \
+		Len = 4;                                                              \
+		Mask = 0x07;                                                          \
+	}                                                                         \
+	else if ((Char & 0xfc) == 0xf8) {                                         \
+		Len = 5;                                                              \
+		Mask = 0x03;                                                          \
+	}                                                                         \
+	else if ((Char & 0xfe) == 0xfc) {                                         \
+		Len = 6;                                                              \
+		Mask = 0x01;                                                          \
+	}                                                                         \
+	else {                                                                    \
+		Len = -1;                                                             \
+	}
+
+/* same as glib define but added an 'Err' arg */
+#define UTF8_GET(Result, Chars, Count, Mask, Len, Err)                        \
+	(Result) = (Chars)[0] & (Mask);                                           \
+	for ((Count) = 1; (Count) < (Len); ++(Count)) {                           \
+		if (((Chars)[(Count)] & 0xc0) != 0x80) {                              \
+			(Result) = Err;                                                   \
+			break;                                                            \
+		}                                                                     \
+		(Result) <<= 6;                                                       \
+		(Result) |= ((Chars)[(Count)] & 0x3f);                                \
+	}
 
 
-
-
-/* copied from glib */
+/* was g_utf8_get_char */
 /**
- * g_utf8_find_prev_char:
+ * BLI_str_utf8_as_unicode:
+ * @p: a pointer to Unicode character encoded as UTF-8
+ *
+ * Converts a sequence of bytes encoded as UTF-8 to a Unicode character.
+ * If @p does not point to a valid UTF-8 encoded character, results are
+ * undefined. If you are not sure that the bytes are complete
+ * valid Unicode characters, you should use g_utf8_get_char_validated()
+ * instead.
+ *
+ * Return value: the resulting character
+ **/
+unsigned int BLI_str_utf8_as_unicode(const char *p)
+{
+  int i, mask = 0, len;
+  unsigned int result;
+  unsigned char c = (unsigned char) *p;
+
+  UTF8_COMPUTE (c, mask, len);
+  if (len == -1)
+    return BLI_UTF8_ERR;
+  UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+
+  return result;
+}
+
+/* varient that increments the length */
+unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
+{
+	int i, mask = 0, len;
+	unsigned int result;
+	unsigned char c = (unsigned char) *p;
+
+	UTF8_COMPUTE (c, mask, len);
+	if (len == -1)
+		return BLI_UTF8_ERR;
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	*index += len;
+	return result;
+}
+
+/* another varient that steps over the index,
+ * note, currently this also falls back to latin1 for text drawing. */
+unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
+{
+	int i, mask = 0, len;
+	unsigned int result;
+	unsigned char c;
+
+	p += *index;
+	c= (unsigned char) *p;
+
+	UTF8_COMPUTE (c, mask, len);
+	if (len == -1) {
+		/* when called with NULL end, result will never be NULL,
+		 * checks for a NULL character */
+		char *p_next= BLI_str_find_next_char_utf8(p, NULL);
+		/* will never return the same pointer unless '\0',
+		 * eternal loop is prevented */
+		*index += (size_t)(p_next - p);
+		return BLI_UTF8_ERR;
+	}
+
+	/* this is tricky since there are a few ways we can bail out of bad unicode
+	 * values, 3 possible solutions. */
+#if 0
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+#elif 1
+	/* WARNING: this is NOT part of glib, or supported by similar functions.
+	 * this is added for text drawing because some filepaths can have latin1
+	 * characters */
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	if(result == BLI_UTF8_ERR) {
+		len= 1;
+		result= *p;
+	}
+	/* end warning! */
+#else
+	/* without a fallback like '?', text drawing will stop on this value */
+	UTF8_GET (result, p, i, mask, len, '?');
+#endif
+
+	*index += len;
+	return result;
+}
+
+/* was g_unichar_to_utf8 */
+/**
+ * BLI_str_utf8_from_unicode:
+ * @c: a Unicode character code
+ * @outbuf: output buffer, must have at least 6 bytes of space.
+ *       If %NULL, the length will be computed and returned
+ *       and nothing will be written to @outbuf.
+ *
+ * Converts a single character to UTF-8.
+ *
+ * Return value: number of bytes written
+ **/
+size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf)
+{
+	/* If this gets modified, also update the copy in g_string_insert_unichar() */
+	unsigned int len = 0;
+	int first;
+	int i;
+
+	if (c < 0x80) {
+		first = 0;
+		len = 1;
+	}
+	else if (c < 0x800) {
+		first = 0xc0;
+		len = 2;
+	}
+	else if (c < 0x10000) {
+		first = 0xe0;
+		len = 3;
+	}
+	else if (c < 0x200000) {
+		first = 0xf0;
+		len = 4;
+	}
+	else if (c < 0x4000000) {
+		first = 0xf8;
+		len = 5;
+	}
+	else {
+		first = 0xfc;
+		len = 6;
+	}
+
+	if (outbuf) {
+		for (i = len - 1; i > 0; --i) {
+			outbuf[i] = (c & 0x3f) | 0x80;
+			c >>= 6;
+		}
+		outbuf[0] = c | first;
+	}
+
+	return len;
+}
+
+/* was g_utf8_find_prev_char */
+/**
+ * BLI_str_find_prev_char_utf8:
  * @str: pointer to the beginning of a UTF-8 encoded string
  * @p: pointer to some position within @str
  *
@@ -364,8 +480,9 @@ char * BLI_str_find_prev_char_utf8(const char *str, const char *p)
 	return NULL;
 }
 
+/* was g_utf8_find_next_char */
 /**
- * g_utf8_find_next_char:
+ * BLI_str_find_next_char_utf8:
  * @p: a pointer to a position within a UTF-8 encoded string
  * @end: a pointer to the byte following the end of the string,
  * or %NULL to indicate that the string is nul-terminated.
@@ -395,8 +512,9 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 	return (p == end) ? NULL : (char *)p;
 }
 
+/* was g_utf8_prev_char */
 /**
- * g_utf8_prev_char:
+ * BLI_str_prev_char_utf8:
  * @p: a pointer to a position within a UTF-8 encoded string
  *
  * Finds the previous UTF-8 character in the string before @p.

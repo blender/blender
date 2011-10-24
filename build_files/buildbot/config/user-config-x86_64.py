@@ -94,6 +94,7 @@ WITH_BF_JACK = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = []
+REL_CXXFLAGS = []
+REL_CCFLAGS = ['-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib64']

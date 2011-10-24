@@ -637,11 +637,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 	}
 
 	if(!name) {
-		name= ot->name;
-
-#ifdef WITH_INTERNATIONAL
-		name= UI_translate_do_iface(name);
-#endif
+		name= IFACE_(ot->name);
 	}
 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
@@ -1430,11 +1426,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	}
 
 	if(!name) {
-		name= mt->label;
-
-#ifdef WITH_INTERNATIONAL
-		name= UI_translate_do_iface(name);
-#endif
+		name= IFACE_(mt->label);
 	}
 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
@@ -2808,7 +2800,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
 
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, UI_translate_do_iface(N_("No Properties")), ICON_NONE);
+			uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
 		}
 	}
 	

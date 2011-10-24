@@ -903,7 +903,7 @@ void findMissingFiles(Main *bmain, const char *str)
 
 	//XXX waitcursor( 1 );
 
-	BLI_split_dirfile(str, dirname, NULL, sizeof(dirname), 0);
+	BLI_split_dir_part(str, dirname, sizeof(dirname));
 
 	BLI_bpathIterator_init(&bpi, bmain, bmain->name, 0);
 

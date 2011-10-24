@@ -171,9 +171,9 @@ BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE']
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-D_CRT_SECURE_NO_DEPRECATE']
-REL_CFLAGS = ['-O2', '-DNDEBUG']
+REL_CFLAGS = []
+REL_CXXFLAGS = []
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
-REL_CXXFLAGS = ['-O2', '-DNDEBUG']
 
 C_WARN = []
 CC_WARN = []
