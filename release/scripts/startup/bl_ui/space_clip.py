@@ -66,7 +66,7 @@ class CLIP_HT_header(Header):
         if clip:
             r = clip.tracking.reconstruction
 
-            if r.is_reconstructed:
+            if r.is_valid:
                 layout.label(text="Average solve error: %.4f" %
                     (r.average_error))
 
@@ -281,7 +281,7 @@ class CLIP_PT_track(Panel):
         layout = self.layout
         sc = context.space_data
         clip = context.space_data.clip
-        act_track = clip.tracking.active_track
+        act_track = clip.tracking.tracks.active
 
         if not act_track:
             layout.active = False
@@ -433,10 +433,10 @@ class CLIP_PT_track_settings(Panel):
 
         layout.prop(settings, "tracker")
 
-        layout.prop(settings, "adjust_frames")
+        layout.prop(settings, "frames_adjust")
 
         if settings.tracker == "SAD":
-            layout.prop(settings, "min_correlation")
+            layout.prop(settings, "correlation_min")
 
         layout.prop(settings, "speed")
         layout.prop(settings, "frames_limit")
@@ -488,7 +488,7 @@ class CLIP_PT_stabilization(Panel):
         layout.prop(stab, "use_autoscale")
         col = layout.column()
         col.active = stab.use_autoscale
-        col.prop(stab, "max_scale")
+        col.prop(stab, "scale_max")
         col.prop(stab, "influence_scale")
 
         layout.separator()
@@ -521,7 +521,7 @@ class CLIP_PT_marker(Panel):
         layout = self.layout
         sc = context.space_data
         clip = context.space_data.clip
-        act_track = clip.tracking.active_track
+        act_track = clip.tracking.tracks.active
 
         if act_track:
             layout.template_marker(sc, "clip", sc.clip_user, act_track, False)

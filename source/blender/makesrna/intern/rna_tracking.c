@@ -58,9 +58,13 @@ static void rna_tracking_tracks_begin(CollectionPropertyIterator *iter, PointerR
 	rna_iterator_listbase_begin(iter, &clip->tracking.tracks, NULL);
 }
 
-static void rna_tracking_tracks_add(MovieTracking *tracking, int framenr, int number)
+static void rna_tracking_tracks_add(MovieTracking *tracking, int frame, int number)
 {
-	BKE_tracking_add_track(tracking, 0, 0, framenr, 1, 1);
+	int a;
+
+	for(a= 0; a<number; a++)
+		BKE_tracking_add_track(tracking, 0, 0, frame, 1, 1);
+
 	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
@@ -79,18 +83,6 @@ static void rna_tracking_active_track_set(PointerRNA *ptr, PointerRNA value)
 
 	if(index>=0) clip->tracking.act_track= track;
 	else clip->tracking.act_track= NULL;
-}
-
-void rna_trackingTrack_name_get(PointerRNA *ptr, char *value)
-{
-	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
-	BLI_strncpy(value, track->name, sizeof(track->name));
-}
-
-int rna_trackingTrack_name_length(PointerRNA *ptr)
-{
-	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
-	return strlen(track->name);
 }
 
 void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
@@ -207,7 +199,7 @@ static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerR
 
 /* API */
 
-static MovieTrackingMarker *rna_trackingTrack_marker_get(MovieTrackingTrack *track, int framenr)
+static MovieTrackingMarker *rna_trackingTrack_marker_find_frame(MovieTrackingTrack *track, int framenr)
 {
 	return BKE_tracking_get_marker(track, framenr);
 }
@@ -264,7 +256,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frames Limit", "Amount of frames to be tracked during single tracking operation");
 
 	/* adjust frames */
-	prop= RNA_def_property(srna, "adjust_frames", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frames_adjust", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "adjframes");
 	RNA_def_property_range(prop, 0, INT_MAX);
@@ -290,7 +282,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
 
 	/* minmal correlation */
-	prop= RNA_def_property(srna, "min_correlation", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "correlation_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "corr");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
@@ -420,10 +412,10 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame", "Frame number marker is keyframed on");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
-	/* enabled */
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	/* enable */
+	prop= RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MARKER_DISABLED);
-	RNA_def_property_ui_text(prop, "Enabled", "Is marker enabled for current frame");
+	RNA_def_property_ui_text(prop, "Enable", "Is marker enabled for current frame");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
@@ -444,7 +436,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	/* name */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique name of track");
-	RNA_def_property_string_funcs(prop, "rna_trackingTrack_name_get", "rna_trackingTrack_name_length", "rna_trackingTrack_name_set");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_trackingTrack_name_set");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME);
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 	RNA_def_struct_name_property(srna, prop);
@@ -478,12 +470,6 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "search_max");
 	RNA_def_property_ui_text(prop, "Search Max", "Right-bottom corner of search area in normalized coordinates relative to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerSearch_update");
-
-	/* markers_count */
-	prop= RNA_def_property(srna, "markers_count", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "markersnr");
-	RNA_def_property_ui_text(prop, "Markers Count", "Total number of markers in track");
 
 	/* markers */
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
@@ -557,7 +543,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 
 	/* ** api ** */
 
-	func= RNA_def_function(srna, "get_marker", "rna_trackingTrack_marker_get");
+	func= RNA_def_function(srna, "marker_find_frame", "rna_trackingTrack_marker_find_frame");
 	RNA_def_function_ui_description(func, "Get marker for specified frame");
 	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "type for the new spline", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -606,7 +592,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* max scale */
-	prop= RNA_def_property(srna, "max_scale", PROP_FLOAT, PROP_FACTOR);
+	prop= RNA_def_property(srna, "scale_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "maxscale");
 	RNA_def_property_range(prop, 0.f, 10.f);
 	RNA_def_property_ui_text(prop, "Miximal Scale", "Maximal value for scale factor");
@@ -672,8 +658,8 @@ static void rna_def_trackingReconstruction(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MovieTrackingReconstruction", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking reconstruction data", "Match-moving reconstruction data from tracker");
 
-	/* is_reconstructed */
-	prop= RNA_def_property(srna, "is_reconstructed", PROP_BOOLEAN, PROP_NONE);
+	/* is_valid */
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_RECONSTRUCTED);
 	RNA_def_property_ui_text(prop, "Reconstructed", "Is tracking data contains valid reconstruction information");
@@ -695,6 +681,7 @@ static void rna_def_trackingTracks(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	FunctionRNA *func;
+	PropertyRNA *prop;
 
 	RNA_def_property_srna(cprop, "MovieTrackingTracks");
 	srna= RNA_def_struct(brna, "MovieTrackingTracks", NULL);
@@ -703,8 +690,15 @@ static void rna_def_trackingTracks(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "rna_tracking_tracks_add");
 	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
-	RNA_def_int(func, "framenr", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
+	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
 	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of tracks to add to the movie clip", 0, INT_MAX);
+
+	/* active track */
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
+	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", "rna_tracking_active_track_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
+	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 }
 
 static void rna_def_tracking(BlenderRNA *brna)
@@ -735,13 +729,6 @@ static void rna_def_tracking(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
 	RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks in this tracking data object");
 	rna_def_trackingTracks(brna, prop);
-
-	/* active track */
-	prop= RNA_def_property(srna, "active_track", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
-	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", "rna_tracking_active_track_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
-	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 
 	/* stabilization */
 	prop= RNA_def_property(srna, "stabilization", PROP_POINTER, PROP_NONE);

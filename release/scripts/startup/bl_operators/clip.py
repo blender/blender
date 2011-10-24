@@ -37,12 +37,12 @@ class CLIP_OT_track_to_empty(Operator):
         sc = context.space_data
         clip = sc.clip
 
-        return clip and clip.tracking.active_track
+        return clip and clip.tracking.tracks.active
 
     def execute(self, context):
         sc = context.space_data
         clip = sc.clip
-        track = clip.tracking.active_track
+        track = clip.tracking.tracks.active
         constraint = None
         ob = None
 
