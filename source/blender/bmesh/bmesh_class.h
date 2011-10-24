@@ -1,9 +1,5 @@
-/**
- *  bmesh_class.h    september 2010
- *
+/*
  *	BMesh API.
- *
- * $Id: $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,9 +1,5 @@
-/**
- * bmesh_structure.c    jan 2007
- *
+/*
  *	Low level routines for manipulating the BM structure.
- *
- * $Id: bmesh_structure.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

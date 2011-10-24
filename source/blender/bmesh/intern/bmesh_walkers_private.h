@@ -1,9 +1,5 @@
-/**
- *  bmesh_walkers_private.h    april 2011
- *
+/*
  *	BMesh walker API.
- *
- * $Id: $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

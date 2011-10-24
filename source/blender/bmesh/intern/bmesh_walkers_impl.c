@@ -1,9 +1,5 @@
-/**
- *  bmesh_walkers_impl.c    april 2011
- *
+/*
  *	BMesh Walker Code.
- *
- * $Id: $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

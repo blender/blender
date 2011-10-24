@@ -1,6 +1,4 @@
-/**
- * $Id: editderivedbmesh.c 18571 2009-01-19 06:04:57Z joeedh $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

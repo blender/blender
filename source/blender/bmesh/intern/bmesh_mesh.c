@@ -1,9 +1,5 @@
-/**
- * BME_mesh.c    jan 2007
- *
+/*
  *	BM mesh level functions.
- *
- * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

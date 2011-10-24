@@ -1,12 +1,7 @@
-/**
- * bmesh_private.h    jan 2007
- *
+/*
  *	Private function prototypes for bmesh public API.
  *  This file is a grab-bag of functions from various
  *  parts of the bmesh internals.
- *
- *
- * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,12 +1,9 @@
 /*some of this may come back, such as split face or split edge, if necassary for speed*/
 
 #if 0
-/**
- * bmesh_eulers.c    jan 2007
- *
+/*
  *	BM Euler construction API.
  *
- * $Id: bmesh_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
