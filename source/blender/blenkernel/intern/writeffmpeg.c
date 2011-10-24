@@ -1102,7 +1102,7 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 		idp_type = IDP_FLOAT;
 		break;
 	case FF_OPT_TYPE_STRING:
-		val.str = (char *)"                                                                               ";
+		val.str = "                                                                               ";
 		idp_type = IDP_STRING;
 		break;
 	case FF_OPT_TYPE_CONST:
@@ -1377,3 +1377,4 @@ void ffmpeg_verify_image_type(RenderData *rd)
 }
 
 #endif
+
