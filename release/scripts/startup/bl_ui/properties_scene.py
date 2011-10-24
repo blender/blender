@@ -225,7 +225,7 @@ class SCENE_PT_movie_clip(SceneButtonsPanel, Panel):
         layout = self.layout
         scene = context.scene
 
-        layout.prop(scene, "clip")
+        layout.prop(scene, "active_clip", text="Active Clip")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

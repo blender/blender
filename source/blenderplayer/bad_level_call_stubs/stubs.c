@@ -249,6 +249,7 @@ void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist){}
+struct BGpic *ED_view3D_background_image_add(struct View3D *v3d){return (struct BGpic *) NULL;}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
