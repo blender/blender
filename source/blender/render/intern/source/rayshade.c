@@ -1526,7 +1526,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	do_tra= ((shi->mode & MA_TRANSP) && (shi->mode & MA_RAYTRANSP) && shr->alpha!=1.0f && (shi->depth <= shi->mat->ray_depth_tra));
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f && (shi->depth <= shi->mat->ray_depth));
 	
-	/* raytrace mirror amd refract like to separate the spec color */
+	/* raytrace mirror and refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
 		sub_v3_v3v3(diff, shr->combined, shr->spec);
 	else

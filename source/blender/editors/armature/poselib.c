@@ -433,7 +433,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	bAction *act = poselib_validate(ob);
 	bPose *pose= (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Whole Character"); /* this includes custom props :)*/
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_WHOLE_CHARACTER_ID); /* this includes custom props :)*/
 	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
@@ -903,7 +903,7 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 	ListBase dsources = {NULL, NULL};
 	short autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
 	
