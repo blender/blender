@@ -164,7 +164,6 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbufImBuf(ibuf);
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
-			IMB_cache_limiter_unmanage(ibuf);
 			IMB_metadata_free(ibuf);
 			MEM_freeN(ibuf);
 		}
@@ -471,56 +470,3 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 
 	return &c;
 }
-
-void IMB_free_cache_limiter(void)
-{
-	delete_MEM_CacheLimiter(*get_imbuf_cache_limiter());
-	*get_imbuf_cache_limiter() = NULL;
-}
-
-void IMB_cache_limiter_insert(ImBuf *i)
-{
-	if(!i->c_handle) {
-		i->c_handle = MEM_CacheLimiter_insert(
-			*get_imbuf_cache_limiter(), i);
-		MEM_CacheLimiter_ref(i->c_handle);
-		MEM_CacheLimiter_enforce_limits(
-			*get_imbuf_cache_limiter());
-		MEM_CacheLimiter_unref(i->c_handle);
-	}
-}
-
-void IMB_cache_limiter_unmanage(ImBuf *i)
-{
-	if(i->c_handle) {
-		MEM_CacheLimiter_unmanage(i->c_handle);
-		i->c_handle = NULL;
-	}
-}
-
-void IMB_cache_limiter_touch(ImBuf *i)
-{
-	if(i->c_handle)
-		MEM_CacheLimiter_touch(i->c_handle);
-}
-
-void IMB_cache_limiter_ref(ImBuf *i)
-{
-	if(i->c_handle)
-		MEM_CacheLimiter_ref(i->c_handle);
-}
-
-void IMB_cache_limiter_unref(ImBuf *i)
-{
-	if(i->c_handle)
-		MEM_CacheLimiter_unref(i->c_handle);
-}
-
-int IMB_cache_limiter_get_refcount(ImBuf *i)
-{
-	if(i->c_handle)
-		return MEM_CacheLimiter_get_refcount(i->c_handle);
-
-	return 0;
-}
-
