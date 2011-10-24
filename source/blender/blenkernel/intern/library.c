@@ -74,7 +74,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
+
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -108,7 +108,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_speaker.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -195,8 +194,7 @@ int id_make_local(ID *id, int test)
 			if(!test) make_local_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			if(!test) make_local_image((Image*)id);
-			return 1;
+			return 0; /* not implemented */
 		case ID_LT:
 			if(!test) {
 				make_local_lattice((Lattice*)id);
@@ -1246,16 +1244,6 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	sort_alpha_id(lb, id);
 	
 	return result;
-}
-
-/* Pull an ID out of a library (make it local). Only call this for IDs that
-   don't have other library users. */
-void id_clear_lib_data(ListBase *lb, ID *id)
-{
-	bpath_traverse_id(id, bpath_relocate_visitor, id->lib->filepath);
-	id->lib= NULL;
-	id->flag= LIB_LOCAL;
-	new_id(lb, id, NULL);
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
