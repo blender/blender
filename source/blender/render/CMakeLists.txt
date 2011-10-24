@@ -118,6 +118,17 @@ set(SRC
 	intern/raytrace/vbvh.h
 )
 
+if(WITH_PYTHON)
+	add_definitions(-DWITH_PYTHON)
+	list(APPEND INC
+		../python
+	)
+
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
@@ -134,6 +145,10 @@ if(WITH_CODEC_QUICKTIME)
 		${QUICKTIME_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_QUICKTIME)
+endif()
+
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
 if(APPLE)

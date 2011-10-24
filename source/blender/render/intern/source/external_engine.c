@@ -47,13 +47,89 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#ifdef WITH_PYTHON
+#include "BPY_extern.h"
+#endif
+
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "render_types.h"
 #include "renderpipeline.h"
 
-/************************** External Engines ***************************/
+/* Render Engine Types */
+
+static RenderEngineType internal_render_type = {
+	NULL, NULL,
+	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
+	NULL,
+	{NULL, NULL, NULL}};
+
+#ifdef WITH_GAMEENGINE
+
+static RenderEngineType internal_game_type = {
+	NULL, NULL,
+	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
+	NULL,
+	{NULL, NULL, NULL}};
+
+#endif
+
+ListBase R_engines = {NULL, NULL};
+
+void RE_engines_init(void)
+{
+	BLI_addtail(&R_engines, &internal_render_type);
+#ifdef WITH_GAMEENGINE
+	BLI_addtail(&R_engines, &internal_game_type);
+#endif
+}
+
+void RE_engines_exit(void)
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		BLI_remlink(&R_engines, type);
+
+		if(!(type->flag & RE_INTERNAL)) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+
+RenderEngineType *RE_engines_find(const char *idname)
+{
+	RenderEngineType *type;
+	
+	type= BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
+	if(!type)
+		type= &internal_render_type;
+
+	return type;
+}
+
+/* Create, Free */
+
+RenderEngine *RE_engine_create(RenderEngineType *type)
+{
+	RenderEngine *engine = MEM_callocN(sizeof(RenderEngine), "RenderEngine");
+	engine->type= type;
+
+	return engine;
+}
+
+void RE_engine_free(RenderEngine *engine)
+{
+	MEM_freeN(engine);
+}
+
+/* Render Results */
 
 RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
 {
@@ -133,11 +209,24 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 {
 	Render *re= engine->re;
 
-	re->i.statstr= stats;
-	re->i.infostr= info;
-	re->stats_draw(re->sdh, &re->i);
-	re->i.infostr= NULL;
-	re->i.statstr= NULL;
+	/* stats draw callback */
+	if(re) {
+		re->i.statstr= stats;
+		re->i.infostr= info;
+		re->stats_draw(re->sdh, &re->i);
+		re->i.infostr= NULL;
+		re->i.statstr= NULL;
+	}
+}
+
+void RE_engine_update_progress(RenderEngine *engine, float progress)
+{
+	Render *re= engine->re;
+
+	if(re) {
+		CLAMP(progress, 0.0f, 1.0f);
+		re->progress(re->prh, progress);
+	}
 }
 
 void RE_engine_report(RenderEngine *engine, int type, const char *msg)
@@ -149,16 +238,17 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 
 int RE_engine_render(Render *re, int do_all)
 {
-	RenderEngineType *type= BLI_findstring(&R_engines, re->r.engine, offsetof(RenderEngineType, idname));
-	RenderEngine engine;
+	RenderEngineType *type= RE_engines_find(re->r.engine);
+	RenderEngine *engine;
 
-	if(!(type && type->render))
+	/* verify if we can render */
+	if(!type->render)
 		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
+	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
-	if(do_all && !(type->flag & RE_DO_ALL))
+	if(do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
-	if(!do_all && (type->flag & RE_DO_ALL))
+	if(!do_all && (type->flag & RE_USE_POSTPROCESS))
 		return 0;
 
 	/* create render result */
@@ -172,14 +262,19 @@ int RE_engine_render(Render *re, int do_all)
 	if(re->result==NULL)
 		return 1;
 
-	/* external */
-	memset(&engine, 0, sizeof(engine));
-	engine.type= type;
-	engine.re= re;
+	/* render */
+	engine = RE_engine_create(type);
+	engine->re= re;
 
-	type->render(&engine, re->scene);
+	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
+		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	free_render_result(&engine.fullresult, engine.fullresult.first);
+	type->render(engine, re->scene);
+
+
+	free_render_result(&engine->fullresult, engine->fullresult.first);
+
+	RE_engine_free(engine);
 
 	return 1;
 }

@@ -58,7 +58,6 @@
 #include "BKE_property.h"
 #include "BKE_tessmesh.h"
 
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 

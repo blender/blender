@@ -312,6 +312,18 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 	}
 
 
+/* uses glib functions but not from glib */
+/* gets the size of a single utf8 char */
+int BLI_str_utf8_size(const char *p)
+{
+	int mask = 0, len;
+    unsigned char c = (unsigned char) *p;
+
+    UTF8_COMPUTE (c, mask, len);
+
+	return len;
+}
+
 /* was g_utf8_get_char */
 /**
  * BLI_str_utf8_as_unicode:

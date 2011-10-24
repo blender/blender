@@ -4949,7 +4949,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
-	return pose_clear_transform_generic_exec(C, op, pchan_clear_scale, "Scaling");
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_scale, ANIM_KS_SCALING_ID);
 }
 
 void POSE_OT_scale_clear(wmOperatorType *ot)
@@ -4970,7 +4970,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
-	return pose_clear_transform_generic_exec(C, op, pchan_clear_rot, "Rotation");
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_rot, ANIM_KS_ROTATION_ID);
 }
 
 void POSE_OT_rot_clear(wmOperatorType *ot)
@@ -4991,7 +4991,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
-	return pose_clear_transform_generic_exec(C, op, pchan_clear_loc, "Location");
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_loc, ANIM_KS_LOCATION_ID);
 }
 
 void POSE_OT_loc_clear(wmOperatorType *ot)
@@ -5012,7 +5012,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_transforms_exec(bContext *C, wmOperator *op) 
 {
-	return pose_clear_transform_generic_exec(C, op, pchan_clear_transforms, "LocRotScale");
+	return pose_clear_transform_generic_exec(C, op, pchan_clear_transforms, ANIM_KS_LOC_ROT_SCALE_ID);
 }
 
 void POSE_OT_transforms_clear(wmOperatorType *ot)

@@ -460,15 +460,43 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
-	wmEvent *event= (wmEvent*)ptr->id.data;
+	wmEvent *event= (wmEvent*)ptr->data;
 	value[0]= event->ascii;
 	value[1]= '\0';
 }
 
 static int rna_Event_ascii_length(PointerRNA *ptr)
 {
-	wmEvent *event= (wmEvent*)ptr->id.data;
+	wmEvent *event= (wmEvent*)ptr->data;
 	return (event->ascii)? 1 : 0;
+}
+
+static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
+{
+	/* utf8 buf isnt \0 terminated */
+	wmEvent *event= (wmEvent*)ptr->data;
+	size_t len= 0;
+
+	if (event->utf8_buf[0]) {
+		BLI_str_utf8_as_unicode_and_size(event->utf8_buf, &len);
+		if (len > 0) {
+			memcpy(value, event->utf8_buf, len);
+		}
+	}
+
+	value[len]= '\0';
+}
+
+static int rna_Event_unicode_length(PointerRNA *ptr)
+{
+
+	wmEvent *event= (wmEvent*)ptr->data;
+	if (event->utf8_buf[0]) {
+		return BLI_str_utf8_size(event->utf8_buf); /* invalid value is checked on assignment so we dont need to account for this */
+	}
+	else {
+		return 0;
+	}
 }
 
 static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
@@ -1357,6 +1385,11 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Event_ascii_get", "rna_Event_ascii_length", NULL);
 	RNA_def_property_ui_text(prop, "ASCII", "Single ASCII character for this event");
 
+
+	prop= RNA_def_property(srna, "unicode", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Event_unicode_get", "rna_Event_unicode_length", NULL);
+	RNA_def_property_ui_text(prop, "Unicode", "Single unicode character for this event");
 
 	/* enums */
 	prop= RNA_def_property(srna, "value", PROP_ENUM, PROP_NONE);

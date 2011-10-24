@@ -253,7 +253,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
-	return object_clear_transform_generic_exec(C, op, object_clear_loc, "Location");
+	return object_clear_transform_generic_exec(C, op, object_clear_loc, ANIM_KS_LOCATION_ID);
 }
 
 void OBJECT_OT_location_clear(wmOperatorType *ot)
@@ -273,7 +273,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
-	return object_clear_transform_generic_exec(C, op, object_clear_rot, "Rotation");
+	return object_clear_transform_generic_exec(C, op, object_clear_rot, ANIM_KS_ROTATION_ID);
 }
 
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
@@ -293,7 +293,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
-	return object_clear_transform_generic_exec(C, op, object_clear_scale, "Scaling");
+	return object_clear_transform_generic_exec(C, op, object_clear_scale, ANIM_KS_SCALING_ID);
 }
 
 void OBJECT_OT_scale_clear(wmOperatorType *ot)

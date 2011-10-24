@@ -454,11 +454,12 @@ void WM_event_print(wmEvent *event)
 
 		printf("wmEvent - type:%d/%s, val:%d/%s, "
 			   "shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, "
-			   "mouse:(%d,%d), ascii:'%c', utf8:'%.6s', "
+			   "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
 			   "keymap_idname:%s, pointer:%p\n",
 			   event->type, type_id, event->val, val_id,
 			   event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
-			   event->x, event->y, event->ascii, event->utf8_buf,
+			   event->x, event->y, event->ascii,
+		       BLI_str_utf8_size(event->utf8_buf), event->utf8_buf,
 			   event->keymap_idname, (void *)event);
 	}
 	else {
@@ -2616,15 +2617,24 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			/* exclude arrow keys, esc, etc from text input */
 			if(type==GHOST_kEventKeyUp) {
-				if (event.ascii<32 && event.ascii > 0) {
-					event.ascii= '\0';
-				}
+				event.ascii= '\0';
 
 				/* ghost should do this already for key up */
 				if (event.utf8_buf[0]) {
-					printf("%s: ghost on you're platform is misbehaving, utf8 events on key up!\n", __func__);
+					printf("%s: ghost on your platform is misbehaving, utf8 events on key up!\n", __func__);
 				}
 				event.utf8_buf[0]= '\0';
+			}
+			else if (event.ascii<32 && event.ascii > 0) {
+				event.ascii= '\0';
+				/* TODO. should this also zero utf8?, dont for now, campbell */
+			}
+
+			if (event.utf8_buf[0]) {
+				if (BLI_str_utf8_size(event.utf8_buf) == -1) {
+					printf("%s: ghost detected an invalid unicode character '%d'!\n", __func__, (int)(unsigned char)event.utf8_buf[0]);
+					event.utf8_buf[0]= '\0';
+				}
 			}
 
 			/* modifiers */

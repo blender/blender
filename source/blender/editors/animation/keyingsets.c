@@ -552,7 +552,12 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 		if (strcmp(name, ks->name) == 0)
 			return ks;
 	}
-	
+
+	/* complain about missing keying sets on debug builds */
+#ifndef NDEBUG
+	printf("%s: '%s' not found\n", __func__, name);
+#endif
+
 	/* no matches found */
 	return NULL;
 }
@@ -687,7 +692,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 	if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (scene->active_keyingset))
 		return ANIM_scene_get_active_keyingset(scene);
 	else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL))
-		return ANIM_builtin_keyingset_get_named(NULL, "Available");
+		return ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_AVAILABLE_ID);
 	else 
 		return ANIM_builtin_keyingset_get_named(NULL, tranformKSName);
 }

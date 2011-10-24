@@ -122,8 +122,6 @@ ImBuf* get_brush_icon(Brush *brush)
 				if (!(brush->icon_imbuf)) {
 					folder= BLI_get_folder(BLENDER_DATAFILES, "brushicons");
 
-					path[0]= 0;
-
 					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 
 					if (path[0])
