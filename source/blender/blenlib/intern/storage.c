@@ -88,10 +88,9 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_storage.h"
-#include "BLI_storage_types.h"
 #include "BLI_string.h"
 
 #include "BKE_utildefines.h"
@@ -104,7 +103,7 @@ static struct ListBase dirbase_={NULL, NULL};
 static struct ListBase *dirbase = &dirbase_;
 
 /* can return NULL when the size is not big enough */
-char *BLI_getwdN(char *dir, const int maxncpy)
+char *BLI_current_working_dir(char *dir, const int maxncpy)
 {
 	const char *pwd= getenv("PWD");
 	if (pwd){
@@ -116,7 +115,7 @@ char *BLI_getwdN(char *dir, const int maxncpy)
 }
 
 
-int BLI_compare(struct direntry *entry1, struct direntry *entry2)
+static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 {
 	/* type is equal to stat.st_mode */
 
@@ -143,7 +142,7 @@ int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 }
 
 
-double BLI_diskfree(const char *dir)
+double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
 	DWORD sectorspc, bytesps, freec, clusters;
@@ -198,7 +197,7 @@ double BLI_diskfree(const char *dir)
 #endif
 }
 
-void BLI_builddir(const char *dirname, const char *relname)
+static void bli_builddir(const char *dirname, const char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
@@ -273,7 +272,7 @@ void BLI_builddir(const char *dirname, const char *relname)
 			}
 
 			BLI_freelist(dirbase);
-			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *,const void*))BLI_compare);
+			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *,const void*))bli_compare);
 		} else {
 			printf("%s empty directory\n",dirname);
 		}
@@ -284,7 +283,7 @@ void BLI_builddir(const char *dirname, const char *relname)
 	}
 }
 
-void BLI_adddirstrings(void)
+static void bli_adddirstrings(void)
 {
 	char datum[100];
 	char buf[512];
@@ -392,7 +391,7 @@ void BLI_adddirstrings(void)
 	}
 }
 
-unsigned int BLI_getdir(const char *dirname,  struct direntry **filelist)
+unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
 	// reset global variables
 	// memory stored in files is free()'d in
@@ -401,8 +400,8 @@ unsigned int BLI_getdir(const char *dirname,  struct direntry **filelist)
 	actnum = totnum = 0;
 	files = NULL;
 
-	BLI_builddir(dirname,"");
-	BLI_adddirstrings();
+	bli_builddir(dirname,"");
+	bli_adddirstrings();
 
 	if (files) {
 		*(filelist) = files;
@@ -416,7 +415,7 @@ unsigned int BLI_getdir(const char *dirname,  struct direntry **filelist)
 }
 
 
-size_t BLI_filesize(int file)
+size_t BLI_file_descriptor_size(int file)
 {
 	struct stat buf;
 
@@ -425,20 +424,20 @@ size_t BLI_filesize(int file)
 	return (buf.st_size);
 }
 
-size_t BLI_filepathsize(const char *path)
+size_t BLI_file_size(const char *path)
 {
 	int size, file = open(path, O_BINARY|O_RDONLY);
 	
 	if (file == -1)
 		return -1;
 	
-	size = BLI_filesize(file);
+	size = BLI_file_descriptor_size(file);
 	close(file);
 	return size;
 }
 
 
-int BLI_exist(const char *name)
+int BLI_exists(const char *name)
 {
 #if defined(WIN32) && !defined(__MINGW32__)
 	struct _stat64i32 st;
@@ -471,10 +470,10 @@ int BLI_exist(const char *name)
 /* would be better in fileops.c except that it needs stat.h so add here */
 int BLI_is_dir(const char *file)
 {
-	return S_ISDIR(BLI_exist(file));
+	return S_ISDIR(BLI_exists(file));
 }
 
-LinkNode *BLI_read_file_as_lines(const char *name)
+LinkNode *BLI_file_read_as_lines(const char *name)
 {
 	FILE *fp= fopen(name, "r");
 	LinkNode *lines= NULL;
@@ -515,7 +514,7 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 	return lines;
 }
 
-void BLI_free_file_lines(LinkNode *lines)
+void BLI_file_free_lines(LinkNode *lines)
 {
 	BLI_linklist_free(lines, (void(*)(void*)) MEM_freeN);
 }

@@ -36,7 +36,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "RNA_types.h"
 
 struct bNodeTree;
 struct Image;
@@ -44,10 +43,7 @@ struct Main;
 struct NodeBlurData;
 struct Object;
 struct RenderData;
-struct RenderEngine;
-struct RenderEngineType;
 struct RenderResult;
-struct ReportList;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
@@ -275,49 +271,6 @@ void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *sce
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
 struct Scene *RE_GetScene(struct Render *re);
-
-/* External Engine */
-
-#define RE_INTERNAL			1
-#define RE_GAME				2
-#define RE_DO_PREVIEW		4
-#define RE_DO_ALL			8
-
-extern ListBase R_engines;
-
-typedef struct RenderEngineType {
-	struct RenderEngineType *next, *prev;
-
-	/* type info */
-	char idname[64]; // best keep the same size as BKE_ST_MAXNAME
-	char name[64];
-	int flag;
-
-	void (*render)(struct RenderEngine *engine, struct Scene *scene);
-
-	/* RNA integration */
-	ExtensionRNA ext;
-} RenderEngineType;
-
-typedef struct RenderEngine {
-	RenderEngineType *type;
-	struct Render *re;
-	ListBase fullresult;
-} RenderEngine;
-
-void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
-void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, const char *filename);
-
-struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
-void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
-void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
-
-int RE_engine_test_break(RenderEngine *engine);
-void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
-void RE_engine_report(RenderEngine *engine, int type, const char *msg);
-
-void RE_engines_init(void);
-void RE_engines_exit(void);
 
 int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 

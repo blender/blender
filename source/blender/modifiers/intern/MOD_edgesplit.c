@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
+#include "BLI_linklist.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

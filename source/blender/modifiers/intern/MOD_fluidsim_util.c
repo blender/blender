@@ -105,7 +105,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 		/*  elubie: changed this to default to the same dir as the render output
 		to prevent saving to C:\ on Windows */
-		BLI_strncpy(fss->surfdataPath, btempdir, FILE_MAX);
+		BLI_strncpy(fss->surfdataPath, BLI_temporary_dir(), FILE_MAX);
 
 		// first init of bounding box
 		// no bounding box needed

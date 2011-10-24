@@ -67,6 +67,7 @@
 #include "BLI_cellalloc.h"
 #include "BLI_winstuff.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
 #ifdef WITH_PYTHON

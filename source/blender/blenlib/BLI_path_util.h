@@ -65,10 +65,6 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_SYSTEM_PLUGINS		54
 #define BLENDER_SYSTEM_PYTHON		54
 
-#define BLENDER_TEMP				80
-
-#define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
-
 /* for BLI_get_folder_version only */
 #define BLENDER_RESOURCE_PATH_USER		0
 #define BLENDER_RESOURCE_PATH_LOCAL		1
@@ -77,17 +73,6 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_STARTUP_FILE	"startup.blend"
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
 #define BLENDER_HISTORY_FILE	"recent-files.txt"
-
-#ifdef WIN32
-#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#elif defined(__APPLE__)
-#define BLENDER_USER_FORMAT			"%s/Blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
-#else
-#define BLENDER_USER_FORMAT			"%s/.blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
-#endif
 
 #ifdef WIN32
 #define SEP '\\'
@@ -181,29 +166,20 @@ void BLI_path_rel(char *file, const char *relfile);
 	 */
 void BLI_char_switch(char *string, char from, char to);
 
-/**
-	 * Checks if name is a fully qualified filename to an executable.
-	 * If not it searches $PATH for the file. On Windows it also
-	 * adds the correct extension (.com .exe etc) from
-	 * $PATHEXT if necessary. Also on Windows it translates
-	 * the name to its 8.3 version to prevent problems with
-	 * spaces and stuff. Final result is returned in fullname.
-	 *
-	 * @param fullname The full path and full name of the executable
-	 * @param name The name of the executable (usually argv[0]) to be checked
-	 */
-void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name);
+	/* Initialize path to program executable */
+void BLI_init_program_path(const char *argv0);
+	/* Initialize path to temporary directory.
+	 * NOTE: On Window userdir will be set to the temporary directory! */
+void BLI_init_temporary_dir(char *userdir);
 
-	/**
-	 * Gets the temp directory when blender first runs.
-	 * If the default path is not found, use try $TEMP
-	 * 
-	 * Also make sure the temp dir has a trailing slash
-	 *
-	 * @param fullname The full path to the temp directory
-	 */
-void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp);
-
+	/* Path to executable */
+const char *BLI_program_path(void);
+	/* Path to directory of executable */
+const char *BLI_program_dir(void);
+	/* Path to temporary directory (with trailing slash) */
+const char *BLI_temporary_dir(void);
+	/* Path to the system temporary directory (with trailing slash) */
+void BLI_system_temporary_dir(char *dir);
 
 #ifdef WITH_ICONV
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);

@@ -1593,17 +1593,18 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
 		char *buf= NULL;
+		int buf_len;
 
 		type= RNA_property_type(but->rnaprop);
 
 		if(type == PROP_STRING) {
 			/* RNA string */
-			buf= RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen);
+			buf= RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen, &buf_len);
 		}
 		else if(type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
-			buf= RNA_struct_name_get_alloc(&ptr, str, maxlen);
+			buf= RNA_struct_name_get_alloc(&ptr, str, maxlen, &buf_len);
 		}
 
 		if(!buf) {
@@ -1611,7 +1612,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		}
 		else if(buf && buf != str) {
 			/* string was too long, we have to truncate */
-			BLI_strncpy(str, buf, maxlen);
+			memcpy(str, buf, MIN2(maxlen, buf_len+1));
 			MEM_freeN(buf);
 		}
 	}

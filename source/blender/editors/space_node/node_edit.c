@@ -49,7 +49,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -65,11 +64,6 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
-
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_storage_types.h"
 
 #include "RE_pipeline.h"
 

@@ -60,7 +60,7 @@ unsigned char *BLF_get_unifont(int *unifont_size_r)
 
 			BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_filename);
 
-			unifont_ttf= (unsigned char*)BLI_ungzip_to_mem(unifont_path, &unifont_size);
+			unifont_ttf= (unsigned char*)BLI_file_ungzip_to_mem(unifont_path, &unifont_size);
 		}
 		else {
 			printf("%s: 'fonts' data path not found for international font, continuing\n", __func__);

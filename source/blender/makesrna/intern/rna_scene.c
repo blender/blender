@@ -177,7 +177,6 @@ EnumPropertyItem image_color_mode_items[] ={
 
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
-#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -202,7 +201,7 @@ EnumPropertyItem image_color_mode_items[] ={
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {

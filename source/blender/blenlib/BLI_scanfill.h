@@ -30,7 +30,7 @@
 #ifndef BLI_SCANFILL_H
 #define BLI_SCANFILL_H
 
-/** \file BLI_storage.h
+/** \file BLI_scanfill.h
  *  \ingroup bli
  *  \since March 2001
  *  \author nzc

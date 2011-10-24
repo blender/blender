@@ -55,6 +55,7 @@
 
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
 #define DOMAIN_NAME "blender"

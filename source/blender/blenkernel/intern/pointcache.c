@@ -923,8 +923,8 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
-	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	/* temporary directory is assumed to exist and ALWAYS has a trailing slash */
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", BLI_temporary_dir(), abs(getpid()));
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }
@@ -2363,7 +2363,7 @@ void BKE_ptcache_remove(void)
 	
 	ptcache_path(NULL, path);
 
-	if (BLI_exist(path)) {
+	if (BLI_exists(path)) {
 		/* The pointcache dir exists? - remove all pointcache */
 
 		DIR *dir; 

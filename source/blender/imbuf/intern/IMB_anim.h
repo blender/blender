@@ -67,9 +67,6 @@
 #  include <dirent.h>
 #endif
 
-#include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
-							BLI_countlist BLI_stringdec */
-
 #include "imbuf.h"
 
 #include "AVI_avi.h"

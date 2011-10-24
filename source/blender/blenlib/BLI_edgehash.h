@@ -30,7 +30,7 @@
 #ifndef BLI_EDGEHASH_H
 #define BLI_EDGEHASH_H
 
-/** \file BLI_storage.h
+/** \file BLI_edgehash.h
  *  \ingroup bli
  *  \author Daniel Dunbar
  *  \brief A general unordered 2-int pair hash table ADT.
