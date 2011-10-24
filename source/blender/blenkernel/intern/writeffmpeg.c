@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * ffmpeg-write support
  *

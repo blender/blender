@@ -1,5 +1,4 @@
 /*
- * $Id$
  * imagepaint.c
  *
  * Functions to paint images in 2D and 3D.

@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +26,6 @@
  * cineon.c
  * contributors: joeedh
  * I hearby donate this code and all rights to the Blender Foundation.
- * $Id$
  */
 
 /** \file blender/imbuf/intern/cineon/cineon_dpx.c

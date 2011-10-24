@@ -1,6 +1,5 @@
 /*
  * EmptyValue.h: interface for the CEmptyValue class.
- * $Id$
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
  *
  * Permission to use, copy, modify, distribute and sell this software

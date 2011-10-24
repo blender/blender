@@ -1,7 +1,6 @@
 /*
  * Implementationclass to derive controllers from
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

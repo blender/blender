@@ -3,7 +3,6 @@
  *
  * This header might have to become external...
  *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

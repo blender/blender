@@ -1,7 +1,6 @@
 /*
  * anim.c
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

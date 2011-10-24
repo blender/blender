@@ -2,7 +2,6 @@
  *
  * Functions for struct-dna, the genetic file dot c!
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

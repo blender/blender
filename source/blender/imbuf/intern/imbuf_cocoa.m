@@ -1,7 +1,5 @@
 /*
  * imbuf_coca.m
- *
- * $Id$
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

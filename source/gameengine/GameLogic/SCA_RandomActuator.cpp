@@ -1,7 +1,6 @@
 /*
  * Set random/camera stuff
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

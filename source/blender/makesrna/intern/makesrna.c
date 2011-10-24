@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +40,7 @@
 
 #include "rna_internal.h"
 
-#define RNA_VERSION_DATE "$Id$"
+#define RNA_VERSION_DATE "FIXME-RNA_VERSION_DATE"
 
 #ifdef _WIN32
 #ifndef snprintf

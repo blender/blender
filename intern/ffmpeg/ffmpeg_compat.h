@@ -2,7 +2,6 @@
 #define __ffmpeg_compat_h_included__ 1
 
 /*
- * $Id$
  *
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)

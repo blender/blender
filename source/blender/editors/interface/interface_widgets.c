@@ -1,5 +1,5 @@
 /*
-* ***** BEGIN GPL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1294,7 +1294,7 @@ static struct uiWidgetColors wcol_option= {
 	{255, 255, 255, 255},
 	
 	{0, 0, 0, 255},
-	{255, 255, 255, 255},
+	{230, 230, 230, 255},
 	
 	1,
 	5, -5
@@ -1307,7 +1307,7 @@ static struct uiWidgetColors wcol_menu= {
 	{70, 70, 70, 255},
 	{35, 35, 35, 255},
 	
-	{255, 255, 255, 255},
+	{230, 230, 230, 255},
 	{204, 204, 204, 255},
 	
 	1,

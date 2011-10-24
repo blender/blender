@@ -4,7 +4,6 @@
  * Functions to blend pixels with or without alpha, in various formats
  * nzc - June 2000
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

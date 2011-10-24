@@ -1,5 +1,4 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
-# $Id$
 
 
 # foo_bar.spam --> foo_barMySuffix.spam

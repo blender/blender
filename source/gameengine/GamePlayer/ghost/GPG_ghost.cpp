@@ -1,6 +1,4 @@
 /*
-* $Id$
-*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +23,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-* Start up of the Blender Player on GHOST.
-*/
+ * Start up of the Blender Player on GHOST.
+ */
 
 /** \file gameengine/GamePlayer/ghost/GPG_ghost.cpp
  *  \ingroup player

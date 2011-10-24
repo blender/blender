@@ -143,7 +143,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             #row.label(text="Render")
 
             if part.is_fluid:
-                layout.label(text=str(part.count) + " fluid particles for this frame")
+                layout.label(text="{} fluid particles for this frame".format(str(part.count)))
                 return
 
             row = col.row()
@@ -501,7 +501,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                 col.label(text="Fluid properties:")
                 col.prop(fluid, "stiffness", text="Stiffness")
                 col.prop(fluid, "linear_viscosity", text="Viscosity")
-                col.prop(fluid, "buoyancy", text="Buoancy", slider=True)
+                col.prop(fluid, "buoyancy", text="Buoyancy", slider=True)
 
                 col = split.column()
                 col.label(text="Advanced:")
@@ -1151,7 +1151,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, Panel):
 
 
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
-    bl_label = "Vertexgroups"
+    bl_label = "Vertex Groups"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 

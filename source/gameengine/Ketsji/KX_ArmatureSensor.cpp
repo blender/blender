@@ -1,7 +1,6 @@
 /*
  * Armature sensor
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

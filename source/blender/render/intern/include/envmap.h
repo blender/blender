@@ -1,7 +1,6 @@
 /*
  * envmap_ext.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

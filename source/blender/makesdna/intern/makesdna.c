@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +48,7 @@
  * numbers give more output.
  * */
 
-#define DNA_VERSION_DATE "$Id$"
+#define DNA_VERSION_DATE "FIXME-DNA_VERSION_DATE"
 
 #include <string.h>
 #include <stdlib.h>

@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * Blender.Noise BPython module implementation.
  * This submodule has functions to generate noise of various types.
@@ -28,7 +27,7 @@
  * Contributor(s): eeshlo
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/noise_py_api.c
  *  \ingroup pygen

@@ -1,7 +1,6 @@
 /*
  * KX_EXPRESSIONController.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,7 +1,6 @@
 /*
  * Manager for sensor that only need to call Update
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

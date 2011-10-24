@@ -1,5 +1,3 @@
-$Id$
-
 
     Internals of Blenders SCons scripts
     ===================================

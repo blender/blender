@@ -1,7 +1,6 @@
 /*
  * Quicktime_import.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

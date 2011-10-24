@@ -1,7 +1,6 @@
 /*
  * SCA_DelaySensor.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

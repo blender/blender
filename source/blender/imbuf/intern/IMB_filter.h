@@ -1,7 +1,6 @@
 /*
  * filter.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,7 +1,6 @@
 /*
  * A general argument parsing module
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

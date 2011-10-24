@@ -1,7 +1,6 @@
 /*
  * SCA_2DFilterActuator.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

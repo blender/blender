@@ -1,7 +1,6 @@
 /*
  * Manager for ray events
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
