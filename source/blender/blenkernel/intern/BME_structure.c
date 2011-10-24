@@ -4,7 +4,6 @@
  *
  *	Low level routines for manipulating the BMesh structure.
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

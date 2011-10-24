@@ -11,7 +11,6 @@
  * are self-explanatory (e.g. IS_amiga tests whether the buffer
  * contains an Amiga-format file).
  *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

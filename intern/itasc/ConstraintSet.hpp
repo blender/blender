@@ -1,4 +1,3 @@
-/* $Id: ConstraintSet.hpp 20307 2009-05-20 20:39:18Z ben2610 $
  * ConstraintSet.hpp
  *
  *  Created on: Jan 5, 2009

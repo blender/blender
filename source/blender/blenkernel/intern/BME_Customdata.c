@@ -4,7 +4,6 @@
  *
  *	Custom Data functions for Bmesh
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

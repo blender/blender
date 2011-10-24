@@ -3,7 +3,6 @@
  * various string, file, list operations.
  *
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

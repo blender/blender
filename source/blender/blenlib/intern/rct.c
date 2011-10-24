@@ -4,7 +4,6 @@
  * 
  * april 95
  * 
- * $Id$
  *
  * A minimalist lib for functions doing stuff with rectangle structs.
  *

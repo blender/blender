@@ -1,7 +1,6 @@
 /*
  * Execute Python scripts
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

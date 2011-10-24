@@ -1,7 +1,6 @@
 /** \file itasc/WDLSSolver.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * WDLSSolver.hpp.cpp
  *
  *  Created on: Jan 8, 2009

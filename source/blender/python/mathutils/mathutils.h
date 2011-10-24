@@ -25,7 +25,7 @@
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/mathutils.h
  *  \ingroup pygen

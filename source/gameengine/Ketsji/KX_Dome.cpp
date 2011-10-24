@@ -1,7 +1,6 @@
 /** \file gameengine/Ketsji/KX_Dome.cpp
  *  \ingroup ketsji
  */
-/* $Id$
 -----------------------------------------------------------------------------
 
 This program is free software; you can redistribute it and/or modify it under

@@ -1,4 +1,3 @@
-/* $Id$ */
 
 /** \file blender/blenkernel/intern/CCGSubSurf.c
  *  \ingroup bke

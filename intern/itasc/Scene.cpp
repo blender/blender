@@ -1,7 +1,6 @@
 /** \file itasc/Scene.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * Scene.cpp
  *
  *  Created on: Jan 5, 2009

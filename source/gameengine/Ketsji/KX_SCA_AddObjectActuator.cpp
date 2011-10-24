@@ -4,7 +4,6 @@
 //
 // Add an object when this actuator is triggered
 //
-// $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
 //

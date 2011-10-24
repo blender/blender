@@ -1,5 +1,4 @@
 /*
- * $Id: GHOST_WindowSDL.h 38349 2011-07-13 00:49:22Z gsrb3d $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

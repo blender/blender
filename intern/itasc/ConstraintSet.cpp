@@ -1,7 +1,6 @@
 /** \file itasc/ConstraintSet.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * ConstraintSet.cpp
  *
  *  Created on: Jan 5, 2009

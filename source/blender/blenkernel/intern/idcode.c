@@ -1,6 +1,4 @@
 /*
- * $Id: idcode.c 35493 2011-03-12 14:38:00Z campbellbarton $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

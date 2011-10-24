@@ -1,6 +1,4 @@
 /*
- * $Id: nla_private.h 21537 2009-07-11 22:22:53Z gsrb3d $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

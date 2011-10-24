@@ -1,4 +1,3 @@
-/* $Id: eigen_types.hpp 19905 2009-04-23 13:29:54Z ben2610 $
  * eigen_types.hpp
  *
  *  Created on: March 6, 2009

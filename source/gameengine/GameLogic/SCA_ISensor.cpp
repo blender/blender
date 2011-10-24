@@ -1,7 +1,6 @@
 /*
  * Abstract class for sensor logic bricks
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

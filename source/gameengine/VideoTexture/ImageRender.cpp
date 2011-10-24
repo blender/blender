@@ -1,7 +1,6 @@
 /** \file gameengine/VideoTexture/ImageRender.cpp
  *  \ingroup bgevideotex
  */
-/* $Id$
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 

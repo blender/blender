@@ -1,6 +1,4 @@
 /*
- * $Id: rayobject.h 23651 2009-10-06 03:40:50Z aligorith $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

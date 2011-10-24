@@ -1,6 +1,4 @@
 /*
- * $Id: rna_main_api.c 21094 2009-06-23 00:09:26Z gsrb3d $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

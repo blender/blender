@@ -1,7 +1,6 @@
 /** \file itasc/FixedObject.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * FixedObject.cpp
  *
  *  Created on: Feb 10, 2009

@@ -1,7 +1,6 @@
 /*
  * SCA_AlwaysSensor.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,4 +1,3 @@
-/* $Id: Distance.hpp 19905 2009-04-23 13:29:54Z ben2610 $
  * Distance.hpp
  *
  *  Created on: Jan 30, 2009

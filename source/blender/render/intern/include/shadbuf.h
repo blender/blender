@@ -1,7 +1,6 @@
 /*
  * shadbuf_ext.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

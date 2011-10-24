@@ -1,5 +1,4 @@
 /*
- * $Id: rna_image_api.c 23507 2009-09-27 09:19:29Z kazanbas $
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +24,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  *
-*/
+ */
 
 #ifndef BLI_RECT_H
 #define BLI_RECT_H

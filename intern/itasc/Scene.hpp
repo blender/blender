@@ -1,4 +1,3 @@
-/* $Id: Scene.hpp 20622 2009-06-04 12:47:59Z ben2610 $
  * Scene.hpp
  *
  *  Created on: Jan 5, 2009

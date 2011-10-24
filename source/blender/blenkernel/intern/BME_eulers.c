@@ -4,7 +4,6 @@
  *
  *	BMesh Euler construction API.
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

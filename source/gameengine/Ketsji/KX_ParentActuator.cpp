@@ -1,7 +1,6 @@
 /*
  * Set or remove an objects parent
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

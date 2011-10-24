@@ -1,5 +1,4 @@
 /**
- * $Id$
  */
 
 #ifndef SVD_H

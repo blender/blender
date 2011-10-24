@@ -1,7 +1,6 @@
 /** \file itasc/MovingFrame.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * MovingFrame.cpp
  *
  *  Created on: Feb 10, 2009

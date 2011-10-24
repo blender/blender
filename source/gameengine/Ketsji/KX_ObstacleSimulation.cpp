@@ -1,7 +1,6 @@
 /**
 * Simulation for obstacle avoidance behavior
 *
-* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *

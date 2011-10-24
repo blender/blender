@@ -1,5 +1,4 @@
 /*
- * $Id: rna_pose_api.c 23425 2009-09-22 19:09:04Z gsrb3d $
  * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

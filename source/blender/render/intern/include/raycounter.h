@@ -1,6 +1,4 @@
 /*
- * $Id: raycounter.h 23649 2009-10-06 02:56:11Z jaguarandi $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

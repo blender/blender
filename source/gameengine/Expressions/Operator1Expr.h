@@ -1,6 +1,5 @@
 /*
  * Operator1Expr.h: interface for the COperator1Expr class.
- * $Id$
  * Copyright (c) 1996-2000 Erwin Coumans <coockie@acm.org>
  *
  * Permission to use, copy, modify, distribute and sell this software

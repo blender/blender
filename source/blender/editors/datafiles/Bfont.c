@@ -1,6 +1,5 @@
 /* DataToC output of file <Bfont> */
 /*
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

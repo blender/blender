@@ -2,7 +2,6 @@
  * Manager for mouse events
  *
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,4 +1,3 @@
-/* $Id: Armature.hpp 20853 2009-06-13 12:29:46Z ben2610 $
  * Armature.hpp
  *
  *  Created on: Feb 3, 2009

@@ -4,7 +4,6 @@
 //
 // Adjust dynamics settins for this object
 //
-// $Id$
 //
 // ***** BEGIN GPL LICENSE BLOCK *****
 //

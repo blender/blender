@@ -1,5 +1,4 @@
 /* 
- * $Id: bpy_internal_import.h 21094 2009-06-23 00:09:26Z gsrb3d $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +23,7 @@
  * Contributor(s): Willian P. Germano, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/bpy_internal_import.h
  *  \ingroup pygen

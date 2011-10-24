@@ -1,6 +1,4 @@
 /*
- * $Id: bpy_app_handlers.c 37799 2011-06-24 23:14:26Z gsrb3d $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

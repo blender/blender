@@ -1,7 +1,6 @@
 /** \file itasc/Cache.cpp
  *  \ingroup itasc
  */
-/* $Id$
  * Cache.cpp
  *
  *  Created on: Feb 24, 2009

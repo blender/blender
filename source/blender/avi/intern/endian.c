@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * This is external code. Streams bytes to output depending on the
  * endianness of the system.

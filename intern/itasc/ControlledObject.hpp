@@ -1,4 +1,3 @@
-/* $Id: ControlledObject.hpp 20853 2009-06-13 12:29:46Z ben2610 $
  * ControlledObject.hpp
  *
  *  Created on: Jan 5, 2009

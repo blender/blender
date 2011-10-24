@@ -1,6 +1,4 @@
 /*
- * $Id: rna_mesh_api.c 21283 2009-07-01 12:19:00Z blendix $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

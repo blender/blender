@@ -4,7 +4,6 @@
  *
  *	BMesh mesh level functions.
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
