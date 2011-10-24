@@ -326,7 +326,7 @@ void segmentation_handler(int UNUSED(sig))
 	char fname[256];
 
 	if (!G.main->name[0]) {
-		BLI_make_file_string("/", fname, btempdir, "crash.blend");
+		BLI_make_file_string("/", fname, BLI_temporary_dir(), "crash.blend");
 	}
 	else {
 		sprintf(fname, "%s.crash.blend", G.main->name);
