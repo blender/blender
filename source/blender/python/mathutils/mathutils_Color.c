@@ -1,5 +1,4 @@
 /*
- * $Id: mathutils_Color.c 38409 2011-07-15 04:01:47Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

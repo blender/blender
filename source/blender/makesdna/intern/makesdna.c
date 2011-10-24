@@ -48,7 +48,7 @@
  * numbers give more output.
  * */
 
-#define DNA_VERSION_DATE "$Id$"
+#define DNA_VERSION_DATE "FIXME-DNA_VERSION_DATE"
 
 #include <string.h>
 #include <stdlib.h>

@@ -1,3 +1,4 @@
+/*
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 

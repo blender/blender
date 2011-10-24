@@ -1,6 +1,4 @@
-/** \file gameengine/Ketsji/KX_Dome.cpp
- *  \ingroup ketsji
- */
+/*
 -----------------------------------------------------------------------------
 
 This program is free software; you can redistribute it and/or modify it under
@@ -23,6 +21,10 @@ This code is originally inspired on some of the ideas and codes from Paul Bourke
 Developed as part of a Research and Development project for SAT - La Société des arts technologiques.
 -----------------------------------------------------------------------------
 */
+
+/** \file gameengine/Ketsji/KX_Dome.cpp
+ *  \ingroup ketsji
+ */
 
 #include "KX_Dome.h"
 

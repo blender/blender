@@ -1,5 +1,4 @@
 ;
-; $Id$
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;

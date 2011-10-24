@@ -1,6 +1,4 @@
-/** \file gameengine/VideoTexture/PyTypeList.cpp
- *  \ingroup bgevideotex
- */
+/*
 -----------------------------------------------------------------------------
 This source file is part of blendTex library
 
@@ -22,6 +20,9 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+/** \file gameengine/VideoTexture/PyTypeList.cpp
+ *  \ingroup bgevideotex
+ */
 
 #include "PyTypeList.h"
 
