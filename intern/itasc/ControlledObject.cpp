@@ -1,6 +1,7 @@
 /** \file itasc/ControlledObject.cpp
  *  \ingroup itasc
  */
+/*
  * ControlledObject.cpp
  *
  *  Created on: Jan 5, 2009

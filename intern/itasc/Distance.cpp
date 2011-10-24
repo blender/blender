@@ -1,6 +1,7 @@
 /** \file itasc/Distance.cpp
  *  \ingroup itasc
  */
+/*
  * Distance.cpp
  *
  *  Created on: Jan 30, 2009

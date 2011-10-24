@@ -1,6 +1,7 @@
 /** \file itasc/WSDLSSolver.cpp
  *  \ingroup itasc
  */
+/*
  * WDLSSolver.hpp.cpp
  *
  *  Created on: Jan 8, 2009

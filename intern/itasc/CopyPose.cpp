@@ -1,6 +1,7 @@
 /** \file itasc/CopyPose.cpp
  *  \ingroup itasc
  */
+/*
  * CopyPose.cpp
  *
  *  Created on: Mar 17, 2009

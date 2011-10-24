@@ -1,6 +1,7 @@
 /** \file itasc/FixedObject.cpp
  *  \ingroup itasc
  */
+/*
  * FixedObject.cpp
  *
  *  Created on: Feb 10, 2009

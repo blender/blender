@@ -881,7 +881,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				
 				/* get extents for this curve */
 				// TODO: allow enabling/disabling this?
-				calc_fcurve_range(fcu, &nmin, &nmax, FALSE);
+				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
 				min= MIN2(min, nmin);

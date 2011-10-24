@@ -1,6 +1,7 @@
 /** \file itasc/Armature.cpp
  *  \ingroup itasc
  */
+/*
  * Armature.cpp
  *
  *  Created on: Feb 3, 2009

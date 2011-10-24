@@ -50,6 +50,7 @@ void *copy_libblock(void *rt);
 void copy_libblock_data(struct ID *id, const struct ID *id_from, const short do_action);
 
 void id_lib_extern(struct ID *id);
+void BKE_library_filepath_set(struct Library *lib, const char *filepath);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 int id_make_local(struct ID *id, int test);

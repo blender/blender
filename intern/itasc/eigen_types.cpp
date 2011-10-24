@@ -1,6 +1,7 @@
 /** \file itasc/eigen_types.cpp
  *  \ingroup itasc
  */
+/*
  * eigen_types.cpp
  *
  *  Created on: March 19, 2009

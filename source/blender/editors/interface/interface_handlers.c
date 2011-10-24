@@ -1437,8 +1437,11 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 	ui_check_but(but);
 }
 
-/* note: utf8 & ascii funcs should be merged */
-static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const char utf8_buf[6])
+/* this is used for both utf8 and ascii, its meant to be used for single keys,
+ * notie the buffer is either copied or not, so its not suitable for pasting in
+ * - campbell */
+static int ui_textedit_type_buf(uiBut *but, uiHandleButtonData *data,
+                                const char *utf8_buf, int utf8_buf_len)
 {
 	char *str;
 	int len, changed= 0;
@@ -1447,7 +1450,7 @@ static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const cha
 	len= strlen(str);
 
 	if(len-(but->selend - but->selsta)+1 <= data->maxlen) {
-		int step= BLI_str_utf8_size(utf8_buf);
+		int step= utf8_buf_len;
 
 		/* type over the current selection */
 		if ((but->selend - but->selsta) > 0) {
@@ -1468,8 +1471,17 @@ static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const cha
 
 static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
 {
-	char utf8_buf[6]= {ascii, '\0'};
-	return ui_textedit_type_utf8(but, data, utf8_buf);
+	char buf[2]= {ascii, '\0'};
+
+	if (ui_is_but_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
+		printf("%s: entering invalid ascii char into an ascii key (%d)\n",
+		       __func__, (int)(unsigned char)ascii);
+
+		return 0;
+	}
+
+	/* in some cases we want to allow invalid utf8 chars */
+	return ui_textedit_type_buf(but, data, buf, 1);
 }
 
 static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, uiButtonJumpType jump)
@@ -1941,9 +1953,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			if(event->utf8_buf[0]) {
 				/* keep this printf until utf8 is well tested */
-				printf("%s: utf8 char '%s'\n", __func__, event->utf8_buf);
+				printf("%s: utf8 char '%.*s'\n", __func__, BLI_str_utf8_size(event->utf8_buf), event->utf8_buf);
 				// strcpy(event->utf8_buf, "12345");
-				changed= ui_textedit_type_utf8(but, data, event->utf8_buf);
+				changed= ui_textedit_type_buf(but, data, event->utf8_buf, BLI_str_utf8_size(event->utf8_buf));
 			}
 			else {
 				changed= ui_textedit_type_ascii(but, data, ascii);

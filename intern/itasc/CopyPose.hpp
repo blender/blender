@@ -1,3 +1,4 @@
+/*
  * CopyPose.h
  *
  *  Created on: Mar 17, 2009

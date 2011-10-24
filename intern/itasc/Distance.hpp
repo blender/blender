@@ -1,3 +1,4 @@
+/*
  * Distance.hpp
  *
  *  Created on: Jan 30, 2009

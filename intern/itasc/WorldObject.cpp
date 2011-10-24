@@ -1,6 +1,7 @@
 /** \file itasc/WorldObject.cpp
  *  \ingroup itasc
  */
+/*
  * WorldObject.cpp
  *
  *  Created on: Feb 10, 2009

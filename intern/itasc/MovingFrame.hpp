@@ -1,3 +1,4 @@
+/*
  * MovingFrame.h
  *
  *  Created on: Feb 10, 2009

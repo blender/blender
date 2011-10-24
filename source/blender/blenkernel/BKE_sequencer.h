@@ -215,9 +215,7 @@ typedef enum {
 	SEQ_STRIPELEM_IBUF_ENDSTILL
 } seq_stripelem_ibuf_t;
 
-void seq_stripelem_cache_init(void);
 void seq_stripelem_cache_destruct(void);
-
 void seq_stripelem_cache_cleanup(void);
 
 /* returned ImBuf is properly refed and has to be freed */
