@@ -23,6 +23,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+if(WITH_CODEC_FFMPEG)
+	# FFMPEG gives warnigns which are hard to avoid across multiple versions.
+	remove_strict_flags()
+endif()
+
 set(INC 
 	.
 	../avi
@@ -155,12 +160,6 @@ if(WITH_CODEC_FFMPEG)
 		${FFMPEG_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_FFMPEG)
-
-	remove_strict_flags_file(
-		intern/indexer.c
-		intern/util.c
-		intern/anim_movie.c
-	)
 endif()
 
 if(WITH_IMAGE_DDS)
