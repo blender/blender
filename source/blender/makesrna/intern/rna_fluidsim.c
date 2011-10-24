@@ -173,6 +173,7 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)
 {
 #ifdef DISABLE_ELBEEM
+	(void)ptr;
 	value[0]= '\0';
 #else
 	Object *ob= (Object*)ptr->id.data;
@@ -182,7 +183,7 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 #endif
 }
 
-static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
+static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *UNUSED(ptr))
 {
 #ifdef DISABLE_ELBEEM
 	return 0;

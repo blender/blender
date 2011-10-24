@@ -42,8 +42,7 @@ if env['WITH_BF_QUICKTIME']:
 
 if env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
-else:
-    defs.append('DISABLE_SDL')
+    defs.append('WITH_SDL')
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')

@@ -166,7 +166,7 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 			int i= 0;
 
 			/* strip numbers */
-			strcpy(base_name, prop->name);
+			BLI_strncpy(base_name, prop->name, sizeof(base_name));
 			for(i= strlen(base_name)-1; (i>=0 && isdigit(base_name[i])); i--) {
 				base_name[i]= '\0';
 			}
@@ -178,7 +178,7 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 				strcat(new_name, num);
 			} while(get_property__internal(first, prop, new_name));
 
-			strcpy(prop->name, new_name);
+			BLI_strncpy(prop->name, new_name, sizeof(prop->name));
 		}
 	}
 }
@@ -257,7 +257,7 @@ void set_property(bProperty *prop, char *str)
 		*((float *)&prop->data)= (float)atof(str);
 		break;
 	case GPROP_STRING:
-		strcpy(prop->poin, str);
+		strcpy(prop->poin, str); /* TODO - check size? */
 		break;
 	}
 	

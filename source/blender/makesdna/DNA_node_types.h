@@ -154,7 +154,9 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
-	int pad;
+	
+	int update;				/* update flags */
+	
 	char label[32];			/* custom user-defined label */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
@@ -191,6 +193,13 @@ typedef struct bNode {
 #define NODE_BACKGROUND		(1<<12)
 	/* automatic flag for nodes included in transforms */
 #define NODE_TRANSFORM		(1<<13)
+
+/* node->update */
+/* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
+ * might be used in the future, but currently all work the same way.
+ */
+#define NODE_UPDATE			0xFFFF	/* generic update flag (includes all others) */
+#define NODE_UPDATE_ID		1		/* associated id data block has changed */
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;

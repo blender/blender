@@ -134,6 +134,7 @@ set(SRC
 	BLI_storage.h
 	BLI_storage_types.h
 	BLI_string.h
+	BLI_string_utf8.h
 	BLI_threads.h
 	BLI_utildefines.h
 	BLI_uvproject.h

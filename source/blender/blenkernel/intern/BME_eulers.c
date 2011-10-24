@@ -39,6 +39,7 @@
 
 
 #include "MEM_guardedalloc.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "bmesh_private.h"

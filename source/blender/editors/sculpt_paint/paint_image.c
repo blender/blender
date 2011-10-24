@@ -401,7 +401,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
 	
 	tile= MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
-	strcpy(tile->idname, ima->id.name);
+	BLI_strncpy(tile->idname, ima->id.name, sizeof(tile->idname));
 	tile->x= x_tile;
 	tile->y= y_tile;
 
@@ -409,7 +409,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
 	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
-	strcpy(tile->ibufname, ibuf->name);
+	BLI_strncpy(tile->ibufname, ibuf->name, sizeof(tile->ibufname));
 
 	tile->gen_type= ima->gen_type;
 	tile->source= ima->source;

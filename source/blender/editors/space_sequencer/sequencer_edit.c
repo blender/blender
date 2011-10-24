@@ -929,11 +929,11 @@ static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
 	if(last_seq==NULL) 
 		return;
 	
-	BLI_strncpy(from, last_seq->strip->dir, FILE_MAX);
+	BLI_strncpy(from, last_seq->strip->dir, sizeof(from));
 // XXX	if (0==sbutton(from, 0, sizeof(from)-1, "From: "))
 //		return;
 	
-	strcpy(to, from);
+	BLI_strncpy(to, from, sizeof(to));
 // XXX	if (0==sbutton(to, 0, sizeof(to)-1, "To: "))
 //		return;
 	

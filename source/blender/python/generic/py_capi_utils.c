@@ -30,7 +30,7 @@
 
 #include "py_capi_utils.h"
 
-#include "BKE_font.h" /* only for utf8towchar, should replace with py funcs but too late in release now */
+#include "BLI_string_utf8.h" /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 
 #ifdef _WIN32 /* BLI_setenv */
 #include "BLI_path_util.h"
@@ -182,6 +182,15 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 	if (lineno) {
 		*lineno = PyFrame_GetLineNumber(frame);
 	}
+}
+
+void PyC_FileAndNum_Safe(const char **filename, int *lineno)
+{
+	if(!PYC_INTERPRETER_ACTIVE) {
+		return;
+	}
+
+	PyC_FileAndNum(filename, lineno);
 }
 
 /* Would be nice if python had this built in */
@@ -469,7 +478,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
 		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
 
-		utf8towchar(py_path_bundle_wchar, py_path_bundle);
+		BLI_strncpy_wchar_from_utf8(py_path_bundle_wchar, py_path_bundle, sizeof(py_path_bundle_wchar) / sizeof(wchar_t));
 
 		Py_SetPythonHome(py_path_bundle_wchar);
 		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);

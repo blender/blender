@@ -42,6 +42,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
+#include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -179,7 +180,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
 	tsmd->flag = smd->flag;
-	strcpy(tsmd->defgrp_name, smd->defgrp_name);
+	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

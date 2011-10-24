@@ -568,7 +568,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *UNUSED(C), Repor
 	}
 	else {
 		ntreeUpdateTree(ntree); /* update group node socket links*/
-		NodeTagChanged(ntree, node);
+		nodeUpdate(ntree, node);
 		WM_main_add_notifier(NC_NODE|NA_EDITED, ntree);
 
 		if (group)
@@ -651,7 +651,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports, b
 	ret= nodeAddLink(ntree, fromnode, in, tonode, out);
 	
 	if(ret) {
-		NodeTagChanged(ntree, tonode);
+		nodeUpdate(ntree, tonode);
 
 		ntreeUpdateTree(ntree);
 
@@ -1403,19 +1403,19 @@ static void def_cmp_image(StructRNA *srna)
 	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Frames", "Sets the number of images of a movie to use"); /* copied from the rna_image.c */
+	RNA_def_property_ui_text(prop, "Frames", "Number of images of a movie to use"); /* copied from the rna_image.c */
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie/sequence, assuming first picture has a #1"); /* copied from the rna_image.c */
+	RNA_def_property_ui_text(prop, "Start Frame", "Global starting frame of the movie/sequence, assuming first picture has a #1"); /* copied from the rna_image.c */
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation"); /* copied from the rna_image.c */
+	RNA_def_property_ui_text(prop, "Offset", "Offset the number of the frame to use in the animation"); /* copied from the rna_image.c */
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);

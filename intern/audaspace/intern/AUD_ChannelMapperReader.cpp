@@ -352,7 +352,7 @@ const float AUD_ChannelMapperReader::SURROUND71_ANGLES[] =
 	   0.0f * M_PI / 180.0f,
 	   0.0f * M_PI / 180.0f,
 	-110.0f * M_PI / 180.0f,
-	 110.0f * M_PI / 180.0f
+	 110.0f * M_PI / 180.0f,
 	-150.0f * M_PI / 180.0f,
 	 150.0f * M_PI / 180.0f
 };

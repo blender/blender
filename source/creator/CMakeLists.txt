@@ -88,8 +88,8 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
-if(NOT WITH_SDL)
-	add_definitions(-DDISABLE_SDL)
+if(WITH_SDL)
+	add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_BINRELOC)

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id:
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -17,37 +17,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
  */
 
-#ifndef BLO_RUNTIME_H
-#define BLO_RUNTIME_H
+#ifndef BLI_STRING_UTF8_H
+#define BLI_STRING_UTF8_H
 
-/** \file BLO_runtime.h
- *  \ingroup blenloader
+/** \file BLI_string_utf8.h
+ *  \ingroup bli
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct BlendFileData;
-struct ReportList;
+char       *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy);
+int         BLI_utf8_invalid_byte(const char *str, int length);
+int         BLI_utf8_invalid_strip(char *str, int length);
 
-int BLO_is_a_runtime(const char *file);
-struct BlendFileData *BLO_read_runtime(const char *file, struct ReportList *reports);
+    /* copied from glib */
+char       *BLI_str_find_prev_char_utf8(const char *str, const char *p);
+char       *BLI_str_find_next_char_utf8(const char *p, const char *end);
+char       *BLI_str_prev_char_utf8(const char *p);
+
+    /* wchar_t functions, copied from blenders own font.c originally */
+size_t      BLI_wstrlen_utf8(const wchar_t *src);
+size_t      BLI_strlen_utf8(const char *strc);
+size_t      BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy);
+size_t      BLI_strncpy_wchar_from_utf8(wchar_t *dst, const char *src, const size_t maxcpy);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BLO_RUNTIME_H */
-
+#endif

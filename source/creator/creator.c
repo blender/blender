@@ -309,7 +309,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 #else
 	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
 	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
@@ -1248,7 +1248,7 @@ int main(int argc, const char **argv)
 		/* this is properly initialized with user defs, but this is default */
 		BLI_where_is_temp(btempdir, FILE_MAX, 1); /* call after loading the startup.blend so we can read U.tempdir */
 
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
 #endif
 	}

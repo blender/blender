@@ -174,7 +174,7 @@ package_archive:
 # Other Targets
 #
 translations:
-	$(BUILD_DIR)/bin/blender --background --factory-startup --python po/update_msg.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python po/update_msg.py
 	python3 po/update_pot.py
 	python3 po/update_po.py
 	python3 po/update_mo.py
@@ -238,12 +238,12 @@ check_sparse:
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py:
-	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
 
 doc_dna:
-	$(BUILD_DIR)/bin/blender --background --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man:

@@ -221,13 +221,13 @@ static void update_string(Curve *cu)
 	MEM_freeN(cu->str);
 
 	// Calculate the actual string length in UTF-8 variable characters
-	len = wcsleninu8(ef->textbuf);
+	len = BLI_wstrlen_utf8(ef->textbuf);
 
 	// Alloc memory for UTF-8 variable char length string
 	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
 
 	// Copy the wchar to UTF-8
-	wcs2utf8s(cu->str, ef->textbuf);
+	BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, len + 1);
 }
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
@@ -373,7 +373,7 @@ static int paste_file(bContext *C, ReportList *reports, const char *filename)
 	if(cu->len+filelen<MAXTEXT) {
 		int tmplen;
 		wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-		tmplen = utf8towchar(mem, strp);
+		tmplen = BLI_strncpy_wchar_from_utf8(mem, strp, filelen + 1);
 		wcscat(ef->textbuf, mem);
 		MEM_freeN(mem);
 		cu->len += tmplen;
@@ -1046,7 +1046,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "delta", 1, -20, 20, "Delta", "Amount to decrease or increasing character spacing with", -20, 20);
+	RNA_def_int(ot->srna, "delta", 1, -20, 20, "Delta", "Amount to decrease or increase character spacing with", -20, 20);
 }
 
 /************************* change character **********************/
@@ -1241,10 +1241,10 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	inserted_utf8= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
-	len= strlen(inserted_utf8);
+	len= BLI_strlen_utf8(inserted_utf8);
 
 	inserted_text= MEM_callocN(sizeof(wchar_t)*(len+1), "FONT_insert_text");
-	utf8towchar(inserted_text, inserted_utf8);
+	BLI_strncpy_wchar_from_utf8(inserted_text, inserted_utf8, len+1);
 
 	for(a=0; a<len; a++)
 		insert_into_textbuf(obedit, inserted_text[a]);
@@ -1289,10 +1289,22 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	else if(event==BACKSPACEKEY)
 		ascii= 0;
 
-	if(val && ascii) {
+	if(val && (ascii || evt->utf8_buf[0])) {
 		/* handle case like TAB (== 9) */
-		if((ascii > 31 && ascii < 254 && ascii != 127) || (ascii==13) || (ascii==10) || (ascii==8)) {
-			if(accentcode) {
+		if(     (ascii > 31 && ascii < 254 && ascii != 127) ||
+		        (ascii==13) ||
+		        (ascii==10) ||
+		        (ascii==8)  ||
+		        (evt->utf8_buf[0]))
+		{
+
+			if (evt->utf8_buf[0]) {
+				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
+				ascii= inserted_text[0];
+				insert_into_textbuf(obedit, ascii);
+				accentcode= 0;
+			}
+			else if(accentcode) {
 				if(cu->pos>0) {
 					inserted_text[0]= findaccent(ef->textbuf[cu->pos-1], ascii);
 					ef->textbuf[cu->pos-1]= inserted_text[0];
@@ -1348,7 +1360,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		/* store as utf8 in RNA string */
 		char inserted_utf8[8] = {0};
 
-		wcs2utf8s(inserted_utf8, inserted_text);
+		BLI_strncpy_wchar_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
 		RNA_string_set(op->ptr, "text", inserted_utf8);
 	}
 
@@ -1478,7 +1490,7 @@ void make_editText(Object *obedit)
 	}
 	
 	// Convert the original text to wchar_t
-	utf8towchar(ef->textbuf, cu->str);
+	BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT+4); /* length is bogus */
 	wcscpy(ef->oldstr, ef->textbuf);
 		
 	cu->len= wcslen(ef->textbuf);

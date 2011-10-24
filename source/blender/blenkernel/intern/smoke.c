@@ -812,12 +812,11 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 	}
 }
 
+#ifdef WITH_SMOKE
 
 // forward decleration
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
-
-#ifdef WITH_SMOKE
 
 static int get_lamp(Scene *scene, float *light)
 {	

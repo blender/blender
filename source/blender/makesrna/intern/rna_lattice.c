@@ -179,10 +179,11 @@ static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 {
 	Lattice *lt= ptr->data;
-	strcpy(lt->vgroup, value);
+	BLI_strncpy(lt->vgroup, value, sizeof(lt->vgroup));
 
-	if(lt->editlatt)
-		strcpy(lt->editlatt->latt->vgroup, value);
+	if(lt->editlatt) {
+		BLI_strncpy(lt->editlatt->latt->vgroup, value, sizeof(lt->editlatt->latt->vgroup));
+	}
 }
 
 /* annoying, but is a consequence of RNA structures... */

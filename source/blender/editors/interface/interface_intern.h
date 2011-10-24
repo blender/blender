@@ -252,6 +252,11 @@ struct uiBut {
 	
 		/* pointer back */
 	uiBlock *block;
+
+#ifdef WITH_PYTHON_UI_INFO
+	char py_dbg_fn[240];
+	int py_dbg_ln;
+#endif
 };
 
 struct uiBlock {
@@ -368,6 +373,7 @@ extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
 extern int  ui_is_but_rna_valid(uiBut *but);
+extern int  ui_is_but_utf8(uiBut *but);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);

@@ -2261,7 +2261,7 @@ static void ntree_render_scenes(Render *re)
 					restore_scene= (scene != re->scene);
 					node->id->flag &= ~LIB_DOIT;
 					
-					NodeTagChanged(re->scene->nodetree, node);
+					nodeUpdate(re->scene->nodetree, node);
 				}
 			}
 		}
@@ -2468,7 +2468,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			ntreeCompositTagAnimated(ntree);
 		}
 		
-		if(ntree && re->r.scemode & R_DOCOMP) {
+		if(ntree && re->scene->use_nodes && re->r.scemode & R_DOCOMP) {
 			/* checks if there are render-result nodes that need scene */
 			if((re->r.scemode & R_SINGLE_LAYER)==0)
 				ntree_render_scenes(re);

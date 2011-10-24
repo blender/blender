@@ -157,7 +157,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 
 			RNA_string_get(op->ptr, "filepath", path);
 
-			strcpy(G.ima, path);
+			BLI_strncpy(G.ima, path, sizeof(G.ima));
 			BLI_path_abs(path, G.main->name);
 
 			/* BKE_add_image_extension() checks for if extension was already set */

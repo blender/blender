@@ -292,7 +292,7 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 	}
 }
 
-static const EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Curve *cu= (Curve*)ptr->id.data;
 
@@ -483,7 +483,7 @@ void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
 	cu->strinfo = MEM_callocN( (len+4) *sizeof(CharInfo), "strinfo"); /* don't know why this is +4, just duplicating load_editText() */
 
-	//wcs2utf8s(cu->str, value); // value is not wchar_t
+	//BLI_strncpy_wchar_as_utf8(cu->str, value, len+1); // value is not wchar_t
 	BLI_strncpy(cu->str, value, len+1);
 }
 
@@ -722,7 +722,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vec[3]");
-	RNA_def_property_ui_text(prop, "Weight", "Nurbs weight");
+	RNA_def_property_ui_text(prop, "Weight", "NURBS weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Number values */
@@ -1446,7 +1446,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Spline", NULL);
 	RNA_def_struct_sdna(srna, "Nurb");
-	RNA_def_struct_ui_text(srna, "Spline", "Element of a curve, either Nurbs, Bezier or Polyline or a character with text objects");
+	RNA_def_struct_ui_text(srna, "Spline", "Element of a curve, either NURBS, Bezier or Polyline or a character with text objects");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", NULL);
@@ -1496,13 +1496,13 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "order_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "orderu");
 	RNA_def_property_range(prop, 2, 6);
-	RNA_def_property_ui_text(prop, "Order U", "Nurbs order in the U direction (For splines and surfaces), Higher values let points influence a greater area");
+	RNA_def_property_ui_text(prop, "Order U", "NURBS order in the U direction (for splines and surfaces, higher values let points influence a greater area)");
 	RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_u");
 
 	prop= RNA_def_property(srna, "order_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "orderv");
 	RNA_def_property_range(prop, 2, 6);
-	RNA_def_property_ui_text(prop, "Order V", "Nurbs order in the V direction (For surfaces only), Higher values let points influence a greater area");
+	RNA_def_property_ui_text(prop, "Order V", "NURBS order in the V direction (for surfaces only, higher values let points influence a greater area)");
 	RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
 

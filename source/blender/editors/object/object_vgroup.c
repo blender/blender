@@ -671,7 +671,7 @@ static void vgroup_duplicate(Object *ob)
 	}
 
 	cdg = defgroup_duplicate(dg);
-	strcpy(cdg->name, name);
+	BLI_strncpy(cdg->name, name, sizeof(cdg->name));
 	defgroup_unique_name(cdg, ob);
 
 	BLI_addtail(&ob->defbase, cdg);

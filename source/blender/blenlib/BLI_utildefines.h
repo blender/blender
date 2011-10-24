@@ -222,7 +222,7 @@
 #  else
 #    define _dummy_abort() (void)0
 #  endif
-#  ifdef __GNUC__ /* just want to check if __func__ is available */
+#  if defined(__GNUC__) || defined(_MSC_VER) /* just want to check if __func__ is available */
 #    define BLI_assert(a) \
 do { \
 	if (!(a)) { \

@@ -647,7 +647,7 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	
 	ot->flag= OPTYPE_BLOCKING;
 	
-	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
+	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "Modifier", "Modifier state", 0, 2);
 }
 
 /* ************** swap area operator *********************************** */
