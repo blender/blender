@@ -2505,6 +2505,9 @@ static void *seq_prefetch_thread(void * This_)
 
 		for (e = prefetch_done.first; e; e = e->next) {
 			if (s_last > e->monoton_cfra) {
+				if (e->ibuf) {
+					IMB_cache_limiter_unref(e->ibuf);
+				}
 				BLI_remlink(&prefetch_done, e);
 				MEM_freeN(e);
 			}
@@ -2582,6 +2585,9 @@ static void seq_stop_threads()
 	}
 
 	for (e = prefetch_done.first; e; e = e->next) {
+		if (e->ibuf) {
+			IMB_cache_limiter_unref(e->ibuf);
+		}
 		BLI_remlink(&prefetch_done, e);
 		MEM_freeN(e);
 	}

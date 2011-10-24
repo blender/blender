@@ -104,7 +104,7 @@ def is_glsl(filename):
 
 def is_c(filename):
     ext = splitext(filename)[1]
-    return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl"))
+    return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc"))
 
 
 def is_c_any(filename):
