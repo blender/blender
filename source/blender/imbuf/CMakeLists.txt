@@ -61,6 +61,7 @@ set(SRC
 	intern/md5.c
 	intern/metadata.c
 	intern/module.c
+	intern/moviecache.c
 	intern/openimageio.cpp
 	intern/png.c
 	intern/readimage.c
@@ -75,6 +76,7 @@ set(SRC
 
 	IMB_imbuf.h
 	IMB_imbuf_types.h
+	IMB_moviecache.h
 	IMB_thumbs.h
 	intern/IMB_allocimbuf.h
 	intern/IMB_anim.h

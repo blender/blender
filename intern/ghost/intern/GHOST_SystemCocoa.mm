@@ -1685,6 +1685,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				}
 			}
 
+			/* arrow keys should not have utf8 */
+			if ((keyCode > 266) && (keyCode < 271))
+				utf8_buf[0] = '\0';
+
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
 

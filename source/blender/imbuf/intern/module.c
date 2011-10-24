@@ -37,7 +37,6 @@ void IMB_init(void)
 
 void IMB_exit(void)
 {
-	IMB_free_cache_limiter();
 	imb_tile_cache_exit();
 	imb_filetypes_exit();
 }

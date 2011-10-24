@@ -261,7 +261,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, cons
 				float tmin, tmax;
 
 				/* get range and apply necessary scaling before processing */
-				calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
+				calc_fcurve_range(fcu, &tmin, &tmax, onlySel, TRUE);
 
 				if (adt) {
 					tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
