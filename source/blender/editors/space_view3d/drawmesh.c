@@ -41,7 +41,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
-#include "DNA_node_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
@@ -53,13 +52,9 @@
 #include "BKE_effect.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_property.h"
 #include "BKE_scene.h"
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -685,7 +680,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-/************************** NEW SHADING SYSTEM ********************************/
+/************************** NEW SHADING NODES ********************************/
 
 typedef struct TexMatCallback {
 	Scene *scene;
@@ -808,10 +803,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 			set_face_cb= NULL;
 
 		/* test if we can use glsl */
-		glsl= GPU_glsl_support();
-
-		if(v3d->drawtype == OB_TEXTURE)
-			glsl= (scene->gm.matmode == GAME_MAT_GLSL);
+		glsl= (v3d->drawtype == OB_MATERIAL) && GPU_glsl_support();
 
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 

@@ -133,14 +133,15 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	glEnd();
 }
 
-static void round_box_shade_col(const float col1[3], float const col2[3], const float fac)
+static void round_box_shade_col(const float col1[4], float const col2[4], const float fac)
 {
-	float col[3];
+	float col[4];
 
 	col[0]= (fac*col1[0] + (1.0f-fac)*col2[0]);
 	col[1]= (fac*col1[1] + (1.0f-fac)*col2[1]);
 	col[2]= (fac*col1[2] + (1.0f-fac)*col2[2]);
-	glColor3fv(col);
+	col[3]= (fac*col1[3] + (1.0f-fac)*col2[3]);
+	glColor4fv(col);
 }
 
 /* linear horizontal shade within button or in outline */
@@ -151,7 +152,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	const float div= maxy - miny;
 	const float idiv= 1.0f / div;
-	float coltop[3], coldown[3], color[4];
+	float coltop[4], coldown[4], color[4];
 	int a;
 	
 	/* mult */
@@ -165,9 +166,11 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	coltop[0]= color[0]+shadetop; if(coltop[0]>1.0f) coltop[0]= 1.0f;
 	coltop[1]= color[1]+shadetop; if(coltop[1]>1.0f) coltop[1]= 1.0f;
 	coltop[2]= color[2]+shadetop; if(coltop[2]>1.0f) coltop[2]= 1.0f;
+	coltop[3]= color[3];
 	coldown[0]= color[0]+shadedown; if(coldown[0]<0.0f) coldown[0]= 0.0f;
 	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0f) coldown[1]= 0.0f;
 	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0f) coldown[2]= 0.0f;
+	coldown[3]= color[3];
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -259,7 +262,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	const float div= maxx - minx;
 	const float idiv= 1.0f / div;
-	float colLeft[3], colRight[3], color[4];
+	float colLeft[4], colRight[4], color[4];
 	int a;
 	
 	/* mult */
@@ -273,9 +276,11 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	colLeft[0]= color[0]+shadeLeft; if(colLeft[0]>1.0f) colLeft[0]= 1.0f;
 	colLeft[1]= color[1]+shadeLeft; if(colLeft[1]>1.0f) colLeft[1]= 1.0f;
 	colLeft[2]= color[2]+shadeLeft; if(colLeft[2]>1.0f) colLeft[2]= 1.0f;
+	colLeft[3]= color[3];
 	colRight[0]= color[0]+shadeRight; if(colRight[0]<0.0f) colRight[0]= 0.0f;
 	colRight[1]= color[1]+shadeRight; if(colRight[1]<0.0f) colRight[1]= 0.0f;
 	colRight[2]= color[2]+shadeRight; if(colRight[2]<0.0f) colRight[2]= 0.0f;
+	colRight[3]= color[3];
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);

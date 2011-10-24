@@ -92,7 +92,7 @@ ARegion *view3d_has_buttons_region(ScrArea *sa)
 	return arnew;
 }
 
-void view3d_has_tools_region(ScrArea *sa, ARegion **r_artool, ARegion **r_arprops)
+ARegion *view3d_has_tools_region(ScrArea *sa)
 {
 	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
 	
@@ -104,11 +104,7 @@ void view3d_has_tools_region(ScrArea *sa, ARegion **r_artool, ARegion **r_arprop
 	}
 	
 	/* tool region hide/unhide also hides props */
-	if(arprops && artool) {
-		*r_artool= artool;
-		*r_arprops= arprops;
-		return;
-	}
+	if(arprops && artool) return artool;
 	
 	if(artool==NULL) {
 		/* add subdiv level; after header */
@@ -117,11 +113,7 @@ void view3d_has_tools_region(ScrArea *sa, ARegion **r_artool, ARegion **r_arprop
 				break;
 		
 		/* is error! */
-		if(arhead==NULL) {
-			*r_artool= NULL;
-			*r_arprops= NULL;
-			return;
-		}
+		if(arhead==NULL) return NULL;
 		
 		artool= MEM_callocN(sizeof(ARegion), "tools for view3d");
 		
@@ -139,9 +131,8 @@ void view3d_has_tools_region(ScrArea *sa, ARegion **r_artool, ARegion **r_arprop
 		arprops->regiontype= RGN_TYPE_TOOL_PROPS;
 		arprops->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	}
-
-	*r_artool= artool;
-	*r_arprops= arprops;
+	
+	return artool;
 }
 
 /* ****************************************************** */

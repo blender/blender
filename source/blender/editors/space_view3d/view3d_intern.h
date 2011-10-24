@@ -177,7 +177,6 @@ void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_toolbar.c */
 void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);
-void VIEW3D_OT_tool_properties(struct wmOperatorType *ot);
 void view3d_toolshelf_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
 
@@ -193,7 +192,7 @@ void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 
 /* space_view3d.c */
 ARegion *view3d_has_buttons_region(ScrArea *sa);
-void view3d_has_tools_region(ScrArea *sa, ARegion **artool, ARegion **arprops);
+ARegion *view3d_has_tools_region(ScrArea *sa);
 
 extern const char *view3d_context_dir[]; /* doc access */
 

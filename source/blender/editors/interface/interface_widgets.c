@@ -97,8 +97,9 @@ typedef struct uiWidgetBase {
 	float inner_v[WIDGET_SIZE_MAX][2];
 	float inner_uv[WIDGET_SIZE_MAX][2];
 	
-	short inner, outline, emboss; /* set on/off */
+	short inner, outline; /* set on/off */
 	short shadedir;
+	float emboss;
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -211,7 +212,7 @@ static void widget_init(uiWidgetBase *wtb)
 	
 	wtb->inner= 1;
 	wtb->outline= 1;
-	wtb->emboss= 0;
+	wtb->emboss= 0.015f;
 	wtb->shadedir= 1;
 }
 
@@ -750,7 +751,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		
 			/* emboss bottom shadow */
 			if(wtb->emboss) {
-				glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
+				glColor4f(1.0f, 1.0f, 1.0f, wtb->emboss);
 
 				glVertexPointer(2, GL_FLOAT, 0, quad_strip_emboss);
 				glDrawArrays(GL_QUAD_STRIP, 0, wtb->halfwayvert*2);
@@ -1304,7 +1305,7 @@ static struct uiWidgetColors wcol_menu= {
 	{0, 0, 0, 255},
 	{70, 70, 70, 255},
 	{70, 70, 70, 255},
-	{45, 45, 45, 255},
+	{35, 35, 35, 255},
 	
 	{255, 255, 255, 255},
 	{204, 204, 204, 255},
@@ -1392,7 +1393,7 @@ static struct uiWidgetColors wcol_tool= {
 	{255, 255, 255, 255},
 	
 	1,
-	5, -5
+	10, -20
 };
 
 static struct uiWidgetColors wcol_box= {
@@ -1719,7 +1720,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	widget_softshadow(rect, roundboxalign, 5.0f, 8.0f);
 	
 	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
-	wtb.emboss= 0;
+	wtb.emboss= 0.0f;
 	widgetbase_draw(&wtb, wcol);
 	
 	glDisable(GL_BLEND);
@@ -2221,7 +2222,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		}
 
 		/* draw */
-		wtb.emboss= 0; /* only emboss once */
+		wtb.emboss= 0.0f; /* only emboss once */
 		
 		/* exception for progress bar */
 		if (state & UI_SCROLL_NO_OUTLINE)	
@@ -2573,12 +2574,11 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad= 0.5f*(rect->ymax - rect->ymin); // 4.0f
 		
 		widget_init(&wtb);
 		
 		/* half rounded */
-		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+		round_box_edges(&wtb, UI_CNR_ALL, rect, 4.0f);
 		
 		widgetbase_draw(&wtb, wcol);
 	}

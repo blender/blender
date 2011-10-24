@@ -249,12 +249,10 @@ void view3d_tool_props_register(ARegionType *art)
 static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
-	ARegion *artool, *arprops;
+	ARegion *ar= view3d_has_tools_region(sa);
 	
-	view3d_has_tools_region(sa, &artool, &arprops);
-	
-	if(artool)
-		ED_region_toggle_hidden(C, artool);
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -266,40 +264,6 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_toolshelf";
 	
 	ot->exec= view3d_toolshelf;
-	ot->poll= ED_operator_view3d_active;
-	
-	/* flags */
-	ot->flag= 0;
-}
-
-/* ********** operator to open/close toolshelf region */
-
-static int view3d_tool_properties(bContext *C, wmOperator *UNUSED(op))
-{
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *artool, *arprops;
-	
-	view3d_has_tools_region(sa, &artool, &arprops);
-	
-	if(artool && (artool->flag & RGN_FLAG_HIDDEN)) {
-		ED_region_toggle_hidden(C, artool);
-
-		if(arprops && (arprops->flag & RGN_FLAG_HIDDEN))
-			ED_region_toggle_hidden(C, arprops);
-	}
-	else if(arprops)
-		ED_region_toggle_hidden(C, arprops);
-
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_tool_properties(wmOperatorType *ot)
-{
-	ot->name= "Tool Properties";
-	ot->description= "Toggles tool properties display";
-	ot->idname= "VIEW3D_OT_tool_properties";
-	
-	ot->exec= view3d_tool_properties;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */

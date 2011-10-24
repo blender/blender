@@ -1918,7 +1918,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
+	draw_gpencil_view3d(scene, v3d, ar, 1);
 	
 	v3d->zbuf= zbuf;
 
@@ -2340,7 +2340,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* must be before xray draw which clears the depth buffer */
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
+	draw_gpencil_view3d(scene, v3d, ar, 1);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	/* transp and X-ray afterdraw stuff */
@@ -2361,7 +2361,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	ED_region_pixelspace(ar);
 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_view3d_ext(scene, v3d, ar, 0);
+	draw_gpencil_view3d(scene, v3d, ar, 0);
 
 	/* freeing the images again here could be done after the operator runs, leaving for now */
 	GPU_free_images_anim();
@@ -2578,20 +2578,14 @@ static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
 }
 
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
-void view3d_main_area_draw(const bContext *C, ARegion *ar)
+static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Base *base;
-	Object *ob;
 	float backcol[3];
 	unsigned int lay_used;
-	const char *grid_unit= NULL;
-
-	/* possible use (external) render engine instead */
-	if(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar));
-	else {
 
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
@@ -2641,7 +2635,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	if((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-			drawfloor(scene, v3d, &grid_unit);
+			drawfloor(scene, v3d, grid_unit);
 		}
 		if(rv3d->persp==RV3D_CAMOB) {
 			if(scene->world) {
@@ -2658,7 +2652,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	else {
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			ED_region_pixelspace(ar);
-			drawgrid(&scene->unit, ar, v3d, &grid_unit);
+			drawgrid(&scene->unit, ar, v3d, grid_unit);
 			/* XXX make function? replaces persp(1) */
 			glMatrixMode(GL_PROJECTION);
 			glLoadMatrixf(rv3d->winmat);
@@ -2733,7 +2727,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* must be before xray draw which clears the depth buffer */
 		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		draw_gpencil_view3d((bContext *)C, 1);
+		draw_gpencil_view3d(scene, v3d, ar, 1);
 		if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
@@ -2766,15 +2760,16 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		// TODO: draw something else (but not this) during fly mode
 		draw_rotation_guide(rv3d);
 
-	ED_region_pixelspace(ar);
+}
 
-	}
-	
-//	retopo_paint_view_update(v3d);
-//	retopo_draw_paint_lines();
-	
-	/* Draw particle edit brush XXX (removed) */
-	
+static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const char *grid_unit)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	bScreen *screen= CTX_wm_screen(C);
+
+	Object *ob;
 
 	if(rv3d->persp==RV3D_CAMOB)
 		drawviewborder(scene, ar, v3d);
@@ -2782,7 +2777,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 	//	if (v3d->flag2 & V3D_DISPGP)
-			draw_gpencil_view3d((bContext *)C, 0);
+			draw_gpencil_view3d(scene, v3d, ar, 0);
 
 		drawcursor(scene, ar, v3d);
 	}
@@ -2794,31 +2789,44 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	if(rv3d->render_engine) {
 		view3d_main_area_draw_engine_info(rv3d, ar);
+		return;
 	}
-	else {
-		if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
-			draw_viewport_fps(scene, ar);
-		}
-		else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(ar, v3d);
-		}
-		if (grid_unit) { /* draw below the viewport name */
-			char tstr[32]= "";
 
-			UI_ThemeColor(TH_TEXT_HI);
-			if(v3d->grid != 1.0f) {
-				BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
-			}
+	if((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
+		draw_viewport_fps(scene, ar);
+	}
+	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+		draw_viewport_name(ar, v3d);
+	}
+	if (grid_unit) { /* draw below the viewport name */
+		char tstr[32]= "";
 
-			BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+		UI_ThemeColor(TH_TEXT_HI);
+		if(v3d->grid != 1.0f) {
+			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
-		ob= OBACT;
-		if(U.uiflag & USER_DRAWVIEWINFO) 
-			draw_selected_name(scene, ob);
+		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+	}
+
+	ob= OBACT;
+	if(U.uiflag & USER_DRAWVIEWINFO) 
+		draw_selected_name(scene, ob);
+}
+
+void view3d_main_area_draw(const bContext *C, ARegion *ar)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	const char *grid_unit= NULL;
+
+	/* draw viewport using external renderer? */
+	if(!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
+		/* draw viewport using opengl */
+		view3d_main_area_draw_objects(C, ar, &grid_unit);
+		ED_region_pixelspace(ar);
 	}
 	
-	/* XXX here was the blockhandlers for floating panels */
+	view3d_main_area_draw_info(C, ar, grid_unit);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }

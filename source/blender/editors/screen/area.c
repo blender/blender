@@ -71,6 +71,39 @@
 
 /* general area and region code */
 
+static void region_draw_emboss(ARegion *ar, rcti *scirct)
+{
+	rcti rect;
+	
+	/* translate scissor rect to region space */
+	rect.xmin= scirct->xmin - ar->winrct.xmin;
+	rect.ymin= scirct->ymin - ar->winrct.ymin;
+	rect.xmax= scirct->xmax - ar->winrct.xmin;
+	rect.ymax= scirct->ymax - ar->winrct.ymin;
+	
+	/* set transp line */
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	/* right  */
+	glColor4ub(0,0,0, 30);
+	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
+	
+	/* bottom  */
+	glColor4ub(0,0,0, 30);
+	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
+	
+	/* top  */
+	glColor4ub(255,255,255, 30);
+	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
+
+	/* left  */
+	glColor4ub(255,255,255, 30);
+	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
+	
+	glDisable( GL_BLEND );
+}
+
 void ED_region_pixelspace(ARegion *ar)
 {
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
@@ -138,15 +171,32 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
-	int dx= floor(0.9f*(x2-x1));
-	int dy= floor(0.9f*(y2-y1));
+	int dx= 0.3f*(x2-x1);
+	int dy= 0.3f*(y2-y1);
+	int i;
 
-	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glEnable(GL_BLEND);
+
+	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
+
 	glBegin(GL_TRIANGLES);
 	glVertex2f(x1, y1);
-	glVertex2f(x1+dx, y1);
-	glVertex2f(x1, y1+dy);
+	glVertex2f(x2, y1);
+	glVertex2f(x1, y2);
 	glEnd();
+
+	glEnable(GL_LINE_SMOOTH);
+
+	glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+
+	x2 += (x2 > x1)? -1: 1;
+	y2 += (y2 > y1)? -1: 1;
+
+	for(i=0; i<4; i++)
+		fdrawline(x1, y2-i*dy, x2-i*dx, y1);
+
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 }
 
 static void region_draw_azone_icon(AZone *az)
@@ -181,6 +231,54 @@ static void region_draw_azone_icon(AZone *az)
 	/* + */
 	sdrawline(midx, midy-2, midx, midy+3);
 	sdrawline(midx-2, midy, midx+3, midy);
+}
+
+static void draw_azone_plus(float x1, float y1, float x2, float y2)
+{
+	float width = 2.0f;
+	float pad = 4.0f;
+
+	glRectf((x1 + x2 - width)*0.5f, y1 + pad, (x1 + x2 + width)*0.5f, y2 - pad);
+	glRectf(x1 + pad, (y1 + y2 - width)*0.5f, (x1 + x2 - width)*0.5f, (y1 + y2 + width)*0.5f);
+	glRectf((x1 + x2 + width)*0.5f, (y1 + y2 - width)*0.5f, x2 - pad, (y1 + y2 + width)*0.5f);
+}
+
+static void region_draw_azone_tab_plus(AZone *az)
+{
+	float yofs= 0.0f;
+	
+	glEnable(GL_BLEND);
+	
+	/* add code to draw region hidden as 'too small' */
+	switch(az->edge) {
+		case AE_TOP_TO_BOTTOMRIGHT:
+			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+			yofs= 0.3f;
+			break;
+		case AE_BOTTOM_TO_TOPLEFT:
+			uiSetRoundBox(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+			yofs= 0.3f;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+			yofs= 0.0f;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			uiSetRoundBox(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+			yofs= 0.0f;
+			break;
+	}
+
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	uiRoundBox((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f);
+
+	UI_ThemeColorShade(TH_BACK, 20);
+	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
+
+	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
+	uiRoundRect((float)az->x1, (float)az->y1+yofs, (float)az->x2, (float)az->y2+yofs, 4.0f);
+	
+	glDisable(GL_BLEND);
 }
 
 static void region_draw_azone_tab(AZone *az)
@@ -277,21 +375,19 @@ void ED_area_overdraw(bContext *C)
 				if(az->type==AZONE_AREA) {
 					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
 				} else if(az->type==AZONE_REGION) {
-					if(0) {
 					
 					if(az->ar) {
 						/* only display tab or icons when the region is hidden */
 						if (az->ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
-					
-							if(G.rt==2)
+							if(G.rt==3)
+								region_draw_azone_icon(az);
+							else if(G.rt==2)
 								region_draw_azone_tria(az);
 							else if(G.rt==1)
 								region_draw_azone_tab(az);
 							else
-								region_draw_azone_icon(az);
+								region_draw_azone_tab_plus(az);
 						}
-					}
-
 					}
 				}
 				
@@ -400,11 +496,11 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 	
-	/*if(sa)
-		region_draw_emboss(ar, &winrct);*/
-	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(ar);
+
+	if(sa)
+		region_draw_emboss(ar, &winrct);
 }
 
 /* **********************************
@@ -564,8 +660,112 @@ static void region_azone_edge(AZone *az, ARegion *ar)
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
+static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
+{
+	AZone *azt;
+	int tot=0;
+	
+	/* count how many actionzones with along same edge are available.
+	   This allows for adding more action zones in the future without
+	   having to worry about correct offset */
+	for(azt= sa->actionzones.first; azt; azt= azt->next) {
+		if(azt->edge == az->edge) tot++;
+	}
+	
+	switch(az->edge) {
+		case AE_TOP_TO_BOTTOMRIGHT:
+			az->x1= ar->winrct.xmax - tot*2*AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax + AZONEPAD_ICON;
+			az->x2= ar->winrct.xmax - tot*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax + 2*AZONEPAD_ICON;
+			break;
+		case AE_BOTTOM_TO_TOPLEFT:
+			az->x1= ar->winrct.xmin + AZONEPAD_ICON;
+			az->y1= ar->winrct.ymin - 2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymin - AZONEPAD_ICON;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmin - AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			az->x1= ar->winrct.xmax + AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmax + 2*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
+			break;
+	}
+
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	
+	/* if more azones on 1 spot, set offset */
+	for(azt= sa->actionzones.first; azt; azt= azt->next) {
+		if(az!=azt) {
+			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
+				if(az->edge==AE_TOP_TO_BOTTOMRIGHT || az->edge==AE_BOTTOM_TO_TOPLEFT) {
+					az->x1+= AZONESPOT;
+					az->x2+= AZONESPOT;
+				}
+				else{
+					az->y1-= AZONESPOT;
+					az->y2-= AZONESPOT;
+				}
+				BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+			}
+		}
+	}
+}
+
+#define AZONEPAD_TAB_PLUSW	16
+#define AZONEPAD_TAB_PLUSH	16
+
+/* region already made zero sized, in shape of edge */
+static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
+{
+	AZone *azt;
+	int tot= 0, add;
+	
+	for(azt= sa->actionzones.first; azt; azt= azt->next) {
+		if(azt->edge == az->edge) tot++;
+	}
+	
+	switch(az->edge) {
+		case AE_TOP_TO_BOTTOMRIGHT:
+			if(ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
+			az->x1= ar->winrct.xmax - 2.5*AZONEPAD_TAB_PLUSW;
+			az->y1= ar->winrct.ymax - add;
+			az->x2= ar->winrct.xmax - 1.5*AZONEPAD_TAB_PLUSW;
+			az->y2= ar->winrct.ymax - add + AZONEPAD_TAB_PLUSH;
+			break;
+		case AE_BOTTOM_TO_TOPLEFT:
+			az->x1= ar->winrct.xmax - 2.5*AZONEPAD_TAB_PLUSW;
+			az->y1= ar->winrct.ymin - AZONEPAD_TAB_PLUSH;
+			az->x2= ar->winrct.xmax - 1.5*AZONEPAD_TAB_PLUSW;
+			az->y2= ar->winrct.ymin;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			az->x1= ar->winrct.xmin + 1 - AZONEPAD_TAB_PLUSH;
+			az->y1= ar->winrct.ymax - 2.5*AZONEPAD_TAB_PLUSW;
+			az->x2= ar->winrct.xmin + 1;
+			az->y2= ar->winrct.ymax - 1.5*AZONEPAD_TAB_PLUSW;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			az->x1= ar->winrct.xmax - 1;
+			az->y1= ar->winrct.ymax - 2.5*AZONEPAD_TAB_PLUSW;
+			az->x2= ar->winrct.xmax - 1 + AZONEPAD_TAB_PLUSH;
+			az->y2= ar->winrct.ymax - 1.5*AZONEPAD_TAB_PLUSW;
+			break;
+	}
+	/* rect needed for mouse pointer test */
+	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+}	
+
+
 #define AZONEPAD_TABW	18
-#define AZONEPAD_TABH	7
+#define AZONEPAD_TABH	6
 
 /* region already made zero sized, in shape of edge */
 static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
@@ -656,18 +856,29 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 
 static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge) 
 {
-	if(!(ar->flag & RGN_FLAG_HIDDEN)) {
-		AZone *az;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&(sa->actionzones), az);
-		az->type= AZONE_REGION;
-		az->ar= ar;
-		az->edge= edge;
-		
+	AZone *az;
+	
+	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+	BLI_addtail(&(sa->actionzones), az);
+	az->type= AZONE_REGION;
+	az->ar= ar;
+	az->edge= edge;
+	
+	if (ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
+		if(G.rt==3)
+			region_azone_icon(sa, az, ar);
+		else if(G.rt==2)
+			region_azone_tria(sa, az, ar);
+		else if(G.rt==1)
+			region_azone_tab(sa, az, ar);
+		else
+			region_azone_tab_plus(sa, az, ar);
+	} else {
 		region_azone_edge(az, ar);
 	}
+	
 }
+
 
 /* *************************************************************** */
 

@@ -497,14 +497,15 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	{
-		float minx= rect->xmin/block->aspect;
-		float maxx= rect->xmax/block->aspect;
+		float minx= rect->xmin + 0.0f/block->aspect;
+		float maxx= rect->xmax - 0.0f/block->aspect;
 		float y= headrect.ymax;
 		
 		glEnable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
-		uiSetRoundBox(0);
-		uiDrawBox(GL_POLYGON, minx, headrect.ymin, maxx, y+1, 4);
+		glRectf(minx, y-1, maxx, y);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.1f);
+		glRectf(minx, headrect.ymin, maxx, y);
 		glDisable(GL_BLEND);
 	}
 	
@@ -588,12 +589,12 @@ static int get_panel_header(Panel *pa)
 	return PNL_HEADER;
 }
 
-static int get_panel_size_y(uiStyle *style, Panel *pa)
+static int get_panel_size_y(uiStyle *UNUSED(style), Panel *pa)
 {
 	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
 		return pa->sizey;
 
-	return PNL_HEADER + pa->sizey + style->panelouter;
+	return PNL_HEADER + pa->sizey;
 }
 
 /* this function is needed because uiBlock and Panel itself dont

@@ -363,7 +363,6 @@ def panel_node_draw(layout, id, output_type, input_name):
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Lamp"
     bl_context = "data"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
