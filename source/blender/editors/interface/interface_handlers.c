@@ -1953,7 +1953,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			if(event->utf8_buf[0]) {
 				/* keep this printf until utf8 is well tested */
-				printf("%s: utf8 char '%s'\n", __func__, event->utf8_buf);
+				printf("%s: utf8 char '%.*s'\n", __func__, BLI_str_utf8_size(event->utf8_buf), event->utf8_buf);
 				// strcpy(event->utf8_buf, "12345");
 				changed= ui_textedit_type_buf(but, data, event->utf8_buf, BLI_str_utf8_size(event->utf8_buf));
 			}
