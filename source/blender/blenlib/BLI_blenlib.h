@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -75,8 +73,6 @@ extern "C" {
 #include "BLI_string_utf8.h"
 
 #include "BLI_path_util.h"
-
-#include "BLI_storage.h"
 
 #include "BLI_fileops.h"
 

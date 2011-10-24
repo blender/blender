@@ -12,7 +12,6 @@
  *		- $log$
  *
  *	\par Release
- *		$Id$
  *		$Name:  $ 
  * \todo
  *   make IO routines more robust against the differences between DOS/UNIX end-of-line style.

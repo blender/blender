@@ -157,24 +157,24 @@ class IMAGE_MT_image_invert(Menu):
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator("image.invert", text="Invert Image Colors")
-        op.invert_r = True
-        op.invert_g = True
-        op.invert_b = True
+        props = layout.operator("image.invert", text="Invert Image Colors")
+        props.invert_r = True
+        props.invert_g = True
+        props.invert_b = True
 
         layout.separator()
 
-        op = layout.operator("image.invert", text="Invert Red Channel")
-        op.invert_r = True
+        props = layout.operator("image.invert", text="Invert Red Channel")
+        props.invert_r = True
 
-        op = layout.operator("image.invert", text="Invert Green Channel")
-        op.invert_g = True
+        props = layout.operator("image.invert", text="Invert Green Channel")
+        props.invert_g = True
 
-        op = layout.operator("image.invert", text="Invert Blue Channel")
-        op.invert_b = True
+        props = layout.operator("image.invert", text="Invert Blue Channel")
+        props.invert_b = True
 
-        op = layout.operator("image.invert", text="Invert Alpha Channel")
-        op.invert_a = True
+        props = layout.operator("image.invert", text="Invert Alpha Channel")
+        props.invert_a = True
 
 
 class IMAGE_MT_uvs_showhide(Menu):

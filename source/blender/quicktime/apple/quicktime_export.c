@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * quicktime_export.c
  *

@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +25,6 @@
  * ***** END GPL LICENSE BLOCK *****
  * allocimbuf.c
  *
- * $Id$
  */
 
 /** \file blender/imbuf/intern/readimage.c
@@ -88,7 +86,7 @@ ImBuf *IMB_loadifffile(int file, int flags)
 
 	if(file == -1) return NULL;
 
-	size= BLI_filesize(file);
+	size= BLI_file_descriptor_size(file);
 
 	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
 	if(mem==(unsigned char*)-1) {
@@ -175,7 +173,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 
 	if(file == -1) return;
 
-	size= BLI_filesize(file);
+	size= BLI_file_descriptor_size(file);
 
 	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
 	if(mem==(unsigned char*)-1) {

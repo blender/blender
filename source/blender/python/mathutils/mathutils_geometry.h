@@ -1,5 +1,4 @@
 /* 
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,7 +24,7 @@
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/mathutils_geometry.h
  *  \ingroup pygen

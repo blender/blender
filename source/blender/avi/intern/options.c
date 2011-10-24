@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * This is external code. Sets some compression related options
  * (width, height quality, framerate).

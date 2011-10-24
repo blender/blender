@@ -1,6 +1,5 @@
 /* 
  * Platform independent time functions.
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

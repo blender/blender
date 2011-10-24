@@ -1,6 +1,4 @@
-/**
- * $Id$
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -281,7 +279,7 @@ void BL_Action::SetLocalTime(float curtime)
 
 void BL_Action::ResetStartTime(float curtime)
 {
-	float dt = m_localtime - m_startframe;
+	float dt = (m_localtime > m_startframe) ? m_localtime - m_startframe : m_startframe - m_localtime;
 
 	m_starttime = curtime - dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
 	SetLocalTime(curtime);

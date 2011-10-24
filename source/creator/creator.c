@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -86,6 +84,7 @@
 #include "BPY_extern.h"
 #endif
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 //XXX #include "playanim_ext.h"

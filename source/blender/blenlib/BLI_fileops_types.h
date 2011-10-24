@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,10 +24,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLI_STORAGE_TYPES_H
-#define BLI_STORAGE_TYPES_H
 
-/** \file BLI_storage_types.h
+#ifndef BLI_FILEOPS_TYPES_H
+#define BLI_FILEOPS_TYPES_H
+
+/** \file BLI_fileops_types.h
  *  \ingroup bli
  *  \brief Some types for dealing with directories.
  */
@@ -75,5 +74,5 @@ struct dirlink
 	char *name;
 };
 
-#endif /* BLI_STORAGE_TYPES_H */
+#endif /* BLI_FILEOPS_TYPES_H */
 

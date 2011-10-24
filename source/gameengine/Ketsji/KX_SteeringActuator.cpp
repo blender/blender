@@ -1,7 +1,6 @@
 /**
 * Add steering behaviors
 *
-* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *

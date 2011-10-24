@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -379,6 +377,7 @@ struct RenderResult *RE_AcquireResultRead(struct Render *re){return (struct Rend
 struct RenderResult *RE_AcquireResultWrite(struct Render *re){return (struct RenderResult *) NULL;}
 struct RenderStats *RE_GetStats(struct Render *re){return (struct RenderStats *) NULL;}
 void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *result){}
+void RE_engine_update_progress(struct RenderEngine *engine, float progress) {}
 void RE_engine_end_result(struct RenderEngine *engine, struct RenderResult *result){}
 void RE_engine_update_stats(struct RenderEngine *engine, char *stats, char *info){}
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, char *filename){}
@@ -387,7 +386,11 @@ void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr){}
 void RE_ReleaseResult(struct Render *re){}
 void RE_ReleaseResultImage(struct Render *re){}
 int RE_engine_test_break(struct RenderEngine *engine){return 0;}
+void RE_engines_init() {}
+void RE_engines_exit() {}
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
+ListBase R_engines = {NULL, NULL};
+void RE_engine_free(struct RenderEngine *engine) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}

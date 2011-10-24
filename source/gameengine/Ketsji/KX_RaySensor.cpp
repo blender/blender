@@ -1,7 +1,6 @@
 /*
  * Cast a ray and feel for objects
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,4 +1,4 @@
-/* $Id: FixedObject.hpp 19905 2009-04-23 13:29:54Z ben2610 $
+/*
  * FixedObject.h
  *
  *  Created on: Feb 10, 2009

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -65,7 +63,8 @@
  return -1 if zlib fails, -2 if the originating file does not exist
  note: will remove the "from" file
   */
-int BLI_gzip(const char *from, const char *to) {
+int BLI_file_gzip(const char *from, const char *to)
+{
 	char buffer[10240];
 	int file;
 	int readsize = 0;
@@ -109,7 +108,7 @@ int BLI_gzip(const char *from, const char *to) {
 /* gzip the file in from_file and write it to memery to_mem, at most size bytes.
    return the unziped size
   */
-char *BLI_ungzip_to_mem(const char *from_file, int *size_r)
+char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 {
 	gzFile gzfile;
 	int readsize, size, alloc_size=0;
@@ -150,7 +149,7 @@ char *BLI_ungzip_to_mem(const char *from_file, int *size_r)
 
 
 /* return 1 when file can be written */
-int BLI_is_writable(const char *filename)
+int BLI_file_is_writable(const char *filename)
 {
 	int file;
 	
@@ -178,7 +177,7 @@ int BLI_is_writable(const char *filename)
 	}
 }
 
-int BLI_touch(const char *file)
+int BLI_file_touch(const char *file)
 {
 	FILE *f = fopen(file,"r+b");
 	if (f != NULL) {
@@ -199,7 +198,8 @@ int BLI_touch(const char *file)
 
 static char str[MAXPATHLEN+12];
 
-int BLI_delete(const char *file, int dir, int recursive) {
+int BLI_delete(const char *file, int dir, int recursive)
+{
 	int err;
 
 	if (recursive) {
@@ -216,7 +216,8 @@ int BLI_delete(const char *file, int dir, int recursive) {
 	return err;
 }
 
-int BLI_move(const char *file, const char *to) {
+int BLI_move(const char *file, const char *to)
+{
 	int err;
 
 	// windows doesn't support moveing to a directory
@@ -241,7 +242,8 @@ int BLI_move(const char *file, const char *to) {
 }
 
 
-int BLI_copy_fileops(const char *file, const char *to) {
+int BLI_copy(const char *file, const char *to)
+{
 	int err;
 
 	// windows doesn't support copying to a directory
@@ -266,14 +268,16 @@ int BLI_copy_fileops(const char *file, const char *to) {
 	return err;
 }
 
-int BLI_link(const char *file, const char *to) {
+int BLI_create_symlink(const char *file, const char *to)
+{
 	callLocalErrorCallBack("Linking files is unsupported on Windows");
 	(void)file;
 	(void)to;
 	return 1;
 }
 
-void BLI_recurdir_fileops(const char *dirname) {
+void BLI_dir_create_recursive(const char *dirname)
+{
 	char *lslash;
 	char tmp[MAXPATHLEN];
 	
@@ -295,7 +299,7 @@ void BLI_recurdir_fileops(const char *dirname) {
 	if (lslash) {
 			/* Split about the last slash and recurse */	
 		*lslash = 0;
-		BLI_recurdir_fileops(tmp);
+		BLI_dir_create_recursive(tmp);
 	}
 	
 	if(dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
@@ -303,7 +307,8 @@ void BLI_recurdir_fileops(const char *dirname) {
 			callLocalErrorCallBack("Unable to create directory\n");
 }
 
-int BLI_rename(const char *from, const char *to) {
+int BLI_rename(const char *from, const char *to)
+{
 	if (!BLI_exists(from)) return 0;
 
 	/* make sure the filenames are different (case insensitive) before removing */
@@ -343,25 +348,29 @@ int BLI_delete(const char *file, int dir, int recursive)
 	return -1;
 }
 
-int BLI_move(const char *file, const char *to) {
+int BLI_move(const char *file, const char *to)
+{
 	BLI_snprintf(str, sizeof(str), "/bin/mv -f \"%s\" \"%s\"", file, to);
 
 	return system(str);
 }
 
-int BLI_copy_fileops(const char *file, const char *to) {
+int BLI_copy(const char *file, const char *to)
+{
 	BLI_snprintf(str, sizeof(str), "/bin/cp -rf \"%s\" \"%s\"", file, to);
 
 	return system(str);
 }
 
-int BLI_link(const char *file, const char *to) {
+int BLI_create_symlink(const char *file, const char *to)
+{
 	BLI_snprintf(str, sizeof(str), "/bin/ln -f \"%s\" \"%s\"", file, to);
 	
 	return system(str);
 }
 
-void BLI_recurdir_fileops(const char *dirname) {
+void BLI_dir_create_recursive(const char *dirname)
+{
 	char *lslash;
 	char tmp[MAXPATHLEN];
 		
@@ -373,13 +382,14 @@ void BLI_recurdir_fileops(const char *dirname) {
 	if (lslash) {
 			/* Split about the last slash and recurse */	
 		*lslash = 0;
-		BLI_recurdir_fileops(tmp);
+		BLI_dir_create_recursive(tmp);
 	}
 
 	mkdir(dirname, 0777);
 }
 
-int BLI_rename(const char *from, const char *to) {
+int BLI_rename(const char *from, const char *to)
+{
 	if (!BLI_exists(from)) return 0;
 	
 	if (BLI_exists(to))	if(BLI_delete(to, 0, 0)) return 1;
@@ -388,3 +398,4 @@ int BLI_rename(const char *from, const char *to) {
 }
 
 #endif
+

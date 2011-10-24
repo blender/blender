@@ -1,6 +1,4 @@
 /*
- * $Id$ 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +49,7 @@ extern "C" {
 
 /* used by packaging tools */
 		/* can be left blank, otherwise a,b,c... etc with no quotes */
-#define BLENDER_VERSION_CHAR
+#define BLENDER_VERSION_CHAR	a
 		/* alpha/beta/rc/release, docs use this */
 #define BLENDER_VERSION_CYCLE	alpha
 

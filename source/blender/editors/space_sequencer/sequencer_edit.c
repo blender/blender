@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +43,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
@@ -883,7 +880,7 @@ static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 			if(seq->type==SEQ_MOVIE) {
 				if(seq->strip && seq->strip->stripdata) {
 					BLI_make_file_string(G.main->name, str, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_touch(seq->name);
+					BLI_file_touch(seq->name);
 				}
 			}
 

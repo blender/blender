@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -202,6 +200,13 @@ void BPY_python_start(int argc, const char **argv)
 
 	/* allow to use our own included python */
 	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
+
+	/* without this the sys.stdout may be set to 'ascii'
+	 * (it is on my system at least), where printing unicode values will raise
+	 * an error, this is highly annoying, another stumbling block for devs,
+	 * so use a more relaxed error handler and enforce utf-8 since the rest of
+	 * blender is utf-8 too - campbell */
+	BLI_setenv("PYTHONIOENCODING", "utf-8:surrogateescape");
 
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
 	 * parse from the 'sysconfig' module which is used by 'site',
@@ -674,7 +679,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 
 #ifdef WITH_PYTHON_MODULE
-#include "BLI_storage.h"
+#include "BLI_fileops.h"
 /* TODO, reloading the module isnt functional at the moment. */
 
 static void bpy_module_free(void *mod);

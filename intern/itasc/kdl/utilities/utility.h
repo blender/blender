@@ -9,7 +9,6 @@
  *		- $log$
  *
  *	\par Release
- *		$Id$
  *		$Name:  $ 
  *  \file
  *    Included by most lrl-files to provide some general

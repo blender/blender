@@ -1,7 +1,6 @@
 /*
  * Do Ipo stuff
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

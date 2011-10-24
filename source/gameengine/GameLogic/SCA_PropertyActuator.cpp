@@ -1,7 +1,6 @@
 /*
  * Assign, change, copy properties
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

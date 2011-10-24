@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -192,7 +190,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	if (file <= 0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
 	} else {
-		filelen = BLI_filesize(file);
+		filelen = BLI_file_descriptor_size(file);
 
 		if (filelen == 0) {
 			// MEM_mallocN complains about MEM_mallocN(0, "bla");
@@ -283,7 +281,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 		for (number = 1; number <= 999; number++) {
 			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d_", name, number);
 			if (! BLI_exists(tempname)) {
-				if (BLI_copy_fileops(name, tempname) == RET_OK) {
+				if (BLI_copy(name, tempname) == RET_OK) {
 					remove_tmp = TRUE;
 				}
 				break;

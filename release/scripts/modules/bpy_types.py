@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 from _bpy import types as bpy_types
 import _bpy
@@ -34,7 +34,8 @@ class Context(StructRNA):
     def copy(self):
         from types import BuiltinMethodType
         new_context = {}
-        generic_attrs = list(StructRNA.__dict__.keys()) + ["bl_rna", "rna_type", "copy"]
+        generic_attrs = (list(StructRNA.__dict__.keys()) +
+                         ["bl_rna", "rna_type", "copy"])
         for attr in dir(self):
             if not (attr.startswith("_") or attr in generic_attrs):
                 value = getattr(self, attr)
@@ -52,14 +53,19 @@ class Library(bpy_types.ID):
         """ID data blocks which use this library"""
         import bpy
 
-        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
-        attr_links = "actions", "armatures", "brushes", "cameras", \
-                "curves", "grease_pencil", "groups", "images", \
-                "lamps", "lattices", "materials", "metaballs", \
-                "meshes", "node_groups", "objects", "scenes", \
-                "sounds", "speakers", "textures", "texts", "fonts", "worlds"
+        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE,
+        # we could make this an attribute in rna.
+        attr_links = ("actions", "armatures", "brushes", "cameras",
+                      "curves", "grease_pencil", "groups", "images",
+                      "lamps", "lattices", "materials", "metaballs",
+                      "meshes", "node_groups", "objects", "scenes",
+                      "sounds", "speakers", "textures", "texts",
+                      "fonts", "worlds")
 
-        return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
+        return tuple(id_block
+                     for attr in attr_links
+                     for id_block in getattr(bpy.data, attr)
+                     if id_block.library == self)
 
 
 class Texture(bpy_types.ID):
@@ -69,13 +75,21 @@ class Texture(bpy_types.ID):
     def users_material(self):
         """Materials that use this texture"""
         import bpy
-        return tuple(mat for mat in bpy.data.materials if self in [slot.texture for slot in mat.texture_slots if slot])
+        return tuple(mat for mat in bpy.data.materials
+                     if self in [slot.texture
+                                 for slot in mat.texture_slots
+                                 if slot]
+                     )
 
     @property
     def users_object_modifier(self):
         """Object modifiers that use this texture"""
         import bpy
-        return tuple(obj for obj in bpy.data.objects if self in [mod.texture for mod in obj.modifiers if mod.type == 'DISPLACE'])
+        return tuple(obj for obj in bpy.data.objects if
+                     self in [mod.texture
+                              for mod in obj.modifiers
+                              if mod.type == 'DISPLACE']
+                     )
 
 
 class Group(bpy_types.ID):
@@ -85,7 +99,8 @@ class Group(bpy_types.ID):
     def users_dupli_group(self):
         """The dupli group this group is used in"""
         import bpy
-        return tuple(obj for obj in bpy.data.objects if self == obj.dupli_group)
+        return tuple(obj for obj in bpy.data.objects
+                     if self == obj.dupli_group)
 
 
 class Object(bpy_types.ID):
@@ -95,19 +110,22 @@ class Object(bpy_types.ID):
     def children(self):
         """All the children of this object"""
         import bpy
-        return tuple(child for child in bpy.data.objects if child.parent == self)
+        return tuple(child for child in bpy.data.objects
+                     if child.parent == self)
 
     @property
     def users_group(self):
         """The groups this object is in"""
         import bpy
-        return tuple(group for group in bpy.data.groups if self in group.objects[:])
+        return tuple(group for group in bpy.data.groups
+                     if self in group.objects[:])
 
     @property
     def users_scene(self):
         """The scenes this object is in"""
         import bpy
-        return tuple(scene for scene in bpy.data.scenes if self in scene.objects[:])
+        return tuple(scene for scene in bpy.data.scenes
+                     if self in scene.objects[:])
 
 
 class _GenericBone:
@@ -118,13 +136,14 @@ class _GenericBone:
     __slots__ = ()
 
     def translate(self, vec):
-        """Utility function to add *vec* to the head and tail of this bone."""
+        """Utility function to add *vec* to the head and tail of this bone"""
         self.head += vec
         self.tail += vec
 
     def parent_index(self, parent_test):
         """
-        The same as 'bone in other_bone.parent_recursive' but saved generating a list.
+        The same as 'bone in other_bone.parent_recursive'
+        but saved generating a list.
         """
         # use the name so different types can be tested.
         name = parent_test.name
@@ -187,7 +206,9 @@ class _GenericBone:
 
     @property
     def length(self):
-        """The distance from head to tail, when set the head is moved to fit the length."""
+        """ The distance from head to tail,
+            when set the head is moved to fit the length.
+        """
         return self.vector.length
 
     @length.setter
@@ -196,7 +217,9 @@ class _GenericBone:
 
     @property
     def vector(self):
-        """The direction this bone is pointing. Utility function for (tail - head)"""
+        """ The direction this bone is pointing.
+            Utility function for (tail - head)
+        """
         return (self.tail - self.head)
 
     @property
@@ -222,7 +245,8 @@ class _GenericBone:
         """
         Returns a chain of children with the same base name as this bone.
         Only direct chains are supported, forks caused by multiple children
-        with matching base names will terminate the function and not be returned.
+        with matching base names will terminate the function
+        and not be returned.
         """
         basename = self.basename
         chain = []
@@ -241,7 +265,9 @@ class _GenericBone:
                 chain.append(child)
             else:
                 if len(children_basename):
-                    print("multiple basenames found, this is probably not what you want!", self.name, children_basename)
+                    print("multiple basenames found, "
+                          "this is probably not what you want!",
+                          self.name, children_basename)
 
                 break
 
@@ -284,13 +310,18 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
 
     def transform(self, matrix, scale=True, roll=True):
         """
-        Transform the the bones head, tail, roll and envelope (when the matrix has a scale component).
+        Transform the the bones head, tail, roll and envelope
+        (when the matrix has a scale component).
 
         :arg matrix: 3x3 or 4x4 transformation matrix.
         :type matrix: :class:`mathutils.Matrix`
         :arg scale: Scale the bone envelope by the matrix.
         :type scale: bool
-        :arg roll: Correct the roll to point in the same relative direction to the head and tail.
+        :arg roll:
+
+           Correct the roll to point in the same relative
+           direction to the head and tail.
+
         :type roll: bool
         """
         from mathutils import Vector
@@ -321,11 +352,23 @@ class Mesh(bpy_types.ID):
         Make a mesh from a list of vertices/edges/faces
         Until we have a nicer way to make geometry, use this.
 
-        :arg vertices: float triplets each representing (X, Y, Z) eg: [(0.0, 1.0, 0.5), ...].
+        :arg vertices:
+
+           float triplets each representing (X, Y, Z)
+           eg: [(0.0, 1.0, 0.5), ...].
+
         :type vertices: iterable object
-        :arg edges: int pairs, each pair contains two indices to the *vertices* argument. eg: [(1, 2), ...]
+        :arg edges:
+
+           int pairs, each pair contains two indices to the
+           *vertices* argument. eg: [(1, 2), ...]
+
         :type edges: iterable object
-        :arg faces: iterator of faces, each faces contains three or four indices to the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
+        :arg faces:
+
+           iterator of faces, each faces contains three or four indices to
+           the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
+
         :type faces: iterable object
         """
         self.vertices.add(len(vertices))
@@ -419,7 +462,10 @@ class Text(bpy_types.ID):
     def users_logic(self):
         """Logic bricks that use this text"""
         import bpy
-        return tuple(obj for obj in bpy.data.objects if self in [cont.text for cont in obj.game.controllers if cont.type == 'PYTHON'])
+        return tuple(obj for obj in bpy.data.objects
+                     if self in [cont.text for cont in obj.game.controllers
+                                 if cont.type == 'PYTHON']
+                     )
 
 # values are module: [(cls, path, line), ...]
 TypeMap = {}
@@ -510,10 +556,11 @@ class Operator(StructRNA, metaclass=OrderedMeta):
         return super().__delattr__(attr)
 
     def as_keywords(self, ignore=()):
-        """ Return a copy of the properties as a dictionary.
-        """
+        """Return a copy of the properties as a dictionary"""
         ignore = ignore + ("rna_type",)
-        return {attr: getattr(self, attr) for attr in self.properties.rna_type.properties.keys() if attr not in ignore}
+        return {attr: getattr(self, attr)
+                for attr in self.properties.rna_type.properties.keys()
+                if attr not in ignore}
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
@@ -553,7 +600,8 @@ class _GenericUI:
                 operator_context_default = self.layout.operator_context
 
                 for func in draw_ls._draw_funcs:
-                    # so bad menu functions don't stop the entire menu from drawing
+                    # so bad menu functions don't stop
+                    # the entire menu from drawing
                     try:
                         func(self, context)
                     except:
@@ -569,13 +617,19 @@ class _GenericUI:
 
     @classmethod
     def append(cls, draw_func):
-        """Append a draw function to this menu, takes the same arguments as the menus draw function."""
+        """
+        Append a draw function to this menu,
+        takes the same arguments as the menus draw function
+        """
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 
     @classmethod
     def prepend(cls, draw_func):
-        """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
+        """
+        Prepend a draw function to this menu, takes the same arguments as
+        the menus draw function
+        """
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.insert(0, draw_func)
 
@@ -615,7 +669,8 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         # collect paths
         files = []
         for directory in searchpaths:
-            files.extend([(f, os.path.join(directory, f)) for f in os.listdir(directory)])
+            files.extend([(f, os.path.join(directory, f))
+                           for f in os.listdir(directory)])
 
         files.sort()
 
@@ -635,9 +690,11 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                 props.menu_idname = self.bl_idname
 
     def draw_preset(self, context):
-        """Define these on the subclass
-         - preset_operator
-         - preset_subdir
+        """
+        Define these on the subclass
+        - preset_operator
+        - preset_subdir
         """
         import bpy
-        self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)
+        self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
+                       self.preset_operator)

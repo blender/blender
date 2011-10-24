@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -699,11 +697,11 @@ static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orien
 		 *		TODO: need to check in future that frame changed before doing this 
 		 */
 		if (orientationChanged) {
-			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		}
 		if (positionChanged) {
-			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		}
 		

@@ -1,6 +1,4 @@
 /*
- * $Id$ 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -237,10 +235,10 @@ void IMB_thumb_makedirs(void)
 {
 	char tpath[FILE_MAX];
 	if (get_thumb_dir(tpath, THB_NORMAL)) {
-		BLI_recurdir_fileops(tpath);
+		BLI_dir_create_recursive(tpath);
 	}
 	if (get_thumb_dir(tpath, THB_FAIL)) {
-		BLI_recurdir_fileops(tpath);
+		BLI_dir_create_recursive(tpath);
 	}
 }
 
@@ -277,7 +275,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 
 	/* exception, skip images over 100mb */
 	if(source == THB_SOURCE_IMAGE) {
-		const size_t size= BLI_filepathsize(path);
+		const size_t size= BLI_file_size(path);
 		if(size != -1 && size > THUMB_SIZE_MAX) {
 			// printf("file too big: %d, skipping %s\n", (int)size, path);
 			return NULL;

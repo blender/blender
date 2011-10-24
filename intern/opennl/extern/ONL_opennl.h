@@ -2,8 +2,6 @@
  *  \ingroup opennlextern
  */
 /*
- *  $Id$
- *
  *  OpenNL: Numerical Library
  *  Copyright (C) 2004 Bruno Levy
  *

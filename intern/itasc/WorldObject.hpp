@@ -1,4 +1,4 @@
-/* $Id: WorldObject.hpp 19907 2009-04-23 13:41:59Z ben2610 $
+/*
  * WorldObject.h
  *
  *  Created on: Feb 10, 2009

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +32,6 @@
 
 
 #include <stddef.h>
-#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,11 +40,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"

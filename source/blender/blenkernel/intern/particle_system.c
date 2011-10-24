@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +34,6 @@
 
 
 #include <stddef.h>
-#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <stdlib.h>
 #include <math.h>
@@ -64,7 +61,7 @@
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 #include "BLI_math.h"
-#include "BLI_blenlib.h" /* BLI_storage.h For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
+#include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_threads.h"

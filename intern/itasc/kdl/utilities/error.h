@@ -39,7 +39,6 @@
  *		- $log$
  *
  *	\par Release
- *		$Id$
  *		$Name:  $ 
  ****************************************************************************/
 #ifndef ERROR_H_84822 // to make it unique, a random number

@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * Undo system for painting and sculpting.
  * 

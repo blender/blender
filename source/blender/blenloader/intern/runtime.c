@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -111,7 +109,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 		goto cleanup;
 	}
 	
-	actualsize= BLI_filesize(fd);
+	actualsize= BLI_file_descriptor_size(fd);
 
 	lseek(fd, -12, SEEK_END);
 

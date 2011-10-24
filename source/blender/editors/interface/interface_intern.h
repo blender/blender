@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -252,11 +250,6 @@ struct uiBut {
 	
 		/* pointer back */
 	uiBlock *block;
-
-#ifdef WITH_PYTHON_UI_INFO
-	char py_dbg_fn[240];
-	int py_dbg_ln;
-#endif
 };
 
 struct uiBlock {

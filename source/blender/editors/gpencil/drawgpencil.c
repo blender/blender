@@ -779,7 +779,7 @@ void draw_gpencil_view2d (bContext *C, short onlyv2d)
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
  */
 
-void draw_gpencil_view3d_ext (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
+void draw_gpencil_view3d (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
@@ -808,14 +808,6 @@ void draw_gpencil_view3d_ext (Scene *scene, View3D *v3d, ARegion *ar, short only
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
 
 	gp_draw_data(gpd, rect.xmin, rect.ymin, rect.xmax, rect.ymax, CFRA, dflag);
-}
-
-void draw_gpencil_view3d (bContext *C, short only3d)
-{
-	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	Scene *scene= CTX_data_scene(C);
-	draw_gpencil_view3d_ext(scene, v3d, ar, only3d);
 }
 
 /* ************************************************** */

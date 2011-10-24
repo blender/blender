@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +35,7 @@ char        *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy);
 int          BLI_utf8_invalid_byte(const char *str, int length);
 int          BLI_utf8_invalid_strip(char *str, int length);
 
+int          BLI_str_utf8_size(const char *p); /* warning, can return -1 on bad chars */
     /* copied from glib */
 unsigned int BLI_str_utf8_as_unicode(const char *p);
 unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index);

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -930,7 +928,7 @@ void brush_jitter_pos(Brush *brush, float pos[2], float jitterpos[2])
 {
 	int use_jitter= brush->jitter != 0;
 
-	/* jitter-ed brush gives wierd and unpredictable result for this
+	/* jitter-ed brush gives weird and unpredictable result for this
 	   kinds of stroke, so manyally disable jitter usage (sergey) */
 	use_jitter&= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
 

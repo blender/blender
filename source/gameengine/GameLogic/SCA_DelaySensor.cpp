@@ -1,7 +1,6 @@
 /*
  * Delay trigger
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

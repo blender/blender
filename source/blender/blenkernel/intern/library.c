@@ -1,6 +1,4 @@
-/* 
- * $Id$
- * 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1473,4 +1471,22 @@ void name_uiprefix_id(char *name, ID *id)
 	name[2] = ' ';
 
 	strcpy(name+3, id->name+2);
+}
+
+void BKE_library_filepath_set(Library *lib, const char *filepath)
+{
+	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
+	BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
+
+	/* not essential but set filepath is an absolute copy of value which
+	 * is more useful if its kept in sync */
+	if (strncmp(lib->filepath, "//", 2) == 0) {
+		/* note that the file may be unsaved, in this case, setting the
+		 * filepath on an indirectly linked path is not allowed from the
+		 * outliner, and its not really supported but allow from here for now
+		 * since making local could cause this to be directly linked - campbell
+		 */
+		const char *basepath= lib->parent ? lib->parent->filepath : G.main->name;
+		BLI_path_abs(lib->filepath, basepath);
+	}
 }

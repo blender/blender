@@ -1,5 +1,4 @@
 /*
- * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +36,6 @@
  *
  * C Api for GHOST
  *
- * Version: $Id$
  */
 
 #include <stdlib.h>

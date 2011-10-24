@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# $Id$
+# $Id: SConstruct 41169 2011-10-21 04:23:26Z campbellbarton $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or

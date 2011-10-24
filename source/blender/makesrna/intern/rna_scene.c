@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -199,7 +197,7 @@ EnumPropertyItem image_color_mode_items[] ={
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 
-#include "RE_pipeline.h"
+#include "RE_engine.h"
 
 static int rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {

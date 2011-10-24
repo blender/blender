@@ -1,7 +1,6 @@
 /*
  * Actuator sensor
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

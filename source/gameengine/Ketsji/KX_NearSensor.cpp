@@ -1,7 +1,6 @@
 /*
  * Sense if other objects are near
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

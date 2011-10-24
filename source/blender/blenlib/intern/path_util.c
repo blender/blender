@@ -1,6 +1,4 @@
 /*
- *  $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -46,8 +44,6 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_storage.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
@@ -740,7 +736,7 @@ int BLI_path_cwd(char *path)
 	
 	if (wasrelative==1) {
 		char cwd[FILE_MAXDIR + FILE_MAXFILE]= "";
-		BLI_getwdN(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
+		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
@@ -986,7 +982,7 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 
 	/* try CWD/release/folder_name */
-	if(BLI_getwdN(cwd, sizeof(cwd))) {
+	if(BLI_current_working_dir(cwd, sizeof(cwd))) {
 		if(test_path(targetpath, cwd, "release", relfolder)) {
 			return 1;
 		}
@@ -1117,7 +1113,7 @@ char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	
 	if (!path) {
 		path = BLI_get_user_folder_notest(folder_id, subfolder);
-		if (path) BLI_recurdir_fileops(path);
+		if (path) BLI_dir_create_recursive(path);
 	}
 	
 	return path;
@@ -1250,7 +1246,7 @@ void BLI_make_existing_file(const char *name)
 	
 	/* test exist */
 	if (BLI_exists(di) == 0) {
-		BLI_recurdir_fileops(di);
+		BLI_dir_create_recursive(di);
 	}
 }
 
@@ -1259,9 +1255,18 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 {
 	int sl;
 
-	if (!string || !dir || !file) return; /* We don't want any NULLs */
-	
-	string[0]= 0; /* ton */
+	if (string) {
+		/* ensure this is always set even if dir/file are NULL */
+		string[0]= '\0';
+
+		if (ELEM(NULL, dir, file)) {
+			return; /* We don't want any NULLs */
+		}
+	}
+	else {
+		return; /* string is NULL, probably shouldnt happen but return anyway */
+	}
+
 
 	/* we first push all slashes into unix mode, just to make sure we don't get
 	   any mess with slashes later on. -jesterKing */
@@ -1732,7 +1737,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 		BLI_strncpy(fullname, name, maxlen);
 		if (name[0] == '.') {
 			char wdir[FILE_MAX]= "";
-			BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
+			BLI_current_working_dir(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 			// not needed but avoids annoying /./ in name
 			if(name[1]==SEP)
