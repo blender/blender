@@ -318,4 +318,8 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Cholesky/LLT.h
 )
 
+if(WIN32)
+	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
+endif()
+
 blender_add_lib(bf_intern_itasc "${SRC}" "${INC}" "${INC_SYS}")
