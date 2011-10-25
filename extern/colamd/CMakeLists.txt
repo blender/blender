@@ -23,7 +23,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	./Include
+	Include
 )
 
 set(INC_SYS
@@ -34,7 +34,8 @@ set(SRC
 	Source/colamd.c
 	Source/colamd_global.c
 
-	Include//colamd.h
+	Include/colamd.h
+	Include/UFconfig.h
 )
 
 blender_add_lib(extern_colamd "${SRC}" "${INC}" "${INC_SYS}")

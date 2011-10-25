@@ -46,6 +46,8 @@ set(SRC
 	WSDLSSolver.cpp
 	WorldObject.cpp
 	eigen_types.cpp
+	ublas_types.hpp
+
 	kdl/chain.cpp
 	kdl/chainfksolverpos_recursive.cpp
 	kdl/chainjnttojacsolver.cpp
@@ -113,7 +115,10 @@ set(SRC
 	kdl/utilities/traits.h
 	kdl/utilities/utility.h
 	kdl/utilities/utility_io.h
-	ublas_types.hpp
+
+	kdl/frameacc.inl
+	kdl/frames.inl
+	kdl/framevel.inl
 
 	# until we have another user...
 	../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
