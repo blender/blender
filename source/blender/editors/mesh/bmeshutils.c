@@ -509,8 +509,9 @@ void EDBM_set_flag_all(BMEditMesh *em, int flag)
 			if (flag & BM_SELECT) {
 				BM_Select(em->bm, ele, 1);
 			}
-
-			BM_SetHFlag(ele, flag & ~BM_SELECT);
+			else {
+				BM_SetHFlag(ele, flag);
+			}
 		}
 	}
 }
@@ -787,11 +788,16 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 
 void EDBM_CacheMirrorVerts(BMEditMesh *em)
 {
+	Mesh *me = em->me;
 	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMVert *v;
 	float invmat[4][4];
-	int li, i;
+	int li, i, topo = 0;
+
+	if (me && (me->editflag & ME_EDIT_MIRROR_TOPO)) {
+		topo = 1;
+	}
 
 	if (!em->vert_index) {
 		EDBM_init_index_arrays(em, 1, 0, 0);
@@ -805,17 +811,6 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");
 	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
 
-	/*multiply verts by object matrix, temporarily*/
-
-	i = 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i);
-		i++;
-
-		if (em->ob) 
-			mul_m4_v3(em->ob->obmat, v->co);
-	}
-
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *mirr;
 		int *idx = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, li);
@@ -825,7 +820,9 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		if (!BM_TestHFlag(v, BM_SELECT))
 			continue;
 		
-		mirr = BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST, v);
+		mirr = topo ?
+			BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST, v) :
+			BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST);
 		if (mirr && mirr != v) {
 			*idx = BM_GetIndex(mirr);
 			idx = CustomData_bmesh_get_layer_n(&em->bm->vdata,mirr->head.data, li);
@@ -833,19 +830,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		} else *idx = -1;
 	}
 
-	/*unmultiply by object matrix*/
-	if (em->ob) {
-		i = 0;
-		invert_m4_m4(invmat, em->ob->obmat);
-		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BM_SetIndex(v, i);
-			i++;
-
-			mul_m4_v3(invmat, v->co);
-		}
-
-		BMBVH_FreeBVH(tree);
-	}
+	BMBVH_FreeBVH(tree);
 }
 
 BMVert *EDBM_GetMirrorVert(BMEditMesh *em, BMVert *v)

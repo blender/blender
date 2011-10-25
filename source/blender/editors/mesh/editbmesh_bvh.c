@@ -304,6 +304,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 			VECCOPY(hit->co, ls[i]->v->co);
 			VECCOPY(hit->no, ls[i]->v->no);
 			hit->dist = dist;
+			hit->index = index;
 		}
 	}
 }
@@ -336,7 +337,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 			}
 		}
 
-		return ls[i]->v;
+		return ls[cur]->v;
 	}
 
 	return NULL;

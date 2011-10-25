@@ -790,7 +790,7 @@ static intptr_t mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 					return (*bt)->index[a]-1;
 			}
 			else {
-				EditVert *eve= (EditVert *)((*bt)->index[a]);
+				BMVert *eve= (BMVert *)((*bt)->index[a]);
 				if(compare_v3v3(eve->co, co, MOC_THRESH))
 					return (*bt)->index[a];
 			}

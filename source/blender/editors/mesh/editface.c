@@ -73,7 +73,7 @@ void paintface_flush_flags(Object *ob)
 	Mesh *me = get_mesh(ob);
 	DerivedMesh *dm = ob->derivedFinal;
 	MPoly *polys, *mp_orig;
-	MFace *faces, *mf;
+	MFace *faces;
 	int *index_array = NULL;
 	int totface, totpoly;
 	int i;
