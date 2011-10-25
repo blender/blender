@@ -919,16 +919,17 @@ def process(layer_name, lineset_name):
         upred = TrueUP1D()
     Operators.select(upred)
     # join feature edges to form chains
-    if linestyle.chaining == "PLAIN":
-        if linestyle.same_object:
-            Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
-        else:
-            Operators.bidirectionalChain(ChainPredicateIterator(upred, TrueBP1D()), NotUP1D(upred))
-    elif linestyle.chaining == "SKETCHY":
-        if linestyle.same_object:
-            Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(linestyle.rounds))
-        else:
-            Operators.bidirectionalChain(pySketchyChainingIterator(linestyle.rounds))
+    if linestyle.use_chaining:
+        if linestyle.chaining == "PLAIN":
+            if linestyle.same_object:
+                Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+            else:
+                Operators.bidirectionalChain(ChainPredicateIterator(upred, TrueBP1D()), NotUP1D(upred))
+        elif linestyle.chaining == "SKETCHY":
+            if linestyle.same_object:
+                Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(linestyle.rounds))
+            else:
+                Operators.bidirectionalChain(pySketchyChainingIterator(linestyle.rounds))
     # split chains
     if linestyle.material_boundary:
         Operators.sequentialSplit(MaterialBoundaryUP0D())

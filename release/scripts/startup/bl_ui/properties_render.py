@@ -546,14 +546,16 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
         if linestyle.panel == "STROKES":
             # Chaining
             col = layout.column()
-            col.label(text="Chaining:")
-            col.prop(linestyle, "chaining", text="")
+            col.prop(linestyle, "use_chaining", text="Chaining:")
+            sub = col.column()
+            sub.enabled = linestyle.use_chaining
+            sub.prop(linestyle, "chaining", text="")
             if linestyle.chaining == "PLAIN":
-                col.prop(linestyle, "same_object")
-            elif linestyle.chaining == "SKETCHY":
-                sub = col.row()
                 sub.prop(linestyle, "same_object")
-                sub.prop(linestyle, "rounds")
+            elif linestyle.chaining == "SKETCHY":
+                subsub = sub.row()
+                subsub.prop(linestyle, "same_object")
+                subsub.prop(linestyle, "rounds")
             # Splitting
             col = layout.column()
             col.label(text="Splitting:")
