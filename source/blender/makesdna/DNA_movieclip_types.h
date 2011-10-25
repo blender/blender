@@ -86,7 +86,7 @@ typedef struct MovieClip {
 } MovieClip;
 
 typedef struct MovieClipScopes {
-	int ok;							/* 1 means scopes are ok and re-calculaito is unneeded */
+	int ok;							/* 1 means scopes are ok and recalculation is unneeded */
 	int track_preview_height;		/* height of track preview widget */
 	struct ImBuf *track_preview;	/* ImBuf displayed in track preview */
 	float track_pos[2];				/* sub-pizel position of marker in track ImBuf */

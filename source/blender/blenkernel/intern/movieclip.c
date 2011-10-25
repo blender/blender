@@ -48,10 +48,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_constraint_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -61,6 +64,7 @@
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
 
+#include "BKE_constraint.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -79,7 +83,7 @@ static int sequence_guess_offset(const char *full_name, int head_len, int numlen
 {
 	char num[FILE_MAX]= {0};
 
-	strncpy(num, full_name+head_len, numlen);
+	BLI_strncpy(num, full_name+head_len, numlen);
 
 	return atoi(num);
 }
@@ -259,7 +263,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 /*********************** image buffer cache *************************/
 
 typedef struct MovieClipCache {
-	/* regular moive cache */
+	/* regular movie cache */
 	struct MovieCache *moviecache;
 
 	/* cache for stable shot */
@@ -1004,18 +1008,53 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 	bScreen *scr;
 	ScrArea *area;
 	SpaceLink *sl;
+	Scene *sce;
+	Object *ob;
 
-	/* text space */
 	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
 		for(area= scr->areabase.first; area; area= area->next) {
 			for(sl= area->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_CLIP) {
-					SpaceClip *sc= (SpaceClip*) sl;
+					SpaceClip *sc= (SpaceClip *) sl;
 
-					if(sc->clip==clip) {
+					if(sc->clip==clip)
 						sc->clip= NULL;
+				}
+				else if(sl->spacetype==SPACE_VIEW3D) {
+					View3D *v3d= (View3D *) sl;
+					BGpic *bgpic;
+
+					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+						if(bgpic->clip==clip)
+							bgpic->clip= NULL;
 					}
 				}
+			}
+		}
+	}
+
+	for(sce= bmain->scene.first; sce; sce= sce->id.next) {
+		if(sce->clip==clip)
+			sce->clip= NULL;
+	}
+
+	for(ob= bmain->object.first; ob; ob= ob->id.next) {
+		bConstraint *con= ob->constraints.first;
+
+		for (con= ob->constraints.first; con; con= con->next) {
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+				bFollowTrackConstraint *data= (bFollowTrackConstraint *) con->data;
+
+				if(data->clip==clip)
+					data->clip= NULL;
+			}
+			else if(cti->type==CONSTRAINT_TYPE_CAMERASOLVER) {
+				bCameraSolverConstraint *data= (bCameraSolverConstraint *) con->data;
+
+				if(data->clip==clip)
+					data->clip= NULL;
 			}
 		}
 	}

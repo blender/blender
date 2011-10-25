@@ -727,13 +727,13 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 			int pixel= tmpibuf->x*y + x;
 
 			if(tmpibuf->rect_float) {
-				float *rrgbf= ibuf->rect_float + pixel*4;
+				float *rrgbf= tmpibuf->rect_float + pixel*4;
 
-				*fp= (0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2])/255;
+				*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
 			} else {
 				char *rrgb= (char*)tmpibuf->rect + pixel*4;
 
-				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255;
+				*fp= FTOCHAR(0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2]);
 			}
 
 			fp++;
@@ -745,12 +745,39 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	return pixels;
 }
 
+static unsigned char *get_ucharbuf(ImBuf *ibuf)
+{
+	int x, y;
+	unsigned char *pixels, *cp;
+
+	cp= pixels= MEM_callocN(ibuf->x*ibuf->y*sizeof(unsigned char), "tracking ucharBuf");
+	for(y= 0; y<ibuf->y; y++) {
+		for (x= 0; x<ibuf->x; x++) {
+			int pixel= ibuf->x*y + x;
+
+			if(ibuf->rect_float) {
+				float *rrgbf= ibuf->rect_float + pixel*4;
+
+				*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
+			} else {
+				char *rrgb= (char*)ibuf->rect + pixel*4;
+
+				*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
+			}
+
+			cp++;
+		}
+	}
+
+	return pixels;
+}
+
 static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			int *width_r, int *height_r, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
-	unsigned char *pixels, *fp;
-	int x, y, width, height;
+	unsigned char *pixels;
+	int width, height;
 
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
@@ -761,24 +788,7 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 	*width_r= width;
 	*height_r= height;
 
-	fp= pixels= MEM_callocN(width*height*sizeof(unsigned char), "tracking byteBuf");
-	for(y= 0; y<(int)height; y++) {
-		for (x= 0; x<(int)width; x++) {
-			int pixel= tmpibuf->x*y + x;
-
-			if(tmpibuf->rect_float) {
-				float *rrgbf= ibuf->rect_float + pixel*4;
-
-				*fp= (0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2]);
-			} else {
-				char *rrgb= (char*)tmpibuf->rect + pixel*4;
-
-				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2]);
-			}
-
-			fp++;
-		}
-	}
+	pixels= get_ucharbuf(tmpibuf);
 
 	IMB_freeImBuf(tmpibuf);
 
@@ -1495,35 +1505,6 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 	nco[1]= y * camera->focal + camera->principal[1] * aspy;
 #endif
 }
-
-#ifdef WITH_LIBMV
-static unsigned char *get_ucharbuf(ImBuf *ibuf)
-{
-	int x, y;
-	unsigned char *pixels, *fp;
-
-	fp= pixels= MEM_callocN(ibuf->x*ibuf->y*sizeof(unsigned char), "tracking ucharBuf");
-	for(y= 0; y<ibuf->y; y++) {
-		for (x= 0; x<ibuf->x; x++) {
-			int pixel= ibuf->x*y + x;
-
-			if(ibuf->rect_float) {
-				float *rrgbf= ibuf->rect_float + pixel*4;
-
-				*fp= 0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2];
-			} else {
-				char *rrgb= (char*)ibuf->rect + pixel*4;
-
-				*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
-			}
-
-			fp++;
-		}
-	}
-
-	return pixels;
-}
-#endif
 
 static int point_in_stroke(bGPDstroke *stroke, float x, float y)
 {

@@ -98,7 +98,7 @@ void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr
 struct ImBuf *BKE_tracking_stabilize(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float loc[2], float *scale, float *angle);
 void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4]);
 
-/* Distoriton/Undistortion */
+/* Distortion/Undistortion */
 struct MovieDistortion *BKE_tracking_distortion_create(void);
 struct MovieDistortion *BKE_tracking_distortion_copy(struct MovieDistortion *distortion);
 struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, struct MovieTracking *tracking,
