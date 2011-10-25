@@ -1944,18 +1944,26 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 		if((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)) {
 			char ascii = event->ascii;
+			const char *utf8_buf= event->utf8_buf;
 
 			/* exception that's useful for number buttons, some keyboard
 			   numpads have a comma instead of a period */
-			if(ELEM3(but->type, NUM, NUMABS, NUMSLI))
-				if(event->type == PADPERIOD && ascii == ',')
+			if(ELEM3(but->type, NUM, NUMABS, NUMSLI)) { /* could use data->min*/
+				if(event->type == PADPERIOD && ascii == ',') {
 					ascii = '.';
+					utf8_buf= NULL; /* force ascii fallback */
+				}
+			}
 
-			if(event->utf8_buf[0]) {
+			if(utf8_buf && utf8_buf[0]) {
+				int utf8_buf_len= BLI_str_utf8_size(utf8_buf);
 				/* keep this printf until utf8 is well tested */
-				printf("%s: utf8 char '%.*s'\n", __func__, BLI_str_utf8_size(event->utf8_buf), event->utf8_buf);
-				// strcpy(event->utf8_buf, "12345");
-				changed= ui_textedit_type_buf(but, data, event->utf8_buf, BLI_str_utf8_size(event->utf8_buf));
+				if (utf8_buf_len != 1) {
+					printf("%s: utf8 char '%.*s'\n", __func__, utf8_buf_len, utf8_buf);
+				}
+
+				// strcpy(utf8_buf, "12345");
+				changed= ui_textedit_type_buf(but, data, event->utf8_buf, utf8_buf_len);
 			}
 			else {
 				changed= ui_textedit_type_ascii(but, data, ascii);
