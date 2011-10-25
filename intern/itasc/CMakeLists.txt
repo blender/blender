@@ -46,8 +46,6 @@ set(SRC
 	WSDLSSolver.cpp
 	WorldObject.cpp
 	eigen_types.cpp
-	ublas_types.hpp
-
 	kdl/chain.cpp
 	kdl/chainfksolverpos_recursive.cpp
 	kdl/chainjnttojacsolver.cpp
@@ -115,10 +113,7 @@ set(SRC
 	kdl/utilities/traits.h
 	kdl/utilities/utility.h
 	kdl/utilities/utility_io.h
-
-	kdl/frameacc.inl
-	kdl/frames.inl
-	kdl/framevel.inl
+	ublas_types.hpp
 
 	# until we have another user...
 	../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
@@ -317,9 +312,5 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Cholesky/LDLT.h
 	../../extern/Eigen3/Eigen/src/Cholesky/LLT.h
 )
-
-if(WIN32)
-	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
-endif()
 
 blender_add_lib(bf_intern_itasc "${SRC}" "${INC}" "${INC_SYS}")
