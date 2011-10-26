@@ -137,14 +137,14 @@ void make_local_action(bAction *act)
 	
 	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
 	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
-		id_clear_lib_data(&bmain->action, (ID *)act);
+		id_clear_lib_data(bmain, (ID *)act);
 		return;
 	}
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
 	if (mlac.local && mlac.lib==0) {
-		id_clear_lib_data(&bmain->action, (ID *)act);
+		id_clear_lib_data(bmain, (ID *)act);
 	}
 	else if (mlac.local && mlac.lib) {
 		mlac.actn= copy_action(act);

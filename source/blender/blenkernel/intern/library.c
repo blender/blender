@@ -1250,12 +1250,13 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 
 /* Pull an ID out of a library (make it local). Only call this for IDs that
    don't have other library users. */
-void id_clear_lib_data(ListBase *lb, ID *id)
+void id_clear_lib_data(Main *bmain, ID *id)
 {
-	bpath_traverse_id(id, bpath_relocate_visitor, id->lib->filepath);
+	char *user_data[2]= {bmain->name, id->lib->filepath};
+	bpath_traverse_id(id, bpath_relocate_visitor, user_data);
 	id->lib= NULL;
 	id->flag= LIB_LOCAL;
-	new_id(lb, id, NULL);
+	new_id(which_libbase(bmain, GS(id->name)), id, NULL);
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */

@@ -160,7 +160,7 @@ void make_local_world(World *wrld)
 	
 	if(wrld->id.lib==NULL) return;
 	if(wrld->id.us==1) {
-		id_clear_lib_data(&bmain->world, (ID *)wrld);
+		id_clear_lib_data(bmain, (ID *)wrld);
 		return;
 	}
 	
@@ -172,7 +172,7 @@ void make_local_world(World *wrld)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->world, (ID *)wrld);
+		id_clear_lib_data(bmain, (ID *)wrld);
 	}
 	else if(local && lib) {
 		World *wrldn= copy_world(wrld);

@@ -297,7 +297,7 @@ void make_local_material(Material *ma)
 
 	/* One local user; set flag and return. */
 	if(ma->id.us==1) {
-		id_clear_lib_data(&bmain->mat, (ID *)ma);
+		id_clear_lib_data(bmain, (ID *)ma);
 		extern_local_material(ma);
 		return;
 	}
@@ -359,7 +359,7 @@ void make_local_material(Material *ma)
 
 	/* Only local users. */
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->mat, (ID *)ma);
+		id_clear_lib_data(bmain, (ID *)ma);
 		extern_local_material(ma);
 	}
 	/* Both user and local, so copy. */

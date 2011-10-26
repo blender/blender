@@ -54,10 +54,10 @@ void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path)
 
 /* Function that does something with an ID's file path. Should return 1 if the
    path has changed, and in that case, should write the result to pathOut. */
-typedef int (*bpath_visitor)(void *userdata, char *pathIn, char *pathOut);
+typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void bpath_traverse_id(struct ID *id, bpath_visitor visit, void *userdata);
-int bpath_relocate_visitor(void *oldbasepath, char *pathIn, char *pathOut);
+void bpath_traverse_id(struct ID *id, BPathVisitor visit, void *userdata);
+int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
 /* high level funcs */
 

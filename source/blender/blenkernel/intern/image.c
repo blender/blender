@@ -323,7 +323,8 @@ static void extern_local_image(Image *UNUSED(ima))
 	   match id_make_local pattern. */
 }
 
-void make_local_image(struct Image *ima) {
+void make_local_image(struct Image *ima)
+{
 	Main *bmain= G.main;
 	Tex *tex;
 	Brush *brush;
@@ -339,9 +340,9 @@ void make_local_image(struct Image *ima) {
 
 	/* Can't take short cut here: must check meshes at least because of bogus
 	   texface ID refs. - z0r */
-#if(0)
+#if 0
 	if(ima->id.us==1) {
-		id_clear_lib_data(&bmain->image, (ID *)ima);
+		id_clear_lib_data(bmain, (ID *)ima);
 		extern_local_image(ima);
 		return;
 	}
@@ -380,16 +381,17 @@ void make_local_image(struct Image *ima) {
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->image, (ID *)ima);
+		id_clear_lib_data(bmain, (ID *)ima);
 		extern_local_image(ima);
 	}
 	else if(local && lib) {
 		Image *iman= copy_image(ima);
+		char *user_data[2]= {bmain->name, iman->id.lib->filepath};
+
 		iman->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id((ID *)iman, bpath_relocate_visitor,
-		                     ((ID *)ima)->lib->filepath);
+		bpath_traverse_id(&iman->id, bpath_relocate_visitor, user_data);
 
 		tex= bmain->tex.first;
 		while(tex) {

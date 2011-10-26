@@ -1050,7 +1050,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
-		id_clear_lib_data(&bmain->nodetree, (ID *)ntree);
+		id_clear_lib_data(bmain, (ID *)ntree);
 		return;
 	}
 	
@@ -1064,7 +1064,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	/* if all users are local, we simply make tree local */
 	if(cd.local && cd.lib==0) {
-		id_clear_lib_data(&bmain->nodetree, (ID *)ntree);
+		id_clear_lib_data(bmain, (ID *)ntree);
 	}
 	else if(cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */

@@ -255,7 +255,7 @@ void make_local_lattice(Lattice *lt)
 	
 	if(lt->id.lib==NULL) return;
 	if(lt->id.us==1) {
-		id_clear_lib_data(&bmain->latt, (ID *)lt);
+		id_clear_lib_data(bmain, (ID *)lt);
 		return;
 	}
 	
@@ -267,7 +267,7 @@ void make_local_lattice(Lattice *lt)
 	}
 	
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->latt, (ID *)lt);
+		id_clear_lib_data(bmain, (ID *)lt);
 	}
 	else if(local && lib) {
 		Lattice *ltn= copy_lattice(lt);

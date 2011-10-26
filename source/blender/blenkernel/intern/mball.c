@@ -156,7 +156,7 @@ void make_local_mball(MetaBall *mb)
 	
 	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		id_clear_lib_data(&bmain->mball, (ID *)mb);
+		id_clear_lib_data(bmain, (ID *)mb);
 		extern_local_mball(mb);
 		
 		return;
@@ -170,7 +170,7 @@ void make_local_mball(MetaBall *mb)
 	}
 	
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->mball, (ID *)mb);
+		id_clear_lib_data(bmain, (ID *)mb);
 		extern_local_mball(mb);
 	}
 	else if(local && lib) {

@@ -280,7 +280,7 @@ void make_local_mesh(Mesh *me)
 
 	if(me->id.lib==NULL) return;
 	if(me->id.us==1) {
-		id_clear_lib_data(&bmain->mesh, (ID *)me);
+		id_clear_lib_data(bmain, (ID *)me);
 		expand_local_mesh(me);
 		return;
 	}
@@ -293,7 +293,7 @@ void make_local_mesh(Mesh *me)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->mesh, (ID *)me);
+		id_clear_lib_data(bmain, (ID *)me);
 		expand_local_mesh(me);
 	}
 	else if(local && lib) {

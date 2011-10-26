@@ -201,7 +201,7 @@ void make_local_brush(Brush *brush)
 	if(brush->clone.image) {
 		/* special case: ima always local immediately. Clone image should only
 		   have one user anyway. */
-		id_clear_lib_data(&bmain->brush, (ID *)brush->clone.image);
+		id_clear_lib_data(bmain, (ID *)brush->clone.image);
 		extern_local_brush(brush);
 	}
 
@@ -213,7 +213,7 @@ void make_local_brush(Brush *brush)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->brush, (ID *)brush);
+		id_clear_lib_data(bmain, (ID *)brush);
 		extern_local_brush(brush);
 
 		/* enable fake user by default */

@@ -255,7 +255,7 @@ void make_local_curve(Curve *cu)
 	if(cu->id.lib==NULL) return;
 
 	if(cu->id.us==1) {
-		id_clear_lib_data(&bmain->curve, (ID *)cu);
+		id_clear_lib_data(bmain, (ID *)cu);
 		extern_local_curve(cu);
 		return;
 	}
@@ -268,7 +268,7 @@ void make_local_curve(Curve *cu)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->curve, (ID *)cu);
+		id_clear_lib_data(bmain, (ID *)cu);
 		extern_local_curve(cu);
 	}
 	else if(local && lib) {

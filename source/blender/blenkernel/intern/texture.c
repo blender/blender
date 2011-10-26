@@ -814,7 +814,8 @@ Tex *localize_texture(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-static void extern_local_texture(Tex *tex) {
+static void extern_local_texture(Tex *tex)
+{
 	id_lib_extern((ID *)tex->ima);
 }
 
@@ -837,7 +838,7 @@ void make_local_texture(Tex *tex)
 	if(tex->id.lib==NULL) return;
 
 	if(tex->id.us==1) {
-		id_clear_lib_data(&bmain->tex, (ID *)tex);
+		id_clear_lib_data(bmain, (ID *)tex);
 		extern_local_texture(tex);
 		return;
 	}
@@ -892,7 +893,7 @@ void make_local_texture(Tex *tex)
 	}
 	
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->tex, (ID *)tex);
+		id_clear_lib_data(bmain, (ID *)tex);
 		extern_local_texture(tex);
 	}
 	else if(local && lib) {

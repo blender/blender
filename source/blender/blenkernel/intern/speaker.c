@@ -87,7 +87,7 @@ void make_local_speaker(Speaker *spk)
 
 	if(spk->id.lib==NULL) return;
 	if(spk->id.us==1) {
-		id_clear_lib_data(&bmain->speaker, (ID *)spk);
+		id_clear_lib_data(bmain, (ID *)spk);
 		return;
 	}
 
@@ -101,7 +101,7 @@ void make_local_speaker(Speaker *spk)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->speaker, (ID *)spk);
+		id_clear_lib_data(bmain, (ID *)spk);
 	}
 	else if(local && lib) {
 		Speaker *spkn= copy_speaker(spk);

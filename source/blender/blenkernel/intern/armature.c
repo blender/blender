@@ -141,7 +141,7 @@ void make_local_armature(bArmature *arm)
 
 	if (arm->id.lib==NULL) return;
 	if (arm->id.us==1) {
-		id_clear_lib_data(&bmain->armature, (ID *)arm);
+		id_clear_lib_data(bmain, (ID *)arm);
 		return;
 	}
 
@@ -153,7 +153,7 @@ void make_local_armature(bArmature *arm)
 	}
 
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->armature, (ID *)arm);
+		id_clear_lib_data(bmain, (ID *)arm);
 	}
 	else if(local && lib) {
 		bArmature *armn= copy_armature(arm);

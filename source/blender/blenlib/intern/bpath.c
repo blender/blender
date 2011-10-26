@@ -953,14 +953,16 @@ void findMissingFiles(Main *bmain, const char *str)
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
-static void rewrite_path(char *path, bpath_visitor visit, void *userdata) {
+static void rewrite_path(char *path, BPathVisitor visit, void *userdata)
+{
 	char pathOut[FILE_MAX];
 	if (visit(userdata, path, pathOut))
 		BLI_strncpy(path, pathOut, FILE_MAX);
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void bpath_traverse_id(ID *id, bpath_visitor visit, void *userdata) {
+void bpath_traverse_id(ID *id, BPathVisitor visit, void *userdata)
+{
 	Image *ima;
 
 	switch(GS(id->name)) {
@@ -981,26 +983,29 @@ void bpath_traverse_id(ID *id, bpath_visitor visit, void *userdata) {
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
    absolute, in which case it is not altered. */
-int bpath_relocate_visitor(void *oldbasepath_v, char *pathIn, char *pathOut) {
+int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
+{
 	/* be sure there is low chance of the path being too short */
 	char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
-	char *oldbasepath = oldbasepath_v;
+	const char *base_new= ((char **)pathbase_v)[0];
+	const char *base_old= ((char **)pathbase_v)[1];
 
-	if (strncmp(oldbasepath, "//", 2) == 0) {
-		printf("Error: old base path '%s' is not absolute.\n", oldbasepath);
+	if (strncmp(base_old, "//", 2) == 0) {
+		printf("%s: error, old base path '%s' is not absolute.\n",
+		       __func__, base_old);
 		return 0;
 	}
 
 	/* Make referenced file absolute. This would be a side-effect of
 	   BLI_cleanup_file, but we do it explicitely so we know if it changed. */
-	BLI_strncpy(filepath, pathIn, FILE_MAX);
-	if (BLI_path_abs(filepath, oldbasepath)) {
+	BLI_strncpy(filepath, path_src, FILE_MAX);
+	if (BLI_path_abs(filepath, base_old)) {
 		/* Path was relative and is now absolute. Remap.
 		 * Important BLI_cleanup_dir runs before the path is made relative
 		 * because it wont work for paths that start with "//../" */
-		BLI_cleanup_file(G.main->name, filepath);
-		BLI_path_rel(filepath, G.main->name);
-		BLI_strncpy(pathOut, filepath, FILE_MAX);
+		BLI_cleanup_file(base_new, filepath);
+		BLI_path_rel(filepath, base_new);
+		BLI_strncpy(path_dst, filepath, FILE_MAX);
 		return 1;
 	}
 	else {

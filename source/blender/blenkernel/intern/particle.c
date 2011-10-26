@@ -3610,7 +3610,7 @@ void make_local_particlesettings(ParticleSettings *part)
 	
 	if(part->id.lib==0) return;
 	if(part->id.us==1) {
-		id_clear_lib_data(&bmain->particle, (ID *)part);
+		id_clear_lib_data(bmain, (ID *)part);
 		expand_local_particlesettings(part);
 		return;
 	}
@@ -3627,7 +3627,7 @@ void make_local_particlesettings(ParticleSettings *part)
 	}
 	
 	if(local && lib==0) {
-		id_clear_lib_data(&bmain->particle, (ID *)part);
+		id_clear_lib_data(bmain, (ID *)part);
 		expand_local_particlesettings(part);
 	}
 	else if(local && lib) {
