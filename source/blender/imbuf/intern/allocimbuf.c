@@ -165,6 +165,8 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
+			if (ibuf->dds_data.data != NULL)
+				free(ibuf->dds_data.data);
 			MEM_freeN(ibuf);
 		}
 	}

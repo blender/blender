@@ -10464,7 +10464,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.dome.warptext = sce->r.dometext;
 
 			//Stand Alone
-			sce->gm.fullscreen = sce->r.fullscreen;
 			sce->gm.xplay = sce->r.xplay;
 			sce->gm.yplay = sce->r.yplay;
 			sce->gm.freqplay = sce->r.freqplay;
@@ -12190,6 +12189,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						part->rotmode = PART_ROT_VEL;
 				}
 			}
+		}
+
+		{
+			/* Initialize BGE exit key to esc key */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				if (!scene->gm.exitkey)
+					scene->gm.exitkey = 218; //218 is the Blender key code for ESC
+			}
+		}
+
+		{
+			/* Initialize default values for collision masks */
+			Object *ob;
+			for(ob=main->object.first; ob; ob=ob->id.next)
+				ob->col_group = ob->col_mask = 1;
 		}
 	}
 
