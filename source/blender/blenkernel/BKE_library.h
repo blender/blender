@@ -59,6 +59,7 @@ int id_copy(struct ID *id, struct ID **newid, int test);
 int id_unlink(struct ID *id, int test);
 
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
+void id_clear_lib_data(struct ListBase *lb, struct ID *id);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 
