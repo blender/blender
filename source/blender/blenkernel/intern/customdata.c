@@ -2333,7 +2333,13 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
-	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 1, 0);
+	/* Dispose old pools before calling here to avoid leaks */
+	BLI_assert(data->pool == NULL);
+
+	/* If there are no layers, no pool is needed just yet */
+	if (data->totlayer) {
+		data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 1, 0);
+	}
 }
 
 void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
