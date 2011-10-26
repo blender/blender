@@ -47,15 +47,20 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_multires.h"
 
+#include "ED_mesh.h"
+
 #include "bmesh.h"
 #include "bmesh_private.h"
-
-void BME_error(void);
 
 /*bmesh_error stub*/
 void bmesh_error(void)
 {
-	printf("BM modelling error!");
+	printf("BM modelling error!\n");
+
+	/* This placeholder assert makes modelling errors easier to catch
+	   in the debugger, until bmesh_error is replaced with something
+	   better. */
+	BLI_assert(0);
 }
 
 /*
@@ -81,7 +86,7 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 
 	bm->ob = ob;
 	
-/*allocate the memory pools for the mesh elements*/
+   /*allocate the memory pools for the mesh elements*/
 	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
 	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
 	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], 0, 0);
@@ -143,6 +148,12 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	/*destroy flag pool*/
 	BLI_mempool_destroy(bm->toolflagpool);
 	BLI_mempool_destroy(bm->looplistpool);
+
+	/* These tables aren't used yet, so it's not stricly necessary
+	   to 'end' them (with 'e' param) but if someone tries to start
+	   using them, having these in place will save a lot of pain */
+	mesh_octree_table(NULL, NULL, NULL, 'e');
+	mesh_mirrtopo_table(NULL, 'e');
 
 	BLI_freelistN(&bm->selected);
 
@@ -378,6 +389,12 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 void bmesh_begin_edit(BMesh *bm, int flag) {
 	bm->opflag = flag;
 	
+	/* Most operators seem to be using BMOP_UNTAN_MULTIRES to change the MDisps to
+	   absolute space during mesh edits. With this enabled, changes to the topology
+	   (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
+	   the mesh at all, which doesn't seem right. Turning off completely for now,
+	   until this is shown to be better for certain types of mesh edits. */
+#if BMOP_UNTAN_MULTIRES_ENABLED
 	/*switch multires data out of tangent space*/
 	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_set_mdisps_space(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
@@ -388,9 +405,16 @@ void bmesh_begin_edit(BMesh *bm, int flag) {
 	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 0);
 	}
+#else
+	if (flag & BMOP_RATIONALIZE_NORMALS) {
+		bmesh_rationalize_normals(bm, 0);
+	}
+#endif
 }
 
 void bmesh_end_edit(BMesh *bm, int flag){
+	/* BMOP_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
+#if BMOP_UNTAN_MULTIRES_ENABLED
 	/*switch multires data into tangent space*/
 	if ((flag & BMOP_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		/*set normals to their previous winding*/
@@ -399,6 +423,11 @@ void bmesh_end_edit(BMesh *bm, int flag){
 	} else if (flag & BMOP_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);
 	}
+#else
+	if (flag & BMOP_RATIONALIZE_NORMALS) {
+		bmesh_rationalize_normals(bm, 1);
+	}
+#endif
 
 	bm->opflag = 0;
 
