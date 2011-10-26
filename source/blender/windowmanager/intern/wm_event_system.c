@@ -1953,8 +1953,9 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevy= event->y;
 					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);
 				}
-				else
-					;//printf("not setting prev to %d %d\n", event->x, event->y);
+				else {
+					//printf("not setting prev to %d %d\n", event->x, event->y);
+				}
 			}
 			
 			/* store last event for this window */
