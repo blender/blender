@@ -813,6 +813,16 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");
 	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
 
+	/* BMESH_TODO, we should STOP overwriting the vertex index data with bad
+	 * indicies, once createTransEditVerts() stops doing this, this loop can be
+	 * removed - campbell */
+	i= 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, i++);
+	}
+	/* END BMESH_TODO */
+
+
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *mirr;
 		int *idx = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, li);

@@ -2084,6 +2084,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		selectmode = SCE_SELECT_EDGE;
 	}
 
+	/* BMESH_TODO, writing into the index values is BAD!, means we cant
+	 * use the values for vertex mirror - campbell */
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
