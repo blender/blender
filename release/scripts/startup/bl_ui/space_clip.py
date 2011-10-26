@@ -154,12 +154,12 @@ class CLIP_PT_tools_solving(Panel):
         settings = clip.tracking.settings
 
         col = layout.column(align=True)
-        col.prop(settings, "keyframe_a")
-        col.prop(settings, "keyframe_b")
-
-        col = layout.column(align=True)
         col.operator("clip.solve_camera")
         col.operator("clip.clear_solution")
+
+        col = layout.column(align=True)
+        col.prop(settings, "keyframe_a")
+        col.prop(settings, "keyframe_b")
 
 
 class CLIP_PT_tools_cleanup(Panel):
@@ -179,11 +179,11 @@ class CLIP_PT_tools_cleanup(Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
+        layout.operator("clip.clean_tracks")
+
         layout.prop(settings, 'clean_frames', text="Frames")
         layout.prop(settings, 'clean_error', text="Error")
         layout.prop(settings, 'clean_action', text="")
-
-        layout.operator("clip.clean_tracks")
 
 
 class CLIP_PT_tools_geometry(Panel):
@@ -231,9 +231,11 @@ class CLIP_PT_tools_orientation(Panel):
         row.operator("clip.set_axis", text="Set X Axis").axis = 'X'
         row.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
 
+        layout.separator()
+
         col = layout.column()
-        col.prop(settings, "distance")
         col.operator("clip.set_scale")
+        col.prop(settings, "distance")
 
 
 class CLIP_PT_tools_grease_pencil(Panel):
@@ -300,10 +302,10 @@ class CLIP_PT_track(Panel):
 
         layout.template_track(sc, "scopes")
 
-        row = layout.row()
-        row.prop(act_track, "use_red_channel", text="Red")
-        row.prop(act_track, "use_green_channel", text="Green")
-        row.prop(act_track, "use_blue_channel", text="Blue")
+        row = layout.row(align=True)
+        row.prop(act_track, "use_red_channel", text="R", toggle=True)
+        row.prop(act_track, "use_green_channel", text="G", toggle=True)
+        row.prop(act_track, "use_blue_channel", text="B", toggle=True)
 
         layout.separator()
 

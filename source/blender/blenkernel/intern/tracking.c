@@ -1194,7 +1194,7 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 	return tracks;
 }
 
-static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
 {
 	int tracknr= 0;
 	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
@@ -1306,7 +1306,7 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 
 		tracking->reconstruction.error= error;
 
-		if(!retrive_libmv_reconstruct(tracking, reconstruction))
+		if(!retrieve_libmv_reconstruct(tracking, reconstruction))
 			error= -1.f;
 
 		libmv_destroyReconstruction(reconstruction);
@@ -1546,7 +1546,7 @@ static int point_in_layer(bGPDlayer *layer, float x, float y)
 	return 0;
 }
 
-static void retrive_libmv_features(MovieTracking *tracking, struct libmv_Features *features,
+static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Features *features,
 			int framenr, int width, int height, bGPDlayer *layer)
 {
 #ifdef WITH_LIBMV
@@ -1588,7 +1588,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 
 	MEM_freeN(pixels);
 
-	retrive_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
+	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
 
 	libmv_destroyFeatures(features);
 #endif
@@ -1605,7 +1605,7 @@ void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
 
 	MEM_freeN(pixels);
 
-	retrive_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
+	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
 
 	libmv_destroyFeatures(features);
 #endif

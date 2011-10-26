@@ -1225,7 +1225,19 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip)
 	}
 }
 
-static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
+static int track_markers_check_direction(int backwards, int curfra, int efra)
+{
+	if(backwards) {
+		if(curfra<efra) return 0;
+	}
+	else {
+		if(curfra>efra) return 0;
+	}
+
+	return 1;
+}
+
+static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwards)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -1269,6 +1281,8 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 	tmj->scene= scene;
 	tmj->main= CTX_data_main(C);
 	tmj->screen= CTX_wm_screen(C);
+
+	return track_markers_check_direction(backwards, tmj->sfra, tmj->efra);
 }
 
 static void track_markers_startjob(void *tmv, short *stop, short *do_update, float *progress)
@@ -1358,6 +1372,9 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 		else efra= MIN2(efra, sfra+settings->frames_limit);
 	}
 
+	if(!track_markers_check_direction(backwards, framenr, efra))
+		return OPERATOR_CANCELLED;
+
 	track_init_markers(sc, clip);
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
@@ -1406,7 +1423,11 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 		return track_markers_exec(C, op);
 
 	tmj= MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
-	track_markers_initjob(C, tmj, backwards);
+	if(!track_markers_initjob(C, tmj, backwards)) {
+		track_markers_freejob(tmj);
+
+		return OPERATOR_CANCELLED;
+	}
 
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_PROGRESS);
@@ -1465,7 +1486,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
+	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tracking");
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence", "Track marker during image sequence rather than single image");
 }
 
@@ -1767,7 +1788,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1776,7 +1797,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Origin";
-	ot->description= "Set active marker as origin";
+	ot->description= "Set active marker as origin by moving camera (or it's parent if present) in 3d space";
 	ot->idname= "CLIP_OT_set_origin";
 
 	/* api callbacks */
@@ -1919,7 +1940,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1928,7 +1949,7 @@ void CLIP_OT_set_floor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Floor";
-	ot->description= "Set floor using 3 selected bundles";
+	ot->description= "Set floor based on 3 selected bundles by moving camera (or it's parent if present) in 3d space";
 	ot->idname= "CLIP_OT_set_floor";
 
 	/* api callbacks */
@@ -1939,7 +1960,7 @@ void CLIP_OT_set_floor(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** set origin operator *********************/
+/********************** set axis operator *********************/
 
 static int set_axis_exec(bContext *C, wmOperator *op)
 {
@@ -1951,7 +1972,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 	int axis= RNA_enum_get(op->ptr, "axis");
 
 	if(count_selected_bundles(C)!=1) {
-		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define X-axis");
+		BKE_report(op->reports, RPT_ERROR, "Single track with bundle should be selected to define axis");
 
 		return OPERATOR_CANCELLED;
 	}
@@ -1973,7 +1994,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(&parent->id, OB_RECALC_OB);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1988,7 +2009,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Axis";
-	ot->description= "Set direction of scene axis";
+	ot->description= "Set direction of scene axis rotating camera (or it's parent if present) and assuming selected track lies on real axis joining it with the origin";
 	ot->idname= "CLIP_OT_set_axis";
 
 	/* api callbacks */
@@ -2048,7 +2069,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 		DAG_id_tag_update(&parent->id, OB_RECALC_OB);
 
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 
 	return OPERATOR_FINISHED;
@@ -2070,7 +2091,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Scale";
-	ot->description= "Set scale of scene";
+	ot->description= "Set scale of scene by scaling camera (or it's parent if present)";
 	ot->idname= "CLIP_OT_set_scale";
 
 	/* api callbacks */
@@ -2864,8 +2885,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 		if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 			int ok= 1;
 
-			ok&= is_track_clean(track, frames, action==TRACKING_CLEAN_DELETE_SEGMENT);
-			ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;
+			ok= (is_track_clean(track, frames, action==TRACKING_CLEAN_DELETE_SEGMENT)) &&
+			    (error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error);
 
 			if(!ok) {
 				if(action==TRACKING_CLEAN_SELECT) {
@@ -2918,9 +2939,9 @@ static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select un-clean tracks"},
-			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete un-clean tracks"},
-			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete un-clean segments of tracks"},
+			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
+			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
+			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
 			{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2938,7 +2959,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
-	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Affect on tracks with have got larger reprojection error", 0.f, 100.0f);
+	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Effect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Effect on tracks with have got larger reprojection error", 0.f, 100.0f);
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }

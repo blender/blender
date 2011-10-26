@@ -504,7 +504,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_sdna(prop, NULL, "bundle_pos");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Bundle", "Position of bundle reconstructed from this tarck");
+	RNA_def_property_ui_text(prop, "Bundle", "Position of bundle reconstructed from this track");
 
 	/* hide */
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);

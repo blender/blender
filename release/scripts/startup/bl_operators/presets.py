@@ -347,7 +347,7 @@ class AddPresetTrackingTrackColor(AddPresetBase, Operator):
     preset_menu = "CLIP_MT_track_color_presets"
 
     preset_defines = [
-        "track = bpy.context.edit_movieclip.tracking.active_track"
+        "track = bpy.context.edit_movieclip.tracking.tracks"
     ]
 
     preset_values = [

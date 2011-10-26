@@ -25,6 +25,8 @@ from bpy_extras.io_utils import unpack_list
 
 
 class CLIP_OT_track_to_empty(Operator):
+    """Create an Empty object which will be copying movement of active track"""
+
     bl_idname = "clip.track_to_empty"
     bl_label = "2D Track to Empty"
     bl_options = {'UNDO', 'REGISTER'}
@@ -67,6 +69,8 @@ class CLIP_OT_track_to_empty(Operator):
 
 
 class CLIP_OT_bundles_to_mesh(Operator):
+    """Create vertex cloud using coordinates of bundles"""
+
     bl_idname = "clip.bundles_to_mesh"
     bl_label = "Bundles to Mesh"
     bl_options = {'UNDO', 'REGISTER'}
@@ -104,6 +108,8 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
 
 class CLIP_OT_delete_proxy(Operator):
+    """Delete movie clip proxy files from the hard drive"""
+
     bl_idname = "clip.delete_proxy"
     bl_label = "Delete Proxy"
     bl_options = {'UNDO', 'REGISTER'}
@@ -172,6 +178,8 @@ class CLIP_OT_delete_proxy(Operator):
 
 
 class CLIP_OT_set_viewport_background(Operator):
+    """Set current movie clip as a camera background in 3D viewport"""
+
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
     bl_options = {'UNDO', 'REGISTER'}
@@ -217,6 +225,8 @@ class CLIP_OT_set_viewport_background(Operator):
 
 
 class CLIP_OT_constraint_to_fcurve(Operator):
+    """Create F-Curves for object which will copy object's movement caused by this constraint"""
+
     bl_idname = "clip.constraint_to_fcurve"
     bl_label = "Constraint to F-Curve"
     bl_options = {'UNDO', 'REGISTER'}
