@@ -55,6 +55,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
@@ -66,6 +68,7 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
+#include "BKE_library.h"
 
 typedef struct BPathIteratorSeqData
 {
@@ -953,27 +956,138 @@ void findMissingFiles(Main *bmain, const char *str)
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
-static void rewrite_path(char *path, BPathVisitor visit, void *userdata)
+static int rewrite_path_fixed(char path[FILE_MAX], BPathVisitor visit_cb, void *userdata)
 {
-	char pathOut[FILE_MAX];
-	if (visit(userdata, path, pathOut))
-		BLI_strncpy(path, pathOut, FILE_MAX);
+	char path_dst[FILE_MAX];
+
+	if (visit_cb(userdata, path_dst, (const char *)path)) {
+		BLI_strncpy(path, path_dst, FILE_MAX);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR], char path_file[FILE_MAXFILE], BPathVisitor visit_cb, void *userdata)
+{
+	char path_src[FILE_MAX];
+	char path_dst[FILE_MAX];
+
+	BLI_join_dirfile(path_src, sizeof(path_src), path_dir, path_file);
+
+	if (visit_cb(userdata, path_dst, (const char *)path_src)) {
+		BLI_split_dirfile(path_dst, path_dir, path_file,
+		                  sizeof(path_dir), sizeof(path_file));
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, void *userdata)
+{
+	char path_dst[FILE_MAX];
+
+	if (visit_cb(userdata, path_dst, (const char *)(*path))) {
+		MEM_freeN((*path));
+		(*path)= BLI_strdup(path_dst);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void bpath_traverse_id(ID *id, BPathVisitor visit, void *userdata)
+void bpath_traverse_id(ID *id, BPathVisitor visit_cb, void *userdata)
 {
 	Image *ima;
 
 	switch(GS(id->name)) {
 	case ID_IM:
-		ima = (Image*)id;
+		ima = (Image *)id;
 		if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-			rewrite_path(ima->name, visit, userdata);
+			rewrite_path_fixed(ima->name, visit_cb, userdata);
 		break;
 	case ID_OB:
+		{
+			Object *ob= (Object *)id;
+			if (ob->fluidsimSettings) {
+				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, userdata);
+			}
+			/* TODO: add modifiers, e.g. point cache for particles. */
+		}
+		break;
 	case ID_SO:
+		rewrite_path_fixed(((bSound *)id)->name, visit_cb, userdata);
+		break;
 	case ID_TXT:
+		if (((Text*)id)->name) {
+			rewrite_path_alloc(&((Text *)id)->name, visit_cb, userdata);
+		}
+		break;
+	case ID_VF:
+		if (strcmp(((VFont*)id)->name, FO_BUILTIN_NAME) != 0) {
+			rewrite_path_fixed(((VFont *)id)->name, visit_cb, userdata);
+		}
+		break;
+	case ID_TE:
+		{
+			Tex *tex = (Tex *)id;
+			if (tex->plugin) {
+				/* FIXME: rewrite_path assumes path length of FILE_MAX, but
+					   tex->plugin->name is 160. ... is this field even a path? */
+				//rewrite_path(tex->plugin->name, visit_cb, userdata);
+			}
+			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
+				rewrite_path_fixed(tex->vd->source_path, visit_cb, userdata);
+			}
+		}
+		break;
+
+	case ID_SCE:
+		{
+			Scene *scene= (Scene *)id;
+			if (scene->ed) {
+				Sequence *seq;
+
+				SEQ_BEGIN(scene->ed, seq) {
+					if (SEQ_HAS_PATH(seq)) {
+						if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
+							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name, visit_cb, userdata);
+						}
+						else {
+							/* simple case */
+							rewrite_path_fixed(seq->strip->dir, visit_cb, userdata);
+						}
+					}
+					else if (seq->plugin) {
+						rewrite_path_fixed(seq->plugin->name, visit_cb, userdata);
+					}
+
+				}
+				SEQ_END
+			}
+		}
+		break;
+	case ID_ME:
+		{
+			Mesh *me= (Mesh *)id;
+			if (me->fdata.external) {
+				rewrite_path_fixed(me->fdata.external->filename, visit_cb, userdata);
+			}
+		}
+		break;
+	case ID_LI:
+		{
+			Library *lib= (Library *)id;
+			if(rewrite_path_fixed(lib->name, visit_cb, userdata)) {
+				BKE_library_filepath_set(lib, lib->name);
+			}
+		}
+		break;
 	/* TODO: add other ID types e.g. object (modifiers) */
 	default:
 		/* Nothing to do for other IDs that don't contain file paths. */

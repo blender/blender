@@ -1477,7 +1477,12 @@ void name_uiprefix_id(char *name, ID *id)
 
 void BKE_library_filepath_set(Library *lib, const char *filepath)
 {
-	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
+	/* in some cases this is used to update the absolute path from the
+	 * relative */
+	if (lib->name != filepath) {
+		BLI_strncpy(lib->name, filepath, sizeof(lib->name));
+	}
+
 	BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
 
 	/* not essential but set filepath is an absolute copy of value which
