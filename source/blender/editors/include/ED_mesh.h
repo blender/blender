@@ -127,6 +127,7 @@ void EDBM_CacheMirrorVerts(struct BMEditMesh *em);
   is bad.*/
 struct BMVert *EDBM_GetMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void EDBM_EndMirrorCache(struct BMEditMesh *em);
+void EDBM_ApplyMirrorCache(struct BMEditMesh *em, const int sel_from, const int sel_to);
 
 void EDBM_RecalcNormals(struct BMEditMesh *em);
 

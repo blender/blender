@@ -163,6 +163,8 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
+	/* BMESH_TODO, this currently does nothing, just add to stop UI from erroring out! */
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor (BMESH TODO)", 0.0f, 1.0f);
 
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "How to subdivide quad corners (anything other then Straight Cut will prevent ngons)");
@@ -1609,6 +1611,11 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 	int mirrx=0, mirry=0, mirrz=0;
 	int i, repeat;
 
+	/* mirror before smooth */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_CacheMirrorVerts(em);
+	}
+
 	/* if there is a mirror modifier with clipping, flag the verts that
 	 * are within tolerance of the plane(s) of reflection 
 	 */
@@ -1639,8 +1646,11 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 		}
 	}
 
-	//BMESH_TODO: need to handle the x-axis editing option here properly.
-	//should probably make a helper function for that? I dunno.
+	/* apply mirror */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_ApplyMirrorCache(em, BM_SELECT, 0);
+		EDBM_EndMirrorCache(em);
+	}
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);

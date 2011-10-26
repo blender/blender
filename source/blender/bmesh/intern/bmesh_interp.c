@@ -893,7 +893,7 @@ void BM_add_data_layer(BMesh *bm, CustomData *data, int type)
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
-void BM_add_data_layer_named(BMesh *bm, CustomData *data, int type, char *name)
+void BM_add_data_layer_named(BMesh *bm, CustomData *data, int type, const char *name)
 {
 	CustomData olddata;
 

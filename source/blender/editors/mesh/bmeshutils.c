@@ -785,7 +785,9 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
 }
 
-
+/* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a
+ * preference */
+#define BM_SEARCH_MAXDIST_MIRR 0.00002f
 void EDBM_CacheMirrorVerts(BMEditMesh *em)
 {
 	Mesh *me = em->me;
@@ -804,8 +806,8 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		em->mirr_free_arrays = 1;
 	}
 
-	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, (char*)"__mirror_index")) {
-		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, (char*)"__mirror_index");
+	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, "__mirror_index")) {
+		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, "__mirror_index");
 	}
 
 	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");
@@ -821,13 +823,17 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 			continue;
 		
 		mirr = topo ?
-			BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST, v) :
-			BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST);
+			BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST_MIRR, v) :
+			BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST_MIRR);
+
 		if (mirr && mirr != v) {
 			*idx = BM_GetIndex(mirr);
 			idx = CustomData_bmesh_get_layer_n(&em->bm->vdata,mirr->head.data, li);
 			*idx = BM_GetIndex(v);
-		} else *idx = -1;
+		}
+		else {
+			*idx = -1;
+		}
 	}
 
 	BMBVH_FreeBVH(tree);
@@ -855,5 +861,25 @@ void EDBM_EndMirrorCache(BMEditMesh *em)
 	if (em->mirr_free_arrays) {
 		MEM_freeN(em->vert_index);
 		em->vert_index = NULL;
+	}
+}
+
+void EDBM_ApplyMirrorCache(BMEditMesh *em, const int sel_from, const int sel_to)
+{
+	BMIter iter;
+	BMVert *v;
+
+	BLI_assert(em->vert_index != NULL);
+
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT) == sel_from) {
+			BMVert *mirr= EDBM_GetMirrorVert(em, v);
+			if (mirr) {
+				if (BM_TestHFlag(mirr, BM_SELECT) == sel_to) {
+					copy_v3_v3(mirr->co, v->co);
+					mirr->co[0] *= -1.0f;
+				}
+			}
+		}
 	}
 }
