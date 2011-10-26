@@ -176,8 +176,8 @@ static BOOL scr_saver_init(int argc, char **argv)
 void usage(const char* program, bool isBlenderPlayer)
 {
 	const char * consoleoption;
-	const char * filename = "";
-	const char * pathname = "";
+	const char * example_filename = "";
+	const char * example_pathname = "";
 
 #ifdef _WIN32
 	consoleoption = "-c ";
@@ -186,16 +186,16 @@ void usage(const char* program, bool isBlenderPlayer)
 #endif
 
 	if (isBlenderPlayer) {
-		filename = "filename.blend";
+		example_filename = "filename.blend";
 #ifdef _WIN32
-		pathname = "c:\\";
+		example_pathname = "c:\\";
 #else
-		pathname = "//home//user//";
+		example_pathname = "/home/user/";
 #endif
 	}
 	
 	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, filename);
+		"[-s stereomode] [-m aasamples] %s\n", program, consoleoption, example_filename);
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
@@ -250,9 +250,9 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("\n");
 	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
 	printf("\n");
-	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, pathname, filename);
-	printf("example: %s -g show_framerate = 0 %s%s\n", program, pathname, filename);
-	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, pathname, filename);
+	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, example_pathname, example_filename);
+	printf("example: %s -g show_framerate = 0 %s%s\n", program, example_pathname, example_filename);
+	printf("example: %s -i 232421 -m 16 %s%s\n\n", program, example_pathname, example_filename);
 }
 
 static void get_filename(int argc, char **argv, char *filename)

@@ -150,7 +150,8 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
 	if (pts == AV_NOPTS_VALUE) {
 		pts = 0;
 	}
-	
+
+	(void)avctx;
 	return pts;
 }
 

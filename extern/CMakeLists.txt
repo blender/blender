@@ -26,6 +26,8 @@
 # Otherwise we get warnings here that we cant fix in external projects
 remove_strict_flags()
 
+add_subdirectory(colamd)
+
 if(WITH_BULLET)
 	add_subdirectory(bullet2)
 endif()
