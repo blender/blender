@@ -329,7 +329,7 @@ void make_local_image(struct Image *ima)
 	Tex *tex;
 	Brush *brush;
 	Mesh *me;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -342,7 +342,7 @@ void make_local_image(struct Image *ima)
 	   texface ID refs. - z0r */
 #if 0
 	if(ima->id.us==1) {
-		id_clear_lib_data(bmain, (ID *)ima);
+		id_clear_lib_data(bmain, &ima->id);
 		extern_local_image(ima);
 		return;
 	}
@@ -350,14 +350,14 @@ void make_local_image(struct Image *ima)
 
 	for(tex= bmain->tex.first; tex; tex= tex->id.next) {
 		if(tex->ima == ima) {
-			if(tex->id.lib) lib= 1;
-			else local= 1;
+			if(tex->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 	for(brush= bmain->brush.first; brush; brush= brush->id.next) {
 		if(brush->clone.image == ima) {
-			if(brush->id.lib) lib= 1;
-			else local= 1;
+			if(brush->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 	for(me= bmain->mesh.first; me; me= me->id.next) {
@@ -371,8 +371,8 @@ void make_local_image(struct Image *ima)
 
 					for(a=0; a<me->totface; a++, tface++) {
 						if(tface->tpage == ima) {
-							if(me->id.lib) lib=1;
-							else local= 1;
+							if(me->id.lib) is_lib= TRUE;
+							else is_local= TRUE;
 						}
 					}
 				}
@@ -380,18 +380,18 @@ void make_local_image(struct Image *ima)
 		}
 	}
 
-	if(local && lib==0) {
-		id_clear_lib_data(bmain, (ID *)ima);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &ima->id);
 		extern_local_image(ima);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, ima->id.lib->filepath};
 		Image *iman= copy_image(ima);
-		char *user_data[2]= {bmain->name, iman->id.lib->filepath};
 
 		iman->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &iman->id, bpath_relocate_visitor, 0, user_data);
+		bpath_traverse_id(bmain, &iman->id, bpath_relocate_visitor, 0, bpath_user_data);
 
 		tex= bmain->tex.first;
 		while(tex) {

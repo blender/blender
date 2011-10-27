@@ -1252,8 +1252,8 @@ int new_id(ListBase *lb, ID *id, const char *tname)
    don't have other library users. */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
-	char *user_data[2]= {bmain->name, id->lib->filepath};
-	bpath_traverse_id(bmain, id, bpath_relocate_visitor, 0, user_data);
+	char *bpath_user_data[2]= {bmain->name, id->lib->filepath};
+	bpath_traverse_id(bmain, id, bpath_relocate_visitor, 0, bpath_user_data);
 	id->lib= NULL;
 	id->flag= LIB_LOCAL;
 	new_id(which_libbase(bmain, GS(id->name)), id, NULL);

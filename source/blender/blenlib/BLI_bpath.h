@@ -34,9 +34,10 @@
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
 
-struct ReportList;
-struct Main;
 struct ID;
+struct ListBase;
+struct Main;
+struct ReportList;
 
 /* Function that does something with an ID's file path. Should return 1 if the
    path has changed, and in that case, should write the result to pathOut. */

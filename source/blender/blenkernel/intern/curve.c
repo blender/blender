@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bpath.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -245,7 +246,7 @@ void make_local_curve(Curve *cu)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 	
 	/* - when there are only lib users: don't do
 	 * - when there are only local users: set flag
@@ -255,25 +256,30 @@ void make_local_curve(Curve *cu)
 	if(cu->id.lib==NULL) return;
 
 	if(cu->id.us==1) {
-		id_clear_lib_data(bmain, (ID *)cu);
+		id_clear_lib_data(bmain, &cu->id);
 		extern_local_curve(cu);
 		return;
 	}
 
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(ob->data == cu) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		id_clear_lib_data(bmain, (ID *)cu);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &cu->id);
 		extern_local_curve(cu);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, cu->id.lib->filepath};
 		Curve *cun= copy_curve(cu);
 		cun->id.us= 0;
+
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &cun->id, bpath_relocate_visitor, 0, bpath_user_data);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==cu) {

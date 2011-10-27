@@ -360,7 +360,7 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *userdata)
+void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
 	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? (id->lib ? id->lib->filepath : bmain->name) : NULL;
@@ -374,7 +374,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		ima= (Image *)id;
 		if (ima->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 			if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				rewrite_path_fixed(ima->name, visit_cb, absbase, userdata);
+				rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
@@ -382,7 +382,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		{
 			Brush *brush= (Brush *)id;
 			if (brush->icon_filepath[0]) {
-				rewrite_path_fixed(brush->icon_filepath, visit_cb, absbase, userdata);
+				rewrite_path_fixed(brush->icon_filepath, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
@@ -393,7 +393,10 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		PointCache *cache;                                                     \
 		for(cache= (ptcaches).first; cache; cache= cache->next) {              \
 			if(cache->flag & PTCACHE_DISK_CACHE) {                             \
-				rewrite_path_fixed(cache->path, visit_cb, absbase, userdata);  \
+				rewrite_path_fixed(cache->path,                                \
+				                   visit_cb,                                   \
+				                   absbase,                                    \
+				                   bpath_user_data);                           \
 			}                                                                  \
 		}                                                                      \
 	}                                                                          \
@@ -408,7 +411,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			/* do via modifiers instead */
 #if 0
 			if (ob->fluidsimSettings) {
-				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, userdata);
+				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
 			}
 #endif
 
@@ -416,7 +419,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				if (md->type == eModifierType_Fluidsim) {
 					FluidsimModifierData *fluidmd= (FluidsimModifierData *)md;
 					if (fluidmd->fss) {
-						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, userdata);
+						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
 					}
 				}
 				else if (md->type == eModifierType_Smoke) {
@@ -447,13 +450,13 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		{
 			bSound *sound= (bSound *)id;
 			if (sound->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-				rewrite_path_fixed(sound->name, visit_cb, absbase, userdata);
+				rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
 	case ID_TXT:
 		if (((Text*)id)->name) {
-			rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, userdata);
+			rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, bpath_user_data);
 		}
 		break;
 	case ID_VF:
@@ -461,7 +464,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			VFont *vf= (VFont *)id;
 			if (vf->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
-					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, userdata);
+					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
 			}
 		}
@@ -472,10 +475,10 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			if (tex->plugin) {
 				/* FIXME: rewrite_path assumes path length of FILE_MAX, but
 					   tex->plugin->name is 160. ... is this field even a path? */
-				//rewrite_path(tex->plugin->name, visit_cb, userdata);
+				//rewrite_path(tex->plugin->name, visit_cb, bpath_user_data);
 			}
 			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
-				rewrite_path_fixed(tex->vd->source_path, visit_cb, absbase, userdata);
+				rewrite_path_fixed(tex->vd->source_path, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
@@ -489,7 +492,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				SEQ_BEGIN(scene->ed, seq) {
 					if (SEQ_HAS_PATH(seq)) {
 						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
-							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name, visit_cb, absbase, userdata);
+							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name, visit_cb, absbase, bpath_user_data);
 						}
 						else if (seq->type == SEQ_IMAGE) {
 							/* might want an option not to loop over all strips */
@@ -498,16 +501,16 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 							int i;
 
 							for(i= 0; i < len; i++, se++) {
-								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, userdata);
+								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);
 							}
 						}
 						else {
 							/* simple case */
-							rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, userdata);
+							rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, bpath_user_data);
 						}
 					}
 					else if (seq->plugin) {
-						rewrite_path_fixed(seq->plugin->name, visit_cb, absbase, userdata);
+						rewrite_path_fixed(seq->plugin->name, visit_cb, absbase, bpath_user_data);
 					}
 
 				}
@@ -519,14 +522,14 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		{
 			Mesh *me= (Mesh *)id;
 			if (me->fdata.external) {
-				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, userdata);
+				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
 	case ID_LI:
 		{
 			Library *lib= (Library *)id;
-			if(rewrite_path_fixed(lib->name, visit_cb, absbase, userdata)) {
+			if(rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
 		}
@@ -537,19 +540,19 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	}
 }
 
-void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata)
+void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ID *id;
 	for(id= lb->first; id; id= id->next) {
-		bpath_traverse_id(bmain, id, visit_cb, flag, userdata);
+		bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
 	}
 }
 
-void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata)
+void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a= set_listbasepointers(bmain, lbarray);
-	while(a--) bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, userdata);
+	while(a--) bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
 }
 
 /* Rewrites a relative path to be relative to the main file - unless the path is

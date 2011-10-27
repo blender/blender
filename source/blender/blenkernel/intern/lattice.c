@@ -39,6 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -246,7 +247,7 @@ void make_local_lattice(Lattice *lt)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -255,23 +256,27 @@ void make_local_lattice(Lattice *lt)
 	
 	if(lt->id.lib==NULL) return;
 	if(lt->id.us==1) {
-		id_clear_lib_data(bmain, (ID *)lt);
+		id_clear_lib_data(bmain, &lt->id);
 		return;
 	}
 	
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(FALSE, is_lib, is_local); ob= ob->id.next) {
 		if(ob->data==lt) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 	
-	if(local && lib==0) {
-		id_clear_lib_data(bmain, (ID *)lt);
+	if(is_local && is_lib==FALSE) {
+		id_clear_lib_data(bmain, &lt->id);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bath_user_data[2]= {bmain->name, lt->id.lib->filepath};
 		Lattice *ltn= copy_lattice(lt);
 		ltn->id.us= 0;
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &ltn->id, bpath_relocate_visitor, 0, bath_user_data);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==lt) {

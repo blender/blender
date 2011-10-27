@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -94,8 +95,8 @@ typedef struct tMakeLocalActionContext {
 	bAction *act;    /* original action */
 	bAction *actn;   /* new action */
 	
-	int lib;         /* some action users were libraries */
-	int local;       /* some action users were not libraries */
+	int is_lib;         /* some action users were libraries */
+	int is_local;       /* some action users were not libraries */
 } tMakeLocalActionContext;
 
 /* helper function for make_local_action() - local/lib init step */
@@ -104,10 +105,8 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib) 
-			mlac->lib = 1;
-		else 
-			mlac->local = 1;
+		if (id->lib) mlac->is_lib= TRUE;
+		else mlac->is_local= TRUE;
 	}
 }
 
@@ -129,7 +128,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 // does copy_fcurve...
 void make_local_action(bAction *act)
 {
-	tMakeLocalActionContext mlac = {act, NULL, 0, 0};
+	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
 	Main *bmain= G.main;
 	
 	if (act->id.lib==NULL) 
@@ -137,19 +136,24 @@ void make_local_action(bAction *act)
 	
 	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
 	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
-		id_clear_lib_data(bmain, (ID *)act);
+		id_clear_lib_data(bmain, &act->id);
 		return;
 	}
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
-	if (mlac.local && mlac.lib==0) {
-		id_clear_lib_data(bmain, (ID *)act);
+	if (mlac.is_local && mlac.is_lib==FALSE) {
+		id_clear_lib_data(bmain, &act->id);
 	}
-	else if (mlac.local && mlac.lib) {
+	else if (mlac.is_local && mlac.is_lib) {
+		char *bpath_user_data[2]= {bmain->name, act->id.lib->filepath};
+
 		mlac.actn= copy_action(act);
 		mlac.actn->id.us= 0;
-		
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &mlac.actn->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
 	}
 }
