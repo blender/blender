@@ -733,7 +733,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 			} else {
 				char *rrgb= (char*)tmpibuf->rect + pixel*4;
 
-				*fp= FTOCHAR(0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2]);
+				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
 			}
 
 			fp++;
