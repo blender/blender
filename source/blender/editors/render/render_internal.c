@@ -187,10 +187,42 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 /* set callbacks, exported to sequence render too.
  Only call in foreground (UI) renders. */
 
+static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneRenderLayer **srl)
+{
+	/* single layer re-render */
+	if(RNA_property_is_set(op->ptr, "scene")) {
+		Scene *scn;
+		char scene_name[MAX_ID_NAME-2];
+
+		RNA_string_get(op->ptr, "scene", scene_name);
+		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
+		
+		if (scn) {
+			/* camera switch wont have updated */
+			scn->r.cfra= (*scene)->r.cfra;
+			scene_camera_switch_update(scn);
+
+			*scene = scn;
+		}
+	}
+
+	if(RNA_property_is_set(op->ptr, "layer")) {
+		SceneRenderLayer *rl;
+		char rl_name[RE_MAXNAME];
+
+		RNA_string_get(op->ptr, "layer", rl_name);
+		rl = (SceneRenderLayer *)BLI_findstring(&(*scene)->r.layers, rl_name, offsetof(SceneRenderLayer, name));
+		
+		if (rl)
+			*srl = rl;
+	}
+}
+
 /* executes blocking render */
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl= NULL;
 	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
@@ -220,10 +252,13 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	RE_SetReports(re, op->reports);
 
+	/* custom scene and single layer re-render */
+	screen_render_scene_layer_set(op, mainp, &scene, &srl);
+
 	if(is_animation)
 		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
-		RE_BlenderFrame(re, mainp, scene, NULL, camera_override, lay, scene->r.cfra, is_write_still);
+		RE_BlenderFrame(re, mainp, scene, srl, camera_override, lay, scene->r.cfra, is_write_still);
 
 	RE_SetReports(re, NULL);
 
@@ -518,28 +553,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	jobflag= WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS;
 	
-	/* single layer re-render */
-	if(RNA_property_is_set(op->ptr, "layer")) {
-		SceneRenderLayer *rl;
-		Scene *scn;
-		char scene_name[MAX_ID_NAME-2], rl_name[RE_MAXNAME];
+	/* custom scene and single layer re-render */
+	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
-		RNA_string_get(op->ptr, "layer", rl_name);
-		RNA_string_get(op->ptr, "scene", scene_name);
-
-		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
-		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
-		
-		if (scn && rl) {
-			/* camera switch wont have updated */
-			scn->r.cfra= scene->r.cfra;
-			scene_camera_switch_update(scn);
-
-			scene = scn;
-			srl = rl;
-		}
+	if(RNA_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
-	}
 
 	/* job custom data */
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
@@ -611,7 +629,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
-	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
-	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene", "Re-render single layer in this scene");
+	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render (used only when animation is disabled)");
+	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene", "Scene to render, current scene if not specified");
 }
 

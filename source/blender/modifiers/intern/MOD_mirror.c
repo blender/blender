@@ -241,29 +241,12 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	/*handle vgroup stuff*/
 	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&cddm->vertData, CD_MDEFORMVERT)) {
 		MDeformVert *dvert = CustomData_get_layer(&cddm->vertData, CD_MDEFORMVERT);
+		int *flip_map= NULL, flip_map_len= 0;
+
+		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
 		for (i=0; i<dm->numVertData; i++, dvert++) {
-			for(j = 0; j < dvert->totweight; ++j) {
-				char tmpname[32];
-
-				if(dvert->dw[j].def_nr < 0 ||
-				   dvert->dw[j].def_nr >= vector_size)
-					continue;
-
-				def = vector_def[dvert->dw[j].def_nr];
-				strcpy(tmpname, def->name);
-				vertgroup_flip_name(tmpname,0);
-
-				for(b = 0, defb = ob->defbase.first; defb;
-					defb = defb->next, b++)
-				{
-					if(!strcmp(defb->name, tmpname))
-					{
-						dvert->dw[j].def_nr = b;
-						break;
-					}
-				}
-			}
+			defvert_flip(dvert, flip_map, flip_map_len);
 		}
 	}
 	

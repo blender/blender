@@ -253,10 +253,12 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 
 /********************* report missing files operator *********************/
 
-static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
+static int report_missing_files_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+
 	/* run the missing file check */
-	checkMissingFiles(G.main, op->reports);
+	checkMissingFiles(bmain, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -276,13 +278,12 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 
 /********************* find missing files operator *********************/
 
-static int find_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
+static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
-	char *path;
-	
-	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(G.main, path);
-	MEM_freeN(path);
+	Main *bmain= CTX_data_main(C);
+	const char *searchpath= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
+	findMissingFiles(bmain, searchpath, op->reports);
+	MEM_freeN((void *)searchpath);
 
 	return OPERATOR_FINISHED;
 }

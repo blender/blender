@@ -56,6 +56,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
@@ -748,7 +749,7 @@ void make_local_camera(Camera *cam)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -757,28 +758,29 @@ void make_local_camera(Camera *cam)
 	
 	if(cam->id.lib==NULL) return;
 	if(cam->id.us==1) {
-		cam->id.lib= NULL;
-		cam->id.flag= LIB_LOCAL;
-		new_id(&bmain->camera, (ID *)cam, NULL);
+		id_clear_lib_data(bmain, &cam->id);
 		return;
 	}
 	
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(ob->data==cam) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 	
-	if(local && lib==0) {
-		cam->id.lib= NULL;
-		cam->id.flag= LIB_LOCAL;
-		new_id(&bmain->camera, (ID *)cam, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &cam->id);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, cam->id.lib->filepath};
 		Camera *camn= copy_camera(cam);
+
 		camn->id.us= 0;
-		
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &camn->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == cam) {
 				if(ob->id.lib==NULL) {
@@ -912,8 +914,7 @@ void make_local_lamp(Lamp *la)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	Lamp *lan;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 		* - only local users: set flag
@@ -922,30 +923,31 @@ void make_local_lamp(Lamp *la)
 	
 	if(la->id.lib==NULL) return;
 	if(la->id.us==1) {
-		la->id.lib= NULL;
-		la->id.flag= LIB_LOCAL;
-		new_id(&bmain->lamp, (ID *)la, NULL);
+		id_clear_lib_data(bmain, &la->id);
 		return;
 	}
 	
 	ob= bmain->object.first;
 	while(ob) {
 		if(ob->data==la) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 		ob= ob->id.next;
 	}
 	
-	if(local && lib==0) {
-		la->id.lib= NULL;
-		la->id.flag= LIB_LOCAL;
-		new_id(&bmain->lamp, (ID *)la, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &la->id);
 	}
-	else if(local && lib) {
-		lan= copy_lamp(la);
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, la->id.lib->filepath};
+		Lamp *lan= copy_lamp(la);
 		lan->id.us= 0;
 		
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &lan->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==la) {
@@ -1457,7 +1459,7 @@ void make_local_object(Object *ob)
 	Main *bmain= G.main;
 	Scene *sce;
 	Base *base;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -1469,27 +1471,30 @@ void make_local_object(Object *ob)
 	ob->proxy= ob->proxy_from= NULL;
 	
 	if(ob->id.us==1) {
-		ob->id.lib= NULL;
-		ob->id.flag= LIB_LOCAL;
-		new_id(&bmain->object, (ID *)ob, NULL);
+		id_clear_lib_data(bmain, &ob->id);
+		extern_local_object(ob);
 	}
 	else {
-		for(sce= bmain->scene.first; sce && ELEM(0, lib, local); sce= sce->id.next) {
+		for(sce= bmain->scene.first; sce && ELEM(0, is_lib, is_local); sce= sce->id.next) {
 			if(object_in_scene(ob, sce)) {
-				if(sce->id.lib) lib= 1;
-				else local= 1;
+				if(sce->id.lib) is_lib= TRUE;
+				else is_local= TRUE;
 			}
 		}
 
-		if(local && lib==0) {
-			ob->id.lib= NULL;
-			ob->id.flag= LIB_LOCAL;
-			new_id(&bmain->object, (ID *)ob, NULL);
+		if(is_local && is_lib == FALSE) {
+			id_clear_lib_data(bmain, &ob->id);
+			extern_local_object(ob);
 		}
-		else if(local && lib) {
+		else if(is_local && is_lib) {
+			char *bpath_user_data[2]= {bmain->name, ob->id.lib->filepath};
 			Object *obn= copy_object(ob);
+
 			obn->id.us= 0;
 			
+			/* Remap paths of new ID using old library as base. */
+			bpath_traverse_id(bmain, &obn->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 			sce= bmain->scene.first;
 			while(sce) {
 				if(sce->id.lib==NULL) {
@@ -1507,8 +1512,6 @@ void make_local_object(Object *ob)
 			}
 		}
 	}
-	
-	extern_local_object(ob);
 }
 
 /*

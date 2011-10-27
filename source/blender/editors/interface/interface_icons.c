@@ -462,10 +462,10 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 static void init_brush_icons(void)
 {
 
-#define INIT_BRUSH_ICON(icon_id, name)					     \
-	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_ ##name## _png, \
-				     datatoc_ ##name## _png_size, IB_rect);  \
-	def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);	     \
+#define INIT_BRUSH_ICON(icon_id, name)                                         \
+	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_ ##name## _png,       \
+					 datatoc_ ##name## _png_size, IB_rect, "<brush icon>");    \
+	def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);               \
 	IMB_freeImBuf(bbuf);
 	// end INIT_BRUSH_ICON
 
@@ -527,7 +527,7 @@ static void init_internal_icons(void)
 		}
 	}
 	if(bbuf==NULL)
-		bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+		bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect, "<blender icons>");
 
 	if(bbuf) {
 		/* free existing texture if any */

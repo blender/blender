@@ -541,7 +541,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	BLI_split_file_part(value, elem->name, sizeof(elem->name));
 }*/
 
-static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 

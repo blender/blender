@@ -115,18 +115,20 @@ void defvert_sync (MDeformVert *dvert_r, const MDeformVert *dvert, int use_verif
 }
 
 /* be sure all flip_map values are valid */
-void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const int *flip_map, int use_verify)
+void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const int *flip_map, const int flip_map_len, const int use_verify)
 {
-	if(dvert->totweight && dvert_r->totweight) {
+	if (dvert->totweight && dvert_r->totweight) {
 		int i;
 		MDeformWeight *dw;
-		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
-			MDeformWeight *dw_r;
-			if(use_verify)	dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
-			else			dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
+		for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
+			if (dw->def_nr < flip_map_len) {
+				MDeformWeight *dw_r;
+				if(use_verify)	dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
+				else			dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
 
-			if(dw_r) {
-				dw_r->weight= dw->weight;
+				if(dw_r) {
+					dw_r->weight= dw->weight;
+				}
 			}
 		}
 	}
@@ -164,14 +166,16 @@ void defvert_normalize (MDeformVert *dvert)
 	}
 }
 
-void defvert_flip (MDeformVert *dvert, const int *flip_map)
+void defvert_flip (MDeformVert *dvert, const int *flip_map, const int flip_map_len)
 {
 	MDeformWeight *dw;
 	int i;
 
-	for(dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++)
-		if(flip_map[dw->def_nr] >= 0)
+	for(dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++) {
+		if((dw->def_nr < flip_map_len) && (flip_map[dw->def_nr] >= 0)) {
 			dw->def_nr= flip_map[dw->def_nr];
+		}
+	}
 }
 
 
@@ -251,17 +255,17 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 }
 
 /* note, must be freed */
-int *defgroup_flip_map(Object *ob, int use_default)
+int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 {
 	bDeformGroup *dg;
-	int totdg= BLI_countlist(&ob->defbase);
+	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
 
 	if(totdg==0) {
 		return NULL;
 	}
 	else {
 		char name[sizeof(dg->name)];
-		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), "get_defgroup_flip_map");
+		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
 
 		memset(map, -1, totdg * sizeof(int));
 

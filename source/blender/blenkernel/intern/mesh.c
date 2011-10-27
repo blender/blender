@@ -45,6 +45,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -575,57 +576,42 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 	return bm;
 }
 
-static void make_local_tface(Main *bmain, Mesh *me)
-{
-	MTFace *tface;
-	MTexPoly *txface;
-	Image *ima;
-	int a, i;
-	
-	for(i=0; i<me->pdata.totlayer; i++) {
-		if(me->pdata.layers[i].type == CD_MTEXPOLY) {
-			txface= (MTexPoly*)me->fdata.layers[i].data;
-			
-			for(a=0; a<me->totpoly; a++, txface++) {
-				/* special case: ima always local immediately */
-				if(txface->tpage) {
-					ima= txface->tpage;
-					if(ima->id.lib) {
-						ima->id.lib= 0;
-						ima->id.flag= LIB_LOCAL;
-						new_id(0, (ID *)ima, 0);
-					}
-				}
-			}
-		}
-	}
-
-	for(i=0; i<me->fdata.totlayer; i++) {
-		if(me->fdata.layers[i].type == CD_MTFACE) {
-			tface= (MTFace*)me->fdata.layers[i].data;
-			
-			for(a=0; a<me->totface; a++, tface++) {
-				/* special case: ima always local immediately */
-				if(tface->tpage) {
-					ima= tface->tpage;
-					if(ima->id.lib) {
-						ima->id.lib= NULL;
-						ima->id.flag= LIB_LOCAL;
-						new_id(&bmain->image, (ID *)ima, NULL);
-					}
-				}
-			}
-		}
-	}
-}
-
-static void expand_local_mesh(Main *bmain, Mesh *me)
+static void expand_local_mesh(Mesh *me)
 {
 	id_lib_extern((ID *)me->texcomesh);
 
 	if(me->mtface) {
-		/* why is this an exception? - should not really make local when extern'ing - campbell */
-		make_local_tface(bmain, me);
+		int a, i;
+
+		for(i=0; i<me->pdata.totlayer; i++) {
+			if(me->pdata.layers[i].type == CD_MTEXPOLY) {
+				MTexPoly *txface= (MTexPoly*)me->fdata.layers[i].data;
+
+				for(a=0; a<me->totpoly; a++, txface++) {
+					/* special case: ima always local immediately */
+					if(txface->tpage) {
+						if(txface->tpage) {
+							id_lib_extern((ID *)txface->tpage);
+						}
+					}
+				}
+			}
+		}
+
+		for(i=0; i<me->fdata.totlayer; i++) {
+			if(me->fdata.layers[i].type == CD_MTFACE) {
+				MTFace *tface= (MTFace*)me->fdata.layers[i].data;
+
+				for(a=0; a<me->totface; a++, tface++) {
+					/* special case: ima always local immediately */
+					if(tface->tpage) {
+						if(tface->tpage) {
+							id_lib_extern((ID *)tface->tpage);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if(me->mat) {
@@ -650,7 +636,7 @@ void make_local_mesh(Mesh *me)
 		me->id.flag= LIB_LOCAL;
 
 		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+		expand_local_mesh(me);
 		return;
 	}
 
@@ -666,7 +652,7 @@ void make_local_mesh(Mesh *me)
 		me->id.flag= LIB_LOCAL;
 
 		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+		expand_local_mesh(me);
 	}
 	else if(local && lib) {
 		Mesh *men= copy_mesh(me);

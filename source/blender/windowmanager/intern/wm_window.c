@@ -648,7 +648,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 //				window_handle(win, INPUTCHANGE, win->active);
 				
 				/* bad ghost support for modifier keys... so on activate we set the modifiers again */
-				kdata.ascii= 0;
+				kdata.ascii= '\0';
+				kdata.utf8_buf[0]= '\0';
 				if (win->eventstate->shift && !query_qual(SHIFT)) {
 					kdata.key= GHOST_kKeyLeftShift;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);

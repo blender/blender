@@ -377,7 +377,7 @@ endmacro()
 # needs to be removed for some external libs which we dont maintain.
 
 # utility macro
-macro(remove_flag
+macro(remove_cc_flag
 	flag)
 
 	string(REGEX REPLACE ${flag} "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -394,16 +394,27 @@ macro(remove_flag
 
 endmacro()
 
+macro(add_cc_flag
+	flag)
+
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+endmacro()
+
 macro(remove_strict_flags)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
-		remove_flag("-Wstrict-prototypes")
-		remove_flag("-Wunused-parameter")
-		remove_flag("-Wwrite-strings")
-		remove_flag("-Wundef")
-		remove_flag("-Wshadow")
-		remove_flag("-Werror=[^ ]+")
-		remove_flag("-Werror")
+		remove_cc_flag("-Wstrict-prototypes")
+		remove_cc_flag("-Wunused-parameter")
+		remove_cc_flag("-Wwrite-strings")
+		remove_cc_flag("-Wundef")
+		remove_cc_flag("-Wshadow")
+		remove_cc_flag("-Werror=[^ ]+")
+		remove_cc_flag("-Werror")
+
+		# negate flags implied by '-Wall'
+		add_cc_flag("-Wno-unused-parameter")
+		add_cc_flag("-Wno-unused-but-set-variable")
 	endif()
 
 	if(MSVC)

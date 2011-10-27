@@ -50,6 +50,7 @@
 #include "BLI_math.h"		
 #include "BLI_listbase.h"		
 #include "BLI_utildefines.h"
+#include "BLI_bpath.h"
 
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
@@ -285,8 +286,7 @@ void make_local_material(Material *ma)
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb;
-	Material *man;
-	int a, local=0, lib=0;
+	int a, is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 		* - only local users: set flag
@@ -294,23 +294,24 @@ void make_local_material(Material *ma)
 		*/
 	
 	if(ma->id.lib==NULL) return;
-	if(ma->id.us==1) {
-		ma->id.lib= NULL;
-		ma->id.flag= LIB_LOCAL;
 
-		new_id(&bmain->mat, (ID *)ma, NULL);
+	/* One local user; set flag and return. */
+	if(ma->id.us==1) {
+		id_clear_lib_data(bmain, &ma->id);
 		extern_local_material(ma);
 		return;
 	}
-	
+
+	/* Check which other IDs reference this one to determine if it's used by
+	   lib or local */
 	/* test objects */
 	ob= bmain->object.first;
 	while(ob) {
 		if(ob->mat) {
 			for(a=0; a<ob->totcol; a++) {
 				if(ob->mat[a]==ma) {
-					if(ob->id.lib) lib= 1;
-					else local= 1;
+					if(ob->id.lib) is_lib= TRUE;
+					else is_local= TRUE;
 				}
 			}
 		}
@@ -322,8 +323,8 @@ void make_local_material(Material *ma)
 		if(me->mat) {
 			for(a=0; a<me->totcol; a++) {
 				if(me->mat[a]==ma) {
-					if(me->id.lib) lib= 1;
-					else local= 1;
+					if(me->id.lib) is_lib= TRUE;
+					else is_local= TRUE;
 				}
 			}
 		}
@@ -335,8 +336,8 @@ void make_local_material(Material *ma)
 		if(cu->mat) {
 			for(a=0; a<cu->totcol; a++) {
 				if(cu->mat[a]==ma) {
-					if(cu->id.lib) lib= 1;
-					else local= 1;
+					if(cu->id.lib) is_lib= TRUE;
+					else is_local= TRUE;
 				}
 			}
 		}
@@ -348,26 +349,29 @@ void make_local_material(Material *ma)
 		if(mb->mat) {
 			for(a=0; a<mb->totcol; a++) {
 				if(mb->mat[a]==ma) {
-					if(mb->id.lib) lib= 1;
-					else local= 1;
+					if(mb->id.lib) is_lib= TRUE;
+					else is_local= TRUE;
 				}
 			}
 		}
 		mb= mb->id.next;
 	}
-	
-	if(local && lib==0) {
-		ma->id.lib= NULL;
-		ma->id.flag= LIB_LOCAL;
 
-		new_id(&bmain->mat, (ID *)ma, NULL);
+	/* Only local users. */
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &ma->id);
 		extern_local_material(ma);
 	}
-	else if(local && lib) {
-		
-		man= copy_material(ma);
+	/* Both user and local, so copy. */
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, ma->id.lib->filepath};
+		Material *man= copy_material(ma);
+
 		man->id.us= 0;
-		
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &man->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 		/* do objects */
 		ob= bmain->object.first;
 		while(ob) {

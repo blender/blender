@@ -161,22 +161,19 @@ static void clear_global(void)
 	G.main= NULL;
 }
 
+static int clean_paths_visit_cb(void *UNUSED(userdata), char *path_dst, const char *path_src)
+{
+	strcpy(path_dst, path_src);
+	BLI_clean(path_dst);
+	return (strcmp(path_dst, path_src) == 0) ? FALSE : TRUE;
+}
+
 /* make sure path names are correct for OS */
 static void clean_paths(Main *main)
 {
-	struct BPathIterator *bpi;
-	char filepath_expanded[1024];
 	Scene *scene;
 
-	for(BLI_bpathIterator_init(&bpi, main, main->name, BPATH_USE_PACKED); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
-		BLI_bpathIterator_getPath(bpi, filepath_expanded);
-
-		BLI_clean(filepath_expanded);
-
-		BLI_bpathIterator_setPath(bpi, filepath_expanded);
-	}
-
-	BLI_bpathIterator_free(bpi);
+	bpath_traverse_main(main, clean_paths_visit_cb, 0, NULL);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
 		BLI_clean(scene->r.pic);

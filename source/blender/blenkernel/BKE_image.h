@@ -61,7 +61,9 @@ int		BKE_imtype_is_movie(int imtype);
 struct anim *openanim(char * name, int flags, int streamindex);
 
 void	image_de_interlace(struct Image *ima, int odd);
-	
+
+void	make_local_image(struct Image *ima);
+
 void	tag_image_time(struct Image *ima);
 void	free_old_images(void);
 

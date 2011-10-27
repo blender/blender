@@ -224,7 +224,7 @@ void make_local_key(Key *key)
 	if(key==NULL) return;
 	
 	key->id.lib= NULL;
-	new_id(NULL, (ID *)key, NULL);
+	new_id(NULL, &key->id, NULL);
 }
 
 /* Sort shape keys and Ipo curves after a change.  This assumes that at most

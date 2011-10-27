@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bpath.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -136,33 +137,33 @@ void free_armature(bArmature *arm)
 void make_local_armature(bArmature *arm)
 {
 	Main *bmain= G.main;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 	Object *ob;
 
 	if (arm->id.lib==NULL) return;
 	if (arm->id.us==1) {
-		arm->id.lib= NULL;
-		arm->id.flag= LIB_LOCAL;
-		new_id(&bmain->armature, (ID*)arm, NULL);
+		id_clear_lib_data(bmain, &arm->id);
 		return;
 	}
 
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(ob->data == arm) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		arm->id.lib= NULL;
-		arm->id.flag= LIB_LOCAL;
-		new_id(&bmain->armature, (ID *)arm, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &arm->id);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, arm->id.lib->filepath};
 		bArmature *armn= copy_armature(arm);
 		armn->id.us= 0;
-		
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &armn->id, bpath_relocate_visitor, 0, bpath_user_data);
+
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == arm) {
 				if(ob->id.lib==NULL) {

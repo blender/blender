@@ -625,9 +625,9 @@ static void editvert_mirror_update(Object *ob, BMVert *eve, int def_nr, int inde
 		if(dvert_dst) {
 			if(def_nr == -1) {
 				/* all vgroups, add groups where neded  */
-
-				int *flip_map= defgroup_flip_map(ob, 1);
-				defvert_sync_mapped(dvert_dst, dvert_src, flip_map, 1);
+				int flip_map_len;
+				int *flip_map= defgroup_flip_map(ob, &flip_map_len, TRUE);
+				defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, TRUE);
 				MEM_freeN(flip_map);
 			}
 			else {

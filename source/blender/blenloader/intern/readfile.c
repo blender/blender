@@ -3438,6 +3438,9 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	MTFace *tf= mtface;
 	int i;
 
+	/* Add pseudo-references (not fake users!) to images used by texface. A
+	   little bogus; it would be better if each mesh consistently added one ref
+	   to each image it used. - z0r */
 	for (i=0; i<totface; i++, tf++) {
 		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
 		if(tf->tpage && tf->tpage->id.us==0)

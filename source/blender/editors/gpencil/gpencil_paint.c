@@ -384,9 +384,10 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 		pt->y= mval[1];
 		pt->pressure= pressure;
 
-		/* if there's stroke fir this poly line session add (or replace last) point
-		   to stroke. This allows to draw lines more interactively (see new segment
-		   during mouse slide, i.e.) */
+		/* if there's stroke for this poly line session add (or replace last) point
+		 * to stroke. This allows to draw lines more interactively (see new segment
+		 * during mouse slide, i.e.) 
+		 */
 		if (p->flags & GP_PAINTFLAG_STROKEADDED) {
 			bGPDstroke *gps= p->gpf->strokes.last;
 			bGPDspoint *pts;
@@ -400,7 +401,8 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 			pts = &gps->points[gps->totpoints-1];
 
 			/* special case for poly lines: normally, depth is needed only when creating new stroke from buffer,
-			   but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates */
+			 * but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates 
+			 */
 			if (gpencil_project_check(p)) {
 				View3D *v3d= p->sa->spacedata.first;
 
@@ -1121,7 +1123,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 		p->gpd= *gpd_ptr;
 	}
 	
-	if(ED_gpencil_session_active()==0) {
+	if (ED_gpencil_session_active()==0) {
 		/* initialize undo stack,
 		   also, existing undo stack would make buffer drawn */
 		gpencil_undo_init(p->gpd);
@@ -1692,9 +1694,11 @@ static int gpencil_area_exists(bContext *C, ScrArea *satest)
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa;
 	
-	for(sa= sc->areabase.first; sa; sa= sa->next)
-		if(sa==satest)
+	for (sa= sc->areabase.first; sa; sa= sa->next) {
+		if (sa==satest)
 			return 1;
+	}
+	
 	return 0;
 }
 
@@ -1780,9 +1784,9 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			/* basically, this should be mouse-button up = end stroke 
 			 * BUT what happens next depends on whether we 'painting sessions' is enabled
 			 */
-			sketch|= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
-			/* polyline drawig is also 'sketching' -- all knots should be added during one session */
-			sketch|= p->paintmode == GP_PAINTMODE_DRAW_POLY;
+			sketch |= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
+			/* polyline drawing is also 'sketching' -- all knots should be added during one session */
+			sketch |= p->paintmode == GP_PAINTMODE_DRAW_POLY;
 
 			if (sketch) {
 				/* end stroke only, and then wait to resume painting soon */
@@ -1803,13 +1807,13 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else if (event->val == KM_PRESS) {
 			/* not painting, so start stroke (this should be mouse-button down) */
-			
 			p= gpencil_stroke_begin(C, op);
 
 			if (p->status == GP_STATUS_ERROR) {
 				estate = OPERATOR_CANCELLED;
 			}
-		} else {
+		} 
+		else {
 			p->status = GP_STATUS_IDLING;
 		}
 	}
@@ -1844,7 +1848,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
-	if(0==gpencil_area_exists(C, p->sa))
+	if (0==gpencil_area_exists(C, p->sa))
 		estate= OPERATOR_CANCELLED;
 	else
 		/* update status indicators - cursor, header, etc. */
