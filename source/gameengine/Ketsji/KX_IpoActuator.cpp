@@ -382,7 +382,8 @@ void KX_IpoActuator::ResetStartTime()
 	this->m_starttime = -2.0*fabs(this->m_endframe - this->m_startframe) - 1.0;
 }
 
-int KX_IpoActuator::string2mode(char* modename) {
+int KX_IpoActuator::string2mode(const char *modename)
+{
 	IpoActType res = KX_ACT_IPO_NODEF;
 
 	if (strcmp(modename, S_KX_ACT_IPO_PLAY_STRING)==0) { 

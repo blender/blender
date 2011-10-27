@@ -32,7 +32,7 @@
 #ifndef __KX_CONVERTACTUATORS_H
 #define __KX_CONVERTACTUATORS_H
 
-void BL_ConvertActuators(char* maggiename,
+void BL_ConvertActuators(const char* maggiename,
 	 struct Object* blenderobject,
 	 class KX_GameObject* gameobj,
 	 class SCA_LogicManager* logicmgr,
