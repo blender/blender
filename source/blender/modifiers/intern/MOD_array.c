@@ -392,6 +392,15 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(count < 1)
 		count = 1;
 
+	/* BMESH_TODO: bumping up the stack level avoids computing the normals
+	   after every top-level operator execution (and this modifier has the
+	   potential to execute a *lot* of top-level BMOps. There should be a
+	   cleaner way to do this. One possibility: a "mirror" BMOp would
+	   certainly help by compressing it all into one top-level BMOp that
+	   executes a lot of second-level BMOps. */
+	BMO_push(em->bm, NULL);
+	bmesh_begin_edit(em->bm, 0);
+
 	BMO_Init_Op(&weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
@@ -473,6 +482,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMO_Exec_Op(em->bm, &weldop);
 
 	BMO_Finish_Op(em->bm, &weldop);
+
+	/* Bump the stack level back down to match the adjustment up above */
+	bmesh_end_edit(em->bm, 0);
+	BMO_pop(em->bm);
 
 	BMEdit_RecalcTesselation(em);
 	cddm = CDDM_from_BMEditMesh(em, NULL, 0);
