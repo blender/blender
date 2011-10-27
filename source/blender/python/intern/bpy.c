@@ -91,12 +91,16 @@ static int bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), cons
 }
 
 PyDoc_STRVAR(bpy_blend_paths_doc,
-".. function:: blend_paths(absolute=False)\n"
+".. function:: blend_paths(absolute=False, packed=False, local=False)\n"
 "\n"
 "   Returns a list of paths to external files referenced by the loaded .blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
+"   :arg packed: When true skip file paths for packed data.\n"
+"   :type packed: boolean\n"
+"   :arg local: When true skip linked library paths.\n"
+"   :type local: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strings\n"
 );
@@ -105,15 +109,20 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	int flag= 0;
 	PyObject *list;
 
-	int absolute= 0;
-	static const char *kwlist[]= {"absolute", NULL};
+	int absolute= FALSE;
+	int packed=   FALSE;
+	int local=    FALSE;
+	static const char *kwlist[]= {"absolute", "packed", "local", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ii:blend_paths",
+	                                 (char **)kwlist, &absolute, &packed))
+	{
 		return NULL;
-
-	if (absolute) {
-		flag |= BPATH_TRAVERSE_ABS;
 	}
+
+	if (absolute) flag |= BPATH_TRAVERSE_ABS;
+	if (!packed)  flag |= BPATH_TRAVERSE_SKIP_PACKED;
+	if (local)    flag |= BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	list= PyList_New(0);
 
@@ -137,10 +146,10 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	
 	/* stupid string compare */
-	if     (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
-	else if (!strcmp(type, "CONFIG"))   folder_id= BLENDER_USER_CONFIG;
-	else if (!strcmp(type, "SCRIPTS"))  folder_id= BLENDER_USER_SCRIPTS;
-	else if (!strcmp(type, "AUTOSAVE")) folder_id= BLENDER_USER_AUTOSAVE;
+	if      (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
+	else if (!strcmp(type, "CONFIG"))    folder_id= BLENDER_USER_CONFIG;
+	else if (!strcmp(type, "SCRIPTS"))   folder_id= BLENDER_USER_SCRIPTS;
+	else if (!strcmp(type, "AUTOSAVE"))  folder_id= BLENDER_USER_AUTOSAVE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;

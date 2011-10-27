@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Campbell barton
+ * Contributor(s): Campbell barton, Alex Fraser
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -29,6 +29,12 @@
  *  \ingroup bli
  */
 
+/* TODO,
+ * currently there are some cases we dont support.
+ * - passing output paths to the visitor?, like render out.
+ * - passing sequence strips with many images.
+ * - passing directory paths - visitors dont know which path is a dir or a file.
+ * */
 
 #include <sys/stat.h>
 
@@ -46,27 +52,32 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_scene_types.h" /* to get the current frame */
+#include "DNA_brush_types.h"
 #include "DNA_image_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim.h"
+#include "DNA_object_force.h"
+#include "DNA_object_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_image.h" /* so we can check the image's type */
-#include "BKE_sequencer.h"
-#include "BKE_main.h"
-#include "BKE_utildefines.h"
-#include "BKE_report.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_report.h"
+#include "BKE_sequencer.h"
+#include "BKE_utildefines.h"
+#include "BKE_image.h" /* so we can check the image's type */
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
@@ -349,29 +360,96 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, int flag, void *userdata)
+void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *userdata)
 {
 	Image *ima;
 	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? (id->lib ? id->lib->filepath : bmain->name) : NULL;
 
+	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
+		return;
+	}
 
 	switch(GS(id->name)) {
 	case ID_IM:
-		ima = (Image *)id;
-		if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-			rewrite_path_fixed(ima->name, visit_cb, absbase, userdata);
+		ima= (Image *)id;
+		if (ima->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				rewrite_path_fixed(ima->name, visit_cb, absbase, userdata);
+			}
+		}
+		break;
+	case ID_BR:
+		{
+			Brush *brush= (Brush *)id;
+			if (brush->icon_filepath[0]) {
+				rewrite_path_fixed(brush->icon_filepath, visit_cb, absbase, userdata);
+			}
+		}
 		break;
 	case ID_OB:
+
+#define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
+	{                                                                          \
+		PointCache *cache;                                                     \
+		for(cache= (ptcaches).first; cache; cache= cache->next) {              \
+			if(cache->flag & PTCACHE_DISK_CACHE) {                             \
+				rewrite_path_fixed(cache->path, visit_cb, absbase, userdata);  \
+			}                                                                  \
+		}                                                                      \
+	}                                                                          \
+
+
 		{
 			Object *ob= (Object *)id;
+			ModifierData *md;
+			ParticleSystem *psys;
+
+
+			/* do via modifiers instead */
+#if 0
 			if (ob->fluidsimSettings) {
 				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, userdata);
 			}
-			/* TODO: add modifiers, e.g. point cache for particles. */
+#endif
+
+			for (md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fluidmd= (FluidsimModifierData *)md;
+					if (fluidmd->fss) {
+						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, userdata);
+					}
+				}
+				else if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd= (SmokeModifierData *)md;
+					if(smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
+					}
+				}
+				else if (md->type==eModifierType_Cloth) {
+					ClothModifierData *clmd= (ClothModifierData*) md;
+					BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
+				}
+			}
+
+			if (ob->soft) {
+				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
+			}
+
+			for (psys= ob->particlesystem.first; psys; psys= psys->next) {
+				BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
+			}
 		}
+
+#undef BPATH_TRAVERSE_POINTCACHE
+
 		break;
 	case ID_SO:
-		rewrite_path_fixed(((bSound *)id)->name, visit_cb, absbase, userdata);
+		{
+			bSound *sound= (bSound *)id;
+			if (sound->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+				rewrite_path_fixed(sound->name, visit_cb, absbase, userdata);
+			}
+		}
 		break;
 	case ID_TXT:
 		if (((Text*)id)->name) {
@@ -379,8 +457,13 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, int flag, voi
 		}
 		break;
 	case ID_VF:
-		if (strcmp(((VFont*)id)->name, FO_BUILTIN_NAME) != 0) {
-			rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, userdata);
+		{
+			VFont *vf= (VFont *)id;
+			if (vf->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
+					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, userdata);
+				}
+			}
 		}
 		break;
 	case ID_TE:
@@ -405,8 +488,18 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, int flag, voi
 
 				SEQ_BEGIN(scene->ed, seq) {
 					if (SEQ_HAS_PATH(seq)) {
-						if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
+						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
 							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name, visit_cb, absbase, userdata);
+						}
+						else if (seq->type == SEQ_IMAGE) {
+							/* might want an option not to loop over all strips */
+							StripElem *se= seq->strip->stripdata;
+							int len= MEM_allocN_len(se) / sizeof(*se);
+							int i;
+
+							for(i= 0; i < len; i++, se++) {
+								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, userdata);
+							}
 						}
 						else {
 							/* simple case */
@@ -438,14 +531,13 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, int flag, voi
 			}
 		}
 		break;
-	/* TODO: add other ID types e.g. object (modifiers) */
 	default:
 		/* Nothing to do for other IDs that don't contain file paths. */
 		break;
 	}
 }
 
-void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, int flag, void *userdata)
+void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata)
 {
 	ID *id;
 	for(id= lb->first; id; id= id->next) {
@@ -453,7 +545,7 @@ void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, in
 	}
 }
 
-void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, int flag, void *userdata)
+void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a= set_listbasepointers(bmain, lbarray);
@@ -472,7 +564,7 @@ int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_sr
 	if (strncmp(base_old, "//", 2) == 0) {
 		printf("%s: error, old base path '%s' is not absolute.\n",
 		       __func__, base_old);
-		return 0;
+		return FALSE;
 	}
 
 	/* Make referenced file absolute. This would be a side-effect of
@@ -485,10 +577,10 @@ int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_sr
 		BLI_cleanup_file(base_new, filepath);
 		BLI_path_rel(filepath, base_new);
 		BLI_strncpy(path_dst, filepath, FILE_MAX);
-		return 1;
+		return TRUE;
 	}
 	else {
 		/* Path was not relative to begin with. */
-		return 0;
+		return FALSE;
 	}
 }

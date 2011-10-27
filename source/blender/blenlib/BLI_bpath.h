@@ -42,12 +42,14 @@ struct ID;
    path has changed, and in that case, should write the result to pathOut. */
 typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, int flag, void *userdata);
-void bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, int flag, void *userdata);
-void bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, int flag, void *userdata);
+void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
+void bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
+void bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
 int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
-#define BPATH_TRAVERSE_ABS 1 /* convert paths to absolute */
+#define BPATH_TRAVERSE_ABS          (1<<0) /* convert paths to absolute */
+#define BPATH_TRAVERSE_SKIP_LIBRARY (1<<2) /* skip library paths */
+#define BPATH_TRAVERSE_SKIP_PACKED  (1<<3) /* skip packed data */
 
 /* high level funcs */
 
@@ -56,7 +58,5 @@ void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
 void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void findMissingFiles(struct Main *bmain, const char *searchpath, struct ReportList *reports);
-
-#define BPATH_USE_PACKED 1
 
 #endif // BLI_BPATH_H
