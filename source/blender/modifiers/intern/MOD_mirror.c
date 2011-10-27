@@ -108,7 +108,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int *flip_map= NULL;
+	int *flip_map= NULL, flip_map_len= 0;
 	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
@@ -121,7 +121,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 
 	if (do_vgroup_mirr) {
-		flip_map= defgroup_flip_map(ob, 0);
+		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		if(flip_map == NULL)
 			do_vgroup_mirr= 0;
 	}
@@ -187,7 +187,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			if (do_vgroup_mirr) {
 				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
 				if(dvert) {
-					defvert_flip(dvert, flip_map);
+					defvert_flip(dvert, flip_map, flip_map_len);
 				}
 			}
 
