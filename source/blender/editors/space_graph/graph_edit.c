@@ -727,11 +727,10 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	if(ac.reports==NULL) {
-		ac.reports= op->reports;
-	}
+	/* ac.reports by default will be the global reports list, which won't show warnings */
+	ac.reports= op->reports;
 
-	/* paste keyframes */
+	/* paste keyframes - non-zero return means an error occurred while trying to paste */
 	if (paste_graph_keys(&ac, offset_mode, merge_mode)) {
 		return OPERATOR_CANCELLED;
 	}
