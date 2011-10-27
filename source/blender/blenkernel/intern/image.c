@@ -391,7 +391,7 @@ void make_local_image(struct Image *ima)
 		iman->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(&iman->id, bpath_relocate_visitor, user_data);
+		bpath_traverse_id(bmain, &iman->id, bpath_relocate_visitor, 0, user_data);
 
 		tex= bmain->tex.first;
 		while(tex) {

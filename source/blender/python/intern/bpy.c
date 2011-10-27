@@ -81,6 +81,15 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	return ret;
 }
 
+static int bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
+{
+	PyObject *list= (PyObject *)userdata;
+	PyObject *item= PyUnicode_DecodeFSDefault(path_src);
+	PyList_Append(list, item);
+	Py_DECREF(item);
+	return FALSE; /* never edits the path */
+}
+
 PyDoc_STRVAR(bpy_blend_paths_doc,
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
@@ -93,11 +102,8 @@ PyDoc_STRVAR(bpy_blend_paths_doc,
 );
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	struct BPathIterator *bpi;
-	PyObject *list, *st; /* stupidly big string to be safe */
-	/* be sure there is low chance of the path being too short */
-	char filepath_expanded[1024];
-	const char *lib;
+	int flag= 0;
+	PyObject *list;
 
 	int absolute= 0;
 	static const char *kwlist[]= {"absolute", NULL};
@@ -105,29 +111,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
 		return NULL;
 
-	list= PyList_New(0);
-
-	for (BLI_bpathIterator_init(&bpi, G.main, G.main->name, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
-		/* build the list */
-		if (absolute) {
-			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
-		}
-		else {
-			lib= BLI_bpathIterator_getLib(bpi);
-			if (lib && (BLI_path_cmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
-				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
-			}
-			else {
-				BLI_bpathIterator_getPath(bpi, filepath_expanded);
-			}
-		}
-		st= PyUnicode_DecodeFSDefault(filepath_expanded);
-
-		PyList_Append(list, st);
-		Py_DECREF(st);
+	if (absolute) {
+		flag |= BPATH_TRAVERSE_ABS;
 	}
 
-	BLI_bpathIterator_free(bpi);
+	list= PyList_New(0);
+
+	bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
 
 	return list;
 }

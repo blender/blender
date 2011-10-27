@@ -34,30 +34,20 @@
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
 
-struct BPathIterator;
 struct ReportList;
 struct Main;
 struct ID;
-
-void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir, const int flag);
-void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
-unsigned int	BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getBasePath		(struct BPathIterator *bpi);
-void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
-int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
-void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
-void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
-void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path);
 
 /* Function that does something with an ID's file path. Should return 1 if the
    path has changed, and in that case, should write the result to pathOut. */
 typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void bpath_traverse_id(struct ID *id, BPathVisitor visit, void *userdata);
+void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, int flag, void *userdata);
+void bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, int flag, void *userdata);
+void bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, int flag, void *userdata);
 int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
+
+#define BPATH_TRAVERSE_ABS 1 /* convert paths to absolute */
 
 /* high level funcs */
 
@@ -65,7 +55,7 @@ int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_s
 void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
 void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
-void findMissingFiles(struct Main *bmain, const char *str);
+void findMissingFiles(struct Main *bmain, const char *searchpath, struct ReportList *reports);
 
 #define BPATH_USE_PACKED 1
 
