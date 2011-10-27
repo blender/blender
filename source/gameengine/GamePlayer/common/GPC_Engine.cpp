@@ -131,7 +131,7 @@ GPC_Engine::~GPC_Engine()
 }
 
 
-bool GPC_Engine::Start(char *filename)
+bool GPC_Engine::Start(const char *filename)
 {
 	ReportList reports;
 	BlendFileData *bfd;
