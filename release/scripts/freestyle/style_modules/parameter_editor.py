@@ -505,7 +505,7 @@ class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
 
 def join_unary_predicates(upred_list, bpred):
     if not upred_list:
-        return TrueUP1D()
+        return None
     upred = upred_list[0]
     for p in upred_list[1:]:
         upred = bpred(upred, p)
@@ -835,47 +835,36 @@ def process(layer_name, lineset_name):
     # prepare selection criteria by edge types
     if lineset.select_by_edge_types:
         edge_type_criteria = []
-        if lineset.edge_type_combination == "OR":
-            flags = Nature.NO_FEATURE
-            if lineset.select_silhouette:
-                flags |= Nature.SILHOUETTE
-            if lineset.select_border:
-                flags |= Nature.BORDER
-            if lineset.select_crease:
-                flags |= Nature.CREASE
-            if lineset.select_ridge:
-                flags |= Nature.RIDGE
-            if lineset.select_valley:
-                flags |= Nature.VALLEY
-            if lineset.select_suggestive_contour:
-                flags |= Nature.SUGGESTIVE_CONTOUR
-            if lineset.select_material_boundary:
-                flags |= Nature.MATERIAL_BOUNDARY
-            if lineset.select_edge_mark:
-                flags |= Nature.EDGE_MARK
-            if flags != Nature.NO_FEATURE:
-                edge_type_criteria.append(pyNatureUP1D(flags))
-        else:
-            if lineset.select_silhouette:
-                edge_type_criteria.append(pyNatureUP1D(Nature.SILHOUETTE))
-            if lineset.select_border:
-                edge_type_criteria.append(pyNatureUP1D(Nature.BORDER))
-            if lineset.select_crease:
-                edge_type_criteria.append(pyNatureUP1D(Nature.CREASE))
-            if lineset.select_ridge:
-                edge_type_criteria.append(pyNatureUP1D(Nature.RIDGE))
-            if lineset.select_valley:
-                edge_type_criteria.append(pyNatureUP1D(Nature.VALLEY))
-            if lineset.select_suggestive_contour:
-                edge_type_criteria.append(pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR))
-            if lineset.select_material_boundary:
-                edge_type_criteria.append(pyNatureUP1D(Nature.MATERIAL_BOUNDARY))
-            if lineset.select_edge_mark:
-                edge_type_criteria.append(pyNatureUP1D(Nature.EDGE_MARK))
+        if lineset.select_silhouette:
+            upred = pyNatureUP1D(Nature.SILHOUETTE)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_silhouette else upred)
+        if lineset.select_border:
+            upred = pyNatureUP1D(Nature.BORDER)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_border else upred)
+        if lineset.select_crease:
+            upred = pyNatureUP1D(Nature.CREASE)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_crease else upred)
+        if lineset.select_ridge:
+            upred = pyNatureUP1D(Nature.RIDGE)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_ridge else upred)
+        if lineset.select_valley:
+            upred = pyNatureUP1D(Nature.VALLEY)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_valley else upred)
+        if lineset.select_suggestive_contour:
+            upred = pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_suggestive_contour else upred)
+        if lineset.select_material_boundary:
+            upred = pyNatureUP1D(Nature.MATERIAL_BOUNDARY)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_material_boundary else upred)
+        if lineset.select_edge_mark:
+            upred = pyNatureUP1D(Nature.EDGE_MARK)
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_edge_mark else upred)
         if lineset.select_contour:
-            edge_type_criteria.append(ContourUP1D())
+            upred = ContourUP1D()
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_contour else upred)
         if lineset.select_external_contour:
-            edge_type_criteria.append(ExternalContourUP1D())
+            upred = ExternalContourUP1D()
+            edge_type_criteria.append(NotUP1D(upred) if lineset.exclude_external_contour else upred)
         if lineset.edge_type_combination == "OR":
             upred = join_unary_predicates(edge_type_criteria, OrUP1D)
         else:

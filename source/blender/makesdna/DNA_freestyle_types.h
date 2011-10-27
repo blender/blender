@@ -61,7 +61,7 @@ struct FreestyleLineStyle;
 #define FREESTYLE_SEL_IMAGE_BORDER  8
 #define FREESTYLE_SEL_FACE_MARK     16
 
-/* FreestyleLineSet::fedge_types */
+/* FreestyleLineSet::edge_types, exclude_edge_types */
 #define FREESTYLE_FE_SILHOUETTE          1
 #define FREESTYLE_FE_BORDER              2
 #define FREESTYLE_FE_CREASE              4
@@ -98,7 +98,8 @@ typedef struct FreestyleLineSet {
 	short qi; /* quantitative invisibility */
 	short pad1;
 	int qi_start, qi_end;
-	int edge_types; /* feature edge types */
+	int edge_types, exclude_edge_types; /* feature edge types */
+	int pad2;
 	struct Group *group; /* group of target objects */
 
 	struct FreestyleLineStyle *linestyle;

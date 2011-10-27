@@ -1969,6 +1969,66 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edge Mark", "Select edge marks.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "exclude_silhouette", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_SILHOUETTE);
+	RNA_def_property_ui_text(prop, "Silhouette", "Exclude silhouette edges.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_BORDER);
+	RNA_def_property_ui_text(prop, "Border", "Exclude border edges.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_crease", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_CREASE);
+	RNA_def_property_ui_text(prop, "Crease", "Exclude crease edges.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_ridge", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_RIDGE);
+	RNA_def_property_ui_text(prop, "Ridge", "Exclude ridges.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_valley", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_VALLEY);
+	RNA_def_property_ui_text(prop, "Valley", "Exclude valleys.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_suggestive_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_SUGGESTIVE_CONTOUR);
+	RNA_def_property_ui_text(prop, "Suggestive Contour", "Exclude suggestive contours.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_material_boundary", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_MATERIAL_BOUNDARY);
+	RNA_def_property_ui_text(prop, "Material Boundary", "Exclude edges at material boundaries.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_CONTOUR);
+	RNA_def_property_ui_text(prop, "Contour", "Exclude contours.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_external_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_EXTERNAL_CONTOUR);
+	RNA_def_property_ui_text(prop, "External Contour", "Exclude external contours.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exclude_edge_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "exclude_edge_types", FREESTYLE_FE_EDGE_MARK);
+	RNA_def_property_ui_text(prop, "Edge Mark", "Exclude edge marks.");
+	RNA_def_property_ui_icon(prop, ICON_X, 0);
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "visibility", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qi");
 	RNA_def_property_enum_items(prop, visibility_items);

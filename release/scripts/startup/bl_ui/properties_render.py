@@ -261,6 +261,17 @@ class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
             return freestyle.mode == "EDITOR" and freestyle.linesets.active
         return False
 
+    def draw_edge_type_buttons(self, box, lineset, edge_type):
+        # property names
+        select_edge_type = "select_" + edge_type
+        exclude_edge_type = "exclude_" + edge_type
+        # draw edge type buttons
+        row = box.row(align=True)
+        row.prop(lineset, select_edge_type)
+        sub = row.column()
+        sub.prop(lineset, exclude_edge_type, text="")
+        sub.enabled = getattr(lineset, select_edge_type)
+
     def draw(self, context):
         layout = self.layout
 
@@ -293,17 +304,18 @@ class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
 
             row = col.row()
             sub = row.column()
-            sub.prop(lineset, "select_silhouette")
-            sub.prop(lineset, "select_border")
-            sub.prop(lineset, "select_crease")
-            sub.prop(lineset, "select_ridge")
-            sub.prop(lineset, "select_valley")
-            sub.prop(lineset, "select_suggestive_contour")
-            sub.prop(lineset, "select_material_boundary")
-            sub.prop(lineset, "select_edge_mark")
+            self.draw_edge_type_buttons(sub, lineset, "silhouette")
+            self.draw_edge_type_buttons(sub, lineset, "border")
+
+            self.draw_edge_type_buttons(sub, lineset, "crease")
+            self.draw_edge_type_buttons(sub, lineset, "ridge")
+            self.draw_edge_type_buttons(sub, lineset, "valley")
+            self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
+            self.draw_edge_type_buttons(sub, lineset, "material_boundary")
+            self.draw_edge_type_buttons(sub, lineset, "edge_mark")
             sub = row.column()
-            sub.prop(lineset, "select_contour")
-            sub.prop(lineset, "select_external_contour")
+            self.draw_edge_type_buttons(sub, lineset, "contour")
+            self.draw_edge_type_buttons(sub, lineset, "external_contour")
             col.separator() # XXX
 
         col.prop(lineset, "select_by_face_marks")

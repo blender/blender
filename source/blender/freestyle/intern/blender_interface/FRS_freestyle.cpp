@@ -160,6 +160,69 @@ extern "C" {
 		return text;
 	}
 
+	struct edge_type_condition {
+		int edge_type, value;
+	};
+
+	// examines the conditions and returns true if the target edge type needs to be computed
+	static bool test_edge_type_conditions(struct edge_type_condition *conditions,
+		int num_edge_types, bool logical_and, int target, bool distinct)
+	{
+		int target_condition = 0;
+		int num_non_target_positive_conditions = 0;
+		int num_non_target_negative_conditions = 0;
+
+		for (int i = 0; i < num_edge_types; i++) {
+			if (conditions[i].edge_type == target)
+				target_condition = conditions[i].value;
+			else if (conditions[i].value > 0)
+				++num_non_target_positive_conditions;
+			else if (conditions[i].value < 0)
+				++num_non_target_negative_conditions;
+		}
+		if (distinct) {
+			// In this case, the 'target' edge type is assumed to appear on distinct edge
+			// of its own and never together with other edge types.
+			if (logical_and) {
+				if (num_non_target_positive_conditions > 0)
+					return false;
+				if (target_condition > 0)
+					return true;
+				if (target_condition < 0)
+					return false;
+				if (num_non_target_negative_conditions > 0)
+					return true;
+			} else {
+				if (target_condition > 0)
+					return true;
+				if (num_non_target_negative_conditions > 0)
+					return true;
+				if (target_condition < 0)
+					return false;
+				if (num_non_target_positive_conditions > 0)
+					return false;
+			}
+		} else {
+			// In this case, the 'target' edge type may appear together with other edge types.
+			if (target_condition > 0)
+				return true;
+			if (target_condition < 0)
+				return true;
+			if (logical_and) {
+				if (num_non_target_positive_conditions > 0)
+					return false;
+				if (num_non_target_negative_conditions > 0)
+					return true;
+			} else {
+				if (num_non_target_negative_conditions > 0)
+					return true;
+				if (num_non_target_positive_conditions > 0)
+					return false;
+			}
+		}
+		return true;
+	}
+
 	static void prepare(Render* re, SceneRenderLayer* srl ) {
 				
 		// load mesh
@@ -197,6 +260,18 @@ extern "C" {
 			int use_ridges_and_valleys = 0;
 			int use_suggestive_contours = 0;
 			int use_material_boundaries = 0;
+			struct edge_type_condition conditions[] = {
+				{FREESTYLE_FE_SILHOUETTE, 0},
+				{FREESTYLE_FE_BORDER, 0},
+				{FREESTYLE_FE_CREASE, 0},
+				{FREESTYLE_FE_RIDGE, 0},
+				{FREESTYLE_FE_VALLEY, 0},
+				{FREESTYLE_FE_SUGGESTIVE_CONTOUR, 0},
+				{FREESTYLE_FE_MATERIAL_BOUNDARY, 0},
+				{FREESTYLE_FE_CONTOUR, 0},
+				{FREESTYLE_FE_EXTERNAL_CONTOUR, 0},
+				{FREESTYLE_FE_EDGE_MARK, 0}};
+			int num_edge_types = sizeof(conditions) / sizeof(struct edge_type_condition);
 			cout << "Linesets:"<< endl;
 			for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 				if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
@@ -208,21 +283,33 @@ extern "C" {
 						++use_ridges_and_valleys;
 						++use_suggestive_contours;
 						++use_material_boundaries;
-					} else if (lineset->flags & FREESTYLE_LINESET_FE_NOT) {
-						if (!(lineset->edge_types & ~FREESTYLE_FE_RIDGE) ||
-							!(lineset->edge_types & ~FREESTYLE_FE_VALLEY) ||
-							(lineset->flags & FREESTYLE_LINESET_FE_AND))
-								++use_ridges_and_valleys;
-						if (lineset->edge_types & ~FREESTYLE_FE_SUGGESTIVE_CONTOUR)
-							++use_suggestive_contours;
-						if (lineset->edge_types & ~FREESTYLE_FE_MATERIAL_BOUNDARY)
-							++use_material_boundaries;
 					} else {
-						if (lineset->edge_types & (FREESTYLE_FE_RIDGE | FREESTYLE_FE_VALLEY))
+						// conditions for feature edge selection by edge types
+						for (int i = 0; i < num_edge_types; i++) {
+							if (!(lineset->edge_types & conditions[i].edge_type))
+								conditions[i].value = 0; // no condition specified
+							else if (!(lineset->exclude_edge_types & conditions[i].edge_type))
+								conditions[i].value = 1; // condition: X
+							else
+								conditions[i].value = -1; // condition: NOT X
+						}
+						// logical operator for the selection conditions
+						bool logical_and = ((lineset->flags & FREESTYLE_LINESET_FE_AND) != 0);
+						// negation operator
+						if (lineset->flags & FREESTYLE_LINESET_FE_NOT) {
+							// convert an Exclusive condition into an Inclusive equivalent using De Morgan's laws:
+							//   NOT (X OR Y) --> (NOT X) AND (NOT Y)
+							//   NOT (X AND Y) --> (NOT X) OR (NOT Y)
+							for (int i = 0; i < num_edge_types; i++)
+								conditions[i].value *= -1;
+							logical_and = !logical_and;
+						}
+						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_RIDGE, true) ||
+							test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_VALLEY, true))
 							++use_ridges_and_valleys;
-						if (lineset->edge_types & FREESTYLE_FE_SUGGESTIVE_CONTOUR)
+						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_SUGGESTIVE_CONTOUR, true))
 							++use_suggestive_contours;
-						if (lineset->edge_types & FREESTYLE_FE_MATERIAL_BOUNDARY)
+						if (test_edge_type_conditions(conditions, num_edge_types, logical_and, FREESTYLE_FE_MATERIAL_BOUNDARY, true))
 							++use_material_boundaries;
 					}
 					layer_count++;
