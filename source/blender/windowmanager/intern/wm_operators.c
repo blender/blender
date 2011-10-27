@@ -1218,7 +1218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 
-	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
+	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect, "<splash screen>");
 #else
 	ImBuf *ibuf= NULL;
 #endif

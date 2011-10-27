@@ -165,8 +165,6 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
-			if (ibuf->dds_data.data != NULL)
-				free(ibuf->dds_data.data);
 			MEM_freeN(ibuf);
 		}
 	}
@@ -448,6 +446,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	return(ibuf2);
 }
 
+#if 0 /* remove? - campbell */
 /* support for cache limiting */
 
 static void imbuf_cache_destructor(void *data)
@@ -463,6 +462,7 @@ static void imbuf_cache_destructor(void *data)
 	ibuf->c_handle = NULL;
 }
 
+
 static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 {
 	static MEM_CacheLimiterC *c = NULL;
@@ -472,3 +472,4 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 
 	return &c;
 }
+#endif

@@ -130,7 +130,7 @@ LIBEXPORT short saveiff(struct ImBuf *ib,
 LIBEXPORT struct ImBuf *loadifffile(int a,
 						  int b)
 {
-	return IMB_loadifffile(a, b);
+	return IMB_loadifffile(a, b, "loadifffile");
 }
 
 LIBEXPORT struct ImBuf *loadiffname(char *n,
