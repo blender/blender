@@ -2346,7 +2346,7 @@ static void *ccgDM_get_face_data_layer(DerivedMesh *dm, int type)
 		int a, i, index, totface;
 		int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
 
-		DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+		DM_add_tessface_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex= DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
 		totface= ccgSubSurf_getNumFaces(ss);
@@ -2673,9 +2673,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getVertData = DM_get_vert_data;
 	ccgdm->dm.getEdgeData = DM_get_edge_data;
 	ccgdm->dm.getTessFaceData = DM_get_face_data;
-	ccgdm->dm.getVertDataArray = DM_get_vert_data_layer;
-	ccgdm->dm.getEdgeDataArray = DM_get_edge_data_layer;
-	ccgdm->dm.getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	ccgdm->dm.getVertCos = cgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = cgdm_foreachMappedVert;

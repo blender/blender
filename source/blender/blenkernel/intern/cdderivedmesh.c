@@ -1910,7 +1910,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	flag = use_mdisps ? CD_MASK_DERIVEDMESH|CD_MASK_MDISPS : CD_MASK_DERIVEDMESH;
 	
 	/*don't process shapekeys, we only feed them through the modifier stack as needed,
-      e.g. for applying modifiers or the like*/
+	  e.g. for applying modifiers or the like*/
 	flag &= ~CD_SHAPEKEY;
 	CustomData_merge(&em->bm->vdata, &dm->vertData, flag,
 	                 CD_CALLOC, dm->numVertData);
@@ -1939,9 +1939,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		BM_SetIndex(eve, i);
 
-		mv->no[0] = eve->no[0] * 32767.0;
-		mv->no[1] = eve->no[1] * 32767.0;
-		mv->no[2] = eve->no[2] * 32767.0;
+		normal_float_to_short_v3(mv->no, eve->no);
 
 		mv->flag = BMFlags_To_MEFlags(eve);
 
@@ -2637,6 +2635,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 			ml++, l++;
 		}
 
+		*index2 = *index1;
 	}
 
 	BLI_edgehash_free(eh, NULL);

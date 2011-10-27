@@ -566,10 +566,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		/* faces */
-		edge_origIndex = CustomData_get_layer(&result->edgeData, CD_ORIGINDEX);
+		edge_origIndex = origindex;
+		origindex = DM_get_face_data_layer(result, CD_ORIGINDEX);
 		
-		mp= mpoly + (numFaces * 2);
-		origindex= result->getTessFaceDataArray(result, CD_ORIGINDEX);
+		mp = mpoly + (numFaces * 2);
 		ml = mloop + (numLoops * 2);
 		j = 0;
 		for(i=0; i<newFaces; i++, mp++) {
@@ -678,7 +678,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
 #endif
-			origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
+
+			if (origindex) {
+				origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
+			}
 		}
 		
 #ifdef SOLIDIFY_SIDE_NORMALS

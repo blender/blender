@@ -1746,7 +1746,7 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 }
 
 void CustomData_set_only_copy(const struct CustomData *data,
-							  CustomDataMask mask)
+                              CustomDataMask mask)
 {
 	int i;
 

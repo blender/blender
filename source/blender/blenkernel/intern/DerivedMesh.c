@@ -330,8 +330,11 @@ int DM_release(DerivedMesh *dm)
 
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 {
-	CustomData_copy(&source->loopData, &target->loopData, CD_MASK_DERIVEDMESH, CD_CALLOC, source->numLoopData);
-	CustomData_copy(&source->polyData, &target->polyData, CD_MASK_DERIVEDMESH, CD_CALLOC, source->numPolyData);
+	CustomData_free(&target->loopData, source->numLoopData);
+	CustomData_free(&target->polyData, source->numPolyData);
+
+	CustomData_copy(&source->loopData, &target->loopData, CD_MASK_DERIVEDMESH, CD_DUPLICATE, source->numLoopData);
+	CustomData_copy(&source->polyData, &target->polyData, CD_MASK_DERIVEDMESH, CD_DUPLICATE, source->numPolyData);
 
 	target->numLoopData = source->numLoopData;
 	target->numPolyData = source->numPolyData;
@@ -1499,7 +1502,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
-	DerivedMesh *dm, *orcodm = NULL;
+	DerivedMesh *dm = NULL, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -1510,7 +1513,6 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		*cage_r = getEditDerivedBMesh(em, ob, NULL);
 	}
 
-	dm = NULL;
 	md = modifiers_getVirtualModifierList(ob);
 
 	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
