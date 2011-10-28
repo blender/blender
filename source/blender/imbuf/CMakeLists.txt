@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -23,11 +22,6 @@
 # Contributor(s): Jacques Beaurain.
 #
 # ***** END GPL LICENSE BLOCK *****
-
-if(WITH_CODEC_FFMPEG)
-	# FFMPEG gives warnigns which are hard to avoid across multiple versions.
-	remove_strict_flags()
-endif()
 
 set(INC 
 	.
@@ -62,6 +56,7 @@ set(SRC
 	intern/md5.c
 	intern/metadata.c
 	intern/module.c
+	intern/moviecache.c
 	intern/png.c
 	intern/readimage.c
 	intern/rectop.c
@@ -75,6 +70,7 @@ set(SRC
 
 	IMB_imbuf.h
 	IMB_imbuf_types.h
+	IMB_moviecache.h
 	IMB_thumbs.h
 	intern/IMB_allocimbuf.h
 	intern/IMB_anim.h
@@ -159,6 +155,12 @@ if(WITH_CODEC_FFMPEG)
 		${FFMPEG_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_FFMPEG)
+
+	remove_strict_flags_file(
+		intern/indexer.c
+		intern/util.c
+		intern/anim_movie.c
+	)
 endif()
 
 if(WITH_IMAGE_DDS)

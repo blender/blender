@@ -1,7 +1,6 @@
 /*
  * 'Or' together all inputs
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

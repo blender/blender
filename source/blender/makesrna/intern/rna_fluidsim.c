@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +75,7 @@ static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_fluid_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 

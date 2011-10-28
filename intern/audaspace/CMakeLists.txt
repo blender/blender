@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN LGPL LICENSE BLOCK *****
 #
 # Copyright 2009 Jrg Hermann Mller

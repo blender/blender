@@ -1,8 +1,7 @@
 /*
-* Set scene/camera stuff
-*
-* $Id$
-*
+ * Set scene/camera stuff
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +26,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file gameengine/Ketsji/KX_SceneActuator.cpp
  *  \ingroup ketsji
@@ -191,7 +190,7 @@ bool KX_SceneActuator::Update()
 
 
 /*  returns a camera if the name is valid */
-KX_Camera* KX_SceneActuator::FindCamera(char *camName)
+KX_Camera* KX_SceneActuator::FindCamera(const char *camName)
 {
 	KX_SceneList* sl = m_KetsjiEngine->CurrentScenes();
 	STR_String name = STR_String(camName);
@@ -209,7 +208,7 @@ KX_Camera* KX_SceneActuator::FindCamera(char *camName)
 
 
 
-KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
+KX_Scene* KX_SceneActuator::FindScene(const char * sceneName)
 {
 	return m_KetsjiEngine->FindScene(sceneName);
 }

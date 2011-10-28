@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -284,7 +282,7 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 /* static funcs for text editing */
 
 /* similar to the text editor, with some not used. keep compatible */
-static EnumPropertyItem move_type_items[]= {
+static EnumPropertyItem console_move_type_items[]= {
 	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
 	{LINE_END, "LINE_END", 0, "Line End", ""},
 	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
@@ -293,7 +291,7 @@ static EnumPropertyItem move_type_items[]= {
 	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static int move_exec(bContext *C, wmOperator *op)
+static int console_move_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
 	
@@ -366,15 +364,15 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_move";
 	
 	/* api callbacks */
-	ot->exec= move_exec;
+	ot->exec= console_move_exec;
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to");
+	RNA_def_enum(ot->srna, "type", console_move_type_items, LINE_BEGIN, "Type", "Where to move cursor to");
 }
 
 #define TAB_LENGTH 4
-static int insert_exec(bContext *C, wmOperator *op)
+static int console_insert_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -410,7 +408,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
@@ -426,7 +424,7 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			RNA_string_set(op->ptr, "text", str);
 		}
 	}
-	return insert_exec(C, op);
+	return console_insert_exec(C, op);
 }
 
 void CONSOLE_OT_insert(wmOperatorType *ot)
@@ -437,8 +435,8 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_insert";
 	
 	/* api callbacks */
-	ot->exec= insert_exec;
-	ot->invoke= insert_invoke;
+	ot->exec= console_insert_exec;
+	ot->invoke= console_insert_invoke;
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
@@ -446,14 +444,14 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 }
 
 
-static EnumPropertyItem delete_type_items[]= {
+static EnumPropertyItem console_delete_type_items[]= {
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
 //	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
 //	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static int delete_exec(bContext *C, wmOperator *op)
+static int console_delete_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -508,16 +506,16 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_delete";
 	
 	/* api callbacks */
-	ot->exec= delete_exec;
+	ot->exec= console_delete_exec;
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
+	RNA_def_enum(ot->srna, "type", console_delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
 }
 
 
 /* the python exec operator uses this */
-static int clear_exec(bContext *C, wmOperator *op)
+static int console_clear_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -551,7 +549,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_clear";
 	
 	/* api callbacks */
-	ot->exec= clear_exec;
+	ot->exec= console_clear_exec;
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
@@ -562,7 +560,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int history_cycle_exec(bContext *C, wmOperator *op)
+static int console_history_cycle_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -619,7 +617,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_history_cycle";
 	
 	/* api callbacks */
-	ot->exec= history_cycle_exec;
+	ot->exec= console_history_cycle_exec;
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
@@ -628,7 +626,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int history_append_exec(bContext *C, wmOperator *op)
+static int console_history_append_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -670,7 +668,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_history_append";
 	
 	/* api callbacks */
-	ot->exec= history_append_exec;
+	ot->exec= console_history_append_exec;
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
@@ -681,7 +679,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int scrollback_append_exec(bContext *C, wmOperator *op)
+static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -724,7 +722,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_scrollback_append";
 	
 	/* api callbacks */
-	ot->exec= scrollback_append_exec;
+	ot->exec= console_scrollback_append_exec;
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
@@ -733,7 +731,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 }
 
 
-static int copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 
@@ -808,12 +806,12 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll= ED_operator_console_active;
-	ot->exec= copy_exec;
+	ot->exec= console_copy_exec;
 
 	/* properties */
 }
 
-static int paste_exec(bContext *C, wmOperator *UNUSED(op))
+static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -861,7 +859,7 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->poll= ED_operator_console_active;
-	ot->exec= paste_exec;
+	ot->exec= console_paste_exec;
 
 	/* properties */
 }
@@ -872,7 +870,7 @@ typedef struct SetConsoleCursor {
 } SetConsoleCursor;
 
 // TODO, cursor placement without selection
-static void set_cursor_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int UNUSED(sel))
+static void console_cursor_set_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int UNUSED(sel))
 {
 	int pos;
 	pos= console_char_pick(sc, ar, mval);
@@ -910,7 +908,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 	sel_prev[0]= sc->sel_start;
 	sel_prev[1]= sc->sel_end;
 	
-	set_cursor_to_pos(sc, ar, scu, mval, TRUE);
+	console_cursor_set_to_pos(sc, ar, scu, mval, TRUE);
 
 	/* only redraw if the selection changed */
 	if(sel_prev[0] != sc->sel_start || sel_prev[1] != sc->sel_end) {
@@ -918,7 +916,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 	}
 }
 
-static void set_cursor_exit(bContext *UNUSED(C), wmOperator *op)
+static void console_cursor_set_exit(bContext *UNUSED(C), wmOperator *op)
 {
 //	SpaceConsole *sc= CTX_wm_space_console(C);
 	SetConsoleCursor *scu= op->customdata;
@@ -960,7 +958,7 @@ static int console_modal_select(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			set_cursor_exit(C, op);
+			console_cursor_set_exit(C, op);
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
 			console_modal_select_apply(C, op, event);
@@ -972,7 +970,7 @@ static int console_modal_select(bContext *C, wmOperator *op, wmEvent *event)
 
 static int console_modal_select_cancel(bContext *C, wmOperator *op)
 {
-	set_cursor_exit(C, op);
+	console_cursor_set_exit(C, op);
 	return OPERATOR_FINISHED;
 }
 

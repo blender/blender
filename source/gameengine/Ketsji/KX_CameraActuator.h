@@ -1,7 +1,6 @@
 /*
  * KX_CameraActuator.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -78,7 +77,7 @@ private :
 	float m_damping;
 
 	/* get the KX_IGameObject with this name */
-	CValue *findObject(char *obName);
+	CValue *findObject(const char *obName);
 
 	/* parse x or y to a toggle pick */
 	bool string2axischoice(const char *axisString);

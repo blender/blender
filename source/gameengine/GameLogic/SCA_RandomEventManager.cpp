@@ -1,7 +1,6 @@
 /*
  * Manager for random events
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

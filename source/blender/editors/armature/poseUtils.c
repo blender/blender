@@ -111,11 +111,11 @@ static void fcurves_to_pchan_links_get (ListBase *pfLinks, Object *ob, bAction *
 			pchan->flag |= POSE_SIZE;
 			
 		/* store current transforms */
-		VECCOPY(pfl->oldloc, pchan->loc);
-		VECCOPY(pfl->oldrot, pchan->eul);
-		VECCOPY(pfl->oldscale, pchan->size);
-		QUATCOPY(pfl->oldquat, pchan->quat);
-		VECCOPY(pfl->oldaxis, pchan->rotAxis);
+		copy_v3_v3(pfl->oldloc, pchan->loc);
+		copy_v3_v3(pfl->oldrot, pchan->eul);
+		copy_v3_v3(pfl->oldscale, pchan->size);
+		copy_qt_qt(pfl->oldquat, pchan->quat);
+		copy_v3_v3(pfl->oldaxis, pchan->rotAxis);
 		pfl->oldangle = pchan->rotAngle;
 		
 		/* make copy of custom properties */
@@ -205,11 +205,11 @@ void poseAnim_mapping_reset (ListBase *pfLinks)
 		bPoseChannel *pchan= pfl->pchan;
 		
 		/* just copy all the values over regardless of whether they changed or not */
-		VECCOPY(pchan->loc, pfl->oldloc);
-		VECCOPY(pchan->eul, pfl->oldrot);
-		VECCOPY(pchan->size, pfl->oldscale);
-		QUATCOPY(pchan->quat, pfl->oldquat);
-		VECCOPY(pchan->rotAxis, pfl->oldaxis);
+		copy_v3_v3(pchan->loc, pfl->oldloc);
+		copy_v3_v3(pchan->eul, pfl->oldrot);
+		copy_v3_v3(pchan->size, pfl->oldscale);
+		copy_qt_qt(pchan->quat, pfl->oldquat);
+		copy_v3_v3(pchan->rotAxis, pfl->oldaxis);
 		pchan->rotAngle = pfl->oldangle;
 		
 		/* just overwrite values of properties from the stored copies (there should be some) */
@@ -223,7 +223,7 @@ void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListB
 {
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 		ListBase dsources = {NULL, NULL};
 		tPChanFCurveLink *pfl;
 		

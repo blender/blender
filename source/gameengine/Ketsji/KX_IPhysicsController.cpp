@@ -1,6 +1,5 @@
 /*
  * @file KX_IPhysicsController.cpp
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

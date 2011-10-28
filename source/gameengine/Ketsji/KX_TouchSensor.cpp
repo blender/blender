@@ -1,7 +1,6 @@
 /*
  * Senses touch and collision events
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

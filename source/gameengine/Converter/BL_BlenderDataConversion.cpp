@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1238,7 +1236,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 
 
 static void my_tex_space_mesh(Mesh *me)
-		{
+{
 	KeyBlock *kb;
 	float *fp, loc[3], size[3], min[3], max[3];
 	int a;
@@ -1249,37 +1247,37 @@ static void my_tex_space_mesh(Mesh *me)
 		if(me->key) {
 			kb= me->key->refkey;
 			if (kb) {
-	
+
 				INIT_MINMAX(min, max);
-		
+
 				fp= (float *)kb->data;
-				for(a=0; a<kb->totelem; a++, fp+=3) {	
+				for(a=0; a<kb->totelem; a++, fp+=3) {
 					DO_MINMAX(fp, min, max);
 				}
 				if(kb->totelem) {
 					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;
 					size[0]= (max[0]-min[0])/2.0f; size[1]= (max[1]-min[1])/2.0f; size[2]= (max[2]-min[2])/2.0f;
-	} 
-	else {
+				}
+				else {
 					loc[0]= loc[1]= loc[2]= 0.0;
 					size[0]= size[1]= size[2]= 0.0;
 				}
 				
 			}
-				}
-	
-		VECCOPY(me->loc, loc);
-		VECCOPY(me->size, size);
+		}
+
+		copy_v3_v3(me->loc, loc);
+		copy_v3_v3(me->size, size);
 		me->rot[0]= me->rot[1]= me->rot[2]= 0.0f;
-	
+
 		if(me->size[0]==0.0) me->size[0]= 1.0f;
 		else if(me->size[0]>0.0 && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
 		else if(me->size[0]<0.0 && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
-	
+
 		if(me->size[1]==0.0) me->size[1]= 1.0f;
 		else if(me->size[1]>0.0 && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
 		else if(me->size[1]<0.0 && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
-						
+
 		if(me->size[2]==0.0) me->size[2]= 1.0f;
 		else if(me->size[2]>0.0 && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
 		else if(me->size[2]<0.0 && me->size[2]> -0.00001f) me->size[2]= -0.00001f;

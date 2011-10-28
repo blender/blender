@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -238,7 +236,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 			PY_DICT_ADD_LONG(dict,uniform,texnumber);
 		}
 		if (uniform->texpixels) {
-			val = PyByteArray_FromStringAndSize((const char *)uniform->texpixels, uniform->texsize);
+			val = PyByteArray_FromStringAndSize((const char *)uniform->texpixels, uniform->texsize * 4);
 			PyDict_SetItemString(dict, "texpixels", val);
 			Py_DECREF(val);
 			PY_DICT_ADD_LONG(dict,uniform,texsize);

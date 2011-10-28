@@ -1,6 +1,4 @@
 /*
- *  $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1257,9 +1255,18 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 {
 	int sl;
 
-	if (!string || !dir || !file) return; /* We don't want any NULLs */
-	
-	string[0]= 0; /* ton */
+	if (string) {
+		/* ensure this is always set even if dir/file are NULL */
+		string[0]= '\0';
+
+		if (ELEM(NULL, dir, file)) {
+			return; /* We don't want any NULLs */
+		}
+	}
+	else {
+		return; /* string is NULL, probably shouldnt happen but return anyway */
+	}
+
 
 	/* we first push all slashes into unix mode, just to make sure we don't get
 	   any mess with slashes later on. -jesterKing */

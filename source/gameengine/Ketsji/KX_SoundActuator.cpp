@@ -1,7 +1,6 @@
 /*
  * KX_SoundActuator.cpp
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -134,6 +132,28 @@ int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len);
 int BLI_natstrcmp(const char *s1, const char *s2);
 size_t BLI_strnlen(const char *str, size_t maxlen);
+
+	/**
+	 * Split str on the first occurence of delimiter, returns the first
+	 * part as a mallocN'd string, and stores the second part into
+	 * ctx (also mallocN'd).
+	 * If str is NULL, split on ctx instead.
+	 * This allows to iterate over this "generator" function:
+	 *
+	 * char *ctx = NULL;
+	 * char *res = NULL;
+	 * for(res = BLI_strtok_r("a;dummy;csv;line", ";", &ctx); res; res = BLI_strtok_r(NULL, ";", &ctx)) {
+	 *     printf(res);
+	 *     MEM_freeN(res);
+	 * }
+	 * 
+	 * @param str The string to be split.
+	 * @param delimiter The char used to split str apart.
+	 * @param ctx The "context" string. It’s a pointer inside the org passed @str,
+	 *            so it has no specific mem management.
+	 * @retval Returns the mallocN'd first element from split str (or ctx).
+	 */
+char *BLI_strtok_r(char *str, const char *delimiter, char **ctx);
 
 void BLI_timestr(double _time, char *str); /* time var is global */
 

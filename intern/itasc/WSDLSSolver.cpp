@@ -1,7 +1,7 @@
 /** \file itasc/WSDLSSolver.cpp
  *  \ingroup itasc
  */
-/* $Id$
+/*
  * WDLSSolver.hpp.cpp
  *
  *  Created on: Jan 8, 2009
@@ -60,7 +60,7 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 	e_scalar N, M;
 
 	// Create the Weighted jacobian
-    m_AWq = (A*Wq).lazy();
+    m_AWq.noalias() = A*Wq;
 	for (i=0; i<m_nc; i++)
 		m_WyAWq.row(i) = Wy(i)*m_AWq.row(i);
 
@@ -75,8 +75,8 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
     if(ret<0)
         return false;
 
-	m_Wy_ydot = Wy.cwise() * ydot;
-    m_WqV = (Wq*m_V).lazy();
+	m_Wy_ydot = Wy.array() * ydot.array();
+    m_WqV.noalias() = Wq*m_V;
 	qdot.setZero();
 	e_scalar maxDeltaS = e_scalar(0.0);
 	e_scalar prevS = e_scalar(0.0);
@@ -121,7 +121,7 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 		M *= Sinv;
 		alpha = m_U.col(i).dot(m_Wy_ydot);
 		_qmax = (N < M) ? m_qmax*N/M : m_qmax;
-		vmax = m_WqV.col(i).cwise().abs().maxCoeff();
+		vmax = m_WqV.col(i).array().abs().maxCoeff();
 		norm = fabs(Sinv*alpha*vmax);
 		if (norm > _qmax) {
 			damp = Sinv*alpha*_qmax/norm;

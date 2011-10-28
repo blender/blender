@@ -1,7 +1,6 @@
 /*
  * SCA_ANDController.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

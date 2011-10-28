@@ -1,5 +1,4 @@
 /**
- * $Id$
  */
 
 // Template Numerical Toolkit (TNT) for Linear Algebra

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -3347,9 +3345,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				mul_m4_v3(mat, ver->co);
 				mul_transposed_m3_v3(imat, ver->n);
 				normalize_v3(ver->n);
-
-				if(!negative_scale)
-					negate_v3(ver->n);
+				negate_v3(ver->n);
 			}
   
 			if(orco) {
@@ -3407,10 +3403,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						
 						if( mface->mat_nr==a1 ) {
 							float len;
-								
-							v1= mface->v1;
+							int reverse_verts = negative_scale!=0 && do_autosmooth==0;
+							int rev_tab[] = {reverse_verts==0 ? 0 : 2, 1, reverse_verts==0 ? 2 : 0, 3};
+							v1= reverse_verts==0 ? mface->v1 : mface->v3;
 							v2= mface->v2;
-							v3= mface->v3;
+							v3= reverse_verts==0 ? mface->v3 : mface->v1;
 							v4= mface->v4;
 							flag= mface->flag & ME_SMOOTH;
 
@@ -3447,36 +3444,40 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 								CustomDataLayer *layer;
 								MTFace *mtface, *mtf;
 								MCol *mcol, *mc;
-								int index, mtfn= 0, mcn= 0, mtng=0;
+								int index, mtfn= 0, mcn= 0, mtng=0, vindex;
 								char *name;
+								int nr_verts = v4!=0 ? 4 : 3;
 
 								for(index=0; index<dm->faceData.totlayer; index++) {
 									layer= &dm->faceData.layers[index];
 									name= layer->name;
 									
 									if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
+										int t;
 										mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
 										mtface= (MTFace*)layer->data;
-										*mtf= mtface[a];
+										*mtf= mtface[a];	// copy face info
+										for(vindex=0; vindex<nr_verts; vindex++)
+											for(t=0; t<2; t++)
+												mtf->uv[vindex][t]=mtface[a].uv[rev_tab[vindex]][t];
 									}
 									else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
 										mc= RE_vlakren_get_mcol(obr, vlr, mcn++, &name, 1);
 										mcol= (MCol*)layer->data;
-										memcpy(mc, &mcol[a*4], sizeof(MCol)*4);
+										for(vindex=0; vindex<nr_verts; vindex++)
+											mc[vindex]=mcol[a*4+rev_tab[vindex]];
 									}
 									else if(layer->type == CD_TANGENT && mtng < 1)
 									{
 										if(need_nmap_tangent!=0)
 										{
 											const float * tangent = (const float *) layer->data;
-											int t;
-											int nr_verts = v4!=0 ? 4 : 3;
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
-											for(t=0; t<nr_verts; t++)
+											for(vindex=0; vindex<nr_verts; vindex++)
 											{
-												QUATCOPY(ftang+t*4, tangent+a*16+t*4);
-												mul_mat3_m4_v3(mat, ftang+t*4);
-												normalize_v3(ftang+t*4);
+												QUATCOPY(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
+												mul_mat3_m4_v3(mat, ftang+vindex*4);
+												normalize_v3(ftang+vindex*4);
 											}
 										}
 									}

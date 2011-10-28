@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -569,7 +567,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
 
-void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , char *parentname, float parent_mat[][4])
+void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , const char *parentname, float parent_mat[][4])
 { 
 	char * bone_name = (char *) bc_get_joint_name ( root_node);
 	float mat[4][4];

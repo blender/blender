@@ -1,7 +1,6 @@
 #if 0
 
 /*
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

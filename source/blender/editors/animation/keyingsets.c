@@ -552,7 +552,12 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 		if (strcmp(name, ks->name) == 0)
 			return ks;
 	}
-	
+
+	/* complain about missing keying sets on debug builds */
+#ifndef NDEBUG
+	printf("%s: '%s' not found\n", __func__, name);
+#endif
+
 	/* no matches found */
 	return NULL;
 }
@@ -687,7 +692,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 	if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (scene->active_keyingset))
 		return ANIM_scene_get_active_keyingset(scene);
 	else if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL))
-		return ANIM_builtin_keyingset_get_named(NULL, "Available");
+		return ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_AVAILABLE_ID);
 	else 
 		return ANIM_builtin_keyingset_get_named(NULL, tranformKSName);
 }
@@ -726,10 +731,10 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 	 *	- these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
-		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next, i++) {
 			if (ANIM_keyingset_context_ok_poll(C, ks)) {
 				item_tmp.identifier= item_tmp.name= ks->name;
-				item_tmp.value= i++;
+				item_tmp.value= i;
 				RNA_enum_item_add(&item, &totitem, &item_tmp);
 			}
 		}
@@ -740,11 +745,11 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 	
 	/* builtin Keying Sets */
 	i= -1;
-	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next, i--) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks)) {
 			item_tmp.identifier= item_tmp.name= ks->name;
-			item_tmp.value= i--;
+			item_tmp.value= i;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);
 		}
 	}

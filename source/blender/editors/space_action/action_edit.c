@@ -261,7 +261,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, cons
 				float tmin, tmax;
 
 				/* get range and apply necessary scaling before processing */
-				calc_fcurve_range(fcu, &tmin, &tmax, onlySel);
+				calc_fcurve_range(fcu, &tmin, &tmax, onlySel, TRUE);
 
 				if (adt) {
 					tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
@@ -492,7 +492,6 @@ void ACTION_OT_copy (wmOperatorType *ot)
 	ot->description= "Copy selected keyframes to the copy/paste buffer";
 	
 	/* api callbacks */
-//	ot->invoke= WM_operator_props_popup; // better wait for graph redo panel
 	ot->exec= actkeys_copy_exec;
 	ot->poll= ED_operator_action_active;
 
@@ -510,10 +509,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
-	if (ac.reports==NULL) {
-		ac.reports= op->reports;
-	}
+		
+	/* ac.reports by default will be the global reports list, which won't show warnings */
+	ac.reports= op->reports;
 	
 	/* paste keyframes */
 	if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -522,8 +520,8 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
+		/* non-zero return means an error occurred while trying to paste */
 		if (paste_action_keys(&ac, offset_mode, merge_mode)) {
-			BKE_report(op->reports, RPT_ERROR, "No keyframes to paste");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -545,12 +543,14 @@ void ACTION_OT_paste (wmOperatorType *ot)
 	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame";
 	
 	/* api callbacks */
+//	ot->invoke= WM_operator_props_popup; // better wait for action redo panel
 	ot->exec= actkeys_paste_exec;
 	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
+	
+	/* props */
 	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
 	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
 }

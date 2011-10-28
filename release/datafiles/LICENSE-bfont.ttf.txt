@@ -98,4 +98,3 @@ dealings in this Font Software without prior written authorization
 from Tavmjong Bah. For further information, contact: tavmjong @ free
 . fr.
 
-$Id$

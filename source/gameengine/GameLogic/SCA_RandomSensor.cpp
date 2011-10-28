@@ -1,7 +1,6 @@
 /*
  * Generate random pulses
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

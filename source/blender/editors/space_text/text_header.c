@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -100,12 +98,12 @@ static ARegion *text_has_properties_region(ScrArea *sa)
 	return arnew;
 }
 
-static int properties_poll(bContext *C)
+static int text_properties_poll(bContext *C)
 {
 	return (CTX_wm_space_text(C) != NULL);
 }
 
-static int properties_exec(bContext *C, wmOperator *UNUSED(op))
+static int text_properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= text_has_properties_region(sa);
@@ -124,8 +122,8 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */
-	ot->exec= properties_exec;
-	ot->poll= properties_poll;
+	ot->exec= text_properties_exec;
+	ot->poll= text_properties_poll;
 }
 
 /******************** XXX popup menus *******************/

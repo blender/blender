@@ -1,4 +1,4 @@
-/* $Id$
+/*
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 
@@ -85,7 +85,7 @@ void loadTexture (unsigned int texId, unsigned int * texture, short * size,
 RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID);
 
 // get material ID
-short getMaterialID (PyObject * obj, char * name);
+short getMaterialID (PyObject * obj, const char *name);
 
 // Exceptions
 extern ExceptionID MaterialNotAvail;

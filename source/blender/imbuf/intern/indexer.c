@@ -1,12 +1,10 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
-  * of the License, or (at your option) any later version.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +20,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 #include "IMB_indexer.h"
 #include "IMB_anim.h"
@@ -454,7 +452,7 @@ static int round_up(int x, int mod)
 static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	struct anim * anim,
 	AVStream * st, int proxy_size, int width, int height,
-	int quality)
+	int UNUSED(quality))
 {
 	struct proxy_output_ctx * rv = MEM_callocN(
 		sizeof(struct proxy_output_ctx), "alloc_proxy_output");

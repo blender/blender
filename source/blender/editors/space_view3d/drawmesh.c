@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -54,7 +52,6 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_property.h"
-
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -227,7 +224,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	static int c_lit;
 
 	Object *litob = NULL; //to get mode to turn off mipmap in painting mode
-	int backculled = 0;
+	int backculled = GEMAT_BACKCULL;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;

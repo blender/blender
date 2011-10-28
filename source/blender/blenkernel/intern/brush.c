@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -47,6 +45,7 @@
 
 #include "RNA_access.h"
 
+#include "BLI_bpath.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -183,6 +182,7 @@ void free_brush(Brush *brush)
 static void extern_local_brush(Brush *brush)
 {
 	id_lib_extern((ID *)brush->mtex.tex);
+	id_lib_extern((ID *)brush->clone.image);
 }
 
 void make_local_brush(Brush *brush)
@@ -195,29 +195,26 @@ void make_local_brush(Brush *brush)
 
 	Main *bmain= G.main;
 	Scene *scene;
-	int local= 0, lib= 0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	if(brush->id.lib==NULL) return;
 
 	if(brush->clone.image) {
-		/* special case: ima always local immediately */
-		brush->clone.image->id.lib= NULL;
-		brush->clone.image->id.flag= LIB_LOCAL;
-		new_id(&bmain->brush, (ID *)brush->clone.image, NULL);
+		/* special case: ima always local immediately. Clone image should only
+		   have one user anyway. */
+		id_clear_lib_data(bmain, &brush->clone.image->id);
 		extern_local_brush(brush);
 	}
 
-	for(scene= bmain->scene.first; scene && ELEM(0, lib, local); scene=scene->id.next) {
+	for(scene= bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene=scene->id.next) {
 		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
-			if(scene->id.lib) lib= 1;
-			else local= 1;
+			if(scene->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		brush->id.lib= NULL;
-		brush->id.flag= LIB_LOCAL;
-		new_id(&bmain->brush, (ID *)brush, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &brush->id);
 		extern_local_brush(brush);
 
 		/* enable fake user by default */
@@ -226,10 +223,14 @@ void make_local_brush(Brush *brush)
 			brush->id.us++;
 		}
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, brush->id.lib->filepath};
 		Brush *brushn= copy_brush(brush);
 		brushn->id.us= 1; /* only keep fake user */
 		brushn->id.flag |= LIB_FAKEUSER;
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &brushn->id, bpath_relocate_visitor, 0, bpath_user_data);
 		
 		for(scene= bmain->scene.first; scene; scene=scene->id.next) {
 			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
@@ -930,7 +931,7 @@ void brush_jitter_pos(Brush *brush, float pos[2], float jitterpos[2])
 {
 	int use_jitter= brush->jitter != 0;
 
-	/* jitter-ed brush gives wierd and unpredictable result for this
+	/* jitter-ed brush gives weird and unpredictable result for this
 	   kinds of stroke, so manyally disable jitter usage (sergey) */
 	use_jitter&= (brush->flag & (BRUSH_RESTORE_MESH|BRUSH_ANCHORED)) == 0;
 

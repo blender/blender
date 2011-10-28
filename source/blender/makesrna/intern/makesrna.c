@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +40,7 @@
 
 #include "rna_internal.h"
 
-#define RNA_VERSION_DATE "$Id$"
+#define RNA_VERSION_DATE "FIXME-RNA_VERSION_DATE"
 
 #ifdef _WIN32
 #ifndef snprintf
@@ -2663,6 +2661,11 @@ static const char *cpp_classes = ""
 "class Array {\n"
 "public:\n"
 "	T data[Tsize];\n"
+"\n"
+"   Array() {}\n"
+"	Array(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T)*Tsize); }\n"
+"	const Array<T, Tsize>& operator=(const Array<T, Tsize>& other) { memcpy(data, other.data, sizeof(T)*Tsize); return *this; }\n"
+"\n"
 "	operator T*() { return data; }\n"
 "};\n"
 "\n"
@@ -2679,8 +2682,6 @@ static const char *cpp_classes = ""
 "	operator bool(void)\n"
 "	{ return iter.valid != 0; }\n"
 "	const CollectionIterator<T, Tbegin, Tnext, Tend>& operator++() { Tnext(&iter); t = T(iter.ptr); return *this; }\n"
-"	const CollectionIterator<T, Tbegin, Tnext, Tend>& operator=(const CollectionIterator<T, Tbegin, Tnext, Tend>& copy)\n"
-"	{ if(init) Tend(&iter); iter= copy.iter; if(iter.internal) iter.internal= MEM_dupallocN(iter.internal); t= copy.t; init= copy.init; return *this; }\n"
 "\n"
 "	T& operator*(void) { return t; }\n"
 "	T* operator->(void) { return &t; }\n"
@@ -2691,6 +2692,8 @@ static const char *cpp_classes = ""
 "	{ if(init) Tend(&iter); Tbegin(&iter, (PointerRNA*)&ptr.ptr); t = T(iter.ptr); init = true; }\n"
 "\n"
 "private:\n"
+"	const CollectionIterator<T, Tbegin, Tnext, Tend>& operator=(const CollectionIterator<T, Tbegin, Tnext, Tend>& copy) {}\n"
+""
 "	CollectionPropertyIterator iter;\n"
 "	T t;\n"
 "	bool init;\n"
@@ -2701,8 +2704,8 @@ static const char *cpp_classes = ""
 "public:\n"
 "	Collection(const PointerRNA& p) : ptr(p) {}\n"
 "\n"
-"	CollectionIterator<T, Tbegin, Tnext, Tend> begin()\n"
-"	{ CollectionIterator<T, Tbegin, Tnext, Tend> iter; iter.begin(ptr); return iter; }\n"
+"	void begin(CollectionIterator<T, Tbegin, Tnext, Tend>& iter)\n"
+"	{ iter.begin(ptr); }\n"
 "	CollectionIterator<T, Tbegin, Tnext, Tend> end()\n"
 "	{ return CollectionIterator<T, Tbegin, Tnext, Tend>(); } /* test */ \n"
 "\n"
@@ -2766,14 +2769,14 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "}\n\n#endif /* __RNA_BLENDER_CPP_H__ */\n\n");
 }
 
-static void make_bad_file(char *file, int line)
+static void make_bad_file(const char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
 	fprintf(fp, "#error \"Error! can't make correct RNA file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
-static int rna_preprocess(char *outfile)
+static int rna_preprocess(const char *outfile)
 {
 	BlenderRNA *brna;
 	StructDefRNA *ds;

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -115,7 +113,7 @@ private:
 
 	void fix_leaf_bones();
 	
-	void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node ,char * parentname, float parent_mat[][4]);
+	void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node , const char *parentname, float parent_mat[][4]);
 
 
 #if 0

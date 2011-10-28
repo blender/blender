@@ -1437,8 +1437,11 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 	ui_check_but(but);
 }
 
-/* note: utf8 & ascii funcs should be merged */
-static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const char utf8_buf[6])
+/* this is used for both utf8 and ascii, its meant to be used for single keys,
+ * notie the buffer is either copied or not, so its not suitable for pasting in
+ * - campbell */
+static int ui_textedit_type_buf(uiBut *but, uiHandleButtonData *data,
+                                const char *utf8_buf, int utf8_buf_len)
 {
 	char *str;
 	int len, changed= 0;
@@ -1447,7 +1450,7 @@ static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const cha
 	len= strlen(str);
 
 	if(len-(but->selend - but->selsta)+1 <= data->maxlen) {
-		int step= BLI_strnlen(utf8_buf, sizeof(utf8_buf));
+		int step= utf8_buf_len;
 
 		/* type over the current selection */
 		if ((but->selend - but->selsta) > 0) {
@@ -1468,8 +1471,17 @@ static int ui_textedit_type_utf8(uiBut *but, uiHandleButtonData *data, const cha
 
 static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
 {
-	char utf8_buf[6]= {ascii, '\0'};
-	return ui_textedit_type_utf8(but, data, utf8_buf);
+	char buf[2]= {ascii, '\0'};
+
+	if (ui_is_but_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
+		printf("%s: entering invalid ascii char into an ascii key (%d)\n",
+		       __func__, (int)(unsigned char)ascii);
+
+		return 0;
+	}
+
+	/* in some cases we want to allow invalid utf8 chars */
+	return ui_textedit_type_buf(but, data, buf, 1);
 }
 
 static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, uiButtonJumpType jump)
@@ -1932,18 +1944,26 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 		if((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)) {
 			char ascii = event->ascii;
+			const char *utf8_buf= event->utf8_buf;
 
 			/* exception that's useful for number buttons, some keyboard
 			   numpads have a comma instead of a period */
-			if(ELEM3(but->type, NUM, NUMABS, NUMSLI))
-				if(event->type == PADPERIOD && ascii == ',')
+			if(ELEM3(but->type, NUM, NUMABS, NUMSLI)) { /* could use data->min*/
+				if(event->type == PADPERIOD && ascii == ',') {
 					ascii = '.';
+					utf8_buf= NULL; /* force ascii fallback */
+				}
+			}
 
-			if(event->utf8_buf[0]) {
+			if(utf8_buf && utf8_buf[0]) {
+				int utf8_buf_len= BLI_str_utf8_size(utf8_buf);
 				/* keep this printf until utf8 is well tested */
-				printf("%s: utf8 char '%s'\n", __func__, event->utf8_buf);
-				// strcpy(event->utf8_buf, "12345");
-				changed= ui_textedit_type_utf8(but, data, event->utf8_buf);
+				if (utf8_buf_len != 1) {
+					printf("%s: utf8 char '%.*s'\n", __func__, utf8_buf_len, utf8_buf);
+				}
+
+				// strcpy(utf8_buf, "12345");
+				changed= ui_textedit_type_buf(but, data, event->utf8_buf, utf8_buf_len);
 			}
 			else {
 				changed= ui_textedit_type_ascii(but, data, ascii);
@@ -4443,16 +4463,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 	}
 
-#ifdef WITH_PYTHON_UI_INFO
-	if (but->py_dbg_ln != -1) {
-		PointerRNA ptr_props;
-
-		WM_operator_properties_create(&ptr_props, "WM_OT_text_edit");
-		RNA_string_set(&ptr_props, "filepath", but->py_dbg_fn);
-		RNA_int_set(&ptr_props, "line", but->py_dbg_ln);
-		uiItemFullO(layout, "WM_OT_text_edit", "Edit Source", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
-	}
-#endif /* WITH_PYTHON_UI_INFO */
+	/* perhaps we should move this into (G.f & G_DEBUG) - campbell */
+	uiItemFullO(layout, "UI_OT_editsource", "Edit Source", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
 	uiPupMenuEnd(C, pup);
 
@@ -5146,9 +5158,10 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 	}
 }
 
-static uiBut *ui_context_rna_button_active(const bContext *C)
+/* returns the active button with an optional checking function */
+static uiBut *ui_context_button_active(const bContext *C, int (*but_check_cb)(uiBut *))
 {
-	uiBut *rnabut= NULL;
+	uiBut *but_found= NULL;
 
 	ARegion *ar= CTX_wm_region(C);
 
@@ -5166,26 +5179,40 @@ static uiBut *ui_context_rna_button_active(const bContext *C)
 			}
 		}
 
-		if(activebut && activebut->rnapoin.data) {
+		if(activebut && (but_check_cb == NULL || but_check_cb(activebut))) {
 			uiHandleButtonData *data= activebut->active;
 
-			rnabut= activebut;
+			but_found= activebut;
 
 			/* recurse into opened menu, like colorpicker case */
 			if(data && data->menu && (ar != data->menu->region)) {
 				ar = data->menu->region;
 			}
 			else {
-				return rnabut;
+				return but_found;
 			}
 		}
 		else {
 			/* no active button */
-			return rnabut;
+			return but_found;
 		}
 	}
 
-	return rnabut;
+	return but_found;
+}
+
+static int ui_context_rna_button_active_test(uiBut *but)
+{
+	return (but->rnapoin.data != NULL);
+}
+static uiBut *ui_context_rna_button_active(const bContext *C)
+{
+	return ui_context_button_active(C, ui_context_rna_button_active_test);
+}
+
+uiBut *uiContextActiveButton(const struct bContext *C)
+{
+	return ui_context_button_active(C, NULL);
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1301,7 +1299,7 @@ static void restoreElement(TransData *td)
 			copy_v3_v3(td->ext->size, td->ext->isize);
 		}
 		if (td->ext->quat) {
-			QUATCOPY(td->ext->quat, td->ext->iquat);
+			copy_qt_qt(td->ext->quat, td->ext->iquat);
 		}
 	}
 	

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -215,10 +213,12 @@ struct FCurve *rna_get_fcurve(struct PointerRNA *ptr, struct PropertyRNA *prop, 
 int binarysearch_bezt_index(struct BezTriple array[], float frame, int arraylen, short *replace);
 
 /* get the time extents for F-Curve */
-void calc_fcurve_range(struct FCurve *fcu, float *min, float *max, const short selOnly);
+void calc_fcurve_range(struct FCurve *fcu, float *min, float *max,
+                       const short do_sel_only, const short do_min_length);
 
 /* get the bounding-box extents for F-Curve */
-void calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly);
+void calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
+                        const short do_sel_only);
 
 /* .............. */
 

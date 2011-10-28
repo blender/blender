@@ -1,7 +1,6 @@
 /*
  * Apply a constraint to a position or rotation value
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

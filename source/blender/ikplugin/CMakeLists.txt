@@ -1,4 +1,3 @@
-# $Id: CMakeLists.txt 20156 2009-05-11 16:31:30Z ben2610 $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -50,12 +49,16 @@ set(SRC
 if(WITH_IK_ITASC)
 	add_definitions(-DWITH_IK_ITASC)
 	list(APPEND INC
-		../../../extern/Eigen2
+		../../../extern/Eigen3
 		../../../intern/itasc
 	)
 	list(APPEND SRC
 		intern/itasc_plugin.cpp
 	)
+endif()
+
+if(WIN32)
+	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
 endif()
 
 blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}")

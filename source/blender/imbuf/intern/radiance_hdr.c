@@ -1,8 +1,4 @@
 /*
- * radiance_hdr.c
- *
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +23,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/imbuf/intern/radiance_hdr.c
  *  \ingroup imbuf

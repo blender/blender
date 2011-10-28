@@ -159,7 +159,7 @@ class VertexPaintDirt(Operator):
             )
     blur_iterations = IntProperty(
             name="Blur Iterations",
-            description="Number times to blur the colors (higher blurs more)",
+            description="Number of times to blur the colors (higher blurs more)",
             min=0, max=40,
             default=1,
             )

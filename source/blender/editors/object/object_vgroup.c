@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1529,7 +1527,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 
 static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
                             const char sel, const char sel_mirr,
-                            const int *flip_map,
+                            const int *flip_map, const int flip_map_len,
                             const short mirror_weights, const short flip_vgroups)
 {
 	BLI_assert(sel || sel_mirr);
@@ -1539,8 +1537,8 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 		if(mirror_weights)
 			SWAP(MDeformVert, *dvert, *dvert_mirr);
 		if(flip_vgroups) {
-			defvert_flip(dvert, flip_map);
-			defvert_flip(dvert_mirr, flip_map);
+			defvert_flip(dvert, flip_map, flip_map_len);
+			defvert_flip(dvert_mirr, flip_map, flip_map_len);
 		}
 	}
 	else {
@@ -1552,24 +1550,24 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 		if(mirror_weights)
 			defvert_copy(dvert, dvert_mirr);
 		if(flip_vgroups) {
-			defvert_flip(dvert, flip_map);
+			defvert_flip(dvert, flip_map, flip_map_len);
 		}
 	}
 }
 
 void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_vgroups)
 {
-#define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, mirror_weights, flip_vgroups)
+#define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, flip_map_len, mirror_weights, flip_vgroups)
 
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
 	short sel, sel_mirr;
-	int	*flip_map;
+	int	*flip_map, flip_map_len;
 
 	if(mirror_weights==0 && flip_vgroups==0)
 		return;
 
-	flip_map= defgroup_flip_map(ob, 0);
+	flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {

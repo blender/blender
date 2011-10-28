@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -375,6 +373,35 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		d2++;
 	}
 	return 0;
+}
+
+/* As unfortunately strtok_r is not available everywhere... */
+char *BLI_strtok_r(char *str, const char *delimiter, char **ctx)
+{
+	char *cut = NULL, *ret = NULL;
+	char *split = str ? str : *ctx;
+
+	if(!split) {
+		return ret;
+	}
+
+	cut = strchr(split, *delimiter);
+	if(cut) {
+		size_t len_ret = cut - split;
+		size_t len_ctx = strlen(split) - len_ret - 1;
+		ret = BLI_strdupn(split, len_ret);
+		if(len_ctx > 0) {
+			*ctx = split+len_ret+1;
+		}
+		else {
+			*ctx = NULL;
+		}
+	}
+	else {
+		ret = BLI_strdup(split);
+		*ctx = NULL;
+	}
+	return ret;
 }
 
 void BLI_timestr(double _time, char *str)

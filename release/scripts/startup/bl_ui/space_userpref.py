@@ -762,7 +762,7 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_show_guide")
 
             layout.separator()
-            layout.label(text="orbit options")
+            layout.label(text="Orbit options")
             if input_prefs.view_rotate_method == 'TRACKBALL':
                 layout.prop(input_prefs, "ndof_roll_invert_axis")
                 layout.prop(input_prefs, "ndof_tilt_invert_axis")
@@ -771,13 +771,13 @@ class USERPREF_MT_ndof_settings(Menu):
                 layout.prop(input_prefs, "ndof_orbit_invert_axes")
 
             layout.separator()
-            layout.label(text="pan options")
+            layout.label(text="Pan options")
             layout.prop(input_prefs, "ndof_panx_invert_axis")
             layout.prop(input_prefs, "ndof_pany_invert_axis")
             layout.prop(input_prefs, "ndof_panz_invert_axis")
 
             layout.separator()
-            layout.label(text="fly options")
+            layout.label(text="Fly options")
             layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
@@ -966,7 +966,7 @@ class USERPREF_PT_addons(Panel):
             if info["support"] not in support:
                 continue
 
-            # check if add-on should be visible with current filters
+            # check if addon should be visible with current filters
             if (filter == "All") or \
                     (filter == info["category"]) or \
                     (filter == "Enabled" and is_enabled) or \

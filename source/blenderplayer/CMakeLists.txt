@@ -1,5 +1,4 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -164,6 +163,8 @@ endif()
 	if(WITH_LZMA)
 		list(APPEND BLENDER_SORTED_LIBS extern_lzma)
 	endif()
+
+	list(APPEND BLENDER_SORTED_LIBS extern_colamd)
 
 	if(WITH_MOD_DECIMATE)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_decimate)
