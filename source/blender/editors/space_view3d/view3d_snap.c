@@ -235,7 +235,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
-		if(em->bm->selectmode & SCE_SELECT_VERTEX) {
+		if(em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
 					BM_SetIndex(eve, 1);
@@ -244,7 +244,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				else BM_SetIndex(eve, 0);
 			}
 		}
-		else if(em->bm->selectmode & SCE_SELECT_EDGE) {
+		else if(em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)

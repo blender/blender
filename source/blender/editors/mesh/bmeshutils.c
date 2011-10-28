@@ -281,7 +281,7 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 	}
 
 	me->edit_btmesh = BMEdit_Create(bm);
-	me->edit_btmesh->selectmode = ts->selectmode;
+	me->edit_btmesh->selectmode= me->edit_btmesh->bm->selectmode= ts->selectmode;
 	me->edit_btmesh->me = me;
 	me->edit_btmesh->ob = ob;
 }

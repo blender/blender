@@ -135,8 +135,11 @@ typedef struct BMesh {
 
 	struct BLI_mempool *looplistpool;
 	
-	/*should be copy of scene select mode*/
-	int selectmode;
+	/* should be copy of scene select mode */
+	/* stored in BMEditMesh too, this is a bit confusing,
+	 * make sure the're in sync!
+	 * Only use when the edit mesh cant be accessed - campbell */
+	short selectmode;
 	
 	/*ID of the shape key this bmesh came from*/
 	int shapenr;
