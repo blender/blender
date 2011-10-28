@@ -522,7 +522,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 						dw->weight= paintweight;
 
 						if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-							int j= -1; //BMESH_TODO mesh_get_x_mirror_vert(ob, faceverts[i]);
+							int j= mesh_get_x_mirror_vert(ob, vidx);
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
@@ -1826,7 +1826,7 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
 		paint_cursor_start(C, weight_paint_poll);
 		
-		//BMESH_TODO mesh_octree_table(ob, NULL, NULL, 's');
+		mesh_octree_table(ob, NULL, NULL, 's');
 		
 		/* verify if active weight group is also active bone */
 		par= modifiers_isDeformedByArmature(ob);
@@ -1838,8 +1838,8 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 		}
 	}
 	else {
-		//BMESH_TODO mesh_octree_table(NULL, NULL, NULL, 'e');
-		//BMESH_TODO mesh_mirrtopo_table(NULL, 'e');
+		mesh_octree_table(NULL, NULL, NULL, 'e');
+		mesh_mirrtopo_table(NULL, 'e');
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);

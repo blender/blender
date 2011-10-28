@@ -4524,8 +4524,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 
 	/* for each vertex in the mesh */
 	for (i=0; i < mesh->totvert; i++) {
-		/*BMESH_TODO*/
-		iflip = 0; //(dgroupflip)? mesh_get_x_mirror_vert(ob, i): 0;
+		iflip = (dgroupflip)? mesh_get_x_mirror_vert(ob, i): 0;
 		
 		/* for each skinnable bone */
 		for (j=0; j < numbones; ++j) {
@@ -4718,7 +4717,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	}
 
 	/* only generated in some cases but can call anyway */
-	//BMESH_TODO mesh_octree_table(ob, NULL, NULL, 'e');
+	mesh_octree_table(ob, NULL, NULL, 'e');
 
 	/* free the memory allocated */
 	MEM_freeN(bonelist);

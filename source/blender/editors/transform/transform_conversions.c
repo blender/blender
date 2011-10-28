@@ -2265,8 +2265,6 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				}
 
 				/* Mirror? */
-
-				//BMESH_TODO
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					BMVert *vmir= EDBM_GetMirrorVert(em, eve); //t->obedit, em, eve, tob->iloc, a);
 					if(vmir && vmir != eve) {
@@ -5137,9 +5135,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH)
 		{
-			// BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+			BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 			/* table needs to be created for each edit command, since vertices can move etc */
-			// BMESH_TODO mesh_octree_table(t->obedit, em, NULL, 'e');
+			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {

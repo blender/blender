@@ -121,8 +121,8 @@ void ED_editors_exit(bContext *C)
 	}
 
 	/* global in meshtools... */
-	//BMESH_TODO mesh_octree_table(NULL, NULL, NULL, 'e');
-	//BMESH_TODO mesh_mirrtopo_table(NULL, 'e');
+	mesh_octree_table(NULL, NULL, NULL, 'e');
+	mesh_mirrtopo_table(NULL, 'e');
 }
 
 
