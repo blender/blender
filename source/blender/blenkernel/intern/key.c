@@ -505,7 +505,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 				co= MEM_callocN(sizeof(float)*3*me->edit_mesh->totvert, "key_block_get_data");
 
 				for(eve=me->edit_mesh->verts.first; eve; eve=eve->next, a++)
-					VECCOPY(co[a], eve->co);
+					copy_v3_v3(co[a], eve->co);
 
 				*freedata= (char*)co;
 				return (char*)co;
@@ -1568,7 +1568,7 @@ void latt_to_key(Lattice *lt, KeyBlock *kb)
 	bp= lt->def;
 	fp= kb->data;
 	for(a=0; a<kb->totelem; a++, fp+=3, bp++) {
-		VECCOPY(fp, bp->vec);
+		copy_v3_v3(fp, bp->vec);
 	}
 }
 
@@ -1585,7 +1585,7 @@ void key_to_latt(KeyBlock *kb, Lattice *lt)
 	tot= MIN2(kb->totelem, tot);
 
 	for(a=0; a<tot; a++, fp+=3, bp++) {
-		VECCOPY(bp->vec, fp);
+		copy_v3_v3(bp->vec, fp);
 	}
 }
 
@@ -1615,11 +1615,11 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
-				VECCOPY(fp, bezt->vec[0]);
+				copy_v3_v3(fp, bezt->vec[0]);
 				fp+= 3;
-				VECCOPY(fp, bezt->vec[1]);
+				copy_v3_v3(fp, bezt->vec[1]);
 				fp+= 3;
-				VECCOPY(fp, bezt->vec[2]);
+				copy_v3_v3(fp, bezt->vec[2]);
 				fp+= 3;
 				fp[0]= bezt->alfa;
 				fp+= 3;	/* alphas */
@@ -1630,7 +1630,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
 			while(a--) {
-				VECCOPY(fp, bp->vec);
+				copy_v3_v3(fp, bp->vec);
 				fp[3]= bp->alfa;
 
 				fp+= 4;
@@ -1662,11 +1662,11 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a-- && tot>0) {
-				VECCOPY(bezt->vec[0], fp);
+				copy_v3_v3(bezt->vec[0], fp);
 				fp+= 3;
-				VECCOPY(bezt->vec[1], fp);
+				copy_v3_v3(bezt->vec[1], fp);
 				fp+= 3;
-				VECCOPY(bezt->vec[2], fp);
+				copy_v3_v3(bezt->vec[2], fp);
 				fp+= 3;
 				bezt->alfa= fp[0];
 				fp+= 3;	/* alphas */
@@ -1679,7 +1679,7 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
 			while(a-- && tot>0) {
-				VECCOPY(bp->vec, fp);
+				copy_v3_v3(bp->vec, fp);
 				bp->alfa= fp[3];
 
 				fp+= 4;
@@ -1708,7 +1708,7 @@ void mesh_to_key(Mesh *me, KeyBlock *kb)
 	mvert= me->mvert;
 	fp= kb->data;
 	for(a=0; a<kb->totelem; a++, fp+=3, mvert++) {
-		VECCOPY(fp, mvert->co);
+		copy_v3_v3(fp, mvert->co);
 
 	}
 }
@@ -1725,7 +1725,7 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 	tot= MIN2(kb->totelem, me->totvert);
 
 	for(a=0; a<tot; a++, fp+=3, mvert++) {
-		VECCOPY(mvert->co, fp);
+		copy_v3_v3(mvert->co, fp);
 	}
 }
 

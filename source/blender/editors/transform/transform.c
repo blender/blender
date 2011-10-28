@@ -1690,8 +1690,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 			values[0]= RNA_float_get(op->ptr, "value");
 		}
 
-		QUATCOPY(t->values, values);
-		QUATCOPY(t->auto_values, values);
+		copy_v4_v4(t->values, values);
+		copy_v4_v4(t->auto_values, values);
 		t->flag |= T_AUTOVALUES;
 	}
 

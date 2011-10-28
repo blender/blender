@@ -647,12 +647,12 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 {
 	bConstraint *pcon, *con;
 	
-	VECCOPY(pchan->loc, chan->loc);
-	VECCOPY(pchan->size, chan->size);
-	VECCOPY(pchan->eul, chan->eul);
-	VECCOPY(pchan->rotAxis, chan->rotAxis);
+	copy_v3_v3(pchan->loc, chan->loc);
+	copy_v3_v3(pchan->size, chan->size);
+	copy_v3_v3(pchan->eul, chan->eul);
+	copy_v3_v3(pchan->rotAxis, chan->rotAxis);
 	pchan->rotAngle= chan->rotAngle;
-	QUATCOPY(pchan->quat, chan->quat);
+	copy_qt_qt(pchan->quat, chan->quat);
 	pchan->rotmode= chan->rotmode;
 	copy_m4_m4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
 	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
@@ -681,9 +681,9 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
 
 	/* ik (dof) settings */
 	pchan->ikflag = pchan_from->ikflag;
-	VECCOPY(pchan->limitmin, pchan_from->limitmin);
-	VECCOPY(pchan->limitmax, pchan_from->limitmax);
-	VECCOPY(pchan->stiffness, pchan_from->stiffness);
+	copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
+	copy_v3_v3(pchan->limitmax, pchan_from->limitmax);
+	copy_v3_v3(pchan->stiffness, pchan_from->stiffness);
 	pchan->ikstretch= pchan_from->ikstretch;
 	pchan->ikrotweight= pchan_from->ikrotweight;
 	pchan->iklinweight= pchan_from->iklinweight;
@@ -1118,13 +1118,13 @@ void copy_pose_result(bPose *to, bPose *from)
 			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
 			
 			/* used for local constraints */
-			VECCOPY(pchanto->loc, pchanfrom->loc);
-			QUATCOPY(pchanto->quat, pchanfrom->quat);
-			VECCOPY(pchanto->eul, pchanfrom->eul);
-			VECCOPY(pchanto->size, pchanfrom->size);
+			copy_v3_v3(pchanto->loc, pchanfrom->loc);
+			copy_qt_qt(pchanto->quat, pchanfrom->quat);
+			copy_v3_v3(pchanto->eul, pchanfrom->eul);
+			copy_v3_v3(pchanto->size, pchanfrom->size);
 			
-			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
-			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+			copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
+			copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
 			
 			pchanto->rotmode= pchanfrom->rotmode;
 			pchanto->flag= pchanfrom->flag;

@@ -5319,8 +5319,8 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->persp= v3d->persp;
 			rv3d->view= v3d->view;
 			rv3d->dist= v3d->dist;
-			VECCOPY(rv3d->ofs, v3d->ofs);
-			QUATCOPY(rv3d->viewquat, v3d->viewquat);
+			copy_v3_v3(rv3d->ofs, v3d->ofs);
+			copy_qt_qt(rv3d->viewquat, v3d->viewquat);
 		}
 	}
 
@@ -10464,6 +10464,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.dome.warptext = sce->r.dometext;
 
 			//Stand Alone
+			sce->gm.fullscreen = sce->r.fullscreen;
 			sce->gm.xplay = sce->r.xplay;
 			sce->gm.yplay = sce->r.yplay;
 			sce->gm.freqplay = sce->r.freqplay;
@@ -12189,22 +12190,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						part->rotmode = PART_ROT_VEL;
 				}
 			}
-		}
-
-		{
-			/* Initialize BGE exit key to esc key */
-			Scene *scene;
-			for(scene= main->scene.first; scene; scene= scene->id.next) {
-				if (!scene->gm.exitkey)
-					scene->gm.exitkey = 218; //218 is the Blender key code for ESC
-			}
-		}
-
-		{
-			/* Initialize default values for collision masks */
-			Object *ob;
-			for(ob=main->object.first; ob; ob=ob->id.next)
-				ob->col_group = ob->col_mask = 1;
 		}
 	}
 
