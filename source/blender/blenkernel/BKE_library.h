@@ -78,7 +78,7 @@ void rename_id(struct ID *id, const char *name);
 void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
-void all_local(struct Library *lib, int untagged_only);
+void BKE_library_make_local(struct Main *bmain, struct Library *lib, int untagged_only);
 struct ID *find_id(const char *type, const char *name);
 void clear_id_newpoins(void);
 

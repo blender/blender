@@ -1089,7 +1089,7 @@ static PyObject* gPyDisableMotionBlur(PyObject*)
 	Py_RETURN_NONE;
 }
 
-int getGLSLSettingFlag(char *setting)
+static int getGLSLSettingFlag(const char *setting)
 {
 	if(strcmp(setting, "lights") == 0)
 		return GAME_GLSL_NO_LIGHTS;
@@ -1725,7 +1725,7 @@ static void backupPySysObjects(void)
  *
  * "/home/me/foo.blend" -> "/home/me/scripts"
  */
-static void initPySysObjects__append(PyObject *sys_path, char *filename)
+static void initPySysObjects__append(PyObject *sys_path, const char *filename)
 {
 	PyObject *item;
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
@@ -2325,7 +2325,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 	return 0;
 }
 
-void pathGamePythonConfig( char *path )
+void pathGamePythonConfig(char *path)
 {
 	int len = strlen(gp_GamePythonPathOrig); // Always use the first loaded blend filename
 	
@@ -2339,7 +2339,7 @@ void pathGamePythonConfig( char *path )
 	}
 }
 
-void setGamePythonPath(char *path)
+void setGamePythonPath(const char *path)
 {
 	BLI_strncpy(gp_GamePythonPath, path, sizeof(gp_GamePythonPath));
 	BLI_cleanup_file(NULL, gp_GamePythonPath); /* not absolutely needed but makes resolving path problems less confusing later */

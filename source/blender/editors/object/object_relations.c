@@ -1713,6 +1713,7 @@ static void make_local_makelocalmaterial(Material *ma)
 
 static int make_local_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	AnimData *adt;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
@@ -1721,7 +1722,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	int a, b, mode= RNA_enum_get(op->ptr, "type");
 	
 	if(mode==3) {
-		all_local(NULL, 0);	/* NULL is all libs */
+		BKE_library_make_local(bmain, NULL, 0);	/* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
 	}

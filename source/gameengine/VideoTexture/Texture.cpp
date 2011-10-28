@@ -107,7 +107,7 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 
 
 // get material ID
-short getMaterialID (PyObject * obj, char * name)
+short getMaterialID(PyObject * obj, const char *name)
 {
 	// search for material
 	for (short matID = 0;; ++matID)

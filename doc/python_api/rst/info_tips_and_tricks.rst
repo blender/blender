@@ -7,6 +7,8 @@ Here are various suggestions that you might find useful when writing scripts.
 Some of these are just python features that scripters may not have thought to use with blender, others are blender specific.
 
 
+.. _use_the_terminal:
+
 Use The Terminal
 ================
 

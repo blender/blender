@@ -42,6 +42,9 @@
 #include "BKE_deform.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
+
+
 #include "BLI_cellalloc.h"
 
 

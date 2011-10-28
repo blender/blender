@@ -121,7 +121,7 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 /***************************** Select/Deselect operator *****************************/
 
 /* Select or deselect all MetaElements */
-static int select_all_exec(bContext *C, wmOperator *op)
+static int mball_select_all_exec(bContext *C, wmOperator *op)
 {
 	//Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -171,7 +171,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 	ot->idname= "MBALL_OT_select_all";
 
 	/* callback functions */
-	ot->exec= select_all_exec;
+	ot->exec= mball_select_all_exec;
 	ot->poll= ED_operator_editmball;
 
 	/* flags */

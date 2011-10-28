@@ -58,7 +58,7 @@ int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);
 int		BKE_imtype_is_movie(int imtype);
 
-struct anim *openanim(char * name, int flags, int streamindex);
+struct anim *openanim(const char *name, int flags, int streamindex);
 
 void	image_de_interlace(struct Image *ima, int odd);
 
