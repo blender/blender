@@ -56,22 +56,23 @@ static int surface_slot_add_exec(bContext *C, wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = 0;
 	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	DynamicPaintCanvasSettings *canvas;
 	DynamicPaintSurface *surface;
 
 	/* Make sure we're dealing with a canvas */
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
-	if (!pmd) return OPERATOR_CANCELLED;
-	if (!pmd->canvas) return OPERATOR_CANCELLED;
+	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
 
-	surface = dynamicPaint_createNewSurface(pmd->canvas, CTX_data_scene(C));
+	canvas = pmd->canvas;
+	surface = dynamicPaint_createNewSurface(canvas, CTX_data_scene(C));
 
 	if (!surface) return OPERATOR_CANCELLED;
 
 	/* set preview for this surface only and set active */
-	pmd->canvas->active_sur = 0;
+	canvas->active_sur = 0;
 	for(surface=surface->prev; surface; surface=surface->prev) {
 				surface->flags &= ~MOD_DPAINT_PREVIEW;
-				pmd->canvas->active_sur++;
+				canvas->active_sur++;
 	}
 
 	return OPERATOR_FINISHED;
@@ -97,27 +98,28 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *op)
 {
 	DynamicPaintModifierData *pmd = 0;
 	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	DynamicPaintCanvasSettings *canvas;
 	DynamicPaintSurface *surface;
 	int id=0;
 
 	/* Make sure we're dealing with a canvas */
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
-	if (!pmd) return OPERATOR_CANCELLED;
-	if (!pmd->canvas) return OPERATOR_CANCELLED;
+	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
 
-	surface = pmd->canvas->surfaces.first;
+	canvas = pmd->canvas;
+	surface = canvas->surfaces.first;
 
 	/* find active surface and remove it */
 	for(; surface; surface=surface->next) {
-		if(id == pmd->canvas->active_sur) {
-				pmd->canvas->active_sur -= 1;
+		if(id == canvas->active_sur) {
+				canvas->active_sur -= 1;
 				dynamicPaint_freeSurface(surface);
 				break;
 			}
 		id++;
 	}
 
-	dynamicPaint_resetPreview(pmd->canvas);
+	dynamicPaint_resetPreview(canvas);
 	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, cObject);
 
@@ -197,42 +199,39 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 
 	Object *ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
+	DynamicPaintSurface *surface;
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	int index= RNA_int_get(op->ptr, "index");
 
-	if (!pmd) return OPERATOR_CANCELLED;
-
+	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
+	surface = get_activeSurface(pmd->canvas);
 
 	/* if type is already enabled, toggle it off */
-	if (pmd->canvas) {
-			DynamicPaintSurface *surface = get_activeSurface(pmd->canvas);
+	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
+		int exists = dynamicPaint_outputLayerExists(surface, ob, index);
+		char *name;
+		
+		if (index == 0)
+			name = surface->output_name;
+		else if (index == 1)
+			name = surface->output_name2;
 
-			if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-				int exists = dynamicPaint_outputLayerExists(surface, ob, index);
-				char *name;
-				
-				if (index == 0)
-					name = surface->output_name;
-				else if (index == 1)
-					name = surface->output_name2;
-
-				/* Vertex Color Layer */
-				if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-					if (!exists)
-						ED_mesh_color_add(C, scene, ob, ob->data, name, 1);
-					else 
-						ED_mesh_color_remove_named(C, ob, ob->data, name);
-				}
-				/* Vertex Weight Layer */
-				else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-					if (!exists)
-						ED_vgroup_add_name(ob, name);
-					else {
-						bDeformGroup *defgroup = defgroup_find_name(ob, name);
-						if (defgroup) ED_vgroup_delete(ob, defgroup);
-					}
-				}
+		/* Vertex Color Layer */
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+			if (!exists)
+				ED_mesh_color_add(C, scene, ob, ob->data, name, 1);
+			else 
+				ED_mesh_color_remove_named(C, ob, ob->data, name);
+		}
+		/* Vertex Weight Layer */
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+			if (!exists)
+				ED_vgroup_add_name(ob, name);
+			else {
+				bDeformGroup *defgroup = defgroup_find_name(ob, name);
+				if (defgroup) ED_vgroup_delete(ob, defgroup);
 			}
+		}
 	}
 
 	return OPERATOR_FINISHED;
@@ -275,11 +274,9 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	int frames;
 
 	frames = surface->end_frame - surface->start_frame + 1;
-	if (frames <= 0) {sprintf(canvas->error, "No frames to bake.");printf("DynamicPaint bake failed: %s", canvas->error);return 0;}
+	if (frames <= 0) {BLI_strncpy(canvas->error, "No frames to bake.", sizeof(canvas->error)); return 0;}
 
-	/*
-	*	Set frame to start point (also inits modifier data)
-	*/
+	/* Set frame to start point (also inits modifier data) */
 	frame = surface->start_frame;
 	scene->r.cfra = (int)frame;
 	ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
@@ -287,9 +284,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	/* Init surface	*/
 	if (!dynamicPaint_createUVSurface(surface)) return 0;
 
-	/*
-	*	Loop through selected frames
-	*/
+	/* Loop through selected frames */
 	for (frame=surface->start_frame; frame<=surface->end_frame; frame++)
 	{
 		float progress = (frame - surface->start_frame) / (float)frames * 100;
@@ -300,7 +295,6 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 
 		/* Update progress bar cursor */
 		WM_timecursor(win, (int)progress);
-		printf("DynamicPaint: Baking frame %i\n", frame);
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
@@ -311,48 +305,25 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 		*	Save output images
 		*/
 		{
-			char filename[250];
-			char pad[4];
-			char dir_slash[2];
-			/* OpenEXR or PNG	*/
-			short format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? DPOUTPUT_OPENEXR : DPOUTPUT_PNG;
+			char filename[FILE_MAX];
+			/* make sure output path has ending slash */
+			BLI_add_slash(surface->image_output_path);
 
-			/* Add frame number padding	*/
-			if (frame<10) sprintf(pad,"000");
-			else if (frame<100) sprintf(pad,"00");
-			else if (frame<1000) sprintf(pad,"0");
-			else pad[0] = '\0';
-
-			/* make sure directory path is valid to append filename */
-			if (surface->image_output_path[strlen(surface->image_output_path)-1] != 47 &&
-				surface->image_output_path[strlen(surface->image_output_path)-1] != 92)
-				strcpy(dir_slash,"/");
-			else
-				dir_slash[0] = '\0';
-
-
-			/* color map	*/
-			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-				if (surface->flags & MOD_DPAINT_OUT1) {
-					BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
-					dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_PAINT);
-				}
-				if (surface->flags & MOD_DPAINT_OUT2) {
-					BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name2, pad, (int)frame);
-					dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_WET);
-				}
+			/* primary output layer */
+			if (surface->flags & MOD_DPAINT_OUT1) {
+				/* set filepath */
+				BLI_snprintf(filename, sizeof(filename), "%s%s", surface->image_output_path, surface->output_name);
+				BLI_path_frame(filename, frame, 4);
+				/* save image */
+				dynamicPaint_outputSurfaceImage(surface, filename, 0);
 			}
-
-			/* displacement map	*/
-			else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-				BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
-				dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_DISPLACE);
-			}
-
-			/* waves	*/
-			else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-				BLI_snprintf(filename, sizeof(filename), "%s%s%s%s%i", surface->image_output_path, dir_slash, surface->output_name, pad, (int)frame);
-				dynamicPaint_outputImage(surface, filename, format, DPOUTPUT_WAVES);
+			/* secondary output */
+			if (surface->flags & MOD_DPAINT_OUT2 && surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+				/* set filepath */
+				BLI_snprintf(filename, sizeof(filename), "%s%s", surface->image_output_path, surface->output_name2);
+				BLI_path_frame(filename, frame, 4);
+				/* save image */
+				dynamicPaint_outputSurfaceImage(surface, filename, 1);
 			}
 		}
 	}
@@ -370,6 +341,7 @@ int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	Object *ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	int status = 0;
 	double timer = PIL_check_seconds_timer();
+	char result_str[80];
 	DynamicPaintSurface *surface;
 
 	/*
@@ -397,35 +369,31 @@ int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	/*  Bake Dynamic Paint	*/
 	status = dynamicPaint_bakeImageSequence(C, surface, ob);
 	/* Clear bake */
-	pmd->canvas->flags &= ~MOD_DPAINT_BAKING;
+	canvas->flags &= ~MOD_DPAINT_BAKING;
 	WM_cursor_restore(CTX_wm_window(C));
 	dynamicPaint_freeSurfaceData(surface);
 
 	/* Bake was successful:
 	*  Report for ended bake and how long it took */
 	if (status) {
-
 		/* Format time string	*/
-		char timestr[30];
+		char time_str[30];
 		double time = PIL_check_seconds_timer() - timer;
-		BLI_timestr(time, timestr);
+		BLI_timestr(time, time_str);
 
 		/* Show bake info */
-		BLI_snprintf(canvas->ui_info, sizeof(canvas->ui_info), "Bake Complete! (%s)", timestr);
-		printf("%s\n", canvas->ui_info);
+		BLI_snprintf(result_str, sizeof(result_str), "Bake Complete! (%s)", time_str);
+		BKE_report(op->reports, RPT_INFO, result_str);
 	}
 	else {
-		if (strlen(pmd->canvas->error)) { /* If an error occured */
-			BLI_snprintf(canvas->ui_info, sizeof(canvas->ui_info), "Bake Failed: %s", pmd->canvas->error);
-			BKE_report(op->reports, RPT_ERROR, canvas->ui_info);
+		if (strlen(canvas->error)) { /* If an error occured */
+			BLI_snprintf(result_str, sizeof(result_str), "Bake Failed: %s", canvas->error);
+			BKE_report(op->reports, RPT_ERROR, result_str);
 		}
 		else {	/* User cancelled the bake */
-			sprintf(pmd->canvas->ui_info, "Baking Cancelled!");
-			BKE_report(op->reports, RPT_WARNING, canvas->ui_info);
+			BLI_strncpy(result_str, "Baking Cancelled!", sizeof(result_str));
+			BKE_report(op->reports, RPT_WARNING, result_str);
 		}
-
-		/* Print failed bake to console */
-		printf("Baking Cancelled!\n");
 	}
 
 	return status;

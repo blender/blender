@@ -50,7 +50,7 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
+float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
 {
 	float dist;
 
@@ -458,7 +458,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	{	
 		float dist;
 		if(data->sphere_radius == 0.0f)
-			dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
 			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 

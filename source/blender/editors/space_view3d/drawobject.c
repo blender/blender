@@ -2695,7 +2695,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
 	{
 		/* check if target has an active dp modifier	*/
-		if(md && md->mode & (eModifierMode_Realtime | eModifierMode_Render))					
+		if(md && (md->mode & eModifierMode_Realtime))					
 		{
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 			/* if canvas is ready to preview vertex colors */

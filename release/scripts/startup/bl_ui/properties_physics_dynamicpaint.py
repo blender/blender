@@ -72,18 +72,18 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                         if surface.surface_format != "VERTEX":
                             col.label(text="Quality:")
                             col.prop(surface, "image_resolution")
-                        col.prop(surface, "use_anti_aliasing")
+                        col.prop(surface, "use_antialiasing")
                     
                         col = layout.column()
                         col.label(text="Frames:")
                         split = col.split()
                     
                         col = split.column(align=True)
-                        col.prop(surface, "start_frame", text="Start")
-                        col.prop(surface, "end_frame", text="End")
+                        col.prop(surface, "frame_start", text="Start")
+                        col.prop(surface, "frame_end", text="End")
                     
                         col = split.column()
-                        col.prop(surface, "substeps")
+                        col.prop(surface, "frame_substeps")
 
             elif (md.ui_type == "BRUSH"):
                 brush = md.brush_settings
@@ -102,9 +102,9 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                 
                     col = split.column()
                     sub = col.column()
-                    sub.active = (brush.paint_source != "PSYS");
+                    sub.active = (brush.paint_source != "PARTICLE_SYSTEM");
                     sub.prop(brush, "use_material")
-                    if brush.use_material and brush.paint_source != "PSYS":
+                    if brush.use_material and brush.paint_source != "PARTICLE_SYSTEM":
                         col.prop(brush, "material", text="")
                         col.prop(brush, "paint_alpha", text="Alpha Factor")
                     else:
@@ -132,33 +132,42 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
 
         # dissolve
         if (surface.surface_type == "PAINT"):
-            layout.label(text="Wetmap drying:")
-            split = layout.split(percentage=0.8)
-            split.prop(surface, "dry_speed", text="Dry Time")
-            split.prop(surface, "use_dry_log", text="Slow")
+            split = layout.split(percentage=0.35)
+            col = split.column()
+            col.label(text="Wetmap drying:")
+            col = split.column()
+            split = col.split(percentage=0.7)
+            col = split.column()
+            col.prop(surface, "dry_speed", text="Time")
+            col = split.column()
+            col.prop(surface, "use_dry_log", text="Slow")
             
         if (surface.surface_type != "WAVE"):
+            split = layout.split(percentage=0.35)
+            col = split.column()
             if (surface.surface_type == "DISPLACE"):
-                layout.prop(surface, "use_dissolve", text="Dissolve:")
+                col.prop(surface, "use_dissolve", text="Dissolve:")
             elif (surface.surface_type == "WEIGHT"):
-                layout.prop(surface, "use_dissolve", text="Fade:")
+                col.prop(surface, "use_dissolve", text="Fade:")
             else:
-                layout.prop(surface, "use_dissolve", text="Dissolve:")
-            sub = layout.column()
-            sub.active = surface.use_dissolve
-            split = sub.split(percentage=0.8)
-            split.prop(surface, "dissolve_speed", text="Time")
-            split.prop(surface, "use_dissolve_log", text="Slow")
+                col.prop(surface, "use_dissolve", text="Dissolve:")
+            col = split.column()
+            col.active = surface.use_dissolve
+            split = col.split(percentage=0.7)
+            col = split.column()
+            col.prop(surface, "dissolve_speed", text="Time")
+            col = split.column()
+            col.prop(surface, "use_dissolve_log", text="Slow")
         
         # per type settings
         if (surface.surface_type == "DISPLACE"):
-            layout.prop(surface, "incremental_disp")
+            layout.prop(surface, "use_incremental_displace")
             if (surface.surface_format == "VERTEX"):
                 split = layout.split()
                 col = split.column()
                 col.prop(surface, "depth_clamp")
                 col = split.column()
-                col.prop(surface, "disp_factor")
+                col.prop(surface, "displace_factor")
             
         if (surface.surface_type == "WAVE"):
             layout.prop(surface, "wave_open_borders")
@@ -173,8 +182,8 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(surface, "wave_damping")
             col.prop(surface, "wave_spring")
             
-        layout.label(text="Brush Group:")
-        layout.prop(surface, "brush_group", text="")
+        layout.separator()
+        layout.prop(surface, "brush_group", text="Brush Group")
 
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Dynamic Paint Output"
@@ -230,42 +239,42 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
         # image format outputs
         if (surface.surface_format == "IMAGE"):
             col = layout.column()
-            col.label(text="UV layer:")
-            col.prop_search(surface, "uv_layer", ob.data, "uv_textures", text="")
+            col.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
+            col.prop_search(surface, "uv_layer", ob.data, "uv_textures", text="UV layer:")
+            layout.separator()
             
             col.separator()
             col = layout.column()
-            col.prop(surface, "image_output_path", text="Output directory")
-            col.prop(surface, "image_fileformat", text="Image Format")
+            col.prop(surface, "image_output_path", text="")
+            split = layout.split()
+            col = split.column()
+            col.prop(surface, "image_fileformat", text="")
+            col = split.column()
+            col.prop(surface, "premultiply", text="Premultiply alpha")
             col.separator()
+            
             if (surface.surface_type == "PAINT"):
-                split = col.split()
+                split = layout.split(percentage=0.4)
                 col = split.column()
-                col.prop(surface, "do_output1", text="Output Paintmaps:")
+                col.prop(surface, "do_output1", text="Paintmaps:")
                 sub = split.column()
-                sub.prop(surface, "premultiply", text="Premultiply alpha")
                 sub.active = surface.do_output1
-                sub = layout.column()
-                sub.active = surface.do_output1
-                sub.prop(surface, "output_name", text="Filename: ")
+                sub.prop(surface, "output_name", text="")
                 
-                col = layout.column()
-                col.prop(surface, "do_output2", text="Output Wetmaps:")
-                sub = col.column()
+                split = layout.split(percentage=0.4)
+                col = split.column()
+                col.prop(surface, "do_output2", text="Wetmaps:")
+                sub = split.column()
                 sub.active = surface.do_output2
-                sub.prop(surface, "output_name2", text="Filename: ")
+                sub.prop(surface, "output_name2", text="")
             else:
+                col = layout.column()
                 col.prop(surface, "output_name", text="Filename: ")
                 if (surface.surface_type == "DISPLACE"):
-                    col.prop(surface, "disp_type", text="Displace Type")
+                    col.prop(surface, "displace_type", text="Displace Type")
                     col.prop(surface, "depth_clamp")
                 if (surface.surface_type == "WAVE"):
                     col.prop(surface, "depth_clamp", text="Wave Clamp")
-            
-            layout.separator()
-            layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
-            if len(canvas.ui_info) != 0:
-                layout.label(text=canvas.ui_info)
 
 class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Dynamic Paint Initial Color"
@@ -297,7 +306,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
             layout.prop(surface, "init_texture")
             layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Layer:")
         
-        if (surface.init_color_type == "VERTEXCOLOR"):
+        if (surface.init_color_type == "VERTEX_COLOR"):
             layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
@@ -388,35 +397,35 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(brush, "paint_source")
 
-        if brush.paint_source == "PSYS":
-            col.prop_search(brush, "psys", ob, "particle_systems", text="")
-            if brush.psys:
+        if brush.paint_source == "PARTICLE_SYSTEM":
+            col.prop_search(brush, "particle_system", ob, "particle_systems", text="")
+            if brush.particle_system:
                 col.label(text="Particle effect:")
                 sub = col.column()
                 sub.active = not brush.use_part_radius
                 sub.prop(brush, "solid_radius", text="Solid Radius")
-                col.prop(brush, "use_part_radius", text="Use Particle's Radius")
+                col.prop(brush, "use_particle_radius", text="Use Particle's Radius")
                 col.prop(brush, "smooth_radius", text="Smooth radius")
                 
-        if brush.paint_source in {'DISTANCE', 'VOLDIST', 'POINT'}:
+        if brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE', 'POINT'}:
             col.prop(brush, "paint_distance", text="Paint Distance")
             split = layout.row().split(percentage=0.4)
             sub = split.column()
             if brush.paint_source == 'DISTANCE':
-                sub.prop(brush, "prox_project")
-            if brush.paint_source == "VOLDIST":
-                sub.prop(brush, "prox_inverse")
+                sub.prop(brush, "proximity_project")
+            if brush.paint_source == "VOLUME_DISTANCE":
+                sub.prop(brush, "proximity_inverse")
                 
             sub = split.column()
             if brush.paint_source == 'DISTANCE':
                 column = sub.column()
-                column.active = brush.prox_project
-                column.prop(brush, "ray_dir")
-            sub.prop(brush, "prox_falloff")
-            if brush.prox_falloff == "RAMP":
+                column.active = brush.proximity_project
+                column.prop(brush, "ray_direction")
+            sub.prop(brush, "proximity_falloff")
+            if brush.proximity_falloff == "RAMP":
                 col = layout.row().column()
                 col.separator()
-                col.prop(brush, "prox_ramp_alpha", text="Only Use Alpha")
+                col.prop(brush, "proximity_ramp_alpha", text="Only Use Alpha")
                 col.template_color_ramp(brush, "paint_ramp", expand=True)
                 
 class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, bpy.types.Panel):
@@ -434,8 +443,6 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, bpy.types.Panel):
         brush = context.dynamic_paint.brush_settings
         ob = context.object
 		
-        col = layout.row().column()
-        col.label(text="Brush Velocity Settings:")
         split = layout.split()
         col = split.column()
         col.prop(brush, "velocity_alpha")
@@ -447,9 +454,12 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, bpy.types.Panel):
         sub.prop(brush, "max_velocity")
         sub.template_color_ramp(brush, "velocity_ramp", expand=True)
         layout.separator()
-        layout.label(text="Smudge:")
-        layout.prop(brush, "do_smudge")
-        layout.prop(brush, "smudge_strength")
+        split = layout.split()
+        col = split.column()
+        col.prop(brush, "do_smudge")
+        col = split.column()
+        col.active = brush.do_smudge
+        col.prop(brush, "smudge_strength")
         
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Dynamic Paint Wave"

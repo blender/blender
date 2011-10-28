@@ -4110,7 +4110,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				pmd->canvas = newdataadr(fd, pmd->canvas);
 				pmd->canvas->pmd = pmd;
 				pmd->canvas->dm = NULL;
-				pmd->canvas->ui_info[0] = '\0';
 				pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
 
 				if (pmd->canvas->surfaces.first) {

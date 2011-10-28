@@ -124,7 +124,6 @@ int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osa
 int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres){return 0;}
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex) {return 0;}
 
-/* material_ext.c */
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) {return (struct Material *)NULL;}
 void RE_free_sample_material(struct Material *mat) {}
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],

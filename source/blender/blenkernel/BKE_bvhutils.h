@@ -110,8 +110,8 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 /*
 * Math functions used by callbacks
 */
-float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2);
-float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest );
+float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2);
+float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest);
 
 /*
  * BVHCache

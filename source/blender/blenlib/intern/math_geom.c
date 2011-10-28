@@ -210,7 +210,7 @@ float dist_to_line_segment_v2(const float v1[2], const float v2[2], const float 
 }
 
 /* point closest to v1 on line v2-v3 in 2D */
-void closest_to_line_segment_v2(float *closest, float p[2], float l1[2], float l2[2])
+void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2])
 {
 	float lambda, cp[2];
 

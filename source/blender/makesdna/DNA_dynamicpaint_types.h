@@ -129,9 +129,7 @@ typedef struct DynamicPaintCanvasSettings {
 	short active_sur, flags;
 	int pad;
 
-	
-	char ui_info[128];	// UI info text
-	char error[64];		// Bake error description
+	char error[64];		/* Bake error description */
 
 } DynamicPaintCanvasSettings;
 

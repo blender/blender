@@ -14,8 +14,6 @@
 #ifndef BKE_DYNAMIC_PAINT_H_
 #define BKE_DYNAMIC_PAINT_H_
 
-#include "DNA_dynamicpaint_types.h"
-
 struct bContext;
 struct wmOperator;
 
@@ -38,11 +36,7 @@ typedef struct PaintPoint {
 	float e_color[3];
 	float e_alpha;
 	float wetness;
-	short state;	/* -1 = doesn't exist (On UV mapped image
-					*	    there can be points that doesn't exist on mesh surface)
-					*  0 = empty or dry
-					*  1 = wet paint
-					*  2 = new paint */
+	short state;
 	float color[3];
 	float alpha;
 } PaintPoint;
@@ -52,9 +46,7 @@ typedef struct PaintWavePoint {
 
 	float height;
 	float velocity;
-	short state; /* 0 = neutral
-				 *  1 = obstacle
-				 *  2 = reflect only */
+	short state;
 } PaintWavePoint;
 
 struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
@@ -81,17 +73,17 @@ struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings 
 /* image sequence baking */
 int dynamicPaint_createUVSurface(struct DynamicPaintSurface *surface);
 int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface, struct Scene *scene, struct Object *cObject, int frame);
-void dynamicPaint_outputImage(struct DynamicPaintSurface *surface, char* filename, short format, short type);
+void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface, char* filename, short output_layer);
 
+/* PaintPoint state */
+#define DPAINT_PAINT_NONE -1
+#define DPAINT_PAINT_DRY 0
+#define DPAINT_PAINT_WET 1
+#define DPAINT_PAINT_NEW 2
 
-/* surface -> image file flags */
-#define DPOUTPUT_JPEG 0
-#define DPOUTPUT_PNG 1
-#define DPOUTPUT_OPENEXR 2
-
-#define DPOUTPUT_PAINT 0
-#define DPOUTPUT_WET 1
-#define DPOUTPUT_DISPLACE 2
-#define DPOUTPUT_WAVES 3
+/* PaintWavePoint state */
+#define DPAINT_WAVE_NONE 0
+#define DPAINT_WAVE_OBSTACLE 1
+#define DPAINT_WAVE_REFLECT_ONLY 2
 
 #endif /* BKE_DYNAMIC_PAINT_H_ */
