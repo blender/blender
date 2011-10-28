@@ -788,6 +788,7 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 /* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a
  * preference */
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
+#define BM_CD_LAYER_ID "__mirror_index"
 void EDBM_CacheMirrorVerts(BMEditMesh *em)
 {
 	Mesh *me = em->me;
@@ -806,11 +807,12 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		em->mirr_free_arrays = 1;
 	}
 
-	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, "__mirror_index")) {
-		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, "__mirror_index");
+	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID)) {
+		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
 	}
 
-	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");
+	li= CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+
 	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
 
 	/* BMESH_TODO, we should STOP overwriting the vertex index data with bad
@@ -847,12 +849,16 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 	}
 
 	BMBVH_FreeBVH(tree);
+
+	em->mirror_cdlayer= li;
 }
 
 BMVert *EDBM_GetMirrorVert(BMEditMesh *em, BMVert *v)
 {
 	int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
-	
+
+	BLI_assert(em->mirror_cdlayer != -1); /* invalid use */
+
 	if (mirr && *mirr >=0 && *mirr < em->bm->totvert) {
 		if (!em->vert_index) {
 			printf("err: should only be called between "
@@ -872,6 +878,8 @@ void EDBM_EndMirrorCache(BMEditMesh *em)
 		MEM_freeN(em->vert_index);
 		em->vert_index = NULL;
 	}
+
+	em->mirror_cdlayer= -1;
 }
 
 void EDBM_ApplyMirrorCache(BMEditMesh *em, const int sel_from, const int sel_to)

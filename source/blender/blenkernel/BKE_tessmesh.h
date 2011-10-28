@@ -58,7 +58,7 @@ typedef struct BMEditMesh {
 	struct Object *ob;
 
 	/*temp variables for x-mirror editing*/
-	int mirror_cdlayer;
+	int mirror_cdlayer; /* -1 is invalid */
 	int mirr_free_arrays;
 } BMEditMesh;
 
