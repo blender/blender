@@ -134,18 +134,27 @@ static int space_image_file_exists_poll(bContext *C)
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
-		int poll= 0;
+		int ret= FALSE;
 		char name[FILE_MAX];
 
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
 			BLI_path_abs(name, bmain->name);
-			poll= (BLI_exists(name) && BLI_file_is_writable(name));
+
+			if(BLI_exists(name) == FALSE) {
+				CTX_wm_operator_poll_msg_set(C, "image file not found");
+			}
+			else if (BLI_file_is_writable(name) == FALSE) {
+				CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
+			}
+			else {
+				ret= TRUE;
+			}
 		}
 		ED_space_image_release_buffer(sima, lock);
 
-		return poll;
+		return ret;
 	}
 	return 0;
 }
@@ -1032,7 +1041,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
-		Main *bmain= CTX_data_main(C);
+		const char *relbase= ID_BLEND_PATH(CTX_data_main(C), &ima->id);
 		const short relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		const short save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 		short ok= FALSE;
@@ -1075,19 +1084,11 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			ok= TRUE;
 		}
 
-		if(ok)	{
-			if(relative)
-				BLI_path_rel(simopts->filepath, bmain->name); /* only after saving */
-
-			if(ibuf->name[0]==0) {
-				BLI_strncpy(ibuf->name, simopts->filepath, sizeof(ibuf->name));
-				BLI_strncpy(ima->name, simopts->filepath, sizeof(ima->name));
-			}
-
+		if (ok)	{
 			if(!save_copy) {
 				if(do_newpath) {
-					BLI_strncpy(ima->name, simopts->filepath, sizeof(ima->name));
 					BLI_strncpy(ibuf->name, simopts->filepath, sizeof(ibuf->name));
+					BLI_strncpy(ima->name, simopts->filepath, sizeof(ima->name));
 				}
 
 				ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -1111,6 +1112,11 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
 					ima->source= IMA_SRC_FILE;
 					ima->type= IMA_TYPE_IMAGE;
+				}
+
+				/* only image path, never ibuf */
+				if(relative) {
+					BLI_path_rel(ima->name, relbase); /* only after saving */
 				}
 			}
 		}
