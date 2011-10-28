@@ -1157,7 +1157,7 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 				unit_qt(self->quat);
 			}
 			else {
-				QUATCOPY(self->quat, quat);
+				copy_qt_qt(self->quat, quat);
 			}
 			self->wrapped = Py_NEW;
 		}

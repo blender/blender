@@ -2046,7 +2046,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 				while(a--) {
 					if(count==nr) {
 						found= 1;
-						VECCOPY(vec, bezt->vec[1]);
+						copy_v3_v3(vec, bezt->vec[1]);
 						break;
 					}
 					count++;
@@ -2114,7 +2114,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 		copy_m4_m3(mat, cmat);
 		
 		if(ob->type==OB_CURVE) {
-			VECCOPY(mat[3], v1);
+			copy_v3_v3(mat[3], v1);
 		}
 		else {
 			add_v3_v3v3(mat[3], v1, v2);
@@ -2238,7 +2238,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	case PARVERT1:
 		unit_m4(totmat);
 		if (simul){
-			VECCOPY(totmat[3], par->obmat[3]);
+			copy_v3_v3(totmat[3], par->obmat[3]);
 		}
 		else{
 			give_parvert(par, ob->par1, vec);
@@ -2272,10 +2272,10 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 		
 		// origin, voor help line
 		if( (ob->partype & PARTYPE)==PARSKEL ) {
-			VECCOPY(ob->orig, par->obmat[3]);
+			copy_v3_v3(ob->orig, par->obmat[3]);
 		}
 		else {
-			VECCOPY(ob->orig, totmat[3]);
+			copy_v3_v3(ob->orig, totmat[3]);
 		}
 	}
 
