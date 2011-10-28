@@ -187,10 +187,10 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			Mesh *me= ob->data;
 			MVert *mv;
 
-			//BMESH_TODO mesh_octree_table(ob, NULL, NULL, 's');
+			mesh_octree_table(ob, NULL, NULL, 's');
 
 			for(i1=0, mv=me->mvert; i1<me->totvert; i1++, mv++) {
-				i2= -1; //BMESH_TODO mesh_get_x_mirror_vert(ob, i1);
+				i2= mesh_get_x_mirror_vert(ob, i1);
 				if(i2==i1) {
 					fp1= ((float *)kb->data) + i1*3;
 					fp1[0] = -fp1[0];
@@ -213,7 +213,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 				}
 			}
 
-			//BMESH_TODO mesh_octree_table(ob, NULL, NULL, 'e');
+			mesh_octree_table(ob, NULL, NULL, 'e');
 		}
 		else if (ob->type == OB_LATTICE) {
 			Lattice *lt= ob->data;
