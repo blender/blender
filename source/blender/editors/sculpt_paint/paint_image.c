@@ -5583,7 +5583,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if(h > maxsize) h= maxsize;
 
 	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect, err_out);
-	if(!ibuf) {
+	if(!ibuf || 1) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */
 		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer: %s", err_out);

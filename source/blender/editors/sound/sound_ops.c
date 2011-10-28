@@ -77,14 +77,14 @@
 
 /******************** open sound operator ********************/
 
-static int open_cancel(bContext *UNUSED(C), wmOperator *op)
+static int sound_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
 	return OPERATOR_CANCELLED;
 }
 
-static void open_init(bContext *C, wmOperator *op)
+static void sound_open_init(bContext *C, wmOperator *op)
 {
 	PropertyPointerRNA *pprop;
 
@@ -93,7 +93,7 @@ static void open_init(bContext *C, wmOperator *op)
 }
 
 #ifdef WITH_AUDASPACE
-static int open_exec(bContext *C, wmOperator *op)
+static int sound_open_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	bSound *sound;
@@ -106,7 +106,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	sound = sound_new_file(bmain, path);
 
 	if(!op->customdata)
-		open_init(C, op);
+		sound_open_init(C, op);
 
 	if (sound==NULL || sound->playback_handle == NULL) {
 		if(op->customdata) MEM_freeN(op->customdata);
@@ -151,7 +151,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 #else //WITH_AUDASPACE
 
-static int open_exec(bContext *UNUSED(C), wmOperator *op)
+static int sound_open_exec(bContext *UNUSED(C), wmOperator *op)
 {
 	BKE_report(op->reports, RPT_ERROR, "Compiled without sound support");
 
@@ -160,12 +160,12 @@ static int open_exec(bContext *UNUSED(C), wmOperator *op)
 
 #endif
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sound_open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return open_exec(C, op);
+		return sound_open_exec(C, op);
 
-	open_init(C, op);
+	sound_open_init(C, op);
 
 	return WM_operator_filesel(C, op, event);
 }
@@ -178,9 +178,9 @@ static void SOUND_OT_open(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_open";
 
 	/* api callbacks */
-	ot->exec= open_exec;
-	ot->invoke= open_invoke;
-	ot->cancel= open_cancel;
+	ot->exec= sound_open_exec;
+	ot->invoke= sound_open_invoke;
+	ot->cancel= sound_open_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -199,9 +199,9 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_open_mono";
 
 	/* api callbacks */
-	ot->exec= open_exec;
-	ot->invoke= open_invoke;
-	ot->cancel= open_cancel;
+	ot->exec= sound_open_exec;
+	ot->invoke= sound_open_invoke;
+	ot->cancel= sound_open_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -214,7 +214,7 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 /******************** mixdown operator ********************/
 
-static int mixdown_exec(bContext *C, wmOperator *op)
+static int sound_mixdown_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_AUDASPACE
 	char path[FILE_MAX];
@@ -257,15 +257,15 @@ static int mixdown_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return mixdown_exec(C, op);
+		return sound_mixdown_exec(C, op);
 
 	return WM_operator_filesel(C, op, event);
 }
 
-static int mixdown_draw_check_prop(PropertyRNA *prop)
+static int sound_mixdown_draw_check_prop(PropertyRNA *prop)
 {
 	const char *prop_id= RNA_property_identifier(prop);
 	return !(	strcmp(prop_id, "filepath") == 0 ||
@@ -275,7 +275,7 @@ static int mixdown_draw_check_prop(PropertyRNA *prop)
 }
 
 #ifdef WITH_AUDASPACE
-static void mixdown_draw(bContext *C, wmOperator *op)
+static void sound_mixdown_draw(bContext *C, wmOperator *op)
 {
 	static EnumPropertyItem pcm_format_items[] = {
 		{AUD_FORMAT_U8, "U8", 0, "U8", "8 bit unsigned"},
@@ -424,7 +424,7 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* main draw call */
-	uiDefAutoButsRNA(layout, &ptr, mixdown_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, sound_mixdown_draw_check_prop, '\0');
 }
 #endif // WITH_AUDASPACE
 
@@ -476,11 +476,11 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_mixdown";
 
 	/* api callbacks */
-	ot->exec= mixdown_exec;
-	ot->invoke= mixdown_invoke;
+	ot->exec= sound_mixdown_exec;
+	ot->invoke= sound_mixdown_invoke;
 
 #ifdef WITH_AUDASPACE
-	ot->ui= mixdown_draw;
+	ot->ui= sound_mixdown_draw;
 #endif
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
@@ -509,7 +509,7 @@ static int sound_poll(bContext *C)
 }
 /********************* pack operator *********************/
 
-static int pack_exec(bContext *C, wmOperator *op)
+static int sound_pack_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Editing* ed = CTX_data_scene(C)->ed;
@@ -537,7 +537,7 @@ static void SOUND_OT_pack(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_pack";
 
 	/* api callbacks */
-	ot->exec= pack_exec;
+	ot->exec= sound_pack_exec;
 	ot->poll= sound_poll;
 
 	/* flags */
@@ -615,7 +615,7 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
+static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Sequence* seq;
 	Scene* scene = CTX_data_scene(C);
@@ -667,7 +667,7 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_update_animation_flags";
 
 	/* api callbacks */
-	ot->exec= update_animation_flags_exec;
+	ot->exec= sound_update_animation_flags_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
@@ -675,14 +675,14 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
+static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main* bmain = CTX_data_main(C);
 	Scene* scene = CTX_data_scene(C);
 	int oldfra = scene->r.cfra;
 	int cfra;
 
-	update_animation_flags_exec(C, NULL);
+	sound_update_animation_flags_exec(C, NULL);
 
 	for(cfra = scene->r.sfra > 0 ? scene->r.sfra - 1 : 0; cfra <= scene->r.efra + 1; cfra++)
 	{
@@ -704,7 +704,7 @@ static void SOUND_OT_bake_animation(wmOperatorType *ot)
 	ot->idname= "SOUND_OT_bake_animation";
 
 	/* api callbacks */
-	ot->exec= bake_animation_exec;
+	ot->exec= sound_bake_animation_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;

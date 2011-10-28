@@ -177,7 +177,7 @@ typedef struct ViewPanData {
 	int event_type;
 } ViewPanData;
 
-static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
+static void image_view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd;
@@ -194,7 +194,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 }
 
-static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
+static void image_view_pan_exit(bContext *C, wmOperator *op, int cancel)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd= op->customdata;
@@ -209,7 +209,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 	MEM_freeN(op->customdata);
 }
 
-static int view_pan_exec(bContext *C, wmOperator *op)
+static int image_view_pan_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	float offset[2];
@@ -232,7 +232,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int image_view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (event->type == MOUSEPAN) {
 		SpaceImage *sima= CTX_wm_space_image(C);
@@ -242,16 +242,16 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		offset[1]= (event->y - event->prevy)/sima->zoom;
 		RNA_float_set_array(op->ptr, "offset", offset);
 
-		view_pan_exec(C, op);
+		image_view_pan_exec(C, op);
 		return OPERATOR_FINISHED;
 	}
 	else {
-		view_pan_init(C, op, event);
+		image_view_pan_init(C, op, event);
 		return OPERATOR_RUNNING_MODAL;
 	}
 }
 
-static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int image_view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd= op->customdata;
@@ -264,11 +264,11 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			offset[0]= (vpd->x - event->x)/sima->zoom;
 			offset[1]= (vpd->y - event->y)/sima->zoom;
 			RNA_float_set_array(op->ptr, "offset", offset);
-			view_pan_exec(C, op);
+			image_view_pan_exec(C, op);
 			break;
 		default:
 			if(event->type==vpd->event_type &&  event->val==KM_RELEASE) {
-				view_pan_exit(C, op, 0);
+				image_view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -277,9 +277,9 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_pan_cancel(bContext *C, wmOperator *op)
+static int image_view_pan_cancel(bContext *C, wmOperator *op)
 {
-	view_pan_exit(C, op, 1);
+	image_view_pan_exit(C, op, 1);
 	return OPERATOR_CANCELLED;
 }
 
@@ -290,10 +290,10 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_pan";
 	
 	/* api callbacks */
-	ot->exec= view_pan_exec;
-	ot->invoke= view_pan_invoke;
-	ot->modal= view_pan_modal;
-	ot->cancel= view_pan_cancel;
+	ot->exec= image_view_pan_exec;
+	ot->invoke= image_view_pan_invoke;
+	ot->modal= image_view_pan_modal;
+	ot->cancel= image_view_pan_cancel;
 	ot->poll= space_image_main_area_poll;
 
 	/* flags */
@@ -312,7 +312,7 @@ typedef struct ViewZoomData {
 	int event_type;
 } ViewZoomData;
 
-static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
+static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewZoomData *vpd;
@@ -328,7 +328,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 }
 
-static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
+static void image_view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewZoomData *vpd= op->customdata;
@@ -342,7 +342,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 	MEM_freeN(op->customdata);
 }
 
-static int view_zoom_exec(bContext *C, wmOperator *op)
+static int image_view_zoom_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -363,7 +363,7 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (event->type == MOUSEZOOM) {
 		SpaceImage *sima= CTX_wm_space_image(C);
@@ -378,12 +378,12 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		view_zoom_init(C, op, event);
+		image_view_zoom_init(C, op, event);
 		return OPERATOR_RUNNING_MODAL;
 	}
 }
 
-static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -399,7 +399,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		default:
 			if(event->type==vpd->event_type && event->val==KM_RELEASE) {
-				view_zoom_exit(C, op, 0);
+				image_view_zoom_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -408,9 +408,9 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_zoom_cancel(bContext *C, wmOperator *op)
+static int image_view_zoom_cancel(bContext *C, wmOperator *op)
 {
-	view_zoom_exit(C, op, 1);
+	image_view_zoom_exit(C, op, 1);
 	return OPERATOR_CANCELLED;
 }
 
@@ -421,10 +421,10 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom";
 	
 	/* api callbacks */
-	ot->exec= view_zoom_exec;
-	ot->invoke= view_zoom_invoke;
-	ot->modal= view_zoom_modal;
-	ot->cancel= view_zoom_cancel;
+	ot->exec= image_view_zoom_exec;
+	ot->invoke= image_view_zoom_invoke;
+	ot->modal= image_view_zoom_modal;
+	ot->cancel= image_view_zoom_cancel;
 	ot->poll= space_image_main_area_poll;
 
 	/* flags */
@@ -443,7 +443,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
  * that explains the negative signs in the code below
  */
 
-static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
@@ -489,7 +489,7 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_ndof";
 	
 	/* api callbacks */
-	ot->invoke= view_ndof_invoke;
+	ot->invoke= image_view_ndof_invoke;
 }
 
 /********************** view all operator *********************/
@@ -498,7 +498,7 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
  * Default behavior is to reset the position of the image and set the zoom to 1
  * If the image will not fit within the window rectangle, the zoom is adjusted */
 
-static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
@@ -542,13 +542,13 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_all";
 	
 	/* api callbacks */
-	ot->exec= view_all_exec;
+	ot->exec= image_view_all_exec;
 	ot->poll= space_image_main_area_poll;
 }
 
 /********************** view selected operator *********************/
 
-static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
@@ -591,7 +591,7 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int view_selected_poll(bContext *C)
+static int image_view_selected_poll(bContext *C)
 {
 	return (space_image_main_area_poll(C) && ED_operator_uvedit(C));
 }
@@ -603,13 +603,13 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_selected";
 	
 	/* api callbacks */
-	ot->exec= view_selected_exec;
-	ot->poll= view_selected_poll;
+	ot->exec= image_view_selected_exec;
+	ot->poll= image_view_selected_poll;
 }
 
 /********************** view zoom in/out operator *********************/
 
-static int view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -628,11 +628,11 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom_in";
 	
 	/* api callbacks */
-	ot->exec= view_zoom_in_exec;
+	ot->exec= image_view_zoom_in_exec;
 	ot->poll= space_image_main_area_poll;
 }
 
-static int view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -651,13 +651,13 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom_out";
 	
 	/* api callbacks */
-	ot->exec= view_zoom_out_exec;
+	ot->exec= image_view_zoom_out_exec;
 	ot->poll= space_image_main_area_poll;
 }
 
 /********************** view zoom ratio operator *********************/
 
-static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
+static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -689,7 +689,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_view_zoom_ratio";
 	
 	/* api callbacks */
-	ot->exec= view_zoom_ratio_exec;
+	ot->exec= image_view_zoom_ratio_exec;
 	ot->poll= space_image_main_area_poll;
 	
 	/* properties */
@@ -740,7 +740,7 @@ static void image_filesel(bContext *C, wmOperator *op, const char *path)
 
 /******************** open image operator ********************/
 
-static void open_init(bContext *C, wmOperator *op)
+static void image_open_init(bContext *C, wmOperator *op)
 {
 	PropertyPointerRNA *pprop;
 
@@ -748,14 +748,14 @@ static void open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int open_cancel(bContext *UNUSED(C), wmOperator *op)
+static int image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
 	return OPERATOR_CANCELLED;
 }
 
-static int open_exec(bContext *C, wmOperator *op)
+static int image_open_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	Scene *scene= CTX_data_scene(C);
@@ -780,7 +780,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	}
 	
 	if(!op->customdata)
-		open_init(C, op);
+		image_open_init(C, op);
 
 	/* hook into UI */
 	pprop= op->customdata;
@@ -823,7 +823,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int image_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	char *path=U.textudir;
@@ -843,9 +843,9 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		path= ima->name;
 
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return open_exec(C, op);
+		return image_open_exec(C, op);
 	
-	open_init(C, op);
+	image_open_init(C, op);
 
 	image_filesel(C, op, path);
 
@@ -861,9 +861,9 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */
-	ot->exec= open_exec;
-	ot->invoke= open_invoke;
-	ot->cancel= open_cancel;
+	ot->exec= image_open_exec;
+	ot->invoke= image_open_invoke;
+	ot->cancel= image_open_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -874,7 +874,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 
 /******************** replace image operator ********************/
 
-static int replace_exec(bContext *C, wmOperator *op)
+static int image_replace_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	char str[FILE_MAX];
@@ -894,7 +894,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int image_replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 
@@ -902,7 +902,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		return OPERATOR_CANCELLED;
 
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return replace_exec(C, op);
+		return image_replace_exec(C, op);
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", (strncmp(sima->image->name, "//", 2))==0);
@@ -919,8 +919,8 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_replace";
 	
 	/* api callbacks */
-	ot->exec= replace_exec;
-	ot->invoke= replace_invoke;
+	ot->exec= image_replace_exec;
+	ot->invoke= image_replace_invoke;
 	ot->poll= space_image_poll;
 
 	/* flags */
@@ -1127,7 +1127,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 	ED_space_image_release_buffer(sima, lock);
 }
 
-static int save_as_exec(bContext *C, wmOperator *op)
+static int image_save_as_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	SaveImageOptions simopts;
@@ -1143,7 +1143,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 }
 
 
-static int save_as_check(bContext *UNUSED(C), wmOperator *op)
+static int image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
@@ -1154,7 +1154,7 @@ static int save_as_check(bContext *UNUSED(C), wmOperator *op)
 	return FALSE;
 }
 
-static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
@@ -1162,7 +1162,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	SaveImageOptions simopts;
 
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return save_as_exec(C, op);
+		return image_save_as_exec(C, op);
 
 	if (save_image_options_init(&simopts, sima, scene, TRUE) == 0)
 		return OPERATOR_CANCELLED;
@@ -1188,9 +1188,9 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_save_as";
 	
 	/* api callbacks */
-	ot->exec= save_as_exec;
-	ot->check= save_as_check;
-	ot->invoke= save_as_invoke;
+	ot->exec= image_save_as_exec;
+	ot->check= image_save_as_check;
+	ot->invoke= image_save_as_invoke;
 	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
@@ -1211,7 +1211,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 /******************** save image operator ********************/
 
-static int save_exec(bContext *C, wmOperator *op)
+static int image_save_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1239,7 +1239,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_save";
 	
 	/* api callbacks */
-	ot->exec= save_exec;
+	ot->exec= image_save_exec;
 	ot->poll= space_image_file_exists_poll;
 
 	/* flags */
@@ -1248,7 +1248,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 /******************* save sequence operator ********************/
 
-static int save_sequence_exec(bContext *C, wmOperator *op)
+static int image_save_sequence_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -1316,7 +1316,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_save_sequence";
 	
 	/* api callbacks */
-	ot->exec= save_sequence_exec;
+	ot->exec= image_save_sequence_exec;
 	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
@@ -1325,7 +1325,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 
 /******************** reload image operator ********************/
 
-static int reload_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Image *ima= CTX_data_edit_image(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -1351,7 +1351,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_reload";
 	
 	/* api callbacks */
-	ot->exec= reload_exec;
+	ot->exec= image_reload_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER; /* no undo, image buffer is not handled by undo */
@@ -1538,7 +1538,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
 /********************* pack operator *********************/
 
-static int pack_test(bContext *C, wmOperator *op)
+static int image_pack_test(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
@@ -1556,14 +1556,14 @@ static int pack_test(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int pack_exec(bContext *C, wmOperator *op)
+static int image_pack_exec(bContext *C, wmOperator *op)
 {
 	struct Main *bmain= CTX_data_main(C);
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
 
-	if(!pack_test(C, op))
+	if(!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
@@ -1581,7 +1581,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int image_pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
@@ -1589,7 +1589,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	uiLayout *layout;
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
 
-	if(!pack_test(C, op))
+	if(!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
@@ -1601,7 +1601,7 @@ static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		return OPERATOR_CANCELLED;
 	}
 
-	return pack_exec(C, op);
+	return image_pack_exec(C, op);
 }
 
 void IMAGE_OT_pack(wmOperatorType *ot)
@@ -1612,8 +1612,8 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_pack";
 	
 	/* api callbacks */
-	ot->exec= pack_exec;
-	ot->invoke= pack_invoke;
+	ot->exec= image_pack_exec;
+	ot->invoke= image_pack_invoke;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1721,7 +1721,7 @@ typedef struct ImageSampleInfo {
 	int draw;
 } ImageSampleInfo;
 
-static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
+static void image_sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 	if(info->draw) {
@@ -1730,7 +1730,7 @@ static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 	}
 }
 
-static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
+static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1840,7 +1840,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
-static void sample_exit(bContext *C, wmOperator *op)
+static void image_sample_exit(bContext *C, wmOperator *op)
 {
 	ImageSampleInfo *info= op->customdata;
 
@@ -1849,7 +1849,7 @@ static void sample_exit(bContext *C, wmOperator *op)
 	MEM_freeN(info);
 }
 
-static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int image_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1860,34 +1860,34 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	info= MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 	info->art= ar->type;
-	info->draw_handle = ED_region_draw_cb_activate(ar->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
+	info->draw_handle = ED_region_draw_cb_activate(ar->type, image_sample_draw, info, REGION_DRAW_POST_PIXEL);
 	op->customdata= info;
 
-	sample_apply(C, op, event);
+	image_sample_apply(C, op, event);
 
 	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int image_sample_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	switch(event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
-			sample_exit(C, op);
+			image_sample_exit(C, op);
 			return OPERATOR_CANCELLED;
 		case MOUSEMOVE:
-			sample_apply(C, op, event);
+			image_sample_apply(C, op, event);
 			break;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_cancel(bContext *C, wmOperator *op)
+static int image_sample_cancel(bContext *C, wmOperator *op)
 {
-	sample_exit(C, op);
+	image_sample_exit(C, op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -1898,9 +1898,9 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_sample";
 	
 	/* api callbacks */
-	ot->invoke= sample_invoke;
-	ot->modal= sample_modal;
-	ot->cancel= sample_cancel;
+	ot->invoke= image_sample_invoke;
+	ot->modal= image_sample_modal;
+	ot->cancel= image_sample_cancel;
 	ot->poll= space_image_main_area_poll;
 
 	/* flags */
@@ -1908,7 +1908,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 }
 
 /******************** sample line operator ********************/
-static int sample_line_exec(bContext *C, wmOperator *op)
+static int image_sample_line_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1989,7 +1989,7 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int image_sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	
@@ -2006,9 +2006,9 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_sample_line";
 	
 	/* api callbacks */
-	ot->invoke= sample_line_invoke;
+	ot->invoke= image_sample_line_invoke;
 	ot->modal= WM_gesture_straightline_modal;
-	ot->exec= sample_line_exec;
+	ot->exec= image_sample_line_exec;
 	ot->poll= space_image_main_area_poll;
 	ot->cancel= WM_gesture_straightline_cancel;
 	
@@ -2035,9 +2035,9 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->invoke= sample_invoke;
-	ot->modal= sample_modal;
-	ot->cancel= sample_cancel;
+	ot->invoke= image_sample_invoke;
+	ot->modal= image_sample_modal;
+	ot->cancel= image_sample_cancel;
 	ot->poll= space_image_main_area_poll;
 
 	/* properties */
@@ -2052,7 +2052,7 @@ typedef struct RecordCompositeData {
 	int sfra, efra;
 } RecordCompositeData;
 
-static int record_composite_apply(bContext *C, wmOperator *op)
+static int image_record_composite_apply(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;
@@ -2080,7 +2080,7 @@ static int record_composite_apply(bContext *C, wmOperator *op)
 	return (scene->r.cfra <= rcd->efra);
 }
 
-static int record_composite_init(bContext *C, wmOperator *op)
+static int image_record_composite_init(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
@@ -2101,7 +2101,7 @@ static int record_composite_init(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static void record_composite_exit(bContext *C, wmOperator *op)
+static void image_record_composite_exit(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -2122,60 +2122,60 @@ static void record_composite_exit(bContext *C, wmOperator *op)
 	MEM_freeN(rcd);
 }
 
-static int record_composite_exec(bContext *C, wmOperator *op)
+static int image_record_composite_exec(bContext *C, wmOperator *op)
 {
-	if(!record_composite_init(C, op))
+	if(!image_record_composite_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	while(record_composite_apply(C, op))
+	while(image_record_composite_apply(C, op))
 		;
 	
-	record_composite_exit(C, op);
+	image_record_composite_exit(C, op);
 	
 	return OPERATOR_FINISHED;
 }
 
-static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int image_record_composite_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	RecordCompositeData *rcd;
 	
-	if(!record_composite_init(C, op))
+	if(!image_record_composite_init(C, op))
 		return OPERATOR_CANCELLED;
 
 	rcd= op->customdata;
 	rcd->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.0f);
 	WM_event_add_modal_handler(C, op);
 
-	if(!record_composite_apply(C, op))
+	if(!image_record_composite_apply(C, op))
 		return OPERATOR_FINISHED;
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int record_composite_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int image_record_composite_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RecordCompositeData *rcd= op->customdata;
 
 	switch(event->type) {
 		case TIMER:
 			if(rcd->timer == event->customdata) {
-				if(!record_composite_apply(C, op)) {
-					record_composite_exit(C, op);
+				if(!image_record_composite_apply(C, op)) {
+					image_record_composite_exit(C, op);
 					return OPERATOR_FINISHED;
 				}
 			}
 			break;
 		case ESCKEY:
-			record_composite_exit(C, op);
+			image_record_composite_exit(C, op);
 			return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int record_composite_cancel(bContext *C, wmOperator *op)
+static int image_record_composite_cancel(bContext *C, wmOperator *op)
 {
-	record_composite_exit(C, op);
+	image_record_composite_exit(C, op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -2186,23 +2186,23 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_record_composite";
 	
 	/* api callbacks */
-	ot->exec= record_composite_exec;
-	ot->invoke= record_composite_invoke;
-	ot->modal= record_composite_modal;
-	ot->cancel= record_composite_cancel;
+	ot->exec= image_record_composite_exec;
+	ot->invoke= image_record_composite_invoke;
+	ot->modal= image_record_composite_modal;
+	ot->cancel= image_record_composite_cancel;
 	ot->poll= space_image_buffer_exists_poll;
 }
 
 /********************* cycle render slot operator *********************/
 
-static int cycle_render_slot_poll(bContext *C)
+static int image_cycle_render_slot_poll(bContext *C)
 {
 	Image *ima= CTX_data_edit_image(C);
 
 	return (ima && ima->type == IMA_TYPE_R_RESULT);
 }
 
-static int cycle_render_slot_exec(bContext *C, wmOperator *op)
+static int image_cycle_render_slot_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	int a, slot, cur= ima->render_slot;
@@ -2241,8 +2241,8 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	ot->idname= "IMAGE_OT_cycle_render_slot";
 	
 	/* api callbacks */
-	ot->exec= cycle_render_slot_exec;
-	ot->poll= cycle_render_slot_poll;
+	ot->exec= image_cycle_render_slot_exec;
+	ot->poll= image_cycle_render_slot_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
