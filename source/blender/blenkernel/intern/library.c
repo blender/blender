@@ -1277,16 +1277,6 @@ void clear_id_newpoins(void)
 	}
 }
 
-/* only for library fixes */
-static void image_fix_relative_path(Image *ima)
-{
-	if(ima->id.lib==NULL) return;
-	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_path_abs(ima->name, ima->id.lib->filepath);
-		BLI_path_rel(ima->name, G.main->name);
-	}
-}
-
 #define LIBTAG(a)	if(a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
 
 static void lib_indirect_test_id(ID *id, Library *lib)
@@ -1361,14 +1351,15 @@ void tag_main(struct Main *mainvar, const short tag)
 	}
 }
 
-/* if lib!=NULL, only all from lib local */
-void all_local(Library *lib, int untagged_only)
+/* if lib!=NULL, only all from lib local
+ * bmain is almost certainly G.main */
+void BKE_library_make_local(Main *bmain, Library *lib, int untagged_only)
 {
 	ListBase *lbarray[MAX_LIBARRAY], tempbase={NULL, NULL};
 	ID *id, *idn;
 	int a;
 
-	a= set_listbasepointers(G.main, lbarray);
+	a= set_listbasepointers(bmain, lbarray);
 	while(a--) {
 		id= lbarray[a]->first;
 		
@@ -1385,16 +1376,15 @@ void all_local(Library *lib, int untagged_only)
 			  (untagged_only==0 || !(id->flag & LIB_PRE_EXISTING)))
 			{
 				if(lib==NULL || id->lib==lib) {
-					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
-
 					if(id->lib) {
-						/* relative file patch */
-						if(GS(id->name)==ID_IM)
-							image_fix_relative_path((Image *)id);
-						
-						id->lib= NULL;
-						new_id(lbarray[a], id, NULL);	/* new_id only does it with double names */
+						id_clear_lib_data(bmain, id); /* sets 'id->flag' */
+
+						/* why sort alphabetically here but not in
+						 * id_clear_lib_data() ? - campbell */
 						sort_alpha_id(lbarray[a], id);
+					}
+					else {
+						id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
 					}
 				}
 			}
@@ -1410,7 +1400,7 @@ void all_local(Library *lib, int untagged_only)
 	}
 
 	/* patch 3: make sure library data isn't indirect falsely... */
-	a= set_listbasepointers(G.main, lbarray);
+	a= set_listbasepointers(bmain, lbarray);
 	while(a--) {
 		for(id= lbarray[a]->first; id; id=id->next)
 			lib_indirect_test_id(id, lib);
