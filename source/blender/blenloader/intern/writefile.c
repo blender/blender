@@ -2264,7 +2264,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 static void write_libraries(WriteData *wd, Main *main)
 {
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
 	int a, tot, foundone;
 
