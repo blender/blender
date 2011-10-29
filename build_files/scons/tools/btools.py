@@ -150,7 +150,9 @@ def validate_arguments(args, bc):
             'BF_GHOST_DEBUG',
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
-            'BF_NO_ELBEEM',
+            'WITH_BF_FLUID',
+            'WITH_BF_DECIMATE',
+            'WITH_BF_BOOLEAN',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
             'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
@@ -250,7 +252,9 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_OSX_STATICPYTHON', 'Staticly link to python', True)),
         ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
-        (BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
+        (BoolVariable('WITH_BF_FLUID', 'Build with Fluid simulation (Elbeem)', True)),
+        (BoolVariable('WITH_BF_DECIMATE', 'Build with decimate modifier', True)),
+        (BoolVariable('WITH_BF_BOOLEAN', 'Build with boolean modifier', True)),
         ('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
         (BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
         ('BF_OPENAL', 'base path for OpenAL', ''),
