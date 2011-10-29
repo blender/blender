@@ -154,7 +154,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
 				                                   CD_SHAPEKEY, j);
 				if (co)
-					VECCOPY(co, ((float*)block->data)+3*i);
+					copy_v3_v3(co, ((float*)block->data)+3*i);
 			}
 		}
 	}
@@ -478,11 +478,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		mvert->bweight = bweight ? (char)((*bweight)*255) : 0;
 
-		VECCOPY(mvert->co, v->co);
-
-		mvert->no[0] = (short) (v->no[0]*32767.0f);
-		mvert->no[1] = (short) (v->no[1]*32767.0f);
-		mvert->no[2] = (short) (v->no[2]*32767.0f);
+		copy_v3_v3(mvert->co, v->co);
+		normal_float_to_short_v3(mvert->no, v->no);
 		
 		mvert->flag = BMFlags_To_MEFlags(v);
 
@@ -614,7 +611,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				test_index_face(mface, &me->fdata, i, 1);
 				
 				loops_to_corners(bm, me, i, f, ls, numTex, numCol);
-				VECCOPY(facenors, ls[0]->f->no);
+				copy_v3_v3(facenors, ls[0]->f->no);
 
 				mface++;
 				facenors += 3;
@@ -784,7 +781,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 						co = block==actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
 						
-						VECCOPY(fp, co);
+						copy_v3_v3(fp, co);
 						fp += 3;
 					}
 					break;
@@ -838,23 +835,23 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				if (*keyi >= 0 && *keyi < currkey->totelem) { // valid old vertex
 					if(currkey == actkey) {
 						if(actkey == me->key->refkey) {
-							VECCOPY(fp, mvert->co);
+							copy_v3_v3(fp, mvert->co);
 						}
 						else {
-							VECCOPY(fp, mvert->co);
+							copy_v3_v3(fp, mvert->co);
 							if(oldverts) {
-								VECCOPY(mvert->co, oldverts[*keyi].co);
+								copy_v3_v3(mvert->co, oldverts[*keyi].co);
 							}
 						}
 					}
 					else {
 						if(oldkey) {
-							VECCOPY(fp, oldkey + 3 * *keyi);
+							copy_v3_v3(fp, oldkey + 3 * *keyi);
 						}
 					}
 				}
 				else {
-					VECCOPY(fp, mvert->co);
+					copy_v3_v3(fp, mvert->co);
 				}
 				fp+= 3;
 				++i;

@@ -4172,9 +4172,9 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if( v3d && v3d->localvd ) {
-				VECCOPY(cur, v3d->cursor);
+				copy_v3_v3(cur, v3d->cursor);
 			} else {
-				VECCOPY(cur, scene->cursor);
+				copy_v3_v3(cur, scene->cursor);
 			}
 			invert_m4_m4(mat, OBACT->obmat);
 			mul_m4_v3(mat, cur);

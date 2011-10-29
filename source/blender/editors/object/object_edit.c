@@ -332,12 +332,10 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			MEM_freeN(me->edit_btmesh);
 			me->edit_btmesh= NULL;
 		}
-#if 0 //BMESH_TODO		
 		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT) {
 			mesh_octree_table(NULL, NULL, NULL, 'e');
 			mesh_mirrtopo_table(NULL, 'e');
 		}
-#endif
 	}
 	else if (obedit->type==OB_ARMATURE) {	
 		ED_armature_from_edit(obedit);
