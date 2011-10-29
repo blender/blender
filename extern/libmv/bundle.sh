@@ -123,7 +123,8 @@ set(INC
 )
 
 set(INC_SYS
-
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -214,6 +215,8 @@ src = env.Glob("*.cpp")
 $src
 
 incs = '. ../Eigen3'
+incs += ' ' + env['BF_PNG_INC']
+incs += ' ' + env['BF_ZLIB_INC']
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog ./third_party/msinttypes'

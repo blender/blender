@@ -759,7 +759,7 @@ static unsigned char *get_ucharbuf(ImBuf *ibuf)
 
 				*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
 			} else {
-				char *rrgb= (char*)ibuf->rect + pixel*4;
+				unsigned char *rrgb= (unsigned char*)ibuf->rect + pixel*4;
 
 				*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
 			}
@@ -776,16 +776,12 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 {
 	ImBuf *tmpibuf;
 	unsigned char *pixels;
-	int width, height;
-
-	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
-	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
 	tmpibuf= BKE_tracking_get_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
-	*width_r= width;
-	*height_r= height;
+	*width_r= tmpibuf->x;
+	*height_r= tmpibuf->y;
 
 	pixels= get_ucharbuf(tmpibuf);
 

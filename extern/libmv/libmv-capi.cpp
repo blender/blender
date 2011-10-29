@@ -25,7 +25,7 @@
  */
 
 /* define this to generate PNG images with content of search areas
-  tracking between which failed */
+   tracking between which failed */
 #undef DUMP_FAILURE
 
 #include "libmv-capi.h"

@@ -31,7 +31,8 @@ set(INC
 )
 
 set(INC_SYS
-
+	${PNG_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
