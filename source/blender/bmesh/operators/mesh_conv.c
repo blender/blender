@@ -734,8 +734,12 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		}
 	}
 
+	/* see comment below, this logic is in twice */
+
 	if (me->key) {
 		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);
+
+		float (*ofs)[3] = NULL;
 
 		/*go through and find any shapekey customdata layers
 		  that might not have corrusponding KeyBlocks, and add them if
@@ -763,6 +767,36 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			j++;
 		}
 
+
+		/* editing the base key should update others */
+		if(me->key->type==KEY_RELATIVE && oldverts) {
+			int act_is_basis = 0;
+			/* find if this key is a basis for any others */
+			for(block = me->key->block.first; block; block= block->next) {
+				if(bm->shapenr-1 == block->relative) {
+					act_is_basis = 1;
+					break;
+				}
+			}
+
+			if(act_is_basis) { /* active key is a base */
+				float (*fp)[3]= actkey->data;
+				int *keyi;
+				i=0;
+				ofs= MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
+				mvert = me->mvert;
+				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+					if(keyi && *keyi != ORIGINDEX_NONE) {
+						VECSUB(ofs[i], mvert->co, fp[*keyi]);
+					}
+					i++;
+					mvert++;
+				}
+			}
+		}
+
+
 		for (block=me->key->block.first; block; block=block->next) {
 			j = 0;
 
@@ -771,7 +805,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 					continue;
 
 				if (block->uid == bm->vdata.layers[i].uid) {
+					int apply_offset = (ofs && (block != actkey) && (bm->shapenr-1 == block->relative));
 					float *fp, *co;
+					float (*ofs_pt)[3] = ofs;
 
 					if (block->data)
 						MEM_freeN(block->data);
@@ -782,6 +818,12 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 						co = block==actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
 						
 						copy_v3_v3(fp, co);
+
+						/* propagate edited basis offsets to other shapes */
+						if(apply_offset) {
+							add_v3_v3(fp, *ofs_pt++);
+						}
+
 						fp += 3;
 					}
 					break;
@@ -796,7 +838,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				block->flag |= KEYBLOCK_MISSING;
 			}
 		}
+
+		if(ofs) MEM_freeN(ofs);
 	}
+
+	/* XXX, code below is from trunk and a duplicate functionality
+	 * to the block above.
+	 * We should use one or the other, having both means we have to maintain
+	 * both and keep them working the same way which is a hassle - campbell */
 
 	/* old method of reconstructing keys via vertice's original key indices,
 	   currently used if the new method above fails (which is theoretically
@@ -806,10 +855,42 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);
 
+		float (*ofs)[3] = NULL;
+
+		/* editing the base key should update others */
+		if(me->key->type==KEY_RELATIVE && oldverts) {
+			int act_is_basis = 0;
+			/* find if this key is a basis for any others */
+			for(currkey = me->key->block.first; currkey; currkey= currkey->next) {
+				if(bm->shapenr-1 == currkey->relative) {
+					act_is_basis = 1;
+					break;
+				}
+			}
+
+			if(act_is_basis) { /* active key is a base */
+				float (*fp)[3]= actkey->data;
+				int *keyi;
+				i=0;
+				ofs= MEM_callocN(sizeof(float) * 3 * bm->totvert,  "currkey->data");
+				mvert = me->mvert;
+				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+					if(keyi && *keyi != ORIGINDEX_NONE) {
+						VECSUB(ofs[i], mvert->co, fp[*keyi]);
+					}
+					i++;
+					mvert++;
+				}
+			}
+		}
+
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
 		currkey = me->key->block.first;
 		while(currkey) {
+			int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr-1 == currkey->relative));
+
 			if (!(currkey->flag & KEYBLOCK_MISSING)) {
 				currkey = currkey->next;
 				continue;
@@ -853,6 +934,12 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				else {
 					copy_v3_v3(fp, mvert->co);
 				}
+
+				/* propagate edited basis offsets to other shapes */
+				if(apply_offset) {
+					add_v3_v3(fp, ofs[i]);
+				}
+
 				fp+= 3;
 				++i;
 				++mvert;
@@ -864,6 +951,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			
 			currkey= currkey->next;
 		}
+
+		if(ofs) MEM_freeN(ofs);
 	}
 
 	if(oldverts) MEM_freeN(oldverts);
