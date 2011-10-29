@@ -73,6 +73,7 @@ struct Object;
 struct PBVHNode;
 struct Render;
 struct RenderEngine;
+struct RenderEngineType;
 struct RenderLayer;
 struct RenderResult;
 struct ScrArea;
@@ -393,6 +394,7 @@ void RE_engines_exit() {}
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 ListBase R_engines = {NULL, NULL};
 void RE_engine_free(struct RenderEngine *engine) {}
+struct RenderEngineType *RE_engines_find(const char *idname) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}
