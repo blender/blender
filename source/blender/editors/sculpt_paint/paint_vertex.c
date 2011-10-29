@@ -271,7 +271,7 @@ void do_shared_vertexcol(Mesh *me)
 	MTexPoly *mtp = me->mtpoly;
 	MPoly *mp = me->mpoly;
 	float (*scol)[5];
-	int i;
+	int i, has_shared = 0;
 
 	/* if no mloopcol: do not do */
 	/* if mtexpoly: only the involved faces, otherwise all */
@@ -286,7 +286,7 @@ void do_shared_vertexcol(Mesh *me)
 			if (mtp) mtp++;
 		}
 
-		if (mtp && !(mtp->mode & TF_SHAREDCOL))
+		if (!(mtp && (mtp->mode & TF_SHAREDCOL)) && (me->editflag & ME_EDIT_PAINT_MASK)!=0)
 			continue;
 
 		scol[ml->v][0] += lcol->r;
@@ -294,31 +294,36 @@ void do_shared_vertexcol(Mesh *me)
 		scol[ml->v][2] += lcol->b;
 		scol[ml->v][3] += lcol->a;
 		scol[ml->v][4] += 1.0;
+		has_shared = 1;
 	}
 	
-	for (i=0; i<me->totvert; i++) {
-		if (!scol[i][4]) continue;
+	if (has_shared) {
+		for (i=0; i<me->totvert; i++) {
+			if (!scol[i][4]) continue;
 
-		scol[i][0] /= scol[i][4];
-		scol[i][1] /= scol[i][4];
-		scol[i][2] /= scol[i][4];
-		scol[i][3] /= scol[i][4];
-	}
+			scol[i][0] /= scol[i][4];
+			scol[i][1] /= scol[i][4];
+			scol[i][2] /= scol[i][4];
+			scol[i][3] /= scol[i][4];
+		}
 	
-	ml = me->mloop;
-	lcol = me->mloopcol;
-	for (i=0; i<me->totloop; i++, ml++, lcol++) {
-		if (!scol[ml->v][4]) continue;
+		ml = me->mloop;
+		lcol = me->mloopcol;
+		for (i=0; i<me->totloop; i++, ml++, lcol++) {
+			if (!scol[ml->v][4]) continue;
 
-		lcol->r = scol[ml->v][0];
-		lcol->g = scol[ml->v][1];
-		lcol->b = scol[ml->v][2];
-		lcol->a = scol[ml->v][3];
+			lcol->r = scol[ml->v][0];
+			lcol->g = scol[ml->v][1];
+			lcol->b = scol[ml->v][2];
+			lcol->a = scol[ml->v][3];
+		}
 	}
 
 	MEM_freeN(scol);
 
-	do_shared_vertex_tesscol(me);
+	if (has_shared) {
+		do_shared_vertex_tesscol(me);
+	}
 }
 
 static void make_vertexcol(Object *ob)	/* single ob */
@@ -2679,7 +2684,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		
 	swap_m4m4(vc->rv3d->persmat, mat);
 			
-	do_shared_vertexcol(me);
+	/* was disabled because it is slow, but necessary for blur */
+	if(brush->vertexpaint_tool == VP_BLUR) {
+		do_shared_vertexcol(me);
+	}
 
 	ED_region_tag_redraw(vc->ar);		
 	DAG_id_tag_update(ob->data, 0);
