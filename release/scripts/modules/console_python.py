@@ -16,11 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 import sys
 import bpy
 
-language_id = 'python'
+language_id = "python"
 
 # store our own __main__ module, not 100% needed
 # but python expects this in some places
@@ -28,8 +28,8 @@ _BPY_MAIN_OWN = True
 
 
 def add_scrollback(text, text_type):
-    for l in text.split('\n'):
-        bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
+    for l in text.split("\n"):
+        bpy.ops.console.scrollback_append(text=l.replace("\t", "    "),
             type=text_type)
 
 
@@ -81,7 +81,8 @@ def get_console(console_id):
         console, stdout, stderr = console_data
 
         # XXX, bug in python 3.1.2, 3.2 ? (worked in 3.1.1)
-        # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
+        # seems there is no way to clear StringIO objects for writing, have to
+        # make new ones each time.
         import io
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -99,7 +100,8 @@ def get_console(console_id):
 
         replace_help(namespace)
 
-        console = InteractiveConsole(locals=namespace, filename="<blender_console>")
+        console = InteractiveConsole(locals=namespace,
+                                     filename="<blender_console>")
 
         console.push("from mathutils import *")
         console.push("from math import *")
@@ -265,7 +267,8 @@ def autocomplete(context):
 
     # Separate autocomplete output by command prompts
     if scrollback != '':
-        bpy.ops.console.scrollback_append(text=sc.prompt + current_line.body, type='INPUT')
+        bpy.ops.console.scrollback_append(text=sc.prompt + current_line.body,
+                                          type='INPUT')
 
     # Now we need to copy back the line from blender back into the
     # text editor. This will change when we don't use the text editor
@@ -296,10 +299,15 @@ def banner(context):
     add_scrollback("Execute:             Enter", 'OUTPUT')
     add_scrollback("Autocomplete:        Ctrl+Space", 'OUTPUT')
     add_scrollback("Ctrl +/-  Wheel:     Zoom", 'OUTPUT')
-    add_scrollback("Builtin Modules:     bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bpy.utils, bgl, blf, mathutils", 'OUTPUT')
-    add_scrollback("Convenience Imports: from mathutils import *; from math import *", 'OUTPUT')
+    add_scrollback("Builtin Modules:     bpy, bpy.data, bpy.ops, "
+                   "bpy.props, bpy.types, bpy.context, bpy.utils, "
+                   "bgl, blf, mathutils",
+                   'OUTPUT')
+    add_scrollback("Convenience Imports: from mathutils import *; "
+                   "from math import *", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
-    # add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, see API reference for more info", 'ERROR')
+    # add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, "
+    #                "see API reference for more info", 'ERROR')
     # add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
 

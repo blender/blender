@@ -164,11 +164,9 @@ class InputKeyMapPanel:
             row.label()
 
         if (not kmi.is_user_defined) and kmi.is_user_modified:
-            op = row.operator("wm.keyitem_restore", text="", icon='BACK')
-            op.item_id = kmi.id
+            row.operator("wm.keyitem_restore", text="", icon='BACK').item_id = kmi.id
         else:
-            op = row.operator("wm.keyitem_remove", text="", icon='X')
-            op.item_id = kmi.id
+            row.operator("wm.keyitem_remove", text="", icon='X').item_id = kmi.id
 
         # Expanded, additional event settings
         if kmi.show_expanded:

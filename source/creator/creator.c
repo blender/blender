@@ -62,6 +62,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -85,6 +86,7 @@
 #include "BPY_extern.h"
 #endif
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 //XXX #include "playanim_ext.h"
@@ -142,9 +144,6 @@ static int print_version(int argc, const char **argv, void *data);
 /* for the callbacks: */
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
-
-char bprogname[FILE_MAX]; /* from blenpluginapi:pluginapi.c */
-char btempdir[FILE_MAX];
 
 #define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
 
@@ -307,7 +306,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 #else
 	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
 	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
@@ -1155,10 +1154,8 @@ int main(int argc, const char **argv)
 	fpsetmask(0);
 #endif
 
-	// copy path to executable in bprogname. playanim and creting runtimes
-	// need this.
-
-	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
+	// initialize path to executable
+	BLI_init_program_path(argv[0]);
 
 	BLI_threadapi_init();
 
@@ -1213,9 +1210,10 @@ int main(int argc, const char **argv)
 		WM_init(C, argc, argv);
 
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp(btempdir, FILE_MAX, 1); /* call after loading the startup.blend so we can read U.tempdir */
+		/* call after loading the startup.blend so we can read U.tempdir */
+		BLI_init_temporary_dir(U.tempdir);
 
-#ifndef DISABLE_SDL
+#ifdef WITH_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
 #endif
 	}
@@ -1224,7 +1222,8 @@ int main(int argc, const char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp(btempdir, FILE_MAX, 0); /* call after loading the startup.blend so we can read U.tempdir */
+		/* don't use user preferences temp dir */
+		BLI_init_temporary_dir(NULL);
 	}
 #ifdef WITH_PYTHON
 	/**

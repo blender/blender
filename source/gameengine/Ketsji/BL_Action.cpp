@@ -361,9 +361,6 @@ void BL_Action::Update(float curtime)
 
 			break;
 		}
-
-		if (!m_done)
-			InitIPO();
 	}
 
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
@@ -446,8 +443,6 @@ void BL_Action::Update(float curtime)
 			obj->SetActiveAction(NULL, 0, curtime);
 		}
 
-
-		InitIPO();
 		m_obj->UpdateIPO(m_localtime, m_ipo_flags & ACT_IPOFLAG_CHILD);
 	}
 }

@@ -143,7 +143,7 @@ static int space_image_file_exists_poll(bContext *C)
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
 			BLI_path_abs(name, bmain->name);
-			poll= (BLI_exists(name) && BLI_is_writable(name));
+			poll= (BLI_exists(name) && BLI_file_is_writable(name));
 		}
 		ED_space_image_release_buffer(sima, lock);
 
@@ -1223,7 +1223,7 @@ static int save_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	save_image_options_from_op(&simopts, op);
 
-	if (BLI_exists(simopts.filepath) && BLI_is_writable(simopts.filepath)) {
+	if (BLI_exists(simopts.filepath) && BLI_file_is_writable(simopts.filepath)) {
 		save_image_doit(C, sima, op, &simopts, FALSE);
 	}
 	else {

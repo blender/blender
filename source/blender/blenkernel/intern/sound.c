@@ -79,9 +79,9 @@ struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 	char str[FILE_MAX];
 	char *path;
 
-	int len;
+	size_t len;
 
-	strcpy(str, filename);
+	BLI_strncpy(str, filename, sizeof(str));
 
 	path = /*bmain ? bmain->name :*/ G.main->name;
 

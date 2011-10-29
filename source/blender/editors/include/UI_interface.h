@@ -787,6 +787,7 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 void UI_buttons_operatortypes(void);
 
 /* Helpers for Operators */
+uiBut *uiContextActiveButton(const struct bContext *C);
 void uiContextActiveProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
 void uiContextActivePropertyHandle(struct bContext *C);
 void uiContextAnimUpdate(const struct bContext *C);
@@ -812,6 +813,14 @@ int UI_translate_iface(void);
 int UI_translate_tooltips(void);
 const char *UI_translate_do_iface(const char *msgid);
 const char *UI_translate_do_tooltip(const char *msgid);
+
+/* Those macros should be used everywhere in UI code. */
+#define IFACE_(msgid) UI_translate_do_iface(msgid)
+#define TIP_(msgid) UI_translate_do_tooltip(msgid)
+
+/* UI_OT_editsource helpers */
+int  UI_editsource_enable_check(void);
+void UI_editsource_active_but_test(uiBut *but);
 
 #endif /*  UI_INTERFACE_H */
 

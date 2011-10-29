@@ -54,11 +54,10 @@ class VIEW3D_HT_header(Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
-        
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        layout.template_header_3D()
-        
-        row = layout.row()
+        row = layout.row()  # XXX Narrowed down vert/edge/face selector in edit mode/solid drawmode. -DingTo
+        row.template_header_3D()
+
         if obj:
             # Particle edit
             if obj.mode == 'PARTICLE_EDIT':

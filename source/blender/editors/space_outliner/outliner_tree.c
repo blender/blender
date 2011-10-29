@@ -972,7 +972,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			te->name= RNA_struct_name_get_alloc(ptr, NULL, 0);
+			te->name= RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
 
 			if(te->name)
 				te->flag |= TE_FREE_NAME;

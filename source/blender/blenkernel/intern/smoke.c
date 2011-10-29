@@ -131,15 +131,15 @@ struct Scene;
 struct DerivedMesh;
 struct SmokeModifierData;
 
-// forward declerations
-static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
-void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
-static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
-
 #define TRI_UVOFFSET (1./4.)
 
+#ifdef WITH_SMOKE
+/* forward declerations */
+static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
+static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
+static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
+#else /* WITH_SMOKE */
 /* Stubs to use when smoke is disabled */
-#ifndef WITH_SMOKE
 struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res), int UNUSED(amplify), int UNUSED(noisetype)) { return NULL; }
 struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
 void smoke_free(struct FLUID_3D *UNUSED(fluid)) {}
@@ -148,9 +148,9 @@ void smoke_initWaveletBlenderRNA(struct WTURBULENCE *UNUSED(wt), float *UNUSED(s
 void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), float *UNUSED(beta), float *UNUSED(dt_factor), float *UNUSED(vorticity), int *UNUSED(border_colli)) {}
 long long smoke_get_mem_req(int UNUSED(xres), int UNUSED(yres), int UNUSED(zres), int UNUSED(amplify)) { return 0; }
 void smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm)) {}
-#endif // WITH_SMOKE
+#endif /* WITH_SMOKE */
 
-
+#ifdef WITH_SMOKE
 static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
 {
 	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
@@ -455,7 +455,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 }
 
 /*! init triangle divisions */
-void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFace *faces, int numfaces, int numtris, int **tridivs, float cell_len) 
+static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFace *faces, int numfaces, int numtris, int **tridivs, float cell_len)
 {
 	// mTriangleDivs1.resize( faces.size() );
 	// mTriangleDivs2.resize( faces.size() );
@@ -553,6 +553,8 @@ void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFace *fac
 		facecounter++;
 	}
 }
+
+#endif /* WITH_SMOKE */
 
 static void smokeModifier_freeDomain(SmokeModifierData *smd)
 {
@@ -812,12 +814,11 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 	}
 }
 
+#ifdef WITH_SMOKE
 
 // forward decleration
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
-
-#ifdef WITH_SMOKE
 
 static int get_lamp(Scene *scene, float *light)
 {	
@@ -1660,4 +1661,4 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	}
 }
 
-#endif // WITH_SMOKE
+#endif /* WITH_SMOKE */

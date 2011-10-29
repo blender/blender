@@ -29,7 +29,7 @@
 
 /* check our ffmpeg is new enough, avoids user complaints */
 #if (LIBAVFORMAT_VERSION_MAJOR < 52) || ((LIBAVFORMAT_VERSION_MAJOR == 52) && (LIBAVFORMAT_VERSION_MINOR <= 64))
-#  error "FFmpeg 0.7 or newer is needed, Upgrade you're FFmpeg or disable it"
+#  error "FFmpeg 0.7 or newer is needed, Upgrade your FFmpeg or disable it"
 #endif
 /* end sanity check */
 

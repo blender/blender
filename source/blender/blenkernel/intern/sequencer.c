@@ -61,8 +61,9 @@
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
-#include "RNA_access.h"
 #include "BKE_utildefines.h"
+
+#include "RNA_access.h"
 
 #include "RE_pipeline.h"
 
@@ -866,8 +867,8 @@ void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
 	SeqUniqueInfo sui;
 	char *dot;
 	sui.seq= seq;
-	strcpy(sui.name_src, seq->name+2);
-	strcpy(sui.name_dest, seq->name+2);
+	BLI_strncpy(sui.name_src, seq->name+2, sizeof(sui.name_src));
+	BLI_strncpy(sui.name_dest, seq->name+2, sizeof(sui.name_dest));
 
 	sui.count= 1;
 	sui.match= 1; /* assume the worst to start the loop */
@@ -887,7 +888,7 @@ void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
 		seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_cb, &sui);
 	}
 
-	strcpy(seq->name+2, sui.name_dest);
+	BLI_strncpy(seq->name+2, sui.name_dest, sizeof(seq->name)-2);
 }
 
 static const char *give_seqname_by_type(int type)
@@ -1204,7 +1205,7 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	   sorry folks, please rebuild your proxies... */
 
 	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR|SEQ_USE_PROXY_CUSTOM_FILE)) {
-		strcpy(dir, seq->strip->proxy->dir);
+		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 	} else if (seq->type == SEQ_IMAGE) {
 		BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
 	} else {
@@ -3360,9 +3361,9 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 	SWAP(Sequence, *seq_a, *seq_b);
 
 	/* swap back names so animation fcurves dont get swapped */
-	strcpy(name, seq_a->name+2);
-	strcpy(seq_a->name+2, seq_b->name+2);
-	strcpy(seq_b->name+2, name);
+	BLI_strncpy(name, seq_a->name+2, sizeof(name));
+	BLI_strncpy(seq_a->name+2, seq_b->name+2, sizeof(seq_b->name)-2);
+	BLI_strncpy(seq_b->name+2, name, sizeof(seq_b->name)-2);
 
 	/* swap back opacity, and overlay mode */
 	SWAP(int, seq_a->blend_mode, seq_b->blend_mode);

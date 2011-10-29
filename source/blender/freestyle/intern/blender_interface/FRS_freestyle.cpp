@@ -563,7 +563,7 @@ extern "C" {
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);
 		else
 			strcpy(lineset->name, "LineSet");
-		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', BLI_STRUCT_OFFSET(FreestyleLineSet, name), sizeof(lineset->name));
+		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name), sizeof(lineset->name));
 	}
 
 	void FRS_delete_active_lineset(FreestyleConfig *config)

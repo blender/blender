@@ -409,15 +409,15 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiItemIntO(layout, UI_translate_do_iface(N_("Add New")), ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, IFACE_("Add New"), ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiItemIntO(layout, UI_translate_do_iface(N_("Add New (Current Frame)")), ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, IFACE_("Add New (Current Frame)"), ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiItemMenuF(layout, UI_translate_do_iface(N_("Replace Existing...")), 0, poselib_add_menu_invoke__replacemenu, NULL);
+		uiItemMenuF(layout, IFACE_("Replace Existing..."), 0, poselib_add_menu_invoke__replacemenu, NULL);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -433,7 +433,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	bAction *act = poselib_validate(ob);
 	bPose *pose= (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Whole Character"); /* this includes custom props :)*/
+	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_WHOLE_CHARACTER_ID); /* this includes custom props :)*/
 	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
@@ -903,7 +903,7 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 	ListBase dsources = {NULL, NULL};
 	short autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
 	
@@ -997,11 +997,8 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 			}
 			
 			/* get marker name */
-			if (pld->marker)
-				strcpy(markern, pld->marker->name);
-			else
-				strcpy(markern, "No Matches");
-			
+			BLI_strncpy(markern, pld->marker ? pld->marker->name : "No Matches", sizeof(markern));
+
 			sprintf(pld->headerstr, "PoseLib Previewing Pose: Filter - [%s] | Current Pose - \"%s\"  | Use ScrollWheel or PageUp/Down to change", tempstr, markern);
 			ED_area_headerprint(pld->sa, pld->headerstr);
 		}
@@ -1186,7 +1183,7 @@ static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wm
 	/* backup stuff that needs to occur before every operation
 	 *	- make a copy of searchstr, so that we know if cache needs to be rebuilt
 	 */
-	strcpy(pld->searchold, pld->searchstr);
+	BLI_strncpy(pld->searchold, pld->searchstr, sizeof(pld->searchold));
 	
 	/* if we're currently showing the original pose, only certain events are handled */
 	if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {

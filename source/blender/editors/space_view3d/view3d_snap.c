@@ -495,7 +495,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	
 	}
 	else {
-		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
+		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {
@@ -625,7 +625,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		
 	}
 	else {
-		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
+		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
 		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 			if(ob->mode & OB_MODE_POSE) {

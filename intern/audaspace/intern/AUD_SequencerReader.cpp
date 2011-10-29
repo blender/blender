@@ -107,8 +107,14 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 
 			if(result < 0)
 			{
-				handle = new AUD_SequencerHandle(entry, m_device);
-				handles.push_front(handle);
+				try
+				{
+					handle = new AUD_SequencerHandle(entry, m_device);
+					handles.push_front(handle);
+				}
+				catch(AUD_Exception&)
+				{
+				}
 				eit++;
 			}
 			else if(result == 0)

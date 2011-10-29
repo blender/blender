@@ -89,6 +89,11 @@ GHOST_SystemX11(
 		abort(); //was return before, but this would just mean it will crash later
 	}
 
+	/* Open a connection to the X input manager */
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+	m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+#endif
+
 	m_delete_window_atom 
 	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
 
@@ -141,6 +146,10 @@ GHOST_SystemX11(
 GHOST_SystemX11::
 ~GHOST_SystemX11()
 {
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+	XCloseIM(m_xim);
+#endif
+
 	XCloseDisplay(m_display);
 }
 
@@ -500,9 +509,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-		
 			KeySym key_sym = XLookupKeysym(xke,0);
 			char ascii;
+			char utf8_buf[6]; /* 6 is enough for a utf8 char */
 			
 			GHOST_TKey gkey = convertXKey(key_sym);
 			GHOST_TEventType type = (xke->type == KeyPress) ? 
@@ -512,13 +521,55 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				ascii = '\0';
 			}
 			
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* getting unicode on key-up events gives XLookupNone status */
+			if (xke->type == KeyPress) {
+				Status status;
+				int len;
+
+				/* use utf8 because its not locale depentant, from xorg docs */
+				if (!(len= Xutf8LookupString(window->getX11_XIC(), xke, utf8_buf, sizeof(utf8_buf), &key_sym, &status))) {
+					utf8_buf[0]= '\0';
+				}
+
+				if ((status == XLookupChars || status == XLookupBoth)) {
+					if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
+						/* do nothing for now, this is valid utf8 */
+					}
+					else {
+						utf8_buf[0]= '\0';
+					}
+				}
+				else if (status == XLookupKeySym) {
+					/* this key doesn't have a text representation, it is a command
+					   key of some sort */;
+				}
+				else {
+					printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
+							  (unsigned int) key_sym,
+							  (status == XBufferOverflow ? "BufferOverflow" :
+							   status == XLookupNone ? "XLookupNone" :
+							   status == XLookupKeySym ? "XLookupKeySym" :
+							   "Unknown status"));
+
+					printf("'%.*s' %p %p\n", len, utf8_buf, window->getX11_XIC(), m_xim);
+				}
+			}
+			else {
+				utf8_buf[0]= '\0';
+			}
+#else
+			utf8_buf[0]= '\0';
+#endif
+
 			g_event = new
 			GHOST_EventKey(
 				getMilliSeconds(),
 				type,
 				window,
 				gkey,
-				ascii
+				ascii,
+			    utf8_buf
 			);
 			
 		break;

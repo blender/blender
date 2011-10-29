@@ -68,7 +68,7 @@ static int handle_read_msb_int(int handle)
 	return (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + (buf[3]<<0);
 }
 
-int BLO_is_a_runtime(char *path)
+int BLO_is_a_runtime(const char *path)
 {
 	int res= 0, fd= open(path, O_BINARY|O_RDONLY, 0);
 	int datastart;
@@ -97,7 +97,7 @@ cleanup:
 	return res;	
 }
 
-BlendFileData *BLO_read_runtime(char *path, ReportList *reports)
+BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 {
 	BlendFileData *bfd= NULL;
 	size_t actualsize;
@@ -111,7 +111,7 @@ BlendFileData *BLO_read_runtime(char *path, ReportList *reports)
 		goto cleanup;
 	}
 	
-	actualsize= BLI_filesize(fd);
+	actualsize= BLI_file_descriptor_size(fd);
 
 	lseek(fd, -12, SEEK_END);
 

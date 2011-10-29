@@ -130,7 +130,7 @@ static LineStyleModifier *new_modifier(int type, size_t size)
 static void add_to_modifier_list(ListBase *lb, LineStyleModifier *m)
 {
 	BLI_addtail(lb, (void *)m);
-	BLI_uniquename(lb, m, modifier_name[m->type], '.', BLI_STRUCT_OFFSET(LineStyleModifier, name), sizeof(m->name));
+	BLI_uniquename(lb, m, modifier_name[m->type], '.', offsetof(LineStyleModifier, name), sizeof(m->name));
 }
 
 int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)

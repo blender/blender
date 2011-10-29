@@ -1654,8 +1654,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
+
+	char utf8_buf[6]= {'\0'};
+	ascii = 0;
 	
 	switch ([event type]) {
+
 		case NSKeyDown:
 		case NSKeyUp:
 			charsIgnoringModifiers = [event charactersIgnoringModifiers];
@@ -1667,28 +1671,30 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				keyCode = convertKey([event keyCode],0,
 									 [event type] == NSKeyDown?kUCKeyActionDown:kUCKeyActionUp);
 
-				
+			/* handling both unicode or ascii */
 			characters = [event characters];
-			if ([characters length]>0) { //Check for dead keys
-				//Convert characters to iso latin 1 encoding
-				convertedCharacters = [characters dataUsingEncoding:NSISOLatin1StringEncoding];
-				if ([convertedCharacters length]>0)
-					ascii =((char*)[convertedCharacters bytes])[0];
-				else
-					ascii = 0; //Character not available in iso latin 1 encoding
+			if ([characters length]>0) {
+				convertedCharacters = [characters dataUsingEncoding:NSUTF8StringEncoding];
+				
+				for (int x = 0; x < [convertedCharacters length]; x++) {
+					utf8_buf[x] = ((char*)[convertedCharacters bytes])[x];
+				}
+
+				/* ascii is a subset of unicode */
+				if ([convertedCharacters length] == 1) {
+					ascii = utf8_buf[0];
+				}
 			}
-			else
-				ascii= 0;
-			
+
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
 
 			if ([event type] == NSKeyDown) {
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii) );
-				//printf("\nKey down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
+				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			} else {
-				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, ascii) );
-				//printf("\nKey up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
+				pushEvent( new GHOST_EventKey([event timestamp]*1000, GHOST_kEventKeyUp, window, keyCode, 0, '\0') );
+				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			break;
 	

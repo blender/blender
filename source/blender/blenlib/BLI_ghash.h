@@ -39,13 +39,6 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "BLI_mempool.h"
-#include "BLI_blenlib.h"
-
 typedef unsigned int	(*GHashHashFP)		(const void *key);
 typedef int				(*GHashCmpFP)		(const void *a, const void *b);
 typedef	void			(*GHashKeyFreeFP)	(void *key);

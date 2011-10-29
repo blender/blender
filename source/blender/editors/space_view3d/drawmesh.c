@@ -55,7 +55,6 @@
 #include "BKE_paint.h"
 #include "BKE_property.h"
 
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 

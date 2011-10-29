@@ -607,7 +607,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	// The driver name is constructed automatically from the device type:
 	// v4l   : /dev/video<camIdx>
 	// dv1394: /dev/dv1394/<camIdx>
-	// If you have different driver name, you can specify the driver name explicitely 
+	// If you have different driver name, you can specify the driver name explicitly
 	// instead of device type. Examples of valid filename:
 	//    /dev/v4l/video0:pal
 	//    /dev/ieee1394/1:ntsc

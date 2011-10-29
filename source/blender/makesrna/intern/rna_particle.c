@@ -120,7 +120,6 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_cloth.h"
@@ -820,7 +819,7 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 		psys->vgroup[index]= 0;
 	}
 	else {
-		int vgroup_num = defgroup_name_index(ob, (char*)value);
+		int vgroup_num = defgroup_name_index(ob, value);
 
 		if(vgroup_num == -1)
 			return;

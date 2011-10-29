@@ -931,7 +931,7 @@ OSStatus GHOST_SystemCarbon::handleKeyEvent(EventRef event)
 				} else {
 					type = GHOST_kEventKeyUp;
 				}
-				pushEvent( new GHOST_EventKey( getMilliSeconds(), type, window, key, ascii) );
+				pushEvent( new GHOST_EventKey( getMilliSeconds(), type, window, key, ascii, NULL) );
 //			}
 			break;
 	

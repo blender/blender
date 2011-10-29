@@ -1,5 +1,5 @@
 cd ../../../../
-./blender.bin --background --python ./release/scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
+./blender.bin --background -noaudio --python ./release/scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
 cd ./source/blender/makesrna/rna_cleanup/
 ./rna_cleaner.py out.txt
 ./rna_cleaner.py rna_properties.txt

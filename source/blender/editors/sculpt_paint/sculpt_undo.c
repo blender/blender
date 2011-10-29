@@ -39,6 +39,8 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
@@ -262,7 +264,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node)
 	}
 
 	unode= MEM_callocN(sizeof(SculptUndoNode), "SculptUndoNode");
-	strcpy(unode->idname, ob->id.name);
+	BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 	unode->node= node;
 
 	BLI_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);

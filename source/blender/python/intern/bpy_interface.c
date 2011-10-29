@@ -52,12 +52,12 @@
 #include "BLI_path_util.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 
 #include "BKE_context.h"
 #include "BKE_text.h"
-#include "BKE_font.h" /* only for utf8towchar */
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
 
@@ -193,9 +193,9 @@ void BPY_python_start(int argc, const char **argv)
 	PyThreadState *py_tstate= NULL;
 
 	/* not essential but nice to set our name */
-	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
-	utf8towchar(bprogname_wchar, bprogname);
-	Py_SetProgramName(bprogname_wchar);
+	static wchar_t program_path_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
+	BLI_strncpy_wchar_from_utf8(program_path_wchar, BLI_program_path(), sizeof(program_path_wchar) / sizeof(wchar_t));
+	Py_SetProgramName(program_path_wchar);
 
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bpy_internal_modules);
@@ -203,9 +203,16 @@ void BPY_python_start(int argc, const char **argv)
 	/* allow to use our own included python */
 	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
 
-	/* Python 3.2 now looks for '2.58/python/include/python3.2d/pyconfig.h' to parse
-	 * from the 'sysconfig' module which is used by 'site', so for now disable site.
-	 * alternatively we could copy the file. */
+	/* without this the sys.stdout may be set to 'ascii'
+	 * (it is on my system at least), where printing unicode values will raise
+	 * an error, this is highly annoying, another stumbling block for devs,
+	 * so use a more relaxed error handler and enforce utf-8 since the rest of
+	 * blender is utf-8 too - campbell */
+	BLI_setenv("PYTHONIOENCODING", "utf-8:surrogateescape");
+
+	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
+	 * parse from the 'sysconfig' module which is used by 'site',
+	 * so for now disable site. alternatively we could copy the file. */
 	Py_NoSiteFlag= 1;
 
 	Py_Initialize();
@@ -215,8 +222,11 @@ void BPY_python_start(int argc, const char **argv)
 	{
 		int i;
 		PyObject *py_argv= PyList_New(argc);
-		for (i=0; i<argc; i++)
-			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i])); /* should fix bug #20021 - utf path name problems, by replacing PyUnicode_FromString */
+		for (i=0; i<argc; i++) {
+			/* should fix bug #20021 - utf path name problems, by replacing
+			 * PyUnicode_FromString, with this one */
+			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i]));
+		}
 
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
@@ -671,7 +681,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 
 #ifdef WITH_PYTHON_MODULE
-#include "BLI_storage.h"
+#include "BLI_fileops.h"
 /* TODO, reloading the module isnt functional at the moment. */
 
 static void bpy_module_free(void *mod);

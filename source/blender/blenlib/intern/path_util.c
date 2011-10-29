@@ -41,13 +41,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
+#include "DNA_listBase.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_storage.h"
-#include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
@@ -84,10 +82,24 @@
 
 #endif /* WIN32 */
 
+/* standard paths */
+#ifdef WIN32
+#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#elif defined(__APPLE__)
+#define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
+#else
+#define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
+#endif
+
 /* local */
 #define UNIQUE_NAME_MAX 128
 
-extern char bprogname[];
+static char bprogname[FILE_MAX];	/* path to program executable */
+static char bprogdir[FILE_MAX];		/* path in which executable is located */
+static char btempdir[FILE_MAX];		/* temporary directory */
 
 static int add_win32_extension(char *name);
 static char *blender_version_decimal(const int ver);
@@ -726,7 +738,7 @@ int BLI_path_cwd(char *path)
 	
 	if (wasrelative==1) {
 		char cwd[FILE_MAXDIR + FILE_MAXFILE]= "";
-		BLI_getwdN(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
+		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
 			printf( "Could not get the current working directory - $PWD for an unknown reason.");
@@ -875,7 +887,6 @@ static int test_env_path(char *path, const char *envvar)
 
 static int get_path_local(char *targetpath, const char *folder_name, const char *subfolder_name, const int ver)
 {
-	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
 	
 #ifdef PATH_DEBUG2
@@ -892,10 +903,7 @@ static int get_path_local(char *targetpath, const char *folder_name, const char 
 	else {
 		relfolder[0]= '\0';
 	}
-	
-	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
-	
+
 	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
 	if(test_path(targetpath, bprogdir, blender_version_decimal(ver), relfolder))
 		return 1;
@@ -963,10 +971,6 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	 * these are only used when running blender from source */
 	char cwd[FILE_MAX];
 	char relfolder[FILE_MAX];
-	char bprogdir[FILE_MAX];
-
-	/* use argv[0] (bprogname) to get the path to the executable */
-	BLI_split_dirfile(bprogname, bprogdir, NULL, sizeof(bprogdir), 0);
 
 	if(folder_name) {
 		if (subfolder_name) {
@@ -980,7 +984,7 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 
 	/* try CWD/release/folder_name */
-	if(BLI_getwdN(cwd, sizeof(cwd))) {
+	if(BLI_current_working_dir(cwd, sizeof(cwd))) {
 		if(test_path(targetpath, cwd, "release", relfolder)) {
 			return 1;
 		}
@@ -1111,7 +1115,7 @@ char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	
 	if (!path) {
 		path = BLI_get_user_folder_notest(folder_id, subfolder);
-		if (path) BLI_recurdir_fileops(path);
+		if (path) BLI_dir_create_recursive(path);
 	}
 	
 	return path;
@@ -1244,7 +1248,7 @@ void BLI_make_existing_file(const char *name)
 	
 	/* test exist */
 	if (BLI_exists(di) == 0) {
-		BLI_recurdir_fileops(di);
+		BLI_dir_create_recursive(di);
 	}
 }
 
@@ -1253,9 +1257,18 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 {
 	int sl;
 
-	if (!string || !dir || !file) return; /* We don't want any NULLs */
-	
-	string[0]= 0; /* ton */
+	if (string) {
+		/* ensure this is always set even if dir/file are NULL */
+		string[0]= '\0';
+
+		if (ELEM(NULL, dir, file)) {
+			return; /* We don't want any NULLs */
+		}
+	}
+	else {
+		return; /* string is NULL, probably shouldnt happen but return anyway */
+	}
+
 
 	/* we first push all slashes into unix mode, just to make sure we don't get
 	   any mess with slashes later on. -jesterKing */
@@ -1430,6 +1443,16 @@ void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t d
 	}
 }
 
+void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen)
+{
+	BLI_split_dirfile(string, dir, NULL, dirlen, 0);
+}
+
+void BLI_split_file_part(const char *string, char *file, const size_t filelen)
+{
+	BLI_split_dirfile(string, NULL, file, 0, filelen);
+}
+
 /* simple appending of filename to dir, does not check for valid path! */
 void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const char *file)
 {
@@ -1516,7 +1539,7 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	if (rel)
 		rel[0]= 0;
 
-	BLI_split_dirfile(base_dir, blend_dir, NULL, sizeof(blend_dir), 0);
+	BLI_split_dir_part(base_dir, blend_dir, sizeof(blend_dir));
 
 	if (src_dir[0]=='\0')
 		return 0;
@@ -1631,7 +1654,7 @@ static int add_win32_extension(char *name)
 	int retval = 0;
 	int type;
 
-	type = BLI_exist(name);
+	type = BLI_exists(name);
 	if ((type == 0) || S_ISDIR(type)) {
 #ifdef _WIN32
 		char filename[FILE_MAXDIR+FILE_MAXFILE];
@@ -1651,7 +1674,7 @@ static int add_win32_extension(char *name)
 					strcat(filename, extensions);
 				}
 
-				type = BLI_exist(filename);
+				type = BLI_exists(filename);
 				if (type && (! S_ISDIR(type))) {
 					retval = 1;
 					strcpy(name, filename);
@@ -1667,8 +1690,19 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
-/* filename must be FILE_MAX length minimum */
-void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
+/*
+* Checks if name is a fully qualified filename to an executable.
+* If not it searches $PATH for the file. On Windows it also
+* adds the correct extension (.com .exe etc) from
+* $PATHEXT if necessary. Also on Windows it translates
+* the name to its 8.3 version to prevent problems with
+* spaces and stuff. Final result is returned in fullname.
+*
+* @param fullname The full path and full name of the executable
+* (must be FILE_MAX minimum)
+* @param name The name of the executable (usually argv[0]) to be checked
+*/
+static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	const char *path = NULL, *temp;
@@ -1705,7 +1739,7 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 		BLI_strncpy(fullname, name, maxlen);
 		if (name[0] == '.') {
 			char wdir[FILE_MAX]= "";
-			BLI_getwdN(wdir, sizeof(wdir));	 /* backup cwd to restore after */
+			BLI_current_working_dir(wdir, sizeof(wdir));	 /* backup cwd to restore after */
 
 			// not needed but avoids annoying /./ in name
 			if(name[1]==SEP)
@@ -1748,12 +1782,37 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 	}
 }
 
-void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp)
+void BLI_init_program_path(const char *argv0)
+{
+	bli_where_am_i(bprogname, sizeof(bprogname), argv0);
+	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
+}
+
+const char *BLI_program_path(void)
+{
+	return bprogname;
+}
+
+const char *BLI_program_dir(void)
+{
+	return bprogdir;
+}
+
+/**
+* Gets the temp directory when blender first runs.
+* If the default path is not found, use try $TEMP
+* 
+* Also make sure the temp dir has a trailing slash
+*
+* @param fullname The full path to the temp directory
+* @param userdir Directory specified in user preferences 
+*/
+void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 {
 	fullname[0] = '\0';
 	
-	if (usertemp && BLI_is_dir(U.tempdir)) {
-		BLI_strncpy(fullname, U.tempdir, maxlen);
+	if (userdir && BLI_is_dir(userdir)) {
+		BLI_strncpy(fullname, userdir, maxlen);
 	}
 	
 	
@@ -1787,11 +1846,26 @@ void BLI_where_is_temp(char *fullname, const size_t maxlen, int usertemp)
 		/* add a trailing slash if needed */
 		BLI_add_slash(fullname);
 #ifdef WIN32
-		if(U.tempdir != fullname) {
-			BLI_strncpy(U.tempdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
+		if(userdir != fullname) {
+			BLI_strncpy(userdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
 		}
 #endif
 	}
+}
+
+void BLI_init_temporary_dir(char *userdir)
+{
+	BLI_where_is_temp(btempdir, FILE_MAX, userdir);
+}
+
+const char *BLI_temporary_dir(void)
+{
+	return btempdir;
+}
+
+void BLI_system_temporary_dir(char *dir)
+{
+	BLI_where_is_temp(dir, FILE_MAX, NULL);
 }
 
 #ifdef WITH_ICONV

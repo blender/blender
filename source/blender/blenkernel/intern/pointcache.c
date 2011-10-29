@@ -910,7 +910,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	else if (G.relbase_valid || lib) {
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 
-		BLI_split_dirfile(blendfilename, NULL, file, 0, sizeof(file));
+		BLI_split_file_part(blendfilename, file, sizeof(file));
 		i = strlen(file);
 		
 		/* remove .blend */
@@ -923,8 +923,8 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
-	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	/* temporary directory is assumed to exist and ALWAYS has a trailing slash */
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", BLI_temporary_dir(), abs(getpid()));
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }
@@ -2363,7 +2363,7 @@ void BKE_ptcache_remove(void)
 	
 	ptcache_path(NULL, path);
 
-	if (BLI_exist(path)) {
+	if (BLI_exists(path)) {
 		/* The pointcache dir exists? - remove all pointcache */
 
 		DIR *dir; 
@@ -2891,24 +2891,24 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 	char ext[MAX_PTCACHE_PATH];
 
 	/* save old name */
-	strcpy(old_name, pid->cache->name);
+	BLI_strncpy(old_name, pid->cache->name, sizeof(old_name));
 
 	/* get "from" filename */
-	strcpy(pid->cache->name, from);
+	BLI_strncpy(pid->cache->name, from, sizeof(pid->cache->name));
 
 	len = ptcache_filename(pid, old_filename, 0, 0, 0); /* no path */
 
 	ptcache_path(pid, path);
 	dir = opendir(path);
 	if(dir==NULL) {
-		strcpy(pid->cache->name, old_name);
+		BLI_strncpy(pid->cache->name, old_name, sizeof(pid->cache->name));
 		return;
 	}
 
 	BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 
 	/* put new name into cache */
-	strcpy(pid->cache->name, to);
+	BLI_strncpy(pid->cache->name, to, sizeof(pid->cache->name));
 
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
@@ -2963,7 +2963,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 	if(cache->index >= 0)
 		BLI_snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, cache->index);
 	else
-		strcpy(ext, PTCACHE_EXT);
+		BLI_strncpy(ext, PTCACHE_EXT, sizeof(ext));
 	
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/

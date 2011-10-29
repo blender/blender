@@ -64,8 +64,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
@@ -613,7 +611,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 		DIR *dir;
 		struct dirent *de;
 		
-		BLI_split_dirfile(str, dirname, NULL, sizeof(dirname), 0);
+		BLI_split_dir_part(str, dirname, sizeof(dirname));
 
 		dir = opendir(dirname);
 

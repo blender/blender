@@ -68,6 +68,7 @@ variables on the UI for now
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
@@ -207,7 +208,7 @@ static float sb_time_scale(Object *ob)
 	}
 	return (1.0f);
 	/*
-	this would be frames/sec independant timing assuming 25 fps is default
+	this would be frames/sec independent timing assuming 25 fps is default
 	but does not work very well with NLA
 		return (25.0f/scene->r.frs_sec)
 	*/

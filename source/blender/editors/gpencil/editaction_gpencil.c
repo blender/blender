@@ -311,7 +311,7 @@ void copy_gpdata ()
 		gpln= MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
 		
 		gpln->frames.first= gpln->frames.last= NULL;
-		strcpy(gpln->info, gpls->info);
+		BLI_strncpy(gpln->info, gpls->info, sizeof(gpln->info));
 		
 		BLI_addtail(&gpcopybuf, gpln);
 		

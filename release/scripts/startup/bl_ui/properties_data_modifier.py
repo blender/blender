@@ -665,7 +665,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
         col = split.column()
         col.label(text="Texture:")
-        col.prop(md, "texture", text="")
+        col.template_ID(md, "texture", new="texture.new")
 
         col = split.column()
         col.label(text="Texture Coordinates:")

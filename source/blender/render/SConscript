@@ -17,6 +17,13 @@ defs_raytrace = []
 
 defs.append('WITH_SMOKE')  # TODO, make optional
 
+if env['WITH_BF_PYTHON']:
+    incs += ' ../python'
+    incs += ' ' + env['BF_PYTHON_INC']
+    defs.append('WITH_PYTHON')
+    if env['BF_DEBUG']:
+        defs.append('DEBUG')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     if env['WITH_BF_RAYOPTIMIZATION']:
         cflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
@@ -49,6 +56,9 @@ if env['WITH_BF_QUICKTIME']:
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_GAMEENGINE']:
+    defs.append('WITH_GAMEENGINE')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']

@@ -223,7 +223,7 @@ void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListB
 {
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Whole Character");
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 		ListBase dsources = {NULL, NULL};
 		tPChanFCurveLink *pfl;
 		
