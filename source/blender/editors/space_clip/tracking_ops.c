@@ -143,6 +143,10 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 
 	add_marker(sc, pos[0], pos[1]);
 
+	/* reset offset from locked position, so frame jumping wouldn't be so confusing */
+	sc->xlockof= 0;
+	sc->ylockof= 0;
+
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
 	return OPERATOR_FINISHED;

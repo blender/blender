@@ -52,7 +52,7 @@ struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
 struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
-void ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
+int ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 
 void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);

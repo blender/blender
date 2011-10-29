@@ -684,10 +684,10 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 			tmpibuf= ED_space_clip_get_stable_buffer(sc, NULL, NULL, NULL);
 		}
 
-		ED_clip_view_selection(sc, ar, 0);
-
-		sc->xof+= sc->xlockof;
-		sc->yof+= sc->ylockof;
+		if(ED_clip_view_selection(sc, ar, 0)) {
+			sc->xof+= sc->xlockof;
+			sc->yof+= sc->ylockof;
+		}
 
 		if(tmpibuf)
 			IMB_freeImBuf(tmpibuf);

@@ -202,17 +202,17 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	return ok;
 }
 
-void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
+int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 {
 	int w, h, frame_width, frame_height;
 	float min[2], max[2];
 
 	ED_space_clip_size(sc, &frame_width, &frame_height);
 
-	if(frame_width==0 || frame_height==0) return;
+	if(frame_width==0 || frame_height==0) return 0;
 
 	if(!selected_boundbox(sc, min, max))
-		return;
+		return 0;
 
 	/* center view */
 	clip_view_center_to_point(sc, (max[0]+min[0])/(2*frame_width), (max[1]+min[1])/(2*frame_height));
@@ -238,6 +238,8 @@ void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 		if(fit || sc->zoom>newzoom)
 			sc->zoom= newzoom;
 	}
+
+	return 1;
 }
 
 void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
