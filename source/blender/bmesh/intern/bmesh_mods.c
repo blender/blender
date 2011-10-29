@@ -79,8 +79,7 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
 int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	BMFace *f, *f2;
 	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
-	BMLoop *loop;
-	int done, len= 0;
+	int len= 0;
 
 	if(BM_Nonmanifold_Vert(bm, v)) {
 		return 0;
@@ -105,7 +104,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	if (keepedge == NULL && len == 3) {
 		/*handle specific case for three-valence.  solve it by
 		  increasing valence to four.  this may be hackish. . .*/
-		loop = e->l;
+		BMLoop *loop= e->l;
 		if (loop->v == v) loop = loop->next;
 		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
 			return 0;
@@ -133,7 +132,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	}
 
 	if(keepedge){
-		done = 0;
+		int done = 0;
+
 		while(!done){
 			done = 1;
 			e = v->e;

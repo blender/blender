@@ -573,15 +573,14 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			l2 = bm_firstfaceloop(source);
 			do {
 				double x2, y2;
-				int ix2, iy2;
 				MDisps *md1, *md2;
 
 				md1 = CustomData_bmesh_get(&bm->ldata, target->head.data, CD_MDISPS);
 				md2 = CustomData_bmesh_get(&bm->ldata, l2->head.data, CD_MDISPS);
 				
 				if (mdisp_in_mdispquad(bm, target, l2, co, &x2, &y2, res)) {
-					ix2 = (int)x2;
-					iy2 = (int)y2;
+					int ix2 = (int)x2;
+					int iy2 = (int)y2;
 					
 					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, (float)x2, (float)y2);
 				}

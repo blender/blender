@@ -192,7 +192,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	mpoly = me->mpoly;
 	for (i=0; i<me->totpoly; i++, mpoly++) {
-		BMVert *v1, *v2;
+		BMVert *v1 /* , *v2 */ /* UNUSED */;
 		BMIter iter;
 		BMLoop *l;
 
@@ -213,10 +213,12 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		v1 = vt[me->mloop[mpoly->loopstart].v];
 		/* v2 = vt[me->mloop[mpoly->loopstart+1].v]; */ /* UNUSED */ /* code below always overwrites */
 
-		if (v1 == fedges[0]->v1) v2 = fedges[0]->v2;
+		if (v1 == fedges[0]->v1) {
+			/* v2 = fedges[0]->v2; */ /* UNUSED */
+		}
 		else {
 			v1 = fedges[0]->v2;
-			v2 = fedges[0]->v1;
+			/* v2 = fedges[0]->v1; */ /* UNUSED */
 		}
 	
 		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, 0);
@@ -398,7 +400,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	/* Object *ob = BMO_Get_Pnt(op, "object"); */
 	MLoop *mloop;
-	KeyBlock *block;
 	MPoly *mpoly;
 	MVert *mvert, *oldverts;
 	MEdge *medge;
@@ -737,6 +738,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	/* see comment below, this logic is in twice */
 
 	if (me->key) {
+		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&me->key->block, bm->shapenr-1);
 
 		float (*ofs)[3] = NULL;
@@ -749,18 +751,18 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			if (bm->vdata.layers[i].type != CD_SHAPEKEY)
 				continue;
 
-			for (block=me->key->block.first; block; block=block->next) {
-				if (block->uid == bm->vdata.layers[i].uid)
+			for (currkey=me->key->block.first; currkey; currkey=currkey->next) {
+				if (currkey->uid == bm->vdata.layers[i].uid)
 					break;
 			}
 			
-			if (!block) {
-				block = MEM_callocN(sizeof(KeyBlock), "KeyBlock mesh_conv.c");
-				block->type = KEY_LINEAR;
-				block->slidermin = 0.0f;
-				block->slidermax = 1.0f;
+			if (!currkey) {
+				currkey = MEM_callocN(sizeof(KeyBlock), "KeyBlock mesh_conv.c");
+				currkey->type = KEY_LINEAR;
+				currkey->slidermin = 0.0f;
+				currkey->slidermax = 1.0f;
 
-				BLI_addtail(&me->key->block, block);
+				BLI_addtail(&me->key->block, currkey);
 				me->key->totkey++;
 			}
 
@@ -772,8 +774,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		if(me->key->type==KEY_RELATIVE && oldverts) {
 			int act_is_basis = 0;
 			/* find if this key is a basis for any others */
-			for(block = me->key->block.first; block; block= block->next) {
-				if(bm->shapenr-1 == block->relative) {
+			for(currkey = me->key->block.first; currkey; currkey= currkey->next) {
+				if(bm->shapenr-1 == currkey->relative) {
 					act_is_basis = 1;
 					break;
 				}
@@ -797,25 +799,25 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		}
 
 
-		for (block=me->key->block.first; block; block=block->next) {
+		for (currkey=me->key->block.first; currkey; currkey=currkey->next) {
 			j = 0;
 
 			for (i=0; i<bm->vdata.totlayer; i++) {
 				if (bm->vdata.layers[i].type != CD_SHAPEKEY)
 					continue;
 
-				if (block->uid == bm->vdata.layers[i].uid) {
-					int apply_offset = (ofs && (block != actkey) && (bm->shapenr-1 == block->relative));
+				if (currkey->uid == bm->vdata.layers[i].uid) {
+					int apply_offset = (ofs && (currkey != actkey) && (bm->shapenr-1 == currkey->relative));
 					float *fp, *co;
 					float (*ofs_pt)[3] = ofs;
 
-					if (block->data)
-						MEM_freeN(block->data);
-					block->data = fp = MEM_mallocN(sizeof(float)*3*bm->totvert, "shape key data");
-					block->totelem = bm->totvert;
+					if (currkey->data)
+						MEM_freeN(currkey->data);
+					currkey->data = fp = MEM_mallocN(sizeof(float)*3*bm->totvert, "shape key data");
+					currkey->totelem = bm->totvert;
 
 					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-						co = block==actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
+						co = currkey==actkey ? eve->co : CustomData_bmesh_get_n(&bm->vdata, eve->head.data, CD_SHAPEKEY, j);
 						
 						copy_v3_v3(fp, co);
 
@@ -835,7 +837,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			/*if we didn't find a shapekey, tag the block to be reconstructed
 			  via the old method below*/
 			if (j == CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY)) {
-				block->flag |= KEYBLOCK_MISSING;
+				currkey->flag |= KEYBLOCK_MISSING;
 			}
 		}
 

@@ -468,10 +468,9 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 {
 	BMIter iter;
 	BMLoop *l;
-	int i;
 
 	if(f->len > 4) {
-		i = 0;
+		int i = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			copy_v3_v3(projectverts[i], l->v->co);
 			l = l->next;

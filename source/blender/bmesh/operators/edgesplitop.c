@@ -70,14 +70,14 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 	BMFace *f2;
 	BMLoop *l, *l2;
 	BMEdge *e;
-	BMVert *lastv1, *lastv2, *v1, *v2;
+	BMVert *lastv1, *lastv2 /* , *v1, *v2 */ /* UNUSED */;
 	int i;
 
 	/*we do final edge last*/
 	lastv1 = verts[f->len-1];
 	lastv2 = verts[0];
-	v1 = verts[0];
-	v2 = verts[1];
+	/* v1 = verts[0]; */ /* UNUSED */
+	/* v2 = verts[1]; */ /* UNUSED */
 	for (i=0; i<f->len-1; i++) {
 		e = BM_Make_Edge(bm, verts[i], verts[i+1], NULL, 1);
 		if (!e) {

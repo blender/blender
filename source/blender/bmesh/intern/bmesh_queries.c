@@ -65,11 +65,11 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 {
 	BMLoop *l = bm_firstfaceloop(f) /*, *l2, *l3*/;
-	int found = 0;
+	/* int found = 0; */ /* UNUSED */
 	
 	do {
 		if (l->e == e) break;
-		found = 1;
+		/*found = 1; */ /* UNUSED */
 		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	

@@ -106,16 +106,21 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
                          BMFace *source_face, BMesh *target_mesh, 
                          BMVert **vtar, BMEdge **edar, GHash *vhash, GHash *ehash)
 {
-	BMVert *target_vert1, *target_vert2;
+	/* BMVert *target_vert1, *target_vert2; */ /* UNUSED */
 	BMLoop *source_loop, *target_loop;
 	BMFace *target_face = NULL;
 	BMIter iter, iter2;
 	int i;
 	
 	/*lookup the first and second verts*/
+#if 0 /* UNUSED */
 	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(&iter, source_mesh, BM_VERTS_OF_FACE, source_face));
 	target_vert2 = BLI_ghash_lookup(vhash, BMIter_Step(&iter));
-	
+#else
+	BMIter_New(&iter, source_mesh, BM_VERTS_OF_FACE, source_face);
+	BMIter_Step(&iter);
+#endif
+
 	/*lookup edges*/
 	for (i=0,source_loop=BMIter_New(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face); 
 		     source_loop; source_loop=BMIter_Step(&iter), i++) {

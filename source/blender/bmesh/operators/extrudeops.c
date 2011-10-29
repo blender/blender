@@ -402,8 +402,7 @@ static void calc_solidify_normals(BMesh *bm)
 	}
 
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
-		float angle;
-		
+
 		/* If the edge is not part of a the solidify region
 		   its normal should not be considered */
 		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
@@ -433,7 +432,7 @@ static void calc_solidify_normals(BMesh *bm)
 		BLI_assert(f1 != NULL);
 
 		if (f2 != NULL) {
-			angle = angle_normalized_v3v3(f1->no, f2->no);
+			const float angle = angle_normalized_v3v3(f1->no, f2->no);
 
 			if (angle > 0.0f) {
 				/* two faces using this edge, calculate the edge normal

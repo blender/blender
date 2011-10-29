@@ -734,11 +734,12 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname, in
 
 int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag)
 {
-	BMEdge *curedge;
-	int i, len=0, count=0;
-	
+	int count= 0;
+
 	if(v->e) {
-		len = bmesh_disk_count(v);
+		BMEdge *curedge;
+		const int len= bmesh_disk_count(v);
+		int i;
 		
 		for(i = 0, curedge=v->e; i<len; i++){
 			if (BMO_TestFlag(bm, curedge, toolflag))
