@@ -128,10 +128,14 @@ __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, 
 
 	*rng = sobol_lookup(bits, frame, x, y, &px, &py);
 
+	*rng ^= kernel_data.integrator.seed;
+
 	*fx = size * (float)px * (1.0f/(float)0xFFFFFFFF) - x;
 	*fy = size * (float)py * (1.0f/(float)0xFFFFFFFF) - y;
 #else
 	*rng = rng_state[x + y*kernel_data.cam.width];
+
+	*rng ^= kernel_data.integrator.seed;
 
 	*fx = path_rng(kg, rng, sample, PRNG_FILTER_U);
 	*fy = path_rng(kg, rng, sample, PRNG_FILTER_V);
@@ -158,6 +162,8 @@ __device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sam
 {
 	/* load state */
 	*rng = rng_state[x + y*kernel_data.cam.width];
+
+	*rng ^= kernel_data.integrator.seed;
 
 	*fx = path_rng(kg, rng, sample, PRNG_FILTER_U);
 	*fy = path_rng(kg, rng, sample, PRNG_FILTER_V);

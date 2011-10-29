@@ -362,7 +362,6 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
-	float pdf_pad;
 
 	/* bounces */
 	int min_bounce;
@@ -380,6 +379,9 @@ typedef struct KernelIntegrator {
 	/* caustics */
 	int no_caustics;
 	float blur_caustics;
+
+	/* seed */
+	int seed;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

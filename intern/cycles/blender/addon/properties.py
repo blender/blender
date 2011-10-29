@@ -78,6 +78,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.filter_width = FloatProperty(name="Filter Width", description="Pixel filter width",
             default=1.5, min=0.01, max=10.0)
 
+        cls.seed = IntProperty(name="Seed", description="Seed value for integrator to get different noise patterns",
+            default=0, min=0, max=2147483647)
+
         cls.debug_tile_size = IntProperty(name="Tile Size", description="",
             default=1024, min=1, max=4096)
         cls.debug_min_size = IntProperty(name="Min Size", description="",

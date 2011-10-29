@@ -151,6 +151,8 @@ void BlenderSync::sync_integrator()
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
 	integrator->blur_caustics = get_float(cscene, "blur_caustics");
 
+	integrator->seed = get_int(cscene, "seed");
+
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
 }

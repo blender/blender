@@ -62,13 +62,13 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.label(text="Samples:")
         sub.prop(cscene, "samples", text="Render")
         sub.prop(cscene, "preview_samples", text="Preview")
+        sub.prop(cscene, "seed")
 
         sub = col.column(align=True)
         sub.label("Transparency:")
         sub.prop(cscene, "transparent_max_bounces", text="Max")
         sub.prop(cscene, "transparent_min_bounces", text="Min")
         sub.prop(cscene, "use_transparent_shadows", text="Shadows")
-        sub.prop(cscene, "no_caustics")
 
         col = split.column()
 
@@ -82,6 +82,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "diffuse_bounces", text="Diffuse")
         sub.prop(cscene, "glossy_bounces", text="Glossy")
         sub.prop(cscene, "transmission_bounces", text="Transmission")
+        sub.prop(cscene, "no_caustics")
 
         #row = col.row()
         #row.prop(cscene, "blur_caustics")

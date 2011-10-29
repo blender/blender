@@ -21,6 +21,8 @@
 #include "scene.h"
 #include "sobol.h"
 
+#include "util_hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 Integrator::Integrator()
@@ -40,6 +42,8 @@ Integrator::Integrator()
 
 	no_caustics = false;
 	blur_caustics = 0.0f;
+
+	seed = 0;
 
 	need_update = true;
 }
@@ -79,6 +83,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	kintegrator->no_caustics = no_caustics;
 	kintegrator->blur_caustics = blur_caustics;
 
+	kintegrator->seed = hash_int(seed);
+
 	/* sobol directions table */
 	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
@@ -109,7 +115,8 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
 		no_caustics == integrator.no_caustics &&
-		blur_caustics == integrator.blur_caustics);
+		blur_caustics == integrator.blur_caustics &&
+		seed == integrator.seed);
 }
 
 void Integrator::tag_update(Scene *scene)

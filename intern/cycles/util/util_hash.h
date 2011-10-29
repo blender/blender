@@ -44,6 +44,11 @@ static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
 	#undef rot
 }
 
+static unsigned int hash_int(unsigned int k)
+{
+	return hash_int_2d(k, 0);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_HASH_H__ */

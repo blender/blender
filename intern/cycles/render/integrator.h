@@ -42,6 +42,9 @@ public:
 
 	bool no_caustics;
 	float blur_caustics;
+
+	int seed;
+
 	bool need_update;
 
 	Integrator();
