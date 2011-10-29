@@ -813,14 +813,27 @@ static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTra
 	*marker_keyed= marker;
 
 	while(a>=0 && a<track->markersnr) {
-		if((track->markers[a].flag&MARKER_TRACKED)==0) {
-			framenr= track->markers[a].framenr;
-			*marker_keyed= &track->markers[a];
+		int next= (context->backwards) ? a+1 : a-1;
+		int is_keyframed= 0;
+		MovieTrackingMarker *marker= &track->markers[a];
+		MovieTrackingMarker *next_marker= NULL;
+
+		if(next>=0 && next<track->markersnr)
+			next_marker= &track->markers[next];
+
+		/* if next mrker is disabled, stop searching keyframe and use current frame as keyframe */
+		if(next_marker && next_marker->flag&MARKER_DISABLED)
+			is_keyframed= 1;
+
+		is_keyframed|= (marker->flag&MARKER_TRACKED)==0;
+
+		if(is_keyframed) {
+			framenr= marker->framenr;
+			*marker_keyed= marker;
 			break;
 		}
 
-		if(context->backwards) a++;
-		else a--;
+		a= next;
 	}
 
 	return get_frame_ibuf(context, framenr);
