@@ -42,6 +42,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
@@ -131,8 +132,8 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 
 		for(a= 0; a<2; a++) {
-			track->pat_min[a]= -dim[a]/2.f;
-			track->pat_max[a]= dim[a]/2.f;
+			track->pat_min[a]= -dim[a]/2.0f;
+			track->pat_max[a]= dim[a]/2.0f;
 		}
 	}
 }
@@ -163,11 +164,11 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 	/* XXX: not very nice to have such check here, but it will prevent
 	        complaints about bad default settings for new markers */
 	if(tracking->settings.tracker==TRACKER_SAD) {
-		pat[0]= 8.f;
-		pat[1]= 8.f;
+		pat[0]= 8.0f;
+		pat[1]= 8.0f;
 
-		search[0]= 32.f;
-		search[1]= 32.f;
+		search[0]= 32.0f;
+		search[1]= 32.0f;
 	}
 
 	pat[0] /= (float)width;
@@ -478,6 +479,8 @@ typedef struct TrackContext {
 	MovieTrackingTrack *track;
 
 #ifdef WITH_LIBMV
+	float keyframed_pos[2];
+
 	/* ** KLT tracker ** */
 	struct libmv_RegionTracker *region_tracker;
 	float *patch;			/* keyframed patch */
@@ -670,16 +673,12 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 	w= (x2-x1)|1;
 	h= (y2-y1)|1;
 
-	/* happens due to rounding issues */
-	if(x1+w<=x) x1++;
-	if(y1+h<=y) y1++;
-
 	tmpibuf= IMB_allocImBuf(w+margin*2, h+margin*2, 32, IB_rect);
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1-margin, y1-margin, w+margin*2, h+margin*2);
 
 	if(pos != NULL) {
-		pos[0]= x-x1+(mpos[0]*ibuf->x-x)+margin;
-		pos[1]= y-y1+(mpos[1]*ibuf->y-y)+margin;
+		pos[0]= mpos[0]*ibuf->x-x1+margin;
+		pos[1]= mpos[1]*ibuf->y-y1+margin;
 	}
 
 	if(origin != NULL) {
@@ -731,7 +730,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 
 				*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
 			} else {
-				char *rrgb= (char*)tmpibuf->rect + pixel*4;
+				unsigned char *rrgb= (unsigned char*)tmpibuf->rect + pixel*4;
 
 				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
 			}
@@ -986,7 +985,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
-			int onbound= 0;
+			int onbound= 0, coords_correct= 0;
 
 			if(!context->settings.adjframes) need_readjust= context->first_time;
 			else need_readjust= context->frames%context->settings.adjframes == 0;
@@ -998,8 +997,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			margin[1]= MAX2(margin[1], (float)context->settings.margin / ibuf_new->y);
 
 			/* do not track markers which are too close to boundary */
-			if(marker->pos[0]<margin[0] || marker->pos[0]>1.f-margin[0] ||
-			   marker->pos[1]<margin[1] || marker->pos[1]>1.f-margin[1]) {
+			if(marker->pos[0]<margin[0] || marker->pos[0]>1.0f-margin[0] ||
+			   marker->pos[1]<margin[1] || marker->pos[1]>1.0f-margin[1]) {
 				onbound= 1;
 			}
 			else if(context->settings.tracker==TRACKER_KLT) {
@@ -1013,18 +1012,18 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					if(track_context->patch)
 						MEM_freeN(track_context->patch);
 
-					track_context->patch= get_search_floatbuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
+					track_context->patch= get_search_floatbuf(ibuf, track, marker_keyed, &width, &height, track_context->keyframed_pos, origin);
 
 					IMB_freeImBuf(ibuf);
 				}
 
 				patch_new= get_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
-				x1= pos[0];
-				y1= pos[1];
+				x1= track_context->keyframed_pos[0];
+				y1= track_context->keyframed_pos[1];
 
-				x2= x1;
-				y2= y1;
+				x2= pos[0];
+				y2= pos[1];
 
 				wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf_new->x)/2;
 				wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf_new->y)/2;
@@ -1100,7 +1099,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MEM_freeN(image_new);
 			}
 
-			if(tracked || !context->disable_failed) {
+			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
+			if(coords_correct && (tracked || !context->disable_failed)) {
 				if(context->first_time) {
 					int prevframe;
 
@@ -1113,6 +1113,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 						marker_new= *marker;
 						marker_new.framenr= prevframe;
 
+						marker_new.flag&= ~MARKER_GRAPH_SEL;
 						marker_new.flag|= MARKER_DISABLED;
 
 						#pragma omp critical
@@ -1201,7 +1202,7 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 	MovieTrackingTrack *track;
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
-	float origin[3]= {0.0f, 0.f, 0.0f};
+	float origin[3]= {0.0f, 0.0f, 0.0f};
 	int ok= 1;
 
 	track= tracking->tracks.first;
@@ -1295,7 +1296,7 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 #if WITH_LIBMV
 	{
 		MovieTrackingCamera *camera= &tracking->camera;
-		float aspy= 1.f/tracking->camera.pixel_aspect;
+		float aspy= 1.0f/tracking->camera.pixel_aspect;
 		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
@@ -1307,7 +1308,7 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 		tracking->reconstruction.error= error;
 
 		if(!retrieve_libmv_reconstruct(tracking, reconstruction))
-			error= -1.f;
+			error= -1.0f;
 
 		libmv_destroyReconstruction(reconstruction);
 		libmv_tracksDestroy(tracks);
@@ -1441,7 +1442,7 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 	float lens= tracking->camera.focal*tracking->camera.sensor_width/(float)winx;
 	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
 	float winmat[4][4];
-	float ycor= 1.f/tracking->camera.pixel_aspect;
+	float ycor= 1.0f/tracking->camera.pixel_aspect;
 
 	clipsta= 0.1f;
 	clipend= 1000.0f;
@@ -1475,7 +1476,7 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float n
 
 #ifdef WITH_LIBMV
 	double x, y;
-	float aspy= 1.f/tracking->camera.pixel_aspect;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
 
 	/* normalize coords */
 	x= (co[0]-camera->principal[0]) / camera->focal;
@@ -1496,7 +1497,7 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 
 #ifdef WITH_LIBMV
 	double x= co[0], y= co[1];
-	float aspy= 1.f/tracking->camera.pixel_aspect;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
 
 	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, x, y, &x, &y);
@@ -1651,8 +1652,8 @@ static int stabilization_median_point(MovieTracking *tracking, int framenr, floa
 		track= track->next;
 	}
 
-	median[0]= (max[0]+min[0])/2.f;
-	median[1]= (max[1]+min[1])/2.f;
+	median[0]= (max[0]+min[0])/2.0f;
+	median[1]= (max[1]+min[1])/2.0f;
 
 	return ok;
 }
@@ -1662,8 +1663,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 {
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 
-	*scale= (stab->scale-1.f)*stab->scaleinf+1.f;
-	*angle= 0.f;
+	*scale= (stab->scale-1.0f)*stab->scaleinf+1.0f;
+	*angle= 0.0f;
 
 	loc[0]= (firstmedian[0]-median[0])*width*(*scale);
 	loc[1]= (firstmedian[1]-median[1])*height*(*scale);
@@ -1673,7 +1674,7 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 	if(stab->rot_track && stab->rotinf) {
 		MovieTrackingMarker *marker;
 		float a[2], b[2];
-		float x0= (float)width/2.f, y0= (float)height/2.f;
+		float x0= (float)width/2.0f, y0= (float)height/2.0f;
 		float x= median[0]*width, y= median[1]*height;
 
 		marker= BKE_tracking_get_marker(stab->rot_track, 1);
@@ -1705,10 +1706,10 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 
 	if(stabilization_median_point(tracking, 1, firstmedian)) {
 		int sfra= INT_MAX, efra= INT_MIN, cfra;
-		float delta[2]= {0.f, 0.f}, scalex= 1.f, scaley= 1.f;
+		float delta[2]= {0.0f, 0.0f}, scalex= 1.0f, scaley= 1.0f;
 		MovieTrackingTrack *track;
 
-		stab->scale= 1.f;
+		stab->scale= 1.0f;
 
 		track= tracking->tracks.first;
 		while(track) {
@@ -1731,30 +1732,30 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 			calculate_stabdata(tracking, cfra, width, height, firstmedian, median,
 						loc, &scale, &angle);
 
-			if(angle==0.f) {
+			if(angle==0.0f) {
 				loc[0]= fabsf(loc[0]);
 				loc[1]= fabsf(loc[1]);
 
 				delta[0]= MAX2(delta[0], loc[0]);
 				delta[1]= MAX2(delta[1], loc[1]);
 
-				near[0]= MIN2(median[0], 1.f-median[0]);
-				near[1]= MIN2(median[1], 1.f-median[1]);
-				near[0]= MAX2(near[0], 0.05);
-				near[1]= MAX2(near[1], 0.05);
+				near[0]= MIN2(median[0], 1.0f-median[0]);
+				near[1]= MIN2(median[1], 1.0f-median[1]);
+				near[0]= MAX2(near[0], 0.05f);
+				near[1]= MAX2(near[1], 0.05f);
 
-				scalex= 1.f+delta[0]/(near[0]*width);
-				scaley= 1.f+delta[1]/(near[1]*height);
+				scalex= 1.0f+delta[0]/(near[0]*width);
+				scaley= 1.0f+delta[1]/(near[1]*height);
 			} else {
 				int i;
 				float mat[4][4];
-				float points[4][2]={{0.f, 0.f}, {0.f, height}, {width, height}, {width, 0.f}};
+				float points[4][2]={{0.0f, 0.0f}, {0.0f, height}, {width, height}, {width, 0.0f}};
 
 				BKE_tracking_stabdata_to_mat4(width, height, loc, scale, angle, mat);
 
 				for(i= 0; i<4; i++) {
 					int j;
-					float a[3]= {0.f}, b[3]= {0.f};
+					float a[3]= {0.0f, 0.0f, 0.0f}, b[3]= {0.0f, 0.0f, 0.0f};
 
 					copy_v3_v3(a, points[i]);
 					copy_v3_v3(b, points[(i+1)%4]);
@@ -1763,13 +1764,13 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 					mul_m4_v3(mat, b);
 
 					for(j= 0; j<4; j++) {
-						float point[3]= {points[j][0], points[j][1], 0.f};
+						float point[3]= {points[j][0], points[j][1], 0.0f};
 						float v1[3], v2[3];
 
 						sub_v3_v3v3(v1, b, a);
 						sub_v3_v3v3(v2, point, a);
 
-						if(cross_v2v2(v1, v2) >= 0.f) {
+						if(cross_v2v2(v1, v2) >= 0.0f) {
 							float dist= dist_to_line_v2(point, a, b);
 							if(i%2==0) {
 								scalex= MAX2(scalex, (width+2*dist)/width);
@@ -1784,10 +1785,10 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 
 		stab->scale= MAX2(scalex, scaley);
 
-		if(stab->maxscale>0.f)
+		if(stab->maxscale>0.0f)
 			stab->scale= MIN2(stab->scale, stab->maxscale);
 	} else {
-		stab->scale= 1.f;
+		stab->scale= 1.0f;
 	}
 
 	stab->ok= 1;
@@ -1811,7 +1812,7 @@ static ImBuf* stabilize_alloc_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 
 	if(cacheibuf) {
 		if(fill) {
-			float col[4]= {0.f, 0.f, 0.f, 0.f};
+			float col[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 			IMB_rectfill(cacheibuf, col);
 		}
 	}
@@ -1830,8 +1831,8 @@ void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int w
 
 	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
 		zero_v2(loc);
-		*scale= 1.f;
-		*angle= 0.f;
+		*scale= 1.0f;
+		*angle= 0.0f;
 
 		return;
 	}
@@ -1840,7 +1841,7 @@ void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int w
 		stabilization_median_point(tracking, framenr, median);
 
 		if((stab->flag&TRACKING_AUTOSCALE)==0)
-			stab->scale= 1.f;
+			stab->scale= 1.0f;
 
 		if(!stab->ok) {
 			if(stab->flag&TRACKING_AUTOSCALE)
@@ -1854,8 +1855,8 @@ void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int w
 		}
 	} else {
 		zero_v2(loc);
-		*scale= 1.f;
-		*angle= 0.f;
+		*scale= 1.0f;
+		*angle= 0.0f;
 	}
 }
 
@@ -1871,7 +1872,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 
 	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
 		if(loc)		zero_v2(loc);
-		if(scale) 	*scale= 1.f;
+		if(scale) 	*scale= 1.0f;
 
 		return ibuf;
 	}
@@ -1881,7 +1882,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 	tmpibuf= stabilize_alloc_ibuf(NULL, ibuf, 1);
 
 	/* scale would be handled by matrix transformation when angle is non-zero */
-	if(tscale!=1.f && tangle==0.f) {
+	if(tscale!=1.0f && tangle==0.0f) {
 		ImBuf *scaleibuf;
 
 		stabilization_auto_scale_factor(tracking, width, height);
@@ -1895,7 +1896,7 @@ ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf,
 		ibuf= scaleibuf;
 	}
 
-	if(tangle==0.f) {
+	if(tangle==0.0f) {
 		/* if angle is zero, then it's much faster to use rect copy
 		   but could be issues with subpixel precisions */
 		IMB_rectcpy(tmpibuf, ibuf, tloc[0]-(tscale-1.0f)*width/2.0f, tloc[1]-(tscale-1.0f)*height/2.0f, 0, 0, ibuf->x, ibuf->y);
@@ -1941,8 +1942,8 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	unit_m4(cmat);
 
 	/* image center as rotation center */
-	cmat[3][0]= (float)width/2.f;
-	cmat[3][1]= (float)height/2.f;
+	cmat[3][0]= (float)width/2.0f;
+	cmat[3][1]= (float)height/2.0f;
 	invert_m4_m4(icmat, cmat);
 
 	size_to_mat4(smat, svec);		/* scale matrix */
@@ -1978,7 +1979,7 @@ MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
 void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *tracking, int width, int height)
 {
 	MovieTrackingCamera *camera= &tracking->camera;
-	float aspy= 1.f/tracking->camera.pixel_aspect;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
 
 #ifdef WITH_LIBMV
 	if(!distortion->intrinsics) {

@@ -842,6 +842,9 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 	SETCOL(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
 	SETCOL(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
+	SETCOL(btheme->tclip.handle_vertex, 0x00, 0x00, 0x00, 0xff);
+	SETCOL(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
+	btheme->tclip.handle_vertex_size= 4;
 }
 
 
@@ -1673,6 +1676,9 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 				SETCOL(btheme->tclip.grid, 0x5e, 0x5e, 0x5e, 255);
 				SETCOL(btheme->tclip.cframe, 0x60, 0xc0, 0x40, 255);
+				SETCOL(btheme->tclip.handle_vertex, 0x00, 0x00, 0x00, 0xff);
+				SETCOL(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
+				btheme->tclip.handle_vertex_size= 4;
 			}
 		}
 	}

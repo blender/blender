@@ -281,7 +281,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "corr");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_range(prop, -1.f, 1.f, .1, 3);
+	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
 
 	/* tool settings */
@@ -590,28 +590,28 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	/* max scale */
 	prop= RNA_def_property(srna, "scale_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "maxscale");
-	RNA_def_property_range(prop, 0.f, 10.f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Miximal Scale", "Maximal value for scale factor");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* influence_location */
 	prop= RNA_def_property(srna, "influence_location", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "locinf");
-	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Location Influence", "Influence of stabilization algorithm on footage location");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* influence_scale */
 	prop= RNA_def_property(srna, "influence_scale", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "scaleinf");
-	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Scale Influence", "Influence of stabilization algorithm on footage scale");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* influence_rotation */
 	prop= RNA_def_property(srna, "influence_rotation", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "rotinf");
-	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Rotation Influence", "Influence of stabilization algorithm on footage rotation");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 }

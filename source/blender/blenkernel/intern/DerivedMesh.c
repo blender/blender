@@ -1190,6 +1190,7 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 
 	/* TODO what to do with vert_r->flag? */
 	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
+	vert_r->flag= ev->f;
 }
 
 static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)

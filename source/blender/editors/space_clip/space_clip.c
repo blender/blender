@@ -298,7 +298,6 @@ static void clip_operatortypes(void)
 	/* ** clip_ops.c ** */
 	WM_operatortype_append(CLIP_OT_open);
 	WM_operatortype_append(CLIP_OT_reload);
-	// WM_operatortype_append(CLIP_OT_unlink);
 	WM_operatortype_append(CLIP_OT_view_pan);
 	WM_operatortype_append(CLIP_OT_view_zoom);
 	WM_operatortype_append(CLIP_OT_view_zoom_in);
@@ -368,6 +367,11 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_track_copy_color);
 
 	WM_operatortype_append(CLIP_OT_clean_tracks);
+
+	/* graph editing */
+	WM_operatortype_append(CLIP_OT_graph_select);
+	WM_operatortype_append(CLIP_OT_graph_delete_curve);
+	WM_operatortype_append(CLIP_OT_graph_delete_knot);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -511,7 +515,18 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
 
 	/* "timeline" */
-	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
+
+	/* selection */
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "CLIP_OT_graph_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+
+	/* delete */
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", XKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", DELKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_knot", XKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 const char *clip_context_dir[]= {"edit_movieclip", NULL};

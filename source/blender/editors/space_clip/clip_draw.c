@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_draw_main.c
+/** \file blender/editors/space_clip/clip_draw.c
  *  \ingroup spclip
  */
 
@@ -170,23 +170,52 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	glRecti(x, 0, x+framelen, 8);
 
 	/* frame number */
-	BLF_size(fontid, 11.f, U.dpi);
+	BLF_size(fontid, 11.0f, U.dpi);
 	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
 	fontsize= BLF_height(fontid, str);
 	fontwidth= BLF_width(fontid, str);
 
-	if(x+fontwidth+6.f<=ar->winx) {
-		glRecti(x, 8.f, x+fontwidth+6.f, 12.f+fontsize);
+	if(x+fontwidth+6.0f<=ar->winx) {
+		glRecti(x, 8, x+fontwidth+6, 12+fontsize);
 
 		UI_ThemeColor(TH_TEXT);
-		BLF_position(fontid, x+2.f, 10.f, 0.f);
+		BLF_position(fontid, x+2.0f, 10.0f, 0.0f);
 		BLF_draw(fontid, str, strlen(str));
 	} else {
-		glRecti(x+framelen, 8.f, x+framelen-fontwidth-6.f, 12.f+fontsize);
+		glRecti(x+framelen, 8.0f, x+framelen-fontwidth-6.0f, 12.0f+fontsize);
 
 		UI_ThemeColor(TH_TEXT);
-		BLF_position(fontid, x-2.f-fontwidth+framelen, 10.f, 0.f);
+		BLF_position(fontid, x-2.0f-fontwidth+framelen, 10.0f, 0.0f);
 		BLF_draw(fontid, str, strlen(str));
+	}
+}
+
+static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
+{
+	char str[256]= {0};
+
+	if(sc->flag&SC_LOCK_SELECTION)
+		strcpy(str, "Locked");
+
+	if(str[0]) {
+		uiStyle *style= UI_GetStyle();
+		int fontsize, fontwidth;
+		int fontid= style->widget.uifont_id;
+
+		BLF_size(fontid, 11.0f, U.dpi);
+		fontsize= BLF_height(fontid, str);
+		fontwidth= BLF_width(fontid, str);
+
+		glEnable(GL_BLEND);
+
+		glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
+		glRecti(0, ar->winy-fontsize-9, fontwidth+12, ar->winy);
+
+		glColor3f(1.0f, 1.0f, 1.0f);
+		BLF_position(fontid, 6.0f, ar->winy-fontsize-5.0f, 0.0f);
+		BLF_draw(fontid, str, strlen(str));
+
+		glDisable(GL_BLEND);
 	}
 }
 
@@ -200,7 +229,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
 
 	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.f, 0.f, &x, &y);
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	if(sc->flag&SC_MUTE_FOOTAGE) {
 		glColor3f(0.0f, 0.0f, 0.0f);
@@ -216,7 +245,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 
 	/* draw boundary border for frame if stabilization is enabled */
 	if(sc->flag&SC_SHOW_STABLE && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-		glColor3f(0.f, 0.f, 0.f);
+		glColor3f(0.0f, 0.0f, 0.0f);
 		glLineStipple(3, 0xaaaa);
 		glEnable(GL_LINE_STIPPLE);
 		glEnable(GL_COLOR_LOGIC_OP);
@@ -229,10 +258,10 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 		glMultMatrixf(sc->stabmat);
 
 		glBegin(GL_LINE_LOOP);
-			glVertex2f(0.f, 0.f);
-			glVertex2f(ibuf->x, 0.f);
+			glVertex2f(0.0f, 0.0f);
+			glVertex2f(ibuf->x, 0.0f);
 			glVertex2f(ibuf->x, ibuf->y);
-			glVertex2f(0.f, ibuf->y);
+			glVertex2f(0.0f, ibuf->y);
 		glEnd();
 
 		glPopMatrix();
@@ -243,7 +272,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 
 
 	/* reset zoom */
-	glPixelZoom(1.f, 1.f);
+	glPixelZoom(1.0f, 1.0f);
 }
 
 static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
@@ -492,7 +521,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 				glVertex2f(pos[0], pos[1] + px[1]*7);
 			glEnd();
 
-			glColor3f(0.f, 0.f, 0.f);
+			glColor3f(0.0f, 0.0f, 0.0f);
 			glLineStipple(3, 0xaaaa);
 			glEnable(GL_LINE_STIPPLE);
 			glEnable(GL_COLOR_LOGIC_OP);
@@ -597,11 +626,11 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	dx= 6.0f/width/sc->zoom;
 	dy= 6.0f/height/sc->zoom;
 
-	patdx= MIN2(dx*2.f/3.f, (track->pat_max[0]-track->pat_min[0])/6.f);
-	patdy= MIN2(dy*2.f/3.f, (track->pat_max[1]-track->pat_min[1])/6.f);
+	patdx= MIN2(dx*2.0f/3.0f, (track->pat_max[0]-track->pat_min[0])/6.0f);
+	patdy= MIN2(dy*2.0f/3.0f, (track->pat_max[1]-track->pat_min[1])/6.0f);
 
-	searchdx= MIN2(dx, (track->search_max[0]-track->search_min[0])/6.f);
-	searchdy= MIN2(dy, (track->search_max[1]-track->search_min[1])/6.f);
+	searchdx= MIN2(dx, (track->search_max[0]-track->search_min[0])/6.0f);
+	searchdy= MIN2(dy, (track->search_max[1]-track->search_min[1])/6.0f);
 
 	px[0]= 1.0f/sc->zoom/width/sc->scale;
 	px[1]= 1.0f/sc->zoom/height/sc->scale;
@@ -635,8 +664,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		x= track->search_max[0];
 		y= track->search_min[1];
 
-		tdx= searchdx*2.f;
-		tdy= searchdy*2.f;
+		tdx= searchdx*2.0f;
+		tdy= searchdy*2.0f;
 
 		if(outline) {
 			tdx+= px[0];
@@ -679,8 +708,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		x= track->pat_max[0];
 		y= track->pat_min[1];
 
-		tdx= patdx*2.f;
-		tdy= patdy*2.f;
+		tdx= patdx*2.0f;
+		tdy= patdy*2.0f;
 
 		if(outline) {
 			tdx+= px[0];
@@ -704,14 +733,14 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			int width, int height, float zoomx, float zoomy)
 {
 	char str[128]= {0}, state[64]= {0};
-	float dx= 0.f, dy= 0.f, fontsize, pos[3];
+	float dx= 0.0f, dy= 0.0f, fontsize, pos[3];
 	uiStyle *style= U.uistyles.first;
 	int fontid= style->widget.uifont_id;
 
 	if(!TRACK_VIEW_SELECTED(sc, track))
 		return;
 
-	BLF_size(fontid, 11.f, U.dpi);
+	BLF_size(fontid, 11.0f, U.dpi);
 	fontsize= BLF_height_max(fontid);
 
 	if(marker->flag&MARKER_DISABLED) {
@@ -732,7 +761,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	pos[0]= (marker_pos[0]+dx)*width;
 	pos[1]= (marker_pos[1]+dy)*height;
-	pos[2]= 0.f;
+	pos[2]= 0.0f;
 
 	mul_m4_v3(sc->stabmat, pos);
 
@@ -749,19 +778,19 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	else
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
-	BLF_position(fontid, pos[0], pos[1], 0.f);
+	BLF_position(fontid, pos[0], pos[1], 0.0f);
 	BLF_draw(fontid, str, strlen(str));
 	pos[1]-= fontsize;
 
 	if(track->flag&TRACK_HAS_BUNDLE) {
 		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
-		BLF_position(fontid, pos[0], pos[1], 0.f);
+		BLF_position(fontid, pos[0], pos[1], 0.0f);
 		BLF_draw(fontid, str, strlen(str));
 		pos[1]-= fontsize;
 	}
 
 	if(track->flag&TRACK_LOCKED) {
-		BLF_position(fontid, pos[0], pos[1], 0.f);
+		BLF_position(fontid, pos[0], pos[1], 0.0f);
 		BLF_draw(fontid, "locked", 6);
 	}
 }
@@ -926,7 +955,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize(3.0f);
 
-		aspy= 1.f/clip->tracking.camera.pixel_aspect;
+		aspy= 1.0f/clip->tracking.camera.pixel_aspect;
 		BKE_tracking_projection_matrix(tracking, framenr, width, height, mat);
 
 		track= tracking->tracks.first;
@@ -946,7 +975,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 					BKE_tracking_apply_intrinsics(tracking, pos, npos);
 
-					if(npos[0]>=0.f && npos[1]>=0.f && npos[0]<=width && npos[1]<=height*aspy) {
+					if(npos[0]>=0.0f && npos[1]>=0.0f && npos[0]<=width && npos[1]<=height*aspy) {
 						vec[0]= (marker->pos[0]+track->offset[0])*width;
 						vec[1]= (marker->pos[1]+track->offset[1])*height*aspy;
 
@@ -1008,7 +1037,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	int i, j, a;
 	float pos[2], tpos[2], grid[11][11][2];
 	MovieTracking *tracking= &clip->tracking;
-	float aspy= 1.f/tracking->camera.pixel_aspect;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
 	float dx= (float)width/n, dy= (float)height/n*aspy;
 
 	if(sc->mode!=SC_MODE_DISTORTION)
@@ -1061,7 +1090,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 				pos[0]+= dx;
 			}
 
-			pos[0]= 0.f;
+			pos[0]= 0.0f;
 			pos[1]+= dy;
 		}
 
@@ -1094,7 +1123,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 			pos[1]+= dy;
 		}
 
-		glColor3f(1.f, 0.f, 0.f);
+		glColor3f(1.0f, 0.0f, 0.0f);
 
 		for(i= 0; i<=n; i++) {
 			glBegin(GL_LINE_STRIP);
@@ -1141,7 +1170,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 									npos[1]= stroke->points[i+1].y*height*aspy;
 
 									len= len_v2v2(pos, npos);
-									steps= ceil(len/5.f);
+									steps= ceil(len/5.0f);
 
 									/* we want to distort only long straight lines */
 									if(stroke->totpoints==2) {
@@ -1150,7 +1179,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 									}
 
 									sub_v2_v2v2(dpos, npos, pos);
-									mul_v2_fl(dpos, 1.f/steps);
+									mul_v2_fl(dpos, 1.0f/steps);
 
 									for(j= 0; j<=steps; j++) {
 										BKE_tracking_apply_intrinsics(tracking, pos, tpos);
@@ -1177,8 +1206,8 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 			layer= layer->next;
 		}
 
-		glLineWidth(1.f);
-		glPointSize(1.f);
+		glLineWidth(1.0f);
+		glPointSize(1.0f);
 	}
 
 	glPopMatrix();
@@ -1205,8 +1234,8 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
 
 		unit_m4(smat);
-		smat[0][0]= 1.f/width;
-		smat[1][1]= 1.f/height;
+		smat[0][0]= 1.0f/width;
+		smat[1][1]= 1.0f/height;
 		invert_m4_m4(ismat, smat);
 
 		mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
@@ -1214,7 +1243,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		ibuf= ED_space_clip_get_buffer(sc);
 
 		zero_v2(sc->loc);
-		sc->scale= 1.f;
+		sc->scale= 1.0f;
 		unit_m4(sc->stabmat);
 		unit_m4(sc->unistabmat);
 	}
@@ -1228,6 +1257,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	}
 
 	draw_movieclip_cache(sc, ar, clip, scene);
+	draw_movieclip_notes(sc, ar);
 }
 
 /* draw grease pencil */

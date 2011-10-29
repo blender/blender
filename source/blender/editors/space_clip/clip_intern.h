@@ -29,17 +29,34 @@
  *  \ingroup spclip
  */
 
-
 #ifndef ED_CLIP_INTERN_H
 #define ED_CLIP_INTERN_H
 
 struct bContext;
 struct ARegion;
+struct MovieClip;
+struct MovieTrackingMarker;
+struct MovieTrackingTrack;
 struct Scene;
 struct SpaceClip;
 struct wmOperatorType;
 
 /* internal exports only */
+
+/* clip_buttons.c */
+void ED_clip_buttons_register(struct ARegionType *art);
+
+/* clip_draw.c */
+void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void draw_clip_grease_pencil(struct bContext *C, int onlyv2d);
+
+/* clip_graph_draw.c */
+void draw_clip_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+
+/* clip_graph_ops.c */
+void CLIP_OT_graph_select(struct wmOperatorType *ot);
+void CLIP_OT_graph_delete_curve(struct wmOperatorType *ot);
+void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
 
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
@@ -56,7 +73,34 @@ void CLIP_OT_change_frame(wmOperatorType *ot);
 void CLIP_OT_rebuild_proxy(struct wmOperatorType *ot);
 void CLIP_OT_mode_set(struct wmOperatorType *ot);
 
+/* clip_toolbar.c */
+void CLIP_OT_tools(struct wmOperatorType *ot);
+void CLIP_OT_properties(struct wmOperatorType *ot);
+void ED_clip_tool_props_register(struct ARegionType *art);
+
+/* clip_utils.c */
+void clip_graph_tracking_values_iterate_track(struct SpaceClip *sc, struct MovieTrackingTrack *track, void *userdata,
+			void (*func) (void *userdata, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int coord, float val),
+			void (*segment_start) (void *userdata, struct MovieTrackingTrack *track, int coord),
+			void (*segment_end) (void *userdata));
+
+void clip_graph_tracking_values_iterate(struct SpaceClip *sc, void *userdata,
+			void (*func) (void *userdata, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int coord, float val),
+			void (*segment_start) (void *userdata, struct MovieTrackingTrack *track, int coord),
+			void (*segment_end) (void *userdata));
+
+void clip_graph_tracking_iterate(struct SpaceClip *sc, void *userdata,
+			void (*func) (void *userdata, struct MovieTrackingMarker *marker));
+
+void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
+void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+
+void clip_view_center_to_point(struct SpaceClip *sc, float x, float y);
+
 /* tracking_ops.c */
+void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
+void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+
 void CLIP_OT_select(struct wmOperatorType *ot);
 void CLIP_OT_select_all(struct wmOperatorType *ot);
 void CLIP_OT_select_border(struct wmOperatorType *ot);
@@ -100,20 +144,4 @@ void CLIP_OT_stabilize_2d_set_rotation(struct wmOperatorType *ot);
 
 void CLIP_OT_clean_tracks(wmOperatorType *ot);
 
-/* clip_draw_main.c */
-void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-void draw_clip_grease_pencil(struct bContext *C, int onlyv2d);
-
-/* clip_draw_graph.c */
-void draw_clip_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-
-/* clip_buttons.c */
-void ED_clip_buttons_register(struct ARegionType *art);
-
-/* clip_toolbar.c */
-void CLIP_OT_tools(struct wmOperatorType *ot);
-void CLIP_OT_properties(struct wmOperatorType *ot);
-void ED_clip_tool_props_register(struct ARegionType *art);
-
 #endif /* ED_CLIP_INTERN_H */
-

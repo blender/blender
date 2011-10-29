@@ -171,6 +171,7 @@ enum {
 /* MovieTrackingMarker->flag */
 #define MARKER_DISABLED	(1<<0)
 #define MARKER_TRACKED	(1<<1)
+#define MARKER_GRAPH_SEL (1<<2)
 
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)

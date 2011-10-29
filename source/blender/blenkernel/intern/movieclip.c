@@ -83,7 +83,7 @@ static int sequence_guess_offset(const char *full_name, int head_len, int numlen
 {
 	char num[FILE_MAX]= {0};
 
-	BLI_strncpy(num, full_name+head_len, numlen);
+	BLI_strncpy(num, full_name+head_len, numlen+1);
 
 	return atoi(num);
 }
@@ -387,12 +387,12 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
 	clip->tracking.settings.dist= 1;
-	clip->tracking.settings.corr= 0.75;
+	clip->tracking.settings.corr= 0.75f;
 
-	clip->tracking.stabilization.scaleinf= 1.f;
-	clip->tracking.stabilization.locinf= 1.f;
-	clip->tracking.stabilization.rotinf= 1.f;
-	clip->tracking.stabilization.maxscale= 2.f;
+	clip->tracking.stabilization.scaleinf= 1.0f;
+	clip->tracking.stabilization.locinf= 1.0f;
+	clip->tracking.stabilization.rotinf= 1.0f;
+	clip->tracking.stabilization.maxscale= 2.0f;
 
 	clip->proxy.build_size_flag= IMB_PROXY_25;
 	clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
@@ -454,7 +454,7 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 		clip->tracking.camera.principal[0]= ((float)width)/2;
 		clip->tracking.camera.principal[1]= ((float)height)/2;
 
-		clip->tracking.camera.focal= 24.f*width/clip->tracking.camera.sensor_width;
+		clip->tracking.camera.focal= 24.0f*width/clip->tracking.camera.sensor_width;
 	}
 
 	return clip;
@@ -473,13 +473,13 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 				break;
 
 			case MCLIP_PROXY_RENDER_SIZE_50:
-				(*width)*= 2;
-				(*height)*= 2;
+				(*width)*= 2.0f;
+				(*height)*= 2.0f;
 				break;
 
 			case MCLIP_PROXY_RENDER_SIZE_75:
-				*width= ((float)*width)*4.f/3.f;
-				*height= ((float)*height)*4.f/3.f;
+				*width= ((float)*width)*4.0f/3.0f;
+				*height= ((float)*height)*4.0f/3.0f;
 				break;
 		}
 	}
@@ -535,9 +535,9 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	imb_freerectfloatImBuf(ibuf);
 
 	if(distoriton)
-		undistibuf= BKE_tracking_distortion_exec(distoriton, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.f, 1);
+		undistibuf= BKE_tracking_distortion_exec(distoriton, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
-		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.f);
+		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
 	if(undistibuf->userflags|= IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
@@ -645,7 +645,6 @@ ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int fla
 			cache_undistorted= 1;
 	}
 
-	/* cache is supposed to be threadsafe */
 	ibuf= get_imbuf_cache(clip, user, flag);
 
 	if(!ibuf) {
@@ -730,8 +729,8 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 		if(angle)	*angle= tangle;
 	} else {
 		if(loc)		zero_v2(loc);
-		if(scale)	*scale= 1.f;
-		if(angle)	*angle= 0.f;
+		if(scale)	*scale= 1.0f;
+		if(angle)	*angle= 0.0f;
 
 		stableibuf= ibuf;
 	}
@@ -895,7 +894,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 					if(user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 						int width, height;
-						float aspy= 1.f/clip->tracking.camera.pixel_aspect;;
+						float aspy= 1.0f/clip->tracking.camera.pixel_aspect;;
 
 						BKE_movieclip_get_size(clip, user, &width, &height);
 
@@ -944,8 +943,8 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 
 	get_proxy_fname(clip, proxy_render_size, undistorted, cfra, name);
 
-	rectx= ibuf->x*size/100.f;
-	recty= ibuf->y*size/100.f;
+	rectx= ibuf->x*size/100.0f;
+	recty= ibuf->y*size/100.0f;
 
 	scaleibuf= IMB_dupImBuf(ibuf);
 

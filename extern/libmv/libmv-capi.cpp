@@ -198,7 +198,7 @@ void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int
 	fclose(fp);
 }
 
-static void saveImage(libmv::FloatImage image, int x0, int y0)
+static void saveImage(char *prefix, libmv::FloatImage image, int x0, int y0)
 {
 	int x, y;
 	png_bytep *row_pointers;
@@ -228,7 +228,7 @@ static void saveImage(libmv::FloatImage image, int x0, int y0)
 	{
 		static int a= 0;
 		char buf[128];
-		snprintf(buf, sizeof(buf), "%02d.png", ++a);
+		snprintf(buf, sizeof(buf), "%s_%02d.png", prefix, ++a);
 		savePNGImage(row_pointers, image.Width(), image.Height(), 8, PNG_COLOR_TYPE_RGBA, buf);
 	}
 
@@ -238,7 +238,7 @@ static void saveImage(libmv::FloatImage image, int x0, int y0)
 	free(row_pointers);
 }
 
-static void saveBytesImage(unsigned char *data, int width, int height)
+static void saveBytesImage(char *prefix, unsigned char *data, int width, int height)
 {
 	int x, y;
 	png_bytep *row_pointers;
@@ -260,7 +260,7 @@ static void saveBytesImage(unsigned char *data, int width, int height)
 	{
 		static int a= 0;
 		char buf[128];
-		snprintf(buf, sizeof(buf), "%02d.png", ++a);
+		snprintf(buf, sizeof(buf), "%s_%02d.png", prefix, ++a);
 		savePNGImage(row_pointers, width, height, 8, PNG_COLOR_TYPE_RGBA, buf);
 	}
 
@@ -295,8 +295,8 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *im
 		int result = region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
 
 		if (!result) {
-			saveImage(old_patch, x1, y1);
-			saveImage(new_patch, sx2, sy2);
+			saveImage("old_patch", old_patch, x1, y1);
+			saveImage("new_patch", new_patch, sx2, sy2);
 		}
 
 		return result;

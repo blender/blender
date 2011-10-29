@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -61,8 +61,8 @@ CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, f
 	unit_m4(cmat);
 
 	/* image center as rotation center */
-	cmat[3][0]= (float)cbuf->x/2.f;
-	cmat[3][1]= (float)cbuf->y/2.f;
+	cmat[3][0]= (float)cbuf->x/2.0f;
+	cmat[3][1]= (float)cbuf->y/2.0f;
 	invert_m4_m4(icmat, cmat);
 
 	size_to_mat4(smat, svec);		/* scale matrix */

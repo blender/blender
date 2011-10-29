@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/space_clip/clip_ops.c
+ *  \ingroup spclip
+ */
+
 #include <errno.h>
 
 #include "MEM_guardedalloc.h"
@@ -61,10 +65,6 @@
 #include "UI_view2d.h"
 
 #include "clip_intern.h"	// own include
-
-/** \file blender/editors/space_clip/clip_ops.c
- *  \ingroup spclip
- */
 
 /******************** view navigation utilities *********************/
 
@@ -245,56 +245,6 @@ void CLIP_OT_reload(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= reload_exec;
 }
-
-/******************* delete operator *********************/
-
-#if 0
-static int unlink_poll(bContext *C)
-{
-	/* it should be possible to unlink clips if they're lib-linked in... */
-	return CTX_data_edit_movieclip(C) != NULL;
-}
-
-static int unlink_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Main *bmain= CTX_data_main(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= CTX_data_edit_movieclip(C);
-
-	if(!clip) {
-		return OPERATOR_CANCELLED;
-	}
-
-	/* make the previous text active, if its not there make the next text active */
-	if(sc) {
-		if(clip->id.prev) ED_space_clip_set(C, sc, clip->id.prev);
-		else if(clip->id.next) ED_space_clip_set(C, sc, clip->id.next);
-	}
-
-	unlink_movieclip(bmain, clip);
-	free_libblock(&bmain->movieclip, clip);
-
-	WM_event_add_notifier(C, NC_MOVIECLIP|NA_REMOVED, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void CLIP_OT_unlink(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Unlink";
-	ot->idname= "CLIP_OT_unlink";
-	ot->description= "Unlink active clip data block";
-
-	/* api callbacks */
-	ot->exec= unlink_exec;
-	ot->invoke= WM_operator_confirm;
-	ot->poll= unlink_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_UNDO;
-}
-#endif
 
 /********************** view pan operator *********************/
 
@@ -738,8 +688,8 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	ARegion *ar= CTX_wm_region(C);
 
-	sc->xlockof= 0.f;
-	sc->ylockof= 0.f;
+	sc->xlockof= 0.0f;
+	sc->ylockof= 0.0f;
 
 	ED_clip_view_selection(sc, ar, 1);
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -776,7 +726,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	/* set the new frame number */
 	CFRA= RNA_int_get(op->ptr, "frame");
 	FRAMENUMBER_MIN_CLAMP(CFRA);
-	SUBFRA = 0.f;
+	SUBFRA = 0.0f;
 
 	/* do updates */
 	sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
