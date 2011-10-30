@@ -95,13 +95,13 @@
 #include "RE_shader_ext.h"
 
 /* fluid sim particle import */
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
 
-#endif // DISABLE_ELBEEM
+#endif // WITH_MOD_FLUID
 
 /************************************************/
 /*			Reacting to system events			*/
@@ -3916,7 +3916,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 	}
 
 	/* fluid sim particle import handling, actual loading of particles from file */
-	#ifndef DISABLE_ELBEEM
+	#ifdef WITH_MOD_FLUID
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(sim->ob, eModifierType_Fluidsim);
 		
@@ -4009,7 +4009,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			
 		} // fluid sim particles done
 	}
-	#endif // DISABLE_ELBEEM
+	#endif // WITH_MOD_FLUID
 }
 
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))

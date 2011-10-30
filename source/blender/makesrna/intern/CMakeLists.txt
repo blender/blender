@@ -195,8 +195,8 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(NOT WITH_MOD_FLUID)
-	add_definitions(-DDISABLE_ELBEEM)
+if(WITH_MOD_FLUID)
+	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
 if(WITH_FFTW3)

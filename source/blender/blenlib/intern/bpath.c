@@ -325,8 +325,7 @@ static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR], char path_file
 	}
 
 	if (visit_cb(userdata, path_dst, (const char *)path_src)) {
-		BLI_split_dirfile(path_dst, path_dir, path_file,
-		                  sizeof(path_dir), sizeof(path_file));
+		BLI_split_dirfile(path_dst, path_dir, path_file, FILE_MAXDIR, FILE_MAXFILE);
 		return TRUE;
 	}
 	else {
