@@ -92,7 +92,7 @@ static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	uiStyle *style= UI_GetStyle();
 	int fontid= style->widget.uifont_id, fontsize;
 	float xscale, yscale, x, y;
-	char str[32] = "    t";	/* t is the character to start replacing from */
+	char str[32];
 	short slen;
 	float vec[2];
 
@@ -118,7 +118,8 @@ static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 
-	BLI_snprintf(&str[4], sizeof(str)-4, "%d", sc->user.framenr);
+	BLI_snprintf(str, sizeof(str), "    %d", sc->user.framenr);
+	BLF_size(fontid, 11.0f, U.dpi);
 	slen= BLF_width(fontid, str);
 	fontsize= BLF_height(fontid, str);
 
