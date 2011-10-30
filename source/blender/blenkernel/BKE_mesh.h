@@ -52,6 +52,7 @@ struct VecNor;
 struct CustomData;
 struct DerivedMesh;
 struct Scene;
+struct MLoopUV;
 
 #ifdef __cplusplus
 extern "C" {
@@ -153,7 +154,7 @@ typedef struct UvMapVert {
 	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
-UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);
+UvVertMap *make_uv_vert_map(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv, unsigned int totpoly, unsigned int totvert, int selected, float *limit);
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
 

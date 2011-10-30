@@ -1981,27 +1981,31 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 	return cos;
 }
 
-UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
+
+/* ngon version wip, based on EDBM_make_uv_vert_map */
+/* this replaces the non bmesh function (in trunk) which takes MTFace's, if we ever need it back we could
+ * but for now this replaces it because its unused. */
+
+UvVertMap *make_uv_vert_map(struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv, unsigned int totpoly, unsigned int totvert, int selected, float *limit)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;
-	MFace *mf;
-	MTFace *tf;
+	MPoly *mp;
+	MLoopUV *luv;
 	unsigned int a;
 	int	i, totuv, nverts;
 
 	totuv = 0;
 
 	/* generate UvMapVert array */
-	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++)
-		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL)))
-			totuv += (mf->v4)? 4: 3;
-		
+	mp= mpoly;
+	for(a=0; a<totpoly; a++, mp++)
+		if(!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL)))
+			totuv += mp->totloop;
+
 	if(totuv==0)
 		return NULL;
-	
+
 	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap)
 		return NULL;
@@ -2014,25 +2018,23 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 		return NULL;
 	}
 
-	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++) {
-		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))) {
-			nverts= (mf->v4)? 4: 3;
+	mp= mpoly;
+	for(a=0; a<totpoly; a++, mp++) {
+		if(!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
+			nverts= mp->totloop;
 
 			for(i=0; i<nverts; i++) {
 				buf->tfindex= i;
 				buf->f= a;
 				buf->separate = 0;
-				buf->next= vmap->vert[*(&mf->v1 + i)];
-				vmap->vert[*(&mf->v1 + i)]= buf;
+				buf->next= vmap->vert[mloop[mp->loopstart + i].v];
+				vmap->vert[mloop[mp->loopstart + i].v]= buf;
 				buf++;
 			}
 		}
 	}
 	
 	/* sort individual uvs for each vert */
-	tf= tface;
 	for(a=0; a<totvert; a++) {
 		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
@@ -2044,14 +2046,14 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 			v->next= newvlist;
 			newvlist= v;
 
-			uv= (tf+v->f)->uv[v->tfindex];
+			uv= mloopuv[mpoly[v->f].loopstart + v->tfindex].uv;
 			lastv= NULL;
 			iterv= vlist;
 
 			while(iterv) {
 				next= iterv->next;
 
-				uv2= (tf+iterv->f)->uv[iterv->tfindex];
+				uv2= mloopuv[mpoly[iterv->f].loopstart + iterv->tfindex].uv;
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
