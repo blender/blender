@@ -674,28 +674,7 @@ void Stroke::RemoveVertex(StrokeVertex *iVertex)
       break;
     }
   }
-  // recompute various values (length, curvilign abscissa)
-  float curvabsc = 0.f;
-  it=_Vertices.begin();
-  itend=_Vertices.end();
-  vertex_container::iterator previous=it;
-  for(;
-  (it!=itend);
-  ++it)
-  {
-    if(it != previous)
-      curvabsc += ((*it)->point2d()-(*previous)->point2d()).norm();
-    (*it)->setCurvilinearAbscissa(curvabsc);
-    previous = it;
-  }
-  _Length = curvabsc;
-  it=_Vertices.begin();
-  for(;
-  (it!=itend);
-  ++it)
-  {
-    (*it)->setStrokeLength(_Length);
-  }
+  UpdateLength();
 }
 
 void Stroke::InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIterator next)
@@ -704,10 +683,14 @@ void Stroke::InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIte
 
   vertex_container::iterator itnext = next.getIt();
   _Vertices.insert(itnext, iVertex);
+  UpdateLength();
+}
+
+void Stroke::UpdateLength()
+{
   // recompute various values (length, curvilign abscissa)
   float curvabsc = 0.f;
-  it=_Vertices.begin();
-  itend=_Vertices.end();
+  vertex_container::iterator it=_Vertices.begin(), itend=_Vertices.end();
   vertex_container::iterator previous=it;
   for(;
   (it!=itend);

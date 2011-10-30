@@ -466,6 +466,9 @@ public:
    */
   void InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIterator next);
 
+  /*! Updates the 2D length of the Stroke */
+  void UpdateLength();
+
   /* Render method */
   void Render(const StrokeRenderer *iRenderer );
   void RenderBasic(const StrokeRenderer *iRenderer );

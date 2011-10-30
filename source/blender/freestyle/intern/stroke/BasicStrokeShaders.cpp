@@ -586,6 +586,8 @@ namespace StrokeShaders {
     (v0)->setPoint(newFirst[0], newFirst[1]);
     Vec2d newLast(last+_amount*dn);
     (vn)->setPoint(newLast[0], newLast[1]);
+
+	stroke.UpdateLength();
 	return 0;
   }
 
@@ -611,6 +613,7 @@ namespace StrokeShaders {
 	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
+	stroke.UpdateLength();
 	return 0;
   }
 
@@ -726,6 +729,7 @@ namespace StrokeShaders {
 	++it;
 	++n;
       }
+	stroke.UpdateLength();
 	return 0;
   }
 
@@ -844,6 +848,7 @@ namespace StrokeShaders {
 	++p;
 	++n;
       }
+	stroke.UpdateLength();
 
     // Deal with extra vertices:
     if(nExtraVertex == 0)
@@ -931,6 +936,7 @@ namespace StrokeShaders {
 	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
+	stroke.UpdateLength();
 	return 0;
   }
 
@@ -1038,6 +1044,7 @@ namespace StrokeShaders {
 	//    u.normalize();
 	//    (*a)->setPoint((*a)->x()-u.x()*10, (*a)->y()-u.y()*10);
       }
+	stroke.UpdateLength();
 
     // delete stuff
     for(cp=_results.begin(), cpend=_results.end();
@@ -1076,6 +1083,7 @@ namespace StrokeShaders {
       {
 	v->setPoint(piece.A.x()+v->u()*u.x()+n.x()*offset, piece.A.y()+v->u()*u.y()+n.y()*offset);
       }
+	stroke.UpdateLength();
 	return 0;
   }
 

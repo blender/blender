@@ -223,6 +223,29 @@ static PyObject * Stroke_RemoveVertex( BPy_Stroke *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
+static char Stroke_UpdateLength___doc__[] =
+".. method:: UpdateLength()\n"
+"\n"
+"   Updates the 2D length of the Stroke.\n";
+
+static PyObject * Stroke_UpdateLength( BPy_Stroke *self ) {
+	self->s->UpdateLength();
+
+	Py_RETURN_NONE;
+}
+
+static char Stroke_getLength2D___doc__[] =
+".. method:: getLength2D()\n"
+"\n"
+"   Returns the 2D length of the Stroke.\n"
+"\n"
+"   :return: the 2D length of the Stroke.\n"
+"   :rtype: float\n";
+
+static PyObject * Stroke_getLength2D( BPy_Stroke *self ) {	
+	return PyFloat_FromDouble( self->s->getLength2D() );
+}
+
 static char Stroke_getMediumType___doc__[] =
 ".. method:: getMediumType()\n"
 "\n"
@@ -415,6 +438,8 @@ static PyMethodDef BPy_Stroke_methods[] = {
 	{"Resample", ( PyCFunction ) Stroke_Resample, METH_VARARGS, Stroke_Resample___doc__},
 	{"RemoveVertex", ( PyCFunction ) Stroke_RemoveVertex, METH_VARARGS, Stroke_RemoveVertex___doc__},
 	{"InsertVertex", ( PyCFunction ) Stroke_InsertVertex, METH_VARARGS, Stroke_InsertVertex___doc__},
+	{"UpdateLength", ( PyCFunction ) Stroke_UpdateLength, METH_NOARGS, Stroke_UpdateLength___doc__},
+	{"getLength2D", ( PyCFunction ) Stroke_getLength2D, METH_NOARGS, Stroke_getLength2D___doc__},
 	{"getMediumType", ( PyCFunction ) Stroke_getMediumType, METH_NOARGS, Stroke_getMediumType___doc__},
 	{"getTextureId", ( PyCFunction ) Stroke_getTextureId, METH_NOARGS, Stroke_getTextureId___doc__},
 	{"hasTips", ( PyCFunction ) Stroke_hasTips, METH_NOARGS, Stroke_hasTips___doc__},

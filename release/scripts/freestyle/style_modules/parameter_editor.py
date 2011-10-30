@@ -449,6 +449,7 @@ class SinusDisplacementShader(StrokeShader):
             u = v.u()
             n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
             v.setPoint(p + n)
+        stroke.UpdateLength()
 
 class PerlinNoise1DShader(StrokeShader):
     def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
@@ -468,6 +469,7 @@ class PerlinNoise1DShader(StrokeShader):
             nres = self.__noise.turbulence1(v.u(), self.__freq, self.__amp, self.__oct)
             v.setPoint(v.getPoint() + nres * self.__dir)
             it.increment()
+        stroke.UpdateLength()
 
 class PerlinNoise2DShader(StrokeShader):
     def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
@@ -488,6 +490,7 @@ class PerlinNoise2DShader(StrokeShader):
             nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
             v.setPoint(v.getPoint() + nres * self.__dir)
             it.increment()
+        stroke.UpdateLength()
 
 # Predicates and helper functions
 
