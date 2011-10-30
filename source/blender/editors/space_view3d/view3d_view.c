@@ -970,7 +970,10 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 	float winx= (float)winxi, winy= (float)winyi;
 	int orth= 0;
 	short fov_mode= CAMERA_FOV_AUTO;
-	
+
+	/* currnetly using sensor size (depends on fov calculating method) */
+	float sensor= DEFAULT_SENSOR_WIDTH;
+
 	lens= v3d->lens;	
 	
 	*clipsta= v3d->near;
@@ -998,6 +1001,8 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 				*clipsta= cam->clipsta;
 				*clipend= cam->clipend;
 				fov_mode= cam->fov_mode;
+
+				sensor= (cam->fov_mode==CAMERA_FOV_VERT) ? (cam->sensor_y) : (cam->sensor_x);
 			}
 		}
 	}
@@ -1084,8 +1089,8 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 				dy += cam->shifty * cam->ortho_scale;
 			}
 			else {
-				dx += cam->shiftx * (cam->clipsta / cam->lens) * sensor_x;
-				dy += cam->shifty * (cam->clipsta / cam->lens) * sensor_x;
+				dx += cam->shiftx * (cam->clipsta / cam->lens) * sensor;
+				dy += cam->shifty * (cam->clipsta / cam->lens) * sensor;
 			}
 
 			x1+= dx;
@@ -1103,7 +1108,14 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			*pixsize= 1.0f/viewfac;
 		}
 		else {
-			viewfac= (((winx >= winy)? winx: winy)*lens)/32.0f;
+			float size= ((winx >= winy)? winx: winy);
+
+			if(fov_mode==CAMERA_FOV_HOR)
+				size= winx;
+			else if(fov_mode==CAMERA_FOV_VERT)
+				size= winy;
+
+			viewfac= (size*lens)/sensor;
 			*pixsize= *clipsta/viewfac;
 		}
 	}

@@ -3090,6 +3090,14 @@ void object_camera_matrix(
 
 	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
 	winside= MAX2(winx, winy);
+
+	if(cam) {
+		if(cam->fov_mode==CAMERA_FOV_HOR)
+			winside= winx;
+		else if(cam->fov_mode==CAMERA_FOV_VERT)
+			winside= winy;
+	}
+
 	viewplane->xmin= -0.5f*(float)winx + shiftx*winside;
 	viewplane->ymin= -0.5f*(*ycor)*(float)winy + shifty*winside;
 	viewplane->xmax=  0.5f*(float)winx + shiftx*winside;
@@ -3133,7 +3141,17 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 		float aspx= (float) scene->r.xsch*scene->r.xasp;
 		float aspy= (float) scene->r.ysch*scene->r.yasp;
 
-		if(aspx < aspy) {
+		if(camera->fov_mode==CAMERA_FOV_AUTO) {
+			if(aspx < aspy) {
+				r_asp[0]= aspx / aspy;
+				r_asp[1]= 1.0;
+			}
+			else {
+				r_asp[0]= 1.0;
+				r_asp[1]= aspy / aspx;
+			}
+		}
+		else if(camera->fov_mode==CAMERA_FOV_AUTO) {
 			r_asp[0]= aspx / aspy;
 			r_asp[1]= 1.0;
 		}
@@ -3159,16 +3177,18 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	else {
 		/* that way it's always visible - clipsta+0.1 */
 		float fac;
+		float half_sensor= 0.5f*((camera->fov_mode==CAMERA_FOV_VERT) ? (camera->sensor_y) : (camera->sensor_x));
+
 		*r_drawsize= drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 
 		if(do_clip) {
 			/* fixed depth, variable size (avoids exceeding clipping range) */
 			depth = -(camera->clipsta + 0.1f);
-			fac = depth / (camera->lens/-16.0f * scale[2]);
+			fac = depth / (camera->lens/(-half_sensor) * scale[2]);
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
-			depth= *r_drawsize * camera->lens/-16.0f * scale[2];
+			depth= *r_drawsize * camera->lens/(-half_sensor) * scale[2];
 			fac= *r_drawsize;
 		}
 

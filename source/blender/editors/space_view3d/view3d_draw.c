@@ -1227,17 +1227,14 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* assume fixed sensor width for now */
-			float aspx = (float) scene->r.xsch*scene->r.xasp;
-			float aspy = (float) scene->r.ysch*scene->r.yasp;
+
+			float sensor_aspect = ca->sensor_x / ca->sensor_y;
 			float sensor_scale = (x2i-x1i) / ca->sensor_x;
-			float sensor_height, ymid, sy1, sy2;
+			float sensor_height = sensor_scale * ca->sensor_y;
 
-			if(aspx < aspy) sensor_height = ca->sensor_x * sensor_scale * aspx / aspy;
-			else sensor_height = ca->sensor_x * sensor_scale * aspy / aspx;
-
-			ymid = y1i + (y2i-y1i)/2.f;
-			sy1= ymid - sensor_height/2.f;
-			sy2= ymid + sensor_height/2.f;
+			float ymid = y1i + (y2i-y1i)/2.f;
+			float sy1= ymid - sensor_height/2.f;
+			float sy2= ymid + sensor_height/2.f;
 
 			UI_ThemeColorShade(TH_WIRE, 100);
 
