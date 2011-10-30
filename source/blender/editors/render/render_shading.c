@@ -594,7 +594,7 @@ void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Freestyle Module";
 	ot->idname= "SCENE_OT_freestyle_module_add";
-	ot->description="Add a style module into the list of modules.";
+	ot->description="Add a style module into the list of modules";
 	
 	/* api callbacks */
 	ot->exec= freestyle_module_add_exec;
@@ -622,7 +622,7 @@ void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Freestyle Module";
 	ot->idname= "SCENE_OT_freestyle_module_remove";
-	ot->description="Remove the style module from the stack.";
+	ot->description="Remove the style module from the stack";
 	
 	/* api callbacks */
 	ot->exec= freestyle_module_remove_exec;
@@ -660,7 +660,7 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Freestyle Module";
 	ot->idname= "SCENE_OT_freestyle_module_move";
-	ot->description="Change the position of the style module within in the list of style modules.";
+	ot->description="Change the position of the style module within in the list of style modules";
 	
 	/* api callbacks */
 	ot->exec= freestyle_module_move_exec;
@@ -689,7 +689,7 @@ void SCENE_OT_freestyle_lineset_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Line Set";
 	ot->idname= "SCENE_OT_freestyle_lineset_add";
-	ot->description="Add a line set into the list of line sets.";
+	ot->description="Add a line set into the list of line sets";
 	
 	/* api callbacks */
 	ot->exec= freestyle_lineset_add_exec;
@@ -723,7 +723,7 @@ void SCENE_OT_freestyle_lineset_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Line Set";
 	ot->idname= "SCENE_OT_freestyle_lineset_remove";
-	ot->description="Remove the active line set from the list of line sets.";
+	ot->description="Remove the active line set from the list of line sets";
 	
 	/* api callbacks */
 	ot->exec= freestyle_lineset_remove_exec;
@@ -760,7 +760,7 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Line Set";
 	ot->idname= "SCENE_OT_freestyle_lineset_move";
-	ot->description="Change the position of the active line set within the list of line sets.";
+	ot->description="Change the position of the active line set within the list of line sets";
 	
 	/* api callbacks */
 	ot->exec= freestyle_lineset_move_exec;
@@ -796,7 +796,7 @@ void SCENE_OT_freestyle_linestyle_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Line Style";
 	ot->idname= "SCENE_OT_freestyle_linestyle_new";
-	ot->description="Create a new line style, reusable by multiple line sets.";
+	ot->description="Create a new line style, reusable by multiple line sets";
 	
 	/* api callbacks */
 	ot->exec= freestyle_linestyle_new_exec;
@@ -831,7 +831,7 @@ void SCENE_OT_freestyle_color_modifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Line Color Modifier";
 	ot->idname= "SCENE_OT_freestyle_color_modifier_add";
-	ot->description = "Add a line color modifier to the line style associated with the active lineset.";
+	ot->description = "Add a line color modifier to the line style associated with the active lineset";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -870,7 +870,7 @@ void SCENE_OT_freestyle_alpha_modifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Alpha Transparency Modifier";
 	ot->idname= "SCENE_OT_freestyle_alpha_modifier_add";
-	ot->description = "Add an alpha transparency modifier to the line style associated with the active lineset.";
+	ot->description = "Add an alpha transparency modifier to the line style associated with the active lineset";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -909,7 +909,7 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Line Thickness Modifier";
 	ot->idname= "SCENE_OT_freestyle_thickness_modifier_add";
-	ot->description = "Add a line thickness modifier to the line style associated with the active lineset.";
+	ot->description = "Add a line thickness modifier to the line style associated with the active lineset";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -948,7 +948,7 @@ void SCENE_OT_freestyle_geometry_modifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Stroke Geometry Modifier";
 	ot->idname= "SCENE_OT_freestyle_geometry_modifier_add";
-	ot->description = "Add a stroke geometry modifier to the line style associated with the active lineset.";
+	ot->description = "Add a stroke geometry modifier to the line style associated with the active lineset";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1014,7 +1014,7 @@ void SCENE_OT_freestyle_modifier_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Modifier";
 	ot->idname= "SCENE_OT_freestyle_modifier_remove";
-	ot->description="Remove the modifier from the list of modifiers.";
+	ot->description="Remove the modifier from the list of modifiers";
 	
 	/* api callbacks */
 	ot->exec= freestyle_modifier_remove_exec;
@@ -1070,7 +1070,7 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Modifier";
 	ot->idname= "SCENE_OT_freestyle_modifier_move";
-	ot->description="Move the modifier within the list of modifiers.";
+	ot->description="Move the modifier within the list of modifiers";
 	
 	/* api callbacks */
 	ot->exec= freestyle_modifier_move_exec;
