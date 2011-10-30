@@ -1317,7 +1317,6 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	UvVertMap *vmap;
 	UvMapVert *buf;
 	MFace *mf;
-	MTFace *tf;
 	unsigned int a;
 	int	i, totuv, nverts;
 
@@ -1325,8 +1324,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 
 	/* generate UvMapVert array */
 	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++)
+	for(a=0; a<totface; a++, mf++)
 		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL)))
 			totuv += (mf->v4)? 4: 3;
 		
@@ -1346,8 +1344,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	}
 
 	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++) {
+	for(a=0; a<totface; a++, mf++) {
 		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))) {
 			nverts= (mf->v4)? 4: 3;
 
@@ -1363,7 +1360,6 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	}
 	
 	/* sort individual uvs for each vert */
-	tf= tface;
 	for(a=0; a<totvert; a++) {
 		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
@@ -1375,14 +1371,14 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 			v->next= newvlist;
 			newvlist= v;
 
-			uv= (tf+v->f)->uv[v->tfindex];
+			uv= tface[v->f].uv[v->tfindex];
 			lastv= NULL;
 			iterv= vlist;
 
 			while(iterv) {
 				next= iterv->next;
 
-				uv2= (tf+iterv->f)->uv[iterv->tfindex];
+				uv2= tface[iterv->f].uv[iterv->tfindex];
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 
