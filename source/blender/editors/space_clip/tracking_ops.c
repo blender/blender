@@ -118,7 +118,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height;
-
+	
 	ED_space_clip_size(sc, &width, &height);
 
 	track= BKE_tracking_add_track(&clip->tracking, x, y, sc->user.framenr, width, height);

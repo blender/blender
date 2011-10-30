@@ -184,6 +184,14 @@ enum RAS_CullingMode
 	RAS_CULLING_NONE
 };
 
+/* Should match CAMERA_FOV... from DNA_camera_types.h */
+enum RAS_FovMode
+{
+	RAS_FOVMODE_AUTO = 0,
+	RAS_FOVMODE_HOR,
+	RAS_FOVMODE_VERT
+};
+
 /**
  * @section RAS_FramingManager
  * This class helps to compute a view frustum
@@ -229,6 +237,7 @@ public :
 		const float scale,
 		const float camnear,
 		const float camfar,
+		const short fov_mode,
 		RAS_FrameFrustum &frustum
 	);
 
@@ -239,7 +248,7 @@ public :
 		const RAS_Rect &availableViewport,
 		const RAS_Rect &viewport,
 		const float lens,
-		const float sensor_x,
+		const float sensor_x, const float sensor_y, const short fov_mode,
 		const float camnear,
 		const float camfar,
 		RAS_FrameFrustum &frustum
@@ -251,7 +260,8 @@ public :
 		const float camnear,
 		const float camfar,
 		const float lens,
-		const float sensor_x,
+		const float sensor_x, const float sensor_y,
+		const short fov_mode,
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	
@@ -263,6 +273,7 @@ public :
 		const float camfar,
 		const float scale,
 		const float design_aspect_ratio,
+		const short fov_mode,
 		RAS_FrameFrustum & frustum
 	);
 

@@ -129,7 +129,11 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         row.operator("camera.preset_add", text="", icon="ZOOMIN")
         row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-        layout.prop(cam, "sensor_width")
+        layout.prop(cam, "fov_mode")
+
+        col = layout.column(align=True)
+        col.prop(cam, "sensor_width")
+        col.prop(cam, "sensor_height")
 
         layout.label(text="Clipping:")
         row = layout.row(align=True)

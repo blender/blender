@@ -43,16 +43,55 @@
 #include "BKE_depsgraph.h"
 
 /* only for rad/deg conversion! can remove later */
+static float get_camera_sensor(Camera *cam)
+{
+	if(cam->fov_mode==CAMERA_FOV_AUTO) {
+		return cam->sensor_x;
+	}
+	else if(cam->fov_mode==CAMERA_FOV_HOR) {
+		return cam->sensor_x;
+	}
+	else {
+		return cam->sensor_y;
+	}
+}
+
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam= ptr->id.data;
-	return focallength_to_hfov(cam->lens, cam->sensor_x);
+	float sensor= get_camera_sensor(cam);
+	return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
 	Camera *cam= ptr->id.data;
-	cam->lens= hfov_to_focallength(value, cam->sensor_x);
+	float sensor= get_camera_sensor(cam);
+	cam->lens= fov_to_focallength(value, sensor);
+}
+
+static float rna_Camera_angle_x_get(PointerRNA *ptr)
+{
+	Camera *cam= ptr->id.data;
+	return focallength_to_fov(cam->lens, cam->sensor_x);
+}
+
+static void rna_Camera_angle_x_set(PointerRNA *ptr, float value)
+{
+	Camera *cam= ptr->id.data;
+	cam->lens= fov_to_focallength(value, cam->sensor_x);
+}
+
+static float rna_Camera_angle_y_get(PointerRNA *ptr)
+{
+	Camera *cam= ptr->id.data;
+	return focallength_to_fov(cam->lens, cam->sensor_y);
+}
+
+static void rna_Camera_angle_y_set(PointerRNA *ptr, float value)
+{
+	Camera *cam= ptr->id.data;
+	cam->lens= fov_to_focallength(value, cam->sensor_y);
 }
 
 static void rna_Camera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -86,6 +125,11 @@ void RNA_def_camera(BlenderRNA *brna)
 		{0, "MILLIMETERS", 0, "Millimeters", ""},
 		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
 		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem fov_mode_items[] = {
+		{CAMERA_FOV_AUTO, "AUTO", 0, "Auto", "Calculate FOV using sensor size direction depending on image resolution"},
+		{CAMERA_FOV_HOR, "HORIZONTAL", 0, "Hoizontal", "Calculate FOV using sensor width"},
+		{CAMERA_FOV_VERT, "VERTICAL", 0, "Vertical", "Calculate FOV using sensor height"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
 	RNA_def_struct_ui_text(srna, "Camera", "Camera datablock for storing camera settings");
@@ -103,7 +147,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Composition Guides",  "Draw overlay");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
-	
+
+	prop= RNA_def_property(srna, "fov_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "fov_mode");
+	RNA_def_property_enum_items(prop, fov_mode_items);
+	RNA_def_property_ui_text(prop, "FOV Mode", "Mode of calculating FOV from sensor imensions and focal length");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
+
 	/* Number values */
 
 	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_FACTOR);
@@ -111,10 +161,24 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
+	prop= RNA_def_property(srna, "angle_x", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Horizontal FOV", "Camera lens horizontal field of view in degrees");
+	RNA_def_property_float_funcs(prop, "rna_Camera_angle_x_get", "rna_Camera_angle_x_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
+
+	prop= RNA_def_property(srna, "angle_y", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Vertical FOV", "Camera lens vertical field of view in degrees");
+	RNA_def_property_float_funcs(prop, "rna_Camera_angle_y_get", "rna_Camera_angle_y_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
+
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, M_PI * (0.367/180.0), M_PI * (172.847/180.0));
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Field of View", "Camera lens horizontal field of view in degrees");
+	RNA_def_property_ui_text(prop, "Field of View", "Camera lens field of view in degrees");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_get", "rna_Camera_angle_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
@@ -135,12 +199,19 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
-	
+
 	prop= RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sensor_x");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Sensor", "Horizontal size of the image sensor area in millimeters");
+	RNA_def_property_ui_text(prop, "Sensor Width", "Horizontal size of the image sensor area in millimeters");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
+
+	prop= RNA_def_property(srna, "sensor_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sensor_y");
+	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1.0f, 100.f, 1, 2);
+	RNA_def_property_ui_text(prop, "Sensor Height", "Vertical size of the image sensor area in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);

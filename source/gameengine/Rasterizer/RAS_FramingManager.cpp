@@ -39,27 +39,35 @@ ComputeDefaultFrustum(
 	const float camnear,
 	const float camfar,
 	const float lens,
-	const float sensor_x,
+	const float sensor_x, const float sensor_y,
+	const short fov_mode,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
-){
-		
-	/*
-	 * Magic Blender calculation.
-	 * Blender does not give a Field of View as lens but a size
-	 * at 16 units away from the lens.
-	 * ^Deprecated Comment
-	 */
-	float halfSize = (sensor_x / 2.f) * camnear / lens;
+){		
+	float halfSize;
 	float sizeX;
 	float sizeY;
 
-	if (design_aspect_ratio > 1.f) {
-		// halfsize defines the width
+	if(fov_mode==RAS_FOVMODE_AUTO) {
+		halfSize = (sensor_x / 2.f) * camnear / lens;
+
+		if (design_aspect_ratio > 1.f) {
+			// halfsize defines the width
+			sizeX = halfSize;
+			sizeY = halfSize/design_aspect_ratio;
+		} else {
+			// halfsize defines the height
+			sizeX = halfSize * design_aspect_ratio;
+			sizeY = halfSize;
+		}
+	}
+	else if(fov_mode==RAS_FOVMODE_HOR) {
+		halfSize = (sensor_x / 2.f) * camnear / lens;
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
-	} else {
-		// halfsize defines the height
+	}
+	else {
+		halfSize = (sensor_y / 2.f) * camnear / lens;
 		sizeX = halfSize * design_aspect_ratio;
 		sizeY = halfSize;
 	}
@@ -79,6 +87,7 @@ ComputeDefaultOrtho(
 	const float camfar,
 	const float scale,
 	const float design_aspect_ratio,
+	const short fov_mode,
 	RAS_FrameFrustum & frustum
 )
 {
@@ -86,12 +95,22 @@ ComputeDefaultOrtho(
 	float sizeX;
 	float sizeY;
 
-	if (design_aspect_ratio > 1.f) {
-		// halfsize defines the width
+	if(fov_mode==RAS_FOVMODE_AUTO) {
+		if (design_aspect_ratio > 1.f) {
+			// halfsize defines the width
+			sizeX = halfSize;
+			sizeY = halfSize/design_aspect_ratio;
+		} else {
+			// halfsize defines the height
+			sizeX = halfSize * design_aspect_ratio;
+			sizeY = halfSize;
+		}
+	}
+	else if(fov_mode==RAS_FOVMODE_HOR) {
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
-	} else {
-		// halfsize defines the height
+	}
+	else {
 		sizeX = halfSize * design_aspect_ratio;
 		sizeY = halfSize;
 	}
@@ -201,7 +220,7 @@ ComputeFrustum(
 	const RAS_Rect &availableViewport,
 	const RAS_Rect &viewport,
 	const float lens,
-	const float sensor_x,
+	const float sensor_x, const float sensor_y, const short fov_mode,
 	const float camnear,
 	const float camfar,
 	RAS_FrameFrustum &frustum
@@ -228,6 +247,8 @@ ComputeFrustum(
 		camfar,
 		lens,
 		sensor_x,
+		sensor_y,
+		fov_mode,
 		design_aspect_ratio,
 		frustum
 	);
@@ -273,6 +294,7 @@ RAS_FramingManager::
 		const float scale,
 		const float camnear,
 		const float camfar,
+		const short fov_mode,
 		RAS_FrameFrustum &frustum
 	)
 {
@@ -297,6 +319,7 @@ RAS_FramingManager::
 		camfar,
 		scale,
 		design_aspect_ratio,
+		fov_mode,
 		frustum
 	);
 

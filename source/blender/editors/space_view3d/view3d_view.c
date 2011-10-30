@@ -966,9 +966,10 @@ int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, fl
 int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
 	Camera *cam=NULL;
-	float lens, sensor=32.f, fac, x1, y1, x2, y2;
+	float lens, sensor_x =DEFAULT_SENSOR_WIDTH, sensor_y= DEFAULT_SENSOR_HEIGHT, fac, x1, y1, x2, y2;
 	float winx= (float)winxi, winy= (float)winyi;
 	int orth= 0;
+	short fov_mode= CAMERA_FOV_AUTO;
 	
 	lens= v3d->lens;	
 	
@@ -992,9 +993,11 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			else if(v3d->camera->type==OB_CAMERA) {
 				cam= v3d->camera->data;
 				lens= cam->lens;
-				sensor= cam->sensor_x;
+				sensor_x= cam->sensor_x;
+				sensor_y= cam->sensor_y;
 				*clipsta= cam->clipsta;
 				*clipend= cam->clipend;
+				fov_mode= cam->fov_mode;
 			}
 		}
 	}
@@ -1025,21 +1028,44 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 		if(cam && cam->type==CAM_ORTHO) {
 			/* ortho_scale == 1 means exact 1 to 1 mapping */
 			float dfac= 2.0f*cam->ortho_scale/fac;
-			
-			if(winx>winy) x1= -dfac;
-			else x1= -winx*dfac/winy;
+
+			if(fov_mode==CAMERA_FOV_AUTO) {
+				if(winx>winy) {
+					x1= -dfac;
+					y1= -winy*dfac/winx;
+				}
+				else {
+					x1= -winx*dfac/winy;
+					y1= -dfac;
+				}
+			}
+			else if(fov_mode==CAMERA_FOV_HOR) {
+				x1= -dfac;
+				y1= -winy*dfac/winx;
+			}
+			else {
+				x1= -winx*dfac/winy;
+				y1= -dfac;
+			}
+
 			x2= -x1;
-			
-			if(winx>winy) y1= -winy*dfac/winx;
-			else y1= -dfac;
 			y2= -y1;
+
 			orth= 1;
 		}
 		else {
 			float dfac;
 			
-			if(winx>winy) dfac= (sensor * 2.0) / (fac*winx*lens);
-			else dfac= (sensor * 2.0) / (fac*winy*lens);
+			if(fov_mode==CAMERA_FOV_AUTO) {
+				if(winx>winy) dfac= (sensor_x * 2.0) / (fac*winx*lens);
+				else dfac= (sensor_x * 2.0) / (fac*winy*lens);
+			}
+			else if(fov_mode==CAMERA_FOV_HOR) {
+				dfac= (sensor_x * 2.0) / (fac*winx*lens);
+			}
+			else {
+				dfac= (sensor_y * 2.0) / (fac*winy*lens);
+			}
 			
 			x1= - *clipsta * winx*dfac;
 			x2= -x1;
@@ -1058,8 +1084,8 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 				dy += cam->shifty * cam->ortho_scale;
 			}
 			else {
-				dx += cam->shiftx * (cam->clipsta / cam->lens) * sensor;
-				dy += cam->shifty * (cam->clipsta / cam->lens) * sensor;
+				dx += cam->shiftx * (cam->clipsta / cam->lens) * sensor_x;
+				dy += cam->shifty * (cam->clipsta / cam->lens) * sensor_x;
 			}
 
 			x1+= dx;

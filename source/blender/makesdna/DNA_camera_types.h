@@ -51,7 +51,7 @@ typedef struct Camera {
 	float passepartalpha;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
-	float sensor_x, pad;
+	float sensor_x, sensor_y;
 	float shiftx, shifty;
 	
 	/* yafray: dof params */
@@ -62,6 +62,9 @@ typedef struct Camera {
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	
 	struct Object *dof_ob;
+
+	char fov_mode;
+	char pad[7];
 } Camera;
 
 /* **************** CAMERA ********************* */
@@ -94,6 +97,13 @@ typedef struct Camera {
 /* yafray: dof sampling switch */
 /* #define CAM_YF_NO_QMC	512 */ /* depreceated */
 
+/* FOV mode */
+#define CAMERA_FOV_AUTO	0
+#define CAMERA_FOV_HOR	1
+#define CAMERA_FOV_VERT	2
+
+#define DEFAULT_SENSOR_WIDTH	32.0f
+#define DEFAULT_SENSOR_HEIGHT	18.0f
 
 #ifdef __cplusplus
 }

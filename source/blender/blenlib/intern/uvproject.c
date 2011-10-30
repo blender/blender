@@ -141,7 +141,7 @@ UvCameraInfo *project_camera_info(Object *ob, float (*rotmat)[4], float winx, fl
 	uci.do_pano = (camera->flag & CAM_PANORAMA);
 	uci.do_persp = (camera->type==CAM_PERSP);
 
-	uci.camangle= focallength_to_hfov(camera->lens, camera->sensor_x) / 2.0f;
+	uci.camangle= focallength_to_fov(camera->lens, camera->sensor_x) / 2.0f;
 	uci.camsize= uci.do_persp ? tanf(uci.camangle) : camera->ortho_scale;
 
 	/* account for scaled cameras */

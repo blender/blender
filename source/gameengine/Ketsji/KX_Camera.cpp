@@ -208,6 +208,18 @@ float KX_Camera::GetSensorWidth() const
 	return m_camdata.m_sensor_x;
 }
 
+/*
+* Gets the vertical size of the sensor - for camera matching.
+*/
+float KX_Camera::GetSensorHeight() const
+{
+	return m_camdata.m_sensor_y;
+}
+/** Gets the mode FOV is calculating from sensor dimensions */
+short KX_Camera::GetFOVMode() const
+{
+	return m_camdata.m_fov_mode;
+}
 
 float KX_Camera::GetCameraNear() const
 {

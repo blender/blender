@@ -12360,9 +12360,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			for(cam= main->camera.first; cam; cam= cam->id.next) {
-				if (cam->sensor_x < 0.01) {
-					cam->sensor_x = 32.f;
-				}
+				if (cam->sensor_x < 0.01)
+					cam->sensor_x = DEFAULT_SENSOR_WIDTH;
+
+				if (cam->sensor_y < 0.01)
+					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
 
 			for (clip= main->movieclip.first; clip; clip= clip->id.next) {

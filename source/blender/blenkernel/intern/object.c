@@ -2977,12 +2977,16 @@ void object_camera_mode(RenderData *rd, Object *camera)
 }
 
 void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x)
+			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *fov_mode)
 {
 	Camera *cam= NULL;
 
 	(*shiftx)= 0.0f;
 	(*shifty)= 0.0f;
+
+	(*sensor_x)= DEFAULT_SENSOR_WIDTH;
+	(*sensor_y)= DEFAULT_SENSOR_HEIGHT;
+	(*fov_mode)= CAMERA_FOV_AUTO;
 
 	if(camera->type==OB_CAMERA) {
 		cam= camera->data;
@@ -3005,8 +3009,10 @@ void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, f
 		(*shifty)=cam->shifty;
 		(*lens)= cam->lens;
 		(*sensor_x)= cam->sensor_x;
+		(*sensor_y)= cam->sensor_y;
 		(*clipsta)= cam->clipsta;
 		(*clipend)= cam->clipend;
+		(*fov_mode)= cam->fov_mode;
 	}
 	else if(camera->type==OB_LAMP) {
 		Lamp *la= camera->data;
@@ -3035,9 +3041,10 @@ void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, f
 /* 'lens' may be set for envmap only */
 void object_camera_matrix(
 		RenderData *rd, Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
-		float *viewdx, float *viewdy
-) {
+		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens,
+		float *sensor_x, float *sensor_y, short *fov_mode, float *ycor,
+		float *viewdx, float *viewdy)
+{
 	Camera *cam=NULL;
 	float pixsize;
 	float shiftx=0.0, shifty=0.0, winside, viewfac;
@@ -3048,22 +3055,36 @@ void object_camera_matrix(
 	if(rd->mode & R_FIELDS)
 		(*ycor) *= 2.0f;
 
-	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x);
+	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x, sensor_y, fov_mode);
 
 	/* ortho only with camera available */
 	if(cam && is_ortho) {
-		if(rd->xasp*winx >= rd->yasp*winy) {
+		if((*fov_mode)==CAMERA_FOV_AUTO) {
+			if(rd->xasp*winx >= rd->yasp*winy) viewfac= winx;
+			else viewfac= (*ycor) * winy;
+		}
+		else if((*fov_mode)==CAMERA_FOV_HOR) {
 			viewfac= winx;
 		}
 		else {
 			viewfac= (*ycor) * winy;
 		}
+
 		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
-		else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
+		if((*fov_mode)==CAMERA_FOV_AUTO) {
+			if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
+			else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
+		}
+		else if((*fov_mode)==CAMERA_FOV_HOR) {
+			viewfac= ((*lens) * winx) / (*sensor_x);
+		}
+		else if((*fov_mode)==CAMERA_FOV_VERT) {
+			viewfac= ((*lens) * winy) / (*sensor_y);
+		}
+
 		pixsize= (*clipsta) / viewfac;
 	}
 

@@ -1688,14 +1688,14 @@ void vec_apply_track(float vec[3], short axis)
 }
 
 /* lens/angle conversion (radians) */
-float focallength_to_hfov(float focal_length, float sensor_x)
+float focallength_to_fov(float focal_length, float sensor)
 {
-	return 2.0f * atanf((sensor_x/2.0f) / focal_length);
+	return 2.0f * atanf((sensor/2.0f) / focal_length);
 }
 
-float hfov_to_focallength(float hfov, float sensor_x)
+float fov_to_focallength(float hfov, float sensor)
 {
-	return (sensor_x/2.0f) / tanf(hfov * 0.5f);
+	return (sensor/2.0f) / tanf(hfov * 0.5f);
 }
 
 /* 'mod_inline(-3,4)= 1', 'fmod(-3,4)= -3' */

@@ -145,7 +145,8 @@ void object_camera_intrinsics(struct Object *camera, struct Camera **cam_r, shor
 			float *clipsta, float *clipend, float *lens, float *sensor_x);
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *sensor_x, float *ycor,
+		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens,
+		float *sensor_x, float *sensor_y, short *fov_mode, float *ycor,
 		float *viewdx, float *viewdy);
 
 void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
