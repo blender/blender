@@ -175,19 +175,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	fontsize= BLF_height(fontid, str);
 	fontwidth= BLF_width(fontid, str);
 
-	if(x+fontwidth+6.0f<=ar->winx) {
-		glRecti(x, 8, x+fontwidth+6, 12+fontsize);
+	glRecti(x, 8, x+fontwidth+6, 12+fontsize);
 
-		UI_ThemeColor(TH_TEXT);
-		BLF_position(fontid, x+2.0f, 10.0f, 0.0f);
-		BLF_draw(fontid, str, strlen(str));
-	} else {
-		glRecti(x+framelen, 8.0f, x+framelen-fontwidth-6.0f, 12.0f+fontsize);
-
-		UI_ThemeColor(TH_TEXT);
-		BLF_position(fontid, x-2.0f-fontwidth+framelen, 10.0f, 0.0f);
-		BLF_draw(fontid, str, strlen(str));
-	}
+	UI_ThemeColor(TH_TEXT);
+	BLF_position(fontid, x+2.0f, 10.0f, 0.0f);
+	BLF_draw(fontid, str, strlen(str));
 }
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)

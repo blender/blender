@@ -136,7 +136,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(ListBase *lb, Base *base, int flag);
-void view3d_viewborder_size_get(struct Scene *scene, struct Objecy *camob, struct ARegion *ar, float size_r[2]);
+void view3d_viewborder_size_get(struct Scene *scene, struct Object *camob, struct ARegion *ar, float size_r[2]);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);

@@ -130,6 +130,7 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
+#include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
 
@@ -12368,6 +12369,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+				MovieTrackingTrack *track;
+
 				if(clip->aspx<1.0f) {
 					clip->aspx= 1.0f;
 					clip->aspy= 1.0f;
@@ -12383,6 +12386,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				if(clip->tracking.camera.pixel_aspect<0.01f)
 					clip->tracking.camera.pixel_aspect= 1.f;
+
+				track= clip->tracking.tracks.first;
+				while(track) {
+					if(track->pyramid_levels==0)
+						track->pyramid_levels= 2;
+
+					if(track->minimum_correlation==0.0f)
+						track->minimum_correlation= 0.75f;
+
+					track= track->next;
+				}
 			}
 		}
 	}
