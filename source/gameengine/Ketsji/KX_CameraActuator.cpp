@@ -1,7 +1,6 @@
 /*
  * KX_CameraActuator.cpp
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -347,7 +346,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	return true;
 }
 
-CValue *KX_CameraActuator::findObject(char *obName) 
+CValue *KX_CameraActuator::findObject(const char *obName)
 {
 	/* hook to object system */
 	return NULL;

@@ -1,4 +1,4 @@
-/* $Id: CopyPose.hpp 20622 2009-06-04 12:47:59Z ben2610 $
+/*
  * CopyPose.h
  *
  *  Created on: Mar 17, 2009

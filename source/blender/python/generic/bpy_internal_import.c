@@ -1,5 +1,4 @@
 /* 
- * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +23,7 @@
  * Contributor(s): Willian P. Germano
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/bpy_internal_import.c
  *  \ingroup pygen
@@ -125,7 +124,7 @@ PyObject *bpy_text_import(Text *text)
 	return PyImport_ExecCodeModule(modulename, text->compiled);
 }
 
-PyObject *bpy_text_import_name(char *name, int *found)
+PyObject *bpy_text_import_name(const char *name, int *found)
 {
 	Text *text;
 	char txtname[MAX_ID_NAME-2];

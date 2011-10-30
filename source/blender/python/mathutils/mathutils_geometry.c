@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -629,14 +628,14 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	
 	/* accept 2d verts */
-	if (pt->size==3) { VECCOPY(pt_in, pt->vec);}
-	else { pt_in[2]=0.0;	VECCOPY2D(pt_in, pt->vec) }
+	if (pt->size==3) {     copy_v3_v3(pt_in, pt->vec);}
+	else { pt_in[2]=0.0;   copy_v2_v2(pt_in, pt->vec); }
 	
-	if (line_1->size==3) { VECCOPY(l1, line_1->vec);}
-	else { l1[2]=0.0;	VECCOPY2D(l1, line_1->vec) }
+	if (line_1->size==3) { copy_v3_v3(l1, line_1->vec);}
+	else { l1[2]=0.0;      copy_v2_v2(l1, line_1->vec); }
 	
-	if (line_2->size==3) { VECCOPY(l2, line_2->vec);}
-	else { l2[2]=0.0;	VECCOPY2D(l2, line_2->vec) }
+	if (line_2->size==3) { copy_v3_v3(l2, line_2->vec);}
+	else { l2[2]=0.0;      copy_v2_v2(l2, line_2->vec); }
 	
 	/* do the calculation */
 	lambda= closest_to_line_v3(pt_out, pt_in, l1, l2);

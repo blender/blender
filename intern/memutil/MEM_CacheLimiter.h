@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -126,6 +125,10 @@ class MEM_CacheLimiter {
 public:
 	typedef typename std::list<MEM_CacheLimiterHandle<T> *,
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator iterator;
+	typedef intptr_t (*MEM_CacheLimiter_DataSize_Func) (void *data);
+	MEM_CacheLimiter(MEM_CacheLimiter_DataSize_Func getDataSize_)
+		: getDataSize(getDataSize_) {
+	}
 	~MEM_CacheLimiter() {
 		for (iterator it = queue.begin(); it != queue.end(); it++) {
 			delete *it;
@@ -144,17 +147,36 @@ public:
 	}
 	void enforce_limits() {
 		intptr_t max = MEM_CacheLimiter_get_maximum();
-		intptr_t mem_in_use= MEM_get_memory_in_use();
-		intptr_t mmap_in_use= MEM_get_mapped_memory_in_use();
+		intptr_t mem_in_use, cur_size;
 
 		if (max == 0) {
 			return;
 		}
+
+		if(getDataSize) {
+			mem_in_use = total_size();
+		} else {
+			mem_in_use = MEM_get_memory_in_use();
+		}
+
 		for (iterator it = queue.begin(); 
-		     it != queue.end() && mem_in_use + mmap_in_use > max;) {
+		     it != queue.end() && mem_in_use > max;) {
 			iterator jt = it;
 			++it;
+
+			if(getDataSize) {
+				cur_size= getDataSize((*jt)->get()->get_data());
+			} else {
+				cur_size= mem_in_use;
+			}
+
 			(*jt)->destroy_if_possible();
+
+			if(getDataSize) {
+				mem_in_use-= cur_size;
+			} else {
+				mem_in_use-= cur_size - MEM_get_memory_in_use();
+			}
 		}
 	}
 	void touch(MEM_CacheLimiterHandle<T> * handle) {
@@ -165,8 +187,17 @@ public:
 		handle->me = it;
 	}
 private:
+	intptr_t total_size() {
+		intptr_t size = 0;
+		for (iterator it = queue.begin(); it != queue.end(); it++) {
+			size+= getDataSize((*it)->get()->get_data());
+		}
+		return size;
+	}
+
 	std::list<MEM_CacheLimiterHandle<T>*,
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> > queue;
+	MEM_CacheLimiter_DataSize_Func getDataSize;
 };
 
 #endif // MEM_CACHELIMITER_H

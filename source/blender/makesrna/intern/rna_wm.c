@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1181,7 +1179,7 @@ static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 	else		assert(!"setting the bl_description on a non-builtin operator");
 }
 
-static void rna_KeyMapItem_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	wmKeyMapItem *kmi= ptr->data;
 	WM_keyconfig_update_tag(NULL, kmi);

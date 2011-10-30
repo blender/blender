@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -3429,6 +3427,9 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	MTFace *tf= mtface;
 	int i;
 
+	/* Add pseudo-references (not fake users!) to images used by texface. A
+	   little bogus; it would be better if each mesh consistently added one ref
+	   to each image it used. - z0r */
 	for (i=0; i<totface; i++, tf++) {
 		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
 		if(tf->tpage && tf->tpage->id.us==0)
@@ -5332,8 +5333,8 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->persp= v3d->persp;
 			rv3d->view= v3d->view;
 			rv3d->dist= v3d->dist;
-			VECCOPY(rv3d->ofs, v3d->ofs);
-			QUATCOPY(rv3d->viewquat, v3d->viewquat);
+			copy_v3_v3(rv3d->ofs, v3d->ofs);
+			copy_qt_qt(rv3d->viewquat, v3d->viewquat);
 		}
 	}
 

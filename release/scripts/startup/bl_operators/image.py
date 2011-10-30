@@ -145,7 +145,11 @@ class ProjectEdit(Operator):
         for image in bpy.data.images:
             image.tag = True
 
-        if 'FINISHED' not in bpy.ops.paint.image_from_view():
+        # opengl buffer may fail, we can't help this, but best report it.
+        try:
+            ret = bpy.ops.paint.image_from_view()
+        except RuntimeError as err:
+            self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
 
         image_new = None

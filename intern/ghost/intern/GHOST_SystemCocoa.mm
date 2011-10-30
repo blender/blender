@@ -1,5 +1,4 @@
-/**
- * $Id$
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -579,7 +578,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	if (strstr(rstring,"MacBookAir") ||
 		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
 		m_hasMultiTouchTrackpad = true;
-	else m_hasMultiTouchTrackpad = false;
+	else m_hasMultiTouchTrackpad = true;
 	
 	free( rstring );
 	rstring = NULL;
@@ -1685,6 +1684,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 					ascii = utf8_buf[0];
 				}
 			}
+
+			/* arrow keys should not have utf8 */
+			if ((keyCode > 266) && (keyCode < 271))
+				utf8_buf[0] = '\0';
 
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa

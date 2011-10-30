@@ -1,7 +1,4 @@
-/** \file gameengine/VideoTexture/FilterSource.cpp
- *  \ingroup bgevideotex
- */
-/* $Id$
+/*
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 
@@ -22,6 +19,10 @@ Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
+
+/** \file gameengine/VideoTexture/FilterSource.cpp
+ *  \ingroup bgevideotex
+ */
 
 // implementation
 

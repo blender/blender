@@ -1,6 +1,5 @@
 # -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
-# vim: tabstop=8
-# $Id$
+# vim: tabstop=4
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #

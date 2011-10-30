@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -114,7 +112,7 @@ static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
 }
 
-static PointerRNA rna_Context_user_preferences_get(PointerRNA *ptr)
+static PointerRNA rna_Context_user_preferences_get(PointerRNA *UNUSED(ptr))
 {
 	PointerRNA newptr;
 	RNA_pointer_create(NULL, &RNA_UserPreferences, &U, &newptr);

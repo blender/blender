@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -85,53 +83,52 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 	return ret;
 }
 
+static int bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
+{
+	PyObject *list= (PyObject *)userdata;
+	PyObject *item= PyUnicode_DecodeFSDefault(path_src);
+	PyList_Append(list, item);
+	Py_DECREF(item);
+	return FALSE; /* never edits the path */
+}
+
 PyDoc_STRVAR(bpy_blend_paths_doc,
-".. function:: blend_paths(absolute=False)\n"
+".. function:: blend_paths(absolute=False, packed=False, local=False)\n"
 "\n"
 "   Returns a list of paths to external files referenced by the loaded .blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
+"   :arg packed: When true skip file paths for packed data.\n"
+"   :type packed: boolean\n"
+"   :arg local: When true skip linked library paths.\n"
+"   :type local: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strings\n"
 );
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	struct BPathIterator *bpi;
-	PyObject *list, *st; /* stupidly big string to be safe */
-	/* be sure there is low chance of the path being too short */
-	char filepath_expanded[1024];
-	const char *lib;
+	int flag= 0;
+	PyObject *list;
 
-	int absolute= 0;
-	static const char *kwlist[]= {"absolute", NULL};
+	int absolute= FALSE;
+	int packed=   FALSE;
+	int local=    FALSE;
+	static const char *kwlist[]= {"absolute", "packed", "local", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", (char **)kwlist, &absolute))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ii:blend_paths",
+	                                 (char **)kwlist, &absolute, &packed))
+	{
 		return NULL;
+	}
+
+	if (absolute) flag |= BPATH_TRAVERSE_ABS;
+	if (!packed)  flag |= BPATH_TRAVERSE_SKIP_PACKED;
+	if (local)    flag |= BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	list= PyList_New(0);
 
-	for (BLI_bpathIterator_init(&bpi, G.main, G.main->name, 0); !BLI_bpathIterator_isDone(bpi); BLI_bpathIterator_step(bpi)) {
-		/* build the list */
-		if (absolute) {
-			BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
-		}
-		else {
-			lib= BLI_bpathIterator_getLib(bpi);
-			if (lib && (BLI_path_cmp(lib, BLI_bpathIterator_getBasePath(bpi)))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
-				BLI_bpathIterator_getPathExpanded(bpi, filepath_expanded);
-			}
-			else {
-				BLI_bpathIterator_getPath(bpi, filepath_expanded);
-			}
-		}
-		st= PyUnicode_DecodeFSDefault(filepath_expanded);
-
-		PyList_Append(list, st);
-		Py_DECREF(st);
-	}
-
-	BLI_bpathIterator_free(bpi);
+	bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
 
 	return list;
 }
@@ -151,10 +148,10 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	
 	/* stupid string compare */
-	if     (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
-	else if (!strcmp(type, "CONFIG"))   folder_id= BLENDER_USER_CONFIG;
-	else if (!strcmp(type, "SCRIPTS"))  folder_id= BLENDER_USER_SCRIPTS;
-	else if (!strcmp(type, "AUTOSAVE")) folder_id= BLENDER_USER_AUTOSAVE;
+	if      (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
+	else if (!strcmp(type, "CONFIG"))    folder_id= BLENDER_USER_CONFIG;
+	else if (!strcmp(type, "SCRIPTS"))   folder_id= BLENDER_USER_SCRIPTS;
+	else if (!strcmp(type, "AUTOSAVE"))  folder_id= BLENDER_USER_AUTOSAVE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;

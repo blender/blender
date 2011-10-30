@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -188,7 +186,7 @@ void ED_setflagsLatt(Object *obedit, int flag)
 	}
 }
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static int lattice_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Lattice *lt= obedit->data;
@@ -246,7 +244,7 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 	ot->idname= "LATTICE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= select_all_exec;
+	ot->exec= lattice_select_all_exec;
 	ot->poll= ED_operator_editlattice;
 	
 	/* flags */

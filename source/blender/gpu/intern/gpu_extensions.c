@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -792,7 +790,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 	tex->fb = NULL;
 }
 
-void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex)
+void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex, int w, int h)
 {
 	/* push attributes */
 	glPushAttrib(GL_ENABLE_BIT);
@@ -803,7 +801,7 @@ void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex)
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, tex->fb->object);
 
 	/* push matrices and set default viewport and matrix */
-	glViewport(0, 0, tex->w, tex->h);
+	glViewport(0, 0, w, h);
 	GG.currentfb = tex->fb->object;
 
 	glMatrixMode(GL_PROJECTION);
@@ -861,13 +859,19 @@ struct GPUOffScreen {
 	GPUFrameBuffer *fb;
 	GPUTexture *color;
 	GPUTexture *depth;
+
+	/* requested width/height, may be smaller than actual texture size due
+	   to missing non-power of two support, so we compensate for that */
+	int w, h;
 };
 
-GPUOffScreen *GPU_offscreen_create(int *width, int *height, char err_out[256])
+GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 {
 	GPUOffScreen *ofs;
 
 	ofs= MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
+	ofs->w= width;
+	ofs->h= height;
 
 	ofs->fb = GPU_framebuffer_create();
 	if(!ofs->fb) {
@@ -875,24 +879,18 @@ GPUOffScreen *GPU_offscreen_create(int *width, int *height, char err_out[256])
 		return NULL;
 	}
 
-	ofs->depth = GPU_texture_create_depth(*width, *height, err_out);
+	ofs->depth = GPU_texture_create_depth(width, height, err_out);
 	if(!ofs->depth) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
-	if(*width!=ofs->depth->w || *height!=ofs->depth->h) {
-		*width= ofs->depth->w;
-		*height= ofs->depth->h;
-		printf("Offscreen size differs from given size!\n");
-	}
-	
 	if(!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, err_out)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D(*width, *height, NULL, err_out);
+	ofs->color = GPU_texture_create_2D(width, height, NULL, err_out);
 	if(!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;
@@ -923,7 +921,7 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 void GPU_offscreen_bind(GPUOffScreen *ofs)
 {
 	glDisable(GL_SCISSOR_TEST);
-	GPU_framebuffer_texture_bind(ofs->fb, ofs->color);
+	GPU_framebuffer_texture_bind(ofs->fb, ofs->color, ofs->w, ofs->h);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *ofs)
@@ -931,6 +929,11 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs)
 	GPU_framebuffer_texture_unbind(ofs->fb, ofs->color);
 	GPU_framebuffer_restore();
 	glEnable(GL_SCISSOR_TEST);
+}
+
+void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
+{
+	glReadPixels(0, 0, ofs->w, ofs->h, GL_RGBA, type, pixels);
 }
 
 /* GPUShader */

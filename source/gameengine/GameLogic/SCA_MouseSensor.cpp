@@ -2,7 +2,6 @@
  * Sensor for mouse input
  *
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

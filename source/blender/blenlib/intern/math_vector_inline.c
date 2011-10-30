@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -308,6 +306,18 @@ MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3])
 	r[0] = v1[0] * v2[0];
 	r[1] = v1[1] * v2[1];
 	r[2] = v1[2] * v2[2];
+}
+
+MINLINE void negate_v2(float r[3])
+{
+	r[0]= -r[0];
+	r[1]= -r[1];
+}
+
+MINLINE void negate_v2_v2(float r[2], const float a[2])
+{
+	r[0]= -a[0];
+	r[1]= -a[1];
 }
 
 MINLINE void negate_v3(float r[3])

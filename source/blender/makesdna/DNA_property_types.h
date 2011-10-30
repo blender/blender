@@ -1,7 +1,6 @@
 /*
  *
  *
- * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

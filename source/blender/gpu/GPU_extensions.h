@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This shader is free software; you can redistribute it and/or
@@ -138,7 +136,7 @@ int GPU_texture_opengl_bindcode(GPUTexture *tex);
 GPUFrameBuffer *GPU_framebuffer_create(void);
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err_out[256]);
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex);
-void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex);
+void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex, int w, int h);
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 
@@ -148,10 +146,11 @@ void GPU_framebuffer_restore(void);
    - wrapper around framebuffer and texture for simple offscreen drawing 
    - changes size if graphics card can't support it */
 
-GPUOffScreen *GPU_offscreen_create(int *width, int *height, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs);
 void GPU_offscreen_unbind(GPUOffScreen *ofs);
+void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
 
 /* GPU Shader
    - only for fragment shaders now

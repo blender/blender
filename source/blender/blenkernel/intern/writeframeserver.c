@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * Frameserver
  * Makes Blender accessible from TMPGenc directly using VFAPI (you can

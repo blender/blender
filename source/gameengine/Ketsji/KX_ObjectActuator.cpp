@@ -1,7 +1,6 @@
 /*
  * Do translation/rotation actions
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

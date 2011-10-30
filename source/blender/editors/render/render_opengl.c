@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -156,7 +154,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 		if((scene->r.mode & R_OSA) == 0) { 
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
-			glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, rr->rectf);
+			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, rr->rectf);
 		}
 		else {
 			/* simple accumulation, less hassle then FSAA FBO's */
@@ -169,7 +167,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
-			glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, accum_buffer);
+			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_buffer);
 
 			/* skip the first sample */
 			for(j=1; j < SAMPLES; j++) {
@@ -177,7 +175,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 				window_translate_m4(winmat_jitter, rv3d->persmat, jit_ofs[j][0] / sizex, jit_ofs[j][1] / sizey);
 
 				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter);
-				glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, accum_tmp);
+				GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_tmp);
 				add_vn_vn(accum_buffer, accum_tmp, sizex*sizey*sizeof(float));
 			}
 
@@ -280,7 +278,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	sizey= (scene->r.size*scene->r.ysch)/100;
 
 	/* corrects render size with actual size, not every card supports non-power-of-two dimensions */
-	ofs= GPU_offscreen_create(&sizex, &sizey, err_out);
+	ofs= GPU_offscreen_create(sizex, sizey, err_out);
 
 	if(!ofs) {
 		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer, %s", err_out);

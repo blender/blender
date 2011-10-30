@@ -1,4 +1,3 @@
-# $Id: CMakeLists.txt 12931 2007-12-17 18:20:48Z theeth $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -48,7 +47,7 @@ if(WITH_BLENDER)
 
 			# images
 			splash.png.c
-			blenderbuttons.c
+			blender_icons.png.c
 
 			# brushes
 			add.png.c

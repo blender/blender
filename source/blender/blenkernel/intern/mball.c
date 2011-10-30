@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -52,7 +50,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
+#include "BLI_bpath.h"
 
 
 #include "BKE_global.h"
@@ -149,7 +147,7 @@ void make_local_mball(MetaBall *mb)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -158,31 +156,30 @@ void make_local_mball(MetaBall *mb)
 	
 	if(mb->id.lib==NULL) return;
 	if(mb->id.us==1) {
-		mb->id.lib= NULL;
-		mb->id.flag= LIB_LOCAL;
-		new_id(&bmain->mball, (ID *)mb, NULL);
+		id_clear_lib_data(bmain, &mb->id);
 		extern_local_mball(mb);
 		
 		return;
 	}
 
-	for(ob= G.main->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= G.main->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(ob->data == mb) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 	
-	if(local && lib==0) {
-		mb->id.lib= NULL;
-		mb->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mball, (ID *)mb, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &mb->id);
 		extern_local_mball(mb);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
+		char *bpath_user_data[2]= {bmain->name, mb->id.lib->filepath};
 		MetaBall *mbn= copy_mball(mb);
 		mbn->id.us= 0;
+
+		/* Remap paths of new ID using old library as base. */
+		bpath_traverse_id(bmain, &mbn->id, bpath_relocate_visitor, 0, bpath_user_data);
 
 		for(ob= G.main->object.first; ob; ob= ob->id.next) {
 			if(ob->data == mb) {

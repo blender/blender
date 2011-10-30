@@ -1,7 +1,7 @@
 /** \file itasc/ConstraintSet.cpp
  *  \ingroup itasc
  */
-/* $Id$
+/*
  * ConstraintSet.cpp
  *
  *  Created on: Jan 5, 2009
@@ -80,7 +80,7 @@ void ConstraintSet::modelUpdate(Frame& _external_pose,const Timestamp& timestamp
 
 double ConstraintSet::getMaxTimestep(double& timestep)
 {
-	e_scalar maxChidot = m_chidot.cwise().abs().maxCoeff();
+	e_scalar maxChidot = m_chidot.array().abs().maxCoeff();
 	if (timestep*maxChidot > m_maxDeltaChi) {
 		timestep = m_maxDeltaChi/maxChidot;
 	}
@@ -162,9 +162,9 @@ bool ConstraintSet::closeLoop(){
         }else
             m_B.row(i) = m_U.col(i)/m_S(i);
 
-    m_Jf_inv=(m_V*m_B).lazy();
+    m_Jf_inv.noalias()=m_V*m_B;
 
-    m_chi+=(m_Jf_inv*m_tdelta).lazy();
+    m_chi.noalias()+=m_Jf_inv*m_tdelta;
     updateJacobian();
 	// m_externalPose-m_internalPose in end effector frame
 	// this is just to compare the pose, a different formula would work too

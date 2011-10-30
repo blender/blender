@@ -1,5 +1,4 @@
 /* 
- * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +23,7 @@
  * Contributor(s): Willian P. Germano, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ */
 
 /** \file blender/python/generic/bpy_internal_import.h
  *  \ingroup pygen
@@ -50,7 +49,7 @@ struct Text;
 void bpy_import_init(PyObject *builtins);
 
 PyObject*	bpy_text_import(struct Text *text);
-PyObject*	bpy_text_import_name(char *name, int *found);
+PyObject*	bpy_text_import_name(const char *name, int *found);
 PyObject*	bpy_text_reimport(PyObject *module, int *found);
 /* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */ 
 

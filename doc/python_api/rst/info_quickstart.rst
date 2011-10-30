@@ -67,7 +67,7 @@ Data Access
 Accessing datablocks
 ^^^^^^^^^^^^^^^^^^^^
 
-Python accesses Blender's data in the same way as the animation system and user interface, which means any setting that is changed via a button can also be changed from Python.
+Python accesses Blender's data in the same way as the animation system and user interface; this implies that any setting that can be changed via a button can also be changed from Python.
 
 Accessing data from the currently loaded blend file is done with the module :mod:`bpy.data`. This gives access to library data. For example:
 
@@ -101,7 +101,7 @@ Unlike Python's dictionaries, both methods are acceptable; however, the index of
 Accessing attributes
 ^^^^^^^^^^^^^^^^^^^^
 
-Once you have a data block such as a material, object, groups etc. its attributes can be accessed just like changing a setting in the interface; in fact, the button tooltip also displays the Python attribute which can help in finding what settings to change in a script.
+Once you have a data block, such as a material, object, groups etc., its attributes can be accessed much like you would change a setting using the graphical interface. In fact, the tooltip for each button also displays the Python attribute which can help in finding what settings to change in a script.
 
    >>> bpy.data.objects[0].name 
    'Camera'
@@ -179,7 +179,7 @@ So ``bpy.context.object = obj`` will raise an error.
 But ``bpy.context.scene.objects.active = obj`` will work as expected.
 
 
-The context attributes change depending on where it is accessed. The 3D view has different context members to the Console, so take care when accessing context attributes that the user state is known.
+The context attributes change depending on where they are accessed. The 3D view has different context members than the console, so take care when accessing context attributes that the user state is known.
 
 See :mod:`bpy.context` API reference
 
@@ -256,6 +256,8 @@ To run the script:
 
 #. Press Ctrl+Right twice to change to the Scripting layout.
 
+#. Click the button labeled ``New`` and the confirmation pop up in order to create a new text block.
+
 #. Press Ctrl+V to paste the code into the text panel (the upper left frame).
 
 #. Click on the button **Run Script**.
@@ -269,6 +271,7 @@ To run the script:
 .. seealso:: The class members with the **bl_** prefix are documented in the API
    reference :class:`bpy.types.Operator`
 
+.. note:: The output from the ``main`` function is sent to the terminal; in order to see this, be sure to :ref:`use the terminal <use_the_terminal>`.
 
 Example Panel
 -------------
@@ -284,6 +287,8 @@ To run the script:
 #. Start Blender
 
 #. Press Ctrl+Right twice to change to the Scripting layout
+
+#. Click the button labeled ``New`` and the confirmation pop up in order to create a new text block.
 
 #. Press Ctrl+V to paste the code into the text panel (the upper left frame)
 
@@ -310,7 +315,7 @@ Types
 
 Blender defines a number of Python types but also uses Python native types.
 
-Blender's Python API can be split up into 3 categories. 
+Blender's Python API can be split up into 3 categories.
 
 
 Native Types

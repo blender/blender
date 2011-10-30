@@ -757,7 +757,9 @@ EnumPropertyItem keyframe_paste_merge_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-/* This function pastes data from the keyframes copy/paste buffer */
+/* This function pastes data from the keyframes copy/paste buffer 
+ * > return status code is whether the method FAILED to do anything
+ */
 short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data,
 			const eKeyPasteOffset offset_mode, const eKeyMergeMode merge_mode)
 {
@@ -773,17 +775,17 @@ short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data,
 
 	/* check if buffer is empty */
 	if (animcopybuf.first == NULL) {
-		BKE_report(ac->reports, RPT_WARNING, "No data in buffer to paste");
+		BKE_report(ac->reports, RPT_ERROR, "No animation data in buffer to paste");
 		return -1;
 	}
 
 	if (anim_data->first == NULL) {
-		BKE_report(ac->reports, RPT_WARNING, "No FCurves to paste into");
+		BKE_report(ac->reports, RPT_ERROR, "No selected F-Curves to paste into");
 		return -1;
 	}
 	
 	/* mathods of offset */
-	switch(offset_mode) {
+	switch (offset_mode) {
 		case KEYFRAME_PASTE_OFFSET_CFRA_START:
 			offset= (float)(CFRA - animcopy_firstframe);
 			break;

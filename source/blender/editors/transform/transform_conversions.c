@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -557,7 +555,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->rotAngle= NULL;
 		td->ext->quat= pchan->quat;
 		
-		QUATCOPY(td->ext->iquat, pchan->quat);
+		copy_qt_qt(td->ext->iquat, pchan->quat);
 	}
 	td->ext->rotOrder= pchan->rotmode;
 	
@@ -1307,7 +1305,7 @@ static void createTransMBallVerts(TransInfo *t)
 
 			/* quat is used for rotation of MetaElem */
 			tx->quat = ml->quat;
-			QUATCOPY(tx->iquat, ml->quat);
+			copy_qt_qt(tx->iquat, ml->quat);
 
 			tx->rot = NULL;
 
@@ -4301,8 +4299,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		td->ext->rotAngle= NULL;
 		td->ext->quat= ob->quat;
 		
-		QUATCOPY(td->ext->iquat, ob->quat);
-		QUATCOPY(td->ext->dquat, ob->dquat);
+		copy_qt_qt(td->ext->iquat, ob->quat);
+		copy_qt_qt(td->ext->dquat, ob->dquat);
 	}
 	td->ext->rotOrder=ob->rotmode;
 

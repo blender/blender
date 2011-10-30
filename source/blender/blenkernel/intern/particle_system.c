@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -3855,8 +3853,9 @@ static void update_children(ParticleSimulationData *sim)
 	else if(sim->psys->part->childtype) {
 		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
 			distribute_particles(sim, PART_FROM_CHILD);
-		else
-			; /* Children are up to date, nothing to do. */
+		else {
+			/* Children are up to date, nothing to do. */
+		}
 	}
 	else
 		psys_free_children(sim->psys);

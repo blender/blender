@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1663,7 +1661,8 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 
 	/* opengl */
 	glDisable(GL_SCISSOR_TEST);
-	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex);
+	GPU_framebuffer_texture_bind(lamp->fb, lamp->tex,
+		GPU_texture_opengl_width(lamp->tex), GPU_texture_opengl_height(lamp->tex));
 
 	/* set matrices */
 	copy_m4_m4(viewmat, lamp->viewmat);

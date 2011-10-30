@@ -24,7 +24,7 @@
 
 #include "inertia.hpp"
 
-#include <Eigen/Array>
+#include <Eigen/Core>
 
 namespace KDL {
 using namespace Eigen;

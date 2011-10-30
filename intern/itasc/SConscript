@@ -5,7 +5,12 @@ sources = env.Glob('*.cpp')
 sources += env.Glob('kdl/*.cpp')
 sources += env.Glob('kdl/utilities/*.cpp')
 
-incs = '. ../../extern/Eigen2'
+incs = '. ../../extern/Eigen3'
 
-env.BlenderLib ('bf_intern_itasc', sources, Split(incs), [], libtype=['intern','player'], priority=[20,100] )
+defs = []
+
+if env['PLATFORM'] == 'win32':
+    defs.append('EIGEN_DONT_ALIGN_STATICALLY')
+
+env.BlenderLib ('bf_intern_itasc', sources, Split(incs), defs, libtype=['intern','player'], priority=[20,100] )
 

@@ -1,6 +1,4 @@
 /*
-* $Id$
-*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +23,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
-* Convert Blender actuators for use in the GameEngine
-*/
+ * Convert Blender actuators for use in the GameEngine
+ */
 
 /** \file gameengine/Converter/KX_ConvertActuators.cpp
  *  \ingroup bgeconv
@@ -113,7 +111,7 @@ KX_BLENDERTRUNC needed to round 'almost' zero values to zero, else velocities et
 
 #define KX_BLENDERTRUNC(x)  (( x < 0.0001 && x > -0.0001 )  ? 0.0 : x)
 
-void BL_ConvertActuators(char* maggiename,
+void BL_ConvertActuators(const char* maggiename,
 						 struct Object* blenderobject,
 						 KX_GameObject* gameobj,
 						 SCA_LogicManager* logicmgr,

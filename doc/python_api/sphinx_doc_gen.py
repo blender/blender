@@ -103,7 +103,7 @@ sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 # extra info, not api reference docs
 # stored in ./rst/info/
 INFO_DOCS = (
-    ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get you're feet wet?"),
+    ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get your feet wet?"),
     ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
     ("info_best_practice.rst", "Best Practice: Conventions to follow for writing good scripts"),
     ("info_tips_and_tricks.rst", "Tips and Tricks: Hints to help you while writeing scripts for blender"),

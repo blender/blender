@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1270,9 +1268,10 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			else
 				mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_head);
 		}
-		else
-			VECCOPY(obt->loc, obact->obmat[3]);
-		
+		else {
+			copy_v3_v3(obt->loc, obact->obmat[3]);
+		}
+
 		/* restore, add_object sets active */
 		BASACT= base;
 		base->flag |= SELECT;

@@ -1,6 +1,5 @@
 /*
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  * filter.c
  *
- * $Id$
  */
 
 /** \file blender/imbuf/intern/filter.c

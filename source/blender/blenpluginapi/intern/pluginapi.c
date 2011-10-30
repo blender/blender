@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -132,7 +130,7 @@ LIBEXPORT short saveiff(struct ImBuf *ib,
 LIBEXPORT struct ImBuf *loadifffile(int a,
 						  int b)
 {
-	return IMB_loadifffile(a, b);
+	return IMB_loadifffile(a, b, "loadifffile");
 }
 
 LIBEXPORT struct ImBuf *loadiffname(char *n,

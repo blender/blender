@@ -1,6 +1,4 @@
 /*
- * $Id$ 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -96,19 +94,20 @@ void IMB_exit(void);
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size,
+                                    int flags, const char *descr);
 
 /**
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_testiffname(char *naam,int flags);
+struct ImBuf *IMB_testiffname(const char *filepath, int flags);
 
 /**
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_loadiffname(const char *naam, int flags);
+struct ImBuf *IMB_loadiffname(const char *filepath, int flags);
 
 /**
  *
@@ -121,7 +120,7 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  * @attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
-						 unsigned char d, unsigned int flags);
+                             unsigned char d, unsigned int flags);
 
 /**
  *
@@ -134,19 +133,6 @@ struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
 
 void IMB_refImBuf(struct ImBuf *ibuf);
 struct ImBuf * IMB_makeSingleUser(struct ImBuf *ibuf);
-
-/**
- *
- * @attention Defined in allocimbuf.c
- */
-void IMB_cache_limiter_insert(struct ImBuf *i);
-void IMB_cache_limiter_unmanage(struct ImBuf *i);
-void IMB_cache_limiter_touch(struct ImBuf *i);
-void IMB_cache_limiter_ref(struct ImBuf *i);
-void IMB_cache_limiter_unref(struct ImBuf *i);
-int IMB_cache_limiter_get_refcount(struct ImBuf *i);
-
-void IMB_free_cache_limiter(void);
 
 /**
  *
@@ -252,7 +238,7 @@ int IMB_anim_get_fps(struct anim * anim,
 
 /**
  *
- * @attention Defined in anim.c
+ * @attention Defined in anim_movie.c
  */
 struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
 void IMB_close_anim(struct anim *anim);
@@ -260,16 +246,16 @@ void IMB_close_anim(struct anim *anim);
 
 /**
  *
- * @attention Defined in anim.c
+ * @attention Defined in anim_movie.c
  */
 
-int ismovie(const char *name);
+int ismovie(const char *filepath);
 void IMB_anim_set_preseek(struct anim *anim, int preseek);
 int IMB_anim_get_preseek(struct anim *anim);
 
 /**
  *
- * @attention Defined in anim.c
+ * @attention Defined in anim_movie.c
  */
 
 struct ImBuf *IMB_anim_absolute(
@@ -279,14 +265,14 @@ struct ImBuf *IMB_anim_absolute(
 
 /**
  *
- * @attention Defined in anim.c
+ * @attention Defined in anim_movie.c
  * fetches a define previewframe, usually half way into the movie
  */
 struct ImBuf *IMB_anim_previewframe(struct anim *anim);
 
 /**
  *
- * @attention Defined in anim.c
+ * @attention Defined in anim_movie.c
  */
 void IMB_free_anim(struct anim *anim);
 
@@ -434,7 +420,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags);
  * @deprecated Only here for backwards compatibility of the
  * @deprecated plugin system.
  */  
-struct ImBuf *IMB_loadifffile(int file, int flags);
+struct ImBuf *IMB_loadifffile(int file, int flags, const char *descr);
 
 /**
  *

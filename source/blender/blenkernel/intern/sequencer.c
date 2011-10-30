@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1326,6 +1324,10 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
 
+	/* unsupported feature only confuses other s/w */
+	if(ibuf->depth==32)
+		ibuf->depth= 24;
+
 	BLI_make_existing_file(name);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
@@ -2503,9 +2505,6 @@ static void *seq_prefetch_thread(void * This_)
 
 		for (e = prefetch_done.first; e; e = e->next) {
 			if (s_last > e->monoton_cfra) {
-				if (e->ibuf) {
-					IMB_cache_limiter_unref(e->ibuf);
-				}
 				BLI_remlink(&prefetch_done, e);
 				MEM_freeN(e);
 			}
@@ -2583,9 +2582,6 @@ static void seq_stop_threads()
 	}
 
 	for (e = prefetch_done.first; e; e = e->next) {
-		if (e->ibuf) {
-			IMB_cache_limiter_unref(e->ibuf);
-		}
 		BLI_remlink(&prefetch_done, e);
 		MEM_freeN(e);
 	}

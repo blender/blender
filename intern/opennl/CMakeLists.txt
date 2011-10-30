@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -29,7 +28,7 @@ remove_strict_flags()
 
 # remove debug flag here since this is not a blender maintained library
 # and debug gives a lot of prints on UV unwrapping. developers can enable if they need to.
-remove_flag("-DDEBUG")
+remove_cc_flag("-DDEBUG")
 
 
 # quiet compiler warnings about undefined defines
@@ -41,6 +40,7 @@ add_definitions(
 set(INC
 	extern
 	superlu
+	../../extern/colamd/Include
 )
 
 set(INC_SYS
@@ -49,7 +49,6 @@ set(INC_SYS
 
 set(SRC
 	intern/opennl.c
-	superlu/colamd.c
 	superlu/get_perm_c.c
 	superlu/heap_relax_snode.c
 	superlu/lsame.c
@@ -84,7 +83,6 @@ set(SRC
 	extern/ONL_opennl.h
 	superlu/superlu_sys_types.h
 	superlu/Cnames.h
-	superlu/colamd.h
 	superlu/ssp_defs.h
 	superlu/supermatrix.h
 	superlu/util.h

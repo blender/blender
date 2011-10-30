@@ -1,5 +1,4 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -817,6 +816,7 @@ endif()
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
+		extern_colamd
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_phys_common

@@ -1,7 +1,4 @@
-/** \file gameengine/VideoTexture/Texture.cpp
- *  \ingroup bgevideotex
- */
-/* $Id$
+/*
 -----------------------------------------------------------------------------
 This source file is part of VideoTexture library
 
@@ -22,6 +19,10 @@ Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
+
+/** \file gameengine/VideoTexture/Texture.cpp
+ *  \ingroup bgevideotex
+ */
 
 // implementation
 
@@ -106,7 +107,7 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 
 
 // get material ID
-short getMaterialID (PyObject * obj, char * name)
+short getMaterialID(PyObject * obj, const char *name)
 {
 	// search for material
 	for (short matID = 0;; ++matID)

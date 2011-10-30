@@ -1,4 +1,3 @@
-# $Id$
 """
 The VideoTexture module allows you to manipulate textures during the game.
 

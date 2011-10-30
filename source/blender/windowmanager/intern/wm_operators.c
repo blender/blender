@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1220,7 +1218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 
-	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
+	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect, "<splash screen>");
 #else
 	ImBuf *ibuf= NULL;
 #endif
@@ -1747,7 +1745,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if((flag & FILE_LINK)==0) {
 		Library *lib= BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-		if(lib)	all_local(lib, 1);
+		if(lib)	BKE_library_make_local(bmain, lib, 1);
 		else	BLI_assert(!"cant find name of just added library!");
 	}
 

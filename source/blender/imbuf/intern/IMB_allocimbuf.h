@@ -1,7 +1,6 @@
 /*
  * allocimbuf.h
  *
- * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

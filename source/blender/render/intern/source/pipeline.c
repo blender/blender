@@ -409,7 +409,7 @@ static const char *get_pass_name(int passtype, int channel)
 	return "Unknown";
 }
 
-static int passtype_from_name(char *str)
+static int passtype_from_name(const char *str)
 {
 	
 	if(strcmp(str, "Combined")==0)

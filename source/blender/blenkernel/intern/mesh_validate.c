@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -117,9 +115,10 @@ static int search_face_cmp(const void *v1, const void *v2)
 
 }
 
+#define PRINT if(do_verbose) printf
+
 int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totvert, MEdge *medges, unsigned int totedge, MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes)
 {
-#	define PRINT if(do_verbose) printf
 #	define REMOVE_EDGE_TAG(_med) { _med->v2= _med->v1; do_edge_free= 1; }
 #	define REMOVE_FACE_TAG(_mf) { _mf->v3=0; do_face_free= 1; }
 
@@ -284,7 +283,6 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 
 	PRINT("BKE_mesh_validate: finished\n\n");
 
-#	 undef PRINT
 #	 undef REMOVE_EDGE_TAG
 #	 undef REMOVE_FACE_TAG
 
@@ -305,12 +303,57 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 	return (do_face_free || do_edge_free || do_edge_recalc);
 }
 
+static int mesh_validate_customdata(CustomData *data, short do_verbose, const short do_fixes)
+{
+	int i= 0, has_fixes= 0;
+
+	while(i<data->totlayer) {
+		CustomDataLayer *layer= &data->layers[i];
+		int mask= 1 << layer->type;
+		int ok= 1;
+
+		if((mask&CD_MASK_MESH)==0) {
+			PRINT("CustomDataLayer type %d which isn't in CD_MASK_MESH is stored in Mehs structure\n", layer->type);
+
+			if(do_fixes) {
+				CustomData_free_layer(data, layer->type, 0, i);
+				ok= 0;
+				has_fixes= 1;
+			}
+		}
+
+		if(ok)
+			i++;
+	}
+
+	return has_fixes;
+}
+
+#undef PRINT
+
+int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata, CustomData *fdata, short do_verbose, const short do_fixes)
+{
+	int vfixed= 0, efixed= 0, ffixed= 0;
+
+	vfixed= mesh_validate_customdata(vdata, do_verbose, do_fixes);
+	efixed= mesh_validate_customdata(edata, do_verbose, do_fixes);
+	ffixed= mesh_validate_customdata(fdata, do_verbose, do_fixes);
+
+	return vfixed || efixed || ffixed;
+}
+
 int BKE_mesh_validate(Mesh *me, int do_verbose)
 {
+	int layers_fixed= 0, arrays_fixed= 0;
+
 	if(do_verbose) {
 		printf("MESH: %s\n", me->id.name+2);
 	}
-	return BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, do_verbose, TRUE);
+
+	layers_fixed= BKE_mesh_validate_all_customdata(&me->vdata, &me->edata, &me->fdata, do_verbose, TRUE);
+	arrays_fixed= BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, do_verbose, TRUE);
+
+	return layers_fixed || arrays_fixed;
 }
 
 int BKE_mesh_validate_dm(DerivedMesh *dm)

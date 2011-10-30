@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -3456,7 +3454,7 @@ void EM_deselect_all(EditMesh *em)
 	EM_clear_flag_all(em, SELECT);
 }
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static int editmesh_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -3491,7 +3489,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	ot->idname= "MESH_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= select_all_exec;
+	ot->exec= editmesh_select_all_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
