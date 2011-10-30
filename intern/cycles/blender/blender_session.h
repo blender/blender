@@ -70,6 +70,9 @@ public:
 	BL::SpaceView3D b_v3d;
 	BL::RegionView3D b_rv3d;
 
+	string last_status;
+	float last_progress;
+
 	int width, height;
 };
 

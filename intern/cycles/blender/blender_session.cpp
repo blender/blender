@@ -76,6 +76,10 @@ void BlenderSession::create_session()
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene);
 	SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
 
+	/* reset status/progress */
+	last_status= "";
+	last_progress= -1.0f;
+
 	/* create scene */
 	scene = new Scene(scene_params);
 
@@ -264,8 +268,14 @@ void BlenderSession::update_status_progress()
 	if(substatus.size() > 0)
 		status += " | " + substatus;
 
-	RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
-	RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+	if(status != last_status) {
+		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
+		last_status = status;
+	}
+	if(progress != last_progress) {
+		RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+		last_progress = progress;
+	}
 }
 
 void BlenderSession::tag_update()

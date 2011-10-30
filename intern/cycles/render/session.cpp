@@ -170,8 +170,10 @@ void Session::run_gpu()
 
 		if(params.background) {
 			/* if no work left and in background mode, we can stop immediately */
-			if(no_tiles)
+			if(no_tiles) {
+				progress.set_status("Finished");
 				break;
+			}
 		}
 		else {
 			/* if in interactive mode, and we are either paused or done for now,
@@ -305,8 +307,10 @@ void Session::run_cpu()
 
 		if(params.background) {
 			/* if no work left and in background mode, we can stop immediately */
-			if(no_tiles)
+			if(no_tiles) {
+				progress.set_status("Finished");
 				break;
+			}
 		}
 		else {
 			/* if in interactive mode, and we are either paused or done for now,
