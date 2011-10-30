@@ -2333,7 +2333,7 @@ static void composite_freestyle_renders(Render *re, int sample)
 }
 
 /* releases temporary scenes and renders for Freestyle stroke rendering */
-static void free_all_freestyle_renders(void)
+static void free_all_freestyle_renders(Scene *scene)
 {
 	Render *re1, *freestyle_render;
 	LinkData *link;
@@ -2342,7 +2342,7 @@ static void free_all_freestyle_renders(void)
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
-				free_libblock(&G.main->scene, freestyle_render->scene);
+				unlink_scene(G.main, freestyle_render->scene, scene);
 				RE_FreeRender(freestyle_render);
 			}
 		}
@@ -2576,7 +2576,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			do_merge_fullsample(re, NULL);
 	}
 
-	free_all_freestyle_renders();
+	free_all_freestyle_renders(re->scene);
 
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
