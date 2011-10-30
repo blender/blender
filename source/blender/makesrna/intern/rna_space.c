@@ -2798,6 +2798,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_SEARCH);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
+	/* show pyramid */
+	prop= RNA_def_property(srna, "show_pyramid_levels", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Pyramid ", "Show patterns for each pyramid level for markers (KLT only)");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_PYRAMID_LEVELS);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 	/* lock to selection */
 	prop= RNA_def_property(srna, "lock_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Lock to Selection", "Lock viewport to selected markers during playback");

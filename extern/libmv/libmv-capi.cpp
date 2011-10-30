@@ -36,7 +36,6 @@
 #include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/tracking/trklt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
-#include "libmv/tracking/retrack_region_tracker.h"
 
 #include "libmv/tracking/sad.h"
 
@@ -61,7 +60,6 @@
 
 typedef struct libmv_RegionTracker {
 	libmv::TrkltRegionTracker *trklt_region_tracker;
-	libmv::PyramidRegionTracker *pyramid_region_tracker;
 	libmv::RegionTracker *region_tracker;
 } libmv_RegionTracker;
 
@@ -112,22 +110,19 @@ void libmv_setLoggingVerbosity(int verbosity)
 
 /* ************ RegionTracker ************ */
 
-libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance)
+libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level)
 {
-	libmv::RegionTracker *region_tracker;
 	libmv::TrkltRegionTracker *trklt_region_tracker = new libmv::TrkltRegionTracker;
 
 	trklt_region_tracker->half_window_size = DEFAULT_WINDOW_HALFSIZE;
 	trklt_region_tracker->max_iterations = max_iterations;
+	trklt_region_tracker->min_determinant = 1e-4;
 
-	libmv::PyramidRegionTracker *pyramid_region_tracker =
+	libmv::PyramidRegionTracker *region_tracker =
 		new libmv::PyramidRegionTracker(trklt_region_tracker, pyramid_level);
-
-	region_tracker = new libmv::RetrackRegionTracker(pyramid_region_tracker, tolerance);
 
 	libmv_RegionTracker *configured_region_tracker = new libmv_RegionTracker;
 	configured_region_tracker->trklt_region_tracker = trklt_region_tracker;
-	configured_region_tracker->pyramid_region_tracker = pyramid_region_tracker;
 	configured_region_tracker->region_tracker = region_tracker;
 
 	return configured_region_tracker;

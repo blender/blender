@@ -108,6 +108,23 @@ static void rna_tracking_trackerSearch_update(Main *UNUSED(bmain), Scene *UNUSED
 	BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 }
 
+static void rna_tracking_trackerAlgorithm_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
+
+        if(track->tracker==TRACKER_KLT)
+          BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
+        else
+          BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
+}
+
+static void rna_tracking_trackerPyramid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
+
+	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
+}
+
 static int rna_tracking_markers_length(PointerRNA *ptr)
 {
 	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
@@ -208,11 +225,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem tracker_items[] = {
-		{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker"},
-		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem speed_items[] = {
 		{0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
 	    {TRACKING_SPEED_DOUBLE, "DOUBLE", 0, "Double", "Track with double speed"},
@@ -230,12 +242,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match moving settings");
-
-	/* tracker */
-	prop= RNA_def_property(srna, "tracker", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_items(prop, tracker_items);
-	RNA_def_property_ui_text(prop, "Tracker", "Tracking algorithm to use");
 
 	/* speed */
 	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);
@@ -275,14 +281,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
 	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
-
-	/* minmal correlation */
-	prop= RNA_def_property(srna, "correlation_min", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "corr");
-	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
 
 	/* tool settings */
 
@@ -422,6 +420,11 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	static EnumPropertyItem tracker_items[] = {
+		{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker"},
+		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
+		{0, NULL, 0, NULL, NULL}};
+
 	rna_def_trackingMarker(brna);
 
 	srna= RNA_def_struct(brna, "MovieTrackingTrack", NULL);
@@ -465,6 +468,29 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "search_max");
 	RNA_def_property_ui_text(prop, "Search Max", "Right-bottom corner of search area in normalized coordinates relative to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerSearch_update");
+
+	/* tracking algorithm */
+	prop= RNA_def_property(srna, "tracker", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, tracker_items);
+	RNA_def_property_ui_text(prop, "Tracker", "Tracking algorithm to use");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerAlgorithm_update");
+
+	/* pyramid level for pyramid klt tracking */
+	prop= RNA_def_property(srna, "pyramid_levels", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "pyramid_levels");
+	RNA_def_property_range(prop, 1, 16);
+	RNA_def_property_ui_text(prop, "Pyramid levels", "Number of pyramid levels for KLT tracking.");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerPyramid_update");
+
+	/* minmal correlation - only used for SAD tracker */
+	prop= RNA_def_property(srna, "minimum_correlation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "minimum_correlation");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
 
 	/* markers */
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);

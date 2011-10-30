@@ -387,6 +387,7 @@ class CLIP_PT_display(Panel):
 
         layout.prop(sc, "show_marker_pattern", text="Pattern")
         layout.prop(sc, "show_marker_search", text="Search")
+        layout.prop(sc, "show_pyramid_levels", text="Pyramid")
 
         layout.prop(sc, "show_track_path", text="Path")
         row = layout.column()
@@ -433,13 +434,15 @@ class CLIP_PT_track_settings(Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
-        layout.prop(settings, "tracker")
+        active = clip.tracking.tracks.active
+        if active:
+          layout.prop(active, "tracker")
+          if active.tracker == "KLT":
+              layout.prop(active, "pyramid_levels")
+          if active.tracker == "SAD":
+              layout.prop(active, "correlation_min")
 
         layout.prop(settings, "frames_adjust")
-
-        if settings.tracker == "SAD":
-            layout.prop(settings, "correlation_min")
-
         layout.prop(settings, "speed")
         layout.prop(settings, "frames_limit")
         layout.prop(settings, "margin")

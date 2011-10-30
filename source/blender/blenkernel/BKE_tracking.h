@@ -118,6 +118,7 @@ struct ImBuf *BKE_tracking_distort(struct MovieTracking *tracking, struct ImBuf 
 #define CLAMP_PAT_POS		2
 #define CLAMP_SEARCH_DIM	3
 #define CLAMP_SEARCH_POS	4
+#define CLAMP_PYRAMID_LEVELS	5
 
 #define TRACK_AREA_NONE		-1
 #define TRACK_AREA_POINT	1

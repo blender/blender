@@ -69,6 +69,12 @@ typedef struct MovieDistortion {
 void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 {
 	int a;
+	float pat_min[2];
+	float pat_max[2];
+	float max_pyramid_level_factor = 1.0;
+	if (track->tracker == TRACKER_KLT) {
+		max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
+	}
 
 	/* sort */
 	for(a= 0; a<2; a++) {
@@ -79,34 +85,45 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			SWAP(float, track->search_min[a], track->search_max[a]);
 	}
 
+	/* compute the effective pattern size, which differs from the fine resolution
+	 * pattern size for the pyramid KLT tracker */
+	for(a= 0; a<2; a++) {
+		pat_min[a] = max_pyramid_level_factor * track->pat_min[a];
+		pat_max[a] = max_pyramid_level_factor * track->pat_max[a];
+	}
+
 	if(event==CLAMP_PAT_DIM) {
 		for(a= 0; a<2; a++) {
-			/* pattern shouldn't be resized bigger than search */
-			track->pat_min[a]= MAX2(track->pat_min[a], track->search_min[a]);
-			track->pat_max[a]= MIN2(track->pat_max[a], track->search_max[a]);
+			/* search shouldn't be resized smaller than pattern */
+			track->search_min[a]= MIN2(pat_min[a], track->search_min[a]);
+			track->search_max[a]= MAX2(pat_max[a], track->search_max[a]);
 		}
 	}
 	else if(event==CLAMP_PAT_POS) {
 		float dim[2];
-		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
+		sub_v2_v2v2(dim, track->pat_max, pat_min);
 
 		for(a= 0; a<2; a++) {
 			/* pattern shouldn't be moved outside of search */
-			if(track->pat_min[a] < track->search_min[a]) {
-				track->pat_min[a]= track->search_min[a];
-				track->pat_max[a]= track->pat_min[a]+dim[a];
+			if(pat_min[a] < track->search_min[a]) {
+				track->pat_min[a]= track->search_min[a] - (pat_min[a] - track->pat_min[a]);
+				track->pat_max[a]=  (pat_min[a] - track->pat_min[a])+dim[a];
 			}
 			if(track->pat_max[a] > track->search_max[a]) {
-				track->pat_max[a]= track->search_max[a];
-				track->pat_min[a]= track->pat_max[a]-dim[a];
+				track->pat_max[a]= track->search_max[a] - (pat_max[a] - track->pat_max[a]);
+				track->pat_min[a]= track->pat_max[a]-dim[a] - (pat_min[a] - track->pat_min[a]);
 			}
 		}
 	}
 	else if(event==CLAMP_SEARCH_DIM) {
+		float max_pyramid_level_factor = 1.0;
+		if (track->tracker == TRACKER_KLT) {
+			max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
+		}
 		for(a= 0; a<2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			track->search_min[a]= MIN2(track->pat_min[a], track->search_min[a]);
-			track->search_max[a]= MAX2(track->pat_max[a], track->search_max[a]);
+			track->search_min[a]= MIN2(pat_min[a], track->search_min[a]);
+			track->search_max[a]= MAX2(pat_max[a], track->search_max[a]);
 		}
 	}
 	else if(event==CLAMP_SEARCH_POS) {
@@ -115,13 +132,28 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 
 		for(a= 0; a<2; a++) {
 			/* search shouldn't be moved inside pattern */
-			if(track->search_min[a] > track->pat_min[a]) {
-				track->search_min[a]= track->pat_min[a];
+			if(track->search_min[a] > pat_min[a]) {
+				track->search_min[a]= pat_min[a];
 				track->search_max[a]= track->search_min[a]+dim[a];
 			}
-			if(track->search_max[a] < track->pat_max[a]) {
-				track->search_max[a]= track->pat_max[a];
+			if(track->search_max[a] < pat_max[a]) {
+				track->search_max[a]= pat_max[a];
 				track->search_min[a]= track->search_max[a]-dim[a];
+			}
+		}
+	}
+
+	else if(event==CLAMP_PYRAMID_LEVELS || (event==CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT))  {
+		float dim[2];
+		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
+		{
+			float search_ratio = 2.3f * max_pyramid_level_factor;
+
+			/* resize the search area to something sensible based
+			 * on the number of pyramid levels */
+			for(a= 0; a<2; a++) {
+				track->search_min[a]= search_ratio * track->pat_min[a];
+				track->search_max[a]= search_ratio * track->pat_max[a];
 			}
 		}
 	}
@@ -159,17 +191,9 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 {
 	MovieTrackingTrack *track;
 	MovieTrackingMarker marker;
-	float pat[2]= {5.5f, 5.5f}, search[2]= {80.5f, 80.5f}; /* TODO: move to default setting? */
 
-	/* XXX: not very nice to have such check here, but it will prevent
-	        complaints about bad default settings for new markers */
-	if(tracking->settings.tracker==TRACKER_SAD) {
-		pat[0]= 8.0f;
-		pat[1]= 8.0f;
-
-		search[0]= 32.0f;
-		search[1]= 32.0f;
-	}
+	/* pick reasonable defaults */
+	float pat[2]= {5.5f, 5.5f}, search[2]= {25.5f, 25.5f}; /* TODO: move to default setting? */
 
 	pat[0] /= (float)width;
 	pat[1] /= (float)height;
@@ -179,6 +203,13 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 	strcpy(track->name, "Track");
+
+	/* default to KLT tracker */
+	track->tracker = TRACKER_KLT;
+	track->pyramid_levels = 2;
+
+	/* set SAD defaults even though it's not selected by default */
+	track->minimum_correlation= 0.75f;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -554,21 +585,28 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 					MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
 
 					track_context->track= new_track;
-
 #ifdef WITH_LIBMV
 					{
-						if(context->settings.tracker==TRACKER_KLT) {
+						if(track_context->track->tracker==TRACKER_KLT) {
 							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
 							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
 
-							int level= (log(2.0f * MIN2(search_size_x, search_size_y) / MAX2(pattern_size_x, pattern_size_y))/M_LN2+0.5f);
+							/* compute the maximum pyramid size */
+							double search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
+								/ MAX2(pattern_size_x, pattern_size_y);
+							double log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
+							int max_pyramid_levels= floor(log2_search_to_pattern_ratio + 1);
 
-							track_context->region_tracker= libmv_regionTrackerNew(100, level, 0.2);
+							/* try to accomodate the user's choice of pyramid level in a way
+							 * that doesn't cause the coarsest pyramid pattern to be larger
+							 * than the search size */
+							int level= MIN2(track_context->track->pyramid_levels, max_pyramid_levels);
+							track_context->region_tracker= libmv_regionTrackerNew(100, level);
 						}
-						else if(context->settings.tracker==TRACKER_SAD) {
-							/* notfing to initialize */
+						else if(track_context->track->tracker==TRACKER_SAD) {
+							/* nothing to initialize */
 						}
 					}
 #endif
@@ -1010,7 +1048,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			   marker->pos[1]<margin[1] || marker->pos[1]>1.0f-margin[1]) {
 				onbound= 1;
 			}
-			else if(context->settings.tracker==TRACKER_KLT) {
+			else if(track_context->track->tracker==TRACKER_KLT) {
 				int wndx, wndy;
 				float *patch_new;
 
@@ -1042,9 +1080,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				MEM_freeN(patch_new);
 			}
-			else if(context->settings.tracker==TRACKER_SAD) {
+			else if(track_context->track->tracker==TRACKER_SAD) {
 				unsigned char *image_new;
-				float corr;
+				float correlation;
 				float warp[3][2]={{0}};
 
 				if(need_readjust) {
@@ -1095,12 +1133,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				warp[2][0]= pos[0];
 				warp[2][1]= pos[1];
 
-				corr= libmv_SADTrackerTrack(track_context->pattern, track_context->warped, image_new, width, width, height, warp);
+				correlation= libmv_SADTrackerTrack(track_context->pattern, track_context->warped, image_new, width, width, height, warp);
 
 				x2= warp[2][0];
 				y2= warp[2][1];
 
-				tracked= corr>=context->settings.corr;
+				tracked= track_context->track->minimum_correlation < correlation;
 
 				if(tracked)
 					get_warped(track_context, x2, y2, width, image_new);

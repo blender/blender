@@ -79,19 +79,6 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
 }
 
-static bool SolveTrackingEquation(const Mat2f &U,
-                                  const Vec2f &e,
-                                  float min_determinant,
-                                  Vec2f *d) {
-  float det = U.determinant();
-  if (det < min_determinant) {
-    d->setZero();
-    return false;
-  }
-  *d = U.lu().solve(e);
-  return true;
-}
-
 bool TrkltRegionTracker::Track(const FloatImage &image1,
                                const FloatImage &image2,
                                double  x1, double  y1,
@@ -116,16 +103,23 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
                             &U, &e);
 
     // Solve the linear system for the best update to x2 and y2.
-    if (!SolveTrackingEquation(U, e, min_determinant, &d)) {
-      // The determinant, which indicates the trackiness of the point, is too
-      // small, so fail out.
-      LG << "Determinant too small; failing tracking.";
-      return false;
-    }
+    d = U.lu().solve(e);
 
     // Update the position with the solved displacement.
     *x2 += d[0];
     *y2 += d[1];
+
+    // Check for the quality of the solution, but not until having already
+    // updated the position with our best estimate. The reason to do the update
+    // anyway is that the user already knows the position is bad, so we may as
+    // well try our best.
+    float determinant = U.determinant();
+    if (fabs(determinant) < min_determinant) {
+      // The determinant, which indicates the trackiness of the point, is too
+      // small, so fail out.
+      LG << "Determinant " << determinant << " is too small; failing tracking.";
+      return false;
+    }
 
     // If the update is small, then we probably found the target.
     if (d.squaredNorm() < min_update_squared_distance) {
@@ -134,7 +128,7 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
     }
   }
   // Getting here means we hit max iterations, so tracking failed.
-  LG << "Too many iterations.";
+  LG << "Too many iterations; max is set to " << max_iterations << ".";
   return false;
 }
 

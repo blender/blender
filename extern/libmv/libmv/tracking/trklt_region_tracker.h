@@ -37,7 +37,7 @@ namespace libmv {
 struct TrkltRegionTracker : public RegionTracker {
   TrkltRegionTracker()
       : half_window_size(4),
-        max_iterations(16),
+        max_iterations(100),
         min_determinant(1e-6),
         min_update_squared_distance(1e-6),
         sigma(0.9),

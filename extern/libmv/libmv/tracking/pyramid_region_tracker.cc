@@ -23,6 +23,7 @@
 #include "libmv/image/convolve.h"
 #include "libmv/image/image.h"
 #include "libmv/image/sample.h"
+#include "libmv/logging/logging.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
 
 namespace libmv {
@@ -69,6 +70,7 @@ bool PyramidRegionTracker::Track(const FloatImage &image1,
       // Only fail on the highest-resolution level, because a failure on a
       // coarse level does not mean failure at a lower level (consider
       // out-of-bounds conditions).
+      LG << "Finest level of pyramid tracking failed; failing.";
       return false;
     }
   }

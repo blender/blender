@@ -58,10 +58,10 @@ typedef struct MovieTrackingCamera {
 
 	float sensor_width;	/* width of CCD sensor */
 	float pixel_aspect;	/* pixel aspect ratio */
-	float pad2;
+	float pad;
 	float focal;		/* focal length */
 	short units;		/* units of focal length user is working with */
-	short pad;
+	short pad1;
 	float principal[2];	/* principal point */
 	float k1, k2, k3;	/* radial distortion */
 } MovieTrackingCamera;
@@ -98,21 +98,29 @@ typedef struct MovieTrackingTrack {
 	short transflag;					/* transform flags */
 	char pad3[2];
 	float color[3];						/* custom color for track */
+
+	/* tracking algorithm to use; can be KLT or SAD */
+	short tracker;
+	char pad4[2];
+
+	/* ** SAD tracker settings ** */
+	float minimum_correlation;			/* minimal correlation which is still treated as successful tracking */
+
+	/* ** KLT tracker settings ** */
+	int pyramid_levels;		/* number of pyramid levels to use for KLT tracking */
+	char pad5[4];
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
-	short tracker;	/* tracker to use */
-
 	/* ** common tracker settings ** */
 	short speed;			/* speed of tracking */
 	short frames_limit;		/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	short margin;			/* margin from frame boundaries */
+	char pad[2];
+
 	int adjframes;			/* re-adjust every N frames */
 
-	/* ** SAD tracker settings ** */
-	float corr;					/* minimal correlation which is still treated as successful tracking */
-
-	/* ** reconstructionsettings ** */
+	/* ** reconstruction settings ** */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 
 	/* ** tool settings ** */
@@ -154,11 +162,12 @@ typedef struct MovieTrackingReconstruction {
 
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
+	char pad2[4];
+
 	MovieTrackingCamera camera;		/* camera intrinsics */
 	ListBase tracks;				/* all tracks */
 	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
-
 	MovieTrackingTrack *act_track;		/* active track */
 } MovieTracking;
 
