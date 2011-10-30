@@ -202,13 +202,12 @@ BM_INLINE int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int 
 	}
 }
 
-static void get_face_uv_map_vert(UvVertMap *vmap, struct MFace *mf, int fi, CCGVertHDL *fverts) {
-	unsigned int *fv = &mf->v1;
+static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mp, struct MLoop *ml, int fi, CCGVertHDL *fverts) {
 	UvMapVert *v, *nv;
-	int j, nverts= mf->v4? 4: 3;
+	int j, nverts= mp->totloop;
 
-	for (j=0; j<nverts; j++, fv++) {
-		for (nv=v=get_uv_map_vert(vmap, *fv); v; v=v->next) {
+	for (j=0; j<nverts; j++) {
+		for (nv=v=get_uv_map_vert(vmap, ml[j].v); v; v=v->next) {
 			if (v->separate)
 				nv= v;
 			if (v->f == fi)
@@ -219,27 +218,23 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MFace *mf, int fi, CCGV
 	}
 }
 
-static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, MTFace *tface) {
-#if 1 /*BMESH_TODO*/
-	(void)ss;
-	(void)origss;
-	(void)dm;
-	(void)tface;
-#else
-	MFace *mface = dm->getTessFaceArray(dm);
+static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, MLoopUV *mloopuv) {
+	MPoly *mpoly = dm->getPolyArray(dm);
+	MLoop *mloop = dm->getLoopArray(dm);
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumTessFaces(dm);
+	int totface = dm->getNumFaces(dm);
 	int i, j, seam;
 	UvMapVert *v;
 	UvVertMap *vmap;
 	float limit[2];
-	CCGVertHDL fverts[4];
+	CCGVertHDL *fverts= NULL;
+	BLI_array_declare(fverts);
 	EdgeHash *ehash;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 
 	limit[0]= limit[1]= STD_UV_CONNECT_LIMIT;
-	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
+	vmap= make_uv_vert_map(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
 	
@@ -262,8 +257,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 				CCGVertHDL vhdl = SET_INT_IN_POINTER(v->f*4 + v->tfindex);
 				float uv[3];
 
-				uv[0]= (tface+v->f)->uv[v->tfindex][0];
-				uv[1]= (tface+v->f)->uv[v->tfindex][1];
+				uv[0]= mloopuv[mpoly[v->f].loopstart + v->tfindex].uv[0];
+				uv[1]= mloopuv[mpoly[v->f].loopstart + v->tfindex].uv[1];
 				uv[2]= 0.0f;
 
 				ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
@@ -275,18 +270,22 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	ehash = BLI_edgehash_new();
 
 	for (i=0; i<totface; i++) {
-		MFace *mf = &((MFace*) mface)[i];
-		int nverts= mf->v4? 4: 3;
+		MPoly *mp = &((MPoly*) mpoly)[i];
+		int nverts= mp->totloop;
 		CCGFace *origf= ccgSubSurf_getFace(origss, SET_INT_IN_POINTER(i));
-		unsigned int *fv = &mf->v1;
+		/* unsigned int *fv = &mp->v1; */
+		MLoop *ml= mloop + mp->loopstart;
 
-		get_face_uv_map_vert(vmap, mf, i, fverts);
+		BLI_array_empty(fverts);
+		BLI_array_growitems(fverts, nverts);
+
+		get_face_uv_map_vert(vmap, mp, ml, i, fverts);
 
 		for (j=0; j<nverts; j++) {
 			int v0 = GET_INT_FROM_POINTER(fverts[j]);
 			int v1 = GET_INT_FROM_POINTER(fverts[(j+1)%nverts]);
-			MVert *mv0 = mvert + *(fv+j);
-			MVert *mv1 = mvert + *(fv+((j+1)%nverts));
+			MVert *mv0 = mvert + (ml[ j ]. v);
+			MVert *mv1 = mvert + (ml[ ((j+1)%nverts) ].v);
 
 			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
 				CCGEdge *e, *orige= ccgSubSurf_getFaceEdge(origss, origf, j);
@@ -308,18 +307,23 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	/* create faces */
 	for (i=0; i<totface; i++) {
-		MFace *mf = &((MFace*) mface)[i];
-		int nverts= mf->v4? 4: 3;
+		MPoly *mp = &((MPoly*) mpoly)[i];
+		MLoop *ml= mloop + mp->loopstart;
+		int nverts= mp->totloop;
 		CCGFace *f;
 
-		get_face_uv_map_vert(vmap, mf, i, fverts);
+		BLI_array_empty(fverts);
+		BLI_array_growitems(fverts, nverts);
+
+		get_face_uv_map_vert(vmap, mp, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
 	}
+
+	BLI_array_free(fverts);
 
 	free_uv_vert_map(vmap);
 	ccgSubSurf_processSync(ss);
 
-#endif
 	return 1;
 }
 
@@ -328,18 +332,22 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 	CCGSubSurf *uvss;
 	CCGFace **faceMap;
 	MTFace *tf;
+	MLoopUV *mluv;
 	CCGFaceIterator *fi;
 	int index, gridSize, gridFaces, /*edgeSize,*/ totface, x, y, S;
-	MTFace *dmtface = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, n);
+	MLoopUV *dmloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, n);
+	/* need to update both CD_MTFACE & CD_MLOOPUV, hrmf, we could get away with
+	 * just tface except applying the modifier then looses subsurf UV */
 	MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
+	MLoopUV *mloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, n);
 
-	if(!dmtface || !tface)
+	if(!dmloopuv || (!tface && !mloopuv))
 		return;
 
 	/* create a CCGSubSurf from uv's */
 	uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss), 0, 1, 0);
 
-	if(!ss_sync_from_uv(uvss, ss, dm, dmtface)) {
+	if(!ss_sync_from_uv(uvss, ss, dm, dmloopuv)) {
 		ccgSubSurf_free(uvss);
 		return;
 	}
@@ -362,6 +370,7 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 
 	/* load coordinates from uvss into tface */
 	tf= tface;
+	mluv= mloopuv;
 
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = faceMap[index];
@@ -377,12 +386,22 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 					float *c = faceGridData[(y + 1)*gridSize + x + 1].co;
 					float *d = faceGridData[(y + 1)*gridSize + x + 0].co;
 
-					tf->uv[0][0] = a[0]; tf->uv[0][1] = a[1];
-					tf->uv[1][0] = d[0]; tf->uv[1][1] = d[1];
-					tf->uv[2][0] = c[0]; tf->uv[2][1] = c[1];
-					tf->uv[3][0] = b[0]; tf->uv[3][1] = b[1];
+					if (tface) {
+						tf->uv[0][0] = a[0]; tf->uv[0][1] = a[1];
+						tf->uv[1][0] = d[0]; tf->uv[1][1] = d[1];
+						tf->uv[2][0] = c[0]; tf->uv[2][1] = c[1];
+						tf->uv[3][0] = b[0]; tf->uv[3][1] = b[1];
+					}
+
+					if (mloopuv) {
+						mluv[0].uv[0] = a[0]; mluv[0].uv[1] = a[1];
+						mluv[1].uv[0] = d[0]; mluv[1].uv[1] = d[1];
+						mluv[2].uv[0] = c[0]; mluv[2].uv[1] = c[1];
+						mluv[3].uv[0] = b[0]; mluv[3].uv[1] = b[1];
+					}
 
 					tf++;
+					mluv+=4;
 				}
 			}
 		}
@@ -2956,6 +2975,16 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		}
 
 		edgeNum += numFinalEdges;
+	}
+
+	if(useSubsurfUv) {
+		CustomData *ldata = &ccgdm->dm.loopData;
+		CustomData *dmldata = &dm->loopData;
+		int numlayer = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+		int dmnumlayer = CustomData_number_of_layers(dmldata, CD_MLOOPUV);
+
+		for (i=0; i<numlayer && i<dmnumlayer; i++)
+			set_subsurf_uv(ss, dm, &ccgdm->dm, i);
 	}
 
 	for(index = 0; index < totvert; ++index) {
