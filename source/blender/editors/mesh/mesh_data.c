@@ -627,13 +627,14 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 
 void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 {
+	int *polyindex = NULL;
+	float (*face_nors)[3];
+
 	if(mesh->totface > 0 && mesh->totpoly == 0)
 		convert_mfaces_to_mpolys(mesh);
 
 	if(calc_edges || (mesh->totpoly && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
-
-	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 
 	mesh->totface = mesh_recalcTesselation(
 		&mesh->fdata,
@@ -647,6 +648,26 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 		0);
 
 	mesh_update_customdata_pointers(mesh);
+
+	/* origindex for tesselated faces currently holds indices of the poly
+	   the face was tesselated from */
+	polyindex = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
+	/* add a normals layer for tesselated faces, a tessface normal will
+	   contain the normal of the poly the face was tesselated from. */
+	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
+
+	mesh_calc_normals(
+		mesh->mvert,
+		mesh->totvert,
+		mesh->mloop,
+		mesh->mpoly,
+		mesh->totloop,
+		mesh->totpoly,
+		NULL /* polyNors_r */,
+		mesh->mface,
+		mesh->totface,
+		polyindex,
+		face_nors);
 
 	DAG_id_tag_update(&mesh->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mesh);
