@@ -280,6 +280,12 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 		bm = BKE_mesh_to_bmesh(me, ob);
 	}
 
+	if (me->edit_btmesh) {
+		/* this happens when switching shape keys */
+		BMEdit_Free(me->edit_btmesh);
+		MEM_freeN(me->edit_btmesh);
+	}
+
 	me->edit_btmesh = BMEdit_Create(bm);
 	me->edit_btmesh->selectmode= me->edit_btmesh->bm->selectmode= ts->selectmode;
 	me->edit_btmesh->me = me;
