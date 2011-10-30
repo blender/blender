@@ -1844,7 +1844,7 @@ void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 		/* add a trailing slash if needed */
 		BLI_add_slash(fullname);
 #ifdef WIN32
-		if(userdir != fullname) {
+		if(userdir && userdir != fullname) {
 			BLI_strncpy(userdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
 		}
 #endif

@@ -91,12 +91,12 @@
 #include "RE_shader_ext.h"
 
 /* fluid sim particle import */
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
-#endif // DISABLE_ELBEEM
+#endif // WITH_MOD_FLUID
 
 //XXX #include "BIF_screen.h"
 
