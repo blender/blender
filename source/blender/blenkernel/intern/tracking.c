@@ -1033,9 +1033,13 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
 			int onbound= 0, coords_correct= 0;
+			int nextfra;
 
 			if(!context->settings.adjframes) need_readjust= context->first_time;
 			else need_readjust= context->frames%context->settings.adjframes == 0;
+
+			if(context->backwards) nextfra= curfra-1;
+			else nextfra= curfra+1;
 
 			/* margin from frame boundaries */
 			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
@@ -1180,21 +1184,31 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				}
 
 				marker_new.flag|= MARKER_TRACKED;
-
-				if(context->backwards) marker_new.framenr= curfra-1;
-				else marker_new.framenr= curfra+1;
+				marker_new.framenr= nextfra;
 
 				#pragma omp critical
 				{
 					BKE_tracking_insert_marker(track, &marker_new);
 				}
 
+				if(context->backwards) nextfra--;
+				else nextfra++;
+
+				/* make currently tracked segment be finished with disabled marker */
+				if(!BKE_tracking_has_marker(track, nextfra)) {
+					marker_new.framenr= nextfra;
+					marker_new.flag|= MARKER_DISABLED;
+					marker_new.flag&= ~MARKER_TRACKED;
+
+					#pragma omp critical
+					{
+						BKE_tracking_insert_marker(track, &marker_new);
+					}
+				}
 			} else {
 				marker_new= *marker;
 
-				if(context->backwards) marker_new.framenr--;
-				else marker_new.framenr++;
-
+				marker_new.framenr= nextfra;
 				marker_new.flag|= MARKER_DISABLED;
 
 				#pragma omp critical

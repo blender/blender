@@ -462,11 +462,21 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 
 static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	op->customdata= slide_marker_customdata(C, event);
+	SlideMarkerData *slidedata= slide_marker_customdata(C, event);
 
-	if(op->customdata) {
+	if(slidedata) {
+		SpaceClip *sc= CTX_wm_space_clip(C);
+		MovieClip *clip= ED_space_clip(sc);
+		MovieTracking *tracking= &clip->tracking;
+
+		tracking->act_track= slidedata->track;
+
+		op->customdata= slidedata;
+
 		hide_cursor(C);
 		WM_event_add_modal_handler(C, op);
+
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -740,6 +750,8 @@ static int mouse_select(bContext *C, float co[2], int extend)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *act_track= tracking->act_track;
 	MovieTrackingTrack *track= NULL;	/* selected marker */
 
 	track= find_nearest_track(sc, clip, co);
@@ -751,7 +763,10 @@ static int mouse_select(bContext *C, float co[2], int extend)
 			area= TRACK_AREA_ALL;
 
 		if(extend && TRACK_AREA_SELECTED(track, area)) {
-			BKE_movieclip_deselect_track(clip, track, area);
+			if(track==act_track)
+				BKE_movieclip_deselect_track(clip, track, area);
+			else
+				clip->tracking.act_track= track;
 		} else {
 			if(area==TRACK_AREA_POINT)
 				area= TRACK_AREA_ALL;
@@ -759,6 +774,11 @@ static int mouse_select(bContext *C, float co[2], int extend)
 			BKE_movieclip_select_track(clip, track, area, extend);
 			clip->tracking.act_track= track;
 		}
+	}
+
+	if(!extend) {
+		sc->xlockof= 0.0f;
+		sc->ylockof= 0.0f;
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
@@ -779,14 +799,22 @@ static int select_exec(bContext *C, wmOperator *op)
 
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	void *customdata;
 	float co[2];
 	int extend= RNA_boolean_get(op->ptr, "extend");
 
 	if(!extend) {
-		customdata= slide_marker_customdata(C, event);
-		if(customdata) {
-			MEM_freeN(customdata);
+		SlideMarkerData *slidedata= slide_marker_customdata(C, event);
+
+		if(slidedata) {
+			SpaceClip *sc= CTX_wm_space_clip(C);
+			MovieClip *clip= ED_space_clip(sc);
+
+			clip->tracking.act_track= slidedata->track;
+
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+
+			MEM_freeN(slidedata);
+
 			return OPERATOR_PASS_THROUGH;
 		}
 	}
