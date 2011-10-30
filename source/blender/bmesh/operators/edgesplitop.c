@@ -187,6 +187,11 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 					}
 				}
 
+				/* If the original edge was non-manifold edges, then it is
+				   possible l->e is not et->newe1 or et->newe2. So always clear
+				   the flag on l->e as well, to prevent infinite looping. */
+				BMO_ClearFlag(bm, l->e, EDGE_SEAM);
+
 				startl = l;
 				do {
 					l = BM_OtherFaceLoop(l->e, l->f, v);
@@ -201,25 +206,6 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				}
 
 				v = (l->v == v) ? l->next->v : l->v;
-
-				/*
-				 * temporary workaround for #28869: this inner loop is hanging
-				 * on loading some file with edge split modifier. the loop visits
-				 * vertices, and shouldn't execute more iterations than there are
-				 * vertices in the mesh.
-				 *
-				 * clear tags and bail if things start to seem flaky.
-				 */
-				if (++j > bm->totvert) {
-					BLI_assert(0);
-
-					BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-						BMO_SetFlag(bm, e, EDGE_RET1);
-						BMO_SetFlag(bm, e, EDGE_RET2);
-					}
-
-					return;
-				}
 			}
 		}
 	}
