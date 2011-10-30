@@ -141,8 +141,8 @@ struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob,
 int object_is_modified(struct Scene *scene, struct Object *ob);
 
 void object_camera_mode(struct RenderData *rd, struct Object *camera);
-void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *fov_mode)
+void object_camera_intrinsics(struct Object *camera, struct Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
+			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *fov_mode);
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
 		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens,
