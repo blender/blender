@@ -2613,7 +2613,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int gridInternalEdges;
 	float *w = NULL;
 	WeightTable wtable = {0};
-	MCol *mcol;
+	/* MCol *mcol; */ /* UNUSED */
 	MEdge *medge = NULL;
 	/* MFace *mface = NULL; */
 	MPoly *mpoly = NULL;
@@ -2760,10 +2760,14 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	polyOrigIndex = DM_get_face_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
+#if 0
+	/* this is not in trunk, can gives problems because colors initialize
+	 * as black, just dont do it!, it works fine - campbell */
 	if (!CustomData_has_layer(&ccgdm->dm.faceData, CD_MCOL))
 		DM_add_tessface_layer(&ccgdm->dm, CD_MCOL, CD_CALLOC, NULL);
-
 	mcol = DM_get_tessface_data_layer(&ccgdm->dm, CD_MCOL);
+#endif
+
 	has_edge_origindex = CustomData_has_layer(&ccgdm->dm.edgeData, CD_ORIGINDEX);
 
 	faceNum = 0;
