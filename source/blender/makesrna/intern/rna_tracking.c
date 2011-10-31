@@ -132,29 +132,25 @@ static int rna_tracking_markers_length(PointerRNA *ptr)
 	return track->markersnr;
 }
 
-static float rna_trackingCamera_focal_get(PointerRNA *ptr)
+static float rna_trackingCamera_focal_mm_get(PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 	float val= camera->focal;
 
-	if(camera->units==CAMERA_UNITS_MM) {
-		if(clip->lastsize[0])
-			val= val*camera->sensor_width/(float)clip->lastsize[0];
-	}
+	if(clip->lastsize[0])
+		val= val*camera->sensor_width/(float)clip->lastsize[0];
 
 	return val;
 }
 
-static void rna_trackingCamera_focal_set(PointerRNA *ptr, float value)
+static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 
-	if(camera->units==CAMERA_UNITS_MM) {
-		if(clip->lastsize[0])
-			value= clip->lastsize[0]*value/camera->sensor_width;
-	}
+	if(clip->lastsize[0])
+		value= clip->lastsize[0]*value/camera->sensor_width;
 
 	camera->focal= value;
 }
@@ -336,8 +332,15 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "focal");
 	RNA_def_property_range(prop, 0.0f, 5000.0f);
+	RNA_def_property_float_funcs(prop, "rna_trackingCamera_focal_mm_get", "rna_trackingCamera_focal_mm_set", NULL);
 	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length");
-	RNA_def_property_float_funcs(prop, "rna_trackingCamera_focal_get", "rna_trackingCamera_focal_set", NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* Focal Length in pixels */
+	prop= RNA_def_property(srna, "focal_length_pixels", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "focal");
+	RNA_def_property_range(prop, 0.0f, 5000.0f);
+	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	/* Units */

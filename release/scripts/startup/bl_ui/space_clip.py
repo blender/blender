@@ -355,7 +355,10 @@ class CLIP_PT_tracking_camera(Panel):
 
         row = layout.row(align=True)
         sub = row.split(percentage=0.65)
-        sub.prop(clip.tracking.camera, "focal_length")
+        if clip.tracking.camera.units == 'MILLIMETERS':
+            sub.prop(clip.tracking.camera, "focal_length")
+        else:
+            sub.prop(clip.tracking.camera, "focal_length_pixels")
         sub.prop(clip.tracking.camera, "units", text="")
 
         col = layout.column(align=True)
