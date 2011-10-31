@@ -79,7 +79,7 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 	}
 
 	if (pmd->brush) {
-		if (pmd->brush->mat) {
+		if (pmd->brush->flags & MOD_DPAINT_USE_MATERIAL) {
 			dataMask |= (1 << CD_MTFACE);
 		}
 	}

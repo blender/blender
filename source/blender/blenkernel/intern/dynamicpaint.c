@@ -99,10 +99,10 @@ static int neighY[8] = {0,1,1, 1, 0,-1,-1,-1};
 #define EFF_MOVEMENT_PER_FRAME 0.05f
 /* initial wave time factor */
 #define WAVE_TIME_FAC 0.1
+/* drying limits */
+#define MIN_WETNESS 0.001f
 /* dissolve macro */
-#define VALUE_DISSOLVE(VALUE, SPEED, SCALE, LOG) (VALUE) = (LOG) ? (VALUE) * 1.0f - 1.0f/((SPEED)/(SCALE)) : (VALUE) - 1.0f/(SPEED)*(SCALE)
-
-static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe);
+#define VALUE_DISSOLVE(VALUE, TIME, SCALE, LOG) (VALUE) = (LOG) ? (VALUE) * (pow(MIN_WETNESS,1.0f/(1.2f*((float)(TIME))/(SCALE)))) : (VALUE) - 1.0f/(TIME)*(SCALE)
 
 /***************************** Internal Structs ***************************/
 
@@ -397,6 +397,25 @@ static int surface_totalSamples(DynamicPaintSurface *surface)
 		return (surface->data->total_points+surface->data->adj_data->total_targets);
 
 	return surface->data->total_points;
+}
+
+static void blendColors(float t_color[3], float t_alpha, float s_color[3], float s_alpha, float result[4])
+{
+	int i;
+	float i_alpha = 1.0f - s_alpha;
+	float f_alpha = t_alpha*i_alpha + s_alpha;
+
+	/* blend colors */
+	if (f_alpha) {
+		for (i=0; i<3; i++) {
+			result[i] = (t_color[i]*t_alpha*i_alpha + s_color[i]*s_alpha)/f_alpha;
+		}
+	}
+	else {
+		copy_v3_v3(result, t_color);
+	}
+	/* return final alpha */
+	result[3] = f_alpha;
 }
 
 /* assumes source alpha > 0.0f or results NaN colors */
@@ -917,8 +936,8 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->effect = 0;
 	surface->effect_ui = 1;
 
-	surface->diss_speed = 300;
-	surface->dry_speed = 300;
+	surface->diss_speed = 250;
+	surface->dry_speed = 500;
 	surface->depth_clamp = 0.0f;
 	surface->disp_factor = 1.0f;
 	surface->disp_type = MOD_DPAINT_DISP_DISPLACE;
@@ -946,7 +965,7 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->shrink_speed = 1.0f;
 
 	surface->wave_damping = 0.05f;
-	surface->wave_speed = 0.8f;
+	surface->wave_speed = 1.0f;
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20;
 
@@ -970,62 +989,64 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 {
 	if(pmd) {
 		if(type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
+			DynamicPaintCanvasSettings *canvas;
 			if(pmd->canvas)
 				dynamicPaint_freeCanvas(pmd);
 
-			pmd->canvas = MEM_callocN(sizeof(DynamicPaintCanvasSettings), "DynamicPaint Canvas");
-			if (!pmd->canvas)
+			canvas = pmd->canvas = MEM_callocN(sizeof(DynamicPaintCanvasSettings), "DynamicPaint Canvas");
+			if (!canvas)
 				return 0;
-			pmd->canvas->pmd = pmd;
-			pmd->canvas->dm = NULL;
+			canvas->pmd = pmd;
+			canvas->dm = NULL;
 
 			/* Create one surface */
-			if (!dynamicPaint_createNewSurface(pmd->canvas, scene))
+			if (!dynamicPaint_createNewSurface(canvas, scene))
 				return 0;
 
 		}
 		else if(type == MOD_DYNAMICPAINT_TYPE_BRUSH) {
+			DynamicPaintBrushSettings *brush;
 			if(pmd->brush)
 				dynamicPaint_freeBrush(pmd);
 
-			pmd->brush = MEM_callocN(sizeof(DynamicPaintBrushSettings), "DynamicPaint Paint");
-			if (!pmd->brush)
+			brush = pmd->brush = MEM_callocN(sizeof(DynamicPaintBrushSettings), "DynamicPaint Paint");
+			if (!brush)
 				return 0;
-			pmd->brush->pmd = pmd;
+			brush->pmd = pmd;
 
-			pmd->brush->psys = NULL;
+			brush->psys = NULL;
 
-			pmd->brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
-			pmd->brush->collision = MOD_DPAINT_COL_VOLUME;
+			brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
+			brush->collision = MOD_DPAINT_COL_VOLUME;
 			
-			pmd->brush->mat = NULL;
-			pmd->brush->r = 0.15f;
-			pmd->brush->g = 0.4f;
-			pmd->brush->b = 0.8f;
-			pmd->brush->alpha = 1.0f;
-			pmd->brush->wetness = 1.0f;
+			brush->mat = NULL;
+			brush->r = 0.15f;
+			brush->g = 0.4f;
+			brush->b = 0.8f;
+			brush->alpha = 1.0f;
+			brush->wetness = 1.0f;
 
-			pmd->brush->paint_distance = 1.0f;
-			pmd->brush->proximity_falloff = MOD_DPAINT_PRFALL_SMOOTH;
+			brush->paint_distance = 1.0f;
+			brush->proximity_falloff = MOD_DPAINT_PRFALL_SMOOTH;
 
-			pmd->brush->particle_radius = 0.2f;
-			pmd->brush->particle_smooth = 0.05f;
+			brush->particle_radius = 0.2f;
+			brush->particle_smooth = 0.05f;
 
-			pmd->brush->wave_factor = 1.0f;
-			pmd->brush->wave_clamp = 0.0f;
-			pmd->brush->smudge_strength = 0.3f;
-			pmd->brush->max_velocity = 1.0f;
+			brush->wave_factor = 1.0f;
+			brush->wave_clamp = 0.0f;
+			brush->smudge_strength = 0.3f;
+			brush->max_velocity = 1.0f;
 
-			pmd->brush->dm = NULL;
+			brush->dm = NULL;
 
 			/* Paint proximity falloff colorramp. */
 			{
 				CBData *ramp;
 
-				pmd->brush->paint_ramp = add_colorband(0);
-				if (!pmd->brush->paint_ramp)
+				brush->paint_ramp = add_colorband(0);
+				if (!brush->paint_ramp)
 					return 0;
-				ramp = pmd->brush->paint_ramp->data;
+				ramp = brush->paint_ramp->data;
 				/* Add default smooth-falloff ramp.	*/
 				ramp[0].r = ramp[0].g = ramp[0].b = ramp[0].a = 1.0f;
 				ramp[0].pos = 0.0f;
@@ -1038,13 +1059,13 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			{
 				CBData *ramp;
 
-				pmd->brush->vel_ramp = add_colorband(0);
-				if (!pmd->brush->vel_ramp)
+				brush->vel_ramp = add_colorband(0);
+				if (!brush->vel_ramp)
 					return 0;
-				ramp = pmd->brush->vel_ramp->data;
+				ramp = brush->vel_ramp->data;
 				ramp[0].r = ramp[0].g = ramp[0].b = ramp[0].a = ramp[0].pos = 0.0f;
 				ramp[1].r = ramp[1].g = ramp[1].b = ramp[1].a = ramp[1].pos = 1.0f;
-				pmd->brush->paint_ramp->tot = 2;
+				brush->paint_ramp->tot = 2;
 			}
 		}
 	}
@@ -1068,36 +1089,37 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 		tpmd->canvas->pmd = tpmd;
 
 	} else if (tpmd->brush) {
-		tpmd->brush->pmd = tpmd;
+		DynamicPaintBrushSettings *brush = pmd->brush, *t_brush = tpmd->brush;
+		t_brush->pmd = tpmd;
 
-		tpmd->brush->flags = pmd->brush->flags;
-		tpmd->brush->collision = pmd->brush->collision;
+		t_brush->flags = brush->flags;
+		t_brush->collision = brush->collision;
 
-		tpmd->brush->mat = pmd->brush->mat;
-		tpmd->brush->r = pmd->brush->r;
-		tpmd->brush->g = pmd->brush->g;
-		tpmd->brush->b = pmd->brush->b;
-		tpmd->brush->alpha = pmd->brush->alpha;
-		tpmd->brush->wetness = pmd->brush->wetness;
+		t_brush->mat = brush->mat;
+		t_brush->r = brush->r;
+		t_brush->g = brush->g;
+		t_brush->b = brush->b;
+		t_brush->alpha = brush->alpha;
+		t_brush->wetness = brush->wetness;
 
-		tpmd->brush->particle_radius = pmd->brush->particle_radius;
-		tpmd->brush->particle_smooth = pmd->brush->particle_smooth;
-		tpmd->brush->paint_distance = pmd->brush->paint_distance;
-		tpmd->brush->psys = pmd->brush->psys;
+		t_brush->particle_radius = brush->particle_radius;
+		t_brush->particle_smooth = brush->particle_smooth;
+		t_brush->paint_distance = brush->paint_distance;
+		t_brush->psys = brush->psys;
 
-		if (pmd->brush->paint_ramp)
-			memcpy(tpmd->brush->paint_ramp, pmd->brush->paint_ramp, sizeof(ColorBand));
-		if (pmd->brush->vel_ramp)
-			memcpy(tpmd->brush->vel_ramp, pmd->brush->vel_ramp, sizeof(ColorBand));
+		if (brush->paint_ramp)
+			memcpy(t_brush->paint_ramp, brush->paint_ramp, sizeof(ColorBand));
+		if (brush->vel_ramp)
+			memcpy(t_brush->vel_ramp, brush->vel_ramp, sizeof(ColorBand));
 
-		tpmd->brush->proximity_falloff = pmd->brush->proximity_falloff;
-		tpmd->brush->wave_type = pmd->brush->wave_type;
-		tpmd->brush->ray_dir = pmd->brush->ray_dir;
+		t_brush->proximity_falloff = brush->proximity_falloff;
+		t_brush->wave_type = brush->wave_type;
+		t_brush->ray_dir = brush->ray_dir;
 
-		tpmd->brush->wave_factor = pmd->brush->wave_factor;
-		tpmd->brush->wave_clamp = pmd->brush->wave_clamp;
-		tpmd->brush->max_velocity = pmd->brush->max_velocity;
-		tpmd->brush->smudge_strength = pmd->brush->smudge_strength;
+		t_brush->wave_factor = brush->wave_factor;
+		t_brush->wave_clamp = brush->wave_clamp;
+		t_brush->max_velocity = brush->max_velocity;
+		t_brush->smudge_strength = brush->smudge_strength;
 	}
 }
 
@@ -1522,16 +1544,8 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						#pragma omp parallel for schedule(static)
 						for (i=0; i<sData->total_points; i++) {
-							int j=i*4;
-
-							fcolor[j]   = pPoint[i].color[0];
-							fcolor[j+1] = pPoint[i].color[1];
-							fcolor[j+2] = pPoint[i].color[2];
-							/* mix colors */
-							if (pPoint[i].e_alpha) mixColors(&fcolor[j], pPoint[i].alpha, pPoint[i].e_color, pPoint[i].e_alpha);
-
-							/* Use highest alpha	*/
-							fcolor[j+3] = (pPoint[i].e_alpha > pPoint[i].alpha) ? pPoint[i].e_alpha : pPoint[i].alpha;
+							/* blend dry and wet layer */
+							blendColors(pPoint[i].color, pPoint[i].alpha, pPoint[i].e_color, pPoint[i].e_alpha, &fcolor[i*4]);
 						}
 
 						/* viewport preview */
@@ -2780,23 +2794,24 @@ static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index,
 
 	/* Add paint	*/
 	if (!(paintFlags & MOD_DPAINT_ERASE)) {
-		float wetness;
+		float wetness, mix[4];
 		float temp_alpha = (*paintAlpha) * ((paintFlags & MOD_DPAINT_ABS_ALPHA) ? 1.0f : (*timescale));
 
 		/* mix brush color with wet layer color */
-		if (temp_alpha) mixColors(pPoint->e_color, pPoint->e_alpha, paintColor, temp_alpha);
+		blendColors(pPoint->e_color, pPoint->e_alpha, paintColor, temp_alpha, mix);
+		copy_v3_v3(pPoint->e_color, mix);
 
 		/* alpha */
 		if (paintFlags & MOD_DPAINT_ABS_ALPHA) {
 			if (pPoint->e_alpha < (*paintAlpha)) pPoint->e_alpha = (*paintAlpha);
 		}
 		else {
-			pPoint->e_alpha += temp_alpha;
-			if (pPoint->e_alpha > 1.0f) pPoint->e_alpha = 1.0f;
+			pPoint->e_alpha = mix[3];
 		}
 
-		/* only increase wetness if it's below paint level	*/
+		/* only increase wetness if it's below paint level */
 		wetness = (*paintWetness) * pPoint->e_alpha;
+		CLAMP(wetness, 0.0f, 1.0f);
 		if (pPoint->wetness < wetness) pPoint->wetness = wetness;
 		pPoint->state = DPAINT_PAINT_NEW;
 	}
@@ -3941,7 +3956,7 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 					if (mix) mixColors(ePoint->color, ePoint->alpha, pPoint->color, mix);
 					ePoint->alpha = ePoint->alpha*(1.0f-dir_factor) + pPoint->alpha*dir_factor;
 
-					/* smudge "wet layer" depending on user defined factor */
+					/* smudge "wet layer" */
 					mix = dir_factor*pPoint->e_alpha;
 					if (mix) mixColors(ePoint->e_color, ePoint->e_alpha, pPoint->e_color, mix);
 					ePoint->e_alpha = ePoint->e_alpha*(1.0f-dir_factor) + pPoint->e_alpha*dir_factor;
@@ -4348,26 +4363,49 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			PaintPoint *pPoint = &((PaintPoint*)sData->type_data)[index];
 			/* drying */
-			if (pPoint->wetness > 0.0f || pPoint->state > 0) {
-				/* for every drying step blend wet paint to the background */
-				if (pPoint->e_alpha) mixColors(pPoint->color, pPoint->alpha, pPoint->e_color, pPoint->e_alpha);
-				pPoint->state = DPAINT_PAINT_WET;
-
-				/* only increase alpha if wet paint has higher	*/
-				if (pPoint->e_alpha > pPoint->alpha) pPoint->alpha = pPoint->e_alpha;
-
-				/* now dry it ;o	*/
+			if (pPoint->wetness > MIN_WETNESS) {
+				int i;
+				float dry_ratio, f_color[4];
+				float p_wetness = pPoint->wetness;
 				VALUE_DISSOLVE(pPoint->wetness, surface->dry_speed, timescale, (surface->flags & MOD_DPAINT_DRY_LOG));
+				if (pPoint->wetness<0.0f) pPoint->wetness=0.0f;
+				dry_ratio = pPoint->wetness/p_wetness;
+
+				/*
+				*	Slowly "shift" paint from wet layer to dry layer as it drys:
+				*/
+				/* make sure alpha values are within proper range */
+				CLAMP(pPoint->alpha, 0.0f, 1.0f);
+				CLAMP(pPoint->e_alpha, 0.0f, 1.0f);
+
+				/* get current final blended color of these layers */
+				blendColors(pPoint->color, pPoint->alpha, pPoint->e_color, pPoint->e_alpha, f_color);
+				/* reduce wet layer alpha by dry factor */
+				pPoint->e_alpha *= dry_ratio;
+
+				/* now calculate new alpha for dry layer that keeps final blended color unchanged */
+				pPoint->alpha = (f_color[3] - pPoint->e_alpha)/(1.0f-pPoint->e_alpha);
+				/* for each rgb component, calculate a new dry layer color that keeps the final blend color
+				*  with these new alpha values. (wet layer color doesnt change)*/
+				for (i=0; i<3; i++) {
+					pPoint->color[i] = (f_color[i]*f_color[3] - pPoint->e_color[i]*pPoint->e_alpha)/(pPoint->alpha*(1.0f-pPoint->e_alpha));
+				}
+
+				pPoint->state = DPAINT_PAINT_WET;
 			}
-			/* 	If effect layer is completely dry, make sure it's marked empty */
-			if (pPoint->wetness <= 0.0f) {
+			/* in case of just dryed paint, just mix it to the dry layer and mark it empty */
+			else if (pPoint->state > 0) {
+				float f_color[4];
+				blendColors(pPoint->color, pPoint->alpha, pPoint->e_color, pPoint->e_alpha, f_color);
+				copy_v3_v3(pPoint->color, f_color);
+				pPoint->alpha = f_color[3];
+				/* clear wet layer */
 				pPoint->wetness = 0.0f;
 				pPoint->e_alpha = 0.0f;
 				pPoint->state = DPAINT_PAINT_DRY;
 			}
 
 			if (surface->flags & MOD_DPAINT_DISSOLVE) {
-
 				VALUE_DISSOLVE(pPoint->alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 				if (pPoint->alpha < 0.0f) pPoint->alpha = 0.0f;
 

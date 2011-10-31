@@ -879,7 +879,7 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	if(ma->texco)
-		do_material_tex(shi);
+		do_material_tex(shi, &R);
 
 	if(ma->fresnel_tra!=0.0f) 
 		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
@@ -1675,7 +1675,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->b= shi->b*neg_alpha + shi->vcol[2]*shi->vcol[3];
 		}
 		if(ma->texco){
-			do_material_tex(shi);
+			do_material_tex(shi, &R);
 			if (!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
 		}
 		

@@ -402,7 +402,7 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, bpy.types.Panel):
             if brush.particle_system:
                 col.label(text="Particle effect:")
                 sub = col.column()
-                sub.active = not brush.use_part_radius
+                sub.active = not brush.use_particle_radius
                 sub.prop(brush, "solid_radius", text="Solid Radius")
                 col.prop(brush, "use_particle_radius", text="Use Particle's Radius")
                 col.prop(brush, "smooth_radius", text="Smooth radius")
@@ -462,7 +462,7 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(brush, "smudge_strength")
         
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint Wave"
+    bl_label = "Dynamic Paint Waves"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

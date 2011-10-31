@@ -2146,7 +2146,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	return rgbnor;
 }
 
-void do_material_tex(ShadeInput *shi)
+void do_material_tex(ShadeInput *shi, Render *re)
 {
 	CompatibleBump compat_bump;
 	NTapBump ntap_bump;
@@ -2164,7 +2164,7 @@ void do_material_tex(ShadeInput *shi)
 	compatible_bump_init(&compat_bump);
 	ntap_bump_init(&ntap_bump);
 
-	if (R.r.scemode & R_NO_TEX) return;
+	if (re->r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 
 	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -2400,7 +2400,7 @@ void do_material_tex(ShadeInput *shi)
 							float len= normalize_v3(texres.nor);
 							// can be optimized... (ton)
 							mul_mat3_m4_v3(shi->obr->ob->obmat, texres.nor);
-							mul_mat3_m4_v3(R.viewmat, texres.nor);
+							mul_mat3_m4_v3(re->viewmat, texres.nor);
 							normalize_v3(texres.nor);
 							mul_v3_fl(texres.nor, len);
 						}
@@ -2433,7 +2433,7 @@ void do_material_tex(ShadeInput *shi)
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					if (ibuf && !(ibuf->rect_float) && re->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 						srgb_to_linearrgb_v3_v3(tcol, tcol);
 				}
 				
@@ -2503,12 +2503,12 @@ void do_material_tex(ShadeInput *shi)
 
 							if(mtex->normapspace == MTEX_NSPACE_CAMERA);
 							else if(mtex->normapspace == MTEX_NSPACE_WORLD) {
-								mul_mat3_m4_v3(R.viewmat, nor);
+								mul_mat3_m4_v3(re->viewmat, nor);
 							}
 							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
 								if(shi->obr && shi->obr->ob)
 									mul_mat3_m4_v3(shi->obr->ob->obmat, nor);
-								mul_mat3_m4_v3(R.viewmat, nor);
+								mul_mat3_m4_v3(re->viewmat, nor);
 							}
 
 							normalize_v3(nor);
@@ -2656,9 +2656,9 @@ void do_material_tex(ShadeInput *shi)
 					if(shi->amb<0.0f) shi->amb= 0.0f;
 					else if(shi->amb>1.0f) shi->amb= 1.0f;
 					
-					shi->ambr= shi->amb*R.wrld.ambr;
-					shi->ambg= shi->amb*R.wrld.ambg;
-					shi->ambb= shi->amb*R.wrld.ambb;
+					shi->ambr= shi->amb*re->wrld.ambr;
+					shi->ambg= shi->amb*re->wrld.ambg;
+					shi->ambb= shi->amb*re->wrld.ambb;
 				}
 			}
 		}
@@ -3634,6 +3634,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 	MVert *mvert;
 	float uv[3], normal[3];
 	ShadeInput shi = {0};
+	Render re = {0};
 
 	/* Get face data	*/
 	mvert = orcoDm->getVertArray(orcoDm);
@@ -3707,7 +3708,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 		shi.alpha = mat->alpha;
 
 		/* do texture */
-		do_material_tex(&shi);
+		do_material_tex(&shi, &re);
 
 		/* apply result	*/
 		color[0] = shi.r;
@@ -3717,7 +3718,6 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 	}
 	else if (mat->material_type == MA_TYPE_VOLUME) {
 		ObjectInstanceRen obi = {0};
-		Render re = {0};
 		obi.ob = ob;
 		shi.obi = &obi;
 		unit_m4(re.viewinv);
