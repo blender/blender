@@ -1657,23 +1657,6 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 #endif
 }
 
-void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
-			int framenr, int margin, int count, int min_distance, bGPDlayer *layer, int place_outside_layer)
-{
-#ifdef WITH_LIBMV
-	struct libmv_Features *features;
-	unsigned char *pixels= get_ucharbuf(ibuf);
-
-	features= libmv_detectFeaturesMORAVEC(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
-
-	MEM_freeN(pixels);
-
-	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer, place_outside_layer);
-
-	libmv_destroyFeatures(features);
-#endif
-}
-
 MovieTrackingTrack *BKE_tracking_indexed_bundle(MovieTracking *tracking, int bundlenr)
 {
 	MovieTrackingTrack *track= tracking->tracks.first;

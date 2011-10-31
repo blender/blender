@@ -90,10 +90,6 @@ void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ImBuf *imbu
 			int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
 			int place_outside_layer);
 
-void BKE_tracking_detect_moravec(struct MovieTracking *tracking, struct ImBuf *imbuf,
-			int framenr, int margin, int count, int min_distance, struct bGPDlayer *layer,
-			int place_outside_layer);
-
 struct MovieTrackingTrack *BKE_tracking_indexed_bundle(struct MovieTracking *tracking, int bundlenr);
 
 void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale, float *angle);
