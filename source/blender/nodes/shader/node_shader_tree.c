@@ -212,8 +212,15 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* each material node has own local shaderesult, with optional copying */
 	memset(shr, 0, sizeof(ShadeResult));
 	
-	if (!exec)
-		exec = ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+	/* ensure execdata is only initialized once */
+	if (!exec) {
+		BLI_lock_thread(LOCK_NODES);
+		if(!ntree->execdata)
+			ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+		BLI_unlock_thread(LOCK_NODES);
+
+		exec = ntree->execdata;
+	}
 	
 	nts= ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
