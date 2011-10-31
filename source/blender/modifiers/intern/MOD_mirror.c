@@ -105,7 +105,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 {
 	float tolerance_sq;
 	DerivedMesh *cddm, *origdm;
-	bDeformGroup *def, *defb;
+	bDeformGroup *def;
 	bDeformGroup **vector_def = NULL;
 	MVert *mv, *ov;
 	MEdge *me;
@@ -114,7 +114,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4];
 	int i, j, *vtargetmap = NULL;
 	BLI_array_declare(vtargetmap);
-	int vector_size=0, a, b, totshape;
+	int vector_size=0, a, totshape;
 
 	tolerance_sq = mmd->tolerance * mmd->tolerance;
 	

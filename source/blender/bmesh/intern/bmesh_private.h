@@ -80,9 +80,6 @@ void compute_poly_plane(float (*verts)[3], int nverts);
 void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts);
 void bmesh_flip_normal(struct BMesh *bm, struct BMFace *f);
 
-/*Error reporting. Shouldnt be called by tools ever.*/
-void BME_error(void);
-
 BMEdge *bmesh_disk_next(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_prev(BMEdge *e, BMVert *v);
 

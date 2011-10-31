@@ -995,7 +995,6 @@ static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
 static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], float cageco[3], int *is_space)
 {
 	BMFace *f;
-	float mval[2], imat[3][3];
 	int dist = KMAXDIST; 
 	float origin[3];
 	float ray[3];

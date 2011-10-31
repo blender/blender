@@ -106,7 +106,7 @@ MINLINE float interpf(float target, float origin, float fac)
  * the distance gets very high, 180d would be inf, but this case isn't valid */
 MINLINE float shell_angle_to_dist(const float angle)
 {
-	return (1.0f + SMALL_NUMBER) / (fabs(cosf(angle)) + SMALL_NUMBER);
+	return (1.0f + SMALL_NUMBER) / ((float)fabs(cosf(angle)) + SMALL_NUMBER);
 }
 
 /* used for zoom values*/
