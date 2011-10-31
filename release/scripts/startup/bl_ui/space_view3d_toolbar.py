@@ -737,7 +737,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             col = layout.column()
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
             col.prop(tex_slot, "angle", text="")
-           
+
             #col = layout.column()
             #col.prop(brush, "use_random_rotation")
             #col.active = (not brush.use_rake) and (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'}) and tex_slot.map_mode in {'FIXED'}
@@ -749,11 +749,11 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             col = layout.column(align=True)
             col.label(text="Sample Bias:")
             col.prop(brush, "texture_sample_bias", slider=True, text="")
-            
+
             col = layout.column(align=True)
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
             col.label(text="Overlay:")
-            
+
             row = col.row()
             if brush.use_texture_overlay:
                 row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
@@ -972,7 +972,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, Panel):
         row.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
         row.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
         row.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
-        
+
         layout.column().prop(sculpt, "radial_symmetry", text="Radial")
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
 

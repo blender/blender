@@ -1179,31 +1179,7 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
-class WM_OT_blenderplayer_start(Operator):
-    '''Launches the Blenderplayer with the current blendfile'''
-    bl_idname = "wm.blenderplayer_start"
-    bl_label = "Start"
-    
-    import os
-    blender_bin_path = bpy.app.binary_path
-    blender_bin_dir = os.path.dirname(blender_bin_path)
-    ext = os.path.splitext(blender_bin_path)[-1]
-    player_path = os.path.join(blender_bin_dir, 'blenderplayer' + ext)
-    
-    def execute(self, context):
-        import sys
-        import subprocess
-        import os
 
-        if sys.platform == 'darwin':
-            self.player_path = os.path.join(self.blender_bin_dir, '../../../blenderplayer.app/Contents/MacOS/blenderplayer')
-	
-        filepath = bpy.app.tempdir + "game.blend"
-        bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
-        subprocess.call([self.player_path, filepath])
-        return {'FINISHED'}
-
-        
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
@@ -1395,9 +1371,9 @@ class WM_OT_keyitem_add(Operator):
         km = context.keymap
 
         if km.is_modal:
-            km.keymap_items.new_modal("", 'A', 'PRESS')  #~ kmi
+            km.keymap_items.new_modal("", 'A', 'PRESS')
         else:
-            km.keymap_items.new("none", 'A', 'PRESS')  #~ kmi
+            km.keymap_items.new("none", 'A', 'PRESS')
 
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":

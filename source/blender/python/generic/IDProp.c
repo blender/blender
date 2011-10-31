@@ -65,9 +65,9 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 	switch ( prop->type ) {
 		case IDP_STRING:
 #ifdef USE_STRING_COERCE
-            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len);
+            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len);
+            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
 #endif
 		case IDP_INT:
 			return PyLong_FromLong( (long)prop->data.val );
@@ -483,9 +483,9 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 	switch (prop->type) {
 		case IDP_STRING:
 #ifdef USE_STRING_COERCE
-            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len);
+            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len);
+            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
 #endif
 			break;
 		case IDP_FLOAT:
@@ -625,11 +625,11 @@ static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 }
 
 /* utility function */
-static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len)
+static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len, const char *func)
 {
 	int j;
 
-	printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys/Values/Items!\n");
+	printf("%s: ID Property Error found and corrected!\n", func);
 
 	/*fill rest of list with valid references to None*/
 	for (j=len; j<prop->len; j++) {
@@ -654,7 +654,7 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 	for (; loop; loop=loop->next, i++) {}
 
 	if (i != prop->len) { /* if the loop didnt finish, we know the length is wrong */
-		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		BPy_IDGroup_CorrectListLen(prop, seq, i, __func__);
 		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
 		return BPy_Wrap_GetKeys(prop);
@@ -674,7 +674,7 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
 	}
 
 	if (i != prop->len) {
-		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		BPy_IDGroup_CorrectListLen(prop, seq, i, __func__);
 		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
 		return BPy_Wrap_GetValues(id, prop);
@@ -697,7 +697,7 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 	}
 
 	if (i != prop->len) {
-		BPy_IDGroup_CorrectListLen(prop, seq, i);
+		BPy_IDGroup_CorrectListLen(prop, seq, i, __func__);
 		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
 		return BPy_Wrap_GetItems(id, prop);
