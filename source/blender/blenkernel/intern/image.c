@@ -981,7 +981,7 @@ int BKE_add_image_extension(char *string, int imtype)
 				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
 			return BLI_replace_extension(string, FILE_MAX, extension);
 		} else {
-			strcat(string, extension);
+			return BLI_ensure_extension(string, FILE_MAX, extension);
 			return TRUE;
 		}
 		

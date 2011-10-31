@@ -1949,7 +1949,10 @@ static int blend_save_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
-	if(BLI_replace_extension(filepath, sizeof(filepath), ".blend")) {
+	if(!BLO_has_bfile_extension(filepath)) {
+		/* some users would prefer BLI_replace_extension(),
+		 * we keep getting knit-picking bug reports about this - campbell */
+		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return TRUE;
 	}
