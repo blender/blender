@@ -55,6 +55,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	BMVert *v, **vt=NULL, **verts = NULL;
 	BMEdge *e, **fedges=NULL, **et = NULL;
 	BMFace *f;
+	BMLoop *l;
 	BLI_array_declare(fedges);
 	float (*keyco)[3]= NULL;
 	int *keyi;
@@ -194,7 +195,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	for (i=0; i<me->totpoly; i++, mpoly++) {
 		BMVert *v1 /* , *v2 */ /* UNUSED */;
 		BMIter iter;
-		BMLoop *l;
 
 		BLI_array_empty(fedges);
 		BLI_array_empty(verts);
@@ -238,15 +238,31 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
-		/*Copy over loop customdata*/
 		j = 0;
-		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart+j, &l->head.data);
-			j++;
+		BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, j) {
+			/* Save index of correspsonding MLoop */
+			BM_SetIndex(l, mpoly->loopstart+j);
 		}
 
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
+	}
+
+	{
+		BMIter fiter;
+		BMIter liter;
+		
+		/* Copy over loop CustomData. Doing this in a separate loop isn't necessary
+		   but is an optimization, to avoid copying a bunch of interpolated customdata
+		   for each BMLoop (from previous BMLoops using the same edge), always followed
+		   by freeing the interpolated data and overwriting it with data from the Mesh. */
+		BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+				int li = BM_GetIndex(l);
+				CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
+				BM_SetIndex(l, 0);
+			}
+		}
 	}
 
 	{
