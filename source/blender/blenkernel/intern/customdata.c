@@ -1178,6 +1178,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 {
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
+	void *data;
 	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
 
 	for(i = 0; i < source->totlayer; ++i) {
@@ -1202,12 +1203,23 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		else if(!((int)mask & (int)(1 << (int)type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
+		switch (alloctype) {
+			case CD_ASSIGN:
+			case CD_REFERENCE:
+			case CD_DUPLICATE:
+				data = layer->data;
+				break;
+			default:
+				data = NULL;
+				break;
+		}
+
 		if((alloctype == CD_ASSIGN) && (lastflag & CD_FLAG_NOFREE))
 			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE,
-				layer->data, totelem, layer->name);
+				data, totelem, layer->name);
 		else
 			newlayer = customData_add_layer__internal(dest, type, alloctype,
-				layer->data, totelem, layer->name);
+				data, totelem, layer->name);
 		
 		if(newlayer) {
 			newlayer->uid = layer->uid;
@@ -1514,6 +1526,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
 	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
 	void *newlayerdata;
+
+	/* Passing a layerdata to copy from with an alloctype that won't copy is
+	   most likely a bug */
+	BLI_assert(!layerdata ||
+	           (alloctype == CD_ASSIGN) ||
+	           (alloctype == CD_DUPLICATE) ||
+	           (alloctype == CD_REFERENCE));
 
 	if (!typeInfo->defaultname && CustomData_has_layer(data, type))
 		return &data->layers[CustomData_get_layer_index(data, type)];
@@ -2308,13 +2327,13 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 	int i;
 	for(i=0; i < fdata->totlayer; i++){
 		if(fdata->layers[i].type == CD_MTFACE){
-			CustomData_add_layer(pdata, CD_MTEXPOLY, CD_CALLOC, &(fdata->layers[i].name), totpoly);
-			CustomData_add_layer(ldata, CD_MLOOPUV, CD_CALLOC, &(fdata->layers[i].name), totloop);
+			CustomData_add_layer_named(pdata, CD_MTEXPOLY, CD_CALLOC, NULL, totpoly, fdata->layers[i].name);
+			CustomData_add_layer_named(ldata, CD_MLOOPUV, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 		}
 		else if(fdata->layers[i].type == CD_MCOL)
-			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), totloop);
+			CustomData_add_layer_named(ldata, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 		else if(fdata->layers[i].type == CD_MDISPS) 
-			CustomData_add_layer(ldata, CD_MDISPS, CD_CALLOC, &(fdata->layers[i].name), totloop);
+			CustomData_add_layer_named(ldata, CD_MDISPS, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 	}
 }
 void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
