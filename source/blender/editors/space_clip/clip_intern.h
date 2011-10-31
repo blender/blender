@@ -47,11 +47,12 @@ struct wmOperatorType;
 void ED_clip_buttons_register(struct ARegionType *art);
 
 /* clip_draw.c */
-void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-void draw_clip_grease_pencil(struct bContext *C, int onlyv2d);
+void clip_draw_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
+void clip_draw_curfra_label(struct SpaceClip *sc, float x, float y);
 
 /* clip_graph_draw.c */
-void draw_clip_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 
 /* clip_graph_ops.c */
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
@@ -61,7 +62,6 @@ void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
 void CLIP_OT_reload(struct wmOperatorType *ot);
-// void CLIP_OT_unlink(struct wmOperatorType *ot);
 void CLIP_OT_view_pan(struct wmOperatorType *ot);
 void CLIP_OT_view_zoom(wmOperatorType *ot);
 void CLIP_OT_view_zoom_in(struct wmOperatorType *ot);
@@ -98,9 +98,6 @@ void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct Movie
 void clip_view_center_to_point(struct SpaceClip *sc, float x, float y);
 
 /* tracking_ops.c */
-void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
-void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
-
 void CLIP_OT_select(struct wmOperatorType *ot);
 void CLIP_OT_select_all(struct wmOperatorType *ot);
 void CLIP_OT_select_border(struct wmOperatorType *ot);

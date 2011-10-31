@@ -1609,7 +1609,7 @@ static int point_in_layer(bGPDlayer *layer, float x, float y)
 }
 
 static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Features *features,
-			int framenr, int width, int height, bGPDlayer *layer)
+			int framenr, int width, int height, bGPDlayer *layer, int place_outside_layer)
 {
 #ifdef WITH_LIBMV
 	int a;
@@ -1627,7 +1627,7 @@ static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Featur
 		yu= y/height;
 
 		if(layer)
-			ok= point_in_layer(layer, xu, yu);
+			ok= point_in_layer(layer, xu, yu)!=place_outside_layer;
 
 		if(ok) {
 			track= BKE_tracking_add_track(tracking, xu, yu, framenr, width, height);
@@ -1640,7 +1640,8 @@ static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Featur
 }
 
 void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
-			int framenr, int margin, int min_trackness, int min_distance, bGPDlayer *layer)
+			int framenr, int margin, int min_trackness, int min_distance, bGPDlayer *layer,
+			int place_outside_layer)
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
@@ -1650,14 +1651,14 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 
 	MEM_freeN(pixels);
 
-	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
+	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer, place_outside_layer);
 
 	libmv_destroyFeatures(features);
 #endif
 }
 
 void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
-			int framenr, int margin, int count, int min_distance, bGPDlayer *layer)
+			int framenr, int margin, int count, int min_distance, bGPDlayer *layer, int place_outside_layer)
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
@@ -1667,7 +1668,7 @@ void BKE_tracking_detect_moravec(MovieTracking *tracking, ImBuf *ibuf,
 
 	MEM_freeN(pixels);
 
-	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer);
+	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer, place_outside_layer);
 
 	libmv_destroyFeatures(features);
 #endif

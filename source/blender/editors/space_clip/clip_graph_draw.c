@@ -89,11 +89,7 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	View2D *v2d= &ar->v2d;
-	uiStyle *style= UI_GetStyle();
-	int fontid= style->widget.uifont_id, fontsize;
-	float xscale, yscale, x, y;
-	char str[32];
-	short slen;
+	float xscale, yscale;
 	float vec[2];
 
 	/* Draw a light green line to indicate current frame */
@@ -118,23 +114,7 @@ static void draw_graph_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 
-	BLI_snprintf(str, sizeof(str), "    %d", sc->user.framenr);
-	BLF_size(fontid, 11.0f, U.dpi);
-	slen= BLF_width(fontid, str);
-	fontsize= BLF_height(fontid, str);
-
-	/* get starting coordinates for drawing */
-	x= (float)sc->user.framenr * xscale;
-	y= 18;
-
-	/* draw green box around/behind text */
-	UI_ThemeColorShade(TH_CFRAME, 0);
-	glRectf(x, y,  x+slen,  y+fontsize+4);
-
-	/* draw current frame number - black text */
-	UI_ThemeColor(TH_TEXT);
-	BLF_position(fontid, x-5, y+2, 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	clip_draw_curfra_label(sc, (float)sc->user.framenr * xscale, 18);
 
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);
@@ -193,7 +173,7 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 	}
 }
 
-static void draw_clip_tracks_curves(View2D *v2d, SpaceClip *sc)
+static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
@@ -222,7 +202,7 @@ static void draw_clip_tracks_curves(View2D *v2d, SpaceClip *sc)
 	clip_graph_tracking_values_iterate(sc, &userdata, tracking_segment_knot_cb, NULL, NULL);
 }
 
-static void draw_clip_frame_curves(SpaceClip *sc)
+static void draw_frame_curves(SpaceClip *sc)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
@@ -253,7 +233,7 @@ static void draw_clip_frame_curves(SpaceClip *sc)
 		glEnd();
 }
 
-void draw_clip_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
+void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -265,10 +245,10 @@ void draw_clip_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_free(grid);
 
 	if(sc->flag&SC_SHOW_GRAPH_TRACKS)
-		draw_clip_tracks_curves(v2d, sc);
+		draw_tracks_curves(v2d, sc);
 
 	if(sc->flag&SC_SHOW_GRAPH_FRAMES)
-		draw_clip_frame_curves(sc);
+		draw_frame_curves(sc);
 
 	/* current frame */
 	draw_graph_cfra(sc, ar, scene);

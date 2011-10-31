@@ -700,16 +700,16 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	movieclip_main_area_set_view2d(sc, ar);
 
-	draw_clip_main(sc, ar, scene);
+	clip_draw_main(sc, ar, scene);
 
 	/* Grease Pencil */
-	draw_clip_grease_pencil((bContext *)C, 1);
+	clip_draw_grease_pencil((bContext *)C, 1);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 
 	/* draw Grease Pencil - screen space only */
-	draw_clip_grease_pencil((bContext *)C, 0);
+	clip_draw_grease_pencil((bContext *)C, 0);
 }
 
 static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -754,7 +754,7 @@ static void clip_preview_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 
 	/* data... */
-	draw_clip_graph(sc, ar, scene);
+	clip_draw_graph(sc, ar, scene);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

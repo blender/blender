@@ -12343,12 +12343,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d= (View3D *)sl;
 							if(v3d->bundle_size==0.0f) {
-								v3d->bundle_size= 0.1f;
+								v3d->bundle_size= 0.2f;
 								v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 							}
 
 							if(v3d->bundle_drawtype==0)
-								v3d->bundle_drawtype= OB_EMPTY_SPHERE;
+								v3d->bundle_drawtype= OB_PLAINAXES;
 						}
 						else if(sl->spacetype==SPACE_CLIP) {
 							SpaceClip *sc= (SpaceClip *)sl;

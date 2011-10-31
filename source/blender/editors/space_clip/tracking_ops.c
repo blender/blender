@@ -2245,15 +2245,18 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	ImBuf *ibuf= BKE_movieclip_get_ibuf_flag(clip, &sc->user, 0);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
 	int detector= RNA_enum_get(op->ptr, "detector");
-	int use_grease_pencil= RNA_boolean_get(op->ptr, "use_grease_pencil");
+	int placement= RNA_enum_get(op->ptr, "placement");
 	int margin= RNA_int_get(op->ptr, "margin");
 	int min_trackness= RNA_int_get(op->ptr, "min_trackness");
 	int count= RNA_int_get(op->ptr, "count");
 	int min_distance= RNA_int_get(op->ptr, "min_distance");
+	int place_outside_layer= 0;
 	bGPDlayer *layer= NULL;
 
-	if(use_grease_pencil)
+	if(placement!=0) {
 		layer= detect_get_layer(clip);
+		place_outside_layer= placement==2;
+	}
 
 	/* deselect existing tracks */
 	while(track) {
@@ -2265,9 +2268,9 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	}
 
 	if(detector==0)
-		BKE_tracking_detect_fast(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, min_distance, layer);
+		BKE_tracking_detect_fast(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, min_distance, layer, place_outside_layer);
 	else
-		BKE_tracking_detect_moravec(&clip->tracking, ibuf, sc->user.framenr, margin, count, min_distance, layer);
+		BKE_tracking_detect_moravec(&clip->tracking, ibuf, sc->user.framenr, margin, count, min_distance, layer, place_outside_layer);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2310,6 +2313,13 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 			{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem placement_items[] = {
+			{0, "FRAME",			0, "Whole Frame",			"Place markers across the whole frame"},
+			{1, "INSIDE_GPENCIL",	0, "Inside grease pencil",	"Place markers only inside areas oulined with grease pencil"},
+			{2, "OUTSIDE_GPENCIL",	0, "Outside grease pencil",	"Place markers only outside areas oulined with grease pencil"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name= "Detect Features";
 	ot->description= "Automatically detect features to track";
@@ -2325,7 +2335,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "detector", detector_items, 0, "Detector", "Detector using for detecting features");
-	RNA_def_boolean(ot->srna, "use_grease_pencil", 0, "Use Grease Pencil", "Use grease pencil strokes from active layer to define zones where detection should happen");
+	RNA_def_enum(ot->srna, "placement", placement_items, 0, "Placement", "Placement for detected features");
 	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
 	RNA_def_int(ot->srna, "min_trackness", 16, 0, INT_MAX, "Trackness", "Minimum score to add a corner", 0, 300);
 	RNA_def_int(ot->srna, "count", 50, 1, INT_MAX, "Count", "Count of corners to detect", 0, 300);

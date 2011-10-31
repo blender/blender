@@ -71,14 +71,31 @@
 
 /*********************** main area drawing *************************/
 
+void clip_draw_curfra_label(SpaceClip *sc, float x, float y)
+{
+	uiStyle *style= UI_GetStyle();
+	int fontid= style->widget.uifont_id;
+	char str[32];
+	float fontsize, fontwidth;
+
+	/* frame number */
+	BLF_size(fontid, 11.0f, U.dpi);
+	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
+	fontsize= BLF_height(fontid, str);
+	fontwidth= BLF_width(fontid, str);
+
+	glRecti(x, y, x+fontwidth+6, y+fontsize+4);
+
+	UI_ThemeColor(TH_TEXT);
+	BLF_position(fontid, x+2.0f, y+2.0f, 0.0f);
+	BLF_draw(fontid, str, strlen(str));
+}
+
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
 {
 	float x;
 	int *points, totseg, i, a;
-	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1), fontsize, fontwidth;
-	uiStyle *style= UI_GetStyle();
-	int fontid= style->widget.uifont_id;
-	char str[32];
+	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
 
 	glEnable(GL_BLEND);
 
@@ -169,17 +186,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	UI_ThemeColor(TH_CFRAME);
 	glRecti(x, 0, x+framelen, 8);
 
-	/* frame number */
-	BLF_size(fontid, 11.0f, U.dpi);
-	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
-	fontsize= BLF_height(fontid, str);
-	fontwidth= BLF_width(fontid, str);
-
-	glRecti(x, 8, x+fontwidth+6, 12+fontsize);
-
-	UI_ThemeColor(TH_TEXT);
-	BLF_position(fontid, x+2.0f, 10.0f, 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	clip_draw_curfra_label(sc, x, 8.0f);
 }
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
@@ -1240,7 +1247,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	glPopMatrix();
 }
 
-void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
+void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf;
@@ -1288,7 +1295,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 }
 
 /* draw grease pencil */
-void draw_clip_grease_pencil(bContext *C, int onlyv2d)
+void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
