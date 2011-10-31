@@ -434,7 +434,7 @@ macro(remove_strict_flags_file
 		if(CMAKE_COMPILER_IS_GNUCC)
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
-					COMPILE_FLAGS "-Wno-deprecated-declarations"
+					COMPILE_FLAGS "${CC_REMOVE_STRICT_FLAGS}"
 			)
 		endif()
 

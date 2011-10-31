@@ -65,7 +65,7 @@ set(CMAKE_BUILD_TYPE_INIT "Release")
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG           DEBUG _DEBUG)
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBUG)
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  DEBUG _DEBUG)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
 
 
 #-----------------------------------------------------------------------------
@@ -301,6 +301,9 @@ set(PLATFORM_CFLAGS)
 # these are added to later on.
 set(C_WARNINGS)
 set(CXX_WARNINGS)
+
+# for gcc -Wno-blah-blah
+set(CC_REMOVE_STRICT_FLAGS)
 
 # libraries to link the binary with passed to target_link_libraries()
 # known as LLIBS to scons
@@ -1249,6 +1252,9 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# # this causes too many warnings, disable
 	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+
+	# flags to undo strict flags
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

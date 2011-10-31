@@ -253,7 +253,9 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_BULLET'] = False
     target_env_defs['WITH_BF_BINRELOC'] = False
     target_env_defs['BF_BUILDINFO'] = False
-    target_env_defs['BF_NO_ELBEEM'] = True
+    target_env_defs['WITH_BF_FLUID'] = False
+    target_env_defs['WITH_BF_DECIMATE'] = False
+    target_env_defs['WITH_BF_BOOLEAN'] = False
     target_env_defs['WITH_BF_PYTHON'] = False
     target_env_defs['WITH_BF_3DMOUSE'] = False
     
@@ -323,9 +325,9 @@ if 'blenderplayer' in B.targets:
 if 'blendernogame' in B.targets:
     env['WITH_BF_GAMEENGINE'] = False
 
-# disable elbeem (fluidsim) compilation?
-if env['BF_NO_ELBEEM'] == 1:
-    env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
+# build without elbeem (fluidsim)?
+if env['WITH_BF_FLUID'] == 1:
+    env['CPPFLAGS'].append('-DWITH_MOD_FLUID')
 
 
 if btools.ENDIAN == "big":

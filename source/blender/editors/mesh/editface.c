@@ -346,7 +346,6 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	paintface_flush_flags(ob);
 }
 
-/* note: caller needs to run paintface_flush_flags(ob) after this */
 void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;

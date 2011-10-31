@@ -2946,6 +2946,7 @@ static BGpic *background_image_add(bContext *C)
 	bgpic->iuser.fie_ima= 2;
 	bgpic->iuser.ok= 1;
 	bgpic->view= 0; /* 0 for all */
+	bgpic->flag |= V3D_BGPIC_EXPANDED;
 	
 	BLI_addtail(&v3d->bgpicbase, bgpic);
 	

@@ -2068,7 +2068,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int
 	return rnaicon;
 }
 
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, PropertyRNA *activeprop, const char *prop_list)
+static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, PropertyRNA *activeprop, const char *prop_list_id)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
@@ -2212,8 +2212,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	 * … you’ll get a numfield for the integer prop, a check box for the bool prop, and a textfield
 	 * for the string prop, after the name of each item of the collection.
 	 */
-	else if (prop_list) {
-		PropertyRNA *prop_ctrls;
+	else if (prop_list_id) {
 		row = uiLayoutRow(sub, 1);
 		uiItemL(row, name, icon);
 
@@ -2222,18 +2221,21 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		 *      which would obviously produce a sigsev… */
 		if (itemptr->type) {
 			/* If the special property is set for the item, and it is a collection… */
-			prop_ctrls = RNA_struct_find_property(itemptr, prop_list);
-			if(prop_ctrls) {
-				if(RNA_property_type(prop_ctrls) == PROP_STRING) {
-					char *prop_names = RNA_property_string_get_alloc(itemptr, prop_ctrls, NULL, 0, NULL);
-					char *id = NULL;
-					char *ctx = NULL;
-					for(id = BLI_strtok_r(prop_names, ":", &ctx); id; id = BLI_strtok_r(NULL, ":", &ctx)) {
-						uiItemR(row, itemptr, id, 0, NULL, 0);
-						MEM_freeN(id);
-					}
-					MEM_freeN(prop_names);
+			PropertyRNA *prop_list= RNA_struct_find_property(itemptr, prop_list_id);
+
+			if(prop_list && RNA_property_type(prop_list) == PROP_STRING) {
+				int prop_names_len;
+				char *prop_names = RNA_property_string_get_alloc(itemptr, prop_list, NULL, 0, &prop_names_len);
+				char *prop_names_end= prop_names + prop_names_len;
+				char *id= prop_names;
+				char *id_next;
+				while (id < prop_names_end) {
+					if ((id_next= strchr(id, ':'))) *id_next++= '\0';
+					else id_next= prop_names_end;
+					uiItemR(row, itemptr, id, 0, NULL, 0);
+					id= id_next;
 				}
+				MEM_freeN(prop_names);
 			}
 		}
 	}
