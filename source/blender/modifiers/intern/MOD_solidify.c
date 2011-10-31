@@ -593,6 +593,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			mp->loopstart = j+numLoops*2;
 			mp->flag = mpoly[fidx].flag;
 			mp->totloop = 4;
+
+			/* ME_HIDE for rim faces should match that of the rim edge, not the face the edge */
+			mp->flag &= ~ME_HIDE;
+			mp->flag |= ed->flag & ME_HIDE;
 			
 			ml2 = mloop + mpoly[fidx].loopstart;
 			for (k1=0; k1<mpoly[fidx].totloop; k1++, ml2++) {

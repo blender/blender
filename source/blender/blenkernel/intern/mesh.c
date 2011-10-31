@@ -1991,7 +1991,6 @@ UvVertMap *make_uv_vert_map(struct MPoly *mpoly, struct MLoop *mloop, struct MLo
 	UvVertMap *vmap;
 	UvMapVert *buf;
 	MPoly *mp;
-	MLoopUV *luv;
 	unsigned int a;
 	int	i, totuv, nverts;
 

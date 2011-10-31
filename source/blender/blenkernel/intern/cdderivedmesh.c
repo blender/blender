@@ -893,15 +893,17 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	if( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
 		for(i = 0; i < dm->numFaceData; i++, mf++) {
-			int drawSmooth = (mf->flag & ME_SMOOTH);
-			int draw= 1;
+			int drawSmooth = (mf->flag & ME_SMOOTH) != 0;
+			int draw = (mf->flag & ME_HIDE) == 0;
 
 			orig= (index==NULL) ? i : *index++;
-			
-			if(orig == ORIGINDEX_NONE)
-				draw= setMaterial(mf->mat_nr + 1, NULL);
-			else if (setDrawOptions != NULL)
-				draw= setDrawOptions(userData, orig, &drawSmooth);
+
+			if (orig == ORIGINDEX_NONE) {
+				draw = draw && setMaterial(mf->mat_nr + 1, NULL);
+			}
+			else if (setDrawOptions != NULL) {
+				draw = draw && setDrawOptions(userData, orig, &drawSmooth);
+			}
 
 			if(draw) {
 				unsigned char *cp = NULL;
@@ -987,7 +989,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					int actualFace = next_actualFace;
 					MFace *mface= mf + actualFace;
 					int drawSmooth= (mface->flag & ME_SMOOTH);
-					int draw = 1;
+					int draw = (mf->flag & ME_HIDE) == 0;
 					int flush = 0;
 
 					if(i != tottri-1)
@@ -995,10 +997,12 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 
 					orig= (index==NULL) ? actualFace : index[actualFace];
 
-					if(orig == ORIGINDEX_NONE)
-						draw= setMaterial(mface->mat_nr + 1, NULL);
-					else if (setDrawOptions != NULL)
-						draw= setDrawOptions(userData, orig, &drawSmooth);
+					if (orig == ORIGINDEX_NONE) {
+						draw = draw && setMaterial(mface->mat_nr + 1, NULL);
+					}
+					else if (setDrawOptions != NULL) {
+						draw = draw && setDrawOptions(userData, orig, &drawSmooth);
+					}
 	
 					/* Goal is to draw as long of a contiguous triangle
 					   array as possible, so draw when we hit either an
