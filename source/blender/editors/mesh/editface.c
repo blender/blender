@@ -361,7 +361,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 }
 
 /* note: caller needs to run paintface_flush_flags(ob) after this */
-void paintface_deselect_all_visible(Object *ob, int action, short UNUSED(flush_flags))
+void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;
 	MPoly *mface;
@@ -379,7 +379,8 @@ void paintface_deselect_all_visible(Object *ob, int action, short UNUSED(flush_f
 			}
 			mface++;
 		}
-	} else {
+	}
+	else {
 		if (action == SEL_TOGGLE) {
 			action = SEL_SELECT;
 
@@ -393,10 +394,30 @@ void paintface_deselect_all_visible(Object *ob, int action, short UNUSED(flush_f
 				mface++;
 			}
 		}
+
+		mface= me->mpoly;
+		a= me->totpoly;
+		while(a--) {
+			if((mface->flag & ME_HIDE) == 0) {
+				switch (action) {
+				case SEL_SELECT:
+					mface->flag |= ME_FACE_SEL;
+					break;
+				case SEL_DESELECT:
+					mface->flag &= ~ME_FACE_SEL;
+					break;
+				case SEL_INVERT:
+					mface->flag ^= ME_FACE_SEL;
+					break;
+				}
+			}
+			mface++;
+		}
 	}
 
-	//BMESH_TODO object_facesel_flush_dm(ob);
-// XXX notifier!		object_tface_flags_changed(OBACT, 0);
+	if(flush_flags) {
+		paintface_flush_flags(ob);
+	}
 }
 
 static void selectswap_tface(Scene *scene)
