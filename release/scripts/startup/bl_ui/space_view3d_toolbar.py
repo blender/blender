@@ -711,19 +711,14 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
         if context.sculpt_object:
             #XXX duplicated from properties_texture.py
 
-            col.separator()
-
             col.label(text="Brush Mapping:")
-            row = col.row(align=True)
-            row.prop(tex_slot, "map_mode", expand=True)
+            col.row().prop(tex_slot, "map_mode", expand=True)
 
             col.separator()
 
             col = layout.column()
             col.active = tex_slot.map_mode in {'FIXED'}
             col.label(text="Angle:")
-
-            col = layout.column()
             if not brush.use_anchor and brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'} and tex_slot.map_mode in {'FIXED'}:
                 col.prop(brush, "texture_angle_source_random", text="")
             else:
@@ -740,47 +735,33 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             #col.prop(brush, "use_rake", toggle=True, icon='PARTICLEMODE', text="")
 
             col = layout.column()
-            col.prop(tex_slot, "angle", text="")
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-
+            col.prop(tex_slot, "angle", text="")
+           
             #col = layout.column()
             #col.prop(brush, "use_random_rotation")
             #col.active = (not brush.use_rake) and (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'}) and tex_slot.map_mode in {'FIXED'}
 
             split = layout.split()
+            split.prop(tex_slot, "offset")
+            split.prop(tex_slot, "scale")
 
-            col = split.column()
-            col.prop(tex_slot, "offset")
-
-            col = split.column()
-
-            col.prop(tex_slot, "scale")
-
-            col = layout.column()
-
-            row = col.row(align=True)
-            row.label(text="Sample Bias:")
-            row = col.row(align=True)
-            row.prop(brush, "texture_sample_bias", slider=True, text="")
-
-            row = col.row(align=True)
-            row.label(text="Overlay:")
-            row.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-
-            row = col.row(align=True)
-
-            col = row.column()
-
-            if brush.use_texture_overlay:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-            else:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
-
+            col = layout.column(align=True)
+            col.label(text="Sample Bias:")
+            col.prop(brush, "texture_sample_bias", slider=True, text="")
+            
+            col = layout.column(align=True)
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-
-            col = row.column()
-            col.prop(brush, "texture_overlay_alpha", text="Alpha")
-            col.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
+            col.label(text="Overlay:")
+            
+            row = col.row()
+            if brush.use_texture_overlay:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+            sub = row.row()
+            sub.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
+            sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel, Panel):
