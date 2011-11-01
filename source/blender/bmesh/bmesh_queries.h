@@ -20,6 +20,8 @@ int BM_Edge_In_Face(struct BMFace *f, struct BMEdge *e);
 
 int BM_Vert_In_Edge(struct BMEdge *e, struct BMVert *v);
 
+int BM_Verts_In_Edge(struct BMVert *v1, struct BMVert *v2, struct BMEdge *e);
+
 /*get opposing vert from v in edge e.*/
 struct BMVert *BM_OtherEdgeVert(struct BMEdge *e, struct BMVert *v);
 

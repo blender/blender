@@ -141,7 +141,7 @@ static BMEdge *rotsys_prevedge(BMEdge *e, BMVert *v,
 	return NULL;
 }
 
-static struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
+static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge **edges = NULL;
 	BMEdge *e2;
@@ -165,8 +165,6 @@ static struct BMEdge *rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v,
 	}
 	
 	BLI_array_free(edges);
-	
-	return 0;
 }
 
 static int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)

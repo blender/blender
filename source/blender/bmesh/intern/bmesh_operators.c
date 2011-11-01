@@ -22,7 +22,7 @@ static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name);
 static int bmesh_opname_to_opcode(const char *opname);
 
 static const char *bmop_error_messages[] = {
-       0,
+       NULL,
        "Self intersection error",
        "Could not dissolve vert",
        "Could not connect vertices",

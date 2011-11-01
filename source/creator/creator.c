@@ -319,7 +319,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 double PIL_check_seconds_timer(void);
 
-void segmentation_handler(int UNUSED(sig))
+static void segmentation_handler(int UNUSED(sig))
 {
 	char fname[256];
 
