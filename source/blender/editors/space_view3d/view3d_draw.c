@@ -1226,6 +1226,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
+	int multisample_enabled;
 	rcti winrct;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
@@ -1252,7 +1253,12 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
+	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
+
+	multisample_enabled= glIsEnabled(GL_MULTISAMPLE_ARB);
+	if(multisample_enabled)
+		glDisable(GL_MULTISAMPLE_ARB);
 
 	region_scissor_winrct(ar, &winrct);
 	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
@@ -1272,9 +1278,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	if(base && (base->lay & v3d->lay)) {
+	if(base && (base->lay & v3d->lay))
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
-	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 	ar->swap= 0; /* mark invalid backbuf for wm draw */
@@ -1283,6 +1288,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
+ 	if(multisample_enabled)
+		glEnable(GL_MULTISAMPLE_ARB);
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();

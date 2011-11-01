@@ -611,9 +611,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			if (ed->v2 == mloop[mpoly[fidx].loopstart+k1].v) {
 				k2 = (k1 + mp->totloop - 1)%mp->totloop;
 				SWAP(int, k1, k2);
-			} else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
+			}
+			else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
 				k2 = (k1+1)%mp->totloop;
-			} else {
+			}
+			else {
 				fprintf(stderr, "%s: solidify bad edge/vert\n", __func__);
 				k2 = k1;
 			}
@@ -664,7 +666,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			if(crease_outer) {
 				/* crease += crease_outer; without wrapping */
-				unsigned char *cr= (unsigned char *)&(medge[eidx].crease);
+				unsigned char *cr= (unsigned char *)&(ed->crease);
 				int tcr= *cr + crease_outer;
 				*cr= tcr > 255 ? 255 : tcr;
 			}
@@ -684,7 +686,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 #endif
 
 			if (origindex) {
-				origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
+				origindex[numFaces * 2 + i]= fidx;
 			}
 		}
 		
@@ -722,7 +724,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if(dvert) {
 		CDDM_calc_normals(result);
-	} else {
+	}
+	else {
 		CDDM_recalc_tesselation(result, 1);
 	}
 	

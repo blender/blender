@@ -413,8 +413,7 @@ macro(remove_strict_flags)
 		remove_cc_flag("-Werror")
 
 		# negate flags implied by '-Wall'
-		add_cc_flag("-Wno-unused-parameter")
-		add_cc_flag("-Wno-unused-but-set-variable")
+		add_cc_flag("${CC_REMOVE_STRICT_FLAGS}")
 	endif()
 
 	if(MSVC)
@@ -434,7 +433,7 @@ macro(remove_strict_flags_file
 		if(CMAKE_COMPILER_IS_GNUCC)
 			set_source_files_properties(${_SOURCE}
 				PROPERTIES
-					COMPILE_FLAGS "-Wno-deprecated-declarations"
+					COMPILE_FLAGS "${CC_REMOVE_STRICT_FLAGS}"
 			)
 		endif()
 

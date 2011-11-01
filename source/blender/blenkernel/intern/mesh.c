@@ -541,7 +541,7 @@ Mesh *copy_mesh(Mesh *me)
 					id_lib_extern((ID*)tface->tpage);
 		}
 	}
-
+	
 	for(i=0; i<me->pdata.totlayer; i++) {
 		if(me->pdata.layers[i].type == CD_MTEXPOLY) {
 			txface= (MTexPoly*)me->pdata.layers[i].data;
@@ -2004,7 +2004,7 @@ UvVertMap *make_uv_vert_map(struct MPoly *mpoly, struct MLoop *mloop, struct MLo
 
 	if(totuv==0)
 		return NULL;
-
+	
 	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap)
 		return NULL;

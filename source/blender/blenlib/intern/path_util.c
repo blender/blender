@@ -1398,22 +1398,51 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 
 int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
+	size_t path_len= strlen(path);
+	size_t ext_len= strlen(ext);
 	size_t a;
 
-	for(a=strlen(path); a>0; a--) {
-		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {
-			a--;
+	for(a= path_len - 1; a >= 0; a--) {
+		if (ELEM3(path[a], '.', '/', '\\')) {
 			break;
 		}
 	}
-	
-	if(path[a] != '.')
-		a= strlen(path);
 
-	if(a + strlen(ext) >= maxlen)
+	if(a + ext_len >= maxlen)
 		return 0;
 
-	strcpy(path+a, ext);
+	memcpy(path+a, ext, ext_len + 1);
+	return 1;
+}
+
+/* strip's trailing '.'s and adds the extension only when needed */
+int BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
+{
+	size_t path_len= strlen(path);
+	size_t ext_len= strlen(ext);
+	size_t a;
+
+	/* first check the extension is alread there */
+	if (    (ext_len <= path_len) &&
+	        (strcmp(path + (path_len - ext_len), ext) == 0))
+	{
+		return 1;
+	}
+
+	for(a= path_len - 1; a >= 0; a--) {
+		if (path[a] == '.') {
+			path[a]= '\0';
+		}
+		else {
+			break;
+		}
+	}
+	a++;
+
+	if(a + ext_len >= maxlen)
+		return 0;
+
+	memcpy(path+a, ext, ext_len + 1);
 	return 1;
 }
 
@@ -1845,7 +1874,7 @@ void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 		/* add a trailing slash if needed */
 		BLI_add_slash(fullname);
 #ifdef WIN32
-		if(userdir != fullname) {
+		if(userdir && userdir != fullname) {
 			BLI_strncpy(userdir, fullname, maxlen); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
 		}
 #endif

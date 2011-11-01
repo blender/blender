@@ -107,8 +107,8 @@ void defvert_sync (MDeformVert *dvert_r, const MDeformVert *dvert, int use_verif
 		MDeformWeight *dw;
 		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
 			MDeformWeight *dw_r;
-			if(use_verify)	dw_r= defvert_find_index(dvert_r, dw->def_nr);
-			else			dw_r= defvert_verify_index(dvert_r, dw->def_nr);
+			if(use_verify)	dw_r= defvert_verify_index(dvert_r, dw->def_nr);
+			else			dw_r= defvert_find_index(dvert_r, dw->def_nr);
 
 			if(dw_r) {
 				dw_r->weight= dw->weight;
@@ -126,8 +126,8 @@ void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const 
 		for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
 			if (dw->def_nr < flip_map_len) {
 				MDeformWeight *dw_r;
-				if(use_verify)	dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
-				else			dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
+				if(use_verify)	dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
+				else			dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
 
 				if(dw_r) {
 					dw_r->weight= dw->weight;
@@ -490,25 +490,25 @@ MDeformWeight *defvert_verify_index(MDeformVert *dv, const int defgroup)
 	MDeformWeight *newdw;
 
 	/* do this check always, this function is used to check for it */
-	if(!dv || defgroup<0)
+	if(!dv || defgroup < 0)
 		return NULL;
 
-	newdw = defvert_find_index(dv, defgroup);
+	newdw= defvert_find_index(dv, defgroup);
 	if(newdw)
 		return newdw;
 
-	newdw = BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
+	newdw= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
 	if(dv->dw) {
 		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
 		BLI_cellalloc_free(dv->dw);
 	}
-	dv->dw=newdw;
-
-	dv->dw[dv->totweight].weight=0.0f;
-	dv->dw[dv->totweight].def_nr=defgroup;
+	dv->dw= newdw;
+	newdw += dv->totweight;
+	newdw->weight= 0.0f;
+	newdw->def_nr= defgroup;
 	/* Group index */
 
 	dv->totweight++;
 
-	return dv->dw+(dv->totweight-1);
+	return newdw;
 }

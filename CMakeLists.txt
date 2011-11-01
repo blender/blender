@@ -302,6 +302,9 @@ set(PLATFORM_CFLAGS)
 set(C_WARNINGS)
 set(CXX_WARNINGS)
 
+# for gcc -Wno-blah-blah
+set(CC_REMOVE_STRICT_FLAGS)
+
 # libraries to link the binary with passed to target_link_libraries()
 # known as LLIBS to scons
 set(PLATFORM_LINKLIBS "")
@@ -1249,6 +1252,11 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# # this causes too many warnings, disable
 	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+
+	# flags to undo strict flags
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

@@ -1371,9 +1371,9 @@ class WM_OT_keyitem_add(Operator):
         km = context.keymap
 
         if km.is_modal:
-            km.keymap_items.new_modal("", 'A', 'PRESS')  #~ kmi
+            km.keymap_items.new_modal("", 'A', 'PRESS')
         else:
-            km.keymap_items.new("none", 'A', 'PRESS')  #~ kmi
+            km.keymap_items.new("none", 'A', 'PRESS')
 
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":
