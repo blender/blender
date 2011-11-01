@@ -2602,7 +2602,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	if(!psmd->dm)
 		return;
 
-	//BMESH_TODO mirrorfaces= mesh_get_x_mirror_faces(ob, NULL);
+	mirrorfaces= mesh_get_x_mirror_faces(ob, NULL);
 
 	if(!edit->mirror_cache)
 		PE_update_mirror_cache(ob, psys);
