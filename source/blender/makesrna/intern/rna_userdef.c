@@ -1392,7 +1392,7 @@ static void rna_def_userdef_theme_space_logic(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	/* space_buts */
+	/* space_logic */
 	
 	srna= RNA_def_struct(brna, "ThemeLogicEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");

@@ -873,7 +873,7 @@ enum {
 	SPACE_SOUND, /* Deprecated */
 	SPACE_ACTION,
 	SPACE_NLA,
-	SPACE_SCRIPT,
+	SPACE_SCRIPT, /* Deprecated */
 	SPACE_TIME,
 	SPACE_NODE,
 	SPACE_LOGIC,

@@ -51,9 +51,6 @@ struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
 extern const char *image_context_dir[]; /* doc access */
 
-/* image_header.c */
-void image_header_buttons(const struct bContext *C, struct ARegion *ar);
-
 void IMAGE_OT_toolbox(struct wmOperatorType *ot);
 
 /* image_draw.c */

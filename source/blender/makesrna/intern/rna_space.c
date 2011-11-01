@@ -62,7 +62,6 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_TEXT, "TEXT_EDITOR", 0, "Text Editor", ""},
 	{SPACE_ACTION, "DOPESHEET_EDITOR", 0, "DopeSheet Editor", ""},
 	{SPACE_NLA, "NLA_EDITOR", 0, "NLA Editor", ""},
-	{SPACE_SCRIPT, "SCRIPTS_WINDOW", 0, "Scripts Window", ""},
 	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
 	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
@@ -154,8 +153,6 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceDopeSheetEditor;
 		case SPACE_NLA:
 			return &RNA_SpaceNLA;
-		/*case SPACE_SCRIPT:
-			return &RNA_SpaceScriptsWindow;*/
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
 		case SPACE_NODE:
