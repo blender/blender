@@ -608,6 +608,7 @@ class pyBackboneStretcherShader(StrokeShader):
 		newLast = pn+dn*float(self._l)
 		v0.setPoint(newFirst)
 		vn.setPoint(newLast)
+		stroke.UpdateLength()
 		
 class pyLengthDependingBackboneStretcherShader(StrokeShader):
 	def __init__(self, l):
@@ -641,6 +642,7 @@ class pyLengthDependingBackboneStretcherShader(StrokeShader):
 		newLast = pn+dn*float(stretch)
 		v0.setPoint(newFirst)
 		vn.setPoint(newLast)
+		stroke.UpdateLength()
 
 
 ## Shader to replace a stroke by its corresponding tangent
@@ -669,6 +671,7 @@ class pyGuidingLineShader(StrokeShader):
 			-t*(itmiddle.getObject().u()-it.getObject().u()))
 			it.decrement()
 		it.getObject().setPoint(itmiddle.getObject().getPoint()-t*(itmiddle.getObject().u())) ## first vertex
+		stroke.UpdateLength()
 
 
 class pyBackboneStretcherNoCuspShader(StrokeShader):
@@ -703,6 +706,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			dn.normalize()
 			newLast = pn+dn*float(self._l)	
 			vn.setPoint(newLast)
+		stroke.UpdateLength()
 
 normalInfo=Normal2DF0D()
 curvatureInfo=Curvature2DAngleF0D()
@@ -728,6 +732,7 @@ class pyDiffusion2Shader(StrokeShader):
 				p2 = self._normalInfo(it.castToInterface0DIterator())*self._lambda*self._curvatureInfo(it.castToInterface0DIterator())
 				v.setPoint(p1+p2)
 				it.increment()
+		stroke.UpdateLength()
 
 class pyTipRemoverShader(StrokeShader):
 	def __init__(self, l):
@@ -762,6 +767,7 @@ class pyTipRemoverShader(StrokeShader):
 			v = it.getObject()
 			v.setAttribute(a)
 			it.increment()
+		stroke.UpdateLength()
 
 class pyTVertexRemoverShader(StrokeShader):
 	def getName(self):
@@ -777,6 +783,7 @@ class pyTVertexRemoverShader(StrokeShader):
 			stroke.RemoveVertex(it.getObject())
 		if(predTVertex(itlast) == 1):
 			stroke.RemoveVertex(itlast.getObject())
+		stroke.UpdateLength()
 
 class pyExtremitiesOrientationShader(StrokeShader):
 	def __init__(self, x1,y1,x2=0,y2=0):
@@ -911,6 +918,7 @@ class pySinusDisplacementShader(StrokeShader):
 			v.setPoint(p+n)
 			#v.setPoint(v.getPoint()+n*a*cos(f*v.u()))
 			it.increment()
+		stroke.UpdateLength()
 
 class pyPerlinNoise1DShader(StrokeShader):
 	def __init__(self, freq = 10, amp = 10, oct = 4, seed = -1):
@@ -929,6 +937,7 @@ class pyPerlinNoise1DShader(StrokeShader):
 			nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
 			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
+		stroke.UpdateLength()
 
 class pyPerlinNoise2DShader(StrokeShader):
 	def __init__(self, freq = 10, amp = 10, oct = 4, seed = -1):
@@ -947,6 +956,7 @@ class pyPerlinNoise2DShader(StrokeShader):
 			nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
 			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
+		stroke.UpdateLength()
 
 class pyBluePrintCirclesShader(StrokeShader):
 	def __init__(self, turns = 1):
@@ -987,15 +997,19 @@ class pyBluePrintCirclesShader(StrokeShader):
 			center.x = center.x + randint(-5, 5)
 			center.y = center.y + randint(-5, 5)
 			i = 0
-			while i < sv_nb:
+			while i < sv_nb and it.isEnd() == 0:
 				p_new.x = center.x + radius * cos(2 * pi * float(i) / float(sv_nb - 1))
 				p_new.y = center.y + radius * sin(2 * pi * float(i) / float(sv_nb - 1))
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
+		verticesToRemove = []
 		while it.isEnd() == 0:
-			stroke.RemoveVertex(it.getObject())
+			verticesToRemove.append(it.getObject())
 			it.increment()
+		for sv in verticesToRemove:
+			stroke.RemoveVertex(sv)
+		stroke.UpdateLength()
 
 class pyBluePrintEllipsesShader(StrokeShader):
 	def __init__(self, turns = 1):
@@ -1039,9 +1053,13 @@ class pyBluePrintEllipsesShader(StrokeShader):
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
+		verticesToRemove = []
 		while it.isEnd() == 0:
-			stroke.RemoveVertex(it.getObject())
+			verticesToRemove.append(it.getObject())
 			it.increment()
+		for sv in verticesToRemove:
+			stroke.RemoveVertex(sv)
+		stroke.UpdateLength()
 
 
 class pyBluePrintSquaresShader(StrokeShader):
@@ -1118,9 +1136,13 @@ class pyBluePrintSquaresShader(StrokeShader):
 					visible = 1
 				i = i + 1
 				it.increment()
+		verticesToRemove = []
 		while it.isEnd() == 0:
-			stroke.RemoveVertex(it.getObject())
+			verticesToRemove.append(it.getObject())
 			it.increment()
+		for sv in verticesToRemove:
+			stroke.RemoveVertex(sv)
+		stroke.UpdateLength()
 
 
 class pyBluePrintDirectedSquaresShader(StrokeShader):
@@ -1223,9 +1245,13 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 					visible = 1
 				i = i + 1
 				it.increment()
+		verticesToRemove = []
 		while it.isEnd() == 0:
-			stroke.RemoveVertex(it.getObject())
+			verticesToRemove.append(it.getObject())
 			it.increment()
+		for sv in verticesToRemove:
+			stroke.RemoveVertex(sv)
+		stroke.UpdateLength()
 
 class pyModulateAlphaShader(StrokeShader):
 	def __init__(self, min = 0, max = 1):
