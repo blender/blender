@@ -120,12 +120,13 @@ float *bm_get_cd_float(struct CustomData *cdata, void *data, int type);
  
   note: why do we only allow x axis mirror editing?
   */
-void EDBM_CacheMirrorVerts(struct BMEditMesh *em);
+void EDBM_CacheMirrorVerts(struct BMEditMesh *em, const short use_select); /* note, replaces EM_cache_x_mirror_vert in trunk */
 
 /*retrieves mirrored cache vert, or NULL if there isn't one.
   note: calling this without ensuring the mirror cache state
   is bad.*/
 struct BMVert *EDBM_GetMirrorVert(struct BMEditMesh *em, struct BMVert *v);
+void           EDBM_ClearMirrorVert(struct BMEditMesh *em, struct BMVert *v);
 void EDBM_EndMirrorCache(struct BMEditMesh *em);
 void EDBM_ApplyMirrorCache(struct BMEditMesh *em, const int sel_from, const int sel_to);
 
@@ -199,8 +200,6 @@ extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
 intptr_t	mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 long		mesh_mirrtopo_table(struct Object *ob, char mode);
-
-//BMESH_TODO void		EM_cache_x_mirror_vert(struct Object *ob, struct BMEditMesh *em);
 
 int			mouse_mesh(struct bContext *C, const int mval[2], short extend);
 

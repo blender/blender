@@ -2075,7 +2075,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	if (t->flag & T_MIRROR)
 	{
-		EDBM_CacheMirrorVerts(em);
+		EDBM_CacheMirrorVerts(em, TRUE);
 		mirror = 1;
 	}
 

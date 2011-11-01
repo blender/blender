@@ -795,7 +795,7 @@ int EDBM_vertColorCheck(BMEditMesh *em)
  * preference */
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
 #define BM_CD_LAYER_ID "__mirror_index"
-void EDBM_CacheMirrorVerts(BMEditMesh *em)
+void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 {
 	Mesh *me = em->me;
 	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
@@ -837,7 +837,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em)
 		float co[3] = {-v->co[0], v->co[1], v->co[2]};
 
 		//temporary for testing, check for selection
-		if (!BM_TestHFlag(v, BM_SELECT))
+		if (use_select && !BM_TestHFlag(v, BM_SELECT))
 			continue;
 		
 		mirr = topo ?
@@ -876,6 +876,17 @@ BMVert *EDBM_GetMirrorVert(BMEditMesh *em, BMVert *v)
 	}
 
 	return NULL;
+}
+
+void EDBM_ClearMirrorVert(BMEditMesh *em, BMVert *v)
+{
+	int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
+
+	BLI_assert(em->mirror_cdlayer != -1); /* invalid use */
+
+	if (mirr) {
+		*mirr= -1;
+	}
 }
 
 void EDBM_EndMirrorCache(BMEditMesh *em)

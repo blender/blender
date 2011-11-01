@@ -1616,7 +1616,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 
 	/* mirror before smooth */
 	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_CacheMirrorVerts(em);
+		EDBM_CacheMirrorVerts(em, TRUE);
 	}
 
 	/* if there is a mirror modifier with clipping, flag the verts that

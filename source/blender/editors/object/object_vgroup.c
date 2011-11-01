@@ -1562,9 +1562,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 {
 #define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, flip_map_len, mirror_weights, flip_vgroups)
 
-#if 0
-	EditVert *eve, *eve_mirr;
-#endif
+	BMVert *eve, *eve_mirr;
 
 	MDeformVert *dvert, *dvert_mirr;
 	short sel, sel_mirr;
@@ -1577,42 +1575,38 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {
-#if 1 //BMESH_TODO
-		(void)dvert;
-		(void)dvert_mirr;
-		(void)flip_map;
-#else
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
+		BMEditMesh *em = me->edit_btmesh;
+		BMIter iter;
 
-
-		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
+		if(!CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
 			MEM_freeN(flip_map);
 			return;
 		}
 
-		EM_cache_x_mirror_vert(ob, em);
+		EDBM_CacheMirrorVerts(em, FALSE);
 
 		/* Go through the list of editverts and assign them */
-		for(eve=em->verts.first; eve; eve=eve->next){
-			if((eve_mirr=eve->tmp.v)) {
-				sel= eve->f & SELECT;
-				sel_mirr= eve_mirr->f & SELECT;
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if((eve_mirr= EDBM_GetMirrorVert(em, eve))) {
+				sel= BM_TestHFlag(eve, BM_SELECT);
+				sel_mirr= BM_TestHFlag(eve_mirr, BM_SELECT);
 
 				if((sel || sel_mirr) && (eve != eve_mirr)) {
-					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
+					dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					dvert_mirr= CustomData_bmesh_get(&em->bm->vdata, eve_mirr->head.data, CD_MDEFORMVERT);
 					if(dvert && dvert_mirr) {
 						VGROUP_MIRR_OP;
 					}
 				}
 
-				eve->tmp.v= eve_mirr->tmp.v= NULL;
+				/* don't use these again */
+				EDBM_ClearMirrorVert(em, eve);
+				EDBM_ClearMirrorVert(em, eve_mirr);
 			}
 		}
 
-		BKE_mesh_end_editmesh(me, em);
-#endif // BMESH_TODO
+		EDBM_EndMirrorCache(em);
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt= ob->data;
