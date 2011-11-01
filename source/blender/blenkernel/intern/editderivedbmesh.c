@@ -589,7 +589,7 @@ static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 
 static void bmDM_drawMappedFaces(DerivedMesh *dm, 
 	int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), 
-	void *userData, int useColors, 
+	void *userData, int UNUSED(useColors),
 	int (*setMaterial)(int, void *attribs),
 	int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
 {
@@ -603,9 +603,6 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 	/* GL_ZERO is used to detect if drawing has started or not */
 	GLenum poly_prev= GL_ZERO;
 	GLenum shade_prev= GL_ZERO;
-
-	/*BMESH_TODO*/
-	(void)useColors;
 
 	(void)setMaterial; /* UNUSED */
 
@@ -998,13 +995,6 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
                int (*setMaterial)(int, void *attribs),
                int (*setDrawOptions)(void *userData, int index), void *userData)
 {
-#if 0
-	(void)dm;
-	(void)setMaterial;
-	(void)setDrawOptions;
-	(void)userData;
-#else /*BMESH_TODO*/
-
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;
 	BMEditMesh *em = bmdm->tc;
@@ -1122,7 +1112,6 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			glEnd();
 		}
 	}
-#endif
 }
 
 static void bmDM_drawFacesGLSL(DerivedMesh *dm,

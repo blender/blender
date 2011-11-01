@@ -13,7 +13,7 @@ typedef struct subdparams {
 } subdparams;
 
 typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts, 
-		                     subdparams *params);
+                                     const subdparams *params);
 
 /*
 note: this is a pattern-based edge subdivider.

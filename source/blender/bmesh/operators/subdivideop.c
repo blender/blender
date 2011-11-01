@@ -165,21 +165,21 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 	return NULL;
 }
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
-static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *params, float perc,
+static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdparams *params, float perc,
 		     BMVert *vsta, BMVert *vend)
 {
-	float vec1[3], fac;
+	float tvec[3], fac;
 	float *co=NULL, *origco=NULL;
 	int i, totlayer = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY);
 	
 	BM_Vert_UpdateAllNormals(bm, v);
 
 	origco = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
-	sub_v3_v3v3(vec1, origco, v->co);
+	sub_v3_v3v3(tvec, origco, v->co);
 	
 	for (i=0; i<totlayer; i++) {
 		co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, i);
-		sub_v3_v3(co, vec1);
+		sub_v3_v3(co, tvec);
 	}
 
 	for (i=0; i<totlayer; i++) {
@@ -187,7 +187,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 		
 		if(params->beauty & B_SMOOTH) {
 			/* we calculate an offset vector vec1[], to be added to *co */
-			float len, fac, nor[3], nor1[3], nor2[3], smooth=params->smooth;
+			float len, nor[3], nor1[3], nor2[3], smooth=params->smooth;
 	
 			sub_v3_v3v3(nor, vsta->co, vend->co);
 			len= 0.5f*normalize_v3(nor);
@@ -196,35 +196,23 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 			copy_v3_v3(nor2, vend->no);
 	
 			/* cosine angle */
-			fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
-	
-			vec1[0]= fac*nor1[0];
-			vec1[1]= fac*nor1[1];
-			vec1[2]= fac*nor1[2];
+			fac=  dot_v3v3(nor, nor1);
+			mul_v3_v3fl(tvec, nor1, fac);
 	
 			/* cosine angle */
-			fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
-	
-			vec1[0]+= fac*nor2[0];
-			vec1[1]+= fac*nor2[1];
-			vec1[2]+= fac*nor2[2];
+			fac= -dot_v3v3(nor, nor2);
+			madd_v3_v3fl(tvec, nor2, fac);
 	
 			/* falloff for multi subdivide */
 			smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(0.5f-perc)));
 	
-			vec1[0]*= smooth*len;
-			vec1[1]*= smooth*len;
-			vec1[2]*= smooth*len;
+			mul_v3_fl(tvec, smooth * len);
 	
-			co[0] += vec1[0];
-			co[1] += vec1[1];
-			co[2] += vec1[2];
+			add_v3_v3(co, tvec);
 		}
 		else if(params->beauty & B_SPHERE) { /* subdivide sphere */
 			normalize_v3(co);
-			co[0]*= params->smooth;
-			co[1]*= params->smooth;
-			co[2]*= params->smooth;
+			mul_v3_fl(co, params->smooth);
 		}
 	
 		if(params->beauty & B_FRACTAL) {
@@ -238,11 +226,11 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 			mul_v3_fl(vec2, 0.5f);
 			
 			add_v3_v3v3(co2, v->co, params->off);
-			vec1[0] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
-			vec1[1] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
-			vec1[2] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+			tvec[0] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+			tvec[1] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+			tvec[2] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
 			
-			mul_v3_v3(vec2, vec1);
+			mul_v3_v3(vec2, tvec);
 			
 			/*add displacement*/
 			add_v3_v3v3(co, co, vec2);
@@ -254,9 +242,9 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 /* percent defines the interpolation, rad and flag are for special options */
 /* results in new vertex with correct coordinate, vertex normal and weight group info */
 static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,BMEdge *oedge,
-					subdparams *params, float percent,
-					float percent2,
-					BMEdge **out,BMVert *vsta,BMVert *vend)
+                                         const subdparams *params, float percent,
+                                         float percent2,
+                                         BMEdge **out,BMVert *vsta,BMVert *vend)
 {
 	BMVert *ev;
 	
@@ -286,8 +274,8 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,BMEdge *oedge,
 }
 
 static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
-				int curpoint, int totpoint, subdparams *params,
-				BMEdge **newe, BMVert *vsta, BMVert *vend)
+                                int curpoint, int totpoint, const subdparams *params,
+                                BMEdge **newe, BMVert *vsta, BMVert *vend)
 {
 	BMVert *ev;
 	float percent, percent2 = 0.0f;
@@ -306,8 +294,9 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	return ev;
 }
 
-static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, subdparams *params, 
-				  BMVert *vsta, BMVert *vend) {
+static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const subdparams *params,
+                                  BMVert *vsta, BMVert *vend)
+{
 	BMEdge *eed = edge, *newe, temp = *edge;
 	BMVert *v, ov1=*edge->v1, ov2=*edge->v2, *v1=edge->v1, *v2=edge->v2;
 	int i, numcuts = params->numcuts;
@@ -351,7 +340,8 @@ v4---v0---v1
 
 */
 static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
-			  BMVert **verts, subdparams *params) {
+                             BMVert **verts, const subdparams *params)
+{
 	BMFace *nf;
 	int i, add, numcuts = params->numcuts;
 
@@ -396,7 +386,7 @@ v7-v0--v1-v2
 
 */
 static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
-                          subdparams *params)
+                                  const subdparams *params)
 {
 	BMFace *nf;
 	int i, numcuts = params->numcuts;
@@ -424,7 +414,7 @@ v7-v0--v1-v2
 
 */
 static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts, 
-                          subdparams *params)
+                                       const subdparams *params)
 {
 	BMFace *nf;
 	BMVert *v, *lastv;
@@ -465,7 +455,7 @@ v7-v0--v1-v2
 
 */
 static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                                 subdparams *params)
+                                 const subdparams *params)
 {
 	BMFace *nf;
 	/* BMVert *v; */               /* UNUSED */
@@ -497,7 +487,7 @@ v9-v0--v1-v2
 
 */
 static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                          subdparams *params)
+                             const subdparams *params)
 {
 	BMFace *nf;
 	int i, add=0, numcuts = params->numcuts;
@@ -538,7 +528,7 @@ first line |          |   last line
 	   it goes from bottom up
 */
 static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                          subdparams *params)
+                                 const subdparams *params)
 {
 	BMFace *nf;
 	BMVert *v, *v1, *v2;
@@ -617,7 +607,7 @@ v4--v0--v1--v2
     s    s
 */
 static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                          subdparams *params)
+                            const subdparams *params)
 {
 	BMFace *nf;
 	int i, numcuts = params->numcuts;
@@ -643,7 +633,7 @@ sv7/---v---\ v3 s
     s    s
 */
 static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                          subdparams *params)
+                                const subdparams *params)
 {
 	BMFace *nf;
 	BMEdge *e, *ne, temp;

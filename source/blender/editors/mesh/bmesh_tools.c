@@ -113,9 +113,12 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
+	float smooth= 0.292f*RNA_float_get(op->ptr, "smoothness");
 	float fractal= RNA_float_get(op->ptr, "fractal")/2.5;
 	int flag= 0;
 
+	if(smooth != 0.0f)
+		flag |= B_SMOOTH;
 	if(fractal != 0.0f)
 		flag |= B_FRACTAL;
 	
@@ -126,7 +129,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_esubdivideflag(obedit, em->bm, BM_SELECT, 
-	                  0.0f, fractal, 
+	                  smooth, fractal,
 	                  ts->editbutflag|flag, 
 	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
 	                  RNA_boolean_get(op->ptr, "quadtri"),
