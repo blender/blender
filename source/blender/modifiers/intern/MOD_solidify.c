@@ -126,7 +126,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(ml[j].v, ml[(j+1)%mp->totloop].v);
 			}
 		}
-		
+
 		for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
 			/* Get the edge vert indices, and edge value (the face indices that use it)*/
 			BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
@@ -449,7 +449,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				normal_short_to_float_v3(vert_nors[i], mv->no);
 			}
 		}
-	
+
 		for (i=0, mp=mpoly; i<numFaces; i++, mp++) {
 			mesh_calc_poly_normal(mp, mloop+mp->loopstart, mvert, face_nors[i]);
 			
@@ -684,10 +684,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
 #endif
-
-			if (origindex) {
-				origindex[numFaces * 2 + i]= fidx;
-			}
 		}
 		
 #ifdef SOLIDIFY_SIDE_NORMALS

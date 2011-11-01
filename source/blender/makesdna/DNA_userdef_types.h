@@ -267,13 +267,11 @@ typedef struct bTheme {
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
 	ThemeSpace tipo;
-	ThemeSpace tinfo;	
-	ThemeSpace tsnd;
+	ThemeSpace tinfo;
 	ThemeSpace tact;
 	ThemeSpace tnla;
 	ThemeSpace tseq;
 	ThemeSpace tima;
-	ThemeSpace timasel;
 	ThemeSpace text;
 	ThemeSpace toops;
 	ThemeSpace ttime;

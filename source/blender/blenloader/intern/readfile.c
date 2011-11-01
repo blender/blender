@@ -4993,15 +4993,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->folders_prev= NULL;
 						sfile->folders_next= NULL;
 					}
-					else if(sl->spacetype==SPACE_IMASEL) {
-						SpaceImaSel *simasel= (SpaceImaSel *)sl;
-
-						simasel->files = NULL;						
-						simasel->returnfunc= NULL;
-						simasel->menup= NULL;
-						simasel->pupmenu= NULL;
-						simasel->img= NULL;
-					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
 						bDopeSheet *ads= &saction->ads;
@@ -5064,11 +5055,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 								tselem->id= newlibadr(fd, NULL, tselem->id);
 							}
 						}
-					}
-					else if(sl->spacetype==SPACE_SOUND) {
-						SpaceSound *ssound= (SpaceSound *)sl;
-
-						ssound->sound= newlibadr_us(fd, sc->id.lib, ssound->sound);
 					}
 					else if(sl->spacetype==SPACE_NODE) {
 						SpaceNode *snode= (SpaceNode *)sl;
@@ -5226,12 +5212,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceFile *sfile= (SpaceFile *)sl;
 					sfile->op= NULL;
 				}
-				else if(sl->spacetype==SPACE_IMASEL) {
-					SpaceImaSel *simasel= (SpaceImaSel *)sl;
-					if (simasel->files) {
-						//XXX BIF_filelist_freelib(simasel->files);
-					}
-				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
 					
@@ -5297,11 +5277,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 							tselem->id= restore_pointer_by_name(newmain, tselem->id, 0);
 						}
 					}
-				}
-				else if(sl->spacetype==SPACE_SOUND) {
-					SpaceSound *ssound= (SpaceSound *)sl;
-
-					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound, 1);
 				}
 				else if(sl->spacetype==SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
@@ -6690,16 +6665,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
-			case SPACE_SOUND:
-			{
-				SpaceSound *ssound= (SpaceSound *)sl;
-				memcpy(&ar->v2d, &ssound->v2d, sizeof(View2D));
-				
-				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-				ar->v2d.scroll |= (V2D_SCROLL_LEFT);
-				//ar->v2d.flag |= V2D_IS_INITIALISED;
-				break;
-			}
 			case SPACE_NLA:
 			{
 				SpaceNla *snla= (SpaceNla *)sl;
@@ -6815,11 +6780,17 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		
 		area_add_window_regions(sa, sa->spacedata.first, &sa->regionbase);
 		
-		/* space imageselect is depricated */
+		/* space imageselect is deprecated */
 		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			if(sl->spacetype==SPACE_IMASEL)
-				sl->spacetype= SPACE_INFO;	/* spacedata then matches */
-		}		
+				sl->spacetype= SPACE_EMPTY;	/* spacedata then matches */
+		}
+		
+		/* space sound is deprecated */
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
+			if(sl->spacetype==SPACE_SOUND)
+				sl->spacetype= SPACE_EMPTY;	/* spacedata then matches */
+		}
 		
 		/* it seems to be possible in 2.5 to have this saved, filewindow probably */
 		sa->butspacetype= sa->spacetype;
@@ -9219,7 +9190,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 245) {
 		Scene *sce;
-		bScreen *sc;
 		Object *ob;
 		Image *ima;
 		Lamp *la;
@@ -9308,49 +9278,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* repair preview from 242 - 244*/
 			for(ima= main->image.first; ima; ima= ima->id.next) {
 				ima->preview = NULL;
-			}
-			
-			/* repair imasel space - completely reworked */
-			for(sc= main->screen.first; sc; sc= sc->id.next) {
-				ScrArea *sa;
-				sa= sc->areabase.first;
-				while(sa) {
-					SpaceLink *sl;
-					
-					for (sl= sa->spacedata.first; sl; sl= sl->next) {
-						if(sl->spacetype==SPACE_IMASEL) {
-							SpaceImaSel *simasel= (SpaceImaSel*) sl;
-							simasel->blockscale= 0.7f;
-							/* view 2D */
-							simasel->v2d.tot.xmin=  -10.0f;
-							simasel->v2d.tot.ymin=  -10.0f;
-							simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
-							simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
-							simasel->v2d.cur.xmin=  0.0f;
-							simasel->v2d.cur.ymin=  0.0f;
-							simasel->v2d.cur.xmax= (float)sa->winx;
-							simasel->v2d.cur.ymax= (float)sa->winy;						
-							simasel->v2d.min[0]= 1.0;
-							simasel->v2d.min[1]= 1.0;						
-							simasel->v2d.max[0]= 32000.0f;
-							simasel->v2d.max[1]= 32000.0f;						
-							simasel->v2d.minzoom= 0.5f;
-							simasel->v2d.maxzoom= 1.21f;						
-							simasel->v2d.scroll= 0;
-							simasel->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
-							simasel->v2d.keeptot= 0;
-							simasel->prv_h = 96;
-							simasel->prv_w = 96;
-							simasel->flag = 7; /* ??? elubie */
-							BLI_strncpy (simasel->dir,  U.textudir, sizeof(simasel->dir)); /* TON */
-							simasel->file[0]= '\0';
-							
-							simasel->returnfunc     =  NULL;
-							simasel->title[0]       =  0;
-						}
-					}
-					sa = sa->next;
-				}
 			}
 		}
 

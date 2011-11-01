@@ -159,6 +159,7 @@ int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editmesh_region_view3d(struct bContext *C);
 int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
+int		ED_operator_editcurve_3d(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
 int		ED_operator_editsurfcurve(struct bContext *C);
 int		ED_operator_editsurfcurve_region_view3d(struct bContext *C);

@@ -229,7 +229,4 @@ void OUTLINER_OT_action_set(struct wmOperatorType *ot);
 void outliner_operatortypes(void);
 void outliner_keymap(struct wmKeyConfig *keyconf);
 
-/* outliner_header.c */
-void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
-
 #endif /* ED_OUTLINER_INTERN_H */

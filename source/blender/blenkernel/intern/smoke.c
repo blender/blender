@@ -77,6 +77,8 @@
 
 #include "BKE_smoke.h"
 
+#ifdef WITH_SMOKE
+
 #ifdef _WIN32
 #include <time.h>
 #include <stdio.h>
@@ -131,12 +133,13 @@ struct SmokeModifierData;
 
 #define TRI_UVOFFSET (1./4.)
 
-#ifdef WITH_SMOKE
 /* forward declerations */
 static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
 static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
+
 #else /* WITH_SMOKE */
+
 /* Stubs to use when smoke is disabled */
 struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res), int UNUSED(amplify), int UNUSED(noisetype)) { return NULL; }
 struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
@@ -146,9 +149,11 @@ void smoke_initWaveletBlenderRNA(struct WTURBULENCE *UNUSED(wt), float *UNUSED(s
 void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), float *UNUSED(beta), float *UNUSED(dt_factor), float *UNUSED(vorticity), int *UNUSED(border_colli)) {}
 long long smoke_get_mem_req(int UNUSED(xres), int UNUSED(yres), int UNUSED(zres), int UNUSED(amplify)) { return 0; }
 void smokeModifier_do(SmokeModifierData *UNUSED(smd), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm)) {}
+
 #endif /* WITH_SMOKE */
 
 #ifdef WITH_SMOKE
+
 static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
 {
 	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)

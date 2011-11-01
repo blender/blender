@@ -209,7 +209,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.operator("transform.transform", text="Tilt").mode = 'TILT'
+        col.operator("transform.tilt", text="Tilt")
         col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)

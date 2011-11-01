@@ -193,7 +193,7 @@ int ED_operator_animview_active(bContext *C)
 {
 	if(ED_operator_areaactive(C)) {
 		SpaceLink *sl= (SpaceLink *)CTX_wm_space_data(C);
-		if (sl && (ELEM6(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_IPO, SPACE_TIME)))
+		if (sl && (ELEM5(sl->spacetype, SPACE_SEQ, SPACE_ACTION, SPACE_NLA, SPACE_IPO, SPACE_TIME)))
 			return TRUE;
 	}
 
@@ -401,6 +401,17 @@ int ED_operator_editcurve(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_CURVE)
 		return NULL != ((Curve *)obedit->data)->editnurb;
+	return 0;
+}
+
+int ED_operator_editcurve_3d(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_CURVE) {
+		Curve *cu= (Curve *)obedit->data;
+
+		return (cu->flag&CU_3D) && (NULL != cu->editnurb);
+	}
 	return 0;
 }
 
