@@ -406,6 +406,17 @@ int ED_operator_editcurve(bContext *C)
 	return 0;
 }
 
+int ED_operator_editcurve_3d(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_CURVE) {
+		Curve *cu= (Curve *)obedit->data;
+
+		return (cu->flag&CU_3D) && (NULL != cu->editnurb);
+	}
+	return 0;
+}
+
 int ED_operator_editsurf(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
