@@ -168,74 +168,80 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdparams *params, float perc,
 		     BMVert *vsta, BMVert *vend)
 {
-	float tvec[3], fac;
-	float *co=NULL, *origco=NULL;
+	float tvec[3], prev_co[3], fac;
+	float *co=NULL;
 	int i, totlayer = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY);
 	
 	BM_Vert_UpdateAllNormals(bm, v);
 
-	origco = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
-	sub_v3_v3v3(tvec, origco, v->co);
-	
-	for (i=0; i<totlayer; i++) {
-		co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, i);
-		sub_v3_v3(co, tvec);
+	co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, params->origkey);
+	copy_v3_v3(prev_co, co);
+
+	if(params->beauty & B_SMOOTH) {
+		/* we calculate an offset vector vec1[], to be added to *co */
+		float len, nor[3], nor1[3], nor2[3], smooth=params->smooth;
+
+		sub_v3_v3v3(nor, vsta->co, vend->co);
+		len= 0.5f*normalize_v3(nor);
+
+		copy_v3_v3(nor1, vsta->no);
+		copy_v3_v3(nor2, vend->no);
+
+		/* cosine angle */
+		fac=  dot_v3v3(nor, nor1);
+		mul_v3_v3fl(tvec, nor1, fac);
+
+		/* cosine angle */
+		fac= -dot_v3v3(nor, nor2);
+		madd_v3_v3fl(tvec, nor2, fac);
+
+		/* falloff for multi subdivide */
+		smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(0.5f-perc)));
+
+		mul_v3_fl(tvec, smooth * len);
+
+		add_v3_v3(co, tvec);
+	}
+	else if(params->beauty & B_SPHERE) { /* subdivide sphere */
+		normalize_v3(co);
+		mul_v3_fl(co, params->smooth);
 	}
 
-	for (i=0; i<totlayer; i++) {
-		co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, i);
-		
-		if(params->beauty & B_SMOOTH) {
-			/* we calculate an offset vector vec1[], to be added to *co */
-			float len, nor[3], nor1[3], nor2[3], smooth=params->smooth;
-	
-			sub_v3_v3v3(nor, vsta->co, vend->co);
-			len= 0.5f*normalize_v3(nor);
-	
-			copy_v3_v3(nor1, vsta->no);
-			copy_v3_v3(nor2, vend->no);
-	
-			/* cosine angle */
-			fac=  dot_v3v3(nor, nor1);
-			mul_v3_v3fl(tvec, nor1, fac);
-	
-			/* cosine angle */
-			fac= -dot_v3v3(nor, nor2);
-			madd_v3_v3fl(tvec, nor2, fac);
-	
-			/* falloff for multi subdivide */
-			smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(0.5f-perc)));
-	
-			mul_v3_fl(tvec, smooth * len);
-	
-			add_v3_v3(co, tvec);
-		}
-		else if(params->beauty & B_SPHERE) { /* subdivide sphere */
-			normalize_v3(co);
-			mul_v3_fl(co, params->smooth);
-		}
-	
-		if(params->beauty & B_FRACTAL) {
-			float len = len_v3v3(vsta->co, vend->co);
-			float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
-			
-			fac= params->fractal*len;
+	if(params->beauty & B_FRACTAL) {
+		float len = len_v3v3(vsta->co, vend->co);
+		float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
 
-			add_v3_v3(vec2, vsta->no);
-			add_v3_v3(vec2, vend->no);
-			mul_v3_fl(vec2, 0.5f);
-			
-			add_v3_v3v3(co2, v->co, params->off);
-			tvec[0] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
-			tvec[1] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
-			tvec[2] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
-			
-			mul_v3_v3(vec2, tvec);
-			
-			/*add displacement*/
-			add_v3_v3v3(co, co, vec2);
+		fac= params->fractal*len;
+
+		add_v3_v3(vec2, vsta->no);
+		add_v3_v3(vec2, vend->no);
+		mul_v3_fl(vec2, 0.5f);
+
+		add_v3_v3v3(co2, v->co, params->off);
+		tvec[0] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+		tvec[1] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+		tvec[2] = fac*(BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1)-0.5f);
+
+		mul_v3_v3(vec2, tvec);
+
+		/*add displacement*/
+		add_v3_v3v3(co, co, vec2);
+	}
+
+	/* apply the new difference to the rest of the shape keys,
+	 * note that this doent take rotations into account, we _could_ support
+	 * this by getting the normals and coords for each shape key and
+	 * re-calculate the smooth value for each but this is quite involved.
+	 * for now its ok to simply apply the difference IMHO - campbell */
+	sub_v3_v3v3(tvec, prev_co, co);
+
+	for (i=0; i<totlayer; i++) {
+		if (params->origkey != i) {
+			co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, i);
+			sub_v3_v3(co, tvec);
 		}
 	}
+
 }
 
 /* assumes in the edge is the correct interpolated vertices already */
