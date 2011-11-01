@@ -1165,7 +1165,7 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	/*count number of each element type we were passed*/
 	BMO_ITER(h, &oiter, bm, op, "geom", BM_VERT|BM_EDGE|BM_FACE) {
-		switch (h->type) {
+		switch (h->htype) {
 			case BM_VERT: totv++; break;
 			case BM_EDGE: tote++; break;
 			case BM_FACE: totf++; break;

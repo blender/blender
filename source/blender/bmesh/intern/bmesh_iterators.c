@@ -4,7 +4,7 @@
 #include "bmesh_private.h"
 
 
-void *BMIter_AtIndex(struct BMesh *bm, int type, void *data, int index)
+void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
 {
 	BMIter iter;
 	void *val;
@@ -13,7 +13,7 @@ void *BMIter_AtIndex(struct BMesh *bm, int type, void *data, int index)
 	/*sanity check*/
 	if (index < 0) return NULL;
 
-	val=BMIter_New(&iter, bm, type, data);
+	val=BMIter_New(&iter, bm, htype, data);
 
 	i = 0;
 	while (i < index) {
@@ -364,13 +364,13 @@ static void *loop_of_face_step(BMIter *iter)
  * to return the first element of the iterator.
  *
 */
-void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
+void *BMIter_New(BMIter *iter, BMesh *bm, const char htype, void *data)
 {
 	/* int argtype; */
-	iter->type = type;
+	iter->htype = htype;
 	iter->bm = bm;
 
-	switch(type){
+	switch(htype){
 		case BM_VERTS_OF_MESH:
 			iter->begin = vert_of_mesh_begin;
 			iter->step = vert_of_mesh_step;

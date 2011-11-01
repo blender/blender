@@ -71,12 +71,12 @@ typedef struct BMIter {
 		int			i;
 		long		l;
 		float		f;
-	}filter;
-	int type, count;
+	} filter;
+	int htype, count;
 }BMIter;
 
-void *BMIter_New(struct BMIter *iter, struct BMesh *bm, int type, void *data);
+void *BMIter_New(struct BMIter *iter, struct BMesh *bm, const char htype, void *data);
 void *BMIter_Step(struct BMIter *iter);
-void *BMIter_AtIndex(struct BMesh *bm, int type, void *data, int index);
+void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index);
 
 #endif

@@ -143,16 +143,16 @@ defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble );
 
 /*stuff for dealing with header flags*/
-BM_INLINE int BM_TestHFlag(const void *element, const int flag);
+BM_INLINE char BM_TestHFlag(const void *element, const char hflag);
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_SetHFlag(void *element, const int flag);
+BM_INLINE void BM_SetHFlag(void *element, const char hflag);
 
 /*stuff for dealing with header flags*/
-BM_INLINE void BM_ClearHFlag(void *element, const int flag);
+BM_INLINE void BM_ClearHFlag(void *element, const char hflag);
 
 /*stuff for dealing BM_ToggleHFlag header flags*/
-BM_INLINE void BM_ToggleHFlag(void *element, const int flag);
+BM_INLINE void BM_ToggleHFlag(void *element, const char hflag);
 BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b);
 BM_INLINE void BM_SetIndex(void *element, const int index);
 BM_INLINE int BM_GetIndex(const void *element);
@@ -275,14 +275,14 @@ BMesh *init_editmesh_to_bmesh ( struct EditMesh *em, struct BMOperator *op );
 struct EditMesh *bmesh_to_editmesh ( BMesh *bm );
 
 /*convert between bmesh and Mesh flags*/
-int BMFlags_To_MEFlags ( void *element );
+short BMFlags_To_MEFlags(void *element);
 
 /*convert between Mesh and bmesh flags
   type must be BM_VERT/BM_EDGE/BM_FACE,
   and represents the type of the element
   parameter (the three defines map to
   MVert, MEdge, and MPoly, respectively).*/
-int MEFlags_To_BMFlags ( int flag, int type );
+char MEFlags_To_BMFlags(const char hflag, const char htype);
 
 /*convert MLoop*** in a bmface to mtface and mcol in
   an MFace*/

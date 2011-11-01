@@ -322,9 +322,9 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const subdparams *par
 		BMO_SetFlag(bm, eed, ELE_SPLIT);
 		BMO_SetFlag(bm, newe, SUBD_SPLIT);
 
-		CHECK_ELEMENT(bm, v);
-		if (v->e) CHECK_ELEMENT(bm, v->e);
-		if (v->e && v->e->l) CHECK_ELEMENT(bm, v->e->l->f);
+		BM_CHECK_ELEMENT(bm, v);
+		if (v->e) BM_CHECK_ELEMENT(bm, v->e);
+		if (v->e && v->e->l) BM_CHECK_ELEMENT(bm, v->e->l->f);
 	}
 	
 	alter_co(bm, v1, &temp, params, 0, &ov1, &ov2);
@@ -1064,7 +1064,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			j += 1;
 		}
 					
-		CHECK_ELEMENT(bmesh, face);
+		BM_CHECK_ELEMENT(bmesh, face);
 		pat->connectexec(bmesh, face, verts, &params);
 	}
 
@@ -1128,7 +1128,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
 
-			if (ele->type == BM_VERT) {
+			if (ele->htype == BM_VERT) {
 				BMEdge *e;
 				BMIter eiter;
 

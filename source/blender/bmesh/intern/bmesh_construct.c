@@ -464,23 +464,23 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 	const BMHeader *sheader = source;
 	BMHeader *theader = target;
 	
-	if(sheader->type != theader->type)
+	if(sheader->htype != theader->htype)
 		return;
 
 	/*First we copy select*/
 	if(BM_Selected(source_mesh, source)) BM_Select(target_mesh, target, 1);
 	
 	/*Now we copy flags*/
-	theader->flag = sheader->flag;
+	theader->hflag = sheader->hflag;
 	
 	/*Copy specific attributes*/
-	if(theader->type == BM_VERT)
+	if(theader->htype == BM_VERT)
 		bm_copy_vert_attributes(source_mesh, target_mesh, (const BMVert*)source, (BMVert*)target);
-	else if(theader->type == BM_EDGE)
+	else if(theader->htype == BM_EDGE)
 		bm_copy_edge_attributes(source_mesh, target_mesh, (const BMEdge*)source, (BMEdge*)target);
-	else if(theader->type == BM_LOOP)
+	else if(theader->htype == BM_LOOP)
 		bm_copy_loop_attributes(source_mesh, target_mesh, (const BMLoop*)source, (BMLoop*)target);
-	else if(theader->type == BM_FACE)
+	else if(theader->htype == BM_FACE)
 		bm_copy_face_attributes(source_mesh, target_mesh, (const BMFace*)source, (BMFace*)target);
 }
 
@@ -587,12 +587,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	for (ese=bmold->selected.first; ese; ese=ese->next) {
 		void *ele = NULL;
 
-		if (ese->type == BM_VERT)
-			ele = vtable[BM_GetIndex(ese->data)];
-		else if (ese->type == BM_EDGE)
-			ele = etable[BM_GetIndex(ese->data)];
-		else if (ese->type == BM_FACE) {
-			ele = ftable[BM_GetIndex(ese->data)];
+		if (ese->htype == BM_VERT)
+			ele= vtable[BM_GetIndex(ese->data)];
+		else if (ese->htype == BM_EDGE)
+			ele= etable[BM_GetIndex(ese->data)];
+		else if (ese->htype == BM_FACE) {
+			ele= ftable[BM_GetIndex(ese->data)];
 		}
 		else {
 			BLI_assert(0);
@@ -620,25 +620,26 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
   or BMFace, converted to mesh flags.
 */
 
-int BMFlags_To_MEFlags(void *element) {
-	const short src_type= ((BMHeader *)element)->type;
-	const short src_flag= ((BMHeader *)element)->flag;
+short BMFlags_To_MEFlags(void *element)
+{
+	const char src_htype= ((BMHeader *)element)->htype;
+	const char src_hflag= ((BMHeader *)element)->hflag;
 
-	int dst_flag = 0;
+	short dst_flag= 0;
 
-	if (src_flag & BM_HIDDEN)            dst_flag |= ME_HIDE;
+	if (src_hflag & BM_HIDDEN)            dst_flag |= ME_HIDE;
 
-	if (src_type == BM_FACE) {
-		if (src_flag & BM_SELECT)        dst_flag |= ME_FACE_SEL;
-		if (src_flag & BM_SMOOTH)        dst_flag |= ME_SMOOTH;
-	} else if (src_type == BM_EDGE) {
-		if (src_flag & BM_SELECT)        dst_flag |= SELECT;
-		if (src_flag & BM_SEAM)          dst_flag |= ME_SEAM;
-		if (src_flag & BM_SHARP)         dst_flag |= ME_SHARP;
-		if (BM_Wire_Edge(NULL, element)) dst_flag |= ME_LOOSEEDGE;
+	if (src_htype == BM_FACE) {
+		if (src_hflag & BM_SELECT)        dst_flag |= ME_FACE_SEL;
+		if (src_hflag & BM_SMOOTH)        dst_flag |= ME_SMOOTH;
+	} else if (src_htype == BM_EDGE) {
+		if (src_hflag & BM_SELECT)        dst_flag |= SELECT;
+		if (src_hflag & BM_SEAM)          dst_flag |= ME_SEAM;
+		if (src_hflag & BM_SHARP)         dst_flag |= ME_SHARP;
+		if (BM_Wire_Edge(NULL, element))  dst_flag |= ME_LOOSEEDGE;
 		dst_flag |= ME_EDGEDRAW | ME_EDGERENDER;
-	} else if (src_type == BM_VERT) {
-		if (src_flag & BM_SELECT)        dst_flag |= SELECT;
+	} else if (src_htype == BM_VERT) {
+		if (src_hflag & BM_SELECT)        dst_flag |= SELECT;
 	}
 
 	return dst_flag;
@@ -653,21 +654,22 @@ int BMFlags_To_MEFlags(void *element) {
   type must be either BM_VERT, BM_EDGE,
   or BM_FACE.
 */
-int MEFlags_To_BMFlags(int flag, int type) {
-	int f = 0;
+char MEFlags_To_BMFlags(const char hflag, const char htype)
+{
+	char f= 0;
 
-	if (type == BM_FACE) {
-		if (flag & ME_FACE_SEL) f |= BM_SELECT;
-		if (flag & ME_SMOOTH) f |= BM_SMOOTH;
-		if (flag & ME_HIDE) f |= BM_HIDDEN;
-	} else if (type == BM_EDGE) {
-		if (flag & SELECT) f |= BM_SELECT;
-		if (flag & ME_SEAM) f |= BM_SEAM;
-		if (flag & ME_SHARP) f |= BM_SHARP;
-		if (flag & ME_HIDE) f |= BM_HIDDEN;
-	} else if (type == BM_VERT) {
-		if (flag & SELECT) f |= BM_SELECT;
-		if (flag & ME_HIDE) f |= BM_HIDDEN;
+	if (htype == BM_FACE) {
+		if (hflag & ME_FACE_SEL)  f |= BM_SELECT;
+		if (hflag & ME_SMOOTH)    f |= BM_SMOOTH;
+		if (hflag & ME_HIDE)      f |= BM_HIDDEN;
+	} else if (htype == BM_EDGE) {
+		if (hflag & SELECT)       f |= BM_SELECT;
+		if (hflag & ME_SEAM)      f |= BM_SEAM;
+		if (hflag & ME_SHARP)     f |= BM_SHARP;
+		if (hflag & ME_HIDE)      f |= BM_HIDDEN;
+	} else if (htype == BM_VERT) {
+		if (hflag & SELECT)       f |= BM_SELECT;
+		if (hflag & ME_HIDE)      f |= BM_HIDDEN;
 	}
 
 	return f;

@@ -1368,11 +1368,11 @@ static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 		int path = 0;
 		
 		if (em->bm->selected.last) {
-			EditSelection *ese = em->bm->selected.last;
+			BMEditSelection *ese= em->bm->selected.last;
 			
-			if(ese && ese->type == BM_EDGE) {
+			if(ese && ese->htype == BM_EDGE) {
 				BMEdge *e_act;
-				e_act = (BMEdge*)ese->data;
+				e_act = (BMEdge *)ese->data;
 				if (e_act != e) {
 					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
 						EDBM_remove_selection(em, e_act);
@@ -1523,7 +1523,7 @@ static void EDBM_strip_selections(BMEditMesh *em)
 		ese = em->bm->selected.first;
 		while(ese){
 			nextese = ese->next; 
-			if(ese->type == BM_VERT) BLI_freelinkN(&(em->bm->selected),ese);
+			if(ese->htype == BM_VERT) BLI_freelinkN(&(em->bm->selected),ese);
 			ese = nextese;
 		}
 	}
@@ -1531,7 +1531,7 @@ static void EDBM_strip_selections(BMEditMesh *em)
 		ese=em->bm->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->bm->selected), ese);
+			if(ese->htype == BM_EDGE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
 		}
 	}
@@ -1539,7 +1539,7 @@ static void EDBM_strip_selections(BMEditMesh *em)
 		ese=em->bm->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == BM_FACE) BLI_freelinkN(&(em->bm->selected), ese);
+			if(ese->htype == BM_FACE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
 		}
 	}
@@ -1953,7 +1953,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 
 	/* Determine which type of iter, walker, and select flush to use
 	   based on type of the elements being deselected */
-	switch (h_act->type) {
+	switch (h_act->htype) {
 	case BM_VERT:
 		itertype = BM_VERTS_OF_MESH;
 		walktype = BMW_CONNECTED_VERTEX;
@@ -2013,7 +2013,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFa
 	ese= (BMEditSelection*)em->bm->selected.last;
 
 	if(ese) {
-		switch(ese->type) {
+		switch(ese->htype) {
 		case BM_VERT:
 			*v_p= (BMVert *)ese->data;
 			return;

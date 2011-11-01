@@ -552,7 +552,7 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	VECADDFAC(nv->co,v->co,nv->co,percent);
 
 	if (ne) {
-		(*ne)->head.flag = e->head.flag;
+		(*ne)->head.hflag = e->head.hflag;
 		BM_Copy_Attributes(bm, bm, e, *ne);
 	}
 

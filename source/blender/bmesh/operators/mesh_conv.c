@@ -133,10 +133,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		BM_SetIndex(v, i);
 
 		/*transfer flags*/
-		v->head.flag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
+		v->head.hflag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
 
 		/*this is necassary for selection counts to work properly*/
-		if(v->head.flag & BM_SELECT) BM_Select_Vert(bm, v, 1);
+		if (BM_TestHFlag(v, BM_SELECT)) BM_Select_Vert(bm, v, 1);
 
 		BM_SetCDf(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
@@ -179,10 +179,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		BM_SetCDf(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
 
 		/*transfer flags*/
-		e->head.flag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
+		e->head.hflag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
 
 		/*this is necassary for selection counts to work properly*/
-		if (e->head.flag & BM_SELECT) BM_Select(bm, e, 1);
+		if (BM_TestHFlag(e, BM_SELECT)) BM_Select(bm, e, 1);
 	}
 	
 	if (!me->totpoly) {
@@ -230,10 +230,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		}
 
 		/*transfer flags*/
-		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
+		f->head.hflag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
 
 		/*this is necassary for selection counts to work properly*/
-		if (f->head.flag & BM_SELECT) BM_Select(bm, f, 1);
+		if (BM_TestHFlag(f, BM_SELECT)) BM_Select(bm, f, 1);
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
@@ -508,7 +508,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		i++;
 		mvert++;
 
-		CHECK_ELEMENT(bm, v);
+		BM_CHECK_ELEMENT(bm, v);
 	}
 
 	i = 0;
@@ -530,7 +530,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		medge++;
-		CHECK_ELEMENT(bm, e);
+		BM_CHECK_ELEMENT(bm, e);
 	}
 
 	/*new scanfill tesselation code*/
@@ -653,9 +653,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 			/*copy over customdata*/
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
-			CHECK_ELEMENT(bm, l);
-			CHECK_ELEMENT(bm, l->e);
-			CHECK_ELEMENT(bm, l->v);
+			BM_CHECK_ELEMENT(bm, l);
+			BM_CHECK_ELEMENT(bm, l->e);
+			BM_CHECK_ELEMENT(bm, l->v);
 		}
 		
 		if (f == bm->act_face) me->act_face = i;
@@ -665,7 +665,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		mpoly++;
-		CHECK_ELEMENT(bm, f);
+		BM_CHECK_ELEMENT(bm, f);
 	}
 
 	/* patch hook indices and vertex parents */
@@ -737,13 +737,13 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 
 		for(i = 0, selected = bm->selected.first; selected; i++, selected = selected->next){
-			if(selected->type == BM_VERT){
+			if(selected->htype == BM_VERT){
 				me->mselect[i].type = ME_VSEL;
 
-			}else if(selected->type == BM_EDGE){
+			}else if(selected->htype == BM_EDGE){
 				me->mselect[i].type = ME_ESEL;
 
-			}else if(selected->type == BM_FACE){
+			}else if(selected->htype == BM_FACE){
 				me->mselect[i].type = ME_FSEL;
 			}
 

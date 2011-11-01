@@ -318,12 +318,12 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
   type flag etypeflag and header flag flag to it.  note,
   to get more useful information (such as the mapping from
   original to new elements) you should run the dupe op manually.*/
-void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, int flag)
+void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, const char hflag)
 {
 	BMOperator dupeop;
 
 	BMO_Init_Op(&dupeop, "dupe");
-	BMO_HeaderFlag_To_Slot(bm, &dupeop, "geom", flag, etypeflag);
+	BMO_HeaderFlag_To_Slot(bm, &dupeop, "geom", hflag, etypeflag);
 
 	BMO_Exec_Op(bm, &dupeop);
 	BMO_Finish_Op(bm, &dupeop);
@@ -483,7 +483,8 @@ static void delete_edges(BMesh *bm){
 
 /*Break this into smaller functions*/
 
-static void delete_context(BMesh *bm, int type){
+static void delete_context(BMesh *bm, int type)
+{
 	BMVert *v;
 	BMEdge *e;
 	BMFace *f;

@@ -198,7 +198,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, BMEditMes
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
 {
 	BMOIter siter;
 	BMIter liter;
@@ -206,7 +206,7 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag,
 	BMLoop *l;
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_face_indiv faces=%hf", flag);
+	EDBM_InitOpf(em, &bmop, op, "extrude_face_indiv faces=%hf", hflag);
 
 	/*deselect original verts*/
 	EDBM_clear_flag_all(em, BM_SELECT);
@@ -228,11 +228,11 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag,
 }
 
 /* extrudes individual edges */
-static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
 {
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_edge_only edges=%he", flag);
+	EDBM_InitOpf(em, &bmop, op, "extrude_edge_only edges=%he", hflag);
 
 	/*deselect original verts*/
 	EDBM_clear_flag_all(em, BM_SELECT);
@@ -246,11 +246,11 @@ static short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, short flag
 }
 
 /* extrudes individual vertices */
-static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *UNUSED(nor)) 
+static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char hflag, float *UNUSED(nor))
 {
 	BMOperator bmop;
 
-	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", flag);
+	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", hflag);
 
 	/*deselect original verts*/
 	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "verts", BM_SELECT, BM_VERT);
@@ -263,7 +263,7 @@ static short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag
 	return 'g'; // g is grab
 }
 
-static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *nor)
+static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag, float *nor)
 {
 	BMesh *bm = em->bm;
 	BMIter iter;
@@ -276,7 +276,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *
 	
 	BMO_Init_Op(&extop, "extrudefaceregion");
 	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
-		               flag, BM_VERT|BM_EDGE|BM_FACE);
+	                       hflag, BM_VERT|BM_EDGE|BM_FACE);
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
@@ -297,7 +297,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *
 				for (edge=BMIter_New(&iter,bm,BM_EDGES_OF_MESH,NULL);
 				     edge; edge=BMIter_Step(&iter))
 				{
-					if(edge->head.flag & flag) {
+					if (BM_TestHFlag(edge, hflag)) {
 						float co1[3], co2[3];
 
 						copy_v3_v3(co1, edge->v1->co);
@@ -337,7 +337,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *
 	BMO_ITER(el, &siter, bm, &extop, "geomout", BM_ALL) {
 		BM_Select(bm, el, 1);
 
-		if (el->type == BM_FACE) {
+		if (el->htype == BM_FACE) {
 			f = (BMFace*)el;
 			add_normal_aligned(nor, f->no);
 		};
@@ -351,7 +351,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *
 	return 'n'; // normal constraint 
 
 }
-static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
+static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag, float *nor)
 {
 	BMIter iter;
 	BMEdge *eed;
@@ -359,26 +359,26 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float
 	/*ensure vert flags are consistent for edge selections*/
 	eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 	for ( ; eed; eed=BMIter_Step(&iter)) {
-		if (BM_TestHFlag(eed, flag)) {
-			if (flag & BM_SELECT) {
+		if (BM_TestHFlag(eed, hflag)) {
+			if (hflag & BM_SELECT) {
 				BM_Select(em->bm, eed->v1, 1);
 				BM_Select(em->bm, eed->v2, 1);
 			}
 
-			BM_SetHFlag(eed->v1, flag & ~BM_SELECT);
-			BM_SetHFlag(eed->v2, flag & ~BM_SELECT);
+			BM_SetHFlag(eed->v1, hflag & ~BM_SELECT);
+			BM_SetHFlag(eed->v2, hflag & ~BM_SELECT);
 		} else {
-			if (BM_TestHFlag(eed->v1, flag) && BM_TestHFlag(eed->v2, flag)) {
-				if (flag & BM_SELECT) {
+			if (BM_TestHFlag(eed->v1, hflag) && BM_TestHFlag(eed->v2, hflag)) {
+				if (hflag & BM_SELECT) {
 					BM_Select(em->bm, eed, 1);
 				}
 
-				BM_SetHFlag(eed, flag & ~BM_SELECT);
+				BM_SetHFlag(eed, hflag & ~BM_SELECT);
 			}
 		}
 	}
 
-	return EDBM_Extrude_edge(obedit, em, flag, nor);
+	return EDBM_Extrude_edge(obedit, em, hflag, nor);
 }
 
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
@@ -2156,13 +2156,13 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), 
 
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(em->bm->selected.first && em->bm->selected.last &&
-				((BMEditSelection*)em->bm->selected.first)->type == BM_VERT && ((BMEditSelection*)em->bm->selected.last)->type == BM_VERT) {
+				((BMEditSelection*)em->bm->selected.first)->htype == BM_VERT && ((BMEditSelection*)em->bm->selected.last)->htype == BM_VERT) {
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
-			else if(em->bm->selected.first && ((BMEditSelection*)em->bm->selected.first)->type == BM_VERT)
+			else if(em->bm->selected.first && ((BMEditSelection*)em->bm->selected.first)->htype == BM_VERT)
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
-			else if(em->bm->selected.last && ((BMEditSelection*)em->bm->selected.last)->type == BM_VERT)
+			else if(em->bm->selected.last && ((BMEditSelection*)em->bm->selected.last)->htype == BM_VERT)
 				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 		}
 
@@ -2287,7 +2287,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	if( ev == NULL )
 		return OPERATOR_CANCELLED;
 
-	if( sv->type != BM_VERT || ev->type != BM_VERT )
+	if((sv->htype != BM_VERT) || (ev->htype != BM_VERT))
 		return OPERATOR_CANCELLED;
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
@@ -2763,7 +2763,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	if(ese==NULL)
 		return OPERATOR_CANCELLED;
 
-	if(ese->type==BM_VERT) {
+	if (ese->htype==BM_VERT) {
 		BMVert *ev, *act_vert= (BMVert*)ese->data;
 		BMIter iter;
 		float value= act_vert->co[axis];

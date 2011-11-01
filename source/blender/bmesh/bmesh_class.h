@@ -57,9 +57,10 @@ struct Object;
 typedef struct BMHeader {
 	void *data; /*customdata layers*/
 	struct BMFlagLayer *flags;
-	short type; /*element geometric type (verts/edges/loops/faces)*/
-	short flag; /*this would be a CD layer, see below*/
 	int index; /*note: use BM_GetIndex/SetIndex macros for index*/
+
+	char htype; /*element geometric type (verts/edges/loops/faces)*/
+	char hflag; /*this would be a CD layer, see below*/
 } BMHeader;
 
 /*note: need some way to specify custom locations for custom data layers.  so we can

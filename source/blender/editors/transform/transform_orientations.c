@@ -584,7 +584,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				EDBM_editselection_normal(normal, &ese);
 				EDBM_editselection_plane(em, plane, &ese);
 				
-				switch (ese.type)
+				switch (ese.htype)
 				{
 					case BM_VERT:
 						result = ORIENTATION_VERT;

@@ -441,82 +441,63 @@ int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 	ese->next = ese->prev = NULL;
 	
 	if (ese_last) {
-		if (ese_last->type == BM_FACE) { /* if there is an active face, use it over the last selected face */
+		if (ese_last->htype == BM_FACE) { /* if there is an active face, use it over the last selected face */
 			if (efa) {
 				ese->data = (void *)efa;
 			} else {
 				ese->data = ese_last->data;
 			}
-			ese->type = BM_FACE;
-		} else {
-			ese->data = ese_last->data;
-			ese->type = ese_last->type;
+			ese->htype = BM_FACE;
 		}
-	} else if (efa) { /* no */
-		ese->data = (void *)efa;
-		ese->type = BM_FACE;
-	} else {
+		else {
+			ese->data = ese_last->data;
+			ese->htype = ese_last->htype;
+		}
+	}
+	else if (efa) { /* no */
+		ese->data= (void *)efa;
+		ese->htype= BM_FACE;
+	}
+	else {
 		ese->data = NULL;
 		return 0;
 	}
 	return 1;
 }
 
-void EDBM_clear_flag_all(BMEditMesh *em, int flag)
+void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 {
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
-	int i, type;
+	int i;
 
-	if (flag & BM_SELECT)
+	if (hflag & BM_SELECT)
 		BM_clear_selection_history(em->bm);
 
 	for (i=0; i<3; i++) {
-		switch (i) {
-			case 0:
-				type = BM_VERTS_OF_MESH;
-				break;
-			case 1:
-				type = BM_EDGES_OF_MESH;
-				break;
-			case 2:
-				type = BM_FACES_OF_MESH;
-				break;
-		}
-		
-		BM_ITER(ele, &iter, em->bm, type, NULL) {
-			if (flag & BM_SELECT) BM_Select(em->bm, ele, 0);
-			BM_ClearHFlag(ele, flag);
+		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+			if (hflag & BM_SELECT) BM_Select(em->bm, ele, 0);
+			BM_ClearHFlag(ele, hflag);
 		}
 	}
 }
 
-void EDBM_set_flag_all(BMEditMesh *em, int flag)
+void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 {
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
-	int i, type;
+	int i;
 
 	for (i=0; i<3; i++) {
-		switch (i) {
-			case 0:
-				type = BM_VERTS_OF_MESH;
-				break;
-			case 1:
-				type = BM_EDGES_OF_MESH;
-				break;
-			case 2:
-				type = BM_FACES_OF_MESH;
-				break;
-		}
-		
-		ele = BMIter_New(&iter, em->bm, type, NULL);
+		ele= BMIter_New(&iter, em->bm, types[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
-			if (flag & BM_SELECT) {
+			if (hflag & BM_SELECT) {
 				BM_Select(em->bm, ele, 1);
 			}
 			else {
-				BM_SetHFlag(ele, flag);
+				BM_SetHFlag(ele, hflag);
 			}
 		}
 	}

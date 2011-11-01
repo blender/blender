@@ -4,8 +4,8 @@
 typedef struct BMEditSelection
 {
 	struct BMEditSelection *next, *prev;
-	short type;
 	void *data;
+	char htype;
 } BMEditSelection;
 
 /* pinning code */
@@ -27,7 +27,7 @@ void BM_Select(struct BMesh *bm, void *element, int select);
   chuck it.*/
 int BM_Selected(BMesh *bm, const void *element);
 
-void BM_clear_flag_all(BMesh *bm, int flag);
+void BM_clear_flag_all(BMesh *bm, const char hflag);
 
 /*individual element select functions, BM_Select is a shortcut for these
   that automatically detects which one to use*/
@@ -38,7 +38,7 @@ void BM_Select_Face(struct BMesh *bm, struct BMFace *f, int select);
 void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 
 /*counts number of elements with flag set*/
-int BM_CountFlag(struct BMesh *bm, int type, int flag, int respecthide);
+int BM_CountFlag(struct BMesh *bm, const char htype, const char hflag, int respecthide);
 
 /*edit selection stuff*/
 void BM_set_actFace(BMesh *em, BMFace *f);

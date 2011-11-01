@@ -2570,13 +2570,13 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	BMVert *eve_act = NULL;
 	
 	if (em->bm->selected.last) {
-		BMEditSelection *ese = em->bm->selected.last;
+		BMEditSelection *ese= em->bm->selected.last;
 		/* face is handeled above */
 		/*if (ese->type == BM_FACE ) {
 			efa_act = (BMFace *)ese->data;
-		} else */ if ( ese->type == BM_EDGE ) {
+		} else */ if ( ese->htype == BM_EDGE ) {
 			eed_act = (BMEdge *)ese->data;
-		} else if ( ese->type == BM_VERT ) {
+		} else if ( ese->htype == BM_VERT ) {
 			eve_act = (BMVert *)ese->data;
 		}
 	}

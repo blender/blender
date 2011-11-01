@@ -152,8 +152,8 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 }
 
 /*unified extrude code*/
-void BME_extrude_mesh(BME_Mesh *bm, int type){
-	
+void BME_extrude_mesh(BME_Mesh *bm, int type)
+{
 	BMVert *v;
 	BMEdge *e;
 	BMFace *f;

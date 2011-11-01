@@ -32,11 +32,11 @@
  *
 */
 
-int BM_Count_Element(BMesh *bm, int type)
+int BM_Count_Element(BMesh *bm, const char htype)
 {
-	if(type == BM_VERT) return bm->totvert;
-	else if(type == BM_EDGE) return bm->totedge;
-	else if(type == BM_FACE) return bm->totface;
+	if(htype == BM_VERT) return bm->totvert;
+	else if(htype == BM_EDGE) return bm->totedge;
+	else if(htype == BM_FACE) return bm->totface;
 
 	return 0;
 }

@@ -8,7 +8,7 @@
 float BM_face_area(BMFace *f);
 
 /*counts number of elements of type type are in the mesh.*/
-int BM_Count_Element(struct BMesh *bm, int type);
+int BM_Count_Element(struct BMesh *bm, const char htype);
 
 /*returns true if v is in f*/
 int BM_Vert_In_Face(struct BMFace *f, struct BMVert *v);

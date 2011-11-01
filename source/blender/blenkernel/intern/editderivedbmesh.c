@@ -629,7 +629,7 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 			int drawSmooth;
 			
 			efa = l[0]->f;
-			drawSmooth = (efa->head.flag & BM_SMOOTH);
+			drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
 
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if(draw) {
@@ -697,7 +697,7 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 			int drawSmooth;
 
 			efa = l[0]->f;
-			drawSmooth = (efa->head.flag & BM_SMOOTH);
+			drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
 			
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if(draw) {

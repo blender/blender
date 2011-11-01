@@ -39,14 +39,22 @@
 struct Link;
 struct BMLoop;
 
-/*returns positive nonzero on error*/
-int bmesh_check_element(BMesh *bm, void *element, int type);
+/* returns positive nonzero on error */
+int bmesh_check_element(BMesh *bm, void *element, const char htype);
 
-#define CHECK_ELEMENT(bm, el) \
-if (bmesh_check_element(bm, el, ((BMHeader*)el)->type))\
-		printf("check_element failure, with code %i on line %i in file\n    \"%s\"\n\n", bmesh_check_element(bm, el, ((BMHeader*)el)->type), __LINE__, __FILE__);
+#define BM_CHECK_ELEMENT(bm, el)                                              \
+    if (bmesh_check_element(bm, el, ((BMHeader*)el)->htype)) {                \
+        printf("check_element failure, with code %i on line %i in file\n"     \
+        "    \"%s\"\n\n",                                                     \
+        bmesh_check_element(bm, el, ((BMHeader*)el)->htype),                  \
+        __LINE__, __FILE__);                                                  \
+    }
 
-#define bm_get_edge_link(e, v) (((v) == ((BMEdge*)(e))->v1) ? (Link*)&(((BMEdge*)(e))->dlink1) : (Link*)&(((BMEdge*)(e))->dlink2))
+#define bm_get_edge_link(e, v)  (                                             \
+	((v) == ((BMEdge*)(e))->v1) ?                                             \
+		(Link *)&(((BMEdge*)(e))->dlink1) :                                   \
+		(Link *)&(((BMEdge*)(e))->dlink2)                                     \
+    )
 
 int bmesh_radial_length(struct BMLoop *l);
 int bmesh_disk_count(BMVert *v);

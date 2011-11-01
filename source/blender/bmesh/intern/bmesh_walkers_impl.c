@@ -80,7 +80,7 @@ static void shellWalker_begin(BMWalker *walker, void *data){
 		return;
 	}
 
-	switch (h->type) {
+	switch (h->htype) {
 		case BM_VERT:
 		{
 			/* starting the walk at a vert, add all the edges

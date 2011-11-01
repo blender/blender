@@ -164,7 +164,7 @@ int BMO_TestFlag(struct BMesh *bm, void *element, int flag);*/
 
 /*count the number of elements with a specific flag.  type
   can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE.*/
-int BMO_CountFlag(struct BMesh *bm, int flag, int type);
+int BMO_CountFlag(struct BMesh *bm, int flag, const char htype);
 
 /*---------formatted operator initialization/execution-----------*/
 /*
@@ -259,26 +259,26 @@ void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int si
 void BMO_Get_Mat4(struct BMOperator *op, const char *slotname, float mat[4][4]);
 void BMO_Get_Mat3(struct BMOperator *op, const char *slotname, float mat[3][3]);
 
-void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag);
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, const char htype, int flag);
 
 /*puts every element of type type (which is a bitmask) with tool flag flag,
   into a slot.*/
-void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, const int flag, const char htype);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, const int hflag, const char htype);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, const int flag, const char htype);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, const char hflag, const char htype);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, const char *slotname, const char hflag, const char htype);
 
 /*puts every element of type type (which is a bitmask) with header flag 
   flag, into a slot.  note: ignores hidden elements (e.g. elements with
   header flag BM_HIDDEN set).*/
-void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, int flag, int type);
+void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, const char *slotname, const char hflag, const char htype);
 
 /*counts number of elements inside a slot array.*/
 int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, const char *slotname);
@@ -359,7 +359,7 @@ typedef struct BMOIter {
 	int cur; //for arrays
 	struct GHashIterator giter;
 	void *val;
-	int restrictmask;
+	char restrictmask; /* bitwise '&' with BMHeader.htype */
 } BMOIter;
 
 void *BMO_FirstElem(BMOperator *op, const char *slotname);
@@ -368,7 +368,7 @@ void *BMO_FirstElem(BMOperator *op, const char *slotname);
   (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
   over an element buffer (not a mapping).*/
 void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
-		  const char *slotname, int restrictmask);
+                  const char *slotname, const char restrictmask);
 void *BMO_IterStep(BMOIter *iter);
 
 /*returns a pointer to the key value when iterating over mappings.

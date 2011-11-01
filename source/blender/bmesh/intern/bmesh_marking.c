@@ -321,28 +321,28 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 }
 
 
-int BM_CountFlag(struct BMesh *bm, int type, int flag, int respecthide)
+int BM_CountFlag(struct BMesh *bm, const char htype, const char hflag, int respecthide)
 {
 	BMHeader *head;
 	BMIter iter;
 	int tot = 0;
 
-	if (type & BM_VERT) {
+	if (htype & BM_VERT) {
 		for (head = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
-			if (head->flag & flag) tot++;
+			if (BM_TestHFlag(head, hflag)) tot++;
 		}
 	}
-	if (type & BM_EDGE) {
+	if (htype & BM_EDGE) {
 		for (head = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
-			if (head->flag & flag) tot++;
+			if (BM_TestHFlag(head, hflag)) tot++;
 		}
 	}
-	if (type & BM_FACE) {
+	if (htype & BM_FACE) {
 		for (head = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
-			if (head->flag & flag) tot++;
+			if (BM_TestHFlag(head, hflag)) tot++;
 		}
 	}
 
@@ -354,9 +354,9 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 {
 	BMHeader *head = element;
 
-	if(head->type == BM_VERT) BM_Select_Vert(bm, (BMVert*)element, select);
-	else if(head->type == BM_EDGE) BM_Select_Edge(bm, (BMEdge*)element, select);
-	else if(head->type == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
+	if     (head->htype == BM_VERT) BM_Select_Vert(bm, (BMVert*)element, select);
+	else if(head->htype == BM_EDGE) BM_Select_Edge(bm, (BMEdge*)element, select);
+	else if(head->htype == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
 }
 
 int BM_Selected(BMesh *UNUSED(bm), const void *element)
@@ -385,8 +385,8 @@ BMFace *BM_get_actFace(BMesh *bm, int sloppy)
 		/* Find the latest non-hidden face from the BMEditSelection */
 		ese = bm->selected.last;
 		for (; ese; ese=ese->prev){
-			if(ese->type == BM_FACE) {
-				f = (BMFace *)ese->data;
+			if(ese->htype == BM_FACE) {
+				f= (BMFace *)ese->data;
 				
 				if (BM_TestHFlag(f, BM_HIDDEN)) {
 					f= NULL;
@@ -418,14 +418,16 @@ EM_editselection_plane
 */
 void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese)
 {
-	if (ese->type==BM_VERT) {
+	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
 		copy_v3_v3(center, eve->co);
-	} else if (ese->type==BM_EDGE) {
+	}
+	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed= ese->data;
 		add_v3_v3v3(center, eed->v1->co, eed->v2->co);
 		mul_v3_fl(center, 0.5);
-	} else if (ese->type==BM_FACE) {
+	}
+	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
 		BM_Compute_Face_Center(bm, efa, center);
 	}
@@ -433,10 +435,11 @@ void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese)
 
 void BM_editselection_normal(float *normal, BMEditSelection *ese)
 {
-	if (ese->type==BM_VERT) {
+	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
 		copy_v3_v3(normal, eve->no);
-	} else if (ese->type==BM_EDGE) {
+	}
+	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
@@ -452,7 +455,8 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 		cross_v3_v3v3(normal, plane, vec); 
 		normalize_v3(normal);
 		
-	} else if (ese->type==BM_FACE) {
+	}
+	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
 		copy_v3_v3(normal, efa->no);
 	}
@@ -463,7 +467,7 @@ also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
 void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 {
-	if (ese->type==BM_VERT) {
+	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
@@ -480,7 +484,8 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 			else						vec[2]= 1.0f;
 			cross_v3_v3v3(plane, eve->no, vec);
 		}
-	} else if (ese->type==BM_EDGE) {
+	}
+	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed= ese->data;
 
 		/* the plane is simple, it runs along the edge
@@ -493,7 +498,8 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 		else
 			sub_v3_v3v3(plane, eed->v1->co, eed->v2->co);
 		
-	} else if (ese->type==BM_FACE) {
+	}
+	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
 		float vec[3] = {0.0f, 0.0f, 0.0f};
 		
@@ -573,7 +579,7 @@ void BM_store_selection(BMesh *bm, void *data)
 	BMEditSelection *ese;
 	if(!BM_check_selection(bm, data)){
 		ese = (BMEditSelection*) MEM_callocN( sizeof(BMEditSelection), "BMEdit Selection");
-		ese->type = ((BMHeader*)data)->type;
+		ese->htype = ((BMHeader*)data)->htype;
 		ese->data = data;
 		BLI_addtail(&(bm->selected),ese);
 	}
@@ -594,32 +600,21 @@ void BM_validate_selections(BMesh *bm)
 	}
 }
 
-void BM_clear_flag_all(BMesh *bm, int flag)
+void BM_clear_flag_all(BMesh *bm, const char hflag)
 {
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
-	int i, type;
+	int i;
 
-	if (flag & BM_SELECT)
+	if (hflag & BM_SELECT)
 		BM_clear_selection_history(bm);
 
-	for (i=0; i<3; i++) {
-		switch (i) {
-			case 0:
-				type = BM_VERTS_OF_MESH;
-				break;
-			case 1:
-				type = BM_EDGES_OF_MESH;
-				break;
-			case 2:
-				type = BM_FACES_OF_MESH;
-				break;
-		}
-		
-		ele = BMIter_New(&iter, bm, type, NULL);
+	for (i=0; i<3; i++) {		
+		ele = BMIter_New(&iter, bm, types[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
-			if (flag & BM_SELECT) BM_Select(bm, ele, 0);
-			BM_ClearHFlag(ele, flag);
+			if (hflag & BM_SELECT) BM_Select(bm, ele, 0);
+			BM_ClearHFlag(ele, hflag);
 		}
 	}
 }
@@ -715,7 +710,7 @@ void BM_Hide(BMesh *bm, void *element, int hide)
 	if (hide)
 		BM_Select(bm, element, 0);
 
-	switch (h->type) {
+	switch (h->htype) {
 		case BM_VERT:
 			BM_Hide_Vert(bm, element, hide);
 			break;

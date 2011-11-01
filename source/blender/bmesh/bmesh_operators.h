@@ -80,7 +80,7 @@ extern int bmesh_total_ops;
 struct Object;
 struct EditMesh;
 
-void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
+void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, const char hflag);
 void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth, 
                float fractal, int beauty, int numcuts, int seltype,
                int cornertype, int singleedge, int gridfill, int seed);
