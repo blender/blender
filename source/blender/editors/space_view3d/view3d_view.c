@@ -969,7 +969,7 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 	float lens, sensor_x =DEFAULT_SENSOR_WIDTH, sensor_y= DEFAULT_SENSOR_HEIGHT, fac, x1, y1, x2, y2;
 	float winx= (float)winxi, winy= (float)winyi;
 	int orth= 0;
-	short fov_mode= CAMERA_FOV_AUTO;
+	short sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 
 	/* currnetly using sensor size (depends on fov calculating method) */
 	float sensor= DEFAULT_SENSOR_WIDTH;
@@ -1000,9 +1000,9 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 				sensor_y= cam->sensor_y;
 				*clipsta= cam->clipsta;
 				*clipend= cam->clipend;
-				fov_mode= cam->fov_mode;
+				sensor_fit= cam->sensor_fit;
 
-				sensor= (cam->fov_mode==CAMERA_FOV_VERT) ? (cam->sensor_y) : (cam->sensor_x);
+				sensor= (cam->sensor_fit==CAMERA_SENSOR_FIT_VERT) ? (cam->sensor_y) : (cam->sensor_x);
 			}
 		}
 	}
@@ -1034,7 +1034,7 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			/* ortho_scale == 1 means exact 1 to 1 mapping */
 			float dfac= 2.0f*cam->ortho_scale/fac;
 
-			if(fov_mode==CAMERA_FOV_AUTO) {
+			if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 				if(winx>winy) {
 					x1= -dfac;
 					y1= -winy*dfac/winx;
@@ -1044,7 +1044,7 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 					y1= -dfac;
 				}
 			}
-			else if(fov_mode==CAMERA_FOV_HOR) {
+			else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 				x1= -dfac;
 				y1= -winy*dfac/winx;
 			}
@@ -1061,11 +1061,11 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 		else {
 			float dfac;
 			
-			if(fov_mode==CAMERA_FOV_AUTO) {
+			if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 				if(winx>winy) dfac= (sensor_x * 2.0) / (fac*winx*lens);
 				else dfac= (sensor_x * 2.0) / (fac*winy*lens);
 			}
-			else if(fov_mode==CAMERA_FOV_HOR) {
+			else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 				dfac= (sensor_x * 2.0) / (fac*winx*lens);
 			}
 			else {
@@ -1110,9 +1110,9 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 		else {
 			float size= ((winx >= winy)? winx: winy);
 
-			if(fov_mode==CAMERA_FOV_HOR)
+			if(sensor_fit==CAMERA_SENSOR_FIT_HOR)
 				size= winx;
-			else if(fov_mode==CAMERA_FOV_VERT)
+			else if(sensor_fit==CAMERA_SENSOR_FIT_VERT)
 				size= winy;
 
 			viewfac= (size*lens)/sensor;

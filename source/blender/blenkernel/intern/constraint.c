@@ -4008,7 +4008,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 			if(len>FLT_EPSILON) {
 				float pos[2], rmat[4][4], shiftx= 0.0f, shifty= 0.0f, clipsta= 0.0f, clipend= 0.0f;
-				short is_ortho= 0, fov_mode= CAMERA_FOV_AUTO;
+				short is_ortho= 0, sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 				Camera *cam= NULL;
 
 				user.framenr= scene->r.cfra;
@@ -4016,7 +4016,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 				add_v2_v2v2(pos, marker->pos, track->offset);
 
-				object_camera_intrinsics(camob, &cam, &is_ortho, &shiftx, &shifty, &clipsta, &clipend, &lens, &sensor_x, &sensor_y, &fov_mode);
+				object_camera_intrinsics(camob, &cam, &is_ortho, &shiftx, &shifty, &clipsta, &clipend, &lens, &sensor_x, &sensor_y, &sensor_fit);
 
 				if(is_ortho) {
 					if(cam)

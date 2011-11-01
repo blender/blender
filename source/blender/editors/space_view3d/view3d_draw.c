@@ -924,14 +924,14 @@ static void draw_selected_name(Scene *scene, Object *ob)
 void view3d_viewborder_size_get(Scene *scene, Object *camob, ARegion *ar, float size_r[2])
 {
 	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-	short fov_mode= CAMERA_FOV_AUTO;
+	short sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 
 	if(camob && camob->type==OB_CAMERA) {
 		Camera *cam= (Camera *)camob->data;
-		fov_mode= cam->fov_mode;
+		sensor_fit= cam->sensor_fit;
 	}
 
-	if(fov_mode==CAMERA_FOV_AUTO) {
+	if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 		float winmax= MAX2(ar->winx, ar->winy);
 
 		if(aspect > 1.0f) {
@@ -942,7 +942,7 @@ void view3d_viewborder_size_get(Scene *scene, Object *camob, ARegion *ar, float 
 			size_r[1]= winmax;
 		}
 	}
-	else if(fov_mode==CAMERA_FOV_HOR) {
+	else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 		size_r[0]= ar->winx;
 		size_r[1]= ar->winx/aspect;
 	}
@@ -2459,11 +2459,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		float winmat[4][4];
 		float _clipsta, _clipend, _lens, _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
-		short _fov_mode= CAMERA_FOV_AUTO;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
 
 		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens,
-			&_sensor_x, &_sensor_y, &_fov_mode, &_yco, &_dx, &_dy);
+			&_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
 	}
@@ -2519,9 +2519,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 
 	{
 		float _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
-		short _fov_mode= CAMERA_FOV_AUTO;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
-		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_sensor_x, &_sensor_y, &_fov_mode, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 	}
 
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);

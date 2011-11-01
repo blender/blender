@@ -2977,7 +2977,7 @@ void object_camera_mode(RenderData *rd, Object *camera)
 }
 
 void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *fov_mode)
+			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit)
 {
 	Camera *cam= NULL;
 
@@ -2986,7 +2986,7 @@ void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, f
 
 	(*sensor_x)= DEFAULT_SENSOR_WIDTH;
 	(*sensor_y)= DEFAULT_SENSOR_HEIGHT;
-	(*fov_mode)= CAMERA_FOV_AUTO;
+	(*sensor_fit)= CAMERA_SENSOR_FIT_AUTO;
 
 	if(camera->type==OB_CAMERA) {
 		cam= camera->data;
@@ -3012,7 +3012,7 @@ void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, f
 		(*sensor_y)= cam->sensor_y;
 		(*clipsta)= cam->clipsta;
 		(*clipend)= cam->clipend;
-		(*fov_mode)= cam->fov_mode;
+		(*sensor_fit)= cam->sensor_fit;
 	}
 	else if(camera->type==OB_LAMP) {
 		Lamp *la= camera->data;
@@ -3042,7 +3042,7 @@ void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, f
 void object_camera_matrix(
 		RenderData *rd, Object *camera, int winx, int winy, short field_second,
 		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens,
-		float *sensor_x, float *sensor_y, short *fov_mode, float *ycor,
+		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
 		float *viewdx, float *viewdy)
 {
 	Camera *cam=NULL;
@@ -3055,15 +3055,15 @@ void object_camera_matrix(
 	if(rd->mode & R_FIELDS)
 		(*ycor) *= 2.0f;
 
-	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x, sensor_y, fov_mode);
+	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x, sensor_y, sensor_fit);
 
 	/* ortho only with camera available */
 	if(cam && is_ortho) {
-		if((*fov_mode)==CAMERA_FOV_AUTO) {
+		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
 			if(rd->xasp*winx >= rd->yasp*winy) viewfac= winx;
 			else viewfac= (*ycor) * winy;
 		}
-		else if((*fov_mode)==CAMERA_FOV_HOR) {
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
 			viewfac= winx;
 		}
 		else {
@@ -3074,14 +3074,14 @@ void object_camera_matrix(
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if((*fov_mode)==CAMERA_FOV_AUTO) {
+		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
 			if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
 			else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
 		}
-		else if((*fov_mode)==CAMERA_FOV_HOR) {
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
 			viewfac= ((*lens) * winx) / (*sensor_x);
 		}
-		else if((*fov_mode)==CAMERA_FOV_VERT) {
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) {
 			viewfac= ((*lens) * winy) / (*sensor_y);
 		}
 
@@ -3092,9 +3092,9 @@ void object_camera_matrix(
 	winside= MAX2(winx, winy);
 
 	if(cam) {
-		if(cam->fov_mode==CAMERA_FOV_HOR)
+		if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR)
 			winside= winx;
-		else if(cam->fov_mode==CAMERA_FOV_VERT)
+		else if(cam->sensor_fit==CAMERA_SENSOR_FIT_VERT)
 			winside= winy;
 	}
 
@@ -3141,7 +3141,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 		float aspx= (float) scene->r.xsch*scene->r.xasp;
 		float aspy= (float) scene->r.ysch*scene->r.yasp;
 
-		if(camera->fov_mode==CAMERA_FOV_AUTO) {
+		if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 			if(aspx < aspy) {
 				r_asp[0]= aspx / aspy;
 				r_asp[1]= 1.0;
@@ -3151,7 +3151,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 				r_asp[1]= aspy / aspx;
 			}
 		}
-		else if(camera->fov_mode==CAMERA_FOV_AUTO) {
+		else if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 			r_asp[0]= aspx / aspy;
 			r_asp[1]= 1.0;
 		}
@@ -3177,7 +3177,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	else {
 		/* that way it's always visible - clipsta+0.1 */
 		float fac;
-		float half_sensor= 0.5f*((camera->fov_mode==CAMERA_FOV_VERT) ? (camera->sensor_y) : (camera->sensor_x));
+		float half_sensor= 0.5f*((camera->sensor_fit==CAMERA_SENSOR_FIT_VERT) ? (camera->sensor_y) : (camera->sensor_x));
 
 		*r_drawsize= drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 

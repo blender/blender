@@ -235,7 +235,7 @@ void ImageRender::Render()
 			            farfrust,
 			            m_camera->GetScale(),
 			            aspect_ratio,
-						m_camera->GetFOVMode(),
+						m_camera->GetSensorFit(),
 			            frustrum
 			            );
 
@@ -249,7 +249,7 @@ void ImageRender::Render()
 			            lens,
 			            sensor_x,
 			            sensor_y,
-			            RAS_FOVMODE_AUTO,
+			            RAS_SENSORFIT_AUTO,
 			            aspect_ratio,
 			            frustrum);
 			

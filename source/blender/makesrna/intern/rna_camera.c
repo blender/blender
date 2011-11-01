@@ -45,10 +45,10 @@
 /* only for rad/deg conversion! can remove later */
 static float get_camera_sensor(Camera *cam)
 {
-	if(cam->fov_mode==CAMERA_FOV_AUTO) {
+	if(cam->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 		return cam->sensor_x;
 	}
-	else if(cam->fov_mode==CAMERA_FOV_HOR) {
+	else if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 		return cam->sensor_x;
 	}
 	else {
@@ -125,10 +125,10 @@ void RNA_def_camera(BlenderRNA *brna)
 		{0, "MILLIMETERS", 0, "Millimeters", ""},
 		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
 		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem fov_mode_items[] = {
-		{CAMERA_FOV_AUTO, "AUTO", 0, "Auto", "Calculate FOV using sensor size direction depending on image resolution"},
-		{CAMERA_FOV_HOR, "HORIZONTAL", 0, "Hoizontal", "Calculate FOV using sensor width"},
-		{CAMERA_FOV_VERT, "VERTICAL", 0, "Vertical", "Calculate FOV using sensor height"},
+	static EnumPropertyItem sensor_fit_items[] = {
+		{CAMERA_SENSOR_FIT_AUTO, "AUTO", 0, "Auto", "Calculate field of view using sensor size, with direction depending on image resolution"},
+		{CAMERA_SENSOR_FIT_HOR, "HORIZONTAL", 0, "Horizontal", "Calculate field of view using sensor width"},
+		{CAMERA_SENSOR_FIT_VERT, "VERTICAL", 0, "Vertical", "Calculate field of view using sensor height"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
@@ -148,10 +148,10 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Composition Guides",  "Draw overlay");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "fov_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "fov_mode");
-	RNA_def_property_enum_items(prop, fov_mode_items);
-	RNA_def_property_ui_text(prop, "FOV Mode", "Mode of calculating FOV from sensor imensions and focal length");
+	prop= RNA_def_property(srna, "sensor_fit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "sensor_fit");
+	RNA_def_property_enum_items(prop, sensor_fit_items);
+	RNA_def_property_ui_text(prop, "Sensor Fit", "Mode of calculating field of view from sensor dimensions and focal length");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	/* Number values */

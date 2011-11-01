@@ -208,7 +208,7 @@ class AddPresetCamera(AddPresetBase, Operator):
     preset_values = [
         "cam.sensor_width",
         "cam.sensor_height",
-        "cam.fov_mode"
+        "cam.sensor_fit"
     ]
 
     preset_subdir = "camera"

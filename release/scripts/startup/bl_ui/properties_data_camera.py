@@ -129,12 +129,20 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         row.operator("camera.preset_add", text="", icon="ZOOMIN")
         row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-        layout.prop(cam, "fov_mode")
+        layout.label(text="Sensor:")
 
-        col = layout.column(align=True)
-        col.prop(cam, "sensor_width")
-        col.prop(cam, "sensor_height")
+        split = layout.split()
 
+        col = split.column(align=True)
+        if cam.sensor_fit == 'AUTO':
+            col.prop(cam, "sensor_width", text="Size")
+        else:
+            col.prop(cam, "sensor_width", text="Width")
+            col.prop(cam, "sensor_height", text="Height")
+
+        col = split.column(align=True)
+        col.prop(cam, "sensor_fit", text="")
+ 
         layout.label(text="Clipping:")
         row = layout.row(align=True)
         row.prop(cam, "clip_start", text="Start")

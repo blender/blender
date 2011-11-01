@@ -40,7 +40,7 @@ ComputeDefaultFrustum(
 	const float camfar,
 	const float lens,
 	const float sensor_x, const float sensor_y,
-	const short fov_mode,
+	const short sensor_fit,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
 ){		
@@ -48,7 +48,7 @@ ComputeDefaultFrustum(
 	float sizeX;
 	float sizeY;
 
-	if(fov_mode==RAS_FOVMODE_AUTO) {
+	if(sensor_fit==RAS_SENSORFIT_AUTO) {
 		halfSize = (sensor_x / 2.f) * camnear / lens;
 
 		if (design_aspect_ratio > 1.f) {
@@ -61,7 +61,7 @@ ComputeDefaultFrustum(
 			sizeY = halfSize;
 		}
 	}
-	else if(fov_mode==RAS_FOVMODE_HOR) {
+	else if(sensor_fit==RAS_SENSORFIT_HOR) {
 		halfSize = (sensor_x / 2.f) * camnear / lens;
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
@@ -87,7 +87,7 @@ ComputeDefaultOrtho(
 	const float camfar,
 	const float scale,
 	const float design_aspect_ratio,
-	const short fov_mode,
+	const short sensor_fit,
 	RAS_FrameFrustum & frustum
 )
 {
@@ -95,7 +95,7 @@ ComputeDefaultOrtho(
 	float sizeX;
 	float sizeY;
 
-	if(fov_mode==RAS_FOVMODE_AUTO) {
+	if(sensor_fit==RAS_SENSORFIT_AUTO) {
 		if (design_aspect_ratio > 1.f) {
 			// halfsize defines the width
 			sizeX = halfSize;
@@ -106,7 +106,7 @@ ComputeDefaultOrtho(
 			sizeY = halfSize;
 		}
 	}
-	else if(fov_mode==RAS_FOVMODE_HOR) {
+	else if(sensor_fit==RAS_SENSORFIT_HOR) {
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
 	}
@@ -220,7 +220,7 @@ ComputeFrustum(
 	const RAS_Rect &availableViewport,
 	const RAS_Rect &viewport,
 	const float lens,
-	const float sensor_x, const float sensor_y, const short fov_mode,
+	const float sensor_x, const float sensor_y, const short sensor_fit,
 	const float camnear,
 	const float camfar,
 	RAS_FrameFrustum &frustum
@@ -248,7 +248,7 @@ ComputeFrustum(
 		lens,
 		sensor_x,
 		sensor_y,
-		fov_mode,
+		sensor_fit,
 		design_aspect_ratio,
 		frustum
 	);
@@ -294,7 +294,7 @@ RAS_FramingManager::
 		const float scale,
 		const float camnear,
 		const float camfar,
-		const short fov_mode,
+		const short sensor_fit,
 		RAS_FrameFrustum &frustum
 	)
 {
@@ -319,7 +319,7 @@ RAS_FramingManager::
 		camfar,
 		scale,
 		design_aspect_ratio,
-		fov_mode,
+		sensor_fit,
 		frustum
 	);
 

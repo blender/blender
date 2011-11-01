@@ -63,7 +63,7 @@ typedef struct Camera {
 	
 	struct Object *dof_ob;
 
-	char fov_mode;
+	char sensor_fit;
 	char pad[7];
 } Camera;
 
@@ -97,10 +97,10 @@ typedef struct Camera {
 /* yafray: dof sampling switch */
 /* #define CAM_YF_NO_QMC	512 */ /* depreceated */
 
-/* FOV mode */
-#define CAMERA_FOV_AUTO	0
-#define CAMERA_FOV_HOR	1
-#define CAMERA_FOV_VERT	2
+/* Sensor fit */
+#define CAMERA_SENSOR_FIT_AUTO	0
+#define CAMERA_SENSOR_FIT_HOR	1
+#define CAMERA_SENSOR_FIT_VERT	2
 
 #define DEFAULT_SENSOR_WIDTH	32.0f
 #define DEFAULT_SENSOR_HEIGHT	18.0f

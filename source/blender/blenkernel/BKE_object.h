@@ -142,11 +142,11 @@ int object_is_modified(struct Scene *scene, struct Object *ob);
 
 void object_camera_mode(struct RenderData *rd, struct Object *camera);
 void object_camera_intrinsics(struct Object *camera, struct Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *fov_mode);
+			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit);
 void object_camera_matrix(
 		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
 		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens,
-		float *sensor_x, float *sensor_y, short *fov_mode, float *ycor,
+		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
 		float *viewdx, float *viewdy);
 
 void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
