@@ -4384,10 +4384,13 @@ static int createSlideVerts(TransInfo *t)
 	j = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_SELECT)) {
-			BM_SetIndex(v, 1);
+			BM_SetHFlag(v, BM_TMP_TAG);
 			BLI_smallhash_insert(&table, (uintptr_t)v, SET_INT_IN_POINTER(j));
 			j += 1;
-		} else BM_SetIndex(v, 0);
+		}
+		else {
+			BM_ClearHFlag(v, BM_TMP_TAG);
+		}
 	}
 
 	if (!j)
@@ -4399,7 +4402,7 @@ static int createSlideVerts(TransInfo *t)
 	while (1) {
 		v = NULL;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (BM_GetIndex(v))
+			if (BM_TestHFlag(v, BM_TMP_TAG))
 				break;
 
 		}
@@ -4426,13 +4429,13 @@ static int createSlideVerts(TransInfo *t)
 
 			numsel += 1;
 
-			if (!BM_GetIndex(BM_OtherEdgeVert(e, v)))
+			if (!BM_TestHFlag(BM_OtherEdgeVert(e, v), BM_TMP_TAG))
 				break;
 
 			v = BM_OtherEdgeVert(e, v);
 		} while (e != first->e);
 
-		BM_SetIndex(v, 0);
+		BM_ClearHFlag(v, BM_TMP_TAG);
 
 		l1 = l2 = l = NULL;
 		l1 = e->l;
@@ -4488,8 +4491,8 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(sv->downvec, BM_OtherEdgeVert(l->e, v)->co, v->co);
 				}
 
-				BM_SetIndex(v, 0);
-				BM_SetIndex(v2, 0);
+				BM_ClearHFlag(v, BM_TMP_TAG);
+				BM_ClearHFlag(v2, BM_TMP_TAG);
 				
 				j += 2;
 				break;
@@ -4500,8 +4503,8 @@ static int createSlideVerts(TransInfo *t)
 
 			j += 1;
 
-			BM_SetIndex(v, 0);
-			BM_SetIndex(v2, 0);
+			BM_ClearHFlag(v, BM_TMP_TAG);
+			BM_ClearHFlag(v2, BM_TMP_TAG);
 		} while (e != first->e && l1);
 	}
 

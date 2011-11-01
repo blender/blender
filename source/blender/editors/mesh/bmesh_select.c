@@ -1217,6 +1217,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 
 	BLI_smallhash_init(&visithash);
 
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	/* we need the vert */
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetIndex(v, totvert);
@@ -2203,11 +2204,11 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	sharp = (sharp * M_PI) / 180.0;
 
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, 0);
+		BM_ClearHFlag(f, BM_TMP_TAG);
 	}
 
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_HIDDEN) || !BM_TestHFlag(f, BM_SELECT) || BM_GetIndex(f))
+		if (BM_TestHFlag(f, BM_HIDDEN) || !BM_TestHFlag(f, BM_SELECT) || BM_TestHFlag(f, BM_TMP_TAG))
 			continue;
 
 		BLI_array_empty(stack);
@@ -2222,13 +2223,13 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 			BM_Select(em->bm, f, 1);
 
-			BM_SetIndex(f, 1);
+			BM_SetHFlag(f, BM_TMP_TAG);
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
 				BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_LOOP, l) {
 					float angle;
 
-					if (BM_GetIndex(l2->f) || BM_TestHFlag(l2->f, BM_HIDDEN))
+					if (BM_TestHFlag(l2->f, BM_TMP_TAG) || BM_TestHFlag(l2->f, BM_HIDDEN))
 						continue;
 
 					/* edge has exactly two neighboring faces, check angle */
@@ -2387,7 +2388,7 @@ static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 	BMIter iter;
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, 0);
+		BM_ClearHFlag(v, BM_TMP_TAG);
 	}
 	
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -2396,14 +2397,14 @@ static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
 			if (BM_TestHFlag(l->v, BM_SELECT) && !BM_TestHFlag(l->v, BM_HIDDEN)) {
-				BM_SetIndex(l->next->v, 1);
+				BM_SetHFlag(l->next->v, BM_TMP_TAG);
 				BM_Select(em->bm, l->v, 0);
 			}
 		}
 	}
 
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_GetIndex(v)) {
+		if (BM_TestHFlag(v, BM_TMP_TAG)) {
 			BM_Select(em->bm, v, 1);
 		}
 	}
@@ -2440,7 +2441,7 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 	em_setup_viewcontext(C, &vc);
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, 0);
+		BM_ClearHFlag(e, BM_TMP_TAG);
 	}
 
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -2456,14 +2457,14 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 			}
 			
 			if ((tot != totsel && totsel > 0) || (totsel == 1 && tot == 1))
-				BM_SetIndex(l1->e, 1);
+				BM_SetHFlag(l1->e, BM_TMP_TAG);
 		}
 	}
 
 	EDBM_clear_flag_all(em, BM_SELECT);
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_GetIndex(e) && !BM_TestHFlag(e, BM_HIDDEN))
+		if (BM_TestHFlag(e, BM_TMP_TAG) && !BM_TestHFlag(e, BM_HIDDEN))
 			BM_Select_Edge(em->bm, e, 1);
 	}
 
@@ -2560,15 +2561,15 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 	BLI_smallhash_init(&visithash);
 	
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, 0);
+		BM_ClearHFlag(f, BM_TMP_TAG);
 	}
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT)) {
 			BLI_array_append(edges, e);
-			BM_SetIndex(e, 1);
+			BM_SetHFlag(e, BM_TMP_TAG);
 		} else {
-			BM_SetIndex(e, 0);
+			BM_ClearHFlag(e, BM_TMP_TAG);
 		}
 	}
 	
@@ -2583,7 +2584,7 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 		
 		e = edges[i];
 		
-		if (!BM_GetIndex(e))
+		if (!BM_TestHFlag(e, BM_TMP_TAG))
 			continue;
 		
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_EDGE, e) {
@@ -2612,9 +2613,9 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 			int j;
 			
 			for (j=0; j<tot; j++) {
-				BM_SetIndex(region[j], 1);
+				BM_SetHFlag(region[j], BM_TMP_TAG);
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, region[j]) {
-					BM_SetIndex(l->e, 0);
+					BM_ClearHFlag(l->e, BM_TMP_TAG);
 				}
 			}
 			
@@ -2650,7 +2651,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	EDBM_clear_flag_all(em, BM_SELECT);
 	
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_GetIndex(f) && !BM_TestHFlag(f, BM_HIDDEN)) {
+		if (BM_TestHFlag(f, BM_TMP_TAG) && !BM_TestHFlag(f, BM_HIDDEN)) {
 			BM_Select_Face(em->bm, f, 1);
 		}
 	}

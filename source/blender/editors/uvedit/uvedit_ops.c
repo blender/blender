@@ -608,6 +608,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 	mindist= 1e10f;
 	memset(hit, 0, sizeof(*hit));
 
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
 		BM_SetIndex(eve, i);
@@ -936,6 +937,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	EDBM_init_index_arrays(em, 0, 0, 1);
 	vmap= EDBM_make_uv_vert_map(em, 0, 0, limit);
 
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	count = 0;
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetIndex(eve, count);
@@ -949,7 +951,10 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 		}
 		
 		BMO_ClearFlag(em->bm, efa, EFA_F1_FLAG);
+
+		/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 		BM_SetIndex(efa, count);
+
 		count++;
 	}
 
@@ -1592,6 +1597,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		UVVertAverage *uv_average, *uvav;
 		int count;
 
+		/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 		// index and count verts
 		count=0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
@@ -1990,7 +1996,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* (de)select sticky uv nodes */
 		if(sticky != SI_STICKY_DISABLE) {
 			BMVert *ev;
-			
+
+			/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 			a = 0;
 			BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				BM_SetIndex(ev, a);
@@ -2371,13 +2378,14 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		 * in the loop and select all MLoopUV's that use a touched vert. */
 		BMVert *eve;
 		
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-			BM_SetIndex(eve, 0);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BM_ClearHFlag(eve, BM_TMP_TAG);
+		}
 		
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if(BM_GetIndex(efa)) {
+			if (BM_TestHFlag(efa, BM_TMP_TAG)) {
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-					BM_SetIndex(l->v, 1);
+					BM_SetHFlag(l->v, BM_TMP_TAG);
 				}
 			}
 		}
@@ -2387,7 +2395,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				if (BM_GetIndex(l->v)) {
+				if (BM_TestHFlag(l->v, BM_TMP_TAG)) {
 					if (select)
 						uvedit_uv_select(em, scene, l);
 					else
@@ -2421,7 +2429,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 		for (efa_index=0; efa; efa=BMIter_Step(&iter), efa_index++) {
-			if(BM_GetIndex(efa)) {
+			if (BM_TestHFlag(efa, BM_TMP_TAG)) {
 				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 				
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -2468,7 +2476,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	}
 	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if(BM_GetIndex(efa)) {
+			if (BM_TestHFlag(efa, BM_TMP_TAG)) {
 				if(select)
 					uvedit_face_select(scene, em, efa);
 				else
@@ -2523,13 +2531,13 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			/* assume not touched */
-			BM_SetIndex(efa, 0);
+			BM_ClearHFlag(efa, BM_TMP_TAG);
 
 			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
 				poly_uv_center(em, efa, cent);
 				if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
-					BM_SetIndex(efa, 1);
+					BM_SetHFlag(efa, BM_TMP_TAG);
 					change = 1;
 				}
 			}
@@ -2813,7 +2821,11 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	int count = 0;
 	float *coords;
 	short *usercount, users;
-	
+
+	/* BMESH_TODO - stop setting the index, bad juju
+	 * not totally simple because 3 states and because the count is not
+	 * based on the global vertex index :S - campbell */
+
 	/* set all verts to -1 : an unused index*/
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
 		BM_SetIndex(eve, -1);
@@ -2823,10 +2835,10 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if(!uvedit_face_visible(scene, ima, efa, tface)) {
-			BM_SetIndex(efa, 0);
+			BM_ClearHFlag(efa, BM_TMP_TAG);
 			continue;
 		} else {
-			BM_SetIndex(efa, 1);
+			BM_SetHFlag(efa, BM_TMP_TAG);
 		}
 
 		change = 1;
@@ -2843,7 +2855,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	
 	/* add all UV coords from visible, unselected UV coords as well as counting them to average later */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_GetIndex(efa))
+		if (!BM_TestHFlag(efa, BM_TMP_TAG))
 			continue;
 
 		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -2870,7 +2882,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	
 	/* copy the averaged unselected UVs back to the selected UVs */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_GetIndex(efa))
+		if (!BM_TestHFlag(efa, BM_TMP_TAG))
 			continue;
 
 		tface= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -3185,15 +3197,10 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;
 	BMLoop *l;
-	BMVert *v;
 	BMIter iter, liter;
 	MLoopUV *luv;
 	int facemode= sima ? sima->flag & SI_SELACTFACE : 0;
 	int stickymode= sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
-	
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, BM_TestHFlag(v, BM_SELECT));
-	}
 
 	/* call the mesh function if we are in mesh sync sel */
 	if(ts->uv_flag & UV_SYNC_SELECTION) {

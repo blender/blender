@@ -123,6 +123,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	/* BMESH_TODO, stop abusing face index here */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_SetIndex(f, 0);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {

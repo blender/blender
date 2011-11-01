@@ -1517,7 +1517,12 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	/* Use index field to remember what was hidden before all is revealed. */
 	for (i=0; i<3; i++) {
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
-			BM_SetIndex(ele, BM_TestHFlag(ele, BM_HIDDEN) ? 1 : 0);
+			if (BM_TestHFlag(ele, BM_HIDDEN)) {
+				BM_SetHFlag(ele, BM_TMP_TAG);
+			}
+			else {
+				BM_ClearHFlag(ele, BM_TMP_TAG);
+			}
 		}
 	}
 
@@ -1531,7 +1536,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 		}
 
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
-			if (BM_GetIndex(ele)) {
+			if (BM_TestHFlag(ele, BM_TMP_TAG)) {
 				BM_Select(em->bm, ele, 1);
 			}
 		}
@@ -2374,9 +2379,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SELECT))
-			BM_SetIndex(e, 1);
-		else BM_SetIndex(e, 0);
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			BM_SetHFlag(e, BM_TMP_TAG);
+		}
+		else {
+			BM_ClearHFlag(e, BM_TMP_TAG);
+		}
 	}
 
 	/*handle case of one vert selected.  identify
@@ -2425,12 +2433,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		} else if (BM_Edge_FaceCount(e2) == 2) {
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
-			BM_SetIndex(e, 1);
+			BM_SetHFlag(e, BM_TMP_TAG);
 			BM_Select(bm, e, 1);
 			
 			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
-			BM_SetIndex(e, 1);
+			BM_SetHFlag(e, BM_TMP_TAG);
 			BM_Select(bm, e, 1);
 		}
 
@@ -2441,7 +2449,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			e2 = NULL;
 			i = 0;
 			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-				if (BM_GetIndex(e)) {
+				if (BM_TestHFlag(e, BM_TMP_TAG)) {
 					e2 = e;
 					i++;
 				}
@@ -2509,9 +2517,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMO_HeaderFlag_Buffer(bm, &bmop, side?"edgeout2":"edgeout1", BM_SELECT, BM_EDGE);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SELECT))
-			BM_SetIndex(e, 1);
-		else BM_SetIndex(e, 0);
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			BM_SetHFlag(e, BM_TMP_TAG);
+		}
+		else {
+			BM_ClearHFlag(e, BM_TMP_TAG);
+		}
 	}
 
 	/*constrict edge selection again*/
@@ -2519,7 +2530,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		e2 = NULL;
 		i = 0;
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
-			if (BM_GetIndex(e)) {
+			if (BM_TestHFlag(e, BM_TMP_TAG)) {
 				e2 = e;
 				i++;
 			}
@@ -3923,16 +3934,19 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 	float mirror_co[3];
 
 	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN))
-			BM_SetIndex(v1, 0);
-		else BM_SetIndex(v1, 1);
+		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN)) {
+			BM_ClearHFlag(v1, BM_TMP_TAG);
+		}
+		else {
+			BM_SetHFlag(v1, BM_TMP_TAG);
+		}
 	}
 
 	if (!extend)
 		EDBM_clear_flag_all(em, BM_SELECT);
 
 	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_GetIndex(v1) || BM_TestHFlag(v1, BM_HIDDEN))
+		if (!BM_TestHFlag(v1, BM_TMP_TAG) || BM_TestHFlag(v1, BM_HIDDEN))
 			continue;
 
 		copy_v3_v3(mirror_co, v1->co);

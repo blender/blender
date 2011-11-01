@@ -1395,7 +1395,8 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	
 	BMO_push(bm, NULL);
 	bmesh_begin_edit(bm, BMOP_UNTAN_MULTIRES);
-	
+
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_SetIndex(f, i);

@@ -145,7 +145,8 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	float *v1, *v2, *v3, *co1, *co2, *co3;
 	int *vert_table = MEM_callocN(sizeof(int)*em->bm->totvert, "vert_table");
 	int index = 0;
-	
+
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetIndex(v, index);
 		index++;
@@ -177,7 +178,9 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 			break; /*just do one corner*/
 		}
 	}
-	
+
+	/* BMESH_TODO, don't overwrite invalid index info! */
+
 	index = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (vert_table[index] != 0)

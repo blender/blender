@@ -2091,10 +2091,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_Selected(bm, eve)) {
-				BM_SetIndex(eve, SELECT);
+				BM_SetHFlag(eve, BM_TMP_TAG);
 			}
 			else {
-				BM_SetIndex(eve, 0);
+				BM_ClearHFlag(eve, BM_TMP_TAG);
 			}
 		}
 	}
@@ -2102,20 +2102,20 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		BMEdge *eed;
 
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BM_SetIndex(eve, 0);
+		for( ; eve; eve=BMIter_Step(&iter)) BM_ClearHFlag(eve, BM_TMP_TAG);
 
 		eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 		for( ; eed; eed=BMIter_Step(&iter)) {
 			if (BM_Selected(bm, eed)) {
-				BM_SetIndex(eed->v1, SELECT);
-				BM_SetIndex(eed->v2, SELECT);
+				BM_SetHFlag(eed->v1, BM_TMP_TAG);
+				BM_SetHFlag(eed->v2, BM_TMP_TAG);
 			}
 		}
 	}
 	else {
 		BMFace *efa;
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) BM_SetIndex(eve, 0);
+		for( ; eve; eve=BMIter_Step(&iter)) BM_ClearHFlag(eve, BM_TMP_TAG);
 
 		efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 		for( ; efa; efa=BMIter_Step(&iter)) {
@@ -2125,7 +2125,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
 				for (; l; l=BMIter_Step(&liter)) {
-					BM_SetIndex(l->v, SELECT);
+					BM_SetHFlag(l->v, BM_TMP_TAG);
 				}
 			}
 		}
@@ -2138,7 +2138,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
 		BLI_array_growone(selstate);
 
-		if(BM_GetIndex(eve)) {
+		if (BM_TestHFlag(eve, BM_TMP_TAG)) {
 			selstate[a] = 1;
 			countsel++;
 		}
@@ -2189,7 +2189,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(totleft > 0) {
 				mappedcos= crazyspace_get_mapped_editverts(t->scene, t->obedit);
 				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats);
+				crazyspace_set_quats_editmesh(em, (float*)defcos, mappedcos, quats); /* BMESH_TODO, abuses vertex index, should use an int array */
 				if(mappedcos)
 					MEM_freeN(mappedcos);
 			}
@@ -2491,11 +2491,11 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 		if(!uvedit_face_visible(scene, ima, efa, tf)) {
-			BM_SetIndex(efa, 0);
+			BM_ClearHFlag(efa, BM_TMP_TAG);
 			continue;
 		}
 		
-		BM_SetIndex(efa, 1);
+		BM_SetHFlag(efa, BM_TMP_TAG);
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if (uvedit_uv_selected(em, scene, l)) 
 				countsel++;
@@ -2521,7 +2521,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td2d= t->data2d;
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_GetIndex(efa))
+		if (!BM_TestHFlag(efa, BM_TMP_TAG))
 			continue;
 
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);

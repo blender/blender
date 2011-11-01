@@ -624,7 +624,8 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 	
 	if (do_face_idx_array)
 		EDBM_init_index_arrays(em, 0, 0, 1);
-	
+
+	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	/* we need the vert */
 	totverts=0;
 	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {

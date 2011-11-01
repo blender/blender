@@ -350,8 +350,12 @@ static void calc_solidify_normals(BMesh *bm)
 
 	/* Clear indices of verts & edges */
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, 0);
+		BM_SetHFlag(v, BM_TMP_TAG);
 	}
+	/* BMESH_TODO, don't abuse vertex index index info */
+
+	/* this is used to count edge users, we can probably
+	 * use bmesh connectivity info here - campbell*/
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
 		BM_SetIndex(e, 0);
 	}
@@ -444,8 +448,8 @@ static void calc_solidify_normals(BMesh *bm)
 			else {
 				/* can't do anything useful here!
 				   Set the face index for a vert incase it gets a zero normal */
-				BM_SetIndex(e->v1, -1);
-				BM_SetIndex(e->v2, -1);
+				BM_ClearHFlag(e->v1, BM_TMP_TAG);
+				BM_ClearHFlag(e->v2, BM_TMP_TAG);
 				continue;
 			}
 		}
@@ -472,7 +476,7 @@ static void calc_solidify_normals(BMesh *bm)
 			   edges */
 			BM_Vert_UpdateNormal(bm, v);
 		}
-		else if (normalize_v3(v->no) == 0.0f && BM_GetIndex(v) < 0) {
+		else if (normalize_v3(v->no) == 0.0f && !BM_TestHFlag(v, BM_TMP_TAG)) {
 			/* exceptional case, totally flat. use the normal
 			   of any marked face around the vertex */
 			BM_ITER(f, &fiter, bm, BM_FACES_OF_VERT, v) {
