@@ -192,6 +192,8 @@ class ProjectEdit(Operator):
         image_new.file_format = 'PNG'
         image_new.save()
 
+        filepath_final = bpy.path.abspath(filepath_final)
+
         try:
             bpy.ops.image.external_edit(filepath=filepath_final)
         except RuntimeError as re:
