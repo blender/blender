@@ -207,8 +207,10 @@ void BM_Compute_Normals(BMesh *bm)
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
+#if 0	/* UNUSED */
 		if (f->head.flag & BM_NONORMCALC)
 			continue;
+#endif
 
 		bmesh_update_face_normal(bm, f, projectverts);		
 	}
@@ -285,7 +287,7 @@ void BM_Compute_Normals(BMesh *bm)
 
 /*
  This function ensures correct normals for the mesh, but
- sets the flag BM_FLIPPED in flipped faces, to allow restoration
+ sets the flag BM_TMP_TAG in flipped faces, to allow restoration
  of original normals.
  
  if undo is 0: calculate right normals
@@ -300,10 +302,10 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo) {
 	
 	if (undo) {
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if (BM_TestHFlag(f, BM_FLIPPED)) {
+			if (BM_TestHFlag(f, BM_TMP_TAG)) {
 				BM_flip_normal(bm, f);
 			}
-			BM_ClearHFlag(f, BM_FLIPPED);
+			BM_ClearHFlag(f, BM_TMP_TAG);
 		}
 		
 		return;
@@ -316,8 +318,8 @@ static void bmesh_rationalize_normals(BMesh *bm, int undo) {
 	
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, f, FACE_FLIP))
-			BM_SetHFlag(f, BM_FLIPPED);
-		else BM_ClearHFlag(f, BM_FLIPPED);
+			BM_SetHFlag(f, BM_TMP_TAG);
+		else BM_ClearHFlag(f, BM_TMP_TAG);
 	}
 
 	BMO_pop(bm);

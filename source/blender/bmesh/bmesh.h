@@ -103,8 +103,12 @@ struct EditMesh;
 #define BM_SHARP	(1<<4)
 #define BM_SMOOTH	(1<<5)
 #define BM_ACTIVE	(1<<6)
-#define BM_NONORMCALC	(1<<7)
-#define BM_FLIPPED	(1<<8) /*internal flag, used for ensuring correct normals during multires interpolation*/
+#define BM_TMP_TAG	(1<<7) /* internal flag, used for ensuring correct normals
+                            * during multires interpolation, and any other time
+                            * when temp tagging is handy.
+                            * always assume dirty & clear before use. */
+
+/* #define BM_NONORMCALC (1<<8) */ /* UNUSED */
 
 #include "bmesh_class.h"
 

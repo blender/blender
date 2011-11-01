@@ -252,6 +252,8 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 /* NOTE: this function uses recursion, which is a little unusual for a bmop
          function, but acceptable I think. */
 
+/* NOTE: BM_TMP_TAG is used on faces to tell if they are flipped. */
+
 void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter liter, liter2;
@@ -269,6 +271,10 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	/*find a starting face*/
 	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
+
+		/* clear dirty flag */
+		BM_ClearHFlag(f, BM_TMP_TAG);
+
 		if (BMO_TestFlag(bm, f, FACE_VIS))
 			continue;
 
@@ -293,7 +299,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 		BMO_ToggleFlag(bm, startf, FACE_FLIP);
 
 		if (flagflip)
-			BM_ToggleHFlag(startf, BM_FLIPPED);
+			BM_ToggleHFlag(startf, BM_TMP_TAG);
 	}
 	
 	/*now that we've found our starting face, make all connected faces
@@ -325,11 +331,11 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 						
 						BMO_ToggleFlag(bm, l2->f, FACE_FLIP);
 						if (flagflip)
-							BM_ToggleHFlag(l2->f, BM_FLIPPED);
-					} else if (BM_TestHFlag(l2->f, BM_FLIPPED) || BM_TestHFlag(l->f, BM_FLIPPED)) {
+							BM_ToggleHFlag(l2->f, BM_TMP_TAG);
+					} else if (BM_TestHFlag(l2->f, BM_TMP_TAG) || BM_TestHFlag(l->f, BM_TMP_TAG)) {
 						if (flagflip) {
-							BM_ClearHFlag(l->f, BM_FLIPPED);
-							BM_ClearHFlag(l2->f, BM_FLIPPED);
+							BM_ClearHFlag(l->f, BM_TMP_TAG);
+							BM_ClearHFlag(l2->f, BM_TMP_TAG);
 						}
 					}
 					
