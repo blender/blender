@@ -844,6 +844,12 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	if(use_proj)
 		EMBM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
 
+	/*This normally happens when pushing undo but modal operators
+	  like this one don't push undo data until after modal mode is
+	  done.*/
+	EDBM_RecalcNormals(vc.em);
+	BMEdit_RecalcTesselation(vc.em);
+
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
 	DAG_id_tag_update(vc.obedit->data, OB_RECALC_DATA);
 	
