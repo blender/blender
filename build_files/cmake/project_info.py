@@ -41,6 +41,7 @@ __all__ = (
     "is_py",
     "cmake_advanced_info",
     "cmake_compiler_defines",
+    "project_name_get"
 )
 
 import sys
@@ -215,3 +216,22 @@ def cmake_compiler_defines():
     os.remove(temp_c)
     os.remove(temp_def)
     return lines
+
+
+def project_name_get(path, fallback="Blender", prefix="Blender_"):
+    if not os.path.isdir(os.path.join(path, ".svn")):
+        return fallback
+
+    import subprocess
+    info = subprocess.Popen(["svn", "info", path],
+                            stdout=subprocess.PIPE).communicate()[0].decode()
+
+    for l in info.split("\n"):
+        l = l.strip()
+        if l.startswith("URL"):
+            # https://svn.blender.org/svnroot/bf-blender/branches/bmesh/blender
+            # --> bmesh
+            if "/branches/" in l:
+                return prefix + l.rsplit("/branches/", 1)[-1].split("/", 1)[0]
+    return fallback
+
