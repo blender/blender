@@ -135,9 +135,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case SPACE_OUTLINER:
 				ts= &btheme->toops;
 				break;
-			case SPACE_SOUND:
-				ts= &btheme->tsnd;
-				break;
 			case SPACE_INFO:
 				ts= &btheme->tinfo;
 				break;
@@ -525,7 +522,6 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tfile);
 	ui_theme_init_new_do(&btheme->tipo);
 	ui_theme_init_new_do(&btheme->tinfo);
-	ui_theme_init_new_do(&btheme->tsnd);
 	ui_theme_init_new_do(&btheme->tact);
 	ui_theme_init_new_do(&btheme->tnla);
 	ui_theme_init_new_do(&btheme->tseq);
@@ -762,15 +758,11 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
 	SETCOL(btheme->tconsole.console_cursor, 220, 96, 96, 255);
 	
-
-	/* space sound */
-	btheme->tsnd= btheme->tv3d;
-	SETCOLF(btheme->tsnd.back, 	0.45, 0.45, 0.45, 1.0);
-	SETCOLF(btheme->tsnd.grid, 	0.36, 0.36, 0.36, 1.0);
-	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
-	
 	/* space time */
-	btheme->ttime= btheme->tsnd;	// same as sound space
+	btheme->ttime= btheme->tv3d;
+	SETCOLF(btheme->ttime.back, 	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->ttime.grid, 	0.36, 0.36, 0.36, 1.0);
+	SETCOL(btheme->ttime.shade1,  173, 173, 173, 255);		// sliders
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
@@ -785,7 +777,6 @@ void ui_theme_init_default(void)
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
 	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
-	
 }
 
 
@@ -1177,7 +1168,11 @@ void init_userdef_do_versions(void)
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* check for alpha==0 is safe, then color was never set */
 			if(btheme->ttime.back[3]==0) {
-				btheme->ttime = btheme->tsnd;	// copy from sound
+				// copied from ui_theme_init_default
+				btheme->ttime= btheme->tv3d;
+				SETCOLF(btheme->ttime.back, 	0.45, 0.45, 0.45, 1.0);
+				SETCOLF(btheme->ttime.grid, 	0.36, 0.36, 0.36, 1.0);
+				SETCOL(btheme->ttime.shade1,  173, 173, 173, 255);		// sliders
 			}
 			if(btheme->text.syntaxn[3]==0) {
 				SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
@@ -1304,7 +1299,7 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
+			//SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255); Not needed anymore
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}

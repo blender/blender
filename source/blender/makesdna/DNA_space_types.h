@@ -483,22 +483,6 @@ typedef struct SpaceUserPref {
 
 } SpaceUserPref;
 
-typedef struct SpaceSound {
-	struct SpaceLink *next, *prev;
-	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-	struct ScrArea *area;
-	
-	View2D v2d;
-	
-	struct bSound *sound;
-	short mode, sndnr;
-	short xof, yof;
-	short flag, lock;
-	int pad2;
-} SpaceSound;
-
 /* view3d  Now in DNA_view3d_types.h */
 
 
@@ -886,7 +870,7 @@ enum {
 	SPACE_SEQ,
 	SPACE_TEXT,
 	SPACE_IMASEL, /* deprecated */
-	SPACE_SOUND,
+	SPACE_SOUND, /* Deprecated */
 	SPACE_ACTION,
 	SPACE_NLA,
 	SPACE_SCRIPT,
