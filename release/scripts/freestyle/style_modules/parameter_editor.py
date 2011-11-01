@@ -977,6 +977,12 @@ def process(layer_name, lineset_name):
         elif m.type == "TIP_REMOVER":
             shaders_list.append(TipRemoverShader(
                 m.tip_length))
+        elif m.type == "POLYGONIZATION":
+            shaders_list.append(PolygonalizationShader(
+                m.error))
+        elif m.type == "GUIDING_LINES":
+            shaders_list.append(GuidingLinesShader(
+                m.offset))
     color = linestyle.color
     shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
     shaders_list.append(ConstantThicknessShader(linestyle.thickness))

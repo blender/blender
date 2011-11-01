@@ -61,7 +61,9 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	"Perlin Noise 2D",
 	"Backbone Stretcher",
 	"Tip Remover",
-	"Calligraphy"};
+	"Calligraphy",
+	"Polygonalization",
+	"Guiding Lines"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
@@ -390,6 +392,12 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 	case LS_MODIFIER_TIP_REMOVER:
 		size = sizeof(LineStyleGeometryModifier_TipRemover);
 		break;
+	case LS_MODIFIER_POLYGONIZATION:
+		size = sizeof(LineStyleGeometryModifier_Polygonalization);
+		break;
+	case LS_MODIFIER_GUIDING_LINES:
+		size = sizeof(LineStyleGeometryModifier_GuidingLines);
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -432,6 +440,12 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 	case LS_MODIFIER_TIP_REMOVER:
 		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0;
 		break;
+	case LS_MODIFIER_POLYGONIZATION:
+		((LineStyleGeometryModifier_Polygonalization *)m)->error = 10.0;
+		break;
+	case LS_MODIFIER_GUIDING_LINES:
+		((LineStyleGeometryModifier_GuidingLines *)m)->offset = 0.0;
+		break;
 	}
 	add_to_modifier_list(&linestyle->geometry_modifiers, m);
 	return 0;
@@ -455,6 +469,10 @@ void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineS
 	case LS_MODIFIER_BACKBONE_STRETCHER:
 		break;
 	case LS_MODIFIER_TIP_REMOVER:
+		break;
+	case LS_MODIFIER_POLYGONIZATION:
+		break;
+	case LS_MODIFIER_GUIDING_LINES:
 		break;
 	}
 	BLI_freelinkN(&linestyle->geometry_modifiers, m);

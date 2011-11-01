@@ -544,6 +544,12 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             elif modifier.type == "TIP_REMOVER":
                 box.prop(modifier, "tip_length")
 
+            elif modifier.type == "POLYGONIZATION":
+                box.prop(modifier, "error")
+
+            elif modifier.type == "GUIDING_LINES":
+                box.prop(modifier, "offset")
+
     def draw(self, context):
         layout = self.layout
 

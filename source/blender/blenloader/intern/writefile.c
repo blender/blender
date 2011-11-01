@@ -2674,6 +2674,12 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 		case LS_MODIFIER_TIP_REMOVER:
 			struct_name = "LineStyleGeometryModifier_TipRemover";
 			break;
+		case LS_MODIFIER_POLYGONIZATION:
+			struct_name = "LineStyleGeometryModifier_Polygonalization";
+			break;
+		case LS_MODIFIER_GUIDING_LINES:
+			struct_name = "LineStyleGeometryModifier_GuidingLines";
+			break;
 		default:
 			struct_name = "LineStyleGeometryModifier"; // this should not happen
 		}

@@ -62,7 +62,9 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_BACKBONE_STRETCHER     11
 #define LS_MODIFIER_TIP_REMOVER            12
 #define LS_MODIFIER_CALLIGRAPHY            13
-#define LS_MODIFIER_NUM                    14
+#define LS_MODIFIER_POLYGONIZATION         14
+#define LS_MODIFIER_GUIDING_LINES          15
+#define LS_MODIFIER_NUM                    16
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -294,6 +296,22 @@ typedef struct LineStyleGeometryModifier_TipRemover {
 	int pad;
 
 } LineStyleGeometryModifier_TipRemover;
+
+typedef struct LineStyleGeometryModifier_Polygonalization {
+	struct LineStyleModifier modifier;
+
+	float error;
+	int pad;
+
+} LineStyleGeometryModifier_Polygonalization;
+
+typedef struct LineStyleGeometryModifier_GuidingLines {
+	struct LineStyleModifier modifier;
+
+	float offset;
+	int pad;
+
+} LineStyleGeometryModifier_GuidingLines;
 
 /* Calligraphic thickness modifier */
 

@@ -67,6 +67,8 @@ EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
 	{LS_MODIFIER_PERLIN_NOISE_2D, "PERLIN_NOISE_2D", ICON_MODIFIER, "Perlin Noise 2D", ""},
 	{LS_MODIFIER_BACKBONE_STRETCHER, "BACKBONE_STRETCHER", ICON_MODIFIER, "Backbone Stretcher", ""},
 	{LS_MODIFIER_TIP_REMOVER, "TIP_REMOVER", ICON_MODIFIER, "Tip Remover", ""},
+	{LS_MODIFIER_POLYGONIZATION, "POLYGONIZATION", ICON_MODIFIER, "Polygonization", ""},
+	{LS_MODIFIER_GUIDING_LINES, "GUIDING_LINES", ICON_MODIFIER, "Guiding Lines", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -148,6 +150,10 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(struct PointerRNA *ptr)
 			return &RNA_LineStyleGeometryModifier_BackboneStretcher;
 		case LS_MODIFIER_TIP_REMOVER:
 			return &RNA_LineStyleGeometryModifier_TipRemover;
+		case LS_MODIFIER_POLYGONIZATION:
+			return &RNA_LineStyleGeometryModifier_Polygonalization;
+		case LS_MODIFIER_GUIDING_LINES:
+			return &RNA_LineStyleGeometryModifier_GuidingLines;
 		default:
 			return &RNA_LineStyleGeometryModifier;
 	}
@@ -657,6 +663,24 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tip_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tip_length");
 	RNA_def_property_ui_text(prop, "Tip Length", "Length of tips to be removed");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_Polygonalization", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Polygonalization", "Modify the stroke geometry so that it looks more \"polygonal\"");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "error");
+	RNA_def_property_ui_text(prop, "Error", "Maximum distance between the original stroke and its polygonal approximation");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_GuidingLines", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Guiding Lines", "Modify the stroke geometry so that it corresponds to its main direction line");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Offset", "Displacement that is applied to the main direction line along its normal");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 }
