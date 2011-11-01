@@ -129,9 +129,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case SPACE_IMAGE:
 				ts= &btheme->tima;
 				break;
-			case SPACE_IMASEL:
-				ts= &btheme->timasel;
-				break;
 			case SPACE_TEXT:
 				ts= &btheme->text;
 				break;
@@ -533,7 +530,6 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tnla);
 	ui_theme_init_new_do(&btheme->tseq);
 	ui_theme_init_new_do(&btheme->tima);
-	ui_theme_init_new_do(&btheme->timasel);
 	ui_theme_init_new_do(&btheme->text);
 	ui_theme_init_new_do(&btheme->toops);
 	ui_theme_init_new_do(&btheme->ttime);
@@ -730,18 +726,6 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
 	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
-
-	/* space imageselect */
-	btheme->timasel= btheme->tv3d;
-	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
-	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
-	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
-	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
-	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
-	SETCOL(btheme->timasel.text, 	0, 0, 0, 255);
-	SETCOL(btheme->timasel.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->timasel.panel, 	132, 132, 132, 255);
 
 	/* space text */
 	btheme->text= btheme->tv3d;

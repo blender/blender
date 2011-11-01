@@ -432,68 +432,6 @@ typedef struct SpaceLogic {
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceLogic;
 
-/* note, this entire struct isnt used anymore!,
- * may remove some day - campbell */
-typedef struct SpaceImaSel {
-	SpaceLink *next, *prev;
-	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-	
-	short blockhandler[8];
-
-	View2D v2d; /* deprecated, copied to region */
-
-	struct FileList *files;
-
-	/* specific stuff for drawing */
-	char title[24];
-	char dir[240];
-	char file[80];
-
-	short type, menu, flag, sort;
-
-	void *curfont;
-	int	active_file;
-
-	int numtilesx;
-	int numtilesy;
-
-	int selstate;
-
-	struct rcti viewrect;
-	struct rcti bookmarkrect;
-
-	float scrollpos; /* current position of scrollhandle */
-	float scrollheight; /* height of the scrollhandle */
-	float scrollarea; /* scroll region, scrollpos is from 0 to scrollarea */
-
-	float aspect;
-	unsigned short retval;		/* event */
-
-	short ipotype;
-	
-	short filter;
-	short active_bookmark;
-	short pad, pad1;
-
-	/* view settings */
-	short prv_w;
-	short prv_h;
-
-	/* one day we'll add unions to dna */
-	void (*returnfunc)(char *);
-	void (*returnfunc_event)(unsigned short);
-	void (*returnfunc_args)(char *, void *, void *);
-	
-	void *arg1, *arg2;
-	short *menup;	/* pointer to menu result or ID browsing */
-	char *pupmenu;	/* optional menu in header */
-
-	struct ImBuf *img;
-} SpaceImaSel;
-
-
 typedef struct ConsoleLine {
 	struct ConsoleLine *next, *prev;
 	
@@ -947,7 +885,7 @@ enum {
 	SPACE_INFO,
 	SPACE_SEQ,
 	SPACE_TEXT,
-	SPACE_IMASEL,
+	SPACE_IMASEL, /* deprecated */
 	SPACE_SOUND,
 	SPACE_ACTION,
 	SPACE_NLA,

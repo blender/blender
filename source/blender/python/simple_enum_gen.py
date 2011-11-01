@@ -29,7 +29,7 @@ defs = """
     SPACE_INFO,
     SPACE_SEQ,
     SPACE_TEXT,
-    SPACE_IMASEL,
+    SPACE_IMASEL, #Deprecated
     SPACE_SOUND,
     SPACE_ACTION,
     SPACE_NLA,

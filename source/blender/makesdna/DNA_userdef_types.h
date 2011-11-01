@@ -273,7 +273,6 @@ typedef struct bTheme {
 	ThemeSpace tnla;
 	ThemeSpace tseq;
 	ThemeSpace tima;
-	ThemeSpace timasel;
 	ThemeSpace text;
 	ThemeSpace toops;
 	ThemeSpace ttime;
