@@ -1381,7 +1381,7 @@ float *do_ob_key(Scene *scene, Object *ob)
 			ob->shapenr= 1;
 		}
 		
-		if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
+		if (OB_TYPE_SUPPORT_VGROUP(ob->type)) {
 			float *weights= get_weights_array(ob, kb->vgroup);
 
 			cp_key(0, tot, tot, out, key, actkb, kb, weights, 0);

@@ -99,8 +99,7 @@ int ED_vgroup_object_is_edit_mode(Object *ob)
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
-	
-	if(!ob || !ELEM(ob->type, OB_MESH, OB_LATTICE))
+	if(!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
@@ -2013,7 +2012,7 @@ static int vertex_group_poll(bContext *C)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	ID *data= (ob)? ob->data: NULL;
-	return (ob && !ob->id.lib && ELEM(ob->type, OB_MESH, OB_LATTICE) && data && !data->lib);
+	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
 static int vertex_group_poll_edit(bContext *C)
