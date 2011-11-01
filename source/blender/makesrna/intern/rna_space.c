@@ -120,6 +120,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_paint.h"
 
 #include "ED_image.h"
@@ -473,8 +474,11 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceImage *sima= (SpaceImage*)(ptr->data);
 	bScreen *sc= (bScreen*)ptr->id.data;
+	Scene *scene= sc->scene;
+	Image *ima= (Image*)value.data;
 
-	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
+	ED_space_image_set(NULL, sima, scene, scene->obedit, ima);
+	BKE_image_guess_offset(scene, ima, &sima->iuser);
 }
 
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,

@@ -2295,3 +2295,29 @@ int BKE_image_has_alpha(struct Image *image)
 		return 0;
 }
 
+int BKE_image_sequence_first_num(const char *full_name)
+{
+	unsigned short numlen;
+	char head[FILE_MAX], tail[FILE_MAX], name[FILE_MAX];
+	int offset;
+	char num[FILE_MAX]= {0};
+
+	BLI_strncpy(name, full_name, sizeof(name));
+	BLI_stringdec(name, head, tail, &numlen);
+
+	BLI_strncpy(num, full_name+strlen(head), numlen+1);
+
+	return atoi(num);
+}
+
+void BKE_image_guess_offset(Scene *scene, Image *ima, ImageUser *iuser)
+{
+	int cfra= iuser->framenr-iuser->offset+iuser->sfra;
+
+	iuser->offset= BKE_image_sequence_first_num(ima->name)-1;
+
+	if(scene)
+		cfra= scene->r.cfra;
+
+	BKE_image_user_calc_frame(iuser, cfra, 0);
+}

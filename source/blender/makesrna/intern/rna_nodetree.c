@@ -463,6 +463,17 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	return item;
 }
 
+static void rna_Node_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNode *node= (bNode*)ptr->data;
+	Image *ima= (Image *)node->id;
+	ImageUser *iuser= node->storage;
+
+	BKE_image_guess_offset(scene, ima, iuser);
+
+	rna_Node_update(bmain, scene, ptr);
+}
+
 static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
 {
 	bNode *node= (bNode*)ptr->data;
@@ -1394,7 +1405,7 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_update");
 	
 	RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
 	

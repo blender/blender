@@ -169,6 +169,9 @@ void BKE_image_merge(struct Image *dest, struct Image *source);
 /* check if texture has alpha (depth=32) */
 int BKE_image_has_alpha(struct Image *image);
 
+int BKE_image_sequence_first_num(const char *full_name);
+void BKE_image_guess_offset(struct Scene *scene, struct Image *ima, struct ImageUser *iuser);
+
 /* image_gen.c */
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, float color[4]);
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);

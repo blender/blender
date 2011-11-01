@@ -808,8 +808,9 @@ static int open_exec(bContext *C, wmOperator *op)
 	/* initialize because of new image */
 	if(iuser) {
 		iuser->sfra= 1;
-		iuser->offset= 0;
 		iuser->fie_ima= 2;
+
+		BKE_image_guess_offset(NULL, ima, iuser);
 	}
 
 	/* XXX unpackImage frees image buffers */
