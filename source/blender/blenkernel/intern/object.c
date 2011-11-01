@@ -773,13 +773,12 @@ void make_local_camera(Camera *cam)
 		id_clear_lib_data(bmain, &cam->id);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, cam->id.lib->filepath};
 		Camera *camn= copy_camera(cam);
 
 		camn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &camn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &camn->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == cam) {
@@ -940,13 +939,11 @@ void make_local_lamp(Lamp *la)
 		id_clear_lib_data(bmain, &la->id);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, la->id.lib->filepath};
 		Lamp *lan= copy_lamp(la);
 		lan->id.us= 0;
-		
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &lan->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &lan->id);
 
 		ob= bmain->object.first;
 		while(ob) {
@@ -1487,13 +1484,12 @@ void make_local_object(Object *ob)
 			extern_local_object(ob);
 		}
 		else if(is_local && is_lib) {
-			char *bpath_user_data[2]= {bmain->name, ob->id.lib->filepath};
 			Object *obn= copy_object(ob);
 
 			obn->id.us= 0;
 			
 			/* Remap paths of new ID using old library as base. */
-			bpath_traverse_id(bmain, &obn->id, bpath_relocate_visitor, 0, bpath_user_data);
+			BKE_id_lib_local_paths(bmain, &obn->id);
 
 			sce= bmain->scene.first;
 			while(sce) {

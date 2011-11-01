@@ -173,7 +173,7 @@ static void clean_paths(Main *main)
 {
 	Scene *scene;
 
-	bpath_traverse_main(main, clean_paths_visit_cb, 0, NULL);
+	bpath_traverse_main(main, clean_paths_visit_cb, BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
 		BLI_clean(scene->r.pic);

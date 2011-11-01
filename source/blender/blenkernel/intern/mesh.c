@@ -658,6 +658,8 @@ void make_local_mesh(Mesh *me)
 		Mesh *men= copy_mesh(me);
 		men->id.us= 0;
 
+		BKE_id_lib_local_paths(bmain, &men->id);
+
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(me == ob->data) {
 				if(ob->id.lib==NULL) {

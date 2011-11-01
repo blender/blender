@@ -127,6 +127,21 @@
 
 /* ************* general ************************ */
 
+
+/* this has to be called from each make_local_* func, we could call
+ * from id_make_local() but then the make local functions would not be self
+ * contained.
+ * also note that the id _must_ have a library - campbell */
+void BKE_id_lib_local_paths(Main *bmain, ID *id)
+{
+	char *bpath_user_data[2]= {bmain->name, (id)->lib->filepath};
+
+	bpath_traverse_id(bmain, id,
+					  bpath_relocate_visitor,
+					  BPATH_TRAVERSE_SKIP_MULTIFILE,
+					  bpath_user_data);
+}
+
 void id_lib_extern(ID *id)
 {
 	if(id) {
@@ -1252,8 +1267,8 @@ int new_id(ListBase *lb, ID *id, const char *tname)
    don't have other library users. */
 void id_clear_lib_data(Main *bmain, ID *id)
 {
-	char *bpath_user_data[2]= {bmain->name, id->lib->filepath};
-	bpath_traverse_id(bmain, id, bpath_relocate_visitor, 0, bpath_user_data);
+	BKE_id_lib_local_paths(bmain, id);
+
 	id->lib= NULL;
 	id->flag= LIB_LOCAL;
 	new_id(which_libbase(bmain, GS(id->name)), id, NULL);

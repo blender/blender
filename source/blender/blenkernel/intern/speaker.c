@@ -106,12 +106,11 @@ void make_local_speaker(Speaker *spk)
 		id_clear_lib_data(bmain, &spk->id);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, spk->id.lib->filepath};
 		Speaker *spkn= copy_speaker(spk);
 		spkn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &spkn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &spkn->id);
 
 		ob= bmain->object.first;
 		while(ob) {
