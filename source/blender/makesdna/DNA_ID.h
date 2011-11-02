@@ -235,6 +235,7 @@ typedef struct PreviewImage {
 #define LIB_PRE_EXISTING	2048
 /* runtime */
 #define LIB_ID_RECALC		4096
+#define LIB_ID_RECALC_DATA	8192
 
 #ifdef __cplusplus
 }

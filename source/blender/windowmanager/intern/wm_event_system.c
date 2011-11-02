@@ -323,6 +323,8 @@ void wm_event_do_notifiers(bContext *C)
 			scene_update_tagged(bmain, win->screen->scene);
 
 			ED_render_engine_update_tagged(C, bmain);
+
+			scene_clear_tagged(bmain, win->screen->scene);
 		}
 	}
 
