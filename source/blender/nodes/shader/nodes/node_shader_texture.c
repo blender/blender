@@ -136,6 +136,7 @@ void register_node_type_sh_texture(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_texture_in, sh_node_texture_out);
 	node_type_size(&ntype, 120, 80, 240);
 	node_type_exec(&ntype, node_shader_exec_texture);

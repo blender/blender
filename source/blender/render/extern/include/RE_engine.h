@@ -51,6 +51,7 @@ struct Scene;
 #define RE_GAME					2
 #define RE_USE_PREVIEW			4
 #define RE_USE_POSTPROCESS		8
+#define RE_USE_SHADING_NODES	16
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION		1
