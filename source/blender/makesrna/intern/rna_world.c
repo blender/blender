@@ -461,13 +461,6 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomize star colors");
 	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-	
-	/* unused
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "starr");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Color", "Stars color");
-	RNA_def_property_update(prop, 0, "rna_World_update");*/
 }
 
 void RNA_def_world(BlenderRNA *brna)

@@ -95,7 +95,7 @@ typedef struct World {
 	
 	float misi, miststa, mistdist, misthi;
 	
-	float starr, starg, starb, stark;
+	float starr, starg, starb, stark; /* Deprecated */
 	float starsize, starmindist;
 	float stardist, starcolnoise;
 	
