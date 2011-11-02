@@ -121,9 +121,9 @@ static void wm_region_test_render_do_draw(ScrArea *sa, ARegion *ar)
 		RegionView3D *rv3d = ar->regiondata;
 		RenderEngine *engine = (rv3d)? rv3d->render_engine: NULL;
 
-		if(engine && engine->do_draw) {
+		if(engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
 			ar->do_draw = 1;
-			engine->do_draw = 0;
+			engine->flag &= ~RE_ENGINE_DO_DRAW;
 		}
 	}
 }

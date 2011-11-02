@@ -405,7 +405,7 @@ static const char *get_pass_name(int passtype, int channel)
 	return "Unknown";
 }
 
-static int passtype_from_name(char *str)
+static int passtype_from_name(const char *str)
 {
 	
 	if(strcmp(str, "Combined")==0)
@@ -889,39 +889,18 @@ static void *ml_addlayer_cb(void *base, char *str)
 {
 	RenderResult *rr= base;
 	RenderLayer *rl;
-
-	/* don't add if layer already exists */
-	for(rl=rr->layers.first; rl; rl=rl->next)
-		if(strcmp(rl->name, str) == 0)
-			return rl;
 	
-	/* add render layer */
 	rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 	BLI_addtail(&rr->layers, rl);
 	
 	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
-	rl->rectx = rr->rectx;
-	rl->recty = rr->recty;
-
 	return rl;
 }
-static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)
+static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect, int totchan, char *chan_id)
 {
-	RenderResult *rr= base;
 	RenderLayer *rl= lay;	
-	RenderPass *rpass;
+	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), "loaded pass");
 	int a;
-
-	/* don't add if pass already exists */
-	for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
-		if(strcmp(rpass->name, str) == 0) {
-			MEM_freeN(rect);
-			return;
-		}
-	}
-	
-	/* add render pass */
-	rpass = MEM_callocN(sizeof(RenderPass), "loaded pass");
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->channels= totchan;
@@ -935,8 +914,6 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 	for(a=0; a<totchan; a++)
 		rpass->chan_id[a]= chan_id[a];
 	
-	rpass->rectx = rr->rectx;
-	rpass->recty = rr->recty;
 	rpass->rect= rect;
 }
 
@@ -944,12 +921,24 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
 {
 	RenderResult *rr= MEM_callocN(sizeof(RenderResult), "loaded render result");
+	RenderLayer *rl;
+	RenderPass *rpass;
 	
 	rr->rectx= rectx;
 	rr->recty= recty;
 	
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addlayer_cb, ml_addpass_cb);
 
+	for(rl=rr->layers.first; rl; rl=rl->next) {
+		rl->rectx= rectx;
+		rl->recty= recty;
+
+		for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
+			rpass->rectx= rectx;
+			rpass->recty= recty;
+		}
+	}
+	
 	return rr;
 }
 
@@ -3096,6 +3085,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 
+	re->flag |= R_ANIMATION;
+
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
 			G.afbreek= 1;
@@ -3203,6 +3194,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
+
+	re->flag &= ~R_ANIMATION;
 
 	/* UGLY WARNING */
 	G.rendering= 0;
@@ -3332,22 +3325,10 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
-	/* optionally also add layers/passes that were in the file but not setup
-	   for rendering, useful for external render engines or network render */
-	void *exrhandle= IMB_exr_get_handle();
-	int rectx, recty;
-
-	if(IMB_exr_begin_read(exrhandle, filename, &rectx, &recty))
-		IMB_exr_multilayer_convert(exrhandle, result, ml_addlayer_cb, ml_addpass_cb);
-
-	IMB_exr_close(exrhandle);
-	
-#if 0
-	if(!read_render_result_from_file(filename, result, 1)) {
+	if(!read_render_result_from_file(filename, result)) {
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
 		return;
 	}
-#endif
 }
 
 const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };

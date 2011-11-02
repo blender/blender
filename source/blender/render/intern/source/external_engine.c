@@ -265,7 +265,8 @@ int RE_engine_render(Render *re, int do_all)
 	/* verify if we can render */
 	if(!type->render)
 		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
+	if((re->r.scemode & R_PREVIEWBUTS) && !((type->flag & RE_USE_PREVIEW) ||
+		(type->preview_update && type->preview_render)))
 		return 0;
 	if(do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
@@ -287,16 +288,23 @@ int RE_engine_render(Render *re, int do_all)
 	engine = RE_engine_create(type);
 	engine->re= re;
 
+	if(re->flag & R_ANIMATION)
+		engine->flag |= RE_ENGINE_ANIMATION;
+	if(re->r.scemode & R_PREVIEWBUTS)
+		engine->flag |= RE_ENGINE_PREVIEW;
+
 	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	if(re->r.scemode & R_PREVIEWBUTS) {
+	if(type->preview_update && type->preview_render) {
 		//type->preview_update(engine, scene, id);
 		type->preview_render(engine);
 	}
 	else {
-		type->update(engine, re->main, re->scene);
-		type->render(engine);
+		if(type->update)
+			type->update(engine, re->main, re->scene);
+		if(type->render)
+			type->render(engine, re->scene);
 	}
 
 	free_render_result(&engine->fullresult, engine->fullresult.first);

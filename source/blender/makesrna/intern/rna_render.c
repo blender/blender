@@ -48,17 +48,17 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
+/* RenderEngine Callbacks */
+
 void engine_tag_redraw(RenderEngine *engine)
 {
-	engine->do_draw = 1;
+	engine->flag |= RE_ENGINE_DO_DRAW;
 }
 
 void engine_tag_update(RenderEngine *engine)
 {
-	engine->do_update = 1;
+	engine->flag |= RE_ENGINE_DO_UPDATE;
 }
-
-/* RenderEngine Callbacks */
 
 static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 {
@@ -78,7 +78,7 @@ static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_render(RenderEngine *engine)
+static void engine_render(RenderEngine *engine, struct Scene *scene)
 {
 	extern FunctionRNA rna_RenderEngine_render_func;
 	PointerRNA ptr;
@@ -89,6 +89,7 @@ static void engine_render(RenderEngine *engine)
 	func= &rna_RenderEngine_render_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "scene", &scene);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -314,41 +315,44 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	/* final render callbacks */
 	func= RNA_def_function(srna, "update", NULL);
 	RNA_def_function_ui_description(func, "Export scene data for render");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "data", "BlendData", "", "");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	func= RNA_def_function(srna, "render", NULL);
-	RNA_def_function_ui_description(func, "Execute render");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_ui_description(func, "Render scene into an image");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	/* preview render callbacks */
 	func= RNA_def_function(srna, "preview_update", NULL);
 	RNA_def_function_ui_description(func, "Export scene data for preview render of the given datablock");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "id", "ID", "", "");
 
 	func= RNA_def_function(srna, "preview_render", NULL);
 	RNA_def_function_ui_description(func, "Execute preview render");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 
 	/* viewport render callbacks */
 	func= RNA_def_function(srna, "view_update", NULL);
 	RNA_def_function_ui_description(func, "Update on data changes for viewport render");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
 	func= RNA_def_function(srna, "view_draw", NULL);
 	RNA_def_function_ui_description(func, "Draw viewport render");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
 	/* tag for redraw */
 	RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");
+	RNA_def_function_ui_description(func, "Request redraw for viewport rendering");
 
 	/* tag for update */
 	RNA_def_function(srna, "tag_update", "engine_tag_update");
+	RNA_def_function_ui_description(func, "Request update call for viewport rendering");
 
 	func= RNA_def_function(srna, "begin_result", "RE_engine_begin_result");
 	prop= RNA_def_int(func, "x", 0, 0, INT_MAX, "X", "", 0, INT_MAX);
@@ -390,8 +394,15 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop= RNA_def_string(func, "message", "", 0, "Report Message", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
-	/* registration */
 	RNA_define_verify_sdna(0);
+
+	prop= RNA_def_property(srna, "is_animation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RE_ENGINE_ANIMATION);
+
+	prop= RNA_def_property(srna, "is_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RE_ENGINE_PREVIEW);
+
+	/* registration */
 
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");

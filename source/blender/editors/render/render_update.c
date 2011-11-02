@@ -88,12 +88,12 @@ void ED_render_engine_update_tagged(bContext *C, Main *bmain)
 				rv3d= ar->regiondata;
 				engine= rv3d->render_engine;
 
-				if(engine && engine->do_update) {
+				if(engine && (engine->flag & RE_ENGINE_DO_UPDATE)) {
 					CTX_wm_screen_set(C, sc);
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
 
-					engine->do_update= 0;
+					engine->flag &= ~RE_ENGINE_DO_UPDATE;
 					engine->type->view_update(engine, C);
 				}
 			}
@@ -134,7 +134,7 @@ void ED_render_engine_changed(Main *bmain)
 	}
 }
 
-void tag_render_engines(Main *bmain)
+static void tag_render_engines(Main *bmain)
 {
 	/* tag running render engines for update later on */
 	bScreen *sc;
@@ -154,7 +154,7 @@ void tag_render_engines(Main *bmain)
 				
 				rv3d= ar->regiondata;
 				if(rv3d->render_engine)
-					rv3d->render_engine->do_update= 1;
+					rv3d->render_engine->flag |= RE_ENGINE_DO_UPDATE;
 			}
 		}
 	}

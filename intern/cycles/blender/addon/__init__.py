@@ -54,7 +54,7 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.create(self, data, scene)
         engine.update(self, data, scene)
 
-    def render(self):
+    def render(self, scene):
         engine.render(self)
 
     # preview render
