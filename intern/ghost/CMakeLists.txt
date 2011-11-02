@@ -108,6 +108,10 @@ if(WITH_INPUT_NDOF)
 	)
 endif()
 
+if(WITH_XDG_USER_DIRS)
+	add_definitions(-DWITH_XDG_USER_DIRS)
+endif()
+
 if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	if(WITH_HEADLESS)
 		list(APPEND SRC
