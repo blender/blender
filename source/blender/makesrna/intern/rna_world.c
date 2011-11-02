@@ -393,7 +393,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "misi");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Intensity", "Intensity of the mist effect");
+	RNA_def_property_ui_text(prop, "Minimum", "Overall minimum intensity of the mist effect");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_DISTANCE);
