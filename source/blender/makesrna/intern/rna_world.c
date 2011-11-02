@@ -161,11 +161,6 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	/* unused
-	prop= RNA_def_property(srna, "map_mist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_MIST);
-	RNA_def_property_ui_text(prop, "Mist", "Causes the texture to affect the intensity of the mist");*/
-
 	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
