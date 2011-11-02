@@ -966,7 +966,6 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 
 /* sets wp->weight to the closest weight value to vertex */
 /* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-#if 0// BMESH_TODO
 static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
@@ -983,14 +982,14 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		index= view3d_sample_backbuf(&vc, event->mval[0], event->mval[1]);
 
-		if(index && index<=me->totface) {
+		if(index && index<=me->totpoly) {
 			DerivedMesh *dm= mesh_get_derived_final(vc.scene, vc.obact, CD_MASK_BAREMESH);
 
 			if(dm->getVertCo==NULL) {
 				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
 			else {
-				MFace *mf= ((MFace *)me->mface) + index-1;
+				MPoly *mf= ((MPoly *)me->mpoly) + index-1;
 				const int vgroup= vc.obact->actdef - 1;
 				ToolSettings *ts= vc.scene->toolsettings;
 				float mval_f[2];
@@ -1001,10 +1000,10 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				mval_f[0]= (float)event->mval[0];
 				mval_f[1]= (float)event->mval[1];
 
-				fidx= mf->v4 ? 3:2;
+				fidx= mf->totloop;
 				do {
 					float co[3], sco[3], len;
-					const int v_idx= (*(&mf->v1 + fidx));
+					const int v_idx= me->mloop[mf->loopstart + fidx].v;
 					dm->getVertCo(dm, v_idx, co);
 					project_float_noclip(vc.ar, co, sco);
 					len= len_squared_v2v2(mval_f, sco);
@@ -1033,7 +1032,6 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 }
-#endif
 
 void PAINT_OT_weight_sample(wmOperatorType *ot)
 {
@@ -1042,9 +1040,7 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 	ot->idname= "PAINT_OT_weight_sample";
 
 	/* api callbacks */
-#if 0 // BMESH_TODO
 	ot->invoke= weight_sample_invoke;
-#endif
 	ot->poll= weight_paint_mode_poll;
 
 	/* flags */
@@ -1052,7 +1048,6 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 }
 
 /* samples cursor location, and gives menu with vertex groups to activate */
-#if 0 // BMESH_TODO
 static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	if (C) {
@@ -1074,13 +1069,13 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 				if(index && index<=me->totface) {
 					const int totgroup= BLI_countlist(&vc.obact->defbase);
 					if(totgroup) {
-						MFace *mf= ((MFace *)me->mface) + index-1;
-						unsigned int fidx= mf->v4 ? 3:2;
+						MPoly *mf= ((MPoly *)me->mpoly) + index-1;
+						unsigned int fidx= mf->totloop;
 						int *groups= MEM_callocN(totgroup*sizeof(int), "groups");
 						int found= FALSE;
 
 						do {
-							MDeformVert *dvert= me->dvert + (*(&mf->v1 + fidx));
+							MDeformVert *dvert= me->dvert + me->mloop[mf->loopstart + fidx].v;
 							int i= dvert->totweight;
 							MDeformWeight *dw;
 							for(dw= dvert->dw; i > 0; dw++, i--) {
@@ -1119,7 +1114,6 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 
 	return DummyRNA_NULL_items;
 }
-#endif
 
 static int weight_sample_group_exec(bContext *C, wmOperator *op)
 {
@@ -1153,13 +1147,12 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 
 	/* keyingset to use (dynamic enum) */
 	prop= RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
-#if 0 // BMESH_TODO
 	RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
-#endif
 	ot->prop= prop;
 }
 
 
+#if 0 /* UNUSED */
 static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
 					   int paint_nr, char *map)
 {
@@ -1194,6 +1187,7 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 		}
 	}
 }
+#endif
 
 /* the active group should be involved in auto normalize */
 static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, const char *vgroup_validmap, char do_auto_normalize)
