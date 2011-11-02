@@ -122,10 +122,22 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+static void convertViewVec2D(View2D *v2d, float *vec, int dx, int dy)
+{
+	float divx, divy;
+	
+	divx= v2d->mask.xmax - v2d->mask.xmin;
+	divy= v2d->mask.ymax - v2d->mask.ymin;
+
+	vec[0]= (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
+	vec[1]= (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
+	vec[2]= 0.0f;
+}
+
 void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 {
-	if (t->spacetype==SPACE_VIEW3D) {
-		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+	if(t->spacetype==SPACE_VIEW3D) {
+		if(t->ar->regiontype == RGN_TYPE_WINDOW) {
 			float mval_f[2];
 			mval_f[0]= dx;
 			mval_f[1]= dy;
@@ -133,50 +145,19 @@ void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
-		View2D *v2d = t->view;
-		float divx, divy, aspx, aspy;
+		float aspx, aspy;
+
+		convertViewVec2D(t->view, vec, dx, dy);
 
 		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= aspx*(v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= aspy*(v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
+		vec[0]*= aspx;
+		vec[1]*= aspy;
 	}
 	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
-		View2D *v2d = t->view;
-		float divx, divy;
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx) / (divx);
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy) / (divy);
-		vec[2]= 0.0f;
+		convertViewVec2D(t->view, vec, dx, dy);
 	}
-	else if(t->spacetype==SPACE_NODE) {
-		View2D *v2d = &t->ar->v2d;
-		float divx, divy;
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
-	}
-	else if(t->spacetype==SPACE_SEQ) {
-		View2D *v2d = &t->ar->v2d;
-		float divx, divy;
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
+	else if(ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
+		convertViewVec2D(&t->ar->v2d, vec, dx, dy);
 	}
 }
 

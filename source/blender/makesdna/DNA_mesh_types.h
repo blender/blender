@@ -142,6 +142,14 @@ typedef struct TFace {
 #define ME_EDIT_MIRROR_TOPO (1 << 4)
 #define ME_EDIT_VERT_SEL (1 << 5)
 
+/* we cant have both flags enabled at once,
+ * flags defined in DNA_scene_types.h */
+#define ME_EDIT_PAINT_SEL_MODE(_me)  (                                        \
+	(_me->editflag & ME_EDIT_PAINT_MASK) ? SCE_SELECT_FACE :                  \
+		(_me->editflag & ME_EDIT_VERT_SEL) ? SCE_SELECT_VERTEX :              \
+			0                                                                 \
+	)
+
 /* me->flag */
 /* #define ME_ISDONE		1 */
 #define ME_DEPRECATED	2
