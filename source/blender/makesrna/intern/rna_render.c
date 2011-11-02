@@ -48,12 +48,39 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-/* RenderEngine */
+/* RenderEngine Callbacks */
+
+void engine_tag_redraw(RenderEngine *engine)
+{
+	engine->flag |= RE_ENGINE_DO_DRAW;
+}
+
+void engine_tag_update(RenderEngine *engine)
+{
+	engine->flag |= RE_ENGINE_DO_UPDATE;
+}
+
+static void engine_update(RenderEngine *engine, Main *bmain, Scene *scene)
+{
+	extern FunctionRNA rna_RenderEngine_update_func;
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	func= &rna_RenderEngine_update_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "data", &bmain);
+	RNA_parameter_set_lookup(&list, "scene", &scene);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
 
 static void engine_render(RenderEngine *engine, struct Scene *scene)
 {
 	extern FunctionRNA rna_RenderEngine_render_func;
-
 	PointerRNA ptr;
 	ParameterList list;
 	FunctionRNA *func;
@@ -87,7 +114,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine= {NULL};
 	PointerRNA dummyptr;
-	int have_function[1];
+	int have_function[2];
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type= &dummyet;
@@ -122,11 +149,18 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et->ext.free= free;
 	RNA_struct_blender_type_set(et->ext.srna, et);
 
-	et->render= (have_function[0])? engine_render: NULL;
+	et->update= (have_function[0])? engine_update: NULL;
+	et->render= (have_function[1])? engine_render: NULL;
 
 	BLI_addtail(&R_engines, et);
 
 	return et->ext.srna;
+}
+
+static void **rna_RenderEngine_instance(PointerRNA *ptr)
+{
+	RenderEngine *engine = ptr->data;
+	return &engine->py_instance;
 }
 
 static StructRNA* rna_RenderEngine_refine(PointerRNA *ptr)
@@ -203,13 +237,27 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "RenderEngine");
 	RNA_def_struct_ui_text(srna, "Render Engine", "Render engine");
 	RNA_def_struct_refine_func(srna, "rna_RenderEngine_refine");
-	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister", NULL);
+	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister", "rna_RenderEngine_instance");
 
-	/* render */
+	/* final render callbacks */
+	func= RNA_def_function(srna, "update", NULL);
+	RNA_def_function_ui_description(func, "Export scene data for render");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "data", "BlendData", "", "");
+	RNA_def_pointer(func, "scene", "Scene", "", "");
+
 	func= RNA_def_function(srna, "render", NULL);
 	RNA_def_function_ui_description(func, "Render scene into an image");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "scene", "Scene", "", "");
+
+	/* tag for redraw */
+	RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");
+	RNA_def_function_ui_description(func, "Request redraw for viewport rendering");
+
+	/* tag for update */
+	RNA_def_function(srna, "tag_update", "engine_tag_update");
+	RNA_def_function_ui_description(func, "Request update call for viewport rendering");
 
 	func= RNA_def_function(srna, "begin_result", "RE_engine_begin_result");
 	prop= RNA_def_int(func, "x", 0, 0, INT_MAX, "X", "", 0, INT_MAX);
