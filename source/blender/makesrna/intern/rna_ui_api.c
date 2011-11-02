@@ -408,6 +408,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_string(func, "prop_list", "", 0, "",
+	                     "Identifier of a string property in each data member, specifying which "
+	                     "of its properties should have a widget displayed in its row");
 	RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display", 0, INT_MAX);
 	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display", 0, INT_MAX);
 	RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use");

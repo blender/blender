@@ -29,11 +29,11 @@ defs = """
     SPACE_INFO,
     SPACE_SEQ,
     SPACE_TEXT,
-    SPACE_IMASEL,
-    SPACE_SOUND,
+    SPACE_IMASEL, #Deprecated
+    SPACE_SOUND, #Deprecated
     SPACE_ACTION,
     SPACE_NLA,
-    SPACE_SCRIPT,
+    SPACE_SCRIPT, #Deprecated
     SPACE_TIME,
     SPACE_NODE,
     SPACEICONMAX

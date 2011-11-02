@@ -40,6 +40,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
+#include "BLI_bpath.h"
 
 #include "BKE_world.h"
 #include "BKE_library.h"
@@ -165,7 +166,7 @@ void make_local_world(World *wrld)
 {
 	Main *bmain= G.main;
 	Scene *sce;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 		* - only local users: set flag
@@ -174,28 +175,27 @@ void make_local_world(World *wrld)
 	
 	if(wrld->id.lib==NULL) return;
 	if(wrld->id.us==1) {
-		wrld->id.lib= NULL;
-		wrld->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)wrld, NULL);
+		id_clear_lib_data(bmain, &wrld->id);
 		return;
 	}
 	
-	for(sce= bmain->scene.first; sce && ELEM(0, lib, local); sce= sce->id.next) {
+	for(sce= bmain->scene.first; sce && ELEM(FALSE, is_lib, is_local); sce= sce->id.next) {
 		if(sce->world == wrld) {
-			if(sce->id.lib) lib= 1;
-			else local= 1;
+			if(sce->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		wrld->id.lib= NULL;
-		wrld->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)wrld, NULL);
+	if(is_local && is_lib==FALSE) {
+		id_clear_lib_data(bmain, &wrld->id);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
 		World *wrldn= copy_world(wrld);
 		wrldn->id.us= 0;
-		
+
+		/* Remap paths of new ID using old library as base. */
+		BKE_id_lib_local_paths(bmain, &wrldn->id);
+
 		for(sce= bmain->scene.first; sce; sce= sce->id.next) {
 			if(sce->world == wrld) {
 				if(sce->id.lib==NULL) {

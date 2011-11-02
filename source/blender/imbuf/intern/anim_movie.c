@@ -1,7 +1,4 @@
 /*
- * anim.c
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -113,7 +110,7 @@
 #endif
 #endif
 
-int ismovie(const char *UNUSED(name)) {
+int ismovie(const char *UNUSED(filepath)) {
 	return 0;
 }
 
@@ -372,7 +369,7 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 		if (anim->pgf) {
 			lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
 			if (lpbi) {
-				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect);
+				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect, "<avi_fetchibuf>");
 //Oh brother...
 			}
 		}

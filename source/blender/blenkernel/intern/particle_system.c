@@ -95,13 +95,13 @@
 #include "RE_shader_ext.h"
 
 /* fluid sim particle import */
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
 
-#endif // DISABLE_ELBEEM
+#endif // WITH_MOD_FLUID
 
 /************************************************/
 /*			Reacting to system events			*/
@@ -3853,8 +3853,9 @@ static void update_children(ParticleSimulationData *sim)
 	else if(sim->psys->part->childtype) {
 		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
 			distribute_particles(sim, PART_FROM_CHILD);
-		else
-			; /* Children are up to date, nothing to do. */
+		else {
+			/* Children are up to date, nothing to do. */
+		}
 	}
 	else
 		psys_free_children(sim->psys);
@@ -3915,7 +3916,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 	}
 
 	/* fluid sim particle import handling, actual loading of particles from file */
-	#ifndef DISABLE_ELBEEM
+	#ifdef WITH_MOD_FLUID
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(sim->ob, eModifierType_Fluidsim);
 		
@@ -4008,7 +4009,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			
 		} // fluid sim particles done
 	}
-	#endif // DISABLE_ELBEEM
+	#endif // WITH_MOD_FLUID
 }
 
 static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNUSED(cfra))

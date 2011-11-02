@@ -190,7 +190,7 @@ bool KX_SceneActuator::Update()
 
 
 /*  returns a camera if the name is valid */
-KX_Camera* KX_SceneActuator::FindCamera(char *camName)
+KX_Camera* KX_SceneActuator::FindCamera(const char *camName)
 {
 	KX_SceneList* sl = m_KetsjiEngine->CurrentScenes();
 	STR_String name = STR_String(camName);
@@ -208,7 +208,7 @@ KX_Camera* KX_SceneActuator::FindCamera(char *camName)
 
 
 
-KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
+KX_Scene* KX_SceneActuator::FindScene(const char * sceneName)
 {
 	return m_KetsjiEngine->FindScene(sceneName);
 }

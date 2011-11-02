@@ -1585,30 +1585,3 @@ setWindowCustomCursorShape(
 
 	return GHOST_kSuccess;
 }
-
-/*
-
-void glutCustomCursor(char *data1, char *data2, int size)
-{
-	Pixmap source, mask;
-	Cursor cursor;
-	XColor fg, bg;
-	
-	if(XAllocNamedColor(__glutDisplay, DefaultColormap(__glutDisplay, __glutScreen),
-		"White", &fg, &fg) == 0) return;
-	if(XAllocNamedColor(__glutDisplay, DefaultColormap(__glutDisplay, __glutScreen),
-		"Red", &bg, &bg) == 0) return;
-
-
-	source= XCreateBitmapFromData(__glutDisplay, xdraw, data2, size, size);
-	mask= XCreateBitmapFromData(__glutDisplay, xdraw, data1, size, size);
-		
-	cursor= XCreatePixmapCursor(__glutDisplay, source, mask, &fg, &bg, 7, 7);
-		
-	XFreePixmap(__glutDisplay, source);
-	XFreePixmap(__glutDisplay, mask);
-		
-	XDefineCursor(__glutDisplay, xdraw, cursor);
-}
-
-*/

@@ -50,7 +50,7 @@ set(INC
 	../../blender/makesrna
 	../../blender/windowmanager
 	../../../extern/bullet2/src
-	../../../extern/Eigen2
+	../../../extern/Eigen3
 	../../../intern/container
 	../../../intern/guardedalloc
 	../../../intern/moto/include

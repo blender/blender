@@ -20,7 +20,10 @@
  *
  * The Original Code was in: source/blender/bpython/include/BPY_extern.h
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Chris Keith
+ * Contributor(s): Michel Selten,
+ *                 Willian P. Germano,
+ *                 Chris Keith,
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -39,14 +42,10 @@ struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */
 struct ChannelDriver; /* DNA_anim_types.h */
 struct ListBase; /* DNA_listBase.h */
-struct SpaceText; /* DNA_space_types.h */
-struct ScrArea; /* DNA_screen_types.h */
-struct bScreen; /* DNA_screen_types.h */
 struct bConstraint; /* DNA_constraint_types.h */
 struct bPythonConstraint; /* DNA_constraint_types.h */
 struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
-struct BPyMenu;
 struct bContext;
 struct bContextDataResult;
 struct ReportList;
@@ -61,16 +60,9 @@ void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTa
 void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
 int BPY_is_pyconstraint(struct Text *text);
 //	void BPY_free_pyconstraint_links(struct Text *text);
-//
+
 void BPY_python_start(int argc, const char **argv);
 void BPY_python_end(void);
-//	void init_syspath(int first_time);
-//	void syspath_append(char *dir);
-//	void BPY_rebuild_syspath(void);
-//	int BPY_path_update(void);
-//
-//	int BPY_Err_getLinenumber(void);
-//	const char *BPY_Err_getFilename(void);
 
 /* 2.5 UI Scripts */
 int		BPY_filepath_exec(struct bContext *C, const char *filepath, struct ReportList *reports);

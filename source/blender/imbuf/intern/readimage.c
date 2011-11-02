@@ -43,6 +43,7 @@
 #endif
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -71,13 +72,13 @@ static ImBuf *imb_ibImageFromFile(const char *filepath, int flags)
 	return NULL;
 }
 
-ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags)
+ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, const char *descr)
 {
 	ImBuf *ibuf;
 	ImFileType *type;
 
 	if(mem == NULL) {
-		printf("Error in ibImageFromMemory: NULL pointer\n");
+		fprintf(stderr, "%s: NULL pointer\n", __func__);
 		return NULL;
 	}
 
@@ -95,12 +96,12 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags)
 		}
 	}
 
-	fprintf(stderr, "Unknown fileformat\n");
-	
+	fprintf(stderr, "%s: unknown fileformat (%s)\n", __func__, descr);
+
 	return NULL;
 }
 
-ImBuf *IMB_loadifffile(int file, int flags)
+ImBuf *IMB_loadifffile(int file, int flags, const char *descr)
 {
 	ImBuf *ibuf;
 	unsigned char *mem;
@@ -112,14 +113,14 @@ ImBuf *IMB_loadifffile(int file, int flags)
 
 	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
 	if(mem==(unsigned char*)-1) {
-		fprintf(stderr, "Couldn't get mapping\n");
+		fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
 		return NULL;
 	}
 
-	ibuf= IMB_ibImageFromMemory(mem, size, flags);
+	ibuf= IMB_ibImageFromMemory(mem, size, flags, descr);
 
 	if(munmap(mem, size))
-		fprintf(stderr, "Couldn't unmap file.\n");
+		fprintf(stderr, "%s: couldn't unmap file %s\n", __func__, descr);
 
 	return ibuf;
 }
@@ -139,50 +140,51 @@ static void imb_cache_filename(char *filename, const char *name, int flags)
 	BLI_strncpy(filename, name, IB_FILENAME_SIZE);
 }
 
-ImBuf *IMB_loadiffname(const char *name, int flags)
+ImBuf *IMB_loadiffname(const char *filepath, int flags)
 {
 	ImBuf *ibuf;
 	int file, a;
-	char filename[IB_FILENAME_SIZE];
+	char filepath_tx[IB_FILENAME_SIZE];
 
-	imb_cache_filename(filename, name, flags);
+	imb_cache_filename(filepath_tx, filepath, flags);
 
-	ibuf= imb_ibImageFromFile(name, flags);
+	ibuf= imb_ibImageFromFile(filepath_tx, flags);
 
 	if(!ibuf) {
-		file = open(filename, O_BINARY|O_RDONLY);
+		file = open(filepath_tx, O_BINARY|O_RDONLY);
 		if(file < 0) return NULL;
 
-		ibuf= IMB_loadifffile(file, flags);
+		ibuf= IMB_loadifffile(file, flags, filepath_tx);
 		close(file);
 	}
 
 	if(ibuf) {
-		BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
-		BLI_strncpy(ibuf->cachename, filename, sizeof(ibuf->cachename));
+		BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+		BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
 		for(a=1; a<ibuf->miptot; a++)
-			BLI_strncpy(ibuf->mipmap[a-1]->cachename, filename, sizeof(ibuf->cachename));
+			BLI_strncpy(ibuf->mipmap[a-1]->cachename, filepath_tx, sizeof(ibuf->cachename));
 		if(flags & IB_fields) IMB_de_interlace(ibuf);
 	}
 
 	return ibuf;
 }
 
-ImBuf *IMB_testiffname(char *name, int flags)
+ImBuf *IMB_testiffname(const char *filepath, int flags)
 {
 	ImBuf *ibuf;
 	int file;
-	char filename[IB_FILENAME_SIZE];
+	char filepath_tx[IB_FILENAME_SIZE];
 
-	imb_cache_filename(filename, name, flags);
+	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = open(filename,O_BINARY|O_RDONLY);
+	file = open(filepath_tx,O_BINARY|O_RDONLY);
 	if(file < 0) return NULL;
 
-	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer);
+	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer, filepath_tx);
+
 	if(ibuf) {
-		BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
-		BLI_strncpy(ibuf->cachename, filename, sizeof(ibuf->cachename));
+		BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+		BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
 	}
 
 	close(file);

@@ -85,7 +85,7 @@
 #include "physics_intern.h" // own include
 
 /* enable/disable overall compilation */
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 
 #include "WM_api.h"
 
@@ -1111,7 +1111,7 @@ void fluidsimFreeBake(Object *UNUSED(ob))
 	/* not implemented yet */
 }
 
-#else /* DISABLE_ELBEEM */
+#else /* WITH_MOD_FLUID */
 
 /* compile dummy functions for disabled fluid sim */
 
@@ -1135,7 +1135,7 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 	return 0;
 }
 
-#endif /* DISABLE_ELBEEM */
+#endif /* WITH_MOD_FLUID */
 
 /***************************** Operators ******************************/
 

@@ -1654,14 +1654,14 @@ static void font_ui_template_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int open_cancel(bContext *UNUSED(C), wmOperator *op)
+static int font_open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
 	return OPERATOR_CANCELLED;
 }
 
-static int open_exec(bContext *C, wmOperator *op)
+static int font_open_exec(bContext *C, wmOperator *op)
 {
 	struct Main *bmain= CTX_data_main(C);
 	VFont *font;
@@ -1719,7 +1719,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
 
 	if(RNA_property_is_set(op->ptr, "filepath"))
-		return open_exec(C, op);
+		return font_open_exec(C, op);
 
 	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
@@ -1734,9 +1734,9 @@ void FONT_OT_open(wmOperatorType *ot)
 	ot->idname= "FONT_OT_open";
 	
 	/* api callbacks */
-	ot->exec= open_exec;
+	ot->exec= font_open_exec;
 	ot->invoke= open_invoke;
-	ot->cancel= open_cancel;
+	ot->cancel= font_open_cancel;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

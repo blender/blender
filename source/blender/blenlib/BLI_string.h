@@ -132,7 +132,6 @@ int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len);
 int BLI_natstrcmp(const char *s1, const char *s2);
 size_t BLI_strnlen(const char *str, size_t maxlen);
-
 void BLI_timestr(double _time, char *str); /* time var is global */
 
 void BLI_ascii_strtolower(char *str, int len);

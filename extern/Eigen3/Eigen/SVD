@@ -1,0 +1,38 @@
+#ifndef EIGEN_SVD_MODULE_H
+#define EIGEN_SVD_MODULE_H
+
+#include "QR"
+#include "Householder"
+#include "Jacobi"
+
+#include "src/Core/util/DisableStupidWarnings.h"
+
+namespace Eigen {
+
+/** \defgroup SVD_Module SVD module
+  *
+  *
+  *
+  * This module provides SVD decomposition for (currently) real matrices.
+  * This decomposition is accessible via the following MatrixBase method:
+  *  - MatrixBase::svd()
+  *
+  * \code
+  * #include <Eigen/SVD>
+  * \endcode
+  */
+
+#include "src/misc/Solve.h"
+#include "src/SVD/JacobiSVD.h"
+#include "src/SVD/UpperBidiagonalization.h"
+
+#ifdef EIGEN2_SUPPORT
+#include "src/Eigen2Support/SVD.h"
+#endif
+
+} // namespace Eigen
+
+#include "src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_SVD_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

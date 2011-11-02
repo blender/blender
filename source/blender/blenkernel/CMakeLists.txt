@@ -23,11 +23,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if(WITH_CODEC_FFMPEG)
-	# FFMPEG gives warnigns which are hard to avoid across multiple versions.
-	remove_strict_flags()
-endif()
-
 set(INC 
 	.
 	../avi
@@ -304,6 +299,10 @@ if(WITH_CODEC_FFMPEG)
 		${FFMPEG_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_FFMPEG)
+
+	remove_strict_flags_file(
+		intern/writeffmpeg.c
+	)
 endif()
 
 if(WITH_PYTHON)
@@ -324,8 +323,8 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-if(NOT WITH_MOD_FLUID)
-	add_definitions(-DDISABLE_ELBEEM)
+if(WITH_MOD_FLUID)
+	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)

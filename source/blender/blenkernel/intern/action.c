@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -94,8 +95,8 @@ typedef struct tMakeLocalActionContext {
 	bAction *act;    /* original action */
 	bAction *actn;   /* new action */
 	
-	int lib;         /* some action users were libraries */
-	int local;       /* some action users were not libraries */
+	int is_lib;         /* some action users were libraries */
+	int is_local;       /* some action users were not libraries */
 } tMakeLocalActionContext;
 
 /* helper function for make_local_action() - local/lib init step */
@@ -104,10 +105,8 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib) 
-			mlac->lib = 1;
-		else 
-			mlac->local = 1;
+		if (id->lib) mlac->is_lib= TRUE;
+		else mlac->is_local= TRUE;
 	}
 }
 
@@ -129,7 +128,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 // does copy_fcurve...
 void make_local_action(bAction *act)
 {
-	tMakeLocalActionContext mlac = {act, NULL, 0, 0};
+	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
 	Main *bmain= G.main;
 	
 	if (act->id.lib==NULL) 
@@ -137,24 +136,21 @@ void make_local_action(bAction *act)
 	
 	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
 	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
-		act->id.lib= NULL;
-		act->id.flag= LIB_LOCAL;
-		new_id(&bmain->action, (ID *)act, NULL);
+		id_clear_lib_data(bmain, &act->id);
 		return;
 	}
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
-	if (mlac.local && mlac.lib==0) {
-		act->id.lib= NULL;
-		act->id.flag= LIB_LOCAL;
-		//make_local_action_channels(act);
-		new_id(&bmain->action, (ID *)act, NULL);
+	if (mlac.is_local && mlac.is_lib==FALSE) {
+		id_clear_lib_data(bmain, &act->id);
 	}
-	else if (mlac.local && mlac.lib) {
+	else if (mlac.is_local && mlac.is_lib) {
 		mlac.actn= copy_action(act);
 		mlac.actn->id.us= 0;
-		
+
+		BKE_id_lib_local_paths(bmain, &mlac.actn->id);
+
 		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
 	}
 }
@@ -648,12 +644,12 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 {
 	bConstraint *pcon, *con;
 	
-	VECCOPY(pchan->loc, chan->loc);
-	VECCOPY(pchan->size, chan->size);
-	VECCOPY(pchan->eul, chan->eul);
-	VECCOPY(pchan->rotAxis, chan->rotAxis);
+	copy_v3_v3(pchan->loc, chan->loc);
+	copy_v3_v3(pchan->size, chan->size);
+	copy_v3_v3(pchan->eul, chan->eul);
+	copy_v3_v3(pchan->rotAxis, chan->rotAxis);
 	pchan->rotAngle= chan->rotAngle;
-	QUATCOPY(pchan->quat, chan->quat);
+	copy_qt_qt(pchan->quat, chan->quat);
 	pchan->rotmode= chan->rotmode;
 	copy_m4_m4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
 	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
@@ -682,9 +678,9 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
 
 	/* ik (dof) settings */
 	pchan->ikflag = pchan_from->ikflag;
-	VECCOPY(pchan->limitmin, pchan_from->limitmin);
-	VECCOPY(pchan->limitmax, pchan_from->limitmax);
-	VECCOPY(pchan->stiffness, pchan_from->stiffness);
+	copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
+	copy_v3_v3(pchan->limitmax, pchan_from->limitmax);
+	copy_v3_v3(pchan->stiffness, pchan_from->stiffness);
 	pchan->ikstretch= pchan_from->ikstretch;
 	pchan->ikrotweight= pchan_from->ikrotweight;
 	pchan->iklinweight= pchan_from->iklinweight;
@@ -1119,13 +1115,13 @@ void copy_pose_result(bPose *to, bPose *from)
 			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
 			
 			/* used for local constraints */
-			VECCOPY(pchanto->loc, pchanfrom->loc);
-			QUATCOPY(pchanto->quat, pchanfrom->quat);
-			VECCOPY(pchanto->eul, pchanfrom->eul);
-			VECCOPY(pchanto->size, pchanfrom->size);
+			copy_v3_v3(pchanto->loc, pchanfrom->loc);
+			copy_qt_qt(pchanto->quat, pchanfrom->quat);
+			copy_v3_v3(pchanto->eul, pchanfrom->eul);
+			copy_v3_v3(pchanto->size, pchanfrom->size);
 			
-			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
-			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+			copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
+			copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
 			
 			pchanto->rotmode= pchanfrom->rotmode;
 			pchanto->flag= pchanfrom->flag;

@@ -102,9 +102,9 @@ public:
 	// Initialize() functions are not put here since they have
 	// different prototypes for Unix and Windows
 	void StartLoadingAnimation();
-	bool Start(char *filename);  // file-on-disk starter
+	bool Start(const char *filename);  // file-on-disk starter
 	bool Start(unsigned char *blenderDataBuffer,
-			unsigned int blenderDataBufferSize);  // file-in-memory starter
+	           unsigned int blenderDataBufferSize);  // file-in-memory starter
 
 	void Stop();
 	virtual void Exit();

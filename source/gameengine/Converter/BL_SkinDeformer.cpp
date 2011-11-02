@@ -34,7 +34,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
-// Eigen2 stuff used for BGEDeformVerts
+// Eigen3 stuff used for BGEDeformVerts
 #include <Eigen/Core>
 #include <Eigen/LU>
 
@@ -287,7 +287,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 
 		
 		// Update Vertex Normal
-		norm = norm_chan_mat.corner<3, 3>(Eigen::TopLeft)*norm;
+		norm = norm_chan_mat.topLeftCorner<3, 3>()*norm;
 				
 		if (contrib > 0.0001f)
 		{

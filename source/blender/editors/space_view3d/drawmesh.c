@@ -226,7 +226,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	static int c_lit;
 
 	Object *litob = NULL; //to get mode to turn off mipmap in painting mode
-	int backculled = 0;
+	int backculled = GEMAT_BACKCULL;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;

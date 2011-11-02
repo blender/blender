@@ -209,7 +209,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.operator("transform.transform", text="Tilt").mode = 'TILT'
+        col.operator("transform.tilt", text="Tilt")
         col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
@@ -711,19 +711,14 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
         if context.sculpt_object:
             #XXX duplicated from properties_texture.py
 
-            col.separator()
-
             col.label(text="Brush Mapping:")
-            row = col.row(align=True)
-            row.prop(tex_slot, "map_mode", expand=True)
+            col.row().prop(tex_slot, "map_mode", expand=True)
 
             col.separator()
 
             col = layout.column()
             col.active = tex_slot.map_mode in {'FIXED'}
             col.label(text="Angle:")
-
-            col = layout.column()
             if not brush.use_anchor and brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'} and tex_slot.map_mode in {'FIXED'}:
                 col.prop(brush, "texture_angle_source_random", text="")
             else:
@@ -740,47 +735,33 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             #col.prop(brush, "use_rake", toggle=True, icon='PARTICLEMODE', text="")
 
             col = layout.column()
-            col.prop(tex_slot, "angle", text="")
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
+            col.prop(tex_slot, "angle", text="")
 
             #col = layout.column()
             #col.prop(brush, "use_random_rotation")
             #col.active = (not brush.use_rake) and (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE'}) and tex_slot.map_mode in {'FIXED'}
 
             split = layout.split()
+            split.prop(tex_slot, "offset")
+            split.prop(tex_slot, "scale")
 
-            col = split.column()
-            col.prop(tex_slot, "offset")
+            col = layout.column(align=True)
+            col.label(text="Sample Bias:")
+            col.prop(brush, "texture_sample_bias", slider=True, text="")
 
-            col = split.column()
-
-            col.prop(tex_slot, "scale")
-
-            col = layout.column()
-
-            row = col.row(align=True)
-            row.label(text="Sample Bias:")
-            row = col.row(align=True)
-            row.prop(brush, "texture_sample_bias", slider=True, text="")
-
-            row = col.row(align=True)
-            row.label(text="Overlay:")
-            row.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-
-            row = col.row(align=True)
-
-            col = row.column()
-
-            if brush.use_texture_overlay:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-            else:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
-
+            col = layout.column(align=True)
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
+            col.label(text="Overlay:")
 
-            col = row.column()
-            col.prop(brush, "texture_overlay_alpha", text="Alpha")
-            col.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
+            row = col.row()
+            if brush.use_texture_overlay:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+            sub = row.row()
+            sub.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
+            sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel, Panel):
@@ -985,18 +966,14 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, Panel):
 
         sculpt = context.tool_settings.sculpt
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column(align=True)
         col.label(text="Mirror:")
-        col.prop(sculpt, "use_symmetry_x", text="X")
-        col.prop(sculpt, "use_symmetry_y", text="Y")
-        col.prop(sculpt, "use_symmetry_z", text="Z")
+        row = col.row()
+        row.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
+        row.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
+        row.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
 
-        split.prop(sculpt, "radial_symmetry", text="Radial")
-
-        layout.separator()
-
+        layout.column().prop(sculpt, "radial_symmetry", text="Radial")
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
 
 
@@ -1059,6 +1036,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.active = ob.vertex_groups.active is not None
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
+        col.operator("object.vertex_group_mirror", text="Mirror")
         col.operator("object.vertex_group_invert", text="Invert")
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")

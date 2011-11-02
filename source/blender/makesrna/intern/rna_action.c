@@ -95,15 +95,15 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 
 static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path, int index, const char *group)
 {
-	if(group && group[0]=='\0') group= NULL;
+	if (group && group[0]=='\0') group= NULL;
 
-	if(data_path[0] == '\0') {
+	if (data_path[0] == '\0') {
 		BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
 		return NULL;
 	}
 
 	/* annoying, check if this exists */
-	if(verify_fcurve(act, group, data_path, index, 0)) {
+	if (verify_fcurve(act, group, data_path, index, 0)) {
 		BKE_reportf(reports, RPT_ERROR, "F-Curve '%s[%d]' already exists in action '%s'", data_path, index, act->id.name+2);
 		return NULL;
 	}

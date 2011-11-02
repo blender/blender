@@ -351,7 +351,7 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 		return BLI_sprintfN("key_blocks[\"%s\"]", kb->name);
 }
 
-static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Key *key= ptr->id.data;
 	Object *ob;

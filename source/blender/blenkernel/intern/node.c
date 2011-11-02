@@ -1040,6 +1040,7 @@ static void ntreeMakeLocal_LinkNew(void *calldata, ID *owner_id, bNodeTree *ntre
 
 void ntreeMakeLocal(bNodeTree *ntree)
 {
+	Main *bmain= G.main;
 	bNodeTreeType *treetype= ntreeGetType(ntree->type);
 	MakeLocalCallData cd;
 	
@@ -1050,9 +1051,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
-		ntree->id.lib= NULL;
-		ntree->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ntree, NULL);
+		id_clear_lib_data(bmain, (ID *)ntree);
 		return;
 	}
 	
@@ -1066,9 +1065,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	/* if all users are local, we simply make tree local */
 	if(cd.local && cd.lib==0) {
-		ntree->id.lib= NULL;
-		ntree->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ntree, NULL);
+		id_clear_lib_data(bmain, (ID *)ntree);
 	}
 	else if(cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */

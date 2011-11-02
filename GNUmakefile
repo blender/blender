@@ -1,6 +1,5 @@
 # -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
-# vim: tabstop=8
-# $Id: GNUmakefile 41122 2011-10-19 21:55:27Z campbellbarton $
+# vim: tabstop=4
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #

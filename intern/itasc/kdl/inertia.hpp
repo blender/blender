@@ -22,7 +22,7 @@
 #ifndef KDLINERTIA_HPP
 #define KDLINERTIA_HPP
 
-#include <Eigen/Array>
+#include <Eigen/Core>
 #include "frames.hpp"
 
 namespace KDL {

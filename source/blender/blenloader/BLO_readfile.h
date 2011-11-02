@@ -44,7 +44,6 @@ struct MemFile;
 struct ReportList;
 struct Scene;
 struct SpaceFile;
-struct SpaceImaSel;
 struct UserDef;
 struct bContext;
 struct BHead;

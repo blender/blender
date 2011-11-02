@@ -34,22 +34,27 @@
 #ifndef BLI_BPATH_H
 #define BLI_BPATH_H
 
-struct BPathIterator;
-struct ReportList;
+struct ID;
+struct ListBase;
 struct Main;
+struct ReportList;
 
-void			BLI_bpathIterator_init				(struct BPathIterator **bpi, struct Main *bmain, const char *basedir, const int flag);
-void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getName			(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
-unsigned int	BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
-const char*		BLI_bpathIterator_getBasePath		(struct BPathIterator *bpi);
-void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
-int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
-void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
-void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
-void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path);
+/* Function that does something with an ID's file path. Should return 1 if the
+   path has changed, and in that case, should write the result to pathOut. */
+typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
+/* Executes 'visit' for each path associated with 'id'. */
+void bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
+void bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
+void bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
+int bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
+
+#define BPATH_TRAVERSE_ABS             (1<<0) /* convert paths to absolute */
+#define BPATH_TRAVERSE_SKIP_LIBRARY    (1<<2) /* skip library paths */
+#define BPATH_TRAVERSE_SKIP_PACKED     (1<<3) /* skip packed data */
+#define BPATH_TRAVERSE_SKIP_MULTIFILE  (1<<4) /* skip paths where a single dir is used with an array of files, eg.
+                                               * sequence strip images and pointcache. in this case only use the first
+                                               * file, this is needed for directory manipulation functions which might
+                                               * otherwise modify the same directory multiple times */
 
 /* high level funcs */
 
@@ -57,8 +62,6 @@ void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, const char *path)
 void checkMissingFiles(struct Main *bmain, struct ReportList *reports);
 void makeFilesRelative(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void makeFilesAbsolute(struct Main *bmain, const char *basedir, struct ReportList *reports);
-void findMissingFiles(struct Main *bmain, const char *str);
-
-#define BPATH_USE_PACKED 1
+void findMissingFiles(struct Main *bmain, const char *searchpath, struct ReportList *reports);
 
 #endif // BLI_BPATH_H

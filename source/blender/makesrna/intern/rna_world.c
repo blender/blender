@@ -172,11 +172,6 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	/* unused
-	prop= RNA_def_property(srna, "map_mist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_MIST);
-	RNA_def_property_ui_text(prop, "Mist", "Causes the texture to affect the intensity of the mist");*/
-
 	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
@@ -404,7 +399,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "misi");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Intensity", "Intensity of the mist effect");
+	RNA_def_property_ui_text(prop, "Minimum", "Overall minimum intensity of the mist effect");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_DISTANCE);
@@ -472,13 +467,6 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomize star colors");
 	RNA_def_property_update(prop, 0, "rna_World_stars_update");
-	
-	/* unused
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "starr");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Color", "Stars color");
-	RNA_def_property_update(prop, 0, "rna_World_update");*/
 }
 
 void RNA_def_world(BlenderRNA *brna)

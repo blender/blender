@@ -68,6 +68,16 @@ set(SRC
 	include/MT_assert.h
 	include/MT_random.h
 	include/NM_Scalar.h
+
+	include/MT_Matrix3x3.inl
+	include/MT_Matrix4x4.inl
+	include/MT_Plane3.inl
+	include/MT_Point2.inl
+	include/MT_Point3.inl
+	include/MT_Quaternion.inl
+	include/MT_Vector2.inl
+	include/MT_Vector3.inl
+	include/MT_Vector4.inl
 )
 
 blender_add_lib(bf_intern_moto "${SRC}" "${INC}" "${INC_SYS}")

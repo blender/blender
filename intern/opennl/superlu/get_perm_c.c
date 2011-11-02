@@ -27,6 +27,7 @@ get_colamd(
 {
     int Alen, *A, i, info, *p;
     double *knobs;
+    int stats[COLAMD_STATS];
 
     Alen = colamd_recommended(nnz, m, n);
 
@@ -40,7 +41,7 @@ get_colamd(
         ABORT("Malloc fails for p[]");
     for (i = 0; i <= n; ++i) p[i] = colptr[i];
     for (i = 0; i < nnz; ++i) A[i] = rowind[i];
-    info = colamd(m, n, Alen, A, p, knobs);
+    info = colamd(m, n, Alen, A, p, knobs, stats);
     if ( info == FALSE ) ABORT("COLAMD failed");
 
     for (i = 0; i < n; ++i) perm_c[p[i]] = i;

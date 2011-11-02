@@ -421,7 +421,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 			sub_qt_qtqt(quat_diff, pchan->quat, quat_prev);
 			
 			/* make a copy of the original rotation */
-			QUATCOPY(quat_orig, pchan->quat);
+			copy_qt_qt(quat_orig, pchan->quat);
 			
 			/* increase the original by the delta transform, by an amount determined by percentage */
 			add_qt_qtqt(pchan->quat, quat_orig, quat_diff, pso->percentage);
@@ -436,7 +436,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 				interp_qt_qtqt(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame) );
 				
 				/* make a copy of the original rotation */
-				QUATCOPY(quat_orig, pchan->quat);
+				copy_qt_qt(quat_orig, pchan->quat);
 				
 				/* tricky interpolations - blending between original and new */
 				interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);

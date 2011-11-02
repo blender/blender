@@ -578,7 +578,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	if (strstr(rstring,"MacBookAir") ||
 		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
 		m_hasMultiTouchTrackpad = true;
-	else m_hasMultiTouchTrackpad = false;
+	else m_hasMultiTouchTrackpad = true;  // experimental, changes only MagicMouse behaviour (zoom->pan) but enables MagicTrackpad for all Macs
 	
 	free( rstring );
 	rstring = NULL;
@@ -1610,7 +1610,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				GHOST_TInt32 x, y;
 				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, x, y,
-												  [event magnification]*250.0 + 0.1, 0));
+												  [event magnification]*125.0 + 0.1, 0));
 			}
 			break;
 

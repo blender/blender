@@ -111,7 +111,7 @@ KX_BLENDERTRUNC needed to round 'almost' zero values to zero, else velocities et
 
 #define KX_BLENDERTRUNC(x)  (( x < 0.0001 && x > -0.0001 )  ? 0.0 : x)
 
-void BL_ConvertActuators(char* maggiename,
+void BL_ConvertActuators(const char* maggiename,
 						 struct Object* blenderobject,
 						 KX_GameObject* gameobj,
 						 SCA_LogicManager* logicmgr,

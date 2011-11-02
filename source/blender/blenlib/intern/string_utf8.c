@@ -319,6 +319,8 @@ int BLI_str_utf8_size(const char *p)
 
     UTF8_COMPUTE (c, mask, len);
 
+	(void)mask; /* quiet warning */
+
 	return len;
 }
 

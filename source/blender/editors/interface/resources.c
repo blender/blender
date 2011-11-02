@@ -129,17 +129,11 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 			case SPACE_IMAGE:
 				ts= &btheme->tima;
 				break;
-			case SPACE_IMASEL:
-				ts= &btheme->timasel;
-				break;
 			case SPACE_TEXT:
 				ts= &btheme->text;
 				break;
 			case SPACE_OUTLINER:
 				ts= &btheme->toops;
-				break;
-			case SPACE_SOUND:
-				ts= &btheme->tsnd;
 				break;
 			case SPACE_INFO:
 				ts= &btheme->tinfo;
@@ -528,12 +522,10 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tfile);
 	ui_theme_init_new_do(&btheme->tipo);
 	ui_theme_init_new_do(&btheme->tinfo);
-	ui_theme_init_new_do(&btheme->tsnd);
 	ui_theme_init_new_do(&btheme->tact);
 	ui_theme_init_new_do(&btheme->tnla);
 	ui_theme_init_new_do(&btheme->tseq);
 	ui_theme_init_new_do(&btheme->tima);
-	ui_theme_init_new_do(&btheme->timasel);
 	ui_theme_init_new_do(&btheme->text);
 	ui_theme_init_new_do(&btheme->toops);
 	ui_theme_init_new_do(&btheme->ttime);
@@ -731,18 +723,6 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
 	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
 
-	/* space imageselect */
-	btheme->timasel= btheme->tv3d;
-	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
-	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
-	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
-	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
-	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
-	SETCOL(btheme->timasel.text, 	0, 0, 0, 255);
-	SETCOL(btheme->timasel.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->timasel.panel, 	132, 132, 132, 255);
-
 	/* space text */
 	btheme->text= btheme->tv3d;
 	SETCOL(btheme->text.back, 	153, 153, 153, 255);
@@ -778,15 +758,11 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
 	SETCOL(btheme->tconsole.console_cursor, 220, 96, 96, 255);
 	
-
-	/* space sound */
-	btheme->tsnd= btheme->tv3d;
-	SETCOLF(btheme->tsnd.back, 	0.45, 0.45, 0.45, 1.0);
-	SETCOLF(btheme->tsnd.grid, 	0.36, 0.36, 0.36, 1.0);
-	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
-	
 	/* space time */
-	btheme->ttime= btheme->tsnd;	// same as sound space
+	btheme->ttime= btheme->tv3d;
+	SETCOLF(btheme->ttime.back, 	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->ttime.grid, 	0.36, 0.36, 0.36, 1.0);
+	SETCOL(btheme->ttime.shade1,  173, 173, 173, 255);		// sliders
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
@@ -801,7 +777,6 @@ void ui_theme_init_default(void)
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
 	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
-	
 }
 
 
@@ -1193,7 +1168,11 @@ void init_userdef_do_versions(void)
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* check for alpha==0 is safe, then color was never set */
 			if(btheme->ttime.back[3]==0) {
-				btheme->ttime = btheme->tsnd;	// copy from sound
+				// copied from ui_theme_init_default
+				btheme->ttime= btheme->tv3d;
+				SETCOLF(btheme->ttime.back, 	0.45, 0.45, 0.45, 1.0);
+				SETCOLF(btheme->ttime.grid, 	0.36, 0.36, 0.36, 1.0);
+				SETCOL(btheme->ttime.shade1,  173, 173, 173, 255);		// sliders
 			}
 			if(btheme->text.syntaxn[3]==0) {
 				SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
@@ -1320,7 +1299,7 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
+			//SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255); Not needed anymore
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}

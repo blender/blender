@@ -2217,10 +2217,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					if(sima->cumap)
 						write_curvemapping(wd, sima->cumap);
 				}
-				else if(sl->spacetype==SPACE_IMASEL) {
-					// XXX: depreceated... do we still want to keep this?
-					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
-				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
@@ -2231,9 +2227,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					writestruct(wd, DATA, "SpaceAction", 1, sl);
-				}
-				else if(sl->spacetype==SPACE_SOUND) {
-					writestruct(wd, DATA, "SpaceSound", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					SpaceNla *snla= (SpaceNla *)sl;
@@ -2276,7 +2269,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 static void write_libraries(WriteData *wd, Main *main)
 {
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
 	int a, tot, foundone;
 
