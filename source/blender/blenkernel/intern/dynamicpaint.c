@@ -2794,25 +2794,28 @@ static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index,
 
 	/* Add paint	*/
 	if (!(paintFlags & MOD_DPAINT_ERASE)) {
-		float wetness, mix[4];
+		float mix[4];
 		float temp_alpha = (*paintAlpha) * ((paintFlags & MOD_DPAINT_ABS_ALPHA) ? 1.0f : (*timescale));
 
 		/* mix brush color with wet layer color */
 		blendColors(pPoint->e_color, pPoint->e_alpha, paintColor, temp_alpha, mix);
 		copy_v3_v3(pPoint->e_color, mix);
 
-		/* alpha */
+		/* mix wetness and alpha depending on selected alpha mode */
 		if (paintFlags & MOD_DPAINT_ABS_ALPHA) {
+			/* update values to the brush level unless theyre higher already */
 			if (pPoint->e_alpha < (*paintAlpha)) pPoint->e_alpha = (*paintAlpha);
+			if (pPoint->wetness < (*paintWetness)) pPoint->wetness = (*paintWetness);
 		}
 		else {
+			float wetness = (*paintWetness);
+			CLAMP(wetness, 0.0f, 1.0f);
 			pPoint->e_alpha = mix[3];
+			pPoint->wetness = pPoint->wetness*(1.0f-wetness) + wetness;
 		}
 
-		/* only increase wetness if it's below paint level */
-		wetness = (*paintWetness) * pPoint->e_alpha;
-		CLAMP(wetness, 0.0f, 1.0f);
-		if (pPoint->wetness < wetness) pPoint->wetness = wetness;
+		if (pPoint->wetness<MIN_WETNESS) pPoint->wetness = MIN_WETNESS;
+
 		pPoint->state = DPAINT_PAINT_NEW;
 	}
 	/* Erase paint	*/
@@ -2879,6 +2882,7 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 {
 		PaintSurfaceData *sData = surface->data;
 		float strength = influence * brush->alpha;
+		CLAMP(strength, 0.0f, 1.0f);
 
 		/* Sample velocity colorband if required */
 		if (brush->flags & (MOD_DPAINT_VELOCITY_ALPHA|MOD_DPAINT_VELOCITY_COLOR|MOD_DPAINT_VELOCITY_DEPTH)) {
@@ -2904,7 +2908,6 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 
 			float paintWetness = brush->wetness * strength;
 			float paintAlpha = strength;
-			if (paintAlpha > 1.0f) paintAlpha = 1.0f;
 
 			dynamicPaint_mixPaintColors(surface, index, brush->flags, paint, &paintAlpha, &paintWetness, &timescale);
 
@@ -4363,7 +4366,7 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			PaintPoint *pPoint = &((PaintPoint*)sData->type_data)[index];
 			/* drying */
-			if (pPoint->wetness > MIN_WETNESS) {
+			if (pPoint->wetness >= MIN_WETNESS) {
 				int i;
 				float dry_ratio, f_color[4];
 				float p_wetness = pPoint->wetness;
