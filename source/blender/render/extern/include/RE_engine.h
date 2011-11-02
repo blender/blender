@@ -46,10 +46,15 @@ struct Scene;
 
 /* External Engine */
 
+/* RenderEngineType.flag */
 #define RE_INTERNAL				1
 #define RE_GAME					2
 #define RE_USE_PREVIEW			4
 #define RE_USE_POSTPROCESS		8
+
+/* RenderEngine.flag */
+#define RE_ENGINE_ANIMATION		1
+#define RE_ENGINE_PREVIEW		2
 
 extern ListBase R_engines;
 
@@ -69,6 +74,8 @@ typedef struct RenderEngineType {
 
 typedef struct RenderEngine {
 	RenderEngineType *type;
+
+	int flag;
 
 	struct Render *re;
 	ListBase fullresult;

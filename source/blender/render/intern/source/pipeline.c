@@ -3085,6 +3085,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 
+	re->flag |= R_ANIMATION;
+
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
 			G.afbreek= 1;
@@ -3192,6 +3194,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
+
+	re->flag &= ~R_ANIMATION;
 
 	/* UGLY WARNING */
 	G.rendering= 0;

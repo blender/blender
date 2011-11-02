@@ -265,6 +265,11 @@ int RE_engine_render(Render *re, int do_all)
 	engine = RE_engine_create(type);
 	engine->re= re;
 
+	if(re->flag & R_ANIMATION)
+		engine->flag |= RE_ENGINE_ANIMATION;
+	if(re->r.scemode & R_PREVIEWBUTS)
+		engine->flag |= RE_ENGINE_PREVIEW;
+
 	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
