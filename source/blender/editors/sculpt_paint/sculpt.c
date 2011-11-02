@@ -208,7 +208,8 @@ typedef struct StrokeCache {
 
 	int first_time; /* Beginning of stroke may do some things special */
 
-	bglMats *mats;
+	/* from ED_view3d_ob_project_mat_get() */
+	float projection_mat[4][4];
 
 	/* Clean this up! */
 	ViewContext *vc;
@@ -678,7 +679,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 	}
 	else if(ss->texcache) {
 		float rotation = -mtex->rot;
-		float x, y, point_2d[3];
+		float symm_point[3], point_2d[2];
+		float x, y;
 		float radius;
 
 		/* if the active area is being applied for symmetry, flip it
@@ -686,12 +688,13 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		   position in order to project it. This insures that the 
 		   brush texture will be oriented correctly. */
 
-		flip_coord(point_2d, point, ss->cache->mirror_symmetry_pass);
+		flip_coord(symm_point, point, ss->cache->mirror_symmetry_pass);
 
 		if (ss->cache->radial_symmetry_pass)
-			mul_m4_v3(ss->cache->symm_rot_mat_inv, point_2d);
+			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
 
-		projectf(ss->cache->mats, point_2d, point_2d);
+		ED_view3d_project_float(ss->cache->vc->ar, symm_point, point_2d,
+					ss->cache->projection_mat);
 
 		/* if fixed mode, keep coordinates relative to mouse */
 		if(mtex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
@@ -2810,8 +2813,6 @@ static void sculpt_cache_free(StrokeCache *cache)
 {
 	if(cache->face_norms)
 		MEM_freeN(cache->face_norms);
-	if(cache->mats)
-		MEM_freeN(cache->mats);
 	MEM_freeN(cache);
 }
 
@@ -2910,8 +2911,8 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 
 	cache->brush = brush;
 
-	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
-	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, cache->mats);
+	/* cache projection matrix */
+	ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
 	ED_view3d_global_to_vector(cache->vc->rv3d, cache->vc->rv3d->twmat[3], cache->true_view_normal);
 	/* Initialize layer brush displacements and persistent coords */
