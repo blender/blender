@@ -56,10 +56,109 @@
 
 #include "GPU_material.h"
 
+#include "RE_engine.h"
+
 #include "ED_node.h"
 #include "ED_render.h"
 
 #include "render_intern.h"	// own include
+
+/***************************** Render Engines ********************************/
+
+void ED_render_engine_update_tagged(bContext *C, Main *bmain)
+{
+	/* viewport rendering update on data changes, happens after depsgraph
+	 * updates if there was any change. context is set to the 3d view */
+	bScreen *sc, *prev_sc= CTX_wm_screen(C);
+	ScrArea *sa, *prev_sa= CTX_wm_area(C);
+	ARegion *ar, *prev_ar= CTX_wm_region(C);
+
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			if(sa->spacetype != SPACE_VIEW3D)
+				continue;
+
+			for(ar=sa->regionbase.first; ar; ar=ar->next) {
+				RegionView3D *rv3d;
+				RenderEngine *engine;
+
+				if(ar->regiontype != RGN_TYPE_WINDOW)
+					continue;
+
+				rv3d= ar->regiondata;
+				engine= rv3d->render_engine;
+
+				if(engine && (engine->flag & RE_ENGINE_DO_UPDATE)) {
+					CTX_wm_screen_set(C, sc);
+					CTX_wm_area_set(C, sa);
+					CTX_wm_region_set(C, ar);
+
+					engine->flag &= ~RE_ENGINE_DO_UPDATE;
+					engine->type->view_update(engine, C);
+				}
+			}
+		}
+	}
+
+	CTX_wm_screen_set(C, prev_sc);
+	CTX_wm_area_set(C, prev_sa);
+	CTX_wm_region_set(C, prev_ar);
+}
+
+void ED_render_engine_changed(Main *bmain)
+{
+	/* on changing the render engine type, clear all running render engines */
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			if(sa->spacetype != SPACE_VIEW3D)
+				continue;
+
+			for(ar=sa->regionbase.first; ar; ar=ar->next) {
+				RegionView3D *rv3d;
+
+				if(ar->regiontype != RGN_TYPE_WINDOW)
+					continue;
+				
+				rv3d= ar->regiondata;
+
+				if(rv3d->render_engine) {
+					RE_engine_free(rv3d->render_engine);
+					rv3d->render_engine= NULL;
+				}
+			}
+		}
+	}
+}
+
+static void tag_render_engines(Main *bmain)
+{
+	/* tag running render engines for update later on */
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			if(sa->spacetype != SPACE_VIEW3D)
+				continue;
+
+			for(ar=sa->regionbase.first; ar; ar=ar->next) {
+				RegionView3D *rv3d;
+
+				if(ar->regiontype != RGN_TYPE_WINDOW)
+					continue;
+				
+				rv3d= ar->regiondata;
+				if(rv3d->render_engine)
+					rv3d->render_engine->flag |= RE_ENGINE_DO_UPDATE;
+			}
+		}
+	}
+}
 
 /***************************** Updates ***********************************
  * ED_render_id_flush_update gets called from DAG_id_tag_update, to do *
@@ -220,8 +319,10 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
-	if(!id)
+	if(!id) {
+		tag_render_engines(bmain);
 		return;
+	}
 
 	switch(GS(id->name)) {
 		case ID_MA:

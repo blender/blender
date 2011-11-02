@@ -104,7 +104,7 @@
 
 /* this condition has been made more complex since editmode can draw textures */
 #define CHECK_OB_DRAWTEXTURE(vd, dt) \
-((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
+	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
 static void draw_bounding_volume(Scene *scene, Object *ob);
@@ -2696,8 +2696,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	totface = dm->getNumFaces(dm);
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
-	if(dt!=OB_SHADED)
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
 	if (is_paint_sel) draw_wire = 0;
@@ -2814,7 +2813,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->drawLooseEdges(dm);
 		}
 	}
-	else if(dt==OB_SHADED) {
+	else if(dt==OB_PAINT) {
 		if(ob==OBACT) {
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
@@ -5955,7 +5954,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* maximum drawtype */
-	dt= MIN2(v3d->drawtype, ob->dt);
+	dt= v3d->drawtype;
+	if(dt==OB_RENDER) dt= OB_SOLID;
+	dt= MIN2(dt, ob->dt);
 	if(v3d->zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
 
@@ -5970,7 +5971,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					dt= OB_SOLID;
 				}
 				else {
-					dt= OB_SHADED;
+					dt= OB_PAINT;
 				}
 
 				glEnable(GL_DEPTH_TEST);

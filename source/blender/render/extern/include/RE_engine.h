@@ -71,6 +71,9 @@ typedef struct RenderEngineType {
 	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
 
+	void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
+	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
+
 	/* RNA integration */
 	ExtensionRNA ext;
 } RenderEngineType;

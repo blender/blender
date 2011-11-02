@@ -61,7 +61,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
-	NULL, NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #ifdef WITH_GAMEENGINE
@@ -69,7 +69,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
-	NULL, NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #endif

@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 
 /* Include for Bake Options */
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #ifdef WITH_QUICKTIME
@@ -54,6 +55,8 @@
 #include <libavcodec/avcodec.h> 
 #include <libavformat/avformat.h>
 #endif
+
+#include "ED_render.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -771,6 +774,11 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 			return a;
 	
 	return 0;
+}
+
+static void rna_RenderSettings_engine_update(Main *bmain, Scene *UNUSED(unused), PointerRNA *UNUSED(ptr))
+{
+	ED_render_engine_changed(bmain);
 }
 
 static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -3212,7 +3220,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_engine_get", "rna_RenderSettings_engine_set",
 	                            "rna_RenderSettings_engine_itemf");
 	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_RenderSettings_engine_update");
 
 	prop= RNA_def_property(srna, "has_multiple_engines", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_multiple_engines_get", NULL);

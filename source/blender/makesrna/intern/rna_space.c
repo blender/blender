@@ -47,6 +47,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_engine.h"
+#include "RE_pipeline.h"
+
 #include "RNA_enum_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -98,8 +101,8 @@ EnumPropertyItem viewport_shade_items[] = {
 	{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
-	//{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
 	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Textured", "Display the object solid, with face-assigned textures"},
+	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -313,6 +316,25 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DAG_on_visible_update(bmain, FALSE);
 }
 
+static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	ScrArea *sa= rna_area_from_space(ptr);
+
+	if(v3d->drawtype != OB_RENDER) {
+		ARegion *ar;
+
+		for(ar=sa->regionbase.first; ar; ar=ar->next) {
+			RegionView3D *rv3d = ar->regiondata;
+
+			if(rv3d && rv3d->render_engine) {
+				RE_engine_free(rv3d->render_engine);
+				rv3d->render_engine= NULL;
+			}
+		}
+	}
+}
+
 static void rna_SpaceView3D_pivot_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (U.uiflag & USER_LOCKAROUND) {
@@ -421,6 +443,29 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
 	negate_v3_v3(rv3d->ofs, values);
 	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+}
+
+static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_BOUNDBOX);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
+	
+	if(type->view_draw) {
+		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 /* Space Image Editor */
@@ -1227,8 +1272,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");

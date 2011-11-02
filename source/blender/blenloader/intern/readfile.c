@@ -140,6 +140,8 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
+#include "RE_engine.h"
+
 #include "readfile.h"
 
 #include "PIL_time.h"
@@ -5089,6 +5091,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 					BGpic *bgpic;
+					ARegion *ar;
 					
 					if(v3d->scenelock)
 						v3d->camera= NULL; /* always get from scene */
@@ -5124,6 +5127,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
+					/* free render engines for now */
+					for(ar= sa->regionbase.first; ar; ar= ar->next) {
+						RegionView3D *rv3d= ar->regiondata;
+
+						if(rv3d && rv3d->render_engine) {
+							RE_engine_free(rv3d->render_engine);
+							rv3d->render_engine= NULL;
+						}
+					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -5262,6 +5274,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			
 			rv3d->depths= NULL;
 			rv3d->ri= NULL;
+			rv3d->render_engine= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
 		}
@@ -5403,6 +5416,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw_xray.first= v3d->afterdraw_xray.last= NULL;
 				v3d->afterdraw_xraytransp.first= v3d->afterdraw_xraytransp.last= NULL;
 				v3d->properties_storage= NULL;
+
+				/* render can be quite heavy, set to wire on load */
+				if(v3d->drawtype == OB_RENDER)
+					v3d->drawtype = OB_WIRE;
 				
 				view3d_split_250(v3d, &sl->regionbase);
 			}
@@ -10696,7 +10713,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Object *ob=main->object.first;
 			while (ob) {
 				/* shaded mode disabled for now */
-				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				if (ob->dt == OB_MATERIAL) ob->dt = OB_TEXTURE;
 				ob=ob->id.next;
 			}
 		}
@@ -10711,7 +10728,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					for(sl= sa->spacedata.first; sl; sl= sl->next) {
 						if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+							if (v3d->drawtype == OB_MATERIAL) v3d->drawtype = OB_SOLID;
 						}
 					}
 				}
