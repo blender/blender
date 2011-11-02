@@ -1860,6 +1860,12 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
+
+			/* nodetree is integral part of lamps, no libdata */
+			if(wrld->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, wrld->nodetree);
+				write_nodetree(wd, wrld->nodetree);
+			}
 			
 			write_previews(wd, wrld->preview);
 		}
@@ -1889,6 +1895,12 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
 			
+			/* nodetree is integral part of lamps, no libdata */
+			if(la->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, la->nodetree);
+				write_nodetree(wd, la->nodetree);
+			}
+
 			write_previews(wd, la->preview);
 			
 		}

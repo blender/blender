@@ -56,6 +56,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_engine.h"
 
 #include "RNA_access.h"
 
@@ -344,6 +345,9 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
+
+	if(v3dn->drawtype == OB_RENDER)
+		v3dn->drawtype = OB_SOLID;
 	
 	/* copy or clear inside new stuff */
 
@@ -550,6 +554,9 @@ static void view3d_main_area_free(ARegion *ar)
 		if(rv3d->ri) { 
 			// XXX		BIF_view3d_previewrender_free(rv3d);
 		}
+
+		if(rv3d->render_engine)
+			RE_engine_free(rv3d->render_engine);
 		
 		if(rv3d->depths) {
 			if(rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
@@ -574,6 +581,7 @@ static void *view3d_main_area_duplicate(void *poin)
 		
 		new->depths= NULL;
 		new->ri= NULL;
+		new->render_engine= NULL;
 		new->gpd= NULL;
 		new->sms= NULL;
 		new->smooth_timer= NULL;

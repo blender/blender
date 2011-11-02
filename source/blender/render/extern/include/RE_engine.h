@@ -46,10 +46,18 @@ struct Scene;
 
 /* External Engine */
 
+/* RenderEngineType.flag */
 #define RE_INTERNAL				1
 #define RE_GAME					2
 #define RE_USE_PREVIEW			4
 #define RE_USE_POSTPROCESS		8
+#define RE_USE_SHADING_NODES	16
+
+/* RenderEngine.flag */
+#define RE_ENGINE_ANIMATION		1
+#define RE_ENGINE_PREVIEW		2
+#define RE_ENGINE_DO_DRAW		4
+#define RE_ENGINE_DO_UPDATE		8
 
 extern ListBase R_engines;
 
@@ -61,7 +69,11 @@ typedef struct RenderEngineType {
 	char name[64];
 	int flag;
 
+	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
+
+	void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
+	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -69,9 +81,13 @@ typedef struct RenderEngineType {
 
 typedef struct RenderEngine {
 	RenderEngineType *type;
+	void *py_instance;
+
+	int flag;
 
 	struct Render *re;
 	ListBase fullresult;
+	char *text;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);

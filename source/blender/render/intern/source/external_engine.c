@@ -61,7 +61,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
-	NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #ifdef WITH_GAMEENGINE
@@ -69,7 +69,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
-	NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #endif
@@ -125,6 +125,15 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
 
 void RE_engine_free(RenderEngine *engine)
 {
+#ifdef WITH_PYTHON
+	if(engine->py_instance) {
+		BPY_DECREF(engine->py_instance);
+	}
+#endif
+
+	if(engine->text)
+		MEM_freeN(engine->text);
+
 	MEM_freeN(engine);
 }
 
@@ -216,6 +225,19 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 		re->i.infostr= NULL;
 		re->i.statstr= NULL;
 	}
+
+	/* set engine text */
+	if(engine->text) {
+		MEM_freeN(engine->text);
+		engine->text= NULL;
+	}
+
+	if(stats && stats[0] && info && info[0])
+		engine->text= BLI_sprintfN("%s | %s", stats, info);
+	else if(info && info[0])
+		engine->text= BLI_strdup(info);
+	else if(stats && stats[0])
+		engine->text= BLI_strdup(stats);
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)
@@ -265,11 +287,18 @@ int RE_engine_render(Render *re, int do_all)
 	engine = RE_engine_create(type);
 	engine->re= re;
 
+	if(re->flag & R_ANIMATION)
+		engine->flag |= RE_ENGINE_ANIMATION;
+	if(re->r.scemode & R_PREVIEWBUTS)
+		engine->flag |= RE_ENGINE_PREVIEW;
+
 	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	type->render(engine, re->scene);
-
+	if(type->update)
+		type->update(engine, re->main, re->scene);
+	if(type->render)
+		type->render(engine, re->scene);
 
 	free_render_result(&engine->fullresult, engine->fullresult.first);
 

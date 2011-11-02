@@ -62,6 +62,7 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"	// make_stars
 
 #include "IMB_imbuf_types.h"
@@ -2518,6 +2519,62 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
 }
 
+static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RenderEngineType *type;
+
+	if(!rv3d->render_engine) {
+		type= RE_engines_find(scene->r.engine);
+
+		if(!(type->view_update && type->view_draw))
+			return 0;
+
+		rv3d->render_engine= RE_engine_create(type);
+		type->view_update(rv3d->render_engine, C);
+	}
+
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	ED_region_pixelspace(ar);
+
+	type= rv3d->render_engine->type;
+	type->view_draw(rv3d->render_engine, C);
+
+	return 1;
+}
+
+static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
+{
+	rcti rect;
+	const int header_height = 18;
+
+	if(!rv3d->render_engine || !rv3d->render_engine->text)
+		return;
+	
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+	
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	UI_DrawString(12, rect.ymin + 5, rv3d->render_engine->text);
+}
+
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
 {
@@ -2728,6 +2785,11 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else	
 		draw_view_icon(rv3d);
 	
+	if(rv3d->render_engine) {
+		view3d_main_area_draw_engine_info(rv3d, ar);
+		return;
+	}
+
 	if((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
 		draw_viewport_fps(scene, ar);
 	}
@@ -2755,9 +2817,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	const char *grid_unit= NULL;
 
-	view3d_main_area_draw_objects(C, ar, &grid_unit);
-
-	ED_region_pixelspace(ar);
+	/* draw viewport using external renderer? */
+	if(!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
+		/* draw viewport using opengl */
+		view3d_main_area_draw_objects(C, ar, &grid_unit);
+		ED_region_pixelspace(ar);
+	}
 	
 	view3d_main_area_draw_info(C, ar, grid_unit);
 

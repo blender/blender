@@ -72,6 +72,7 @@ struct Object;
 struct PBVHNode;
 struct Render;
 struct RenderEngine;
+struct RenderEngineType;
 struct RenderLayer;
 struct RenderResult;
 struct ScrArea;
@@ -213,6 +214,7 @@ struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBu
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 
 void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype){}
+void ED_render_engine_changed(struct Main *bmain) {}
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob){return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob){}
@@ -406,6 +408,7 @@ void RE_engines_exit() {}
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 ListBase R_engines = {NULL, NULL};
 void RE_engine_free(struct RenderEngine *engine) {}
+struct RenderEngineType *RE_engines_find(const char *idname) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}

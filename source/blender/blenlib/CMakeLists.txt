@@ -154,4 +154,8 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
+if(WITH_XDG_USER_DIRS)
+	add_definitions(-DWITH_XDG_USER_DIRS)
+endif()
+
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")

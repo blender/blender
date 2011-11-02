@@ -39,6 +39,7 @@ struct SpaceLink;
 struct Base;
 struct BoundBox;
 struct RenderInfo;
+struct RenderEngine;
 struct bGPdata;
 struct SmoothViewStore;
 struct wmTimer;
@@ -115,6 +116,7 @@ typedef struct RegionView3D {
 	
 	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
 	struct RenderInfo *ri;
+	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
 	
 	/* animated smooth view */
@@ -164,8 +166,8 @@ typedef struct View3D {
 	int layact;
 	
 	/**
-	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURE */
+	 * The drawing mode for the 3d display. Set to OB_BOUNDBOX, OB_WIRE, OB_SOLID,
+	 * OB_TEXTURE, OB_MATERIAL or OB_RENDER */
 	short drawtype;
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, around;

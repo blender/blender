@@ -385,8 +385,11 @@ typedef struct DupliObject {
 #define OB_BOUNDBOX		1
 #define OB_WIRE			2
 #define OB_SOLID		3
-#define OB_SHADED		4
+#define OB_MATERIAL		4
 #define OB_TEXTURE		5
+#define OB_RENDER		6
+
+#define OB_PAINT		100	/* temporary used in draw code */
 
 /* dtx: flags, char! */
 #define OB_AXIS			2

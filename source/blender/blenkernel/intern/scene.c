@@ -72,6 +72,8 @@
 
 #include "BKE_sound.h"
 
+#include "RE_engine.h"
+
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
@@ -990,6 +992,8 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	DAG_ids_flush_tagged(bmain);
 
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
@@ -1009,8 +1013,17 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
+	DAG_ids_check_recalc(bmain);
+
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */
+}
+
+void scene_clear_tagged(Main *bmain, Scene *UNUSED(scene))
+{
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* applies changes right away, does all sets too */
@@ -1037,6 +1050,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * so dont call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
 
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
 	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
@@ -1050,6 +1065,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* keep this last */
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
 }
 
@@ -1127,3 +1143,10 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 
 	return NULL;
 }
+
+int scene_use_new_shading_nodes(Scene *scene)
+{
+	RenderEngineType *type= RE_engines_find(scene->r.engine);
+	return (type->flag & RE_USE_SHADING_NODES);
+}
+

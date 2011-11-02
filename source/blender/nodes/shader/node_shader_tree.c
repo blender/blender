@@ -32,8 +32,10 @@
 
 #include <string.h>
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -56,11 +58,20 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Material *ma;
-	for(ma= main->mat.first; ma; ma= ma->id.next) {
-		if(ma->nodetree) {
+	Lamp *la;
+	World *wo;
+
+	for(ma= main->mat.first; ma; ma= ma->id.next)
+		if(ma->nodetree)
 			func(calldata, &ma->id, ma->nodetree);
-		}
-	}
+
+	for(la= main->lamp.first; la; la= la->id.next)
+		if(la->nodetree)
+			func(calldata, &la->id, la->nodetree);
+
+	for(wo= main->world.first; wo; wo= wo->id.next)
+		if(wo->nodetree)
+			func(calldata, &wo->id, wo->nodetree);
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)

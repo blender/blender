@@ -47,6 +47,8 @@ static PyStructSequence_Field app_cb_info_fields[]= {
 	{(char *)"load_post", NULL},
 	{(char *)"save_pre", NULL},
 	{(char *)"save_post", NULL},
+	{(char *)"scene_update_pre", NULL},
+	{(char *)"scene_update_post", NULL},
 	{NULL}
 };
 

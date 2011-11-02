@@ -130,7 +130,7 @@ typedef struct bNodeType {
 	char name[32];
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
-	short nclass, flag;
+	short nclass, flag, compatibility;
 	
 	/* templates for static sockets */
 	bNodeSocketTemplate *inputs, *outputs;
@@ -230,7 +230,12 @@ typedef struct bNodeType {
 #define NODE_CLASS_PARTICLES		25
 #define NODE_CLASS_TRANSFORM		30
 #define NODE_CLASS_COMBINE			31
+#define NODE_CLASS_SHADER 			40
 #define NODE_CLASS_LAYOUT			100
+
+/* nodetype->compatibility */
+#define NODE_OLD_SHADING	1
+#define NODE_NEW_SHADING	2
 
 /* enum values for input/output */
 #define SOCK_IN		1
@@ -388,6 +393,7 @@ void			node_type_exec_new(struct bNodeType *ntype,
 								   void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **));
 void			node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out));
 void			node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out));
+void			node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
 /* ************** COMMON NODES *************** */
 
