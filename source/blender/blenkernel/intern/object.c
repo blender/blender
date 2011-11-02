@@ -86,6 +86,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -877,6 +878,9 @@ Lamp *copy_lamp(Lamp *la)
 	}
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
+
+	if(la->nodetree)
+		lan->nodetree= ntreeCopyTree(la->nodetree);
 	
 	if(la->preview)
 		lan->preview = BKE_previewimg_copy(la->preview);
@@ -903,6 +907,9 @@ Lamp *localize_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
+	if(la->nodetree)
+		lan->nodetree= ntreeLocalize(la->nodetree);
+	
 	lan->preview= NULL;
 	
 	return lan;
@@ -978,6 +985,12 @@ void free_lamp(Lamp *la)
 	BKE_free_animdata((ID *)la);
 
 	curvemapping_free(la->curfalloff);
+
+	/* is no lib link block, but lamp extension */
+	if(la->nodetree) {
+		ntreeFreeTree(la->nodetree);
+		MEM_freeN(la->nodetree);
+	}
 	
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);

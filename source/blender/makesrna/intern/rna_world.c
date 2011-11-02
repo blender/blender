@@ -46,6 +46,8 @@
 #include "BKE_main.h"
 #include "BKE_texture.h"
 
+#include "ED_node.h"
+
 #include "WM_api.h"
 
 static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
@@ -119,6 +121,15 @@ static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_STARS, wo);
 }
 
+static void rna_World_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	World *wrld= (World*)ptr->data;
+
+	if(wrld->use_nodes && wrld->nodetree==NULL)
+		ED_node_shader_default(scene, &wrld->id);
+	
+	rna_World_update(bmain, scene, ptr);
+}
 
 #else
 
@@ -551,6 +562,17 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings");
+
+	/* nodes */
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based worlds");
+
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the world");
+	RNA_def_property_update(prop, 0, "rna_World_use_nodes_update");
 
 	rna_def_lighting(brna);
 	rna_def_world_mist(brna);

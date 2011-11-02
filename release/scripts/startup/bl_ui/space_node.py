@@ -42,7 +42,7 @@ class NODE_HT_header(Header):
 
         layout.prop(snode, "tree_type", text="", expand=True)
 
-        if snode.tree_type == 'MATERIAL':
+        if snode.tree_type == 'SHADER':
             if id_from:
                 layout.template_ID(id_from, "active_material", new="material.new")
             if snode_id:

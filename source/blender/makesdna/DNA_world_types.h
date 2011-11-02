@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 
 struct AnimData;
+struct bNodeTree;
 struct Ipo;
 struct MTex;
 
@@ -120,10 +121,13 @@ typedef struct World {
 	
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
-	short pr_texture, pad[3];
+	short pr_texture, use_nodes, pad[2];
 
 	/* previews */
 	struct PreviewImage *preview;
+
+	/* nodes */
+	struct bNodeTree *nodetree;	
 
 } World;
 

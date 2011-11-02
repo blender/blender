@@ -2182,6 +2182,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 			if (ntree->update)
 				ntreeUpdateTree(ntree);
+
 		for (i=0; i < NUM_NTREE_TYPES; ++i) {
 			ntreetype= ntreeGetType(i);
 			if (ntreetype && ntreetype->foreach_nodetree)
@@ -2507,6 +2508,9 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			}
 			
 			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
+
+			if(la->nodetree)
+				lib_link_ntree(fd, &la->id, la->nodetree);
 			
 			la->id.flag -= LIB_NEEDLINK;
 		}
@@ -2528,6 +2532,10 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	la->curfalloff= newdataadr(fd, la->curfalloff);
 	if(la->curfalloff)
 		direct_link_curvemapping(fd, la->curfalloff);
+
+	la->nodetree= newdataadr(fd, la->nodetree);
+	if(la->nodetree)
+		direct_link_nodetree(fd, la->nodetree);
 	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
@@ -2670,6 +2678,9 @@ static void lib_link_world(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, wrld->id.lib, mtex->object);
 				}
 			}
+
+			if(wrld->nodetree)
+				lib_link_ntree(fd, &wrld->id, wrld->nodetree);
 			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
@@ -2687,6 +2698,11 @@ static void direct_link_world(FileData *fd, World *wrld)
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
 	}
+
+	wrld->nodetree= newdataadr(fd, wrld->nodetree);
+	if(wrld->nodetree)
+		direct_link_nodetree(fd, wrld->nodetree);
+
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
 
@@ -5004,6 +5020,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 							if(snode->id) {
 								if(GS(snode->id->name)==ID_MA)
 									snode->nodetree= ((Material *)snode->id)->nodetree;
+								else if(GS(snode->id->name)==ID_WO)
+									snode->nodetree= ((World *)snode->id)->nodetree;
+								else if(GS(snode->id->name)==ID_LA)
+									snode->nodetree= ((Lamp *)snode->id)->nodetree;
 								else if(GS(snode->id->name)==ID_SCE)
 									snode->nodetree= ((Scene *)snode->id)->nodetree;
 								else if(GS(snode->id->name)==ID_TE)
@@ -12723,6 +12743,9 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 	
 	if (la->adt)
 		expand_animdata(fd, mainvar, la->adt);
+
+	if(la->nodetree)
+		expand_nodetree(fd, mainvar, la->nodetree);
 }
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
@@ -12750,6 +12773,9 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 	
 	if (wrld->adt)
 		expand_animdata(fd, mainvar, wrld->adt);
+
+	if(wrld->nodetree)
+		expand_nodetree(fd, mainvar, wrld->nodetree);
 }
 
 

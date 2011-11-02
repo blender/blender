@@ -420,6 +420,12 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						base->object->data= la;
 				}
 			}
+
+			if(la && la->nodetree && sp->pr_method==PR_NODE_RENDER) {
+				/* two previews, they get copied by wmJob */
+				ntreeInitPreview(origla->nodetree, sp->sizex, sp->sizey);
+				ntreeInitPreview(la->nodetree, sp->sizex, sp->sizey);
+			}
 		}
 		else if(id_type==ID_WO) {
 			World *wrld= NULL, *origwrld= (World *)id;
@@ -432,6 +438,12 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 			sce->lay= 1<<MA_SKY;
 			sce->world= wrld;
+
+			if(wrld && wrld->nodetree && sp->pr_method==PR_NODE_RENDER) {
+				/* two previews, they get copied by wmJob */
+				ntreeInitPreview(wrld->nodetree, sp->sizex, sp->sizey);
+				ntreeInitPreview(origwrld->nodetree, sp->sizex, sp->sizey);
+			}
 		}
 		
 		return sce;
@@ -565,6 +577,18 @@ static void shader_preview_updatejob(void *spv)
 				
 				if(sp->texcopy && tex->nodetree && sp->texcopy->nodetree)
 					ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
+			}
+			else if( GS(sp->id->name) == ID_WO) {
+				World *wrld= (World *)sp->id;
+				
+				if(sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree)
+					ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
+			}
+			else if( GS(sp->id->name) == ID_LA) {
+				Lamp *la= (Lamp *)sp->id;
+				
+				if(sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
+					ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
 			}
 		}		
 	}

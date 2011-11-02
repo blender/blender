@@ -42,12 +42,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_bpath.h"
 
-#include "BKE_world.h"
-#include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_icons.h"
+#include "BKE_library.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_world.h"
 
 void free_world(World *wrld)
 {
@@ -62,6 +64,12 @@ void free_world(World *wrld)
 	BKE_previewimg_free(&wrld->preview);
 
 	BKE_free_animdata((ID *)wrld);
+
+	/* is no lib link block, but world extension */
+	if(wrld->nodetree) {
+		ntreeFreeTree(wrld->nodetree);
+		MEM_freeN(wrld->nodetree);
+	}
 
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
@@ -119,6 +127,9 @@ World *copy_world(World *wrld)
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
+
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeCopyTree(wrld->nodetree);
 	
 	if(wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
@@ -143,6 +154,9 @@ World *localize_world(World *wrld)
 		}
 	}
 
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeLocalize(wrld->nodetree);
+	
 	wrldn->preview= NULL;
 	
 	return wrldn;

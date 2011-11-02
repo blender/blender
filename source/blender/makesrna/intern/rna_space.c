@@ -2505,6 +2505,11 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem shader_type_items[] = {
+		{SNODE_SHADER_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit shader nodes from Object"},
+		{SNODE_SHADER_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit shader nodes from World"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem backdrop_channels_items[] = {
 		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
@@ -2526,6 +2531,12 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "texfrom");
 	RNA_def_property_enum_items(prop, texture_type_items);
 	RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+
+	prop= RNA_def_property(srna, "shader_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "shaderfrom");
+	RNA_def_property_enum_items(prop, shader_type_items);
+	RNA_def_property_ui_text(prop, "Shader Type", "Type of data to take shader from");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
 
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);

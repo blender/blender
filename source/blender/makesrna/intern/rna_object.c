@@ -1793,7 +1793,6 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", "Draw the bounding box of the object"},
 		{OB_WIRE, "WIRE", 0, "Wire", "Draw the object as a wireframe"},
 		{OB_SOLID, "SOLID", 0, "Solid", "Draw the object as a solid (if solid drawing is enabled in the viewport)"},
-		// disabled {OB_SHADED, "SHADED", 0, "Shaded", ""},
 		{OB_TEXTURE, "TEXTURED", 0, "Textured", "Draw the object with textures (if textures are enabled in the viewport)"},
 		{0, NULL, 0, NULL, NULL}};
 

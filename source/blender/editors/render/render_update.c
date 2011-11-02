@@ -234,6 +234,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find lamps */
 	for(la=bmain->lamp.first; la; la=la->id.next) {
 		if(mtex_use_tex(la->mtex, MAX_MTEX, tex));
+		else if(la->nodetree && nodes_use_tex(la->nodetree, tex));
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&la->id));
@@ -242,6 +243,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find worlds */
 	for(wo=bmain->world.first; wo; wo=wo->id.next) {
 		if(mtex_use_tex(wo->mtex, MAX_MTEX, tex));
+		else if(wo->nodetree && nodes_use_tex(wo->nodetree, tex));
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&wo->id));

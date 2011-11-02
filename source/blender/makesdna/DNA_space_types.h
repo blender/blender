@@ -400,7 +400,9 @@ typedef struct SpaceNode {
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;		/* treetype: as same nodetree->type */
 	short texfrom;		/* texfrom object, world or brush */
+	short shaderfrom;	/* shader from object or world */
 	short recalc;		/* currently on 0/1, for auto compo */
+	short pad[3];
 	ListBase linkdrag;	/* temporary data for modal linking operator */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
@@ -417,6 +419,10 @@ typedef struct SpaceNode {
 #define SNODE_TEX_OBJECT	0
 #define SNODE_TEX_WORLD		1
 #define SNODE_TEX_BRUSH		2
+
+/* snode->shaderfrom */
+#define SNODE_SHADER_OBJECT	0
+#define SNODE_SHADER_WORLD	1
 
 typedef struct SpaceLogic {
 	SpaceLink *next, *prev;
