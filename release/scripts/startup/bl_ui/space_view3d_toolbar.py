@@ -1120,53 +1120,46 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         use_projection = ipaint.use_projection
 
         col = layout.column()
-        sub = col.column()
-        sub.active = use_projection
-        sub.prop(ipaint, "use_occlude")
-        sub.prop(ipaint, "use_backface_culling")
+        col.active = use_projection
+        col.prop(ipaint, "use_occlude")
+        col.prop(ipaint, "use_backface_culling")
+
+        row = layout.row()
+        row.active = (use_projection)
+        row.prop(ipaint, "use_normal_falloff")
+
+        sub = row.row()
+        sub.active = (ipaint.use_normal_falloff)
+        sub.prop(ipaint, "normal_angle", text="")
 
         split = layout.split()
+        
+        split.active = (use_projection)
+        split.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        col = split.column()
-        col.active = (use_projection)
-        col.prop(ipaint, "use_normal_falloff")
+        row = split.row()
+        row.active = (ipaint.use_stencil_layer)
+        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
+        row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
-        col = split.column()
-        col.active = (ipaint.use_normal_falloff and use_projection)
-        col.prop(ipaint, "normal_angle", text="")
-
-        col = layout.column(align=False)
-        row = col.row()
-        row.active = (use_projection)
-        row.prop(ipaint, "use_stencil_layer", text="Stencil")
-
-        row2 = row.row(align=False)
-        row2.active = (use_projection and ipaint.use_stencil_layer)
-        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
-        row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
-
-        col = layout.column()
-        sub = col.column()
-        row = sub.row()
+        row = layout.row()
         row.active = (settings.brush.image_tool == 'CLONE')
-
         row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=mesh.uv_texture_clone.name)
 
-        sub = col.column()
-        sub.prop(ipaint, "seam_bleed")
-
-        col.label(text="External Editing")
+        layout.prop(ipaint, "seam_bleed")
+        
+        col = layout.column()
+        col.label(text="External Editing:")
+        
         row = col.split(align=True, percentage=0.55)
         row.operator("image.project_edit", text="Quick Edit")
         row.operator("image.project_apply", text="Apply")
-        row = col.row(align=True)
-        row.prop(ipaint, "screen_grab_size", text="")
 
-        sub = col.column()
-        sub.operator("paint.project_image", text="Apply Camera Image")
+        col.row().prop(ipaint, "screen_grab_size", text="")
 
-        sub.operator("image.save_dirty", text="Save All Edited")
+        col.operator("paint.project_image", text="Apply Camera Image")
+        col.operator("image.save_dirty", text="Save All Edited")
 
 
 class VIEW3D_PT_imagepaint_options(PaintPanel):
