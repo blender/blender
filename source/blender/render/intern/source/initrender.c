@@ -451,7 +451,7 @@ struct Object *RE_GetCamera(Render *re)
 }
 
 /* call this after InitState() */
-/* per render, there's one persistant viewplane. Parts will set their own viewplanes */
+/* per render, there's one persistent viewplane. Parts will set their own viewplanes */
 void RE_SetCamera(Render *re, Object *camera)
 {
 	object_camera_mode(&re->r, camera);

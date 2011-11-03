@@ -56,7 +56,7 @@ typedef struct RenderInfo {
 	short curtile, tottile, status;
 	rcti disprect;			/* storage for view3d preview rect */
 	unsigned int* rect;		
-	struct Render *re;		/* persistant render */
+	struct Render *re;		/* persistent render */
 } RenderInfo;
 
 /* ri->status */
