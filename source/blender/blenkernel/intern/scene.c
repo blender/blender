@@ -992,6 +992,8 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	DAG_ids_flush_tagged(bmain);
 
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
@@ -1012,6 +1014,8 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	DAG_ids_check_recalc(bmain);
+
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */
@@ -1046,6 +1050,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * so dont call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
 
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
 	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
@@ -1059,7 +1065,10 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* keep this last */
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
+
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* return default layer, also used to patch old files */

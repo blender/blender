@@ -303,8 +303,8 @@ void ED_node_shader_default(Scene *scene, ID *id)
 		}
 		case ID_WO: {
 			World *wo= (World*)id;
-
 			wo->nodetree = ntree;
+
 			output_type = SH_NODE_OUTPUT_WORLD;
 			shader_type = SH_NODE_BACKGROUND;
 
@@ -314,8 +314,8 @@ void ED_node_shader_default(Scene *scene, ID *id)
 		}
 		case ID_LA: {
 			Lamp *la= (Lamp*)id;
+			la->nodetree = ntree;
 
-			((Lamp*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_LAMP;
 			shader_type = SH_NODE_EMISSION;
 

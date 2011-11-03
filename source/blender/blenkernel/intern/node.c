@@ -1073,6 +1073,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 		
 		newtree->id.us= 0;
 		
+
 		cd.new_id = &newtree->id;
 		treetype->foreach_nodetree(G.main, &cd, &ntreeMakeLocal_LinkNew);
 	}
@@ -1862,7 +1863,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 static void registerShaderNodes(ListBase *ntypelist) 
 {
 	register_node_type_frame(ntypelist);
-
+	
 	register_node_type_sh_group(ntypelist);
 	//register_node_type_sh_forloop(ntypelist);
 	//register_node_type_sh_whileloop(ntypelist);

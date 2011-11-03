@@ -560,7 +560,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	int color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
-	int i;
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
 	if(node->id && node->block && snode->treetype==NTREE_SHADER)
@@ -684,7 +683,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	
 	/* socket inputs, buttons */
-	for(i= 0, sock= node->inputs.first; sock; sock= sock->next, i++) {
+	for(sock= node->inputs.first; sock; sock= sock->next) {
 		bNodeSocketType *stype= ntreeGetSocketType(sock->type);
 		
 		if(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))

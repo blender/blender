@@ -42,14 +42,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_bpath.h"
 
-#include "BKE_world.h"
-#include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_world.h"
 
 void free_world(World *wrld)
 {
