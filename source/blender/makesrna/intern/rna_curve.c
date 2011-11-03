@@ -268,9 +268,6 @@ static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int 
 static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	ListBase *nurbs= BKE_curve_nurbs(cu);
-	Nurb *nu= nurbs->first;
-
 	if(value==CU_3D) cu->flag |=  CU_3D;
 	else cu->flag &= ~CU_3D;
 

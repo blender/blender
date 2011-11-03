@@ -476,6 +476,7 @@ static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 	ot->exec= reports_to_text_exec;
 }
 
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* EditSource Utility funcs and operator,
@@ -711,6 +712,7 @@ static void UI_OT_editsource(wmOperatorType *ot)
 	ot->exec= editsource_exec;
 }
 
+#endif /* WITH_PYTHON */
 
 /* ********************************************************* */
 /* Registration */
@@ -723,6 +725,9 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
 	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
+
+#ifdef WITH_PYTHON
 	WM_operatortype_append(UI_OT_editsource);
+#endif
 }
 
