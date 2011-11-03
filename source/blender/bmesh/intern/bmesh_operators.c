@@ -626,7 +626,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
  * into an output slot for an operator.
  */
 void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
-                      int flag, const char htype)
+                      const int flag, const char htype)
 {
 	BMIter elements;
 	BMHeader *e;
