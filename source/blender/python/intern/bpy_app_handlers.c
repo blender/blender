@@ -52,7 +52,7 @@ static PyStructSequence_Field app_cb_info_fields[]= {
 
 	/* sets the permanent tag */
 #   define APP_CB_OTHER_FIELDS 1
-	{(char *)"permanent_tag", NULL},
+	{(char *)"persistent", NULL},
 
 	{NULL}
 };
@@ -72,52 +72,30 @@ static PyStructSequence_Desc app_cb_info_desc= {
 
 /* --------------------------------------------------------------------------*/
 /* permanent tagging code */
-#define PERMINENT_CB_ID "_bpy_permanent_tag"
+#define PERMINENT_CB_ID "_bpy_persistent"
 
-PyDoc_STRVAR(bpy_app_handlers_permanent_tag_doc,
-".. function:: permanent_tag(func, state=True)\n"
-"\n"
-"   Set the function as being permanent so its not cleared when new blend files are loaded.\n"
-"\n"
-"   :arg func: The function  to set as permanent.\n"
-"   :type func: function\n"
-"   :arg state: Set the permanent state to True or False.\n"
-"   :type state: bool\n"
-"   :return: the function argument\n"
-"   :rtype: function\n"
-);
-
-static PyObject *bpy_app_handlers_permanent_tag(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *UNUSED(kwds))
 {
 	PyObject *value;
-	int state= 1;
 
-	if(!PyArg_ParseTuple(args, "O|i:permanent_tag", &value, &state))
+	if(!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value))
 		return NULL;
 
 	if (PyFunction_Check(value)) {
 		PyObject **dict_ptr= _PyObject_GetDictPtr(value);
 		if (dict_ptr == NULL) {
 			PyErr_SetString(PyExc_ValueError,
-			                "bpy.app.handlers.permanent_tag wasn't able to "
+			                "bpy.app.handlers.persistent wasn't able to "
 			                "get the dictionary from the function passed");
 			return NULL;
 		}
 		else {
-			if (state) {
-				/* set id */
-				if (*dict_ptr == NULL) {
-					*dict_ptr= PyDict_New();
-				}
+			/* set id */
+			if (*dict_ptr == NULL) {
+				*dict_ptr= PyDict_New();
+			}
 
-				PyDict_SetItemString(*dict_ptr, PERMINENT_CB_ID, Py_None);
-			}
-			else {
-				/* clear id */
-				if (*dict_ptr) {
-					PyDict_DelItemString(*dict_ptr, PERMINENT_CB_ID);
-				}
-			}
+			PyDict_SetItemString(*dict_ptr, PERMINENT_CB_ID, Py_None);
 		}
 
 		Py_INCREF(value);
@@ -125,15 +103,55 @@ static PyObject *bpy_app_handlers_permanent_tag(PyObject *UNUSED(self), PyObject
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
-		                "bpy.app.handlers.permanent_tag expected a function");
+		                "bpy.app.handlers.persistent expected a function");
 		return NULL;
 	}
 }
 
-static PyMethodDef meth_bpy_app_handlers_permanent_tag= {"permanent_tag", (PyCFunction)bpy_app_handlers_permanent_tag, METH_VARARGS, bpy_app_handlers_permanent_tag_doc};
-
-
-
+/* dummy type because decorators can't be PyCFunctions */
+static PyTypeObject BPyPersistent_Type = {
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    "persistent",                               /* tp_name */
+    0,                                          /* tp_basicsize */
+    0,                                          /* tp_itemsize */
+    /* methods */
+    0,                                          /* tp_dealloc */
+    0,                                          /* tp_print */
+    0,                                          /* tp_getattr */
+    0,                                          /* tp_setattr */
+    0,                                          /* tp_reserved */
+    0,                                          /* tp_repr */
+    0,                                          /* tp_as_number */
+    0,                                          /* tp_as_sequence */
+    0,                                          /* tp_as_mapping */
+    0,                                          /* tp_hash */
+    0,                                          /* tp_call */
+    0,                                          /* tp_str */
+    0,                                          /* tp_getattro */
+    0,                                          /* tp_setattro */
+    0,                                          /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
+        Py_TPFLAGS_BASETYPE,                    /* tp_flags */
+    0,                                          /* tp_doc */
+    0,                                          /* tp_traverse */
+    0,                                          /* tp_clear */
+    0,                                          /* tp_richcompare */
+    0,                                          /* tp_weaklistoffset */
+    0,                                          /* tp_iter */
+    0,                                          /* tp_iternext */
+    0,                                          /* tp_methods */
+    0,                                          /* tp_members */
+    0,                                          /* tp_getset */
+    0,                                          /* tp_base */
+    0,                                          /* tp_dict */
+    0,                                          /* tp_descr_get */
+    0,                                          /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    0,                                          /* tp_init */
+    0,                                          /* tp_alloc */
+    bpy_app_handlers_persistent_new,            /* tp_new */
+    0,                                          /* tp_free */
+};
 
 static PyObject *py_cb_array[BLI_CB_EVT_TOT]= {NULL};
 
@@ -158,7 +176,7 @@ static PyObject *make_app_cb_info(void)
 	}
 
 	/* custom function */
-	PyStructSequence_SET_ITEM(app_cb_info, pos++, (PyObject *)PyCFunction_New(&meth_bpy_app_handlers_permanent_tag, NULL));
+	PyStructSequence_SET_ITEM(app_cb_info, pos++, (PyObject *)&BPyPersistent_Type);
 
 	return app_cb_info;
 }
@@ -166,6 +184,10 @@ static PyObject *make_app_cb_info(void)
 PyObject *BPY_app_handlers_struct(void)
 {
 	PyObject *ret;
+
+	if (PyType_Ready(&BPyPersistent_Type) < 0) {
+		BLI_assert(!"error initializing 'bpy.app.handlers.persistent'");
+	}
 
 	PyStructSequence_InitType(&BlenderAppCbType, &app_cb_info_desc);
 
