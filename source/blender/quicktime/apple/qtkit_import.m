@@ -31,7 +31,9 @@
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 #include "BKE_global.h"
+
 #include "BLI_dynstr.h"
+#include "BLI_path_util.h"
 
 #import <Cocoa/Cocoa.h>
 #import <QTKit/QTKit.h>

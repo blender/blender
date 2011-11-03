@@ -61,9 +61,10 @@
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 #include "BLI_cellalloc.h"
-#include "BLI_winstuff.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"		/* RE_ free stuff */
@@ -159,7 +160,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BPY_python_start(argc, argv);
 
 	BPY_driver_reset();
-	BPY_app_handlers_reset(); /* causes addon callbacks to be freed [#28068],
+	BPY_app_handlers_reset(FALSE); /* causes addon callbacks to be freed [#28068],
 	                           * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else

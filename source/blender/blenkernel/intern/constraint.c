@@ -1256,10 +1256,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
-				if (cob->scene)
-					curvetime= bsystem_time(cob->scene, ct->tar, cu->ctime, 0.0) - data->offset;
-				else	
-					curvetime= cu->ctime - data->offset;
+				curvetime= cu->ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 				 * but this will only work if it actually is animated... 

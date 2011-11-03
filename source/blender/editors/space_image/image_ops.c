@@ -1009,11 +1009,17 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 	return (ibuf != NULL);
 }
 
-static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op)
+static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op, Scene *evil_scene)
 {
 	if (RNA_property_is_set(op->ptr, "color_mode")) simopts->planes= RNA_enum_get(op->ptr, "color_mode");
 	if (RNA_property_is_set(op->ptr, "file_format")) simopts->imtype= RNA_enum_get(op->ptr, "file_format");
-	// if (RNA_property_is_set(op->ptr, "subimtype")) simopts->subimtype= RNA_enum_get(op->ptr, "subimtype"); // XXX
+
+#if 0
+	if (RNA_property_is_set(op->ptr, "subimtype")) simopts->subimtype= RNA_enum_get(op->ptr, "subimtype"); // XXX
+#else
+	simopts->subimtype= evil_scene->r.subimtype;
+#endif
+
 	if (RNA_property_is_set(op->ptr, "file_quality")) simopts->quality= RNA_int_get(op->ptr, "file_quality");
 
 	if (RNA_property_is_set(op->ptr, "filepath")) {
@@ -1141,7 +1147,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 	/* just incase to initialize values,
 	 * these should be set on invoke or by the caller. */
 	save_image_options_defaults(&simopts);
-	save_image_options_from_op(&simopts, op);
+	save_image_options_from_op(&simopts, op, CTX_data_scene(C));
 
 	save_image_doit(C, sima, op, &simopts, TRUE);
 
@@ -1225,7 +1231,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 
 	if (save_image_options_init(&simopts, sima, scene, FALSE) == 0)
 		return OPERATOR_CANCELLED;
-	save_image_options_from_op(&simopts, op);
+	save_image_options_from_op(&simopts, op, scene);
 
 	if (BLI_exists(simopts.filepath) && BLI_file_is_writable(simopts.filepath)) {
 		save_image_doit(C, sima, op, &simopts, FALSE);

@@ -2156,7 +2156,7 @@ static int isb_add_samples(RenderPart *pa, ISBBranch *root, MemArena *memarena, 
 	int xi, yi, *xcos, *ycos;
 	int sample, bsp_err= 0;
 	
-	/* bsp split doesn't like to handle regular sequenes */
+	/* bsp split doesn't like to handle regular sequences */
 	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
 	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
 	for(xi=0; xi<pa->rectx; xi++)
@@ -2301,7 +2301,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 			
 			isb_bsp_fillfaces(&R, lar, &root);	/* shb->persmat should have been calculated */
 			
-			/* copy shadow samples to persistant buffer, reduce memory overhead */
+			/* copy shadow samples to persistent buffer, reduce memory overhead */
 			if(R.osa) {
 				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 				
@@ -2360,7 +2360,7 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 	int xi, yi, *xcos, *ycos;
 	int sample, bsp_err= 0;
 	
-	/* bsp split doesn't like to handle regular sequenes */
+	/* bsp split doesn't like to handle regular sequences */
 	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
 	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
 	for(xi=0; xi<pa->rectx; xi++)
@@ -2505,7 +2505,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 			/* go over all faces and fill in shadow values */
 			isb_bsp_fillfaces(&R, lar, &root);	/* shb->persmat should have been calculated */
 			
-			/* copy shadow samples to persistant buffer, reduce memory overhead */
+			/* copy shadow samples to persistent buffer, reduce memory overhead */
 			isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 			
 			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");

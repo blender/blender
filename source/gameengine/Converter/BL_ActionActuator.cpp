@@ -344,8 +344,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-PyObject* BL_ActionActuator::PyGetChannel(PyObject* value) {
-	char *string= _PyUnicode_AsString(value);
+PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
+{
+	const char *string= _PyUnicode_AsString(value);
 	
 	if (!string) {
 		PyErr_SetString(PyExc_TypeError, "expected a single string");

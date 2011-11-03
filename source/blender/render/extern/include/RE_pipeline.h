@@ -249,6 +249,8 @@ float RE_filter_value(int type, float x);
 /* vector blur zbuffer method */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
+int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
+
 /* shaded view or baking options */
 #define RE_BAKE_LIGHT				0	/* not listed in rna_scene.c -> can't be enabled! */
 #define RE_BAKE_ALL					1
