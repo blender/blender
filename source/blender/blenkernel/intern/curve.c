@@ -315,9 +315,34 @@ short curve_type(Curve *cu)
 	return OB_CURVE;
 }
 
+void update_curve_dimension(Curve *cu)
+{
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu= nurbs->first;
+
+	if(cu->flag&CU_3D) {
+		for( ; nu; nu= nu->next) {
+			nu->flag &= ~CU_2D;
+		}
+	}
+	else {
+		for( ; nu; nu= nu->next) {
+			nu->flag |= CU_2D;
+			test2DNurb(nu);
+
+			/* since the handles are moved they need to be auto-located again */
+			if(nu->type == CU_BEZIER)
+				calchandlesNurb(nu);
+		}
+	}
+}
+
 void test_curve_type(Object *ob)
-{	
-	ob->type = curve_type(ob->data);
+{
+	ob->type= curve_type(ob->data);
+
+	if(ob->type==OB_CURVE)
+		update_curve_dimension((Curve *)ob->data);
 }
 
 void tex_space_curve(Curve *cu)
