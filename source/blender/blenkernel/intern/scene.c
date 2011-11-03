@@ -1067,6 +1067,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* keep this last */
 	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
+
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* return default layer, also used to patch old files */
