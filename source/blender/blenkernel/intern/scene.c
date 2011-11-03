@@ -990,18 +990,22 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 /* this is called in main loop, doing tagged updates before redraw */
 void scene_update_tagged(Main *bmain, Scene *scene)
 {
-	DAG_ids_flush_tagged(bmain);
-
+	/* keep this first */
 	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
+	/* flush recalc flags to dependencies */
+	DAG_ids_flush_tagged(bmain);
 
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
-	   by depgraph or manual, no layer check here, gets correct flushed */
+	   by depgraph or manual, no layer check here, gets correct flushed
 
+	   in the future this should handle updates for all datablocks, not
+	   only objects and scenes. - brecht */
 	scene_update_tagged_recursive(bmain, scene, scene);
 
-	/* recalc scene animation data here (for sequencer) */
+	/* extra call here to recalc scene animation (for sequencer) */
 	{
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
 		float ctime = BKE_curframe(scene);
@@ -1010,15 +1014,15 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
+	/* quick point cache updates */
 	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
+	/* notify editors about recalc */
 	DAG_ids_check_recalc(bmain);
 
+	/* keep this last */
 	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-
-	/* in the future this should handle updates for all datablocks, not
-	   only objects and scenes. - brecht */
 }
 
 void scene_clear_tagged(Main *bmain, Scene *UNUSED(scene))
@@ -1033,7 +1037,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	Scene *sce_iter;
 
 	/* keep this first */
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	
@@ -1045,12 +1050,14 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 			DAG_scene_sort(bmain, sce_iter);
 	}
 
+	/* flush recalc flags to dependencies, if we were only changing a frame
+	   this would not be necessary, but if a user or a script has modified
+	   some datablock before scene_update_tagged was called, we need the flush */
+	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive
 	 * so dont call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
-
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
@@ -1065,8 +1072,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* keep this last */
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_SCENE_UPDATE_POST);
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
 	DAG_ids_clear_recalc(bmain);
 }
