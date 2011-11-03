@@ -408,7 +408,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
-		BPY_app_handlers_reset();
+		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 #endif
 
@@ -538,7 +538,7 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
-		BPY_app_handlers_reset();
+		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 	}
 #endif
