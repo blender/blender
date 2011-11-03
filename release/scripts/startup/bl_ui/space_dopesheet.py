@@ -213,18 +213,10 @@ class DOPESHEET_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
+        from .space_time import marker_menu_generic
+        marker_menu_generic(layout)
+
         st = context.space_data
-
-        #layout.operator_context = 'EXEC_REGION_WIN'
-
-        layout.operator("marker.add", "Add Marker")
-        layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.delete", text="Delete Marker")
-
-        layout.separator()
-
-        layout.operator("marker.rename", text="Rename Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
 
         if st.mode in {'ACTION', 'SHAPEKEY'} and st.action:
             layout.separator()

@@ -158,18 +158,8 @@ class SEQUENCER_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        #layout.operator_context = 'EXEC_REGION_WIN'
-
-        layout.operator("marker.add", "Add Marker")
-        layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.delete", text="Delete Marker")
-
-        layout.separator()
-
-        layout.operator("marker.rename", text="Rename Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
-
-        #layout.operator("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
+        from .space_time import marker_menu_generic
+        marker_menu_generic(layout)
 
 
 class SEQUENCER_MT_change(Menu):
