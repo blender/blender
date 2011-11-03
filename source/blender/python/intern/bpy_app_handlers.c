@@ -110,7 +110,13 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 
 /* dummy type because decorators can't be PyCFunctions */
 static PyTypeObject BPyPersistent_Type = {
+
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
+    PyVarObject_HEAD_INIT(NULL, 0)
+#else
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#endif
+
     "persistent",                               /* tp_name */
     0,                                          /* tp_basicsize */
     0,                                          /* tp_itemsize */
@@ -184,6 +190,10 @@ static PyObject *make_app_cb_info(void)
 PyObject *BPY_app_handlers_struct(void)
 {
 	PyObject *ret;
+
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
+	BPyPersistent_Type.ob_base.ob_base.ob_type= &PyType_Type;
+#endif
 
 	if (PyType_Ready(&BPyPersistent_Type) < 0) {
 		BLI_assert(!"error initializing 'bpy.app.handlers.persistent'");
