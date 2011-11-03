@@ -1012,8 +1012,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 			{
 				if (PyUnicode_Check(value)) 
 				{
-					Py_ssize_t val_len;
-					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
+					Py_ssize_t val_size;
+					const char *val = _PyUnicode_AsStringAndSize(value, &val_size);
 					strncpy(ptr, val, attrdef->m_size);
 					ptr[attrdef->m_size-1] = 0;
 				}
@@ -1030,7 +1030,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				if (PyUnicode_Check(value)) 
 				{
 					Py_ssize_t val_len;
-					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
+					const char *val = _PyUnicode_AsStringAndSize(value, &val_len); /* XXX, should be 'const' but we do a silly trick to have a shorter string */
 					if (attrdef->m_clamp)
 					{
 						if (val_len < attrdef->m_imin)
@@ -1042,10 +1042,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
-							char c = val[attrdef->m_imax];
-							val[attrdef->m_imax] = 0;
 							*var = val;
-							val[attrdef->m_imax] = c;
+							var->SetLength(attrdef->m_imax);
 							break;
 						}
 					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)

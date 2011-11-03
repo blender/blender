@@ -705,7 +705,7 @@ static PyObject *gLibNew(PyObject*, PyObject* args)
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
 	char *group;
-	char *name;
+	const char *name;
 	PyObject *names;
 	int idcode;
 

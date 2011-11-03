@@ -230,7 +230,7 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 
 	key= BLI_mempool_alloc(cache->keys_pool);
 	key->cache_owner= cache;
-	key->userkey= BLI_mempool_alloc(cache->userkeys_pool);;
+	key->userkey= BLI_mempool_alloc(cache->userkeys_pool);
 	memcpy(key->userkey, userkey, cache->keysize);
 
 	item= BLI_mempool_alloc(cache->items_pool);
