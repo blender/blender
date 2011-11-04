@@ -36,7 +36,7 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_translate_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "X",	0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, "Y",	0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{	-1, 0, ""	}

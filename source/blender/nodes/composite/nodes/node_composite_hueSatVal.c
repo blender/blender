@@ -36,7 +36,7 @@
 /* **************** Hue Saturation ******************** */
 static bNodeSocketTemplate cmp_node_hue_sat_in[]= {
 	{	SOCK_FLOAT, 1, "Fac",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_hue_sat_out[]= {

@@ -34,7 +34,7 @@
 
 /* **************** Flip  ******************** */
 static bNodeSocketTemplate cmp_node_flip_in[]= {
-	{	SOCK_RGBA, 1, "Image",		    0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",		    1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
