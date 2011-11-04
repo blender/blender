@@ -73,6 +73,8 @@ static bNodeSocketTemplate sh_node_tex_wood_out[]= {
 static void node_shader_init_tex_wood(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexWood *tex = MEM_callocN(sizeof(NodeTexWood), "NodeTexWood");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->type = SHD_WOOD_BANDS;
 	tex->wave = SHD_WAVE_SINE;
 	tex->basis = SHD_NOISE_PERLIN;
@@ -99,10 +101,12 @@ static void node_shader_exec_tex_wood(void *data, bNode *node, bNodeStack **in, 
 	out[0]->vec[0]= wood(vec, size, tex->type, tex->wave, tex->basis, tex->hard, turbulence);
 }
 
-static int node_shader_gpu_tex_wood(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_wood(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_wood", in, out);
 }

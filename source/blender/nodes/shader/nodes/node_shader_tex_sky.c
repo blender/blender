@@ -44,6 +44,8 @@ static bNodeSocketTemplate sh_node_tex_sky_out[]= {
 static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexSky *tex = MEM_callocN(sizeof(NodeTexSky), "NodeTexSky");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->sun_direction[0] = 0.0f;
 	tex->sun_direction[1] = 0.0f;
 	tex->sun_direction[2] = 1.0f;
@@ -56,10 +58,12 @@ static void node_shader_exec_tex_sky(void *UNUSED(data), bNode *UNUSED(node), bN
 {
 }
 
-static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_sky(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_sky", in, out);
 }

@@ -597,7 +597,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			EditFace *efa= EM_get_actFace(em, sloppy);
 
 			if(efa)
-				ED_object_get_active_image(obedit, efa->mat_nr, &sima->image, NULL);
+				ED_object_get_active_image(obedit, efa->mat_nr, &sima->image, NULL, NULL);
 		}
 		else {
 			/* old shading system, we set texface */

@@ -234,6 +234,8 @@ static bNodeSocketTemplate sh_node_tex_musgrave_out[]= {
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->type = SHD_MUSGRAVE_FBM;
 	tex->basis = SHD_NOISE_PERLIN;
 
@@ -262,10 +264,12 @@ static void node_shader_exec_tex_musgrave(void *data, bNode *node, bNodeStack **
 	out[0]->vec[0]= musgrave(tex->type, tex->basis, dimension, lacunarity, octaves, offset, 1.0f, gain, size, vec);
 }
 
-static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_musgrave", in, out);
 }

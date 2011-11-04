@@ -97,6 +97,17 @@ static float get_node_output_value(BL::Node b_node, const string& name)
 	return sock.default_value();
 }
 
+static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping b_mapping)
+{
+	mapping->translation = get_float3(b_mapping.location());
+	mapping->rotation = get_float3(b_mapping.rotation())*(M_PI/180.0f); /* in degrees! */
+	mapping->scale = get_float3(b_mapping.scale());
+
+	mapping->x_mapping = (TextureMapping::Mapping)b_mapping.mapping_x();
+	mapping->y_mapping = (TextureMapping::Mapping)b_mapping.mapping_y();
+	mapping->z_mapping = (TextureMapping::Mapping)b_mapping.mapping_z();
+}
+
 static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *b_group_node, BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
@@ -163,10 +174,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			BL::ShaderNodeMapping b_mapping_node(b_node);
 			MappingNode *mapping = new MappingNode();
 
-			TextureMapping *tex_mapping = &mapping->tex_mapping;
-			tex_mapping->translation = get_float3(b_mapping_node.location());
-			tex_mapping->rotation = get_float3(b_mapping_node.rotation());
-			tex_mapping->scale = get_float3(b_mapping_node.scale());
+			get_tex_mapping(&mapping->tex_mapping, b_mapping_node.mapping());
 
 			node = mapping;
 			break;
@@ -293,6 +301,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			if(b_image)
 				image->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
+			get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 			node = image;
 			break;
 		}
@@ -303,11 +312,15 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			if(b_image)
 				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
+			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 			node = env;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_NOISE: {
-			node = new NoiseTextureNode();
+			BL::ShaderNodeTexNoise b_noise_node(b_node);
+			NoiseTextureNode *noise = new NoiseTextureNode();
+			get_tex_mapping(&noise->tex_mapping, b_noise_node.texture_mapping());
+			node = noise;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_BLEND: {
@@ -315,6 +328,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			BlendTextureNode *blend = new BlendTextureNode();
 			blend->progression = BlendTextureNode::progression_enum[(int)b_blend_node.progression()];
 			blend->axis = BlendTextureNode::axis_enum[(int)b_blend_node.axis()];
+			get_tex_mapping(&blend->tex_mapping, b_blend_node.texture_mapping());
 			node = blend;
 			break;
 		}
@@ -323,6 +337,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			VoronoiTextureNode *voronoi = new VoronoiTextureNode();
 			voronoi->distance_metric = VoronoiTextureNode::distance_metric_enum[(int)b_voronoi_node.distance_metric()];
 			voronoi->coloring = VoronoiTextureNode::coloring_enum[(int)b_voronoi_node.coloring()];
+			get_tex_mapping(&voronoi->tex_mapping, b_voronoi_node.texture_mapping());
 			node = voronoi;
 			break;
 		}
@@ -330,6 +345,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			BL::ShaderNodeTexMagic b_magic_node(b_node);
 			MagicTextureNode *magic = new MagicTextureNode();
 			magic->depth = b_magic_node.turbulence_depth();
+			get_tex_mapping(&magic->tex_mapping, b_magic_node.texture_mapping());
 			node = magic;
 			break;
 		}
@@ -341,6 +357,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			marble->type = MarbleTextureNode::type_enum[(int)b_marble_node.marble_type()];
 			marble->wave = MarbleTextureNode::wave_enum[(int)b_marble_node.wave_type()];
 			marble->hard = b_marble_node.noise_type() == BL::ShaderNodeTexMarble::noise_type_HARD;
+			get_tex_mapping(&marble->tex_mapping, b_marble_node.texture_mapping());
 			node = marble;
 			break;
 		}
@@ -350,6 +367,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			clouds->depth = b_clouds_node.turbulence_depth();
 			clouds->basis = CloudsTextureNode::basis_enum[(int)b_clouds_node.noise_basis()];
 			clouds->hard = b_clouds_node.noise_type() == BL::ShaderNodeTexClouds::noise_type_HARD;
+			get_tex_mapping(&clouds->tex_mapping, b_clouds_node.texture_mapping());
 			node = clouds;
 			break;
 		}
@@ -360,6 +378,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			wood->basis = WoodTextureNode::basis_enum[(int)b_wood_node.noise_basis()];
 			wood->hard = b_wood_node.noise_type() == BL::ShaderNodeTexWood::noise_type_HARD;
 			wood->wave = WoodTextureNode::wave_enum[(int)b_wood_node.wave_type()];
+			get_tex_mapping(&wood->tex_mapping, b_wood_node.texture_mapping());
 			node = wood;
 			break;
 		}
@@ -368,6 +387,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			MusgraveTextureNode *musgrave = new MusgraveTextureNode();
 			musgrave->type = MusgraveTextureNode::type_enum[(int)b_musgrave_node.musgrave_type()];
 			musgrave->basis = MusgraveTextureNode::basis_enum[(int)b_musgrave_node.noise_basis()];
+			get_tex_mapping(&musgrave->tex_mapping, b_musgrave_node.texture_mapping());
 			node = musgrave;
 			break;
 		}
@@ -377,6 +397,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			stucci->type = StucciTextureNode::type_enum[(int)b_stucci_node.stucci_type()];
 			stucci->basis = StucciTextureNode::basis_enum[(int)b_stucci_node.noise_basis()];
 			stucci->hard = b_stucci_node.noise_type() == BL::ShaderNodeTexStucci::noise_type_HARD;
+			get_tex_mapping(&stucci->tex_mapping, b_stucci_node.texture_mapping());
 			node = stucci;
 			break;
 		}
@@ -385,6 +406,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			DistortedNoiseTextureNode *distnoise = new DistortedNoiseTextureNode();
 			distnoise->basis = DistortedNoiseTextureNode::basis_enum[(int)b_distnoise_node.noise_basis()];
 			distnoise->distortion_basis = DistortedNoiseTextureNode::basis_enum[(int)b_distnoise_node.noise_distortion()];
+			get_tex_mapping(&distnoise->tex_mapping, b_distnoise_node.texture_mapping());
 			node = distnoise;
 			break;
 		}
@@ -397,6 +419,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			SkyTextureNode *sky = new SkyTextureNode();
 			sky->sun_direction = get_float3(b_sky_node.sun_direction());
 			sky->turbidity = b_sky_node.turbidity();
+			get_tex_mapping(&sky->tex_mapping, b_sky_node.texture_mapping());
 			node = sky;
 			break;
 		}

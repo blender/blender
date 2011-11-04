@@ -44,6 +44,8 @@ static bNodeSocketTemplate sh_node_tex_environment_out[]= {
 static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->color_space = SHD_COLORSPACE_SRGB;
 
 	node->storage = tex;
@@ -93,6 +95,8 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 
 	if(!in[0].link)
 		in[0].link = GPU_builtin(GPU_VIEW_POSITION);
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser));
 }

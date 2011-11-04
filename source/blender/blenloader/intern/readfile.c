@@ -7212,6 +7212,40 @@ static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
 	}
 }
 
+static void do_version_ntree_tex_mapping_260(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node=node->next) {
+		TexMapping *tex_mapping= NULL;
+		ColorMapping *color_mapping= NULL;
+
+		if(node->type == SH_NODE_MAPPING) {
+			tex_mapping= node->storage;
+			tex_mapping->projx= PROJ_X;
+			tex_mapping->projy= PROJ_Y;
+			tex_mapping->projz= PROJ_Z;
+		}
+		else if(ELEM7(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_NOISE, SH_NODE_TEX_SKY,
+			SH_NODE_TEX_BLEND, SH_NODE_TEX_VORONOI, SH_NODE_TEX_MAGIC, SH_NODE_TEX_MARBLE) ||
+			ELEM6(node->type, SH_NODE_TEX_CLOUDS, SH_NODE_TEX_WOOD, SH_NODE_TEX_MUSGRAVE,
+			SH_NODE_TEX_STUCCI, SH_NODE_TEX_DISTNOISE, SH_NODE_TEX_ENVIRONMENT)) {
+			NodeTexBase *base= node->storage;
+
+			if(node->type == SH_NODE_TEX_NOISE)
+				node->storage= MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
+
+			tex_mapping= &base->tex_mapping;
+			color_mapping= &base->color_mapping;
+
+			if(is_zero_v3(tex_mapping->size)) {
+				default_tex_mapping(tex_mapping);
+				default_color_mapping(color_mapping);
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -12338,6 +12372,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (cam->sensor_y < 0.01)
 					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
+		}
+
+		{
+			bNodeTreeType *ntreetype= ntreeGetType(NTREE_SHADER);
+
+			if(ntreetype && ntreetype->foreach_nodetree)
+				ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
 		}
 	}
 

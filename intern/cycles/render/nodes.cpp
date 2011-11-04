@@ -45,11 +45,11 @@ Transform TextureMapping::compute_transform()
 	Transform mmat = transform_scale(make_float3(0.0f, 0.0f, 0.0f));
 
 	if(x_mapping != NONE)
-		mmat[0][x_mapping] = 1.0f;
+		mmat[0][x_mapping-1] = 1.0f;
 	if(y_mapping != NONE)
-		mmat[1][y_mapping] = 1.0f;
+		mmat[1][y_mapping-1] = 1.0f;
 	if(z_mapping != NONE)
-		mmat[2][z_mapping] = 1.0f;
+		mmat[2][z_mapping-1] = 1.0f;
 
 	Transform smat = transform_scale(scale);
 	Transform rmat = transform_euler(rotation);

@@ -70,6 +70,8 @@ static bNodeSocketTemplate sh_node_tex_marble_out[]= {
 static void node_shader_init_tex_marble(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexMarble *tex = MEM_callocN(sizeof(NodeTexMarble), "NodeTexMarble");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->type = SHD_MARBLE_SOFT;
 	tex->wave = SHD_WAVE_SINE;
 	tex->basis = SHD_NOISE_PERLIN;
@@ -97,10 +99,12 @@ static void node_shader_exec_tex_marble(void *data, bNode *node, bNodeStack **in
 	out[0]->vec[0]= marble(vec, size, tex->type, tex->wave, tex->basis, tex->hard, turbulence, tex->depth);
 }
 
-static int node_shader_gpu_tex_marble(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_marble(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_marble", in, out);
 }

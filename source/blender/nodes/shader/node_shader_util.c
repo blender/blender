@@ -308,3 +308,24 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 		}
 	}
 }
+
+void node_shader_gpu_tex_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *UNUSED(out))
+{
+	NodeTexBase *base= node->storage;
+	TexMapping *texmap= &base->tex_mapping;
+	float domin= (texmap->flag & TEXMAP_CLIP_MIN) != 0;
+	float domax= (texmap->flag & TEXMAP_CLIP_MAX) != 0;
+
+	if(domin || domax || !(texmap->flag & TEXMAP_UNIT_MATRIX)) {
+		GPUNodeLink *tmat = GPU_uniform((float*)texmap->mat);
+		GPUNodeLink *tmin = GPU_uniform(texmap->min);
+		GPUNodeLink *tmax = GPU_uniform(texmap->max);
+		GPUNodeLink *tdomin = GPU_uniform(&domin);
+		GPUNodeLink *tdomax = GPU_uniform(&domax);
+
+		GPU_link(mat, "mapping", in[0].link, tmat, tmin, tmax, tdomin, tdomax, &in[0].link);
+	}
+	else
+		printf("skip mapping!\n");
+}
+

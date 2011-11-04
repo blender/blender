@@ -108,7 +108,8 @@ void ED_node_changed_update(ID *id, bNode *node)
 			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
-		nodeUpdate(edittree, node);
+		if(node)
+			nodeUpdate(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
 		node= node_tree_get_editgroup(nodetree);

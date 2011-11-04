@@ -446,15 +446,6 @@ static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max)
 	*max = val->max;
 }
 
-static void rna_Node_mapping_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-
-	init_mapping((TexMapping *)node->storage);
-	
-	rna_Node_update(bmain, scene, ptr);
-}
-
 static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node= (bNode*)ptr->data;
@@ -1104,48 +1095,12 @@ static void def_sh_material(StructRNA *srna)
 static void def_sh_mapping(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Location", "Location offset for the input coordinate");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_XYZ); /* Not PROP_EUL, this is already in degrees, not radians */
-	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation offset for the input coordinate");
-	RNA_def_property_ui_range(prop, -360.f, 360.f, 1.f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Scale", "Scale adjustment for the input coordinate");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop = RNA_def_property(srna, "use_min", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
-	RNA_def_property_ui_text(prop, "Clamp Minimum", "Clamp the output coordinate to a minimum value");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop= RNA_def_property(srna, "min", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "min");
-	RNA_def_property_ui_text(prop, "Minimum", "Minimum value to clamp coordinate to");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "use_max", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
-	RNA_def_property_ui_text(prop, "Clamp Maximum", "Clamp the output coordinate to a maximum value");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "max");
-	RNA_def_property_ui_text(prop, "Maximum", "Maximum value to clamp coordinate to");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop= RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "storage");
+	RNA_def_property_struct_type(prop, "TexMapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Mapping", "Texture coordinate mapping settings");
 }
 
 static void def_sh_geometry(StructRNA *srna)
@@ -1177,11 +1132,33 @@ static void def_sh_attribute(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_tex(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "texture_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "base.tex_mapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Texture Mapping", "Texture coordinate mapping settings");
+
+	prop= RNA_def_property(srna, "color_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "base.color_mapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Color Mapping", "Color mapping settings");
+}
+
+static void def_sh_tex_noise(StructRNA *srna)
+{
+	RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
+	def_sh_tex(srna);
+}
+
 static void def_sh_tex_sky(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexSky", "storage");
+	def_sh_tex(srna);
 	
 	prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_ui_text(prop, "Sun Direction", "Direction from where the sun is shining");
@@ -1209,6 +1186,7 @@ static void def_sh_tex_environment(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_color_space_items);
@@ -1233,6 +1211,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_color_space_items);
@@ -1260,6 +1239,7 @@ static void def_sh_tex_blend(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexBlend", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "progression", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "progression");
@@ -1279,6 +1259,7 @@ static void def_sh_tex_clouds(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexClouds", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "basis");
@@ -1304,6 +1285,7 @@ static void def_sh_tex_distnoise(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexDistortedNoise", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "basis");
@@ -1323,6 +1305,7 @@ static void def_sh_tex_magic(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexMagic", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
@@ -1342,6 +1325,7 @@ static void def_sh_tex_marble(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexMarble", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "marble_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1387,6 +1371,7 @@ static void def_sh_tex_musgrave(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexMusgrave", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1412,6 +1397,7 @@ static void def_sh_tex_stucci(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexStucci", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "stucci_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1454,6 +1440,7 @@ static void def_sh_tex_voronoi(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexVoronoi", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "distance_metric");
@@ -1480,6 +1467,7 @@ static void def_sh_tex_wood(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexWood", "storage");
+	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "basis");

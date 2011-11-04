@@ -68,6 +68,8 @@ static bNodeSocketTemplate sh_node_tex_clouds_out[]= {
 static void node_shader_init_tex_clouds(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexClouds *tex = MEM_callocN(sizeof(NodeTexClouds), "NodeTexClouds");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->basis = SHD_NOISE_PERLIN;
 	tex->hard = 0;
 	tex->depth = 2;
@@ -92,10 +94,12 @@ static void node_shader_exec_tex_clouds(void *data, bNode *node, bNodeStack **in
 	out[1]->vec[0]= clouds(tex->basis, tex->hard, tex->depth, size, vec, out[0]->vec);
 }
 
-static int node_shader_gpu_tex_clouds(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_clouds(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_clouds", in, out);
 }

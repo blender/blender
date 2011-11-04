@@ -202,33 +202,96 @@ void free_plugin_tex(PluginTex *pit)
 
 /* ****************** Mapping ******************* */
 
-TexMapping *add_mapping(void)
+TexMapping *add_tex_mapping(void)
 {
-	TexMapping *texmap= MEM_callocN(sizeof(TexMapping), "Tex map");
+	TexMapping *texmap= MEM_callocN(sizeof(TexMapping), "TexMapping");
 	
-	texmap->size[0]= texmap->size[1]= texmap->size[2]= 1.0f;
-	texmap->max[0]= texmap->max[1]= texmap->max[2]= 1.0f;
-	unit_m4(texmap->mat);
+	default_tex_mapping(texmap);
 	
 	return texmap;
 }
 
-void init_mapping(TexMapping *texmap)
+void default_tex_mapping(TexMapping *texmap)
 {
-	float eul[3], smat[3][3], rmat[3][3], mat[3][3];
-	
-	size_to_mat3( smat,texmap->size);
-	
-	eul[0]= DEG2RADF(texmap->rot[0]);
-	eul[1]= DEG2RADF(texmap->rot[1]);
-	eul[2]= DEG2RADF(texmap->rot[2]);
-	eul_to_mat3( rmat,eul);
-	
-	mul_m3_m3m3(mat, rmat, smat);
-	
-	copy_m4_m3(texmap->mat, mat);
-	VECCOPY(texmap->mat[3], texmap->loc);
+	memset(texmap, 0, sizeof(TexMapping));
 
+	texmap->size[0]= texmap->size[1]= texmap->size[2]= 1.0f;
+	texmap->max[0]= texmap->max[1]= texmap->max[2]= 1.0f;
+	unit_m4(texmap->mat);
+
+	texmap->projx= PROJ_X;
+	texmap->projy= PROJ_Y;
+	texmap->projz= PROJ_Z;
+	texmap->mapping= MTEX_FLAT;
+}
+
+void init_tex_mapping(TexMapping *texmap)
+{
+	float eul[3], smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
+
+	if(texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
+	   is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
+		unit_m4(texmap->mat);
+
+		texmap->flag |= TEXMAP_UNIT_MATRIX;
+	}
+	else {
+		/* axis projection */
+		zero_m3(proj);
+
+		if(texmap->projx != PROJ_N)
+			proj[texmap->projx-1][0]= 1.0f;
+		if(texmap->projy != PROJ_N)
+			proj[texmap->projy-1][1]= 1.0f;
+		if(texmap->projz != PROJ_N)
+			proj[texmap->projz-1][2]= 1.0f;
+
+		/* scale */
+		size_to_mat3(smat, texmap->size);
+		
+		/* rotation */
+		eul[0]= DEG2RADF(texmap->rot[0]);
+		eul[1]= DEG2RADF(texmap->rot[1]);
+		eul[2]= DEG2RADF(texmap->rot[2]);
+		eul_to_mat3( rmat,eul);
+		
+		/* compose it all */
+		mul_m3_m3m3(mat, rmat, smat);
+		mul_m3_m3m3(mat, proj, mat);
+		
+		/* translation */
+		copy_m4_m3(texmap->mat, mat);
+		VECCOPY(texmap->mat[3], texmap->loc);
+
+		texmap->flag &= ~TEXMAP_UNIT_MATRIX;
+	}
+}
+
+ColorMapping *add_color_mapping(void)
+{
+	ColorMapping *colormap= MEM_callocN(sizeof(ColorMapping), "ColorMapping");
+	
+	default_color_mapping(colormap);
+	
+	return colormap;
+
+}
+
+void default_color_mapping(ColorMapping *colormap)
+{
+	memset(colormap, 0, sizeof(ColorMapping));
+
+	init_colorband(&colormap->coba, 1);
+
+	colormap->bright= 1.0;
+	colormap->contrast= 1.0;
+	colormap->saturation= 1.0;
+
+	colormap->blend_color[0]= 0.8f;
+	colormap->blend_color[1]= 0.8f;
+	colormap->blend_color[2]= 0.8f;
+	colormap->blend_type= MA_RAMP_BLEND;
+	colormap->blend_factor= 0.0f;
 }
 
 /* ****************** COLORBAND ******************* */

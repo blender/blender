@@ -40,6 +40,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct bContext;
+struct bNode;
 struct wmKeyConfig;
 
 /* uvedit_ops.c */
@@ -49,7 +50,7 @@ void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 void ED_uvedit_assign_image(struct Main *bmain, struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float *min, float *max);
 
-int ED_object_get_active_image(struct Object *ob, int mat_nr, struct Image **ima, struct ImageUser **iuser);
+int ED_object_get_active_image(struct Object *ob, int mat_nr, struct Image **ima, struct ImageUser **iuser, struct bNode **node);
 void ED_object_assign_active_image(struct Main *bmain, struct Object *ob, int mat_nr, struct Image *ima);
 
 int ED_uvedit_test_silent(struct Object *obedit);

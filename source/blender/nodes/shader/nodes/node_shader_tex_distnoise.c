@@ -65,6 +65,8 @@ static bNodeSocketTemplate sh_node_tex_distnoise_out[]= {
 static void node_shader_init_tex_distorted_noise(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexDistortedNoise *tex = MEM_callocN(sizeof(NodeTexDistortedNoise), "NodeTexDistortedNoise");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->basis = SHD_NOISE_PERLIN;
 	tex->distortion_basis = SHD_NOISE_PERLIN;
 
@@ -89,10 +91,12 @@ static void node_shader_exec_tex_distnoise(void *data, bNode *node, bNodeStack *
 	out[0]->vec[0]= distorted_noise(vec, size, tex->basis, tex->distortion_basis, distortion);
 }
 
-static int node_shader_gpu_tex_distnoise(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_distnoise(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_distnoise", in, out);
 }

@@ -67,6 +67,8 @@ static bNodeSocketTemplate sh_node_tex_stucci_out[]= {
 static void node_shader_init_tex_stucci(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexStucci *tex = MEM_callocN(sizeof(NodeTexStucci), "NodeTexStucci");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->type = SHD_STUCCI_PLASTIC;
 	tex->basis = SHD_NOISE_PERLIN;
 	tex->hard = 0;
@@ -92,10 +94,12 @@ static void node_shader_exec_tex_stucci(void *data, bNode *node, bNodeStack **in
 	out[0]->vec[0]= stucci(tex->type, tex->basis, tex->hard, turbulence, size, vec);
 }
 
-static int node_shader_gpu_tex_stucci(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_stucci(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_stucci", in, out);
 }

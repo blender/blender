@@ -946,28 +946,29 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 
 static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	PointerRNA mappingptr = RNA_pointer_get(ptr, "mapping");
 	uiLayout *row;
 	
 	uiItemL(layout, "Translation:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "location", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "location", 0, "", ICON_NONE);
 	
 	uiItemL(layout, "Rotation:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "rotation", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "rotation", 0, "", ICON_NONE);
 	
 	uiItemL(layout, "Scale:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "scale", 0, "", ICON_NONE);
 	
 #if 0
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
-	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "use_min", 0, "Min", ICON_NONE);
+	uiItemR(row, &mappingptr, "min", 0, "", ICON_NONE);
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
-	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "use_max", 0, "Max", ICON_NONE);
+	uiItemR(row, &mappingptr, "max", 0, "", ICON_NONE);
 #endif	
 }
 

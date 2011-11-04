@@ -109,6 +109,8 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[]= {
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexVoronoi *tex = MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->distance_metric = SHD_VORONOI_ACTUAL_DISTANCE;
 	tex->coloring = SHD_VORONOI_INTENSITY;
 
@@ -138,10 +140,12 @@ static void node_shader_exec_tex_voronoi(void *data, bNode *node, bNodeStack **i
 		exponent, 1.0f, size, vec, out[0]->vec);
 }
 
-static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_voronoi", in, out);
 }

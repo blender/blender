@@ -40,11 +40,12 @@
 
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_object_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
@@ -703,16 +704,19 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	GPUVertexAttribs *gattribs = attribs;
 	Image *ima;
 	ImageUser *iuser;
+	bNode *node;
 	int texture_set= 0;
 
 	/* draw image texture if we find one */
-	if(ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser)) {
+	if(ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node)) {
 		/* get openl texture */
 		int mipmap= 1;
 		int bindcode= (ima)? GPU_verify_image(ima, iuser, 0, 0, mipmap): 0;
 		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 		if(bindcode) {
+			NodeTexBase *texbase= node->storage;
+
 			/* disable existing material */
 			GPU_disable_material();
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
@@ -725,6 +729,10 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glColor3f(1.0f, 1.0f, 1.0f);
+
+			glMatrixMode(GL_TEXTURE);
+			glLoadMatrixf(texbase->tex_mapping.mat);
+			glMatrixMode(GL_MODELVIEW);
 
 			/* use active UV texture layer */
 			memset(gattribs, 0, sizeof(*gattribs));
@@ -739,6 +747,10 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	}
 
 	if(!texture_set) {
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+
 		/* disable texture */
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_COLOR_MATERIAL);
@@ -833,6 +845,10 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	glDisable(GL_LIGHTING);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glFrontFace(GL_CCW);
+
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
 
 	/* faceselect mode drawing over textured mesh */
 	if(!(ob == scene->obedit) && faceselect)

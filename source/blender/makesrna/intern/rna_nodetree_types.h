@@ -79,7 +79,7 @@ DefNode( ShaderNode,     SH_NODE_GEOMETRY,           0,                      "GE
 DefNode( ShaderNode,     SH_NODE_LIGHT_PATH,         0,                      "LIGHT_PATH", Light_path, "Light_path", "")
 DefNode( ShaderNode,     SH_NODE_TEX_IMAGE,          def_sh_tex_image,       "TEX_IMAGE", TexImage, "Image Texture", "")
 DefNode( ShaderNode,     SH_NODE_TEX_ENVIRONMENT,    def_sh_tex_environment, "TEX_ENVIRONMENT", TexEnvironment, "Environment Texture", "")
-DefNode( ShaderNode,     SH_NODE_TEX_NOISE,          0,                      "TEX_NOISE", TexNoise, "Noise Texture", "")
+DefNode( ShaderNode,     SH_NODE_TEX_NOISE,          def_sh_tex_noise,       "TEX_NOISE", TexNoise, "Noise Texture", "")
 DefNode( ShaderNode,     SH_NODE_TEX_SKY,            def_sh_tex_sky,         "TEX_SKY", TexSky, "Sky Texture", "")
 DefNode( ShaderNode,     SH_NODE_TEX_BLEND,          def_sh_tex_blend,       "TEX_BLEND", TexBlend, "Blend Texture", "")
 DefNode( ShaderNode,     SH_NODE_TEX_CLOUDS,         def_sh_tex_clouds,      "TEX_CLOUDS", TexClouds, "Clouds Texture", "")

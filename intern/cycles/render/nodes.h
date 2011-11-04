@@ -41,7 +41,7 @@ public:
 	float3 rotation;
 	float3 scale;
 
-	enum Mapping { X=0, Y=1, Z=2, NONE };
+	enum Mapping { NONE=0, X=1, Y=2, Z=3 };
 	Mapping x_mapping, y_mapping, z_mapping;
 
 	enum Projection { FLAT, CUBE, TUBE, SPHERE };

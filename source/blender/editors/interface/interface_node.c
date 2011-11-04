@@ -252,6 +252,11 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 				}
 			}
 
+			/* also preserve mapping for texture nodes */
+			if(node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
+			   node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE)
+				memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
+
 			/* remove node */
 			ui_node_remove_linked(ntree, node_prev);
 		}

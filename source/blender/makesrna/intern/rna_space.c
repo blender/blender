@@ -114,13 +114,14 @@ EnumPropertyItem viewport_shade_items[] = {
 
 #include "BLI_math.h"
 
-#include "BKE_screen.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "ED_image.h"
 #include "ED_node.h"
@@ -458,11 +459,12 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
+
+	if(scene_use_new_shading_nodes(scene))
+		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
 	
-	if(type->view_draw) {
+	if(type->view_draw)
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
-	}
 
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;

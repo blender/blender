@@ -35,6 +35,7 @@
 #include "DNA_ID.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
+#include "DNA_texture_types.h"
 
 struct ID;
 struct ListBase;
@@ -426,25 +427,39 @@ typedef struct NodeColorspill {
 	float uspillr, uspillg, uspillb;
 }NodeColorspill;
 
+typedef struct NodeTexBase {
+	TexMapping tex_mapping;
+	ColorMapping color_mapping;
+} NodeTexBase;
+
+typedef struct NodeTexNoise {
+	NodeTexBase base;
+} NodeTexNoise;
+
 typedef struct NodeTexSky {
+	NodeTexBase base;
 	float sun_direction[3];
 	float turbidity;
 } NodeTexSky;
 
 typedef struct NodeTexImage {
+	NodeTexBase base;
 	int color_space;
 } NodeTexImage;
 
 typedef struct NodeTexEnvironment {
+	NodeTexBase base;
 	int color_space;
 } NodeTexEnvironment;
 
 typedef struct NodeTexBlend {
+	NodeTexBase base;
 	int progression;
 	int axis;
 } NodeTexBlend;
 
 typedef struct NodeTexClouds {
+	NodeTexBase base;
 	int hard;
 	int depth;
 	int basis;
@@ -452,16 +467,19 @@ typedef struct NodeTexClouds {
 } NodeTexClouds;
 
 typedef struct NodeTexVoronoi {
+	NodeTexBase base;
 	int distance_metric;
 	int coloring;
 } NodeTexVoronoi;
 
 typedef struct NodeTexMusgrave {
+	NodeTexBase base;
 	int type;
 	int basis;
 } NodeTexMusgrave;
 
 typedef struct NodeTexMarble {
+	NodeTexBase base;
 	int type;
 	int wave;
 	int basis;
@@ -471,11 +489,13 @@ typedef struct NodeTexMarble {
 } NodeTexMarble;
 
 typedef struct NodeTexMagic {
+	NodeTexBase base;
 	int depth;
 	int pad;
 } NodeTexMagic;
 
 typedef struct NodeTexStucci {
+	NodeTexBase base;
 	int type;
 	int basis;
 	int hard;
@@ -483,11 +503,13 @@ typedef struct NodeTexStucci {
 } NodeTexStucci;
 
 typedef struct NodeTexDistortedNoise {
+	NodeTexBase base;
 	int basis;
 	int distortion_basis;
 } NodeTexDistortedNoise;
 
 typedef struct NodeTexWood {
+	NodeTexBase base;
 	int type;
 	int wave;
 	int basis;

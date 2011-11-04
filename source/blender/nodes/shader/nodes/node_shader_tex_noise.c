@@ -59,6 +59,15 @@ static bNodeSocketTemplate sh_node_tex_noise_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+{
+	NodeTexNoise *tex = MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
+
+	node->storage = tex;
+}
+
 static void node_shader_exec_tex_noise(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	ShaderCallData *scd= (ShaderCallData*)data;
@@ -74,10 +83,12 @@ static void node_shader_exec_tex_noise(void *data, bNode *node, bNodeStack **in,
 	out[1]->vec[0]= noise_texture_value(vec);
 }
 
-static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_noise", in, out);
 }
@@ -91,7 +102,7 @@ void register_node_type_sh_tex_noise(ListBase *lb)
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_noise_in, sh_node_tex_noise_out);
 	node_type_size(&ntype, 150, 60, 200);
-	node_type_init(&ntype, NULL);
+	node_type_init(&ntype, node_shader_init_tex_noise);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, node_shader_exec_tex_noise);
 	node_type_gpu(&ntype, node_shader_gpu_tex_noise);

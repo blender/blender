@@ -67,9 +67,9 @@ static void node_shader_exec_mapping(void *UNUSED(data), bNode *node, bNodeStack
 }
 
 
-static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_default_mapping(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
-	node->storage= add_mapping();
+	node->storage= add_tex_mapping();
 }
 
 static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -94,7 +94,7 @@ void register_node_type_sh_mapping(ListBase *lb)
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_mapping_in, sh_node_mapping_out);
 	node_type_size(&ntype, 240, 160, 320);
-	node_type_init(&ntype, node_shader_init_mapping);
+	node_type_init(&ntype, node_shader_default_mapping);
 	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_shader_exec_mapping);
 	node_type_gpu(&ntype, gpu_shader_mapping);

@@ -88,6 +88,8 @@ static bNodeSocketTemplate sh_node_tex_blend_out[]= {
 static void node_shader_init_tex_blend(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexBlend *tex = MEM_callocN(sizeof(NodeTexBlend), "NodeTexBlend");
+	default_tex_mapping(&tex->base.tex_mapping);
+	default_color_mapping(&tex->base.color_mapping);
 	tex->progression = SHD_BLEND_LINEAR;
 	tex->axis = SHD_BLEND_HORIZONTAL;
 
@@ -109,10 +111,12 @@ static void node_shader_exec_tex_blend(void *data, bNode *node, bNodeStack **in,
 	out[0]->vec[0]= blend(vec, tex->progression, tex->axis);
 }
 
-static int node_shader_gpu_tex_blend(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_tex_blend(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
 		in[0].link = GPU_attribute(CD_ORCO, "");
+
+	node_shader_gpu_tex_mapping(mat, node, in, out);
 
 	return GPU_stack_link(mat, "node_tex_blend", in, out);
 }

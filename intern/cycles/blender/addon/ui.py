@@ -311,7 +311,7 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob and ob.type in ('MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META') # todo: 'LAMP'
+        return CyclesButtonsPanel.poll(context) and ob and ob.type in ('MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META') # todo: 'LAMP'
 
     def draw(self, context):
         layout = self.layout
@@ -604,23 +604,64 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label("Texture coordinate mapping goes here.");
-        layout.label("Translate, rotate, scale, projection, XYZ.")
 
-class CyclesTexture_PT_color(CyclesButtonsPanel, Panel):
+        tex = context.texture
+        node = context.texture_node
+
+        mapping = node.texture_mapping
+
+        row = layout.row()
+
+        row.column().prop(mapping, "location")
+        row.column().prop(mapping, "rotation")
+        row.column().prop(mapping, "scale")
+
+        layout.label(text="Projection:")
+
+        row = layout.row()
+        row.prop(mapping, "mapping_x", text="")
+        row.prop(mapping, "mapping_y", text="")
+        row.prop(mapping, "mapping_z", text="")
+
+class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
     bl_label = "Color"
     bl_context = "texture"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         tex = context.texture
         node = context.texture_node
-        return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
+        return False
+        #return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-        layout.label("Color modification options go here.");
-        layout.label("Ramp, brightness, contrast, saturation.")
+
+        tex = context.texture
+        node = context.texture_node
+
+        mapping = node.color_mapping
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Blend:")
+        col.prop(mapping, "blend_type", text="")
+        col.prop(mapping, "blend_factor", text="Factor")
+        col.prop(mapping, "blend_color", text="")
+
+        col = split.column()
+        col.label(text="Adjust:")
+        col.prop(mapping, "brightness")
+        col.prop(mapping, "contrast")
+        col.prop(mapping, "saturation")
+
+        layout.separator()
+
+        layout.prop(mapping, "use_color_ramp", text="Ramp")
+        if mapping.use_color_ramp:
+            layout.template_color_ramp(mapping, "color_ramp", expand=True)
 
 def draw_device(self, context):
     scene = context.scene
