@@ -753,6 +753,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	extern int enable_cu_speed;	/* object.c */
 	Object copyob = {{NULL}};
 	int cfrao = scene->r.cfra;
+	int dupend = ob->dupend;
 	
 	/* simple prevention of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
@@ -773,7 +774,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	/* duplicate over the required range */
 	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 	
-	for (scene->r.cfra= ob->dupsta; scene->r.cfra<=ob->dupend; scene->r.cfra++) {
+	for (scene->r.cfra= ob->dupsta; scene->r.cfra<=dupend; scene->r.cfra++) {
 		short ok= 1;
 		
 		/* - dupoff = how often a frames within the range shouldn't be made into duplis
