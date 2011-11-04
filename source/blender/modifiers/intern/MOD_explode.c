@@ -643,7 +643,12 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	}
 
 	/* override original facepa (original pointer is saved in caller function) */
-	facepa= MEM_callocN(sizeof(int)*(totface+totfsplit),"explode_facepa");
+
+	/* BMESH_TODO, (totfsplit * 2) over allocation is used since the quads are
+	 * later interpreted as tri's, for this to work right I think we probably
+	 * have to stop using tessface - campbell */
+
+	facepa= MEM_callocN(sizeof(int)*(totface+(totfsplit * 2)),"explode_facepa");
 	//memcpy(facepa,emd->facepa,totface*sizeof(int));
 	emd->facepa=facepa;
 
