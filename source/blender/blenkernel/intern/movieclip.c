@@ -857,7 +857,7 @@ void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int 
 	}
 }
 
-void BKE_movieclip_deselect_track(MovieClip *clip, MovieTrackingTrack *track, int area)
+void BKE_movieclip_deselect_track(MovieClip *UNUSED(clip), MovieTrackingTrack *track, int area)
 {
 	BKE_tracking_track_flag(track, area, SELECT, 1);
 }
