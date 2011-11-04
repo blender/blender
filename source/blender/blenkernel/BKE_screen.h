@@ -34,22 +34,23 @@
  */
 
 struct ARegion;
+struct Header;
+struct ListBase;
+struct Menu;
+struct Panel;
+struct Scene;
+struct ScrArea;
+struct SpaceType;
+struct View3D;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
-struct ListBase;
-struct Panel;
-struct Header;
-struct Menu;
-struct ScrArea;
-struct SpaceType;
-struct Scene;
+struct uiLayout;
+struct uiMenuItem;
+struct wmKeyConfig;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
-struct wmKeyConfig;
-struct uiLayout;
-struct uiMenuItem;
 
 #include "RNA_types.h"
 
@@ -239,6 +240,7 @@ void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void	BKE_screen_area_free(struct ScrArea *sa);
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
+struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
 void BKE_screen_view3d_scene_sync(struct bScreen *sc);
