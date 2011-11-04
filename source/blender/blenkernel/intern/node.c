@@ -1325,7 +1325,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_TEXTURE;
 }
 
-/* use flags are not persistant yet, groups might need different tagging, so we do it each time
+/* use flags are not persistent yet, groups might need different tagging, so we do it each time
    when we need to get this info */
 void ntreeSocketUseFlags(bNodeTree *ntree)
 {

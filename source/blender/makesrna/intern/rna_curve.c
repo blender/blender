@@ -268,26 +268,10 @@ static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int 
 static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	ListBase *nurbs= BKE_curve_nurbs(cu);
-	Nurb *nu= nurbs->first;
+	if(value==CU_3D) cu->flag |=  CU_3D;
+	else cu->flag &= ~CU_3D;
 
-	if(value==CU_3D) {
-		cu->flag |=  CU_3D;
-		for( ; nu; nu= nu->next) {
-			nu->flag &= ~CU_2D;
-		}
-	}
-	else {
-		cu->flag &= ~CU_3D;
-		for( ; nu; nu= nu->next) {
-			nu->flag |= CU_2D;
-			test2DNurb(nu);
-
-			/* since the handles are moved they need to be auto-located again */
-			if(nu->type == CU_BEZIER)
-				calchandlesNurb(nu);
-		}
-	}
+	update_curve_dimension(cu);
 }
 
 static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))

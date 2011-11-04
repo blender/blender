@@ -1211,7 +1211,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	if (!srna) {
 		if (PyErr_Occurred()) {
 			PyObject *msg= PyC_ExceptionBuffer();
-			char *msg_char= _PyUnicode_AsString(msg);
+			const char *msg_char= _PyUnicode_AsString(msg);
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s expected an RNA type derived from PropertyGroup, failed with: %s",
 			             error_prefix, msg_char);

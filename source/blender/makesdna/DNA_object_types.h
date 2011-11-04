@@ -265,7 +265,9 @@ typedef struct Object {
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 
 	float ima_ofs[2];		/* offset for image empties */
-	char pad3[8];
+
+	short collision_boundtype;	/* bounding box type used for collision */
+	char pad3[6];
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

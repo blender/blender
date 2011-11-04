@@ -2569,10 +2569,12 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	if(block->curlayout)
 		ui_layout_add_but(block->curlayout, but);
 
+#ifdef WITH_PYTHON
 	/* if the 'UI_OT_editsource' is running, extract the source info from the button  */
 	if (UI_editsource_enable_check()) {
 		UI_editsource_active_but_test(but);
 	}
+#endif
 
 	return but;
 }

@@ -139,6 +139,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	float median[7], ve_median[7];
 	int tot, totw, totweight, totedge, totradius;
 	char defstr[320];
+	PointerRNA radius_ptr;
 
 	median[0]= median[1]= median[2]= median[3]= median[4]= median[5]= median[6]= 0.0;
 	tot= totw= totweight= totedge= totradius= 0;
@@ -210,6 +211,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BezTriple *bezt;
 		int a;
 		ListBase *nurbs= curve_editnurbs(cu);
+		StructRNA *seltype= NULL;
+		void *selp= NULL;
 
 		nu= nurbs->first;
 		while(nu) {
@@ -224,6 +227,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						totweight++;
 						median[5]+= bezt->radius;
 						totradius++;
+						selp= bezt;
+						seltype= &RNA_BezierSplinePoint;
 					}
 					else {
 						if(bezt->f1 & SELECT) {
@@ -251,12 +256,17 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						totweight++;
 						median[5]+= bp->radius;
 						totradius++;
+						selp= bp;
+						seltype= &RNA_SplinePoint;
 					}
 					bp++;
 				}
 			}
 			nu= nu->next;
 		}
+
+		if(totradius==1)
+			RNA_pointer_create(&cu->id, seltype, selp, &radius_ptr);
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
@@ -319,9 +329,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, "");
-				if(totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
+				if(totradius) {
+					if(totradius==1) uiDefButR(block, NUM, 0, "Radius", 0, 20, 200, 20, &radius_ptr, "radius", 0, 0.0, 100.0, 10, 3, NULL);
+					else uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, "Radius of curve CPs");
 				}
+			}
 			else {
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 65, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
@@ -329,8 +341,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 40, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
-				if(totradius)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 40, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
+				if(totradius) {
+					if(totradius==1) uiDefButR(block, NUM, 0, "Radius", 0, 40, 200, 20, &radius_ptr, "radius", 0, 0.0, 100.0, 10, 3, NULL);
+					else uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 40, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
+				}
 			}
 		}
 		else {

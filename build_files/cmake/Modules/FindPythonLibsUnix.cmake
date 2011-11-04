@@ -44,8 +44,19 @@ SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic" CACHE STRING "Linker flags for p
 MARK_AS_ADVANCED(PYTHON_LINKFLAGS)
 
 
+# if the user passes these defines as args, we dont want to overwrite
+SET(_IS_INC_DEF OFF)
+SET(_IS_LIB_DEF OFF)
+IF(DEFINED PYTHON_INCLUDE_DIR)
+  SET(_IS_INC_DEF ON)
+ENDIF()
+IF(DEFINED PYTHON_LIBRARY)
+  SET(_IS_LIB_DEF ON)
+ENDIF()
+
+
 # only search for the dirs if we havn't already
-IF((NOT DEFINED PYTHON_INCLUDE_DIR) OR (NOT DEFINED PYTHON_LIBRARY))
+IF((NOT _IS_INC_DEF) OR (NOT _IS_LIB_DEF))
 
   SET(_python_ABI_FLAGS
     "m;mu;u; "    # release
@@ -66,30 +77,38 @@ IF((NOT DEFINED PYTHON_INCLUDE_DIR) OR (NOT DEFINED PYTHON_LIBRARY))
     #ENDIF()
     STRING(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
-    FIND_PATH(PYTHON_INCLUDE_DIR
-      NAMES
-        Python.h
-      HINTS
-        ${_python_SEARCH_DIRS}
-      PATH_SUFFIXES
-        include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-    )
+    IF(NOT DEFINED PYTHON_INCLUDE_DIR)
+      FIND_PATH(PYTHON_INCLUDE_DIR
+        NAMES
+          Python.h
+        HINTS
+          ${_python_SEARCH_DIRS}
+        PATH_SUFFIXES
+          include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+      )
+    ENDIF()
 
-    FIND_LIBRARY(PYTHON_LIBRARY
-      NAMES
-        "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
-      HINTS
-        ${_python_SEARCH_DIRS}
-      PATH_SUFFIXES
-        lib64 lib
-    )
+    IF(NOT DEFINED PYTHON_LIBRARY)
+      FIND_LIBRARY(PYTHON_LIBRARY
+        NAMES
+          "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
+        HINTS
+          ${_python_SEARCH_DIRS}
+        PATH_SUFFIXES
+          lib64 lib
+      )
+    ENDIF()
 
     IF(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
       break()
     ELSE()
       # ensure we dont find values from 2 different ABI versions
-      UNSET(PYTHON_INCLUDE_DIR CACHE)
-      UNSET(PYTHON_LIBRARY CACHE)
+      IF(NOT _IS_INC_DEF)
+        UNSET(PYTHON_INCLUDE_DIR CACHE)
+      ENDIF()
+      IF(NOT _IS_LIB_DEF)
+        UNSET(PYTHON_LIBRARY CACHE)
+      ENDIF()
     ENDIF()
   ENDFOREACH()
 
@@ -99,6 +118,9 @@ IF((NOT DEFINED PYTHON_INCLUDE_DIR) OR (NOT DEFINED PYTHON_LIBRARY))
   UNSET(_python_ABI_FLAGS)
   UNSET(_python_SEARCH_DIRS)
 ENDIF()
+
+UNSET(_IS_INC_DEF)
+UNSET(_IS_LIB_DEF)
 
 # handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF 
 # all listed variables are TRUE

@@ -34,8 +34,8 @@
 
 /* ******************* channel Difference Matte ********************************* */
 static bNodeSocketTemplate cmp_node_diff_matte_in[]={
-	{SOCK_RGBA,1,"Image 1", 0.8f, 0.8f, 0.8f, 1.0f},
-	{SOCK_RGBA,1,"Image 2", 0.8f, 0.8f, 0.8f, 1.0f},
+	{SOCK_RGBA,1,"Image 1", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA,1,"Image 2", 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1,0,""}
 };
 

@@ -351,6 +351,29 @@ ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
 	return NULL;
 }
 
+/* note, using this function is generally a last resort, you really want to be
+ * using the context when you can - campbell
+ * -1 for any type */
+struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min)
+{
+	ScrArea *sa, *big= NULL;
+	int size, maxsize= 0;
+
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
+		if ((spacetype == -1) || sa->spacetype == spacetype) {
+			if (min <= sa->winx && min <= sa->winy) {
+				size= sa->winx*sa->winy;
+				if (size > maxsize) {
+					maxsize= size;
+					big= sa;
+				}
+			}
+		}
+	}
+
+	return big;
+}
+
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene)
 {
 	int bit;

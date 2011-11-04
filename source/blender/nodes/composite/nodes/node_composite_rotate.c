@@ -35,7 +35,7 @@
 /* **************** Rotate  ******************** */
 
 static bNodeSocketTemplate cmp_node_rotate_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Degr",			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_ANGLE},
 	{	-1, 0, ""	}
 };
@@ -59,6 +59,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 		ImBuf *ibuf, *obuf;
 
 		rad= (M_PI*in[1]->vec[0])/180.0f;
+
 
 		s= sin(rad);
 		c= cos(rad);

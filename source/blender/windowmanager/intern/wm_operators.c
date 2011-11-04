@@ -3450,6 +3450,28 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 	ot->exec= memory_statistics_exec;
 }
 
+/* ************************** memory statistics for testing ***************** */
+
+static int dependency_relations_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	DAG_print_dependencies(bmain, scene, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_dependency_relations(wmOperatorType *ot)
+{
+	ot->name= "Dependency Relations";
+	ot->idname= "WM_OT_dependency_relations";
+	ot->description= "Print dependency graph relations to the console";
+	
+	ot->exec= dependency_relations_exec;
+}
+
 /* ******************************************************* */
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
@@ -3532,6 +3554,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
+	WM_operatortype_append(WM_OT_dependency_relations);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);

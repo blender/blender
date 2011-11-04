@@ -1747,6 +1747,9 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	if(!mcol)
 		mcol = dm->getFaceDataArray(dm, CD_MCOL);
 
+	if(!mcol)
+		mcol = dm->getFaceDataArray(dm, CD_TEXTURE_MCOL);
+
 	totface = ccgSubSurf_getNumFaces(ss);
 	for(i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;

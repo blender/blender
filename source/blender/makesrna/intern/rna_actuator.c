@@ -109,6 +109,18 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 	}
 }
 
+void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
+{
+	bActuator *act= (bActuator *)ptr->data;
+
+	BLI_strncpy_utf8(act->name, value, sizeof(act->name));
+
+	if (ptr->id.data) {
+		Object *ob= (Object *)ptr->id.data;
+		BLI_uniquename(&ob->actuators, act, "Actuator", '.', offsetof(bActuator, name), sizeof(act->name));
+	}
+}
+
 static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act= (bActuator *)ptr->data;
@@ -525,6 +537,7 @@ void rna_def_actuator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Actuator_name_set");
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
