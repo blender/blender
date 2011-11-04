@@ -1042,8 +1042,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
-							*var = val;
 							var->SetLength(attrdef->m_imax);
+							memcpy(var->Ptr(), val, attrdef->m_imax - 1);
 							break;
 						}
 					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
