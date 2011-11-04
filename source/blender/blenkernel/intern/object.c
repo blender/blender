@@ -724,7 +724,8 @@ void *add_camera(const char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
-	cam->sensor_x = 32.f;
+	cam->sensor_x= 32.0f;
+	cam->sensor_y= 18.0f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
