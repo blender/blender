@@ -133,6 +133,9 @@ void	DAG_pose_sort(struct Object *ob);
 		/* callback for editors module to do updates */
 void	DAG_editors_update_cb(void (*func)(struct Main *bmain, struct ID *id));
 
+		/* debugging */
+void	DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
+
 #ifdef __cplusplus
 }
 #endif

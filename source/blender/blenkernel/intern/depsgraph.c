@@ -799,6 +799,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob)
 }
 
 static int ugly_hack_sorry= 1;	// prevent type check
+static int dag_print_dependencies= 0; // debugging
 
 /* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode * dag_add_node (DagForest *forest, void * fob)
@@ -926,7 +927,6 @@ static const char *dag_node_name(DagNode *node)
 		return ((bPoseChannel*)(node->ob))->name;
 }
 
-#if 0
 static void dag_node_print_dependencies(DagNode *node)
 {
 	DagAdjList *itA;
@@ -937,7 +937,6 @@ static void dag_node_print_dependencies(DagNode *node)
 		printf("  %s through %s\n", dag_node_name(itA->node), itA->name);
 	printf("\n");
 }
-#endif
 
 static int dag_node_print_dependency_recurs(DagNode *node, DagNode *endnode)
 {
@@ -997,6 +996,11 @@ static void dag_check_cycle(DagForest *dag)
 {
 	DagNode *node;
 	DagAdjList *itA;
+
+	/* debugging print */
+	if(dag_print_dependencies)
+		for(node = dag->DagNode.first; node; node= node->next)
+			dag_node_print_dependencies(node);
 
 	/* tag nodes unchecked */
 	for(node = dag->DagNode.first; node; node= node->next)
@@ -2834,5 +2838,22 @@ void DAG_pose_sort(Object *ob)
 	ugly_hack_sorry= 1;
 }
 
+/* ************************ DAG DEBUGGING ********************* */
 
+void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
+{
+	/* utility for debugging dependencies */
+	dag_print_dependencies= 1;
+
+	if(ob && (ob->mode & OB_MODE_POSE)) {
+		printf("\nDEPENDENCY RELATIONS for %s\n\n", ob->id.name+2);
+		DAG_pose_sort(ob);
+	}
+	else {
+		printf("\nDEPENDENCY RELATIONS for %s\n\n", scene->id.name+2);
+		DAG_scene_sort(bmain, scene);
+	}
+	
+	dag_print_dependencies= 0;
+}
 
