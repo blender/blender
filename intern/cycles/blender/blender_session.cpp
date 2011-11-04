@@ -73,7 +73,7 @@ BlenderSession::~BlenderSession()
 
 void BlenderSession::create_session()
 {
-	SceneParams scene_params = BlenderSync::get_scene_params(b_scene);
+	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
 	SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
 
 	/* reset status/progress */
@@ -152,7 +152,7 @@ void BlenderSession::write_render_result()
 void BlenderSession::synchronize()
 {
 	/* on session/scene parameter changes, we recreate session entirely */
-	SceneParams scene_params = BlenderSync::get_scene_params(b_scene);
+	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
 	SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
 
 	if(session->params.modified(session_params) ||

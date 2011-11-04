@@ -92,7 +92,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_text_timeout = FloatProperty(name="Text timeout", description="",
             default=1.0, min=0.01, max=10.0)
 
-        cls.debug_bvh_type = EnumProperty(name="BVH Type", description="Choose between faster updates, or faster render",
+        cls.debug_bvh_type = EnumProperty(name="Viewport BVH Type", description="Choose between faster updates, or faster render",
             items=enums.bvh_types, default="DYNAMIC_BVH")
         cls.debug_use_spatial_splits = BoolProperty(name="Use Spatial Splits", description="Use BVH spatial splits: longer builder time, faster render",
             default=False)

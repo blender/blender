@@ -210,7 +210,7 @@ void BlenderSync::sync_render_layer(BL::SpaceView3D b_v3d)
 
 /* Scene Parameters */
 
-SceneParams BlenderSync::get_scene_params(BL::Scene b_scene)
+SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 {
 	SceneParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -221,7 +221,11 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene)
 	else if(shadingsystem == 1)
 		params.shadingsystem = SceneParams::OSL;
 	
-	params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
+	if(background)
+		params.bvh_type = SceneParams::BVH_STATIC;
+	else
+		params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
+
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 
 	return params;
