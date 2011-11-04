@@ -12157,8 +12157,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	}
 
-	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 1)){
+		Object *ob;
+
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			ob->collision_boundtype= ob->boundtype;
+		}
+
 		{
 			Camera *cam;
 			for(cam= main->camera.first; cam; cam= cam->id.next) {
@@ -12169,6 +12174,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
 		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

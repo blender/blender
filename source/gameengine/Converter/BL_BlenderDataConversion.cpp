@@ -1579,7 +1579,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	my_get_local_bounds(blenderobject,dm,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)
 	{
-		switch (blenderobject->boundtype)
+		switch (blenderobject->collision_boundtype)
 		{
 			case OB_BOUND_BOX:
 				objprop.m_boundclass = KX_BOUNDBOX;
