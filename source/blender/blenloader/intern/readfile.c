@@ -12154,11 +12154,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
 	}
 
 	/* put compatibility code here until next subversion bump */
 	{
-		
+		{
+			Camera *cam;
+			for(cam= main->camera.first; cam; cam= cam->id.next) {
+				if (cam->sensor_x < 0.01)
+					cam->sensor_x = DEFAULT_SENSOR_WIDTH;
+
+				if (cam->sensor_y < 0.01)
+					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

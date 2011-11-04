@@ -33,6 +33,14 @@ class CameraButtonsPanel():
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
+class CAMERA_MT_presets(bpy.types.Menu):
+    bl_label = "Camera Presets"
+    preset_subdir = "camera"
+    preset_operator = "script.execute_preset"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    draw = bpy.types.Menu.draw_preset
+
+
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
@@ -54,7 +62,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
             split.separator()
 
 
-class DATA_PT_camera(CameraButtonsPanel, Panel):
+class DATA_PT_lens(CameraButtonsPanel, Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -69,12 +77,12 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         col = split.column()
         if cam.type == 'PERSP':
+            row = col.row()
             if cam.lens_unit == 'MILLIMETERS':
-                col.prop(cam, "lens")
+                row.prop(cam, "lens")
             elif cam.lens_unit == 'DEGREES':
-                col.prop(cam, "angle")
-            col = split.column()
-            col.prop(cam, "lens_unit", text="")
+                row.prop(cam, "angle")
+            row.prop(cam, "lens_unit", text="")
 
         elif cam.type == 'ORTHO':
             col.prop(cam, "ortho_scale")
@@ -90,26 +98,55 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         split = layout.split()
 
+        col = split.column()
+        col.label(text="Depth of Field:")
+
+        col.prop(cam, "dof_object", text="")
+
+        col = col.column()
+        if cam.dof_object is not None:
+            col.enabled = False
+        col.prop(cam, "dof_distance", text="Distance")
+
         col = split.column(align=True)
         col.label(text="Shift:")
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
 
-        col = split.column(align=True)
-        col.label(text="Clipping:")
-        col.prop(cam, "clip_start", text="Start")
-        col.prop(cam, "clip_end", text="End")
 
-        layout.label(text="Depth of Field:")
+class DATA_PT_camera(CameraButtonsPanel, Panel):
+    bl_label = "Camera"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+
+        row = layout.row(align=True)
+
+        row.menu("CAMERA_MT_presets", text=bpy.types.CAMERA_MT_presets.bl_label)
+        row.operator("camera.preset_add", text="", icon="ZOOMIN")
+        row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
+
+        layout.label(text="Sensor:")
 
         split = layout.split()
-        split.prop(cam, "dof_object", text="")
 
-        col = split.column()
+        col = split.column(align=True)
+        if cam.sensor_fit == 'AUTO':
+            col.prop(cam, "sensor_width", text="Size")
+        else:
+            col.prop(cam, "sensor_width", text="Width")
+            col.prop(cam, "sensor_height", text="Height")
 
-        if cam.dof_object is not None:
-            col.enabled = False
-        col.prop(cam, "dof_distance", text="Distance")
+        col = split.column(align=True)
+        col.prop(cam, "sensor_fit", text="")
+ 
+        layout.label(text="Clipping:")
+        row = layout.row(align=True)
+        row.prop(cam, "clip_start", text="Start")
+        row.prop(cam, "clip_end", text="End")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
@@ -127,10 +164,12 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col.prop(cam, "show_limits", text="Limits")
         col.prop(cam, "show_mist", text="Mist")
         col.prop(cam, "show_title_safe", text="Title Safe")
+        col.prop(cam, "show_sensor", text="Sensor")
         col.prop(cam, "show_name", text="Name")
-        col.prop_menu_enum(cam, "show_guide")
 
         col = split.column()
+        col.prop_menu_enum(cam, "show_guide")
+        col.separator()
         col.prop(cam, "draw_size", text="Size")
         col.separator()
         col.prop(cam, "show_passepartout", text="Passepartout")

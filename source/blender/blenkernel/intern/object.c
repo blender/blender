@@ -724,6 +724,7 @@ void *add_camera(const char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
+	cam->sensor_x = 32.f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
@@ -2954,27 +2955,23 @@ void object_camera_mode(RenderData *rd, Object *camera)
 	}
 }
 
-/* 'lens' may be set for envmap only */
-void object_camera_matrix(
-		RenderData *rd, Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
-		float *viewdx, float *viewdy
-) {
-	Camera *cam=NULL;
-	float pixsize;
-	float shiftx=0.0, shifty=0.0, winside, viewfac;
-	short is_ortho= FALSE;
+void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
+			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit)
+{
+	Camera *cam= NULL;
 
-	/* question mark */
-	(*ycor)= rd->yasp / rd->xasp;
-	if(rd->mode & R_FIELDS)
-		(*ycor) *= 2.0f;
+	(*shiftx)= 0.0f;
+	(*shifty)= 0.0f;
+
+	(*sensor_x)= DEFAULT_SENSOR_WIDTH;
+	(*sensor_y)= DEFAULT_SENSOR_HEIGHT;
+	(*sensor_fit)= CAMERA_SENSOR_FIT_AUTO;
 
 	if(camera->type==OB_CAMERA) {
 		cam= camera->data;
 
 		if(cam->type == CAM_ORTHO) {
-			is_ortho= TRUE;
+			*is_ortho= TRUE;
 		}
 
 		/* solve this too... all time depending stuff is in convertblender.c?
@@ -2987,11 +2984,14 @@ void object_camera_matrix(
 			execute_ipo(&cam->id, cam->ipo);
 		}
 #endif // XXX old animation system
-		shiftx=cam->shiftx;
-		shifty=cam->shifty;
+		(*shiftx)=cam->shiftx;
+		(*shifty)=cam->shifty;
 		(*lens)= cam->lens;
+		(*sensor_x)= cam->sensor_x;
+		(*sensor_y)= cam->sensor_y;
 		(*clipsta)= cam->clipsta;
 		(*clipend)= cam->clipend;
+		(*sensor_fit)= cam->sensor_fit;
 	}
 	else if(camera->type==OB_LAMP) {
 		Lamp *la= camera->data;
@@ -3005,7 +3005,7 @@ void object_camera_matrix(
 		(*clipend)= la->clipend;
 	}
 	else {	/* envmap exception... */;
-		if((*lens)==0.0f)
+		if((*lens)==0.0f) /* is this needed anymore? */
 			(*lens)= 16.0f;
 
 		if((*clipsta)==0.0f || (*clipend)==0.0f) {
@@ -3014,25 +3014,69 @@ void object_camera_matrix(
 		}
 	}
 
+	(*cam_r)= cam;
+}
+
+/* 'lens' may be set for envmap only */
+void object_camera_matrix(
+		RenderData *rd, Object *camera, int winx, int winy, short field_second,
+		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens,
+		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
+		float *viewdx, float *viewdy)
+{
+	Camera *cam=NULL;
+	float pixsize;
+	float shiftx=0.0, shifty=0.0, winside, viewfac;
+	short is_ortho= FALSE;
+
+	/* question mark */
+	(*ycor)= rd->yasp / rd->xasp;
+	if(rd->mode & R_FIELDS)
+		(*ycor) *= 2.0f;
+
+	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x, sensor_y, sensor_fit);
+
 	/* ortho only with camera available */
 	if(cam && is_ortho) {
-		if(rd->xasp*winx >= rd->yasp*winy) {
+		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
+			if(rd->xasp*winx >= rd->yasp*winy) viewfac= winx;
+			else viewfac= (*ycor) * winy;
+		}
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
 			viewfac= winx;
 		}
 		else {
 			viewfac= (*ycor) * winy;
 		}
+
 		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx)/32.0f;
-		else								viewfac= (*ycor) * ((*lens) * winy)/32.0f;
+		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
+			if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
+			else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
+		}
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
+			viewfac= ((*lens) * winx) / (*sensor_x);
+		}
+		else if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) {
+			viewfac= ((*lens) * winy) / (*sensor_y);
+		}
+
 		pixsize= (*clipsta) / viewfac;
 	}
 
 	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
 	winside= MAX2(winx, winy);
+
+	if(cam) {
+		if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR)
+			winside= winx;
+		else if(cam->sensor_fit==CAMERA_SENSOR_FIT_VERT)
+			winside= winy;
+	}
+
 	viewplane->xmin= -0.5f*(float)winx + shiftx*winside;
 	viewplane->ymin= -0.5f*(*ycor)*(float)winy + shifty*winside;
 	viewplane->xmax=  0.5f*(float)winx + shiftx*winside;
@@ -3076,7 +3120,17 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 		float aspx= (float) scene->r.xsch*scene->r.xasp;
 		float aspy= (float) scene->r.ysch*scene->r.yasp;
 
-		if(aspx < aspy) {
+		if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
+			if(aspx < aspy) {
+				r_asp[0]= aspx / aspy;
+				r_asp[1]= 1.0;
+			}
+			else {
+				r_asp[0]= 1.0;
+				r_asp[1]= aspy / aspx;
+			}
+		}
+		else if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
 			r_asp[0]= aspx / aspy;
 			r_asp[1]= 1.0;
 		}
@@ -3102,16 +3156,18 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	else {
 		/* that way it's always visible - clipsta+0.1 */
 		float fac;
+		float half_sensor= 0.5f*((camera->sensor_fit==CAMERA_SENSOR_FIT_VERT) ? (camera->sensor_y) : (camera->sensor_x));
+
 		*r_drawsize= drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 
 		if(do_clip) {
 			/* fixed depth, variable size (avoids exceeding clipping range) */
 			depth = -(camera->clipsta + 0.1f);
-			fac = depth / (camera->lens/-16.0f * scale[2]);
+			fac = depth / (camera->lens/(-half_sensor) * scale[2]);
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
-			depth= *r_drawsize * camera->lens/-16.0f * scale[2];
+			depth= *r_drawsize * camera->lens/(-half_sensor) * scale[2];
 			fac= *r_drawsize;
 		}
 

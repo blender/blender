@@ -57,6 +57,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
@@ -3000,7 +3001,8 @@ static void project_paint_begin(ProjPaintState *ps)
 				Object *camera= ps->scene->camera;
 
 				/* dont actually use these */
-				float _viewdx, _viewdy, _ycor, _lens=0.0f;
+				float _viewdx, _viewdy, _ycor, _lens=0.0f, _sensor_x=DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
+				short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 				rctf _viewplane;
 
 				/* viewmat & viewinv */
@@ -3012,7 +3014,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				object_camera_mode(&ps->scene->r, camera);
 				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
 						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
-						&_lens, &_ycor, &_viewdx, &_viewdy);
+						&_lens, &_sensor_x, &_sensor_x, &_sensor_fit, &_ycor, &_viewdx, &_viewdy);
 
 				ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
 			}
