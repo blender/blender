@@ -444,12 +444,12 @@ typedef struct NodeTexSky {
 
 typedef struct NodeTexImage {
 	NodeTexBase base;
-	int color_space;
+	int color_space, pad;
 } NodeTexImage;
 
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
-	int color_space;
+	int color_space, pad;
 } NodeTexEnvironment;
 
 typedef struct NodeTexBlend {
