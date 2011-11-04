@@ -361,7 +361,7 @@ struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype
 
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		if ((spacetype == -1) || sa->spacetype == spacetype) {
-			if (min >= sa->winx && min >= sa->winy) {
+			if (min <= sa->winx && min <= sa->winy) {
 				size= sa->winx*sa->winy;
 				if (size > maxsize) {
 					maxsize= size;
