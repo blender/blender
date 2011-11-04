@@ -98,21 +98,15 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column()
-        col.label(text="Depth of Field:")
-
-        col.prop(cam, "dof_object", text="")
-
-        col = col.column()
-        if cam.dof_object is not None:
-            col.enabled = False
-        col.prop(cam, "dof_distance", text="Distance")
-
         col = split.column(align=True)
         col.label(text="Shift:")
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
 
+        col = split.column(align=True)
+        col.label(text="Clipping:")
+        col.prop(cam, "clip_start", text="Start")
+        col.prop(cam, "clip_end", text="End")
 
 class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
@@ -143,11 +137,24 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         col = split.column(align=True)
         col.prop(cam, "sensor_fit", text="")
 
-        layout.label(text="Clipping:")
-        row = layout.row(align=True)
-        row.prop(cam, "clip_start", text="Start")
-        row.prop(cam, "clip_end", text="End")
+class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
+    bl_label = "Depth of Field"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+
+        layout.label(text="Focus:")
+
+        split = layout.split()
+        split.prop(cam, "dof_object", text="")
+
+        col = split.column()
+
+        col.active = cam.dof_object is None
+        col.prop(cam, "dof_distance", text="Distance")
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
