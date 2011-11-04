@@ -2226,7 +2226,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_dupli_frames_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
-	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the frame"); // TODO, better descriptio!
+	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the current frame instead of parent curve's evaluation time");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_internal_update");
 
 	prop= RNA_def_property(srna, "use_dupli_vertices_rotation", PROP_BOOLEAN, PROP_NONE);
