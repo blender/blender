@@ -3408,20 +3408,20 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 {
 	float *hsv= ui_block_hsv_get(but->block);
 	float rgb[3];
-	float phi, r, sqr, v[2];
-	float sensitivity = (shift?0.15:0.3) * ndof->dt;
+	float phi, r /*, sqr */ /* UNUSED */, v[2];
+	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 	
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
-	phi = fmodf(hsv[0]+0.25, 1.0f) * -2.0f*M_PI;
+	phi = fmodf(hsv[0]+0.25f, 1.0f) * -2.0f*M_PI;
 	r = hsv[1];
-	sqr = r>0.f?sqrtf(r):1;
+	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
 	
 	/* Convert to 2d vectors */
-	v[0] = r * cos(phi);
-	v[1] = r * sin(phi);
+	v[0] = r * cosf(phi);
+	v[1] = r * sinf(phi);
 	
 	/* Use ndof device y and x rotation to move the vector in 2d space */
 	v[0] += ndof->ry * sensitivity;
@@ -3431,19 +3431,19 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	phi = atan2(v[0], v[1])/(2.0f*(float)M_PI) + 0.5f;
 	
 	/* use ndof z rotation to additionally rotate hue */
-	phi -= ndof->rz * sensitivity * 0.5;
+	phi -= ndof->rz * sensitivity * 0.5f;
 	
 	r = len_v2(v);
 	CLAMP(r, 0.0f, 1.0f);
 	
 	/* convert back to hsv values, in range [0,1] */
-	hsv[0] = fmodf(phi, 1.0);
+	hsv[0] = fmodf(phi, 1.0f);
 	hsv[1] = r;
 
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
 	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
-		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
 	}
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec+1, data->vec+2);

@@ -142,7 +142,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         col = split.column(align=True)
         col.prop(cam, "sensor_fit", text="")
- 
+
         layout.label(text="Clipping:")
         row = layout.row(align=True)
         row.prop(cam, "clip_start", text="Start")

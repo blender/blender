@@ -121,9 +121,7 @@ except ImportError:
     EXCLUDE_MODULES = EXCLUDE_MODULES + ("aud", )
 
 
-
 # import rpdb2; rpdb2.start_embedded_debugger('test')
-
 import os
 import inspect
 import bpy
@@ -327,7 +325,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
-    elif type(descr) == MemberDescriptorType: # same as above but use 'data'
+    elif type(descr) == MemberDescriptorType:  # same as above but use 'data'
         fw(ident + ".. data:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
@@ -443,7 +441,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # naughty, we also add getset's into PyStructs, this is not typical py but also not incorrect.
 
         # type_name is only used for examples and messages
-        type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1] # "<class 'bpy.app.handlers'>" --> bpy.app.handlers
+        type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]  # "<class 'bpy.app.handlers'>" --> bpy.app.handlers
         if type(descr) == types.GetSetDescriptorType:
             py_descr2sphinx("", fw, descr, module_name, type_name, key)
             attribute_set.add(key)
@@ -467,7 +465,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             # ack, cant use typical reference because we double up once here
             # and one fort he module!
             full_name = "%s.%s" % (module_name, type_name)
-            fw("   :ref:`%s submodule details <%s>`\n\n\n" % (full_name, module_id_as_ref(full_name))) #  % (module_name, type_name)
+            fw("   :ref:`%s submodule details <%s>`\n\n\n" % (full_name, module_id_as_ref(full_name)))
             del full_name
 
         attribute_set.add(key)
@@ -1306,7 +1304,7 @@ def rna2sphinx(BASEPATH):
         from bpy import app as module
         pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data")
 
-    if "bpy.app.handlers" not in EXCLUDE_MODULES:    
+    if "bpy.app.handlers" not in EXCLUDE_MODULES:
         from bpy.app import handlers as module
         pymodule2sphinx(BASEPATH, "bpy.app.handlers", module, "Application Handlers")
 

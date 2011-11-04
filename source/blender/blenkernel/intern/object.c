@@ -3045,7 +3045,7 @@ void object_camera_matrix(
 		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
 			viewfac= winx;
 		}
-		else {
+		else { /* if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) { */
 			viewfac= (*ycor) * winy;
 		}
 
@@ -3060,7 +3060,7 @@ void object_camera_matrix(
 		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
 			viewfac= ((*lens) * winx) / (*sensor_x);
 		}
-		else if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) {
+		else { /* if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) { */
 			viewfac= ((*lens) * winy) / (*sensor_y);
 		}
 

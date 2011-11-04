@@ -1133,7 +1133,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         sub.prop(ipaint, "normal_angle", text="")
 
         split = layout.split()
-        
+
         split.active = (use_projection)
         split.prop(ipaint, "use_stencil_layer", text="Stencil")
 
@@ -1148,10 +1148,10 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=mesh.uv_texture_clone.name)
 
         layout.prop(ipaint, "seam_bleed")
-        
+
         col = layout.column()
         col.label(text="External Editing:")
-        
+
         row = col.split(align=True, percentage=0.55)
         row.operator("image.project_edit", text="Quick Edit")
         row.operator("image.project_apply", text="Apply")
