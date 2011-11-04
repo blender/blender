@@ -47,6 +47,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_engine.h"
+#include "RE_pipeline.h"
+
 #include "RNA_enum_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -60,11 +63,8 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_INFO, "INFO", 0, "Info", ""},
 	{SPACE_SEQ, "SEQUENCE_EDITOR", 0, "Sequence Editor", ""},
 	{SPACE_TEXT, "TEXT_EDITOR", 0, "Text Editor", ""},
-	//{SPACE_IMASEL, "IMAGE_BROWSER", 0, "Image Browser", ""},
-	{SPACE_SOUND, "AUDIO_WINDOW", 0, "Audio Window", ""},
 	{SPACE_ACTION, "DOPESHEET_EDITOR", 0, "DopeSheet Editor", ""},
 	{SPACE_NLA, "NLA_EDITOR", 0, "NLA Editor", ""},
-	{SPACE_SCRIPT, "SCRIPTS_WINDOW", 0, "Scripts Window", ""},
 	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
 	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
@@ -102,8 +102,8 @@ EnumPropertyItem viewport_shade_items[] = {
 	{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
-	//{OB_SHADED, "SHADED", ICON_SMOOTH, "Shaded", "Display the object solid, with preview shading interpolated at vertices"},
 	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Textured", "Display the object solid, with face-assigned textures"},
+	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -155,16 +155,10 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceSequenceEditor;
 		case SPACE_TEXT:
 			return &RNA_SpaceTextEditor;
-		//case SPACE_IMASEL:
-		//	return &RNA_SpaceImageBrowser;
-		/*case SPACE_SOUND:
-			return &RNA_SpaceAudioWindow;*/
 		case SPACE_ACTION:
 			return &RNA_SpaceDopeSheetEditor;
 		case SPACE_NLA:
 			return &RNA_SpaceNLA;
-		/*case SPACE_SCRIPT:
-			return &RNA_SpaceScriptsWindow;*/
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
 		case SPACE_NODE:
@@ -327,6 +321,25 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DAG_on_visible_update(bmain, FALSE);
 }
 
+static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	ScrArea *sa= rna_area_from_space(ptr);
+
+	if(v3d->drawtype != OB_RENDER) {
+		ARegion *ar;
+
+		for(ar=sa->regionbase.first; ar; ar=ar->next) {
+			RegionView3D *rv3d = ar->regiondata;
+
+			if(rv3d && rv3d->render_engine) {
+				RE_engine_free(rv3d->render_engine);
+				rv3d->render_engine= NULL;
+			}
+		}
+	}
+}
+
 static void rna_SpaceView3D_pivot_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (U.uiflag & USER_LOCKAROUND) {
@@ -435,6 +448,29 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
 	negate_v3_v3(rv3d->ofs, values);
 	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+}
+
+static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_BOUNDBOX);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
+	
+	if(type->view_draw) {
+		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
 }
 
 /* Space Image Editor */
@@ -1338,8 +1374,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
@@ -2598,6 +2635,11 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem shader_type_items[] = {
+		{SNODE_SHADER_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit shader nodes from Object"},
+		{SNODE_SHADER_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit shader nodes from World"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem backdrop_channels_items[] = {
 		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
@@ -2619,6 +2661,12 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "texfrom");
 	RNA_def_property_enum_items(prop, texture_type_items);
 	RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
+
+	prop= RNA_def_property(srna, "shader_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "shaderfrom");
+	RNA_def_property_enum_items(prop, shader_type_items);
+	RNA_def_property_ui_text(prop, "Shader Type", "Type of data to take shader from");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
 
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);

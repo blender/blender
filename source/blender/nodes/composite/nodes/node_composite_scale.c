@@ -35,7 +35,7 @@
 /* **************** Scale  ******************** */
 
 static bNodeSocketTemplate cmp_node_scale_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "X",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, "Y",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
 	{	-1, 0, ""	}

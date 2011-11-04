@@ -75,7 +75,7 @@ static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_fluid_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 
@@ -170,7 +170,7 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *value)
 {
-#ifdef DISABLE_ELBEEM
+#ifndef WITH_MOD_FLUID
 	(void)ptr;
 	value[0]= '\0';
 #else
@@ -183,7 +183,7 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 
 static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *UNUSED(ptr))
 {
-#ifdef DISABLE_ELBEEM
+#ifndef WITH_MOD_FLUID
 	return 0;
 #else
 	return 31;

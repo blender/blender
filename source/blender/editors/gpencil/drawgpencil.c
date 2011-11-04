@@ -580,8 +580,8 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		
 		/* set color, stroke thickness, and point size */
 		glLineWidth(lthick);
-		QUATCOPY(color, gpl->color); // just for copying 4 array elements
-		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
+		copy_v4_v4(color, gpl->color); // just for copying 4 array elements
+		copy_v4_v4(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4fv(color);
 		glPointSize((float)(gpl->thickness + 2));
 		

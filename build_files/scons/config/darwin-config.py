@@ -336,7 +336,7 @@ else:
 
 # some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':
-	CCFLAGS = ['-fuse-cxa-atexit'] + CFLAGS
+	CCFLAGS = ['-fuse-cxa-atexit'] + CCFLAGS
 	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit'] + PLATFORM_LINKFLAGS
 	LLIBS.append('crt3.o')
 	

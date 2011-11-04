@@ -331,7 +331,7 @@ void RNA_def_main(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_dirty_get", NULL);
-	RNA_def_property_ui_text(prop, "File is Saved", "Have recent edits been saved to disk");
+	RNA_def_property_ui_text(prop, "File Has Unsaved Changes", "Have recent edits been saved to disk");
 
 	prop= RNA_def_property(srna, "is_saved", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -35,7 +35,6 @@ set(INC_SYS
 
 set(SRC
 	script_edit.c
-	script_header.c
 	script_ops.c
 	space_script.c
 

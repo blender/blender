@@ -141,7 +141,7 @@ int Filter_setPrevious (PyFilter * self, PyObject * value, void * closure)
 	if (self->m_filter != NULL)
 	{
 		// check new value
-		if (value == NULL || !pyFilterTypes.in(value->ob_type))
+		if (value == NULL || !pyFilterTypes.in(Py_TYPE(value)))
 		{
 			// report value error
 			PyErr_SetString(PyExc_TypeError, "Invalid type of value");

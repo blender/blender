@@ -63,6 +63,7 @@
 #include "BKE_unit.h"
 #include "BKE_movieclip.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"	// make_stars
 
 #include "IMB_imbuf_types.h"
@@ -1228,7 +1229,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* assume fixed sensor width for now */
 
-			float sensor_aspect = ca->sensor_x / ca->sensor_y;
+			/* float sensor_aspect = ca->sensor_x / ca->sensor_y; */ /* UNUSED */
 			float sensor_scale = (x2i-x1i) / ca->sensor_x;
 			float sensor_height = sensor_scale * ca->sensor_y;
 
@@ -1238,7 +1239,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			UI_ThemeColorShade(TH_WIRE, 100);
 
-			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0);
+			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0f);
 		}
 	}
 
@@ -1259,6 +1260,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
+	int multisample_enabled;
 	rcti winrct;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
@@ -1285,7 +1287,12 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
+	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
+
+	multisample_enabled= glIsEnabled(GL_MULTISAMPLE_ARB);
+	if(multisample_enabled)
+		glDisable(GL_MULTISAMPLE_ARB);
 
 	region_scissor_winrct(ar, &winrct);
 	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
@@ -1305,9 +1312,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	if(base && (base->lay & v3d->lay)) {
+	if(base && (base->lay & v3d->lay))
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
-	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 	ar->swap= 0; /* mark invalid backbuf for wm draw */
@@ -1316,6 +1322,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
+ 	if(multisample_enabled)
+		glEnable(GL_MULTISAMPLE_ARB);
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
@@ -2449,7 +2457,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	glPushAttrib(GL_LIGHTING_BIT);
 
 	/* bind */
-	ofs= GPU_offscreen_create(&sizex, &sizey, err_out);
+	ofs= GPU_offscreen_create(sizex, sizey, err_out);
 	if(ofs == NULL)
 		return NULL;
 
@@ -2475,9 +2483,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag);
 
 	if(ibuf->rect_float)
-		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
 	else if(ibuf->rect)
-		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	//if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
@@ -2582,6 +2590,62 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	}
 	
 	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
+}
+
+static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RenderEngineType *type;
+
+	if(!rv3d->render_engine) {
+		type= RE_engines_find(scene->r.engine);
+
+		if(!(type->view_update && type->view_draw))
+			return 0;
+
+		rv3d->render_engine= RE_engine_create(type);
+		type->view_update(rv3d->render_engine, C);
+	}
+
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	ED_region_pixelspace(ar);
+
+	type= rv3d->render_engine->type;
+	type->view_draw(rv3d->render_engine, C);
+
+	return 1;
+}
+
+static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
+{
+	rcti rect;
+	const int header_height = 18;
+
+	if(!rv3d->render_engine || !rv3d->render_engine->text)
+		return;
+	
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+	
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	UI_DrawString(12, rect.ymin + 5, rv3d->render_engine->text);
 }
 
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
@@ -2794,6 +2858,11 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else	
 		draw_view_icon(rv3d);
 	
+	if(rv3d->render_engine) {
+		view3d_main_area_draw_engine_info(rv3d, ar);
+		return;
+	}
+
 	if((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
 		draw_viewport_fps(scene, ar);
 	}
@@ -2821,9 +2890,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	const char *grid_unit= NULL;
 
-	view3d_main_area_draw_objects(C, ar, &grid_unit);
-
-	ED_region_pixelspace(ar);
+	/* draw viewport using external renderer? */
+	if(!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
+		/* draw viewport using opengl */
+		view3d_main_area_draw_objects(C, ar, &grid_unit);
+		ED_region_pixelspace(ar);
+	}
 	
 	view3d_main_area_draw_info(C, ar, grid_unit);
 

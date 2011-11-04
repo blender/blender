@@ -1296,7 +1296,7 @@ static void toggle_key_select(PEData *data, int point_index, int key_index)
 
 /************************ de select all operator ************************/
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static int pe_select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1358,7 +1358,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 	ot->idname= "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= select_all_exec;
+	ot->exec= pe_select_all_exec;
 	ot->poll= PE_poll;
 
 	/* flags */

@@ -35,7 +35,7 @@
 
 /* **************** VECTOR BLUR ******************** */
 static bNodeSocketTemplate cmp_node_vecblur_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Z",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_VECTOR, 1, "Speed",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
 	{	-1, 0, ""	}

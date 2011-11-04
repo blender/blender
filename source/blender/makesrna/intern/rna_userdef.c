@@ -1405,7 +1405,7 @@ static void rna_def_userdef_theme_space_logic(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	/* space_buts */
+	/* space_logic */
 	
 	srna= RNA_def_struct(brna, "ThemeLogicEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
@@ -1455,37 +1455,6 @@ static void rna_def_userdef_theme_space_time(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Grid", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "cframe");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Current Frame", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-}
-
-static void rna_def_userdef_theme_space_sound(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	/* space_sound */
-
-	srna= RNA_def_struct(brna, "ThemeAudioWindow", NULL);
-	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Audio Window", "Theme settings for the Audio Window");
-
-	rna_def_userdef_theme_spaces_main(srna, SPACE_SOUND);
-
-	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Grid", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop= RNA_def_property(srna, "window_sliders", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "shade1");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Window Sliders", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2064,7 +2033,6 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_info(brna);
 	rna_def_userdef_theme_space_userpref(brna);
 	rna_def_userdef_theme_space_console(brna);
-	rna_def_userdef_theme_space_sound(brna);
 	rna_def_userdef_theme_space_logic(brna);
 	rna_def_userdef_theme_space_clip(brna);
 	rna_def_userdef_theme_colorset(brna);
@@ -2648,6 +2616,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		/*{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},*/
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_PE"},
+		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);

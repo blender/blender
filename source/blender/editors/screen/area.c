@@ -84,19 +84,19 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	/* right  */
-	glColor4ub(0,0,0, 50);
+	glColor4ub(0,0,0, 30);
 	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
 	
 	/* bottom  */
-	glColor4ub(0,0,0, 80);
+	glColor4ub(0,0,0, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
 	
 	/* top  */
-	glColor4ub(255,255,255, 60);
+	glColor4ub(255,255,255, 30);
 	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
 
 	/* left  */
-	glColor4ub(255,255,255, 50);
+	glColor4ub(255,255,255, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
 	glDisable( GL_BLEND );
@@ -414,6 +414,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
 	
@@ -429,18 +432,15 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		at->draw(C, ar);
 	}
 
+	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+	ED_region_pixelspace(ar);
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
-	
+
 	if(sa)
 		region_draw_emboss(ar, &winrct);
-	
-	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
-	ED_region_pixelspace(ar);
-	
-	ar->do_draw= 0;
-	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
 /* **********************************

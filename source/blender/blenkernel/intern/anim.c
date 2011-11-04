@@ -363,10 +363,10 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		if (mpt->pchan) {
 			/* heads or tails */
 			if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
-				VECCOPY(mpv->co, mpt->pchan->pose_head);
+				copy_v3_v3(mpv->co, mpt->pchan->pose_head);
 			}
 			else {
-				VECCOPY(mpv->co, mpt->pchan->pose_tail);
+				copy_v3_v3(mpv->co, mpt->pchan->pose_tail);
 			}
 			
 			/* result must be in worldspace */
@@ -374,7 +374,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		}
 		else {
 			/* worldspace object location */
-			VECCOPY(mpv->co, mpt->ob->obmat[3]);
+			copy_v3_v3(mpv->co, mpt->ob->obmat[3]);
 		}
 	}
 }
@@ -654,15 +654,15 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 		totfac= data[0]+data[3];
 		if(totfac>FLT_EPSILON)	interp_qt_qtqt(q1, p0->quat, p3->quat, data[3] / totfac);
-		else					QUATCOPY(q1, p1->quat);
+		else					copy_qt_qt(q1, p1->quat);
 
 		totfac= data[1]+data[2];
 		if(totfac>FLT_EPSILON)	interp_qt_qtqt(q2, p1->quat, p2->quat, data[2] / totfac);
-		else					QUATCOPY(q2, p3->quat);
+		else					copy_qt_qt(q2, p3->quat);
 
 		totfac = data[0]+data[1]+data[2]+data[3];
 		if(totfac>FLT_EPSILON)	interp_qt_qtqt(quat, q1, q2, (data[1]+data[2]) / totfac);
-		else					QUATCOPY(quat, q2);
+		else					copy_qt_qt(quat, q2);
 	}
 
 	if(radius)
@@ -753,6 +753,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	extern int enable_cu_speed;	/* object.c */
 	Object copyob = {{NULL}};
 	int cfrao = scene->r.cfra;
+	int dupend = ob->dupend;
 	
 	/* simple prevention of too deep nested groups */
 	if (level > MAX_DUPLI_RECUR) return;
@@ -773,7 +774,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	/* duplicate over the required range */
 	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 	
-	for (scene->r.cfra= ob->dupsta; scene->r.cfra<=ob->dupend; scene->r.cfra++) {
+	for (scene->r.cfra= ob->dupsta; scene->r.cfra<=dupend; scene->r.cfra++) {
 		short ok= 1;
 		
 		/* - dupoff = how often a frames within the range shouldn't be made into duplis
@@ -842,7 +843,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	add_v3_v3(vec, vdd->obmat[3]);
 	
 	copy_m4_m4(obmat, vdd->obmat);
-	VECCOPY(obmat[3], vec);
+	copy_v3_v3(obmat[3], vec);
 	
 	if(vdd->par->transflag & OB_DUPLIROT) {
 		if(no_f) {
@@ -867,7 +868,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	vdd->ob->lay = origlay;
 
 	if(vdd->orco)
-		VECCOPY(dob->orco, vdd->orco[index]);
+		copy_v3_v3(dob->orco, vdd->orco[index]);
 	
 	if(vdd->ob->transflag & OB_DUPLI) {
 		float tmpmat[4][4];
@@ -1119,7 +1120,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						copy_m4_m4(obmat, ob__obmat);
 						
-						VECCOPY(obmat[3], cent);
+						copy_v3_v3(obmat[3], cent);
 						
 						/* rotation */
 						tri_to_quat( quat,v1, v2, v3);
@@ -1378,7 +1379,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					psys_get_dupli_path_transform(&sim, NULL, cpa, cache, pamat, &scale);
 				}
 
-				VECCOPY(pamat[3], cache->co);
+				copy_v3_v3(pamat[3], cache->co);
 				pamat[3][3]= 1.0f;
 				
 			}
@@ -1426,7 +1427,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				/* to give ipos in object correct offset */
 				where_is_object_time(scene, ob, ctime-pa_time);
 
-				VECCOPY(vec, obmat[3]);
+				copy_v3_v3(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 
 				/* particle rotation uses x-axis as the aligned axis, so pre-rotate the object accordingly */
@@ -1546,7 +1547,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 			mul_m4_v3(pmat, vec);
 			
 			copy_m4_m4(obmat, par->obmat);
-			VECCOPY(obmat[3], vec);
+			copy_v3_v3(obmat[3], vec);
 			
 			new_dupli_object(lb, ob, obmat, par->lay, a, OB_DUPLIVERTS, animated);
 		}

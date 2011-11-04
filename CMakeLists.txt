@@ -61,6 +61,13 @@ set(CMAKE_BUILD_TYPE_INIT "Release")
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
+# global compile definitions since add_definitions() adds for all.
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG           DEBUG _DEBUG)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBUG)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
+
+
 #-----------------------------------------------------------------------------
 # Set policy
 
@@ -148,8 +155,10 @@ else()
 endif()
 
 if(UNIX AND NOT APPLE)
-	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support)"	ON)
+	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
+	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
+	mark_as_advanced(WITH_XDG_USER_DIRS)
 else()
 	# not an option for other OS's
 	set(WITH_BUILTIN_GLEW ON)
@@ -297,6 +306,9 @@ set(PLATFORM_CFLAGS)
 # these are added to later on.
 set(C_WARNINGS)
 set(CXX_WARNINGS)
+
+# for gcc -Wno-blah-blah
+set(CC_REMOVE_STRICT_FLAGS)
 
 # libraries to link the binary with passed to target_link_libraries()
 # known as LLIBS to scons
@@ -506,8 +518,8 @@ if(UNIX AND NOT APPLE)
 
 	set(PLATFORM_LINKFLAGS "-pthread")
 
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
+	# lfs on glibc, all compilers should use
+	add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 
 	# GNU Compiler
 	if(CMAKE_COMPILER_IS_GNUCC)
@@ -615,21 +627,21 @@ elseif(WIN32)
 		set(CMAKE_C_FLAGS   "/nologo /J /W0 /Gd /wd4018 /wd4244 /wd4305 /wd4800 /wd4065 /wd4267 /we4013 /EHsc" CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		if(CMAKE_CL_64)
-			set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_CXX_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
 		if(CMAKE_CL_64)
-			set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
 		else()
-			set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+			set(CMAKE_C_FLAGS_DEBUG "/Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
 		endif()
-		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
-		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
+		set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
 
 		if(WITH_INTERNATIONAL)
 			set(GETTEXT ${LIBDIR}/gettext)
@@ -786,9 +798,6 @@ elseif(WIN32)
 		endif()
 
 		add_definitions(-DFREE_WINDOWS)
-
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-		set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
 
 		if(WITH_INTERNATIONAL)
 			set(GETTEXT ${LIBDIR}/gcc/gettext)
@@ -1220,21 +1229,6 @@ endif()
 #-----------------------------------------------------------------------------
 # Extra compile flags
 
-if((NOT WIN32) AND (NOT MSVC))
-	# used for internal debug checks
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
-
-	# assert() checks for this.
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
-	set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -DNDEBUG")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG")
-
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG")
-	set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG")
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCC)
 
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
@@ -1263,6 +1257,11 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# # this causes too many warnings, disable
 	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+
+	# flags to undo strict flags
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

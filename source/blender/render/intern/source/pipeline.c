@@ -405,7 +405,7 @@ static const char *get_pass_name(int passtype, int channel)
 	return "Unknown";
 }
 
-static int passtype_from_name(char *str)
+static int passtype_from_name(const char *str)
 {
 	
 	if(strcmp(str, "Combined")==0)
@@ -2517,14 +2517,14 @@ static void renderresult_stampinfo(Render *re)
 	RE_ReleaseResultImage(re);
 }
 
-static int seq_render_active(Render *re)
+int RE_seq_render_active(Scene *scene, RenderData *rd)
 {
 	Editing *ed;
 	Sequence *seq;
 
-	ed = re->scene->ed;
+	ed = scene->ed;
 	
-	if (!(re->r.scemode & R_DOSEQ) || !ed || !ed->seqbase.first)
+	if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first)
 		return 0;
 	
 	for (seq= ed->seqbase.first; seq; seq= seq->next) {
@@ -2632,6 +2632,12 @@ static void do_render_seq(Render * re)
 
 	/* just in case this flag went missing at some point */
 	re->r.scemode |= R_DOSEQ;
+
+	/* set overall progress of sequence rendering */
+	if(re->r.efra!=re->r.sfra)
+		re->progress(re->prh, (float)(cfra-re->r.sfra) / (re->r.efra-re->r.sfra));
+	else
+		re->progress(re->prh, 1.0f);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2649,7 +2655,7 @@ static void do_render_all_options(Render *re)
 	if(RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
 	}
-	else if(seq_render_active(re)) {
+	else if(RE_seq_render_active(re->scene, &re->r)) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
 			do_render_seq(re);
@@ -3085,6 +3091,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 
+	re->flag |= R_ANIMATION;
+
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, re->reports))
 			G.afbreek= 1;
@@ -3192,6 +3200,8 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
+
+	re->flag &= ~R_ANIMATION;
 
 	/* UGLY WARNING */
 	G.rendering= 0;

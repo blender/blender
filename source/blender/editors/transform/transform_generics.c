@@ -1344,7 +1344,7 @@ static void restoreElement(TransData *td)
 			copy_v3_v3(td->ext->size, td->ext->isize);
 		}
 		if (td->ext->quat) {
-			QUATCOPY(td->ext->quat, td->ext->iquat);
+			copy_qt_qt(td->ext->quat, td->ext->iquat);
 		}
 	}
 	

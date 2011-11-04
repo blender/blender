@@ -1218,7 +1218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 
-	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
+	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect, "<splash screen>");
 #else
 	ImBuf *ibuf= NULL;
 #endif
@@ -1745,7 +1745,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if((flag & FILE_LINK)==0) {
 		Library *lib= BLI_findstring(&bmain->library, libname, offsetof(Library, filepath));
-		if(lib)	all_local(lib, 1);
+		if(lib)	BKE_library_make_local(bmain, lib, 1);
 		else	BLI_assert(!"cant find name of just added library!");
 	}
 
@@ -1949,7 +1949,10 @@ static int blend_save_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
-	if(BLI_replace_extension(filepath, sizeof(filepath), ".blend")) {
+	if(!BLO_has_bfile_extension(filepath)) {
+		/* some users would prefer BLI_replace_extension(),
+		 * we keep getting knit-picking bug reports about this - campbell */
+		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return TRUE;
 	}
@@ -3447,6 +3450,28 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 	ot->exec= memory_statistics_exec;
 }
 
+/* ************************** memory statistics for testing ***************** */
+
+static int dependency_relations_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	DAG_print_dependencies(bmain, scene, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_dependency_relations(wmOperatorType *ot)
+{
+	ot->name= "Dependency Relations";
+	ot->idname= "WM_OT_dependency_relations";
+	ot->description= "Print dependency graph relations to the console";
+	
+	ot->exec= dependency_relations_exec;
+}
+
 /* ******************************************************* */
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
@@ -3529,6 +3554,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
+	WM_operatortype_append(WM_OT_dependency_relations);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);

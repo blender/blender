@@ -102,6 +102,18 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 	}
 }
 
+void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+
+	BLI_strncpy_utf8(sens->name, value, sizeof(sens->name));
+
+	if (ptr->id.data) {
+		Object *ob= (Object *)ptr->id.data;
+		BLI_uniquename(&ob->sensors, sens, "Sensor", '.', offsetof(bSensor, name), sizeof(sens->name));
+	}
+}
+
 static void rna_Sensor_type_set(struct PointerRNA *ptr, int value)
 {
 	bSensor *sens= (bSensor *)ptr->data;
@@ -260,6 +272,7 @@ static void rna_def_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Sensor name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Sensor_name_set");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

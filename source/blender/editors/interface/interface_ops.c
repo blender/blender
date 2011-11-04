@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 #include "BKE_global.h"
 #include "BKE_text.h" /* for UI_OT_reports_to_text */
 #include "BKE_report.h"
@@ -476,6 +477,7 @@ static void UI_OT_reports_to_textblock(wmOperatorType *ot)
 	ot->exec= reports_to_text_exec;
 }
 
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* EditSource Utility funcs and operator,
@@ -576,24 +578,6 @@ void UI_editsource_active_but_test(uiBut *but)
 
 /* editsource operator component */
 
-static ScrArea *biggest_text_view(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_TEXT) {
-			size= sa->winx * sa->winy;
-			if(size > maxsize) {
-				maxsize= size;
-				big= sa;
-			}
-		}
-	}
-	return big;
-}
-
 static int editsource_text_edit(bContext *C, wmOperator *op,
                                 char filepath[240], int line)
 {
@@ -618,7 +602,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	else {
 		/* naughty!, find text area to set, not good behavior
 		 * but since this is a dev tool lets allow it - campbell */
-		ScrArea *sa= biggest_text_view(C);
+		ScrArea *sa= BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
 		if(sa) {
 			SpaceText *st= sa->spacedata.first;
 			st->text= text;
@@ -711,6 +695,7 @@ static void UI_OT_editsource(wmOperatorType *ot)
 	ot->exec= editsource_exec;
 }
 
+#endif /* WITH_PYTHON */
 
 /* ********************************************************* */
 /* Registration */
@@ -723,6 +708,9 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
 	WM_operatortype_append(UI_OT_reports_to_textblock); // XXX: temp?
+
+#ifdef WITH_PYTHON
 	WM_operatortype_append(UI_OT_editsource);
+#endif
 }
 

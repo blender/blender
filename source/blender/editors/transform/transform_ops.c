@@ -610,7 +610,7 @@ void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
 	ot->cancel  = transform_cancel;
-	ot->poll   = ED_operator_editcurve;
+	ot->poll   = ED_operator_editcurve_3d;
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
 

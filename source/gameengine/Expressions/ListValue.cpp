@@ -339,10 +339,9 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		int index = PyLong_AsSsize_t(pyindex);
 		return listvalue_buffer_item(self, index); /* wont add a ref */
 	}
-	
-	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	PyErr_Format(PyExc_KeyError, "CList[key]: '%s' key not in list", _PyUnicode_AsString(pyindex_str));
-	Py_DECREF(pyindex_str);
+
+	PyErr_Format(PyExc_KeyError,
+	             "CList[key]: '%R' key not in list", pyindex);
 	return NULL;
 }
 

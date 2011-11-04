@@ -363,7 +363,7 @@ error_cleanup:
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
-	char *result;
+	const char *result;
 
 	result= _PyUnicode_AsString(py_str);
 

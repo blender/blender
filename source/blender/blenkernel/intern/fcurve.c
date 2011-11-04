@@ -1178,16 +1178,16 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 					
 					/* ... and from that, we get our transform */
-					VECCOPY(tmp_loc, mat[3]);
+					copy_v3_v3(tmp_loc, mat[3]);
 				}
 				else {
 					/* transform space (use transform values directly) */
-					VECCOPY(tmp_loc, pchan->loc);
+					copy_v3_v3(tmp_loc, pchan->loc);
 				}
 			}
 			else {
 				/* convert to worldspace */
-				VECCOPY(tmp_loc, pchan->pose_head);
+				copy_v3_v3(tmp_loc, pchan->pose_head);
 				mul_m4_v3(ob->obmat, tmp_loc);
 			}
 		}
@@ -1203,25 +1203,25 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 					constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
 					
 					/* ... and from that, we get our transform */
-					VECCOPY(tmp_loc, mat[3]);
+					copy_v3_v3(tmp_loc, mat[3]);
 				}
 				else {
 					/* transform space (use transform values directly) */
-					VECCOPY(tmp_loc, ob->loc);
+					copy_v3_v3(tmp_loc, ob->loc);
 				}
 			}
 			else {
 				/* worldspace */
-				VECCOPY(tmp_loc, ob->obmat[3]); 
+				copy_v3_v3(tmp_loc, ob->obmat[3]);
 			}
 		}
 		
 		/* copy the location to the right place */
 		if (tarIndex) {
-			VECCOPY(loc2, tmp_loc);
+			copy_v3_v3(loc2, tmp_loc);
 		}
 		else {
-			VECCOPY(loc1, tmp_loc);
+			copy_v3_v3(loc1, tmp_loc);
 		}
 	}
 	DRIVER_TARGETS_LOOPER_END
@@ -1262,7 +1262,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	if (pchan) {
 		/* bone */
 		if (pchan->rotmode > 0) {
-			VECCOPY(oldEul, pchan->eul);
+			copy_v3_v3(oldEul, pchan->eul);
 			rotOrder= pchan->rotmode;
 			useEulers = 1;
 		}
@@ -1289,7 +1289,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	else {
 		/* object */
 		if (ob->rotmode > 0) {
-			VECCOPY(oldEul, ob->rot);
+			copy_v3_v3(oldEul, ob->rot);
 			rotOrder= ob->rotmode;
 			useEulers = 1;
 		}

@@ -265,7 +265,9 @@ typedef struct Object {
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 
 	float ima_ofs[2];		/* offset for image empties */
-	char pad3[8];
+
+	short collision_boundtype;	/* bounding box type used for collision */
+	char pad3[6];
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -321,6 +323,7 @@ typedef struct DupliObject {
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) ((_type)  >= OB_MESH && (_type) <= OB_MBALL)
+#define OB_TYPE_SUPPORT_VGROUP(_type)   (ELEM(_type, OB_MESH, OB_LATTICE))
 
 /* partype: first 4 bits: type */
 #define PARTYPE			15
@@ -384,8 +387,11 @@ typedef struct DupliObject {
 #define OB_BOUNDBOX		1
 #define OB_WIRE			2
 #define OB_SOLID		3
-#define OB_SHADED		4
+#define OB_MATERIAL		4
 #define OB_TEXTURE		5
+#define OB_RENDER		6
+
+#define OB_PAINT		100	/* temporary used in draw code */
 
 /* dtx: flags, char! */
 #define OB_AXIS			2

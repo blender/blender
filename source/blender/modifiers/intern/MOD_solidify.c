@@ -626,7 +626,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
 #endif
-			origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
 		}
 		
 #ifdef SOLIDIFY_SIDE_NORMALS

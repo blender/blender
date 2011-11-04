@@ -783,14 +783,14 @@ static void pose_copy_menu(Scene *scene)
 			{
 				switch (nr) {
 					case 1: /* Local Location */
-						VECCOPY(pchan->loc, pchanact->loc);
+						copy_v3_v3(pchan->loc, pchanact->loc);
 						break;
 					case 2: /* Local Rotation */
-						QUATCOPY(pchan->quat, pchanact->quat);
-						VECCOPY(pchan->eul, pchanact->eul);
+						copy_qt_qt(pchan->quat, pchanact->quat);
+						copy_v3_v3(pchan->eul, pchanact->eul);
 						break;
 					case 3: /* Local Size */
-						VECCOPY(pchan->size, pchanact->size);
+						copy_v3_v3(pchan->size, pchanact->size);
 						break;
 					case 4: /* All Constraints */
 					{
@@ -822,9 +822,9 @@ static void pose_copy_menu(Scene *scene)
 					case 7: /* IK (DOF) settings */
 					{
 						pchan->ikflag = pchanact->ikflag;
-						VECCOPY(pchan->limitmin, pchanact->limitmin);
-						VECCOPY(pchan->limitmax, pchanact->limitmax);
-						VECCOPY(pchan->stiffness, pchanact->stiffness);
+						copy_v3_v3(pchan->limitmin, pchanact->limitmin);
+						copy_v3_v3(pchan->limitmax, pchanact->limitmax);
+						copy_v3_v3(pchan->stiffness, pchanact->stiffness);
 						pchan->ikstretch= pchanact->ikstretch;
 						pchan->ikrotweight= pchanact->ikrotweight;
 						pchan->iklinweight= pchanact->iklinweight;
@@ -861,7 +861,7 @@ static void pose_copy_menu(Scene *scene)
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
 						mat4_to_size( size,delta_mat);
-						VECCOPY(pchan->size, size);
+						copy_v3_v3(pchan->size, size);
 					}
 				}
 			}
@@ -1014,22 +1014,22 @@ static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short s
 		/* only loc rot size 
 		 *	- only copies transform info for the pose 
 		 */
-		VECCOPY(pchan->loc, chan->loc);
-		VECCOPY(pchan->size, chan->size);
+		copy_v3_v3(pchan->loc, chan->loc);
+		copy_v3_v3(pchan->size, chan->size);
 		pchan->flag= chan->flag;
 		
 		/* check if rotation modes are compatible (i.e. do they need any conversions) */
 		if (pchan->rotmode == chan->rotmode) {
 			/* copy the type of rotation in use */
 			if (pchan->rotmode > 0) {
-				VECCOPY(pchan->eul, chan->eul);
+				copy_v3_v3(pchan->eul, chan->eul);
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				VECCOPY(pchan->rotAxis, chan->rotAxis);
+				copy_v3_v3(pchan->rotAxis, chan->rotAxis);
 				pchan->rotAngle = chan->rotAngle;
 			}
 			else {
-				QUATCOPY(pchan->quat, chan->quat);
+				copy_qt_qt(pchan->quat, chan->quat);
 			}
 		}
 		else if (pchan->rotmode > 0) {

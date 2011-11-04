@@ -47,7 +47,7 @@ if(WITH_BLENDER)
 
 			# images
 			splash.png.c
-			blenderbuttons.c
+			blender_icons.png.c
 
 			# brushes
 			add.png.c

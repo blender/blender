@@ -43,6 +43,7 @@
 #include "DNA_ipo_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -241,38 +242,25 @@ Mesh *copy_mesh(Mesh *me)
 	return men;
 }
 
-static void make_local_tface(Main *bmain, Mesh *me)
-{
-	MTFace *tface;
-	Image *ima;
-	int a, i;
-	
-	for(i=0; i<me->fdata.totlayer; i++) {
-		if(me->fdata.layers[i].type == CD_MTFACE) {
-			tface= (MTFace*)me->fdata.layers[i].data;
-			
-			for(a=0; a<me->totface; a++, tface++) {
-				/* special case: ima always local immediately */
-				if(tface->tpage) {
-					ima= tface->tpage;
-					if(ima->id.lib) {
-						ima->id.lib= NULL;
-						ima->id.flag= LIB_LOCAL;
-						new_id(&bmain->image, (ID *)ima, NULL);
-					}
-				}
-			}
-		}
-	}
-}
-
-static void expand_local_mesh(Main *bmain, Mesh *me)
+static void expand_local_mesh(Mesh *me)
 {
 	id_lib_extern((ID *)me->texcomesh);
 
 	if(me->mtface) {
-		/* why is this an exception? - should not really make local when extern'ing - campbell */
-		make_local_tface(bmain, me);
+		MTFace *tface;
+		int a, i;
+
+		for(i=0; i<me->fdata.totlayer; i++) {
+			if(me->fdata.layers[i].type == CD_MTFACE) {
+				tface= (MTFace*)me->fdata.layers[i].data;
+
+				for(a=0; a<me->totface; a++, tface++) {
+					if(tface->tpage) {
+						id_lib_extern((ID *)tface->tpage);
+					}
+				}
+			}
+		}
 	}
 
 	if(me->mat) {
@@ -284,7 +272,7 @@ void make_local_mesh(Mesh *me)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -293,31 +281,29 @@ void make_local_mesh(Mesh *me)
 
 	if(me->id.lib==NULL) return;
 	if(me->id.us==1) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+		id_clear_lib_data(bmain, &me->id);
+		expand_local_mesh(me);
 		return;
 	}
 
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(me == ob->data) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
-		expand_local_mesh(bmain, me);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &me->id);
+		expand_local_mesh(me);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
 		Mesh *men= copy_mesh(me);
 		men->id.us= 0;
+
+
+		/* Remap paths of new ID using old library as base. */
+		BKE_id_lib_local_paths(bmain, &men->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(me == ob->data) {
@@ -1330,7 +1316,6 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	UvVertMap *vmap;
 	UvMapVert *buf;
 	MFace *mf;
-	MTFace *tf;
 	unsigned int a;
 	int	i, totuv, nverts;
 
@@ -1338,8 +1323,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 
 	/* generate UvMapVert array */
 	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++)
+	for(a=0; a<totface; a++, mf++)
 		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL)))
 			totuv += (mf->v4)? 4: 3;
 		
@@ -1359,8 +1343,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	}
 
 	mf= mface;
-	tf= tface;
-	for(a=0; a<totface; a++, mf++, tf++) {
+	for(a=0; a<totface; a++, mf++) {
 		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))) {
 			nverts= (mf->v4)? 4: 3;
 
@@ -1376,7 +1359,6 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	}
 	
 	/* sort individual uvs for each vert */
-	tf= tface;
 	for(a=0; a<totvert; a++) {
 		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
@@ -1388,14 +1370,14 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 			v->next= newvlist;
 			newvlist= v;
 
-			uv= (tf+v->f)->uv[v->tfindex];
+			uv= tface[v->f].uv[v->tfindex];
 			lastv= NULL;
 			iterv= vlist;
 
 			while(iterv) {
 				next= iterv->next;
 
-				uv2= (tf+iterv->f)->uv[iterv->tfindex];
+				uv2= tface[iterv->f].uv[iterv->tfindex];
 				sub_v2_v2v2(uvdiff, uv2, uv);
 
 

@@ -2770,14 +2770,14 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "}\n\n#endif /* __RNA_BLENDER_CPP_H__ */\n\n");
 }
 
-static void make_bad_file(char *file, int line)
+static void make_bad_file(const char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
 	fprintf(fp, "#error \"Error! can't make correct RNA file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
-static int rna_preprocess(char *outfile)
+static int rna_preprocess(const char *outfile)
 {
 	BlenderRNA *brna;
 	StructDefRNA *ds;

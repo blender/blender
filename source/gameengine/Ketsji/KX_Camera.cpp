@@ -902,7 +902,9 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, _PyUnicode_AsString(value));
+			PyErr_Format(PyExc_ValueError,
+			             "%s, requested name \"%s\" did not match any KX_Camera in this scene",
+			             error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}

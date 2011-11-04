@@ -750,7 +750,7 @@ void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *te
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
-void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
+void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, const char *prop_list, int rows, int maxrows, int type);
 
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);

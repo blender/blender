@@ -62,9 +62,10 @@
 // headers for fluidsim bobj meshes
 #include "LBM_fluidsim.h"
 
+
 void fluidsim_init(FluidsimModifierData *fluidmd)
 {
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 	if(fluidmd)
 	{
 		FluidsimSettings *fss = MEM_callocN(sizeof(FluidsimSettings), "fluidsimsettings");
@@ -152,7 +153,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 void fluidsim_free(FluidsimModifierData *fluidmd)
 {
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 	if(fluidmd)
 	{
 		if(fluidmd->fss->meshVelocities)
@@ -169,7 +170,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 	return;
 }
 
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
 static DerivedMesh *fluidsim_read_obj(const char *filename)
 {
@@ -534,14 +535,14 @@ static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData
 
 	return dm;
 }
-#endif // DISABLE_ELBEEM
+#endif // WITH_MOD_FLUID
 
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 						Object *UNUSED(ob),
 						DerivedMesh *dm,
 						int useRenderParams, int UNUSED(isFinalCalc))
 {
-#ifndef DISABLE_ELBEEM
+#ifdef WITH_MOD_FLUID
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;

@@ -40,8 +40,5 @@ struct wmWindowManager;
 void time_operatortypes(void);
 void time_keymap(struct wmKeyConfig *keyconf);
 
-/* time_header.c */
-void time_header_buttons(const bContext *C, ARegion *ar);
-
 #endif /* ED_TIME_INTERN_H */
 

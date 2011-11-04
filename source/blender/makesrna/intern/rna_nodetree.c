@@ -56,7 +56,7 @@
 #include "MEM_guardedalloc.h"
 
 EnumPropertyItem nodetree_type_items[] = {
-	{NTREE_SHADER,		"MATERIAL",		ICON_MATERIAL,		"Material",		"Material nodes"	},
+	{NTREE_SHADER,		"SHADER",		ICON_MATERIAL,		"Shader",		"Shader nodes"	},
 	{NTREE_TEXTURE,		"TEXTURE",		ICON_TEXTURE,		"Texture",		"Texture nodes"		},
 	{NTREE_COMPOSIT,	"COMPOSITING",	ICON_RENDERLAYERS,	"Compositing",	"Compositing nodes"	},
 	{0, NULL, 0, NULL, NULL}
@@ -189,7 +189,7 @@ static StructRNA *rna_NodeTree_refine(struct PointerRNA *ptr)
 		case NTREE_TEXTURE:
 			return &RNA_TextureNodeTree;
 		default:
-			return &RNA_UnknownType;
+			return &RNA_NodeTree;
 	}
 }
 
@@ -232,6 +232,8 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 		case SOCK_RGBA:
 			return &RNA_NodeSocketRGBA;
 			break;
+		case SOCK_SHADER:
+			return &RNA_NodeSocketShader;
 		}
 		
 		#undef SUBTYPE
@@ -3087,6 +3089,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	#undef SUBTYPE
 	rna_def_node_socket_subtype(brna, SOCK_BOOLEAN, 0, "NodeSocketBoolean", "Boolean Node Socket");
 	rna_def_node_socket_subtype(brna, SOCK_RGBA, 0, "NodeSocketRGBA", "RGBA Node Socket");
+	rna_def_node_socket_subtype(brna, SOCK_SHADER, 0, "NodeSocketShader", "Shader Closure Node Socket");
 	
 	rna_def_node(brna);
 	rna_def_node_link(brna);

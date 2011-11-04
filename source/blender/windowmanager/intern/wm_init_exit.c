@@ -61,8 +61,9 @@
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
 
-#include "BLI_blenlib.h"
-#include "BLI_winstuff.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"		/* RE_ free stuff */
@@ -158,7 +159,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BPY_python_start(argc, argv);
 
 	BPY_driver_reset();
-	BPY_app_handlers_reset(); /* causes addon callbacks to be freed [#28068],
+	BPY_app_handlers_reset(FALSE); /* causes addon callbacks to be freed [#28068],
 	                           * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else
@@ -211,24 +212,6 @@ void WM_init_splash(bContext *C)
 	}
 }
 
-static ScrArea *biggest_view3d(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			size= sa->winx * sa->winy;
-			if(size > maxsize) {
-				maxsize= size;
-				big= sa;
-			}
-		}
-	}
-	return big;
-}
-
 int WM_init_game(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -251,7 +234,7 @@ int WM_init_game(bContext *C)
 	if(win)
 		CTX_wm_window_set(C, win);
 
-	sa = biggest_view3d(C);
+	sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
 	ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 	// if we have a valid 3D view

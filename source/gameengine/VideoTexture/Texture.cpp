@@ -107,7 +107,7 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 
 
 // get material ID
-short getMaterialID (PyObject * obj, char * name)
+short getMaterialID(PyObject * obj, const char *name)
 {
 	// search for material
 	for (short matID = 0;; ++matID)
@@ -171,7 +171,7 @@ void Texture_dealloc (Texture * self)
 	// release scaled image buffer
 	delete [] self->m_scaledImg;
 	// release object
-	((PyObject *)self)->ob_type->tp_free((PyObject*)self);
+	Py_TYPE((PyObject *)self)->tp_free((PyObject*)self);
 }
 
 
@@ -410,7 +410,7 @@ PyObject * Texture_getSource (Texture * self, PyObject * value, void * closure)
 int Texture_setSource (Texture * self, PyObject * value, void * closure)
 {
 	// check new value
-	if (value == NULL || !pyImageTypes.in(value->ob_type))
+	if (value == NULL || !pyImageTypes.in(Py_TYPE(value)))
 	{
 		// report value error
 		PyErr_SetString(PyExc_TypeError, "Invalid type of value");

@@ -170,35 +170,35 @@ static int additional_slen_offset;
  * \param str char
  * \param len int
  */
-int add_type(const char *str, int len);
+static int add_type(const char *str, int len);
 
 /**
  * Add variable \c str to 
  * \param str
  */
-int add_name(char *str);
+static int add_name(const char *str);
 
 /**
  * Search whether this structure type was already found, and if not,
  * add it.
  */
-short *add_struct(int namecode);
+static short *add_struct(int namecode);
 
 /**
  * Remove comments from this buffer. Assumes that the buffer refers to
  * ascii-code text.
  */
-int preprocess_include(char *maindata, int len);
+static int preprocess_include(char *maindata, int len);
 
 /**
  * Scan this file for serializable types.
  */ 
-int convert_include(char *filename);
+static int convert_include(char *filename);
 
 /**
  * Determine how many bytes are needed for an array.
  */ 
-int arraysize(char *astr, int len);
+static int arraysize(char *astr, int len);
 
 /**
  * Determine how many bytes are needed for each struct.
@@ -269,12 +269,12 @@ int add_type(const char *str, int len)
  * cases, unfortunately. These are explicitly checked.
  *
  * */
-int add_name(char *str)
+static int add_name(const char *str)
 {
 	int nr, i, j, k;
 	char *cp;
 	char buf[255]; /* stupid limit, change it :) */
-	char *name;
+	const char *name;
 
 	additional_slen_offset = 0;
 	
@@ -424,7 +424,7 @@ short *add_struct(int namecode)
 	return sp;
 }
 
-int preprocess_include(char *maindata, int len)
+static int preprocess_include(char *maindata, int len)
 {
 	int a, newlen, comment = 0;
 	char *cp, *temp, *md;
@@ -1089,7 +1089,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 
 /* ************************* END MAKE DNA ********************** */
 
-static void make_bad_file(char *file, int line)
+static void make_bad_file(const char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
 	fprintf(fp, "#error \"Error! can't make correct DNA.c file from %s:%d, STUPID!\"\n", __FILE__, line);

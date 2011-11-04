@@ -142,6 +142,8 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 
+#include "RE_engine.h"
+
 #include "readfile.h"
 
 #include "PIL_time.h"
@@ -2247,6 +2249,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 			if (ntree->update)
 				ntreeUpdateTree(ntree);
+
 		for (i=0; i < NUM_NTREE_TYPES; ++i) {
 			ntreetype= ntreeGetType(i);
 			if (ntreetype && ntreetype->foreach_nodetree)
@@ -2576,6 +2579,9 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			}
 			
 			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
+
+			if(la->nodetree)
+				lib_link_ntree(fd, &la->id, la->nodetree);
 			
 			la->id.flag -= LIB_NEEDLINK;
 		}
@@ -2597,6 +2603,10 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	la->curfalloff= newdataadr(fd, la->curfalloff);
 	if(la->curfalloff)
 		direct_link_curvemapping(fd, la->curfalloff);
+
+	la->nodetree= newdataadr(fd, la->nodetree);
+	if(la->nodetree)
+		direct_link_nodetree(fd, la->nodetree);
 	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
@@ -2739,6 +2749,9 @@ static void lib_link_world(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, wrld->id.lib, mtex->object);
 				}
 			}
+
+			if(wrld->nodetree)
+				lib_link_ntree(fd, &wrld->id, wrld->nodetree);
 			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
@@ -2756,6 +2769,11 @@ static void direct_link_world(FileData *fd, World *wrld)
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
 	}
+
+	wrld->nodetree= newdataadr(fd, wrld->nodetree);
+	if(wrld->nodetree)
+		direct_link_nodetree(fd, wrld->nodetree);
+
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
 
@@ -3497,6 +3515,9 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	MTFace *tf= mtface;
 	int i;
 
+	/* Add pseudo-references (not fake users!) to images used by texface. A
+	   little bogus; it would be better if each mesh consistently added one ref
+	   to each image it used. - z0r */
 	for (i=0; i<totface; i++, tf++) {
 		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
 		if(tf->tpage && tf->tpage->id.us==0)
@@ -4997,15 +5018,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->folders_prev= NULL;
 						sfile->folders_next= NULL;
 					}
-					else if(sl->spacetype==SPACE_IMASEL) {
-						SpaceImaSel *simasel= (SpaceImaSel *)sl;
-
-						simasel->files = NULL;						
-						simasel->returnfunc= NULL;
-						simasel->menup= NULL;
-						simasel->pupmenu= NULL;
-						simasel->img= NULL;
-					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
 						bDopeSheet *ads= &saction->ads;
@@ -5069,11 +5081,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 						}
 					}
-					else if(sl->spacetype==SPACE_SOUND) {
-						SpaceSound *ssound= (SpaceSound *)sl;
-
-						ssound->sound= newlibadr_us(fd, sc->id.lib, ssound->sound);
-					}
 					else if(sl->spacetype==SPACE_NODE) {
 						SpaceNode *snode= (SpaceNode *)sl;
 						
@@ -5086,6 +5093,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 							if(snode->id) {
 								if(GS(snode->id->name)==ID_MA)
 									snode->nodetree= ((Material *)snode->id)->nodetree;
+								else if(GS(snode->id->name)==ID_WO)
+									snode->nodetree= ((World *)snode->id)->nodetree;
+								else if(GS(snode->id->name)==ID_LA)
+									snode->nodetree= ((Lamp *)snode->id)->nodetree;
 								else if(GS(snode->id->name)==ID_SCE)
 									snode->nodetree= ((Scene *)snode->id)->nodetree;
 								else if(GS(snode->id->name)==ID_TE)
@@ -5181,6 +5192,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 					BGpic *bgpic;
+					ARegion *ar;
 					
 					if(v3d->scenelock)
 						v3d->camera= NULL; /* always get from scene */
@@ -5217,6 +5229,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
+					/* free render engines for now */
+					for(ar= sa->regionbase.first; ar; ar= ar->next) {
+						RegionView3D *rv3d= ar->regiondata;
+
+						if(rv3d && rv3d->render_engine) {
+							RE_engine_free(rv3d->render_engine);
+							rv3d->render_engine= NULL;
+						}
+					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -5238,12 +5259,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
 					sfile->op= NULL;
-				}
-				else if(sl->spacetype==SPACE_IMASEL) {
-					SpaceImaSel *simasel= (SpaceImaSel *)sl;
-					if (simasel->files) {
-						//XXX BIF_filelist_freelib(simasel->files);
-					}
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
@@ -5311,11 +5326,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						}
 					}
 				}
-				else if(sl->spacetype==SPACE_SOUND) {
-					SpaceSound *ssound= (SpaceSound *)sl;
-
-					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound, 1);
-				}
 				else if(sl->spacetype==SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
 					
@@ -5373,6 +5383,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 			
 			rv3d->depths= NULL;
 			rv3d->ri= NULL;
+			rv3d->render_engine= NULL;
 			rv3d->sms= NULL;
 			rv3d->smooth_timer= NULL;
 		}
@@ -5405,8 +5416,8 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 			rv3d->persp= v3d->persp;
 			rv3d->view= v3d->view;
 			rv3d->dist= v3d->dist;
-			VECCOPY(rv3d->ofs, v3d->ofs);
-			QUATCOPY(rv3d->viewquat, v3d->viewquat);
+			copy_v3_v3(rv3d->ofs, v3d->ofs);
+			copy_qt_qt(rv3d->viewquat, v3d->viewquat);
 		}
 	}
 
@@ -5514,6 +5525,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw_xray.first= v3d->afterdraw_xray.last= NULL;
 				v3d->afterdraw_xraytransp.first= v3d->afterdraw_xraytransp.last= NULL;
 				v3d->properties_storage= NULL;
+
+				/* render can be quite heavy, set to wire on load */
+				if(v3d->drawtype == OB_RENDER)
+					v3d->drawtype = OB_WIRE;
 				
 				view3d_split_250(v3d, &sl->regionbase);
 			}
@@ -6763,16 +6778,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
-			case SPACE_SOUND:
-			{
-				SpaceSound *ssound= (SpaceSound *)sl;
-				memcpy(&ar->v2d, &ssound->v2d, sizeof(View2D));
-				
-				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-				ar->v2d.scroll |= (V2D_SCROLL_LEFT);
-				//ar->v2d.flag |= V2D_IS_INITIALISED;
-				break;
-			}
 			case SPACE_NLA:
 			{
 				SpaceNla *snla= (SpaceNla *)sl;
@@ -6888,11 +6893,17 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		
 		area_add_window_regions(sa, sa->spacedata.first, &sa->regionbase);
 		
-		/* space imageselect is depricated */
+		/* space imageselect is deprecated */
 		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			if(sl->spacetype==SPACE_IMASEL)
-				sl->spacetype= SPACE_INFO;	/* spacedata then matches */
-		}		
+				sl->spacetype= SPACE_EMPTY;	/* spacedata then matches */
+		}
+		
+		/* space sound is deprecated */
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
+			if(sl->spacetype==SPACE_SOUND)
+				sl->spacetype= SPACE_EMPTY;	/* spacedata then matches */
+		}
 		
 		/* it seems to be possible in 2.5 to have this saved, filewindow probably */
 		sa->butspacetype= sa->spacetype;
@@ -9292,7 +9303,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 245) {
 		Scene *sce;
-		bScreen *sc;
 		Object *ob;
 		Image *ima;
 		Lamp *la;
@@ -9381,49 +9391,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* repair preview from 242 - 244*/
 			for(ima= main->image.first; ima; ima= ima->id.next) {
 				ima->preview = NULL;
-			}
-			
-			/* repair imasel space - completely reworked */
-			for(sc= main->screen.first; sc; sc= sc->id.next) {
-				ScrArea *sa;
-				sa= sc->areabase.first;
-				while(sa) {
-					SpaceLink *sl;
-					
-					for (sl= sa->spacedata.first; sl; sl= sl->next) {
-						if(sl->spacetype==SPACE_IMASEL) {
-							SpaceImaSel *simasel= (SpaceImaSel*) sl;
-							simasel->blockscale= 0.7f;
-							/* view 2D */
-							simasel->v2d.tot.xmin=  -10.0f;
-							simasel->v2d.tot.ymin=  -10.0f;
-							simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
-							simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
-							simasel->v2d.cur.xmin=  0.0f;
-							simasel->v2d.cur.ymin=  0.0f;
-							simasel->v2d.cur.xmax= (float)sa->winx;
-							simasel->v2d.cur.ymax= (float)sa->winy;						
-							simasel->v2d.min[0]= 1.0;
-							simasel->v2d.min[1]= 1.0;						
-							simasel->v2d.max[0]= 32000.0f;
-							simasel->v2d.max[1]= 32000.0f;						
-							simasel->v2d.minzoom= 0.5f;
-							simasel->v2d.maxzoom= 1.21f;						
-							simasel->v2d.scroll= 0;
-							simasel->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
-							simasel->v2d.keeptot= 0;
-							simasel->prv_h = 96;
-							simasel->prv_w = 96;
-							simasel->flag = 7; /* ??? elubie */
-							BLI_strncpy (simasel->dir,  U.textudir, sizeof(simasel->dir)); /* TON */
-							simasel->file[0]= '\0';
-							
-							simasel->returnfunc     =  NULL;
-							simasel->title[0]       =  0;
-						}
-					}
-					sa = sa->next;
-				}
 			}
 		}
 
@@ -10908,7 +10875,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Object *ob=main->object.first;
 			while (ob) {
 				/* shaded mode disabled for now */
-				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				if (ob->dt == OB_MATERIAL) ob->dt = OB_TEXTURE;
 				ob=ob->id.next;
 			}
 		}
@@ -10923,7 +10890,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					for(sl= sa->spacedata.first; sl; sl= sl->next) {
 						if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+							if (v3d->drawtype == OB_MATERIAL) v3d->drawtype = OB_SOLID;
 						}
 					}
 				}
@@ -12295,8 +12262,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 260){
 		{
 			/* set default alpha value of Image outputs in image and render layer nodes to 0 */
 			Scene *sce;
@@ -12329,7 +12295,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
 
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 1)){
+		Object *ob;
+
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			ob->collision_boundtype= ob->boundtype;
+		}
+
+		{
+			Camera *cam;
+			for(cam= main->camera.first; cam; cam= cam->id.next) {
+				if (cam->sensor_x < 0.01)
+					cam->sensor_x = DEFAULT_SENSOR_WIDTH;
+
+				if (cam->sensor_y < 0.01)
+					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
+			}
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
 		{
 			bScreen *sc;
 			Camera *cam;
@@ -12346,18 +12334,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								v3d->bundle_size= 0.2f;
 								v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 							}
+							else if(sl->spacetype==SPACE_CLIP) {
+								SpaceClip *sc= (SpaceClip *)sl;
+								if(sc->scopes.track_preview_height==0)
+									sc->scopes.track_preview_height= 120;
+							}
 
 							if(v3d->bundle_drawtype==0)
 								v3d->bundle_drawtype= OB_PLAINAXES;
 						}
-						else if(sl->spacetype==SPACE_CLIP) {
-							SpaceClip *sc= (SpaceClip *)sl;
-							if(sc->scopes.track_preview_height==0)
-								sc->scopes.track_preview_height= 120;
-						}
 					}
 				}
-
 			}
 
 			for(cam= main->camera.first; cam; cam= cam->id.next) {
@@ -12988,6 +12975,9 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 	
 	if (la->adt)
 		expand_animdata(fd, mainvar, la->adt);
+
+	if(la->nodetree)
+		expand_nodetree(fd, mainvar, la->nodetree);
 }
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
@@ -13015,6 +13005,9 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 	
 	if (wrld->adt)
 		expand_animdata(fd, mainvar, wrld->adt);
+
+	if(wrld->nodetree)
+		expand_nodetree(fd, mainvar, wrld->nodetree);
 }
 
 

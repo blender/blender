@@ -43,10 +43,11 @@
 #include <string.h>
 #include <limits.h>
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_action_types.h"
 
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -1039,6 +1040,7 @@ static void ntreeMakeLocal_LinkNew(void *calldata, ID *owner_id, bNodeTree *ntre
 
 void ntreeMakeLocal(bNodeTree *ntree)
 {
+	Main *bmain= G.main;
 	bNodeTreeType *treetype= ntreeGetType(ntree->type);
 	MakeLocalCallData cd;
 	
@@ -1049,9 +1051,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
-		ntree->id.lib= NULL;
-		ntree->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ntree, NULL);
+		id_clear_lib_data(bmain, (ID *)ntree);
 		return;
 	}
 	
@@ -1065,9 +1065,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	/* if all users are local, we simply make tree local */
 	if(cd.local && cd.lib==0) {
-		ntree->id.lib= NULL;
-		ntree->id.flag= LIB_LOCAL;
-		new_id(NULL, (ID *)ntree, NULL);
+		id_clear_lib_data(bmain, (ID *)ntree);
 	}
 	else if(cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
@@ -1323,7 +1321,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_ID;
 }
 
-/* use flags are not persistant yet, groups might need different tagging, so we do it each time
+/* use flags are not persistent yet, groups might need different tagging, so we do it each time
    when we need to get this info */
 void ntreeSocketUseFlags(bNodeTree *ntree)
 {
@@ -1754,6 +1752,10 @@ void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMate
 	ntype->gpuextfunc = gpuextfunc;
 }
 
+void node_type_compatibility(struct bNodeType *ntype, short compatibility)
+{
+	ntype->compatibility = compatibility;
+}
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
 {

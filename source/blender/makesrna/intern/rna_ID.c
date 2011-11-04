@@ -488,6 +488,16 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Tag", "Tools can use this to tag data (initial state is undefined)");
 
+	prop= RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Updated", "Datablock is tagged for recalculation");
+
+	prop= RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC_DATA);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Updated Data", "Datablock data is tagged for recalculation");
+
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

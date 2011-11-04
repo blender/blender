@@ -1860,6 +1860,12 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
+
+			/* nodetree is integral part of lamps, no libdata */
+			if(wrld->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, wrld->nodetree);
+				write_nodetree(wd, wrld->nodetree);
+			}
 			
 			write_previews(wd, wrld->preview);
 		}
@@ -1889,6 +1895,12 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
 			
+			/* nodetree is integral part of lamps, no libdata */
+			if(la->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, la->nodetree);
+				write_nodetree(wd, la->nodetree);
+			}
+
 			write_previews(wd, la->preview);
 			
 		}
@@ -2208,10 +2220,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					if(sima->cumap)
 						write_curvemapping(wd, sima->cumap);
 				}
-				else if(sl->spacetype==SPACE_IMASEL) {
-					// XXX: depreceated... do we still want to keep this?
-					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
-				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
@@ -2222,9 +2230,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					writestruct(wd, DATA, "SpaceAction", 1, sl);
-				}
-				else if(sl->spacetype==SPACE_SOUND) {
-					writestruct(wd, DATA, "SpaceSound", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					SpaceNla *snla= (SpaceNla *)sl;
@@ -2270,7 +2275,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 static void write_libraries(WriteData *wd, Main *main)
 {
-	ListBase *lbarray[ID_NUMTYPES];
+	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
 	int a, tot, foundone;
 

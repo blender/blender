@@ -310,13 +310,14 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
 
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
+	Main *bmain= CTX_data_main(BPy_GetContext());
 	Main *mainl= NULL;
 	int err= 0;
 
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
-	mainl= BLO_library_append_begin(CTX_data_main(BPy_GetContext()), &(self->blo_handle), self->relpath);
+	mainl= BLO_library_append_begin(bmain, &(self->blo_handle), self->relpath);
 
 	{
 		int i= 0, code;
@@ -399,7 +400,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 			/* append, rather than linking */
 			if ((self->flag & FILE_LINK)==0) {
 				Library *lib= BLI_findstring(&G.main->library, self->abspath, offsetof(Library, name));
-				if (lib)  all_local(lib, 1);
+				if (lib)  BKE_library_make_local(bmain, lib, 1);
 				else      BLI_assert(!"cant find name of just added library!");
 			}
 		}

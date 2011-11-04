@@ -155,7 +155,7 @@ struct Render
 	float lens;
 	float sensor_x, sensor_y; /* image sensor size, same variable in camera */
 	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
-	char sensor_fit;
+	short sensor_fit;
 	
 	float panophi, panosi, panoco, panodxp, panodxv;
 	
@@ -603,6 +603,7 @@ typedef struct LampRen {
 #define R_NEED_TANGENT	16
 #define R_BAKE_TRACE	32
 #define R_BAKING		64
+#define R_ANIMATION		128
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
