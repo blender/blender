@@ -3401,7 +3401,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 
 
 					/* if any sample was inside paint range	*/
-					if (brushStrength > 0.01f) {
+					if (brushStrength > 0.0f || depth > 0.0f) {
 
 						/* apply supersampling results	*/
 						if (samples > 1) {
@@ -4390,8 +4390,10 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 				pPoint->alpha = (f_color[3] - pPoint->e_alpha)/(1.0f-pPoint->e_alpha);
 				/* for each rgb component, calculate a new dry layer color that keeps the final blend color
 				*  with these new alpha values. (wet layer color doesnt change)*/
-				for (i=0; i<3; i++) {
-					pPoint->color[i] = (f_color[i]*f_color[3] - pPoint->e_color[i]*pPoint->e_alpha)/(pPoint->alpha*(1.0f-pPoint->e_alpha));
+				if (pPoint->alpha) {
+					for (i=0; i<3; i++) {
+						pPoint->color[i] = (f_color[i]*f_color[3] - pPoint->e_color[i]*pPoint->e_alpha)/(pPoint->alpha*(1.0f-pPoint->e_alpha));
+					}
 				}
 
 				pPoint->state = DPAINT_PAINT_WET;

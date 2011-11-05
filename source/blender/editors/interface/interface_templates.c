@@ -2181,7 +2181,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		RNA_property_enum_name(C, itemptr, prop, RNA_property_enum_get(itemptr, prop), &enum_name);
 
-		sprintf(name_final, "%s (%s)",name,enum_name);
+		BLI_snprintf(name_final, sizeof(name_final), "%s (%s)",name,enum_name);
 		uiItemL(sub, name_final, icon);
 		if (dynamicPaint_surfaceHasColorPreview(surface)) {
 			uiBlockSetEmboss(block, UI_EMBOSSN);
