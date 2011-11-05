@@ -27,8 +27,8 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Vector.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Vector.h
+ *  \ingroup pymathutils
  */
 
 

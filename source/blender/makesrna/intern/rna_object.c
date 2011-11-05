@@ -901,11 +901,11 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_NAVMESH);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_DYNAMIC|OB_NAVMESH);
 		break;
 	case OB_BODY_TYPE_NAVMESH:
 		ob->gameflag |= OB_NAVMESH;
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
 
 		if (ob->type == OB_MESH) {
 			/* could be moved into mesh UI but for now ensure mesh data layer */
@@ -914,7 +914,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;

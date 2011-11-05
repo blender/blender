@@ -882,6 +882,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_LAYER_CONTENT:
+				case ND_TOOLSETTINGS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

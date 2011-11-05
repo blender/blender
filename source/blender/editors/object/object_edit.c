@@ -1182,7 +1182,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->min_vel= ob->min_vel;
 					base->object->max_vel= ob->max_vel;
 					if (ob->gameflag & OB_BOUNDS) {
-						base->object->boundtype = ob->boundtype;
+						base->object->collision_boundtype = ob->collision_boundtype;
 					}
 					base->object->margin= ob->margin;
 					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);

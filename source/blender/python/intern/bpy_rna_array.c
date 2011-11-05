@@ -15,13 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Arystanbek Dyussenov
+ * Contributor(s): Arystanbek Dyussenov, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/python/intern/bpy_rna_array.c
  *  \ingroup pythonintern
+ *
+ * This file deals with array access for 'BPy_PropertyArrayRNA' from bpy_rna.c
  */
 
 #include <Python.h>

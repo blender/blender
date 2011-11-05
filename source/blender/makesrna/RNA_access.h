@@ -875,37 +875,49 @@ int RNA_collection_length(PointerRNA *ptr, const char *name);
 void RNA_collection_add(PointerRNA *ptr, const char *name, PointerRNA *r_value);
 void RNA_collection_clear(PointerRNA *ptr, const char *name);
 
-#define RNA_BEGIN(sptr, itemptr, propname) \
-	{ \
-		CollectionPropertyIterator rna_macro_iter; \
-		for(RNA_collection_begin(sptr, propname, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+#define RNA_BEGIN(sptr, itemptr, propname)                                    \
+	{                                                                         \
+		CollectionPropertyIterator rna_macro_iter;                            \
+		for(RNA_collection_begin(sptr, propname, &rna_macro_iter);            \
+		    rna_macro_iter.valid;                                             \
+		    RNA_property_collection_next(&rna_macro_iter))                    \
+		{                                                                     \
 			PointerRNA itemptr= rna_macro_iter.ptr;
 
-#define RNA_END \
-		} \
-		RNA_property_collection_end(&rna_macro_iter); \
+#define RNA_END                                                               \
+		}                                                                     \
+		RNA_property_collection_end(&rna_macro_iter);                         \
 	}
 
-#define RNA_PROP_BEGIN(sptr, itemptr, prop) \
-	{ \
-		CollectionPropertyIterator rna_macro_iter; \
-		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+#define RNA_PROP_BEGIN(sptr, itemptr, prop)                                   \
+	{                                                                         \
+		CollectionPropertyIterator rna_macro_iter;                            \
+		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter);       \
+			rna_macro_iter.valid;                                             \
+			RNA_property_collection_next(&rna_macro_iter))                    \
+		{                                                                     \
 			PointerRNA itemptr= rna_macro_iter.ptr;
 
-#define RNA_PROP_END \
-		} \
-		RNA_property_collection_end(&rna_macro_iter); \
+#define RNA_PROP_END                                                          \
+		}                                                                     \
+		RNA_property_collection_end(&rna_macro_iter);                         \
 	}
 
-#define RNA_STRUCT_BEGIN(sptr, prop) \
-	{ \
-		CollectionPropertyIterator rna_macro_iter; \
-		for(RNA_property_collection_begin(sptr, RNA_struct_iterator_property(sptr->type), &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+#define RNA_STRUCT_BEGIN(sptr, prop)                                          \
+	{                                                                         \
+		CollectionPropertyIterator rna_macro_iter;                            \
+		for(RNA_property_collection_begin(                                    \
+					sptr,                                                     \
+					RNA_struct_iterator_property(sptr->type),                 \
+					&rna_macro_iter);                                         \
+			rna_macro_iter.valid;                                             \
+			RNA_property_collection_next(&rna_macro_iter))                    \
+		{                                                                     \
 			PropertyRNA *prop= rna_macro_iter.ptr.data;
 
-#define RNA_STRUCT_END \
-		} \
-		RNA_property_collection_end(&rna_macro_iter); \
+#define RNA_STRUCT_END                                                        \
+		}                                                                     \
+		RNA_property_collection_end(&rna_macro_iter);                         \
 	}
 
 /* check if the idproperty exists, for operators */

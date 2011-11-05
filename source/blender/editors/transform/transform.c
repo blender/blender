@@ -5899,7 +5899,7 @@ int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 
 /* ************************************ */
 
-void BIF_TransformSetUndo(char *UNUSED(str))
+void BIF_TransformSetUndo(const char *UNUSED(str))
 {
 	// TRANSFORM_FIX_ME
 	//Trans.undostr= str;

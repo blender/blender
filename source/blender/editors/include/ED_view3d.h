@@ -130,7 +130,6 @@ void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const
  * In orthographic view the resulting ray_normal will match the view vector.
  * @param ar The region (used for the window width and height).
  * @param v3d The 3d viewport (used for near clipping value).
- * @param out The resulting normalized world-space direction vector.
  * @param mval The area relative 2d location (such as event->mval, converted into float[2]).
  * @param ray_start The world-space starting point of the segment.
  * @param ray_normal The normalized world-space direction of towards mval.
@@ -140,7 +139,7 @@ void ED_view3d_win_to_ray(struct ARegion *ar, struct View3D *v3d, const float mv
 /**
  * Calculate a normalized 3d direction vector from the viewpoint towards a global location.
  * In orthographic view the resulting vector will match the view vector.
- * @param ar The region (used for the window width and height).
+ * @param rv3d The region (used for the window width and height).
  * @param coord The world-space location.
  * @param vec The resulting normalized vector.
  */
@@ -171,6 +170,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
  * @param ofs The view offset to be set, normally from RegionView3D.ofs.
  * @param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.
  * @param dist The view distance from ofs to be set, normally from RegionView3D.dist.
+ * @param lens The view lens angle set for cameras and lamps, normally from View3D.lens.
  */
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 

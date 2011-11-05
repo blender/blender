@@ -1279,7 +1279,7 @@ typedef struct {
 	short no[3];
 } VertexBufferFormat;
 
-typedef struct {
+struct GPU_Buffers {
 	/* opengl buffer handles */
 	GLuint vert_buf, index_buf;
 	GLenum index_type;
@@ -1297,9 +1297,9 @@ typedef struct {
 	int gridsize;
 
 	unsigned int tot_tri, tot_quad;
-} GPU_Buffers;
+};
 
-void GPU_update_mesh_buffers(void *buffers_v, MVert *mvert,
+void GPU_update_mesh_buffers(GPU_Buffers *buffers_v, MVert *mvert,
 			int *vert_indices, int totvert)
 {
 	GPU_Buffers *buffers = buffers_v;
@@ -1336,7 +1336,7 @@ void GPU_update_mesh_buffers(void *buffers_v, MVert *mvert,
 	buffers->mvert = mvert;
 }
 
-void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
+GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 			int *face_indices, int totface,
 			int *vert_indices, int tot_uniq_verts,
 			int totvert)
@@ -1416,7 +1416,7 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 	return buffers;
 }
 
-void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
+void GPU_update_grid_buffers(GPU_Buffers *buffers_v, DMGridData **grids,
 	int *grid_indices, int totgrid, int gridsize, int smooth)
 {
 	GPU_Buffers *buffers = buffers_v;
@@ -1471,7 +1471,7 @@ void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
 	//printf("node updated %p\n", buffers_v);
 }
 
-void *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
+GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
 				int totgrid, int gridsize)
 {
 	GPU_Buffers *buffers;
@@ -1561,7 +1561,7 @@ void *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indice
 	return buffers;
 }
 
-void GPU_draw_buffers(void *buffers_v)
+void GPU_draw_buffers(GPU_Buffers *buffers_v)
 {
 	GPU_Buffers *buffers = buffers_v;
 
@@ -1635,7 +1635,7 @@ void GPU_draw_buffers(void *buffers_v)
 	}
 }
 
-void GPU_free_buffers(void *buffers_v)
+void GPU_free_buffers(GPU_Buffers *buffers_v)
 {
 	if(buffers_v) {
 		GPU_Buffers *buffers = buffers_v;

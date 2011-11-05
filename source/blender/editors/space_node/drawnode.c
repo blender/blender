@@ -2172,7 +2172,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 	}
 }
 
-void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp)
+void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4])
 {
 	char str[256];
 	float dx= 6;

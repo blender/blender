@@ -1234,7 +1234,7 @@ char *txt_to_buf (Text *text)
 	return buf;
 }
 
-int txt_find_string(Text *text, char *findstr, int wrap, int match_case)
+int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;

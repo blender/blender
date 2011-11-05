@@ -304,8 +304,6 @@ void free_object(Object *ob)
 	ob->matbits= NULL;
 	if(ob->bb) MEM_freeN(ob->bb); 
 	ob->bb= NULL;
-	if(ob->path) free_path(ob->path); 
-	ob->path= NULL;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->gpd) ((ID *)ob->gpd)->us--;
@@ -725,7 +723,8 @@ void *add_camera(const char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
-	cam->sensor_x = 32.f;
+	cam->sensor_x= 32.0f;
+	cam->sensor_y= 18.0f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
@@ -1107,7 +1106,6 @@ Object *add_only_object(int type, const char *name)
 	ob->obstacleRad = 1.;
 	
 	/* NT fluid sim defaults */
-	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;
@@ -1377,7 +1375,6 @@ Object *copy_object(Object *ob)
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
-	obn->path= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
 	obn->modifiers.first = obn->modifiers.last= NULL;

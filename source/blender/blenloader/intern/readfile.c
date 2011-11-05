@@ -7571,9 +7571,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 200) {
 		Object *ob= main->object.first;
 		while(ob) {
-			ob->scaflag = ob->gameflag & (64+128+256+512+1024+2048);
+			ob->scaflag = ob->gameflag & (OB_DO_FH|OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 				/* 64 is do_fh */
-			ob->gameflag &= ~(128+256+512+1024+2048);
+			ob->gameflag &= ~(OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 			ob = ob->id.next;
 		}
 	}
@@ -8387,7 +8387,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 233) {
 		bScreen *sc;
 		Material *ma= main->mat.first;
-		Object *ob= main->object.first;
+		/* Object *ob= main->object.first; */
 		
 		while(ma) {
 			if(ma->rampfac_col==0.0f) ma->rampfac_col= 1.0;
@@ -8397,11 +8397,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		/* this should have been done loooong before! */
+#if 0   /* deprecated in 2.5+ */
 		while(ob) {
 			if(ob->ipowin==0) ob->ipowin= ID_OB;
 			ob= ob->id.next;
 		}
-		
+#endif
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {

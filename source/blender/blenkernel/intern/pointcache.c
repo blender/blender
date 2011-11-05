@@ -2875,7 +2875,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 	BKE_ptcache_update_info(pid);
 }
 
-void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
+void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const char *name_dst)
 {
 	char old_name[80];
 	int len; /* store the length of the string */
@@ -2892,7 +2892,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 	BLI_strncpy(old_name, pid->cache->name, sizeof(old_name));
 
 	/* get "from" filename */
-	BLI_strncpy(pid->cache->name, from, sizeof(pid->cache->name));
+	BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
 
 	len = ptcache_filename(pid, old_filename, 0, 0, 0); /* no path */
 
@@ -2906,7 +2906,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 	BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 
 	/* put new name into cache */
-	BLI_strncpy(pid->cache->name, to, sizeof(pid->cache->name));
+	BLI_strncpy(pid->cache->name, name_dst, sizeof(pid->cache->name));
 
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/

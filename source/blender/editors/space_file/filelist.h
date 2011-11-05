@@ -66,7 +66,7 @@ typedef enum FileCheckType
 struct FileList *	filelist_new(short type);
 void				filelist_init_icons(void);
 void				filelist_free_icons(void);
-int					filelist_find(struct FileList* filelist, char *file);
+int					filelist_find(struct FileList* filelist, const char *file);
 void				filelist_free(struct FileList* filelist);
 void				filelist_sort(struct FileList* filelist, short sort);
 int					filelist_numfiles(struct FileList* filelist);

@@ -426,9 +426,9 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 }
 
 
-static char *unit_find_str(char *str, const char *substr)
+static const char *unit_find_str(const char *str, const char *substr)
 {
-	char *str_found;
+	const char *str_found;
 
 	if(substr && substr[0] != '\0') {
 		str_found= strstr(str, substr);
@@ -485,7 +485,7 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pr
 {
 	char *str_found;
 
-	if((len_max>0) && (str_found= unit_find_str(str, replace_str))) { /* XXX - investigate, does not respect len_max properly  */
+	if((len_max>0) && (str_found= (char *)unit_find_str(str, replace_str))) { /* XXX - investigate, does not respect len_max properly  */
 		int len, len_num, len_name, len_move, found_ofs;
 
 		found_ofs = (int)(str_found-str);
@@ -537,7 +537,7 @@ static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref
 	return ofs;
 }
 
-static int unit_find(char *str, bUnitDef *unit)
+static int unit_find(const char *str, bUnitDef *unit)
 {
 	if (unit_find_str(str, unit->name_short))	return 1;
 	if (unit_find_str(str, unit->name_plural))	return 1;
@@ -562,7 +562,7 @@ static int unit_find(char *str, bUnitDef *unit)
  *
  * return true of a change was made.
  */
-int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pref, int system, int type)
+int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
@@ -676,7 +676,7 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 }
 
 /* 45µm --> 45um */
-void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int type)
+void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
@@ -687,9 +687,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int
 	for(unit= usys->units; unit->name; unit++) {
 		if(len_max > 0 && (unit->name_alt || unit == unit_def))
 		{
-			char *found= NULL;
-
-			found= unit_find_str(orig_str, unit->name_short);
+			const char *found= unit_find_str(orig_str, unit->name_short);
 			if(found) {
 				int offset= (int)(found - orig_str);
 				int len_name= 0;

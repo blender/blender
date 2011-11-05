@@ -197,7 +197,10 @@ static int gp_data_add_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		/* just add new datablock now */
+		/* decrement user count and add new datablock */
+		bGPdata *gpd= (*gpd_ptr);
+
+		id_us_min(&gpd->id);
 		*gpd_ptr= gpencil_data_addnew("GPencil");
 	}
 	
@@ -245,7 +248,7 @@ static int gp_data_unlink_exec (bContext *C, wmOperator *op)
 		/* just unlink datablock now, decreasing its user count */
 		bGPdata *gpd= (*gpd_ptr);
 		
-		gpd->id.us--;
+		id_us_min(&gpd->id);
 		*gpd_ptr= NULL;
 	}
 	
