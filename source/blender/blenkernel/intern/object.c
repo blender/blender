@@ -1107,7 +1107,6 @@ Object *add_only_object(int type, const char *name)
 	ob->obstacleRad = 1.;
 	
 	/* NT fluid sim defaults */
-	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;

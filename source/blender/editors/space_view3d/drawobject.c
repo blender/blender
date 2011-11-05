@@ -107,7 +107,7 @@
 	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
-static void draw_bounding_volume(Scene *scene, Object *ob, short type);
+static void draw_bounding_volume(Scene *scene, Object *ob, char type);
 
 static void drawcube_size(float size);
 static void drawcircle_size(float size);
@@ -5469,7 +5469,7 @@ static void get_local_bounds(Object *ob, float center[3], float size[3])
 }
 #endif
 
-static void draw_bb_quadric(BoundBox *bb, short type)
+static void draw_bb_quadric(BoundBox *bb, char type)
 {
 	float size[3], cent[3];
 	GLUquadricObj *qobj = gluNewQuadric(); 
@@ -5508,7 +5508,7 @@ static void draw_bb_quadric(BoundBox *bb, short type)
 	gluDeleteQuadric(qobj); 
 }
 
-static void draw_bounding_volume(Scene *scene, Object *ob, short type)
+static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 {
 	BoundBox *bb= NULL;
 	

@@ -164,9 +164,10 @@ typedef struct Object {
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
 	short nlaflag, ipoflag;		// xxx depreceated... old animation system
-	short ipowin, scaflag;		/* ipowin: blocktype last ipowindow */
-	short scavisflag, boundtype;
-	
+	short scaflag;		/* ipowin: blocktype last ipowindow */
+	char scavisflag;
+	char pad5;
+
 	int dupon, dupoff, dupsta, dupend;
 
 	float sf, ctime; /* sf is time-offset, ctime is the objects current time (XXX timing needs to be revised) */
@@ -193,12 +194,16 @@ typedef struct Object {
 	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float m_contactProcessingThreshold;
 	float obstacleRad;
-	char pad0[4];
-	
+
 	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
-	
+
+	char boundtype;            /* bounding box use for drawing */
+	char collision_boundtype;  /* bounding box type used for collision */
+
+	char  restrictflag;			/* for restricting view, select, render etc. accessible in outliner */
+
 	char dt, dtx;
-	char empty_drawtype, pad1[3];
+	char empty_drawtype;
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	
@@ -206,7 +211,7 @@ typedef struct Object {
 	ListBase sensors;
 	ListBase controllers;
 	ListBase actuators;
-    
+
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
@@ -242,16 +247,12 @@ typedef struct Object {
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
 	struct Group *dup_group;	/* object duplicator for group */
-	
-	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
-	
-	short restrictflag;			/* for restricting view, select, render etc. accessible in outliner */
 
-	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
+	char  body_type;			/* for now used to temporarily holds the type of collision object */
+	char  shapeflag;			/* flag for pinning */
+	short shapenr;				/* current shape key for menu or pinned */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	short recalco;				/* recalco for temp storage of ob->recalc, bad design warning */
-	short body_type;			/* for now used to temporarily holds the type of collision object */
-	
+
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
@@ -265,9 +266,6 @@ typedef struct Object {
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 
 	float ima_ofs[2];		/* offset for image empties */
-
-	short collision_boundtype;	/* bounding box type used for collision */
-	char pad3[6];
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
