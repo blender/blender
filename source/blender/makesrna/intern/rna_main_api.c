@@ -47,6 +47,7 @@
 #include "BKE_curve.h"
 #include "BKE_mesh.h"
 #include "BKE_armature.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_material.h"

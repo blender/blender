@@ -63,6 +63,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_group.h"
+#include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_key.h"

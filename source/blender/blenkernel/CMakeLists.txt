@@ -104,6 +104,7 @@ set(SRC
 	intern/implicit.c
 	intern/ipo.c
 	intern/key.c
+	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
 	intern/material.c
@@ -187,6 +188,7 @@ set(SRC
 	BKE_image.h
 	BKE_ipo.h
 	BKE_key.h
+	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
 	BKE_main.h
