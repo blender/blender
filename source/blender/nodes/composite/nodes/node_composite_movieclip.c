@@ -140,10 +140,6 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(nt
 
 	node->storage= user;
 	user->framenr= 1;
-
-	if(G.main->movieclip.first == G.main->movieclip.last) {
-		node->id= G.main->movieclip.first;
-	}
 }
 
 void register_node_type_cmp_movieclip(ListBase *lb)

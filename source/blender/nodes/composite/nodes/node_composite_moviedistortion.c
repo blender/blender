@@ -98,13 +98,6 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 	}
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
-{
-	if(G.main->movieclip.first == G.main->movieclip.last) {
-		node->id= G.main->movieclip.first;
-	}
-}
-
 static const char *label(bNode *node)
 {
 	if(node->custom1==0)
@@ -134,7 +127,6 @@ void register_node_type_cmp_moviedistortion(ListBase *lb)
 	node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_moviedistortion_in, cmp_node_moviedistortion_out);
 	node_type_size(&ntype, 140, 100, 320);
-	node_type_init(&ntype, init);
 	node_type_label(&ntype, label);
 	node_type_exec(&ntype, exec);
 	node_type_storage(&ntype, NULL, storage_free, storage_copy);
