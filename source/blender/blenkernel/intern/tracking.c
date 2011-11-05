@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 #include "DNA_scene_types.h"
@@ -1497,6 +1498,29 @@ void BKE_get_tracking_mat(Scene *scene, Object *ob, float mat[4][4])
 		unit_m4(mat);
 }
 
+void BKE_tracking_camera_shift(MovieTracking *tracking, int winx, int winy, float *shiftx, float *shifty)
+{
+	*shiftx= (0.5f*winx-tracking->camera.principal[0]) / winx;
+	*shifty= (0.5f*winy-tracking->camera.principal[1]) / winx;
+}
+
+void BKE_tracking_camera_to_blender(MovieTracking *tracking, Scene *scene, Camera *camera, int width, int height)
+{
+	float focal= tracking->camera.focal;
+
+	camera->sensor_x= tracking->camera.sensor_width;
+	camera->sensor_fit= CAMERA_SENSOR_FIT_AUTO;
+	camera->lens= focal*camera->sensor_x/width;
+
+	scene->r.xsch= width*tracking->camera.pixel_aspect;
+	scene->r.ysch= height;
+
+	scene->r.xasp= 1.0f;
+	scene->r.yasp= 1.0f;
+
+	BKE_tracking_camera_shift(tracking, width, height, &camera->shiftx, &camera->shifty);
+}
+
 void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4])
 {
 	MovieReconstructedCamera *camera;
@@ -1504,6 +1528,9 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
 	float winmat[4][4];
 	float ycor= 1.0f/tracking->camera.pixel_aspect;
+	float shiftx, shifty, winside= MAX2(winx, winy);
+
+	BKE_tracking_camera_shift(tracking, winx, winy, &shiftx, &shifty);
 
 	clipsta= 0.1f;
 	clipend= 1000.0f;
@@ -1515,10 +1542,15 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 
 	pixsize= clipsta/viewfac;
 
-	left= -0.5f*(float)winx*pixsize;
-	bottom= -0.5f*ycor*(float)winy*pixsize;
-	right=  0.5f*(float)winx*pixsize;
-	top=  0.5f*ycor*(float)winy*pixsize;
+	left= -0.5f*(float)winx + shiftx*winside;
+	bottom= -0.5f*(ycor)*(float)winy + shifty*winside;
+	right=  0.5f*(float)winx + shiftx*winside;
+	top=  0.5f*(ycor)*(float)winy + shifty*winside;
+
+	left *= pixsize;
+	right *= pixsize;
+	bottom *= pixsize;
+	top *= pixsize;
 
 	perspective_m4(winmat, left, right, bottom, top, clipsta, clipend);
 

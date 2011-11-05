@@ -363,7 +363,7 @@ class CLIP_PT_tracking_camera(Panel):
 
         col = layout.column(align=True)
         col.label(text="Sensor:")
-        col.prop(clip.tracking.camera, "sensor_width", text="Size")
+        col.prop(clip.tracking.camera, "sensor_width", text="Width")
         col.prop(clip.tracking.camera, "pixel_aspect")
 
         col = layout.column()
@@ -388,36 +388,38 @@ class CLIP_PT_display(Panel):
         layout = self.layout
         sc = context.space_data
 
-        layout.prop(sc, "show_marker_pattern", text="Pattern")
-        layout.prop(sc, "show_marker_search", text="Search")
-        layout.prop(sc, "show_pyramid_levels", text="Pyramid")
+        col = layout.column(align=True)
 
-        layout.prop(sc, "show_track_path", text="Path")
-        row = layout.column()
+        col.prop(sc, "show_marker_pattern", text="Pattern")
+        col.prop(sc, "show_marker_search", text="Search")
+        col.prop(sc, "show_pyramid_levels", text="Pyramid")
+
+        col.prop(sc, "show_track_path", text="Path")
+        row = col.row()
         row.active = sc.show_track_path
         row.prop(sc, "path_length", text="Length")
 
-        layout.prop(sc, "show_disabled", text="Disabled")
-        layout.prop(sc, "show_bundles", text="Bundles")
+        col.prop(sc, "show_disabled", text="Disabled")
+        col.prop(sc, "show_bundles", text="Bundles")
 
-        layout.prop(sc, "show_names", text="Names")
-        layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
+        col.prop(sc, "show_names", text="Names")
+        col.prop(sc, "show_tiny_markers", text="Tiny Markers")
 
-        layout.prop(sc, "show_grease_pencil", text="Grease Pencil")
-        layout.prop(sc, "use_mute_footage", text="Mute")
+        col.prop(sc, "show_grease_pencil", text="Grease Pencil")
+        col.prop(sc, "use_mute_footage", text="Mute")
 
         if sc.mode == 'DISTORTION':
-            layout.prop(sc, "show_grid", text="Grid")
-            layout.prop(sc, "use_manual_calibration")
+            col.prop(sc, "show_grid", text="Grid")
+            col.prop(sc, "use_manual_calibration")
         elif sc.mode == 'RECONSTRUCTION':
-            layout.prop(sc, "show_stable", text="Stable")
+            col.prop(sc, "show_stable", text="Stable")
 
-        layout.prop(sc, "lock_selection")
+        col.prop(sc, "lock_selection")
 
         clip = sc.clip
         if clip:
-            layout.label(text="Display Aspect:")
-            layout.prop(clip, "display_aspect", text="")
+            col.label(text="Display Aspect:")
+            col.prop(clip, "display_aspect", text="")
 
 
 class CLIP_PT_track_settings(Panel):

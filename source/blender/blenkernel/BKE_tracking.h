@@ -40,8 +40,9 @@ struct MovieTracking;
 struct MovieTrackingContext;
 struct MovieClipUser;
 struct MovieDistortion;
-struct Scene;
+struct Camera;
 struct Object;
+struct Scene;
 
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
@@ -80,6 +81,9 @@ struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
 void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking, int framenr, float mat[4][4]);
+
+void BKE_tracking_camera_shift(struct MovieTracking *tracking, int winx, int winy, float *shiftx, float *shifty);
+void BKE_tracking_camera_to_blender(struct MovieTracking *tracking, struct Scene *scene, struct Camera *camera, int width, int height);
 
 void BKE_get_tracking_mat(struct Scene *scene, struct Object *ob, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);

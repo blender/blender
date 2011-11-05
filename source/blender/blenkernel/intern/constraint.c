@@ -64,6 +64,7 @@
 #include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"

@@ -211,6 +211,8 @@ class CLIP_OT_set_viewport_background(Operator):
         bgpic.use_camera_clip = False
         bgpic.view_axis = 'CAMERA'
 
+        space_v3d.show_background_images = True
+
     def execute(self, context):
         sc = context.space_data
         clip = sc.clip

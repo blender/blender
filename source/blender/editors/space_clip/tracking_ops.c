@@ -1551,28 +1551,12 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		scene->camera= scene_find_camera(scene);
 
 	if(scene->camera) {
-		float focal= tracking->camera.focal;
-
 		/* set blender camera focal length so result would look fine there */
-		if(focal) {
-			Camera *camera= (Camera*)scene->camera->data;
+		Camera *camera= (Camera*)scene->camera->data;
 
-			camera->sensor_x= tracking->camera.sensor_width;
-			camera->lens= focal*camera->sensor_x/width;
+		BKE_tracking_camera_to_blender(tracking, scene, camera, width, height);
 
-			scene->r.xsch= width;
-			scene->r.ysch= height;
-
-			if(tracking->camera.pixel_aspect > 1.0f) {
-				scene->r.xasp= tracking->camera.pixel_aspect;
-				scene->r.yasp= 1.0f;
-			} else {
-				scene->r.xasp= 1.0f;
-				scene->r.yasp= 1.0f / tracking->camera.pixel_aspect;
-			}
-
-			WM_event_add_notifier(C, NC_OBJECT, camera);
-		}
+		WM_event_add_notifier(C, NC_OBJECT, camera);
 	}
 
 	DAG_id_tag_update(&clip->id, 0);
