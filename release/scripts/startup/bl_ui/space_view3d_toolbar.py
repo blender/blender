@@ -172,28 +172,31 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_context = "mesh_edit"
     bl_label = "Mesh Options"
+    
+    @classmethod
+    def poll(cls, context):
+        return context.active_object
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.active_object
 
-        if ob:
-            tool_settings = context.tool_settings
-            mesh = ob.data
+        tool_settings = context.tool_settings
+        mesh = ob.data
 
-            col = layout.column(align=True)
-            col.active = tool_settings.proportional_edit == 'DISABLED'
-            col.prop(mesh, "use_mirror_x")
+        col = layout.column(align=True)
+        col.active = tool_settings.proportional_edit == 'DISABLED'
+        col.prop(mesh, "use_mirror_x")
 
-            row = col.row()
-            row.active = ob.data.use_mirror_x
-            row.prop(mesh, "use_mirror_topology")
+        row = col.row()
+        row.active = ob.data.use_mirror_x
+        row.prop(mesh, "use_mirror_topology")
 
-            col = layout.column(align=True)
-            col.label("Edge Select Mode:")
-            col.prop(tool_settings, "edge_path_mode", text="")
-            col.prop(tool_settings, "edge_path_live_unwrap")
+        col = layout.column(align=True)
+        col.label("Edge Select Mode:")
+        col.prop(tool_settings, "edge_path_mode", text="")
+        col.prop(tool_settings, "edge_path_live_unwrap")
 
 # ********** default tools for editmode_curve ****************
 
