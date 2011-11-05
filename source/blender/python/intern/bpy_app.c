@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_app.c
  *  \ingroup pythonintern
+ *
+ * This file defines a 'PyStructSequence' accessed via 'bpy.app', mostly
+ * exposing static applications variables such as version and buildinfo
+ * however some writable variables have been added such as 'debug' and 'tempdir'
  */
 
 

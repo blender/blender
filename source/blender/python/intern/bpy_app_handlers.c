@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_app_handlers.c
  *  \ingroup pythonintern
+ *
+ * This file defines a 'PyStructSequence' accessed via 'bpy.app.handlers',
+ * which exposes various lists that the script author can add callback
+ * functions into (called via blenders generic BLI_cb api)
  */
 
 #include <Python.h>

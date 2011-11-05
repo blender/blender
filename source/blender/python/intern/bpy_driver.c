@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_driver.c
  *  \ingroup pythonintern
+ *
+ * This file defines the 'BPY_driver_exec' to execute python drivers,
+ * called by the animation system, there are also some utility functions
+ * to deal with the namespace used for driver execution.
  */
 
 /* ****************************************** */
