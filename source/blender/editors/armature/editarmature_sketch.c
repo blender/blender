@@ -187,7 +187,7 @@ void BIF_makeListTemplates(const bContext *C)
 	}
 }
 
-char *BIF_listTemplates(const bContext *UNUSED(C))
+const char *BIF_listTemplates(const bContext *UNUSED(C))
 {
 	GHashIterator ghi;
 	char menu_header[] = "Template%t|None%x0|";

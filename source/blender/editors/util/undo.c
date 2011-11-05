@@ -426,7 +426,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 	int active, i= 0;
 	
 	while(TRUE) {
-		char *name= NULL;
+		const char *name= NULL;
 		
 		if(undosys==UNDOSYSTEM_PARTICLE) {
 			name= PE_undo_get_name(CTX_data_scene(C), i, &active);

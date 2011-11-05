@@ -184,7 +184,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	char *path;
 
 	if(driven)
-		*driven = 0;
+		*driven = FALSE;
 	
 	/* only use the current action ??? */
 	if (ELEM(NULL, adt, adt->action))
@@ -205,7 +205,7 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu= list_find_fcurve(&adt->drivers, path, index);
 				if(fcu && driven)
-					*driven = 1;
+					*driven = TRUE;
 				fcu = NULL;
 			}
 			

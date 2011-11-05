@@ -262,7 +262,7 @@ void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListB
 /* find the next F-Curve for a PoseChannel with matching path... 
  *	- path is not just the pfl rna_path, since that path doesn't have property info yet
  */
-LinkData *poseAnim_mapping_getNextFCurve (ListBase *fcuLinks, LinkData *prev, char *path)
+LinkData *poseAnim_mapping_getNextFCurve (ListBase *fcuLinks, LinkData *prev, const char *path)
 {
 	LinkData *first= (prev)? prev->next : (fcuLinks)? fcuLinks->first : NULL;
 	LinkData *ld;

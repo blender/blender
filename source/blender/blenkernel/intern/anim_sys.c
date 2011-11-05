@@ -545,7 +545,7 @@ void BKE_animdata_separate_by_basepath (ID *srcID, ID *dstID, ListBase *basepath
 /* Path Validation -------------------------------------------- */
 
 /* Check if a given RNA Path is valid, by tracing it from the given ID, and seeing if we can resolve it */
-static short check_rna_path_is_valid (ID *owner_id, char *path)
+static short check_rna_path_is_valid (ID *owner_id, const char *path)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop=NULL;
@@ -560,7 +560,7 @@ static short check_rna_path_is_valid (ID *owner_id, char *path)
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
  * NOTE: we assume that oldName and newName have [" "] padding around them
  */
-static char *rna_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, char *oldpath, int verify_paths)
+static char *rna_path_rename_fix (ID *owner_id, const char *prefix, const char *oldName, const char *newName, char *oldpath, int verify_paths)
 {
 	char *prefixPtr= strstr(oldpath, prefix);
 	char *oldNamePtr= strstr(oldpath, oldName);
@@ -631,7 +631,7 @@ static void fcurves_path_rename_fix (ID *owner_id, const char *prefix, char *old
 }
 
 /* Check RNA-Paths for a list of Drivers */
-static void drivers_path_rename_fix (ID *owner_id, const char *prefix, char *oldName, char *newName, char *oldKey, char *newKey, ListBase *curves, int verify_paths)
+static void drivers_path_rename_fix (ID *owner_id, const char *prefix, const char *oldName, const char *newName, const char *oldKey, const char *newKey, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
@@ -691,7 +691,7 @@ static void nlastrips_path_rename_fix (ID *owner_id, const char *prefix, char *o
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  * 		i.e. pose.bones["Bone"]
  */
-void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, const char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths)
+void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, const char *prefix, const char *oldName, const char *newName, int oldSubscript, int newSubscript, int verify_paths)
 {
 	NlaTrack *nlt;
 	char *oldN, *newN;
@@ -808,7 +808,7 @@ void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *
  * 		i.e. pose.bones["Bone"]
  */
 /* TODO: use BKE_animdata_main_cb for looping over all data  */
-void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
+void BKE_all_animdata_fix_paths_rename (const char *prefix, const char *oldName, const char *newName)
 {
 	Main *mainptr= G.main;
 	ID *id;

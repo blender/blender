@@ -658,7 +658,9 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 	return 0;
 }
 
-void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
+void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
+                        DerivedMesh *dm, float (*vertexCos)[3],
+                        int numVerts, const char *vgroup, short defaxis)
 {
 	Curve *cu;
 	int a, flag;
@@ -817,7 +819,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-						  float (*vertexCos)[3], int numVerts, char *vgroup)
+                          float (*vertexCos)[3], int numVerts, const char *vgroup)
 {
 	int a;
 	int use_vgroups;

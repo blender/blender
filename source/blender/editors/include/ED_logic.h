@@ -34,6 +34,3 @@
 void ED_operatortypes_logic(void);
 
 #endif /* ED_LOGIC_H */
-
-
-

@@ -338,7 +338,7 @@ int undo_editmode_valid(const char *undoname)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-char *undo_editmode_get_name(bContext *C, int nr, int *active)
+const char *undo_editmode_get_name(bContext *C, int nr, int *active)
 {
 	UndoElem *uel;
 	

@@ -4023,7 +4023,7 @@ void PE_undo_number(Scene *scene, int nr)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-char *PE_undo_get_name(Scene *scene, int nr, int *active)
+const char *PE_undo_get_name(Scene *scene, int nr, int *active)
 {
 	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	PTCacheUndo *undo;

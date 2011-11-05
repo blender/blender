@@ -200,7 +200,7 @@ void set_ob_property(Object *ob, bProperty *propc)
 /* negative: prop is smaller
  * positive: prop is larger
  */
-int compare_property(bProperty *prop, char *str)
+int compare_property(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 	float fvalue, ftest;
@@ -237,7 +237,7 @@ int compare_property(bProperty *prop, char *str)
 	return 0;
 }
 
-void set_property(bProperty *prop, char *str)
+void set_property(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
@@ -261,7 +261,7 @@ void set_property(bProperty *prop, char *str)
 	
 }
 
-void add_property(bProperty *prop, char *str)
+void add_property(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
