@@ -57,6 +57,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
+#include "BKE_camera.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

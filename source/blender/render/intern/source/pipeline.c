@@ -48,6 +48,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
+#include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"

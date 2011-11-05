@@ -55,6 +55,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
+#include "BKE_camera.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"

@@ -54,6 +54,7 @@
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"

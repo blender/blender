@@ -76,6 +76,7 @@ set(SRC
 	intern/brush.c
 	intern/bullet.c
 	intern/bvhutils.c
+	intern/camera.c
 	intern/cdderivedmesh.c
 	intern/cloth.c
 	intern/collision.c
@@ -160,6 +161,7 @@ set(SRC
 	BKE_brush.h
 	BKE_bullet.h
 	BKE_bvhutils.h
+	BKE_camera.h
 	BKE_cdderivedmesh.h
 	BKE_cloth.h
 	BKE_collision.h

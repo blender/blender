@@ -65,6 +65,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
