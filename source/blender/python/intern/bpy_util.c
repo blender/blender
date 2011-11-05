@@ -27,7 +27,6 @@
  * use (unrelated to 'bpy.utils')
  */
 
-
 #include <Python.h>
 
 #include "bpy_util.h"

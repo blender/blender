@@ -27,7 +27,8 @@
  * this would be done via RNA api but in this case a hand written python api
  * allows us to use pythons context manager (__enter__ and __exit__).
  *
- * Everything here is exposed via bpy.data.libraries.load(...) context manager.
+ * Everything here is exposed via bpy.data.libraries.load(...) which returns
+ * a context manager.
  */
 
 /* nifty feature. swap out strings for RNA data */
@@ -77,8 +78,8 @@ static PyObject *bpy_lib_dir(BPy_Library *self);
 
 static PyMethodDef bpy_lib_methods[]= {
 	{"__enter__", (PyCFunction)bpy_lib_enter, METH_NOARGS},
-	{"__exit__", (PyCFunction)bpy_lib_exit, METH_VARARGS},
-	{"__dir__", (PyCFunction)bpy_lib_dir, METH_NOARGS},
+	{"__exit__",  (PyCFunction)bpy_lib_exit,  METH_VARARGS},
+	{"__dir__",   (PyCFunction)bpy_lib_dir,   METH_NOARGS},
 	{NULL}           /* sentinel */
 };
 
@@ -289,7 +290,7 @@ static void bpy_lib_exit_warn_idname(BPy_Library *self, const char *name_plural,
 	PyObject *exc, *val, *tb;
 	PyErr_Fetch(&exc, &val, &tb);
 	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
-						 "load: '%s' does not contain %s[\"%s\"]",
+	                     "load: '%s' does not contain %s[\"%s\"]",
 	                     self->abspath, name_plural, idname)) {
 		/* Spurious errors can appear at shutdown */
 		if (PyErr_ExceptionMatches(PyExc_Warning)) {
@@ -304,7 +305,7 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
 	PyObject *exc, *val, *tb;
 	PyErr_Fetch(&exc, &val, &tb);
 	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
-						 "load: '%s' expected a string type, not a %.200s",
+	                     "load: '%s' expected a string type, not a %.200s",
 	                     self->abspath, Py_TYPE(item)->tp_name)) {
 		/* Spurious errors can appear at shutdown */
 		if (PyErr_ExceptionMatches(PyExc_Warning)) {
