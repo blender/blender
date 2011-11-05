@@ -6970,12 +6970,12 @@ static void beautify_fill(EditMesh *em)
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], vindex[1], 4+vindex[2], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 									onedone= 1;
 								}
@@ -6991,12 +6991,11 @@ static void beautify_fill(EditMesh *em)
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[1], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
-
+									EM_select_face(w, 1);
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], 4+vindex[1], 4+vindex[3], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 									onedone= 1;
 								}
