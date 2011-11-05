@@ -1980,6 +1980,8 @@ static ImBuf * seq_render_scene_strip_impl(
 	/* stooping to new low's in hackyness :( */
 	oldmarkers= scene->markers;
 	scene->markers.first= scene->markers.last= NULL;
+#else
+	(void)oldmarkers;
 #endif
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (scene == context.scene || have_seq==0) && camera) {

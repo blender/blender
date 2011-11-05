@@ -806,6 +806,8 @@ int scene_camera_switch_update(Scene *scene)
 		scene->camera= camera;
 		return 1;
 	}
+#else
+	(void)scene;
 #endif
 	return 0;
 }

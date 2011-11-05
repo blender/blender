@@ -1069,6 +1069,8 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
+#else
+	(void)camera;
 #endif
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
@@ -1493,6 +1495,8 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 	RNA_boolean_set(kmi->ptr, "camera", 1);
+#else
+	(void)kmi;
 #endif
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);

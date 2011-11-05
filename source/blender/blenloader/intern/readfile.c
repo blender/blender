@@ -4539,6 +4539,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 					marker->camera= newlibadr(fd, sce->id.lib, marker->camera);
 				}
 			}
+#else
+			(void)marker;
 #endif
 
 			if(sce->ed)
