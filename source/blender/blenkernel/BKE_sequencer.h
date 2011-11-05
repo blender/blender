@@ -67,21 +67,21 @@ void seq_next(SeqIterator *iter);
 void seq_end(SeqIterator *iter);
 void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int use_pointer);
 
-#define SEQP_BEGIN(ed, _seq) \
-{ \
-	SeqIterator iter;\
-		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) { \
+#define SEQP_BEGIN(ed, _seq)                                                  \
+{                                                                             \
+	SeqIterator iter;                                                         \
+		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {           \
 			_seq= iter.seq;
 			
-#define SEQ_BEGIN(ed, _seq) \
-	{ \
-		SeqIterator iter;\
-		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) { \
+#define SEQ_BEGIN(ed, _seq)                                                   \
+	{                                                                         \
+		SeqIterator iter;                                                     \
+		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) {           \
 			_seq= iter.seq;
 
-#define SEQ_END \
-		} \
-		seq_end(&iter); \
+#define SEQ_END                                                               \
+		}                                                                     \
+		seq_end(&iter);                                                       \
 	}
 
 typedef struct SeqRenderData {

@@ -167,19 +167,20 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	/* helper macro for use here to try and get the path 
 	 *	- this calls the standard code for getting a path to a texture...
 	 */
-#define COLRAMP_GETPATH \
-{ \
-prop= RNA_struct_find_property(&ramp_ptr, "elements"); \
-if (prop) { \
-index= RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr); \
-if (index >= 0) { \
-char *texture_path= rna_ColorRamp_path(&ramp_ptr); \
-path= BLI_sprintfN("%s.elements[%d]", texture_path, index); \
-MEM_freeN(texture_path); \
-} \
-} \
+
+#define COLRAMP_GETPATH                                                       \
+{                                                                             \
+	prop= RNA_struct_find_property(&ramp_ptr, "elements");                    \
+	if (prop) {                                                               \
+		index= RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr);    \
+		if (index >= 0) {                                                     \
+			char *texture_path= rna_ColorRamp_path(&ramp_ptr);                \
+			path= BLI_sprintfN("%s.elements[%d]", texture_path, index);       \
+			MEM_freeN(texture_path);                                          \
+		}                                                                     \
+	}                                                                         \
 }
-	
+
 	/* determine the path from the ID-block to the ramp */
 	// FIXME: this is a very slow way to do it, but it will have to suffice...
 	if (ptr->id.data) {

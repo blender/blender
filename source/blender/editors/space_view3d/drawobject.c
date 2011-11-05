@@ -103,8 +103,8 @@
 
 
 /* this condition has been made more complex since editmode can draw textures */
-#define CHECK_OB_DRAWTEXTURE(vd, dt) \
-	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
+#define CHECK_OB_DRAWTEXTURE(vd, dt)                                          \
+	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||                             \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
 static void draw_bounding_volume(Scene *scene, Object *ob, char type);

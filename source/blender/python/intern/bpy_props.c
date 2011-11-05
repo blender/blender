@@ -279,52 +279,60 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 
 /* this define runs at the start of each function and deals with 
  * returning a deferred property (to be registered later) */
-#define BPY_PROPDEF_HEAD(_func)	\
-	if (PyTuple_GET_SIZE(args) == 1) { \
-		PyObject *ret; \
-		self= PyTuple_GET_ITEM(args, 0); \
-		args= PyTuple_New(0); \
-		ret= BPy_##_func(self, args, kw); \
-		Py_DECREF(args); \
-		return ret; \
-	} \
-	else if (PyTuple_GET_SIZE(args) > 1) { \
-		PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
-		return NULL; \
-	} \
-	srna= srna_from_self(self, #_func"(...):"); \
-	if (srna==NULL) { \
-		if (PyErr_Occurred()) \
-			return NULL; \
-		return bpy_prop_deferred_return((void *)pymeth_##_func, kw); \
-	} \
+#define BPY_PROPDEF_HEAD(_func)                                               \
+	if (PyTuple_GET_SIZE(args) == 1) {                                        \
+		PyObject *ret;                                                        \
+		self= PyTuple_GET_ITEM(args, 0);                                      \
+		args= PyTuple_New(0);                                                 \
+		ret= BPy_##_func(self, args, kw);                                     \
+		Py_DECREF(args);                                                      \
+		return ret;                                                           \
+	}                                                                         \
+	else if (PyTuple_GET_SIZE(args) > 1) {                                    \
+		PyErr_SetString(PyExc_ValueError, "all args must be keywords");       \
+		return NULL;                                                          \
+	}                                                                         \
+	srna= srna_from_self(self, #_func"(...):");                               \
+	if (srna==NULL) {                                                         \
+		if (PyErr_Occurred())                                                 \
+			return NULL;                                                      \
+		return bpy_prop_deferred_return((void *)pymeth_##_func, kw);          \
+	}                                                                         \
 
 /* terse macros for error checks shared between all funcs cant use function
  * calls because of static strins passed to pyrna_set_to_enum_bitfield */
-#define BPY_PROPDEF_CHECK(_func, _property_flag_items) \
-	if (id_len >= MAX_IDPROP_NAME) { \
-		PyErr_Format(PyExc_TypeError, \
-		             #_func"(): '%.200s' too long, max length is %d", \
-		             id, MAX_IDPROP_NAME-1); \
-		return NULL; \
-	} \
-	if (RNA_def_property_free_identifier(srna, id) == -1) { \
-		PyErr_Format(PyExc_TypeError, \
-		             #_func"(): '%s' is defined as a non-dynamic type", \
-		             id); \
-		return NULL; \
-	} \
-	if (pyopts && pyrna_set_to_enum_bitfield(_property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
-		return NULL; \
+#define BPY_PROPDEF_CHECK(_func, _property_flag_items)                        \
+	if (id_len >= MAX_IDPROP_NAME) {                                          \
+		PyErr_Format(PyExc_TypeError,                                         \
+		             #_func"(): '%.200s' too long, max length is %d",         \
+		             id, MAX_IDPROP_NAME-1);                                  \
+		return NULL;                                                          \
+	}                                                                         \
+	if (RNA_def_property_free_identifier(srna, id) == -1) {                   \
+		PyErr_Format(PyExc_TypeError,                                         \
+		             #_func"(): '%s' is defined as a non-dynamic type",       \
+		             id);                                                     \
+		return NULL;                                                          \
+	}                                                                         \
+	if (pyopts && pyrna_set_to_enum_bitfield(_property_flag_items,            \
+	                                         pyopts,                          \
+	                                         &opts,                           \
+	                                         #_func"(options={...}):"))       \
+	{                                                                         \
+		return NULL;                                                          \
+	}                                                                         \
 
-#define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype) \
-	BPY_PROPDEF_CHECK(_func, _property_flag_items) \
-	if (pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
-		PyErr_Format(PyExc_TypeError, \
-		             #_func"(subtype='%s'): invalid subtype", \
-		             pysubtype); \
-		return NULL; \
-	} \
+#define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype)      \
+	BPY_PROPDEF_CHECK(_func, _property_flag_items)                            \
+	if (pysubtype && RNA_enum_value_from_id(_subtype,                         \
+	                                        pysubtype,                        \
+	                                        &subtype)==0)                     \
+	{                                                                         \
+		PyErr_Format(PyExc_TypeError,                                         \
+		             #_func"(subtype='%s'): invalid subtype",                 \
+		             pysubtype);                                              \
+		return NULL;                                                          \
+	}                                                                         \
 
 
 #define BPY_PROPDEF_NAME_DOC \

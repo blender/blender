@@ -205,28 +205,35 @@ PyTypeObject BGL_bufferType = {
 	NULL						/*tp_del*/
 };
 
-
-/* #ifndef __APPLE__ */
-
-#define BGL_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args) {\
-	arg_def##nargs arg_list; \
-	ret_def_##ret; \
-	if (!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
-	ret_set_##ret gl##funcname (arg_var##nargs arg_list);\
-	ret_ret_##ret; \
+#define BGL_Wrap(nargs, funcname, ret, arg_list)                              \
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
+{                                                                             \
+	arg_def##nargs arg_list;                                                  \
+	ret_def_##ret;                                                            \
+	if (!PyArg_ParseTuple(args,                                               \
+	                      arg_str##nargs arg_list,                            \
+	                      arg_ref##nargs arg_list))                           \
+	{                                                                         \
+		return NULL;                                                          \
+	}                                                                         \
+	ret_set_##ret gl##funcname (arg_var##nargs arg_list);                     \
+	ret_ret_##ret;                                                            \
 }
 
-#define BGLU_Wrap(nargs, funcname, ret, arg_list) \
-static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args) {\
-	arg_def##nargs arg_list; \
-	ret_def_##ret; \
-	if (!PyArg_ParseTuple(args, arg_str##nargs arg_list, arg_ref##nargs arg_list)) return NULL;\
-	ret_set_##ret glu##funcname (arg_var##nargs arg_list);\
-	ret_ret_##ret; \
+#define BGLU_Wrap(nargs, funcname, ret, arg_list)                             \
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
+{                                                                             \
+	arg_def##nargs arg_list;                                                  \
+	ret_def_##ret;                                                            \
+	if (!PyArg_ParseTuple(args,                                               \
+						  arg_str##nargs arg_list,                            \
+						  arg_ref##nargs arg_list))                           \
+	{                                                                         \
+		return NULL;                                                          \
+	}                                                                         \
+	ret_set_##ret glu##funcname (arg_var##nargs arg_list);                    \
+	ret_ret_##ret;                                                            \
 }
-
-/* #endif */
 
 /********/
 int BGL_typeSize(int type)
@@ -267,7 +274,7 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
 	memcpy(buffer->dimensions, dimensions, ndimensions*sizeof(int));
 	buffer->type= type;
 	buffer->buf.asvoid= buf;
- 
+
 	if (initbuffer) {
 		memcpy(buffer->buf.asvoid, initbuffer, length*size);
 	}
