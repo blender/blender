@@ -174,10 +174,10 @@ package_archive:
 # Other Targets
 #
 translations:
-	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python po/update_msg.py
-	python3 po/update_pot.py
-	python3 po/update_po.py
-	python3 po/update_mo.py
+	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python po/tools/update_msg.py
+	python3 po/tools/update_pot.py
+	python3 po/tools/update_po.py
+	python3 po/tools/update_mo.py
 
 
 # -----------------------------------------------------------------------------
