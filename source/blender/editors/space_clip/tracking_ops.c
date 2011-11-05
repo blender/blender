@@ -201,6 +201,9 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 		track= next;
 	}
 
+	/* nothing selected now, unlock view so it can be scrolled nice again */
+	sc->flag&= ~SC_LOCK_SELECTION;
+
 	return OPERATOR_FINISHED;
 }
 
@@ -228,6 +231,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= clip->tracking.tracks.first, *next;
 	int framenr= sc->user.framenr;
+	int has_selection= 0;
 
 	while(track) {
 		next= track->next;
@@ -235,11 +239,19 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 		if(TRACK_VIEW_SELECTED(sc, track)) {
 			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
 
-			if(marker)
+			if(marker) {
+				has_selection|= track->markersnr>1;
+
 				clip_delete_marker(C, clip, track, marker);
+			}
 		}
 
 		track= next;
+	}
+
+	if(!has_selection) {
+		/* nothing selected now, unlock view so it can be scrolled nice again */
+		sc->flag&= ~SC_LOCK_SELECTION;
 	}
 
 	return OPERATOR_FINISHED;
@@ -1009,6 +1021,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track= NULL;	/* selected track */
 	int action= RNA_enum_get(op->ptr, "action");
 	int framenr= sc->user.framenr;
+	int has_selection= 0;
 
 	if(action == SEL_TOGGLE){
 		action= SEL_SELECT;
@@ -1049,8 +1062,14 @@ static int select_all_exec(bContext *C, wmOperator *op)
 			}
 		}
 
+		if(TRACK_VIEW_SELECTED(sc, track))
+			has_selection= 1;
+
 		track= track->next;
 	}
+
+	if(!has_selection)
+		sc->flag&= ~SC_LOCK_SELECTION;
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
@@ -2159,6 +2178,11 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 
 	if(clip->tracking.act_track && clip->tracking.act_track->flag&TRACK_HIDDEN)
 		clip->tracking.act_track= NULL;
+
+	if(unselected==0) {
+		/* no selection on screen now, unlock view so it can be scrolled nice again */
+		sc->flag&= ~SC_LOCK_SELECTION;
+	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
 

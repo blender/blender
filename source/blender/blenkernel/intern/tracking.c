@@ -370,6 +370,21 @@ MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
 	return new_track;
 }
 
+static void put_disabled_marker(MovieTrackingTrack *track, MovieTrackingMarker *ref_marker, int before, int overwrite)
+{
+	MovieTrackingMarker marker_new;
+
+	marker_new= *ref_marker;
+	marker_new.flag&= ~MARKER_TRACKED;
+	marker_new.flag|= MARKER_DISABLED;
+
+	if(before) marker_new.framenr--;
+	else marker_new.framenr++;
+
+	if(!BKE_tracking_has_marker(track, marker_new.framenr) || overwrite)
+		BKE_tracking_insert_marker(track, &marker_new);
+}
+
 void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int action)
 {
 	int a;
@@ -386,6 +401,9 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 
 			a++;
 		}
+
+		if(track->markersnr)
+			put_disabled_marker(track, &track->markers[track->markersnr-1], 0, 1);
 	} else if(action==TRACK_CLEAR_UPTO) {
 		a= track->markersnr-1;
 		while(a>=0) {
@@ -400,19 +418,23 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 
 			a--;
 		}
+
+		if(track->markersnr)
+			put_disabled_marker(track, &track->markers[0], 1, 1);
 	} else if(action==TRACK_CLEAR_ALL) {
 		MovieTrackingMarker *marker, marker_new;
 
 		marker= BKE_tracking_get_marker(track, ref_frame);
-		if(marker)
-			marker_new= *marker;
+		marker_new= *marker;
 
 		MEM_freeN(track->markers);
 		track->markers= NULL;
 		track->markersnr= 0;
 
-		if(marker)
-			BKE_tracking_insert_marker(track, &marker_new);
+		BKE_tracking_insert_marker(track, &marker_new);
+
+		put_disabled_marker(track, &marker_new, 1, 1);
+		put_disabled_marker(track, &marker_new, 0, 1);
 	}
 }
 
@@ -1153,24 +1175,11 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
 			if(coords_correct && (tracked || !context->disable_failed)) {
 				if(context->first_time) {
-					int prevframe;
-
-					if(context->backwards) prevframe= curfra+1;
-					else prevframe= curfra-1;
-
-					/* check if there's no keyframe/tracked markers before tracking marker.
-					    if so -- create disabled marker before currently tracking "segment" */
-					if(!BKE_tracking_has_marker(track, prevframe)) {
-						marker_new= *marker;
-						marker_new.framenr= prevframe;
-
-						marker_new.flag&= ~MARKER_GRAPH_SEL;
-						marker_new.flag|= MARKER_DISABLED;
-
-						#pragma omp critical
-						{
-							BKE_tracking_insert_marker(track, &marker_new);
-						}
+					#pragma omp critical
+					{
+						/* check if there's no keyframe/tracked markers before tracking marker.
+						    if so -- create disabled marker before currently tracking "segment" */
+						put_disabled_marker(track, marker, 1, 0);
 					}
 				}
 
@@ -1191,19 +1200,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					BKE_tracking_insert_marker(track, &marker_new);
 				}
 
-				if(context->backwards) nextfra--;
-				else nextfra++;
-
 				/* make currently tracked segment be finished with disabled marker */
-				if(!BKE_tracking_has_marker(track, nextfra)) {
-					marker_new.framenr= nextfra;
-					marker_new.flag|= MARKER_DISABLED;
-					marker_new.flag&= ~MARKER_TRACKED;
-
-					#pragma omp critical
-					{
-						BKE_tracking_insert_marker(track, &marker_new);
-					}
+				#pragma omp critical
+				{
+					put_disabled_marker(track, &marker_new, 0, 0);
 				}
 			} else {
 				marker_new= *marker;

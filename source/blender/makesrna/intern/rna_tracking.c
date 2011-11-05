@@ -484,7 +484,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "pyramid_levels");
 	RNA_def_property_range(prop, 1, 16);
-	RNA_def_property_ui_text(prop, "Pyramid levels", "Number of pyramid levels for KLT tracking.");
+	RNA_def_property_ui_text(prop, "Pyramid levels", "Number of pyramid levels for KLT tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerPyramid_update");
 
 	/* minmal correlation - only used for SAD tracker */
