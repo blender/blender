@@ -387,8 +387,7 @@ public:
 	void SetUseOverrideFrameColor(bool overrideFrameColor);
 
 	/** 
-	 * Enables/disables the use of the framing bar color of the Blender file's scenes.
-	 * @param useSceneFrameColor The new setting.
+	 * Check if the frame color is being overridden.
 	 */
 	bool GetUseOverrideFrameColor(void) const; 
 

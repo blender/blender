@@ -150,10 +150,6 @@ def is_struct_seq(value):
     return isinstance(value, tuple) and type(tuple) != tuple and hasattr(value, "n_fields")
 
 
-def module_id_as_ref(name):
-    return "mod_" + name.replace(".", "__")
-
-
 def undocumented_message(module_name, type_name, identifier):
     if str(type_name).startswith('<module'):
         preloadtitle = '%s.%s' % (module_name, identifier)
@@ -391,10 +387,6 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
 
     write_title(fw, "%s (%s)" % (title, module_name), "=")
 
-    # write reference, annoying since we should be able to direct reference the
-    # modules but we cant always!
-    fw(".. _%s:\n\n" % module_id_as_ref(module_name))
-
     fw(".. module:: %s\n\n" % module_name)
 
     if module.__doc__:
@@ -453,20 +445,19 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         if type(descr) == MemberDescriptorType:
             if descr.__doc__:
                 value = getattr(module, key, None)
+
                 value_type = type(value)
                 descr_sorted.append((key, descr, value, type(value)))
     # sort by the valye type
     descr_sorted.sort(key=lambda descr_data: str(descr_data[3]))
     for key, descr, value, value_type in descr_sorted:
+
+        # must be documented as a submodule
+        if is_struct_seq(value):
+            continue
+
         type_name = value_type.__name__
         py_descr2sphinx("", fw, descr, module_name, type_name, key)
-
-        if is_struct_seq(value):
-            # ack, cant use typical reference because we double up once here
-            # and one fort he module!
-            full_name = "%s.%s" % (module_name, type_name)
-            fw("   :ref:`%s submodule details <%s>`\n\n\n" % (full_name, module_id_as_ref(full_name)))
-            del full_name
 
         attribute_set.add(key)
 

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/moviecache.c
+/** \file blender/imbuf/intern/moviecache.c
  *  \ingroup bke
  */
 
