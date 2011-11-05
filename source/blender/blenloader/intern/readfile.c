@@ -7429,9 +7429,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 200) {
 		Object *ob= main->object.first;
 		while(ob) {
-			ob->scaflag = ob->gameflag & (64+128+256+512+1024+2048);
+			ob->scaflag = ob->gameflag & (OB_DO_FH|OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 				/* 64 is do_fh */
-			ob->gameflag &= ~(128+256+512+1024+2048);
+			ob->gameflag &= ~(OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 			ob = ob->id.next;
 		}
 	}

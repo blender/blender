@@ -111,12 +111,12 @@ typedef struct Object {
 	/* proxy_from is set in target back to the proxy. */
 	struct Object *proxy, *proxy_group, *proxy_from;
 	struct Ipo *ipo;		// XXX depreceated... old animation system
-	struct Path *path;
+	/* struct Path *path; */
 	struct BoundBox *bb;
 	struct bAction *action;	 // XXX depreceated... old animation system
 	struct bAction *poselib;
-	struct bPose *pose;	
-	void *data;
+	struct bPose *pose;  /* pose data, armature objects only */
+	void *data;  /* pointer to objects data - an 'ID' or NULL */
 	
 	struct bGPdata *gpd;	/* Grease Pencil data */
 	
@@ -124,9 +124,9 @@ typedef struct Object {
 	bMotionPath *mpath;		/* motion path cache for this object */
 	
 	ListBase constraintChannels; // XXX depreceated... old animation system
-	ListBase effect;
-	ListBase disp;
-	ListBase defbase;
+	ListBase effect;             // XXX depreceated... keep for readfile
+	ListBase disp;      /* list of DispList, used by lattice, metaballs curve & surfaces */
+	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
 
 	int mode;           /* Local object mode */
@@ -156,7 +156,7 @@ typedef struct Object {
 	 */
 	float imat_ren[4][4];
 	
-	unsigned int lay;				/* copy of Base */
+	unsigned int lay;	/* copy of Base's layer in the scene */
 	
 	short flag;			/* copy of Base */
 	short colbits;		/* deprecated */
@@ -164,8 +164,8 @@ typedef struct Object {
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
 	short nlaflag, ipoflag;		// xxx depreceated... old animation system
-	short scaflag;		/* ipowin: blocktype last ipowindow */
-	char scavisflag;
+	short scaflag;				/* ui state for game logic */
+	char scavisflag;			/* more display settings for game logic */
 	char pad5;
 
 	int dupon, dupoff, dupsta, dupend;
@@ -200,39 +200,27 @@ typedef struct Object {
 	char boundtype;            /* bounding box use for drawing */
 	char collision_boundtype;  /* bounding box type used for collision */
 
-	char  restrictflag;			/* for restricting view, select, render etc. accessible in outliner */
+	char  restrictflag;	/* for restricting view, select, render etc. accessible in outliner */
 
-	char dt, dtx;
+	char dt;			/* viewport draw type */
+	char dtx;			/* viewport draw extra settings */
 	char empty_drawtype;
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	
-	ListBase prop;
-	ListBase sensors;
-	ListBase controllers;
-	ListBase actuators;
+	ListBase prop;			/* game logic property list (not to be confused with IDProperties) */
+	ListBase sensors;		/* game logic sensors */
+	ListBase controllers;	/* game logic controllers */
+	ListBase actuators;		/* game logic actuators */
 
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
 	float col[4];			/* object color */
-	/**
-	 * Settings for game objects
-	 * bit 0: Object has dynamic behaviour
-	 * bit 2: Object is evaluated by the gameengine
-	 * bit 6: Use Fh settings in Materials
-	 * bit 7: Use face normal to rotate Object
-	 * bit 8: Friction is anisotropic
-	 * bit 9: Object is a ghost
-	 * bit 10: Do rigid body dynamics.
-	 * bit 11: Use bounding object for physics
-	 */
+
 	int gameflag;
-	/**
-	 * More settings
-	 * bit 15: Always ignore activity culling 
-	 */
 	int gameflag2;
+
 	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
 
 	short softflag;			/* softbody settings */
@@ -241,7 +229,7 @@ typedef struct Object {
 
 	ListBase constraints;		/* object constraints */
 	ListBase nlastrips;			// XXX depreceated... old animation system
-	ListBase hooks;
+	ListBase hooks;				// XXX depreceated... old animation system
 	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
@@ -261,7 +249,7 @@ typedef struct Object {
 	unsigned int state;			/* bit masks of game controllers that are active */
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
 
-	ListBase gpulamp;		/* runtime, for lamps only */
+	ListBase gpulamp;		/* runtime, for glsl lamp display only */
 	ListBase pc_ids;
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 
@@ -286,13 +274,17 @@ typedef struct ObHook {
 	float force;
 } ObHook;
 
+/* runtime only, but include here for rna access */
 typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
 	unsigned int origlay;
-	int index, no_draw, type, animated;
+	int index;
 	float mat[4][4], omat[4][4];
 	float orco[3], uv[2];
+
+	short type; /* from Object.transflag */
+	char no_draw, animated;
 } DupliObject;
 
 /* **************** OBJECT ********************* */

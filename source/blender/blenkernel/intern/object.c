@@ -303,8 +303,6 @@ void free_object(Object *ob)
 	ob->matbits= NULL;
 	if(ob->bb) MEM_freeN(ob->bb); 
 	ob->bb= NULL;
-	if(ob->path) free_path(ob->path); 
-	ob->path= NULL;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->gpd) ((ID *)ob->gpd)->us--;
@@ -1376,7 +1374,6 @@ Object *copy_object(Object *ob)
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
-	obn->path= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
 	obn->modifiers.first = obn->modifiers.last= NULL;
