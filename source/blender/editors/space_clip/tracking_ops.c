@@ -123,7 +123,7 @@ static void add_marker(SpaceClip *sc, float x, float y)
 
 	track= BKE_tracking_add_track(&clip->tracking, x, y, sc->user.framenr, width, height);
 
-	BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, 0);
+	BKE_tracking_select_track(&clip->tracking, track, TRACK_AREA_ALL, 0);
 
 	clip->tracking.act_track= track;
 }
@@ -776,14 +776,14 @@ static int mouse_select(bContext *C, float co[2], int extend)
 
 		if(extend && TRACK_AREA_SELECTED(track, area)) {
 			if(track==act_track)
-				BKE_movieclip_deselect_track(clip, track, area);
+				BKE_tracking_deselect_track(track, area);
 			else
 				clip->tracking.act_track= track;
 		} else {
 			if(area==TRACK_AREA_POINT)
 				area= TRACK_AREA_ALL;
 
-			BKE_movieclip_select_track(clip, track, area, extend);
+			BKE_tracking_select_track(tracking, track, area, extend);
 			clip->tracking.act_track= track;
 		}
 	}

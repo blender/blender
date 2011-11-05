@@ -1406,12 +1406,12 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 							if(buffer[4*i+3] & 0xFFFF0000) {
 								MovieClip *clip= object_get_movieclip(scene, basact->object, 0);
 								int selected;
-								track= BKE_tracking_indexed_bundle(&clip->tracking, hitresult >> 16);
+								track= BKE_tracking_indexed_track(&clip->tracking, hitresult >> 16);
 
 								selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
 
-								if(selected && extend) BKE_movieclip_deselect_track(clip, track, TRACK_AREA_ALL);
-								else BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, extend);
+								if(selected && extend)  BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+								else BKE_tracking_select_track(&clip->tracking, track, TRACK_AREA_ALL, extend);
 
 								basact->flag|= SELECT;
 								basact->object->flag= basact->flag;

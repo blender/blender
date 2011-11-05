@@ -1387,7 +1387,7 @@ void BKE_track_unique_name(MovieTracking *tracking, MovieTrackingTrack *track)
 	BLI_uniquename(&tracking->tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
 }
 
-MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *name)
+MovieTrackingTrack *BKE_tracking_named_track(MovieTracking *tracking, const char *name)
 {
 	MovieTrackingTrack *track= tracking->tracks.first;
 
@@ -1689,14 +1689,14 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 #endif
 }
 
-MovieTrackingTrack *BKE_tracking_indexed_bundle(MovieTracking *tracking, int bundlenr)
+MovieTrackingTrack *BKE_tracking_indexed_track(MovieTracking *tracking, int tracknr)
 {
 	MovieTrackingTrack *track= tracking->tracks.first;
 	int cur= 1;
 
 	while(track) {
 		if(track->flag&TRACK_HAS_BUNDLE) {
-			if(cur==bundlenr)
+			if(cur==tracknr)
 				return track;
 
 			cur++;
@@ -2138,4 +2138,31 @@ ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf, int width, int
 		camera->intrinsics= BKE_tracking_distortion_create();
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, overscan, 0);
+}
+
+/* area - which part of marker should be selected. see TRACK_AREA_* constants */
+void BKE_tracking_select_track(MovieTracking *tracking, MovieTrackingTrack *track, int area, int extend)
+{
+	if(extend) {
+		BKE_tracking_track_flag(track, area, SELECT, 0);
+	} else {
+		MovieTrackingTrack *cur= tracking->tracks.first;
+
+		while(cur) {
+			if(cur==track) {
+				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+				BKE_tracking_track_flag(cur, area, SELECT, 0);
+			}
+			else {
+				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
+			}
+
+			cur= cur->next;
+		}
+	}
+}
+
+void BKE_tracking_deselect_track(MovieTrackingTrack *track, int area)
+{
+	BKE_tracking_track_flag(track, area, SELECT, 1);
 }

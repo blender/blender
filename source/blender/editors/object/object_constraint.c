@@ -408,7 +408,7 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 
 				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0) {
 					if(data->clip != NULL && data->track[0]) {
-						if (!BKE_find_track_by_name(&data->clip->tracking, data->track))
+						if (!BKE_tracking_named_track(&data->clip->tracking, data->track))
 							curcon->flag |= CONSTRAINT_DISABLE;
 					}
 					else curcon->flag |= CONSTRAINT_DISABLE;

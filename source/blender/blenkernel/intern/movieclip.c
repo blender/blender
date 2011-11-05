@@ -835,33 +835,6 @@ void BKE_movieclip_reload(MovieClip *clip)
 	else clip->source= MCLIP_SRC_SEQUENCE;
 }
 
-/* area - which part of marker should be selected. see TRACK_AREA_* constants */
-void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int area, int extend)
-{
-	if(extend) {
-		BKE_tracking_track_flag(track, area, SELECT, 0);
-	} else {
-		MovieTrackingTrack *cur= clip->tracking.tracks.first;
-
-		while(cur) {
-			if(cur==track) {
-				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
-				BKE_tracking_track_flag(cur, area, SELECT, 0);
-			}
-			else {
-				BKE_tracking_track_flag(cur, TRACK_AREA_ALL, SELECT, 1);
-			}
-
-			cur= cur->next;
-		}
-	}
-}
-
-void BKE_movieclip_deselect_track(MovieClip *UNUSED(clip), MovieTrackingTrack *track, int area)
-{
-	BKE_tracking_track_flag(track, area, SELECT, 1);
-}
-
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
 {
 	if(scopes->ok) return;

@@ -3962,7 +3962,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	if(!clip || !data->track[0])
 		return;
 
-	track= BKE_find_track_by_name(&clip->tracking, data->track);
+	track= BKE_tracking_named_track(&clip->tracking, data->track);
 
 	if(!track)
 		return;
