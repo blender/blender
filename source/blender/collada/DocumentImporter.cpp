@@ -54,7 +54,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_camera.h"
 #include "BKE_main.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
 #include "BKE_fcurve.h"

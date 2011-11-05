@@ -51,6 +51,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"

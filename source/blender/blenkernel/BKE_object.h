@@ -75,18 +75,7 @@ void object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);
-void *add_camera(const char *name);
-struct Camera *copy_camera(struct Camera *cam);
-void make_local_camera(struct Camera *cam);
-float dof_camera(struct Object *ob);
 	
-void *add_lamp(const char *name);
-struct Lamp *copy_lamp(struct Lamp *la);
-struct Lamp *localize_lamp(struct Lamp *la);
-void make_local_lamp(struct Lamp *la);
-void free_camera(struct Camera *ca);
-void free_lamp(struct Lamp *la);
-
 struct Object *add_only_object(int type, const char *name);
 struct Object *add_object(struct Scene *scene, int type);
 
@@ -139,20 +128,6 @@ int object_insert_ptcache(struct Object *ob);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
 int object_is_modified(struct Scene *scene, struct Object *ob);
-
-void object_camera_mode(struct RenderData *rd, struct Object *camera);
-void object_camera_intrinsics(struct Object *camera, struct Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit);
-void object_camera_matrix(
-		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens,
-		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
-		float *viewdx, float *viewdy);
-
-void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
-                          float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3]);
-
-void camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);
 
 void object_relink(struct Object *ob);
 
