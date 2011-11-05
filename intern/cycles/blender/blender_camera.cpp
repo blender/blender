@@ -47,6 +47,10 @@ struct BlenderCamera {
 
 	float2 pixelaspect;
 
+	enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
+	float sensor_width;
+	float sensor_height;
+
 	Transform matrix;
 };
 
@@ -56,6 +60,9 @@ static void blender_camera_init(BlenderCamera *bcam)
 
 	bcam->zoom = 1.0f;
 	bcam->pixelaspect = make_float2(1.0f, 1.0f);
+	bcam->sensor_width = 32.0f;
+	bcam->sensor_height = 18.0f;
+	bcam->sensor_fit = BlenderCamera::AUTO;
 }
 
 static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
@@ -100,6 +107,16 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 
 		bcam->shift.x = b_camera.shift_x();
 		bcam->shift.y = b_camera.shift_y();
+
+		bcam->sensor_width = b_camera.sensor_width();
+		bcam->sensor_height = b_camera.sensor_height();
+
+		if(b_camera.sensor_fit() == BL::Camera::sensor_fit_AUTO)
+			bcam->sensor_fit = BlenderCamera::AUTO;
+		else if(b_camera.sensor_fit() == BL::Camera::sensor_fit_HORIZONTAL)
+			bcam->sensor_fit = BlenderCamera::HORIZONTAL;
+		else
+			bcam->sensor_fit = BlenderCamera::VERTICAL;
 	}
 	else {
 		/* from lamp not implemented yet */
@@ -118,7 +135,24 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	/* compute x/y aspect and ratio */
 	float aspectratio, xaspect, yaspect;
 
-	if(xratio > yratio) {
+	/* sensor fitting */
+	bool horizontal_fit;
+	float sensor_size;
+
+	if(bcam->sensor_fit == BlenderCamera::AUTO) {
+		horizontal_fit = (xratio > yratio);
+		sensor_size = bcam->sensor_width;
+	}
+	else if(bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
+		horizontal_fit = true;
+		sensor_size = bcam->sensor_width;
+	}
+	else {
+		horizontal_fit = false;
+		sensor_size = bcam->sensor_height;
+	}
+
+	if(horizontal_fit) {
 		aspectratio= xratio/yratio;
 		xaspect= aspectratio;
 		yaspect= 1.0f;
@@ -165,7 +199,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->ortho = bcam->ortho;
 
 	/* perspective */
-	cam->fov = 2.0f*atan(16.0f/bcam->lens/aspectratio);
+	cam->fov = 2.0f*atan((0.5f*sensor_size)/bcam->lens/aspectratio);
 	cam->focaldistance = bcam->focaldistance;
 	cam->aperturesize = bcam->aperturesize;
 	cam->blades = bcam->apertureblades;
