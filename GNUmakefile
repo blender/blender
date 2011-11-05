@@ -151,6 +151,7 @@ help:
 	@echo ""
 	@echo "Documentation Targets (not assosiated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
+	@echo "  * doc_doxy - generate doxygen C/C++ docs"
 	@echo "  * doc_dna  - generate blender file format reference"
 	@echo "  * doc_man  - generate manpage"
 	@echo ""
@@ -238,8 +239,12 @@ check_sparse:
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py:
 	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
-	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
+	cd doc/python_api ; sphinx-build -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
+
+doc_doxy:
+	cd doc/doxygen; doxygen 
+	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna:
 	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py

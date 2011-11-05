@@ -454,7 +454,7 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
 /**
  * Pauses a playing sound after a specific amount of time.
  * \param handle The handle to the sound.
- * \param time The time in seconds.
+ * \param seconds The time in seconds.
  * \return The silence handle.
  */
 extern AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds);

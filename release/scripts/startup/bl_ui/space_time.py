@@ -36,6 +36,7 @@ class TIME_HT_header(Header):
 
         if context.area.show_menus:
             row.menu("TIME_MT_view")
+            row.menu("TIME_MT_marker")
             row.menu("TIME_MT_frame")
             row.menu("TIME_MT_playback")
 
@@ -91,6 +92,15 @@ class TIME_HT_header(Header):
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
+class TIME_MT_marker(bpy.types.Menu):
+    bl_label = "Marker"
+
+    def draw(self, context):
+        layout = self.layout
+
+        marker_menu_generic(layout)
+
+
 class TIME_MT_view(Menu):
     bl_label = "View"
 
@@ -143,17 +153,6 @@ class TIME_MT_frame(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("marker.add", text="Add Marker")
-        layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.delete", text="Delete Marker")
-
-        layout.separator()
-
-        layout.operator("marker.rename", text="Rename Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
-
-        layout.separator()
-
         layout.operator("time.start_frame_set")
         layout.operator("time.end_frame_set")
 
@@ -197,6 +196,29 @@ class TIME_MT_autokey(Menu):
 
         layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
+
+
+def marker_menu_generic(layout):
+
+    #layout.operator_context = 'EXEC_REGION_WIN'
+
+    layout.column()
+    layout.operator("marker.add", "Add Marker")
+    layout.operator("marker.duplicate", text="Duplicate Marker")
+
+    if(len(bpy.data.scenes) > 10):
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("marker.make_links_scene", text="Duplicate Marker to Scene...", icon='OUTLINER_OB_EMPTY')
+    else:
+        layout.operator_menu_enum("marker.make_links_scene", "scene", text="Duplicate Marker to Scene...")
+
+    layout.operator("marker.delete", text="Delete Marker")
+
+    layout.separator()
+
+    layout.operator("marker.rename", text="Rename Marker")
+    layout.operator("marker.move", text="Grab/Move Marker")
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

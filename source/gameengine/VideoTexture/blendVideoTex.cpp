@@ -91,7 +91,7 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 	// parameter is Image object
 	PyObject * pyImg;
 	char *mode = NULL;
-	if (!PyArg_ParseTuple(args, "O|s:imageToArray", &pyImg, &mode) || !pyImageTypes.in(pyImg->ob_type))
+	if (!PyArg_ParseTuple(args, "O|s:imageToArray", &pyImg, &mode) || !pyImageTypes.in(Py_TYPE(pyImg)))
 	{
 		// if object is incorect, report error
 		PyErr_SetString(PyExc_TypeError, "VideoTexture.imageToArray(image): The value must be a image source object");

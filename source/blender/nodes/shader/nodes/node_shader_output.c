@@ -83,6 +83,7 @@ void register_node_type_sh_output(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_output_in, NULL);
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_exec(&ntype, node_shader_exec_output);

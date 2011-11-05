@@ -141,7 +141,9 @@ static int print_version(int argc, const char **argv, void *data);
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
-#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
+#define BLEND_VERSION_STRING_FMT                                              \
+	"Blender %d.%02d (sub %d)\n",                                             \
+	BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION              \
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
@@ -850,22 +852,23 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 
 /* macro for ugly context setup/reset */
 #ifdef WITH_PYTHON
-#define BPY_CTX_SETUP(_cmd) \
-{ \
-	wmWindowManager *wm= CTX_wm_manager(C); \
-	wmWindow *prevwin= CTX_wm_window(C); \
-	Scene *prevscene= CTX_data_scene(C); \
-	if(wm->windows.first) { \
-		CTX_wm_window_set(C, wm->windows.first); \
-		_cmd; \
-		CTX_wm_window_set(C, prevwin); \
-	} \
-	else { \
-		fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]); \
-		_cmd; \
-	} \
-	CTX_data_scene_set(C, prevscene); \
-} \
+#define BPY_CTX_SETUP(_cmd)                                                   \
+{                                                                             \
+	wmWindowManager *wm= CTX_wm_manager(C);                                   \
+	wmWindow *prevwin= CTX_wm_window(C);                                      \
+	Scene *prevscene= CTX_data_scene(C);                                      \
+	if(wm->windows.first) {                                                   \
+		CTX_wm_window_set(C, wm->windows.first);                              \
+		_cmd;                                                                 \
+		CTX_wm_window_set(C, prevwin);                                        \
+	}                                                                         \
+	else {                                                                    \
+		fprintf(stderr, "Python script \"%s\" "                               \
+		                "running with missing context data.\n", argv[1]);     \
+		_cmd;                                                                 \
+	}                                                                         \
+	CTX_data_scene_set(C, prevscene);                                         \
+}                                                                             \
 
 #endif /* WITH_PYTHON */
 
@@ -971,7 +974,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
-		BPY_app_handlers_reset();
+		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 #endif
 

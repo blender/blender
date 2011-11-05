@@ -32,8 +32,10 @@
 
 #include <string.h>
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -56,11 +58,20 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Material *ma;
-	for(ma= main->mat.first; ma; ma= ma->id.next) {
-		if(ma->nodetree) {
+	Lamp *la;
+	World *wo;
+
+	for(ma= main->mat.first; ma; ma= ma->id.next)
+		if(ma->nodetree)
 			func(calldata, &ma->id, ma->nodetree);
-		}
-	}
+
+	for(la= main->lamp.first; la; la= la->id.next)
+		if(la->nodetree)
+			func(calldata, &la->id, la->nodetree);
+
+	for(wo= main->world.first; wo; wo= wo->id.next)
+		if(wo->nodetree)
+			func(calldata, &wo->id, wo->nodetree);
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
@@ -212,8 +223,15 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* each material node has own local shaderesult, with optional copying */
 	memset(shr, 0, sizeof(ShadeResult));
 	
-	if (!exec)
-		exec = ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+	/* ensure execdata is only initialized once */
+	if (!exec) {
+		BLI_lock_thread(LOCK_NODES);
+		if(!ntree->execdata)
+			ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+		BLI_unlock_thread(LOCK_NODES);
+
+		exec = ntree->execdata;
+	}
 	
 	nts= ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);

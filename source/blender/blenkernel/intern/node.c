@@ -43,10 +43,11 @@
 #include <string.h>
 #include <limits.h>
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_action_types.h"
 
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -1320,7 +1321,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_ID;
 }
 
-/* use flags are not persistant yet, groups might need different tagging, so we do it each time
+/* use flags are not persistent yet, groups might need different tagging, so we do it each time
    when we need to get this info */
 void ntreeSocketUseFlags(bNodeTree *ntree)
 {
@@ -1751,6 +1752,10 @@ void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMate
 	ntype->gpuextfunc = gpuextfunc;
 }
 
+void node_type_compatibility(struct bNodeType *ntype, short compatibility)
+{
+	ntype->compatibility = compatibility;
+}
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
 {

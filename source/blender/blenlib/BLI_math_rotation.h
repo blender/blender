@@ -179,8 +179,8 @@ void dquat_to_mat4(float R[4][4], DualQuat *dq);
 void quat_apply_track(float quat[4], short axis, short upflag);
 void vec_apply_track(float vec[3], short axis);
 
-float lens_to_angle(float lens);
-float angle_to_lens(float angle);
+float focallength_to_fov(float focal_length, float sensor);
+float fov_to_focallength(float fov, float sensor);
 
 float angle_wrap_rad(float angle);
 float angle_wrap_deg(float angle);

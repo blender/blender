@@ -273,13 +273,10 @@ void make_local_curve(Curve *cu)
 		extern_local_curve(cu);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, cu->id.lib->filepath};
 		Curve *cun= copy_curve(cu);
 		cun->id.us= 0;
 
-
-		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &cun->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &cun->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==cu) {
@@ -318,9 +315,34 @@ short curve_type(Curve *cu)
 	return OB_CURVE;
 }
 
+void update_curve_dimension(Curve *cu)
+{
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu= nurbs->first;
+
+	if(cu->flag&CU_3D) {
+		for( ; nu; nu= nu->next) {
+			nu->flag &= ~CU_2D;
+		}
+	}
+	else {
+		for( ; nu; nu= nu->next) {
+			nu->flag |= CU_2D;
+			test2DNurb(nu);
+
+			/* since the handles are moved they need to be auto-located again */
+			if(nu->type == CU_BEZIER)
+				calchandlesNurb(nu);
+		}
+	}
+}
+
 void test_curve_type(Object *ob)
-{	
-	ob->type = curve_type(ob->data);
+{
+	ob->type= curve_type(ob->data);
+
+	if(ob->type==OB_CURVE)
+		update_curve_dimension((Curve *)ob->data);
 }
 
 void tex_space_curve(Curve *cu)

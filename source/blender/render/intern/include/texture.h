@@ -36,21 +36,26 @@
 #ifndef TEXTURE_EXT_H
 #define TEXTURE_EXT_H
 
-#define BRICONT		texres->tin= (texres->tin-0.5f)*tex->contrast+tex->bright-0.5f; \
-if(texres->tin<0.0f) texres->tin= 0.0f; else if(texres->tin>1.0f) texres->tin= 1.0f;
+#define BRICONT                                                               \
+	texres->tin= (texres->tin-0.5f) * tex->contrast+tex->bright-0.5f;         \
+	if(texres->tin < 0.0f)      texres->tin= 0.0f;                            \
+	else if(texres->tin > 1.0f) texres->tin= 1.0f;                            \
 
-#define BRICONTRGB	texres->tr= tex->rfac*((texres->tr-0.5f)*tex->contrast+tex->bright-0.5f); \
-if(texres->tr<0.0f) texres->tr= 0.0f; \
-texres->tg= tex->gfac*((texres->tg-0.5f)*tex->contrast+tex->bright-0.5f); \
-if(texres->tg<0.0f) texres->tg= 0.0f; \
-texres->tb= tex->bfac*((texres->tb-0.5f)*tex->contrast+tex->bright-0.5f); \
-if(texres->tb<0.0f) texres->tb= 0.0f; \
-if(tex->saturation != 1.0f) { \
-	float _hsv[3]; \
-	rgb_to_hsv(texres->tr, texres->tg, texres->tb, _hsv, _hsv+1, _hsv+2); \
-	_hsv[1] *= tex->saturation; \
-	hsv_to_rgb(_hsv[0], _hsv[1], _hsv[2], &texres->tr, &texres->tg, &texres->tb); \
-} \
+#define BRICONTRGB                                                            \
+	texres->tr= tex->rfac*((texres->tr-0.5f)*tex->contrast+tex->bright-0.5f); \
+	if(texres->tr<0.0f) texres->tr= 0.0f;                                     \
+	texres->tg= tex->gfac*((texres->tg-0.5f)*tex->contrast+tex->bright-0.5f); \
+	if(texres->tg<0.0f) texres->tg= 0.0f;                                     \
+	texres->tb= tex->bfac*((texres->tb-0.5f)*tex->contrast+tex->bright-0.5f); \
+	if(texres->tb<0.0f) texres->tb= 0.0f;                                     \
+	if(tex->saturation != 1.0f) {                                             \
+		float _hsv[3];                                                        \
+		rgb_to_hsv(texres->tr, texres->tg, texres->tb,                        \
+		           _hsv, _hsv+1, _hsv+2);                                     \
+		_hsv[1] *= tex->saturation;                                           \
+		hsv_to_rgb(_hsv[0], _hsv[1], _hsv[2],                                 \
+		           &texres->tr, &texres->tg, &texres->tb);                    \
+	}                                                                         \
 
 #define RGBTOBW(r,g,b)	( r*0.35f + g*0.45f + b*0.2f )		/* keep this in sync with gpu_shader_material.glsl:rgbtobw */
 

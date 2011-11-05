@@ -36,6 +36,9 @@ struct RAS_CameraData
 {
 	float m_lens;
 	float m_scale;
+	float m_sensor_x;
+	float m_sensor_y;
+	short m_sensor_fit;
 	float m_clipstart;
 	float m_clipend;
 	bool m_perspective;
@@ -46,11 +49,15 @@ struct RAS_CameraData
 	int m_viewporttop;
 	float m_focallength;
 
-	RAS_CameraData(float lens = 35.0, float scale = 6.0, float clipstart = 0.1, float clipend = 5000.0, bool perspective = true,
+	RAS_CameraData(float lens = 35.0, float scale = 6.0, float sensor_x = 32.0, float sensor_y = 18.0, short sensor_fit = 0,
+	               float clipstart = 0.1, float clipend = 5000.0, bool perspective = true,
 	               float focallength = 3.0, bool viewport = false, int viewportleft = 0, int viewportbottom = 0,
 	               int viewportright = 0, int viewporttop = 0) :
 	    m_lens(lens),
 	    m_scale(scale),
+	    m_sensor_x(sensor_x),
+	    m_sensor_y(sensor_y),
+		m_sensor_fit(sensor_fit),
 	    m_clipstart(clipstart),
 	    m_clipend(clipend),
 	    m_perspective(perspective),

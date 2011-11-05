@@ -78,11 +78,11 @@
  *	- intV: integer value containing color info packed into an int
  *	- alpha: float value describing the 
  */
-#define cpackA(intVC, alpha) \
-	{ \
-		float _cpackCol[3]; \
-		cpack_to_rgb(intVC, &_cpackCol[0], &_cpackCol[1], &_cpackCol[2]); \
-		glColor4f(_cpackCol[0], _cpackCol[1], _cpackCol[2], alpha); \
+#define cpackA(intVC, alpha)                                                  \
+	{                                                                         \
+		float _cpackCol[3];                                                   \
+		cpack_to_rgb(intVC, &_cpackCol[0], &_cpackCol[1], &_cpackCol[2]);     \
+		glColor4f(_cpackCol[0], _cpackCol[1], _cpackCol[2], alpha);           \
 	}
 
 /* *************************** */

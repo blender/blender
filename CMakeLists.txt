@@ -157,6 +157,8 @@ endif()
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
+	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
+	mark_as_advanced(WITH_XDG_USER_DIRS)
 else()
 	# not an option for other OS's
 	set(WITH_BUILTIN_GLEW ON)
@@ -1255,6 +1257,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# flags to undo strict flags
 	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

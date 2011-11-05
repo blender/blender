@@ -58,7 +58,7 @@ typedef struct Global {
 	/* flag: if != 0 G.main->name contains valid relative base path */
 	int relbase_valid;
 
-	/* strings of recent opend files */
+	/* strings of recent opened files */
 	struct ListBase recent_files;
         
 	short afbreek, moving, file_loaded;

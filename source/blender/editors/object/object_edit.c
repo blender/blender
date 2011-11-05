@@ -145,6 +145,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	if (changed) {
+		DAG_id_type_tag(bmain, ID_OB);
 		DAG_scene_sort(bmain, scene);
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
@@ -197,6 +198,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (changed) {
+		DAG_id_type_tag(bmain, ID_OB);
 		DAG_scene_sort(bmain, scene);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
@@ -1180,7 +1182,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->min_vel= ob->min_vel;
 					base->object->max_vel= ob->max_vel;
 					if (ob->gameflag & OB_BOUNDS) {
-						base->object->boundtype = ob->boundtype;
+						base->object->collision_boundtype = ob->collision_boundtype;
 					}
 					base->object->margin= ob->margin;
 					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);

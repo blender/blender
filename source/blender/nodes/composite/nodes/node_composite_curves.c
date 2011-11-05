@@ -121,7 +121,7 @@ void register_node_type_cmp_curve_vec(ListBase *lb)
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketTemplate cmp_node_curve_rgb_in[]= {
 	{	SOCK_FLOAT, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, "Image",	0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",	1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Black Level",	0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "White Level",	1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}

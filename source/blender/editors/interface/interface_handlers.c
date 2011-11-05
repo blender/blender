@@ -3216,6 +3216,63 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	return changed;
 }
 
+static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+{
+	float *hsv= ui_block_hsv_get(but->block);
+	float rgb[3];
+	float sensitivity = (shift?0.15:0.3) * ndof->dt;
+	
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
+
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
+	switch((int)but->a1) {
+		case UI_GRAD_SV:
+			hsv[2] += ndof->ry * sensitivity;
+			hsv[1] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_HV:
+			hsv[0] += ndof->ry * sensitivity;
+			hsv[2] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_HS:
+			hsv[0] += ndof->ry * sensitivity;
+			hsv[1] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_H:
+			hsv[0] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_S:
+			hsv[1] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_V:
+			hsv[2] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_V_ALT:	
+			/* vertical 'value' strip */
+			
+			/* exception only for value strip - use the range set in but->min/max */
+			hsv[2] += ndof->rx * sensitivity;
+			
+			if (color_profile)
+				hsv[2] = srgb_to_linearrgb(hsv[2]);
+			
+			CLAMP(hsv[2], but->softmin, but->softmax);
+		default:
+			assert(!"invalid hsv type");
+	}
+	
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+	copy_v3_v3(data->vec, rgb);
+	ui_set_but_vectorf(but, data->vec);
+}
+
 static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	int mx, my;
@@ -3238,8 +3295,18 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+		else if (event->type == NDOF_MOTION) {
+			wmNDOFMotionData *ndof = (wmNDOFMotionData*) event->customdata;
+			
+			ui_ndofedit_but_HSVCUBE(but, data, ndof, event->shift);
+			
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_apply_button(C, but->block, but, data, 1);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			if (but->a1==UI_GRAD_V_ALT){
 				int len;
 				
@@ -3337,11 +3404,62 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	return changed;
 }
 
+static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+{
+	float *hsv= ui_block_hsv_get(but->block);
+	float rgb[3];
+	float phi, r /*, sqr */ /* UNUSED */, v[2];
+	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
+	
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
+	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
+	phi = fmodf(hsv[0]+0.25f, 1.0f) * -2.0f*M_PI;
+	r = hsv[1];
+	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
+	
+	/* Convert to 2d vectors */
+	v[0] = r * cosf(phi);
+	v[1] = r * sinf(phi);
+	
+	/* Use ndof device y and x rotation to move the vector in 2d space */
+	v[0] += ndof->ry * sensitivity;
+	v[1] += ndof->rx * sensitivity;
+
+	/* convert back to polar coords on circle */
+	phi = atan2(v[0], v[1])/(2.0f*(float)M_PI) + 0.5f;
+	
+	/* use ndof z rotation to additionally rotate hue */
+	phi -= ndof->rz * sensitivity * 0.5f;
+	
+	r = len_v2(v);
+	CLAMP(r, 0.0f, 1.0f);
+	
+	/* convert back to hsv values, in range [0,1] */
+	hsv[0] = fmodf(phi, 1.0f);
+	hsv[1] = r;
+
+	/* exception, when using color wheel in 'locked' value state:
+	 * allow choosing a hue for black values, by giving a tiny increment */
+	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
+		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
+	}
+	
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec+1, data->vec+2);
+	
+	if((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
+		normalize_v3(data->vec);
+		mul_v3_fl(data->vec, but->a2);
+	}
+	
+	ui_set_but_vectorf(but, data->vec);
+}
+
 
 static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	int mx, my;
-	
 	mx= event->x;
 	my= event->y;
 	ui_window_to_block(data->region, block, &mx, &my);
@@ -3360,8 +3478,18 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+		else if (event->type == NDOF_MOTION) {
+			wmNDOFMotionData *ndof = (wmNDOFMotionData*) event->customdata;
+			
+			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, event->shift);
+
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_apply_button(C, but->block, but, data, 1);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			int len;
 			
 			/* reset only saturation */
@@ -3810,7 +3938,7 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			Histogram *hist = (Histogram *)but->poin;
 			hist->ymax = 1.f;
 			
@@ -3893,7 +4021,7 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			Scopes *scopes = (Scopes *)but->poin;
 			scopes->wavefrm_yfac = 1.f;
 

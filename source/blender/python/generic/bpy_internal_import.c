@@ -15,12 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano,
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -308,77 +306,3 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 
 PyMethodDef bpy_import_meth= {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
 PyMethodDef bpy_reload_meth= {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
-
-
-/* Clear user modules.
- * This is to clear any modules that could be defined from running scripts in blender.
- * 
- * Its also needed for the BGE Python api so imported scripts are not used between levels
- * 
- * This clears every modules that has a __file__ attribute (is not a builtin)
- *
- * Note that clearing external python modules is important for the BGE otherwise
- * it wont reload scripts between loading different blend files or while making the game.
- * - use 'clear_all' arg in this case.
- *
- * Since pythons built-ins include a full path even for win32.
- * even if we remove a python module a re-import will bring it back again.
- */
-
-#if 0 // not used anymore but may still come in handy later
-
-#if defined(WIN32) || defined(WIN64)
-#define SEPSTR "\\"
-#else
-#define SEPSTR "/"
-#endif
-
-
-void bpy_text_clear_modules(int clear_all)
-{
-	PyObject *modules= PyImport_GetModuleDict();
-	
-	char *fname;
-	char *file_extension;
-	
-	/* looping over the dict */
-	PyObject *key, *value;
-	Py_ssize_t pos= 0;
-	
-	/* new list */
-	PyObject *list;
-
-	if (modules==NULL)
-		return; /* should never happen but just incase */
-
-	list= PyList_New(0);
-
-	/* go over sys.modules and remove anything with a 
-	 * sys.modukes[x].__file__ thats ends with a .py and has no path
-	 */
-	while (PyDict_Next(modules, &pos, &key, &value)) {
-		fname= PyModule_GetFilename(value);
-		if (fname) {
-			if (clear_all || ((strstr(fname, SEPSTR))==0)) { /* no path ? */
-				file_extension= strstr(fname, ".py");
-				if (file_extension && (*(file_extension + 3) == '\0' || *(file_extension + 4) == '\0')) { /* .py or pyc extension? */
-					/* now we can be fairly sure its a python import from the blendfile */
-					PyList_Append(list, key); /* free'd with the list */
-				}
-			}
-		}
-		else {
-			PyErr_Clear();
-		}
-	}
-	
-	/* remove all our modules */
-	for (pos=0; pos < PyList_GET_SIZE(list); pos++) {
-		/* PyObject_Print(key, stderr, 0); */
-		key= PyList_GET_ITEM(list, pos);
-		PyDict_DelItem(modules, key);
-	}
-	
-	Py_DECREF(list); /* removes all references from append */
-}
-#endif

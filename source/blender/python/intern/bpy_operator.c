@@ -380,7 +380,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
 	PointerRNA ptr;
-	char *opname= _PyUnicode_AsString(value);
+	const char *opname= _PyUnicode_AsString(value);
 	BPy_StructRNA *pyrna= NULL;
 	
 	if (opname==NULL) {
@@ -413,7 +413,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 	wmOperatorType *ot;
 	wmOperator *op;
 	PointerRNA ptr;
-	char *opname= _PyUnicode_AsString(value);
+	const char *opname= _PyUnicode_AsString(value);
 	BPy_StructRNA *pyrna= NULL;
 
 	if (opname==NULL) {

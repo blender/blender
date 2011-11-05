@@ -842,6 +842,11 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 }
 
+void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, NULL);
+}
+
 static void node_common_buts_whileloop(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "max_iterations", 0, NULL, 0);
@@ -867,7 +872,7 @@ static void node_common_set_butfunc(bNodeType *ntype)
 {
 	switch(ntype->type) {
 		case NODE_GROUP:
-//			ntype->uifunc= node_common_buts_group;
+			ntype->uifunc= node_uifunc_group;
 			ntype->drawfunc= node_draw_group;
 			ntype->drawupdatefunc= node_update_group;
 			break;

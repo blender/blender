@@ -120,7 +120,7 @@ void BLF_lang_set(const char *str)
 	const char *short_locale;
 	int ok= 1;
 #if defined (_WIN32) && !defined(FREE_WINDOWS)
-	char *long_locale = locales[ 2 * U.language];
+	const char *long_locale = locales[ 2 * U.language];
 #endif
 
 	if((U.transopts&USER_DOTRANSLATE)==0)

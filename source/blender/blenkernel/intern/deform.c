@@ -257,17 +257,19 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 /* note, must be freed */
 int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 {
-	bDeformGroup *dg;
 	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
 
 	if(totdg==0) {
 		return NULL;
 	}
 	else {
+		bDeformGroup *dg;
 		char name[sizeof(dg->name)];
 		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
 
-		memset(map, -1, totdg * sizeof(int));
+		for (i=0; i < totdg; i++) {
+			map[i]= -1;
+		}
 
 		for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 			if(map[i] == -1) { /* may be calculated previously */
@@ -276,7 +278,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 				if(use_default)
 					map[i]= i;
 
-				flip_side_name(name, dg->name, 0);
+				flip_side_name(name, dg->name, FALSE);
 				if(strcmp(name, dg->name)) {
 					flip_num= defgroup_name_index(ob, name);
 					if(flip_num >= 0) {
@@ -286,6 +288,40 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 				}
 			}
 		}
+		return map;
+	}
+}
+
+/* note, must be freed */
+int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, int defgroup)
+{
+	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
+
+	if(totdg==0) {
+		return NULL;
+	}
+	else {
+		bDeformGroup *dg;
+		char name[sizeof(dg->name)];
+		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
+
+		for (i=0; i < totdg; i++) {
+			if (use_default) map[i]= i;
+			else             map[i]= -1;
+		}
+
+		dg= BLI_findlink(&ob->defbase, defgroup);
+
+		flip_side_name(name, dg->name, FALSE);
+		if(strcmp(name, dg->name)) {
+			flip_num= defgroup_name_index(ob, name);
+
+			if(flip_num >= 0) {
+				map[defgroup]= flip_num;
+				map[flip_num]= defgroup;
+			}
+		}
+
 		return map;
 	}
 }

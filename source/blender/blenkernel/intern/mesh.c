@@ -298,13 +298,12 @@ void make_local_mesh(Mesh *me)
 		expand_local_mesh(me);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, me->id.lib->filepath};
 		Mesh *men= copy_mesh(me);
 		men->id.us= 0;
 
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &men->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &men->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(me == ob->data) {

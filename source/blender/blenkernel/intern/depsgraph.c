@@ -591,9 +591,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
-				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
+				dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
-					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualisation");
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Object Visualisation");
 			}
 
 			if(part->ren_as == PART_DRAW_GR && part->dup_group) {
@@ -799,6 +799,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob)
 }
 
 static int ugly_hack_sorry= 1;	// prevent type check
+static int dag_print_dependencies= 0; // debugging
 
 /* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode * dag_add_node (DagForest *forest, void * fob)
@@ -926,7 +927,6 @@ static const char *dag_node_name(DagNode *node)
 		return ((bPoseChannel*)(node->ob))->name;
 }
 
-#if 0
 static void dag_node_print_dependencies(DagNode *node)
 {
 	DagAdjList *itA;
@@ -937,7 +937,6 @@ static void dag_node_print_dependencies(DagNode *node)
 		printf("  %s through %s\n", dag_node_name(itA->node), itA->name);
 	printf("\n");
 }
-#endif
 
 static int dag_node_print_dependency_recurs(DagNode *node, DagNode *endnode)
 {
@@ -997,6 +996,11 @@ static void dag_check_cycle(DagForest *dag)
 {
 	DagNode *node;
 	DagAdjList *itA;
+
+	/* debugging print */
+	if(dag_print_dependencies)
+		for(node = dag->DagNode.first; node; node= node->next)
+			dag_node_print_dependencies(node);
 
 	/* tag nodes unchecked */
 	for(node = dag->DagNode.first; node; node= node->next)
@@ -1761,9 +1765,22 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	sce->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 
+static void lib_id_recalc_tag(Main *bmain, ID *id)
+{
+	id->flag |= LIB_ID_RECALC;
+	bmain->id_tag_update[id->name[0]] = 1;
+}
+
+static void lib_id_recalc_data_tag(Main *bmain, ID *id)
+{
+	id->flag |= LIB_ID_RECALC_DATA;
+	bmain->id_tag_update[id->name[0]] = 1;
+}
+
 /* node was checked to have lasttime != curtime and is if type ID_OB */
 static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 {
+	Main *bmain= G.main;
 	DagAdjList *itA;
 	Object *ob, *obc;
 	int oldflag, changed=0;
@@ -1789,20 +1806,24 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 						if(itA->type & DAG_RL_OB_OB) {
 							//printf("ob %s changes ob %s\n", ob->id.name, obc->id.name);
 							obc->recalc |= OB_RECALC_OB;
+							lib_id_recalc_tag(bmain, &obc->id);
 						}
 						if(itA->type & DAG_RL_OB_DATA) {
 							//printf("ob %s changes obdata %s\n", ob->id.name, obc->id.name);
 							obc->recalc |= OB_RECALC_DATA;
+							lib_id_recalc_data_tag(bmain, &obc->id);
 						}
 					}
 					if(ob->recalc & OB_RECALC_DATA) {
 						if(itA->type & DAG_RL_DATA_OB) {
 							//printf("obdata %s changes ob %s\n", ob->id.name, obc->id.name);
 							obc->recalc |= OB_RECALC_OB;
+							lib_id_recalc_tag(bmain, &obc->id);
 						}
 						if(itA->type & DAG_RL_DATA_DATA) {
 							//printf("obdata %s changes obdata %s\n", ob->id.name, obc->id.name);
 							obc->recalc |= OB_RECALC_DATA;
+							lib_id_recalc_data_tag(bmain, &obc->id);
 						}
 					}
 					if(oldflag!=obc->recalc) changed= 1;
@@ -1833,6 +1854,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 					if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
 						// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
 						obc->recalc |= OB_RECALC_DATA;
+						lib_id_recalc_data_tag(bmain, &obc->id);
 					}
 				}
 			}
@@ -1872,6 +1894,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
 static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int reset)
 {
+	Main *bmain= G.main;
 	DagAdjList *itA;
 	Object *ob;
 	
@@ -1883,8 +1906,10 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 				ob= (Object*)(itA->node->ob);
 
 				if(reset || (ob->recalc & OB_RECALC_ALL)) {
-					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH)) {
 						ob->recalc |= OB_RECALC_DATA;
+						lib_id_recalc_data_tag(bmain, &ob->id);
+					}
 
 					flush_pointcache_reset(scene, itA->node, curtime, 1);
 				}
@@ -2001,8 +2026,10 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 				ob= (Object*)(itA->node->ob);
 
 				if(ob->recalc & OB_RECALC_ALL) {
-					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH)) {
 						ob->recalc |= OB_RECALC_DATA;
+						lib_id_recalc_data_tag(bmain, &ob->id);
+					}
 
 					flush_pointcache_reset(sce, itA->node, lasttime, 1);
 				}
@@ -2204,6 +2231,12 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}		
+
+	if(ob->recalc & OB_RECALC_OB)
+		lib_id_recalc_tag(G.main, &ob->id);
+	if(ob->recalc & OB_RECALC_DATA)
+		lib_id_recalc_data_tag(G.main, &ob->id);
+
 }
 /* flag all objects that need recalc, for changes in time for example */
 /* do_time: make this optional because undo resets objects to their animated locations without this */
@@ -2362,6 +2395,9 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 		DAG_scene_update_flags(bmain, scene, lay, do_time);
 		scene->lay_updated |= lay;
 	}
+
+	/* hack to get objects updating on layer changes */
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUSED(ob), ID **idpoin)
@@ -2408,6 +2444,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;
+					lib_id_recalc_data_tag(bmain, &obt->id);
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
@@ -2421,8 +2458,10 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				data.is_dependent= 0;
 
 				modifiers_foreachIDLink(obt, dag_id_flush_update__isDependentTexture, &data);
-				if (data.is_dependent)
+				if (data.is_dependent) {
 					obt->recalc |= OB_RECALC_DATA;
+					lib_id_recalc_data_tag(bmain, &obt->id);
+				}
 
 				/* particle settings can use the texture as well */
 				if(obt->particlesystem.first) {
@@ -2435,7 +2474,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 							mtex = *mtexp;
 							if(mtex && mtex->tex == (Tex*)id) {
 								obt->recalc |= OB_RECALC_DATA;
-								
+								lib_id_recalc_data_tag(bmain, &obt->id);
+
 								if(mtex->mapto & PAMAP_INIT)
 									psys->recalc |= PSYS_RECALC_RESET;
 								if(mtex->mapto & PAMAP_CHILD)
@@ -2455,6 +2495,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				Key *key= ob_get_key(obt);
 				if(!(ob && obt == ob) && ((ID *)key == id)) {
 					obt->flag |= (OB_RECALC_OB|OB_RECALC_DATA);
+					lib_id_recalc_tag(bmain, &obt->id);
+					lib_id_recalc_data_tag(bmain, &obt->id);
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
@@ -2479,7 +2521,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 	ListBase *lbarray[MAX_LIBARRAY];
 	Scene *sce;
 	unsigned int lay;
-	int a, have_tag = 0;
+	int a, do_flush = 0;
 
 	dag_current_scene_layers(bmain, &sce, &lay);
 
@@ -2497,23 +2539,64 @@ void DAG_ids_flush_tagged(Main *bmain)
 		   looping over all ID's in case there are no tags */
 		if(id && bmain->id_tag_update[id->name[0]]) {
 			for(; id; id=id->next) {
-				if(id->flag & LIB_ID_RECALC) {
+				if(id->flag & (LIB_ID_RECALC|LIB_ID_RECALC_DATA)) {
 					dag_id_flush_update(sce, id);
-					id->flag &= ~LIB_ID_RECALC;
+					do_flush = 1;
 				}
 			}
-
-			have_tag = 1;
 		}
 	}
 
-	if(have_tag) {
-		/* clear tags */
-		memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
-
-		/* flush changes to other objects */
+	/* flush changes to other objects */
+	if(do_flush)
 		DAG_scene_flush_update(bmain, sce, lay, 0);
+}
+
+void DAG_ids_check_recalc(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+
+	/* loop over all ID types */
+	a  = set_listbasepointers(bmain, lbarray);
+
+	while(a--) {
+		ListBase *lb = lbarray[a];
+		ID *id = lb->first;
+
+		/* we tag based on first ID type character to avoid 
+		   looping over all ID's in case there are no tags */
+		if(id && bmain->id_tag_update[id->name[0]]) {
+			/* do editors update */
+			dag_editors_update(bmain, NULL);
+			return;
+		}
 	}
+}
+
+
+void DAG_ids_clear_recalc(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+
+	/* loop over all ID types */
+	a  = set_listbasepointers(bmain, lbarray);
+
+	while(a--) {
+		ListBase *lb = lbarray[a];
+		ID *id = lb->first;
+
+		/* we tag based on first ID type character to avoid 
+		   looping over all ID's in case there are no tags */
+		if(id && bmain->id_tag_update[id->name[0]]) {
+			for(; id; id=id->next)
+				if(id->flag & (LIB_ID_RECALC|LIB_ID_RECALC_DATA))
+					id->flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);
+		}
+	}
+
+	memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
 }
 
 void DAG_id_tag_update(ID *id, short flag)
@@ -2523,8 +2606,14 @@ void DAG_id_tag_update(ID *id, short flag)
 	if(id==NULL) return;
 	
 	/* tag ID for update */
-	id->flag |= LIB_ID_RECALC;
-	bmain->id_tag_update[id->name[0]] = 1;
+	if(flag) {
+		if(flag & OB_RECALC_OB)
+			lib_id_recalc_tag(bmain, id);
+		if(flag & (OB_RECALC_DATA|PSYS_RECALC))
+			lib_id_recalc_data_tag(bmain, id);
+	}
+	else
+		lib_id_recalc_tag(bmain, id);
 
 	/* flag is for objects and particle systems */
 	if(flag) {
@@ -2554,6 +2643,16 @@ void DAG_id_tag_update(ID *id, short flag)
 			/* BLI_assert(!"invalid flag for this 'idtype'"); */
 		}
 	}
+}
+
+void DAG_id_type_tag(struct Main *bmain, short idtype)
+{
+	bmain->id_tag_update[((char*)&idtype)[0]] = 1;
+}
+
+int DAG_id_type_tagged(Main *bmain, short idtype)
+{
+	return bmain->id_tag_update[((char*)&idtype)[0]];
 }
 
 #if 0 // UNUSED
@@ -2739,5 +2838,22 @@ void DAG_pose_sort(Object *ob)
 	ugly_hack_sorry= 1;
 }
 
+/* ************************ DAG DEBUGGING ********************* */
 
+void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
+{
+	/* utility for debugging dependencies */
+	dag_print_dependencies= 1;
+
+	if(ob && (ob->mode & OB_MODE_POSE)) {
+		printf("\nDEPENDENCY RELATIONS for %s\n\n", ob->id.name+2);
+		DAG_pose_sort(ob);
+	}
+	else {
+		printf("\nDEPENDENCY RELATIONS for %s\n\n", scene->id.name+2);
+		DAG_scene_sort(bmain, scene);
+	}
+	
+	dag_print_dependencies= 0;
+}
 

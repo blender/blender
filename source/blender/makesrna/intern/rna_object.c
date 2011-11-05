@@ -286,6 +286,8 @@ static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *b
 	else {
 		DAG_scene_sort(bmain, scene);
 	}
+
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -899,11 +901,11 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_NAVMESH);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_DYNAMIC|OB_NAVMESH);
 		break;
 	case OB_BODY_TYPE_NAVMESH:
 		ob->gameflag |= OB_NAVMESH;
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_DYNAMIC|OB_OCCLUDER);
 
 		if (ob->type == OB_MESH) {
 			/* could be moved into mesh UI but for now ensure mesh data layer */
@@ -912,7 +914,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 
 		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~(OB_SENSOR|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);
+		ob->gameflag &= ~(OB_SENSOR|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC|OB_NAVMESH);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;
@@ -946,10 +948,10 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 		if (ob->type == OB_MESH) {
 			/* this is needed to refresh the derived meshes draw func */
 			DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
-			WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 		}
 	}
 
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
@@ -1530,9 +1532,10 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_collision_bounds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_BOUNDS);
 	RNA_def_property_ui_text(prop, "Use Collision Bounds", "Specify a collision bounds type other than the default");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "collision_bounds_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
+	RNA_def_property_enum_sdna(prop, NULL, "collision_boundtype");
 	RNA_def_property_enum_items(prop, collision_bounds_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_collision_bounds_itemf");
 	RNA_def_property_ui_text(prop, "Collision Bounds",  "Select the collision type");
@@ -1793,7 +1796,6 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUNDBOX, "BOUNDS", 0, "Bounds", "Draw the bounding box of the object"},
 		{OB_WIRE, "WIRE", 0, "Wire", "Draw the object as a wireframe"},
 		{OB_SOLID, "SOLID", 0, "Solid", "Draw the object as a solid (if solid drawing is enabled in the viewport)"},
-		// disabled {OB_SHADED, "SHADED", 0, "Shaded", ""},
 		{OB_TEXTURE, "TEXTURED", 0, "Textured", "Draw the object with textures (if textures are enabled in the viewport)"},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1802,8 +1804,6 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", "Draw bounds as sphere"},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", "Draw bounds as cylinder"},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", "Draw bounds as cone"},
-		{OB_BOUND_TRIANGLE_MESH, "POLYHEDRON", 0, "Polyhedron", "Draw bounds as polyhedron"},
-		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", "Draw bounds as capsule"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dupli_items[] = {
@@ -2225,7 +2225,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_dupli_frames_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
-	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the frame"); // TODO, better descriptio!
+	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the current frame instead of parent curve's evaluation time");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_internal_update");
 
 	prop= RNA_def_property(srna, "use_dupli_vertices_rotation", PROP_BOOLEAN, PROP_NONE);

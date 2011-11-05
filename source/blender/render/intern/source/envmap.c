@@ -157,6 +157,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 
 	/* view stuff in env render */
 	envre->lens= 16.0f;
+	envre->sensor_x= 32.0f;
 	if(env->type==ENV_PLANE)
 		envre->lens*= env->viewscale;
 	envre->ycor= 1.0f; 

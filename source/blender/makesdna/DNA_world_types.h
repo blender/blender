@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 
 struct AnimData;
+struct bNodeTree;
 struct Ipo;
 struct MTex;
 
@@ -95,7 +96,7 @@ typedef struct World {
 	
 	float misi, miststa, mistdist, misthi;
 	
-	float starr, starg, starb, stark;
+	float starr, starg, starb, stark; /* Deprecated */
 	float starsize, starmindist;
 	float stardist, starcolnoise;
 	
@@ -120,10 +121,13 @@ typedef struct World {
 	
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
-	short pr_texture, pad[3];
+	short pr_texture, use_nodes, pad[2];
 
 	/* previews */
 	struct PreviewImage *preview;
+
+	/* nodes */
+	struct bNodeTree *nodetree;	
 
 } World;
 
@@ -182,7 +186,7 @@ typedef struct World {
 #define WOMAP_HORIZ		2
 #define WOMAP_ZENUP		4
 #define WOMAP_ZENDOWN	8
-#define WOMAP_MIST		16
+#define WOMAP_MIST		16 /* Deprecated */
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)

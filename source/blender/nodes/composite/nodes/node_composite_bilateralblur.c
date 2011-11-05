@@ -33,8 +33,8 @@
 
 /* **************** BILATERALBLUR ******************** */
 static bNodeSocketTemplate cmp_node_bilateralblur_in[]= {
-	{ SOCK_RGBA, 1, "Image", 0.8f, 0.8f, 0.8f, 1.0f}, 
-	{ SOCK_RGBA, 1, "Determinator", 0.8f, 0.8f, 0.8f, 1.0f}, 
+	{ SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f}, 
+	{ SOCK_RGBA, 1, "Determinator", 1.0f, 1.0f, 1.0f, 1.0f}, 
 	{ -1, 0, "" } 
 };
 
@@ -43,43 +43,47 @@ static bNodeSocketTemplate cmp_node_bilateralblur_out[]= {
 	{ -1, 0, "" } 
 };
 
-#define INIT_C3\
-	mean0 = 1; mean1[0] = src[0];mean1[1] = src[1];mean1[2] = src[2];mean1[3] = src[3];
+#define INIT_C3                                                               \
+	mean0 = 1;                                                                \
+	mean1[0] = src[0];                                                        \
+	mean1[1] = src[1];                                                        \
+	mean1[2] = src[2];                                                        \
+	mean1[3] = src[3];
 
 /* finds color distances */
-#define COLOR_DISTANCE_C3(c1, c2)\
-	((c1[0] - c2[0])*(c1[0] - c2[0]) + \
-	(c1[1] - c2[1])*(c1[1] - c2[1]) + \
-	(c1[2] - c2[2])*(c1[2] - c2[2]) + \
-	(c1[3] - c2[3])*(c1[3] - c2[3]))
+#define COLOR_DISTANCE_C3(c1, c2)                                             \
+	((c1[0] - c2[0])*(c1[0] - c2[0]) +                                        \
+	 (c1[1] - c2[1])*(c1[1] - c2[1]) +                                        \
+	 (c1[2] - c2[2])*(c1[2] - c2[2]) +                                        \
+	 (c1[3] - c2[3])*(c1[3] - c2[3]))
 
 /* this is the main kernel function for comparing color distances
  and adding them weighted to the final color */
-#define KERNEL_ELEMENT_C3(k)\
-	temp_color = src + deltas[k];\
-	ref_color = ref + deltas[k];\
-	w = weight_tab[k] + COLOR_DISTANCE_C3(ref, ref_color )*i2sigma_color;\
-	w = 1./(w*w + 1); \
-	mean0 += w;\
-	mean1[0] += temp_color[0]*w; \
-	mean1[1] += temp_color[1]*w; \
-	mean1[2] += temp_color[2]*w; \
+#define KERNEL_ELEMENT_C3(k)                                                  \
+	temp_color = src + deltas[k];                                             \
+	ref_color = ref + deltas[k];                                              \
+	w = weight_tab[k] + COLOR_DISTANCE_C3(ref, ref_color )*i2sigma_color;     \
+	w = 1.0/(w*w + 1);                                                        \
+	mean0 += w;                                                               \
+	mean1[0] += temp_color[0]*w;                                              \
+	mean1[1] += temp_color[1]*w;                                              \
+	mean1[2] += temp_color[2]*w;                                              \
 	mean1[3] += temp_color[3]*w;
 
 /* write blurred values to image */
-#define UPDATE_OUTPUT_C3\
-	mean0 = 1./mean0;\
-	dest[x*pix + 0] = mean1[0]*mean0; \
-	dest[x*pix + 1] = mean1[1]*mean0; \
-	dest[x*pix + 2] = mean1[2]*mean0; \
+#define UPDATE_OUTPUT_C3                                                      \
+	mean0 = 1.0/mean0;                                                        \
+	dest[x*pix + 0] = mean1[0]*mean0;                                         \
+	dest[x*pix + 1] = mean1[1]*mean0;                                         \
+	dest[x*pix + 2] = mean1[2]*mean0;                                         \
 	dest[x*pix + 3] = mean1[3]*mean0;
 
 /* initializes deltas for fast access to neighbour pixels */
-#define INIT_3X3_DELTAS( deltas, step, nch )            \
-	((deltas)[0] =  (nch),  (deltas)[1] = -(step) + (nch),  \
-	(deltas)[2] = -(step), (deltas)[3] = -(step) - (nch),  \
-	(deltas)[4] = -(nch),  (deltas)[5] =  (step) - (nch),  \
-	(deltas)[6] =  (step), (deltas)[7] =  (step) + (nch));
+#define INIT_3X3_DELTAS( deltas, step, nch )                                  \
+	((deltas)[0] =  (nch),  (deltas)[1] = -(step) + (nch),                    \
+	 (deltas)[2] = -(step), (deltas)[3] = -(step) - (nch),                    \
+	 (deltas)[4] = -(nch),  (deltas)[5] =  (step) - (nch),                    \
+	 (deltas)[6] =  (step), (deltas)[7] =  (step) + (nch));
 
 
 /* code of this node was heavily inspired by the smooth function of opencv library.

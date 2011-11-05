@@ -499,6 +499,11 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 							int len= MEM_allocN_len(se) / sizeof(*se);
 							int i;
 
+							if (flag & BPATH_TRAVERSE_SKIP_MULTIFILE) {
+								/* only operate on one path */
+								len= MIN2(1, len);
+							}
+
 							for(i= 0; i < len; i++, se++) {
 								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);
 							}

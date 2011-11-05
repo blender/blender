@@ -271,12 +271,11 @@ void make_local_lattice(Lattice *lt)
 		id_clear_lib_data(bmain, &lt->id);
 	}
 	else if(is_local && is_lib) {
-		char *bath_user_data[2]= {bmain->name, lt->id.lib->filepath};
 		Lattice *ltn= copy_lattice(lt);
 		ltn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &ltn->id, bpath_relocate_visitor, 0, bath_user_data);
+		BKE_id_lib_local_paths(bmain, &ltn->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==lt) {

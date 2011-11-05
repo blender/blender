@@ -447,7 +447,8 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	}
 	else {
 		/* when not in EditMode, use the 'final' derived mesh, depsgraph
-		 * ensures we build with CD_MDEFORMVERT layer */
+		 * ensures we build with CD_MDEFORMVERT layer 
+		 */
 		dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	
@@ -703,7 +704,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bC
 				ct->type = CONSTRAINT_OBTYPE_BONE; \
 				ct->rotOrder= (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
 			}\
-			else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) { \
+			else if (OB_TYPE_SUPPORT_VGROUP(ct->tar->type) && (ct->subtarget[0])) { \
 				ct->type = CONSTRAINT_OBTYPE_VERT; \
 				ct->rotOrder = EULER_ORDER_DEFAULT; \
 			} \
@@ -1256,10 +1257,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
-				if (cob->scene)
-					curvetime= bsystem_time(cob->scene, ct->tar, cu->ctime, 0.0) - data->offset;
-				else	
-					curvetime= cu->ctime - data->offset;
+				curvetime= cu->ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 				 * but this will only work if it actually is animated... 

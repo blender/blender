@@ -43,12 +43,15 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
@@ -1179,6 +1182,15 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 					RNA_property_update_cache_add(&new_ptr, prop);
 			}
 #endif
+
+			/* as long as we don't do property update, we still tag datablock
+			   as having been updated. this flag does not cause any updates to
+			   be run, it's for e.g. render engines to synchronize data */
+			if(new_ptr.id.data) {
+				ID *id= new_ptr.id.data;
+				id->flag |= LIB_ID_RECALC;
+				DAG_id_type_tag(G.main, GS(id->name));
+			}
 		}
 		
 		/* successful */
@@ -2291,7 +2303,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	EVAL_ANIM_NODETREE_IDS(main->tex.first, Tex, ADT_RECALC_ANIM);
 	
 	/* lamps */
-	EVAL_ANIM_IDS(main->lamp.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->lamp.first, Lamp, ADT_RECALC_ANIM);
 	
 	/* materials */
 	EVAL_ANIM_NODETREE_IDS(main->mat.first, Material, ADT_RECALC_ANIM);
@@ -2320,7 +2332,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
 	
-	/* lamps */
+	/* speakers */
 	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
 
 	/* objects */
@@ -2331,7 +2343,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	EVAL_ANIM_IDS(main->object.first, 0); 
 	
 	/* worlds */
-	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
+	EVAL_ANIM_NODETREE_IDS(main->world.first, World, ADT_RECALC_ANIM);
 	
 	/* scenes */
 	EVAL_ANIM_NODETREE_IDS(main->scene.first, Scene, ADT_RECALC_ANIM);

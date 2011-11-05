@@ -387,37 +387,16 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 /* fills in the selected faces with the current weight and vertex group */
 void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
-	Mesh *me;
+	Mesh *me= ob->data;
+	MFace *mf;
 	MDeformWeight *dw, *uw;
-	int *indexar;
-	unsigned int index;
 	int vgroup, vgroup_mirror= -1;
-	int selected;
-	
-	int use_vert_sel;
+	unsigned int index;
 
-	me= ob->data;
-	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
-	
-	selected= (me->editflag & ME_EDIT_PAINT_MASK);
-	
-	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	/* mutually exclusive, could be made into a */
+	const short paint_selmode= ME_EDIT_PAINT_SEL_MODE(me);
 
-	indexar= get_indexarray(me);
-
-	if(selected) {
-		MFace *mf;
-		for(index=0, mf= me->mface; index<me->totface; index++, mf++) {
-			if((mf->flag & ME_FACE_SEL)==0)
-				indexar[index]= 0;
-			else
-				indexar[index]= index+1;
-		}
-	}
-	else {
-		for(index=0; index<me->totface; index++)
-			indexar[index]= index+1;
-	}
+	if(me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	vgroup= ob->actdef-1;
 
@@ -428,47 +407,47 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
-	for(index=0; index<me->totface; index++) {
-		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mf= &me->mface[indexar[index]-1];
-			unsigned int fidx= mf->v4 ? 3:2;
+	for(index=0, mf= me->mface; index < me->totface; index++, mf++) {
+		unsigned int fidx= mf->v4 ? 3:2;
 
-			do {
-				unsigned int vidx= *(&mf->v1 + fidx);
+		if ((paint_selmode == SCE_SELECT_FACE) && !(mf->flag & ME_FACE_SEL)) {
+			continue;
+		}
 
-				if(!me->dvert[vidx].flag) {
-					if(use_vert_sel && !(me->mvert[vidx].flag & SELECT)) {
-						continue;
-					}
+		do {
+			unsigned int vidx= *(&mf->v1 + fidx);
 
-					dw= defvert_verify_index(&me->dvert[vidx], vgroup);
-					if(dw) {
-						uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup);
-						uw->weight= dw->weight; /* set the undo weight */
-						dw->weight= paintweight;
-
-						if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-							int j= mesh_get_x_mirror_vert(ob, vidx);
-							if(j>=0) {
-								/* copy, not paint again */
-								if(vgroup_mirror != -1) {
-									dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
-									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
-								} else {
-									dw= defvert_verify_index(me->dvert+j, vgroup);
-									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup);
-								}
-								uw->weight= dw->weight; /* set the undo weight */
-								dw->weight= paintweight;
-							}
-						}
-					}
-					me->dvert[vidx].flag= 1;
+			if(!me->dvert[vidx].flag) {
+				if((paint_selmode == SCE_SELECT_VERTEX) && !(me->mvert[vidx].flag & SELECT)) {
+					continue;
 				}
 
+				dw= defvert_verify_index(&me->dvert[vidx], vgroup);
+				if(dw) {
+					uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup);
+					uw->weight= dw->weight; /* set the undo weight */
+					dw->weight= paintweight;
 
-			} while (fidx--);
-		}
+					if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
+						int j= mesh_get_x_mirror_vert(ob, vidx);
+						if(j>=0) {
+							/* copy, not paint again */
+							if(vgroup_mirror != -1) {
+								dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
+								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
+							} else {
+								dw= defvert_verify_index(me->dvert+j, vgroup);
+								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup);
+							}
+							uw->weight= dw->weight; /* set the undo weight */
+							dw->weight= paintweight;
+						}
+					}
+				}
+				me->dvert[vidx].flag= 1;
+			}
+
+		} while (fidx--);
 	}
 
 	{
@@ -477,8 +456,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			dv->flag= 0;
 		}
 	}
-	
-	MEM_freeN(indexar);
+
 	copy_wpaint_prev(wp, NULL, 0);
 
 	DAG_id_tag_update(&me->id, 0);

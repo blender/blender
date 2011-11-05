@@ -69,26 +69,27 @@ typedef struct {
 	void *link;
 } WarnLink;
 
-#define ShowDeprecationWarning(old_way, new_way) \
-{ \
-	static WarnLink wlink = {false, NULL}; \
-	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0) \
-	{ \
-		ShowDeprecationWarning_func(old_way, new_way); \
- \
-		WarnLink *wlink_last= GetDeprecationWarningLinkLast(); \
-		wlink.warn_done = true; \
-		wlink.link = NULL; \
-	 \
-		if(wlink_last) { \
-			wlink_last->link= (void *)&(wlink); \
-			SetDeprecationWarningLinkLast(&(wlink)); \
-		} else { \
-			SetDeprecationWarningFirst(&(wlink)); \
-			SetDeprecationWarningLinkLast(&(wlink)); \
-		} \
-	} \
-} \
+#define ShowDeprecationWarning(old_way, new_way)                              \
+{                                                                             \
+	static WarnLink wlink = {false, NULL};                                    \
+	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0)                \
+	{                                                                         \
+		ShowDeprecationWarning_func(old_way, new_way);                        \
+		                                                                      \
+		WarnLink *wlink_last= GetDeprecationWarningLinkLast();                \
+		wlink.warn_done = true;                                               \
+		wlink.link = NULL;                                                    \
+		                                                                      \
+		if(wlink_last) {                                                      \
+			wlink_last->link= (void *)&(wlink);                               \
+			SetDeprecationWarningLinkLast(&(wlink));                          \
+		}                                                                     \
+		else {                                                                \
+			SetDeprecationWarningFirst(&(wlink));                             \
+			SetDeprecationWarningLinkLast(&(wlink));                          \
+		}                                                                     \
+	}                                                                         \
+}                                                                             \
 
 
 

@@ -149,6 +149,20 @@ WITH_BF_3DMOUSE = True
 
 WITH_BF_OPENMP = True
 
+'''
+WITH_BF_OIIO = True
+BF_OIIO = LIBDIR + '/openimageio'
+BF_OIIO_INC = '${BF_OIIO}/include'
+BF_OIIO_LIB = 'OpenImageIO'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
+
+WITH_BF_BOOST = True
+BF_BOOST = LIBDIR + '/boost'
+BF_BOOST_INC = '${BF_BOOST}/include'
+BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_46_1 libboost_filesystem-vc90-mt-s-1_46_1 libboost_regex-vc90-mt-s-1_46_1 libboost_system-vc90-mt-s-1_46_1 libboost_thread-vc90-mt-s-1_46_1'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
+'''
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE']

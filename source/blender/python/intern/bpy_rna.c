@@ -82,10 +82,10 @@
 static PyObject* pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
-#define BPY_DOC_ID_PROP_TYPE_NOTE \
-"   .. note::\n" \
-"\n" \
-"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n" \
+#define BPY_DOC_ID_PROP_TYPE_NOTE                                             \
+"   .. note::\n"                                                              \
+"\n"                                                                          \
+"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n"            \
 "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
 
 
@@ -6404,17 +6404,19 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 		if (item==NULL) {
 			/* Sneaky workaround to use the class name as the bl_idname */
 
-#define		BPY_REPLACEMENT_STRING(rna_attr, py_attr) \
-			if (strcmp(identifier, rna_attr) == 0) { \
-				item= PyObject_GetAttrString(py_class, py_attr); \
-				if (item && item != Py_None) { \
-					if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) { \
-						Py_DECREF(item); \
-						return -1; \
-					} \
-				} \
-				Py_XDECREF(item); \
-			} \
+#define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
+			if (strcmp(identifier, rna_attr) == 0) {                          \
+				item= PyObject_GetAttrString(py_class, py_attr);              \
+				if (item && item != Py_None) {                                \
+					if (pyrna_py_to_prop(dummyptr, prop, NULL,                \
+					                     item, "validating class:") != 0)     \
+					{                                                         \
+						Py_DECREF(item);                                      \
+						return -1;                                            \
+					}                                                         \
+				}                                                             \
+				Py_XDECREF(item);                                             \
+			}                                                                 \
 
 
 			BPY_REPLACEMENT_STRING("bl_idname", "__name__");

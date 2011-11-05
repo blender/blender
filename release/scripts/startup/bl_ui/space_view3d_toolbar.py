@@ -209,7 +209,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
-        col.operator("transform.transform", text="Tilt").mode = 'TILT'
+        col.operator("transform.tilt", text="Tilt")
         col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
@@ -481,12 +481,9 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
         # Particle Mode #
-
-        # XXX This needs a check if psys is editable.
         if context.particle_edit_object:
             tool = settings.tool
 
-            # XXX Select Particle System
             layout.column().prop(settings, "tool", expand=True)
 
             if tool != 'NONE':
@@ -825,13 +822,11 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
 
             if brush.use_anchor:
                 col.separator()
-                row = col.row()
-                row.prop(brush, "use_edge_to_edge", "Edge To Edge")
+                col.prop(brush, "use_edge_to_edge", "Edge To Edge")
 
             if brush.use_airbrush:
                 col.separator()
-                row = col.row()
-                row.prop(brush, "rate", text="Rate", slider=True)
+                col.prop(brush, "rate", text="Rate", slider=True)
 
             if brush.use_space:
                 col.separator()
@@ -857,8 +852,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         else:
-            row = col.row()
-            row.prop(brush, "use_airbrush")
+            col.prop(brush, "use_airbrush")
 
             row = col.row()
             row.active = brush.use_airbrush and (not brush.use_space) and (not brush.use_anchor)
@@ -867,8 +861,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
             col.separator()
 
             if not image_paint:
-                row = col.row()
-                row.prop(brush, "use_smooth_stroke")
+                col.prop(brush, "use_smooth_stroke")
 
                 col = layout.column()
                 col.active = brush.use_smooth_stroke
@@ -879,9 +872,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, Panel):
 
             col = layout.column()
             col.active = (not brush.use_anchor) and (brush.sculpt_tool not in {'GRAB', 'THUMB', 'ROTATE', 'SNAKE_HOOK'})
-
-            row = col.row()
-            row.prop(brush, "use_space")
+            col.prop(brush, "use_space")
 
             row = col.row()
             row.active = brush.use_space
@@ -1011,14 +1002,10 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, Panel):
         else:
             col.prop(brush, "cursor_color_add", text="Color")
 
-        col = layout.column()
-        col.label(text="Icon:")
-
-        row = col.row(align=True)
-        row.prop(brush, "use_custom_icon")
+        col = layout.column(align=True)
+        col.prop(brush, "use_custom_icon")
         if brush.use_custom_icon:
-            row = col.row(align=True)
-            row.prop(brush, "icon_filepath", text="")
+            col.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weight-paint ****************
 
@@ -1036,6 +1023,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.active = ob.vertex_groups.active is not None
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
+        col.operator("object.vertex_group_mirror", text="Mirror")
         col.operator("object.vertex_group_invert", text="Invert")
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")
@@ -1132,53 +1120,46 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         use_projection = ipaint.use_projection
 
         col = layout.column()
-        sub = col.column()
-        sub.active = use_projection
-        sub.prop(ipaint, "use_occlude")
-        sub.prop(ipaint, "use_backface_culling")
+        col.active = use_projection
+        col.prop(ipaint, "use_occlude")
+        col.prop(ipaint, "use_backface_culling")
+
+        row = layout.row()
+        row.active = (use_projection)
+        row.prop(ipaint, "use_normal_falloff")
+
+        sub = row.row()
+        sub.active = (ipaint.use_normal_falloff)
+        sub.prop(ipaint, "normal_angle", text="")
 
         split = layout.split()
 
-        col = split.column()
-        col.active = (use_projection)
-        col.prop(ipaint, "use_normal_falloff")
+        split.active = (use_projection)
+        split.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        col = split.column()
-        col.active = (ipaint.use_normal_falloff and use_projection)
-        col.prop(ipaint, "normal_angle", text="")
+        row = split.row()
+        row.active = (ipaint.use_stencil_layer)
+        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
+        row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
-        col = layout.column(align=False)
-        row = col.row()
-        row.active = (use_projection)
-        row.prop(ipaint, "use_stencil_layer", text="Stencil")
-
-        row2 = row.row(align=False)
-        row2.active = (use_projection and ipaint.use_stencil_layer)
-        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=mesh.uv_texture_stencil.name)
-        row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
-
-        col = layout.column()
-        sub = col.column()
-        row = sub.row()
+        row = layout.row()
         row.active = (settings.brush.image_tool == 'CLONE')
-
         row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=mesh.uv_texture_clone.name)
 
-        sub = col.column()
-        sub.prop(ipaint, "seam_bleed")
+        layout.prop(ipaint, "seam_bleed")
 
-        col.label(text="External Editing")
+        col = layout.column()
+        col.label(text="External Editing:")
+
         row = col.split(align=True, percentage=0.55)
         row.operator("image.project_edit", text="Quick Edit")
         row.operator("image.project_apply", text="Apply")
-        row = col.row(align=True)
-        row.prop(ipaint, "screen_grab_size", text="")
 
-        sub = col.column()
-        sub.operator("paint.project_image", text="Apply Camera Image")
+        col.row().prop(ipaint, "screen_grab_size", text="")
 
-        sub.operator("image.save_dirty", text="Save All Edited")
+        col.operator("paint.project_image", text="Apply Camera Image")
+        col.operator("image.save_dirty", text="Save All Edited")
 
 
 class VIEW3D_PT_imagepaint_options(PaintPanel):

@@ -62,6 +62,7 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"	// make_stars
 
 #include "IMB_imbuf_types.h"
@@ -920,17 +921,34 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
 }
 
-void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
+void view3d_viewborder_size_get(Scene *scene, Object *camob, ARegion *ar, float size_r[2])
 {
-	float winmax= MAX2(ar->winx, ar->winy);
 	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-	
-	if(aspect > 1.0f) {
-		size_r[0]= winmax;
-		size_r[1]= winmax/aspect;
-	} else {
-		size_r[0]= winmax*aspect;
-		size_r[1]= winmax;
+	short sensor_fit= CAMERA_SENSOR_FIT_AUTO;
+
+	if(camob && camob->type==OB_CAMERA) {
+		Camera *cam= (Camera *)camob->data;
+		sensor_fit= cam->sensor_fit;
+	}
+
+	if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
+		float winmax= MAX2(ar->winx, ar->winy);
+
+		if(aspect > 1.0f) {
+			size_r[0]= winmax;
+			size_r[1]= winmax/aspect;
+		} else {
+			size_r[0]= winmax*aspect;
+			size_r[1]= winmax;
+		}
+	}
+	else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
+		size_r[0]= ar->winx;
+		size_r[1]= ar->winx/aspect;
+	}
+	else {
+		size_r[0]= ar->winy*aspect;
+		size_r[1]= ar->winy;
 	}
 }
 
@@ -940,7 +958,7 @@ void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, Region
 	float size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
-	view3d_viewborder_size_get(scene, ar, size);
+	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
 
 	size[0]= size[0]*zoomfac;
 	size[1]= size[1]*zoomfac;
@@ -1207,6 +1225,21 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			uiSetRoundBox(UI_CNR_ALL);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
+		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
+			/* assume fixed sensor width for now */
+
+			/* float sensor_aspect = ca->sensor_x / ca->sensor_y; */ /* UNUSED */
+			float sensor_scale = (x2i-x1i) / ca->sensor_x;
+			float sensor_height = sensor_scale * ca->sensor_y;
+
+			float ymid = y1i + (y2i-y1i)/2.f;
+			float sy1= ymid - sensor_height/2.f;
+			float sy2= ymid + sensor_height/2.f;
+
+			UI_ThemeColorShade(TH_WIRE, 100);
+
+			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0f);
+		}
 	}
 
 	setlinestyle(0);
@@ -1226,6 +1259,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
+	int multisample_enabled;
 	rcti winrct;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
@@ -1252,7 +1286,12 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
+	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
+
+	multisample_enabled= glIsEnabled(GL_MULTISAMPLE_ARB);
+	if(multisample_enabled)
+		glDisable(GL_MULTISAMPLE_ARB);
 
 	region_scissor_winrct(ar, &winrct);
 	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
@@ -1272,9 +1311,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	if(base && (base->lay & v3d->lay)) {
+	if(base && (base->lay & v3d->lay))
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
-	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 	ar->swap= 0; /* mark invalid backbuf for wm draw */
@@ -1283,6 +1321,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
+ 	if(multisample_enabled)
+		glEnable(GL_MULTISAMPLE_ARB);
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
@@ -2388,10 +2428,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	/* render 3d view */
 	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		float winmat[4][4];
-		float _clipsta, _clipend, _lens, _yco, _dx, _dy;
+		float _clipsta, _clipend, _lens, _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
 
-		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens,
+			&_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
 	}
@@ -2446,9 +2488,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 
 	{
-		float _yco, _dx, _dy;
+		float _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
-		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 	}
 
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
@@ -2509,6 +2552,62 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	}
 	
 	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
+}
+
+static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RenderEngineType *type;
+
+	if(!rv3d->render_engine) {
+		type= RE_engines_find(scene->r.engine);
+
+		if(!(type->view_update && type->view_draw))
+			return 0;
+
+		rv3d->render_engine= RE_engine_create(type);
+		type->view_update(rv3d->render_engine, C);
+	}
+
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	ED_region_pixelspace(ar);
+
+	type= rv3d->render_engine->type;
+	type->view_draw(rv3d->render_engine, C);
+
+	return 1;
+}
+
+static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
+{
+	rcti rect;
+	const int header_height = 18;
+
+	if(!rv3d->render_engine || !rv3d->render_engine->text)
+		return;
+	
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+	
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	UI_DrawString(12, rect.ymin + 5, rv3d->render_engine->text);
 }
 
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
@@ -2721,6 +2820,11 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else	
 		draw_view_icon(rv3d);
 	
+	if(rv3d->render_engine) {
+		view3d_main_area_draw_engine_info(rv3d, ar);
+		return;
+	}
+
 	if((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
 		draw_viewport_fps(scene, ar);
 	}
@@ -2748,9 +2852,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	const char *grid_unit= NULL;
 
-	view3d_main_area_draw_objects(C, ar, &grid_unit);
-
-	ED_region_pixelspace(ar);
+	/* draw viewport using external renderer? */
+	if(!(v3d->drawtype == OB_RENDER && view3d_main_area_draw_engine(C, ar))) {
+		/* draw viewport using opengl */
+		view3d_main_area_draw_objects(C, ar, &grid_unit);
+		ED_region_pixelspace(ar);
+	}
 	
 	view3d_main_area_draw_info(C, ar, grid_unit);
 

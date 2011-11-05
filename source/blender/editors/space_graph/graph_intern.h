@@ -57,10 +57,6 @@ void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct AR
 void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
 /* ***************************************** */
-/* graph_header.c */
-void graph_header_buttons(const bContext *C, struct ARegion *ar);
-
-/* ***************************************** */
 /* graph_select.c */
 
 void GRAPH_OT_select_all_toggle(struct wmOperatorType *ot);

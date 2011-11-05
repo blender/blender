@@ -227,7 +227,7 @@ class WORLD_PT_mist(WorldButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(world.mist_settings, "intensity", slider=True)
+        col.prop(world.mist_settings, "intensity")
         col.prop(world.mist_settings, "start")
 
         col = split.column()

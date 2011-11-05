@@ -26,7 +26,6 @@
  *  \ingroup edrend
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -76,6 +75,7 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 
@@ -363,15 +363,23 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene= CTX_data_scene(C);
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
 	/* add or copy material */
-	if(ma)
+	if(ma) {
 		ma= copy_material(ma);
-	else
+	}
+	else {
 		ma= add_material("Material");
+
+		if(scene_use_new_shading_nodes(scene)) {
+			ED_node_shader_default(scene, &ma->id);
+			ma->use_nodes= 1;
+		}
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -455,15 +463,23 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 
 static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene= CTX_data_scene(C);
 	World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
 	/* add or copy world */
-	if(wo)
+	if(wo) {
 		wo= copy_world(wo);
-	else
+	}
+	else {
 		wo= add_world("World");
+
+		if(scene_use_new_shading_nodes(scene)) {
+			ED_node_shader_default(scene, &wo->id);
+			wo->use_nodes= 1;
+		}
+	}
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);

@@ -104,11 +104,11 @@
 
 
 /* this condition has been made more complex since editmode can draw textures */
-#define CHECK_OB_DRAWTEXTURE(vd, dt) \
-((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
+#define CHECK_OB_DRAWTEXTURE(vd, dt)                                          \
+	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||                             \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
-static void draw_bounding_volume(Scene *scene, Object *ob);
+static void draw_bounding_volume(Scene *scene, Object *ob, char type);
 
 static void drawcube_size(float size);
 static void drawcircle_size(float size);
@@ -2713,15 +2713,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	totface = dm->getNumFaces(dm);
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
-	if(dt!=OB_SHADED)
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
 	if (draw_flags & DRAW_IS_PAINT_SEL) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
-			draw_bounding_volume(scene, ob);
+			draw_bounding_volume(scene, ob, ob->boundtype);
 	}
 	else if(hasHaloMat || (totface==0 && totedge==0)) {
 		glPointSize(1.5);
@@ -2863,7 +2862,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->drawLooseEdges(dm);
 		}
 	}
-	else if(dt==OB_SHADED) {
+	else if(dt==OB_PAINT) {
 		if(ob==OBACT) {
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
@@ -5519,7 +5518,7 @@ static void get_local_bounds(Object *ob, float center[3], float size[3])
 }
 #endif
 
-static void draw_bb_quadric(BoundBox *bb, short type)
+static void draw_bb_quadric(BoundBox *bb, char type)
 {
 	float size[3], cent[3];
 	GLUquadricObj *qobj = gluNewQuadric(); 
@@ -5558,7 +5557,7 @@ static void draw_bb_quadric(BoundBox *bb, short type)
 	gluDeleteQuadric(qobj); 
 }
 
-static void draw_bounding_volume(Scene *scene, Object *ob)
+static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 {
 	BoundBox *bb= NULL;
 	
@@ -5584,8 +5583,8 @@ static void draw_bounding_volume(Scene *scene, Object *ob)
 	
 	if(bb==NULL) return;
 	
-	if(ob->boundtype==OB_BOUND_BOX) draw_box(bb->vec);
-	else draw_bb_quadric(bb, ob->boundtype);
+	if(type==OB_BOUND_BOX) draw_box(bb->vec);
+	else draw_bb_quadric(bb, type);
 	
 }
 
@@ -6004,7 +6003,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* maximum drawtype */
-	dt= MIN2(v3d->drawtype, ob->dt);
+	dt= v3d->drawtype;
+	if(dt==OB_RENDER) dt= OB_SOLID;
+	dt= MIN2(dt, ob->dt);
 	if(v3d->zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
 
@@ -6019,7 +6020,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					dt= OB_SOLID;
 				}
 				else {
-					dt= OB_SHADED;
+					dt= OB_PAINT;
 				}
 
 				glEnable(GL_DEPTH_TEST);
@@ -6149,7 +6150,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			else if(dt==OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
-					draw_bounding_volume(scene, ob);
+					draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
@@ -6165,7 +6166,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			else if(dt==OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
-					draw_bounding_volume(scene, ob);
+					draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			else if(ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
@@ -6182,7 +6183,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				drawmball(scene, v3d, rv3d, base, dt);
 			else if(dt==OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
-					draw_bounding_volume(scene, ob);
+					draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			else 
 				empty_object= drawmball(scene, v3d, rv3d, base, dt);
@@ -6424,6 +6425,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 
+		if(ob->gameflag & OB_BOUNDS) {
+			if(ob->boundtype!=ob->collision_boundtype || (dtx & OB_BOUNDBOX)==0) {
+				setlinestyle(2);
+				draw_bounding_volume(scene, ob, ob->collision_boundtype);
+				setlinestyle(0);
+			}
+		}
+
 		/* draw extra: after normal draw because of makeDispList */
 		if(dtx && (G.f & G_RENDER_OGL)==0) {
 
@@ -6431,8 +6440,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				drawaxes(1.0f, OB_ARROWS);
 			}
 			if(dtx & OB_BOUNDBOX) {
-				if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-					draw_bounding_volume(scene, ob);
+				draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			if(dtx & OB_TEXSPACE) drawtexspace(ob);
 			if(dtx & OB_DRAWNAME) {
