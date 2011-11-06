@@ -82,7 +82,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		else {
-			VECCOPY(vec, shi->lo);
+			copy_v3_v3(vec, shi->lo);
 			retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		
@@ -111,7 +111,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 			out[1]->vec[3]= 1.0f;
 		}
 		
-		VECCOPY(out[2]->vec, nor);
+		copy_v3_v3(out[2]->vec, nor);
 		
 		if(shi->do_preview)
 			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys, shi->do_manage);

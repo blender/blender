@@ -42,10 +42,10 @@ static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
 static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
 {
 	if(*fac==0.0f) {
-		QUATCOPY(out, in1);
+		copy_v4_v4(out, in1);
 	}
 	else {
-		QUATCOPY(out, in2);
+		copy_v4_v4(out, in2);
 	}
 }
 

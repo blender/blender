@@ -57,10 +57,10 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		if(node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr= ((ShaderCallData *)data)->shr;
 			
-			QUATCOPY(shr->combined, col);
+			copy_v4_v4(shr->combined, col);
 			shr->alpha= col[3];
 			
-			//	VECCOPY(shr->nor, in[3]->vec);
+			//	copy_v3_v3(shr->nor, in[3]->vec);
 		}
 	}	
 }

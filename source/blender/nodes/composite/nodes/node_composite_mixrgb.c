@@ -47,12 +47,12 @@ static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *f
 {
 	float col[3];
 	
-	VECCOPY(col, in1);
+	copy_v3_v3(col, in1);
 	if(node->custom2)
 		ramp_blend(node->custom1, col, col+1, col+2, in2[3]*fac[0], in2);
 	else
 		ramp_blend(node->custom1, col, col+1, col+2, fac[0], in2);
-	VECCOPY(out, col);
+	copy_v3_v3(out, col);
 	out[3]= in1[3];
 }
 

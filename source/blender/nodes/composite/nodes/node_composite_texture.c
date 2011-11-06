@@ -80,7 +80,7 @@ static void texture_procedural(CompBuf *cbuf, float *out, float xco, float yco)
 		else col[0]= col[1]= col[2]= col[3];
 	}
 	else { 
-		VECCOPY(col, nor);
+		copy_v3_v3(col, nor);
 	}
 	
 	typecheck_compbuf_color(out, col, cbuf->type, cbuf->procedural_type);
@@ -101,8 +101,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
-		VECCOPY(prevbuf->procedural_offset, in[0]->vec);
-		VECCOPY(prevbuf->procedural_size, in[1]->vec);
+		copy_v3_v3(prevbuf->procedural_offset, in[0]->vec);
+		copy_v3_v3(prevbuf->procedural_size, in[1]->vec);
 		prevbuf->procedural_type= CB_RGBA;
 		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
 		
@@ -118,8 +118,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
-			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
-			VECCOPY(stackbuf->procedural_size, in[1]->vec);
+			copy_v3_v3(stackbuf->procedural_offset, in[0]->vec);
+			copy_v3_v3(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_VAL;
 			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_value, CB_VAL);
 			stackbuf->rect_procedural= NULL;
@@ -131,8 +131,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
-			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
-			VECCOPY(stackbuf->procedural_size, in[1]->vec);
+			copy_v3_v3(stackbuf->procedural_offset, in[0]->vec);
+			copy_v3_v3(stackbuf->procedural_size, in[1]->vec);
 			stackbuf->procedural_type= CB_RGBA;
 			composit1_pixel_processor(node, stackbuf, stackbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
 			stackbuf->rect_procedural= NULL;

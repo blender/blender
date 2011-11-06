@@ -54,7 +54,7 @@ static void node_shader_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack **U
 	bNodeSocket *sock= node->outputs.first;
 	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
 	
-	VECCOPY(out[0]->vec, col);
+	copy_v3_v3(out[0]->vec, col);
 }
 
 static int gpu_shader_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

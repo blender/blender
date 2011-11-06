@@ -144,7 +144,7 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 	if(*fac>=1.0)
 		curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	else if(*fac<=0.0) {
-		VECCOPY(out, in);
+		copy_v3_v3(out, in);
 	}
 	else {
 		float col[4], mfac= 1.0f-*fac;

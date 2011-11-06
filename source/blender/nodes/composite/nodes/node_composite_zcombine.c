@@ -65,7 +65,7 @@ static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *
 		}
 		else {
 			// do combination based solely on z value
-			QUATCOPY(out, src1);
+			copy_v4_v4(out, src1);
 		}
 	}
 	else {
@@ -80,7 +80,7 @@ static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *
 		}
 		else {
 			// do combination based solely on z value
-			QUATCOPY(out, src1);
+			copy_v4_v4(out, src1);
 		}
 		
 		if(node->custom2)
