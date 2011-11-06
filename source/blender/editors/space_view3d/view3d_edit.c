@@ -3017,7 +3017,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 
 	if(bgpic_rem) {
 		BLI_remlink(&vd->bgpicbase, bgpic_rem);
-		if(bgpic_rem->ima) bgpic_rem->ima->id.us--;
+		if(bgpic_rem->ima) 	id_us_min(&bgpic_rem->ima->id);
+		if(bgpic_rem->clip) id_us_min(&bgpic_rem->clip->id);
 		MEM_freeN(bgpic_rem);
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
 		return OPERATOR_FINISHED;

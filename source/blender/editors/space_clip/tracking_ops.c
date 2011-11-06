@@ -52,6 +52,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_library.h"
 #include "BKE_sound.h"
 
 #include "WM_api.h"
@@ -1546,6 +1547,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_INFO, "Average reprojection error %.3f", error);
 
 	scene->clip= clip;
+	id_us_plus(&clip->id);
 
 	if(!scene->camera)
 		scene->camera= scene_find_camera(scene);
@@ -1562,7 +1564,10 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(&clip->id, 0);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+	/* update active clip displayed in scene buttons */
+	WM_event_add_notifier(C, NC_SCENE, scene);
 
 	return OPERATOR_FINISHED;
 }
