@@ -85,11 +85,11 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
 
 /* construct: first insert points, then call balance */
-int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints);
+int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints);
 void BLI_bvhtree_balance(BVHTree *tree);
 
 /* update: first update points/nodes, then call update_tree to refit the bounding volumes */
-int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_moving, int numpoints);
+int BLI_bvhtree_update_node(BVHTree *tree, int index, const float *co, const float *co_moving, int numpoints);
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
@@ -98,14 +98,14 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 float BLI_bvhtree_getepsilon(BVHTree *tree);
 
 /* find nearest node to the given coordinates (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
-int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
+int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
-float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, float *pos);
+float BLI_bvhtree_bb_raycast(float *bv, const float light_start[3], const float light_end[3], float pos[3]);
 
 /* range query */
-int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata);
+int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata);
 
 #ifdef __cplusplus
 }
