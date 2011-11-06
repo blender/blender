@@ -914,20 +914,16 @@ int scene_check_setscene(Main *bmain, Scene *sce)
  */
 float BKE_curframe(Scene *scene)
 {
-	float ctime = scene->r.cfra;
-	ctime += scene->r.subframe;
-	ctime *= scene->r.framelen;	
-
-	return ctime;
+	return BKE_frame_to_ctime(scene, scene->r.cfra);
 }
 
-/* Similar to BKE_curframe(), but is used by physics sims to get "next time", which is defined as cfra+1 */
-float BKE_nextframe(Scene *scene)
+/* This function is used to obtain arbitrary fractional frames */
+float BKE_frame_to_ctime(Scene *scene, const float frame)
 {
-	float ctime = (float)(scene->r.cfra + 1);
+	float ctime = frame;
 	ctime += scene->r.subframe;
 	ctime *= scene->r.framelen;	
-
+	
 	return ctime;
 }
 

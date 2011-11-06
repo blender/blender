@@ -3427,7 +3427,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	psys->totpart=0;
 	psys->flag = PSYS_ENABLED|PSYS_CURRENT;
-	psys->cfra = BKE_nextframe(scene);
+	psys->cfra = BKE_frame_to_ctime(scene, CFRA + 1);
 
 	DAG_scene_sort(G.main, scene);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
