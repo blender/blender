@@ -35,6 +35,7 @@ protected:
 	Scene* old_scene;
 	Scene* freestyle_scene;
 	Material* material;
+	float _width, _height;
 	float _z, _z_delta;
 
 	float get_stroke_vertex_z(void) const;

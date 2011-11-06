@@ -88,13 +88,12 @@ extern "C" {
 	//=======================================================
 
 	static void init_view(Render* re){
-		float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
-		int width = re->r.xsch;
-		int height = (int)(((float)re->r.ysch) * ycor);
-		int xmin = re->r.border.xmin * width;
-		int xmax = re->r.border.xmax * width;
-		int ymin = re->r.border.ymin * height;
-		int ymax = re->r.border.ymax * height;
+		int width = re->winx;
+		int height = re->winy;
+		int xmin = re->disprect.xmin;
+		int ymin = re->disprect.ymin;
+		int xmax = re->disprect.xmax;
+		int ymax = re->disprect.ymax;
 		
 		freestyle_viewport[0] = freestyle_viewport[1] = 0;
 		freestyle_viewport[2] = width;
@@ -384,7 +383,7 @@ extern "C" {
 
 		rectx = re->rectx;
 		recty = re->recty;
-	    for( y = 0; y < recty; y++) {
+		for( y = 0; y < recty; y++) {
 	        for( x = 0; x < rectx; x++) {
 	            pixSrc = src + 4 * (rectx * y + x);
 	            if( pixSrc[3] > 0.0) {

@@ -40,6 +40,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	_textureManager = new BlenderTextureManager;
 	_textureManager->load();
 
+	_width = re->winx; _height = re->winy; // for stroke mesh generation
+
 	// Scene.New("FreestyleStrokes")
 	old_scene = re->scene;
 
@@ -47,18 +49,19 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name+2);
 	freestyle_scene = add_scene(name);
 	freestyle_scene->r.cfra = old_scene->r.cfra;
-	freestyle_scene->r.mode= old_scene->r.mode;
-	freestyle_scene->r.xsch= old_scene->r.xsch;
-	freestyle_scene->r.ysch= old_scene->r.ysch;
+	freestyle_scene->r.mode= old_scene->r.mode &
+		~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR | R_BORDER );
+	freestyle_scene->r.xsch= re->rectx; // old_scene->r.xsch
+	freestyle_scene->r.ysch= re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp= old_scene->r.xasp;
 	freestyle_scene->r.yasp= old_scene->r.yasp;
 	freestyle_scene->r.xparts= old_scene->r.xparts;
 	freestyle_scene->r.yparts= old_scene->r.yparts;
-	freestyle_scene->r.size= old_scene->r.size;
+	freestyle_scene->r.size= 100; // old_scene->r.size
 	freestyle_scene->r.maximsize= old_scene->r.maximsize;
 	freestyle_scene->r.ocres = old_scene->r.ocres;
 	freestyle_scene->r.color_mgt_flag = old_scene->r.color_mgt_flag;
-	freestyle_scene->r.scemode= old_scene->r.scemode;
+	freestyle_scene->r.scemode= old_scene->r.scemode & ~( R_SINGLE_LAYER );
 	freestyle_scene->r.flag= old_scene->r.flag;
 	freestyle_scene->r.threads= old_scene->r.threads;
 	freestyle_scene->r.border.xmin= old_scene->r.border.xmin;
@@ -75,19 +78,16 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	freestyle_scene->r.gauss= old_scene->r.gauss;
 	freestyle_scene->r.dither_intensity= old_scene->r.dither_intensity;
 	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
+	freestyle_scene->r.planes = R_PLANES32;
+	freestyle_scene->r.imtype = R_PNG;
 	set_scene_bg( G.main, freestyle_scene );
-
-	// image dimensions
-	float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
-	float width = freestyle_scene->r.xsch;
-	float height = freestyle_scene->r.ysch * ycor;
 
 	// Camera
 	Object* object_camera = add_object(freestyle_scene, OB_CAMERA);
 	
 	Camera* camera = (Camera *) object_camera->data;
 	camera->type = CAM_ORTHO;
-	camera->ortho_scale = max(width,height);
+	camera->ortho_scale = max(re->rectx, re->recty);
     camera->clipsta = 0.1f;
     camera->clipend = 100.0f;
 
@@ -96,10 +96,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 
     // test
     //_z = 999.90f; _z_delta = 0.01f;
-	
-	object_camera->loc[0] = 0.5 * width;
-	object_camera->loc[1] = 0.5 * height;
-	object_camera->loc[2] = 1.0;
+
+	object_camera->loc[0] = re->disprect.xmin + 0.5f * re->rectx;
+	object_camera->loc[1] = re->disprect.ymin + 0.5f * re->recty;
+	object_camera->loc[2] = 1.f;
 	
 	freestyle_scene->camera = object_camera;
 	
@@ -179,9 +179,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 	  StrokeVertexRep *svRep[3];
 	  Vec3r color[3];
 	  unsigned int vertex_index;
-	  float ycor = ((float)freestyle_scene->r.yasp) / ((float)freestyle_scene->r.xasp);
-	  float width = freestyle_scene->r.xsch;
-	  float height = freestyle_scene->r.ysch * ycor;
 	  Vec2r p;
 	
 	  for(vector<Strip*>::iterator s=strips.begin(), send=strips.end();
@@ -209,7 +206,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 			m = 0;
 			for (int j = 0; j < 3; j++) {
 				p = svRep[j]->point2d();
-				if (p[0] < 0.0 || p[0] > width || p[1] < 0.0 || p[1] > height)
+				if (p[0] < 0.0 || p[0] > _width || p[1] < 0.0 || p[1] > _height)
 					m++;
 			}
 			if (m == 3) {
@@ -277,7 +274,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 			m = 0;
 			for (int j = 0; j < 3; j++) {
 				p = svRep[j]->point2d();
-				if (p[0] < 0.0 || p[0] > width || p[1] < 0.0 || p[1] > height)
+				if (p[0] < 0.0 || p[0] > _width || p[1] < 0.0 || p[1] > _height)
 					m++;
 			}
 			if (m == 3) {
@@ -352,13 +349,6 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
         camera->clipend = _z + _z_delta * 100.0f;
     //cout << "clipsta " << camera->clipsta << ", clipend " << camera->clipend << endl;
 
-	freestyle_scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
-	freestyle_scene->r.scemode &= ~( R_SINGLE_LAYER );
-	freestyle_scene->r.planes = R_PLANES32;
-	freestyle_scene->r.imtype = R_PNG;
-	if (freestyle_scene->r.mode & R_BORDER)
-		freestyle_scene->r.mode |= R_CROP;
-	
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 
 	RE_RenderFreestyleStrokes(freestyle_render, G.main, freestyle_scene);
