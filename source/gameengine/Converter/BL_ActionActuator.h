@@ -40,7 +40,7 @@
 class BL_ActionActuator : public SCA_IActuator  
 {
 public:
-	Py_Header;
+	Py_Header
 	BL_ActionActuator(SCA_IObject* gameobj,
 						const STR_String& propname,
 						const STR_String& framepropname,
@@ -70,8 +70,8 @@ public:
 
 #ifdef WITH_PYTHON
 
-	KX_PYMETHOD_O(BL_ActionActuator,GetChannel);
-	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
+	KX_PYMETHOD_O(BL_ActionActuator,GetChannel)
+	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel)
 
 	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

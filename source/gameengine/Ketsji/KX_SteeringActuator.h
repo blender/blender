@@ -47,7 +47,7 @@ const int MAX_PATH_LENGTH  = 128;
 
 class KX_SteeringActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	/** Target object */
 	KX_GameObject *m_target;

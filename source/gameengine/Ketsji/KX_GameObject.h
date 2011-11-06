@@ -80,7 +80,7 @@ void KX_GameObject_Mathutils_Callback_Init(void);
  */
 class KX_GameObject : public SCA_IObject
 {
-	Py_Header;
+	Py_Header
 protected:
 
 	bool								m_bDyna;

@@ -38,7 +38,7 @@
 
 class SCA_RandomActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	/** Property to assign to */
 	STR_String m_propname;
 	

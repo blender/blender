@@ -47,7 +47,7 @@
  */
 class SCA_ISensor : public SCA_ILogicBrick
 {
-	Py_Header;
+	Py_Header
 protected:
 	class SCA_EventManager* m_eventmgr;
 

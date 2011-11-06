@@ -40,7 +40,7 @@
 
 class SCA_ActuatorSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	STR_String		m_checkactname;
 	bool			m_lastresult;
 	bool			m_midresult;

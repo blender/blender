@@ -32,7 +32,7 @@ class KX_Scene;
 
 class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 {
-	Py_Header;
+	Py_Header
 public:
 	// --------------------------------
 	KX_BlenderMaterial();

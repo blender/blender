@@ -39,7 +39,7 @@
 
 class KX_NetworkMessageActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	bool m_lastEvent;
 	class NG_NetworkScene* m_networkscene;	// needed for replication
 	STR_String m_toPropName;

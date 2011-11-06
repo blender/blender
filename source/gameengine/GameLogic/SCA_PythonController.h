@@ -42,7 +42,7 @@
 class SCA_IObject;
 class SCA_PythonController : public SCA_IController
 {
-	Py_Header;
+	Py_Header
 #ifdef WITH_PYTHON
 	struct _object *		m_bytecode; /* SCA_PYEXEC_SCRIPT only */
 	PyObject*				m_function; /* SCA_PYEXEC_MODULE only */

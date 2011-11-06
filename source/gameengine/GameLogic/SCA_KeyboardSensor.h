@@ -44,7 +44,7 @@
  * exclusive.  */
 class SCA_KeyboardSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 
 	/**
 	 * the key this sensor is sensing for

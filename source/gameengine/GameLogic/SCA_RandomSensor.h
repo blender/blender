@@ -39,7 +39,7 @@
 
 class SCA_RandomSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 
 	unsigned int m_currentDraw;
 	int m_iteration;

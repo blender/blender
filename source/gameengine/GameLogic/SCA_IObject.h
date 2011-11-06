@@ -54,7 +54,7 @@ typedef std::vector<SCA_IObject *>		 SCA_ObjectList;
 class SCA_IObject :	public CValue
 {
 	
-	Py_Header;
+	Py_Header
 	
 protected:
 	friend class KX_StateActuator;
