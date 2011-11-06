@@ -1229,7 +1229,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 		/* pop point off the stack */
 		node= stack[--totstack];
 
-		VECSUB(v, node->co, p);
+		sub_v3_v3v3(v, node->co, p);
 		d2= dot_v3v3(v, v) + 1e-16f;
 		emitarea= MAX2(node->area, node->dco);
 
@@ -1484,7 +1484,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	if(cache->sample && cache->step) {
 		sample= &cache->sample[(y-cache->y)*cache->w + (x-cache->x)];
 		if(sample->filled) {
-			VECSUB(d, sample->co, co);
+			sub_v3_v3v3(d, sample->co, co);
 			dist2= dot_v3v3(d, d);
 			if(dist2 < 0.5f*sample->dist2 && dot_v3v3(sample->n, n) > 0.98f) {
 				copy_v3_v3(ao, sample->ao);
@@ -1534,7 +1534,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	wb[0]= tx*ty;
 
 	for(i=0; i<4; i++) {
-		VECSUB(d, samples[i]->co, co);
+		sub_v3_v3v3(d, samples[i]->co, co);
 		//dist2= dot_v3v3(d, d);
 
 		wz[i]= 1.0f; //(samples[i]->dist2/(1e-4f + dist2));

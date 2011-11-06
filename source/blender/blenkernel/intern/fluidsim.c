@@ -92,7 +92,7 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	*numVertices = totvert;
 	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");
 	for(i=0; i<totvert; i++) {
-		VECCOPY( &verts[i*3], mvert[i].co);
+		copy_v3_v3(&verts[i*3], mvert[i].co);
 		if(useGlobalCoords) { mul_m4_v3(ob->obmat, &verts[i*3]); }
 	}
 	*vertices = verts;

@@ -2697,7 +2697,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 
 				/* gravitation */
-				VECADDFAC(bp->force, bp->force, gravity, _final_mass(ob,bp)); /* individual mass of node here */
+				madd_v3_v3fl(bp->force, gravity, _final_mass(ob,bp)); /* individual mass of node here */
 
 
 				/* particle field & vortex */

@@ -190,7 +190,7 @@ static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float eps
 	// fill tree
 	for(i = 0; i < cloth->numverts; i++, verts++)
 	{
-		VECCOPY(&co[0*3], verts->xold);
+		copy_v3_v3(&co[0*3], verts->xold);
 		
 		BLI_bvhtree_insert(bvhtree, i, co, 1);
 	}
