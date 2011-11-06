@@ -655,7 +655,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					data = con->data;
 					data->tar = par;
 					
-					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
+					get_constraint_target_matrix(scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra);
 					sub_v3_v3v3(vec, ob->obmat[3], cmat[3]);
 					
 					ob->loc[0] = vec[0];

@@ -1431,15 +1431,7 @@ float bsystem_time(struct Scene *scene, Object *UNUSED(ob), float cfra, float of
 	
 	/* global time */
 	if (scene)
-		cfra*= scene->r.framelen;	
-	
-#if 0 // XXX old animation system
-	if (ob) {
-		/* ofset frames */
-		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
-			cfra-= give_timeoffset(ob);
-	}
-#endif // XXX old animation system
+		cfra *= scene->r.framelen;	
 	
 	cfra-= ofs;
 
@@ -1592,12 +1584,6 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		makeDispListCurveTypes(scene, par, 0);
 	if(cu->path==NULL) return;
 	
-	/* exception, timeoffset is regarded as distance offset */
-	if(cu->flag & CU_OFFS_PATHDIST) {
-		timeoffs = give_timeoffset(ob);
-		SWAP(float, sf_orig, ob->sf);
-	}
-	
 	/* catch exceptions: feature for nla stride editing */
 	if(ob->ipoflag & OB_DISABLE_PATH) {
 		ctime= 0.0f;
@@ -1618,7 +1604,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		CLAMP(ctime, 0.0f, 1.0f);
 	}
 	else {
-		ctime= scene->r.cfra - give_timeoffset(ob);
+		ctime= scene->r.cfra;
 		if (IS_EQF(cu->pathlen, 0.0f) == 0)
 			ctime /= cu->pathlen;
 		
@@ -1862,9 +1848,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	if(ob->parent) {
 		Object *par= ob->parent;
 		
-		// XXX depreceated - animsys
-		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= give_timeoffset(ob);
-		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
 		if(no_parent_ipo==0 && stime != par->ctime) {
@@ -1873,17 +1856,20 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
 			else where_is_object_time(scene, par, ctime);
-
+			
 			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-
+			
 			*par= tmp;
 		}
 		else
 			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
+		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
+		 * An old-fashioned hack which probably doesn't really cut it anymore
+		 */
 		if(ob->partype & PARSLOW) {
 			// include framerate
-			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
+			fac1= ( 1.0f / (1.0f + (float)fabs(ob->sf)) );
 			if(fac1 >= 1.0f) return;
 			fac2= 1.0f-fac1;
 			
@@ -2006,7 +1992,6 @@ void where_is_object_simul(Scene *scene, Object *ob)
 for a lamp that is the child of another object */
 {
 	Object *par;
-	//Ipo *ipo;
 	float *fp1, *fp2;
 	float slowmat[4][4];
 	float fac1, fac2;
@@ -2017,10 +2002,9 @@ for a lamp that is the child of another object */
 		par= ob->parent;
 		
 		solve_parenting(scene, ob, par, ob->obmat, slowmat, 1);
-
+		
 		if(ob->partype & PARSLOW) {
-
-			fac1= (float)(1.0/(1.0+ fabs(give_timeoffset(ob))));
+			fac1= (float)(1.0/(1.0+ fabs(ob->sf)));
 			fac2= 1.0f-fac1;
 			fp1= ob->obmat[0];
 			fp2= slowmat[0];
@@ -2028,7 +2012,6 @@ for a lamp that is the child of another object */
 				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
 			}
 		}
-		
 	}
 	else {
 		object_to_mat4(ob, ob->obmat);
@@ -2551,15 +2534,6 @@ void object_sculpt_modifiers_changed(Object *ob)
 			BLI_pbvh_node_mark_update(nodes[n]);
 
 		MEM_freeN(nodes);
-	}
-}
-
-float give_timeoffset(Object *ob)
-{
-	if ((ob->ipoflag & OB_OFFS_PARENTADD) && ob->parent) {
-		return ob->sf + give_timeoffset(ob->parent);
-	} else {
-		return ob->sf;
 	}
 }
 

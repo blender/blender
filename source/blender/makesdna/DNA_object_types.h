@@ -163,7 +163,8 @@ typedef struct Object {
 	
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
-	short nlaflag, ipoflag;		// xxx depreceated... old animation system
+	short nlaflag;				/* used for DopeSheet filtering settings (expanded/collapsed) */
+	short ipoflag;				// xxx depreceated... old animation system
 	short scaflag;				/* ui state for game logic */
 	char scavisflag;			/* more display settings for game logic */
 	char pad5;
@@ -325,11 +326,12 @@ typedef struct DupliObject {
 #define PARVERT1		5
 #define PARVERT3		6
 #define PARBONE			7
+
+	/* slow parenting - is not threadsafe and/or may give errors after jumping  */
 #define PARSLOW			16
 
 /* (short) transflag */
-/*#define OB_OFFS_LOCAL		1*/ /*UNUSED*/
-/* #define OB_QUAT				2 */ /* never used, free flag */
+/* flags 1 and 2 were unused or relics from past features */
 #define OB_NEG_SCALE		4
 #define OB_DUPLI			(8+16+256+512+2048)
 #define OB_DUPLIFRAMES		8
@@ -345,23 +347,11 @@ typedef struct DupliObject {
 #define OB_NO_CONSTRAINTS	8192 /* runtime constraints disable */
 
 /* (short) ipoflag */
-	// XXX depreceated - old animation system crap
-#define OB_DRAWKEY			1
-#define OB_DRAWKEYSEL		2
-#define OB_OFFS_OB			4
-/* #define OB_OFFS_MAT		8 */ /*UNUSED*/
-/* #define OB_OFFS_VKEY		16 */ /*UNUSED*/
-/* #define OB_OFFS_PATH		32 */ /*UNUSED*/
-#define OB_OFFS_PARENT		64
-#define OB_OFFS_PARTICLE	128
-	/* get ipo from from action or not? */
-#define OB_ACTION_OB		256
-#define OB_ACTION_KEY		512
-	/* for stride edit */
+/* XXX: many old flags for features removed due to incompatability 
+ * with new system and/or other design issues were here 
+ */
+	/* for stride/path editing (XXX: NEEDS REVIEW) */
 #define OB_DISABLE_PATH		1024
-
-#define OB_OFFS_PARENTADD	2048
-
 
 /* (short) trackflag / upflag */
 #define OB_POSX			0
@@ -529,10 +519,7 @@ typedef struct DupliObject {
 #define OB_SHAPE_EDIT_MODE	4
 
 /* ob->nlaflag */
-	// XXX depreceated - old animation system
-#define OB_NLA_OVERRIDE		(1<<0)
-#define OB_NLA_COLLAPSED	(1<<1)
-
+	/* WARNING: flags (1<<0) and (1<<1) were from old animsys */
 	/* object-channel expanded status */
 #define OB_ADS_COLLAPSED	(1<<10)
 	/* object's ipo-block */
