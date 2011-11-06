@@ -227,7 +227,7 @@ void init_mapping(TexMapping *texmap)
 	mul_m3_m3m3(mat, rmat, smat);
 	
 	copy_m4_m3(texmap->mat, mat);
-	VECCOPY(texmap->mat[3], texmap->loc);
+	copy_v3_v3(texmap->mat[3], texmap->loc);
 
 }
 

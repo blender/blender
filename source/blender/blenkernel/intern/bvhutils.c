@@ -384,8 +384,8 @@ static float nearest_point_in_tri_surface(const float v0[3], const float v1[3], 
 		mul_v3_fl(x, S);
 		copy_v3_v3(y, e1);
 		mul_v3_fl(y, T);
-		VECADD(z, w, x);
-		VECADD(z, z, y);
+		add_v3_v3v3(z, w, x);
+		add_v3_v3v3(z, z, y);
 		//sub_v3_v3v3(d, p, z);
 		copy_v3_v3(nearest, z);
 		// d = p - ( v0 + S * e0 + T * e1 );

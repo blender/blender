@@ -1663,7 +1663,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 				return 0;
 
 			*mapindex = index;
-			QUATCOPY(mapfw, fw);
+			copy_v4_v4(mapfw, fw);
 		}
 	} else {
 		/* for other meshes that have been modified, we try to map the particle
@@ -2835,7 +2835,7 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 		* angle, since floating point accuracy makes it give
 		* different results across platforms */
 		if(cosangle > 0.999999f) {
-			QUATCOPY(key1->rot, key2->rot);
+			copy_v4_v4(key1->rot, key2->rot);
 		}
 		else {
 			angle= saacos(cosangle);

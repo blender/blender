@@ -321,7 +321,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 	/* determine the ortho BB */
 	for(i=0; i < pccd_M->totvert; i++){
 		/* evaluate limits */
-		VECCOPY(v,pccd_M->mvert[i].co);
+		copy_v3_v3(v,pccd_M->mvert[i].co);
 		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0],v[0]-hull);
 		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1],v[1]-hull);
 		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2],v[2]-hull);
@@ -345,7 +345,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 		mima->minx=mima->miny=mima->minz=1e30f;
 		mima->maxx=mima->maxy=mima->maxz=-1e30f;
 
-		VECCOPY(v,pccd_M->mvert[mface->v1].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v1].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -353,7 +353,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mvert[mface->v2].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v2].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -361,7 +361,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mvert[mface->v3].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v3].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -370,7 +370,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
 		if(mface->v4){
-			VECCOPY(v,pccd_M->mvert[mface->v4].co);
+			copy_v3_v3(v,pccd_M->mvert[mface->v4].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -419,7 +419,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 	/* determine the ortho BB */
 	for(i=0; i < pccd_M->totvert; i++){
 		/* evaluate limits */
-		VECCOPY(v,pccd_M->mvert[i].co);
+		copy_v3_v3(v,pccd_M->mvert[i].co);
 		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0],v[0]-hull);
 		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1],v[1]-hull);
 		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2],v[2]-hull);
@@ -429,7 +429,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2],v[2]+hull);
 
 		/* evaluate limits */
-		VECCOPY(v,pccd_M->mprevvert[i].co);
+		copy_v3_v3(v,pccd_M->mprevvert[i].co);
 		pccd_M->bbmin[0] = MIN2(pccd_M->bbmin[0],v[0]-hull);
 		pccd_M->bbmin[1] = MIN2(pccd_M->bbmin[1],v[1]-hull);
 		pccd_M->bbmin[2] = MIN2(pccd_M->bbmin[2],v[2]-hull);
@@ -449,7 +449,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->minx=mima->miny=mima->minz=1e30f;
 		mima->maxx=mima->maxy=mima->maxz=-1e30f;
 
-		VECCOPY(v,pccd_M->mvert[mface->v1].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v1].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -457,7 +457,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mvert[mface->v2].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v2].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -465,7 +465,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mvert[mface->v3].co);
+		copy_v3_v3(v,pccd_M->mvert[mface->v3].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -474,7 +474,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
 		if(mface->v4){
-			VECCOPY(v,pccd_M->mvert[mface->v4].co);
+			copy_v3_v3(v,pccd_M->mvert[mface->v4].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -484,7 +484,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		}
 
 
-		VECCOPY(v,pccd_M->mprevvert[mface->v1].co);
+		copy_v3_v3(v,pccd_M->mprevvert[mface->v1].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -492,7 +492,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mprevvert[mface->v2].co);
+		copy_v3_v3(v,pccd_M->mprevvert[mface->v2].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -500,7 +500,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxy = MAX2(mima->maxy,v[1]+hull);
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
-		VECCOPY(v,pccd_M->mprevvert[mface->v3].co);
+		copy_v3_v3(v,pccd_M->mprevvert[mface->v3].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -509,7 +509,7 @@ static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M)
 		mima->maxz = MAX2(mima->maxz,v[2]+hull);
 
 		if(mface->v4){
-			VECCOPY(v,pccd_M->mprevvert[mface->v4].co);
+			copy_v3_v3(v,pccd_M->mprevvert[mface->v4].co);
 		mima->minx = MIN2(mima->minx,v[0]-hull);
 		mima->miny = MIN2(mima->miny,v[1]-hull);
 		mima->minz = MIN2(mima->minz,v[2]-hull);
@@ -1024,8 +1024,8 @@ static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int 
 #endif
 
 	if ((sb == NULL) || (sb->scratch ==NULL)) return 0;
-	VECCOPY(aabbmin,sb->scratch->aabbmin);
-	VECCOPY(aabbmax,sb->scratch->aabbmax);
+	copy_v3_v3(aabbmin,sb->scratch->aabbmin);
+	copy_v3_v3(aabbmax,sb->scratch->aabbmax);
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
@@ -1099,8 +1099,8 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 	aabbmax[2] = MAX3(face_v1[2],face_v2[2],face_v3[2]);
 
 	/* calculate face normal once again SIGH */
-	VECSUB(edge1, face_v1, face_v2);
-	VECSUB(edge2, face_v3, face_v2);
+	sub_v3_v3v3(edge1, face_v1, face_v2);
+	sub_v3_v3v3(edge2, face_v3, face_v2);
 	cross_v3_v3v3(d_nvect, edge2, edge1);
 	normalize_v3(d_nvect);
 
@@ -1143,13 +1143,13 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 				/* use mesh*/
 				if (mvert) {
 					while(a){
-						VECCOPY(nv1,mvert[a-1].co);
+						copy_v3_v3(nv1,mvert[a-1].co);
 						if(mprevvert){
 							mul_v3_fl(nv1,time);
 							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[a-1].co);
 						}
 						/* origin to face_v2*/
-						VECSUB(nv1, nv1, face_v2);
+						sub_v3_v3(nv1, face_v2);
 						facedist = dot_v3v3(nv1,d_nvect);
 						if (ABS(facedist)<outerfacethickness){
 							if (isect_point_tri_prism_v3(nv1, face_v1,face_v2,face_v3) ){
@@ -1253,11 +1253,11 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 
 					if (mvert){
 
-						VECCOPY(nv1,mvert[mface->v1].co);
-						VECCOPY(nv2,mvert[mface->v2].co);
-						VECCOPY(nv3,mvert[mface->v3].co);
+						copy_v3_v3(nv1,mvert[mface->v1].co);
+						copy_v3_v3(nv2,mvert[mface->v2].co);
+						copy_v3_v3(nv3,mvert[mface->v3].co);
 						if (mface->v4){
-							VECCOPY(nv4,mvert[mface->v4].co);
+							copy_v3_v3(nv4,mvert[mface->v4].co);
 						}
 						if (mprevvert){
 							mul_v3_fl(nv1,time);
@@ -1277,8 +1277,8 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 					}
 
 					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
+					sub_v3_v3v3(edge1, nv1, nv2);
+					sub_v3_v3v3(edge2, nv3, nv2);
 					cross_v3_v3v3(d_nvect, edge2, edge1);
 					normalize_v3(d_nvect);
 					if (
@@ -1291,8 +1291,8 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 					}
 					if (mface->v4){ /* quad */
 						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
+						sub_v3_v3v3(edge1, nv3, nv4);
+						sub_v3_v3v3(edge2, nv1, nv4);
 						cross_v3_v3v3(d_nvect, edge2, edge1);
 						normalize_v3(d_nvect);
 						if (
@@ -1481,11 +1481,11 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 
 					if (mvert){
 
-						VECCOPY(nv1,mvert[mface->v1].co);
-						VECCOPY(nv2,mvert[mface->v2].co);
-						VECCOPY(nv3,mvert[mface->v3].co);
+						copy_v3_v3(nv1,mvert[mface->v1].co);
+						copy_v3_v3(nv2,mvert[mface->v2].co);
+						copy_v3_v3(nv3,mvert[mface->v3].co);
 						if (mface->v4){
-							VECCOPY(nv4,mvert[mface->v4].co);
+							copy_v3_v3(nv4,mvert[mface->v4].co);
 						}
 						if (mprevvert){
 							mul_v3_fl(nv1,time);
@@ -1505,16 +1505,16 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 					}
 
 					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
+					sub_v3_v3v3(edge1, nv1, nv2);
+					sub_v3_v3v3(edge2, nv3, nv2);
 
 					cross_v3_v3v3(d_nvect, edge2, edge1);
 					normalize_v3(d_nvect);
 					if ( isect_line_tri_v3(edge_v1, edge_v2, nv1, nv2, nv3, &t, NULL)){
 						float v1[3],v2[3];
 						float intrusiondepth,i1,i2;
-						VECSUB(v1, edge_v1, nv2);
-						VECSUB(v2, edge_v2, nv2);
+						sub_v3_v3v3(v1, edge_v1, nv2);
+						sub_v3_v3v3(v2, edge_v2, nv2);
 						i1 = dot_v3v3(v1,d_nvect);
 						i2 = dot_v3v3(v2,d_nvect);
 						intrusiondepth = -MIN2(i1,i2)/el;
@@ -1524,16 +1524,16 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 					}
 					if (mface->v4){ /* quad */
 						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
+						sub_v3_v3v3(edge1, nv3, nv4);
+						sub_v3_v3v3(edge2, nv1, nv4);
 
 						cross_v3_v3v3(d_nvect, edge2, edge1);
 						normalize_v3(d_nvect);
 						if (isect_line_tri_v3( edge_v1, edge_v2,nv1, nv3, nv4, &t, NULL)){
 							float v1[3],v2[3];
 							float intrusiondepth,i1,i2;
-							VECSUB(v1, edge_v1, nv4);
-							VECSUB(v2, edge_v2, nv4);
+							sub_v3_v3v3(v1, edge_v1, nv4);
+							sub_v3_v3v3(v2, edge_v2, nv4);
 						i1 = dot_v3v3(v1,d_nvect);
 						i2 = dot_v3v3(v2,d_nvect);
 						intrusiondepth = -MIN2(i1,i2)/el;
@@ -1602,16 +1602,16 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					}
 					/* media in rest */
 					else{
-						VECADD(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
+						add_v3_v3v3(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
 					}
 					f = normalize_v3(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
 					/* (todo) add a nice angle dependant function done for now BUT */
 					/* still there could be some nice drag/lift function, but who needs it */
 
-					VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
+					sub_v3_v3v3(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 					project_v3_v3v3(pr,vel,sp);
-					VECSUB(vel,vel,pr);
+					sub_v3_v3(vel, pr);
 					normalize_v3(vel);
 					if (ob->softflag & OB_SB_AERO_ANGLE){
 						normalize_v3(sp);
@@ -1725,9 +1725,9 @@ static int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,fl
 		winner =3;
 	}
 	switch (winner){
-		case 1: VECCOPY(w,ca); break;
-		case 2: VECCOPY(w,cb); break;
-		case 3: VECCOPY(w,cc);
+		case 1: copy_v3_v3(w,ca); break;
+		case 2: copy_v3_v3(w,cb); break;
+		case 3: copy_v3_v3(w,cc);
 	}
 	return(winner);
 }
@@ -1824,11 +1824,11 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 
 					if (mvert){
 
-						VECCOPY(nv1,mvert[mface->v1].co);
-						VECCOPY(nv2,mvert[mface->v2].co);
-						VECCOPY(nv3,mvert[mface->v3].co);
+						copy_v3_v3(nv1,mvert[mface->v1].co);
+						copy_v3_v3(nv2,mvert[mface->v2].co);
+						copy_v3_v3(nv3,mvert[mface->v3].co);
 						if (mface->v4){
-							VECCOPY(nv4,mvert[mface->v4].co);
+							copy_v3_v3(nv4,mvert[mface->v4].co);
 						}
 
 						if (mprevvert){
@@ -1838,11 +1838,11 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							since the AABB reduced propabitlty to get here drasticallly
 							it might be a nice tradeof CPU <--> memory
 							*/
-							VECSUB(vv1,nv1,mprevvert[mface->v1].co);
-							VECSUB(vv2,nv2,mprevvert[mface->v2].co);
-							VECSUB(vv3,nv3,mprevvert[mface->v3].co);
+							sub_v3_v3v3(vv1,nv1,mprevvert[mface->v1].co);
+							sub_v3_v3v3(vv2,nv2,mprevvert[mface->v2].co);
+							sub_v3_v3v3(vv3,nv3,mprevvert[mface->v3].co);
 							if (mface->v4){
-								VECSUB(vv4,nv4,mprevvert[mface->v4].co);
+								sub_v3_v3v3(vv4,nv4,mprevvert[mface->v4].co);
 							}
 
 							mul_v3_fl(nv1,time);
@@ -1862,9 +1862,9 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 					}
 
 					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
-					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
+					sub_v3_v3v3(edge1, nv1, nv2);
+					sub_v3_v3v3(edge2, nv3, nv2);
+					sub_v3_v3v3(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 					cross_v3_v3v3(d_nvect, edge2, edge1);
 					/* n_mag = */ /* UNUSED */ normalize_v3(d_nvect);
@@ -1890,7 +1890,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 							if ((mprevvert) && (*damp > 0.0f)){
 								choose_winner(ve,opco,nv1,nv2,nv3,vv1,vv2,vv3);
-								VECADD(avel,avel,ve);
+								add_v3_v3(avel, ve);
 								cavel ++;
 							}
 							*intrusion += facedist;
@@ -1899,9 +1899,9 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 					}
 					if (mface->v4){ /* quad */
 						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
-						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
+						sub_v3_v3v3(edge1, nv3, nv4);
+						sub_v3_v3v3(edge2, nv1, nv4);
+						sub_v3_v3v3(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 						cross_v3_v3v3(d_nvect, edge2, edge1);
 						/* n_mag = */ /* UNUSED */ normalize_v3(d_nvect);
@@ -1926,7 +1926,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 
 								if ((mprevvert) && (*damp > 0.0f)){
 									choose_winner(ve,opco,nv1,nv3,nv4,vv1,vv3,vv4);
-									VECADD(avel,avel,ve);
+									add_v3_v3(avel, ve);
 									cavel ++;
 								}
 								*intrusion += facedist;
@@ -1939,46 +1939,46 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							float dist;
 
 							closest_to_line_segment_v3(ve, opco, nv1, nv2);
-							 VECSUB(ve,opco,ve);
+							 sub_v3_v3v3(ve,opco,ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )){
-								VECCOPY(coledge,ve);
+								copy_v3_v3(coledge,ve);
 								mindistedge = dist,
 								deflected=1;
 							}
 
 							closest_to_line_segment_v3(ve, opco, nv2, nv3);
-							 VECSUB(ve,opco,ve);
+							 sub_v3_v3v3(ve,opco,ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )){
-								VECCOPY(coledge,ve);
+								copy_v3_v3(coledge,ve);
 								mindistedge = dist,
 								deflected=1;
 							}
 
 							closest_to_line_segment_v3(ve, opco, nv3, nv1);
-							 VECSUB(ve,opco,ve);
+							 sub_v3_v3v3(ve,opco,ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )){
-								VECCOPY(coledge,ve);
+								copy_v3_v3(coledge,ve);
 								mindistedge = dist,
 								deflected=1;
 							}
 							if (mface->v4){ /* quad */
 								closest_to_line_segment_v3(ve, opco, nv3, nv4);
-								VECSUB(ve,opco,ve);
+								sub_v3_v3v3(ve,opco,ve);
 								dist = normalize_v3(ve);
 								if ((dist < outerfacethickness)&&(dist < mindistedge )){
-									VECCOPY(coledge,ve);
+									copy_v3_v3(coledge,ve);
 									mindistedge = dist,
 										deflected=1;
 								}
 
 								closest_to_line_segment_v3(ve, opco, nv1, nv4);
-								VECSUB(ve,opco,ve);
+								sub_v3_v3v3(ve,opco,ve);
 								dist = normalize_v3(ve);
 								if ((dist < outerfacethickness)&&(dist < mindistedge )){
-									VECCOPY(coledge,ve);
+									copy_v3_v3(coledge,ve);
 									mindistedge = dist,
 										deflected=1;
 								}
@@ -2007,15 +2007,15 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 
 	}
 	if (deflected == 2){ //  face inner detected
-		VECADD(force,force,innerforceaccu);
+		add_v3_v3(force, innerforceaccu);
 	}
 	if (deflected == 3){ //  face outer detected
-		VECADD(force,force,outerforceaccu);
+		add_v3_v3(force, outerforceaccu);
 	}
 
 	BLI_ghashIterator_free(ihash);
 	if (cavel) mul_v3_fl(avel,1.0f/(float)cavel);
-	VECCOPY(vel,avel);
+	copy_v3_v3(vel,avel);
 	if (ci) *intrusion /= ci;
 	if (deflected){
 		normalize_v3_v3(facenormal, force);
@@ -2029,7 +2029,7 @@ static int sb_deflect_face(Object *ob,float *actpos,float *facenormal,float *for
 {
 	float s_actpos[3];
 	int deflected;
-	VECCOPY(s_actpos,actpos);
+	copy_v3_v3(s_actpos,actpos);
 	deflected= sb_detect_vertex_collisionCached(s_actpos, facenormal, cf, force , ob->lay, ob,time,vel,intrusion);
 	//deflected= sb_detect_vertex_collisionCachedEx(s_actpos, facenormal, cf, force , ob->lay, ob,time,vel,intrusion);
 	return(deflected);
@@ -2286,7 +2286,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* gravitation */
 			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){
 				float gravity[3];
-				VECCOPY(gravity, scene->physics_settings.gravity);
+				copy_v3_v3(gravity, scene->physics_settings.gravity);
 				mul_v3_fl(gravity, sb_grav_force_scale(ob)*_final_mass(ob,bp)*sb->effector_weights->global_gravity); /* individual mass of node here */
 				add_v3_v3(bp->force, gravity);
 			}
@@ -2303,7 +2303,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 
 				/* apply forcefield*/
 				mul_v3_fl(force,fieldfactor* eval_sb_fric_force_scale);
-				VECADD(bp->force, bp->force, force);
+				add_v3_v3(bp->force, force);
 
 				/* BP friction in moving media */
 				kd= sb->mediafrict* eval_sb_fric_force_scale;
@@ -2337,7 +2337,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 							bp->choke = sb->choke*0.01f;
 						}
 
-							VECSUB(cfforce,bp->vec,vel);
+							sub_v3_v3v3(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 
 					Vec3PlusStVec(bp->force,kd,defforce);
@@ -2524,7 +2524,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 
 		if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){
-			VECCOPY(gravity, scene->physics_settings.gravity);
+			copy_v3_v3(gravity, scene->physics_settings.gravity);
 			mul_v3_fl(gravity, sb_grav_force_scale(ob)*sb->effector_weights->global_gravity);
 		}
 
@@ -2711,7 +2711,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 					/* apply forcefield*/
 					mul_v3_fl(force,fieldfactor* eval_sb_fric_force_scale);
-					VECADD(bp->force, bp->force, force);
+					add_v3_v3(bp->force, force);
 
 					/* BP friction in moving media */
 					kd= sb->mediafrict* eval_sb_fric_force_scale;
@@ -2764,7 +2764,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							}
 							else{
 
-								VECSUB(cfforce,bp->vec,vel);
+								sub_v3_v3v3(cfforce,bp->vec,vel);
 								Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 							}
 
@@ -2774,7 +2774,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							bp->choke = sb->choke*0.01f;
 						}
 						else{
-							VECSUB(cfforce,bp->vec,vel);
+							sub_v3_v3v3(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 						}
 						Vec3PlusStVec(bp->force,kd,defforce);
@@ -2876,7 +2876,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			else{
 				printf("Matrix inversion failed \n");
 				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-					VECCOPY(bp->impdv,bp->force);
+					copy_v3_v3(bp->impdv,bp->force);
 				}
 
 			}
@@ -2923,7 +2923,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
 		if(_final_goal(ob,bp) < SOFTGOALSNAP){
 			/* this makes t~ = t */
-			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
+			if(mid_flags & MID_PRESERVE) copy_v3_v3(dx,bp->vec);
 
 			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
 			/* the ( ... )' operator denotes derivate respective time */
@@ -2931,11 +2931,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			/* v(t + dt) = v(t) + a(t) * dt */
 			mul_v3_fl(bp->force,timeovermass);/* individual mass of node here */
 			/* some nasty if's to have heun in here too */
-			VECCOPY(dv,bp->force);
+			copy_v3_v3(dv,bp->force);
 
 			if (mode == 1){
-				VECCOPY(bp->prevvec, bp->vec);
-				VECCOPY(bp->prevdv, dv);
+				copy_v3_v3(bp->prevvec, bp->vec);
+				copy_v3_v3(bp->prevdv, dv);
 			}
 
 			if (mode ==2){
@@ -2948,10 +2948,10 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerrvel = MAX2(maxerrvel,ABS(dv[1] - bp->prevdv[1]));
 				maxerrvel = MAX2(maxerrvel,ABS(dv[2] - bp->prevdv[2]));
 			}
-			else {VECADD(bp->vec, bp->vec, bp->force);}
+			else { add_v3_v3(bp->vec, bp->force); }
 
 			/* this makes t~ = t+dt */
-			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
+			if(!(mid_flags & MID_PRESERVE)) copy_v3_v3(dx,bp->vec);
 
 			/* so here is (x)'= v(elocity) */
 			/* the euler step for location then becomes */
@@ -2970,8 +2970,8 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			*/
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
-				VECCOPY(bp->prevpos,bp->pos);
-				VECCOPY(bp->prevdx ,dx);
+				copy_v3_v3(bp->prevpos,bp->pos);
+				copy_v3_v3(bp->prevdx ,dx);
 			}
 
 			if (mode ==2){
@@ -2994,7 +2994,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				}
 
 			}
-			else { VECADD(bp->pos, bp->pos, dx);}
+			else { add_v3_v3(bp->pos, dx);}
 		}/*snap*/
 		/* so while we are looping BPs anyway do statistics on the fly */
 		aabbmin[0] = MIN2(aabbmin[0],bp->pos[0]);
@@ -3008,8 +3008,8 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
 	if (sb->totpoint) mul_v3_fl(cm,1.0f/sb->totpoint);
 	if (sb->scratch){
-		VECCOPY(sb->scratch->aabbmin,aabbmin);
-		VECCOPY(sb->scratch->aabbmax,aabbmax);
+		copy_v3_v3(sb->scratch->aabbmin,aabbmin);
+		copy_v3_v3(sb->scratch->aabbmax,aabbmax);
 	}
 
 	if (err){ /* so step size will be controlled by biggest difference in slope */
@@ -3032,8 +3032,8 @@ static void softbody_restore_prev_step(Object *ob)
 	int a;
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		VECCOPY(bp->vec, bp->prevvec);
-		VECCOPY(bp->pos, bp->prevpos);
+		copy_v3_v3(bp->vec, bp->prevvec);
+		copy_v3_v3(bp->pos, bp->prevpos);
 	}
 }
 
@@ -3045,8 +3045,8 @@ static void softbody_store_step(Object *ob)
 	int a;
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		VECCOPY(bp->prevvec,bp->vec);
-		VECCOPY(bp->prevpos,bp->pos);
+		copy_v3_v3(bp->prevvec,bp->vec);
+		copy_v3_v3(bp->prevpos,bp->pos);
 	}
 }
 
@@ -3061,10 +3061,10 @@ static void softbody_store_state(Object *ob,float *ppos,float *pvel)
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 
-		VECCOPY(pv, bp->vec);
+		copy_v3_v3(pv, bp->vec);
 		pv+=3;
 
-		VECCOPY(pp, bp->pos);
+		copy_v3_v3(pp, bp->pos);
 		pp+=3;
 	}
 }
@@ -3079,10 +3079,10 @@ static void softbody_retrieve_state(Object *ob,float *ppos,float *pvel)
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 
-		VECCOPY(bp->vec,pv);
+		copy_v3_v3(bp->vec,pv);
 		pv+=3;
 
-		VECCOPY(bp->pos,pp);
+		copy_v3_v3(bp->pos,pp);
 		pp+=3;
 	}
 }
@@ -3098,14 +3098,14 @@ static void softbody_swap_state(Object *ob,float *ppos,float *pvel)
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 
-		VECCOPY(temp, bp->vec);
-		VECCOPY(bp->vec,pv);
-		VECCOPY(pv,temp);
+		copy_v3_v3(temp, bp->vec);
+		copy_v3_v3(bp->vec,pv);
+		copy_v3_v3(pv,temp);
 		pv+=3;
 
-		VECCOPY(temp, bp->pos);
-		VECCOPY(bp->pos,pp);
-		VECCOPY(pp,temp);
+		copy_v3_v3(temp, bp->pos);
+		copy_v3_v3(bp->pos,pp);
+		copy_v3_v3(pp,temp);
 		pp+=3;
 	}
 }
@@ -3126,8 +3126,8 @@ static void softbody_apply_goalsnap(Object *ob)
 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if (_final_goal(ob,bp) >= SOFTGOALSNAP){
-			VECCOPY(bp->prevpos,bp->pos);
-			VECCOPY(bp->pos,bp->origT);
+			copy_v3_v3(bp->prevpos,bp->pos);
+			copy_v3_v3(bp->pos,bp->origT);
 		}
 	}
 }
@@ -3238,7 +3238,7 @@ static void springs_from_mesh(Object *ob)
 		if(me->totvert) {
 			bp= ob->soft->bpoint;
 			for(a=0; a<me->totvert; a++, bp++) {
-				VECCOPY(bp->origS, me->mvert[a].co);
+				copy_v3_v3(bp->origS, me->mvert[a].co);
 				mul_m4_v3(ob->obmat, bp->origS);
 			}
 
@@ -3399,12 +3399,12 @@ static void reference_to_scratch(Object *ob)
 	bp= ob->soft->bpoint;
 	rp= sb->scratch->Ref.ivert;
 	for(a=0; a<sb->totpoint; a++, rp++, bp++) {
-		VECCOPY(rp->pos,bp->pos);
-		VECADD(accu_pos,accu_pos,bp->pos);
+		copy_v3_v3(rp->pos,bp->pos);
+		add_v3_v3(accu_pos, bp->pos);
 		accu_mass += _final_mass(ob,bp);
 	}
 	mul_v3_fl(accu_pos,1.0f/accu_mass);
-	VECCOPY(sb->scratch->Ref.com,accu_pos);
+	copy_v3_v3(sb->scratch->Ref.com,accu_pos);
 	/* printf("reference_to_scratch \n"); */
 }
 
@@ -3415,9 +3415,9 @@ when object is rescaled
 static float globallen(float *v1,float *v2,Object *ob)
 {
 	float p1[3],p2[3];
-	VECCOPY(p1,v1);
+	copy_v3_v3(p1,v1);
 	mul_m4_v3(ob->obmat, p1);
-	VECCOPY(p2,v2);
+	copy_v3_v3(p2,v2);
 	mul_m4_v3(ob->obmat, p2);
 	return len_v3v3(p1,p2);
 }
@@ -3656,7 +3656,7 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 		invert_m4_m4(ob->imat, ob->obmat);
 
 		for(a=0; a<numVerts; a++, bp++) {
-			VECCOPY(vertexCos[a], bp->pos);
+			copy_v3_v3(vertexCos[a], bp->pos);
 			if(local==0)
 				mul_m4_v3(ob->imat, vertexCos[a]);	/* softbody is in global coords, baked optionally not */
 		}
@@ -3784,14 +3784,14 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 
 	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
 		/* store where goals are now */
-		VECCOPY(bp->origS, bp->origE);
+		copy_v3_v3(bp->origS, bp->origE);
 		/* copy the position of the goals at desired end time */
-		VECCOPY(bp->origE, vertexCos[a]);
+		copy_v3_v3(bp->origE, vertexCos[a]);
 		/* vertexCos came from local world, go global */
 		mul_m4_v3(ob->obmat, bp->origE);
 		/* just to be save give bp->origT a defined value
 		will be calulated in interpolate_exciter()*/
-		VECCOPY(bp->origT, bp->origE);
+		copy_v3_v3(bp->origT, bp->origE);
 	}
 }
 
@@ -3828,14 +3828,14 @@ void SB_estimate_transform(Object *ob,float lloc[3],float lrot[3][3],float lscal
 	rpos= MEM_callocN( (sb->totpoint)*3*sizeof(float), "SB_RPOS");
 	/* might filter vertex selection with a vertex group */
 	for(a=0, bp=sb->bpoint, rp=sb->scratch->Ref.ivert; a<sb->totpoint; a++, bp++, rp++) {
-		VECCOPY(rpos[a],rp->pos);
-		VECCOPY(opos[a],bp->pos);
+		copy_v3_v3(rpos[a],rp->pos);
+		copy_v3_v3(opos[a],bp->pos);
 	}
 
 	vcloud_estimate_transform(sb->totpoint, opos, NULL, rpos, NULL, com, rcom,lrot,lscale);
-	//VECSUB(com,com,rcom);
-	if (lloc) VECCOPY(lloc,com);
-	VECCOPY(sb->lcom,com);
+	//sub_v3_v3(com,rcom);
+	if (lloc) copy_v3_v3(lloc,com);
+	copy_v3_v3(sb->lcom,com);
 	if (lscale) copy_m3_m3(sb->lscale,lscale);
 	if (lrot)   copy_m3_m3(sb->lrot,lrot);
 
@@ -3850,11 +3850,11 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	int a;
 
 	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-		VECCOPY(bp->pos, vertexCos[a]);
+		copy_v3_v3(bp->pos, vertexCos[a]);
 		mul_m4_v3(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
-		VECCOPY(bp->origS, bp->pos);
-		VECCOPY(bp->origE, bp->pos);
-		VECCOPY(bp->origT, bp->pos);
+		copy_v3_v3(bp->origS, bp->pos);
+		copy_v3_v3(bp->origE, bp->pos);
+		copy_v3_v3(bp->origT, bp->pos);
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
 		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
@@ -3869,10 +3869,10 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		4.b yup we're done
 		*/
 
-		VECCOPY(bp->prevpos, bp->pos);
-		VECCOPY(bp->prevvec, bp->vec);
-		VECCOPY(bp->prevdx, bp->vec);
-		VECCOPY(bp->prevdv, bp->vec);
+		copy_v3_v3(bp->prevpos, bp->pos);
+		copy_v3_v3(bp->prevvec, bp->vec);
+		copy_v3_v3(bp->prevdx, bp->vec);
+		copy_v3_v3(bp->prevdv, bp->vec);
 	}
 
 	/* make a nice clean scratch struc */

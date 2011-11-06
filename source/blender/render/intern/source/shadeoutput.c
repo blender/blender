@@ -495,10 +495,10 @@ static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
 		vec[2]= 0.0f;
 		mul_m3_v3(lar->mat, vec);
 		
-		VECADD(area[0], lar->area[0], vec);
-		VECADD(area[1], lar->area[1], vec);
-		VECADD(area[2], lar->area[2], vec);
-		VECADD(area[3], lar->area[3], vec);
+		add_v3_v3v3(area[0], lar->area[0], vec);
+		add_v3_v3v3(area[1], lar->area[1], vec);
+		add_v3_v3v3(area[2], lar->area[2], vec);
+		add_v3_v3v3(area[3], lar->area[3], vec);
 		
 		intens+= area_lamp_energy(area, co, vn);
 		
@@ -1111,12 +1111,12 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float shadfac[4],
 		}
 		
 		if(shi->depth==0) {
-			QUATCOPY(lss->shadfac, shadfac);
+			copy_v4_v4(lss->shadfac, shadfac);
 			lss->samplenr= shi->samplenr;
 		}
 	}
 	else {
-		QUATCOPY(shadfac, lss->shadfac);
+		copy_v4_v4(shadfac, lss->shadfac);
 	}
 }
 
@@ -1879,16 +1879,16 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* and add emit and spec */
 	if(shi->combinedflag & SCE_PASS_EMIT)
-		VECADD(shr->combined, shr->combined, shr->emit);
+		add_v3_v3(shr->combined, shr->emit);
 	if(shi->combinedflag & SCE_PASS_SPEC)
-		VECADD(shr->combined, shr->combined, shr->spec);
+		add_v3_v3(shr->combined, shr->spec);
 	
 	/* modulate by the object color */
 	if((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
 		if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
 			float obcol[4];
 
-			QUATCOPY(obcol, shi->obr->ob->col);
+			copy_v4_v4(obcol, shi->obr->ob->col);
 			CLAMP(obcol[3], 0.0f, 1.0f);
 
 			shr->combined[0] *= obcol[0];
