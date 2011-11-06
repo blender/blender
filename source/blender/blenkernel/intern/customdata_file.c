@@ -273,7 +273,7 @@ static int cdf_write_header(CDataFile *cdf)
 	return 1;
 }
 
-int cdf_read_open(CDataFile *cdf, char *filename)
+int cdf_read_open(CDataFile *cdf, const char *filename)
 {
 	FILE *f;
 
@@ -341,7 +341,7 @@ void cdf_read_close(CDataFile *cdf)
 	}
 }
 
-int cdf_write_open(CDataFile *cdf, char *filename)
+int cdf_write_open(CDataFile *cdf, const char *filename)
 {
 	CDataFileHeader *header;
 	CDataFileImageHeader *image;
@@ -405,14 +405,14 @@ void cdf_write_close(CDataFile *cdf)
 	}
 }
 
-void cdf_remove(char *filename)
+void cdf_remove(const char *filename)
 {
 	BLI_delete(filename, 0, 0);
 }
 
 /********************************** Layers ***********************************/
 
-CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, char *name)
+CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name)
 {
 	CDataFileLayer *layer;
 	int a;
@@ -427,7 +427,7 @@ CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, char *name)
 	return NULL;
 }
 
-CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, char *name, size_t datasize)
+CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t datasize)
 {
 	CDataFileLayer *newlayer, *layer;
 

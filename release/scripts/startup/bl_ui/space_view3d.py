@@ -2068,7 +2068,22 @@ class VIEW3D_PT_view3d_properties(Panel):
         subcol.label(text="Local Camera:")
         subcol.prop(view, "camera", text="")
 
-        layout.column().prop(view, "cursor_location")
+
+class VIEW3D_PT_view3d_cursor(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "3D Cursor"
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        layout.column().prop(view, "cursor_location", text="Location")
 
 
 class VIEW3D_PT_view3d_name(Panel):

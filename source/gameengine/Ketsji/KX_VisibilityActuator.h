@@ -37,7 +37,7 @@
 
 class KX_VisibilityActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	/** Make visible? */
 	bool m_visible;

@@ -26,8 +26,8 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Matrix.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Matrix.h
+ *  \ingroup pymathutils
  */
 
 

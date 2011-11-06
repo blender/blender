@@ -41,7 +41,7 @@
 
 class KX_ParentActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	
 	/** Mode */
 	int m_mode;

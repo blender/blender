@@ -54,6 +54,7 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_blender.h"
+#include "BKE_screen.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -1246,24 +1247,6 @@ static int thread_break(void *UNUSED(arg))
 	return G.afbreek;
 }
 
-static ScrArea *biggest_image_area(bScreen *screen)
-{
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			size= sa->winx*sa->winy;
-			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
-				maxsize= size;
-				big= sa;
-			}
-		}
-	}
-	return big;
-}
-
-
 typedef struct BakeRender {
 	Render *re;
 	Main *main;
@@ -1314,7 +1297,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	bkr->sa= biggest_image_area(CTX_wm_screen(C)); /* can be NULL */
+	bkr->sa= BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_IMAGE, 10); /* can be NULL */
 	bkr->main= CTX_data_main(C);
 	bkr->scene= scene;
 	bkr->actob= (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL;

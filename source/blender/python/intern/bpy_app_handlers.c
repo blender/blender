@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_app_handlers.c
  *  \ingroup pythonintern
+ *
+ * This file defines a 'PyStructSequence' accessed via 'bpy.app.handlers',
+ * which exposes various lists that the script author can add callback
+ * functions into (called via blenders generic BLI_cb api)
  */
 
 #include <Python.h>
@@ -38,21 +42,21 @@ void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
 static PyTypeObject BlenderAppCbType;
 
 static PyStructSequence_Field app_cb_info_fields[]= {
-	{(char *)"frame_change_pre", NULL},
-	{(char *)"frame_change_post", NULL},
-	{(char *)"render_pre", NULL},
-	{(char *)"render_post", NULL},
-	{(char *)"render_stats", NULL},
-	{(char *)"load_pre", NULL},
-	{(char *)"load_post", NULL},
-	{(char *)"save_pre", NULL},
-	{(char *)"save_post", NULL},
-	{(char *)"scene_update_pre", NULL},
-	{(char *)"scene_update_post", NULL},
+	{(char *)"frame_change_pre",  (char *)"Callback list - on frame change for playback and rendering (before)"},
+	{(char *)"frame_change_post", (char *)"Callback list - on frame change for playback and rendering (after)"},
+	{(char *)"render_pre",        (char *)"Callback list - on render (before)"},
+	{(char *)"render_post",       (char *)"Callback list - on render (after)"},
+	{(char *)"render_stats",      (char *)"Callback list - on printing render statistics"},
+	{(char *)"load_pre",          (char *)"Callback list - on loading a new blend file (before)"},
+	{(char *)"load_post",         (char *)"Callback list - on loading a new blend file (after)"},
+	{(char *)"save_pre",          (char *)"Callback list - on saving a blend file (before)"},
+	{(char *)"save_post",         (char *)"Callback list - on saving a blend file (after)"},
+	{(char *)"scene_update_pre",  (char *)"Callback list - on updating the scenes data (before)"},
+	{(char *)"scene_update_post", (char *)"Callback list - on updating the scenes data (after)"},
 
 	/* sets the permanent tag */
 #   define APP_CB_OTHER_FIELDS 1
-	{(char *)"persistent", NULL},
+	{(char *)"persistent",        (char *)"Function decorator for callback functions not to be removed when loading new files"},
 
 	{NULL}
 };

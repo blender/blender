@@ -22,8 +22,9 @@
 
 /** \file blender/python/generic/blf_py_api.c
  *  \ingroup pygen
+ *
+ * This file defines the 'bgl' module, used for drawing text in OpenGL.
  */
-
 
 #include <Python.h>
 #include "blf_py_api.h"

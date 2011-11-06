@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_intern_string.c
  *  \ingroup pythonintern
+ *
+ * Store python versions of strings frequently used for python lookups
+ * to avoid converting, creating the hash and freeing every time as
+ * PyDict_GetItemString and PyObject_GetAttrString do.
  */
 
 #include <Python.h>

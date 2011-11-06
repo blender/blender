@@ -41,7 +41,7 @@
 class KX_RadarSensor : public KX_NearSensor
 {
  protected:
-	Py_Header;
+	Py_Header
 		
 	float		m_coneradius;
 

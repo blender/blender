@@ -80,7 +80,7 @@ typedef struct {
 
 struct PBVHNode {
 	/* Opaque handle for drawing code */
-	void *draw_buffers;
+	GPU_Buffers *draw_buffers;
 
 	/* Voxel bounds */
 	BB vb;

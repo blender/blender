@@ -31,7 +31,7 @@
  *  \ingroup DNA
  */
 
-// XXX, temp feature
+// XXX, temp feature - campbell
 #define DURIAN_CAMERA_SWITCH
 
 #ifdef __cplusplus

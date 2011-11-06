@@ -39,7 +39,7 @@
 
 class SCA_MouseSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	
 	/**
 	 * Use SCA_IInputDevice values to encode the mouse mode for now.

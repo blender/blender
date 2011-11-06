@@ -22,6 +22,11 @@
 
 /** \file blender/python/intern/bpy_operator_wrap.c
  *  \ingroup pythonintern
+ *
+ * This file is so python can define operators that C can call into.
+ * The generic callback functions for python operators are defines in
+ * 'rna_wm.c', some calling into functions here to do python specific
+ * functionality.
  */
 
 

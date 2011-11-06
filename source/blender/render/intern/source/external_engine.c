@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/render/intern/pipeline/engine.c
+/** \file blender/render/intern/source/external_engine.c
  *  \ingroup render
  */
 

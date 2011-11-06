@@ -37,7 +37,7 @@
 
 class	KX_PhysicsObjectWrapper : public PyObjectPlus
 {
-	Py_Header;
+	Py_Header
 public:
 	KX_PhysicsObjectWrapper(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_PhysicsObjectWrapper();

@@ -911,20 +911,6 @@ short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
-
-#if 0
-	/* apply special time tweaking */
-		// XXX check on this stuff...
-	if (GS(id->name) == ID_OB) {
-		//Object *ob= (Object *)id;
-		
-		/* ancient time-offset cruft */
-		//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
-		//	/* actually frametofloat calc again! */
-		//	cfra-= give_timeoffset(ob)*scene->r.framelen;
-		//}
-	}
-#endif
 	
 	/* key entire array convenience method */
 	if (array_index == -1) { 
@@ -1017,20 +1003,6 @@ short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char gro
 			return 0;
 		}
 	}
-	
-#if 0
-	/* apply special time tweaking */
-		// XXX check on this stuff...
-	if (GS(id->name) == ID_OB) {
-		//Object *ob= (Object *)id;
-		
-		/* ancient time-offset cruft */
-		//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
-		//	/* actually frametofloat calc again! */
-		//	cfra-= give_timeoffset(ob)*scene->r.framelen;
-		//}
-	}
-#endif
 	
 	/* key entire array convenience method */
 	if (array_index == -1) { 

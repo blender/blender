@@ -84,9 +84,6 @@
  * This can be cleaned when I make some new 'mode' icons.
  */
 
-#define TEST_EDITMESH	if(obedit==0) return; \
-						if( (v3d->lay & obedit->lay)==0 ) return;
-
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
 #define VIEW3D_HANDLER_PROPERTIES	2
@@ -555,12 +552,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	if(obedit==NULL && v3d->localvd==NULL) {
 		unsigned int ob_lay = ob ? ob->lay : 0;
-		
+
 		/* Layers */
-		if (v3d->scenelock)
-			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "layers_used", ob_lay);
-		else
-			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "layers_used", ob_lay);
+		uiTemplateLayers(layout, v3d->scenelock ? &sceneptr : &v3dptr, "layers", &v3dptr, "layers_used", ob_lay);
 
 		/* Scene lock */
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

@@ -22,6 +22,9 @@
 
 /** \file blender/python/intern/bpy_rna_callback.c
  *  \ingroup pythonintern
+ *
+ * This file currently exposes callbacks for interface regions but may be
+ * extended later.
  */
 
 

@@ -2523,7 +2523,7 @@ void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob
 }
 
 
-EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
+EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
 	EditBone *eBone = MEM_mallocN(sizeof(EditBone), "addup_editbone");
 	
@@ -2567,7 +2567,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	return eBone;
 }
 
-EditBone *duplicateEditBone(EditBone *curBone, char *name, ListBase *editbones, Object *ob)
+EditBone *duplicateEditBone(EditBone *curBone, const char *name, ListBase *editbones, Object *ob)
 {
 	return duplicateEditBoneObjects(curBone, name, editbones, ob, ob);
 }
@@ -5319,7 +5319,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 /* called by UI for renaming a bone */
 /* warning: make sure the original bone was not renamed yet! */
 /* seems messy, but thats what you get with not using pointers but channel names :) */
-void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
+void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *newnamep)
 {
 	Object *ob;
 	char newname[MAXBONENAME];

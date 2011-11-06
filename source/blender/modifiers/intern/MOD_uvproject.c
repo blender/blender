@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -159,7 +160,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	float scax= umd->scalex ? umd->scalex : 1.0f;
 	float scay= umd->scaley ? umd->scaley : 1.0f;
 	int free_uci= 0;
-	
+
 	aspect = aspx / aspy;
 
 	for(i = 0; i < umd->num_projectors; ++i)
@@ -194,16 +195,28 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				free_uci= 1;
 			}
 			else {
-				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * 32.0f / cam->lens : cam->ortho_scale;
+				float sensor= (cam->sensor_fit == CAMERA_SENSOR_FIT_VERT) ? (cam->sensor_y) : cam->sensor_x;
+				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * sensor / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
-				if(aspect > 1.0f) {
+				if(cam->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
+					if(aspect > 1.0f) {
+						xmax = 0.5f * scale;
+						ymax = xmax / aspect;
+					} else {
+						ymax = 0.5f * scale;
+						xmax = ymax * aspect;
+					}
+				}
+				else if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 					xmax = 0.5f * scale;
 					ymax = xmax / aspect;
-				} else {
+				}
+				else {
 					ymax = 0.5f * scale;
 					xmax = ymax * aspect;
 				}
+
 				xmin = -xmax;
 				ymin = -ymax;
 

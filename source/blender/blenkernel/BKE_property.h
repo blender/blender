@@ -44,11 +44,10 @@ struct bProperty *new_property(int type);
 void unique_property(struct bProperty *first, struct  bProperty *prop, int force);
 struct bProperty *get_ob_property(struct Object *ob, const char *name);
 void set_ob_property(struct Object *ob, struct bProperty *propc);
-int compare_property(struct bProperty *prop, char *str);
-void set_property(struct bProperty *prop, char *str);
-void add_property(struct bProperty *prop, char *str);
+int compare_property(struct bProperty *prop, const char *str);
+void set_property(struct bProperty *prop, const char *str);
+void add_property(struct bProperty *prop, const char *str);
 void set_property_valstr(struct bProperty *prop, char *str);
 void cp_property(struct bProperty *prop1, struct bProperty *prop2);
 	
 #endif
-

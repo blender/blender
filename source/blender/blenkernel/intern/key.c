@@ -60,6 +60,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"
+#include "BKE_scene.h"
 
 
 #include "RNA_access.h"
@@ -1120,7 +1121,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(scene, NULL, cfra, 0.0); // xxx  ugly cruft!
+			ctime= BKE_curframe(scene);
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1154,7 +1155,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f); // xxx old cruft
+			ctime= BKE_curframe(scene);
 			
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
@@ -1252,7 +1253,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 			while (a < estep) {
 				if (remain <= 0) {
 					cfra+= delta;
-					ctime= bsystem_time(scene, NULL, cfra, 0.0f); // XXX old cruft
+					ctime= BKE_curframe(scene);
 
 					ctime /= 100.0f;
 					CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
@@ -1279,7 +1280,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 	}
 	else {
 		
-		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
+		ctime= BKE_curframe(scene);
 		
 		if(key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, cu->key, actkb, ctime, out, tot);
@@ -1315,7 +1316,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(scene, NULL, cfra, 0.0); // XXX old cruft
+			ctime= BKE_curframe(scene);
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1346,7 +1347,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 			}
 		}
 		else {
-			ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
+			ctime= BKE_curframe(scene);
 
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(key->ipo, KEY_SPEED, &ctime)==0) {
@@ -1511,7 +1512,7 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 		kb->pos= curpos + 0.1f;
 	else {
 #if 0 // XXX old animation system
-		curpos= bsystem_time(scene, 0, (float)CFRA, 0.0);
+		curpos= BKE_curframe(scene);
 		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
 			curpos /= 100.0;
 		}

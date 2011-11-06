@@ -766,7 +766,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 {
 	uiBut *but;
 
-	unsigned int meny_key_mask= 0;
+	unsigned int menu_key_mask= 0;
 	unsigned char menu_key;
 	const char *str_pt;
 	int pass;
@@ -788,8 +788,8 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 				if(but->str) {
 					for(str_pt= but->str; *str_pt; ) {
 						menu_key= tolower(*str_pt);
-						if((menu_key >= 'a' && menu_key <= 'z') && !(meny_key_mask & 1<<(menu_key-'a'))) {
-							meny_key_mask |= 1<<(menu_key-'a');
+						if((menu_key >= 'a' && menu_key <= 'z') && !(menu_key_mask & 1<<(menu_key-'a'))) {
+							menu_key_mask |= 1<<(menu_key-'a');
 							break;
 						}
 
@@ -816,7 +816,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 					}
 
 					/* if all keys have been used just exit, unlikely */
-					if(meny_key_mask == (1<<26)-1) {
+					if(menu_key_mask == (1<<26)-1) {
 						return;
 					}
 				}
@@ -2569,10 +2569,12 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	if(block->curlayout)
 		ui_layout_add_but(block->curlayout, but);
 
+#ifdef WITH_PYTHON
 	/* if the 'UI_OT_editsource' is running, extract the source info from the button  */
 	if (UI_editsource_enable_check()) {
 		UI_editsource_active_but_test(but);
 	}
+#endif
 
 	return but;
 }

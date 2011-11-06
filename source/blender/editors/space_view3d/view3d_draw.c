@@ -51,6 +51,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
@@ -921,17 +922,34 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
 }
 
-void view3d_viewborder_size_get(Scene *scene, ARegion *ar, float size_r[2])
+void view3d_viewborder_size_get(Scene *scene, Object *camob, ARegion *ar, float size_r[2])
 {
-	float winmax= MAX2(ar->winx, ar->winy);
 	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-	
-	if(aspect > 1.0f) {
-		size_r[0]= winmax;
-		size_r[1]= winmax/aspect;
-	} else {
-		size_r[0]= winmax*aspect;
-		size_r[1]= winmax;
+	short sensor_fit= CAMERA_SENSOR_FIT_AUTO;
+
+	if(camob && camob->type==OB_CAMERA) {
+		Camera *cam= (Camera *)camob->data;
+		sensor_fit= cam->sensor_fit;
+	}
+
+	if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
+		float winmax= MAX2(ar->winx, ar->winy);
+
+		if(aspect > 1.0f) {
+			size_r[0]= winmax;
+			size_r[1]= winmax/aspect;
+		} else {
+			size_r[0]= winmax*aspect;
+			size_r[1]= winmax;
+		}
+	}
+	else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
+		size_r[0]= ar->winx;
+		size_r[1]= ar->winx/aspect;
+	}
+	else {
+		size_r[0]= ar->winy*aspect;
+		size_r[1]= ar->winy;
 	}
 }
 
@@ -941,7 +959,7 @@ void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, Region
 	float size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
-	view3d_viewborder_size_get(scene, ar, size);
+	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
 
 	size[0]= size[0]*zoomfac;
 	size[1]= size[1]*zoomfac;
@@ -1207,6 +1225,21 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			uiSetRoundBox(UI_CNR_ALL);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+		}
+		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
+			/* assume fixed sensor width for now */
+
+			/* float sensor_aspect = ca->sensor_x / ca->sensor_y; */ /* UNUSED */
+			float sensor_scale = (x2i-x1i) / ca->sensor_x;
+			float sensor_height = sensor_scale * ca->sensor_y;
+
+			float ymid = y1i + (y2i-y1i)/2.f;
+			float sy1= ymid - sensor_height/2.f;
+			float sy2= ymid + sensor_height/2.f;
+
+			UI_ThemeColorShade(TH_WIRE, 100);
+
+			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0f);
 		}
 	}
 
@@ -2396,10 +2429,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	/* render 3d view */
 	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 		float winmat[4][4];
-		float _clipsta, _clipend, _lens, _yco, _dx, _dy;
+		float _clipsta, _clipend, _lens, _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
 
-		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens,
+			&_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
 	}
@@ -2454,9 +2489,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 
 	{
-		float _yco, _dx, _dy;
+		float _yco, _dx, _dy, _sensor_x= DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
+		short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 		rctf _viewplane;
-		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_yco, &_dx, &_dy);
+		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_sensor_x, &_sensor_y, &_sensor_fit, &_yco, &_dx, &_dy);
 	}
 
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);

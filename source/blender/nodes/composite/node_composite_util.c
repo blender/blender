@@ -1358,24 +1358,24 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 	tsM[7] = sc*(cf[1]*cf[2] + cf[3]*cf[2]*cf[2] - cf[1]*cf[3]*cf[3] - cf[3]*cf[3]*cf[3] - cf[3]*cf[2] + cf[3]);
 	tsM[8] = sc*(cf[3]*(cf[1] + cf[3]*cf[2]));
 
-#define YVV(L)\
-{\
-	W[0] = cf[0]*X[0] + cf[1]*X[0] + cf[2]*X[0] + cf[3]*X[0];\
-	W[1] = cf[0]*X[1] + cf[1]*W[0] + cf[2]*X[0] + cf[3]*X[0];\
-	W[2] = cf[0]*X[2] + cf[1]*W[1] + cf[2]*W[0] + cf[3]*X[0];\
-	for (i=3; i<L; i++)\
-		W[i] = cf[0]*X[i] + cf[1]*W[i-1] + cf[2]*W[i-2] + cf[3]*W[i-3];\
-	tsu[0] = W[L-1] - X[L-1];\
-	tsu[1] = W[L-2] - X[L-1];\
-	tsu[2] = W[L-3] - X[L-1];\
-	tsv[0] = tsM[0]*tsu[0] + tsM[1]*tsu[1] + tsM[2]*tsu[2] + X[L-1];\
-	tsv[1] = tsM[3]*tsu[0] + tsM[4]*tsu[1] + tsM[5]*tsu[2] + X[L-1];\
-	tsv[2] = tsM[6]*tsu[0] + tsM[7]*tsu[1] + tsM[8]*tsu[2] + X[L-1];\
-	Y[L-1] = cf[0]*W[L-1] + cf[1]*tsv[0] + cf[2]*tsv[1] + cf[3]*tsv[2];\
-	Y[L-2] = cf[0]*W[L-2] + cf[1]*Y[L-1] + cf[2]*tsv[0] + cf[3]*tsv[1];\
-	Y[L-3] = cf[0]*W[L-3] + cf[1]*Y[L-2] + cf[2]*Y[L-1] + cf[3]*tsv[0];\
-	for (i=L-4; i>=0; i--)\
-		Y[i] = cf[0]*W[i] + cf[1]*Y[i+1] + cf[2]*Y[i+2] + cf[3]*Y[i+3];\
+#define YVV(L)                                                                \
+{                                                                             \
+	W[0] = cf[0]*X[0] + cf[1]*X[0] + cf[2]*X[0] + cf[3]*X[0];                 \
+	W[1] = cf[0]*X[1] + cf[1]*W[0] + cf[2]*X[0] + cf[3]*X[0];                 \
+	W[2] = cf[0]*X[2] + cf[1]*W[1] + cf[2]*W[0] + cf[3]*X[0];                 \
+	for (i=3; i<L; i++)                                                       \
+		W[i] = cf[0]*X[i] + cf[1]*W[i-1] + cf[2]*W[i-2] + cf[3]*W[i-3];       \
+	tsu[0] = W[L-1] - X[L-1];                                                 \
+	tsu[1] = W[L-2] - X[L-1];                                                 \
+	tsu[2] = W[L-3] - X[L-1];                                                 \
+	tsv[0] = tsM[0]*tsu[0] + tsM[1]*tsu[1] + tsM[2]*tsu[2] + X[L-1];          \
+	tsv[1] = tsM[3]*tsu[0] + tsM[4]*tsu[1] + tsM[5]*tsu[2] + X[L-1];          \
+	tsv[2] = tsM[6]*tsu[0] + tsM[7]*tsu[1] + tsM[8]*tsu[2] + X[L-1];          \
+	Y[L-1] = cf[0]*W[L-1] + cf[1]*tsv[0] + cf[2]*tsv[1] + cf[3]*tsv[2];       \
+	Y[L-2] = cf[0]*W[L-2] + cf[1]*Y[L-1] + cf[2]*tsv[0] + cf[3]*tsv[1];       \
+	Y[L-3] = cf[0]*W[L-3] + cf[1]*Y[L-2] + cf[2]*Y[L-1] + cf[3]*tsv[0];       \
+	for (i=L-4; i>=0; i--)                                                    \
+		Y[i] = cf[0]*W[i] + cf[1]*Y[i+1] + cf[2]*Y[i+2] + cf[3]*Y[i+3];       \
 }
 
 	// intermediate buffers

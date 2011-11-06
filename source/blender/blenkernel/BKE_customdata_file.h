@@ -40,22 +40,22 @@ void cdf_free(CDataFile *cdf);
 
 /* File read/write/remove */
 
-int cdf_read_open(CDataFile *cdf, char *filename);
+int cdf_read_open(CDataFile *cdf, const char *filename);
 int cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay);
 int cdf_read_data(CDataFile *cdf, unsigned int size, void *data);
 void cdf_read_close(CDataFile *cdf);
 
-int cdf_write_open(CDataFile *cdf, char *filename);
+int cdf_write_open(CDataFile *cdf, const char *filename);
 int cdf_write_layer(CDataFile *cdf, CDataFileLayer *blay);
 int cdf_write_data(CDataFile *cdf, unsigned int size, void *data);
 void cdf_write_close(CDataFile *cdf);
 
-void cdf_remove(char *filename);
+void cdf_remove(const char *filename);
 
 /* Layers */
 
-CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, char *name);
-CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, char *name, size_t datasize);
+CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name);
+CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t datasize);
 
 #endif /* BKE_CUSTOMDATA_FILE_H */
 

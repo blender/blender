@@ -666,7 +666,7 @@ struct direntry * filelist_file(struct FileList* filelist, int index)
 	return &filelist->filelist[fidx];
 }
 
-int filelist_find(struct FileList* filelist, char *file)
+int filelist_find(struct FileList* filelist, const char *filename)
 {
 	int index = -1;
 	int i;
@@ -677,7 +677,7 @@ int filelist_find(struct FileList* filelist, char *file)
 
 	
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if ( strcmp(filelist->filelist[i].relname, file) == 0) { /* not dealing with user input so dont need BLI_path_cmp */
+		if ( strcmp(filelist->filelist[i].relname, filename) == 0) { /* not dealing with user input so dont need BLI_path_cmp */
 			index = i;
 			break;
 		}

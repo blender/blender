@@ -4605,6 +4605,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 					marker->camera= newlibadr(fd, sce->id.lib, marker->camera);
 				}
 			}
+#else
+			(void)marker;
 #endif
 
 			if(sce->ed)
@@ -7219,7 +7221,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(ob) {
 			if(ob->transflag & 1) {
 				ob->transflag -= 1;
-				ob->ipoflag |= OB_OFFS_OB;
+				//ob->ipoflag |= OB_OFFS_OB;
 			}
 			ob= ob->id.next;
 		}
@@ -7250,7 +7252,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		ob= main->object.first;
 		while(ob) {
-			ob->ipoflag |= OB_OFFS_PARENT;
+			//ob->ipoflag |= OB_OFFS_PARENT;
 			if(ob->dt==0) ob->dt= OB_SOLID;
 			ob= ob->id.next;
 		}
@@ -7495,9 +7497,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 200) {
 		Object *ob= main->object.first;
 		while(ob) {
-			ob->scaflag = ob->gameflag & (64+128+256+512+1024+2048);
+			ob->scaflag = ob->gameflag & (OB_DO_FH|OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 				/* 64 is do_fh */
-			ob->gameflag &= ~(128+256+512+1024+2048);
+			ob->gameflag &= ~(OB_ROT_FH|OB_ANISOTROPIC_FRICTION|OB_GHOST|OB_RIGID_BODY|OB_BOUNDS);
 			ob = ob->id.next;
 		}
 	}
@@ -8311,7 +8313,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 233) {
 		bScreen *sc;
 		Material *ma= main->mat.first;
-		Object *ob= main->object.first;
+		/* Object *ob= main->object.first; */
 		
 		while(ma) {
 			if(ma->rampfac_col==0.0f) ma->rampfac_col= 1.0;
@@ -8321,11 +8323,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		/* this should have been done loooong before! */
+#if 0   /* deprecated in 2.5+ */
 		while(ob) {
 			if(ob->ipowin==0) ob->ipowin= ID_OB;
 			ob= ob->id.next;
 		}
-		
+#endif
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -12187,8 +12190,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	}
 
-	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 260){
 		{
 			/* set default alpha value of Image outputs in image and render layer nodes to 0 */
 			Scene *sce;
@@ -12221,6 +12223,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+	}
+
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 1)){
+		Object *ob;
+
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			ob->collision_boundtype= ob->boundtype;
+		}
+
+		{
+			Camera *cam;
+			for(cam= main->camera.first; cam; cam= cam->id.next) {
+				if (cam->sensor_x < 0.01)
+					cam->sensor_x = DEFAULT_SENSOR_WIDTH;
+
+				if (cam->sensor_y < 0.01)
+					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
+			}
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

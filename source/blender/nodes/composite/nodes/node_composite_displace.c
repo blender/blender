@@ -36,7 +36,7 @@
 /* **************** Displace  ******************** */
 
 static bNodeSocketTemplate cmp_node_displace_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_VECTOR, 1, "Vector",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_TRANSLATION},
 	{	SOCK_FLOAT, 1, "X Scale",				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, "Y Scale",				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_FACTOR},

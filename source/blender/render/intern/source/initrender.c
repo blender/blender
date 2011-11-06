@@ -53,6 +53,7 @@
 #include "DNA_scene_types.h"
 
 
+#include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -458,7 +459,7 @@ void RE_SetCamera(Render *re, Object *camera)
 
 	object_camera_matrix(&re->r, camera, re->winx, re->winy, re->flag & R_SEC_FIELD,
 			re->winmat, &re->viewplane, &re->clipsta, &re->clipend,
-			&re->lens, &re->ycor, &re->viewdx, &re->viewdy);
+			&re->lens, &re->sensor_x, &re->sensor_y, &re->sensor_fit, &re->ycor, &re->viewdx, &re->viewdy);
 }
 
 void RE_SetPixelSize(Render *re, float pixsize)

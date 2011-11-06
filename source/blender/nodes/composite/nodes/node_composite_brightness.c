@@ -37,7 +37,7 @@
 /* **************** Brigh and contrsast  ******************** */
 
 static bNodeSocketTemplate cmp_node_brightcontrast_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Bright",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, "Contrast",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{	-1, 0, ""	}

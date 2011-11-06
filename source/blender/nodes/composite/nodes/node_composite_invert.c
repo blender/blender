@@ -34,7 +34,7 @@
 /* **************** INVERT ******************** */
 static bNodeSocketTemplate cmp_node_invert_in[]= { 
 	{ SOCK_FLOAT, 1, "Fac", 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR}, 
-	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f}, 
+	{ SOCK_RGBA, 1, "Color", 1.0f, 1.0f, 1.0f, 1.0f}, 
 	{ -1, 0, "" } 
 };
 

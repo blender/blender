@@ -36,7 +36,7 @@
 
 class SCA_PropertyActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	
 	enum KX_ACT_PROP_MODE {
 		KX_ACT_PROP_NODEF = 0,

@@ -44,7 +44,7 @@
  */
 class KX_StateActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	/** Make visible? */
 	enum {

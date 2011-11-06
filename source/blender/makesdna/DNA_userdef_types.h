@@ -440,10 +440,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_TOOLTIPS_PYTHON    (1 << 26)
 
 /* helper macro for checking frame clamping */
-#define FRAMENUMBER_MIN_CLAMP(cfra) \
-	{ \
-		if ((U.flag & USER_NONEGFRAMES) && (cfra < 0)) \
-			cfra = 0; \
+#define FRAMENUMBER_MIN_CLAMP(cfra)                                           \
+	{                                                                         \
+		if ((U.flag & USER_NONEGFRAMES) && (cfra < 0))                        \
+			cfra = 0;                                                         \
 	}
 
 /* viewzom */

@@ -2812,12 +2812,7 @@ void CURVE_OT_select_inverse(wmOperatorType *ot)
 /** Divide the line segments associated with the currently selected
  * curve nodes (Bezier or NURB). If there are no valid segment
  * selections within the current selection, nothing happens.
- *
- * @deffunc subdividenurb subdivideNurb(void)
- * @return Nothing
- * @param  None
-*/
-
+ */
 static void subdividenurb(Object *obedit, int number_cuts)
 {
 	Curve *cu= obedit->data;

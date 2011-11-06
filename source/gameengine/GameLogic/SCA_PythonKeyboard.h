@@ -31,7 +31,7 @@
 
 class SCA_PythonKeyboard : public PyObjectPlus
 {
-	Py_Header;
+	Py_Header
 private:
 	class SCA_IInputDevice *m_keyboard;
 #ifdef WITH_PYTHON

@@ -806,6 +806,8 @@ int scene_camera_switch_update(Scene *scene)
 		scene->camera= camera;
 		return 1;
 	}
+#else
+	(void)scene;
 #endif
 	return 0;
 }
@@ -908,14 +910,23 @@ int scene_check_setscene(Main *bmain, Scene *sce)
 }
 
 /* This function is needed to cope with fractional frames - including two Blender rendering features
-* mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. */
-
-/* see also bsystem_time in object.c */
+ * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. 
+ */
 float BKE_curframe(Scene *scene)
 {
 	float ctime = scene->r.cfra;
-	ctime+= scene->r.subframe;
-	ctime*= scene->r.framelen;	
+	ctime += scene->r.subframe;
+	ctime *= scene->r.framelen;	
+
+	return ctime;
+}
+
+/* Similar to BKE_curframe(), but is used by physics sims to get "next time", which is defined as cfra+1 */
+float BKE_nextframe(Scene *scene)
+{
+	float ctime = (float)(scene->r.cfra + 1);
+	ctime += scene->r.subframe;
+	ctime *= scene->r.framelen;	
 
 	return ctime;
 }

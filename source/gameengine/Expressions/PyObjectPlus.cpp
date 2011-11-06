@@ -470,7 +470,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
-				return PyUnicode_FromString(*val);
+				return PyUnicode_From_STR_String(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_CHAR:
 			{
@@ -1042,8 +1042,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
-							*var = val;
 							var->SetLength(attrdef->m_imax);
+							memcpy(var->Ptr(), val, attrdef->m_imax - 1);
 							break;
 						}
 					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
@@ -1169,6 +1169,11 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		Py_DECREF(self->m_proxy); /* could avoid thrashing here but for now its ok */
 	}
 	return self->m_proxy;
+}
+
+PyObject *PyUnicode_From_STR_String(const STR_String& str)
+{
+	return PyUnicode_FromStringAndSize(str.ReadPtr(), str.Length());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

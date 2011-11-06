@@ -22,6 +22,8 @@
 
 /** \file blender/python/intern/bpy_rna_anim.c
  *  \ingroup pythonintern
+ *
+ * This file defines the animation related methods used in bpy_rna.c
  */
 
 #include <Python.h>

@@ -815,7 +815,7 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},
-	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine stastics"},
+	{"PrintMemInfo", (PyCFunction)pyPrintStats, METH_NOARGS, (const char *)"Print engine statistics"},
 	
 	/* library functions */
 	{"LibLoad", (PyCFunction)gLibLoad, METH_VARARGS|METH_KEYWORDS, (const char *)""},

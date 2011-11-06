@@ -449,7 +449,8 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	}
 	else {
 		/* when not in EditMode, use the 'final' derived mesh, depsgraph
-		 * ensures we build with CD_MDEFORMVERT layer */
+		 * ensures we build with CD_MDEFORMVERT layer 
+		 */
 		dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	

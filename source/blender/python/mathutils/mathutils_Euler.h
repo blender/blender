@@ -27,8 +27,8 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Euler.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Euler.h
+ *  \ingroup pymathutils
  */
 
 

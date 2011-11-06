@@ -821,7 +821,7 @@ static int operator_execute(bContext *C, wmOperator *op)
 	void *ret;
 	int result;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_execute_func; /* RNA_struct_find_function(&opr, "execute"); */
 
 	RNA_parameter_list_create(&list, &opr, func);
@@ -847,7 +847,7 @@ static int operator_check(bContext *C, wmOperator *op)
 	void *ret;
 	int result;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
 
 	RNA_parameter_list_create(&list, &opr, func);
@@ -872,7 +872,7 @@ static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	void *ret;
 	int result;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_invoke_func; /* RNA_struct_find_function(&opr, "invoke"); */
 
 	RNA_parameter_list_create(&list, &opr, func);
@@ -899,7 +899,7 @@ static int operator_modal(bContext *C, wmOperator *op, wmEvent *event)
 	void *ret;
 	int result;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_modal_func; /* RNA_struct_find_function(&opr, "modal"); */
 
 	RNA_parameter_list_create(&list, &opr, func);
@@ -923,7 +923,7 @@ static void operator_draw(bContext *C, wmOperator *op)
 	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_draw_func; /* RNA_struct_find_function(&opr, "draw"); */
 
 	RNA_parameter_list_create(&list, &opr, func);
@@ -944,7 +944,7 @@ static int operator_cancel(bContext *C, wmOperator *op)
 	void *ret;
 	int result;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	RNA_pointer_create(NULL, op->type->ext.srna, op, &opr);
 	func= &rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
 
 	RNA_parameter_list_create(&list, &opr, func);

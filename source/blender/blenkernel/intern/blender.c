@@ -664,7 +664,7 @@ int BKE_undo_valid(const char *name)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-char *BKE_undo_get_name(int nr, int *active)
+const char *BKE_undo_get_name(int nr, int *active)
 {
 	UndoElem *uel= BLI_findlink(&undobase, nr);
 	

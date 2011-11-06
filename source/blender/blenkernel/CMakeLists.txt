@@ -77,6 +77,7 @@ set(SRC
 	intern/brush.c
 	intern/bullet.c
 	intern/bvhutils.c
+	intern/camera.c
 	intern/cdderivedmesh.c
 	intern/cloth.c
 	intern/collision.c
@@ -105,6 +106,7 @@ set(SRC
 	intern/implicit.c
 	intern/ipo.c
 	intern/key.c
+	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
 	intern/material.c
@@ -163,6 +165,7 @@ set(SRC
 	BKE_brush.h
 	BKE_bullet.h
 	BKE_bvhutils.h
+	BKE_camera.h
 	BKE_cdderivedmesh.h
 	BKE_cloth.h
 	BKE_collision.h
@@ -188,6 +191,7 @@ set(SRC
 	BKE_image.h
 	BKE_ipo.h
 	BKE_key.h
+	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
 	BKE_main.h

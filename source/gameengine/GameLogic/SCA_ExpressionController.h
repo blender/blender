@@ -39,7 +39,7 @@
 
 class SCA_ExpressionController : public SCA_IController
 {
-//	Py_Header;
+//	Py_Header
 	STR_String			m_exprText;
 	CExpression*		m_exprCache;
 

@@ -2147,8 +2147,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	cache= pid->cache;
 
 	if(timescale) {
-		time= bsystem_time(scene, ob, cfra, 0.0f);
-		nexttime= bsystem_time(scene, ob, cfra+1.0f, 0.0f);
+		time= BKE_curframe(scene);
+		nexttime= BKE_nextframe(scene);
 
 		*timescale= MAX2(nexttime - time, 0.0f);
 	}
@@ -2163,7 +2163,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		 * system timing. */
 #if 0
 		if ((ob->partype & PARSLOW)==0) {
-			offset= give_timeoffset(ob);
+			offset= ob->sf;
 
 			*startframe += (int)(offset+0.5f);
 			*endframe += (int)(offset+0.5f);
@@ -2875,7 +2875,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 	BKE_ptcache_update_info(pid);
 }
 
-void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
+void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const char *name_dst)
 {
 	char old_name[80];
 	int len; /* store the length of the string */
@@ -2892,7 +2892,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 	BLI_strncpy(old_name, pid->cache->name, sizeof(old_name));
 
 	/* get "from" filename */
-	BLI_strncpy(pid->cache->name, from, sizeof(pid->cache->name));
+	BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
 
 	len = ptcache_filename(pid, old_filename, 0, 0, 0); /* no path */
 
@@ -2906,7 +2906,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 	BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 
 	/* put new name into cache */
-	BLI_strncpy(pid->cache->name, to, sizeof(pid->cache->name));
+	BLI_strncpy(pid->cache->name, name_dst, sizeof(pid->cache->name));
 
 	while ((de = readdir(dir)) != NULL) {
 		if (strstr(de->d_name, ext)) { /* do we have the right extension?*/

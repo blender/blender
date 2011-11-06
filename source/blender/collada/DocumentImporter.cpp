@@ -54,7 +54,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_camera.h"
 #include "BKE_main.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
 #include "BKE_fcurve.h"
@@ -814,7 +816,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 						double aspect = camera->getAspectRatio().getValue();
 						double xfov = aspect*yfov;
 						// xfov is in degrees, cam->lens is in millimiters
-						cam->lens = angle_to_lens(DEG2RADF(xfov));
+						cam->lens = fov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
 					}
 					break;
 			}
@@ -835,7 +837,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 						double x = camera->getXFov().getValue();
 						// x is in degrees, cam->lens is in millimiters
-						cam->lens = angle_to_lens(DEG2RADF(x));
+						cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
 					}
 					break;
 			}
@@ -852,7 +854,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 					double yfov = camera->getYFov().getValue();
 					// yfov is in degrees, cam->lens is in millimiters
-					cam->lens = angle_to_lens(DEG2RADF(yfov));
+					cam->lens = fov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
 					}
 					break;
 			}

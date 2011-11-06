@@ -234,4 +234,3 @@ def project_name_get(path, fallback="Blender", prefix="Blender_"):
             if "/branches/" in l:
                 return prefix + l.rsplit("/branches/", 1)[-1].split("/", 1)[0]
     return fallback
-

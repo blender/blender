@@ -20,6 +20,9 @@
 
 /** \file blender/python/intern/bpy_traceback.c
  *  \ingroup pythonintern
+ *
+ * This file contains utility functions for getting data from a python stack
+ * trace.
  */
 
 

@@ -77,7 +77,9 @@
 #include "BLI_bpath.h"
 
 #include "BKE_animsys.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"

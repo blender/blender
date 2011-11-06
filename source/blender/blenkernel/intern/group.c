@@ -276,8 +276,9 @@ void group_tag_recalc(Group *group)
 int group_is_animated(Object *parent, Group *group)
 {
 	GroupObject *go;
-
-	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first)
+	
+	// XXX: old animsys depreceated...
+	if(parent->nlastrips.first)
 		return 1;
 
 	for(go= group->gobject.first; go; go= go->next)
@@ -343,12 +344,11 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
 
 	/* if animated group... */
-	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
+	if(parent->nlastrips.first) {
 		int cfrao;
 		
 		/* switch to local time */
 		cfrao= scene->r.cfra;
-		scene->r.cfra -= (int)floor(give_timeoffset(parent) + 0.5f);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {

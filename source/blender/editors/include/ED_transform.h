@@ -107,10 +107,12 @@ struct Base;
 struct Scene;
 struct Object;
 
+#if 0 /* UNUSED, deprecate? */
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
+#endif
 
 int BIF_snappingSupported(struct Object *obedit);
 
@@ -132,7 +134,7 @@ struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
 const char * BIF_menustringTransformOrientation(const struct bContext *C, const char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 
-void BIF_TransformSetUndo(char *str);
+void BIF_TransformSetUndo(const char *str);
 
 void BIF_selectOrientation(void);
 

@@ -39,7 +39,7 @@
 
 class SCA_ANDController : public SCA_IController
 {
-	Py_Header;
+	Py_Header
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
 	SCA_ANDController(SCA_IObject* gameobj);
