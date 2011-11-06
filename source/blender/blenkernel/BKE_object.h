@@ -106,7 +106,7 @@ struct BoundBox *object_get_boundbox(struct Object *ob);
 void object_get_dimensions(struct Object *ob, float *value);
 void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
-void minmax_object(struct Object *ob, float *min, float *max);
+void minmax_object(struct Object *ob, float min[3], float max[3]);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);

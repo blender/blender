@@ -454,7 +454,7 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 		max[2]=MAX2(max[2],mv->co[2]);
 	}
 
-	VECSUB(delta,max,min);
+	sub_v3_v3v3(delta, max, min);
 
 	/* determine major axis */
 	axis = (delta[0]>=delta[1]) ? 0 : ((delta[1]>=delta[2]) ? 1 : 2);
@@ -1588,15 +1588,15 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 	if(part->tanfac!=0.0f){
 		//float phase=vg_rot?2.0f*(psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_rot)-0.5f):0.0f;
 		float phase=0.0f;
-		mul_v3_fl(vtan,-(float)cos((float)M_PI*(part->tanphase+phase)));
-		fac=-(float)sin((float)M_PI*(part->tanphase+phase));
-		VECADDFAC(vtan,vtan,utan,fac);
+		mul_v3_fl(vtan,-cosf((float)M_PI*(part->tanphase+phase)));
+		fac= -sinf((float)M_PI*(part->tanphase+phase));
+		madd_v3_v3fl(vtan, utan, fac);
 
 		mul_mat3_m4_v3(ob->obmat,vtan);
 
-		VECCOPY(utan,nor);
+		copy_v3_v3(utan, nor);
 		mul_v3_fl(utan,dot_v3v3(vtan,nor));
-		VECSUB(vtan,vtan,utan);
+		sub_v3_v3(vtan, utan);
 			
 		normalize_v3(vtan);
 	}
@@ -2606,7 +2606,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 		if(do_guides(sim->psys->effectors, &tkey, p, time)) {
 			VECCOPY(pa->state.co,tkey.co);
 			/* guides don't produce valid velocity */
-			VECSUB(pa->state.vel,tkey.co,pa->prev_state.co);
+			sub_v3_v3v3(pa->state.vel, tkey.co, pa->prev_state.co);
 			mul_v3_fl(pa->state.vel,1.0f/dtime);
 			pa->state.time=tkey.time;
 		}
@@ -3471,7 +3471,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 			/* create fake root before actual root to resist bending */
 			if(k==0) {
 				float temp[3];
-				VECSUB(temp, key->co, (key+1)->co);
+				sub_v3_v3v3(temp, key->co, (key+1)->co);
 				VECCOPY(mvert->co, key->co);
 				VECADD(mvert->co, mvert->co, temp);
 				mul_m4_v3(hairmat, mvert->co);
@@ -3589,7 +3589,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra)){
 		mul_m4_v3(ob->imat, key->co);
 
 		if(pa->totkey) {
-			VECSUB(key->co, key->co, root->co);
+			sub_v3_v3(key->co, root->co);
 			psys_vec_rot_to_face(sim->psmd->dm, pa, key->co);
 		}
 

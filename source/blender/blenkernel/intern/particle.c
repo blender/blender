@@ -619,13 +619,13 @@ static float psys_render_viewport_falloff(double rate, float dist, float width)
 	return pow(rate, dist/width);
 }
 
-static float psys_render_projected_area(ParticleSystem *psys, float *center, float area, double vprate, float *viewport)
+static float psys_render_projected_area(ParticleSystem *psys, const float center[3], float area, double vprate, float *viewport)
 {
 	ParticleRenderData *data= psys->renderdata;
 	float co[4], view[3], ortho1[3], ortho2[3], w, dx, dy, radius;
 	
 	/* transform to view space */
-	VECCOPY(co, center);
+	copy_v3_v3(co, center);
 	co[3]= 1.0f;
 	mul_m4_v4(data->viewmat, co);
 	
@@ -829,17 +829,17 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 		b= (origindex)? origindex[a]: a;
 
 		if(b != -1) {
-			VECCOPY(co1, mvert[mf->v1].co);
-			VECCOPY(co2, mvert[mf->v2].co);
-			VECCOPY(co3, mvert[mf->v3].co);
+			copy_v3_v3(co1, mvert[mf->v1].co);
+			copy_v3_v3(co2, mvert[mf->v2].co);
+			copy_v3_v3(co3, mvert[mf->v3].co);
 
-			VECADD(facecenter[b], facecenter[b], co1);
-			VECADD(facecenter[b], facecenter[b], co2);
-			VECADD(facecenter[b], facecenter[b], co3);
+			add_v3_v3(facecenter[b], co1);
+			add_v3_v3(facecenter[b], co2);
+			add_v3_v3(facecenter[b], co3);
 
 			if(mf->v4) {
-				VECCOPY(co4, mvert[mf->v4].co);
-				VECADD(facecenter[b], facecenter[b], co4);
+				copy_v3_v3(co4, mvert[mf->v4].co);
+				add_v3_v3(facecenter[b], co4);
 				facearea[b] += area_quad_v3(co1, co2, co3, co4);
 				facetotvert[b] += 4;
 			}
@@ -998,7 +998,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 /************************************************/
 /*			Interpolation						*/
 /************************************************/
-static float interpolate_particle_value(float v1, float v2, float v3, float v4, float *w, int four)
+static float interpolate_particle_value(float v1, float v2, float v3, float v4, const float w[4], int four)
 {
 	float value;
 
@@ -1029,12 +1029,12 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 			if(dt>0.999f){
 				key_curve_position_weights(dt-0.001f, t, type);
 				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
-				VECSUB(result->vel, result->co, temp);
+				sub_v3_v3v3(result->vel, result->co, temp);
 			}
 			else{
 				key_curve_position_weights(dt+0.001f, t, type);
 				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
-				VECSUB(result->vel, temp, result->co);
+				sub_v3_v3v3(result->vel, temp, result->co);
 			}
 		}
 	}
@@ -1180,21 +1180,21 @@ static void init_particle_interpolation(Object *ob, ParticleSystem *psys, Partic
 }
 static void edit_to_particle(ParticleKey *key, PTCacheEditKey *ekey)
 {
-	VECCOPY(key->co, ekey->co);
+	copy_v3_v3(key->co, ekey->co);
 	if(ekey->vel) {
-		VECCOPY(key->vel, ekey->vel);
+		copy_v3_v3(key->vel, ekey->vel);
 	}
 	key->time = *(ekey->time);
 }
 static void hair_to_particle(ParticleKey *key, HairKey *hkey)
 {
-	VECCOPY(key->co, hkey->co);
+	copy_v3_v3(key->co, hkey->co);
 	key->time = hkey->time;
 }
 
 static void mvert_to_particle(ParticleKey *key, MVert *mvert, HairKey *hkey)
 {
-	VECCOPY(key->co, mvert->co);
+	copy_v3_v3(key->co, mvert->co);
 	key->time = hkey->time;
 }
 
@@ -1473,13 +1473,13 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 			}
 		}
 		else {
-			VECCOPY(orco, vec);
+			copy_v3_v3(orco, vec);
 			if(ornor && nor)
-				VECCOPY(ornor, nor);
+				copy_v3_v3(ornor, nor);
 		}
 	}
 }
-void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco)
+void psys_interpolate_uvs(const MTFace *tface, int quad, const float w[4], float uvco[2])
 {
 	float v10= tface->uv[0][0];
 	float v11= tface->uv[0][1];
@@ -1502,7 +1502,7 @@ void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco)
 	}
 }
 
-void psys_interpolate_mcol(MCol *mcol, int quad, float *w, MCol *mc)
+void psys_interpolate_mcol(const MCol *mcol, int quad, const float w[4], MCol *mc)
 {
 	char *cp, *cp1, *cp2, *cp3, *cp4;
 
@@ -1527,7 +1527,7 @@ void psys_interpolate_mcol(MCol *mcol, int quad, float *w, MCol *mc)
 	}
 }
 
-static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, float *fw, float *values)
+static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, const float fw[4], const float *values)
 {
 	if(values==0 || index==-1)
 		return 0.0;
@@ -1543,18 +1543,18 @@ static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int 
 		}
 			
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 /* conversion of pa->fw to origspace layer coordinates */
-static void psys_w_to_origspace(float *w, float *uv)
+static void psys_w_to_origspace(const float w[4], float uv[2])
 {
 	uv[0]= w[1] + w[2];
 	uv[1]= w[2] + w[3];
 }
 
 /* conversion of pa->fw to weights in face from origspace */
-static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, float *w, float *neww)
+static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4], float neww[4])
 {
 	float v[4][3], co[3];
 
@@ -1567,17 +1567,17 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, float *w, float
 	
 	if(quad) {
 		v[3][0]= osface->uv[3][0]; v[3][1]= osface->uv[3][1]; v[3][2]= 0.0f;
-		interp_weights_poly_v3( neww,v, 4, co);
+		interp_weights_poly_v3(neww, v, 4, co);
 	}
 	else {
-		interp_weights_poly_v3( neww,v, 3, co);
+		interp_weights_poly_v3(neww, v, 3, co);
 		neww[3]= 0.0f;
 	}
 }
 
 /* find the derived mesh face for a particle, set the mf passed. this is slow
  * and can be optimized but only for many lookups. returns the face index. */
-int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *fw, struct LinkNode *node)
+int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node)
 {
 	Mesh *me= (Mesh*)ob->data;
 	MFace *mface;
@@ -1644,7 +1644,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 	return DMCACHE_NOTFOUND;
 }
 
-static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float UNUSED(foffset), int *mapindex, float *mapfw)
+static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, const float fw[4], float UNUSED(foffset), int *mapindex, float mapfw[4])
 {
 	if(index < 0)
 		return 0;
@@ -1704,7 +1704,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 }
 
 /* interprets particle data to get a point on a mesh in object space */
-void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3], float orco[3], float ornor[3])
 {
 	float tmpnor[3], mapfw[4];
 	float (*orcodata)[3];
@@ -1732,7 +1732,7 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 		}
 
 		if(orco)
-			VECCOPY(orco, orcodata[mapindex])
+			copy_v3_v3(orco, orcodata[mapindex]);
 
 		if(ornor) {
 			dm->getVertNo(dm,mapindex,nor);
@@ -1759,11 +1759,11 @@ void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache
 		if(from==PART_FROM_VOLUME) {
 			psys_interpolate_face(mvert,mface,mtface,orcodata,mapfw,vec,tmpnor,utan,vtan,orco,ornor);
 			if(nor)
-				VECCOPY(nor,tmpnor);
+				copy_v3_v3(nor,tmpnor);
 
 			normalize_v3(tmpnor);
 			mul_v3_fl(tmpnor,-foffset);
-			VECADD(vec,vec,tmpnor);
+			add_v3_v3(vec, tmpnor);
 		}
 		else
 			psys_interpolate_face(mvert,mface,mtface,orcodata,mapfw,vec,nor,utan,vtan,orco,ornor);
@@ -1805,22 +1805,22 @@ static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index), float *
 	/* TODO */
 	float zerovec[3]={0.0f,0.0f,0.0f};
 	if(vec){
-		VECCOPY(vec,zerovec);
+		copy_v3_v3(vec,zerovec);
 	}
 	if(nor){
-		VECCOPY(nor,zerovec);
+		copy_v3_v3(nor,zerovec);
 	}
 	if(utan){
-		VECCOPY(utan,zerovec);
+		copy_v3_v3(utan,zerovec);
 	}
 	if(vtan){
-		VECCOPY(vtan,zerovec);
+		copy_v3_v3(vtan,zerovec);
 	}
 	if(orco){
-		VECCOPY(orco,zerovec);
+		copy_v3_v3(orco,zerovec);
 	}
 	if(ornor){
-		VECCOPY(ornor,zerovec);
+		copy_v3_v3(ornor,zerovec);
 	}
 }
 /************************************************/
@@ -1990,7 +1990,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 		}
 		else if(inp_z > 0.0f){
 			mul_v3_v3fl(state_co, z_vec, (float)sin((float)M_PI/3.f));
-			VECADDFAC(state_co,state_co,y_vec,-0.5f);
+			madd_v3_v3fl(state_co, y_vec, -0.5f);
 
 			mul_v3_fl(y_vec, -amplitude * (float)cos(t + (float)M_PI/3.f));
 			mul_v3_fl(z_vec, amplitude/2.f * (float)cos(2.f*t + (float)M_PI/6.f));
@@ -2088,7 +2088,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
 			data = eff->guide_data + p;
 
-			VECSUB(efd.vec_to_point, state.co, eff->guide_loc);
+			sub_v3_v3v3(efd.vec_to_point, state.co, eff->guide_loc);
 			copy_v3_v3(efd.nor, eff->guide_dir);
 			efd.distance = len_v3(efd.vec_to_point);
 
@@ -2142,7 +2142,7 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 
 		normalize_v3(guidedir);
 
-		VECCOPY(vec_to_point, data->vec_to_point);
+		copy_v3_v3(vec_to_point, data->vec_to_point);
 
 		if(guidetime != 0.0f) {
 			/* curve direction */
@@ -2167,16 +2167,16 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 			}
 		}
 		par.co[0] = par.co[1] = par.co[2] = 0.0f;
-		VECCOPY(key.co, vec_to_point);
+		copy_v3_v3(key.co, vec_to_point);
 		do_kink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, 0.f, pd->kink, pd->kink_axis, 0, 0);
 		do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f);
-		VECCOPY(vec_to_point, key.co);
+		copy_v3_v3(vec_to_point, key.co);
 
-		VECADD(vec_to_point, vec_to_point, guidevec);
+		add_v3_v3(vec_to_point, guidevec);
 
-		//VECSUB(pa_loc,pa_loc,pa_zero);
-		VECADDFAC(effect, effect, vec_to_point, data->strength);
-		VECADDFAC(veffect, veffect, guidedir, data->strength);
+		//sub_v3_v3v3(pa_loc,pa_loc,pa_zero);
+		madd_v3_v3fl(effect, vec_to_point, data->strength);
+		madd_v3_v3fl(veffect, guidedir, data->strength);
 		totstrength += data->strength;
 
 		if(pd->flag & PFIELD_GUIDE_PATH_WEIGHT)
@@ -2187,12 +2187,12 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 		if(totstrength > 1.0f)
 			mul_v3_fl(effect, 1.0f / totstrength);
 		CLAMP(totstrength, 0.0f, 1.0f);
-		//VECADD(effect,effect,pa_zero);
+		//add_v3_v3(effect,pa_zero);
 		interp_v3_v3v3(state->co, state->co, effect, totstrength);
 
 		normalize_v3(veffect);
 		mul_v3_fl(veffect, len_v3(state->vel));
-		VECCOPY(state->vel, veffect);
+		copy_v3_v3(state->vel, veffect);
 		return 1;
 	}
 	return 0;
@@ -2205,15 +2205,15 @@ static void do_rough(float *loc, float mat[4][4], float t, float fac, float size
 	if(thres != 0.0f)
 		if((float)fabs((float)(-1.5f+loc[0]+loc[1]+loc[2]))<1.5f*thres) return;
 
-	VECCOPY(rco,loc);
+	copy_v3_v3(rco,loc);
 	mul_v3_fl(rco,t);
 	rough[0]=-1.0f+2.0f*BLI_gTurbulence(size, rco[0], rco[1], rco[2], 2,0,2);
 	rough[1]=-1.0f+2.0f*BLI_gTurbulence(size, rco[1], rco[2], rco[0], 2,0,2);
 	rough[2]=-1.0f+2.0f*BLI_gTurbulence(size, rco[2], rco[0], rco[1], 2,0,2);
 
-	VECADDFAC(state->co,state->co,mat[0],fac*rough[0]);
-	VECADDFAC(state->co,state->co,mat[1],fac*rough[1]);
-	VECADDFAC(state->co,state->co,mat[2],fac*rough[2]);
+	madd_v3_v3fl(state->co, mat[0], fac * rough[0]);
+	madd_v3_v3fl(state->co, mat[1], fac * rough[1]);
+	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float shape, ParticleKey *state)
 {
@@ -2226,8 +2226,8 @@ static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float 
 	rough[1]=-1.0f+2.0f*rough[1];
 	mul_v2_fl(rough,roughfac);
 
-	VECADDFAC(state->co,state->co,mat[0],rough[0]);
-	VECADDFAC(state->co,state->co,mat[1],rough[1]);
+	madd_v3_v3fl(state->co, mat[0], rough[0]);
+	madd_v3_v3fl(state->co, mat[1], rough[1]);
 }
 static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheKey *ca, int k, int steps, float *UNUSED(rootco), float effector, float UNUSED(dfra), float UNUSED(cfra), float *length, float *vec)
 {
@@ -2239,9 +2239,9 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 	if(sim->psys->flag & PSYS_HAIR_DYNAMICS)
 		return;
 
-	VECCOPY(eff_key.co,(ca-1)->co);
-	VECCOPY(eff_key.vel,(ca-1)->vel);
-	QUATCOPY(eff_key.rot,(ca-1)->rot);
+	copy_v3_v3(eff_key.co,(ca-1)->co);
+	copy_v3_v3(eff_key.vel,(ca-1)->vel);
+	copy_qt_qt(eff_key.rot,(ca-1)->rot);
 
 	pd_point_from_particle(sim, sim->psys->particles+i, &eff_key, &epoint);
 	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL);
@@ -2264,7 +2264,7 @@ static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *st
 {
 	if(*cur_length + length > max_length){
 		mul_v3_fl(dvec, (max_length - *cur_length) / length);
-		VECADD(state->co, (state - 1)->co, dvec);
+		add_v3_v3v3(state->co, (state - 1)->co, dvec);
 		keys->steps = k;
 		/* something over the maximum step value */
 		return k=100000;
@@ -2364,8 +2364,9 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 		interp_v3_v3v3(vnor, nstrand, surfnor, blend);
 		normalize_v3(vnor);
 	}
-	else
-		VECCOPY(vnor, nor)
+	else {
+		copy_v3_v3(vnor, nor);
+	}
 	
 	if(ma->strand_surfnor > 0.0f) {
 		if(ma->strand_surfnor > surfdist) {
@@ -2375,7 +2376,7 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 		}
 	}
 
-	VECCOPY(nor, vnor);
+	copy_v3_v3(nor, vnor);
 }
 
 static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, int editupdate)
@@ -2716,7 +2717,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 		}
 
 		if(ctx->ma && (part->draw_col == PART_DRAW_COL_MAT)) {
-			VECCOPY(child->col, &ctx->ma->r)
+			copy_v3_v3(child->col, &ctx->ma->r);
 			get_strand_normal(ctx->ma, ornor, cur_length, child->vel);
 		}
 	}
@@ -2899,7 +2900,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	psys->lattice = psys_get_lattice(sim);
 	ma= give_current_material(sim->ob, psys->part->omat);
 	if(ma && (psys->part->draw_col == PART_DRAW_COL_MAT))
-		VECCOPY(col, &ma->r)
+		copy_v3_v3(col, &ma->r);
 
 	if((psys->flag & PSYS_GLOBAL_HAIR)==0) {
 		if((psys->part->flag & PART_CHILD_EFFECT)==0)
@@ -2933,9 +2934,9 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 
 		/* hairmat is needed for for non-hair particle too so we get proper rotations */
 		psys_mat_hair_to_global(sim->ob, psmd->dm, psys->part->from, pa, hairmat);
-		VECCOPY(rotmat[0], hairmat[2]);
-		VECCOPY(rotmat[1], hairmat[1]);
-		VECCOPY(rotmat[2], hairmat[0]);
+		copy_v3_v3(rotmat[0], hairmat[2]);
+		copy_v3_v3(rotmat[1], hairmat[1]);
+		copy_v3_v3(rotmat[2], hairmat[0]);
 
 		if(part->draw & PART_ABS_PATH_TIME) {
 			birthtime = MAX2(pind.birthtime, part->path_start);
@@ -3189,7 +3190,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			else {
 				if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
 					if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
-						VECCOPY(ca->col, sel_col);
+						copy_v3_v3(ca->col, sel_col);
 					}
 					else{
 						keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
@@ -3202,7 +3203,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 						interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
 					}
 					else{
-						VECCOPY(ca->col, nosel_col);
+						copy_v3_v3(ca->col, nosel_col);
 					}
 				}
 			}
@@ -3253,9 +3254,9 @@ void copy_particle_key(ParticleKey *to, ParticleKey *from, int time){
 	}
 }
 void psys_get_from_key(ParticleKey *key, float *loc, float *vel, float *rot, float *time){
-	if(loc) VECCOPY(loc,key->co);
-	if(vel) VECCOPY(vel,key->vel);
-	if(rot) QUATCOPY(rot,key->rot);
+	if(loc) copy_v3_v3(loc,key->co);
+	if(vel) copy_v3_v3(vel,key->vel);
+	if(rot) copy_qt_qt(rot,key->rot);
 	if(time) *time=key->time;
 }
 /*-------changing particle keys from space to another-------*/
@@ -3263,13 +3264,13 @@ void psys_get_from_key(ParticleKey *key, float *loc, float *vel, float *rot, flo
 static void key_from_object(Object *ob, ParticleKey *key){
 	float q[4];
 
-	VECADD(key->vel,key->vel,key->co);
+	add_v3_v3(key->vel, key->co);
 
 	mul_m4_v3(ob->obmat,key->co);
 	mul_m4_v3(ob->obmat,key->vel);
 	mat4_to_quat(q,ob->obmat);
 
-	VECSUB(key->vel,key->vel,key->co);
+	sub_v3_v3v3(key->vel,key->vel,key->co);
 	mul_qt_qtqt(key->rot,q,key->rot);
 }
 #endif
@@ -3330,9 +3331,9 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 	osface=dm->getFaceData(dm,i,CD_ORIGSPACE);
 	
 	if(orco && (orcodata=dm->getVertDataArray(dm, CD_ORCO))) {
-		VECCOPY(v[0], orcodata[mface->v1]);
-		VECCOPY(v[1], orcodata[mface->v2]);
-		VECCOPY(v[2], orcodata[mface->v3]);
+		copy_v3_v3(v[0], orcodata[mface->v1]);
+		copy_v3_v3(v[1], orcodata[mface->v2]);
+		copy_v3_v3(v[2], orcodata[mface->v3]);
 
 		/* ugly hack to use non-transformed orcos, since only those
 		 * give symmetric results for mirroring in particle mode */
@@ -3354,7 +3355,7 @@ void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, Pa
 
 	psys_face_mat(0, dm, pa, hairmat, 0);
 	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
-	VECCOPY(hairmat[3],vec);
+	copy_v3_v3(hairmat[3],vec);
 }
 
 void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
@@ -3367,7 +3368,7 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	/* see psys_face_mat for why this function is called */
 	if(DM_get_vert_data_layer(dm, CD_ORIGINDEX))
 		transform_mesh_orco_verts(ob->data, &orco, 1, 1);
-	VECCOPY(hairmat[3],orco);
+	copy_v3_v3(hairmat[3],orco);
 }
 
 void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)
@@ -3658,7 +3659,7 @@ void make_local_particlesettings(ParticleSettings *part)
 /*			Textures							*/
 /************************************************/
 
-static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, float *fuv, char *name, float *texco)
+static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, const float fuv[4], char *name, float *texco)
 {
 	MFace *mf;
 	MTFace *tf;
@@ -3702,7 +3703,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, fl
 #define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue) if(event & type) { if(pvalue < 0.f) pvalue = 1.f+pvalue; CLAMP(pvalue, 0.0f, 1.0f); }
 #define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue) if(event & type) { CLAMP(pvalue, -1.0f, 1.0f); }
 
-static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, float *fw, float *orco, ParticleTexture *ptex, int event, float cfra)
+static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
 {
 	MTex *mtex, **mtexp = part->mtex;
 	int m;
@@ -4071,7 +4072,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
 
 			/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
-			//VECCOPY(cpa_1st,co);
+			//copy_v3_v3(cpa_1st,co);
 
 			//mul_m4_v3(ob->obmat,cpa_1st);
 
@@ -4142,7 +4143,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				w++;
 			}
 			/* apply offset for correct positioning */
-			//VECADD(state->co,state->co,cpa_1st);
+			//add_v3_v3(state->co, cpa_1st);
 		}
 		else{
 			/* offset the child from the parent position */
@@ -4165,13 +4166,13 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			if(t>=0.001f){
 				tstate.time=t-0.001f;
 				psys_get_particle_on_path(sim,p,&tstate,0);
-				VECSUB(state->vel,state->co,tstate.co);
+				sub_v3_v3v3(state->vel,state->co,tstate.co);
 				normalize_v3(state->vel);
 			}
 			else{
 				tstate.time=t+0.001f;
 				psys_get_particle_on_path(sim,p,&tstate,0);
-				VECSUB(state->vel,tstate.co,state->co);
+				sub_v3_v3v3(state->vel,tstate.co,state->co);
 				normalize_v3(state->vel);
 			}
 
@@ -4422,9 +4423,9 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		cross_v3_v3v3(nor, vec, side);
 
 		unit_m4(mat);
-		VECCOPY(mat[0], vec);
-		VECCOPY(mat[1], side);
-		VECCOPY(mat[2], nor);
+		copy_v3_v3(mat[0], vec);
+		copy_v3_v3(mat[1], side);
+		copy_v3_v3(mat[2], nor);
 	}
 	else {
 		quat_to_mat4(mat, pa->state.rot);
@@ -4470,12 +4471,12 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 
 		normalize_v3_v3(temp, bb->vel);
 
-		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+		sub_v3_v3v3(zvec, bb->ob->obmat[3], bb->vec);
 
 		if(bb->lock) {
 			float fac = -dot_v3v3(zvec, temp);
 
-			VECADDFAC(zvec, zvec, temp, fac);
+			madd_v3_v3fl(zvec, temp, fac);
 		}
 		normalize_v3(zvec);
 
@@ -4485,7 +4486,7 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 		cross_v3_v3v3(yvec,zvec,xvec);
 	}
 	else {
-		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+		sub_v3_v3v3(zvec, bb->ob->obmat[3], bb->vec);
 		if(bb->lock)
 			zvec[bb->align] = 0.0f;
 		normalize_v3(zvec);
@@ -4499,22 +4500,22 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 		cross_v3_v3v3(yvec,zvec,xvec);
 	}
 
-	VECCOPY(tvec, xvec);
-	VECCOPY(tvec2, yvec);
+	copy_v3_v3(tvec, xvec);
+	copy_v3_v3(tvec2, yvec);
 
 	mul_v3_fl(xvec, cos(bb->tilt * (float)M_PI));
 	mul_v3_fl(tvec2, sin(bb->tilt * (float)M_PI));
-	VECADD(xvec, xvec, tvec2);
+	add_v3_v3(xvec, tvec2);
 
 	mul_v3_fl(yvec, cos(bb->tilt * (float)M_PI));
 	mul_v3_fl(tvec, -sin(bb->tilt * (float)M_PI));
-	VECADD(yvec, yvec, tvec);
+	add_v3_v3(yvec, tvec);
 
 	mul_v3_fl(xvec, bb->size[0]);
 	mul_v3_fl(yvec, bb->size[1]);
 
-	VECADDFAC(center, bb->vec, xvec, bb->offset[0]);
-	VECADDFAC(center, center, yvec, bb->offset[1]);
+	madd_v3_v3v3fl(center, bb->vec, xvec, bb->offset[0]);
+	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
 
