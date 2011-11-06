@@ -1062,7 +1062,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_region_view3d;
 	ot->description= "Select a loop of connected edges";
 	
 	/* flags */
@@ -1082,7 +1082,7 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke= mesh_select_loop_invoke;
-	ot->poll= ED_operator_editmesh; 
+	ot->poll= ED_operator_editmesh_region_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
