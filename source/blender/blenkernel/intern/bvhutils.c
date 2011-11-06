@@ -48,27 +48,27 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
+static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float v0[3], const float v1[3], const float v2[3])
 {
 	float dist;
 
-	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, (float*)v0, (float*)v1, (float*)v2, &dist, NULL))
+	if(isect_ray_tri_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL))
 		return dist;
 
 	return FLT_MAX;
 }
 
-static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, const float m_dist, const float *v0, const float *v1, const float *v2)
+static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, const float m_dist, const float v0[3], const float v1[3], const float v2[3])
 {
 	
 	float idist;
 	float p1[3];
 	float plane_normal[3], hit_point[3];
 
-	normal_tri_v3( plane_normal,(float*)v0, (float*)v1, (float*)v2);
+	normal_tri_v3(plane_normal, v0, v1, v2);
 
-	VECADDFAC( p1, ray->origin, ray->direction, m_dist);
-	if(isect_sweeping_sphere_tri_v3((float*)ray->origin, p1, radius, (float*)v0, (float*)v1, (float*)v2, &idist, hit_point))
+	madd_v3_v3v3fl(p1, ray->origin, ray->direction, m_dist);
+	if(isect_sweeping_sphere_tri_v3(ray->origin, p1, radius, v0, v1, v2, &idist, hit_point))
 	{
 		return idist * m_dist;
 	}
@@ -81,7 +81,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
  * Function adapted from David Eberly's distance tools (LGPL)
  * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-static float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest )
+static float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3])
 {
 	float diff[3];
 	float e0[3];
@@ -98,16 +98,16 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 	float sqrDist;
 	int lv = -1, le = -1;
 	
-	VECSUB(diff, v0, p);
-	VECSUB(e0, v1, v0);
-	VECSUB(e1, v2, v0);
+	sub_v3_v3v3(diff, v0, p);
+	sub_v3_v3v3(e0, v1, v0);
+	sub_v3_v3v3(e1, v2, v0);
 	
-	A00 = INPR ( e0, e0 );
-	A01 = INPR( e0, e1 );
-	A11 = INPR ( e1, e1 );
-	B0 = INPR( diff, e0 );
-	B1 = INPR( diff, e1 );
-	C = INPR( diff, diff );
+	A00 = dot_v3v3(e0, e0);
+	A01 = dot_v3v3(e0, e1 );
+	A11 = dot_v3v3(e1, e1 );
+	B0 = dot_v3v3(diff, e0 );
+	B1 = dot_v3v3(diff, e1 );
+	C = dot_v3v3(diff, diff );
 	Det = fabs( A00 * A11 - A01 * A01 );
 	S = A01 * B1 - A11 * B0;
 	T = A01 * B0 - A00 * B1;
@@ -123,7 +123,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 					T = 0.0f;
 					if ( -B0 >= A00 )
 					{
-						S = (float)1.0;
+						S = 1.0f;
 						sqrDist = A00 + 2.0f * B0 + C;
 						lv = 1;
 					}
@@ -379,15 +379,15 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 	
 	{
 		float w[3], x[3], y[3], z[3];
-		VECCOPY(w, v0);
-		VECCOPY(x, e0);
+		copy_v3_v3(w, v0);
+		copy_v3_v3(x, e0);
 		mul_v3_fl(x, S);
-		VECCOPY(y, e1);
+		copy_v3_v3(y, e1);
 		mul_v3_fl(y, T);
 		VECADD(z, w, x);
 		VECADD(z, z, y);
-		//VECSUB(d, p, z);
-		VECCOPY(nearest, z);
+		//sub_v3_v3v3(d, p, z);
+		copy_v3_v3(nearest, z);
 		// d = p - ( v0 + S * e0 + T * e1 );
 	}
 	*v = lv;
@@ -403,7 +403,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 
 // Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_faces.
 // userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
-static void mesh_faces_nearest_point(void *userdata, int index, const float *co, BVHTreeNearest *nearest)
+static void mesh_faces_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh*) userdata;
 	MVert *vert	= data->vert;
@@ -426,7 +426,7 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float *co,
 		{
 			nearest->index = index;
 			nearest->dist = dist;
-			VECCOPY(nearest->co, nearest_tmp);
+			copy_v3_v3(nearest->co, nearest_tmp);
 			normal_tri_v3( nearest->no,t0, t1, t2);
 		}
 
@@ -464,7 +464,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 		{
 			hit->index = index;
 			hit->dist = dist;
-			VECADDFAC(hit->co, ray->origin, ray->direction, dist);
+			madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
 
 			normal_tri_v3( hit->no,t0, t1, t2);
 		}
@@ -478,7 +478,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 
 // Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_edges.
 // userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
-static void mesh_edges_nearest_point(void *userdata, int index, const float *co, BVHTreeNearest *nearest)
+static void mesh_edges_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh*) userdata;
 	MVert *vert	= data->vert;
@@ -488,16 +488,15 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float *co,
 	float *t0, *t1;
 	t0 = vert[ edge->v1 ].co;
 	t1 = vert[ edge->v2 ].co;
-	
-	// NOTE: casts to "float*" here are due to co being "const float*"
-	closest_to_line_segment_v3(nearest_tmp, (float*)co, t0, t1);
-	dist = len_squared_v3v3(nearest_tmp, (float*)co);
+
+	closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
+	dist = len_squared_v3v3(nearest_tmp, co);
 	
 	if(dist < nearest->dist)
 	{
 		nearest->index = index;
 		nearest->dist = dist;
-		VECCOPY(nearest->co, nearest_tmp);
+		copy_v3_v3(nearest->co, nearest_tmp);
 		sub_v3_v3v3(nearest->no, t0, t1);
 		normalize_v3(nearest->no);
 	}
@@ -590,11 +589,11 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 					for(i = 0; i < numFaces; i++, efa= efa->next) {
 						if(!(efa->f & 1) && efa->h==0 && !((efa->v1->f&1)+(efa->v2->f&1)+(efa->v3->f&1)+(efa->v4?efa->v4->f&1:0))) {
 							float co[4][3];
-							VECCOPY(co[0], vert[ face[i].v1 ].co);
-							VECCOPY(co[1], vert[ face[i].v2 ].co);
-							VECCOPY(co[2], vert[ face[i].v3 ].co);
+							copy_v3_v3(co[0], vert[ face[i].v1 ].co);
+							copy_v3_v3(co[1], vert[ face[i].v2 ].co);
+							copy_v3_v3(co[2], vert[ face[i].v3 ].co);
 							if(face[i].v4)
-								VECCOPY(co[3], vert[ face[i].v4 ].co);
+								copy_v3_v3(co[3], vert[ face[i].v4 ].co);
 					
 							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 						}
@@ -603,11 +602,11 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 				else {
 					for(i = 0; i < numFaces; i++) {
 						float co[4][3];
-						VECCOPY(co[0], vert[ face[i].v1 ].co);
-						VECCOPY(co[1], vert[ face[i].v2 ].co);
-						VECCOPY(co[2], vert[ face[i].v3 ].co);
+						copy_v3_v3(co[0], vert[ face[i].v1 ].co);
+						copy_v3_v3(co[1], vert[ face[i].v2 ].co);
+						copy_v3_v3(co[2], vert[ face[i].v3 ].co);
 						if(face[i].v4)
-							VECCOPY(co[3], vert[ face[i].v4 ].co);
+							copy_v3_v3(co[3], vert[ face[i].v4 ].co);
 				
 						BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 					}
@@ -669,8 +668,8 @@ BVHTree* bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 				for(i = 0; i < numEdges; i++)
 				{
 					float co[4][3];
-					VECCOPY(co[0], vert[ edge[i].v1 ].co);
-					VECCOPY(co[1], vert[ edge[i].v2 ].co);
+					copy_v3_v3(co[0], vert[ edge[i].v1 ].co);
+					copy_v3_v3(co[1], vert[ edge[i].v2 ].co);
 			
 					BLI_bvhtree_insert(tree, i, co[0], 2);
 				}

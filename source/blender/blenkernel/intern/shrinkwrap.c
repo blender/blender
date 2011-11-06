@@ -469,7 +469,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE)
 			{
 				//Make the vertex stay on the front side of the face
-				VECADDFAC(tmp_co, nearest.co, nearest.no, calc->keepDist);
+				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
 			else
 			{

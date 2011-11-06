@@ -3882,7 +3882,7 @@ int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 		else {
 			d = distance;
 		}
-		VECADDFAC(td->loc,td->center,td->axismtx[0],(*td->val)*d);
+		madd_v3_v3v3fl(td->loc, td->center, td->axismtx[0], (*td->val) * d);
 	}
 
 	recalcData(t);

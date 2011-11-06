@@ -2120,7 +2120,7 @@ void object_set_dimensions(Object *ob, const float *value)
 	}
 }
 
-void minmax_object(Object *ob, float *min, float *max)
+void minmax_object(Object *ob, float min[3], float max[3])
 {
 	BoundBox bb;
 	float vec[3];
