@@ -74,6 +74,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
 
 #include "smoke_API.h"
@@ -3672,7 +3673,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart=psys->totpart;
 
-	cfra= bsystem_time(scene, NULL, (float)CFRA, 0.0f);
+	cfra= BKE_curframe(scene);
 
 	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
@@ -6432,7 +6433,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix) 
-							cti->get_target_matrix(curcon, cob, ct, bsystem_time(scene, ob, (float)(scene->r.cfra), 0.0f));
+							cti->get_target_matrix(curcon, cob, ct, BKE_curframe(scene));
 						else
 							unit_m4(ct->matrix);
 						

@@ -77,6 +77,7 @@
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 
 #include "RE_render_ext.h"
 
@@ -3426,7 +3427,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	psys->totpart=0;
 	psys->flag = PSYS_ENABLED|PSYS_CURRENT;
-	psys->cfra=bsystem_time(scene,ob,scene->r.cfra+1,0.0);
+	psys->cfra = BKE_nextframe(scene);
 
 	DAG_scene_sort(G.main, scene);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -4189,7 +4190,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	float timestep = psys_get_timestep(sim);
 
 	/* negative time means "use current time" */
-	cfra = state->time > 0 ? state->time : bsystem_time(sim->scene, 0, (float)sim->scene->r.cfra, 0.0);
+	cfra = state->time > 0 ? state->time : BKE_curframe(sim->scene);
 
 	if(p>=totpart){
 		if(!psys->totchild)

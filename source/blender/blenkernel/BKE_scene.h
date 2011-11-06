@@ -86,6 +86,7 @@ void scene_select_base(struct Scene *sce, struct Base *selbase);
 int scene_check_setscene(struct Main *bmain, struct Scene *sce);
 
 float BKE_curframe(struct Scene *scene);
+float BKE_nextframe(struct Scene *scene);
 
 void scene_update_tagged(struct Main *bmain, struct Scene *sce);
 void scene_clear_tagged(struct Main *bmain, struct Scene *sce);

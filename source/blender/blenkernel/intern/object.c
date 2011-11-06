@@ -1419,32 +1419,12 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* *************** CALC ****************** */
 
-/* there is also a timing calculation in drawobject() */
-
-
-// XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
-/* ob can be NULL */
-float bsystem_time(struct Scene *scene, Object *UNUSED(ob), float cfra, float ofs)
-{
-	/* returns float ( see BKE_curframe in scene.c) */
-	cfra += scene->r.subframe;
-	
-	/* global time */
-	if (scene)
-		cfra *= scene->r.framelen;	
-	
-	cfra-= ofs;
-
-	return cfra;
-}
-
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
 	add_v3_v3v3(vec, ob->size, ob->dsize);
 	size_to_mat3( mat,vec);
 }
-
 
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
