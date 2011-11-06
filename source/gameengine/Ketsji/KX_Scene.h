@@ -101,7 +101,7 @@ class KX_ObstacleSimulation;
  * */
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
-	Py_Header;
+	Py_Header
 
 #ifdef WITH_PYTHON
 	PyObject*	m_attr_dict;

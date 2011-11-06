@@ -1230,7 +1230,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if(G.rendering == 0)
 		no_draw_flag |= PARS_NO_DISP;
 	
-	ctime = bsystem_time(scene, par, (float)scene->r.cfra, 0.0);
+	ctime = BKE_curframe(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
 
 	totpart = psys->totpart;
 	totchild = psys->totchild;

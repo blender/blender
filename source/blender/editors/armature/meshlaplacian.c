@@ -1241,8 +1241,8 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	memset(&isec, 0, sizeof(isec));
 	isec.labda= 1e10f;
 
-	VECADD(isec.start, co1, epsilon);
-	VECADD(end, co2, epsilon);
+	add_v3_v3v3(isec.start, co1, epsilon);
+	add_v3_v3v3(end, co2, epsilon);
 	sub_v3_v3v3(isec.vec, end, isec.start);
 
 	if(meshdeform_intersect(mdb, &isec)) {

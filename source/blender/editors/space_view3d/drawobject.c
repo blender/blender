@@ -74,6 +74,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -3900,7 +3901,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart=psys->totpart;
 
-	cfra= bsystem_time(scene, NULL, (float)CFRA, 0.0f);
+	cfra= BKE_curframe(scene);
 
 	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
@@ -5976,7 +5977,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	Object *ob;
 	Curve *cu;
 	RegionView3D *rv3d= ar->regiondata;
-	//float cfraont;
 	float vec1[3], vec2[3];
 	unsigned int col=0;
 	int /*sel, drawtype,*/ colindex= 0;
@@ -6015,83 +6015,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* no return after this point, otherwise leaks */
 	view3d_cached_text_draw_begin();
 	
-
-	/* draw keys? */
-#if 0 // XXX old animation system
-	if(base==(scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
-		if(flag==0 && warning_recursive==0 && ob!=scene->obedit) {
-			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
-				ListBase elems;
-				CfraElem *ce;
-				float temp[7][3];
-
-				warning_recursive= 1;
-
-				elems.first= elems.last= 0;
-				// warning: no longer checks for certain ob-keys only... (so does this need to use the proper ipokeys then?)
-				make_cfra_list(ob->ipo, &elems); 
-
-				cfraont= (scene->r.cfra);
-				drawtype= v3d->drawtype;
-				if(drawtype>OB_WIRE) v3d->drawtype= OB_WIRE;
-				sel= base->flag;
-				memcpy(temp, &ob->loc, 7*3*sizeof(float));
-
-				ipoflag= ob->ipoflag;
-				ob->ipoflag &= ~OB_OFFS_OB;
-
-				set_no_parent_ipo(1);
-				disable_speed_curve(1);
-
-				if ((ob->ipoflag & OB_DRAWKEYSEL)==0) {
-					ce= elems.first;
-					while(ce) {
-						if(!ce->sel) {
-							(scene->r.cfra)= ce->cfra/scene->r.framelen;
-
-							base->flag= 0;
-
-							where_is_object_time(scene, ob, (scene->r.cfra));
-							draw_object(scene, ar, v3d, base, 0);
-						}
-						ce= ce->next;
-					}
-				}
-
-				ce= elems.first;
-				while(ce) {
-					if(ce->sel) {
-						(scene->r.cfra)= ce->cfra/scene->r.framelen;
-
-						base->flag= SELECT;
-
-						where_is_object_time(scene, ob, (scene->r.cfra));
-						draw_object(scene, ar, v3d, base, 0);
-					}
-					ce= ce->next;
-				}
-
-				set_no_parent_ipo(0);
-				disable_speed_curve(0);
-
-				base->flag= sel;
-				ob->ipoflag= ipoflag;
-
-				/* restore icu->curval */
-				(scene->r.cfra)= cfraont;
-
-				memcpy(&ob->loc, temp, 7*3*sizeof(float));
-				where_is_object(scene, ob);
-				v3d->drawtype= drawtype;
-
-				BLI_freelistN(&elems);
-
-				warning_recursive= 0;
-			}
-		}
-	}
-#endif // XXX old animation system
-
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
@@ -6149,7 +6072,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					if(base->flag & (SELECT+BA_WAS_SEL)) {
 						/* uses darker active color for non-active + selected*/
 						theme_id= TH_GROUP_ACTIVE;
-
+						
 						if(scene->basact != base) {
 							theme_shade= -16;
 						}
@@ -6738,7 +6661,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix) 
-							cti->get_target_matrix(curcon, cob, ct, bsystem_time(scene, ob, (float)(scene->r.cfra), give_timeoffset(ob)));
+							cti->get_target_matrix(curcon, cob, ct, BKE_curframe(scene));
 						else
 							unit_m4(ct->matrix);
 						

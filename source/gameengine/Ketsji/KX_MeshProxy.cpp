@@ -129,7 +129,7 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
 		return NULL;
 	}
 
-	return PyUnicode_FromString(matname.Ptr());
+	return PyUnicode_From_STR_String(matname);
 
 }
 
@@ -147,7 +147,7 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* args, PyObject* kwds)
 		return NULL;
 	}
 
-	return PyUnicode_FromString(matname.Ptr());
+	return PyUnicode_From_STR_String(matname);
 		
 }
 

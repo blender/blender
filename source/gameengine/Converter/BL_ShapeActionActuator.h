@@ -42,7 +42,7 @@ struct Key;
 class BL_ShapeActionActuator : public SCA_IActuator  
 {
 public:
-	Py_Header;
+	Py_Header
 	BL_ShapeActionActuator(SCA_IObject* gameobj,
 						const STR_String& propname,
 						const STR_String& framepropname,

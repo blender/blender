@@ -50,7 +50,7 @@ static void do_invert(bNode *node, float *out, float *in)
 		out[1] = 1.0f - in[1];
 		out[2] = 1.0f - in[2];
 	} else
-		VECCOPY(out, in);
+		copy_v3_v3(out, in);
 		
 	if(node->custom1 & CMP_CHAN_A)
 		out[3] = 1.0f - in[3];
@@ -75,7 +75,7 @@ static void do_invert_fac(bNode *node, float *out, float *in, float *fac)
 	if(node->custom1 & CMP_CHAN_A)
 		col[3] = fac[0]*col[3] + (facm*in[3]);
 	
-	QUATCOPY(out, col);
+	copy_v4_v4(out, col);
 }
 
 static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)

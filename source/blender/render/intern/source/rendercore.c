@@ -562,7 +562,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 	float *fp;
 	
 	fp= rl->rectf + 4*offset;
-	QUATCOPY(fp, shr->combined);
+	copy_v4_v4(fp, shr->combined);
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *col= NULL, uvcol[3];
@@ -695,7 +695,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 					}
 					
 					if(pass[3]==0.0f) {
-						QUATCOPY(pass, col);
+						copy_v4_v4(pass, col);
 					}
 					else {
 						addAlphaUnderFloat(pass, col);
@@ -2345,7 +2345,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
 		VECCOPY(tvn, shi->nmapnorm);
-		QUATCOPY(ttang, shi->nmaptang);
+		copy_v4_v4(ttang, shi->nmaptang);
 	}
 
 	/* if we are doing selected to active baking, find point on other face */

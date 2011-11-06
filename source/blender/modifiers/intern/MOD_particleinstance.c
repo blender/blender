@@ -257,7 +257,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		mul_qt_v3(state.rot,mv->co);
 		if(pimd->flag & eParticleInstanceFlag_UseSize)
 			mul_v3_fl(mv->co, size[i/totvert]);
-		VECADD(mv->co,mv->co,state.co);
+		add_v3_v3(mv->co, state.co);
 	}
 
 	mface=result->getFaceArray(result);

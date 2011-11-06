@@ -823,14 +823,14 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 	}
 	
 	/* mirror node2 along axis */
-	VECCOPY(p, node2->p);
+	copy_v3_v3(p, node2->p);
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 	
 	/* check if it's within limit before continuing */
 	if (len_v3v3(node1->p, p) <= limit)
 	{
 		/* mark node as symmetric physically */
-		VECCOPY(root_node->symmetry_axis, nor);
+		copy_v3_v3(root_node->symmetry_axis, nor);
 		root_node->symmetry_flag |= SYM_PHYSICAL;
 		root_node->symmetry_flag |= SYM_AXIAL;
 

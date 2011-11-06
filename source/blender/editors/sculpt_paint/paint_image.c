@@ -607,7 +607,7 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 				best_face_index = face_index;
 				best_side = 0;
 				z_depth_best = z_depth;
-				VECCOPY(w, w_tmp);
+				copy_v3_v3(w, w_tmp);
 			}
 		}
 		else if (mf->v4) {
@@ -621,7 +621,7 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 					best_face_index = face_index;
 					best_side= 1;
 					z_depth_best = z_depth;
-					VECCOPY(w, w_tmp);
+					copy_v3_v3(w, w_tmp);
 				}
 			}
 		}
@@ -722,7 +722,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		
 		if (rgba_fp) {
 			if (ibuf->rect_float) {
-				QUATCOPY(rgba_fp, ((float *)ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
+				copy_v4_v4(rgba_fp, ((float *)ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
 			}
 			else {
 				char *tmp_ch= ((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
@@ -1431,7 +1431,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
-	VECCOPY2D(projPixel->projCoSS, pixelScreenCo);
+	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
 	
 	projPixel->x_px = x_px;
 	projPixel->y_px = y_px;
@@ -1530,8 +1530,8 @@ static int line_clip_rect2f(
 		
 		if (fabsf(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_in_rctf(rect, l1[0], l1[1])) {
-				VECCOPY2D(l1_clip, l1);
-				VECCOPY2D(l2_clip, l2);
+				copy_v2_v2(l1_clip, l1);
+				copy_v2_v2(l2_clip, l2);
 				return 1;
 			}
 			else {
@@ -1539,8 +1539,8 @@ static int line_clip_rect2f(
 			}
 		}
 		
-		VECCOPY2D(l1_clip, l1);
-		VECCOPY2D(l2_clip, l2);
+		copy_v2_v2(l1_clip, l1);
+		copy_v2_v2(l2_clip, l2);
 		CLAMP(l1_clip[0], rect->xmin, rect->xmax);
 		CLAMP(l2_clip[0], rect->xmin, rect->xmax);
 		return 1;
@@ -1558,8 +1558,8 @@ static int line_clip_rect2f(
 		
 		if (fabsf(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
 			if (BLI_in_rctf(rect, l1[0], l1[1])) {
-				VECCOPY2D(l1_clip, l1);
-				VECCOPY2D(l2_clip, l2);
+				copy_v2_v2(l1_clip, l1);
+				copy_v2_v2(l2_clip, l2);
 				return 1;
 			}
 			else {
@@ -1567,8 +1567,8 @@ static int line_clip_rect2f(
 			}
 		}
 		
-		VECCOPY2D(l1_clip, l1);
-		VECCOPY2D(l2_clip, l2);
+		copy_v2_v2(l1_clip, l1);
+		copy_v2_v2(l2_clip, l2);
 		CLAMP(l1_clip[1], rect->ymin, rect->ymax);
 		CLAMP(l2_clip[1], rect->ymin, rect->ymax);
 		return 1;
@@ -1582,12 +1582,12 @@ static int line_clip_rect2f(
 		
 		/* are either of the points inside the rectangle ? */
 		if (BLI_in_rctf(rect, l1[0], l1[1])) {
-			VECCOPY2D(l1_clip, l1);
+			copy_v2_v2(l1_clip, l1);
 			ok1 = 1;
 		}
 		
 		if (BLI_in_rctf(rect, l2[0], l2[1])) {
-			VECCOPY2D(l2_clip, l2);
+			copy_v2_v2(l2_clip, l2);
 			ok2 = 1;
 		}
 		
@@ -1912,14 +1912,14 @@ static void project_bucket_clip_face(
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we dont need to clip and can simply return the UVs */
 		if (flip) { /* facing the back? */
-			VECCOPY2D(bucket_bounds_uv[0], uv3co);
-			VECCOPY2D(bucket_bounds_uv[1], uv2co);
-			VECCOPY2D(bucket_bounds_uv[2], uv1co);
+			copy_v2_v2(bucket_bounds_uv[0], uv3co);
+			copy_v2_v2(bucket_bounds_uv[1], uv2co);
+			copy_v2_v2(bucket_bounds_uv[2], uv1co);
 		}
 		else {
-			VECCOPY2D(bucket_bounds_uv[0], uv1co);
-			VECCOPY2D(bucket_bounds_uv[1], uv2co);
-			VECCOPY2D(bucket_bounds_uv[2], uv3co);
+			copy_v2_v2(bucket_bounds_uv[0], uv1co);
+			copy_v2_v2(bucket_bounds_uv[1], uv2co);
+			copy_v2_v2(bucket_bounds_uv[2], uv3co);
 		}
 		
 		*tot = 3; 
@@ -1983,33 +1983,33 @@ static void project_bucket_clip_face(
 		
 		(*tot) = 0;
 		
-		if (inside_face_flag & ISECT_1)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[0]); (*tot)++; }
-		if (inside_face_flag & ISECT_2)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[1]); (*tot)++; }
-		if (inside_face_flag & ISECT_3)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[2]); (*tot)++; }
-		if (inside_face_flag & ISECT_4)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[3]); (*tot)++; }
+		if (inside_face_flag & ISECT_1)	{ copy_v2_v2(isectVCosSS[*tot], bucket_bounds_ss[0]); (*tot)++; }
+		if (inside_face_flag & ISECT_2)	{ copy_v2_v2(isectVCosSS[*tot], bucket_bounds_ss[1]); (*tot)++; }
+		if (inside_face_flag & ISECT_3)	{ copy_v2_v2(isectVCosSS[*tot], bucket_bounds_ss[2]); (*tot)++; }
+		if (inside_face_flag & ISECT_4)	{ copy_v2_v2(isectVCosSS[*tot], bucket_bounds_ss[3]); (*tot)++; }
 		
-		if (inside_bucket_flag & ISECT_1) {	VECCOPY2D(isectVCosSS[*tot], v1coSS); (*tot)++; }
-		if (inside_bucket_flag & ISECT_2) {	VECCOPY2D(isectVCosSS[*tot], v2coSS); (*tot)++; }
-		if (inside_bucket_flag & ISECT_3) {	VECCOPY2D(isectVCosSS[*tot], v3coSS); (*tot)++; }
+		if (inside_bucket_flag & ISECT_1) {	copy_v2_v2(isectVCosSS[*tot], v1coSS); (*tot)++; }
+		if (inside_bucket_flag & ISECT_2) {	copy_v2_v2(isectVCosSS[*tot], v2coSS); (*tot)++; }
+		if (inside_bucket_flag & ISECT_3) {	copy_v2_v2(isectVCosSS[*tot], v3coSS); (*tot)++; }
 		
 		if ((inside_bucket_flag & (ISECT_1|ISECT_2)) != (ISECT_1|ISECT_2)) {
 			if (line_clip_rect2f(bucket_bounds, v1coSS, v2coSS, v1_clipSS, v2_clipSS)) {
-				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_1)==0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_2)==0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 		
 		if ((inside_bucket_flag & (ISECT_2|ISECT_3)) != (ISECT_2|ISECT_3)) {
 			if (line_clip_rect2f(bucket_bounds, v2coSS, v3coSS, v1_clipSS, v2_clipSS)) {
-				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_2)==0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_3)==0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}	
 		
 		if ((inside_bucket_flag & (ISECT_3|ISECT_1)) != (ISECT_3|ISECT_1)) {
 			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
-				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_3)==0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_1)==0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 		
@@ -2538,8 +2538,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										//fac = line_point_factor_v2(uv, uv_seam_quad[0], uv_seam_quad[1]);
 										
 										fac = line_point_factor_v2(uv, seam_subsection[0], seam_subsection[1]);
-										if (fac < 0.0f)		{ VECCOPY(pixelScreenCo, edge_verts_inset_clip[0]); }
-										else if (fac > 1.0f)	{ VECCOPY(pixelScreenCo, edge_verts_inset_clip[1]); }
+										if (fac < 0.0f)		{ copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[0]); }
+										else if (fac > 1.0f)	{ copy_v3_v3(pixelScreenCo, edge_verts_inset_clip[1]); }
 										else				{ interp_v3_v3v3(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac); }
 										
 										if (!is_ortho) {
@@ -3035,7 +3035,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		normalize_v3(ps->viewDir);
 		
 		/* viewPos - object relative */
-		VECCOPY(ps->viewPos, viewinv[3]);
+		copy_v3_v3(ps->viewPos, viewinv[3]);
 		copy_m3_m4(mat, ps->ob->imat);
 		mul_m3_v3(mat, ps->viewPos);
 		add_v3_v3(ps->viewPos, ps->ob->imat[3]);
@@ -3393,7 +3393,7 @@ static void project_paint_end(ProjPaintState *ps)
 					
 					if (is_float) {
 						float *rgba_fp = (float *)tilerect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
-						QUATCOPY(rgba_fp, projPixel->origColor.f);
+						copy_v4_v4(rgba_fp, projPixel->origColor.f);
 					}
 					else {
 						((unsigned int *)tilerect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
@@ -3728,7 +3728,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 			srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
 		}
 		else {
-			VECCOPY(rgba, ps->brush->rgb);
+			copy_v3_v3(rgba, ps->brush->rgb);
 		}
 		rgba[3] = 1.0;
 	}

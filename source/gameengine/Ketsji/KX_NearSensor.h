@@ -41,7 +41,7 @@ struct PHY_CollData;
 
 class KX_NearSensor : public KX_TouchSensor
 {
-	Py_Header;
+	Py_Header
 protected:
 	float	m_Margin;
 	float  m_ResetMargin;

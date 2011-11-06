@@ -2147,9 +2147,9 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	cache= pid->cache;
 
 	if(timescale) {
-		time= bsystem_time(scene, ob, cfra, 0.0f);
-		nexttime= bsystem_time(scene, ob, cfra+1.0f, 0.0f);
-
+		time= BKE_curframe(scene);
+		nexttime= BKE_frame_to_ctime(scene, CFRA+1);
+		
 		*timescale= MAX2(nexttime - time, 0.0f);
 	}
 
@@ -2163,7 +2163,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		 * system timing. */
 #if 0
 		if ((ob->partype & PARSLOW)==0) {
-			offset= give_timeoffset(ob);
+			offset= ob->sf;
 
 			*startframe += (int)(offset+0.5f);
 			*endframe += (int)(offset+0.5f);

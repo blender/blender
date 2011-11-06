@@ -68,6 +68,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "BIK_api.h"
 #include "BKE_sketch.h"
@@ -2406,7 +2407,7 @@ void where_is_pose (Scene *scene, Object *ob)
 	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 
 		armature_rebuild_pose(ob, arm);
 	   
-	ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
+	ctime= BKE_curframe(scene);	/* not accurate... */
 	
 	/* In editmode or restposition we read the data from the bones */
 	if(arm->edbo || (arm->flag & ARM_RESTPOS)) {

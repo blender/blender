@@ -37,7 +37,7 @@
 
 class SCA_PropertySensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	//class CExpression*	m_rightexpr;
 	int				m_checktype;
 	STR_String		m_checkpropval;

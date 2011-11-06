@@ -1130,19 +1130,19 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				base->object->recalc |= OB_RECALC_OB;
 				
 				if(event==1) {  /* loc */
-					VECCOPY(base->object->loc, ob->loc);
-					VECCOPY(base->object->dloc, ob->dloc);
+					copy_v3_v3(base->object->loc, ob->loc);
+					copy_v3_v3(base->object->dloc, ob->dloc);
 				}
 				else if(event==2) {  /* rot */
-					VECCOPY(base->object->rot, ob->rot);
-					VECCOPY(base->object->drot, ob->drot);
+					copy_v3_v3(base->object->rot, ob->rot);
+					copy_v3_v3(base->object->drot, ob->drot);
 
-					QUATCOPY(base->object->quat, ob->quat);
-					QUATCOPY(base->object->dquat, ob->dquat);
+					copy_qt_qt(base->object->quat, ob->quat);
+					copy_qt_qt(base->object->dquat, ob->dquat);
 				}
 				else if(event==3) {  /* size */
-					VECCOPY(base->object->size, ob->size);
-					VECCOPY(base->object->dsize, ob->dsize);
+					copy_v3_v3(base->object->size, ob->size);
+					copy_v3_v3(base->object->dsize, ob->dsize);
 				}
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;
@@ -1331,7 +1331,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->index= ob->index;
 				}
 				else if(event==31) { /* object color */
-					QUATCOPY(base->object->col, ob->col);
+					copy_v4_v4(base->object->col, ob->col);
 				}
 			}
 		}

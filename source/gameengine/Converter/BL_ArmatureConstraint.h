@@ -52,7 +52,7 @@ struct bPose;
  */
 class BL_ArmatureConstraint	: public PyObjectPlus
 {
-	Py_Header;
+	Py_Header
 
 private:
 	struct bConstraint* m_constraint;

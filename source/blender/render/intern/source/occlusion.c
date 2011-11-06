@@ -172,7 +172,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 
 	/* set up view vector */
-	VECCOPY(shi->view, shi->co);
+	copy_v3_v3(shi->view, shi->co);
 	normalize_v3(shi->view);
 	
 	/* cache for shadow */
@@ -205,7 +205,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	shade_input_set_shade_texco(shi);
 	shade_material_loop(shi, shr); /* todo: nodes */
 	
-	VECCOPY(rad, shr->combined);
+	copy_v3_v3(rad, shr->combined);
 }
 
 static void occ_build_shade(Render *re, OcclusionTree *tree)
@@ -339,10 +339,10 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 	}
 
 	if(area) {
-		VECCOPY(v1, vlr->v1->co);
-		VECCOPY(v2, vlr->v2->co);
-		VECCOPY(v3, vlr->v3->co);
-		if(vlr->v4) VECCOPY(v4, vlr->v4->co);
+		copy_v3_v3(v1, vlr->v1->co);
+		copy_v3_v3(v2, vlr->v2->co);
+		copy_v3_v3(v3, vlr->v3->co);
+		if(vlr->v4) copy_v3_v3(v4, vlr->v4->co);
 
 		if(obi->flag & R_TRANSFORMED) {
 			mul_m4_v3(obi->mat, v1);
@@ -439,14 +439,14 @@ static void occ_build_dco(OcclusionTree *tree, OccNode *node, const float co[3],
 		else if(node->child[b].node) {
 			OccNode *child= node->child[b].node;
 			occ_build_dco(tree, child, co, dco);
-			VECCOPY(nco, child->co);
+			copy_v3_v3(nco, child->co);
 		}
 		else {
 			continue;
 		}
 
-		VECSUB(d, nco, co);
-		dist= INPR(d, d);
+		sub_v3_v3v3(d, nco, co);
+		dist= dot_v3v3(d, d);
 		if(dist > *dco)
 			*dco= dist;
 	}
@@ -604,7 +604,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 		if(child) {
 			node->area += child->area;
 			sh_add(node->sh, node->sh, child->sh);
-			VECADDFAC(node->co, node->co, child->co, child->area);
+			madd_v3_v3fl(node->co, child->co, child->area);
 		}
 	}
 
@@ -745,7 +745,7 @@ static void occ_free_tree(OcclusionTree *tree)
 
 /* ------------------------- Traversal --------------------------- */
 
-static float occ_solid_angle(OccNode *node, float *v, float d2, float invd2, float *receivenormal)
+static float occ_solid_angle(OccNode *node, const float v[3], float d2, float invd2, const float receivenormal[3])
 {
 	float dotreceive, dotemit;
 	float ev[3];
@@ -754,7 +754,7 @@ static float occ_solid_angle(OccNode *node, float *v, float d2, float invd2, flo
 	ev[1]= -v[1]*invd2;
 	ev[2]= -v[2]*invd2;
 	dotemit= sh_eval(node->sh, ev);
-	dotreceive= INPR(receivenormal, v)*invd2;
+	dotreceive= dot_v3v3(receivenormal, v)*invd2;
 
 	CLAMP(dotemit, 0.0f, 1.0f);
 	CLAMP(dotreceive, 0.0f, 1.0f);
@@ -762,24 +762,24 @@ static float occ_solid_angle(OccNode *node, float *v, float d2, float invd2, flo
 	return ((node->area*dotemit*dotreceive)/(d2 + node->area*INVPI))*INVPI;
 }
 
-static void VecAddDir(float *result, float *v1, float *v2, float fac)
+static void VecAddDir(float result[3], const float v1[3], const float v2[3], const float fac)
 {
 	result[0]= v1[0] + fac*(v2[0] - v1[0]);
 	result[1]= v1[1] + fac*(v2[1] - v1[1]);
 	result[2]= v1[2] + fac*(v2[2] - v1[2]);
 }
 
-static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2, float *q0, float *q1, float *q2, float *q3)
+static int occ_visible_quad(float *p, const float n[3], const float v0[3], const float *v1, const float *v2, float q0[3], float q1[3], float q2[3], float q3[3])
 {
 	static const float epsilon = 1e-6f;
 	float c, sd[3];
 	
-	c= INPR(n, p);
+	c= dot_v3v3(n, p);
 
 	/* signed distances from the vertices to the plane. */
-	sd[0]= INPR(n, v0) - c;
-	sd[1]= INPR(n, v1) - c;
-	sd[2]= INPR(n, v2) - c;
+	sd[0]= dot_v3v3(n, v0) - c;
+	sd[1]= dot_v3v3(n, v1) - c;
+	sd[2]= dot_v3v3(n, v2) - c;
 
 	if(fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
 	if(fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
@@ -789,70 +789,70 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 		if(sd[1] > 0) {
 			if(sd[2] > 0) {
 				// +++
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// ++-
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
 				VecAddDir(q2, v1, v2, (sd[1]/(sd[1]-sd[2])));
 				VecAddDir(q3, v0, v2, (sd[0]/(sd[0]-sd[2])));
 			}
 			else {
 				// ++0
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 		}
 		else if(sd[1] < 0) {
 			if(sd[2] > 0) {
 				// +-+
-				VECCOPY(q0, v0);
+				copy_v3_v3(q0, v0);
 				VecAddDir(q1, v0, v1, (sd[0]/(sd[0]-sd[1])));
 				VecAddDir(q2, v1, v2, (sd[1]/(sd[1]-sd[2])));
-				VECCOPY(q3, v2);
+				copy_v3_v3(q3, v2);
 			}
 			else if(sd[2] < 0) {
 				// +--
-				VECCOPY(q0, v0);
+				copy_v3_v3(q0, v0);
 				VecAddDir(q1, v0, v1, (sd[0]/(sd[0]-sd[1])));
 				VecAddDir(q2, v0, v2, (sd[0]/(sd[0]-sd[2])));
-				VECCOPY(q3, q2);
+				copy_v3_v3(q3, q2);
 			}
 			else {
 				// +-0
-				VECCOPY(q0, v0);
+				copy_v3_v3(q0, v0);
 				VecAddDir(q1, v0, v1, (sd[0]/(sd[0]-sd[1])));
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 		}
 		else {
 			if(sd[2] > 0) {
 				// +0+
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// +0-
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
 				VecAddDir(q2, v0, v2, (sd[0]/(sd[0]-sd[2])));
-				VECCOPY(q3, q2);
+				copy_v3_v3(q3, q2);
 			}
 			else {
 				// +00
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 		}
 	}
@@ -861,23 +861,23 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 			if(sd[2] > 0) {
 				// -++
 				VecAddDir(q0, v0, v1, (sd[0]/(sd[0]-sd[1])));
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
 				VecAddDir(q3, v0, v2, (sd[0]/(sd[0]-sd[2])));
 			}
 			else if(sd[2] < 0) {
 				// -+-
 				VecAddDir(q0, v0, v1, (sd[0]/(sd[0]-sd[1])));
-				VECCOPY(q1, v1);
+				copy_v3_v3(q1, v1);
 				VecAddDir(q2, v1, v2, (sd[1]/(sd[1]-sd[2])));
-				VECCOPY(q3, q2);
+				copy_v3_v3(q3, q2);
 			}
 			else {
 				// -+0
 				VecAddDir(q0, v0, v1, (sd[0]/(sd[0]-sd[1])));
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 		}
 		else if(sd[1] < 0) {
@@ -885,8 +885,8 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 				// --+
 				VecAddDir(q0, v0, v2, (sd[0]/(sd[0]-sd[2])));
 				VecAddDir(q1, v1, v2, (sd[1]/(sd[1]-sd[2])));
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// ---
@@ -901,9 +901,9 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 			if(sd[2] > 0) {
 				// -0+
 				VecAddDir(q0, v0, v2, (sd[0]/(sd[0]-sd[2])));
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// -0-
@@ -919,33 +919,33 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 		if(sd[1] > 0) {
 			if(sd[2] > 0) {
 				// 0++
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// 0+-
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
 				VecAddDir(q2, v1, v2, (sd[1]/(sd[1]-sd[2])));
-				VECCOPY(q3, q2);
+				copy_v3_v3(q3, q2);
 			}
 			else {
 				// 0+0
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 		}
 		else if(sd[1] < 0) {
 			if(sd[2] > 0) {
 				// 0-+
-				VECCOPY(q0, v0);
+				copy_v3_v3(q0, v0);
 				VecAddDir(q1, v1, v2, (sd[1]/(sd[1]-sd[2])));
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// 0--
@@ -959,10 +959,10 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 		else {
 			if(sd[2] > 0) {
 				// 00+
-				VECCOPY(q0, v0);
-				VECCOPY(q1, v1);
-				VECCOPY(q2, v2);
-				VECCOPY(q3, q2);
+				copy_v3_v3(q0, v0);
+				copy_v3_v3(q1, v1);
+				copy_v3_v3(q2, v2);
+				copy_v3_v3(q3, q2);
 			}
 			else if(sd[2] < 0) {
 				// 00-
@@ -1117,7 +1117,7 @@ static void normalizef(float *n)
 {
 	float d;
 	
-	d= INPR(n, n);
+	d= dot_v3v3(n, n);
 
 	if(d > 1.0e-35F) {
 		d= 1.0f/sqrtf(d);
@@ -1128,15 +1128,15 @@ static void normalizef(float *n)
 	} 
 }
 
-static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, float *q2, float *q3)
+static float occ_quad_form_factor(const float p[3], const float n[3], const float q0[3], const float q1[3], const float q2[3], const float q3[3])
 {
 	float r0[3], r1[3], r2[3], r3[3], g0[3], g1[3], g2[3], g3[3];
 	float a1, a2, a3, a4, dot1, dot2, dot3, dot4, result;
 
-	VECSUB(r0, q0, p);
-	VECSUB(r1, q1, p);
-	VECSUB(r2, q2, p);
-	VECSUB(r3, q3, p);
+	sub_v3_v3v3(r0, q0, p);
+	sub_v3_v3v3(r1, q1, p);
+	sub_v3_v3v3(r2, q2, p);
+	sub_v3_v3v3(r3, q3, p);
 
 	normalizef(r0);
 	normalizef(r1);
@@ -1148,15 +1148,15 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 	cross_v3_v3v3(g2, r3, r2); normalizef(g2);
 	cross_v3_v3v3(g3, r0, r3); normalizef(g3);
 
-	a1= saacosf(INPR(r0, r1));
-	a2= saacosf(INPR(r1, r2));
-	a3= saacosf(INPR(r2, r3));
-	a4= saacosf(INPR(r3, r0));
+	a1= saacosf(dot_v3v3(r0, r1));
+	a2= saacosf(dot_v3v3(r1, r2));
+	a3= saacosf(dot_v3v3(r2, r3));
+	a4= saacosf(dot_v3v3(r3, r0));
 
-	dot1= INPR(n, g0);
-	dot2= INPR(n, g1);
-	dot3= INPR(n, g2);
-	dot4= INPR(n, g3);
+	dot1= dot_v3v3(n, g0);
+	dot2= dot_v3v3(n, g1);
+	dot3= dot_v3v3(n, g2);
+	dot4= dot_v3v3(n, g3);
 
 	result= (a1*dot1 + a2*dot2 + a3*dot3 + a4*dot4)*0.5f/(float)M_PI;
 	result= MAX2(result, 0.0f);
@@ -1173,9 +1173,9 @@ static float occ_form_factor(OccFace *face, float *p, float *n)
 	obi= &R.objectinstance[face->obi];
 	vlr= RE_findOrAddVlak(obi->obr, face->facenr);
 
-	VECCOPY(v1, vlr->v1->co);
-	VECCOPY(v2, vlr->v2->co);
-	VECCOPY(v3, vlr->v3->co);
+	copy_v3_v3(v1, vlr->v1->co);
+	copy_v3_v3(v2, vlr->v2->co);
+	copy_v3_v3(v3, vlr->v3->co);
 
 	if(obi->flag & R_TRANSFORMED) {
 		mul_m4_v3(obi->mat, v1);
@@ -1187,7 +1187,7 @@ static float occ_form_factor(OccFace *face, float *p, float *n)
 		contrib += occ_quad_form_factor(p, n, q0, q1, q2, q3);
 
 	if(vlr->v4) {
-		VECCOPY(v4, vlr->v4->co);
+		copy_v3_v3(v4, vlr->v4->co);
 		if(obi->flag & R_TRANSFORMED)
 			mul_m4_v3(obi->mat, v4);
 
@@ -1207,9 +1207,9 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	int b, f, totstack;
 
 	/* init variables */
-	VECCOPY(p, pp);
-	VECCOPY(n, pn);
-	VECADDFAC(p, p, n, 1e-4f);
+	copy_v3_v3(p, pp);
+	copy_v3_v3(n, pn);
+	madd_v3_v3fl(p, n, 1e-4f);
 
 	if(bentn)
 		copy_v3_v3(bentn, n);
@@ -1229,8 +1229,8 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 		/* pop point off the stack */
 		node= stack[--totstack];
 
-		VECSUB(v, node->co, p);
-		d2= INPR(v, v) + 1e-16f;
+		sub_v3_v3v3(v, node->co, p);
+		d2= dot_v3v3(v, v) + 1e-16f;
 		emitarea= MAX2(node->area, node->dco);
 
 		if(d2*error > emitarea) {
@@ -1270,8 +1270,8 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 					if(!exclude || !(face->obi == exclude->obi && face->facenr == exclude->facenr)) {
 						if(bentn || distfac != 0.0f) {
 							occ_face(face, co, NULL, NULL); 
-							VECSUB(v, co, p);
-							d2= INPR(v, v) + 1e-16f;
+							sub_v3_v3v3(v, co, p);
+							d2= dot_v3v3(v, v) + 1e-16f;
 
 							fac= (distfac == 0.0f)? 1.0f: 1.0f/(1.0f + distfac*d2);
 							if(fac < 0.01f)
@@ -1368,7 +1368,7 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 		for(i=0; i<tree->totface; i++) {
 			occ_face(&tree->face[i], co, n, NULL);
 			negate_v3(n);
-			VECADDFAC(co, co, n, 1e-8f);
+			madd_v3_v3fl(co, n, 1e-8f);
 
 			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL, NULL);
 			if(re->test_break(re->tbh))
@@ -1484,12 +1484,12 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	if(cache->sample && cache->step) {
 		sample= &cache->sample[(y-cache->y)*cache->w + (x-cache->x)];
 		if(sample->filled) {
-			VECSUB(d, sample->co, co);
-			dist2= INPR(d, d);
-			if(dist2 < 0.5f*sample->dist2 && INPR(sample->n, n) > 0.98f) {
-				VECCOPY(ao, sample->ao);
-				VECCOPY(env, sample->env);
-				VECCOPY(indirect, sample->indirect);
+			sub_v3_v3v3(d, sample->co, co);
+			dist2= dot_v3v3(d, d);
+			if(dist2 < 0.5f*sample->dist2 && dot_v3v3(sample->n, n) > 0.98f) {
+				copy_v3_v3(ao, sample->ao);
+				copy_v3_v3(env, sample->env);
+				copy_v3_v3(indirect, sample->indirect);
 				return 1;
 			}
 		}
@@ -1534,11 +1534,11 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	wb[0]= tx*ty;
 
 	for(i=0; i<4; i++) {
-		VECSUB(d, samples[i]->co, co);
-		//dist2= INPR(d, d);
+		sub_v3_v3v3(d, samples[i]->co, co);
+		//dist2= dot_v3v3(d, d);
 
 		wz[i]= 1.0f; //(samples[i]->dist2/(1e-4f + dist2));
-		wn[i]= pow(INPR(samples[i]->n, n), 32.0f);
+		wn[i]= pow(dot_v3v3(samples[i]->n, n), 32.0f);
 
 		w= wb[i]*wn[i]*wz[i];
 
@@ -1633,9 +1633,9 @@ static void *exec_strandsurface_sample(void *data)
 		negate_v3(n);
 
 		sample_occ_tree(re, re->occlusiontree, NULL, co, n, othread->thread, 0, ao, env, indirect);
-		VECCOPY(othread->faceao[a], ao);
-		VECCOPY(othread->faceenv[a], env);
-		VECCOPY(othread->faceindirect[a], indirect);
+		copy_v3_v3(othread->faceao[a], ao);
+		copy_v3_v3(othread->faceenv[a], env);
+		copy_v3_v3(othread->faceindirect[a], indirect);
 	}
 
 	return 0;
@@ -1701,27 +1701,27 @@ void make_occ_tree(Render *re)
 			for(a=0; a<mesh->totface; a++) {
 				face= mesh->face[a];
 
-				VECCOPY(ao, faceao[a]);
-				VECCOPY(env, faceenv[a]);
-				VECCOPY(indirect, faceindirect[a]);
+				copy_v3_v3(ao, faceao[a]);
+				copy_v3_v3(env, faceenv[a]);
+				copy_v3_v3(indirect, faceindirect[a]);
 
-				VECADD(mesh->ao[face[0]], mesh->ao[face[0]], ao);
-				VECADD(mesh->env[face[0]], mesh->env[face[0]], env);
-				VECADD(mesh->indirect[face[0]], mesh->indirect[face[0]], indirect);
+				add_v3_v3(mesh->ao[face[0]], ao);
+				add_v3_v3(mesh->env[face[0]], env);
+				add_v3_v3(mesh->indirect[face[0]], indirect);
 				count[face[0]]++;
-				VECADD(mesh->ao[face[1]], mesh->ao[face[1]], ao);
-				VECADD(mesh->env[face[1]], mesh->env[face[1]], env);
-				VECADD(mesh->indirect[face[1]], mesh->indirect[face[1]], indirect);
+				add_v3_v3(mesh->ao[face[1]], ao);
+				add_v3_v3(mesh->env[face[1]], env);
+				add_v3_v3(mesh->indirect[face[1]], indirect);
 				count[face[1]]++;
-				VECADD(mesh->ao[face[2]], mesh->ao[face[2]], ao);
-				VECADD(mesh->env[face[2]], mesh->env[face[2]], env);
-				VECADD(mesh->indirect[face[2]], mesh->indirect[face[2]], indirect);
+				add_v3_v3(mesh->ao[face[2]], ao);
+				add_v3_v3(mesh->env[face[2]], env);
+				add_v3_v3(mesh->indirect[face[2]], indirect);
 				count[face[2]]++;
 
 				if(face[3]) {
-					VECADD(mesh->ao[face[3]], mesh->ao[face[3]], ao);
-					VECADD(mesh->env[face[3]], mesh->env[face[3]], env);
-					VECADD(mesh->indirect[face[3]], mesh->indirect[face[3]], indirect);
+					add_v3_v3(mesh->ao[face[3]], ao);
+					add_v3_v3(mesh->env[face[3]], env);
+					add_v3_v3(mesh->indirect[face[3]], indirect);
 					count[face[3]]++;
 				}
 			}
@@ -1784,7 +1784,7 @@ void sample_occ(Render *re, ShadeInput *shi)
 					sample->intensity= MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
 					sample->intensity= MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
 					sample->intensity= MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
-					sample->dist2= INPR(shi->dxco, shi->dxco) + INPR(shi->dyco, shi->dyco);
+					sample->dist2= dot_v3v3(shi->dxco, shi->dxco) + dot_v3v3(shi->dyco, shi->dyco);
 					sample->filled= 1;
 				}
 			}
@@ -1879,7 +1879,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				sample->intensity= MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
 				sample->intensity= MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
 				sample->intensity= MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
-				sample->dist2= INPR(shi->dxco, shi->dxco) + INPR(shi->dyco, shi->dyco);
+				sample->dist2= dot_v3v3(shi->dxco, shi->dxco) + dot_v3v3(shi->dyco, shi->dyco);
 				sample->x= shi->xs;
 				sample->y= shi->ys;
 				sample->filled= 1;

@@ -64,9 +64,9 @@ static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStac
 	
 	/* input no image? then only vector op */
 	if(in[0]->data==NULL) {
-		VECCOPY(out[0]->vec, nor);
+		copy_v3_v3(out[0]->vec, nor);
 		/* render normals point inside... the widget points outside */
-		out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
+		out[1]->vec[0]= -dot_v3v3(out[0]->vec, in[0]->vec);
 	}
 	else if(out[1]->hasoutput) {
 		/* make output size of input image */

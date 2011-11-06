@@ -555,7 +555,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 			if(falloff == 0.0f)
 				break;
 
-			VECADDFAC(temp, efd->vec_to_point, efd->nor, -fac);
+			madd_v3_v3v3fl(temp, efd->vec_to_point, efd->nor, -fac);
 			r_fac= len_v3(temp);
 			falloff*= falloff_func_rad(eff->pd, r_fac);
 			break;
@@ -573,7 +573,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 	return falloff;
 }
 
-int closest_point_on_surface(SurfaceModifierData *surmd, float *co, float *surface_co, float *surface_nor, float *surface_vel)
+int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], float surface_co[3], float surface_nor[3], float surface_vel[3])
 {
 	BVHTreeNearest nearest;
 
@@ -797,7 +797,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 
 	if(eff->pd->flag & PFIELD_TEX_2D) {
 		float fac=-dot_v3v3(tex_co, efd->nor);
-		VECADDFAC(tex_co, tex_co, efd->nor, fac);
+		madd_v3_v3fl(tex_co, efd->nor, fac);
 	}
 
 	if(eff->pd->flag & PFIELD_TEX_OBJECT) {
@@ -848,7 +848,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 
 	if(eff->pd->flag & PFIELD_TEX_2D){
 		float fac = -dot_v3v3(force, efd->nor);
-		VECADDFAC(force, force, efd->nor, fac);
+		madd_v3_v3fl(force, efd->nor, fac);
 	}
 
 	add_v3_v3(total_force, force);
@@ -897,7 +897,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 				cross_v3_v3v3(force, efd->nor2, temp);
 				mul_v3_fl(force, strength * efd->falloff);
 				
-				VECADDFAC(temp, temp, point->vel, -point->vel_to_sec);
+				madd_v3_v3fl(temp, point->vel, -point->vel_to_sec);
 				add_v3_v3(force, temp);
 			}
 			break;
@@ -940,7 +940,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 				copy_v3_v3(temp, point->loc);
 			}
 			else {
-				VECADD(temp, efd->vec_to_point2, efd->nor2);
+				add_v3_v3v3(temp, efd->vec_to_point2, efd->nor2);
 			}
 			force[0] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[0], temp[1], temp[2], 2,0,2);
 			force[1] = -1.0f + 2.0f * BLI_gTurbulence(pd->f_size, temp[1], temp[2], temp[0], 2,0,2);
@@ -959,10 +959,10 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 	}
 
 	if(pd->flag & PFIELD_DO_LOCATION) {
-		VECADDFAC(total_force, total_force, force, 1.0f/point->vel_to_sec);
+		madd_v3_v3fl(total_force, force, 1.0f/point->vel_to_sec);
 
 		if(ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG)==0 && pd->f_flow != 0.0f) {
-			VECADDFAC(total_force, total_force, point->vel, -pd->f_flow * efd->falloff);
+			madd_v3_v3fl(total_force, point->vel, -pd->f_flow * efd->falloff);
 		}
 	}
 
@@ -972,7 +972,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 		mul_qt_v3(point->rot, xvec);
 		cross_v3_v3v3(dave, xvec, force);
 		if(pd->f_flow != 0.0f) {
-			VECADDFAC(dave, dave, point->ave, -pd->f_flow * efd->falloff);
+			madd_v3_v3fl(dave, point->ave, -pd->f_flow * efd->falloff);
 		}
 		add_v3_v3(point->ave, dave);
 	}
@@ -1038,14 +1038,14 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 					
 					// for softbody backward compatibility
 					if(point->flag & PE_WIND_AS_SPEED && impulse){
-						VECSUB(temp2, force, temp1);
-						VECSUB(impulse, impulse, temp2);
+						sub_v3_v3v3(temp2, force, temp1);
+						sub_v3_v3v3(impulse, impulse, temp2);
 					}
 				}
 			}
 			else if(eff->flag & PE_VELOCITY_TO_IMPULSE && impulse) {
 				/* special case for harmonic effector */
-				VECADD(impulse, impulse, efd.vel);
+				add_v3_v3v3(impulse, impulse, efd.vel);
 			}
 		}
 	}

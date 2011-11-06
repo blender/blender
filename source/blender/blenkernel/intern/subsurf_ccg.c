@@ -668,7 +668,7 @@ static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float co_r[3])
 	MVert mvert;
 
 	ccgDM_getFinalVert(dm, vertNum, &mvert);
-	VECCOPY(co_r, mvert.co);
+	copy_v3_v3(co_r, mvert.co);
 }
 
 static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float no_r[3])

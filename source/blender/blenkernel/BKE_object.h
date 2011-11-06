@@ -87,7 +87,6 @@ void set_mblur_offs(float blur);
 void set_field_offs(float field);
 void disable_speed_curve(int val);
 
-float bsystem_time(struct Scene *scene, struct Object *ob, float cfra, float ofs);
 void object_scale_to_mat3(struct Object *ob, float mat[][3]);
 void object_rot_to_mat3(struct Object *ob, float mat[][3]);
 void object_mat3_to_rot(struct Object *ob, float mat[][3], short use_compat);
@@ -109,7 +108,7 @@ struct BoundBox *object_get_boundbox(struct Object *ob);
 void object_get_dimensions(struct Object *ob, float *value);
 void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
-void minmax_object(struct Object *ob, float *min, float *max);
+void minmax_object(struct Object *ob, float min[3], float max[3]);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
@@ -120,7 +119,6 @@ void object_tfm_restore(struct Object *ob, void *obtfm_pt);
 void object_handle_update(struct Scene *scene, struct Object *ob);
 void object_sculpt_modifiers_changed(struct Object *ob);
 
-float give_timeoffset(struct Object *ob);
 int give_obdata_texspace(struct Object *ob, short **texflag, float **loc, float **size, float **rot);
 
 int object_insert_ptcache(struct Object *ob);

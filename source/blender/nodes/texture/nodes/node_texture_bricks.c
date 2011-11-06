@@ -107,9 +107,9 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	if( ins_x < mortar_thickness || ins_y < mortar_thickness ||
 		ins_x > (brick_width - mortar_thickness) ||
 		ins_y > (row_height - mortar_thickness) ) {
-		QUATCOPY( out, mortar );
+		copy_v4_v4( out, mortar );
 	} else {
-		QUATCOPY( out, bricks1 );
+		copy_v4_v4( out, bricks1 );
 		ramp_blend( MA_RAMP_BLEND, out, out+1, out+2, tint, bricks2 );
 	}
 }

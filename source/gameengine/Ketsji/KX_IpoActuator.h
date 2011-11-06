@@ -37,7 +37,7 @@
 
 class KX_IpoActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 private:
 	/** Computes the IPO start time from the current time
 	    and the current frame. */

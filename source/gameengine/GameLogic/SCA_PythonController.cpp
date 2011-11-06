@@ -164,7 +164,7 @@ void SCA_PythonController::SetNamespace(PyObject*	pythondictionary)
 	
 	/* Without __file__ set the sys.argv[0] is used for the filename
 	 * which ends up with lines from the blender binary being printed in the console */
-	PyDict_SetItemString(m_pythondictionary, "__file__", PyUnicode_FromString(m_scriptName.Ptr()));
+	PyDict_SetItemString(m_pythondictionary, "__file__", PyUnicode_From_STR_String(m_scriptName));
 	
 }
 #endif
@@ -490,7 +490,7 @@ PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRI
 	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)
 
 	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
-	return PyUnicode_FromString(self->m_scriptText);
+	return PyUnicode_From_STR_String(self->m_scriptText);
 }
 
 

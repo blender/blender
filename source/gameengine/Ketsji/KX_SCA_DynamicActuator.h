@@ -42,7 +42,7 @@
 
 class KX_SCA_DynamicActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	// dynamics operation to apply to the game object
 	short m_dyn_operation;

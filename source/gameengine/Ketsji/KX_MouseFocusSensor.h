@@ -47,7 +47,7 @@ class KX_RayCast;
 class KX_MouseFocusSensor : public SCA_MouseSensor
 {
 
-	Py_Header;
+	Py_Header
 	
  public:
 	

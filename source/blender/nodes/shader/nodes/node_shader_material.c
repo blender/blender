@@ -148,13 +148,13 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		/* write to outputs */
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
-			VECCOPY(col, shrnode.combined);
+			copy_v3_v3(col, shrnode.combined);
 			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
 				sub_v3_v3(col, shrnode.spec);
 			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {
-			VECCOPY(col, shrnode.spec);
+			copy_v3_v3(col, shrnode.spec);
 		}
 		else
 			col[0]= col[1]= col[2]= 0.0f;
@@ -164,7 +164,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		if(shi->do_preview)
 			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 		
-		VECCOPY(out[MAT_OUT_COLOR]->vec, col);
+		copy_v3_v3(out[MAT_OUT_COLOR]->vec, col);
 		out[MAT_OUT_ALPHA]->vec[0]= shrnode.alpha;
 		
 		if(node->custom1 & SH_NODE_MAT_NEG) {
@@ -173,15 +173,15 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			shi->vn[2]= -shi->vn[2];
 		}
 		
-		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
+		copy_v3_v3(out[MAT_OUT_NORMAL]->vec, shi->vn);
 		
 		/* Extended material options */
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			/* Shadow, Reflect, Refract, Radiosity, Speed seem to cause problems inside
 			 * a node tree :( */
-			VECCOPY(out[MAT_OUT_DIFFUSE]->vec, shrnode.diff);
-			VECCOPY(out[MAT_OUT_SPEC]->vec, shrnode.spec);
-			VECCOPY(out[MAT_OUT_AO]->vec, shrnode.ao);
+			copy_v3_v3(out[MAT_OUT_DIFFUSE]->vec, shrnode.diff);
+			copy_v3_v3(out[MAT_OUT_SPEC]->vec, shrnode.spec);
+			copy_v3_v3(out[MAT_OUT_AO]->vec, shrnode.ao);
 		}
 		
 		/* copy passes, now just active node */
