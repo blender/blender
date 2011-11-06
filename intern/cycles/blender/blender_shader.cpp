@@ -191,8 +191,8 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new FresnelNode();
 			break;
 		}
-		case BL::ShaderNode::type_BLEND_WEIGHT: {
-			node = new BlendWeightNode();
+		case BL::ShaderNode::type_LAYER_WEIGHT: {
+			node = new LayerWeightNode();
 			break;
 		}
 		case BL::ShaderNode::type_ADD_SHADER: {
@@ -316,26 +316,17 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = env;
 			break;
 		}
-		case BL::ShaderNode::type_TEX_NOISE: {
-			BL::ShaderNodeTexNoise b_noise_node(b_node);
-			NoiseTextureNode *noise = new NoiseTextureNode();
-			get_tex_mapping(&noise->tex_mapping, b_noise_node.texture_mapping());
-			node = noise;
-			break;
-		}
-		case BL::ShaderNode::type_TEX_BLEND: {
-			BL::ShaderNodeTexBlend b_blend_node(b_node);
-			BlendTextureNode *blend = new BlendTextureNode();
-			blend->progression = BlendTextureNode::progression_enum[(int)b_blend_node.progression()];
-			blend->axis = BlendTextureNode::axis_enum[(int)b_blend_node.axis()];
-			get_tex_mapping(&blend->tex_mapping, b_blend_node.texture_mapping());
-			node = blend;
+		case BL::ShaderNode::type_TEX_GRADIENT: {
+			BL::ShaderNodeTexGradient b_gradient_node(b_node);
+			GradientTextureNode *gradient = new GradientTextureNode();
+			gradient->type = GradientTextureNode::type_enum[(int)b_gradient_node.gradient_type()];
+			get_tex_mapping(&gradient->tex_mapping, b_gradient_node.texture_mapping());
+			node = gradient;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_VORONOI: {
 			BL::ShaderNodeTexVoronoi b_voronoi_node(b_node);
 			VoronoiTextureNode *voronoi = new VoronoiTextureNode();
-			voronoi->distance_metric = VoronoiTextureNode::distance_metric_enum[(int)b_voronoi_node.distance_metric()];
 			voronoi->coloring = VoronoiTextureNode::coloring_enum[(int)b_voronoi_node.coloring()];
 			get_tex_mapping(&voronoi->tex_mapping, b_voronoi_node.texture_mapping());
 			node = voronoi;
@@ -349,65 +340,27 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = magic;
 			break;
 		}
-		case BL::ShaderNode::type_TEX_MARBLE: {
-			BL::ShaderNodeTexMarble b_marble_node(b_node);
-			MarbleTextureNode *marble = new MarbleTextureNode();
-			marble->depth = b_marble_node.turbulence_depth();
-			marble->basis = MarbleTextureNode::basis_enum[(int)b_marble_node.noise_basis()];
-			marble->type = MarbleTextureNode::type_enum[(int)b_marble_node.marble_type()];
-			marble->wave = MarbleTextureNode::wave_enum[(int)b_marble_node.wave_type()];
-			marble->hard = b_marble_node.noise_type() == BL::ShaderNodeTexMarble::noise_type_HARD;
-			get_tex_mapping(&marble->tex_mapping, b_marble_node.texture_mapping());
-			node = marble;
+		case BL::ShaderNode::type_TEX_WAVE: {
+			BL::ShaderNodeTexWave b_wave_node(b_node);
+			WaveTextureNode *wave = new WaveTextureNode();
+			wave->type = WaveTextureNode::type_enum[(int)b_wave_node.wave_type()];
+			get_tex_mapping(&wave->tex_mapping, b_wave_node.texture_mapping());
+			node = wave;
 			break;
 		}
-		case BL::ShaderNode::type_TEX_CLOUDS: {
-			BL::ShaderNodeTexClouds b_clouds_node(b_node);
-			CloudsTextureNode *clouds = new CloudsTextureNode();
-			clouds->depth = b_clouds_node.turbulence_depth();
-			clouds->basis = CloudsTextureNode::basis_enum[(int)b_clouds_node.noise_basis()];
-			clouds->hard = b_clouds_node.noise_type() == BL::ShaderNodeTexClouds::noise_type_HARD;
-			get_tex_mapping(&clouds->tex_mapping, b_clouds_node.texture_mapping());
-			node = clouds;
-			break;
-		}
-		case BL::ShaderNode::type_TEX_WOOD: {
-			BL::ShaderNodeTexWood b_wood_node(b_node);
-			WoodTextureNode *wood = new WoodTextureNode();
-			wood->type = WoodTextureNode::type_enum[(int)b_wood_node.wood_type()];
-			wood->basis = WoodTextureNode::basis_enum[(int)b_wood_node.noise_basis()];
-			wood->hard = b_wood_node.noise_type() == BL::ShaderNodeTexWood::noise_type_HARD;
-			wood->wave = WoodTextureNode::wave_enum[(int)b_wood_node.wave_type()];
-			get_tex_mapping(&wood->tex_mapping, b_wood_node.texture_mapping());
-			node = wood;
+		case BL::ShaderNode::type_TEX_NOISE: {
+			BL::ShaderNodeTexNoise b_noise_node(b_node);
+			NoiseTextureNode *noise = new NoiseTextureNode();
+			get_tex_mapping(&noise->tex_mapping, b_noise_node.texture_mapping());
+			node = noise;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_MUSGRAVE: {
 			BL::ShaderNodeTexMusgrave b_musgrave_node(b_node);
 			MusgraveTextureNode *musgrave = new MusgraveTextureNode();
 			musgrave->type = MusgraveTextureNode::type_enum[(int)b_musgrave_node.musgrave_type()];
-			musgrave->basis = MusgraveTextureNode::basis_enum[(int)b_musgrave_node.noise_basis()];
 			get_tex_mapping(&musgrave->tex_mapping, b_musgrave_node.texture_mapping());
 			node = musgrave;
-			break;
-		}
-		case BL::ShaderNode::type_TEX_STUCCI: {
-			BL::ShaderNodeTexStucci b_stucci_node(b_node);
-			StucciTextureNode *stucci = new StucciTextureNode();
-			stucci->type = StucciTextureNode::type_enum[(int)b_stucci_node.stucci_type()];
-			stucci->basis = StucciTextureNode::basis_enum[(int)b_stucci_node.noise_basis()];
-			stucci->hard = b_stucci_node.noise_type() == BL::ShaderNodeTexStucci::noise_type_HARD;
-			get_tex_mapping(&stucci->tex_mapping, b_stucci_node.texture_mapping());
-			node = stucci;
-			break;
-		}
-		case BL::ShaderNode::type_TEX_DISTORTED_NOISE: {
-			BL::ShaderNodeTexDistortedNoise b_distnoise_node(b_node);
-			DistortedNoiseTextureNode *distnoise = new DistortedNoiseTextureNode();
-			distnoise->basis = DistortedNoiseTextureNode::basis_enum[(int)b_distnoise_node.noise_basis()];
-			distnoise->distortion_basis = DistortedNoiseTextureNode::basis_enum[(int)b_distnoise_node.noise_distortion()];
-			get_tex_mapping(&distnoise->tex_mapping, b_distnoise_node.texture_mapping());
-			node = distnoise;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_COORD: {

@@ -97,41 +97,25 @@ public:
 	SHADER_NODE_CLASS(OutputNode)
 };
 
+class GradientTextureNode : public TextureNode {
+public:
+	SHADER_NODE_CLASS(GradientTextureNode)
+
+	ustring type;
+	static ShaderEnum type_enum;
+};
+
 class NoiseTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(NoiseTextureNode)
-};
-
-class BlendTextureNode : public TextureNode {
-public:
-	SHADER_NODE_CLASS(BlendTextureNode)
-
-	ustring progression;
-	ustring axis;
-
-	static ShaderEnum progression_enum;
-	static ShaderEnum axis_enum;
-};
-
-class CloudsTextureNode : public TextureNode {
-public:
-	SHADER_NODE_CLASS(CloudsTextureNode)
-
-	bool hard;
-	int depth;
-	ustring basis;
-
-	static ShaderEnum basis_enum;
 };
 
 class VoronoiTextureNode : public TextureNode {
 public:
 	SHADER_NODE_CLASS(VoronoiTextureNode)
 
-	ustring distance_metric;
 	ustring coloring;
 
-	static ShaderEnum distance_metric_enum;
 	static ShaderEnum coloring_enum;
 };
 
@@ -140,25 +124,16 @@ public:
 	SHADER_NODE_CLASS(MusgraveTextureNode)
 
 	ustring type;
-	ustring basis;
 
 	static ShaderEnum type_enum;
-	static ShaderEnum basis_enum;
 };
 
-class MarbleTextureNode : public TextureNode {
+class WaveTextureNode : public TextureNode {
 public:
-	SHADER_NODE_CLASS(MarbleTextureNode)
+	SHADER_NODE_CLASS(WaveTextureNode)
 
 	ustring type;
-	ustring wave;
-	ustring basis;
-	bool hard;
-	int depth;
-
 	static ShaderEnum type_enum;
-	static ShaderEnum wave_enum;
-	static ShaderEnum basis_enum;
 };
 
 class MagicTextureNode : public TextureNode {
@@ -166,41 +141,6 @@ public:
 	SHADER_NODE_CLASS(MagicTextureNode)
 
 	int depth;
-};
-
-class StucciTextureNode : public TextureNode {
-public:
-	SHADER_NODE_CLASS(StucciTextureNode)
-
-	ustring type;
-	ustring basis;
-	bool hard;
-
-	static ShaderEnum type_enum;
-	static ShaderEnum basis_enum;
-};
-
-class DistortedNoiseTextureNode : public TextureNode {
-public:
-	SHADER_NODE_CLASS(DistortedNoiseTextureNode)
-
-	ustring basis;
-	ustring distortion_basis;
-	static ShaderEnum basis_enum;
-};
-
-class WoodTextureNode : public TextureNode {
-public:
-	SHADER_NODE_CLASS(WoodTextureNode)
-
-	ustring type;
-	ustring wave;
-	ustring basis;
-	bool hard;
-
-	static ShaderEnum type_enum;
-	static ShaderEnum wave_enum;
-	static ShaderEnum basis_enum;
 };
 
 class MappingNode : public ShaderNode {
@@ -365,9 +305,9 @@ public:
 	SHADER_NODE_CLASS(FresnelNode)
 };
 
-class BlendWeightNode : public ShaderNode {
+class LayerWeightNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(BlendWeightNode)
+	SHADER_NODE_CLASS(LayerWeightNode)
 };
 
 class MathNode : public ShaderNode {

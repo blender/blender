@@ -444,14 +444,17 @@ MINLINE float noise_wave(int wave, float a)
 
 /* Turbulence */
 
-MINLINE float noise_turbulence(float p[3], int basis, int octaves, int hard)
+MINLINE float noise_turbulence(float p[3], int basis, float octaves, int hard)
 {
 	float fscale = 1.0f;
 	float amp = 1.0f;
 	float sum = 0.0f;
-	int i;
+	float rmd;
+	int i, n;
 
-	for(i = 0; i <= octaves; i++) {
+	octaves = CLAMPIS(octaves, 0.0f, 16.0f);
+
+	for(i = 0; i <= (int)octaves; i++) {
 		float pscale[3] = {fscale*p[0], fscale*p[1], fscale*p[2]};
 		float t = noise_basis(pscale, basis);
 
@@ -463,7 +466,28 @@ MINLINE float noise_turbulence(float p[3], int basis, int octaves, int hard)
 		fscale *= 2.0f;
 	}
 
-	sum *= ((float)(1 << octaves)/(float)((1 << (octaves+1)) - 1));
+	rmd = octaves - floor(octaves);
+
+	if(rmd != 0.0f) {
+		float pscale[3] = {fscale*p[0], fscale*p[1], fscale*p[2]};
+		float t = noise_basis(pscale, basis);
+		float sum2;
+
+		if(hard)
+			t = fabsf(2.0f*t - 1.0f);
+
+		sum2 = sum + t*amp;
+
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		sum2 *= ((float)(1 << (n+1))/(float)((1 << (n+2)) - 1));
+
+		return (1.0f - rmd)*sum + rmd*sum2;
+	}
+	else {
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		return sum;
+	}
+
 
 	return sum;
 }

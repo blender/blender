@@ -135,7 +135,7 @@ set(SRC
 	shader/nodes/node_shader_bsdf_velvet.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
-	shader/nodes/node_shader_blend_weight.c
+	shader/nodes/node_shader_layer_weight.c
 	shader/nodes/node_shader_geometry.c
 	shader/nodes/node_shader_holdout.c
 	shader/nodes/node_shader_volume_transparent.c
@@ -147,20 +147,16 @@ set(SRC
 	shader/nodes/node_shader_output_material.c
 	shader/nodes/node_shader_output_texture.c
 	shader/nodes/node_shader_output_world.c
-	shader/nodes/node_shader_tex_blend.c
-	shader/nodes/node_shader_tex_clouds.c
+	shader/nodes/node_shader_tex_gradient.c
 	shader/nodes/node_shader_tex_coord.c
-	shader/nodes/node_shader_tex_distnoise.c
-	shader/nodes/node_shader_tex_image.c
 	shader/nodes/node_shader_tex_environment.c
+	shader/nodes/node_shader_tex_image.c
 	shader/nodes/node_shader_tex_magic.c
-	shader/nodes/node_shader_tex_marble.c
 	shader/nodes/node_shader_tex_musgrave.c
 	shader/nodes/node_shader_tex_noise.c
 	shader/nodes/node_shader_tex_sky.c
-	shader/nodes/node_shader_tex_stucci.c
 	shader/nodes/node_shader_tex_voronoi.c
-	shader/nodes/node_shader_tex_wood.c
+	shader/nodes/node_shader_tex_wave.c
 	shader/nodes/node_shader_noise.h
 	shader/node_shader_tree.c
 	shader/node_shader_util.c

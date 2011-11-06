@@ -2091,7 +2091,7 @@ static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 				if(strcmp(sock->name, "Fresnel") == 0) {
 					bNodeSocket *osock;
 
-					node->type = SH_NODE_BLEND_WEIGHT;
+					node->type = SH_NODE_LAYER_WEIGHT;
 					strcpy(sock->name, "Blend");
 
 					for(osock=node->outputs.first; osock; osock=osock->next)
@@ -7227,9 +7227,8 @@ static void do_version_ntree_tex_mapping_260(void *UNUSED(data), ID *UNUSED(id),
 			tex_mapping->projz= PROJ_Z;
 		}
 		else if(ELEM7(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_NOISE, SH_NODE_TEX_SKY,
-			SH_NODE_TEX_BLEND, SH_NODE_TEX_VORONOI, SH_NODE_TEX_MAGIC, SH_NODE_TEX_MARBLE) ||
-			ELEM6(node->type, SH_NODE_TEX_CLOUDS, SH_NODE_TEX_WOOD, SH_NODE_TEX_MUSGRAVE,
-			SH_NODE_TEX_STUCCI, SH_NODE_TEX_DISTNOISE, SH_NODE_TEX_ENVIRONMENT)) {
+			SH_NODE_TEX_GRADIENT, SH_NODE_TEX_VORONOI, SH_NODE_TEX_MAGIC, SH_NODE_TEX_WAVE) ||
+			ELEM(node->type, SH_NODE_TEX_MUSGRAVE, SH_NODE_TEX_ENVIRONMENT)) {
 			NodeTexBase *base= node->storage;
 
 			if(node->type == SH_NODE_TEX_NOISE)

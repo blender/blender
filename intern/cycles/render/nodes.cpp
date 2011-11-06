@@ -353,45 +353,9 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_sky_texture");
 }
 
-/* Noise Texture */
+/* Gradient Texture */
 
-NoiseTextureNode::NoiseTextureNode()
-: TextureNode("noise_texture")
-{
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-	add_output("Color", SHADER_SOCKET_COLOR);
-	add_output("Fac", SHADER_SOCKET_FLOAT);
-}
-
-void NoiseTextureNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *vector_in = input("Vector");
-	ShaderOutput *color_out = output("Color");
-	ShaderOutput *fac_out = output("Fac");
-
-	if(!color_out->links.empty() || !fac_out->links.empty())
-		if(!tex_mapping.skip())
-			tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
-
-	if(!color_out->links.empty()) {
-		compiler.stack_assign(color_out);
-		compiler.add_node(NODE_TEX_NOISE_V, vector_in->stack_offset, color_out->stack_offset);
-	}
-
-	if(!fac_out->links.empty()) {
-		compiler.stack_assign(fac_out);
-		compiler.add_node(NODE_TEX_NOISE_F, vector_in->stack_offset, fac_out->stack_offset);
-	}
-}
-
-void NoiseTextureNode::compile(OSLCompiler& compiler)
-{
-	compiler.add(this, "node_noise_texture");
-}
-
-/* Blend Texture */
-
-static ShaderEnum blend_progression_init()
+static ShaderEnum gradient_type_init()
 {
 	ShaderEnum enm;
 
@@ -406,160 +370,114 @@ static ShaderEnum blend_progression_init()
 	return enm;
 }
 
-static ShaderEnum blend_axis_init()
+ShaderEnum GradientTextureNode::type_enum = gradient_type_init();
+
+GradientTextureNode::GradientTextureNode()
+: TextureNode("gradient_texture")
 {
-	ShaderEnum enm;
-
-	enm.insert("Horizontal", NODE_BLEND_HORIZONTAL);
-	enm.insert("Vertical", NODE_BLEND_VERTICAL);
-
-	return enm;
-}
-
-ShaderEnum BlendTextureNode::progression_enum = blend_progression_init();
-ShaderEnum BlendTextureNode::axis_enum = blend_axis_init();
-
-BlendTextureNode::BlendTextureNode()
-: TextureNode("blend_texture")
-{
-	progression = ustring("Linear");
-	axis = ustring("Horizontal");
+	type = ustring("Linear");
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-	add_output("Fac", SHADER_SOCKET_FLOAT);
-}
-
-void BlendTextureNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *vector_in = input("Vector");
-	ShaderOutput *fac_out = output("Fac");
-
-	if(vector_in->link) compiler.stack_assign(vector_in);
-
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
-
-	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_TEX_BLEND,
-		compiler.encode_uchar4(progression_enum[progression], axis_enum[axis]),
-		vector_in->stack_offset, fac_out->stack_offset);
-}
-
-void BlendTextureNode::compile(OSLCompiler& compiler)
-{
-	compiler.parameter("Progression", progression);
-	compiler.parameter("Axis", axis);
-	compiler.add(this, "node_blend_texture");
-}
-
-/* Clouds Texture */
-
-static ShaderEnum noise_basis_init()
-{
-	ShaderEnum enm;
-
-	enm.insert("Perlin", NODE_NOISE_PERLIN);
-	enm.insert("Voronoi F1", NODE_NOISE_VORONOI_F1);
-	enm.insert("Voronoi F2", NODE_NOISE_VORONOI_F2);
-	enm.insert("Voronoi F3", NODE_NOISE_VORONOI_F3);
-	enm.insert("Voronoi F4", NODE_NOISE_VORONOI_F4);
-	enm.insert("Voronoi F2-F1", NODE_NOISE_VORONOI_F2_F1);
-	enm.insert("Voronoi Crackle", NODE_NOISE_VORONOI_CRACKLE);
-	enm.insert("Cell Noise", NODE_NOISE_CELL_NOISE);
-
-	return enm;
-}
-
-ShaderEnum CloudsTextureNode::basis_enum = noise_basis_init();
-
-CloudsTextureNode::CloudsTextureNode()
-: TextureNode("clouds_texture")
-{
-	basis = ustring("Perlin");
-	hard = false;
-	depth = 2;
-
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-
 	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
 
-void CloudsTextureNode::compile(SVMCompiler& compiler)
+void GradientTextureNode::compile(SVMCompiler& compiler)
 {
-	ShaderInput *size_in = input("Size");
 	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
 
 	if(vector_in->link) compiler.stack_assign(vector_in);
-	if(size_in->link) compiler.stack_assign(size_in);
 
 	if(!tex_mapping.skip())
 		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
 
-	compiler.stack_assign(color_out);
-	compiler.stack_assign(fac_out);
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
 
-	compiler.add_node(NODE_TEX_CLOUDS,
-		compiler.encode_uchar4(basis_enum[basis], hard, depth),
-		compiler.encode_uchar4(size_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset),
-		__float_as_int(size_in->value.x));
+	compiler.add_node(NODE_TEX_GRADIENT,
+		compiler.encode_uchar4(type_enum[type], vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset));
 }
 
-void CloudsTextureNode::compile(OSLCompiler& compiler)
+void GradientTextureNode::compile(OSLCompiler& compiler)
 {
-	compiler.parameter("Hard", (hard)? 1: 0);
-	compiler.parameter("Depth", depth);
-	compiler.parameter("Basis", basis);
-	compiler.add(this, "node_clouds_texture");
+	compiler.parameter("Type", type);
+	compiler.add(this, "node_gradient_texture");
+}
+
+/* Noise Texture */
+
+NoiseTextureNode::NoiseTextureNode()
+: TextureNode("noise_texture")
+{
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
+	add_input("Scale", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Detail", SHADER_SOCKET_FLOAT, 2.0f);
+	add_input("Distortion", SHADER_SOCKET_FLOAT, 0.0f);
+
+	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Fac", SHADER_SOCKET_FLOAT);
+}
+
+void NoiseTextureNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *distortion_in = input("Distortion");
+	ShaderInput *detail_in = input("Detail");
+	ShaderInput *scale_in = input("Scale");
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *color_out = output("Color");
+	ShaderOutput *fac_out = output("Fac");
+
+	if(vector_in->link) compiler.stack_assign(vector_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
+	if(detail_in->link) compiler.stack_assign(detail_in);
+	if(distortion_in->link) compiler.stack_assign(distortion_in);
+
+	if(!tex_mapping.skip())
+		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
+
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_TEX_NOISE,
+		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset),
+		compiler.encode_uchar4(color_out->stack_offset, fac_out->stack_offset));
+	compiler.add_node(
+		__float_as_int(scale_in->value.x),
+		__float_as_int(detail_in->value.x),
+		__float_as_int(distortion_in->value.x));
+}
+
+void NoiseTextureNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_noise_texture");
 }
 
 /* Voronoi Texture */
-
-static ShaderEnum distance_metric_init()
-{
-	ShaderEnum enm;
-
-	enm.insert("Distance Squared", NODE_VORONOI_DISTANCE_SQUARED);
-	enm.insert("Actual Distance", NODE_VORONOI_ACTUAL_DISTANCE);
-	enm.insert("Manhattan", NODE_VORONOI_MANHATTAN);
-	enm.insert("Chebychev", NODE_VORONOI_CHEBYCHEV);
-	enm.insert("Minkovsky 1/2", NODE_VORONOI_MINKOVSKY_H);
-	enm.insert("Minkovsky 4", NODE_VORONOI_MINKOVSKY_4);
-	enm.insert("Minkovsky", NODE_VORONOI_MINKOVSKY);
-
-	return enm;
-}
 
 static ShaderEnum voronoi_coloring_init()
 {
 	ShaderEnum enm;
 
 	enm.insert("Intensity", NODE_VORONOI_INTENSITY);
-	enm.insert("Position", NODE_VORONOI_POSITION);
-	enm.insert("Position and Outline", NODE_VORONOI_POSITION_OUTLINE);
-	enm.insert("Position, Outline, and Intensity", NODE_VORONOI_POSITION_OUTLINE_INTENSITY);
+	enm.insert("Cells", NODE_VORONOI_CELLS);
 
 	return enm;
 }
 
-ShaderEnum VoronoiTextureNode::distance_metric_enum  = distance_metric_init();
 ShaderEnum VoronoiTextureNode::coloring_enum  = voronoi_coloring_init();
 
 VoronoiTextureNode::VoronoiTextureNode()
 : TextureNode("voronoi_texture")
 {
-	distance_metric = ustring("Actual Distance");
 	coloring = ustring("Intensity");
 
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Weight1", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Weight2", SHADER_SOCKET_FLOAT, 0.0f);
-	add_input("Weight3", SHADER_SOCKET_FLOAT, 0.0f);
-	add_input("Weight4", SHADER_SOCKET_FLOAT, 0.0f);
-	add_input("Exponent", SHADER_SOCKET_FLOAT, 2.5f);
+	add_input("Scale", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -568,23 +486,13 @@ VoronoiTextureNode::VoronoiTextureNode()
 
 void VoronoiTextureNode::compile(SVMCompiler& compiler)
 {
-	ShaderInput *weight1_in = input("Weight1");
-	ShaderInput *weight2_in = input("Weight2");
-	ShaderInput *weight3_in = input("Weight3");
-	ShaderInput *weight4_in = input("Weight4");
-	ShaderInput *exponent_in = input("Exponent");
-	ShaderInput *size_in = input("Size");
+	ShaderInput *scale_in = input("Scale");
 	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
 
-	if(weight1_in->link) compiler.stack_assign(weight1_in);
-	if(weight2_in->link) compiler.stack_assign(weight2_in);
-	if(weight3_in->link) compiler.stack_assign(weight3_in);
-	if(weight4_in->link) compiler.stack_assign(weight4_in);
-	if(exponent_in->link) compiler.stack_assign(exponent_in);
 	if(vector_in->link) compiler.stack_assign(vector_in);
-	if(size_in->link) compiler.stack_assign(size_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
 
 	if(!tex_mapping.skip())
 		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
@@ -593,20 +501,13 @@ void VoronoiTextureNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(fac_out);
 
 	compiler.add_node(NODE_TEX_VORONOI,
-		compiler.encode_uchar4(distance_metric_enum[distance_metric], coloring_enum[coloring], exponent_in->stack_offset),
-		compiler.encode_uchar4(size_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset),
-		compiler.encode_uchar4(weight1_in->stack_offset, weight2_in->stack_offset, weight3_in->stack_offset, weight4_in->stack_offset));
-	compiler.add_node(__float_as_int(weight1_in->value.x),
-		__float_as_int(weight2_in->value.x),
-		__float_as_int(weight3_in->value.x),
-		__float_as_int(weight4_in->value.x));
-	compiler.add_node(__float_as_int(exponent_in->value.x),
-		__float_as_int(size_in->value.x));
+		coloring_enum[coloring],
+		compiler.encode_uchar4(scale_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset, color_out->stack_offset),
+		__float_as_int(scale_in->value.x));
 }
 
 void VoronoiTextureNode::compile(OSLCompiler& compiler)
 {
-	compiler.parameter("DistanceMetric", distance_metric);
 	compiler.parameter("Coloring", coloring);
 	compiler.add(this, "node_voronoi_texture");
 }
@@ -627,141 +528,138 @@ static ShaderEnum musgrave_type_init()
 }
 
 ShaderEnum MusgraveTextureNode::type_enum = musgrave_type_init();
-ShaderEnum MusgraveTextureNode::basis_enum = noise_basis_init();
 
 MusgraveTextureNode::MusgraveTextureNode()
 : TextureNode("musgrave_texture")
 {
 	type = ustring("fBM");
-	basis = ustring("Perlin");
 
+	add_input("Scale", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Detail", SHADER_SOCKET_FLOAT, 2.0f);
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 	add_input("Dimension", SHADER_SOCKET_FLOAT, 2.0f);
 	add_input("Lacunarity", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Octaves", SHADER_SOCKET_FLOAT, 2.0f);
 	add_input("Offset", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("Gain", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
 	add_output("Fac", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
 }
 
 void MusgraveTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
+	ShaderInput *scale_in = input("Scale");
 	ShaderInput *dimension_in = input("Dimension");
 	ShaderInput *lacunarity_in = input("Lacunarity");
-	ShaderInput *octaves_in = input("Octaves");
+	ShaderInput *detail_in = input("Detail");
 	ShaderInput *offset_in = input("Offset");
 	ShaderInput *gain_in = input("Gain");
-	ShaderInput *size_in = input("Size");
 	ShaderOutput *fac_out = output("Fac");
+	ShaderOutput *color_out = output("Color");
 
 	if(vector_in->link) compiler.stack_assign(vector_in);
 	if(dimension_in->link) compiler.stack_assign(dimension_in);
 	if(lacunarity_in->link) compiler.stack_assign(lacunarity_in);
-	if(octaves_in->link) compiler.stack_assign(octaves_in);
+	if(detail_in->link) compiler.stack_assign(detail_in);
 	if(offset_in->link) compiler.stack_assign(offset_in);
 	if(gain_in->link) compiler.stack_assign(gain_in);
-	if(size_in->link) compiler.stack_assign(size_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
 
 	if(!tex_mapping.skip())
 		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
 
-	compiler.stack_assign(fac_out);
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+
 	compiler.add_node(NODE_TEX_MUSGRAVE,
-		compiler.encode_uchar4(type_enum[type], basis_enum[basis], vector_in->stack_offset, fac_out->stack_offset),
-		compiler.encode_uchar4(dimension_in->stack_offset, lacunarity_in->stack_offset, octaves_in->stack_offset, offset_in->stack_offset),
-		compiler.encode_uchar4(gain_in->stack_offset, size_in->stack_offset));
+		compiler.encode_uchar4(type_enum[type], vector_in->stack_offset, color_out->stack_offset, fac_out->stack_offset),
+		compiler.encode_uchar4(dimension_in->stack_offset, lacunarity_in->stack_offset, detail_in->stack_offset, offset_in->stack_offset),
+		compiler.encode_uchar4(gain_in->stack_offset, scale_in->stack_offset));
 	compiler.add_node(__float_as_int(dimension_in->value.x),
 		__float_as_int(lacunarity_in->value.x),
-		__float_as_int(octaves_in->value.x),
+		__float_as_int(detail_in->value.x),
 		__float_as_int(offset_in->value.x));
 	compiler.add_node(__float_as_int(gain_in->value.x),
-		__float_as_int(size_in->value.x));
+		__float_as_int(scale_in->value.x));
 }
 
 void MusgraveTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("Type", type);
-	compiler.parameter("Basis", basis);
 
 	compiler.add(this, "node_musgrave_texture");
 }
 
-/* Marble Texture */
+/* Wave Texture */
 
-static ShaderEnum marble_type_init()
+static ShaderEnum wave_type_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Soft", NODE_MARBLE_SOFT);
-	enm.insert("Sharp", NODE_MARBLE_SHARP);
-	enm.insert("Sharper", NODE_MARBLE_SHARPER);
+	enm.insert("Bands", NODE_WAVE_BANDS);
+	enm.insert("Rings", NODE_WAVE_RINGS);
 
 	return enm;
 }
 
-static ShaderEnum noise_wave_init()
-{
-	ShaderEnum enm;
+ShaderEnum WaveTextureNode::type_enum = wave_type_init();
 
-	enm.insert("Sine", NODE_WAVE_SINE);
-	enm.insert("Saw", NODE_WAVE_SAW);
-	enm.insert("Tri", NODE_WAVE_TRI);
-
-	return enm;
-}
-
-ShaderEnum MarbleTextureNode::type_enum = marble_type_init();
-ShaderEnum MarbleTextureNode::wave_enum = noise_wave_init();
-ShaderEnum MarbleTextureNode::basis_enum = noise_basis_init();
-
-MarbleTextureNode::MarbleTextureNode()
+WaveTextureNode::WaveTextureNode()
 : TextureNode("marble_texture")
 {
-	type = ustring("Soft");
-	wave = ustring("Sine");
-	basis = ustring("Perlin");
-	hard = false;
-	depth = 2;
+	type = ustring("Bands");
 
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
+	add_input("Scale", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Distortion", SHADER_SOCKET_FLOAT, 0.0f);
+	add_input("Detail", SHADER_SOCKET_FLOAT, 2.0f);
+	add_input("Detail Scale", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
 
+	add_output("Color", SHADER_SOCKET_COLOR);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
 
-void MarbleTextureNode::compile(SVMCompiler& compiler)
+void WaveTextureNode::compile(SVMCompiler& compiler)
 {
-	ShaderInput *size_in = input("Size");
-	ShaderInput *turbulence_in = input("Turbulence");
+	ShaderInput *scale_in = input("Scale");
+	ShaderInput *distortion_in = input("Distortion");
+	ShaderInput *dscale_in = input("Detail Scale");
+	ShaderInput *detail_in = input("Detail");
 	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *fac_out = output("Fac");
+	ShaderOutput *color_out = output("Color");
 
-	if(size_in->link) compiler.stack_assign(size_in);
-	if(turbulence_in->link) compiler.stack_assign(turbulence_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
+	if(detail_in->link) compiler.stack_assign(detail_in);
+	if(distortion_in->link) compiler.stack_assign(distortion_in);
+	if(dscale_in->link) compiler.stack_assign(dscale_in);
 	if(vector_in->link) compiler.stack_assign(vector_in);
 
 	if(!tex_mapping.skip())
 		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
 
-	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_TEX_MARBLE,
-		compiler.encode_uchar4(type_enum[type], wave_enum[wave], basis_enum[basis], hard),
-		compiler.encode_uchar4(depth),
-		compiler.encode_uchar4(size_in->stack_offset, turbulence_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset));
-	compiler.add_node(__float_as_int(size_in->value.x), __float_as_int(turbulence_in->value.x));
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_TEX_WAVE,
+		compiler.encode_uchar4(type_enum[type], color_out->stack_offset, fac_out->stack_offset, dscale_in->stack_offset),
+		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset));
+
+	compiler.add_node(
+		__float_as_int(scale_in->value.x),
+		__float_as_int(detail_in->value.x),
+		__float_as_int(distortion_in->value.x),
+		__float_as_int(dscale_in->value.x));
 }
 
-void MarbleTextureNode::compile(OSLCompiler& compiler)
+void WaveTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("Type", type);
-	compiler.parameter("Wave", wave);
-	compiler.parameter("Basis", basis);
-	compiler.parameter("Hard", (hard)? 1: 0);
-	compiler.parameter("Depth", depth);
 
 	compiler.add(this, "node_marble_texture");
 }
@@ -773,205 +671,46 @@ MagicTextureNode::MagicTextureNode()
 {
 	depth = 2;
 
-	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
+	add_input("Scale", SHADER_SOCKET_FLOAT, 5.0f);
+	add_input("Distortion", SHADER_SOCKET_FLOAT, 1.0f);
+
 	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
 
 void MagicTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
-	ShaderInput *turbulence_in = input("Turbulence");
+	ShaderInput *scale_in = input("Scale");
+	ShaderInput *distortion_in = input("Distortion");
 	ShaderOutput *color_out = output("Color");
+	ShaderOutput *fac_out = output("Fac");
 
 	if(vector_in->link) compiler.stack_assign(vector_in);
-	if(turbulence_in->link) compiler.stack_assign(turbulence_in);
+	if(distortion_in->link) compiler.stack_assign(distortion_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
 
 	if(!tex_mapping.skip())
 		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
 
-	compiler.stack_assign(color_out);
+	if(!fac_out->links.empty())
+		compiler.stack_assign(fac_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+
 	compiler.add_node(NODE_TEX_MAGIC,
-		compiler.encode_uchar4(depth, turbulence_in->stack_offset, vector_in->stack_offset, color_out->stack_offset),
-		__float_as_int(turbulence_in->value.x));
+		compiler.encode_uchar4(depth, color_out->stack_offset, fac_out->stack_offset),
+		compiler.encode_uchar4(vector_in->stack_offset, scale_in->stack_offset, distortion_in->stack_offset));
+	compiler.add_node(
+		__float_as_int(scale_in->value.x),
+		__float_as_int(distortion_in->value.x));
 }
 
 void MagicTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("Depth", depth);
 	compiler.add(this, "node_magic_texture");
-}
-
-/* Stucci Texture */
-
-static ShaderEnum stucci_type_init()
-{
-	ShaderEnum enm;
-
-	enm.insert("Plastic", NODE_STUCCI_PLASTIC);
-	enm.insert("Wall In", NODE_STUCCI_WALL_IN);
-	enm.insert("Wall Out", NODE_STUCCI_WALL_OUT);
-
-	return enm;
-}
-
-ShaderEnum StucciTextureNode::type_enum = stucci_type_init();
-ShaderEnum StucciTextureNode::basis_enum = noise_basis_init();
-
-StucciTextureNode::StucciTextureNode()
-: TextureNode("stucci_texture")
-{
-	type = ustring("Plastic");
-	basis = ustring("Perlin");
-	hard = false;
-
-	add_input("Size", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Turbulence", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-
-	add_output("Fac", SHADER_SOCKET_FLOAT);
-}
-
-void StucciTextureNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *size_in = input("Size");
-	ShaderInput *turbulence_in = input("Turbulence");
-	ShaderInput *vector_in = input("Vector");
-	ShaderOutput *fac_out = output("Fac");
-
-	if(size_in->link) compiler.stack_assign(size_in);
-	if(turbulence_in->link) compiler.stack_assign(turbulence_in);
-	if(vector_in->link) compiler.stack_assign(vector_in);
-
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
-
-	compiler.stack_assign(fac_out);
-
-	compiler.add_node(NODE_TEX_STUCCI,
-		compiler.encode_uchar4(type_enum[type], basis_enum[basis], hard),
-		compiler.encode_uchar4(size_in->stack_offset, turbulence_in->stack_offset,
-			vector_in->stack_offset, fac_out->stack_offset));
-	compiler.add_node(__float_as_int(size_in->value.x),
-		__float_as_int(turbulence_in->value.x));
-}
-
-void StucciTextureNode::compile(OSLCompiler& compiler)
-{
-	compiler.parameter("Type", type);
-	compiler.parameter("Basis", basis);
-	compiler.parameter("Hard", (hard)? 1: 0);
-	compiler.add(this, "node_stucci_texture");
-}
-
-/* Distorted Noise Texture */
-
-ShaderEnum DistortedNoiseTextureNode::basis_enum = noise_basis_init();
-
-DistortedNoiseTextureNode::DistortedNoiseTextureNode()
-: TextureNode("distorted_noise_texture")
-{
-	basis = ustring("Perlin");
-	distortion_basis = ustring("Perlin");
-
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Distortion", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-
-	add_output("Fac", SHADER_SOCKET_FLOAT);
-}
-
-void DistortedNoiseTextureNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *size_in = input("Size");
-	ShaderInput *distortion_in = input("Distortion");
-	ShaderInput *vector_in = input("Vector");
-	ShaderOutput *fac_out = output("Fac");
-
-	if(size_in->link) compiler.stack_assign(size_in);
-	if(distortion_in->link) compiler.stack_assign(distortion_in);
-	if(vector_in->link) compiler.stack_assign(vector_in);
-
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
-
-	compiler.stack_assign(fac_out);
-
-	compiler.add_node(NODE_TEX_DISTORTED_NOISE,
-		compiler.encode_uchar4(basis_enum[basis], basis_enum[distortion_basis]),
-		compiler.encode_uchar4(size_in->stack_offset, distortion_in->stack_offset, vector_in->stack_offset, fac_out->stack_offset));
-	compiler.add_node(__float_as_int(size_in->value.x),
-		__float_as_int(distortion_in->value.x));
-}
-
-void DistortedNoiseTextureNode::compile(OSLCompiler& compiler)
-{
-	compiler.parameter("Basis", basis);
-	compiler.parameter("DistortionBasis", distortion_basis);
-	compiler.add(this, "node_distorted_noise_texture");
-}
-
-/* Wood Texture */
-
-static ShaderEnum wood_type_init()
-{
-	ShaderEnum enm;
-
-	enm.insert("Bands", NODE_WOOD_BANDS);
-	enm.insert("Rings", NODE_WOOD_RINGS);
-	enm.insert("Band Noise", NODE_WOOD_BAND_NOISE);
-	enm.insert("Ring Noise", NODE_WOOD_RING_NOISE);
-
-	return enm;
-}
-
-ShaderEnum WoodTextureNode::type_enum = wood_type_init();
-ShaderEnum WoodTextureNode::wave_enum = noise_wave_init();
-ShaderEnum WoodTextureNode::basis_enum = noise_basis_init();
-
-WoodTextureNode::WoodTextureNode()
-: TextureNode("wood_texture")
-{
-	type = ustring("Bands");
-	wave = ustring("Sine");
-	basis = ustring("Perlin");
-	hard = false;
-
-	add_input("Size", SHADER_SOCKET_FLOAT, 0.25f);
-	add_input("Turbulence", SHADER_SOCKET_FLOAT, 5.0f);
-	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_GENERATED);
-
-	add_output("Fac", SHADER_SOCKET_FLOAT);
-}
-
-void WoodTextureNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *vector_in = input("Vector");
-	ShaderInput *size_in = input("Size");
-	ShaderInput *turbulence_in = input("Turbulence");
-	ShaderOutput *fac_out = output("Fac");
-
-	if(vector_in->link) compiler.stack_assign(vector_in);
-	if(size_in->link) compiler.stack_assign(size_in);
-	if(turbulence_in->link) compiler.stack_assign(turbulence_in);
-
-	if(!tex_mapping.skip())
-		tex_mapping.compile(compiler, vector_in->stack_offset, vector_in->stack_offset);
-
-	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_TEX_WOOD,
-		compiler.encode_uchar4(type_enum[type], wave_enum[wave], basis_enum[basis], hard),
-		compiler.encode_uchar4(vector_in->stack_offset, size_in->stack_offset, turbulence_in->stack_offset, fac_out->stack_offset));
-	compiler.add_node(NODE_TEX_WOOD, make_float3(size_in->value.x, turbulence_in->value.x, 0.0f));
-}
-
-void WoodTextureNode::compile(OSLCompiler& compiler)
-{
-	compiler.parameter("Type", type);
-	compiler.parameter("Wave", wave);
-	compiler.parameter("Basis", basis);
-	compiler.parameter("Hard", (hard)? 1: 0);
-	compiler.add(this, "node_wood_texture");
 }
 
 /* Mapping */
@@ -1986,8 +1725,8 @@ void FresnelNode::compile(OSLCompiler& compiler)
 
 /* Blend Weight */
 
-BlendWeightNode::BlendWeightNode()
-: ShaderNode("BlendWeight")
+LayerWeightNode::LayerWeightNode()
+: ShaderNode("LayerWeight")
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
 	add_input("Blend", SHADER_SOCKET_FLOAT, 0.5f);
@@ -1996,7 +1735,7 @@ BlendWeightNode::BlendWeightNode()
 	add_output("Facing", SHADER_SOCKET_FLOAT);
 }
 
-void BlendWeightNode::compile(SVMCompiler& compiler)
+void LayerWeightNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *blend_in = input("Blend");
 
@@ -2006,21 +1745,21 @@ void BlendWeightNode::compile(SVMCompiler& compiler)
 	ShaderOutput *fresnel_out = output("Fresnel");
 	if(!fresnel_out->links.empty()) {
 		compiler.stack_assign(fresnel_out);
-		compiler.add_node(NODE_BLEND_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
-			compiler.encode_uchar4(NODE_BLEND_WEIGHT_FRESNEL, fresnel_out->stack_offset));
+		compiler.add_node(NODE_LAYER_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
+			compiler.encode_uchar4(NODE_LAYER_WEIGHT_FRESNEL, fresnel_out->stack_offset));
 	}
 
 	ShaderOutput *facing_out = output("Facing");
 	if(!facing_out->links.empty()) {
 		compiler.stack_assign(facing_out);
-		compiler.add_node(NODE_BLEND_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
-			compiler.encode_uchar4(NODE_BLEND_WEIGHT_FACING, facing_out->stack_offset));
+		compiler.add_node(NODE_LAYER_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
+			compiler.encode_uchar4(NODE_LAYER_WEIGHT_FACING, facing_out->stack_offset));
 	}
 }
 
-void BlendWeightNode::compile(OSLCompiler& compiler)
+void LayerWeightNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_blend_weight");
+	compiler.add(this, "node_layer_height");
 }
 
 /* Output */

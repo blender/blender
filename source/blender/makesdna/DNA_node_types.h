@@ -432,10 +432,6 @@ typedef struct NodeTexBase {
 	ColorMapping color_mapping;
 } NodeTexBase;
 
-typedef struct NodeTexNoise {
-	NodeTexBase base;
-} NodeTexNoise;
-
 typedef struct NodeTexSky {
 	NodeTexBase base;
 	float sun_direction[3];
@@ -452,69 +448,39 @@ typedef struct NodeTexEnvironment {
 	int color_space, pad;
 } NodeTexEnvironment;
 
-typedef struct NodeTexBlend {
+typedef struct NodeTexGradient {
 	NodeTexBase base;
-	int progression;
-	int axis;
-} NodeTexBlend;
-
-typedef struct NodeTexClouds {
-	NodeTexBase base;
-	int hard;
-	int depth;
-	int basis;
+	int gradient_type;
 	int pad;
-} NodeTexClouds;
+} NodeTexGradient;
+
+typedef struct NodeTexNoise {
+	NodeTexBase base;
+} NodeTexNoise;
 
 typedef struct NodeTexVoronoi {
 	NodeTexBase base;
-	int distance_metric;
 	int coloring;
+	int pad;
 } NodeTexVoronoi;
 
 typedef struct NodeTexMusgrave {
 	NodeTexBase base;
-	int type;
-	int basis;
+	int musgrave_type;
+	int pad;
 } NodeTexMusgrave;
 
-typedef struct NodeTexMarble {
+typedef struct NodeTexWave {
 	NodeTexBase base;
-	int type;
-	int wave;
-	int basis;
-	int hard;
-	int depth;
+	int wave_type;
 	int pad;
-} NodeTexMarble;
+} NodeTexWave;
 
 typedef struct NodeTexMagic {
 	NodeTexBase base;
 	int depth;
 	int pad;
 } NodeTexMagic;
-
-typedef struct NodeTexStucci {
-	NodeTexBase base;
-	int type;
-	int basis;
-	int hard;
-	int pad;
-} NodeTexStucci;
-
-typedef struct NodeTexDistortedNoise {
-	NodeTexBase base;
-	int basis;
-	int distortion_basis;
-} NodeTexDistortedNoise;
-
-typedef struct NodeTexWood {
-	NodeTexBase base;
-	int type;
-	int wave;
-	int basis;
-	int hard;
-} NodeTexWood;
 
 typedef struct NodeShaderAttribute {
 	char name[64];
@@ -545,9 +511,6 @@ typedef struct TexNodeOutput {
 #define SHD_BLEND_QUADRATIC_SPHERE	5
 #define SHD_BLEND_SPHERICAL			6
 
-#define SHD_BLEND_HORIZONTAL		0
-#define SHD_BLEND_VERTICAL			1
-
 /* noise basis for textures */
 #define SHD_NOISE_PERLIN			0
 #define SHD_NOISE_VORONOI_F1		1
@@ -570,10 +533,8 @@ typedef struct TexNodeOutput {
 #define SHD_VORONOI_MINKOVSKY_4			5
 #define SHD_VORONOI_MINKOVSKY			6
 
-#define SHD_VORONOI_INTENSITY					0
-#define SHD_VORONOI_POSITION					1
-#define SHD_VORONOI_POSITION_OUTLINE			2
-#define SHD_VORONOI_POSITION_OUTLINE_INTENSITY	3
+#define SHD_VORONOI_INTENSITY	0
+#define SHD_VORONOI_CELLS		1
 
 /* musgrave texture */
 #define SHD_MUSGRAVE_MULTIFRACTAL			0
@@ -582,25 +543,13 @@ typedef struct TexNodeOutput {
 #define SHD_MUSGRAVE_RIDGED_MULTIFRACTAL	3
 #define SHD_MUSGRAVE_HETERO_TERRAIN			4
 
-/* marble texture */
-#define SHD_MARBLE_SOFT		0
-#define SHD_MARBLE_SHARP	1
-#define SHD_MARBLE_SHARPER	2
+/* wave texture */
+#define SHD_WAVE_BANDS		0
+#define SHD_WAVE_RINGS		1
 
 #define SHD_WAVE_SINE	0
 #define SHD_WAVE_SAW	1
 #define SHD_WAVE_TRI	2
-
-/* stucci texture */
-#define SHD_STUCCI_PLASTIC	0
-#define SHD_STUCCI_WALL_IN	1
-#define SHD_STUCCI_WALL_OUT	2
-
-/* wood texture */
-#define SHD_WOOD_BANDS		0
-#define SHD_WOOD_RINGS		1
-#define SHD_WOOD_BAND_NOISE	2
-#define SHD_WOOD_RING_NOISE	3
 
 /* image/environment texture */
 #define SHD_COLORSPACE_LINEAR	0

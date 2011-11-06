@@ -213,14 +213,17 @@ __device float noise_wave(NodeWaveType wave, float a)
 
 /* Turbulence */
 
-__device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, int octaves, int hard)
+__device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float octaves, int hard)
 {
 	float fscale = 1.0f;
 	float amp = 1.0f;
 	float sum = 0.0f;
-	int i;
+	int i, n;
 
-	for(i = 0; i <= octaves; i++) {
+	octaves = clamp(octaves, 0.0f, 16.0f);
+	n= (int)octaves;
+
+	for(i = 0; i <= n; i++) {
 		float t = noise_basis(fscale*p, basis);
 
 		if(hard)
@@ -231,9 +234,25 @@ __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, int oct
 		fscale *= 2.0f;
 	}
 
-	sum *= ((float)(1 << octaves)/(float)((1 << (octaves+1)) - 1));
+	float rmd = octaves - floor(octaves);
 
-	return sum;
+	if(rmd != 0.0f) {
+		float t = noise_basis(fscale*p, basis);
+
+		if(hard)
+			t = fabsf(2.0f*t - 1.0f);
+
+		float sum2 = sum + t*amp;
+
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		sum2 *= ((float)(1 << (n+1))/(float)((1 << (n+2)) - 1));
+
+		return (1.0f - rmd)*sum + rmd*sum2;
+	}
+	else {
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		return sum;
+	}
 }
 
 CCL_NAMESPACE_END

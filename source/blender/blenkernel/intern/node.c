@@ -1896,7 +1896,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_geometry(ntypelist);
 	register_node_type_sh_light_path(ntypelist);
 	register_node_type_sh_fresnel(ntypelist);
-	register_node_type_sh_blend_weight(ntypelist);
+	register_node_type_sh_layer_weight(ntypelist);
 	register_node_type_sh_tex_coord(ntypelist);
 
 	register_node_type_sh_background(ntypelist);
@@ -1922,16 +1922,12 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_tex_image(ntypelist);
 	register_node_type_sh_tex_environment(ntypelist);
 	register_node_type_sh_tex_sky(ntypelist);
-	register_node_type_sh_tex_voronoi(ntypelist);
-	register_node_type_sh_tex_blend(ntypelist);
-	register_node_type_sh_tex_magic(ntypelist);
-	register_node_type_sh_tex_marble(ntypelist);
-	register_node_type_sh_tex_clouds(ntypelist);
-	register_node_type_sh_tex_wood(ntypelist);
-	register_node_type_sh_tex_stucci(ntypelist);
 	register_node_type_sh_tex_noise(ntypelist);
-	register_node_type_sh_tex_distnoise(ntypelist);
+	register_node_type_sh_tex_wave(ntypelist);
+	register_node_type_sh_tex_voronoi(ntypelist);
 	register_node_type_sh_tex_musgrave(ntypelist);
+	register_node_type_sh_tex_gradient(ntypelist);
+	register_node_type_sh_tex_magic(ntypelist);
 }
 
 static void registerTextureNodes(ListBase *ntypelist)

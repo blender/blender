@@ -36,14 +36,14 @@ __device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float
 	int i;
 
 	for(i = 0; i < (int)octaves; i++) {
-		value += noise_basis(p, basis) * pwr;
+		value += snoise(p) * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if(rmd != 0.0f)
-		value += rmd * noise_basis(p, basis) * pwr;
+		value += rmd * snoise(p) * pwr;
 
 	return value;
 }
@@ -64,14 +64,14 @@ __device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis ba
 	int i;
 
 	for(i = 0; i < (int)octaves; i++) {
-		value *= (pwr * noise_basis(p, basis) + 1.0f);
+		value *= (pwr * snoise(p) + 1.0f);
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if(rmd != 0.0f)
-		value *= (rmd * pwr * noise_basis(p, basis) + 1.0f); /* correct? */
+		value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */
 
 	return value;
 }
@@ -92,11 +92,11 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
 	int i;
 
 	/* first unscaled octave of function; later octaves are scaled */
-	value = offset + noise_basis(p, basis);
+	value = offset + snoise(p);
 	p *= lacunarity;
 
 	for(i = 1; i < (int)octaves; i++) {
-		increment = (noise_basis(p, basis) + offset) * pwr * value;
+		increment = (snoise(p) + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
 		p *= lacunarity;
@@ -104,7 +104,7 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
 
 	rmd = octaves - floor(octaves);
 	if(rmd != 0.0f) {
-		increment = (noise_basis(p, basis) + offset) * pwr * value;
+		increment = (snoise(p) + offset) * pwr * value;
 		value += rmd * increment;
 	}
 
@@ -126,7 +126,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 	float pwr = pwHL;
 	int i;
 
-	result = noise_basis(p, basis) + offset;
+	result = snoise(p) + offset;
 	weight = gain * result;
 	p *= lacunarity;
 
@@ -134,7 +134,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 		if(weight > 1.0f)
 			weight = 1.0f;
 
-		signal = (noise_basis(p, basis) + offset) * pwr;
+		signal = (snoise(p) + offset) * pwr;
 		pwr *= pwHL;
 		result += weight * signal;
 		weight *= gain * signal;
@@ -143,7 +143,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 
 	rmd = octaves - floor(octaves);
 	if(rmd != 0.0f)
-		result += rmd * ((noise_basis(p, basis) + offset) * pwr);
+		result += rmd * ((snoise(p) + offset) * pwr);
 
 	return result;
 }
@@ -163,7 +163,7 @@ __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseB
 	float pwr = pwHL;
 	int i;
 
-	signal = offset - fabsf(noise_basis(p, basis));
+	signal = offset - fabsf(snoise(p));
 	signal *= signal;
 	result = signal;
 	weight = 1.0f;
@@ -171,7 +171,7 @@ __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseB
 	for(i = 1; i < (int)octaves; i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0f, 1.0f);
-		signal = offset - fabsf(noise_basis(p, basis));
+		signal = offset - fabsf(snoise(p));
 		signal *= signal;
 		signal *= weight;
 		result += signal * pwr;
@@ -183,9 +183,10 @@ __device_noinline float noise_musgrave_ridged_multi_fractal(float3 p, NodeNoiseB
 
 /* Shader */
 
-__device float svm_musgrave(NodeMusgraveType type, NodeNoiseBasis basis, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float size, float3 p)
+__device float svm_musgrave(NodeMusgraveType type, float dimension, float lacunarity, float octaves, float offset, float intensity, float gain, float scale, float3 p)
 {
-	p /= size;
+	NodeNoiseBasis basis = NODE_NOISE_PERLIN;
+	p *= scale;
 
 	if(type == NODE_MUSGRAVE_MULTIFRACTAL)
 		return intensity*noise_musgrave_multi_fractal(p, basis, dimension, lacunarity, octaves);
@@ -206,31 +207,33 @@ __device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *st
 	uint4 node2 = read_node(kg, offset);
 	uint4 node3 = read_node(kg, offset);
 
-	uint type, basis, co_offset, fac_offset;
-	uint dimension_offset, lacunarity_offset, octaves_offset, offset_offset;
-	uint gain_offset, size_offset;
+	uint type, co_offset, color_offset, fac_offset;
+	uint dimension_offset, lacunarity_offset, detail_offset, offset_offset;
+	uint gain_offset, scale_offset;
 
-	decode_node_uchar4(node.y, &type, &basis, &co_offset, &fac_offset);
-	decode_node_uchar4(node.z, &dimension_offset, &lacunarity_offset, &octaves_offset, &offset_offset);
-	decode_node_uchar4(node.z, &gain_offset, &size_offset, NULL, NULL);
+	decode_node_uchar4(node.y, &type, &co_offset, &color_offset, &fac_offset);
+	decode_node_uchar4(node.z, &dimension_offset, &lacunarity_offset, &detail_offset, &offset_offset);
+	decode_node_uchar4(node.z, &gain_offset, &scale_offset, NULL, NULL);
 
 	float3 co = stack_load_float3(stack, co_offset);
 	float dimension = stack_load_float_default(stack, dimension_offset, node2.x);
 	float lacunarity = stack_load_float_default(stack, lacunarity_offset, node2.y);
-	float octaves = stack_load_float_default(stack, octaves_offset, node2.z);
+	float detail = stack_load_float_default(stack, detail_offset, node2.z);
 	float foffset = stack_load_float_default(stack, offset_offset, node2.w);
 	float gain = stack_load_float_default(stack, gain_offset, node3.x);
-	float size = stack_load_float_default(stack, size_offset, node3.y);
+	float scale = stack_load_float_default(stack, scale_offset, node3.y);
 
-	dimension = fmaxf(dimension, 0.0f);
-	octaves = fmaxf(octaves, 0.0f);
+	dimension = fmaxf(dimension, 1e-5f);
+	detail = clamp(detail, 0.0f, 16.0f);
 	lacunarity = fmaxf(lacunarity, 1e-5f);
-	size = nonzerof(size, 1e-5f);
 
-	float f = svm_musgrave((NodeMusgraveType)type, (NodeNoiseBasis)basis,
-		dimension, lacunarity, octaves, foffset, 1.0f, gain, size, co);
+	float f = svm_musgrave((NodeMusgraveType)type,
+		dimension, lacunarity, detail, foffset, 1.0f, gain, scale, co);
 
-	stack_store_float(stack, fac_offset, f);
+	if(stack_valid(fac_offset))
+		stack_store_float(stack, fac_offset, f);
+	if(stack_valid(color_offset))
+		stack_store_float3(stack, color_offset, make_float3(f, f, f));
 }
 
 CCL_NAMESPACE_END

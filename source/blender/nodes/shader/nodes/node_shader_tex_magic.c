@@ -29,56 +29,54 @@
 
 #include "../node_shader_util.h"
 
-static void magic(float rgb[3], float p[3], int n, float turbulence)
+static void magic(float rgb[3], float p[3], int n, float distortion)
 {
-	float turb = turbulence/5.0f;
-
 	float x = sinf((p[0] + p[1] + p[2])*5.0f);
 	float y = cosf((-p[0] + p[1] - p[2])*5.0f);
 	float z = -cosf((-p[0] - p[1] + p[2])*5.0f);
 
 	if(n > 0) {
-		x *= turb;
-		y *= turb;
-		z *= turb;
+		x *= distortion;
+		y *= distortion;
+		z *= distortion;
 		y = -cosf(x-y+z);
-		y *= turb;
+		y *= distortion;
 
 		if(n > 1) {
 			x= cosf(x-y-z);
-			x *= turb;
+			x *= distortion;
 
 			if(n > 2) {
 				z= sinf(-x-y-z);
-				z *= turb;
+				z *= distortion;
 
 				if(n > 3) {
 					x= -cosf(-x+y-z);
-					x *= turb;
+					x *= distortion;
 
 					if(n > 4) {
 						y= -sinf(-x+y+z);
-						y *= turb;
+						y *= distortion;
 
 						if(n > 5) {
 							y= -cosf(-x+y+z);
-							y *= turb;
+							y *= distortion;
 
 							if(n > 6) {
 								x= cosf(x+y+z);
-								x *= turb;
+								x *= distortion;
 
 								if(n > 7) {
 									z= sinf(x+y-z);
-									z *= turb;
+									z *= distortion;
 
 									if(n > 8) {
 										x= -cosf(-x-y+z);
-										x *= turb;
+										x *= distortion;
 
 										if(n > 9) {
 											y= -sinf(x-y+z);
-											y *= turb;
+											y *= distortion;
 										}
 									}
 								}
@@ -90,11 +88,11 @@ static void magic(float rgb[3], float p[3], int n, float turbulence)
 		}
 	}
 
-	if(turb != 0.0f) {
-		turb *= 2.0f;
-		x /= turb;
-		y /= turb;
-		z /= turb;
+	if(distortion != 0.0f) {
+		distortion *= 2.0f;
+		x /= distortion;
+		y /= distortion;
+		z /= distortion;
 	}
 
 	rgb[0]= 0.5f - x;
@@ -106,12 +104,14 @@ static void magic(float rgb[3], float p[3], int n, float turbulence)
 
 static bNodeSocketTemplate sh_node_tex_magic_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	SOCK_FLOAT, 1, "Turbulence",	5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, "Scale",			5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, "Distortion",	1.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_tex_magic_out[]= {
 	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -130,16 +130,17 @@ static void node_shader_exec_tex_magic(void *data, bNode *node, bNodeStack **in,
 	ShaderCallData *scd= (ShaderCallData*)data;
 	NodeTexMagic *tex= (NodeTexMagic*)node->storage;
 	bNodeSocket *vecsock = node->inputs.first;
-	float vec[3], turbulence;
+	float vec[3], distortion;
 	
 	if(vecsock->link)
 		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	else
 		copy_v3_v3(vec, scd->co);
 
-	nodestack_get_vec(&turbulence, SOCK_FLOAT, in[1]);
+	nodestack_get_vec(&distortion, SOCK_FLOAT, in[1]);
 
-	magic(out[0]->vec, vec, tex->depth, turbulence);
+	magic(out[0]->vec, vec, tex->depth, distortion);
+	out[1]->vec[0] = (out[0]->vec[0] + out[0]->vec[1] + out[0]->vec[2])*(1.0f/3.0f); 
 }
 
 static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

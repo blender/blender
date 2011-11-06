@@ -120,29 +120,25 @@ CCL_NAMESPACE_END
 #include "svm_texture.h"
 
 #include "svm_attribute.h"
-#include "svm_blend.h"
+#include "svm_gradient.h"
 #include "svm_closure.h"
-#include "svm_clouds.h"
+#include "svm_noisetex.h"
 #include "svm_convert.h"
 #include "svm_displace.h"
-#include "svm_distorted_noise.h"
 #include "svm_fresnel.h"
 #include "svm_geometry.h"
 #include "svm_image.h"
 #include "svm_light_path.h"
 #include "svm_magic.h"
 #include "svm_mapping.h"
-#include "svm_marble.h"
+#include "svm_wave.h"
 #include "svm_math.h"
 #include "svm_mix.h"
 #include "svm_musgrave.h"
-#include "svm_noisetex.h"
 #include "svm_sky.h"
-#include "svm_stucci.h"
 #include "svm_tex_coord.h"
 #include "svm_value.h"
 #include "svm_voronoi.h"
-#include "svm_wood.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -206,12 +202,6 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				offset = node.y;
 				break;
 #ifdef __TEXTURES__
-			case NODE_TEX_NOISE_F:
-				svm_node_tex_noise_f(sd, stack, node.y, node.z);
-				break;
-			case NODE_TEX_NOISE_V:
-				svm_node_tex_noise_v(sd, stack, node.y, node.z);
-				break;
 			case NODE_TEX_IMAGE:
 				svm_node_tex_image(kg, sd, stack, node);
 				break;
@@ -221,11 +211,11 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_TEX_SKY:
 				svm_node_tex_sky(kg, sd, stack, node.y, node.z);
 				break;
-			case NODE_TEX_BLEND:
-				svm_node_tex_blend(sd, stack, node);
+			case NODE_TEX_GRADIENT:
+				svm_node_tex_gradient(sd, stack, node);
 				break;
-			case NODE_TEX_CLOUDS:
-				svm_node_tex_clouds(sd, stack, node);
+			case NODE_TEX_NOISE:
+				svm_node_tex_noise(kg, sd, stack, node, &offset);
 				break;
 			case NODE_TEX_VORONOI:
 				svm_node_tex_voronoi(kg, sd, stack, node, &offset);
@@ -233,20 +223,11 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_TEX_MUSGRAVE:
 				svm_node_tex_musgrave(kg, sd, stack, node, &offset);
 				break;
-			case NODE_TEX_MARBLE:
-				svm_node_tex_marble(kg, sd, stack, node, &offset);
+			case NODE_TEX_WAVE:
+				svm_node_tex_wave(kg, sd, stack, node, &offset);
 				break;
 			case NODE_TEX_MAGIC:
-				svm_node_tex_magic(sd, stack, node);
-				break;
-			case NODE_TEX_STUCCI:
-				svm_node_tex_stucci(kg, sd, stack, node, &offset);
-				break;
-			case NODE_TEX_DISTORTED_NOISE:
-				svm_node_tex_distorted_noise(kg, sd, stack, node, &offset);
-				break;
-			case NODE_TEX_WOOD:
-				svm_node_tex_wood(kg, sd, stack, node, &offset);
+				svm_node_tex_magic(kg, sd, stack, node, &offset);
 				break;
 #endif
 			case NODE_GEOMETRY:
@@ -285,8 +266,8 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_FRESNEL:
 				svm_node_fresnel(sd, stack, node.y, node.z, node.w);
 				break;
-			case NODE_BLEND_WEIGHT:
-				svm_node_blend_weight(sd, stack, node);
+			case NODE_LAYER_WEIGHT:
+				svm_node_layer_weight(sd, stack, node);
 				break;
 			case NODE_SET_DISPLACEMENT:
 				svm_node_set_displacement(sd, stack, node.y);

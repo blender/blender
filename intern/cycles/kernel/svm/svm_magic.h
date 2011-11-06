@@ -20,56 +20,54 @@ CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-__device_noinline float3 svm_magic(float3 p, int n, float turbulence)
+__device_noinline float3 svm_magic(float3 p, int n, float distortion)
 {
-	float turb = turbulence/5.0f;
-
 	float x = sinf((p.x + p.y + p.z)*5.0f);
 	float y = cosf((-p.x + p.y - p.z)*5.0f);
 	float z = -cosf((-p.x - p.y + p.z)*5.0f);
 
 	if(n > 0) {
-		x *= turb;
-		y *= turb;
-		z *= turb;
+		x *= distortion;
+		y *= distortion;
+		z *= distortion;
 		y = -cosf(x-y+z);
-		y *= turb;
+		y *= distortion;
 
 		if(n > 1) {
 			x= cosf(x-y-z);
-			x *= turb;
+			x *= distortion;
 
 			if(n > 2) {
 				z= sinf(-x-y-z);
-				z *= turb;
+				z *= distortion;
 
 				if(n > 3) {
 					x= -cosf(-x+y-z);
-					x *= turb;
+					x *= distortion;
 
 					if(n > 4) {
 						y= -sinf(-x+y+z);
-						y *= turb;
+						y *= distortion;
 
 						if(n > 5) {
 							y= -cosf(-x+y+z);
-							y *= turb;
+							y *= distortion;
 
 							if(n > 6) {
 								x= cosf(x+y+z);
-								x *= turb;
+								x *= distortion;
 
 								if(n > 7) {
 									z= sinf(x+y-z);
-									z *= turb;
+									z *= distortion;
 
 									if(n > 8) {
 										x= -cosf(-x-y+z);
-										x *= turb;
+										x *= distortion;
 
 										if(n > 9) {
 											y= -sinf(x-y+z);
-											y *= turb;
+											y *= distortion;
 										}
 									}
 								}
@@ -81,27 +79,35 @@ __device_noinline float3 svm_magic(float3 p, int n, float turbulence)
 		}
 	}
 
-	if(turb != 0.0f) {
-		turb *= 2.0f;
-		x /= turb;
-		y /= turb;
-		z /= turb;
+	if(distortion != 0.0f) {
+		distortion *= 2.0f;
+		x /= distortion;
+		y /= distortion;
+		z /= distortion;
 	}
 
 	return make_float3(0.5f - x, 0.5f - y, 0.5f - z);
 }
 
-__device void svm_node_tex_magic(ShaderData *sd, float *stack, uint4 node)
+__device void svm_node_tex_magic(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint depth, turbulence_offset, co_offset, color_offset;
+	uint depth;
+	uint scale_offset, distortion_offset, co_offset, fac_offset, color_offset;
 
-	decode_node_uchar4(node.y, &depth, &turbulence_offset, &co_offset, &color_offset);
+	decode_node_uchar4(node.y, &depth, &color_offset, &fac_offset, NULL);
+	decode_node_uchar4(node.z, &co_offset, &scale_offset, &distortion_offset, NULL);
 
+	uint4 node2 = read_node(kg, offset);
 	float3 co = stack_load_float3(stack, co_offset);
-	float turbulence = stack_load_float_default(stack, turbulence_offset, node.z);
+	float scale = stack_load_float_default(stack, scale_offset, node2.x);
+	float distortion = stack_load_float_default(stack, distortion_offset, node2.y);
 
-	float3 color = svm_magic(co, depth, turbulence);
-	stack_store_float3(stack, color_offset, color);
+	float3 color = svm_magic(co*scale, depth, distortion);
+
+	if(stack_valid(fac_offset))
+		stack_store_float(stack, fac_offset, average(color));
+	if(stack_valid(color_offset))
+		stack_store_float3(stack, color_offset, color);
 }
 
 CCL_NAMESPACE_END

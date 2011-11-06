@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
+static inline unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
 {
 	#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 
@@ -44,7 +44,7 @@ static unsigned int hash_int_2d(unsigned int kx, unsigned int ky)
 	#undef rot
 }
 
-static unsigned int hash_int(unsigned int k)
+static inline unsigned int hash_int(unsigned int k)
 {
 	return hash_int_2d(k, 0);
 }

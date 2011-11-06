@@ -1147,12 +1147,6 @@ static void def_sh_tex(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Color Mapping", "Color mapping settings");
 }
 
-static void def_sh_tex_noise(StructRNA *srna)
-{
-	RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
-	def_sh_tex(srna);
-}
-
 static void def_sh_tex_sky(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -1219,9 +1213,9 @@ static void def_sh_tex_image(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
-static void def_sh_tex_blend(StructRNA *srna)
+static void def_sh_tex_gradient(StructRNA *srna)
 {
-	static EnumPropertyItem prop_blend_progression[] = {
+	static EnumPropertyItem prop_gradient_type[] = {
 		{SHD_BLEND_LINEAR, "LINEAR", 0, "Linear", "Creates a linear progression"},
 		{SHD_BLEND_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Creates a quadratic progression"},
 		{SHD_BLEND_EASING, "EASING", 0, "Easing", "Creates a progression easing from one step to the next"},
@@ -1231,73 +1225,21 @@ static void def_sh_tex_blend(StructRNA *srna)
 		{SHD_BLEND_RADIAL, "RADIAL", 0, "Radial", "Creates a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_axis_items[]= {
-		{SHD_BLEND_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", "Flips the texture's X and Y axis"},
-		{SHD_BLEND_VERTICAL, "VERTICAL", 0, "Vertical", "Flips the texture's X and Y axis"},
-		{0, NULL, 0, NULL, NULL}};
-
 	PropertyRNA *prop;
 	
-	RNA_def_struct_sdna_from(srna, "NodeTexBlend", "storage");
+	RNA_def_struct_sdna_from(srna, "NodeTexGradient", "storage");
 	def_sh_tex(srna);
 
-	prop= RNA_def_property(srna, "progression", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "progression");
-	RNA_def_property_enum_items(prop, prop_blend_progression);
-	RNA_def_property_ui_text(prop, "Progression", "Sets the style of the color blending");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "axis");
-	RNA_def_property_enum_items(prop, prop_axis_items);
-	RNA_def_property_ui_text(prop, "Axis", "Flips the texture's X and Y axis");
+	prop= RNA_def_property(srna, "gradient_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_gradient_type);
+	RNA_def_property_ui_text(prop, "Gradient Type", "Sets the style of the color blending");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
-static void def_sh_tex_clouds(StructRNA *srna)
+static void def_sh_tex_noise(StructRNA *srna)
 {
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeTexClouds", "storage");
+	RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
 	def_sh_tex(srna);
-
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "hard");
-	RNA_def_property_enum_items(prop, prop_noise_type_items);
-	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "depth");
-	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-}
-
-static void def_sh_tex_distnoise(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeTexDistortedNoise", "storage");
-	def_sh_tex(srna);
-
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_distortion", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "distortion_basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Distortion", "Sets the noise basis used for distortion");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
 static void def_sh_tex_magic(StructRNA *srna)
@@ -1311,50 +1253,6 @@ static void def_sh_tex_magic(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-}
-
-static void def_sh_tex_marble(StructRNA *srna)
-{
-	static EnumPropertyItem prop_marble_stype[] = {
-		{SHD_MARBLE_SOFT, "SOFT", 0, "Soft", "Uses soft marble"},
-		{SHD_MARBLE_SHARP, "SHARP", 0, "Sharp", "Uses more clearly defined marble"},
-		{SHD_MARBLE_SHARPER, "SHARPER", 0, "Sharper", "Uses very clearly defined marble"},
-		{0, NULL, 0, NULL, NULL}};
-
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeTexMarble", "storage");
-	def_sh_tex(srna);
-
-	prop= RNA_def_property(srna, "marble_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_marble_stype);
-	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "hard");
-	RNA_def_property_enum_items(prop, prop_noise_type_items);
-	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "depth");
-	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "wave");
-	RNA_def_property_enum_items(prop, prop_wave_items);
-	RNA_def_property_ui_text(prop, "Wave Type", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -1374,79 +1272,23 @@ static void def_sh_tex_musgrave(StructRNA *srna)
 	def_sh_tex(srna);
 
 	prop= RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_sdna(prop, NULL, "musgrave_type");
 	RNA_def_property_enum_items(prop, prop_musgrave_type);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-}
-
-static void def_sh_tex_stucci(StructRNA *srna)
-{
-	static EnumPropertyItem prop_stucci_stype[] = {
-	{SHD_STUCCI_PLASTIC, "PLASTIC", 0, "Plastic", "Uses standard stucci"},
-	{SHD_STUCCI_WALL_IN, "WALL_IN", 0, "Wall in", "Creates Dimples"},
-	{SHD_STUCCI_WALL_OUT, "WALL_OUT", 0, "Wall out", "Creates Ridges"},
-	{0, NULL, 0, NULL, NULL}};
-
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeTexStucci", "storage");
-	def_sh_tex(srna);
-
-	prop= RNA_def_property(srna, "stucci_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_stucci_stype);
-	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "hard");
-	RNA_def_property_enum_items(prop, prop_noise_type_items);
-	RNA_def_property_ui_text(prop, "Noise Type", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
 static void def_sh_tex_voronoi(StructRNA *srna)
 {
-	static EnumPropertyItem prop_distance_metric_items[] = {
-		{SHD_VORONOI_ACTUAL_DISTANCE, "DISTANCE", 0, "Actual Distance", ""},
-		{SHD_VORONOI_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", ""},
-		{SHD_VORONOI_MANHATTAN, "MANHATTAN", 0, "Manhattan", ""},
-		{SHD_VORONOI_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", ""},
-		{SHD_VORONOI_MINKOVSKY_H, "MINKOVSKY_HALF", 0, "Minkovsky 1/2", ""},
-		{SHD_VORONOI_MINKOVSKY_4, "MINKOVSKY_FOUR", 0, "Minkovsky 4", ""},
-		{SHD_VORONOI_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem prop_coloring_items[] = {
 		{SHD_VORONOI_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity"},
-		{SHD_VORONOI_POSITION, "POSITION", 0, "Position", "Color cells by position"},
-		{SHD_VORONOI_POSITION_OUTLINE, "POSITION_OUTLINE", 0, "Position and Outline", "Use position plus an outline based on F2-F.1"},
-		{SHD_VORONOI_POSITION_OUTLINE_INTENSITY, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity", "Multiply position and outline by intensity"},
+		{SHD_VORONOI_CELLS, "CELLS", 0, "Cells", "Color cells by position"},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexVoronoi", "storage");
 	def_sh_tex(srna);
-
-	prop= RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "distance_metric");
-	RNA_def_property_enum_items(prop, prop_distance_metric_items);
-	RNA_def_property_ui_text(prop, "Distance Metric", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop= RNA_def_property(srna, "coloring", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "coloring");
@@ -1455,41 +1297,21 @@ static void def_sh_tex_voronoi(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
-static void def_sh_tex_wood(StructRNA *srna)
+static void def_sh_tex_wave(StructRNA *srna)
 {
-	static EnumPropertyItem prop_wood_type_items[] = {
-	{SHD_WOOD_BANDS, "BANDS", 0, "Bands", "Uses standard wood texture in bands"},
-	{SHD_WOOD_RINGS, "RINGS", 0, "Rings", "Uses wood texture in rings"},
-	{SHD_WOOD_BAND_NOISE, "BAND_NOISE", 0, "Band Noise", "Adds noise to standard wood"},
-	{SHD_WOOD_RING_NOISE, "RING_NOISE", 0, "Ring Noise", "Adds noise to rings"},
+	static EnumPropertyItem prop_wave_type_items[] = {
+	{SHD_WAVE_BANDS, "BANDS", 0, "Bands", "Uses standard wave texture in bands"},
+	{SHD_WAVE_RINGS, "RINGS", 0, "Rings", "Uses wave texture in rings"},
 	{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
 	
-	RNA_def_struct_sdna_from(srna, "NodeTexWood", "storage");
+	RNA_def_struct_sdna_from(srna, "NodeTexWave", "storage");
 	def_sh_tex(srna);
 
-	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "basis");
-	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "hard");
-	RNA_def_property_enum_items(prop, prop_noise_type_items);
-	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
-	prop= RNA_def_property(srna, "wood_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_wood_type_items);
-	RNA_def_property_ui_text(prop, "Wood Type", "");
-	RNA_def_property_update(prop, 0, "rna_Node_update");
-
 	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "wave");
-	RNA_def_property_enum_items(prop, prop_wave_items);
+	RNA_def_property_enum_sdna(prop, NULL, "wave_type");
+	RNA_def_property_enum_items(prop, prop_wave_type_items);
 	RNA_def_property_ui_text(prop, "Wave Type", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }

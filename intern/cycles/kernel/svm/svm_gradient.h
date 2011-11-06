@@ -18,36 +18,31 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Blend */
+/* Gradient */
 
-__device float svm_blend(float3 p, NodeBlendType type, NodeBlendAxis axis)
+__device float svm_gradient(float3 p, NodeBlendType type)
 {
-	float x, y;
+	float x, y, z;
 
-	if(axis == NODE_BLEND_VERTICAL) {
-		x= p.y;
-		y= p.x;
-	}
-	else {
-		x= p.x;
-		y= p.y;
-	}
+	x= p.x;
+	y= p.y;
+	z= p.z;
 
 	if(type == NODE_BLEND_LINEAR) {
-		return (1.0f + x)/2.0f;
+		return x;
 	}
 	else if(type == NODE_BLEND_QUADRATIC) {
-		float r = fmaxf((1.0f + x)/2.0f, 0.0f);
+		float r = fmaxf(x, 0.0f);
 		return r*r;
 	}
 	else if(type == NODE_BLEND_EASING) {
-		float r = fminf(fmaxf((1.0f + x)/2.0f, 0.0f), 1.0f);
+		float r = fminf(fmaxf(x, 0.0f), 1.0f);
 		float t = r*r;
 		
 		return (3.0f*t - 2.0f*t*r);
 	}
 	else if(type == NODE_BLEND_DIAGONAL) {
-		return (2.0f + x + y)/4.0f;
+		return (x + y)/2.0f;
 	}
 	else if(type == NODE_BLEND_RADIAL) {
 		return atan2(y, x)/(2.0f*M_PI_F) + 0.5f;
@@ -64,15 +59,21 @@ __device float svm_blend(float3 p, NodeBlendType type, NodeBlendAxis axis)
 	return 0.0f;
 }
 
-__device void svm_node_tex_blend(ShaderData *sd, float *stack, uint4 node)
+__device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
 {
-	float3 co = stack_load_float3(stack, node.z);
-	uint type, axis;
+	uint type, co_offset, color_offset, fac_offset;
 
-	decode_node_uchar4(node.y, &type, &axis, NULL, NULL);
+	decode_node_uchar4(node.y, &type, &co_offset, &fac_offset, &color_offset);
 
-	float f = svm_blend(co, (NodeBlendType)type, (NodeBlendAxis)axis);
-	stack_store_float(stack, node.w, f);
+	float3 co = stack_load_float3(stack, co_offset);
+
+	float f = svm_gradient(co, (NodeBlendType)type);
+	f = clamp(f, 0.0f, 1.0f);
+
+	if(stack_valid(fac_offset))
+		stack_store_float(stack, fac_offset, f);
+	if(stack_valid(color_offset))
+		stack_store_float3(stack, color_offset, make_float3(f, f, f));
 }
 
 CCL_NAMESPACE_END

@@ -42,33 +42,29 @@ set(svm_headers
 	svm/emissive.h
 	svm/svm.h
 	svm/svm_attribute.h
-	svm/svm_blend.h
 	svm/svm_bsdf.h
 	svm/svm_closure.h
-	svm/svm_clouds.h
 	svm/svm_convert.h
 	svm/svm_displace.h
-	svm/svm_distorted_noise.h
 	svm/svm_fresnel.h
 	svm/svm_geometry.h
+	svm/svm_gradient.h
 	svm/svm_image.h
 	svm/svm_light_path.h
 	svm/svm_magic.h
 	svm/svm_mapping.h
-	svm/svm_marble.h
 	svm/svm_math.h
 	svm/svm_mix.h
 	svm/svm_musgrave.h
 	svm/svm_noise.h
 	svm/svm_noisetex.h
 	svm/svm_sky.h
-	svm/svm_stucci.h
 	svm/svm_tex_coord.h
 	svm/svm_texture.h
 	svm/svm_types.h
 	svm/svm_value.h
 	svm/svm_voronoi.h
-	svm/svm_wood.h
+	svm/svm_wave.h
 	svm/volume.h
 	)
 

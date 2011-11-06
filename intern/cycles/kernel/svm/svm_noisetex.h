@@ -18,30 +18,55 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float svm_noise_texture_value(float3 p)
+/* Clouds */
+
+__device_inline void svm_noise(float3 p, float scale, float detail, float distortion, float *fac, float3 *color)
 {
-	return cellnoise(p*1e8f);
+	NodeNoiseBasis basis = NODE_NOISE_PERLIN;
+	int hard = 0;
+
+	p *= scale;
+
+	if(distortion != 0.0f) {
+		float3 r, offset = make_float3(13.5f, 13.5f, 13.5f);
+
+		r.x = noise_basis(p + offset, basis) * distortion;
+		r.y = noise_basis(p, basis) * distortion;
+		r.z = noise_basis(p - offset, basis) * distortion;
+
+		p += r;
+	}
+
+	*fac = noise_turbulence(p, basis, detail, hard);
+	*color = make_float3(*fac,
+		noise_turbulence(make_float3(p.y, p.x, p.z), basis, detail, hard),
+		noise_turbulence(make_float3(p.y, p.z, p.x), basis, detail, hard));
 }
 
-__device float3 svm_noise_texture_color(float3 p)
+__device void svm_node_tex_noise(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	return cellnoise_color(p*1e8f);
-}
+	uint co_offset, scale_offset, detail_offset, distortion_offset, fac_offset, color_offset;
 
-__device void svm_node_tex_noise_f(ShaderData *sd, float *stack, uint co_offset, uint out_offset)
-{
+	decode_node_uchar4(node.y, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
+
+	uint4 node2 = read_node(kg, offset);
+
+	float scale = stack_load_float_default(stack, scale_offset, node2.x);
+	float detail = stack_load_float_default(stack, detail_offset, node2.y);
+	float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
 	float3 co = stack_load_float3(stack, co_offset);
-	float f = svm_noise_texture_value(co);
 
-	stack_store_float(stack, out_offset, f);
-}
+	float3 color;
+	float f;
 
-__device void svm_node_tex_noise_v(ShaderData *sd, float *stack, uint co_offset, uint out_offset)
-{
-	float3 co = stack_load_float3(stack, co_offset);
-	float3 f = svm_noise_texture_color(co);
+	svm_noise(co, scale, detail, distortion, &f, &color);
 
-	stack_store_float3(stack, out_offset, f);
+	decode_node_uchar4(node.z, &color_offset, &fac_offset, NULL, NULL);
+
+	if(stack_valid(fac_offset))
+		stack_store_float(stack, fac_offset, f);
+	if(stack_valid(color_offset))
+		stack_store_float3(stack, color_offset, color);
 }
 
 CCL_NAMESPACE_END

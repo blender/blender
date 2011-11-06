@@ -75,7 +75,7 @@ void register_node_type_sh_attribute(ListBase *lb);
 void register_node_type_sh_geometry(ListBase *lb);
 void register_node_type_sh_light_path(ListBase *lb);
 void register_node_type_sh_fresnel(ListBase *lb);
-void register_node_type_sh_blend_weight(ListBase *lb);
+void register_node_type_sh_layer_weight(ListBase *lb);
 void register_node_type_sh_tex_coord(ListBase *lb);
 
 void register_node_type_sh_background(ListBase *lb);
@@ -102,15 +102,11 @@ void register_node_type_sh_tex_image(ListBase *lb);
 void register_node_type_sh_tex_environment(ListBase *lb);
 void register_node_type_sh_tex_sky(ListBase *lb);
 void register_node_type_sh_tex_voronoi(ListBase *lb);
-void register_node_type_sh_tex_blend(ListBase *lb);
+void register_node_type_sh_tex_gradient(ListBase *lb);
 void register_node_type_sh_tex_magic(ListBase *lb);
-void register_node_type_sh_tex_marble(ListBase *lb);
-void register_node_type_sh_tex_clouds(ListBase *lb);
-void register_node_type_sh_tex_wood(ListBase *lb);
+void register_node_type_sh_tex_wave(ListBase *lb);
 void register_node_type_sh_tex_musgrave(ListBase *lb);
 void register_node_type_sh_tex_noise(ListBase *lb);
-void register_node_type_sh_tex_stucci(ListBase *lb);
-void register_node_type_sh_tex_distnoise(ListBase *lb);
 
 #endif
 

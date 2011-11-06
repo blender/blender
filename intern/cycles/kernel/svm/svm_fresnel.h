@@ -33,7 +33,7 @@ __device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, ui
 
 /* Blend Weight Node */
 
-__device void svm_node_blend_weight(ShaderData *sd, float *stack, uint4 node)
+__device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 {
 	uint blend_offset = node.y;
 	uint blend_value = node.z;
@@ -44,7 +44,7 @@ __device void svm_node_blend_weight(ShaderData *sd, float *stack, uint4 node)
 
 	float f;
 
-	if(type == NODE_BLEND_WEIGHT_FRESNEL) {
+	if(type == NODE_LAYER_WEIGHT_FRESNEL) {
 		float eta = fmaxf(1.0f - blend, 1e-5f);
 		eta = (sd->flag & SD_BACKFACING)? eta: 1.0f/eta;
 
