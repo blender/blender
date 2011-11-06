@@ -2320,7 +2320,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		MVert *mvert= me->mvert;
 
 		for (a= 0; a < me->totvert; a++, mvert++)
-			VECCOPY(mvert->co, vertCos[a]);
+			copy_v3_v3(mvert->co, vertCos[a]);
 
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	}
