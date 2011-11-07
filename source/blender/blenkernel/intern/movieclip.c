@@ -157,7 +157,7 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	offset= sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
-	else        BLI_strncpy(name, clip->name, sizeof(name));
+	else        BLI_strncpy(name, clip->name, sizeof(clip->name));
 
 	BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
 }
