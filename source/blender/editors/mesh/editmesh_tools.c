@@ -1387,6 +1387,8 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 		}
 	}
 
+	recalc_editnormals(em);
+
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 }
 
