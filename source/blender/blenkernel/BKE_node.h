@@ -245,6 +245,7 @@ typedef struct bNodeType {
 struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
+typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
 typedef struct bNodeTreeType
 {
 	int type;						/* type identifier */
@@ -256,6 +257,7 @@ typedef struct bNodeTreeType
 	void (*free_cache)(struct bNodeTree *ntree);
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
 	void (*foreach_nodetree)(struct Main *main, void *calldata, bNodeTreeCallback func);		/* iteration over all node trees */
+	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
