@@ -60,6 +60,7 @@ set(DEFSRC
 	rna_mesh.c
 	rna_meta.c
 	rna_modifier.c
+	rna_movieclip.c
 	rna_nla.c
 	rna_nodetree.c
 	rna_object.c
@@ -83,6 +84,7 @@ set(DEFSRC
 	rna_text.c
 	rna_texture.c
 	rna_timeline.c
+	rna_tracking.c
 	rna_ui.c
 	rna_userdef.c
 	rna_vfont.c

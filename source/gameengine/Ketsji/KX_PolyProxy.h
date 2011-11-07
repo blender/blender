@@ -38,7 +38,7 @@
 
 class KX_PolyProxy	: public CValue
 {
-	Py_Header;
+	Py_Header
 protected:
 	class RAS_Polygon*		m_polygon;
 	class RAS_MeshObject*	m_mesh;

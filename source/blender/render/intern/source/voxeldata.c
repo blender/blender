@@ -241,7 +241,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				size_t i;
 				float *heat;
 
-				VECCOPY(vd->resol, smd->domain->res);
+				copy_v3_v3_int(vd->resol, smd->domain->res);
 				totRes= vd_resol_size(vd);
 
 				// scaling heat values from -2.0-2.0 to 0.0-1.0
@@ -262,7 +262,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				size_t i;
 				float *xvel, *yvel, *zvel;
 
-				VECCOPY(vd->resol, smd->domain->res);
+				copy_v3_v3_int(vd->resol, smd->domain->res);
 				totRes= vd_resol_size(vd);
 
 				// scaling heat values from -2.0-2.0 to 0.0-1.0
@@ -286,7 +286,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
 					density = smoke_turbulence_get_density(smd->domain->wt);
 				} else {
-					VECCOPY(vd->resol, smd->domain->res);
+					copy_v3_v3_int(vd->resol, smd->domain->res);
 					density = smoke_get_density(smd->domain->fluid);
 				}
 

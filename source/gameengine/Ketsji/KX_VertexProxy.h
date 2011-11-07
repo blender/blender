@@ -38,7 +38,7 @@
 
 class KX_VertexProxy	: public CValue
 {
-	Py_Header;
+	Py_Header
 protected:
 
 	class RAS_TexVert*	m_vertex;

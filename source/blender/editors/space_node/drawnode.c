@@ -1679,6 +1679,40 @@ static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), Pointe
 	uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
+static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+}
+
+static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if(!node->id)
+		return;
+
+	uiItemR(layout, ptr, "filter_type", 0, "", 0);
+}
+
+static void node_composit_buts_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "filter_type", 0, "", 0);
+}
+
+static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+
+	if(!node->id)
+		return;
+
+	uiItemR(layout, ptr, "distortion_type", 0, "", 0);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1829,6 +1863,20 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_SEPYCCA:
 			ntype->uifunc=node_composit_buts_ycc;
 			break;
+		case CMP_NODE_MOVIECLIP:
+			ntype->uifunc= node_composit_buts_movieclip;
+			break;
+		case CMP_NODE_STABILIZE2D:
+			ntype->uifunc= node_composit_buts_stabilize2d;
+			break;
+		case CMP_NODE_TRANSFORM:
+			ntype->uifunc= node_composit_buts_transform;
+			break;
+		case CMP_NODE_MOVIEDISTORTION:
+			ntype->uifunc= node_composit_buts_moviedistortion;
+			break;
+		default:
+			ntype->uifunc= NULL;
 	}
 	if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
 
@@ -2124,7 +2172,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 	}
 }
 
-void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp)
+void draw_nodespace_color_info(ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4])
 {
 	char str[256];
 	float dx= 6;

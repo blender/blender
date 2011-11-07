@@ -178,6 +178,7 @@ class TIME_MT_playback(Menu):
         layout.prop(screen, "use_play_image_editors")
         layout.prop(screen, "use_play_sequence_editors")
         layout.prop(screen, "use_play_node_editors")
+        layout.prop(screen, "use_play_clip_editors")
 
         layout.separator()
 

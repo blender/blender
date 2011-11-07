@@ -97,14 +97,14 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject* 
 	if (BaseMath_ReadCallback(vec1) == -1 || BaseMath_ReadCallback(vec2) == -1 || BaseMath_ReadCallback(vec3) == -1 || BaseMath_ReadCallback(ray) == -1 || BaseMath_ReadCallback(ray_off) == -1)
 		return NULL;
 
-	VECCOPY(v1, vec1->vec);
-	VECCOPY(v2, vec2->vec);
-	VECCOPY(v3, vec3->vec);
+	copy_v3_v3(v1, vec1->vec);
+	copy_v3_v3(v2, vec2->vec);
+	copy_v3_v3(v3, vec3->vec);
 
-	VECCOPY(dir, ray->vec);
+	copy_v3_v3(dir, ray->vec);
 	normalize_v3(dir);
 
-	VECCOPY(orig, ray_off->vec);
+	copy_v3_v3(orig, ray_off->vec);
 
 	/* find vectors for two edges sharing v1 */
 	sub_v3_v3v3(e1, v2, v1);
@@ -189,10 +189,10 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 		int result;
 
 		if (vec1->size == 3) {
-			VECCOPY(v1, vec1->vec);
-			VECCOPY(v2, vec2->vec);
-			VECCOPY(v3, vec3->vec);
-			VECCOPY(v4, vec4->vec);
+			copy_v3_v3(v1, vec1->vec);
+			copy_v3_v3(v2, vec2->vec);
+			copy_v3_v3(v3, vec3->vec);
+			copy_v3_v3(v4, vec4->vec);
 		}
 		else {
 			v1[0]= vec1->vec[0];

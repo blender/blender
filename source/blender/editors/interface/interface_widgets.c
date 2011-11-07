@@ -1510,7 +1510,7 @@ static void widget_state(uiWidgetType *wt, int state)
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
-		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 
 		if(state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
@@ -1519,7 +1519,7 @@ static void widget_state(uiWidgetType *wt, int state)
 		else if(state & UI_BUT_DRIVEN)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
 
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 		
 		if(state & UI_SELECT)
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
@@ -1604,7 +1604,7 @@ static void widget_state_option_menu(uiWidgetType *wt, int state)
 	else {
 		bTheme *btheme= U.themes.first; /* XXX */
 
-		VECCOPY(wt->wcol.text, btheme->tui.wcol_menu_back.text);
+		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
 	}
 }
 
@@ -1619,11 +1619,11 @@ static void widget_state_pulldown(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
-	VECCOPY(wt->wcol.outline, wt->wcol.inner);
+	copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+	copy_v3_v3_char(wt->wcol.outline, wt->wcol.inner);
 
 	if(state & UI_ACTIVE)
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 }
 
 /* special case, menu items */
@@ -1637,8 +1637,8 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
 	}
 	else if(state & UI_ACTIVE) {
-		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 	}
 }
 
@@ -1874,38 +1874,38 @@ void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 			break;
 		case UI_GRAD_H:
 			hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			VECCOPY(col1[1], col1[0]);
-			VECCOPY(col1[2], col1[0]);
-			VECCOPY(col1[3], col1[0]);
+			copy_v3_v3(col1[1], col1[0]);
+			copy_v3_v3(col1[2], col1[0]);
+			copy_v3_v3(col1[3], col1[0]);
 			break;
 		case UI_GRAD_S:
 			hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
-			VECCOPY(col1[0], col1[1]);
-			VECCOPY(col1[2], col1[1]);
-			VECCOPY(col1[3], col1[1]);
+			copy_v3_v3(col1[0], col1[1]);
+			copy_v3_v3(col1[2], col1[1]);
+			copy_v3_v3(col1[3], col1[1]);
 			break;
 		case UI_GRAD_V:
 			hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
-			VECCOPY(col1[0], col1[2]);
-			VECCOPY(col1[1], col1[2]);
-			VECCOPY(col1[3], col1[2]);
+			copy_v3_v3(col1[0], col1[2]);
+			copy_v3_v3(col1[1], col1[2]);
+			copy_v3_v3(col1[3], col1[2]);
 			break;
 		default:
 			assert(!"invalid 'type' argument");
 			hsv_to_rgb(1.0, 1.0, 1.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
-			VECCOPY(col1[0], col1[2]);
-			VECCOPY(col1[1], col1[2]);
-			VECCOPY(col1[3], col1[2]);			
+			copy_v3_v3(col1[0], col1[2]);
+			copy_v3_v3(col1[1], col1[2]);
+			copy_v3_v3(col1[3], col1[2]);
 	}
 	
 	/* old below */
 	
 	for(dx=0.0f; dx<1.0f; dx+= 0.05f) {
 		// previous color
-		VECCOPY(col0[0], col1[0]);
-		VECCOPY(col0[1], col1[1]);
-		VECCOPY(col0[2], col1[2]);
-		VECCOPY(col0[3], col1[3]);
+		copy_v3_v3(col0[0], col1[0]);
+		copy_v3_v3(col0[1], col1[1]);
+		copy_v3_v3(col0[2], col1[2]);
+		copy_v3_v3(col0[3], col1[3]);
 		
 		// new color
 		switch(type) {
@@ -1929,21 +1929,21 @@ void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 				break;
 			case UI_GRAD_H:
 				hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-				VECCOPY(col1[1], col1[0]);
-				VECCOPY(col1[2], col1[0]);
-				VECCOPY(col1[3], col1[0]);
+				copy_v3_v3(col1[1], col1[0]);
+				copy_v3_v3(col1[2], col1[0]);
+				copy_v3_v3(col1[3], col1[0]);
 				break;
 			case UI_GRAD_S:
 				hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
-				VECCOPY(col1[0], col1[1]);
-				VECCOPY(col1[2], col1[1]);
-				VECCOPY(col1[3], col1[1]);
+				copy_v3_v3(col1[0], col1[1]);
+				copy_v3_v3(col1[2], col1[1]);
+				copy_v3_v3(col1[3], col1[1]);
 				break;
 			case UI_GRAD_V:
 				hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
-				VECCOPY(col1[0], col1[2]);
-				VECCOPY(col1[1], col1[2]);
-				VECCOPY(col1[3], col1[2]);
+				copy_v3_v3(col1[0], col1[2]);
+				copy_v3_v3(col1[1], col1[2]);
+				copy_v3_v3(col1[3], col1[2]);
 				break;
 		}
 		
@@ -2197,7 +2197,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		
 		SWAP(short, wcol->shadetop, wcol->shadedown);
 		
-		QUATCOPY(wcol->inner, wcol->item);
+		copy_v4_v4_char(wcol->inner, wcol->item);
 		
 		if(wcol->shadetop>wcol->shadedown)
 			wcol->shadetop+= 20;	/* XXX violates themes... */
@@ -2369,9 +2369,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	if(!(state & UI_TEXTINPUT)) {
 		
 			/* slider part */
-		VECCOPY(outline, wcol->outline);
-		VECCOPY(wcol->outline, wcol->item);
-		VECCOPY(wcol->inner, wcol->item);
+		copy_v3_v3_char(outline, wcol->outline);
+		copy_v3_v3_char(wcol->outline, wcol->item);
+		copy_v3_v3_char(wcol->inner, wcol->item);
 
 		if(!(state & UI_SELECT))
 			SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -2397,7 +2397,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT), &rect1, offs);
 		
 		widgetbase_draw(&wtb1, wcol);
-		VECCOPY(wcol->outline, outline);
+		copy_v3_v3_char(wcol->outline, outline);
 		
 		if(!(state & UI_SELECT))
 			SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -2624,7 +2624,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	
 	widget_init(&wtb);
 	
-	VECCOPY(old_col, wcol->inner);
+	copy_v3_v3_char(old_col, wcol->inner);
 	
 	/* abuse but->hsv - if it's non-zero, use this color as the box's background */
 	if (but->col[3]) {
@@ -2643,7 +2643,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	/* XXX, this doesnt work right since the color applies to buttons outside the box too. */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
 	
-	VECCOPY(wcol->inner, old_col);
+	copy_v3_v3_char(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
@@ -3076,6 +3076,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 			case SCROLL:
 				wt= widget_type(UI_WTYPE_SCROLL);
+				break;
+
+			case TRACKPREVIEW:
+				ui_draw_but_TRACKPREVIEW(ar, but, &tui->wcol_regular, rect);
 				break;
 
 			default:

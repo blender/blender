@@ -185,7 +185,7 @@ bAction *copy_action (bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst= copy_libblock(src);
+	dst= copy_libblock(&src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);

@@ -326,7 +326,7 @@ void BKE_ptcache_mem_to_disk(struct PTCacheID *pid);
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 
 /* Rename all disk cache files with a new name. Doesn't touch the actual content of the files. */
-void BKE_ptcache_disk_cache_rename(struct PTCacheID *pid, char *from, char *to);
+void BKE_ptcache_disk_cache_rename(struct PTCacheID *pid, const char *name_src, const char *name_dst);
 
 /* Loads simulation from external (disk) cache files. */
 void BKE_ptcache_load_external(struct PTCacheID *pid);

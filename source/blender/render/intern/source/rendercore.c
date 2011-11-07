@@ -562,7 +562,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 	float *fp;
 	
 	fp= rl->rectf + 4*offset;
-	QUATCOPY(fp, shr->combined);
+	copy_v4_v4(fp, shr->combined);
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *col= NULL, uvcol[3];
@@ -695,7 +695,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 					}
 					
 					if(pass[3]==0.0f) {
-						QUATCOPY(pass, col);
+						copy_v4_v4(pass, col);
 					}
 					else {
 						addAlphaUnderFloat(pass, col);
@@ -768,18 +768,17 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 								continue;
 							}
 							
-							VECCOPY(tmp_rgb, rgbrect);
+							copy_v3_v3(tmp_rgb, rgbrect);
 							if(rgbrect[3]!=1.0f) {	/* de-premul */
-								float div= 1.0f/rgbrect[3];
-								VECMUL(tmp_rgb, div);
+								mul_v3_fl(tmp_rgb, 1.0f/rgbrect[3]);
 							}
 							shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
 							if(rgbrect[3]!=1.0f) {	/* premul */
-								VECMUL(tmp_rgb, rgbrect[3]);
+								mul_v3_fl(tmp_rgb, rgbrect[3]);
 							}
 							
 							if(done==0) {
-								VECCOPY(rgb, tmp_rgb);
+								copy_v3_v3(rgb, tmp_rgb);
 								done = 1;						
 							}
 							else{
@@ -793,7 +792,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 
 				/* if at least for one sun lamp aerial perspective was applied*/
 				if(done) {
-					VECCOPY(rgbrect, rgb);
+					copy_v3_v3(rgbrect, rgb);
 				}
 			}
 		}
@@ -1533,13 +1532,13 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	   then clamp to avoid a too large contribution from a single pixel */
 	shi->osatex= 1;
 
-	VECCOPY(nor, shi->facenor);
+	copy_v3_v3(nor, shi->facenor);
 	calc_view_vector(shi->facenor, sx, sy);
 	normalize_v3(shi->facenor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
 	orthoarea= len_v3(shi->dxco)*len_v3(shi->dyco);
 
-	VECCOPY(shi->facenor, nor);
+	copy_v3_v3(shi->facenor, nor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
 	*area= len_v3(shi->dxco)*len_v3(shi->dyco);
 	*area= MIN2(*area, 2.0f*orthoarea);
@@ -1572,8 +1571,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	shade_samples_do_AO(ssamp);
 	shade_material_loop(shi, &shr);
 	
-	VECCOPY(co, shi->co);
-	VECCOPY(color, shr.combined);
+	copy_v3_v3(co, shi->co);
+	copy_v3_v3(color, shr.combined);
 
 	/* texture blending */
 	/* texfac= shi->mat->sss_texfac; */ /* UNUSED */
@@ -1711,7 +1710,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 
 					totpoint++;
 
-					VECADD(fcol, fcol, color);
+					add_v3_v3(fcol, color);
 					fcol[3]= 1.0f;
 				}
 
@@ -1730,7 +1729,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 					shade_sample_sss(&ssamp, mat, obi, vlr, quad, x, y, *rz,
 						co[totpoint], color[totpoint], &area[totpoint]);
 					
-					VECADD(fcol, fcol, color[totpoint]);
+					add_v3_v3(fcol, color[totpoint]);
 					fcol[3]= 1.0f;
 					totpoint++;
 				}
@@ -1753,7 +1752,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 					/* to indicate this is a back sample */
 					area[totpoint]= -area[totpoint];
 
-					VECADD(fcol, fcol, color[totpoint]);
+					add_v3_v3(fcol, color[totpoint]);
 					fcol[3]= 1.0f;
 					totpoint++;
 				}
@@ -2068,7 +2067,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		if(bs->type==RE_BAKE_NORMALS) {
 			float nor[3];
 
-			VECCOPY(nor, shi->vn);
+			copy_v3_v3(nor, shi->vn);
 
 			if(R.r.bake_normal_space == R_BAKE_SPACE_CAMERA);
 			else if(R.r.bake_normal_space == R_BAKE_SPACE_TANGENT) {
@@ -2076,16 +2075,16 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 				/* bitangent */
 				if(tvn && ttang) {
-					VECCOPY(mat[0], ttang);
+					copy_v3_v3(mat[0], ttang);
 					cross_v3_v3v3(mat[1], tvn, ttang);
 					mul_v3_fl(mat[1], ttang[3]);
-					VECCOPY(mat[2], tvn);
+					copy_v3_v3(mat[2], tvn);
 				}
 				else {
-					VECCOPY(mat[0], shi->nmaptang);
+					copy_v3_v3(mat[0], shi->nmaptang);
 					cross_v3_v3v3(mat[1], shi->nmapnorm, shi->nmaptang);
 					mul_v3_fl(mat[1], shi->nmaptang[3]);
-					VECCOPY(mat[2], shi->nmapnorm);
+					copy_v3_v3(mat[2], shi->nmapnorm);
 				}
 
 				invert_m3_m3(imat, mat);
@@ -2115,7 +2114,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			shr.alpha = shi->alpha;
 		}
 		else if(bs->type==RE_BAKE_SHADOW) {
-			VECCOPY(shr.combined, shr.shad);
+			copy_v3_v3(shr.combined, shr.shad);
 			shr.alpha = shi->alpha;
 		}
 		else if(bs->type==RE_BAKE_SPEC_COLOR) {
@@ -2158,7 +2157,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 	
 	if(bs->rect_float) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
-		VECCOPY(col, shr.combined);
+		copy_v3_v3(col, shr.combined);
 		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
 			col[3]= shr.alpha;
 		} else {
@@ -2336,16 +2335,16 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(obi->flag & R_TRANSFORMED)
 		mul_m4_v3(obi->mat, shi->co);
 	
-	VECCOPY(shi->dxco, bs->dxco);
-	VECCOPY(shi->dyco, bs->dyco);
+	copy_v3_v3(shi->dxco, bs->dxco);
+	copy_v3_v3(shi->dyco, bs->dyco);
 
 	quad= bs->quad;
 	bake_set_shade_input(obi, vlr, shi, quad, 0, x, y, u, v);
 
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
-		VECCOPY(tvn, shi->nmapnorm);
-		QUATCOPY(ttang, shi->nmaptang);
+		copy_v3_v3(tvn, shi->nmapnorm);
+		copy_v4_v4(ttang, shi->nmaptang);
 	}
 
 	/* if we are doing selected to active baking, find point on other face */
@@ -2359,7 +2358,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		memset(&minisec, 0, sizeof(minisec));
 		minco[0]= minco[1]= minco[2]= 0.0f;
 		
-		VECCOPY(bs->dir, shi->vn);
+		copy_v3_v3(bs->dir, shi->vn);
 		
 		for(sign=-1; sign<=1; sign+=2) {
 			memset(&isec, 0, sizeof(isec));
@@ -2375,7 +2374,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
 					minisec= isec;
 					mindist= dist;
-					VECCOPY(minco, co);
+					copy_v3_v3(minco, co);
 					hit= 1;
 					dir = sign;
 				}
@@ -2395,7 +2394,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			obi= (ObjectInstanceRen*)minisec.hit.ob;
 			vlr= (VlakRen*)minisec.hit.face;
 			quad= (minisec.isect == 2);
-			VECCOPY(shi->co, minco);
+			copy_v3_v3(shi->co, minco);
 			
 			u= -minisec.u;
 			v= -minisec.v;

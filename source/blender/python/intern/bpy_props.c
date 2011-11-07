@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_props.c
  *  \ingroup pythonintern
+ *
+ * This file defines 'bpy.props' module used so scripts can define their own
+ * rna properties for use with python operators or adding new properties to
+ * existing blender types.
  */
 
 
@@ -254,7 +258,7 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 {
 	/* assume this is already checked for type and arg length */
 	if (update_cb) {
-		PyObject **py_data= MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, "bpy_prop_callback_assign");
+		PyObject **py_data= MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, __func__);
 		RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
 		py_data[BPY_DATA_CB_SLOT_UPDATE]= update_cb;
 		RNA_def_py_data(prop, py_data);

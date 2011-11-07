@@ -172,7 +172,7 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		{
 			float tmp[3];
 
-			VECCOPY(tmp, verts[i].co);
+			copy_v3_v3(tmp, verts[i].co);
 			mul_m4_v3(ob->obmat, tmp);
 
 			// min BB
@@ -186,11 +186,11 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			max[2] = MAX2(max[2], tmp[2]);
 		}
 
-		VECCOPY(smd->domain->p0, min);
-		VECCOPY(smd->domain->p1, max);
+		copy_v3_v3(smd->domain->p0, min);
+		copy_v3_v3(smd->domain->p1, max);
 
 		// calc other res with max_res provided
-		VECSUB(size, max, min);
+		sub_v3_v3v3(size, max, min);
 
 		// printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
 
@@ -354,9 +354,9 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 	for(i = 0; i < dm->getNumVerts(dm); i++)
 	{
 		float tmpvec[3];
-		VECCOPY(tmpvec, mvert[i].co);
+		copy_v3_v3(tmpvec, mvert[i].co);
 		mul_m4_v3(ob->obmat, tmpvec);
-		VECCOPY(&scs->points[i * 3], tmpvec);
+		copy_v3_v3(&scs->points[i * 3], tmpvec);
 	}
 	
 	for(i = 0, facecounter = 0; i < dm->getNumFaces(dm); i++)
@@ -372,18 +372,18 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 			
 			if(again == 1 && mface[i].v4)
 			{
-				VECSUB(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
-				VECSUB(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
+				sub_v3_v3v3(side1,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+				sub_v3_v3v3(side2,  mvert[ mface[i].v4 ].co, mvert[ mface[i].v1 ].co);
 			}
 			else
 			{
-				VECSUB(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
-				VECSUB(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
+				sub_v3_v3v3(side1,  mvert[ mface[i].v2 ].co, mvert[ mface[i].v1 ].co);
+				sub_v3_v3v3(side2,  mvert[ mface[i].v3 ].co, mvert[ mface[i].v1 ].co);
 			}
 
 			cross_v3_v3v3(trinormorg, side1, side2);
 			normalize_v3(trinormorg);
-			VECCOPY(trinorm, trinormorg);
+			copy_v3_v3(trinorm, trinormorg);
 			mul_v3_fl(trinorm, 0.25 * cell_len);
 
 			for(j = 0; j <= divs1; j++)
@@ -401,43 +401,42 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 						continue;
 					}
 
-					VECCOPY(p1, mvert[ mface[i].v1 ].co);
+					copy_v3_v3(p1, mvert[ mface[i].v1 ].co);
 					if(again == 1 && mface[i].v4)
 					{
-						VECCOPY(p2, mvert[ mface[i].v3 ].co);
-						VECCOPY(p3, mvert[ mface[i].v4 ].co);
+						copy_v3_v3(p2, mvert[ mface[i].v3 ].co);
+						copy_v3_v3(p3, mvert[ mface[i].v4 ].co);
 					}
 					else
 					{
-						VECCOPY(p2, mvert[ mface[i].v2 ].co);
-						VECCOPY(p3, mvert[ mface[i].v3 ].co);
+						copy_v3_v3(p2, mvert[ mface[i].v2 ].co);
+						copy_v3_v3(p3, mvert[ mface[i].v3 ].co);
 					}
 
 					mul_v3_fl(p1, (1.0-uf-vf));
 					mul_v3_fl(p2, uf);
 					mul_v3_fl(p3, vf);
 					
-					VECADD(p, p1, p2);
-					VECADD(p, p, p3);
+					add_v3_v3v3(p, p1, p2);
+					add_v3_v3(p, p3);
 
 					if(newdivs > divs)
 						printf("mem problem\n");
 
 					// mMovPoints.push_back(p + trinorm);
-					VECCOPY(tmpvec, p);
-					VECADD(tmpvec, tmpvec, trinorm);
+					add_v3_v3v3(tmpvec, p, trinorm);
 					mul_m4_v3(ob->obmat, tmpvec);
-					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					copy_v3_v3(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
 					newdivs++;
 
 					if(newdivs > divs)
 						printf("mem problem\n");
 
 					// mMovPoints.push_back(p - trinorm);
-					VECCOPY(tmpvec, p);
-					VECSUB(tmpvec, tmpvec, trinorm);
+					copy_v3_v3(tmpvec, p);
+					sub_v3_v3(tmpvec, trinorm);
 					mul_m4_v3(ob->obmat, tmpvec);
-					VECCOPY(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
+					copy_v3_v3(&scs->points[3 * (dm->getNumVerts(dm) + newdivs)], tmpvec);
 					newdivs++;
 				}
 			}
@@ -488,23 +487,23 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 		float side3[3];
 		int divs1=0, divs2=0, divs3=0;
 
-		VECCOPY(p0, verts[faces[i].v1].co);
+		copy_v3_v3(p0, verts[faces[i].v1].co);
 		mul_m4_v3(ob->obmat, p0);
-		VECCOPY(p1, verts[faces[i].v2].co);
+		copy_v3_v3(p1, verts[faces[i].v2].co);
 		mul_m4_v3(ob->obmat, p1);
-		VECCOPY(p2, verts[faces[i].v3].co);
+		copy_v3_v3(p2, verts[faces[i].v3].co);
 		mul_m4_v3(ob->obmat, p2);
 
-		VECSUB(side1, p1, p0);
-		VECSUB(side2, p2, p0);
-		VECSUB(side3, p1, p2);
+		sub_v3_v3v3(side1, p1, p0);
+		sub_v3_v3v3(side2, p2, p0);
+		sub_v3_v3v3(side3, p1, p2);
 
-		if(INPR(side1, side1) > fsTri*fsTri) 
+		if(dot_v3v3(side1, side1) > fsTri*fsTri)
 		{ 
 			float tmp = normalize_v3(side1);
 			divs1 = (int)ceil(tmp/fsTri); 
 		}
-		if(INPR(side2, side2) > fsTri*fsTri) 
+		if(dot_v3v3(side2, side2) > fsTri*fsTri)
 		{ 
 			float tmp = normalize_v3(side2);
 			divs2 = (int)ceil(tmp/fsTri); 
@@ -527,23 +526,23 @@ static void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFa
 
 			facecounter++;
 			
-			VECCOPY(p0, verts[faces[i].v3].co);
+			copy_v3_v3(p0, verts[faces[i].v3].co);
 			mul_m4_v3(ob->obmat, p0);
-			VECCOPY(p1, verts[faces[i].v4].co);
+			copy_v3_v3(p1, verts[faces[i].v4].co);
 			mul_m4_v3(ob->obmat, p1);
-			VECCOPY(p2, verts[faces[i].v1].co);
+			copy_v3_v3(p2, verts[faces[i].v1].co);
 			mul_m4_v3(ob->obmat, p2);
 
-			VECSUB(side1, p1, p0);
-			VECSUB(side2, p2, p0);
-			VECSUB(side3, p1, p2);
+			sub_v3_v3v3(side1, p1, p0);
+			sub_v3_v3v3(side2, p2, p0);
+			sub_v3_v3v3(side3, p1, p2);
 
-			if(INPR(side1, side1) > fsTri*fsTri) 
+			if(dot_v3v3(side1, side1) > fsTri*fsTri)
 			{ 
 				float tmp = normalize_v3(side1);
 				divs1 = (int)ceil(tmp/fsTri); 
 			}
-			if(INPR(side2, side2) > fsTri*fsTri) 
+			if(dot_v3v3(side2, side2) > fsTri*fsTri)
 			{ 
 				float tmp = normalize_v3(side2);
 				divs2 = (int)ceil(tmp/fsTri); 
@@ -1050,7 +1049,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 							if(psys_get_particle_state(&sim, p, &state, 0) == 0)
 								continue;
 							
-							// VECCOPY(pos, pa->state.co);									
+							// copy_v3_v3(pos, pa->state.co);
 							// mul_m4_v3(ob->imat, pos);																		
 							// 1. get corresponding cell	
 							get_cell(smd->domain->p0, smd->domain->res, smd->domain->dx, state.co, cell, 0);																	
@@ -1589,7 +1588,7 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 {
 	float tmp[3];
 
-	VECSUB(tmp, pos, p0);
+	sub_v3_v3v3(tmp, pos, p0);
 	mul_v3_fl(tmp, 1.0 / dx);
 
 	if(correct)

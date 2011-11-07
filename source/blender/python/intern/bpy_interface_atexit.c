@@ -22,6 +22,10 @@
 
 /** \file blender/python/intern/bpy_interface_atexit.c
  *  \ingroup pythonintern
+ *
+ * This file inserts an exit callback into pythons 'atexit' module.
+ * Without this sys.exit() can crash because blender is not properly closing
+ * resources.
  */
 
 

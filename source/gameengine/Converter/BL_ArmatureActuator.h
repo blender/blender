@@ -46,7 +46,7 @@
 
 class	BL_ArmatureActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 public:
 	BL_ArmatureActuator(SCA_IObject* gameobj,
 						int type,

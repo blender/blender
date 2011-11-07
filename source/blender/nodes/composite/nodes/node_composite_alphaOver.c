@@ -48,10 +48,10 @@ static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, flo
 {
 	
 	if(over[3]<=0.0f) {
-		QUATCOPY(out, src);
+		copy_v4_v4(out, src);
 	}
 	else if(fac[0]==1.0f && over[3]>=1.0f) {
-		QUATCOPY(out, over);
+		copy_v4_v4(out, over);
 	}
 	else {
 		float mul= 1.0f - fac[0]*over[3];
@@ -68,10 +68,10 @@ static void do_alphaover_key(bNode *UNUSED(node), float *out, float *src, float 
 {
 	
 	if(over[3]<=0.0f) {
-		QUATCOPY(out, src);
+		copy_v4_v4(out, src);
 	}
 	else if(fac[0]==1.0f && over[3]>=1.0f) {
-		QUATCOPY(out, over);
+		copy_v4_v4(out, over);
 	}
 	else {
 		float premul= fac[0]*over[3];
@@ -89,10 +89,10 @@ static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over,
 {
 	
 	if(over[3]<=0.0f) {
-		QUATCOPY(out, src);
+		copy_v4_v4(out, src);
 	}
 	else if(fac[0]==1.0f && over[3]>=1.0f) {
-		QUATCOPY(out, over);
+		copy_v4_v4(out, over);
 	}
 	else {
 		NodeTwoFloats *ntf= node->storage;

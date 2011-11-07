@@ -56,6 +56,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
+#include "BKE_camera.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
@@ -74,7 +75,10 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
+#include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "smoke_API.h"
 
@@ -201,6 +205,40 @@ static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *
 	}
 }
 
+/* same as view3d_project_short_clip but use persmat instead of persmatob for projection */
+static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short *adr, int local)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float fx, fy, vec4[4];
+
+	adr[0]= IS_CLIPPED;
+
+	/* clipplanes in eye space */
+	if(rv3d->rflag & RV3D_CLIPPING) {
+		if(ED_view3d_test_clipping(rv3d, vec, local))
+			return;
+	}
+
+	copy_v3_v3(vec4, vec);
+	vec4[3]= 1.0;
+
+	mul_m4_v4(rv3d->persmat, vec4);
+
+	/* clipplanes in window space */
+	if( vec4[3] > (float)BL_NEAR_CLIP ) {	/* is the NEAR clipping cutoff for picking */
+		fx= (ar->winx/2)*(1 + vec4[0]/vec4[3]);
+
+		if( fx>0 && fx<ar->winx) {
+
+			fy= (ar->winy/2)*(1 + vec4[1]/vec4[3]);
+
+			if(fy > 0.0f && fy < (float)ar->winy) {
+				adr[0]= (short)floorf(fx);
+				adr[1]= (short)floorf(fy);
+			}
+		}
+	}
+}
 /* ************************ */
 
 /* check for glsl drawing */
@@ -732,7 +770,12 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	for(vos= strings->first; vos; vos= vos->next) {
 		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
-		view3d_project_short_clip(ar, vos->vec, vos->sco, 0);
+
+		if(vos->flag&V3D_CACHE_TEXT_GLOBALSPACE)
+			view3d_project_short_clip_persmat(ar, vos->vec, vos->sco, 0);
+		else
+			view3d_project_short_clip(ar, vos->vec, vos->sco, 0);
+
 		if(vos->sco[0]!=IS_CLIPPED)
 			tot++;
 	}
@@ -1364,16 +1407,203 @@ float view3d_camera_border_hack_col[4];
 short view3d_camera_border_hack_test= FALSE;
 #endif
 
+/* ****************** draw clip data *************** */
+
+static void draw_bundle_sphere(void)
+{
+	static GLuint displist= 0;
+
+	if (displist == 0) {
+		GLUquadricObj *qobj;
+
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE);
+
+		qobj= gluNewQuadric();
+		gluQuadricDrawStyle(qobj, GLU_FILL);
+		glShadeModel(GL_SMOOTH);
+		gluSphere(qobj, 0.05, 8, 8);
+		glShadeModel(GL_FLAT);
+		gluDeleteQuadric(qobj);
+
+		glEndList();
+	}
+
+	glCallList(displist);
+}
+
+static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
+{
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track;
+	float mat[4][4], imat[4][4], curcol[4];
+	unsigned char col[4], scol[4];
+	int bundlenr= 1;
+
+	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
+		return;
+
+	if(v3d->flag2&V3D_RENDER_OVERRIDE)
+		return;
+
+	glGetFloatv(GL_CURRENT_COLOR, curcol);
+
+	UI_GetThemeColor4ubv(TH_TEXT, col);
+	UI_GetThemeColor4ubv(TH_SELECT, scol);
+
+	BKE_get_tracking_mat(scene, base->object, mat);
+
+	glEnable(GL_LIGHTING);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+	glShadeModel(GL_SMOOTH);
+
+	/* current ogl matrix is translated in camera space, bundles should
+	   be rendered in world space, so camera matrix should be "removed"
+	   from current ogl matrix */
+	invert_m4_m4(imat, base->object->obmat);
+
+	glPushMatrix();
+	glMultMatrixf(imat);
+	glMultMatrixf(mat);
+
+	for ( track= tracking->tracks.first; track; track= track->next) {
+		int selected= track->flag&SELECT || track->pat_flag&SELECT || track->search_flag&SELECT;
+		if((track->flag&TRACK_HAS_BUNDLE)==0)
+			continue;
+
+		if(flag&DRAW_PICKING)
+			glLoadName(base->selcol + (bundlenr<<16));
+
+		glPushMatrix();
+			glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+			glScalef(v3d->bundle_size/0.05, v3d->bundle_size/0.05, v3d->bundle_size/0.05);
+
+			if(v3d->drawtype==OB_WIRE) {
+				glDisable(GL_LIGHTING);
+				glDepthMask(0);
+
+				if(selected) {
+					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+					else UI_ThemeColor(TH_SELECT);
+				} else {
+					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+					else UI_ThemeColor(TH_WIRE);
+				}
+
+				drawaxes(0.05f, v3d->bundle_drawtype);
+
+				glDepthMask(1);
+				glEnable(GL_LIGHTING);
+			} else if(v3d->drawtype>OB_WIRE) {
+				if(v3d->bundle_drawtype==OB_EMPTY_SPHERE) {
+					/* selection outline */
+					if(selected) {
+						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+						else UI_ThemeColor(TH_SELECT);
+
+						glDepthMask(0);
+						glLineWidth(2.f);
+						glDisable(GL_LIGHTING);
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+						draw_bundle_sphere();
+
+						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						glEnable(GL_LIGHTING);
+						glLineWidth(1.f);
+						glDepthMask(1);
+					}
+
+					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+					else UI_ThemeColor(TH_BUNDLE_SOLID);
+
+					draw_bundle_sphere();
+				} else {
+					glDisable(GL_LIGHTING);
+					glDepthMask(0);
+
+					if(selected) {
+						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+						else UI_ThemeColor(TH_SELECT);
+					} else {
+						if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+						else UI_ThemeColor(TH_WIRE);
+					}
+
+					drawaxes(0.05f, v3d->bundle_drawtype);
+
+					glDepthMask(1);
+					glEnable(GL_LIGHTING);
+				}
+			}
+
+		glPopMatrix();
+
+		if((flag & DRAW_PICKING)==0 && (v3d->flag2&V3D_SHOW_BUNDLENAME)) {
+			float pos[3];
+			unsigned char tcol[4];
+
+			if(selected) memcpy(tcol, scol, sizeof(tcol));
+			else memcpy(tcol, col, sizeof(tcol));
+
+			mul_v3_m4v3(pos, mat, track->bundle_pos);
+			view3d_cached_text_draw_add(pos, track->name, 10, V3D_CACHE_TEXT_GLOBALSPACE, tcol);
+		}
+
+		bundlenr++;
+	}
+
+	if((flag & DRAW_PICKING)==0) {
+		if(v3d->flag2&V3D_SHOW_CAMERAPATH && clip->tracking.reconstruction.camnr) {
+			int a= 0;
+			MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
+			MovieReconstructedCamera *camera= tracking->reconstruction.cameras;
+
+			glDisable(GL_LIGHTING);
+			UI_ThemeColor(TH_CAMERA_PATH);
+			glLineWidth(2.0f);
+
+			glBegin(GL_LINE_STRIP);
+				for(a= 0; a<reconstruction->camnr; a++, camera++) {
+					glVertex3f(camera->mat[3][0], camera->mat[3][1], camera->mat[3][2]);
+				}
+			glEnd();
+
+			glLineWidth(1.0f);
+			glEnable(GL_LIGHTING);
+		}
+	}
+
+	glPopMatrix();
+
+	/* restore */
+	glShadeModel(GL_FLAT);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+
+	glColor4fv(curcol);
+
+	if(flag&DRAW_PICKING)
+		glLoadName(base->selcol);
+}
+
 /* flag similar to draw_object() */
-static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int flag)
+static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int flag)
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
+	Object *ob= base->object;
 	float tvec[3];
 	float vec[4][3], asp[2], shift[2], scale[3];
 	int i;
 	float drawsize;
 	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
+	MovieClip *clip= object_get_movieclip(scene, base->object, 0);
+
+	/* draw data for movie clip set as active for scene */
+	if(clip)
+		draw_viewport_reconstruction(scene, base, v3d, clip, flag);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if(is_view && !(G.f & G_PICKSEL)) {
@@ -3720,7 +3950,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart=psys->totpart;
 
-	cfra= bsystem_time(scene, NULL, (float)CFRA, 0.0f);
+	cfra= BKE_curframe(scene);
 
 	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
 		draw_as=PART_DRAW_DOT;
@@ -4969,7 +5199,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			int skip= nu->resolu/16;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
-				float fac= bevp->radius * ts->normalsize;
+				const float fac= bevp->radius * ts->normalsize;
 				float vec_a[3]; // Offset perpendicular to the curve
 				float vec_b[3]; // Delta along the curve
 
@@ -4985,9 +5215,9 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				mul_qt_v3(bevp->quat, vec_b);
 				add_v3_v3(vec_a, bevp->vec);
 				add_v3_v3(vec_b, bevp->vec);
-				
-				VECSUBFAC(vec_a, vec_a, bevp->dir, fac);
-				VECSUBFAC(vec_b, vec_b, bevp->dir, fac);
+
+				madd_v3_v3fl(vec_a, bevp->dir, -fac);
+				madd_v3_v3fl(vec_b, bevp->dir, -fac);
 
 				glBegin(GL_LINE_STRIP);
 				glVertex3fv(vec_a);
@@ -5796,7 +6026,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	Object *ob;
 	Curve *cu;
 	RegionView3D *rv3d= ar->regiondata;
-	//float cfraont;
 	float vec1[3], vec2[3];
 	unsigned int col=0;
 	int /*sel, drawtype,*/ colindex= 0;
@@ -5835,83 +6064,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* no return after this point, otherwise leaks */
 	view3d_cached_text_draw_begin();
 	
-
-	/* draw keys? */
-#if 0 // XXX old animation system
-	if(base==(scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
-		if(flag==0 && warning_recursive==0 && ob!=scene->obedit) {
-			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
-				ListBase elems;
-				CfraElem *ce;
-				float temp[7][3];
-
-				warning_recursive= 1;
-
-				elems.first= elems.last= 0;
-				// warning: no longer checks for certain ob-keys only... (so does this need to use the proper ipokeys then?)
-				make_cfra_list(ob->ipo, &elems); 
-
-				cfraont= (scene->r.cfra);
-				drawtype= v3d->drawtype;
-				if(drawtype>OB_WIRE) v3d->drawtype= OB_WIRE;
-				sel= base->flag;
-				memcpy(temp, &ob->loc, 7*3*sizeof(float));
-
-				ipoflag= ob->ipoflag;
-				ob->ipoflag &= ~OB_OFFS_OB;
-
-				set_no_parent_ipo(1);
-				disable_speed_curve(1);
-
-				if ((ob->ipoflag & OB_DRAWKEYSEL)==0) {
-					ce= elems.first;
-					while(ce) {
-						if(!ce->sel) {
-							(scene->r.cfra)= ce->cfra/scene->r.framelen;
-
-							base->flag= 0;
-
-							where_is_object_time(scene, ob, (scene->r.cfra));
-							draw_object(scene, ar, v3d, base, 0);
-						}
-						ce= ce->next;
-					}
-				}
-
-				ce= elems.first;
-				while(ce) {
-					if(ce->sel) {
-						(scene->r.cfra)= ce->cfra/scene->r.framelen;
-
-						base->flag= SELECT;
-
-						where_is_object_time(scene, ob, (scene->r.cfra));
-						draw_object(scene, ar, v3d, base, 0);
-					}
-					ce= ce->next;
-				}
-
-				set_no_parent_ipo(0);
-				disable_speed_curve(0);
-
-				base->flag= sel;
-				ob->ipoflag= ipoflag;
-
-				/* restore icu->curval */
-				(scene->r.cfra)= cfraont;
-
-				memcpy(&ob->loc, temp, 7*3*sizeof(float));
-				where_is_object(scene, ob);
-				v3d->drawtype= drawtype;
-
-				BLI_freelistN(&elems);
-
-				warning_recursive= 0;
-			}
-		}
-	}
-#endif // XXX old animation system
-
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
@@ -5969,7 +6121,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					if(base->flag & (SELECT+BA_WAS_SEL)) {
 						/* uses darker active color for non-active + selected*/
 						theme_id= TH_GROUP_ACTIVE;
-
+						
 						if(scene->basact != base) {
 							theme_shade= -16;
 						}
@@ -6207,7 +6359,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_CAMERA:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0 || (rv3d->persp==RV3D_CAMOB && v3d->camera==ob)) /* special exception for active camera */
-				drawcamera(scene, v3d, rv3d, ob, flag);
+				drawcamera(scene, v3d, rv3d, base, flag);
 			break;
 		case OB_SPEAKER:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
@@ -6558,7 +6710,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix) 
-							cti->get_target_matrix(curcon, cob, ct, bsystem_time(scene, ob, (float)(scene->r.cfra), give_timeoffset(ob)));
+							cti->get_target_matrix(curcon, cob, ct, BKE_curframe(scene));
 						else
 							unit_m4(ct->matrix);
 						

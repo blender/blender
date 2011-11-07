@@ -126,7 +126,7 @@ Scene *copy_scene(Scene *sce, int type)
 		scen->r.layers= lb;
 	}
 	else {
-		scen= copy_libblock(sce);
+		scen= copy_libblock(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
 		clear_id_newpoins();
@@ -806,6 +806,8 @@ int scene_camera_switch_update(Scene *scene)
 		scene->camera= camera;
 		return 1;
 	}
+#else
+	(void)scene;
 #endif
 	return 0;
 }
@@ -908,15 +910,20 @@ int scene_check_setscene(Main *bmain, Scene *sce)
 }
 
 /* This function is needed to cope with fractional frames - including two Blender rendering features
-* mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. */
-
-/* see also bsystem_time in object.c */
+ * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. 
+ */
 float BKE_curframe(Scene *scene)
 {
-	float ctime = scene->r.cfra;
-	ctime+= scene->r.subframe;
-	ctime*= scene->r.framelen;	
+	return BKE_frame_to_ctime(scene, scene->r.cfra);
+}
 
+/* This function is used to obtain arbitrary fractional frames */
+float BKE_frame_to_ctime(Scene *scene, const float frame)
+{
+	float ctime = frame;
+	ctime += scene->r.subframe;
+	ctime *= scene->r.framelen;	
+	
 	return ctime;
 }
 

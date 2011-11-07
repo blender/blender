@@ -34,8 +34,6 @@
 
 /* **************** Scale  ******************** */
 
-#define CMP_SCALE_MAX	12000
-
 static bNodeSocketTemplate cmp_node_scale_in[]= {
 	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "X",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
@@ -109,6 +107,25 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		out[0]->data= stackbuf;
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
+	}
+	else if (node->custom1==CMP_SCALE_ABSOLUTE) {
+		CompBuf *stackbuf;
+		int a, x, y;
+		float *fp;
+
+		x = MAX2((int)in[1]->vec[0], 1);
+		y = MAX2((int)in[2]->vec[0], 1);
+
+		stackbuf = alloc_compbuf(x, y, CB_RGBA, 1);
+		fp = stackbuf->rect;
+
+		a = stackbuf->x * stackbuf->y;
+		while(a--) {
+			copy_v4_v4(fp, in[0]->vec);
+			fp += 4;
+		}
+
+		out[0]->data= stackbuf;
 	}
 }
 

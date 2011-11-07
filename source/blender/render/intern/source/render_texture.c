@@ -2302,7 +2302,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			else texres.nor= NULL;
 			
 			if(warpdone) {
-				VECADD(tempvec, co, warpvec);
+				add_v3_v3v3(tempvec, co, warpvec);
 				co= tempvec;
 			}
 

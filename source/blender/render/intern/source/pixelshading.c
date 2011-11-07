@@ -84,7 +84,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 	
 	ir= ig= ib= 0.0;
 	
-	VECCOPY(rco, har->co);	
+	copy_v3_v3(rco, har->co);
 	dco[0]=dco[1]=dco[2]= 1.0f/har->rad;
 	
 	vn= har->no;
@@ -97,7 +97,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 		
 		/* lampdist cacluation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-			VECCOPY(lv, lar->vec);
+			copy_v3_v3(lv, lar->vec);
 			lampdist= 1.0;
 		}
 		else {
@@ -146,7 +146,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			memset(&shi, 0, sizeof(ShadeInput)); 
 			/* end warning! - Campbell */
 			
-			VECCOPY(shi.co, rco);
+			copy_v3_v3(shi.co, rco);
 			shi.osatex= 0;
 			do_lamp_tex(lar, lv, &shi, lacol, LA_TEXTURE);
 		}
@@ -158,7 +158,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 					float x, lvrot[3];
 					
 					/* rotate view to lampspace */
-					VECCOPY(lvrot, lv);
+					copy_v3_v3(lvrot, lv);
 					mul_m3_v3(lar->imat, lvrot);
 					
 					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
@@ -610,7 +610,7 @@ void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 
 	if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/* 1. solid color */
-		VECCOPY(collector, &R.wrld.horr);
+		copy_v3_v3(collector, &R.wrld.horr);
 
 		collector[3] = 0.0f;
 	} 

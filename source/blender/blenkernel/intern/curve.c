@@ -192,7 +192,7 @@ Curve *copy_curve(Curve *cu)
 	Curve *cun;
 	int a;
 	
-	cun= copy_libblock(cu);
+	cun= copy_libblock(&cu->id);
 	cun->nurb.first= cun->nurb.last= NULL;
 	duplicateNurblist( &(cun->nurb), &(cu->nurb));
 

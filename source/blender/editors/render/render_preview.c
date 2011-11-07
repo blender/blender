@@ -70,6 +70,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"

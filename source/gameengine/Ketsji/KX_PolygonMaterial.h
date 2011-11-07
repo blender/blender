@@ -55,7 +55,7 @@ struct Image;
  */
 class KX_PolygonMaterial : public PyObjectPlus, public RAS_IPolyMaterial
 {
-	Py_Header;
+	Py_Header
 private:
 	/** Blender texture face structure. */
 	MTFace*			m_tface;

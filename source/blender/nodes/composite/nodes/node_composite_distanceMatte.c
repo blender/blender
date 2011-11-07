@@ -59,7 +59,7 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 				  (c->key[1]-in[1])*(c->key[1]-in[1]) +
 				  (c->key[2]-in[2])*(c->key[2]-in[2]));
 
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 
 	/*make 100% transparent */
 	if(distance < tolerence) {

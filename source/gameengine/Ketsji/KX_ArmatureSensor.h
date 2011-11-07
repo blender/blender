@@ -40,7 +40,7 @@ struct bConstraint;
 
 class KX_ArmatureSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	//class CExpression*	m_rightexpr;
 
 protected:

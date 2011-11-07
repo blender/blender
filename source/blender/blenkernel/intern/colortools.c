@@ -501,7 +501,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			
 			hlen= len_v3v3(bezt[0].vec[1], bezt[0].vec[2]);	/* original handle length */
 			/* clip handle point */
-			VECCOPY(vec, bezt[1].vec[0]);
+			copy_v3_v3(vec, bezt[1].vec[0]);
 			if(vec[0] < bezt[0].vec[1][0])
 				vec[0]= bezt[0].vec[1][0];
 			
@@ -518,7 +518,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			
 			hlen= len_v3v3(bezt[a].vec[1], bezt[a].vec[0]);	/* original handle length */
 			/* clip handle point */
-			VECCOPY(vec, bezt[a-1].vec[2]);
+			copy_v3_v3(vec, bezt[a-1].vec[2]);
 			if(vec[0] > bezt[a].vec[1][0])
 				vec[0]= bezt[a].vec[1][0];
 			

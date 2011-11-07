@@ -103,6 +103,11 @@ typedef struct tGPsdata {
 	
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
+
+	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
+						   to region space */
+
+	float custom_color[3];	/* custom color for  */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -277,6 +282,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, const int mval[2], float out[3
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
 	else if ((gpd->sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
 		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
+		mul_v3_m4v3(out, p->imat, out);
 	}
 	
 #if 0
@@ -658,7 +664,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 					found_depth= TRUE;
 				}
 
-				VECCOPY2D(mval_prev, mval);
+				copy_v2_v2_int(mval_prev, mval);
 			}
 			
 			if (found_depth == FALSE) {
@@ -997,6 +1003,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	/* pass on current scene and window */
 	p->scene= CTX_data_scene(C);
 	p->win= CTX_wm_window(C);
+
+	unit_m4(p->imat);
 	
 	switch (curarea->spacetype) {
 		/* supported views first */
@@ -1097,6 +1105,33 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 #endif
 		}
 			break;
+		case SPACE_CLIP:
+		{
+			SpaceClip *sc= curarea->spacedata.first;
+
+			/* set the current area */
+			p->sa= curarea;
+			p->ar= ar;
+			p->v2d= &ar->v2d;
+			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+
+			invert_m4_m4(p->imat, sc->unistabmat);
+
+			/* custom color for new layer */
+			p->custom_color[0]= 1.0f;
+			p->custom_color[1]= 0.0f;
+			p->custom_color[2]= 0.5f;
+			p->custom_color[3]= 0.9f;
+
+			/* check that gpencil data is allowed to be drawn */
+			if ((sc->flag & SC_SHOW_GPENCIL)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return 0;
+			}
+		}
+			break;
 
 		/* unsupported views */
 		default:
@@ -1182,8 +1217,12 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 {	
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl= gpencil_layer_getactive(p->gpd);
-	if (p->gpl == NULL)
+	if (p->gpl == NULL) {
 		p->gpl= gpencil_layer_addnew(p->gpd);
+
+		if(p->custom_color[3])
+			copy_v3_v3(p->gpl->color, p->custom_color);
+	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
 		p->status= GP_STATUS_ERROR;
 		if (G.f & G_DEBUG)
@@ -1299,6 +1338,12 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
+				
+			case SPACE_CLIP:
+			{
+				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+			}
+				break;
 		}
 	}
 }
@@ -1336,9 +1381,12 @@ static void gp_paint_strokeend (tGPsdata *p)
 /* finish off stroke painting operation */
 static void gp_paint_cleanup (tGPsdata *p)
 {
-	/* finish off a stroke */
-	if(p->gpd)
+	/* p->gpd==NULL happens when stroke failed to initialize,
+	      for example. when GP is hidden in current space (sergey) */
+	if (p->gpd) {
+		/* finish off a stroke */
 		gp_paint_strokeend(p);
+	}
 	
 	/* "unlock" frame */
 	if (p->gpf)
@@ -1723,8 +1771,6 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
-
-	p= op->customdata;
 
 	if(p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;

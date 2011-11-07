@@ -17,14 +17,19 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano,
- *                 Campbell Barton
+ * Contributor(s): Willian P. Germano, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/python/generic/bpy_internal_import.c
  *  \ingroup pygen
+ *
+ * This file defines replacements for pythons '__import__' and 'imp.reload'
+ * functions which can import from blender textblocks.
+ *
+ * \note
+ * This should eventually be replaced by import hooks (pep 302).
  */
 
 

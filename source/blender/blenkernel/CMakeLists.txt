@@ -76,6 +76,7 @@ set(SRC
 	intern/brush.c
 	intern/bullet.c
 	intern/bvhutils.c
+	intern/camera.c
 	intern/cdderivedmesh.c
 	intern/cloth.c
 	intern/collision.c
@@ -104,6 +105,7 @@ set(SRC
 	intern/implicit.c
 	intern/ipo.c
 	intern/key.c
+	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
 	intern/material.c
@@ -111,6 +113,7 @@ set(SRC
 	intern/mesh.c
 	intern/mesh_validate.c
 	intern/modifier.c
+	intern/movieclip.c
 	intern/multires.c
 	intern/nla.c
 	intern/node.c
@@ -139,6 +142,7 @@ set(SRC
 	intern/suggestions.c
 	intern/text.c
 	intern/texture.c
+	intern/tracking.c
 	intern/unit.c
 	intern/world.c
 	intern/writeavi.c
@@ -161,6 +165,7 @@ set(SRC
 	BKE_brush.h
 	BKE_bullet.h
 	BKE_bvhutils.h
+	BKE_camera.h
 	BKE_cdderivedmesh.h
 	BKE_cloth.h
 	BKE_collision.h
@@ -186,6 +191,7 @@ set(SRC
 	BKE_image.h
 	BKE_ipo.h
 	BKE_key.h
+	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
 	BKE_main.h
@@ -193,6 +199,7 @@ set(SRC
 	BKE_mball.h
 	BKE_mesh.h
 	BKE_modifier.h
+	BKE_movieclip.h
 	BKE_multires.h
 	BKE_nla.h
 	BKE_node.h
@@ -219,6 +226,7 @@ set(SRC
 	BKE_suggestions.h
 	BKE_text.h
 	BKE_texture.h
+	BKE_tracking.h
 	BKE_unit.h
 	BKE_utildefines.h
 	BKE_world.h
@@ -360,6 +368,11 @@ if(WITH_GAMEENGINE)
 	)
 
 	add_definitions(-DWITH_GAMEENGINE)
+endif()
+
+if(WITH_LIBMV)
+	list(APPEND INC ../../../extern/libmv)
+	add_definitions(-DWITH_LIBMV)
 endif()
 
 ## Warnings as errors, this is too strict!

@@ -1,6 +1,4 @@
-
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +22,13 @@
 
 /** \file blender/python/intern/bpy_operator.c
  *  \ingroup pythonintern
+ *
+ * This file defines '_bpy.ops', an internal python module which gives python
+ * the ability to inspect and call both C and Python defined operators.
+ *
+ * \note
+ * This module is exposed to the user via 'release/scripts/modules/bpy/ops.py'
+ * which fakes exposing operators as modules/functions using its own classes.
  */
 
 

@@ -127,8 +127,8 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		if(shi->passflag & SCE_PASS_SHADOW)
 			VECADDISFAC(shr->shad, shr_t.shad, fac);
 
-		VECMUL(shi->vn, -1.0f);
-		VECMUL(shi->facenor, -1.0f);
+		negate_v3(shi->vn);
+		negate_v3(shi->facenor);
 	}
 	
 	/* depth >= 1 when ray-shading */

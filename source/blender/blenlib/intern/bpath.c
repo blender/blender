@@ -362,7 +362,7 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
-	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? (id->lib ? id->lib->filepath : bmain->name) : NULL;
+	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
 	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;

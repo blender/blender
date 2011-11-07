@@ -64,7 +64,7 @@ bNodeStack **out)
 		col[2] = in[0]->vec[0]*col[2] + (facm*in[1]->vec[2]);
 	}
 	
-	VECCOPY(out[0]->vec, col);
+	copy_v3_v3(out[0]->vec, col);
 }
 
 static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

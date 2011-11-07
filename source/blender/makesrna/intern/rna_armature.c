@@ -283,7 +283,7 @@ static void rna_EditBone_connected_check(EditBone *ebone)
 	if(ebone->parent) {
 		if(ebone->flag & BONE_CONNECTED) {
 			/* Attach this bone to its parent */
-			VECCOPY(ebone->head, ebone->parent->tail);
+			copy_v3_v3(ebone->head, ebone->parent->tail);
 
 			if(ebone->flag & BONE_ROOTSEL)
 				ebone->parent->flag |= BONE_TIPSEL;
@@ -350,7 +350,7 @@ static void rna_EditBone_matrix_get(PointerRNA *ptr, float *values)
 	sub_v3_v3v3(delta, ebone->tail, ebone->head);
 	vec_roll_to_mat3(delta, ebone->roll, tmat);
 	copy_m4_m3(mat, tmat);
-	VECCOPY(mat[3], ebone->head);
+	copy_v3_v3(mat[3], ebone->head);
 
 	memcpy(values, mat, 16 * sizeof(float));
 }
@@ -363,12 +363,12 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 	
 	/* update our parent */
 	if(ebone->parent && ebone->flag & BONE_CONNECTED)
-		VECCOPY(ebone->parent->tail, ebone->head)
+		copy_v3_v3(ebone->parent->tail, ebone->head);
 
 	/* update our children if necessary */
 	for(child = arm->edbo->first; child; child=child->next)
 		if(child->parent == ebone && (child->flag & BONE_CONNECTED))
-			VECCOPY(child->head, ebone->tail);
+			copy_v3_v3(child->head, ebone->tail);
 
 	if(arm->flag & ARM_MIRROR_EDIT) {
 		eboflip= ED_armature_bone_get_mirrored(arm->edbo, ebone);
@@ -381,12 +381,12 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 			
 			/* update our parent */
 			if(eboflip->parent && eboflip->flag & BONE_CONNECTED)
-				VECCOPY(eboflip->parent->tail, eboflip->head);
+				copy_v3_v3(eboflip->parent->tail, eboflip->head);
 			
 			/* update our children if necessary */
 			for(child = arm->edbo->first; child; child=child->next)
 				if(child->parent == eboflip && (child->flag & BONE_CONNECTED))
-					VECCOPY (child->head, eboflip->tail);
+					copy_v3_v3 (child->head, eboflip->tail);
 		}
 	}
 

@@ -38,6 +38,7 @@ extern "C"
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
+#include "BKE_scene.h"
 #ifdef NAN_BUILDINFO
 extern char build_rev[];
 #endif

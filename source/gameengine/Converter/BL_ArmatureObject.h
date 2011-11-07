@@ -51,7 +51,7 @@ class KX_BlenderSceneConverter;
 
 class BL_ArmatureObject : public KX_GameObject  
 {
-	Py_Header;
+	Py_Header
 public:
 
 	double GetLastFrame ();

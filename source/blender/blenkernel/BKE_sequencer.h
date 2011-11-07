@@ -274,7 +274,7 @@ struct Sequence *seq_metastrip(
 	struct Sequence * meta /* = NULL */, struct Sequence *seq);
 
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
-void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
+void seq_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);

@@ -629,7 +629,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 		if(newtree==ntree) break;
 	if(newtree) {
-		newtree= copy_libblock(ntree);
+		newtree= copy_libblock(&ntree->id);
 	} else {
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
@@ -1790,6 +1790,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_value(ntypelist);
 	register_node_type_cmp_rgb(ntypelist);
 	register_node_type_cmp_curve_time(ntypelist);
+	register_node_type_cmp_movieclip(ntypelist);
 	
 	register_node_type_cmp_composite(ntypelist);
 	register_node_type_cmp_viewer(ntypelist);
@@ -1854,6 +1855,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_glare(ntypelist);
 	register_node_type_cmp_tonemap(ntypelist);
 	register_node_type_cmp_lensdist(ntypelist);
+	register_node_type_cmp_transform(ntypelist);
+	register_node_type_cmp_stabilize2d(ntypelist);
+	register_node_type_cmp_moviedistortion(ntypelist);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 

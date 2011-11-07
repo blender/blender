@@ -733,7 +733,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
-			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.200s'", filepath);
+			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.240s'", filepath);
 			return -1;
 		}
 	}

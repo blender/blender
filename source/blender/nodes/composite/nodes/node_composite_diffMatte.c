@@ -60,7 +60,7 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 	/*average together the distances*/
 	difference=difference/3.0;
 
-	VECCOPY(outColor, inColor1);
+	copy_v3_v3(outColor, inColor1);
 
 	/*make 100% transparent*/
 	if(difference < tolerence) {

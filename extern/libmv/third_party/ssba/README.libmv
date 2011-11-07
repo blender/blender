@@ -1,0 +1,23 @@
+Project: SSBA
+URL: http://www.cs.unc.edu/~cmzach/opensource.html
+License: LGPL3
+Upstream version: 1.0
+
+Local modifications:
+
+  * Added
+      SET(CMAKE_CXX_FLAGS "")
+    to CMakeLists.txt to prevent warnings from being treated as errors.
+  * Fixed "unused variable" in the header files.  Warnings in the cpps files 
+    are still there.
+  * Fixed a bug in CameraMatrix::opticalAxis() in file
+    Geometry/v3d_cameramatrix.h
+  * Deleted the Dataset directory.
+  * Added '#include <string>' to ssba/Apps/bundle_common.cpp and
+    ssba/Apps/bundle_varying.cpp to stop undefined references to strcmp
+  * Removed unnecessary elements from the CMakeLists.txt file, including the
+    obsoleted local_config.cmake and friends.
+  * Added a virtual destructor to V3D::LevenbergOptimizerCommon in
+    Math/v3d_optimization.h
+  * Added /EHsc WIN32-specific flag to CMakeLists.txt
+  * Remove unused variable Vector3d np in bundle_common.cpp and bundle_varying (in main() function).
