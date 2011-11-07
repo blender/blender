@@ -445,7 +445,7 @@ class CLIP_PT_track_settings(Panel):
           if active.tracker == "KLT":
               layout.prop(active, "pyramid_levels")
           if active.tracker == "SAD":
-              layout.prop(active, "correlation_min")
+              layout.prop(active, "minimum_correlation")
 
         layout.prop(settings, "frames_adjust")
         layout.prop(settings, "speed")
