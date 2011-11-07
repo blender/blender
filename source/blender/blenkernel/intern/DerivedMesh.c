@@ -1719,7 +1719,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask,
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
 	/* weight paint and face select need original indices because of selection buffer drawing */
-	int needMapping = (ob==obact) && (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT|OB_MODE_VERTEX_PAINT)));
+	int needMapping = (ob==obact) && (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT|OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)));
 
 	clear_mesh_caches(ob);
 
