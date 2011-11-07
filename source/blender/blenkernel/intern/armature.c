@@ -1818,7 +1818,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		tree->ikData= ikData;
 		
 		/* AND! link the tree to the root */
-		BLI_addtail(&pchanRoot->iktree, tree);
+		BLI_addtail(&pchanRoot->siktree, tree);
 	}
 	
 	/* mark root channel having an IK tree */
@@ -2045,27 +2045,24 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 	tSplineIK_Tree *tree;
 	
 	/* for each pose-tree, execute it if it is spline, otherwise just free it */
-	for (tree= pchan_root->iktree.first; tree; tree= pchan_root->iktree.first) {
-		/* only evaluate if tagged for Spline IK */
-		if (tree->type == CONSTRAINT_TYPE_SPLINEIK) {
-			int i;
-			
-			/* walk over each bone in the chain, calculating the effects of spline IK
-			 * 	- the chain is traversed in the opposite order to storage order (i.e. parent to children)
-			 *	  so that dependencies are correct
-			 */
-			for (i= tree->chainlen-1; i >= 0; i--) {
-				bPoseChannel *pchan= tree->chain[i];
-				splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
-			}
-			
-			/* free the tree info specific to SplineIK trees now */
-			if (tree->chain) MEM_freeN(tree->chain);
-			if (tree->free_points) MEM_freeN(tree->points);
+	while ((tree = pchan_root->siktree.first) != NULL) {
+		int i;
+		
+		/* walk over each bone in the chain, calculating the effects of spline IK
+		 * 	- the chain is traversed in the opposite order to storage order (i.e. parent to children)
+		 *	  so that dependencies are correct
+		 */
+		for (i= tree->chainlen-1; i >= 0; i--) {
+			bPoseChannel *pchan= tree->chain[i];
+			splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
 		}
 		
+		/* free the tree info specific to SplineIK trees now */
+		if (tree->chain) MEM_freeN(tree->chain);
+		if (tree->free_points) MEM_freeN(tree->points);
+		
 		/* free this tree */
-		BLI_freelinkN(&pchan_root->iktree, tree);
+		BLI_freelinkN(&pchan_root->siktree, tree);
 	}
 }
 

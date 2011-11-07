@@ -526,12 +526,14 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		
 		/* 6. apply the differences to the channels, 
 			  we need to calculate the original differences first */
-		for(a=0; a<tree->totchannel; a++)
+		for(a=0; a<tree->totchannel; a++) {
 			make_dmats(tree->pchan[a]);
+		}
 		
-		for(a=0; a<tree->totchannel; a++)
+		for(a=0; a<tree->totchannel; a++) {
 			/* sets POSE_DONE */
 			where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
+		}
 		
 		/* 7. and free */
 		BLI_remlink(&pchan->iktree, tree);
