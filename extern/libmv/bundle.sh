@@ -168,6 +168,16 @@ IF(WIN32)
 
 	list(APPEND INC
 		./third_party/glog/src/windows
+	)
+
+	IF(NOT MINGW)
+		list(APPEND INC
+			./third_party/msinttypes
+		)
+	ENDIF(MINGW)
+
+	list(APPEND INC
+		./third_party/glog/src/windows
 		./third_party/msinttypes
 	)
 
@@ -219,7 +229,10 @@ incs += ' ' + env['BF_PNG_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
-    incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog ./third_party/msinttypes'
+    incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
+    incs += ' ./third_party/glog/src/windows ./third_party/glog/src/windows/glog'
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+        incs += ' ./third_party/msinttypes'
 ${win_src}
     src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
     src += ['./third_party/glog/src/windows/port.cc']

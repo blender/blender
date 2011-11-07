@@ -59,14 +59,16 @@
  * used by both C and C++ code, so we put all the C++ together.
  */
 
-/* 4244: otherwise we get problems when substracting two size_t's to an int
- * 4251: it's complaining about a private struct I've chosen not to dllexport
- * 4355: we use this in a constructor, but we do it safely
- * 4715: for some reason VC++ stopped realizing you can't return after abort()
- * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
- * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
- */
-#pragma warning(disable:4244 4251 4355 4715 4800 4996)
+#if _MSC_VER
+ /* 4244: otherwise we get problems when substracting two size_t's to an int
+  * 4251: it's complaining about a private struct I've chosen not to dllexport
+  * 4355: we use this in a constructor, but we do it safely
+  * 4715: for some reason VC++ stopped realizing you can't return after abort()
+  * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
+  * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
+  */
+# pragma warning(disable:4244 4251 4355 4715 4800 4996)
+#endif
 
 /* file I/O */
 #define PATH_MAX 1024
@@ -108,7 +110,9 @@ extern int snprintf(char *str, size_t size,
 extern int safe_vsnprintf(char *str, size_t size,
                           const char *format, va_list ap);
 #define vsnprintf(str, size, format, ap)  safe_vsnprintf(str, size, format, ap)
+#if !defined(__MINGW32__)
 #define va_copy(dst, src)  (dst) = (src)
+#endif
 
 /* Windows doesn't support specifying the number of buckets as a
  * hash_map constructor arg, so we leave this blank.
@@ -130,13 +134,30 @@ enum { PTHREAD_ONCE_INIT = 0 };   // important that this be 0! for SpinLock
 #define pthread_equal(pthread_t_1, pthread_t_2)  ((pthread_t_1)==(pthread_t_2))
 
 inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
+#if __MINGW32__
+   struct tm *local_result;
+   local_result = localtime (timep);
+
+   if (local_result == NULL || result == NULL)
+     return NULL;
+
+   memcpy (result, local_result, sizeof (result));
+
+   return result;
+#else
   localtime_s(result, timep);
   return result;
+#endif
 }
 
 inline char* strerror_r(int errnum, char* buf, size_t buflen) {
+#if __MINGW32__
+  strncpy(buf, "Not implemented yet", buflen);
+  return buf;
+#else
   strerror_s(buf, buflen, errnum);
   return buf;
+#endif
 }
 
 #ifndef __cplusplus

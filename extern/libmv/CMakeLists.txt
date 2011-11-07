@@ -159,8 +159,13 @@ IF(WIN32)
 
 	list(APPEND INC
 		./third_party/glog/src/windows
-		./third_party/msinttypes
 	)
+
+	IF(NOT MINGW)
+		list(APPEND INC
+			./third_party/msinttypes
+		)
+	ENDIF(NOT MINGW)
 
 	IF(MSVC)
 		set(MSVC_OFLAGS O1 O2 Ox)
