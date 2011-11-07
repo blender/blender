@@ -944,7 +944,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		data->origstr= NULL;
 		data->value= data->origvalue;
 		data->origvalue= 0.0;
-		VECCOPY(data->vec, data->origvec);
+		copy_v3_v3(data->vec, data->origvec);
 		data->origvec[0]= data->origvec[1]= data->origvec[2]= 0.0f;
 	}
 	else {
@@ -2121,7 +2121,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			break;
 		case COL:
 			ui_get_but_vectorf(but, data->origvec);
-			VECCOPY(data->vec, data->origvec);
+			copy_v3_v3(data->vec, data->origvec);
 			but->editvec= data->vec;
 
 			handlefunc= ui_block_func_COL;
@@ -5727,7 +5727,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 	/* copy over return values from the closing menu */
 	if(menu->menuretval == UI_RETURN_OK || menu->menuretval == UI_RETURN_UPDATE) {
 		if(but->type == COL)
-			VECCOPY(data->vec, menu->retvec)
+			copy_v3_v3(data->vec, menu->retvec);
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value= menu->retvalue;
 	}

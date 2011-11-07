@@ -516,7 +516,7 @@ Mesh *copy_mesh(Mesh *me)
 	MTexPoly *txface;
 	int a, i;
 	
-	men= copy_libblock(me);
+	men= copy_libblock(&me->id);
 	
 	men->mat= MEM_dupallocN(me->mat);
 	for(a=0; a<men->totcol; a++) {

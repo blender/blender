@@ -552,7 +552,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
-		VECCOPY2D(t->mval, event->mval);
+		copy_v2_v2_int(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
 		t->redraw |= TREDRAW_HARD;
@@ -3887,7 +3887,7 @@ int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 		else {
 			d = distance;
 		}
-		VECADDFAC(td->loc,td->center,td->axismtx[0],(*td->val)*d);
+		madd_v3_v3v3fl(td->loc, td->center, td->axismtx[0], (*td->val) * d);
 	}
 
 	recalcData(t);
@@ -4439,9 +4439,9 @@ static int createSlideVerts(TransInfo *t)
 
 			sv->v = v;
 			sv->origvert = *v;
-			VECCOPY(sv->upvec, vec);
+			copy_v3_v3(sv->upvec, vec);
 			if (l2)
-				VECCOPY(sv->downvec, vec2);
+				copy_v3_v3(sv->downvec, vec2);
 
 			l = BM_OtherFaceLoop(l1->e, l1->f, v);
 			sv->up = BM_OtherEdgeVert(l->e, v);

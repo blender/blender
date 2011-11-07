@@ -672,7 +672,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 			else ver++;
 			
 			if(clipflag[a]) {
-				VECCOPY(vec, ver->co);
+				copy_v3_v3(vec, ver->co);
 				mul_m4_v3(obviewmat, vec);
 				/* Z on visible side of lamp space */
 				if(vec[2] < 0.0f) {
@@ -2063,7 +2063,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	float dface, fac, siz;
 	
 	RE_vlakren_get_normal(&R, obi, vlr, nor);
-	VECCOPY(v1, vlr->v1->co);
+	copy_v3_v3(v1, vlr->v1->co);
 	if(obi->flag & R_TRANSFORMED)
 		mul_m4_v3(obi->mat, v1);
 
@@ -2463,7 +2463,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 											samp->facenr= apn->p[a] & ~RE_QUAD_OFFS;
 											samp->shadfac= &apn->shadfac[a];
 											
-											VECCOPY(samp->zco, zco);
+											copy_v3_v3(samp->zco, zco);
 											bound_rectf((rctf *)&root.box, samp->zco);
 										}
 									}
@@ -2479,7 +2479,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 									samp->facenr= apn->p[a] & ~RE_QUAD_OFFS;
 									samp->shadfac= &apn->shadfac[a];
 									
-									VECCOPY(samp->zco, zco);
+									copy_v3_v3(samp->zco, zco);
 									bound_rectf((rctf *)&root.box, samp->zco);
 								}
 							}

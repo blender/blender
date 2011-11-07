@@ -144,7 +144,7 @@ Brush *copy_brush(Brush *brush)
 {
 	Brush *brushn;
 	
-	brushn= copy_libblock(brush);
+	brushn= copy_libblock(&brush->id);
 
 	if (brush->mtex.tex)
 		id_us_plus((ID*)brush->mtex.tex);

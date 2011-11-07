@@ -171,7 +171,7 @@ Key *copy_key(Key *key)
 	
 	if(key==NULL) return NULL;
 	
-	keyn= copy_libblock(key);
+	keyn= copy_libblock(&key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	

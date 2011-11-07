@@ -204,7 +204,7 @@ bArmature *copy_armature(bArmature *arm)
 	Bone		*oldBone, *newBone;
 	Bone		*newActBone= NULL;
 	
-	newArm= copy_libblock (arm);
+	newArm= copy_libblock(&arm->id);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 	
 	/*	Duplicate the childrens' lists*/

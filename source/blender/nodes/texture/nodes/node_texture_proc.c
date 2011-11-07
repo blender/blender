@@ -75,10 +75,10 @@ static void do_proc(float *result, TexParams *p, float *col1, float *col2, char 
 		return;
 	
 	if(textype & TEX_RGB) {
-		QUATCOPY(result, &texres.tr);
+		copy_v4_v4(result, &texres.tr);
 	}
 	else {
-		QUATCOPY(result, col1);
+		copy_v4_v4(result, col1);
 		ramp_blend(MA_RAMP_BLEND, result, result+1, result+2, texres.tin, col2);
 	}
 }

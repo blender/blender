@@ -431,7 +431,7 @@ Text *copy_text(Text *ta)
 	Text *tan;
 	TextLine *line, *tmp;
 	
-	tan= copy_libblock(ta);
+	tan= copy_libblock(&ta->id);
 	
 	/* file name can be NULL */
 	if(ta->name) {

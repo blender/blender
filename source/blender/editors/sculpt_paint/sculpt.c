@@ -2315,8 +2315,9 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		ofs= key_to_vertcos(ob, kb);
 
 		/* calculate key coord offsets (from previous location) */
-		for (a= 0; a < me->totvert; a++)
-			VECSUB(ofs[a], vertCos[a], ofs[a]);
+		for (a= 0; a < me->totvert; a++) {
+			sub_v3_v3v3(ofs[a], vertCos[a], ofs[a]);
+		}
 
 		/* apply offsets on other keys */
 		currkey = me->key->block.first;
@@ -2337,7 +2338,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		MVert *mvert= me->mvert;
 
 		for (a= 0; a < me->totvert; a++, mvert++)
-			VECCOPY(mvert->co, vertCos[a]);
+			copy_v3_v3(mvert->co, vertCos[a]);
 
 		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 	}

@@ -688,7 +688,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
 		invert_m4_m4(imat,hairmat);
 
-		VECSUB(vec, nearest.co, key->co);
+		sub_v3_v3v3(vec, nearest.co, key->co);
 
 		if(point) {
 			ekey = point->keys;
@@ -696,7 +696,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 
 		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
-			VECADD(key->co, key->co, vec);
+			add_v3_v3(key->co, vec);
 			mul_m4_v3(imat,key->co);
 
 			if(ekey) {

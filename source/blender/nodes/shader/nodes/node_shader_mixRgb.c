@@ -59,7 +59,7 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data), bNode *node, bNodeStack
 	nodestack_get_vec(vec, SOCK_VECTOR, in[2]);
 
 	ramp_blend(node->custom1, col, col+1, col+2, fac, vec);
-	VECCOPY(out[0]->vec, col);
+	copy_v3_v3(out[0]->vec, col);
 }
 
 static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

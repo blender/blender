@@ -56,11 +56,18 @@ MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
 MINLINE void swap_v4_v4(float a[4], float b[4]);
 
+/* char */
+MINLINE void copy_v2_v2_char(char r[2], const char a[2]);
+MINLINE void copy_v3_v3_char(char r[3], const char a[3]);
+MINLINE void copy_v4_v4_char(char r[4], const char a[4]);
 /* short */
 MINLINE void copy_v2_v2_short(short r[2], const short a[2]);
 MINLINE void copy_v3_v3_short(short r[3], const short a[3]);
 MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
-
+/* int */
+MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
+MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
+MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
 
 /********************************* Arithmetic ********************************/
 

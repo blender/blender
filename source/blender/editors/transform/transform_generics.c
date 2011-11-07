@@ -943,7 +943,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	if (event)
 	{
-		VECCOPY2D(t->imval, event->mval);
+		copy_v2_v2_int(t->imval, event->mval);
 		t->event_type = event->type;
 	}
 	else

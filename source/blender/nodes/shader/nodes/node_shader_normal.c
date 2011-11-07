@@ -66,7 +66,7 @@ static void node_shader_exec_normal(void *UNUSED(data), bNode *node, bNodeStack 
 	
 	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	
-	VECCOPY(out[0]->vec, ((bNodeSocketValueVector*)sock->default_value)->value);
+	copy_v3_v3(out[0]->vec, ((bNodeSocketValueVector*)sock->default_value)->value);
 	/* render normals point inside... the widget points outside */
 	out[1]->vec[0]= -INPR(out[0]->vec, vec);
 }

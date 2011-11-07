@@ -75,7 +75,7 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 	return 1;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 						DerivedMesh *derivedData,
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))

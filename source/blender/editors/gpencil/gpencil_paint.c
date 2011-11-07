@@ -658,7 +658,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 					found_depth= TRUE;
 				}
 
-				VECCOPY2D(mval_prev, mval);
+				copy_v2_v2_int(mval_prev, mval);
 			}
 			
 			if (found_depth == FALSE) {

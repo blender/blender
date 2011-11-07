@@ -759,7 +759,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames , Ob
 	for (it = frames.begin(); it != frames.end(); it++) {
 		float mat[4][4], ipar[4][4];
 
-		float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
+		float ctime = BKE_frame_to_ctime(scene, *it);
 
 		BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
 		where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
@@ -1265,7 +1265,7 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 	for (it = frames.begin(); it != frames.end(); it++) {
 		float mat[4][4], ipar[4][4];
 
-		float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
+		float ctime = BKE_frame_to_ctime(scene, *it);
 
 
 		BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);

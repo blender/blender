@@ -317,8 +317,8 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 
 		if(inbuf->rect_procedural) {
 			outbuf->rect_procedural= inbuf->rect_procedural;
-			VECCOPY(outbuf->procedural_size, inbuf->procedural_size);
-			VECCOPY(outbuf->procedural_offset, inbuf->procedural_offset);
+			copy_v3_v3(outbuf->procedural_size, inbuf->procedural_size);
+			copy_v3_v3(outbuf->procedural_offset, inbuf->procedural_offset);
 			outbuf->procedural_type= inbuf->procedural_type;
 			outbuf->node= inbuf->node;
 			return outbuf;
@@ -707,12 +707,12 @@ void do_ycca_to_rgba(bNode *UNUSED(node), float *out, float *in)
 
 void do_copy_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-	QUATCOPY(out, in);
+	copy_v4_v4(out, in);
 }
 
 void do_copy_rgb(bNode *UNUSED(node), float *out, float *in)
 {
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 	out[3]= 1.0f;
 }
 
@@ -723,7 +723,7 @@ void do_copy_value(bNode *UNUSED(node), float *out, float *in)
 
 void do_copy_a_rgba(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 	out[3]= *fac;
 }
 

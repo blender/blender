@@ -54,7 +54,7 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 	col[1] = 1.0f - col[1];
 	col[2] = 1.0f - col[2];
 	
-	VECCOPY(out, col);
+	copy_v3_v3(out, col);
 	out[3] = col[3];
 }
 

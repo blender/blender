@@ -106,7 +106,7 @@ Lamp *copy_lamp(Lamp *la)
 	Lamp *lan;
 	int a;
 	
-	lan= copy_libblock(la);
+	lan= copy_libblock(&la->id);
 
 	for(a=0; a<MAX_MTEX; a++) {
 		if(lan->mtex[a]) {
@@ -132,7 +132,7 @@ Lamp *localize_lamp(Lamp *la)
 	Lamp *lan;
 	int a;
 	
-	lan= copy_libblock(la);
+	lan= copy_libblock(&la->id);
 	BLI_remlink(&G.main->lamp, lan);
 
 	for(a=0; a<MAX_MTEX; a++) {

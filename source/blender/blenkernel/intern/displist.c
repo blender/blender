@@ -346,7 +346,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 					if(a==0 && dl->type== DL_POLY) bezt= nu->bezt;
 					
 					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) {
-						VECCOPY(data, prevbezt->vec[1]);
+						copy_v3_v3(data, prevbezt->vec[1]);
 						data+= 3;
 					}
 					else {
@@ -363,7 +363,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 					}
 					
 					if(a==0 && dl->type==DL_SEGM) {
-						VECCOPY(data, bezt->vec[1]);
+						copy_v3_v3(data, bezt->vec[1]);
 					}
 					
 					prevbezt= bezt;
@@ -404,7 +404,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 				a= len;
 				bp= nu->bp;
 				while(a--) {
-					VECCOPY(data, bp->vec);
+					copy_v3_v3(data, bp->vec);
 					bp++;
 					data+= 3;
 				}
@@ -488,7 +488,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 				totvert= 0;
 				eve= fillvertbase.first;
 				while(eve) {
-					VECCOPY(f1, eve->co);
+					copy_v3_v3(f1, eve->co);
 					f1+= 3;
 	
 					/* index number */
@@ -561,7 +561,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					
 					a= dl->parts;
 					while(a--) {
-						VECCOPY(fp1, fp);
+						copy_v3_v3(fp1, fp);
 						fp1+= 3;
 						fp+= dpoly;
 					}
@@ -581,7 +581,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					
 					a= dl->parts;
 					while(a--) {
-						VECCOPY(fp1, fp);
+						copy_v3_v3(fp1, fp);
 						fp1+= 3;
 						fp+= dpoly;
 					}

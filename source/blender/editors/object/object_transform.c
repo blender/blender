@@ -134,7 +134,7 @@ static void object_clear_rot(Object *ob)
 			float eul[3], oldeul[3], quat1[4] = {0};
 			
 			if (ob->rotmode == ROT_MODE_QUAT) {
-				QUATCOPY(quat1, ob->quat);
+				copy_qt_qt(quat1, ob->quat);
 				quat_to_eul(oldeul, ob->quat);
 			}
 			else if (ob->rotmode == ROT_MODE_AXISANGLE) {

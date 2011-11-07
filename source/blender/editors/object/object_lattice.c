@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
@@ -132,7 +133,7 @@ void load_editLatt(Object *obedit)
 
 		bp= editlt->def;
 		while(tot--) {
-			VECCOPY(fp, bp->vec);
+			copy_v3_v3(fp, bp->vec);
 			fp+= 3;
 			bp++;
 		}

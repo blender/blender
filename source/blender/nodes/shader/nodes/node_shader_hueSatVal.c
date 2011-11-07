@@ -65,7 +65,7 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float *hue, float *s
 		out[2]= mfac*in[2] + *fac*col[2];
 	}
 	else {
-		QUATCOPY(out, in);
+		copy_v4_v4(out, in);
 	}
 }
 

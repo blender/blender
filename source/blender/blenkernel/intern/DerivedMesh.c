@@ -461,7 +461,7 @@ void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)
 	mvert=dm->getVertDataArray(dm, CD_MVERT);
 	
 	for(a=0; a<kb->totelem; a++, fp+=3, mvert++) {
-		VECCOPY(fp, mvert->co);
+		copy_v3_v3(fp, mvert->co);
 	}
 }
 
@@ -737,8 +737,9 @@ static float *get_editbmesh_orco_verts(BMEditMesh *em)
 	orco = MEM_mallocN(sizeof(float)*3*totvert, "EditMesh Orco");
 
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (a=0; eve; eve=BMIter_Step(&iter), a+=3)
-		VECCOPY(orco+a, eve->co);
+	for (a=0; eve; eve=BMIter_Step(&iter), a+=3) {
+		copy_v3_v3(orco+a, eve->co);
+	}
 	
 	return orco;
 }
@@ -1475,7 +1476,7 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
 
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
-		VECCOPY(cos[i], eve->co);
+		copy_v3_v3(cos[i], eve->co);
 	}
 
 	return cos;
@@ -1984,7 +1985,7 @@ static void GetPosition(const SMikkTSpaceContext * pContext, float fPos[], const
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 	const float *co= pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].co;
-	VECCOPY(fPos, co);
+	copy_v3_v3(fPos, co);
 }
 
 static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[], const int face_num, const int vert_index)
@@ -2010,7 +2011,7 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
 	if(!smoothnormal) {	// flat
 		if(pMesh->precomputedFaceNormals) {
-			VECCOPY(fNorm, &pMesh->precomputedFaceNormals[3*face_num]);
+			copy_v3_v3(fNorm, &pMesh->precomputedFaceNormals[3*face_num]);
 		}
 		else {
 			MFace *mf= &pMesh->mface[face_num];
@@ -2037,7 +2038,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	//assert(vert_index>=0 && vert_index<4);
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 	float * pRes = pMesh->tangent[4*face_num+iVert];
-	VECCOPY(pRes, fvTangent);
+	copy_v3_v3(pRes, fvTangent);
 	pRes[3]=fSign;
 }
 

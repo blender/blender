@@ -445,9 +445,9 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
 		
 		if(pchan) {
-			VECCOPY (pchan->loc, matrix[3]);
-			mat4_to_size( pchan->size,matrix);
-			mat4_to_quat( pchan->quat,matrix);
+			copy_v3_v3(pchan->loc, matrix[3]);
+			mat4_to_size(pchan->size, matrix);
+			mat4_to_quat(pchan->quat, matrix);
 		}
 	}
 	else {

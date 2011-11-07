@@ -512,7 +512,7 @@ static void blur_with_reference(bNode *node, CompBuf *new, CompBuf *img, CompBuf
 				if(pix==1)
 					dest[0]= src[0];
 				else
-					QUATCOPY(dest, src);
+					copy_v4_v4(dest, src);
 			}
 			else {
 				int minxr= x-refradx<0?-x:-refradx;

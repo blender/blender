@@ -198,7 +198,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		for(i=0; i<numVerts; i++)
 		{
 			float tmp[3];
-			VECCOPY(tmp, vertexCos[i]);
+			copy_v3_v3(tmp, vertexCos[i]);
 
 			if(transf) space_transform_apply(transf, tmp);
 
@@ -236,7 +236,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 
 			if(transf) space_transform_apply(transf, vertexCos[i]);
 
-			VECCOPY(co, vertexCos[i]);
+			copy_v3_v3(co, vertexCos[i]);
 
 			//Apply axis limits
 			if(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) //Bend mode shoulnt have any lock axis

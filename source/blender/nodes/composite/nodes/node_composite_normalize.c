@@ -69,7 +69,7 @@ static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeS
 
 	/* Input has no image buffer? Then pass the value */
 	if(in[0]->data==NULL) {
-		QUATCOPY(out[0]->vec, in[0]->vec);
+		copy_v4_v4(out[0]->vec, in[0]->vec);
 	}
 	else {
 		float min = 1.0f+BLENDER_ZMAX;

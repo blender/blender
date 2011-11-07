@@ -183,8 +183,8 @@ static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, f
 	if(cfra1 == cfra2)
 		return;
 
-	VECCOPY(keys[1].co, bp->pos);
-	VECCOPY(keys[1].vel, bp->vec);
+	copy_v3_v3(keys[1].co, bp->pos);
+	copy_v3_v3(keys[1].vel, bp->vec);
 
 	if(old_data) {
 		memcpy(keys[2].co, old_data, 3 * sizeof(float));
@@ -202,8 +202,8 @@ static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, f
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
-	VECCOPY(bp->pos, keys->co);
-	VECCOPY(bp->vec, keys->vel);
+	copy_v3_v3(bp->pos, keys->co);
+	copy_v3_v3(bp->vec, keys->vel);
 }
 static int  ptcache_softbody_totpoint(void *soft_v, int UNUSED(cfra))
 {
@@ -483,8 +483,8 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 	if(cfra1 == cfra2)
 		return;
 
-	VECCOPY(keys[1].co, vert->x);
-	VECCOPY(keys[1].vel, vert->v);
+	copy_v3_v3(keys[1].co, vert->x);
+	copy_v3_v3(keys[1].vel, vert->v);
 
 	if(old_data) {
 		memcpy(keys[2].co, old_data, 3 * sizeof(float));
@@ -502,8 +502,8 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
-	VECCOPY(vert->x, keys->co);
-	VECCOPY(vert->v, keys->vel);
+	copy_v3_v3(vert->x, keys->co);
+	copy_v3_v3(vert->v, keys->vel);
 
 	/* should vert->xconst be interpolated somehow too? - jahka */
 }
@@ -2126,7 +2126,7 @@ int  BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 }
 void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startframe, int *endframe, float *timescale)
 {
-	Object *ob;
+	/* Object *ob; */ /* UNUSED */
 	PointCache *cache;
 	/* float offset; unused for now */
 	float time, nexttime;
@@ -2143,13 +2143,13 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	 *   is probably to interpolate results from two frames for that ..
 	 */
 
-	ob= pid->ob;
+	/* ob= pid->ob; */ /* UNUSED */
 	cache= pid->cache;
 
 	if(timescale) {
 		time= BKE_curframe(scene);
-		nexttime= BKE_nextframe(scene);
-
+		nexttime= BKE_frame_to_ctime(scene, CFRA+1);
+		
 		*timescale= MAX2(nexttime - time, 0.0f);
 	}
 

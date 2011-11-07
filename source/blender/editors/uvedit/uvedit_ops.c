@@ -2799,7 +2799,7 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceIma
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if(uvedit_uv_selected(em, scene, l)) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				VECCOPY2D(luv->uv, sima->cursor);
+				copy_v2_v2(luv->uv, sima->cursor);
 				change= 1;
 			}
 		}
