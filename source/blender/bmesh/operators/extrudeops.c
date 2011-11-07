@@ -348,16 +348,17 @@ static void calc_solidify_normals(BMesh *bm)
 	float edge_normal[3];
 	int i;
 
-	/* Clear indices of verts & edges */
+	/* can't use BM_Edge_FaceCount because we need to count only marked faces */
+	int *edge_face_count= MEM_callocN(sizeof(int) * bm->totedge, __func__);
+
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetHFlag(v, BM_TMP_TAG);
 	}
-	/* BMESH_TODO, don't abuse vertex index index info */
 
-	/* this is used to count edge users, we can probably
-	 * use bmesh connectivity info here - campbell*/
+	/* todo - replace with func! */
+	i= 0;
 	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, 0);
+		BM_SetIndex(e, i++);
 	}
 
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
@@ -366,15 +367,13 @@ static void calc_solidify_normals(BMesh *bm)
 		}
 
 		BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f) {
-			/* Count number of marked faces using e */
-			i = BM_GetIndex(e);
-			BM_SetIndex(e, i+1);
 
 			/* And mark all edges and vertices on the
 			   marked faces */
 			BMO_SetFlag(bm, e, EDGE_MARK);
 			BMO_SetFlag(bm, e->v1, VERT_MARK);
 			BMO_SetFlag(bm, e->v2, VERT_MARK);
+			edge_face_count[BM_GetIndex(e)]++;
 		}
 	}
 
@@ -383,7 +382,7 @@ static void calc_solidify_normals(BMesh *bm)
 			continue;
 		}
 
-		i = BM_GetIndex(e);
+		i = edge_face_count[BM_GetIndex(e)]++;
 
 		if (i == 0 || i > 2) {
 			/* Edge & vertices are non-manifold even when considering
@@ -393,6 +392,8 @@ static void calc_solidify_normals(BMesh *bm)
 			BMO_SetFlag(bm, e->v2, VERT_NONMAN);
 		}
 	}
+	MEM_freeN(edge_face_count);
+	edge_face_count= NULL; /* dont re-use */
 
 	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_Nonmanifold_Vert(bm, v)) {
@@ -508,6 +509,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 	float *angles = NULL;
 	BLI_array_staticdeclare(angles, 16);
 
+	/* BMESH_TODO, remove this when we are sure the array will be valid */
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BM_SetIndex(v, i++);

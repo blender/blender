@@ -5227,7 +5227,7 @@ int EdgeSlide(short immediate, float imperc)
 								interp_v2_v2v2(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
 								fuv_link = suv->fuv_list;
 								while (fuv_link) {
-									VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+									copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 									fuv_link = fuv_link->next;
 								}
 							}
@@ -5257,7 +5257,7 @@ int EdgeSlide(short immediate, float imperc)
 									interp_v2_v2v2(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
 									fuv_link = suv->fuv_list;
 									while (fuv_link) {
-										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+										copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 										fuv_link = fuv_link->next;
 									}
 								}
@@ -5274,7 +5274,7 @@ int EdgeSlide(short immediate, float imperc)
 									interp_v2_v2v2(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
 									fuv_link = suv->fuv_list;
 									while (fuv_link) {
-										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+										copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 										fuv_link = fuv_link->next;
 									}
 								}
