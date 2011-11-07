@@ -761,8 +761,7 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "track")
 
-        row = layout.row()
-        row.prop(con, "reference", expand=True)
+        layout.row().prop(con, "reference", expand=True)
 
         layout.operator("clip.constraint_to_fcurve")
 

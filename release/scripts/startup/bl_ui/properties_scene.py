@@ -42,6 +42,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
         layout.prop(scene, "camera")
         layout.prop(scene, "background_set", text="Background")
+        layout.prop(scene, "active_clip", text="Active Clip")
 
 
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
@@ -216,16 +217,6 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
-
-
-class SCENE_PT_movie_clip(SceneButtonsPanel, Panel):
-    bl_label = "Movie Clip"
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-
-        layout.prop(scene, "active_clip", text="Active Clip")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
