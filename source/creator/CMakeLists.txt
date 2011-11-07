@@ -575,6 +575,14 @@ elseif(WIN32)
 		DESTINATION ${TARGETDIR}
 	)	
 
+	if(WITH_OPENIMAGEIO)
+		install(
+			FILES
+				${LIBDIR}/openimageio/bin/OpenImageIO.dll
+			DESTINATION ${TARGETDIR}
+		)
+	endif()
+
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 	set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
@@ -719,6 +727,9 @@ elseif(APPLE)
 
 	endif()
 endif()
+
+# install more files specified elsewhere
+delayed_do_install(${TARGETDIR_VER})
 
 unset(BLENDER_TEXT_FILES)
 
