@@ -488,7 +488,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerPyramid_update");
 
 	/* minmal correlation - only used for SAD tracker */
-	prop= RNA_def_property(srna, "minimum_correlation", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "correlation_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "minimum_correlation");
 	RNA_def_property_range(prop, -1.0f, 1.0f);

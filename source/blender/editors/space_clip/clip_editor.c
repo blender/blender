@@ -184,9 +184,17 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 			if(marker) {
 				float pos[3];
 
-				pos[0]= (marker->pos[0]+track->offset[0])*width;
-				pos[1]= (marker->pos[1]+track->offset[1])*height;
+				pos[0]= marker->pos[0]+track->offset[0];
+				pos[1]= marker->pos[1]+track->offset[1];
 				pos[2]= 0.0f;
+
+				/* undistortion happens for normalized coords */
+				if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT)
+					/* undistortion happens for normalized coords */
+					ED_clip_point_undistorted_pos(sc, pos, pos);
+
+				pos[0]*= width;
+				pos[1]*= height;
 
 				mul_v3_m4v3(pos, sc->stabmat, pos);
 
