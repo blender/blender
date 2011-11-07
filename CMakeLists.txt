@@ -105,7 +105,6 @@ enable_testing()
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
-set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include CACHE INTERNAL "" FORCE )
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -297,10 +296,6 @@ endif()
 # auto enable openimageio and boost for cycles
 if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
-	set(WITH_BOOST ON)
-endif()
-
-if(WITH_OPENIMAGEIO)
 	set(WITH_BOOST ON)
 endif()
 
@@ -512,12 +507,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_BOOST)
-		if(CYCLES_BOOST)
-			set(BOOST ${CYCLES_BOOST} CACHE PATH "Boost Directory")
-			unset(CYCLES_BOOST CACHE)
-		else()
-			set(BOOST "/usr" CACHE PATH "Boost Directory")
-		endif()
+		set(BOOST "/usr" CACHE PATH "Boost Directory")
 
 		if(NOT BOOST_CUSTOM)
 			set(BOOST_ROOT ${BOOST})
@@ -532,12 +522,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
-
-		# temp, update
-		if(CYCLES_OIIO)
-			set(OPENIMAGEIO ${CYCLES_OIIO})
-			unset(CYCLES_OIIO CACHE)
-		endif()
+		set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
 
 		set(OPENIMAGEIO_ROOT_DIR ${OPENIMAGEIO})
 		find_package(OpenImageIO REQUIRED)
@@ -549,7 +534,6 @@ if(UNIX AND NOT APPLE)
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
 		endif()
-
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
@@ -1511,6 +1495,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
 	info_cfg_option(WITH_INPUT_NDOF)
+	info_cfg_option(WITH_CYCLES)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)
@@ -1530,7 +1515,6 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_IMAGE_OPENJPEG)
 	info_cfg_option(WITH_IMAGE_REDCODE)
 	info_cfg_option(WITH_IMAGE_TIFF)
-	info_cfg_option(WITH_OPENIMAGEIO)
 
 	info_cfg_text("Audio:")
 	info_cfg_option(WITH_OPENAL)

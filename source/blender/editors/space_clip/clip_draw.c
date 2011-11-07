@@ -594,7 +594,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* pyramid */
-	if((sel == TRACK_SELECTED(track) && sel && (sc->flag&SC_SHOW_PYRAMID_LEVELS) && (track->tracker==TRACKER_KLT))) {
+	if(sel && TRACK_SELECTED(track) && (sc->flag&SC_SHOW_PYRAMID_LEVELS) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
@@ -626,7 +626,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			glDisable(GL_LINE_STIPPLE);
 			glPopMatrix();
 		}
-        }
+	}
 
 	if(tiny)
 		glDisable(GL_LINE_STIPPLE);

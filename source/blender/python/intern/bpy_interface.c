@@ -187,7 +187,7 @@ static struct _inittab bpy_internal_modules[]= {
 	{(char *)"aud", AUD_initPython},
 #endif
 #ifdef WITH_CYCLES
-	{(char *)"libcycles_blender", CYCLES_initPython},
+	{(char *)"bcycles", CYCLES_initPython},
 #endif
 	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}

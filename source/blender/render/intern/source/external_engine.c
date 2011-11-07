@@ -61,7 +61,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", "Blender Render", RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #ifdef WITH_GAMEENGINE
@@ -69,7 +69,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME,
-	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}};
 
 #endif
@@ -265,8 +265,7 @@ int RE_engine_render(Render *re, int do_all)
 	/* verify if we can render */
 	if(!type->render)
 		return 0;
-	if((re->r.scemode & R_PREVIEWBUTS) && !((type->flag & RE_USE_PREVIEW) ||
-		(type->preview_update && type->preview_render)))
+	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_USE_PREVIEW))
 		return 0;
 	if(do_all && !(type->flag & RE_USE_POSTPROCESS))
 		return 0;
@@ -296,16 +295,10 @@ int RE_engine_render(Render *re, int do_all)
 	if((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
 		scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	if(type->preview_update && type->preview_render) {
-		//type->preview_update(engine, scene, id);
-		type->preview_render(engine);
-	}
-	else {
-		if(type->update)
-			type->update(engine, re->main, re->scene);
-		if(type->render)
-			type->render(engine, re->scene);
-	}
+	if(type->update)
+		type->update(engine, re->main, re->scene);
+	if(type->render)
+		type->render(engine, re->scene);
 
 	free_render_result(&engine->fullresult, engine->fullresult.first);
 

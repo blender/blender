@@ -949,7 +949,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	PointerRNA mappingptr = RNA_pointer_get(ptr, "mapping");
 	uiLayout *row;
 	
-	uiItemL(layout, "Translation:", ICON_NONE);
+	uiItemL(layout, "Location:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, &mappingptr, "location", 0, "", ICON_NONE);
 	
@@ -961,7 +961,6 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, &mappingptr, "scale", 0, "", ICON_NONE);
 	
-#if 0
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, &mappingptr, "use_min", 0, "Min", ICON_NONE);
 	uiItemR(row, &mappingptr, "min", 0, "", ICON_NONE);
@@ -969,7 +968,6 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, &mappingptr, "use_max", 0, "Max", ICON_NONE);
 	uiItemR(row, &mappingptr, "max", 0, "", ICON_NONE);
-#endif	
 }
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -995,20 +993,6 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 		uiItemR(col, ptr, "color_layer", 0, "VCol", ICON_NONE);
 	}
 }
-
-/*static void node_layout_prop(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname)
-{
-	if(C && CTX_wm_space_node(C)) {
-		uiItemR(layout, ptr, propname, 0, NULL, ICON_NONE);
-	}
-	else {
-		uiLayout *split = uiLayoutSplit(layout, 0.35f, 0);
-		PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-
-		uiItemL(uiLayoutColumn(split, 0), RNA_property_ui_name(prop), ICON_NONE);
-		uiItemR(uiLayoutColumn(split, 0), ptr, propname, 0, "", ICON_NONE);
-	}
-}*/
 
 static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

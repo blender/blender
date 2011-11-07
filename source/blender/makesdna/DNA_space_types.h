@@ -63,7 +63,6 @@ struct bScreen;
 struct Scene;
 struct wmOperator;
 struct wmTimer;
-struct Tex;
 struct MovieClip;
 struct MovieClipScopes;
 

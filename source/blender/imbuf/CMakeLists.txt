@@ -57,7 +57,6 @@ set(SRC
 	intern/metadata.c
 	intern/module.c
 	intern/moviecache.c
-	intern/openimageio.cpp
 	intern/png.c
 	intern/readimage.c
 	intern/rectop.c
@@ -177,13 +176,6 @@ if(WITH_IMAGE_HDR)
 		intern/radiance_hdr.c
 	)
 	add_definitions(-DWITH_HDR)
-endif()
-
-if(WITH_OPENIMAGEIO)
-	list(APPEND INC_SYS
-		${OPENIMAGEIO_INCLUDES}
-	)
-	# disabled for now add_definitions(-DWITH_OPENIMAGEIO ${OPENIMAGEIO_DEFINITIONS})
 endif()
 
 blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}")

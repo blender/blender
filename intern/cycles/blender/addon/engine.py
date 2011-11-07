@@ -19,16 +19,16 @@
 import bpy
 
 def init():
-    import libcycles_blender as lib
+    import bcycles
     import os.path
 
     path = os.path.dirname(__file__)
     user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
 
-    lib.init(path, user_path)
+    bcycles.init(path, user_path)
 
 def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
-    import libcycles_blender as lib
+    import bcycles
 
     data = data.as_pointer()
     scene = scene.as_pointer()
@@ -39,36 +39,36 @@ def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    engine.session = lib.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
+    engine.session = bcycles.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
 
 def free(engine):
     if "session" in dir(engine):
         if engine.session:
-            import libcycles_blender as lib
-            lib.free(engine.session)
+            import bcycles
+            bcycles.free(engine.session)
         del engine.session
 
 def render(engine):
-    import libcycles_blender as lib
-    lib.render(engine.session)
+    import bcycles
+    bcycles.render(engine.session)
 
 def update(engine, data, scene):
-    import libcycles_blender as lib
-    lib.sync(engine.session)
+    import bcycles
+    bcycles.sync(engine.session)
 
 def draw(engine, region, v3d, rv3d):
-    import libcycles_blender as lib
+    import bcycles
     v3d = v3d.as_pointer()
     rv3d = rv3d.as_pointer()
 
     # draw render image
-    lib.draw(engine.session, v3d, rv3d)
+    bcycles.draw(engine.session, v3d, rv3d)
 
 def available_devices():
-    import libcycles_blender as lib
-    return lib.available_devices()
+    import bcycles
+    return bcycles.available_devices()
 
 def with_osl():
-    import libcycles_blender as lib
-    return lib.with_osl()
+    import bcycles
+    return bcycles.with_osl()
 

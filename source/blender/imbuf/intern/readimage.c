@@ -50,28 +50,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
 
-static ImBuf *imb_ibImageFromFile(const char *filepath, int flags)
-{
-	ImBuf *ibuf;
-	ImFileType *type;
-
-	for(type=IMB_FILE_TYPES; type->is_a; type++) {
-		if(type->load_filepath) {
-			ibuf= type->load_filepath(filepath, flags);
-			if(ibuf) {
-				if(flags & IB_premul) {
-					IMB_premultiply_alpha(ibuf);
-					ibuf->flags |= IB_premul;
-				}
-
-				return ibuf;
-			}
-		}
-	}
-	
-	return NULL;
-}
-
 ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, const char *descr)
 {
 	ImBuf *ibuf;
@@ -148,15 +126,10 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	ibuf= imb_ibImageFromFile(filepath_tx, flags);
+	file = open(filepath_tx, O_BINARY|O_RDONLY);
+	if(file < 0) return NULL;
 
-	if(!ibuf) {
-		file = open(filepath_tx, O_BINARY|O_RDONLY);
-		if(file < 0) return NULL;
-
-		ibuf= IMB_loadifffile(file, flags, filepath_tx);
-		close(file);
-	}
+	ibuf= IMB_loadifffile(file, flags, filepath_tx);
 
 	if(ibuf) {
 		BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
@@ -165,6 +138,8 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags)
 			BLI_strncpy(ibuf->mipmap[a-1]->cachename, filepath_tx, sizeof(ibuf->cachename));
 		if(flags & IB_fields) IMB_de_interlace(ibuf);
 	}
+
+	close(file);
 
 	return ibuf;
 }
@@ -209,7 +184,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 	}
 
 	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->load_tile && type->ftype && type->ftype(type, ibuf))
+		if(type->load_tile && type->ftype(type, ibuf))
 			type->load_tile(ibuf, mem, size, tx, ty, rect);
 
 	if(munmap(mem, size))

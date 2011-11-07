@@ -156,13 +156,10 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	   autoguess offset for now. could be something smarter in the future */
 	offset= sequence_guess_offset(clip->name, strlen(head), numlen);
 
-	if(numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
-	else strncpy(name, clip->name, sizeof(name));
+	if (numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
+	else        BLI_strncpy(name, clip->name, sizeof(clip->name));
 
-	if(clip->id.lib)
-		BLI_path_abs(name, clip->id.lib->filepath);
-	else
-		BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
 }
 
 /* supposed to work with sequences only */
@@ -174,7 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
 	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
-		strcpy(dir, clip->proxy.dir);
+		BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
 	} else {
 		BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
 	}
@@ -194,9 +191,9 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 {
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
-	int loadflag, size, undistort;
+	int loadflag /*, size */ /* UNUSED */, undistort;
 
-	size= rendersize_to_number(user->render_size);
+	/* size= rendersize_to_number(user->render_size); */
 
 	undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 
@@ -222,11 +219,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 	if(!clip->anim) {
 		BLI_strncpy(str, clip->name, FILE_MAX);
-
-		if(clip->id.lib)
-			BLI_path_abs(str, clip->id.lib->filepath);
-		else
-			BLI_path_abs(str, G.main->name);
+		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
 		clip->anim= openanim(str, IB_rect, 0);
@@ -234,7 +227,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		if(clip->anim) {
 			if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 				char dir[FILE_MAX];
-				strcpy(dir, clip->proxy.dir);
+				BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
 				BLI_path_abs(dir, G.main->name);
 				IMB_anim_set_index_dir(clip->anim, dir);
 			}
@@ -243,7 +236,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 	if(clip->anim) {
 		int dur;
-		int fra= framenr-1;
+		int fra;
 
 		dur= IMB_anim_get_duration(clip->anim, tc);
 		fra= framenr-1;

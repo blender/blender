@@ -72,9 +72,6 @@ typedef struct RenderEngineType {
 	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
 
-	void (*preview_update)(struct RenderEngine *engine, const struct bContext *context, struct ID *id);
-	void (*preview_render)(struct RenderEngine *engine);
-
 	void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
 	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
 

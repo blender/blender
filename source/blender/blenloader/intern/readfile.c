@@ -12516,13 +12516,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
 		}
+	}
 
-		{
-			bNodeTreeType *ntreetype= ntreeGetType(NTREE_SHADER);
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 2)) {
+		bNodeTreeType *ntreetype= ntreeGetType(NTREE_SHADER);
 
-			if(ntreetype && ntreetype->foreach_nodetree)
-				ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
-		}
+		if(ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
 	}
 
 	/* put compatibility code here until next subversion bump */

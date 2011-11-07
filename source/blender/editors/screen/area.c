@@ -497,9 +497,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 
-	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
-	ED_region_pixelspace(ar);
-
 	if(sa)
 		region_draw_emboss(ar, &winrct);
 }

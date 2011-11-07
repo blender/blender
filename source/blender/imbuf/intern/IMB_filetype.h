@@ -44,9 +44,6 @@ typedef struct ImFileType {
 	int (*save)(struct ImBuf *ibuf, const char *name, int flags);
 	void (*load_tile)(struct ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect);
 
-	int (*is_a_filepath)(const char *filepath);
-	struct ImBuf *(*load_filepath)(const char *filepath, int flags);
-
 	int flag;
 	int filetype;
 } ImFileType;
@@ -121,21 +118,6 @@ void imb_loadtiletiff(struct ImBuf *ibuf, unsigned char *mem, size_t size,
 	int tx, int ty, unsigned int *rect);
 int imb_savetiff(struct ImBuf *ibuf, const char *name, int flags);
 void *libtiff_findsymbol(char *name);
-
-/* openimageio */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int imb_is_a_openimageio(unsigned char *buf);
-int imb_is_a_filepath_openimageio(const char *filepath);
-int imb_ftype_openimageio(struct ImFileType *type, struct ImBuf *ibuf);
-struct ImBuf *imb_load_openimageio(const char *filepath, int flags);
-int imb_save_openimageio(struct ImBuf *ibuf, const char *filepath, int flags);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif	/* IMB_FILETYPE_H */
 

@@ -728,7 +728,7 @@ elseif(APPLE)
 	endif()
 endif()
 
-# install more files XXX pass target dir
+# install more files specified elsewhere
 delayed_do_install(${TARGETDIR_VER})
 
 unset(BLENDER_TEXT_FILES)
@@ -864,8 +864,6 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
-		extern_recastnavigation
-		bf_editor_util          # --- BAD LEVEL CALL HERE --- XXX, this should be removed before release!
 		bf_intern_cycles
 		cycles_render
 		cycles_bvh

@@ -194,8 +194,8 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef module = {
 	PyModuleDef_HEAD_INIT,
-	"libcycles_blender",
-	"Blender RNA to render exporter",
+	"bcycles",
+	"Blender cycles render integration",
 	-1,
 	methods,
 	NULL, NULL, NULL, NULL
