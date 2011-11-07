@@ -58,6 +58,36 @@ static bNodeSocketTemplate cmp_node_rlayers_out[]= {
 	{	-1, 0, ""	}
 };
 
+/* float buffer from the image with matching color management */
+float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
+{
+	float *rect;
+
+	*alloc= FALSE;
+
+	if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(ibuf->profile != IB_PROFILE_NONE) {
+			rect= ibuf->rect_float;
+		}
+		else {
+			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+			srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+			*alloc= TRUE;
+		}
+	}
+	else {
+		if(ibuf->profile == IB_PROFILE_NONE) {
+			rect= ibuf->rect_float;
+		}
+		else {
+			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+			linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+			*alloc= TRUE;
+		}
+	}
+
+	return rect;
+}
 
 /* note: this function is used for multilayer too, to ensure uniform 
    handling with BKE_image_get_ibuf() */
@@ -82,26 +112,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	/* now we need a float buffer from the image with matching color management */
 	/* XXX weak code, multilayer is excluded from this */
 	if(ibuf->channels == 4 && ima->rr==NULL) {
-		if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-			if(ibuf->profile != IB_PROFILE_NONE) {
-				rect= ibuf->rect_float;
-			}
-			else {
-				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-				srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
-				alloc= TRUE;
-			}
-		}
-		else {
-			if(ibuf->profile == IB_PROFILE_NONE) {
-				rect= ibuf->rect_float;
-			}
-			else {
-				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-				linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
-				alloc= TRUE;
-			}
-		}
+		rect= node_composit_get_float_buffer(rd, ibuf, &alloc);
 	}
 	else {
 		/* non-rgba passes can't use color profiles */
