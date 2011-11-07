@@ -2336,7 +2336,8 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 			CustomData_add_layer_named(ldata, CD_MDISPS, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 	}
 }
-void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
+void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total)
+{
 	int i;
 	for(i=0; i < pdata->totlayer; i++){
 		if(pdata->layers[i].type == CD_MTEXPOLY)
@@ -2351,7 +2352,8 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 }
 
 
-void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
+void CustomData_bmesh_init_pool(CustomData *data, int allocsize)
+{
 	/* Dispose old pools before calling here to avoid leaks */
 	BLI_assert(data->pool == NULL);
 

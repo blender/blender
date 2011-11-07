@@ -445,7 +445,7 @@ int paintface_minmax(Object *ob, float *min, float *max)
 	MPoly *mf;
 	MTexPoly *tf;
 	MLoop *ml;
-	MVert *mv;
+	MVert *mvert;
 	int a, b, ok=0;
 	float vec[3], bmat[3][3];
 
@@ -454,7 +454,7 @@ int paintface_minmax(Object *ob, float *min, float *max)
 	
 	copy_m3_m4(bmat, ob->obmat);
 
-	mv= me->mvert;
+	mvert= me->mvert;
 	mf= me->mpoly;
 	tf= me->mtpoly;
 	for (a=me->totpoly; a>0; a--, mf++, tf++) {
@@ -463,7 +463,7 @@ int paintface_minmax(Object *ob, float *min, float *max)
 
 		ml = me->mloop + mf->totloop;
 		for (b=0; b<mf->totloop; b++, ml++) {
-			VECCOPY(vec, (mv+ml->v)->co);
+			copy_v3_v3(vec, (mvert[ml->v].co));
 			mul_m3_v3(bmat, vec);
 			add_v3_v3v3(vec, vec, ob->obmat[3]);
 			DO_MINMAX(vec, min, max);		

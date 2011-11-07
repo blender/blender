@@ -19,7 +19,8 @@
 
 #define VERT_MARK	1
 
-static int check_hole_in_region(BMesh *bm, BMFace *f) {
+static int check_hole_in_region(BMesh *bm, BMFace *f)
+{
 	BMWalker regwalker;
 	BMIter liter2;
 	BMLoop *l2, *l3;

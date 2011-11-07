@@ -369,8 +369,8 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 
 		/*snap edges to a point.  for initial testing purposes anyway.*/
 		for (i=0; i<tot; i++) {
-			VECCOPY(edges[i]->v1->co, min);
-			VECCOPY(edges[i]->v2->co, min);
+			copy_v3_v3(edges[i]->v1->co, min);
+			copy_v3_v3(edges[i]->v2->co, min);
 			
 			if (edges[i]->v1 != edges[0]->v1)
 				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v1, edges[0]->v1);			

@@ -44,7 +44,8 @@
  * 
  */
 #if 1
-int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
+int BM_Dissolve_Vert(BMesh *bm, BMVert *v)
+{
 	BMIter iter;
 	BMEdge *e;
 	int len=0;
@@ -76,7 +77,8 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
 	return BM_Dissolve_Disk(bm, v);
 }
 
-int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
+int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
+{
 	BMFace *f, *f2;
 	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
 	int len= 0;
@@ -178,7 +180,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	return 1;
 }
 #else
-void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
+void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
+{
 	BMFace *f;
 	BMEdge *e;
 	BMIter iter;
@@ -277,7 +280,8 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
   the two verts belong to for splitting (e.g. the subdivision operator).
 */
 
-BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
+BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
+{
 	BMIter iter, iter2;
 	BMVert *v;
 	BMLoop *nl;
@@ -373,7 +377,8 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *	Nothing
  */
  
-BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
+BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
+{
 	BMFace **faces = NULL, *f;
 	BLI_array_staticdeclare(faces, 8);
 	BMIter iter;
@@ -513,7 +518,8 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
  *	the new vert
  */
 
-BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent) {
+BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent)
+{
 	BMVert *nv, *v2;
 	BMFace **oldfaces = NULL;
 	BMEdge *dummy;
@@ -548,8 +554,8 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	nv = bmesh_semv(bm,v,e,ne);
 	if (nv == NULL) return NULL;
 
-	sub_v3_v3v3(nv->co,v2->co,v->co);
-	VECADDFAC(nv->co,v->co,nv->co,percent);
+	sub_v3_v3v3(nv->co, v2->co, v->co);
+	madd_v3_v3v3fl(nv->co, v->co, nv->co, percent);
 
 	if (ne) {
 		(*ne)->head.hflag = e->head.hflag;

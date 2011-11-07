@@ -43,7 +43,8 @@
  *
 */
 
-void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
+void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
+{
 	Object *ob = BMO_Get_Pnt(op, "object");
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	MVert *mvert;
@@ -364,7 +365,8 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	}
 }
 
-void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
+void object_load_bmesh_exec(BMesh *bm, BMOperator *op)
+{
 	Object *ob = BMO_Get_Pnt(op, "object");
 	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
 	Mesh *me = ob->data;
@@ -412,7 +414,8 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
-void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
+void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
+{
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	/* Object *ob = BMO_Get_Pnt(op, "object"); */
 	MLoop *mloop;
@@ -806,7 +809,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 					if(keyi && *keyi != ORIGINDEX_NONE) {
-						VECSUB(ofs[i], mvert->co, fp[*keyi]);
+						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
 					i++;
 					mvert++;
@@ -895,7 +898,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 					keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 					if(keyi && *keyi != ORIGINDEX_NONE) {
-						VECSUB(ofs[i], mvert->co, fp[*keyi]);
+						sub_v3_v3v3(ofs[i], mvert->co, fp[*keyi]);
 					}
 					i++;
 					mvert++;

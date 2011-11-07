@@ -143,7 +143,8 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *f
 
 
 /*returns 0 on error, 1 on success.  executes and finishes a bmesh operator*/
-int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) {
+int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report)
+{
 	const char *errmsg;
 	
 	BMO_Finish_Op(em->bm, bmop);

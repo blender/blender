@@ -624,7 +624,8 @@ void BM_clear_flag_all(BMesh *bm, const char hflag)
 
 #define SETHIDE(ele) hide ? BM_SetHFlag(ele, BM_HIDDEN) : BM_ClearHFlag(ele, BM_HIDDEN);
 
-static void vert_flush_hide(BMesh *bm, BMVert *v) {
+static void vert_flush_hide(BMesh *bm, BMVert *v)
+{
 	BMIter iter;
 	BMEdge *e;
 	int hide = 1;
@@ -636,7 +637,8 @@ static void vert_flush_hide(BMesh *bm, BMVert *v) {
 	SETHIDE(v);
 }
 
-static void edge_flush_hide(BMesh *bm, BMEdge *e) {
+static void edge_flush_hide(BMesh *bm, BMEdge *e)
+{
 	BMIter iter;
 	BMFace *f;
 	int hide = 1;

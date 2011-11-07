@@ -232,7 +232,7 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 		hit->dist = dist;
 		hit->index = index;
 		
-		VECCOPY(hit->no, ls[0]->v->no);
+		copy_v3_v3(hit->no, ls[0]->v->no);
 
 		copy_v3_v3(hit->co, ray->direction);
 		normalize_v3(hit->co);
@@ -301,8 +301,8 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 
 		dist = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 		if (dist < hit->dist && dist < maxdist) {
-			VECCOPY(hit->co, ls[i]->v->co);
-			VECCOPY(hit->no, ls[i]->v->no);
+			copy_v3_v3(hit->co, ls[i]->v->co);
+			copy_v3_v3(hit->no, ls[i]->v->no);
 			hit->dist = dist;
 			hit->index = index;
 		}
@@ -313,7 +313,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 {
 	BVHTreeNearest hit;
 
-	VECCOPY(hit.co, co);
+	copy_v3_v3(hit.co, co);
 	hit.dist = maxdist*5;
 	hit.index = -1;
 
@@ -522,7 +522,7 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 			normal_tri_v3(no2, s2->v->co, s2->lastv->co, l2->v->co);
 			
 			/*enforce identical winding as no1*/
-			mul_v3_fl(no2, -1.0);
+			negate_v3(no2);
 
 			angle = angle_v3v3(no1, no2);
 			if (angle > M_PI/2 - FLT_EPSILON*2)
@@ -667,8 +667,8 @@ BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMV
 
 	memset(&hit, 0, sizeof(hit));
 
-	VECCOPY(hit.co, co);
-	VECCOPY(tree->co, co);
+	copy_v3_v3(hit.co, co);
+	copy_v3_v3(tree->co, co);
 	hit.index = -1;
 	hit.dist = maxdist;
 
@@ -736,10 +736,10 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);
 
-	VECCOPY(co1, e->v1->co);
+	copy_v3_v3(co1, e->v1->co);
 	add_v3_v3v3(co2, e->v1->co, e->v2->co);
 	mul_v3_fl(co2, 0.5f);
-	VECCOPY(co3, e->v2->co);
+	copy_v3_v3(co3, e->v2->co);
 	
 	scale_point(co1, co2, 0.99);
 	scale_point(co3, co2, 0.99);

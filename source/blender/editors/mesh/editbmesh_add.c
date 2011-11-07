@@ -111,8 +111,8 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 	copy_m4_m3(primmat, imat);
 
 	/* center */
-	VECCOPY(primmat[3], loc);
-	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
+	copy_v3_v3(primmat[3], loc);
+	sub_v3_v3(primmat[3], obedit->obmat[3]);
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 	

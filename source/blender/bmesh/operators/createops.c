@@ -805,7 +805,8 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	return path;
 }
 
-static int count_edge_faces(BMesh *bm, BMEdge *e) {
+static int count_edge_faces(BMesh *bm, BMEdge *e)
+{
 	int i=0;
 	BMLoop *l = e->l;
 	

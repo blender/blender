@@ -2075,7 +2075,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_TestHFlag(v, BM_SELECT))
 				continue;
-			VECADD(cent, cent, v->co);
+			add_v3_v3(cent, v->co);
 			i++;
 		}
 		

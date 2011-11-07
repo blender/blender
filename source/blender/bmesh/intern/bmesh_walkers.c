@@ -65,7 +65,8 @@
    for if walkers fail.
 */
 
-void *BMW_Begin(BMWalker *walker, void *start) {
+void *BMW_Begin(BMWalker *walker, void *start)
+{
 	walker->begin(walker, start);
 	
 	return BMW_currentstate(walker) ? walker->step(walker) : NULL;
@@ -250,7 +251,8 @@ void* BMW_addstate(BMWalker *walker)
  *
 */
 
-void BMW_reset(BMWalker *walker) {
+void BMW_reset(BMWalker *walker)
+{
 	while (BMW_currentstate(walker)) {
 		BMW_removestate(walker);
 	}

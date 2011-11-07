@@ -97,7 +97,8 @@ static void BM_Data_Vert_Average(BMesh *UNUSED(bm), BMFace *UNUSED(f))
  *	Nothing
 */
  
-void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac){
+void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVert *v, BMEdge *e1, float fac)
+{
 	void *src[2];
 	float w[2];
 	BMLoop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;

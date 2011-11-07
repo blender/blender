@@ -41,7 +41,8 @@
  *
 */
 
-static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *face_block, BMFace *f,int numCol, int numTex){
+static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *face_block, BMFace *f,int numCol, int numTex)
+{
 	int i, j;
 	BMLoop *l;
 	MTFace *texface;
@@ -349,7 +350,8 @@ static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int n
  *
 */
 
-static void tag_wire_edges(EditMesh *em){
+static void tag_wire_edges(EditMesh *em)
+{
 	EditFace *efa;
 	EditEdge *eed;
 	for(eed = em->edges.first; eed; eed = eed->next) eed->f1 = 1;

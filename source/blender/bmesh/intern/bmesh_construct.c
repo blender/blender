@@ -137,7 +137,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 */
 
 BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, 
-			BMVert *v4, const BMFace *example, int nodouble)
+                        BMVert *v4, const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMVert *vtar[4];
@@ -219,7 +219,8 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 
 
 /*copies face data from shared adjacent faces*/
-void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
+void BM_Face_CopyShared(BMesh *bm, BMFace *f)
+{
 	BMIter iter;
 	BMLoop *l, *l2;
 

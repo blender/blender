@@ -334,7 +334,7 @@ BMMesh *derivedmesh_to_bmesh(DerivedMesh *dm)
 
 static void bmeshvert_to_mvert(BMMesh *bm, BMVert *v, MVert *mv, int index, CustomData *data)
 {
-		VECCOPY(mv->co,v->co);
+		copy_v3_v3(mv->co,v->co);
 		if(bmesh_test_flag(v, BMESH_SELECT)) mv->flag |= 1;
 		if(bmesh_test_flag(v, BMESH_HIDDEN)) mv->flag |= ME_HIDE;
 		mv->bweight = (char)(255.0*v1->bweight);

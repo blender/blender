@@ -542,21 +542,21 @@ static void bmDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3],
 	BMIter iter;
 	BMLoop *l;
 	int tot = 0;
-	
-	cent[0] = cent[1] = cent[2] = 0.0f;
-	
+
+	zero_v3(cent);
+
 	/*simple (and stupid) median (average) based method :/ */
 	
 	if (vertexCos) {
 		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, efa);
 		for (; l; l=BMIter_Step(&iter)) {
-			VECADD(cent, cent, vertexCos[BM_GetIndex(l->v)]);
+			add_v3_v3(cent, vertexCos[BM_GetIndex(l->v)]);
 			tot++;
 		}
 	} else {
 		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, efa);
 		for (; l; l=BMIter_Step(&iter)) {
-			VECADD(cent, cent, l->v->co);
+			add_v3_v3(cent, l->v->co);
 			tot++;
 		}
 	}

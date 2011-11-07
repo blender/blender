@@ -107,9 +107,10 @@
  *	A BMVert pointer.
  */
 
-BMVert *bmesh_mv(BMesh *bm, float *vec){
+BMVert *bmesh_mv(BMesh *bm, float *vec)
+{
 	BMVert *v = bmesh_addvertlist(bm, NULL);	
-	VECCOPY(v->co,vec);
+	copy_v3_v3(v->co,vec);
 	return v;
 }
 
@@ -355,7 +356,8 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
  *	1 for success, 0 for failure.
  */
 
-int bmesh_kv(BMesh *bm, BMVert *v){
+int bmesh_kv(BMesh *bm, BMVert *v)
+{
 	if(v->e == NULL){ 
 		if (BM_TestHFlag(v, BM_SELECT)) bm->totvertsel--;
 
@@ -377,7 +379,8 @@ int bmesh_kv(BMesh *bm, BMVert *v){
  *	1 for success, 0 for failure.
  */
 
-int bmesh_ke(BMesh *bm, BMEdge *e){
+int bmesh_ke(BMesh *bm, BMEdge *e)
+{
 	int edok;
 	
 	/*Make sure that no faces!*/
@@ -412,7 +415,8 @@ int bmesh_ke(BMesh *bm, BMEdge *e){
  *	1 for success, 0 for failure.
 */
 
-int bmesh_kf(BMesh *bm, BMFace *bply){
+int bmesh_kf(BMesh *bm, BMFace *bply)
+{
 	BMLoop *newbase,*oldbase, *curloop;
 	int i,len=0;
 	
@@ -838,7 +842,8 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
  *	1 for success, 0 for failure.
  */
 
-int bmesh_loop_reverse(BMesh *bm, BMFace *f){
+int bmesh_loop_reverse(BMesh *bm, BMFace *f)
+{
 	BMLoop *l = f->loopbase, *curloop, *oldprev, *oldnext;
 	int i, j, edok, len = 0;
 

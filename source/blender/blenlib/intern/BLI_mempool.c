@@ -52,8 +52,9 @@
 #include "BLI_mempool.h"
 
 BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
-								int use_sysmalloc, int allow_iter)
-{	BLI_mempool  *pool = NULL;
+                                int use_sysmalloc, int allow_iter)
+{
+	BLI_mempool  *pool = NULL;
 	BLI_freenode *lasttail = NULL, *curnode = NULL;
 	int i,j, maxchunks;
 	char *addr;
@@ -119,7 +120,8 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
 	return pool;
 }
 #if 0
-void *BLI_mempool_alloc(BLI_mempool *pool){
+void *BLI_mempool_alloc(BLI_mempool *pool)
+{
 	void *retval=NULL;
 	BLI_freenode *curnode=NULL;
 	char *addr=NULL;
@@ -165,7 +167,8 @@ void *BLI_mempool_alloc(BLI_mempool *pool){
 }
 #endif
 
-void *BLI_mempool_calloc(BLI_mempool *pool){
+void *BLI_mempool_calloc(BLI_mempool *pool)
+{
 	void *retval=NULL;
 	retval = BLI_mempool_alloc(pool);
 	BMEMSET(retval, 0, pool->esize);
@@ -173,7 +176,8 @@ void *BLI_mempool_calloc(BLI_mempool *pool){
 }
 
 
-void BLI_mempool_free(BLI_mempool *pool, void *addr){ //doesnt protect against double frees, dont be stupid!
+void BLI_mempool_free(BLI_mempool *pool, void *addr) //doesnt protect against double frees, dont be stupid!
+{
 	BLI_freenode *newhead = addr;
 	BLI_freenode *curnode=NULL;
 	char *tmpaddr=NULL;

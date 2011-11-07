@@ -19,7 +19,8 @@
 #include "bmesh_iterators.h"
 #include "bmesh_private.h"
 
-BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example) {
+BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
+{
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 	
 	bm->totvert += 1;
@@ -67,7 +68,8 @@ BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
 	return NULL;
 }
 
-BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble) {
+BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
+{
 	BMEdge *e;
 	
 	if (nodouble && (e= BM_Edge_Exist(v1, v2)))
@@ -97,7 +99,8 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 	return (BMEdge*) e;
 }
 
-static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const BMLoop *example){
+static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const BMLoop *example)
+{
 	BMLoop *l=NULL;
 
 	l = BLI_mempool_calloc(bm->lpool);
@@ -119,7 +122,8 @@ static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, con
 	return l;
 }
 
-static BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte) {
+static BMLoop *BM_Add_FaceBoundary(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
+{
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
 	BMLoop *l = bmesh_create_loop(bm, startv, starte, f, NULL);
 	
@@ -194,7 +198,8 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 	return f2;
 }
 
-BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nodouble) {
+BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nodouble)
+{
 	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
 	int i, overlap;
@@ -367,7 +372,8 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, const char htype)
 	return err;
 }
 
-static void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
+static void bmesh_kill_loop(BMesh *bm, BMLoop *l)
+{
 	bm->totloop--;
 	if (l->head.data)
 		CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
@@ -377,7 +383,8 @@ static void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
 	BLI_mempool_free(bm->lpool, l);
 }
 
-void BM_Kill_Face_Edges(BMesh *bm, BMFace *f) {
+void BM_Kill_Face_Edges(BMesh *bm, BMFace *f)
+{
 	BMEdge **edges = NULL;
 	BLI_array_staticdeclare(edges, 256);
 	BMLoop *l;
@@ -396,7 +403,8 @@ void BM_Kill_Face_Edges(BMesh *bm, BMFace *f) {
 	BLI_array_free(edges);
 }
 
-void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) {
+void BM_Kill_Face_Verts(BMesh *bm, BMFace *f)
+{
 	BMVert**verts = NULL;
 	BLI_array_staticdeclare(verts, 256);
 	BMLoop *l;
@@ -415,7 +423,8 @@ void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) {
 	BLI_array_free(verts);
 }
 
-void BM_Kill_Face(BMesh *bm, BMFace *f) {
+void BM_Kill_Face(BMesh *bm, BMFace *f)
+{
 	BMLoopList *ls, *lsnext;
 
 	BM_CHECK_ELEMENT(bm, f);
@@ -450,7 +459,8 @@ void BM_Kill_Face(BMesh *bm, BMFace *f) {
 	BLI_mempool_free(bm->fpool, f);
 }
 
-void BM_Kill_Edge(BMesh *bm, BMEdge *e) {
+void BM_Kill_Edge(BMesh *bm, BMEdge *e)
+{
 
 	bmesh_disk_remove_edge(e, e->v1);
 	bmesh_disk_remove_edge(e, e->v2);
@@ -482,7 +492,8 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e) {
 	BLI_mempool_free(bm->epool, e);
 }
 
-void BM_Kill_Vert(BMesh *bm, BMVert *v) {
+void BM_Kill_Vert(BMesh *bm, BMVert *v)
+{
 	if (v->e) {
 		BMEdge *e, *nexte;
 		
@@ -533,7 +544,8 @@ static int bmesh_loop_length(BMLoop *l)
 	return i;
 }
 
-static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst){
+static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
+{
 	BMLoop *l = lst->first, *curloop, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
 	MDisps *md;
@@ -887,7 +899,8 @@ error:
 	return NULL;
 }
 
-static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example)) {
+static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
+{
 	BMFace *f;
 	BMLoopList *lst;
 

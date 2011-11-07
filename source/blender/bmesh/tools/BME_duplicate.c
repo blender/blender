@@ -275,8 +275,8 @@ BMMesh *bmesh_make_mesh_from_mesh(BMMesh *bm, int allocsize[4])
  *
 */
 
-void bmesh_split_mesh(BMMesh *bm, int flag){
-	
+void bmesh_split_mesh(BMMesh *bm, int flag)
+{
 	BMVert *v;
 	BMEdge *e;
 	BMFace *f;

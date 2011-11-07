@@ -455,7 +455,8 @@ static void delete_verts(BMesh *bm)
 	BM_remove_tagged_verts(bm, DEL_INPUT);
 }
 
-static void delete_edges(BMesh *bm){
+static void delete_edges(BMesh *bm)
+{
 	BMEdge *e;
 	BMFace *f;
 	

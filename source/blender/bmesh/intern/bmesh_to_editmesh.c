@@ -40,7 +40,8 @@
  *
 */
 
-static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *face_block, BMFace *f,int numCol, int numTex){
+static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *face_block, BMFace *f,int numCol, int numTex)
+{
 	int i, j;
 	BMLoop *l;
 	MTFace *texface;

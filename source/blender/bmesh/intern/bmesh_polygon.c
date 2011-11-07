@@ -106,8 +106,8 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		copy_v3_v3(w, verts[(i+2) % nverts]);
 		
 #if 0
-		VECSUB(v1, w, v);
-		VECSUB(v2, v, u);
+		sub_v3_v3v3(v1, w, v);
+		sub_v3_v3v3(v2, v, u);
 		Normalize_d(v1);
 		Normalize_d(v2);
 
@@ -643,7 +643,8 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 }
 
 static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
-		 int v2i, int v3i, int UNUSED(nvert)) {
+                    int v2i, int v3i, int UNUSED(nvert))
+{
 	BMLoop *l = bm_firstfaceloop(f);
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;

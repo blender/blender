@@ -341,14 +341,14 @@ static int BME_bevel_get_vec(float *vec, BME_Vert *v1, BME_Vert *v2, BME_TransDa
 	if (compare_v3v3(vtd1->org,vtd2->org,0.000001f)) {
 		VECSUB(vec,v2->co,v1->co);
 		if (len_v3(vec) < 0.000001f) {
-			mul_v3_fl(vec,0);
+			zero_v3(vec);
 		}
 		return 0;
 	}
 	else {
 		VECSUB(vec,vtd2->org,vtd1->org);
 		if (len_v3(vec) < 0.000001f) {
-			mul_v3_fl(vec,0);
+			zero_v3(vec);
 		}
 		return 1;
 	}

@@ -47,7 +47,8 @@
 
 /* ------- Bevel code starts here -------- */
 
-BME_TransData_Head *BME_init_transdata(int bufsize) {
+BME_TransData_Head *BME_init_transdata(int bufsize)
+{
 	BME_TransData_Head *td;
 
 	td = MEM_callocN(sizeof(BME_TransData_Head), "BM transdata header");
@@ -58,15 +59,18 @@ BME_TransData_Head *BME_init_transdata(int bufsize) {
 	return td;
 }
 
-void BME_free_transdata(BME_TransData_Head *td) {
+void BME_free_transdata(BME_TransData_Head *td)
+{
 	BLI_ghash_free(td->gh,NULL,NULL);
 	BLI_memarena_free(td->ma);
 	MEM_freeN(td);
 }
 
-BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
-		float *co, float *org, float *vec, float *loc,
-		float factor, float weight, float maxfactor, float *max) {
+BME_TransData *BME_assign_transdata(
+        BME_TransData_Head *td, BMesh *bm, BMVert *v,
+        float *co, float *org, float *vec, float *loc,
+        float factor, float weight, float maxfactor, float *max)
+{
 	BME_TransData *vtd;
 	int is_new = 0;
 
@@ -81,11 +85,11 @@ BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v
 
 	vtd->bm = bm;
 	vtd->v = v;
-	if (co != NULL) VECCOPY(vtd->co,co);
-	if (org == NULL && is_new) { VECCOPY(vtd->org,v->co); } /* default */
-	else if (org != NULL) VECCOPY(vtd->org,org);
+	if (co != NULL) copy_v3_v3(vtd->co,co);
+	if (org == NULL && is_new) { copy_v3_v3(vtd->org,v->co); } /* default */
+	else if (org != NULL) copy_v3_v3(vtd->org,org);
 	if (vec != NULL) {
-		VECCOPY(vtd->vec,vec);
+		copy_v3_v3(vtd->vec,vec);
 		normalize_v3(vtd->vec);
 	}
 	vtd->loc = loc;
@@ -98,18 +102,21 @@ BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v
 	return vtd;
 }
 
-BME_TransData *BME_get_transdata(BME_TransData_Head *td, BMVert *v) {
+BME_TransData *BME_get_transdata(BME_TransData_Head *td, BMVert *v)
+{
 	BME_TransData *vtd;
 	vtd = BLI_ghash_lookup(td->gh, v);
 	return vtd;
 }
 
 /* a hack (?) to use the transdata memarena to allocate floats for use with the max limits */
-float *BME_new_transdata_float(BME_TransData_Head *td) {
+float *BME_new_transdata_float(BME_TransData_Head *td)
+{
 	return BLI_memarena_alloc(td->ma, sizeof(float));
 }
 
-static int BME_bevel_is_split_vert(BMLoop *l) {
+static int BME_bevel_is_split_vert(BMLoop *l)
+{
 	/* look for verts that have already been added to the edge when
 	 * beveling other polys; this can be determined by testing the
 	 * vert and the edges around it for originality
@@ -127,7 +134,8 @@ static int BME_bevel_is_split_vert(BMLoop *l) {
  * the bevel operation as a whole based on the relationship between v1 and v2
  * (won't necessarily be a vec from v1->co to v2->co, though it probably will be);
  * the return value is -1 for failure, 0 if we used vert co's, and 1 if we used transform origins */
-static int BME_bevel_get_vec(float *vec, BMVert *v1, BMVert *v2, BME_TransData_Head *td) {
+static int BME_bevel_get_vec(float *vec, BMVert *v1, BMVert *v2, BME_TransData_Head *td)
+{
 	BME_TransData *vtd1, *vtd2;
 
 	vtd1 = BME_get_transdata(td,v1);
@@ -141,16 +149,16 @@ static int BME_bevel_get_vec(float *vec, BMVert *v1, BMVert *v2, BME_TransData_H
 	 * if they belong to different origins, then we will use the origins to determine
 	 * the vector */
 	if (compare_v3v3(vtd1->org,vtd2->org,0.000001f)) {
-		VECSUB(vec,v2->co,v1->co);
+		sub_v3_v3v3(vec, v2->co, v1->co);
 		if (len_v3(vec) < 0.000001f) {
-			mul_v3_fl(vec,0);
+			zero_v3(vec);
 		}
 		return 0;
 	}
 	else {
-		VECSUB(vec,vtd2->org,vtd1->org);
+		sub_v3_v3v3(vec,vtd2->org,vtd1->org);
 		if (len_v3(vec) < 0.000001f) {
-			mul_v3_fl(vec,0);
+			zero_v3(vec);
 		}
 		return 1;
 	}
@@ -165,7 +173,8 @@ static int BME_bevel_get_vec(float *vec, BMVert *v1, BMVert *v2, BME_TransData_H
  * vec2 is the direction of projection (pointing away from vec1)
  * up_vec is used for orientation (expected to be normalized)
  * returns the length of the projected vector that lies along vec1 */
-static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *td) {
+static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *td)
+{
 	float factor, vec3[3], tmp[3],c1,c2;
 
 	cross_v3_v3v3(tmp,vec1,vec2);
@@ -194,7 +203,8 @@ static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int 
  * using the vert and the loop passed, get or make the split vert, set its coordinates
  * and transform properties, and set the max limits.
  * Finally, return the split vert. */
-static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l, float *up_vec, float value, BME_TransData_Head *td) {
+static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l, float *up_vec, float value, BME_TransData_Head *td)
+{
 	BME_TransData *vtd, *vtd1, *vtd2;
 	BMVert *sv, *v2, *v3, *ov;
 	BMLoop *lv1, *lv2;
@@ -328,8 +338,8 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 	if (is_edge || dis > maxfactor*value) {
 		dis = maxfactor*value;
 	}
-	VECADDFAC(sv->co,v->co,vec1,dis);
-	VECSUB(vec1,sv->co,vtd1->org);
+	madd_v3_v3v3fl(sv->co, v->co, vec1, dis);
+	sub_v3_v3v3(vec1, sv->co, vtd1->org);
 	dis = len_v3(vec1);
 	normalize_v3(vec1);
 	BME_assign_transdata(td, bm, sv, vtd1->org, vtd1->org, vec1, sv->co, dis, scale, maxfactor, vtd->max);
@@ -337,7 +347,8 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 	return sv;
 }
 
-static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransData_Head *td) {
+static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransData_Head *td)
+{
 	BME_TransData *vtd1, *vtd2;
 	float max, fac1, fac2, vec1[3], vec2[3], vec3[3];
 
@@ -349,7 +360,7 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 		fac1 = 0;
 	}
 	else {
-		VECCOPY(vec2,vtd1->vec);
+		copy_v3_v3(vec2,vtd1->vec);
 		mul_v3_fl(vec2,vtd1->factor);
 		if (dot_v3v3(vec1, vec1)) {
 			project_v3_v3v3(vec2,vec2,vec1);
@@ -364,7 +375,7 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 		fac2 = 0;
 	}
 	else {
-		VECCOPY(vec3,vtd2->vec);
+		copy_v3_v3(vec3,vtd2->vec);
 		mul_v3_fl(vec3,vtd2->factor);
 		if (dot_v3v3(vec1, vec1)) {
 			project_v3_v3v3(vec2,vec3,vec1);
@@ -391,7 +402,8 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 	return max;
 }
 
-static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int options, BME_TransData_Head *td) {
+static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int options, BME_TransData_Head *td)
+{
 	BMVert *ov1, *ov2, *v1, *v2;
 
 	ov1 = BM_OtherEdgeVert(v->e, v);
@@ -421,7 +433,8 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int op
 	return v1;
 }
 
-static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, float *up_vec, BME_TransData_Head *td)
+{
 	BMVert *v1, *v2, *kv;
 	BMLoop *kl=NULL, *nl;
 	BMEdge *e;
@@ -522,7 +535,8 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 	return l;
 }
 
-static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int options, float *up_vec, BME_TransData_Head *td)
+{
 	BMVert *v1, *v2;
 	BMFace *f;
 
@@ -555,7 +569,8 @@ static BMLoop *BME_bevel_vert(BMesh *bm, BMLoop *l, float value, int options, fl
  *	Returns -
  *  A BMFace pointer to the resulting inner face.
 */
-static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BME_TransData_Head *td) {
+static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BME_TransData_Head *td)
+{
 	BMLoop *l, *ol;
 	BME_TransData *vtd1, *vtd2;
 	float up_vec[3], vec1[3], vec2[3], vec3[3], fac1, fac2, max = -1;
@@ -570,8 +585,8 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 	for (i=0,ol=f->loopbase,l=ol->next; l->next!=ol; l=l->next) {
 		BME_bevel_get_vec(vec1,l->next->v,ol->v,td);
 		BME_bevel_get_vec(vec2,l->v,ol->v,td);
-		cross_v3_v3v3(vec3,vec2,vec1);
-		VECADD(up_vec,up_vec,vec3);
+		cross_v3_v3v3(vec3, vec2, vec1);
+		add_v3_v3(up_vec, vec3);
 		i++;
 	}
 	mul_v3_fl(up_vec,1.0f/i);
@@ -601,7 +616,7 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 					fac1 = 0;
 				}
 				else {
-					VECCOPY(vec2,vtd1->vec);
+					copy_v3_v3(vec2,vtd1->vec);
 					mul_v3_fl(vec2,vtd1->factor);
 					if (dot_v3v3(vec1, vec1)) {
 						project_v3_v3v3(vec2,vec2,vec1);
@@ -615,7 +630,7 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 					fac2 = 0;
 				}
 				else {
-					VECCOPY(vec3,vtd2->vec);
+					copy_v3_v3(vec3,vtd2->vec);
 					mul_v3_fl(vec3,vtd2->factor);
 					if (dot_v3v3(vec1, vec1)) {
 						project_v3_v3v3(vec2,vec3,vec1);
@@ -641,7 +656,8 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 	return l->f;
 }
 
-static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, float weight, float factor, int options) {
+static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, float weight, float factor, int options)
+{
 	BME_TransData *vtd;
 
 	if (v->tflag1 & BME_BEVEL_NONMAN) return;
@@ -675,7 +691,8 @@ static void BME_bevel_add_vweight(BME_TransData_Head *td, BMesh *bm, BMVert *v, 
 }
 
 
-static bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td){
+static bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td)
+{
 	BMVert *v;
 	float weight;
 	for(v=bm->verts.first; v; v=v->next){
@@ -693,7 +710,8 @@ static bevel_init_verts(BMesh *bm, int options, BME_TransData_Head *td){
 		}
 	}
 }
-static bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td){
+static bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td)
+{
 	BMEdge *e;
 	int count;
 	float weight;
@@ -727,8 +745,8 @@ static bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td){
 		}
 	}
 }
-static BMesh *BME_bevel_initialize(BMesh *bm, int options, int defgrp_index, float angle, BME_TransData_Head *td){
-
+static BMesh *BME_bevel_initialize(BMesh *bm, int options, int defgrp_index, float angle, BME_TransData_Head *td)
+{
 	BMVert *v, *v2;
 	BMEdge *e, *curedge;
 	BMFace *f;
@@ -802,7 +820,8 @@ static BMesh *BME_bevel_reinitialize(BMesh *bm)
  *  A BMesh pointer to the BM passed as a parameter.
 */
 
-static BMMesh *BME_bevel_mesh(BMMesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {
+static BMMesh *BME_bevel_mesh(BMMesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td)
+{
 	BMVert *v, *nv;
 	BMEdge *e, *curedge, *ne;
 	BMLoop *l, *l2;
@@ -856,7 +875,8 @@ static BMMesh *BME_bevel_mesh(BMMesh *bm, float value, int res, int options, int
 	return bm;
 }
 
-BMesh *BME_bevel(BMMesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd) {
+BMesh *BME_bevel(BMMesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd)
+		{
 	BMVert *v;
 	BMEdge *e;
 	BMIter *verts;
@@ -904,7 +924,7 @@ BMesh *BME_bevel(BMMesh *bm, float value, int res, int options, int defgrp_index
 			else {
 				d = value;
 			}
-			VECADDFAC(v->co,vtd->org,vtd->vec,vtd->factor*d);
+			madd_v3_v3v3fl(v->co,vtd->org,vtd->vec,vtd->factor*d);
 		}
 		v->tflag1 = 0;
 	}

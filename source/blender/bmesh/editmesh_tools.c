@@ -786,7 +786,7 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	invert_m3_m3(imat,bmat);
 
 	curs= give_cursor();
-	VECCOPY(cent, curs);
+	copy_v3_v3(cent, curs);
 	cent[0]-= G.obedit->obmat[3][0];
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
@@ -908,7 +908,7 @@ void screw_mesh(int steps, int turns)
 	dvec[1]= ( (v1->co[1]- v2->co[1]) )/(steps);
 	dvec[2]= ( (v1->co[2]- v2->co[2]) )/(steps);
 
-	VECCOPY(nor, G.obedit->obmat[2]);
+	copy_v3_v3(nor, G.obedit->obmat[2]);
 
 	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.000) {
 		dvec[0]= -dvec[0];
@@ -1230,8 +1230,8 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
 		len= 0.5f*normalize_v3(nor);
 	
-		VECCOPY(nor1, edge->v1->no);
-		VECCOPY(nor2, edge->v2->no);
+		copy_v3_v3(nor1, edge->v1->no);
+		copy_v3_v3(nor2, edge->v2->no);
 	
 		/* cosine angle */
 		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
@@ -2259,7 +2259,8 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts, float 
 
 //Next two fill types are for knife exact only and are provided to allow for knifing through vertices
 //This means there is no multicut!
-static void fill_quad_doublevert(EditFace *efa, int v1, int v2){
+static void fill_quad_doublevert(EditFace *efa, int v1, int v2)
+{
 	EditFace *hold;
 	/*
 		Depending on which two vertices have been knifed through (v1 and v2), we
@@ -2484,10 +2485,10 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 				continue;
 			}
 			if(ef->f & SELECT) {
-				VECCOPY(v1mat, ef->v1->co);
-				VECCOPY(v2mat, ef->v2->co);
-				VECCOPY(v3mat, ef->v3->co);
-				VECCOPY(v4mat, ef->v4->co);						
+				copy_v3_v3(v1mat, ef->v1->co);
+				copy_v3_v3(v2mat, ef->v2->co);
+				copy_v3_v3(v3mat, ef->v3->co);
+				copy_v3_v3(v4mat, ef->v4->co);
 				mul_mat3_m4_v3(G.obedit->obmat, v1mat);
 				mul_mat3_m4_v3(G.obedit->obmat, v2mat);											
 				mul_mat3_m4_v3(G.obedit->obmat, v3mat);
@@ -3150,7 +3151,8 @@ void beauty_fill(void)
 
 
 /* ******************** BEGIN TRIANGLE TO QUAD ************************************* */
-static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, float limit){
+static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, float limit)
+{
 	
 	/*gives a 'weight' to a pair of triangles that join an edge to decide how good a join they would make*/
 	/*Note: this is more complicated than it needs to be and should be cleaned up...*/
@@ -3909,48 +3911,48 @@ static void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_
 	// Edge 1 inverted
 	if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v2, o_v3, o_v4, o_v1, d, no);
-		VECCOPY(v1, vec);
-		VECCOPY(v2, vec);
+		copy_v3_v3(v1, vec);
+		copy_v3_v3(v2, vec);
 	}
 	// Edge 2 inverted
 	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v3, o_v4, o_v1, o_v2, d, no);
-		VECCOPY(v2, vec);
-		VECCOPY(v3, vec);
+		copy_v3_v3(v2, vec);
+		copy_v3_v3(v3, vec);
 	}
 	// Edge 3 inverted
 	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v4, o_v1, o_v2, o_v3, d, no);
-		VECCOPY(v3, vec);
-		VECCOPY(v4, vec);
+		copy_v3_v3(v3, vec);
+		copy_v3_v3(v4, vec);
 	}
 	// Edge 4 inverted
 	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 1) {
 		fix_bevel_wrap(vec, o_v1, o_v2, o_v3, o_v4, d, no);
-		VECCOPY(v4, vec);
-		VECCOPY(v1, vec);
+		copy_v3_v3(v4, vec);
+		copy_v3_v3(v1, vec);
 	}
 	// Edge 2 and 4 inverted
 	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 1) {
 		add_v3_v3v3(vec, v2, v3);
 		mul_v3_fl(vec, 0.5);
-		VECCOPY(v2, vec);
-		VECCOPY(v3, vec);
+		copy_v3_v3(v2, vec);
+		copy_v3_v3(v3, vec);
 		add_v3_v3v3(vec, v1, v4);
 		mul_v3_fl(vec, 0.5);
-		VECCOPY(v1, vec);
-		VECCOPY(v4, vec);
+		copy_v3_v3(v1, vec);
+		copy_v3_v3(v4, vec);
 	}
 	// Edge 1 and 3 inverted
 	else if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 0) {
 		add_v3_v3v3(vec, v1, v2);
 		mul_v3_fl(vec, 0.5);
-		VECCOPY(v1, vec);
-		VECCOPY(v2, vec);
+		copy_v3_v3(v1, vec);
+		copy_v3_v3(v2, vec);
 		add_v3_v3v3(vec, v3, v4);
 		mul_v3_fl(vec, 0.5);
-		VECCOPY(v3, vec);
-		VECCOPY(v4, vec);
+		copy_v3_v3(v3, vec);
+		copy_v3_v3(v4, vec);
 	}
 	// Totally inverted
 	else if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 1) {
@@ -3958,10 +3960,10 @@ static void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_
 		add_v3_v3v3(vec, vec, v3);
 		add_v3_v3v3(vec, vec, v4);
 		mul_v3_fl(vec, 0.25);
-		VECCOPY(v1, vec);
-		VECCOPY(v2, vec);
-		VECCOPY(v3, vec);
-		VECCOPY(v4, vec);
+		copy_v3_v3(v1, vec);
+		copy_v3_v3(v2, vec);
+		copy_v3_v3(v3, vec);
+		copy_v3_v3(v4, vec);
 	}
 
 }
@@ -3976,9 +3978,9 @@ static void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1,
 		add_v3_v3v3(vec, o_v1, o_v2);
 		add_v3_v3v3(vec, vec, o_v3);
 		mul_v3_fl(vec, 1.0f/3.0f);
-		VECCOPY(v1, vec);
-		VECCOPY(v2, vec);
-		VECCOPY(v3, vec);
+		copy_v3_v3(v1, vec);
+		copy_v3_v3(v2, vec);
+		copy_v3_v3(v3, vec);
 	}
 }
 
@@ -3992,29 +3994,29 @@ static void bevel_shrink_faces(float d, int flag)
 	efa= em->faces.first;
 	while (efa) {
 		if (efa->f1 & flag) {
-			VECCOPY(v1, efa->v1->co);
-			VECCOPY(v2, efa->v2->co);			
-			VECCOPY(v3, efa->v3->co);	
-			VECCOPY(no, efa->n);
+			copy_v3_v3(v1, efa->v1->co);
+			copy_v3_v3(v2, efa->v2->co);
+			copy_v3_v3(v3, efa->v3->co);
+			copy_v3_v3(no, efa->n);
 			if (efa->v4 == NULL) {
 				bevel_displace_vec(vec, v1, v2, v3, d, no);
-				VECCOPY(efa->v2->co, vec);
+				copy_v3_v3(efa->v2->co, vec);
 				bevel_displace_vec(vec, v2, v3, v1, d, no);
-				VECCOPY(efa->v3->co, vec);		
+				copy_v3_v3(efa->v3->co, vec);
 				bevel_displace_vec(vec, v3, v1, v2, d, no);
-				VECCOPY(efa->v1->co, vec);
+				copy_v3_v3(efa->v1->co, vec);
 
 				fix_bevel_tri_wrap(v1, v2, v3, efa->v1->co, efa->v2->co, efa->v3->co, no);
 			} else {
-				VECCOPY(v4, efa->v4->co);
+				copy_v3_v3(v4, efa->v4->co);
 				bevel_displace_vec(vec, v1, v2, v3, d, no);
-				VECCOPY(efa->v2->co, vec);
+				copy_v3_v3(efa->v2->co, vec);
 				bevel_displace_vec(vec, v2, v3, v4, d, no);
-				VECCOPY(efa->v3->co, vec);		
+				copy_v3_v3(efa->v3->co, vec);
 				bevel_displace_vec(vec, v3, v4, v1, d, no);
-				VECCOPY(efa->v4->co, vec);		
+				copy_v3_v3(efa->v4->co, vec);
 				bevel_displace_vec(vec, v4, v1, v2, d, no);
-				VECCOPY(efa->v1->co, vec);
+				copy_v3_v3(efa->v1->co, vec);
 
 				fix_bevel_quad_wrap(v1, v2, v3, v4, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, d, no);
 			}
@@ -4032,17 +4034,17 @@ static void bevel_shrink_draw(float d, int flag)
 	/* move edges of all faces with efa->f1 & flag closer towards their centers */
 	efa= em->faces.first;
 	while (efa) {
-		VECCOPY(v1, efa->v1->co);
-		VECCOPY(v2, efa->v2->co);			
-		VECCOPY(v3, efa->v3->co);	
-		VECCOPY(no, efa->n);
+		copy_v3_v3(v1, efa->v1->co);
+		copy_v3_v3(v2, efa->v2->co);
+		copy_v3_v3(v3, efa->v3->co);
+		copy_v3_v3(no, efa->n);
 		if (efa->v4 == NULL) {
 			bevel_displace_vec(vec, v1, v2, v3, d, no);
-			VECCOPY(fv2, vec);
+			copy_v3_v3(fv2, vec);
 			bevel_displace_vec(vec, v2, v3, v1, d, no);
-			VECCOPY(fv3, vec);		
+			copy_v3_v3(fv3, vec);
 			bevel_displace_vec(vec, v3, v1, v2, d, no);
-			VECCOPY(fv1, vec);
+			copy_v3_v3(fv1, vec);
 
 			fix_bevel_tri_wrap(v1, v2, v3, fv1, fv2, fv3, no);
 
@@ -4059,15 +4061,15 @@ static void bevel_shrink_draw(float d, int flag)
 			glVertex3fv(fv3);
 			glEnd();						
 		} else {
-			VECCOPY(v4, efa->v4->co);
+			copy_v3_v3(v4, efa->v4->co);
 			bevel_displace_vec(vec, v4, v1, v2, d, no);
-			VECCOPY(fv1, vec);
+			copy_v3_v3(fv1, vec);
 			bevel_displace_vec(vec, v1, v2, v3, d, no);
-			VECCOPY(fv2, vec);
+			copy_v3_v3(fv2, vec);
 			bevel_displace_vec(vec, v2, v3, v4, d, no);
-			VECCOPY(fv3, vec);		
+			copy_v3_v3(fv3, vec);
 			bevel_displace_vec(vec, v3, v4, v1, d, no);
-			VECCOPY(fv4, vec);		
+			copy_v3_v3(fv4, vec);
 
 			fix_bevel_quad_wrap(v1, v2, v3, v4, fv1, fv2, fv3, fv4, d, no);
 
@@ -4488,7 +4490,8 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu(void) {
+void bevel_menu(void)
+{
 	BME_Mesh *bm;
 	BME_TransData_Head *td;
 	TransInfo *t;
@@ -4667,7 +4670,8 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
-int EdgeLoopDelete(void) {
+int EdgeLoopDelete(void)
+{
 	
 	/* temporal flag setting so we keep UVs when deleting edge loops,
 	 * this is a bit of a hack but it works how you would want in almost all cases */
@@ -5828,7 +5832,8 @@ void mesh_rip(void)
 	G.scene->proportional = prop;
 }
 
-void shape_propagate(){
+void shape_propagate(void)
+{
 	EditMesh *em = G.editMesh;
 	EditVert *ev = NULL;
 	Mesh* me = (Mesh*)G.obedit->data;
@@ -5850,7 +5855,7 @@ void shape_propagate(){
 				for(kb=ky->block.first;kb;kb = kb->next){
 					float *data;		
 					data = kb->data;			
-					VECCOPY(data+(ev->keyindex*3),ev->co);				
+					copy_v3_v3(data+(ev->keyindex*3),ev->co);
 				}
 			}		
 		}						
@@ -5948,7 +5953,7 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 	else
 		for(ev = em->verts.first; ev ; ev = ev->next){
 			if(ev->f & SELECT){
-				VECCOPY(ev->co, odata+(ev->keyindex*3));
+				copy_v3_v3(ev->co, odata+(ev->keyindex*3));
 			}		
 		}
 	return;
@@ -6495,8 +6500,8 @@ int collapseEdges(void)
 		avgcount[0] /= vcount; avgcount[1] /=vcount; avgcount[2] /= vcount;
 		
 		for(curredge = edgecollection->collectionbase.first; curredge; curredge = curredge->next){
-			VECCOPY(((EditEdge*)curredge->eed)->v1->co,avgcount);
-			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
+			copy_v3_v3(((EditEdge*)curredge->eed)->v1->co,avgcount);
+			copy_v3_v3(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
 		
 		if (EM_texFaceCheck()) {
@@ -6543,7 +6548,7 @@ int merge_firstlast(int first, int uvmerge)
 	if(mergevert->f&SELECT){
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if (eve->f&SELECT)
-			VECCOPY(eve->co,mergevert->co);
+			copy_v3_v3(eve->co,mergevert->co);
 		}
 	}
 	
@@ -6828,7 +6833,8 @@ static int validate_loop(Collection *edgecollection)
 	return(1);
 }
 
-static int loop_bisect(Collection *edgecollection){
+static int loop_bisect(Collection *edgecollection)
+{
 	
 	EditFace *efa, *sf1, *sf2;
 	EditEdge *eed, *sed;

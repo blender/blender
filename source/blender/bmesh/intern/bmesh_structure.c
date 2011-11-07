@@ -47,11 +47,13 @@
  *
  */
  
-int bmesh_vert_in_edge(BMEdge *e, BMVert *v){
+int bmesh_vert_in_edge(BMEdge *e, BMVert *v)
+{
 	if(e->v1 == v || e->v2 == v) return 1;
 	return 0;
 }
-int bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e){
+int bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
+{
 	if(e->v1 == v1 && e->v2 == v2) return 1;
 	else if(e->v1 == v2 && e->v2 == v1) return 1;
 	return 0;
@@ -63,7 +65,8 @@ BMVert *bmesh_edge_getothervert(BMEdge *e, BMVert *v){
 	return NULL;
 }
 
-int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv){
+int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
+{
 	if(e->v1 == orig){ 
 		e->v1 = newv;
 		e->dlink1.next = e->dlink1.prev = NULL;
@@ -456,7 +459,8 @@ int bmesh_radial_length(BMLoop *l)
 	return i;
 }
 
-void bmesh_radial_append(BMEdge *e, BMLoop *l){
+void bmesh_radial_append(BMEdge *e, BMLoop *l)
+{
 	if(e->l == NULL) {
 		e->l = l;
 		l->radial_next = l->radial_prev = l;
@@ -572,7 +576,8 @@ void bmesh_cycle_append(void *h, void *nt)
  *	Integer
  */
 
-int bmesh_cycle_length(BMEdge *e, BMVert *v) {
+int bmesh_cycle_length(BMEdge *e, BMVert *v)
+{
 	BMEdge *next, *prev, *cur;
 	int len, vi = v == e->v1 ? 0 : 1;
 	
@@ -642,7 +647,8 @@ int bmesh_cycle_remove(void *h, void *remn)
  *	1 for success, 0 for failure.
  */
 
-int bmesh_cycle_validate(int len, void *h){
+int bmesh_cycle_validate(int len, void *h)
+{
 	int i;
 	BMNode *curnode, *head;
 	head = (BMNode*)h;
@@ -820,7 +826,8 @@ int bmesh_disk_count_edgeflag(BMVert *v, int eflag, int tflag)
 }
 
 
-int bmesh_disk_hasedge(BMVert *v, BMEdge *e){
+int bmesh_disk_hasedge(BMVert *v, BMEdge *e)
+{
 	BMNode *diskbase;
 	BMEdge *curedge;
 	int i, len=0;
@@ -859,7 +866,8 @@ BMLoop *bmesh_radial_nextloop(BMLoop *l){
 	return l->radial_next;
 }
 
-void bmesh_radial_append(BMEdge *e, BMLoop *l){
+void bmesh_radial_append(BMEdge *e, BMLoop *l)
+{
 	if(e->l == NULL) e->l = l;
 	bmesh_cycle_append(&(e->l->radial), &(l->radial));
 }
@@ -1011,7 +1019,8 @@ BMEdge *bmesh_disk_find_next_faceedge(BMEdge *e, BMVert *v)
 
 
 
-struct BMLoop *bmesh_loop_find_loop(struct BMFace *f, struct BMVert *v) {
+struct BMLoop *bmesh_loop_find_loop(struct BMFace *f, struct BMVert *v)
+{
 	BMLoop *l;
 	int i, len;
 	

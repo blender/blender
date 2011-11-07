@@ -292,8 +292,8 @@ void BME_collapse_edges(BME_Mesh *bm){
 			/*now loop through the hash table twice, once to calculate bounding box, second time to do the actual collapse*/
 			size = BLI_ghash_size(collected);
 			/*initial values*/
-			VECCOPY(min,v->co);
-			VECCOPY(max,v->co);
+			copy_v3_v3(min,v->co);
+			copy_v3_v3(max,v->co);
 			cent[0] = cent[1] = cent[2]=0;
 			for(i=0; i<size; i++){
 				cvert = BLI_ghash_lookup(collected,i);
@@ -308,7 +308,7 @@ void BME_collapse_edges(BME_Mesh *bm){
 			
 			for(i=0; i<size; i++){
 				cvert = BLI_ghash_lookup(collected,i);
-				VECCOPY(cvert->co,cent);
+				copy_v3_v3(cvert->co,cent);
 				num++;
 			}
 			/*free the hash table*/

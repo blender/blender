@@ -1939,7 +1939,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	for (i=0; eve; eve=BMIter_Step(&iter), i++, index++) {
 		MVert *mv = &mvert[i];
 
-		VECCOPY(mv->co, eve->co);
+		copy_v3_v3(mv->co, eve->co);
 
 		BM_SetIndex(eve, i);
 

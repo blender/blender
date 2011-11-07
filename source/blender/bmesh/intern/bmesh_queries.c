@@ -218,7 +218,8 @@ int BM_Edge_FaceCount(BMEdge *e)
  *	Returns the number of faces around this vert
 */
 
-int BM_Vert_FaceCount(BMVert *v){
+int BM_Vert_FaceCount(BMVert *v)
+{
 	int count = 0;
 	BMLoop *l;
 	BMIter iter;
@@ -295,7 +296,8 @@ int BM_Wire_Edge(BMesh *UNUSED(bm), BMEdge *e)
  *	1 for true, 0 for false.
  */
 
-int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v) {
+int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v)
+{
 	BMEdge *e, *oe;
 	BMLoop *l;
 	int len, count, flag;
@@ -401,7 +403,8 @@ int BM_Boundary_Edge(BMEdge *e)
  *	Integer
  */
 
-int BM_Face_Sharededges(BMFace *f1, BMFace *f2){
+int BM_Face_Sharededges(BMFace *f1, BMFace *f2)
+{
 	BMLoop *l;
 	int count = 0;
 	

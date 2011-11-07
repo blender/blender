@@ -14,7 +14,8 @@
  *  -Fit this into the new 'easy' API.
 */
 
-void BME_extrude_verts(BME_Mesh *bm, GHash *vhash){
+void BME_extrude_verts(BME_Mesh *bm, GHash *vhash)
+{
 	BMVert *v, *nv = NULL;
 	BMEdge *ne = NULL;
 	float vec[3];
@@ -22,7 +23,7 @@ void BME_extrude_verts(BME_Mesh *bm, GHash *vhash){
 	//extrude the vertices
 	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
 		if(BME_SELECTED(v)){
-			VECCOPY(vec,v->co);
+			copy_v3_v3(vec,v->co);
 			nv = BME_MV(bm,vec);
 			nv->tflag2 =1; //mark for select
 			ne = BME_ME(bm,v,nv);
@@ -33,8 +34,8 @@ void BME_extrude_verts(BME_Mesh *bm, GHash *vhash){
 	}
 }
 
-void BME_extrude_skirt(BME_Mesh *bm, GHash *ehash){
-	
+void BME_extrude_skirt(BME_Mesh *bm, GHash *ehash)
+{
 	BMFace *nf=NULL;
 	BMEdge *e, *l=NULL, *r=NULL, *edar[4], *ne;
 	BMVert *v, *v1, *v2, *lv, *rv, *nv;
@@ -73,7 +74,8 @@ void BME_extrude_skirt(BME_Mesh *bm, GHash *ehash){
 	}
 }
 
-void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
+void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash)
+{
 	BMVert *v, *nv, *v1, *v2;
 	BMEdge *e, **edar, *ne;
 	BME_Loop *l;
@@ -90,7 +92,7 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 			do{
 				if(!(BME_ISVISITED(l->v))){ //interior vertex
 					//dupe vert
-					VECCOPY(vec,l->v->co);
+					copy_v3_v3(vec,l->v->co);
 					nv = BME_MV(bm,vec);
 					BLI_ghash_insert(vhash,l->v,nv);
 					//mark for delete

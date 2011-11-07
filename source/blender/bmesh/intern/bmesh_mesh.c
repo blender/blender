@@ -295,7 +295,8 @@ void BM_Compute_Normals(BMesh *bm)
 */
 //keep in sycn with utils.c!
 #define FACE_FLIP	8
-static void bmesh_rationalize_normals(BMesh *bm, int undo) {
+static void bmesh_rationalize_normals(BMesh *bm, int undo)
+{
 	BMOperator bmop;
 	BMFace *f;
 	BMIter iter;
@@ -388,7 +389,8 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
  *  Nothing
  *
 */
-void bmesh_begin_edit(BMesh *bm, int flag) {
+void bmesh_begin_edit(BMesh *bm, int flag)
+{
 	bm->opflag = flag;
 	
 	/* Most operators seem to be using BMOP_UNTAN_MULTIRES to change the MDisps to
@@ -414,7 +416,8 @@ void bmesh_begin_edit(BMesh *bm, int flag) {
 #endif
 }
 
-void bmesh_end_edit(BMesh *bm, int flag){
+void bmesh_end_edit(BMesh *bm, int flag)
+{
 	/* BMOP_UNTAN_MULTIRES disabled for now, see comment above in bmesh_begin_edit. */
 #if BMOP_UNTAN_MULTIRES_ENABLED
 	/*switch multires data into tangent space*/

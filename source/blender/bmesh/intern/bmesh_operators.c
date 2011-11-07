@@ -415,7 +415,8 @@ int BMO_CountFlag(BMesh *bm, int flag, const char htype)
 	return count;	
 }
 
-void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), const char htype, int flag) {
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *UNUSED(op), const char htype, int flag)
+{
 	BMIter iter;
 	BMHeader *ele;
 	int i=0, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
@@ -457,7 +458,8 @@ int BMO_CountSlotMap(BMesh *UNUSED(bm), BMOperator *op, const char *slotname)
 }
 
 #if 0
-void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
+void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd)
+{
 	BMOpSlot *slot = &op->slots[slotcode];
 	void *tmp;
 	
@@ -506,7 +508,8 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 	}
 }
 
-static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len){
+static void *alloc_slot_buffer(BMOperator *op, const char *slotname, int len)
+{
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
 	/*check if its actually a buffer*/
@@ -1086,7 +1089,8 @@ static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name)
 	return i;
 }
 
-static int bmesh_opname_to_opcode(const char *opname) {
+static int bmesh_opname_to_opcode(const char *opname)
+{
 	int i;
 
 	for (i=0; i<bmesh_total_ops; i++) {
@@ -1265,7 +1269,8 @@ error:
 }
 
 
-int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...) {
+int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...)
+{
 	va_list list;
 
 	va_start(list, fmt);
@@ -1279,7 +1284,8 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...) {
 	return 1;
 }
 
-int BMO_CallOpf(BMesh *bm, const char *fmt, ...) {
+int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
+{
 	va_list list;
 	BMOperator op;
 

@@ -53,7 +53,8 @@
  * 
 */
 
-static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e) {
+static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
+{
 	shellWalker *shellWalk = NULL;
 
 	if (BLI_ghash_haskey(walker->visithash, e)) {
@@ -69,7 +70,8 @@ static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e) {
 	BLI_ghash_insert(walker->visithash, e, NULL);
 }
 
-static void shellWalker_begin(BMWalker *walker, void *data){
+static void shellWalker_begin(BMWalker *walker, void *data)
+{
 	BMIter eiter;
 	BMHeader *h = data;
 	BMEdge *e;
@@ -240,7 +242,8 @@ static void *connectedVertexWalker_step(BMWalker *walker)
  * 
 */
 
-static void islandboundWalker_begin(BMWalker *walker, void *data){
+static void islandboundWalker_begin(BMWalker *walker, void *data)
+{
 	BMLoop *l = data;
 	islandboundWalker *iwalk = NULL;
 
@@ -330,7 +333,8 @@ static void *islandboundWalker_step(BMWalker *walker)
  * 
 */
 
-static void islandWalker_begin(BMWalker *walker, void *data){
+static void islandWalker_begin(BMWalker *walker, void *data)
+{
 	islandWalker *iwalk = NULL;
 
 	if (walker->restrictflag && !BMO_TestFlag(walker->bm, data, walker->restrictflag)) {
@@ -386,7 +390,8 @@ static void *islandWalker_step(BMWalker *walker)
  * 
 */
 
-static void loopWalker_begin(BMWalker *walker, void *data){
+static void loopWalker_begin(BMWalker *walker, void *data)
+{
 	loopWalker *lwalk = NULL, owalk;
 	BMEdge *e = data;
 	BMVert *v;
