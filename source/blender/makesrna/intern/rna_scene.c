@@ -76,7 +76,7 @@ EnumPropertyItem proportional_falloff_items[] ={
 	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
 	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", "Sharp falloff"},
 	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", "Linear falloff"},
-	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", "Consant falloff"},
+	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", "Constant falloff"},
 	{PROP_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", "Random falloff"},
 	{0, NULL, 0, NULL, NULL}};
 
