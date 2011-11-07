@@ -79,7 +79,7 @@ static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeS
 
 static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
-	node->storage= add_mapping();
+	node->storage= add_tex_mapping();
 }
 
 void register_node_type_cmp_map_value(ListBase *lb)

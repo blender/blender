@@ -95,6 +95,14 @@ static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
 	}
 }
 
+static void node_socket_button_label(const bContext *UNUSED(C), uiBlock *block,
+							  bNodeTree *UNUSED(ntree), bNode *UNUSED(node), bNodeSocket *sock,
+							  const char *UNUSED(name), int x, int y, int width)
+{
+	uiDefBut(block, LABEL, 0, sock->name, x, y, width, NODE_DY, NULL, 0, 0, 0, 0, "");
+}
+
+
 static void node_socket_button_default(const bContext *C, uiBlock *block,
 								bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 								const char *name, int x, int y, int width)
@@ -938,28 +946,28 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 
 static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	PointerRNA mappingptr = RNA_pointer_get(ptr, "mapping");
 	uiLayout *row;
 	
 	uiItemL(layout, "Location:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "location", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "location", 0, "", ICON_NONE);
 	
 	uiItemL(layout, "Rotation:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "rotation", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "rotation", 0, "", ICON_NONE);
 	
 	uiItemL(layout, "Scale:", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "scale", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "scale", 0, "", ICON_NONE);
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "use_min", 0, "Min", ICON_NONE);
-	uiItemR(row, ptr, "min", 0, "", ICON_NONE);
+	uiItemR(row, &mappingptr, "use_min", 0, "Min", ICON_NONE);
+	uiItemR(row, &mappingptr, "min", 0, "", ICON_NONE);
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "use_max", 0, "Max", ICON_NONE);
-	uiItemR(row, ptr, "max", 0, "", ICON_NONE);
-	
+	uiItemR(row, &mappingptr, "use_max", 0, "Max", ICON_NONE);
+	uiItemR(row, &mappingptr, "max", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2088,6 +2096,9 @@ void ED_init_node_butfuncs(void)
 				break;
 			case SOCK_RGBA:
 				stype->buttonfunc = node_socket_button_color;
+				break;
+			case SOCK_SHADER:
+				stype->buttonfunc = node_socket_button_label;
 				break;
 			default:
 				stype->buttonfunc = NULL;

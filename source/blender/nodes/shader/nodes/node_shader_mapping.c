@@ -69,7 +69,7 @@ static void node_shader_exec_mapping(void *UNUSED(data), bNode *node, bNodeStack
 
 static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
-	node->storage= add_mapping();
+	node->storage= add_tex_mapping();
 }
 
 static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
