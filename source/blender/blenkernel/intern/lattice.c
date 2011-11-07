@@ -204,7 +204,7 @@ Lattice *copy_lattice(Lattice *lt)
 {
 	Lattice *ltn;
 
-	ltn= copy_libblock(lt);
+	ltn= copy_libblock(&lt->id);
 	ltn->def= MEM_dupallocN(lt->def);
 
 	ltn->key= copy_key(ltn->key);

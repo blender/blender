@@ -569,8 +569,8 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	 *	- must clear transforms set on object, as those skew our results
 	 */
 	ob= add_object(scene, OB_CURVE);
-	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
-	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
+	zero_v3(ob->loc);
+	zero_v3(ob->rot);
 	cu= ob->data;
 	cu->flag |= CU_3D;
 	
@@ -586,6 +586,9 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 				break;
 			case GP_STROKECONVERT_CURVE:
 				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr);
+				break;
+			default:
+				BLI_assert(!"invalid mode");
 				break;
 		}
 	}
@@ -616,17 +619,7 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* handle conversion modes */
-	switch (mode) {
-		case GP_STROKECONVERT_PATH:
-		case GP_STROKECONVERT_CURVE:
-			gp_layer_to_curve(C, gpd, gpl, mode);
-			break;
-			
-		default: /* unsupoorted */
-			BKE_report(op->reports, RPT_ERROR, "Unknown conversion option");
-			return OPERATOR_CANCELLED;
-	}
+	gp_layer_to_curve(C, gpd, gpl, mode);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_OBJECT|NA_ADDED, NULL);

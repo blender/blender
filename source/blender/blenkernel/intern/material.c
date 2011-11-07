@@ -215,7 +215,7 @@ Material *copy_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man= copy_libblock(ma);
+	man= copy_libblock(&ma->id);
 	
 	id_lib_extern((ID *)man->group);
 	
@@ -247,7 +247,7 @@ Material *localize_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man= copy_libblock(ma);
+	man= copy_libblock(&ma->id);
 	BLI_remlink(&G.main->mat, man);
 
 	/* no increment for texture ID users, in previewrender.c it prevents decrement */

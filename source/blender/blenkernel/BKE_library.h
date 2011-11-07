@@ -46,7 +46,7 @@ struct PointerRNA;
 struct PropertyRNA;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
-void *copy_libblock(void *rt);
+void *copy_libblock(struct ID *id);
 void copy_libblock_data(struct ID *id, const struct ID *id_from, const short do_action);
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct ID *id);

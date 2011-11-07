@@ -109,7 +109,6 @@ void register_node_type_cmp_normalize(ListBase *lb)
 	node_type_socket_templates(&ntype, cmp_node_normalize_in, cmp_node_normalize_out);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, node_composit_exec_normalize);
-	node_type_storage(&ntype, "TexMapping", NULL, NULL);
 	
 	nodeRegisterType(lb, &ntype);
 }

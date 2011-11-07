@@ -260,7 +260,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 
 			if(!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
 				lamp->dynenergy = lamp->energy;
-				VECCOPY(lamp->dyncol, lamp->col);
+				copy_v3_v3(lamp->dyncol, lamp->col);
 			}
 			else {
 				lamp->dynenergy = 0.0f;
@@ -306,14 +306,14 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 			lamp= nlink->data;
 
 			if(material->dynproperty & DYN_LAMP_VEC) {
-				VECCOPY(lamp->dynvec, lamp->vec);
+				copy_v3_v3(lamp->dynvec, lamp->vec);
 				normalize_v3(lamp->dynvec);
 				negate_v3(lamp->dynvec);
 				mul_mat3_m4_v3(viewmat, lamp->dynvec);
 			}
 
 			if(material->dynproperty & DYN_LAMP_CO) {
-				VECCOPY(lamp->dynco, lamp->co);
+				copy_v3_v3(lamp->dynco, lamp->co);
 				mul_m4_v3(viewmat, lamp->dynco);
 			}
 
@@ -1472,8 +1472,8 @@ void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[][4])
 	copy_m4_m4(mat, obmat);
 	normalize_m4(mat);
 
-	VECCOPY(lamp->vec, mat[2]);
-	VECCOPY(lamp->co, mat[3]);
+	copy_v3_v3(lamp->vec, mat[2]);
+	copy_v3_v3(lamp->co, mat[3]);
 	copy_m4_m4(lamp->obmat, mat);
 	invert_m4_m4(lamp->imat, mat);
 }

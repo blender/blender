@@ -33,6 +33,7 @@
 
 #include "BLF_api.h"
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 
@@ -131,7 +132,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		const char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
 		
 		int sel_orig[2];
-		VECCOPY2D(sel_orig, cdc->sel);
+		copy_v2_v2_int(sel_orig, cdc->sel);
 
 		/* invert and swap for wrapping */
 		cdc->sel[0] = str_len - sel_orig[1];
@@ -178,7 +179,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 				return 0;
 		}
 
-		VECCOPY2D(cdc->sel, sel_orig);
+		copy_v2_v2_int(cdc->sel, sel_orig);
 		STEP_SEL(-(str_len + 1));
 	}
 	else { /* simple, no wrap */

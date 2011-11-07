@@ -1510,7 +1510,7 @@ static void widget_state(uiWidgetType *wt, int state)
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
-		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 
 		if(state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
@@ -1519,7 +1519,7 @@ static void widget_state(uiWidgetType *wt, int state)
 		else if(state & UI_BUT_DRIVEN)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
 
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 		
 		if(state & UI_SELECT)
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
@@ -1604,7 +1604,7 @@ static void widget_state_option_menu(uiWidgetType *wt, int state)
 	else {
 		bTheme *btheme= U.themes.first; /* XXX */
 
-		VECCOPY(wt->wcol.text, btheme->tui.wcol_menu_back.text);
+		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
 	}
 }
 
@@ -1619,11 +1619,11 @@ static void widget_state_pulldown(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
-	VECCOPY(wt->wcol.outline, wt->wcol.inner);
+	copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+	copy_v3_v3_char(wt->wcol.outline, wt->wcol.inner);
 
 	if(state & UI_ACTIVE)
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 }
 
 /* special case, menu items */
@@ -1637,8 +1637,8 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
 	}
 	else if(state & UI_ACTIVE) {
-		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
-		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
 	}
 }
 
@@ -2197,7 +2197,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		
 		SWAP(short, wcol->shadetop, wcol->shadedown);
 		
-		QUATCOPY(wcol->inner, wcol->item);
+		copy_v4_v4_char(wcol->inner, wcol->item);
 		
 		if(wcol->shadetop>wcol->shadedown)
 			wcol->shadetop+= 20;	/* XXX violates themes... */
@@ -2369,9 +2369,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	if(!(state & UI_TEXTINPUT)) {
 		
 			/* slider part */
-		VECCOPY(outline, wcol->outline);
-		VECCOPY(wcol->outline, wcol->item);
-		VECCOPY(wcol->inner, wcol->item);
+		copy_v3_v3_char(outline, wcol->outline);
+		copy_v3_v3_char(wcol->outline, wcol->item);
+		copy_v3_v3_char(wcol->inner, wcol->item);
 
 		if(!(state & UI_SELECT))
 			SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -2397,7 +2397,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT), &rect1, offs);
 		
 		widgetbase_draw(&wtb1, wcol);
-		VECCOPY(wcol->outline, outline);
+		copy_v3_v3_char(wcol->outline, outline);
 		
 		if(!(state & UI_SELECT))
 			SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -2624,7 +2624,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	
 	widget_init(&wtb);
 	
-	VECCOPY(old_col, wcol->inner);
+	copy_v3_v3_char(old_col, wcol->inner);
 	
 	/* abuse but->hsv - if it's non-zero, use this color as the box's background */
 	if (but->col[3]) {
@@ -2643,7 +2643,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	/* XXX, this doesnt work right since the color applies to buttons outside the box too. */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
 	
-	VECCOPY(wcol->inner, old_col);
+	copy_v3_v3_char(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)

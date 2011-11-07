@@ -629,7 +629,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 		if(newtree==ntree) break;
 	if(newtree) {
-		newtree= copy_libblock(ntree);
+		newtree= copy_libblock(&ntree->id);
 	} else {
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */

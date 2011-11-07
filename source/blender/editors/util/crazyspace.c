@@ -80,7 +80,7 @@ static void make_vertexcos__mapFunc(void *userData, int index, float *co, float 
 	if(!mappedData->flags[index]) {
 		/* we need coord from prototype vertex, not it clones or images,
 		   suppose they stored in the beginning of vertex array stored in DM */
-		VECCOPY(vec, co);
+		copy_v3_v3(vec, co);
 		mappedData->flags[index]= 1;
 	}
 }

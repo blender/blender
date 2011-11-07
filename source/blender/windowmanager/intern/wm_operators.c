@@ -270,7 +270,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int retval= OPERATOR_FINISHED;
 	
 	if(opm==NULL)
-		printf("macro error, calling NULL modal()\n");
+		printf("%s: macro error, calling NULL modal()\n", __func__);
 	else {
 		retval = opm->type->modal(C, opm, event);
 		OPERATOR_RETVAL_CHECK(retval);
@@ -341,7 +341,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	wmOperatorType *ot;
 	
 	if(WM_operatortype_find(idname, TRUE)) {
-		printf("Macro error: operator %s exists\n", idname);
+		printf("%s: macro error: operator %s exists\n", __func__, idname);
 		return NULL;
 	}
 	
@@ -658,10 +658,11 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	uiLayout *layout;
 
 	if(prop==NULL) {
-		printf("WM_menu_invoke: %s has no enum property set\n", op->type->idname);
+		printf("%s: %s has no enum property set\n", __func__, op->type->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
+		printf("%s: %s \"%s\" is not an enum property\n",
+		       __func__, op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
 		const int retval= op->type->exec(C, op);
@@ -686,10 +687,12 @@ static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, cons
 	PropertyRNA *prop= ot->prop;
 
 	if(prop==NULL) {
-		printf("WM_enum_search_invoke: %s has no enum property set\n", ot->idname);
+		printf("%s: %s has no enum property set\n",
+		       __func__, ot->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_enum_search_invoke: %s \"%s\" is not an enum property\n", ot->idname, RNA_property_identifier(prop));
+		printf("%s: %s \"%s\" is not an enum property\n",
+		       __func__, ot->idname, RNA_property_identifier(prop));
 	}
 	else {
 		PointerRNA ptr;
@@ -725,7 +728,7 @@ static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
 			WM_operator_properties_free(&props_ptr);
 		}
 		else {
-			printf("operator_enum_call_cb: op->prop for '%s' is NULL\n", ot->idname);
+			printf("%s: op->prop for '%s' is NULL\n", __func__, ot->idname);
 		}
 	}
 }
@@ -2619,7 +2622,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 				memcpy(gesture->customdata, old_lasso, 2*sizeof(short)*gesture->size);
 				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
 				MEM_freeN(old_lasso);
-				printf("realloc\n");
+				// printf("realloc\n");
 			}
 
 			{

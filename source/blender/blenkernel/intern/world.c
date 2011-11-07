@@ -118,7 +118,7 @@ World *copy_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(wrld);
+	wrldn= copy_libblock(&wrld->id);
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
@@ -142,7 +142,7 @@ World *localize_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(wrld);
+	wrldn= copy_libblock(&wrld->id);
 	BLI_remlink(&G.main->world, wrldn);
 	
 	for(a=0; a<MAX_MTEX; a++) {

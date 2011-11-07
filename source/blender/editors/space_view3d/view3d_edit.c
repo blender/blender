@@ -3453,8 +3453,8 @@ int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], cons
 	data.margin= margin;
 	data.depth= FLT_MAX;
 
-	VECCOPY2D(p1, mval_sta);
-	VECCOPY2D(p2, mval_end);
+	copy_v2_v2_int(p1, mval_sta);
+	copy_v2_v2_int(p2, mval_end);
 
 	plot_line_v2v2i(p1, p2, depth_segment_cb, &data);
 

@@ -69,7 +69,7 @@ Speaker *copy_speaker(Speaker *spk)
 {
 	Speaker *spkn;
 
-	spkn= copy_libblock(spk);
+	spkn= copy_libblock(&spk->id);
 	if(spkn->sound)
 		spkn->sound->id.us++;
 
