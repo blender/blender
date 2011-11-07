@@ -387,7 +387,7 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 /*
  * BVHTree bounding volumes functions
  */
-static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoints, int moving)
+static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int numpoints, int moving)
 {
 	float newminmax;
 	float *bv = node->bv;
@@ -973,7 +973,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	//bvhtree_info(tree);
 }
 
-int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints)
+int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints)
 {
 	int i;
 	BVHNode *node = NULL;
@@ -1005,7 +1005,7 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints)
 
 
 // call before BLI_bvhtree_update_tree()
-int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_moving, int numpoints)
+int BLI_bvhtree_update_node(BVHTree *tree, int index, const float *co, const float *co_moving, int numpoints)
 {
 	int i;
 	BVHNode *node= NULL;
@@ -1194,7 +1194,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 }
 
 //Determines the nearest point of the given node BV. Returns the squared distance to that point.
-static float calc_nearest_point(const float *proj, BVHNode *node, float *nearest)
+static float calc_nearest_point(const float proj[3], BVHNode *node, float *nearest)
 {
 	int i;
 	const float *bv = node->bv;
@@ -1212,7 +1212,7 @@ static float calc_nearest_point(const float *proj, BVHNode *node, float *nearest
 
 /*
 	//nearest on a general hull
-	VECCOPY(nearest, data->co);
+	copy_v3_v3(nearest, data->co);
 	for(i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
 	{
 		float proj = dot_v3v3( nearest, KDOP_AXES[i]);
@@ -1221,11 +1221,11 @@ static float calc_nearest_point(const float *proj, BVHNode *node, float *nearest
 
 		if(dl > 0)
 		{
-			VECADDFAC(nearest, nearest, KDOP_AXES[i], dl);
+			madd_v3_v3fl(nearest, KDOP_AXES[i], dl);
 		}
 		else if(du < 0)
 		{
-			VECADDFAC(nearest, nearest, KDOP_AXES[i], du);
+			madd_v3_v3fl(nearest, KDOP_AXES[i], du);
 		}
 	}
 */
@@ -1377,7 +1377,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 #endif
 
 
-int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
+int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
 {
 	int i;
 
@@ -1510,7 +1510,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 		{
 			data->hit.index	= node->index;
 			data->hit.dist  = dist;
-			VECADDFAC(data->hit.co, data->ray.origin, data->ray.direction, dist);
+			madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
 		}
 	}
 	else
@@ -1553,7 +1553,7 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 			{
 				data->hit.index	= node->index;
 				data->hit.dist  = dist;
-				VECADDFAC(data->hit.co, data->ray.origin, data->ray.direction, dist);
+				madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
 			}
 			
 			node = node->skip[1];
@@ -1566,7 +1566,7 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 }
 #endif
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	int i;
 	BVHRayCastData data;
@@ -1577,8 +1577,8 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	data.callback = callback;
 	data.userdata = userdata;
 
-	VECCOPY(data.ray.origin,    co);
-	VECCOPY(data.ray.direction, dir);
+	copy_v3_v3(data.ray.origin,    co);
+	copy_v3_v3(data.ray.direction, dir);
 	data.ray.radius = radius;
 
 	normalize_v3(data.ray.direction);
@@ -1620,7 +1620,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	return data.hit.index;
 }
 
-float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, float *pos)
+float BLI_bvhtree_bb_raycast(float *bv, const float light_start[3], const float light_end[3], float pos[3])
 {
 	BVHRayCastData data;
 	float dist = 0.0;
@@ -1639,13 +1639,13 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 	data.ray.origin[2] = light_start[2];
 	
 	normalize_v3(data.ray.direction);
-	VECCOPY(data.ray_dot_axis, data.ray.direction);
+	copy_v3_v3(data.ray_dot_axis, data.ray.direction);
 	
 	dist = ray_nearest_hit(&data, bv);
 	
 	if(dist > 0.0f)
 	{
-		VECADDFAC(pos, light_start, data.ray.direction, dist);
+		madd_v3_v3v3fl(pos, light_start, data.ray.direction, dist);
 	}
 	return dist;
 	
@@ -1706,7 +1706,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 	}
 }
 
-int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata)
+int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata)
 {
 	BVHNode * root = tree->nodes[tree->totleaf];
 

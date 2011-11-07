@@ -357,7 +357,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 		key= cache[a];
 		kmax= key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-			VECCOPY(mvert->co,key->co);
+			copy_v3_v3(mvert->co,key->co);
 			if(k) {
 				medge->v1= cvert-1;
 				medge->v2= cvert;
@@ -376,7 +376,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 		key=cache[a];
 		kmax=key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-			VECCOPY(mvert->co,key->co);
+			copy_v3_v3(mvert->co,key->co);
 			if(k) {
 				medge->v1=cvert-1;
 				medge->v2=cvert;

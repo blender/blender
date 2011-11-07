@@ -50,7 +50,7 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 
 class KX_Camera : public KX_GameObject
 {
-	Py_Header;
+	Py_Header
 protected:
 	friend class KX_Scene;
 	/** Camera parameters (clips distances, focal length). These

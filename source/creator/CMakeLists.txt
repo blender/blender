@@ -68,6 +68,11 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_LIBMV)
+	blender_include_dirs(../../extern/libmv)
+	add_definitions(-DWITH_LIBMV)
+endif()
+
 if(WITH_PYTHON)
 	blender_include_dirs(../blender/python)
 	add_definitions(-DWITH_PYTHON)
@@ -779,6 +784,7 @@ endif()
 		bf_editor_space_time
 		bf_editor_space_userpref
 		bf_editor_space_view3d
+		bf_editor_space_clip
 
 		bf_editor_text
 		bf_editor_transform
@@ -836,6 +842,7 @@ endif()
 		extern_minilzo
 		extern_lzma
 		extern_colamd
+		extern_libmv
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_phys_common
@@ -867,6 +874,10 @@ endif()
 		cycles_util
 		cycles_subd
 	)
+
+	if(WITH_LIBMV)
+		list(APPEND BLENDER_SORTED_LIBS extern_libmv)
+	endif()
 
 	if(WITH_MOD_CLOTH_ELTOPO)
 		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)

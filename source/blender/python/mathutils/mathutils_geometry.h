@@ -26,8 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/mathutils_geometry.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_geometry.h
+ *  \ingroup pymathutils
  */
 
 /*Include this file for access to vector, quat, matrix, euler, etc...*/

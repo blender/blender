@@ -37,7 +37,7 @@
 
 class	KX_ConstraintWrapper : public PyObjectPlus
 {
-	Py_Header;
+	Py_Header
 public:
 	KX_ConstraintWrapper(PHY_ConstraintType ctype,int constraintId,class PHY_IPhysicsEnvironment* physenv);
 	virtual ~KX_ConstraintWrapper ();

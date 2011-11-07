@@ -90,7 +90,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 				}
 			}
 
-			VECCOPY(out[GEOM_OUT_VCOL]->vec, scol->col);
+			copy_v3_v3(out[GEOM_OUT_VCOL]->vec, scol->col);
 			out[GEOM_OUT_VCOL]->vec[3]= 1.0f;
 		}
 		else

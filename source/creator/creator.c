@@ -120,6 +120,10 @@
 #include "binreloc.h"
 #endif
 
+#ifdef WITH_LIBMV
+#include "libmv-capi.h"
+#endif
+
 // from buildinfo.c
 #ifdef BUILD_DATE
 extern char build_date[];
@@ -141,7 +145,9 @@ static int print_version(int argc, const char **argv, void *data);
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
-#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d)\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
+#define BLEND_VERSION_STRING_FMT                                              \
+	"Blender %d.%02d (sub %d)\n",                                             \
+	BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION              \
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
@@ -349,6 +355,10 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 #ifdef WITH_BUILDINFO
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
 #endif // WITH_BUILDINFO
+
+#ifdef WITH_LIBMV
+	libmv_startDebugLogging();
+#endif
 
 	BLI_argsPrint(data);
 	return 0;
@@ -850,22 +860,23 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 
 /* macro for ugly context setup/reset */
 #ifdef WITH_PYTHON
-#define BPY_CTX_SETUP(_cmd) \
-{ \
-	wmWindowManager *wm= CTX_wm_manager(C); \
-	wmWindow *prevwin= CTX_wm_window(C); \
-	Scene *prevscene= CTX_data_scene(C); \
-	if(wm->windows.first) { \
-		CTX_wm_window_set(C, wm->windows.first); \
-		_cmd; \
-		CTX_wm_window_set(C, prevwin); \
-	} \
-	else { \
-		fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]); \
-		_cmd; \
-	} \
-	CTX_data_scene_set(C, prevscene); \
-} \
+#define BPY_CTX_SETUP(_cmd)                                                   \
+{                                                                             \
+	wmWindowManager *wm= CTX_wm_manager(C);                                   \
+	wmWindow *prevwin= CTX_wm_window(C);                                      \
+	Scene *prevscene= CTX_data_scene(C);                                      \
+	if(wm->windows.first) {                                                   \
+		CTX_wm_window_set(C, wm->windows.first);                              \
+		_cmd;                                                                 \
+		CTX_wm_window_set(C, prevwin);                                        \
+	}                                                                         \
+	else {                                                                    \
+		fprintf(stderr, "Python script \"%s\" "                               \
+		                "running with missing context data.\n", argv[1]);     \
+		_cmd;                                                                 \
+	}                                                                         \
+	CTX_data_scene_set(C, prevscene);                                         \
+}                                                                             \
 
 #endif /* WITH_PYTHON */
 
@@ -1127,6 +1138,10 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
+#endif
+
+#ifdef WITH_LIBMV
+	libmv_initLogging(argv[0]);
 #endif
 
 	setCallbacks();

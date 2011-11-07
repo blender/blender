@@ -1980,6 +1980,8 @@ static ImBuf * seq_render_scene_strip_impl(
 	/* stooping to new low's in hackyness :( */
 	oldmarkers= scene->markers;
 	scene->markers.first= scene->markers.last= NULL;
+#else
+	(void)oldmarkers;
 #endif
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (scene == context.scene || have_seq==0) && camera) {
@@ -3404,7 +3406,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 	}
 }
 
-void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
+void seq_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 {
 	char str_from[32];
 	FCurve *fcu;
@@ -3415,7 +3417,7 @@ void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
 	if(scene->adt==NULL || scene->adt->action==NULL)
 		return;
 
-	sprintf(str_from, "[\"%s\"]", name_from);
+	sprintf(str_from, "[\"%s\"]", name_src);
 
 	fcu_last= scene->adt->action->curves.last;
 
@@ -3427,7 +3429,7 @@ void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
 	}
 
 	/* notice validate is 0, keep this because the seq may not be added to the scene yet */
-	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, "sequence_editor.sequences_all", name_from, name_to, 0, 0, 0);
+	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, "sequence_editor.sequences_all", name_src, name_dst, 0, 0, 0);
 
 	/* add the original fcurves back */
 	BLI_movelisttolist(&scene->adt->action->curves, &lb);

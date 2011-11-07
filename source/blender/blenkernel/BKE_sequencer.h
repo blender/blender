@@ -67,21 +67,21 @@ void seq_next(SeqIterator *iter);
 void seq_end(SeqIterator *iter);
 void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int use_pointer);
 
-#define SEQP_BEGIN(ed, _seq) \
-{ \
-	SeqIterator iter;\
-		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) { \
+#define SEQP_BEGIN(ed, _seq)                                                  \
+{                                                                             \
+	SeqIterator iter;                                                         \
+		for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {           \
 			_seq= iter.seq;
 			
-#define SEQ_BEGIN(ed, _seq) \
-	{ \
-		SeqIterator iter;\
-		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) { \
+#define SEQ_BEGIN(ed, _seq)                                                   \
+	{                                                                         \
+		SeqIterator iter;                                                     \
+		for(seq_begin(ed, &iter, 0); iter.valid; seq_next(&iter)) {           \
 			_seq= iter.seq;
 
-#define SEQ_END \
-		} \
-		seq_end(&iter); \
+#define SEQ_END                                                               \
+		}                                                                     \
+		seq_end(&iter);                                                       \
 	}
 
 typedef struct SeqRenderData {
@@ -274,7 +274,7 @@ struct Sequence *seq_metastrip(
 	struct Sequence * meta /* = NULL */, struct Sequence *seq);
 
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
-void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
+void seq_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);

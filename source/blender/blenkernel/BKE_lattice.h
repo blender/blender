@@ -55,19 +55,19 @@ void end_latt_deform(struct Object *);
 int object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
-void curve_deform_verts(struct Scene *scene, struct Object *cuOb, struct Object *target, 
-						struct DerivedMesh *dm, float (*vertexCos)[3], 
-						int numVerts, char *vgroup, short defaxis);
-void curve_deform_vector(struct Scene *scene, struct Object *cuOb, struct Object *target, 
-						 float *orco, float *vec, float mat[][3], int no_rot_axis);
+void curve_deform_verts(struct Scene *scene, struct Object *cuOb, struct Object *target,
+                        struct DerivedMesh *dm, float (*vertexCos)[3],
+                        int numVerts, const char *vgroup, short defaxis);
+void curve_deform_vector(struct Scene *scene, struct Object *cuOb, struct Object *target,
+                         float *orco, float *vec, float mat[][3], int no_rot_axis);
 
 void lattice_deform_verts(struct Object *laOb, struct Object *target,
-						  struct DerivedMesh *dm, float (*vertexCos)[3],
-						  int numVerts, char *vgroup);
+                          struct DerivedMesh *dm, float (*vertexCos)[3],
+                          int numVerts, const char *vgroup);
 void armature_deform_verts(struct Object *armOb, struct Object *target,
-						   struct DerivedMesh *dm, float (*vertexCos)[3],
-						   float (*defMats)[3][3], int numVerts, int deformflag, 
-						   float (*prevCos)[3], const char *defgrp_name);
+                           struct DerivedMesh *dm, float (*vertexCos)[3],
+                           float (*defMats)[3][3], int numVerts, int deformflag,
+                           float (*prevCos)[3], const char *defgrp_name);
 
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
 void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);

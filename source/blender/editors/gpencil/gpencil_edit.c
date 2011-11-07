@@ -69,6 +69,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_view3d.h"
+#include "ED_clip.h"
 
 #include "gpencil_intern.h"
 
@@ -137,6 +138,19 @@ bGPdata **gpencil_data_get_pointers (bContext *C, PointerRNA *ptr)
 			}
 				break;
 				
+			case SPACE_CLIP: /* Nodes Editor */
+			{
+				SpaceClip *sc= (SpaceClip *)CTX_wm_space_data(C);
+				MovieClip *clip= ED_space_clip(sc);
+
+				if(clip) {
+					/* for now, as long as there's a clip, default to using that in Clip Editor */
+					if (ptr) RNA_id_pointer_create(&clip->id, ptr);
+					return &clip->gpd;
+				}
+			}
+				break;
+				
 			default: /* unsupported space */
 				return NULL;
 		}
@@ -183,7 +197,10 @@ static int gp_data_add_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		/* just add new datablock now */
+		/* decrement user count and add new datablock */
+		bGPdata *gpd= (*gpd_ptr);
+
+		id_us_min(&gpd->id);
 		*gpd_ptr= gpencil_data_addnew("GPencil");
 	}
 	
@@ -231,7 +248,7 @@ static int gp_data_unlink_exec (bContext *C, wmOperator *op)
 		/* just unlink datablock now, decreasing its user count */
 		bGPdata *gpd= (*gpd_ptr);
 		
-		gpd->id.us--;
+		id_us_min(&gpd->id);
 		*gpd_ptr= NULL;
 	}
 	
@@ -552,8 +569,8 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	 *	- must clear transforms set on object, as those skew our results
 	 */
 	ob= add_object(scene, OB_CURVE);
-	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
-	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
+	zero_v3(ob->loc);
+	zero_v3(ob->rot);
 	cu= ob->data;
 	cu->flag |= CU_3D;
 	
@@ -569,6 +586,9 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 				break;
 			case GP_STROKECONVERT_CURVE:
 				gp_stroke_to_bezier(C, gpl, gps, cu, subrect_ptr);
+				break;
+			default:
+				BLI_assert(!"invalid mode");
 				break;
 		}
 	}
@@ -599,17 +619,7 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* handle conversion modes */
-	switch (mode) {
-		case GP_STROKECONVERT_PATH:
-		case GP_STROKECONVERT_CURVE:
-			gp_layer_to_curve(C, gpd, gpl, mode);
-			break;
-			
-		default: /* unsupoorted */
-			BKE_report(op->reports, RPT_ERROR, "Unknown conversion option");
-			return OPERATOR_CANCELLED;
-	}
+	gp_layer_to_curve(C, gpd, gpl, mode);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_OBJECT|NA_ADDED, NULL);

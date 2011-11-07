@@ -1181,8 +1181,9 @@ void load_editMesh(Scene *scene, Object *obedit)
 				eve= em->verts.first;
 				mvert = me->mvert;
 				while(eve) {
-					if(eve->keyindex>=0)
-						VECSUB(ofs[i], mvert->co, fp[eve->keyindex]);
+					if(eve->keyindex>=0) {
+						sub_v3_v3v3(ofs[i], mvert->co, fp[eve->keyindex]);
+					}
 
 					eve= eve->next;
 					i++;

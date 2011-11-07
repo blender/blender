@@ -2930,28 +2930,28 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 	return 1;
 }
 
-#define RAW_GET(dtype, var, raw, a) \
-{ \
-	switch(raw.type) { \
-		case PROP_RAW_CHAR: var = (dtype)((char*)raw.array)[a]; break; \
-		case PROP_RAW_SHORT: var = (dtype)((short*)raw.array)[a]; break; \
-		case PROP_RAW_INT: var = (dtype)((int*)raw.array)[a]; break; \
-		case PROP_RAW_FLOAT: var = (dtype)((float*)raw.array)[a]; break; \
-		case PROP_RAW_DOUBLE: var = (dtype)((double*)raw.array)[a]; break; \
-		default: var = (dtype)0; \
-	} \
+#define RAW_GET(dtype, var, raw, a)                                           \
+{                                                                             \
+	switch(raw.type) {                                                        \
+		case PROP_RAW_CHAR: var = (dtype)((char*)raw.array)[a]; break;        \
+		case PROP_RAW_SHORT: var = (dtype)((short*)raw.array)[a]; break;      \
+		case PROP_RAW_INT: var = (dtype)((int*)raw.array)[a]; break;          \
+		case PROP_RAW_FLOAT: var = (dtype)((float*)raw.array)[a]; break;      \
+		case PROP_RAW_DOUBLE: var = (dtype)((double*)raw.array)[a]; break;    \
+		default: var = (dtype)0;                                              \
+	}                                                                         \
 }
 
-#define RAW_SET(dtype, raw, a, var) \
-{ \
-	switch(raw.type) { \
-		case PROP_RAW_CHAR: ((char*)raw.array)[a] = (char)var; break; \
-		case PROP_RAW_SHORT: ((short*)raw.array)[a] = (short)var; break; \
-		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break; \
-		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break; \
-		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break; \
-		default: break; \
-	} \
+#define RAW_SET(dtype, raw, a, var)                                           \
+{                                                                             \
+	switch(raw.type) {                                                        \
+		case PROP_RAW_CHAR: ((char*)raw.array)[a] = (char)var; break;         \
+		case PROP_RAW_SHORT: ((short*)raw.array)[a] = (short)var; break;      \
+		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break;            \
+		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break;      \
+		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break;   \
+		default: break;                                                       \
+	}                                                                         \
 }
 
 int RNA_raw_type_sizeof(RawPropertyType type)

@@ -444,12 +444,12 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 
 		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 
@@ -512,12 +512,12 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 	
 		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 
@@ -598,12 +598,12 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 
 		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 
@@ -656,12 +656,12 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 	else {
 		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 
@@ -728,12 +728,12 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), flo
 		
 		/* all lines from left to right */
 		if(vec1[0]<vec2[0]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 		
@@ -784,12 +784,12 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), flo
 	else {
 		/* all lines from top to bottom */
 		if(vec1[1]<vec2[1]) {
-			VECCOPY(v1, vec1);
-			VECCOPY(v2, vec2);
+			copy_v3_v3(v1, vec1);
+			copy_v3_v3(v2, vec2);
 		}
 		else {
-			VECCOPY(v2, vec1);
-			VECCOPY(v1, vec2);
+			copy_v3_v3(v2, vec1);
+			copy_v3_v3(v1, vec2);
 			dx= -dx; dy= -dy;
 		}
 		
@@ -925,8 +925,8 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 		else {	/* clipping */
 
 			if(ec & ME_V1V2) {
-				QUATCOPY(vez, ho1);
-				QUATCOPY(vez+4, ho2);
+				copy_v4_v4(vez, ho1);
+				copy_v4_v4(vez+4, ho2);
 				if( clipline(vez, vez+4)) {
 					hoco_to_zco(zspan, vez, vez);
 					hoco_to_zco(zspan, vez+4, vez+4);
@@ -934,8 +934,8 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 				}
 			}
 			if(ec & ME_V2V3) {
-				QUATCOPY(vez, ho2);
-				QUATCOPY(vez+4, ho3);
+				copy_v4_v4(vez, ho2);
+				copy_v4_v4(vez+4, ho3);
 				if( clipline(vez, vez+4)) {
 					hoco_to_zco(zspan, vez, vez);
 					hoco_to_zco(zspan, vez+4, vez+4);
@@ -944,8 +944,8 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 			}
 			if(ho4) {
 				if(ec & ME_V3V4) {
-					QUATCOPY(vez, ho3);
-					QUATCOPY(vez+4, ho4);
+					copy_v4_v4(vez, ho3);
+					copy_v4_v4(vez+4, ho4);
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(zspan, vez, vez);
 						hoco_to_zco(zspan, vez+4, vez+4);
@@ -953,8 +953,8 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 					}
 				}
 				if(ec & ME_V4V1) {
-					QUATCOPY(vez, ho4);
-					QUATCOPY(vez+4, ho1);
+					copy_v4_v4(vez, ho4);
+					copy_v4_v4(vez+4, ho1);
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(zspan, vez, vez);
 						hoco_to_zco(zspan, vez+4, vez+4);
@@ -964,8 +964,8 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 			}
 			else {
 				if(ec & ME_V3V1) {
-					QUATCOPY(vez, ho3);
-					QUATCOPY(vez+4, ho1);
+					copy_v4_v4(vez, ho3);
+					copy_v4_v4(vez+4, ho1);
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(zspan, vez, vez);
 						hoco_to_zco(zspan, vez+4, vez+4);
@@ -1748,7 +1748,7 @@ static int zbuf_shadow_project(ZbufProjectCache *cache, int index, float winmat[
 	int cindex= index & 255;
 
 	if(cache[cindex].index == index) {
-		QUATCOPY(ho, cache[cindex].ho);
+		copy_v4_v4(ho, cache[cindex].ho);
 		return cache[cindex].clip;
 	}
 	else {
@@ -1756,7 +1756,7 @@ static int zbuf_shadow_project(ZbufProjectCache *cache, int index, float winmat[
 		projectvert(co, winmat, ho);
 		clipflag= testclip(ho);
 
-		QUATCOPY(cache[cindex].ho, ho);
+		copy_v4_v4(cache[cindex].ho, ho);
 		cache[cindex].clip= clipflag;
 		cache[cindex].index= index;
 
@@ -1778,13 +1778,13 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 	int cindex= index & 255;
 
 	if(cache[cindex].index == index) {
-		QUATCOPY(ho, cache[cindex].ho);
+		copy_v4_v4(ho, cache[cindex].ho);
 		return cache[cindex].clip;
 	}
 	else {
 		float wco;
 		int clipflag= 0;
-		VECCOPY(vec, co)
+		copy_v3_v3(vec, co);
 		projectvert(co, winmat, ho);
 
 		wco= ho[3];
@@ -1793,7 +1793,7 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 		if(ho[1] > bounds[3]*wco) clipflag |= 4;
 		else if(ho[1] < bounds[2]*wco) clipflag |= 8;
 
-		QUATCOPY(cache[cindex].ho, ho);
+		copy_v4_v4(cache[cindex].ho, ho);
 		cache[cindex].clip= clipflag;
 		cache[cindex].index= index;
 
@@ -1801,11 +1801,11 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 	}
 }
 
-void zbuf_render_project(float winmat[][4], float *co, float *ho)
+void zbuf_render_project(float winmat[][4], const float co[3], float ho[4])
 {
 	float vec[3];
 
-	VECCOPY(vec, co)
+	copy_v3_v3(vec, co);
 	projectvert(vec, winmat, ho);
 }
 
@@ -3348,7 +3348,7 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 							mul= 0x7FFFFFFF;
 							zval= mul*(1.0f+ho1[2]/ho1[3]);
 
-							VECCOPY(vec, v1->co);
+							copy_v3_v3(vec, v1->co);
 							/* z is negative, otherwise its being clipped */ 
 							vec[2]-= ma->zoffs;
 							projectverto(vec, obwinmat, hoco);
@@ -3474,7 +3474,7 @@ void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, in
 				if(fp[3]==PASS_VECTOR_MAX) fp[3]= 0.0f;
 			}
 			else if(rdrect==NULL || rdrect[offset]==0 || alpha>0.95f) {
-				QUATCOPY(fp, speed);
+				copy_v4_v4(fp, speed);
 			}
 			else {
 				/* add minimum speed in pixel */
@@ -3866,7 +3866,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				samp_shr->z= MIN2(samp_shr->z, shr->z);
 
 				if(addpassflag & SCE_PASS_VECTOR) {
-					QUATCOPY(samp_shr->winspeed, shr->winspeed);
+					copy_v4_v4(samp_shr->winspeed, shr->winspeed);
 				}
 				/* optim... */
 				if(addpassflag & ~(SCE_PASS_VECTOR)) {

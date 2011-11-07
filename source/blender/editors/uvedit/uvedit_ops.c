@@ -2585,11 +2585,11 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceIma
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if(uvedit_face_visible(scene, ima, efa, tface)) {
-			if(uvedit_uv_selected(scene, efa, tface, 0))		VECCOPY2D(tface->uv[0], sima->cursor);
-			if(uvedit_uv_selected(scene, efa, tface, 1))		VECCOPY2D(tface->uv[1], sima->cursor);
-			if(uvedit_uv_selected(scene, efa, tface, 2))		VECCOPY2D(tface->uv[2], sima->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 0))		copy_v2_v2(tface->uv[0], sima->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 1))		copy_v2_v2(tface->uv[1], sima->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 2))		copy_v2_v2(tface->uv[2], sima->cursor);
 			if(efa->v4)
-				if(uvedit_uv_selected(scene, efa, tface, 3))	VECCOPY2D(tface->uv[3], sima->cursor);
+				if(uvedit_uv_selected(scene, efa, tface, 3))	copy_v2_v2(tface->uv[3], sima->cursor);
 
 			change= 1;
 		}

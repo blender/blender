@@ -70,6 +70,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -77,7 +78,9 @@
 #include "BLI_bpath.h"
 
 #include "BKE_animsys.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -109,6 +112,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_speaker.h"
 #include "BKE_utildefines.h"
+#include "BKE_movieclip.h"
 
 #include "RNA_access.h"
 
@@ -482,6 +486,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->wm);
 		case ID_GD:
 			return &(mainlib->gpencil);
+		case ID_MC:
+			return &(mainlib->movieclip);
 	}
 	return NULL;
 }
@@ -563,6 +569,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
+	lb[a++]= &(main->movieclip);
 	
 	lb[a]= NULL;
 
@@ -671,6 +678,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
 			break;
+		case ID_MC:
+			id = MEM_callocN(sizeof(MovieClip), "Movie Clip");
+			break;
 	}
 	return id;
 }
@@ -715,14 +725,11 @@ void copy_libblock_data(ID *id, const ID *id_from, const short do_action)
 }
 
 /* used everywhere in blenkernel */
-void *copy_libblock(void *rt)
+void *copy_libblock(ID *id)
 {
-	ID *idn, *id;
+	ID *idn;
 	ListBase *lb;
-	char *cp, *cpn;
 	size_t idn_len;
-	
-	id= rt;
 
 	lb= which_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
@@ -731,8 +738,9 @@ void *copy_libblock(void *rt)
 
 	idn_len= MEM_allocN_len(idn);
 	if((int)idn_len - (int)sizeof(ID) > 0) { /* signed to allow neg result */
-		cp= (char *)id;
-		cpn= (char *)idn;
+		const char *cp= (const char *)id;
+		char *cpn= (char *)idn;
+
 		memcpy(cpn+sizeof(ID), cp+sizeof(ID), idn_len - sizeof(ID));
 	}
 	
@@ -877,6 +885,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_GD:
 			free_gpencil_data((bGPdata *)id);
+			break;
+		case ID_MC:
+			free_movieclip((MovieClip *)id);
 			break;
 	}
 

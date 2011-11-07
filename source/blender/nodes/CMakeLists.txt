@@ -80,6 +80,8 @@ set(SRC
 	composite/nodes/node_composite_mapValue.c
 	composite/nodes/node_composite_math.c
 	composite/nodes/node_composite_mixrgb.c
+	composite/nodes/node_composite_movieclip.c
+	composite/nodes/node_composite_moviedistortion.c
 	composite/nodes/node_composite_normal.c
 	composite/nodes/node_composite_normalize.c
 	composite/nodes/node_composite_outputFile.c
@@ -93,8 +95,10 @@ set(SRC
 	composite/nodes/node_composite_sepcombYUVA.c
 	composite/nodes/node_composite_setalpha.c
 	composite/nodes/node_composite_splitViewer.c
+	composite/nodes/node_composite_stabilize2d.c
 	composite/nodes/node_composite_texture.c
 	composite/nodes/node_composite_tonemap.c
+	composite/nodes/node_composite_transform.c
 	composite/nodes/node_composite_translate.c
 	composite/nodes/node_composite_valToRgb.c
 	composite/nodes/node_composite_value.c

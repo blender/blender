@@ -22,8 +22,10 @@
 
 /** \file blender/python/intern/bpy_util.c
  *  \ingroup pythonintern
+ *
+ * This file contains blender/python utility functions for the api's internal
+ * use (unrelated to 'bpy.utils')
  */
-
 
 #include <Python.h>
 

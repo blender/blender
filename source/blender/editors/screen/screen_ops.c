@@ -2783,10 +2783,23 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				if(redraws & TIME_ALL_IMAGE_WIN)
 					return 1;
 				break;
+			case SPACE_CLIP:
+				if(redraws & TIME_CLIPS)
+					return 1;
+				break;
 				
 		}
 	}
 	else if(regiontype==RGN_TYPE_UI) {
+		if(spacetype==SPACE_CLIP) {
+			/* Track Preview button is on Properties Editor in SpaceClip,
+			   and it's very common case when users want it be refreshing
+			   during playback, so asking people to enable special option
+			   for this is a bit ticky, so add exception here for refreshing
+			   Properties Editor for SpaceClip always */
+			return 1;
+		}
+
 		if(redraws & TIME_ALL_BUTS_WIN)
 			return 1;
 	}
@@ -2800,6 +2813,8 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 				if(redraws & (TIME_SEQ|TIME_ALL_ANIM_WIN))
 					return 1;
 				break;
+			case SPACE_CLIP:
+				return 1;
 		}
 	}
 	return 0;

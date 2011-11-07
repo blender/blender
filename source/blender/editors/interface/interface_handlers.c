@@ -56,6 +56,7 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -259,7 +260,7 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if(U.uiflag & USER_CONTINUOUS_MOUSE)
-		if(ELEM3(but->type, NUM, NUMABS, HSVCIRCLE))
+		if(ELEM4(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW))
 			return TRUE;
 
 	return FALSE;
@@ -922,6 +923,13 @@ static void ui_apply_but_WAVEFORM(bContext *C, uiBut *but, uiHandleButtonData *d
 	data->applied= 1;
 }
 
+static void ui_apply_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
+	data->retval= but->retval;
+	data->applied= 1;
+}
+
 
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
@@ -944,7 +952,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		data->origstr= NULL;
 		data->value= data->origvalue;
 		data->origvalue= 0.0;
-		VECCOPY(data->vec, data->origvec);
+		copy_v3_v3(data->vec, data->origvec);
 		data->origvec[0]= data->origvec[1]= data->origvec[2]= 0.0f;
 	}
 	else {
@@ -1050,6 +1058,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case WAVEFORM:
 			ui_apply_but_WAVEFORM(C, but, data);
+			break;
+		case TRACKPREVIEW:
+			ui_apply_but_TRACKPREVIEW(C, but, data);
 			break;
 		default:
 			break;
@@ -2121,7 +2132,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			break;
 		case COL:
 			ui_get_but_vectorf(but, data->origvec);
-			VECCOPY(data->vec, data->origvec);
+			copy_v3_v3(data->vec, data->origvec);
 			but->editvec= data->vec;
 
 			handlefunc= ui_block_func_COL;
@@ -4254,6 +4265,88 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
+{
+	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
+	int changed= 1;
+	float dx, dy;
+
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+
+	if(shift) {
+		dx /= 5.0f;
+		dy /= 5.0f;
+	}
+
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize preview widget itself */
+		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		if(scopes->marker) {
+			if(scopes->marker->framenr!=scopes->framenr)
+				scopes->marker= BKE_tracking_ensure_marker(scopes->track, scopes->framenr);
+
+			scopes->marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
+			scopes->marker->pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
+			scopes->marker->pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+		}
+
+		scopes->ok= 0;
+	}
+
+	data->draglastx= mx;
+	data->draglasty= my;
+
+	return changed;
+}
+
+static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+			/* also do drag the first time */
+			if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+				ui_numedit_apply(C, block, but, data);
+
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
+}
+
 static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 {
 	uiBut *but = (uiBut *)arg1;
@@ -4790,6 +4883,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case LINK:
 	case INLINK:
 		retval= ui_do_but_LINK(C, but, data, event);
+		break;
+	case TRACKPREVIEW:
+		retval= ui_do_but_TRACKPREVIEW(C, block, but, data, event);
 		break;
 	}
 	
@@ -5727,7 +5823,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 	/* copy over return values from the closing menu */
 	if(menu->menuretval == UI_RETURN_OK || menu->menuretval == UI_RETURN_UPDATE) {
 		if(but->type == COL)
-			VECCOPY(data->vec, menu->retvec)
+			copy_v3_v3(data->vec, menu->retvec);
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value= menu->retvalue;
 	}

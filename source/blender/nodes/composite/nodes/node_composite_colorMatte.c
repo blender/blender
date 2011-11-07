@@ -52,7 +52,7 @@ static void do_color_key(bNode *node, float *out, float *in)
 	c=node->storage;
 
 
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 
 	if(
 	/* do hue last because it needs to wrap, and does some more checks  */

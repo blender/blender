@@ -27,8 +27,8 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Quaternion.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Quaternion.h
+ *  \ingroup pymathutils
  */
 
 

@@ -41,7 +41,7 @@ class SCA_IScene;
 
 class KX_SCA_EndObjectActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	SCA_IScene*		m_scene;
 
  public:

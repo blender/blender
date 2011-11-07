@@ -41,7 +41,7 @@ bool ConvertPythonToMesh(PyObject * value, class RAS_MeshObject **object, bool p
 
 class KX_MeshProxy	: public CValue
 {
-	Py_Header;
+	Py_Header
 
 	class RAS_MeshObject*	m_meshobj;
 public:

@@ -55,12 +55,12 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 			in[2]= from[0];
 		}
 		else {
-			VECCOPY(in, from);
+			copy_v3_v3(in, from);
 		}
 	}
 	else { /* type_in==SOCK_RGBA */
 		if(ns->sockettype==SOCK_RGBA) {
-			QUATCOPY(in, from);
+			copy_v4_v4(in, from);
 		}
 		else if(ns->sockettype==SOCK_FLOAT) {
 			in[0]= from[0];
@@ -69,7 +69,7 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 			in[3]= 1.0f;
 		}
 		else {
-			VECCOPY(in, from);
+			copy_v3_v3(in, from);
 			in[3]= 1.0f;
 		}
 	}
@@ -140,13 +140,13 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 				if(copyto) {
 					switch(a) {
 						case MAT_IN_COLOR:
-							VECCOPY(&ma->r, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
 						case MAT_IN_SPEC:
-							VECCOPY(&ma->specr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
 						case MAT_IN_REFL:
 							ma->ref= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
 						case MAT_IN_MIR:
-							VECCOPY(&ma->mirr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
 						case MAT_IN_AMB:
 							ma->amb= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
 						case MAT_IN_EMIT:
@@ -164,13 +164,13 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 				else {
 					switch(a) {
 						case MAT_IN_COLOR:
-							VECCOPY(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->r); break;
+							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->r); break;
 						case MAT_IN_SPEC:
-							VECCOPY(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->specr); break;
+							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->specr); break;
 						case MAT_IN_REFL:
 							((bNodeSocketValueFloat*)sock->default_value)->value= ma->ref; break;
 						case MAT_IN_MIR:
-							VECCOPY(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->mirr); break;
+							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->mirr); break;
 						case MAT_IN_AMB:
 							((bNodeSocketValueFloat*)sock->default_value)->value= ma->amb; break;
 						case MAT_IN_EMIT:
@@ -196,7 +196,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
 	
-	QUATCOPY(gs->vec, ns->vec);
+	copy_v4_v4(gs->vec, ns->vec);
 	gs->link= ns->data;
 	
 	if (type == SOCK_FLOAT)

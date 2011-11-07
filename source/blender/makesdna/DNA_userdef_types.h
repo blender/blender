@@ -234,6 +234,11 @@ typedef struct ThemeSpace {
 	char handle_vertex_select[4];
 	
 	char handle_vertex_size;
+	
+	char marker_outline[4], marker[4], act_marker[4], sel_marker[4], dis_marker[4], lock_marker[4];
+	char bundle_solid[4];
+	char path_before[4], path_after[4];
+	char camera_path[4];
 	char hpad[7];
 	
 	char preview_back[4];
@@ -279,6 +284,7 @@ typedef struct bTheme {
 	ThemeSpace tlogic;
 	ThemeSpace tuserpref;	
 	ThemeSpace tconsole;
+	ThemeSpace tclip;
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
@@ -440,10 +446,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_TOOLTIPS_PYTHON    (1 << 26)
 
 /* helper macro for checking frame clamping */
-#define FRAMENUMBER_MIN_CLAMP(cfra) \
-	{ \
-		if ((U.flag & USER_NONEGFRAMES) && (cfra < 0)) \
-			cfra = 0; \
+#define FRAMENUMBER_MIN_CLAMP(cfra)                                           \
+	{                                                                         \
+		if ((U.flag & USER_NONEGFRAMES) && (cfra < 0))                        \
+			cfra = 0;                                                         \
 	}
 
 /* viewzom */

@@ -51,6 +51,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
@@ -61,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
+#include "BKE_movieclip.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"	// make_stars
@@ -1486,7 +1488,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d= ar->regiondata;
 	BGpic *bgpic;
 	Image *ima;
-	ImBuf *ibuf= NULL;
+	MovieClip *clip;
+	ImBuf *ibuf= NULL, *freeibuf;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
 
@@ -1497,15 +1500,46 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
 			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
 		) {
-			ima= bgpic->ima;
-			if(ima==NULL)
+			freeibuf= NULL;
+			if(bgpic->source==V3D_BGPIC_IMAGE) {
+				ima= bgpic->ima;
+				if(ima==NULL)
+					continue;
+				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+				ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+			} else {
+				clip= NULL;
+
+				if(bgpic->flag&V3D_BGPIC_CAMERACLIP) {
+					if(!scene->camera)
+						scene->camera= scene_find_camera(scene);
+
+					if(scene->camera)
+						clip= object_get_movieclip(scene, scene->camera, 1);
+				} else clip= bgpic->clip;
+
+				if(clip==NULL)
+					continue;
+
+				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
+				ibuf= BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
+
+				/* working with ibuf from image and clip has got different workflow now.
+				   ibuf acquired from clip is referenced by cache system and should
+				   be dereferenced after usage. */
+				freeibuf= ibuf;
+			}
+
+			if(ibuf==NULL)
 				continue;
-			BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
-			ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-			if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) )
+
+			if((ibuf->rect==NULL && ibuf->rect_float==NULL) || ibuf->channels!=4) { /* invalid image format */
+				if(freeibuf)
+					IMB_freeImBuf(freeibuf);
+
 				continue;
-			if(ibuf->channels!=4)
-				continue;
+			}
+
 			if(ibuf->rect==NULL)
 				IMB_rect_from_float(ibuf);
 
@@ -1544,10 +1578,12 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 			/* complete clip? */
 
-			if(x2 < 0 ) continue;
-			if(y2 < 0 ) continue;
-			if(x1 > ar->winx ) continue;
-			if(y1 > ar->winy ) continue;
+			if(x2 < 0 || y2 < 0 || x1 > ar->winx || y1 > ar->winy) {
+				if(freeibuf)
+					IMB_freeImBuf(freeibuf);
+
+				continue;
+			}
 
 			zoomx= (x2-x1)/ibuf->x;
 			zoomy= (y2-y1)/ibuf->y;
@@ -1602,6 +1638,9 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 
 			glDepthMask(1);
 			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+
+			if(freeibuf)
+				IMB_freeImBuf(freeibuf);
 		}
 	}
 }

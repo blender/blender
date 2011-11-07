@@ -141,7 +141,7 @@ void create_vgroups_from_armature(struct ReportList *reports, struct Scene *scen
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
-void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep);
+void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const char *newnamep);
 
 void undo_push_armature(struct bContext *C, const char *name);
 
@@ -163,7 +163,7 @@ void BIF_deleteSketch(struct bContext *C);
 void BIF_selectAllSketch(struct bContext *C, int mode); /* -1: deselect, 0: select, 1: toggle */
 
 void  BIF_makeListTemplates(const struct bContext *C);
-char *BIF_listTemplates(const struct bContext *C);
+const char *BIF_listTemplates(const struct bContext *C);
 int   BIF_currentTemplate(const struct bContext *C);
 void  BIF_freeTemplates(struct bContext *C);
 void  BIF_setTemplate(struct bContext *C, int index);

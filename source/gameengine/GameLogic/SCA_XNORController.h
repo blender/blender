@@ -36,7 +36,7 @@
 
 class SCA_XNORController : public SCA_IController
 {
-	Py_Header;
+	Py_Header
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
 	SCA_XNORController(SCA_IObject* gameobj);

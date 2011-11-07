@@ -34,6 +34,7 @@
 #include "DNA_color_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
@@ -1506,6 +1507,114 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
+static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
+{
+	ImBuf *scaleibuf;
+	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
+	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
+
+	for(y= 0; y<scaleibuf->y; y++) {
+		for (x= 0; x<scaleibuf->x; x++) {
+			int pixel= scaleibuf->x*y + x;
+			int orig_pixel= ibuf->x*(int)(((float)y)/zoomy) + (int)(((float)x)/zoomx);
+			char *rrgb= (char*)scaleibuf->rect + pixel*4;
+			char *orig_rrgb= (char*)ibuf->rect + orig_pixel*4;
+			rrgb[0]= orig_rrgb[0];
+			rrgb[1]= orig_rrgb[1];
+			rrgb[2]= orig_rrgb[2];
+			rrgb[3]= orig_rrgb[3];
+		}
+	}
+
+	return scaleibuf;
+}
+
+void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
+{
+	rctf rect;
+	int ok= 0;
+	GLint scissor[4];
+	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
+
+	rect.xmin = (float)recti->xmin+1;
+	rect.xmax = (float)recti->xmax-1;
+	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
+	rect.ymax = (float)recti->ymax-1;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+	/* need scissor test, preview image can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+
+	if(scopes->track_disabled) {
+		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
+		uiSetRoundBox(15);
+		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+
+		ok= 1;
+	}
+	else if(scopes->track_preview) {
+		int a, off_x, off_y;
+		float zoomx, zoomy;
+		ImBuf *drawibuf;
+
+		glPushMatrix();
+
+		/* draw content of pattern area */
+		glScissor(ar->winrct.xmin+rect.xmin, ar->winrct.ymin+rect.ymin, scissor[2], scissor[3]);
+
+		zoomx= (rect.xmax-rect.xmin) / (scopes->track_preview->x-2.f);
+		zoomy= (rect.ymax-rect.ymin) / (scopes->track_preview->y-2.f);
+
+		off_x= ((int)scopes->track_pos[0]-scopes->track_pos[0]-0.5)*zoomx;
+		off_y= ((int)scopes->track_pos[1]-scopes->track_pos[1]-0.5)*zoomy;
+
+		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, zoomx, zoomy);
+		glaDrawPixelsSafe(off_x+rect.xmin, off_y+rect.ymin, rect.xmax-rect.xmin+1.f-off_x, rect.ymax-rect.ymin+1.f-off_y, drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+
+		IMB_freeImBuf(drawibuf);
+
+		/* draw cross for pizel position */
+		glTranslatef(off_x+rect.xmin+scopes->track_pos[0]*zoomx, off_y+rect.ymin+scopes->track_pos[1]*zoomy, 0.f);
+		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin+rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin);
+
+		for(a= 0; a< 2; a++) {
+			if(a==1) {
+				glLineStipple(3, 0xaaaa);
+				glEnable(GL_LINE_STIPPLE);
+				UI_ThemeColor(TH_SEL_MARKER);
+			}
+			else {
+				UI_ThemeColor(TH_MARKER_OUTLINE);
+			}
+
+			glBegin(GL_LINES);
+				glVertex2f(-10.0f, 0.0f);
+				glVertex2f(10.0f, 0.0f);
+				glVertex2f(0.0f, -10.0f);
+				glVertex2f(0.0f, 10.0f);
+			glEnd();
+		}
+
+		glDisable(GL_LINE_STIPPLE);
+		glPopMatrix();
+
+		ok= 1;
+	}
+
+	if(!ok) {
+		glColor4f(0.f, 0.f, 0.f, 0.3f);
+		uiSetRoundBox(15);
+		uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+	}
+
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
+
+	glDisable(GL_BLEND);
+}
 
 /* ****************************************************** */
 

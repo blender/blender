@@ -1648,7 +1648,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	}
 
 	
-	objprop.m_concave = (blenderobject->boundtype & 4) != 0;
+	objprop.m_concave = (blenderobject->collision_boundtype == OB_BOUND_TRIANGLE_MESH);
 	
 	switch (physics_engine)
 	{

@@ -22,6 +22,10 @@
  *  \ingroup python
  */
 
+/** \defgroup pymathutils Python Mathutils
+ *  \ingroup python
+ */
+
 /** \defgroup pythonintern Python RNA and Operators
  *  \ingroup python
  */

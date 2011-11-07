@@ -43,7 +43,7 @@ class SCA_IScene;
 
 class SCA_ILogicBrick : public CValue
 {
-	Py_Header;
+	Py_Header
 protected:
 	SCA_IObject*		m_gameobj;
 	int					m_Execute_Priority;

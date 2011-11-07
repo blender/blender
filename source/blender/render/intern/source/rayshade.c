@@ -1593,7 +1593,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	}
 	/* put back together */
 	if(shi->combinedflag & SCE_PASS_SPEC)
-		VECADD(shr->combined, diff, shr->spec) /* no ; */
+		add_v3_v3v3(shr->combined, diff, shr->spec);
 	else
 		copy_v3_v3(shr->combined, diff);
 }

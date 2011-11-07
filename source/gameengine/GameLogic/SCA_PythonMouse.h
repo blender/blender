@@ -31,7 +31,7 @@
 
 class SCA_PythonMouse : public PyObjectPlus
 {
-	Py_Header;
+	Py_Header
 private:
 	class SCA_IInputDevice *m_mouse;
 	class RAS_ICanvas *m_canvas;

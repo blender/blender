@@ -27,8 +27,8 @@
  *
  */
 
-/** \file blender/python/generic/mathutils_Color.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Color.h
+ *  \ingroup pymathutils
  */
 
 

@@ -693,6 +693,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 	/* calculate rect */
 	switch (sa->spacetype) {
 		case SPACE_IMAGE: /* image */
+		case SPACE_CLIP: /* clip */
 		{
 			
 			/* just draw using standard scaling (settings here are currently ignored anyways) */
@@ -766,7 +767,7 @@ void draw_gpencil_view2d (bContext *C, short onlyv2d)
 	
 	/* special hack for Image Editor */
 	// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
-	if (sa->spacetype == SPACE_IMAGE)
+	if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP))
 		dflag |= GP_DRAWDATA_IEDITHACK;
 	
 	/* draw it! */

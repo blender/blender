@@ -120,7 +120,7 @@ MetaBall *copy_mball(MetaBall *mb)
 	MetaBall *mbn;
 	int a;
 	
-	mbn= copy_libblock(mb);
+	mbn= copy_libblock(&mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	

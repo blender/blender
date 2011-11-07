@@ -227,18 +227,19 @@ typedef struct uiLayout uiLayout;
 #define TOGBUT		(37<<9)
 #define OPTION		(38<<9)
 #define OPTIONN		(39<<9)
+#define TRACKPREVIEW	(40<<9)
 		/* buttons with value >= SEARCH_MENU don't get undo pushes */
-#define SEARCH_MENU	(40<<9)
-#define BUT_EXTRA	(41<<9)
-#define HSVCIRCLE	(42<<9)
-#define LISTBOX		(43<<9)
-#define LISTROW		(44<<9)
-#define HOTKEYEVT	(45<<9)
-#define BUT_IMAGE	(46<<9)
-#define HISTOGRAM	(47<<9)
-#define WAVEFORM	(48<<9)
-#define VECTORSCOPE	(49<<9)
-#define PROGRESSBAR	(50<<9)
+#define SEARCH_MENU	(41<<9)
+#define BUT_EXTRA	(42<<9)
+#define HSVCIRCLE	(43<<9)
+#define LISTBOX		(44<<9)
+#define LISTROW		(45<<9)
+#define HOTKEYEVT	(46<<9)
+#define BUT_IMAGE	(47<<9)
+#define HISTOGRAM	(48<<9)
+#define WAVEFORM	(49<<9)
+#define VECTORSCOPE	(50<<9)
+#define PROGRESSBAR	(51<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -511,8 +512,6 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, const char *str, int x1, i
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, int x1, int y1, short x2, short y2, float a1, float a2, const char *tip);
 
-void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
-
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
 int uiDefAutoButsRNA(uiLayout *layout, struct PointerRNA *ptr, int (*check_prop)(struct PropertyRNA *), const char label_align);
 
@@ -760,6 +759,10 @@ void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode 
 void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
+
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
+void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int cmpact);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

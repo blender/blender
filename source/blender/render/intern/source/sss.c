@@ -1,4 +1,4 @@
-/* 
+/*
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -452,11 +452,11 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	mul_v3_fl(result.rad, tree->ss[0]->frontweight);
 	mul_v3_fl(result.backrad, tree->ss[0]->backweight);
 
-	VECCOPY(rad, result.rad);
-	VECADD(backrad, result.rad, result.backrad);
+	copy_v3_v3(rad, result.rad);
+	add_v3_v3v3(backrad, result.rad, result.backrad);
 
-	VECCOPY(rdsum, result.rdsum);
-	VECADD(backrdsum, result.rdsum, result.backrdsum);
+	copy_v3_v3(rdsum, result.rdsum);
+	add_v3_v3v3(backrdsum, result.rdsum, result.backrdsum);
 
 	if(rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
 	if(rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
@@ -761,8 +761,8 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 	INIT_MINMAX(tree->min, tree->max);
 
 	for(i=0; i<totpoint; i++) {
-		VECCOPY(points[i].co, co[i]);
-		VECCOPY(points[i].rad, color[i]);
+		copy_v3_v3(points[i].co, co[i]);
+		copy_v3_v3(points[i].rad, color[i]);
 		points[i].area= fabsf(area[i])/(tree->scale*tree->scale);
 		points[i].back= (area[i] < 0.0f);
 
@@ -818,7 +818,7 @@ void scatter_tree_sample(ScatterTree *tree, float *co, float *color)
 {
 	float sco[3];
 
-	VECCOPY(sco, co);
+	copy_v3_v3(sco, co);
 	mul_v3_fl(sco, 1.0f/tree->scale);
 
 	compute_radiance(tree, sco, color);

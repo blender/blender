@@ -44,7 +44,7 @@
 
 class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	// mesh reference (mesh to replace)
 	RAS_MeshObject* m_mesh;

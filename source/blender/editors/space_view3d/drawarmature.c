@@ -153,17 +153,17 @@ static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
-				VECCOPY(cp, bcolor->active);
+				copy_v3_v3_char((char *)cp, bcolor->active);
 				if(!(boneflag & BONE_SELECTED)) {
 					cp_shade_color3ub(cp, -80);
 				}
 			}
 			else if (boneflag & BONE_SELECTED) {
-				VECCOPY(cp, bcolor->select);
+				copy_v3_v3_char((char *)cp, bcolor->select);
 			}
 			else {
 				/* a bit darker than solid */
-				VECCOPY(cp, bcolor->solid);
+				copy_v3_v3_char((char *)cp, bcolor->solid);
 				cp_shade_color3ub(cp, -50);
 			}
 			
@@ -213,13 +213,13 @@ static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
-				VECCOPY(cp, bcolor->active);
+				copy_v3_v3_char((char *)cp, bcolor->active);
 			}
 			else if (boneflag & BONE_SELECTED) {
-				VECCOPY(cp, bcolor->select);
+				copy_v3_v3_char((char *)cp, bcolor->select);
 			}
 			else {
-				VECCOPY(cp, bcolor->solid);
+				copy_v3_v3_char((char *)cp, bcolor->solid);
 			}
 			
 			glColor3ubv(cp);
@@ -239,15 +239,15 @@ static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 			unsigned char cp[3];
 			
 			if (boneflag & BONE_DRAW_ACTIVE) {
-				VECCOPY(cp, bcolor->active);
+				copy_v3_v3_char((char *)cp, bcolor->active);
 				cp_shade_color3ub(cp, 10);
 			}
 			else if (boneflag & BONE_SELECTED) {
-				VECCOPY(cp, bcolor->select);
+				copy_v3_v3_char((char *)cp, bcolor->select);
 				cp_shade_color3ub(cp, -30);
 			}
 			else {
-				VECCOPY(cp, bcolor->solid);
+				copy_v3_v3_char((char *)cp, bcolor->solid);
 				cp_shade_color3ub(cp, -30);
 			}
 			

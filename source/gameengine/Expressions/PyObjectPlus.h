@@ -29,11 +29,12 @@
  *  \ingroup expressions
  */
 
+#ifndef _PY_OBJECT_PLUS_H
+#define _PY_OBJECT_PLUS_H
+
 /* for now keep weakrefs optional */
 #define USE_WEAKREFS
 
-#ifndef _adr_py_lib_h_				// only process once,
-#define _adr_py_lib_h_				// even if multiply included
 
 #ifndef __cplusplus				// c++ only
 #error Must be compiled with C++
@@ -44,10 +45,6 @@
 #include "MT_Vector3.h"
 #include "SG_QList.h"
 #include <stddef.h>
-
-/*------------------------------
- * Python defines
-------------------------------*/
 
 #ifdef WITH_PYTHON
 #ifdef USE_MATHUTILS
@@ -69,26 +66,27 @@ typedef struct {
 	void *link;
 } WarnLink;
 
-#define ShowDeprecationWarning(old_way, new_way) \
-{ \
-	static WarnLink wlink = {false, NULL}; \
-	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0) \
-	{ \
-		ShowDeprecationWarning_func(old_way, new_way); \
- \
-		WarnLink *wlink_last= GetDeprecationWarningLinkLast(); \
-		wlink.warn_done = true; \
-		wlink.link = NULL; \
-	 \
-		if(wlink_last) { \
-			wlink_last->link= (void *)&(wlink); \
-			SetDeprecationWarningLinkLast(&(wlink)); \
-		} else { \
-			SetDeprecationWarningFirst(&(wlink)); \
-			SetDeprecationWarningLinkLast(&(wlink)); \
-		} \
-	} \
-} \
+#define ShowDeprecationWarning(old_way, new_way)                              \
+{                                                                             \
+	static WarnLink wlink = {false, NULL};                                    \
+	if ((m_ignore_deprecation_warnings || wlink.warn_done)==0)                \
+	{                                                                         \
+		ShowDeprecationWarning_func(old_way, new_way);                        \
+		                                                                      \
+		WarnLink *wlink_last= GetDeprecationWarningLinkLast();                \
+		wlink.warn_done = true;                                               \
+		wlink.link = NULL;                                                    \
+		                                                                      \
+		if(wlink_last) {                                                      \
+			wlink_last->link= (void *)&(wlink);                               \
+			SetDeprecationWarningLinkLast(&(wlink));                          \
+		}                                                                     \
+		else {                                                                \
+			SetDeprecationWarningFirst(&(wlink));                             \
+			SetDeprecationWarningLinkLast(&(wlink));                          \
+		}                                                                     \
+	}                                                                         \
+}                                                                             \
 
 
 
@@ -109,7 +107,7 @@ typedef struct PyObjectPlus_Proxy {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 #define BGE_PROXY_PYREF(_self) (((PyObjectPlus_Proxy *)_self)->py_ref)
 #ifdef USE_WEAKREFS
-	#define BGE_PROXY_WKREF(_self) (((PyObjectPlus_Proxy *)_self)->in_weakreflist)
+#  define BGE_PROXY_WKREF(_self) (((PyObjectPlus_Proxy *)_self)->in_weakreflist)
 #endif
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
@@ -123,45 +121,61 @@ typedef struct PyObjectPlus_Proxy {
 // PyC++ class
 // AttributesPtr correspond to attributes of proxy generic pointer 
 // each PyC++ class must be registered in KX_PythonInitTypes.cpp
-#define __Py_Header \
- public: \
-  static PyTypeObject   Type; \
-  static PyMethodDef    Methods[]; \
-  static PyAttributeDef Attributes[]; \
-  virtual PyTypeObject *GetType(void) {return &Type;}; \
-  virtual PyObject *GetProxy() {return GetProxyPlus_Ext(this, &Type, NULL);}; \
-  virtual PyObject *NewProxy(bool py_owns) {return NewProxyPlus_Ext(this, &Type, NULL, py_owns);}; \
+#define __Py_Header                                                           \
+public:                                                                       \
+	static PyTypeObject   Type;                                               \
+	static PyMethodDef    Methods[];                                          \
+	static PyAttributeDef Attributes[];                                       \
+	virtual PyTypeObject *GetType(void) {                                     \
+		return &Type;                                                         \
+	}                                                                         \
+	virtual PyObject *GetProxy() {                                            \
+		return GetProxyPlus_Ext(this, &Type, NULL);                           \
+	}                                                                         \
+	virtual PyObject *NewProxy(bool py_owns) {                                \
+		return NewProxyPlus_Ext(this, &Type, NULL, py_owns);                  \
+	}                                                                         \
 
 // leave above line empty (macro)!
 // use this macro for class that use generic pointer in proxy
 // GetProxy() and NewProxy() must be defined to set the correct pointer in the proxy
-#define __Py_HeaderPtr \
- public: \
-  static PyTypeObject   Type; \
-  static PyMethodDef    Methods[]; \
-  static PyAttributeDef Attributes[]; \
-  static PyAttributeDef AttributesPtr[]; \
-  virtual PyTypeObject *GetType(void) {return &Type;}; \
-  virtual PyObject *GetProxy(); \
-  virtual PyObject *NewProxy(bool py_owns); \
+#define __Py_HeaderPtr                                                        \
+public:                                                                       \
+	static PyTypeObject   Type;                                               \
+	static PyMethodDef    Methods[];                                          \
+	static PyAttributeDef Attributes[];                                       \
+	static PyAttributeDef AttributesPtr[];                                    \
+	virtual PyTypeObject *GetType(void) {                                     \
+		return &Type;                                                         \
+	}                                                                         \
+	virtual PyObject *GetProxy();                                             \
+	virtual PyObject *NewProxy(bool py_owns);                                 \
 
 // leave above line empty (macro)!
 #ifdef WITH_CXX_GUARDEDALLOC
-#define Py_Header __Py_Header \
-  void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
-  void operator delete(void *mem) { MEM_freeN(mem); } \
+#define Py_Header __Py_Header                                                 \
+	void *operator new(size_t num_bytes) {                                    \
+		return MEM_mallocN(num_bytes, Type.tp_name);                          \
+	}                                                                         \
+	void operator delete(void *mem) {                                         \
+		MEM_freeN(mem);                                                       \
+	}                                                                         \
 
 #else
-#define Py_Header __Py_Header
+#  define Py_Header __Py_Header
 #endif
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#define Py_HeaderPtr __Py_HeaderPtr \
-  void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
-  void operator delete( void *mem ) { MEM_freeN(mem); } \
+#define Py_HeaderPtr __Py_HeaderPtr                                           \
+	void *operator new(size_t num_bytes) {                                    \
+		return MEM_mallocN(num_bytes, Type.tp_name);                          \
+	}                                                                         \
+	void operator delete( void *mem ) {                                       \
+		MEM_freeN(mem);                                                       \
+	}                                                                         \
 
 #else
-#define Py_HeaderPtr __Py_HeaderPtr
+#  define Py_HeaderPtr __Py_HeaderPtr
 #endif
 
 /*
@@ -179,65 +193,109 @@ typedef struct PyObjectPlus_Proxy {
  * These macros are helpfull when embedding Python routines. The second
  * macro is one that also requires a documentation string
  */
-#define KX_PYMETHOD(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* args, PyObject* kwds); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "() - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args, kwds);		\
-	}; \
+#define KX_PYMETHOD(class_name, method_name)                                   \
+	PyObject* Py##method_name(PyObject* args, PyObject* kwds);                 \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* args, PyObject* kwds) {         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "() - "               \
+			                BGE_PROXY_ERROR_MSG);                              \
+			return NULL;                                                       \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name(args, kwds); \
+	}                                                                          \
 
-#define KX_PYMETHOD_VARARGS(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* args); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "() - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args);		\
-	}; \
+#define KX_PYMETHOD_VARARGS(class_name, method_name)                           \
+	PyObject* Py##method_name(PyObject* args);                                 \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* args) {                         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "() - "               \
+			                BGE_PROXY_ERROR_MSG); return NULL;                 \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name(args);       \
+	}                                                                          \
 
-#define KX_PYMETHOD_NOARGS(class_name, method_name)			\
-	PyObject* Py##method_name(); \
-	static PyObject* sPy##method_name( PyObject* self) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "() - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name();		\
-	}; \
-	
-#define KX_PYMETHOD_O(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* value); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(value) - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(value);		\
-	}; \
+#define KX_PYMETHOD_NOARGS(class_name, method_name)                            \
+	PyObject* Py##method_name();                                               \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self) {                                         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "() - "               \
+			                BGE_PROXY_ERROR_MSG); return NULL;                 \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name();           \
+	}                                                                          \
 
-#define KX_PYMETHOD_DOC(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* args, PyObject* kwds); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(...) - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args, kwds);		\
-	}; \
-	static const char method_name##_doc[]; \
+#define KX_PYMETHOD_O(class_name, method_name)                                 \
+	PyObject* Py##method_name(PyObject* value);                                \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* value) {                        \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "(value) - "          \
+			                BGE_PROXY_ERROR_MSG); return NULL;                 \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name(value);      \
+	}                                                                          \
 
-#define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* args); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(...) - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(args);		\
-	}; \
-	static const char method_name##_doc[]; \
+#define KX_PYMETHOD_DOC(class_name, method_name)                               \
+	PyObject* Py##method_name(PyObject* args, PyObject* kwds);                 \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* args, PyObject* kwds) {         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "(...) - "            \
+			                BGE_PROXY_ERROR_MSG); return NULL;                 \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name(args, kwds); \
+	}                                                                          \
+	static const char method_name##_doc[];                                     \
 
-#define KX_PYMETHOD_DOC_O(class_name, method_name)			\
-	PyObject* Py##method_name(PyObject* value); \
-	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "(value) - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(value);		\
-	}; \
-	static const char method_name##_doc[]; \
+#define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)                       \
+	PyObject* Py##method_name(PyObject* args);                                 \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* args) {                         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "(...) - "            \
+			                BGE_PROXY_ERROR_MSG);                              \
+			return NULL;                                                       \
+		}                                                                      \
+		return((class_name*)BGE_PROXY_REF(self))->Py##method_name(args);       \
+	}                                                                          \
+	static const char method_name##_doc[];                                     \
 
-#define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
-	PyObject* Py##method_name(); \
-	static PyObject* sPy##method_name( PyObject* self) { \
-		if(BGE_PROXY_REF(self)==NULL) { PyErr_SetString(PyExc_RuntimeError, #class_name "." #method_name "() - " BGE_PROXY_ERROR_MSG); return NULL; } \
-		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name();		\
-	}; \
-	static const char method_name##_doc[]; \
+#define KX_PYMETHOD_DOC_O(class_name, method_name)                             \
+	PyObject* Py##method_name(PyObject* value);                                \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self, PyObject* value) {                        \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "(value) - "          \
+			                BGE_PROXY_ERROR_MSG);                              \
+			return NULL;                                                       \
+		}                                                                      \
+		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name(value);     \
+	}                                                                          \
+	static const char method_name##_doc[];                                     \
+
+#define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)                        \
+	PyObject* Py##method_name();                                               \
+	static PyObject*                                                           \
+	sPy##method_name(PyObject* self) {                                         \
+		if(BGE_PROXY_REF(self)==NULL) {                                        \
+			PyErr_SetString(PyExc_RuntimeError,                                \
+			                #class_name "." #method_name "() - "               \
+			                BGE_PROXY_ERROR_MSG);                              \
+			return NULL;                                                       \
+		}                                                                      \
+		return ((class_name*)BGE_PROXY_REF(self))->Py##method_name();          \
+	}                                                                          \
+	static const char method_name##_doc[];                                     \
 
 
 /* The line above should remain empty */
@@ -289,7 +347,7 @@ enum KX_PYATTRIBUTE_TYPE {
 	KX_PYATTRIBUTE_TYPE_FUNCTION,
 	KX_PYATTRIBUTE_TYPE_VECTOR,
 	KX_PYATTRIBUTE_TYPE_FLAG,
-	KX_PYATTRIBUTE_TYPE_CHAR,
+	KX_PYATTRIBUTE_TYPE_CHAR
 };
 
 enum KX_PYATTRIBUTE_ACCESS {
@@ -478,23 +536,31 @@ typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 #else // WITH_PYTHON
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#define Py_Header \
- public: \
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlus"); } \
-	void operator delete( void *mem ) { MEM_freeN(mem); } \
+#define Py_Header                                                             \
+public:                                                                       \
+	void *operator new(size_t num_bytes) {                                    \
+		return MEM_mallocN(num_bytes, "GE:PyObjectPlus");                     \
+	}                                                                         \
+	void operator delete( void *mem ) {                                       \
+		MEM_freeN(mem);                                                       \
+	}                                                                         \
 
-#define Py_HeaderPtr \
- public: \
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlusPtr"); } \
-	void operator delete( void *mem ) { MEM_freeN(mem); } \
+#define Py_HeaderPtr                                                          \
+public:                                                                       \
+	void *operator new(size_t num_bytes) {                                    \
+		return MEM_mallocN(num_bytes, "GE:PyObjectPlusPtr");                  \
+	}                                                                         \
+	void operator delete( void *mem ) {                                       \
+	MEM_freeN(mem);                                                           \
+	}                                                                         \
 
 #else // WITH_CXX_GUARDEDALLOC
 
 #define Py_Header \
- public: \
+public: \
 
 #define Py_HeaderPtr \
- public: \
+public: \
 
 #endif // WITH_CXX_GUARDEDALLOC
 
@@ -514,7 +580,7 @@ typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 // possibility to use them at SCA_ILogicBrick, CValue and PyObjectPlus level.
 class PyObjectPlus : public SG_QList
 {				// The PyObjectPlus abstract class
-	Py_Header;							// Always start with Py_Header
+	Py_Header							// Always start with Py_Header
 	
 public:
 	PyObjectPlus();
@@ -579,6 +645,8 @@ public:
 
 #ifdef WITH_PYTHON
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
+
+PyObject *PyUnicode_From_STR_String(const STR_String& str);
 #endif
 
-#endif //  _adr_py_lib_h_
+#endif //  _PY_OBJECT_PLUS_H

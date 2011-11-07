@@ -48,12 +48,14 @@
 #include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -62,6 +64,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_group.h"
+#include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_key.h"
@@ -1018,23 +1021,21 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 
 /********************* Make Duplicates Real ************************/
 
-static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
+static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
+                                       const short use_base_parent,
+                                       const short use_hierarchy)
 {
-	Base *basen;
-	Object *ob;
 	ListBase *lb;
 	DupliObject *dob;
-	
-	if(!base && !(base = BASACT))
-		return;
-	
+
 	if(!(base->object->transflag & OB_DUPLI))
 		return;
 	
 	lb= object_duplilist(scene, base->object);
 	
 	for(dob= lb->first; dob; dob= dob->next) {
-		ob= copy_object(dob->ob);
+		Base *basen;
+		Object *ob= copy_object(dob->ob);
 		/* font duplis can have a totcol without material, we get them from parent
 		* should be implemented better...
 		*/
@@ -1061,22 +1062,85 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 	}
 	
+	if (use_hierarchy) {
+		for(dob= lb->first; dob; dob= dob->next) {
+			/* original parents */
+			Object *ob_src=     dob->ob;
+			Object *ob_src_par= ob_src->parent;
+
+			Object *ob_dst=     (Object *)ob_src->id.newid;
+
+			if (ob_src_par && ob_src_par->id.newid) {
+				/* the parent was also made real, parent newly real duplis */
+				Object *ob_dst_par= (Object *)ob_src_par->id.newid;
+
+				/* allow for all possible parent types */
+				ob_dst->partype= ob_src->partype;
+				BLI_strncpy(ob_dst->parsubstr, ob_src->parsubstr, sizeof(ob_dst->parsubstr));
+				ob_dst->par1= ob_src->par1;
+				ob_dst->par2= ob_src->par2;
+				ob_dst->par3= ob_src->par3;
+
+				copy_m4_m4(ob_dst->parentinv, ob_src->parentinv);
+
+				ob_dst->parent= ob_dst_par;
+			}
+			else if (use_base_parent) {
+				ob_dst->parent= base->object;
+				ob_dst->partype= PAROBJECT;
+			}
+
+			if (ob_dst->parent) {
+				invert_m4_m4(ob_dst->parentinv, dob->mat);
+
+				/* note, this may be the parent of other objects, but it should
+				 * still work out ok */
+				object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
+
+				/* to set ob_dst->orig and incase theres any other discrepicies */
+				DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
+			}
+		}
+	}
+	else if (use_base_parent) {
+		/* since we are ignoring the internal hierarchy - parent all to the
+		 * base object */
+		for(dob= lb->first; dob; dob= dob->next) {
+			/* original parents */
+			Object *ob_src=     dob->ob;
+			Object *ob_dst=     (Object *)ob_src->id.newid;
+
+			ob_dst->parent= base->object;
+			ob_dst->partype= PAROBJECT;
+
+			/* similer to the code above, see comments */
+			invert_m4_m4(ob_dst->parentinv, dob->mat);
+			object_apply_mat4(ob_dst, dob->mat, FALSE, TRUE);
+			DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
+
+
+		}
+	}
+
 	copy_object_set_idnew(C, 0);
 	
 	free_object_duplilist(lb);
 	
-	base->object->transflag &= ~OB_DUPLI;	
+	base->object->transflag &= ~OB_DUPLI;
 }
 
-static int object_duplicates_make_real_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+
+	const short use_base_parent= RNA_boolean_get(op->ptr, "use_base_parent");
+	const short use_hierarchy= RNA_boolean_get(op->ptr, "use_hierarchy");
 	
 	clear_id_newpoins();
 		
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		make_object_duplilist_real(C, scene, base);
+		make_object_duplilist_real(C, scene, base, use_base_parent, use_hierarchy);
 
 		/* dependencies were changed */
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, base->object);
@@ -1106,6 +1170,9 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_base_parent", 0, "Parent", "Parent newly created objects to the original duplicator");
+	RNA_def_boolean(ot->srna, "use_hierarchy", 0, "Keep Hierarchy", "Maintain parent child relationships");
 }
 
 /**************************** Convert **************************/

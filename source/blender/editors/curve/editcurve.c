@@ -816,7 +816,7 @@ static void calc_shapeKeys(Object *obedit)
 							if (oldbezt) {
 								int j;
 								for (j= 0; j < 3; ++j) {
-									VECSUB(ofs[i], bezt->vec[j], oldbezt->vec[j]);
+									sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
 								}
 								ofs[i++][0]= bezt->alfa - oldbezt->alfa;
@@ -832,7 +832,7 @@ static void calc_shapeKeys(Object *obedit)
 						while(a--) {
 							oldbp= getKeyIndexOrig_bp(editnurb, bp);
 							if (oldbp) {
-								VECSUB(ofs[i], bp->vec, oldbp->vec);
+								sub_v3_v3v3(ofs[i], bp->vec, oldbp->vec);
 								ofs[i+1][0]= bp->alfa - oldbp->alfa;
 							}
 							i += 2;
@@ -866,10 +866,10 @@ static void calc_shapeKeys(Object *obedit)
 							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
 
 							for (j= 0; j < 3; ++j, ++i) {
-								VECCOPY(fp, bezt->vec[j]);
+								copy_v3_v3(fp, bezt->vec[j]);
 
 								if (restore && oldbezt) {
-									VECCOPY(bezt->vec[j], oldbezt->vec[j]);
+									copy_v3_v3(bezt->vec[j], oldbezt->vec[j]);
 								}
 
 								fp+= 3;
@@ -890,12 +890,12 @@ static void calc_shapeKeys(Object *obedit)
 						while(a--) {
 							oldbp= getKeyIndexOrig_bp(editnurb, bp);
 
-							VECCOPY(fp, bp->vec);
+							copy_v3_v3(fp, bp->vec);
 
 							fp[3]= bp->alfa;
 
 							if(restore && oldbp) {
-								VECCOPY(bp->vec, oldbp->vec);
+								copy_v3_v3(bp->vec, oldbp->vec);
 								bp->alfa= oldbp->alfa;
 							}
 
@@ -921,10 +921,10 @@ static void calc_shapeKeys(Object *obedit)
 									curofp= ofp + index;
 
 									for (j= 0; j < 3; ++j, ++i) {
-										VECCOPY(fp, curofp);
+										copy_v3_v3(fp, curofp);
 
 										if(apply_offset) {
-											VECADD(fp, fp, ofs[i]);
+											add_v3_v3(fp, ofs[i]);
 										}
 
 										fp+= 3; curofp+= 3;
@@ -933,7 +933,7 @@ static void calc_shapeKeys(Object *obedit)
 
 									if(apply_offset) {
 										/* apply alfa offsets */
-										VECADD(fp, fp, ofs[i]);
+										add_v3_v3(fp, ofs[i]);
 										++i;
 									}
 
@@ -941,7 +941,7 @@ static void calc_shapeKeys(Object *obedit)
 								} else {
 									int j;
 									for (j= 0; j < 3; ++j, ++i) {
-										VECCOPY(fp, bezt->vec[j]);
+										copy_v3_v3(fp, bezt->vec[j]);
 										fp+= 3;
 									}
 									fp[0]= bezt->alfa;
@@ -959,15 +959,15 @@ static void calc_shapeKeys(Object *obedit)
 
 								if (index >= 0) {
 									curofp= ofp + index;
-									VECCOPY(fp, curofp);
+									copy_v3_v3(fp, curofp);
 									fp[3]= curofp[3];
 
 									if(apply_offset) {
-										VECADD(fp, fp, ofs[i]);
+										add_v3_v3(fp, ofs[i]);
 										fp[3]+=ofs[i+1][0];
 									}
 								} else {
-									VECCOPY(fp, bp->vec);
+									copy_v3_v3(fp, bp->vec);
 									fp[3]= bp->alfa;
 								}
 
@@ -2812,12 +2812,7 @@ void CURVE_OT_select_inverse(wmOperatorType *ot)
 /** Divide the line segments associated with the currently selected
  * curve nodes (Bezier or NURB). If there are no valid segment
  * selections within the current selection, nothing happens.
- *
- * @deffunc subdividenurb subdivideNurb(void)
- * @return Nothing
- * @param  None
-*/
-
+ */
 static void subdividenurb(Object *obedit, int number_cuts)
 {
 	Curve *cu= obedit->data;
@@ -2895,14 +2890,14 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							interp_v3_v3v3(vec+12, vec+3, vec+6, factor);
 
 							/* change handle of prev beztn */
-							VECCOPY((beztn-1)->vec[2], vec);
+							copy_v3_v3((beztn-1)->vec[2], vec);
 							/* new point */
-							VECCOPY(beztn->vec[0], vec+9);
+							copy_v3_v3(beztn->vec[0], vec+9);
 							interp_v3_v3v3(beztn->vec[1], vec+9, vec+12, factor);
-							VECCOPY(beztn->vec[2], vec+12);
+							copy_v3_v3(beztn->vec[2], vec+12);
 							/* handle of next bezt */
-							if(a==0 && i == number_cuts - 1 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
-							else {VECCOPY(bezt->vec[0], vec+6);}
+							if(a==0 && i == number_cuts - 1 && (nu->flagu & CU_NURB_CYCLIC)) {copy_v3_v3(beztnew->vec[0], vec+6);}
+							else {copy_v3_v3(bezt->vec[0], vec+6);}
 
 							beztn->radius = (prevbezt->radius + bezt->radius)/2;
 							beztn->weight = (prevbezt->weight + bezt->weight)/2;
@@ -3386,7 +3381,7 @@ static int convertspline(short type, Nurb *nu)
 			a= nr;
 			bp= nu->bp;
 			while(a--) {
-				VECCOPY(bezt->vec[1], bp->vec);
+				copy_v3_v3(bezt->vec[1], bp->vec);
 				bezt->f1=bezt->f2=bezt->f3= bp->f1;
 				bezt->h1= bezt->h2= HD_VECT;
 				bezt->weight= bp->weight;
@@ -3423,7 +3418,7 @@ static int convertspline(short type, Nurb *nu)
 			while(a--) {
 				if(type==CU_POLY && bezt->h1==HD_VECT && bezt->h2==HD_VECT) {
 					/* vector handle becomes 1 poly vertice */
-					VECCOPY(bp->vec, bezt->vec[1]);
+					copy_v3_v3(bp->vec, bezt->vec[1]);
 					bp->vec[3]= 1.0;
 					bp->f1= bezt->f2;
 					nr-= 2;
@@ -3433,7 +3428,7 @@ static int convertspline(short type, Nurb *nu)
 				}
 				else {
 					for(c=0;c<3;c++) {
-						VECCOPY(bp->vec, bezt->vec[c]);
+						copy_v3_v3(bp->vec, bezt->vec[c]);
 						bp->vec[3]= 1.0;
 						if(c==0) bp->f1= bezt->f1;
 						else if(c==1) bp->f1= bezt->f2;
@@ -3480,13 +3475,13 @@ static int convertspline(short type, Nurb *nu)
 				a= nr;
 				bp= nu->bp;
 				while(a--) {
-					VECCOPY(bezt->vec[0], bp->vec);
+					copy_v3_v3(bezt->vec[0], bp->vec);
 					bezt->f1= bp->f1;
 					bp++;
-					VECCOPY(bezt->vec[1], bp->vec);
+					copy_v3_v3(bezt->vec[1], bp->vec);
 					bezt->f2= bp->f1;
 					bp++;
-					VECCOPY(bezt->vec[2], bp->vec);
+					copy_v3_v3(bezt->vec[2], bp->vec);
 					bezt->f3= bp->f1;
 					bezt->radius= bp->radius;
 					bezt->weight= bp->weight;
@@ -4477,7 +4472,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			ED_curve_beztcpy(editnurb, newbezt, nu->bezt, nu->pntsu);
 			*(newbezt+nu->pntsu)= *bezt;
-			VECCOPY(temp, bezt->vec[1]);
+			copy_v3_v3(temp, bezt->vec[1]);
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
@@ -4496,7 +4491,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			BEZ_SEL(newbezt);
 			cu->lastsel= newbezt;
 			newbezt->h2= newbezt->h1;
-			VECCOPY(temp, bezt->vec[1]);
+			copy_v3_v3(temp, bezt->vec[1]);
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
 			bezt= newbezt+1;
@@ -4508,7 +4503,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			*newbezt= *bezt;
 			BEZ_SEL(newbezt);
 			newbezt->h2= newbezt->h1;
-			VECCOPY(temp, bezt->vec[1]);
+			copy_v3_v3(temp, bezt->vec[1]);
 
 			newnu= (Nurb*)MEM_mallocN(sizeof(Nurb), "addvert_Nurb newnu");
 			memcpy(newnu, nu, sizeof(Nurb));
@@ -6194,7 +6189,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 
 	if(rv3d) {
 		copy_m4_m4(viewmat, rv3d->viewmat);
-		VECCOPY(zvec, rv3d->viewinv[2]);
+		copy_v3_v3(zvec, rv3d->viewinv[2]);
 	}
 
 	setflagsNurb(editnurb, 0);

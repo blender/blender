@@ -43,7 +43,7 @@ class KX_RayCast;
 
 class KX_RaySensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	STR_String		m_propertyname;
 	bool			m_bFindMaterial;
 	bool			m_bXRay;

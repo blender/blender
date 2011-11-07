@@ -490,10 +490,13 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		at->draw(C, ar);
 	}
 
+	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+	ED_region_pixelspace(ar);
+
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
-	
+
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(ar);
 
@@ -1471,6 +1474,7 @@ static const char *editortype_pup(void)
 		   "|UV/Image Editor %x6"
 		   
 		   "|Video Sequence Editor %x8"
+		   "|Movie Clip Editor %x20"
 		   "|Text Editor %x9" 
 		   "|Node Editor %x16"
 		   "|Logic Editor %x17"

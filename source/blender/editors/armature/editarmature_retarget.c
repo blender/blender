@@ -157,14 +157,14 @@ static void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 	sub_v3_v3v3(nor, bone->tail, bone->head);
 	
 	vec_roll_to_mat3(nor, roll, mat);
-	VECCOPY(up_axis, mat[2]);
+	copy_v3_v3(up_axis, mat[2]);
 }
 
 static float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4], float qroll[4], float aligned_axis[3])
 {
 	float nor[3], new_up_axis[3], x_axis[3], z_axis[3];
 	
-	VECCOPY(new_up_axis, old_up_axis);
+	copy_v3_v3(new_up_axis, old_up_axis);
 	mul_qt_v3(qrot, new_up_axis);
 	
 	sub_v3_v3v3(nor, bone->tail, bone->head);
@@ -236,7 +236,7 @@ static float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4]
 		
 		mul_qt_v3(qroll, normal);
 			
-		VECCOPY(new_up_axis, edge->up_axis);
+		copy_v3_v3(new_up_axis, edge->up_axis);
 		mul_qt_v3(qrot, new_up_axis);
 		
 		normalize_v3(new_up_axis);
@@ -252,7 +252,7 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 {
 	float new_up_axis[3];
 	
-	VECCOPY(new_up_axis, old_up_axis);
+	copy_v3_v3(new_up_axis, old_up_axis);
 	mul_qt_v3(qrot, new_up_axis);
 	
 	return ED_rollBoneToVector(bone, new_up_axis, FALSE);
@@ -367,7 +367,7 @@ static RigNode *newRigNodeHead(RigGraph *rg, RigArc *arc, float p[3])
 	node = MEM_callocN(sizeof(RigNode), "rig node");
 	BLI_addtail(&rg->nodes, node);
 
-	VECCOPY(node->p, p);
+	copy_v3_v3(node->p, p);
 	node->degree = 1;
 	node->arcs = NULL;
 	
@@ -389,7 +389,7 @@ static RigNode *newRigNode(RigGraph *rg, float p[3])
 	node = MEM_callocN(sizeof(RigNode), "rig node");
 	BLI_addtail(&rg->nodes, node);
 
-	VECCOPY(node->p, p);
+	copy_v3_v3(node->p, p);
 	node->degree = 0;
 	node->arcs = NULL;
 	
@@ -412,12 +412,12 @@ static void RIG_appendEdgeToArc(RigArc *arc, RigEdge *edge)
 
 	if (edge->prev == NULL)
 	{
-		VECCOPY(edge->head, arc->head->p);
+		copy_v3_v3(edge->head, arc->head->p);
 	}
 	else
 	{
 		RigEdge *last_edge = edge->prev;
-		VECCOPY(edge->head, last_edge->tail);
+		copy_v3_v3(edge->head, last_edge->tail);
 		RIG_calculateEdgeAngles(last_edge, edge);
 	}
 	
@@ -434,7 +434,7 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 
 	edge = MEM_callocN(sizeof(RigEdge), "rig edge");
 
-	VECCOPY(edge->tail, tail);
+	copy_v3_v3(edge->tail, tail);
 	edge->bone = bone;
 	
 	if (bone)
@@ -489,10 +489,10 @@ static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_
 	
 	ctrl = newRigControl(rg);
 	
-	VECCOPY(ctrl->head, src_ctrl->head);
-	VECCOPY(ctrl->tail, src_ctrl->tail);
-	VECCOPY(ctrl->up_axis, src_ctrl->up_axis);
-	VECCOPY(ctrl->offset, src_ctrl->offset);
+	copy_v3_v3(ctrl->head, src_ctrl->head);
+	copy_v3_v3(ctrl->tail, src_ctrl->tail);
+	copy_v3_v3(ctrl->up_axis, src_ctrl->up_axis);
+	copy_v3_v3(ctrl->offset, src_ctrl->offset);
 	
 	ctrl->tail_mode = src_ctrl->tail_mode;
 	ctrl->flag = src_ctrl->flag;
@@ -531,9 +531,9 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 	
 		edge = MEM_callocN(sizeof(RigEdge), "rig edge");
 
-		VECCOPY(edge->head, src_edge->head);
-		VECCOPY(edge->tail, src_edge->tail);
-		VECCOPY(edge->up_axis, src_edge->up_axis);
+		copy_v3_v3(edge->head, src_edge->head);
+		copy_v3_v3(edge->tail, src_edge->tail);
+		copy_v3_v3(edge->up_axis, src_edge->up_axis);
 		
 		edge->length = src_edge->length;
 		edge->angle = src_edge->angle;
@@ -690,8 +690,8 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 {
 	RigControl *ctrl = newRigControl(rg);
 	ctrl->bone = bone;
-	VECCOPY(ctrl->head, bone->head);
-	VECCOPY(ctrl->tail, bone->tail);
+	copy_v3_v3(ctrl->head, bone->head);
+	copy_v3_v3(ctrl->tail, bone->tail);
 	getEditBoneRollUpAxis(bone, bone->roll, ctrl->up_axis);
 	ctrl->tail_mode = TL_NONE;
 	
@@ -765,7 +765,7 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 		ctrl->link = link;
 		ctrl->flag = flag;
 		
-		VECCOPY(ctrl->offset, offset);
+		copy_v3_v3(ctrl->offset, offset);
 		
 		return 1;
 	}
@@ -1146,7 +1146,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 						BLI_remlink(&arc->edges, first_edge);
 						MEM_freeN(first_edge);
 						
-						VECCOPY(arc->head->p, next_edge->head);
+						copy_v3_v3(arc->head->p, next_edge->head);
 					}
 				}
 			}
@@ -1222,7 +1222,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 							BLI_remlink(&arc->edges, first_edge);
 							MEM_freeN(first_edge);
 							
-							VECCOPY(arc->head->p, next_edge->head);
+							copy_v3_v3(arc->head->p, next_edge->head);
 							
 							/* remove null edge in other arcs too */
 							for (other_arc = rg->arcs.first; other_arc; other_arc = other_arc->next)
@@ -1284,7 +1284,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 						BLI_remlink(&arc->edges, last_edge);
 						MEM_freeN(last_edge);
 						
-						VECCOPY(arc->tail->p, previous_edge->tail);
+						copy_v3_v3(arc->tail->p, previous_edge->tail);
 						previous_edge->angle = 0;
 					}
 				}
@@ -1755,7 +1755,7 @@ static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float resize)
 			sub_v3_v3v3(v1, ctrl->bone->tail, ctrl->bone->head);
 			sub_v3_v3v3(v2, tail_vec, ctrl->bone->head);
 			
-			VECCOPY(ctrl->bone->tail, tail_vec);
+			copy_v3_v3(ctrl->bone->tail, tail_vec);
 			
 			rotation_between_vecs_to_quat(qtail, v1, v2);
 			mul_qt_qtqt(ctrl->qrot, qtail, ctrl->qrot);
@@ -1791,7 +1791,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 {
 	float parent_offset[3], tail_offset[3];
 	
-	VECCOPY(parent_offset, ctrl->offset);
+	copy_v3_v3(parent_offset, ctrl->offset);
 	mul_v3_fl(parent_offset, resize);
 	mul_qt_v3(qrot, parent_offset);
 	
@@ -1799,7 +1799,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 	ctrl->flag |= RIG_CTRL_HEAD_DONE;
 
-	QUATCOPY(ctrl->qrot, qrot); 
+	copy_qt_qt(ctrl->qrot, qrot);
 
 	if (ctrl->tail_mode == TL_NONE)
 	{
@@ -1836,8 +1836,8 @@ static void repositionBone(bContext *C, RigGraph *rigg, RigEdge *edge, float vec
 	
 	rotation_between_vecs_to_quat(qrot, v1, v2);
 	
-	VECCOPY(bone->head, vec0);
-	VECCOPY(bone->tail, vec1);
+	copy_v3_v3(bone->head, vec0);
+	copy_v3_v3(bone->tail, vec1);
 	
 	if (!is_zero_v3(up_axis))
 	{

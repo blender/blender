@@ -99,7 +99,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
-void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp);
+void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4]);
 
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);

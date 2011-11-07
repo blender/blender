@@ -24,19 +24,25 @@
 //extern int gRefCountExpr; // only for debugging purposes (detect mem.leaks)
 
 
-#define PLUGIN_DECLARE_SERIAL_EXPRESSION(class_name,base_class_name)									\
-public:																						\
-	virtual base_class_name *	Copy()						{ return new class_name; }		\
-	virtual bool EdSerialize(CompressorArchive& arch,class CFactoryManager* facmgr,bool bIsStoring);    \
-	virtual bool EdIdSerialize(CompressorArchive& arch,class CFactoryManager* facmgr,bool bIsStoring)  \
-{				\
-	if (bIsStoring)			\
-	{							\
-		unsigned char exprID = GetExpressionID(); \
-		arch << exprID;					\
-	}						\
-	return true; \
-}				\
+#define PLUGIN_DECLARE_SERIAL_EXPRESSION(class_name, base_class_name)          \
+public:                                                                        \
+	virtual base_class_name * Copy() {                                         \
+		return new class_name;                                                 \
+	}                                                                          \
+	virtual bool EdSerialize(CompressorArchive& arch,                          \
+	                         class CFactoryManager* facmgr,                    \
+	                         bool bIsStoring);                                 \
+	virtual bool EdIdSerialize(CompressorArchive& arch,                        \
+	                           class CFactoryManager* facmgr,                  \
+	                           bool bIsStoring)                                \
+	{                                                                          \
+		if (bIsStoring)                                                        \
+		{                                                                      \
+			unsigned char exprID = GetExpressionID();                          \
+			arch << exprID;                                                    \
+		}                                                                      \
+		return true;                                                           \
+	}                                                                          \
 
 
 

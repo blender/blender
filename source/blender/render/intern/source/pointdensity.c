@@ -153,7 +153,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 		state.time = cfra;
 		if(psys_get_particle_state(&sim, i, &state, 0)) {
 			
-			VECCOPY(partco, state.co);
+			copy_v3_v3(partco, state.co);
 			
 			if (pd->psys_cache_space == TEX_PD_OBJECTSPACE)
 				mul_m4_v3(ob->imat, partco);
@@ -217,7 +217,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 	for(i=0; i < pd->totpoints; i++, mvert++) {
 		float co[3];
 		
-		VECCOPY(co, mvert->co);
+		copy_v3_v3(co, mvert->co);
 
 		switch(pd->ob_cache_space) {
 			case TEX_PD_OBJECTSPACE:
@@ -423,7 +423,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		(pd->flag&TEX_PD_FALLOFF_CURVE ? pd->falloff_curve : NULL), pd->falloff_speed_scale*0.001f);
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
-	VECCOPY(co, texvec);
+	copy_v3_v3(co, texvec);
 	
 	if (point_data_used(pd)) {
 		/* does a BVH lookup to find accumulated density and additional point data *
@@ -480,7 +480,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			if (pd->coba) {
 				if (do_colorband(pd->coba, age, col)) {
 					texres->talpha= 1;
-					VECCOPY(&texres->tr, col);
+					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
 				}
@@ -493,7 +493,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			if (pd->coba) {
 				if (do_colorband(pd->coba, speed, col)) {
 					texres->talpha= 1;	
-					VECCOPY(&texres->tr, col);
+					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
 				}
@@ -503,7 +503,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		case TEX_PD_COLOR_PARTVEL:
 			texres->talpha= 1;
 			mul_v3_fl(vec, pd->speed_scale);
-			VECCOPY(&texres->tr, vec);
+			copy_v3_v3(&texres->tr, vec);
 			texres->ta = texres->tin;
 			break;
 		case TEX_PD_COLOR_CONSTANT:

@@ -766,7 +766,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 {
 	uiBut *but;
 
-	unsigned int meny_key_mask= 0;
+	unsigned int menu_key_mask= 0;
 	unsigned char menu_key;
 	const char *str_pt;
 	int pass;
@@ -788,8 +788,8 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 				if(but->str) {
 					for(str_pt= but->str; *str_pt; ) {
 						menu_key= tolower(*str_pt);
-						if((menu_key >= 'a' && menu_key <= 'z') && !(meny_key_mask & 1<<(menu_key-'a'))) {
-							meny_key_mask |= 1<<(menu_key-'a');
+						if((menu_key >= 'a' && menu_key <= 'z') && !(menu_key_mask & 1<<(menu_key-'a'))) {
+							menu_key_mask |= 1<<(menu_key-'a');
 							break;
 						}
 
@@ -816,7 +816,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 					}
 
 					/* if all keys have been used just exit, unlikely */
-					if(meny_key_mask == (1<<26)-1) {
+					if(menu_key_mask == (1<<26)-1) {
 						return;
 					}
 				}
@@ -1224,7 +1224,7 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	int a, tot;
 
 	if(but->editvec) {
-		VECCOPY(vec, but->editvec);
+		copy_v3_v3(vec, but->editvec);
 	}
 
 	if(but->rnaprop) {
@@ -1248,7 +1248,7 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	}
 	else if(but->pointype == FLO) {
 		float *fp= (float *)but->poin;
-		VECCOPY(vec, fp);
+		copy_v3_v3(vec, fp);
 	}
 	else {
 		if (but->editvec==NULL) {

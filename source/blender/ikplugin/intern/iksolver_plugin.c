@@ -205,9 +205,9 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 		mul_m4_m4m4(pchan->pose_mat, ikmat, pchan->chan_mat);
 
 	/* calculate head */
-	VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
+	copy_v3_v3(pchan->pose_head, pchan->pose_mat[3]);
 	/* calculate tail */
-	VECCOPY(vec, pchan->pose_mat[1]);
+	copy_v3_v3(vec, pchan->pose_mat[1]);
 	mul_v3_fl(vec, pchan->bone->length);
 	add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
 
@@ -340,7 +340,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		copy_m4_m4(rootmat, pchan->parent->pose_mat);
 	else
 		unit_m4(rootmat);
-	VECCOPY(rootmat[3], pchan->pose_head);
+	copy_v3_v3(rootmat[3], pchan->pose_head);
 	
 	mul_m4_m4m4(imat, rootmat, ob->obmat);
 	invert_m4_m4(goalinv, imat);
@@ -359,7 +359,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		/* and set and transform goal */
 		mul_m4_m4m4(goal, rootmat, goalinv);
 		
-		VECCOPY(goalpos, goal[3]);
+		copy_v3_v3(goalpos, goal[3]);
 		copy_m3_m4(goalrot, goal);
 		
 		/* same for pole vector target */
@@ -372,7 +372,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			}
 			else {
 				mul_m4_m4m4(goal, rootmat, goalinv);
-				VECCOPY(polepos, goal[3]);
+				copy_v3_v3(polepos, goal[3]);
 				poleconstrain= 1;
 
 				/* for pole targets, we blend the result of the ik solver
@@ -398,7 +398,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 			
 			/* end effector in world space */
 			copy_m4_m4(end_pose, pchan->pose_mat);
-			VECCOPY(end_pose[3], pchan->pose_tail);
+			copy_v3_v3(end_pose[3], pchan->pose_tail);
 			mul_serie_m4(world_pose, goalinv, ob->obmat, end_pose, NULL, NULL, NULL, NULL, NULL);
 			
 			/* blend position */
@@ -526,12 +526,14 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		
 		/* 6. apply the differences to the channels, 
 			  we need to calculate the original differences first */
-		for(a=0; a<tree->totchannel; a++)
+		for(a=0; a<tree->totchannel; a++) {
 			make_dmats(tree->pchan[a]);
+		}
 		
-		for(a=0; a<tree->totchannel; a++)
+		for(a=0; a<tree->totchannel; a++) {
 			/* sets POSE_DONE */
 			where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
+		}
 		
 		/* 7. and free */
 		BLI_remlink(&pchan->iktree, tree);

@@ -515,6 +515,8 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
         (BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
         
+        (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
+
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
 #        (BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),

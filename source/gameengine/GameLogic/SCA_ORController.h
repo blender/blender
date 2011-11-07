@@ -36,7 +36,7 @@
 
 class SCA_ORController : public SCA_IController
 {
-	Py_Header;
+	Py_Header
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
 	SCA_ORController(SCA_IObject* gameobj);

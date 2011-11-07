@@ -26,7 +26,7 @@
  */
 
 /** \file ghost/intern/GHOST_EventWheel.h
- *  \ingroup GHOSTeel.h
+ *  \ingroup GHOST
  * Declaration of GHOST_EventWheel class.
  */
 

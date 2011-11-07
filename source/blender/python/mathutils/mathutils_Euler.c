@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/mathutils_Euler.c
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Euler.c
+ *  \ingroup pymathutils
  */
 
 

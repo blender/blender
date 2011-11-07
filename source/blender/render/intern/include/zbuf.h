@@ -135,7 +135,7 @@ void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, f
 
 /* exported to shadeinput.c */
 void zbuf_make_winmat(Render *re, float winmat[][4]);
-void zbuf_render_project(float winmat[][4], float *co, float *ho);
+void zbuf_render_project(float winmat[][4], const float co[3], float ho[4]);
 
 #endif
 

@@ -102,8 +102,8 @@ static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), flo
 	int final_depth=0, depth=0, limit=20;
 	
 	/* set up the isect */
-	VECCOPY(isect.start, co);
-	VECCOPY(isect.dir, dir);
+	copy_v3_v3(isect.start, co);
+	copy_v3_v3(isect.dir, dir);
 	isect.mode= RE_RAY_MIRROR;
 	isect.last_hit= NULL;
 	isect.lay= -1;
@@ -623,7 +623,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				
 				copy_v3_v3(pa->bbmin, bbmin);
 				copy_v3_v3(pa->voxel, voxel);
-				VECCOPY(pa->res, res);
+				copy_v3_v3_int(pa->res, res);
 				
 				pa->minx = minx; pa->maxx = maxx;
 				pa->miny = miny; pa->maxy = maxy;

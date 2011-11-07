@@ -38,7 +38,7 @@
 
 class KX_SceneActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	
 	int							m_mode;
 	// (restart) has become a toggle internally... not in the interface though

@@ -80,7 +80,7 @@ struct KX_LocalFlags {
 
 class KX_ObjectActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	MT_Vector3		m_force;
 	MT_Vector3		m_torque;
