@@ -717,14 +717,11 @@ void copy_libblock_data(ID *id, const ID *id_from, const short do_action)
 }
 
 /* used everywhere in blenkernel */
-void *copy_libblock(void *rt)
+void *copy_libblock(ID *id)
 {
-	ID *idn, *id;
+	ID *idn;
 	ListBase *lb;
-	char *cp, *cpn;
 	size_t idn_len;
-	
-	id= rt;
 
 	lb= which_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
@@ -733,8 +730,9 @@ void *copy_libblock(void *rt)
 
 	idn_len= MEM_allocN_len(idn);
 	if((int)idn_len - (int)sizeof(ID) > 0) { /* signed to allow neg result */
-		cp= (char *)id;
-		cpn= (char *)idn;
+		const char *cp= (const char *)id;
+		char *cpn= (char *)idn;
+
 		memcpy(cpn+sizeof(ID), cp+sizeof(ID), idn_len - sizeof(ID));
 	}
 	

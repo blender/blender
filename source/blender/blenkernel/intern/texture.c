@@ -751,7 +751,7 @@ Tex *copy_texture(Tex *tex)
 {
 	Tex *texn;
 	
-	texn= copy_libblock(tex);
+	texn= copy_libblock(&tex->id);
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= NULL;
 	
@@ -781,7 +781,7 @@ Tex *localize_texture(Tex *tex)
 {
 	Tex *texn;
 	
-	texn= copy_libblock(tex);
+	texn= copy_libblock(&tex->id);
 	BLI_remlink(&G.main->tex, texn);
 	
 	/* image texture: free_texture also doesn't decrease */

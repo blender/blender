@@ -68,7 +68,7 @@ Camera *copy_camera(Camera *cam)
 {
 	Camera *camn;
 	
-	camn= copy_libblock(cam);
+	camn= copy_libblock(&cam->id);
 	
 	return camn;
 }

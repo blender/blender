@@ -1084,7 +1084,7 @@ Object *copy_object(Object *ob)
 	ModifierData *md;
 	int a;
 
-	obn= copy_libblock(ob);
+	obn= copy_libblock(&ob->id);
 	
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
