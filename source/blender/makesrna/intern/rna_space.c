@@ -1668,6 +1668,17 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_zoom", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "camzoom");
+	RNA_def_property_ui_text(prop, "Camera Zoom", "Zoom factor in camera view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "camdx");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
@@ -2564,9 +2575,9 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
 	
-	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active_operator", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "op");
-	RNA_def_property_ui_text(prop, "Operator", "");
+	RNA_def_property_ui_text(prop, "Active Operator", "");
 }
 
 static void rna_def_space_info(BlenderRNA *brna)
