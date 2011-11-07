@@ -1772,8 +1772,6 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
 
-	p= op->customdata;
-
 	if(p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;
 
