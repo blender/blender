@@ -83,6 +83,7 @@ typedef struct bNodeSocketTemplate {
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
 	PropertySubType subtype;
+	int flag;
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used to hold verified socket */
