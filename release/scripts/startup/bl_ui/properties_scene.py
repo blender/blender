@@ -218,6 +218,16 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
 
 
+class SCENE_PT_movie_clip(SceneButtonsPanel, Panel):
+    bl_label = "Movie Clip"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        layout.prop(scene, "active_clip", text="Active Clip")
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"

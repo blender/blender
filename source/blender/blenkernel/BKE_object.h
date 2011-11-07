@@ -48,6 +48,7 @@ struct Group;
 struct bAction;
 struct RenderData;
 struct rctf;
+struct MovieClip;
 
 void clear_workob(struct Object *workob);
 void what_does_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -99,6 +100,7 @@ struct Object *object_pose_armature_get(struct Object *ob);
 void where_is_object_time(struct Scene *scene, struct Object *ob, float ctime);
 void where_is_object(struct Scene *scene, struct Object *ob);
 void where_is_object_simul(struct Scene *scene, struct Object *ob);
+void where_is_object_mat(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
@@ -126,6 +128,8 @@ struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob,
 int object_is_modified(struct Scene *scene, struct Object *ob);
 
 void object_relink(struct Object *ob);
+
+struct MovieClip *object_get_movieclip(struct Scene *scene, struct Object *ob, int use_default);
 
 #ifdef __cplusplus
 }

@@ -2164,6 +2164,16 @@ class VIEW3D_PT_view3d_display(Panel):
 
         layout.separator()
 
+        layout.prop(view, "show_reconstruction")
+        if view.show_reconstruction:
+            layout.label(text="Bundle type:")
+            layout.prop(view, "bundle_draw_type", text="")
+            layout.prop(view, "bundle_draw_size")
+            layout.prop(view, "show_bundle_name")
+            layout.prop(view, "show_camera_path")
+
+        layout.separator()
+
         region = view.region_quadview
 
         layout.operator("screen.region_quadview", text="Toggle Quad View")
@@ -2269,8 +2279,10 @@ class VIEW3D_PT_background_image(Panel):
             box = layout.box()
             row = box.row(align=True)
             row.prop(bg, "show_expanded", text="", emboss=False)
-            if bg.image:
+            if bg.source == 'IMAGE' and bg.image:
                 row.prop(bg.image, "name", text="", emboss=False)
+            if bg.source == 'MOVIE' and bg.clip:
+                row.prop(bg.clip, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
             row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
@@ -2279,10 +2291,36 @@ class VIEW3D_PT_background_image(Panel):
 
             if bg.show_expanded:
                 row = box.row()
-                row.template_ID(bg, "image", open="image.open")
-                if (bg.image):
-                    box.template_image(bg, "image", bg.image_user, compact=True)
+                row.prop(bg, "source", expand=True)
 
+                hasbg = False
+                if bg.source == 'IMAGE':
+                    row = box.row()
+                    row.template_ID(bg, "image", open="image.open")
+                    if (bg.image):
+                        box.template_image(bg, "image", bg.image_user, compact=True)
+                        hasbg = True
+
+                elif bg.source == 'MOVIE':
+                    has_clip = False
+                    box.prop(bg, 'use_camera_clip')
+
+                    column = box.column()
+                    column.active = not bg.use_camera_clip
+                    column.template_ID(bg, "clip", open="clip.open")
+
+                    if bg.clip:
+                        column.template_movieclip(bg, "clip", compact=True)
+
+                    if bg.use_camera_clip or bg.clip:
+                        hasbg = True
+
+                    column = box.column()
+                    column.active = hasbg
+                    column.prop(bg.clip_user, "proxy_render_size", text="")
+                    column.prop(bg.clip_user, "use_render_undistorted")
+
+                if hasbg:
                     box.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")

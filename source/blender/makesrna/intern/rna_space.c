@@ -70,6 +70,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
 	{SPACE_CONSOLE, "CONSOLE", 0, "Python Console", ""},
 	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
+	{SPACE_CLIP, "CLIP_EDITOR", 0, "Clip Editor", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem draw_channels_items[] = {
@@ -126,6 +127,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
+#include "ED_clip.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -166,6 +168,8 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceConsole;
 		case SPACE_USERPREF:
 			return &RNA_SpaceUserPreferences;
+		case SPACE_CLIP:
+			return &RNA_SpaceClipEditor;
 		default:
 			return &RNA_Space;
 	}
@@ -883,6 +887,15 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
+static BGpic *rna_BackgroundImage_add(View3D *v3d)
+{
+	BGpic *bgpic= ED_view3D_background_image_add(v3d);;
+
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	return bgpic;
+}
+
 /* Space Node Editor */
 
 static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
@@ -953,6 +966,34 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 	*free = 1;
 
 	return item;
+}
+
+static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	ED_space_clip_set(NULL, sc, (MovieClip*)value.data);
+}
+
+static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	sc->scopes.ok= 0;
+}
+
+static void rna_SpaceClipEditor_lock_selection_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	sc->xlockof= 0.f;
+	sc->ylockof= 0.f;
+}
+
+static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ScrArea *sa= rna_area_from_space(ptr);
+	ED_area_tag_refresh(sa);
 }
 
 #else
@@ -1170,9 +1211,21 @@ static void rna_def_background_image(BlenderRNA *brna)
 		{(1<<RV3D_VIEW_CAMERA), "CAMERA", 0, "Camera", "Show background image in camera view"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem bgpic_source_items[] = {
+		{V3D_BGPIC_IMAGE, "IMAGE", 0, "Image", ""},
+		{V3D_BGPIC_MOVIE, "MOVIE", 0, "Movie", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna= RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
 	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+
+	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "source");
+	RNA_def_property_enum_items(prop, bgpic_source_items);
+	RNA_def_property_ui_text(prop, "Background Source", "Data source used for background");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
@@ -1180,10 +1233,23 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clip");
+	RNA_def_property_ui_text(prop, "MovieClip", "Movie clip displayed and edited in this space");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MovieClipUser");
+	RNA_def_property_pointer_sdna(prop, NULL, "cuser");
+	RNA_def_property_ui_text(prop, "Clip User", "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
@@ -1220,6 +1286,28 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Expanded", "Show the expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
+	prop= RNA_def_property(srna, "use_camera_clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_CAMERACLIP);
+	RNA_def_property_ui_text(prop, "Camera Clip", "Use movie clip from active scene camera");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+}
+
+static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BackgroundImages");
+	srna= RNA_def_struct(brna, "BackgroundImages", NULL);
+	RNA_def_struct_sdna(srna, "View3D");
+	RNA_def_struct_ui_text(srna, "Background Images", "Collection of background images");
+
+	func= RNA_def_function(srna, "add", "rna_BackgroundImage_add");
+	RNA_def_function_ui_description(func, "Add new background image");
+
+	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
+	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)
@@ -1241,6 +1329,16 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{RV3D_PERSP, "PERSP", 0, "Perspective", ""},
 		{RV3D_ORTHO, "ORTHO", 0, "Orthographic", ""},
 		{RV3D_CAMOB, "CAMERA", 0, "Camera", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem bundle_drawtype_items[] = {
+		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
+		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
+		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
+		{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{OB_CUBE, "CUBE", 0, "Cube", ""},
+		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceView3D", "Space");
@@ -1386,6 +1484,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "BackgroundImage");
 	RNA_def_property_ui_text(prop, "Background Images", "List of background images");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	rna_def_backgroundImages(brna, prop);
 
 	prop= RNA_def_property(srna, "show_background_images", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DISPBGPICS);
@@ -1470,6 +1569,33 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "RegionView3D");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_quadview_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Quad View Region", "3D region that defines the quad view settings");
+
+	prop= RNA_def_property(srna, "show_reconstruction", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_RECONSTRUCTION);
+	RNA_def_property_ui_text(prop, "Show Reconstruction", "Display reconstruction data from active movie clip");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "bundle_draw_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_float_sdna(prop, NULL, "bundle_size");
+	RNA_def_property_ui_text(prop, "Bundle Size", "Display size of bundles from reconstructed data");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "bundle_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "bundle_drawtype");
+	RNA_def_property_enum_items(prop, bundle_drawtype_items);
+	RNA_def_property_ui_text(prop, "Bundle Display Type", "Viewport display style for bundles");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_CAMERAPATH);
+	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of camera");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "show_bundle_name", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
+	RNA_def_property_ui_text(prop, "Show Bundle Name", "Show names for bundle objects");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
 
@@ -2659,6 +2785,172 @@ static void rna_def_space_logic(BlenderRNA *brna)
 
 }
 
+static void rna_def_space_clip(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem mode_items[] = {
+		{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
+		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction", "Show tracking/reconstruction tools"},
+		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem view_items[] = {
+		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
+		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SpaceClipEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceClip");
+	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
+
+	/* movieclip */
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "Movie clip displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_clip_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* clip user */
+	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MovieClipUser");
+	RNA_def_property_pointer_sdna(prop, NULL, "user");
+	RNA_def_property_ui_text(prop, "Movie Clip User", "Parameters defining which frame of the movie clip is displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mode */
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
+
+	/* view */
+	prop= RNA_def_property(srna, "view", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "view");
+	RNA_def_property_enum_items(prop, view_items);
+	RNA_def_property_ui_text(prop, "View", "Type of the clip editor view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_view_type_update");
+
+	/* show pattern */
+	prop= RNA_def_property(srna, "show_marker_pattern", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Marker Pattern", "Show pattern boundbox for markers");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_PATTERN);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show search */
+	prop= RNA_def_property(srna, "show_marker_search", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Marker Search", "Show search boundbox for markers");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_MARKER_SEARCH);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show pyramid */
+	prop= RNA_def_property(srna, "show_pyramid_levels", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Pyramid ", "Show patterns for each pyramid level for markers (KLT only)");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_PYRAMID_LEVELS);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* lock to selection */
+	prop= RNA_def_property(srna, "lock_selection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Lock to Selection", "Lock viewport to selected markers during playback");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_LOCK_SELECTION);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, "rna_SpaceClipEditor_lock_selection_update");
+
+	/* show markers pathes */
+	prop= RNA_def_property(srna, "show_track_path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TRACK_PATH);
+	RNA_def_property_ui_text(prop, "Show Track Path", "Show path of how track moves");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* path length */
+	prop= RNA_def_property(srna, "path_length", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "path_length");
+	RNA_def_property_range(prop, 0, 50);
+	RNA_def_property_ui_text(prop, "Path Length", "Length of displaying path, in frames");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show tiny markers */
+	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show bundles */
+	prop= RNA_def_property(srna, "show_bundles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of bundles into footage");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_BUNDLES);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mute footage */
+	prop= RNA_def_property(srna, "use_mute_footage", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Mute Footage", "Mute footage and show black background instead");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_MUTE_FOOTAGE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* hide disabled */
+	prop= RNA_def_property(srna, "show_disabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Show Disabled", "Show disabled tracks from the footage");
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SC_HIDE_DISABLED);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* scopes */
+	prop= RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "scopes");
+	RNA_def_property_struct_type(prop, "MovieClipScopes");
+	RNA_def_property_ui_text(prop, "Scopes", "Scopes to visualize movie clip statistics");
+
+	/* show names */
+	prop= RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_NAMES);
+	RNA_def_property_ui_text(prop, "Show Names", "Show track names and status");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show grid */
+	prop= RNA_def_property(srna, "show_grid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRID);
+	RNA_def_property_ui_text(prop, "Show Grid", "Show grid showing lens distortion");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show stable */
+	prop= RNA_def_property(srna, "show_stable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_STABLE);
+	RNA_def_property_ui_text(prop, "Show Stable", "Show stable footage in editor (if stabilization is enabled)");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* manual calibration */
+	prop= RNA_def_property(srna, "use_manual_calibration", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_MANUAL_CALIBRATION);
+	RNA_def_property_ui_text(prop, "Manual Calibration", "Use manual calibration helpers");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show stable */
+	prop= RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil", "Show grease pencil strokes over the footage");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show filters */
+	prop= RNA_def_property(srna, "show_filters", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_FILTERS);
+	RNA_def_property_ui_text(prop, "Show Filters", "Show filters for graph editor");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show graph_frames */
+	prop= RNA_def_property(srna, "show_graph_frames", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_FRAMES);
+	RNA_def_property_ui_text(prop, "Show Frames", "Show curves for frames in graph editor");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show graph_tracks */
+	prop= RNA_def_property(srna, "show_graph_tracks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_TRACKS);
+	RNA_def_property_ui_text(prop, "Show Tracks", "Show curves for tracks in graph editor");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+}
+
+
 void RNA_def_space(BlenderRNA *brna)
 {
 	rna_def_space(brna);
@@ -2681,6 +2973,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_userpref(brna);
 	rna_def_space_node(brna);
 	rna_def_space_logic(brna);
+	rna_def_space_clip(brna);
 }
 
 #endif

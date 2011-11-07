@@ -382,6 +382,9 @@ typedef struct TransInfo {
 
 #define T_RELEASE_CONFIRM	(1 << 23)
 
+	/* alternative transformation. used to add offset to tracking markers */
+#define T_ALT_TRANSFORM		(1 << 24)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
@@ -546,6 +549,7 @@ void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
+void flushTransTracking(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 int gimbal_axis(struct Object *ob, float gmat[][3]); /* return 0 when no gimbal for selection */

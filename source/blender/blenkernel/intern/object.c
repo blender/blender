@@ -46,6 +46,7 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -1810,11 +1811,30 @@ void set_no_parent_ipo(int val)
 	no_parent_ipo= val;
 }
 
+static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
+{
+	float *fp1, *fp2;
+	float fac1, fac2;
+	int a;
+
+	// include framerate
+	fac1= ( 1.0f / (1.0f + (float)fabs(ob->sf)) );
+	if(fac1 >= 1.0f) return 0;
+	fac2= 1.0f-fac1;
+
+	fp1= obmat[0];
+	fp2= slowmat[0];
+	for(a=0; a<16; a++, fp1++, fp2++) {
+		fp1[0]= fac1*fp1[0] + fac2*fp2[0];
+	}
+
+	return 1;
+}
+
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
-	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime=ctime, fac1, fac2;
-	int a;
+	float slowmat[4][4] = MAT4_UNITY;
+	float stime=ctime;
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
@@ -1848,16 +1868,8 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		 * An old-fashioned hack which probably doesn't really cut it anymore
 		 */
 		if(ob->partype & PARSLOW) {
-			// include framerate
-			fac1= ( 1.0f / (1.0f + (float)fabs(ob->sf)) );
-			if(fac1 >= 1.0f) return;
-			fac2= 1.0f-fac1;
-			
-			fp1= ob->obmat[0];
-			fp2= slowmat[0];
-			for(a=0; a<16; a++, fp1++, fp2++) {
-				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
-			}
+			if(!where_is_object_parslow(ob, ob->obmat, slowmat))
+				return;
 		}
 	}
 	else {
@@ -1879,6 +1891,27 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	/* set negative scale flag in object */
 	if(is_negative_m4(ob->obmat))	ob->transflag |= OB_NEG_SCALE;
 	else							ob->transflag &= ~OB_NEG_SCALE;
+}
+
+/* get object transformation matrix without recalculating dependencies and
+   constraints -- assume dependencies are already solved by depsgraph.
+   no changes to object and it's parent would be done.
+   used for bundles orientation in 3d space relative to parented blender camera */
+void where_is_object_mat(Scene *scene, Object *ob, float obmat[4][4])
+{
+	float slowmat[4][4] = MAT4_UNITY;
+
+	if(ob->parent) {
+		Object *par= ob->parent;
+
+		solve_parenting(scene, ob, par, obmat, slowmat, 1);
+
+		if(ob->partype & PARSLOW)
+			where_is_object_parslow(ob, obmat, slowmat);
+	}
+	else {
+		object_to_mat4(ob, obmat);
+	}
 }
 
 static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
@@ -2810,4 +2843,29 @@ void object_relink(Object *ob)
 
 	ID_NEW(ob->proxy);
 	ID_NEW(ob->proxy_group);
+}
+
+MovieClip *object_get_movieclip(Scene *scene, Object *ob, int use_default)
+{
+	MovieClip *clip= use_default ? scene->clip : NULL;
+	bConstraint *con= ob->constraints.first, *scon= NULL;
+
+	while(con){
+		if(con->type==CONSTRAINT_TYPE_CAMERASOLVER){
+			if(scon==NULL || (scon->flag&CONSTRAINT_OFF))
+				scon= con;
+		}
+
+		con= con->next;
+	}
+
+	if(scon) {
+		bCameraSolverConstraint *solver= scon->data;
+		if((solver->flag&CAMERASOLVER_ACTIVECLIP)==0)
+			clip= solver->clip;
+		else
+			clip= scene->clip;
+	}
+
+	return clip;
 }

@@ -973,6 +973,11 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "data_path", "tool_settings.use_snap");
 			break;
+		case SPACE_CLIP:
+			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
+			WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
+			WM_keymap_add_item(keymap, OP_RESIZE, SKEY, KM_PRESS, 0, 0);
+			break;
 		default:
 			break;
 	}

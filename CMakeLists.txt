@@ -202,6 +202,9 @@ option(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
+# Camera/motion tracking
+option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
+
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)

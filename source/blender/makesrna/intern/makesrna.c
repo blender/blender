@@ -2479,6 +2479,8 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_vfont.c", NULL, RNA_def_vfont},
 	{"rna_wm.c", "rna_wm_api.c", RNA_def_wm},
 	{"rna_world.c", NULL, RNA_def_world},	
+	{"rna_movieclip.c", NULL, RNA_def_movieclip},
+	{"rna_tracking.c", NULL, RNA_def_tracking},
 	{NULL, NULL}};
 
 static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const char *api_filename)

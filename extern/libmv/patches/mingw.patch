@@ -1,0 +1,13 @@
+diff --git a/src/libmv/numeric/numeric.h b/src/libmv/numeric/numeric.h
+index f39d126..21e0f06 100644
+--- a/src/libmv/numeric/numeric.h
++++ b/src/libmv/numeric/numeric.h
+@@ -40,7 +40,7 @@
+   }
+ #endif //_WIN32 || __APPLE__
+ 
+-#if _WIN32
++#if (defined(WIN32) || defined(WIN64)) && !defined(__MINGW32__)
+   inline long lround(double d) {
+     return (long)(d>0 ? d+0.5 : ceil(d-0.5));
+   }

@@ -64,7 +64,7 @@ void id_clear_lib_data(struct Main *bmain, struct ID *id);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 
-#define MAX_LIBARRAY	39
+#define MAX_LIBARRAY	40
 int set_listbasepointers(struct Main *main, struct ListBase **lb);
 
 void free_libblock(struct ListBase *lb, void *idv);

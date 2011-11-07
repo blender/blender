@@ -47,6 +47,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "RNA_access.h"
 
@@ -70,6 +71,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_tracking.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -83,6 +85,7 @@
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 #include "ED_curve.h" /* for curve_editnurbs */
+#include "ED_clip.h"
 
 //#include "BDR_unwrapper.h"
 
@@ -862,6 +865,48 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		recalcData_view3d(t);
+	}
+	else if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sc= t->sa->spacedata.first;
+		MovieClip *clip= ED_space_clip(sc);
+		MovieTrackingTrack *track;
+
+		if(t->state == TRANS_CANCEL) {
+			track= clip->tracking.tracks.first;
+			while(track) {
+				if(TRACK_VIEW_SELECTED(sc, track)) {
+					MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+
+					marker->flag= track->transflag;
+				}
+
+				track= track->next;
+			}
+		}
+
+		flushTransTracking(t);
+
+		track= clip->tracking.tracks.first;
+		while(track) {
+			if(TRACK_VIEW_SELECTED(sc, track)) {
+				if (t->mode == TFM_TRANSLATION) {
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
+				}
+				else if (t->mode == TFM_RESIZE) {
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
+					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
+				}
+			}
+
+			track= track->next;
+		}
+
+		DAG_id_tag_update(&clip->id, 0);
 	}
 }
 
