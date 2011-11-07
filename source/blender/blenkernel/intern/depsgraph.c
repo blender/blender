@@ -643,7 +643,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		if(!cti)
 			continue;
 
-		/* special case for FollowTrack -- it doesn't use targets to define relations */
+		/* special case for camera tracking -- it doesn't use targets to define relations */
 		if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
 			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data= (bFollowTrackConstraint *)con->data;
@@ -2148,7 +2148,7 @@ static void dag_object_time_update_flags(Object *ob)
 			bConstraintTarget *ct;
 			
 			if (cti) {
-				/* special case for FollowTrack -- it doesn't use targets to define relations */
+				/* special case for camera tracking -- it doesn't use targets to define relations */
 				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
 					ob->recalc |= OB_RECALC_OB;
 				}
@@ -2563,8 +2563,8 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 
 		/* camera's matrix is used to orient reconstructed stuff,
 		   so it should happen tracking-related constraints recalculation
-		   when camera is changing */
-		if(sce->camera && &sce->camera->id == id && sce->clip) {
+		   when camera is changing (sergey) */
+		if(sce->camera && &sce->camera->id == id && object_get_movieclip(sce, sce->camera, 1)) {
 			dag_id_flush_update(sce, &sce->clip->id);
 		}
 

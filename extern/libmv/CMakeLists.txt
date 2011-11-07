@@ -39,7 +39,6 @@ set(SRC
 	libmv-capi.cpp
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
-	libmv/numeric/tinyvector.cc
 	libmv/simple_pipeline/reconstruction.cc
 	libmv/simple_pipeline/resect.cc
 	libmv/simple_pipeline/intersect.cc
