@@ -105,12 +105,30 @@
 
 #define IMAPAINT_CHAR_TO_FLOAT(c) ((c)/255.0f)
 
-#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f) { (c)[0]=FTOCHAR((f)[0]); (c)[1]=FTOCHAR((f)[1]); (c)[2]=FTOCHAR((f)[2]); }
-#define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f) { (c)[0]=FTOCHAR((f)[0]); (c)[1]=FTOCHAR((f)[1]); (c)[2]=FTOCHAR((f)[2]); (c)[3]=FTOCHAR((f)[3]); }
+#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
+	(c)[0]= FTOCHAR((f)[0]);                                                  \
+	(c)[1]= FTOCHAR((f)[1]);                                                  \
+	(c)[2]= FTOCHAR((f)[2]);                                                  \
+}
+#define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f)  {                                  \
+	(c)[0]= FTOCHAR((f)[0]);                                                  \
+	(c)[1]= FTOCHAR((f)[1]);                                                  \
+	(c)[2]= FTOCHAR((f)[2]);                                                  \
+	(c)[3]= FTOCHAR((f)[3]);                                                  \
+}
+#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
+	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
+	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
+	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+}
+#define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c)  {                                  \
+	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
+	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
+	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+	(f)[3]= IMAPAINT_CHAR_TO_FLOAT((c)[3]);                                   \
+}
 
-#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c) { (f)[0]=IMAPAINT_CHAR_TO_FLOAT((c)[0]); (f)[1]=IMAPAINT_CHAR_TO_FLOAT((c)[1]); (f)[2]=IMAPAINT_CHAR_TO_FLOAT((c)[2]); }
-#define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c) { (f)[0]=IMAPAINT_CHAR_TO_FLOAT((c)[0]); (f)[1]=IMAPAINT_CHAR_TO_FLOAT((c)[1]); (f)[2]=IMAPAINT_CHAR_TO_FLOAT((c)[2]); (f)[3]=IMAPAINT_CHAR_TO_FLOAT((c)[3]); }
-#define IMAPAINT_FLOAT_RGB_COPY(a, b) VECCOPY(a, b)
+#define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
 
 #define IMAPAINT_TILE_BITS			6
 #define IMAPAINT_TILE_SIZE			(1 << IMAPAINT_TILE_BITS)

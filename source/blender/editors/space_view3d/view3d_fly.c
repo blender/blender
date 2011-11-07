@@ -314,7 +314,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
-	VECCOPY2D(fly->mval, event->mval)
+	copy_v2_v2_int(fly->mval, event->mval);
 	fly->ndof = NULL;
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
@@ -475,7 +475,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 		fly->redraw = 1;
 	}
 	else if (event->type == MOUSEMOVE) {
-		VECCOPY2D(fly->mval, event->mval);
+		copy_v2_v2_int(fly->mval, event->mval);
 	}
 	else if (event->type == NDOF_MOTION) {
 		// do these automagically get delivered? yes.

@@ -139,12 +139,9 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	spoint->dtco[1]= data[0]*p[0][1] + data[1]*p[1][1] + data[2]*p[2][1] + data[3]*p[3][1];
 	spoint->dtco[2]= data[0]*p[0][2] + data[1]*p[1][2] + data[2]*p[2][2] + data[3]*p[3][2];
 
-	copy_v3_v3(spoint->tan, spoint->dtco);
-	normalize_v3(spoint->tan);
-
-	copy_v3_v3(spoint->nor, spoint->co);
-	VECMUL(spoint->nor, -1.0f);
-	normalize_v3(spoint->nor);
+	normalize_v3_v3(spoint->tan, spoint->dtco);
+	normalize_v3_v3(spoint->nor, spoint->co);
+	negate_v3(spoint->nor);
 
 	spoint->width= strand_eval_width(ma, spoint->strandco);
 	

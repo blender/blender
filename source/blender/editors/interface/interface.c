@@ -1224,7 +1224,7 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	int a, tot;
 
 	if(but->editvec) {
-		VECCOPY(vec, but->editvec);
+		copy_v3_v3(vec, but->editvec);
 	}
 
 	if(but->rnaprop) {
@@ -1248,7 +1248,7 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	}
 	else if(but->pointype == FLO) {
 		float *fp= (float *)but->poin;
-		VECCOPY(vec, fp);
+		copy_v3_v3(vec, fp);
 	}
 	else {
 		if (but->editvec==NULL) {

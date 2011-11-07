@@ -623,7 +623,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				
 				copy_v3_v3(pa->bbmin, bbmin);
 				copy_v3_v3(pa->voxel, voxel);
-				VECCOPY(pa->res, res); /* int's */
+				copy_v3_v3_int(pa->res, res);
 				
 				pa->minx = minx; pa->maxx = maxx;
 				pa->miny = miny; pa->maxy = maxy;

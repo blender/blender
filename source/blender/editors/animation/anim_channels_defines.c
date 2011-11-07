@@ -176,13 +176,13 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 		unsigned char cp[3];
 		
 		if (indent == 2) {
-			VECCOPY(cp, grp->cs.solid);
+			copy_v3_v3_char((char *)cp, grp->cs.solid);
 		}
 		else if (indent == 1) {
-			VECCOPY(cp, grp->cs.select);
+			copy_v3_v3_char((char *)cp, grp->cs.select);
 		}
 		else {
-			VECCOPY(cp, grp->cs.active);
+			copy_v3_v3_char((char *)cp, grp->cs.active);
 		}
 		
 		/* copy the colors over, transforming from bytes to floats */

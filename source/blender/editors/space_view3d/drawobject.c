@@ -4922,7 +4922,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			int skip= nu->resolu/16;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
-				float fac= bevp->radius * ts->normalsize;
+				const float fac= bevp->radius * ts->normalsize;
 				float vec_a[3]; // Offset perpendicular to the curve
 				float vec_b[3]; // Delta along the curve
 
@@ -4938,9 +4938,9 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				mul_qt_v3(bevp->quat, vec_b);
 				add_v3_v3(vec_a, bevp->vec);
 				add_v3_v3(vec_b, bevp->vec);
-				
-				VECSUBFAC(vec_a, vec_a, bevp->dir, fac);
-				VECSUBFAC(vec_b, vec_b, bevp->dir, fac);
+
+				madd_v3_v3fl(vec_a, bevp->dir, -fac);
+				madd_v3_v3fl(vec_b, bevp->dir, -fac);
 
 				glBegin(GL_LINE_STRIP);
 				glVertex3fv(vec_a);
