@@ -2873,10 +2873,11 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(&clip->tracking.tracks, track);
+					track= NULL;
 				}
 
 				/* happens when all tracking segments are not long enough */
-				if(track->markersnr==0) {
+				if(track && track->markersnr==0) {
 					if(track==act_track)
 						clip->tracking.act_track= NULL;
 
