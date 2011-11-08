@@ -502,13 +502,19 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_BOOST)
-		set(BOOST "/usr" CACHE PATH "Boost Directory")
+		
+		# not sure this is needed, commenting, campbell
+		# ---
+		# set(BOOST "/usr" CACHE PATH "Boost Directory")
+		# 
+		# if(NOT BOOST_CUSTOM)
+		# 	set(BOOST_ROOT ${BOOST})
+		# 	set(Boost_USE_MULTITHREADED ON)
+		# 	find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+		# endif()
 
-		if(NOT BOOST_CUSTOM)
-			set(BOOST_ROOT ${BOOST})
-			set(Boost_USE_MULTITHREADED ON)
-			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
-		endif()
+		set(Boost_USE_MULTITHREADED ON)
+		find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
 		set(BOOST_LIBRARIES ${Boost_LIBRARIES})
@@ -517,8 +523,6 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
-		set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
-
 		find_package(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
