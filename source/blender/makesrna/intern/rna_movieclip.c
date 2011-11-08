@@ -66,24 +66,6 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 	values[1]= clip->lastsize[1];
 }
 
-static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)
-{
-	MovieClip *clip= (MovieClip*)ptr->id.data;
-	ImBuf *ibuf;
-
-	ibuf= BKE_movieclip_get_ibuf(clip, NULL);
-	if (ibuf) {
-		values[0]= ibuf->ppm[0];
-		values[1]= ibuf->ppm[1];
-
-		IMB_freeImBuf(ibuf);
-	}
-	else {
-		values[0]= 0;
-		values[1]= 0;
-	}
-}
-
 #else
 
 static void rna_def_movieclip_proxy(BlenderRNA *brna)
@@ -233,10 +215,6 @@ static void rna_def_movieclip(BlenderRNA *brna)
 
 	prop= RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" , "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
 	RNA_def_property_int_funcs(prop, "rna_MovieClip_size_get" , NULL, NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop= RNA_def_float_vector(srna, "resolution" , 2 , NULL , 0, 0, "Resolution" , "X/Y pixels per meter" , 0 , 0);
-	RNA_def_property_float_funcs(prop, "rna_MovieClip_resolution_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_XYZ);

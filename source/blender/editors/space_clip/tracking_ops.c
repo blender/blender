@@ -1537,7 +1537,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	}
 
 	/* could fail if footage uses images with different sizes */
-	BKE_movieclip_get_size(clip, NULL, &width, &height);
+	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
 	error= BKE_tracking_solve_reconstruction(tracking, width, height);
 
@@ -1545,6 +1545,9 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
 		BKE_reportf(op->reports, RPT_INFO, "Average reprojection error %.3f", error);
+
+	if(scene->clip)
+		id_us_min(&clip->id);
 
 	scene->clip= clip;
 	id_us_plus(&clip->id);
