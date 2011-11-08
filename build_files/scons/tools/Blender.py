@@ -279,6 +279,11 @@ def setup_syslibs(lenv):
         if lenv['WITH_BF_3DMOUSE']:
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
+                
+    if lenv['WITH_BF_OIIO']:
+        syslibs += Split(lenv['BF_OIIO_LIB'])
+    if lenv['WITH_BF_BOOST']:
+        syslibs += Split(lenv['BF_BOOST_LIB'])
 
     if lenv['WITH_BF_OIIO']:
         syslibs += Split(lenv['BF_OIIO_LIB'])

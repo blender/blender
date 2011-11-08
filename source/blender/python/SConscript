@@ -43,5 +43,8 @@ if env['BF_BUILDINFO']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
+
 sources = env.Glob('intern/*.c')
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361])
