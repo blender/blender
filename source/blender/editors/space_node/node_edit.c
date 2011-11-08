@@ -61,6 +61,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
@@ -269,13 +270,14 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
+void ED_node_shader_default(Scene *scene, ID *id)
 {
 	bNode *in, *out;
-	bNodeSocket *fromsock, *tosock;
+	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
 	bNodeTemplate ntemp;
 	int output_type, shader_type;
+	float color[3], strength = 1.0f;
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
@@ -284,24 +286,42 @@ void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			if(scene_use_new_shading_nodes(scene)) {
+				output_type = SH_NODE_OUTPUT_MATERIAL;
+				shader_type = SH_NODE_BSDF_DIFFUSE;
+			}
+			else {
+				output_type = SH_NODE_OUTPUT;
+				shader_type = SH_NODE_MATERIAL;
+			}
+
+			copy_v3_v3(color, &ma->r);
+			strength= 0.0f;
 			break;
 		}
 		case ID_WO: {
 			World *wo= (World*)id;
 			wo->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			output_type = SH_NODE_OUTPUT_WORLD;
+			shader_type = SH_NODE_BACKGROUND;
+
+			copy_v3_v3(color, &wo->horr);
+			strength= 1.0f;
 			break;
 		}
 		case ID_LA: {
 			Lamp *la= (Lamp*)id;
 			la->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			output_type = SH_NODE_OUTPUT_LAMP;
+			shader_type = SH_NODE_EMISSION;
+
+			copy_v3_v3(color, &la->r);
+			if(la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA)
+				strength= 100.0f;
+			else
+				strength= 1.0f;
 			break;
 		}
 		default:
@@ -322,6 +342,17 @@ void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
 	fromsock= in->outputs.first;
 	tosock= out->inputs.first;
 	nodeAddLink(ntree, in, fromsock, out, tosock);
+
+	/* default values */
+	if(scene_use_new_shading_nodes(scene)) {
+		sock= in->inputs.first;
+		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
+
+		if(strength != 0.0f) {
+			sock= in->inputs.last;
+			((bNodeSocketValueFloat*)sock->default_value)->value= strength;
+		}
+	}
 	
 	ntreeUpdateTree(ntree);
 }

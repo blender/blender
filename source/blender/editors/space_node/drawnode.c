@@ -994,6 +994,54 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 	}
 }
 
+static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "attribute_name", 0, "Name", ICON_NONE);
+}
+
+static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "sun_direction", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "turbidity", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "gradient_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "turbulence_depth", 0, NULL, ICON_NONE);
+}
+
+static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "wave_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "musgrave_type", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "coloring", 0, "", ICON_NONE);
+}
+
+static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *ptr)
 { 
 	Main *bmain= CTX_data_main(C);
@@ -1079,6 +1127,37 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_GEOMETRY:
 			ntype->uifunc= node_shader_buts_geometry;
+			break;
+		case SH_NODE_ATTRIBUTE:
+			ntype->uifunc= node_shader_buts_attribute;
+			break;
+		case SH_NODE_TEX_SKY:
+			ntype->uifunc= node_shader_buts_tex_sky;
+			break;
+		case SH_NODE_TEX_IMAGE:
+			ntype->uifunc= node_shader_buts_tex_image;
+			break;
+		case SH_NODE_TEX_ENVIRONMENT:
+			ntype->uifunc= node_shader_buts_tex_image;
+			break;
+		case SH_NODE_TEX_GRADIENT:
+			ntype->uifunc= node_shader_buts_tex_gradient;
+			break;
+		case SH_NODE_TEX_MAGIC:
+			ntype->uifunc= node_shader_buts_tex_magic;
+			break;
+		case SH_NODE_TEX_WAVE:
+			ntype->uifunc= node_shader_buts_tex_wave;
+			break;
+		case SH_NODE_TEX_MUSGRAVE:
+			ntype->uifunc= node_shader_buts_tex_musgrave;
+			break;
+		case SH_NODE_TEX_VORONOI:
+			ntype->uifunc= node_shader_buts_tex_voronoi;
+			break;
+		case SH_NODE_BSDF_GLOSSY:
+		case SH_NODE_BSDF_GLASS:
+			ntype->uifunc= node_shader_buts_glossy;
 			break;
 		case NODE_DYNAMIC:
 			ntype->uifunc= node_shader_buts_dynamic;

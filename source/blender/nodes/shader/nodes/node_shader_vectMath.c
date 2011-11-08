@@ -135,7 +135,7 @@ void register_node_type_sh_vect_math(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_VECT_MATH, "Vector Math", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_vect_math_in, sh_node_vect_math_out);
 	node_type_size(&ntype, 80, 75, 140);
 	node_type_label(&ntype, node_vect_math_label);

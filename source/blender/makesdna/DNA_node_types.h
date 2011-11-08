@@ -35,6 +35,7 @@
 #include "DNA_ID.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
+#include "DNA_texture_types.h"
 
 struct ID;
 struct ListBase;
@@ -45,6 +46,7 @@ struct bNodeTreeExec;
 struct AnimData;
 struct bGPdata;
 struct uiBlock;
+struct Image;
 
 #define NODE_MAXSTR 32
 
@@ -191,6 +193,8 @@ typedef struct bNode {
 #define NODE_BACKGROUND		(1<<12)
 	/* automatic flag for nodes included in transforms */
 #define NODE_TRANSFORM		(1<<13)
+	/* node is active texture */
+#define NODE_ACTIVE_TEXTURE	(1<<14)
 
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
@@ -423,6 +427,65 @@ typedef struct NodeColorspill {
 	float uspillr, uspillg, uspillb;
 }NodeColorspill;
 
+typedef struct NodeTexBase {
+	TexMapping tex_mapping;
+	ColorMapping color_mapping;
+} NodeTexBase;
+
+typedef struct NodeTexSky {
+	NodeTexBase base;
+	float sun_direction[3];
+	float turbidity;
+} NodeTexSky;
+
+typedef struct NodeTexImage {
+	NodeTexBase base;
+	int color_space, pad;
+} NodeTexImage;
+
+typedef struct NodeTexEnvironment {
+	NodeTexBase base;
+	int color_space, pad;
+} NodeTexEnvironment;
+
+typedef struct NodeTexGradient {
+	NodeTexBase base;
+	int gradient_type;
+	int pad;
+} NodeTexGradient;
+
+typedef struct NodeTexNoise {
+	NodeTexBase base;
+} NodeTexNoise;
+
+typedef struct NodeTexVoronoi {
+	NodeTexBase base;
+	int coloring;
+	int pad;
+} NodeTexVoronoi;
+
+typedef struct NodeTexMusgrave {
+	NodeTexBase base;
+	int musgrave_type;
+	int pad;
+} NodeTexMusgrave;
+
+typedef struct NodeTexWave {
+	NodeTexBase base;
+	int wave_type;
+	int pad;
+} NodeTexWave;
+
+typedef struct NodeTexMagic {
+	NodeTexBase base;
+	int depth;
+	int pad;
+} NodeTexMagic;
+
+typedef struct NodeShaderAttribute {
+	char name[64];
+} NodeShaderAttribute;
+
 /* TEX_output */
 typedef struct TexNodeOutput {
 	char name[32];
@@ -434,6 +497,65 @@ typedef struct TexNodeOutput {
 #define CMP_NODE_CHANNEL_MATTE_CS_YUV	3
 #define CMP_NODE_CHANNEL_MATTE_CS_YCC	4
 
+/* glossy distributions */
+#define SHD_GLOSSY_BECKMANN	0
+#define SHD_GLOSSY_SHARP	1
+#define SHD_GLOSSY_GGX		2
+
+/* blend texture */
+#define SHD_BLEND_LINEAR			0
+#define SHD_BLEND_QUADRATIC			1
+#define SHD_BLEND_EASING			2
+#define SHD_BLEND_DIAGONAL			3
+#define SHD_BLEND_RADIAL			4
+#define SHD_BLEND_QUADRATIC_SPHERE	5
+#define SHD_BLEND_SPHERICAL			6
+
+/* noise basis for textures */
+#define SHD_NOISE_PERLIN			0
+#define SHD_NOISE_VORONOI_F1		1
+#define SHD_NOISE_VORONOI_F2		2
+#define SHD_NOISE_VORONOI_F3		3
+#define SHD_NOISE_VORONOI_F4		4
+#define SHD_NOISE_VORONOI_F2_F1		5
+#define SHD_NOISE_VORONOI_CRACKLE	6
+#define SHD_NOISE_CELL_NOISE		7
+
+#define SHD_NOISE_SOFT	0
+#define SHD_NOISE_HARD	1
+
+/* voronoi texture */
+#define SHD_VORONOI_DISTANCE_SQUARED	0
+#define SHD_VORONOI_ACTUAL_DISTANCE		1
+#define SHD_VORONOI_MANHATTAN			2
+#define SHD_VORONOI_CHEBYCHEV			3
+#define SHD_VORONOI_MINKOVSKY_H			4
+#define SHD_VORONOI_MINKOVSKY_4			5
+#define SHD_VORONOI_MINKOVSKY			6
+
+#define SHD_VORONOI_INTENSITY	0
+#define SHD_VORONOI_CELLS		1
+
+/* musgrave texture */
+#define SHD_MUSGRAVE_MULTIFRACTAL			0
+#define SHD_MUSGRAVE_FBM					1
+#define SHD_MUSGRAVE_HYBRID_MULTIFRACTAL	2
+#define SHD_MUSGRAVE_RIDGED_MULTIFRACTAL	3
+#define SHD_MUSGRAVE_HETERO_TERRAIN			4
+
+/* wave texture */
+#define SHD_WAVE_BANDS		0
+#define SHD_WAVE_RINGS		1
+
+#define SHD_WAVE_SINE	0
+#define SHD_WAVE_SAW	1
+#define SHD_WAVE_TRI	2
+
+/* image/environment texture */
+#define SHD_COLORSPACE_LINEAR	0
+#define SHD_COLORSPACE_SRGB		1
+
+/* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0
 #define CMP_NODE_BLUR_ASPECT_Y			1
 #define CMP_NODE_BLUR_ASPECT_X			2
