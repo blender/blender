@@ -443,7 +443,8 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 
 int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
-	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	int a= 0, b= 0;
+	/* int tot= dst_track->markersnr+src_track->markersnr; */ /* UNUSED */
 	int count= 0;
 
 	while(a<src_track->markersnr || b<dst_track->markersnr) {
