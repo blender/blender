@@ -1,7 +1,14 @@
 
-include_directories(. ../ ../svm ../../render ../../util ../../device)
+set(INC
+	.
+	../
+	../svm
+	../../render
+	../../util
+	../../device
+)
 
-set(sources
+set(SRC
 	background.cpp
 	bsdf_ashikhmin_velvet.cpp
 	bsdf_diffuse.cpp
@@ -17,17 +24,20 @@ set(sources
 	osl_closures.cpp
 	osl_services.cpp
 	osl_shader.cpp
-	vol_subsurface.cpp)
+	vol_subsurface.cpp
+)
 
-set(headers
+set(HEADER_SRC
 	osl_closures.h
 	osl_globals.h
 	osl_services.h
-	osl_shader.h)
+	osl_shader.h
+)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 
-add_library(cycles_kernel_osl ${sources} ${headers})
+include_directories(${INC})
+
+add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
 
 add_subdirectory(nodes)
-

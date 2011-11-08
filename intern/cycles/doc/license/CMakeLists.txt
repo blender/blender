@@ -1,5 +1,5 @@
 
-set(licenses
+set(LICENSES
 	Apache_2.0.txt
 	Blender.txt
 	GPL.txt
@@ -7,7 +7,7 @@ set(licenses
 	NVidia.txt
 	OSL.txt
 	Sobol.txt
-	readme.txt)
+	readme.txt
+)
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR}  "${licenses}" ${CYCLES_INSTALL_PATH}/license)
-
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR}  "${LICENSES}" ${CYCLES_INSTALL_PATH}/license)

@@ -1,10 +1,11 @@
 
-include_directories(
+set(INC
 	.
 	${GLEW_INCLUDE_PATH}
-	${OPENGL_INCLUDE_DIR})
+	${OPENGL_INCLUDE_DIR}
+)
 
-set(sources
+set(SRC
 	util_cache.cpp
 	util_cuda.cpp
 	util_dynlib.cpp
@@ -15,13 +16,16 @@ set(sources
 	util_string.cpp
 	util_system.cpp
 	util_time.cpp
-	util_transform.cpp)
+	util_transform.cpp
+)
 
 if(WITH_CYCLES_TEST)
-	list(APPEND sources util_view.cpp)
+	list(APPEND SRC
+		util_view.cpp
+	)
 endif()
 
-set(headers
+set(SRC_HEADERS
 	util_algorithm.h
 	util_args.h
 	util_boundbox.h
@@ -51,7 +55,9 @@ set(headers
 	util_types.h
 	util_view.h
 	util_vector.h
-	util_xml.h)
+	util_xml.h
+)
 
-add_library(cycles_util ${sources} ${headers})
+include_directories(${INC})
 
+add_library(cycles_util ${SRC} ${SRC_HEADERS})

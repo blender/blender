@@ -1,18 +1,28 @@
 
-include_directories(. ../kernel ../kernel/svm ../render ../util ../device)
+set(INC
+	.
+	../kernel
+	../kernel/svm
+	../render
+	../util
+	../device
+)
 
-set(sources
+set(SRC
 	bvh.cpp
 	bvh_build.cpp
 	bvh_node.cpp
-	bvh_sort.cpp)
+	bvh_sort.cpp
+)
 
-set(headers
+set(SRC_HEADERS
 	bvh.h
 	bvh_build.h
 	bvh_node.h
 	bvh_params.h
-	bvh_sort.h)
+	bvh_sort.h
+)
 
-add_library(cycles_bvh ${sources} ${headers})
+include_directories(${INC})
 
+add_library(cycles_bvh ${SRC} ${SRC_HEADERS})

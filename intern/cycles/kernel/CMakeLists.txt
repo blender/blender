@@ -1,10 +1,18 @@
 
-set(sources
+set(INC
+	.
+	../util
+	osl
+	svm
+)
+
+set(SRC
 	kernel.cpp
 	kernel.cl
-	kernel.cu)
+	kernel.cu
+)
 
-set(headers
+set(SRC_HEADERS
 	kernel.h
 	kernel_bvh.h
 	kernel_camera.h
@@ -27,9 +35,10 @@ set(headers
 	kernel_shader.h
 	kernel_textures.h
 	kernel_triangle.h
-	kernel_types.h)
+	kernel_types.h
+)
 
-set(svm_headers
+set(SRC_SVM_HEADERS
 	svm/bsdf.h
 	svm/bsdf_ashikhmin_velvet.h
 	svm/bsdf_diffuse.h
@@ -66,13 +75,14 @@ set(svm_headers
 	svm/svm_voronoi.h
 	svm/svm_wave.h
 	svm/volume.h
-	)
+)
 
-set(util_headers
+set(SRC_UTIL_HEADERS
 	../util/util_color.h
 	../util/util_math.h
 	../util/util_transform.h
-	../util/util_types.h)
+	../util/util_types.h
+)
 
 # OSL module
 
@@ -82,9 +92,9 @@ endif()
 
 # CPU module
 
-include_directories(. ../util osl svm)
+include_directories(${INC})
 
-add_library(cycles_kernel ${sources} ${headers} ${svm_headers})
+add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_SVM_HEADERS})
 
 if(WITH_CYCLES_CUDA)
 	add_dependencies(cycles_kernel cycles_kernel_cuda)
@@ -92,17 +102,16 @@ endif()
 
 # OPENCL kernel
 
-#set(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
+#set(KERNEL_PREPROCESSED ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
 #add_custom_command(
-#	OUTPUT ${kernel_preprocessed}
-#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${kernel_preprocessed}
-#	DEPENDS ${kernel_sources} ${util_headers})
-#add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
-#delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${kernel_preprocessed}" ${CYCLES_INSTALL_PATH}/kernel)
+#	OUTPUT ${KERNEL_PREPROCESSED}
+#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${KERNEL_PREPROCESSED}
+#	DEPENDS ${SRC_KERNEL} ${SRC_UTIL_HEADERS})
+#add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${KERNEL_PREPROCESSED})
+#delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${KERNEL_PREPROCESSED}" ${CYCLES_INSTALL_PATH}/kernel)
 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cl" ${CYCLES_INSTALL_PATH}/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cu" ${CYCLES_INSTALL_PATH}/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${headers}" ${CYCLES_INSTALL_PATH}/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${svm_headers}" ${CYCLES_INSTALL_PATH}/kernel/svm)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${util_headers}" ${CYCLES_INSTALL_PATH}/kernel)
-
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)

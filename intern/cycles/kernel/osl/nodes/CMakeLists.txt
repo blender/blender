@@ -1,7 +1,7 @@
 
 # OSL node shaders
 
-set(osl_sources
+set(SRC_OSL
 	node_add_closure.osl
 	node_attribute.osl
 	node_background.osl
@@ -45,26 +45,35 @@ set(osl_sources
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
 	node_ward_bsdf.osl
-	node_wood_texture.osl)
+	node_wood_texture.osl
+)
 
-set(osl_headers
+set(SRC_OSL_HEADERS
 	node_texture.h
-	stdosl.h)
+	stdosl.h
+)
 
-set(oso_sources)
+set(SRC_OSO
 
-foreach(_file ${osl_sources})
-	set(osl_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
-	string(REPLACE ".osl" ".oso" oso_file ${osl_file})
-	string(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} oso_file ${oso_file})
+)
+
+# TODO, add a module to compile OSL
+foreach(_file ${SRC_OSL})
+	set(_OSL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+	string(REPLACE ".osl" ".oso" _OSO_FILE ${_OSL_FILE})  # TODO, replace extension only
+	string(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} _OSO_FILE ${_OSO_FILE})
 	add_custom_command(
-		OUTPUT ${oso_file} 
-		COMMAND ${OSL_COMPILER} -O2 ${osl_file}
-		DEPENDS ${osl_file} ${osl_headers})
-	list(APPEND oso_sources ${oso_file})
+		OUTPUT ${_OSO_FILE} 
+		COMMAND ${OSL_COMPILER} -O2 ${_OSL_FILE}
+		DEPENDS ${_OSL_FILE} ${SRC_OSL_HEADERS})
+	list(APPEND SRC_OSO
+		${_OSO_FILE}
+	)
+	
+	unset(_OSL_FILE)
+	unset(_OSO_FILE)
 endforeach()
 
-add_custom_target(shader ALL DEPENDS ${oso_sources} ${osl_headers})
+add_custom_target(shader ALL DEPENDS ${SRC_OSO} ${SRC_OSL_HEADERS})
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${oso_sources}" ${CYCLES_INSTALL_PATH}/shader)
-
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)

@@ -172,6 +172,12 @@ def cmake_get_src(f):
                                 pass
                             elif new_file.endswith(".def"):
                                 pass
+                            elif new_file.endswith(".cl"):  # opencl
+                                pass
+                            elif new_file.endswith(".cu"):  # cuda
+                                pass
+                            elif new_file.endswith(".osl"):  # open shading language
+                                pass
                             else:
                                 raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
 

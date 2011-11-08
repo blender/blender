@@ -1,5 +1,5 @@
 
-include_directories(
+set(INC
 	.
 	../kernel
 	../kernel/svm
@@ -7,21 +7,26 @@ include_directories(
 	../util
 	../render
 	${OPENGL_INCLUDE_DIR}
-	${GLEW_INCLUDE_PATH})
+	${GLEW_INCLUDE_PATH}
+)
 
-set(sources
+set(SRC
 	device.cpp
 	device_cpu.cpp
 	device_cuda.cpp
 	device_multi.cpp
 	device_network.cpp
-	device_opencl.cpp)
+	device_opencl.cpp
+)
 
-set(headers
+set(SRC_HEADERS
 	device.h
 	device_intern.h
-	device_network.h)
+	device_network.h
+)
 
 add_definitions(-DGLEW_STATIC)
-add_library(cycles_device ${sources} ${headers})
 
+include_directories(${INC})
+
+add_library(cycles_device ${SRC} ${SRC_HEADERS})

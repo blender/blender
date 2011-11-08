@@ -1,6 +1,6 @@
 
 set(CYCLES_INSTALL_PATH "scripts/addons/cycles")
-SET(WITH_CYCLES_BLENDER ON)
+set(WITH_CYCLES_BLENDER ON)
 
 # External Libraries
 
@@ -14,7 +14,7 @@ set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3 -mtune=native")
 if(APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNING_FLAGS} ${GCC_OPTIM_FLAGS}")
 	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
-endif(APPLE)
+endif()
 
 if(WIN32)
 	if(MSVC)
@@ -24,12 +24,12 @@ if(WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNING_FLAGS} ${GCC_OPTIM_FLAGS}")
 		set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 	endif()
-endif(WIN32)
+endif()
 
 if(UNIX AND NOT APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNING_FLAGS} ${GCC_OPTIM_FLAGS}")
 	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
-endif(UNIX AND NOT APPLE)
+endif()
 
 # Definitions and Includes
 
@@ -73,4 +73,3 @@ add_subdirectory(kernel)
 add_subdirectory(render)
 add_subdirectory(subd)
 add_subdirectory(util)
-

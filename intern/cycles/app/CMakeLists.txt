@@ -1,5 +1,5 @@
 
-include_directories(
+set(INC
 	.
 	../device
 	../kernel
@@ -7,7 +7,8 @@ include_directories(
 	../bvh
 	../util
 	../render
-	../subd)
+	../subd
+)
 
 set(LIBRARIES
 	cycles_device
@@ -19,7 +20,8 @@ set(LIBRARIES
 	${BOOST_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${CYCLES_GLEW_LIBRARY}
-	${OPENIMAGEIO_LIBRARIES})
+	${OPENIMAGEIO_LIBRARIES}
+)
 
 link_directories(${OPENIMAGEIO_LIBPATH} ${BOOST_LIBPATH})
 
@@ -35,21 +37,33 @@ if(WITH_CYCLES_PARTIO)
 	list(APPEND LIBRARIES ${PARTIO_LIBRARIES})
 endif()
 
+include_directories(${INC})
+
 if(WITH_CYCLES_TEST)
-	add_executable(cycles_test cycles_test.cpp cycles_xml.cpp cycles_xml.h)
+	set(SRC
+		cycles_test.cpp
+		cycles_xml.cpp
+		cycles_xml.h
+	)
+	add_executable(cycles_test ${SRC})
 	target_link_libraries(cycles_test ${LIBRARIES})
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles_test PROPERTIES INSTALL_RPATH $ORIGIN/lib)
 	endif()
+	unset(SRC)
 endif()
 
 if(WITH_CYCLES_NETWORK)
-	add_executable(cycles_server cycles_server.cpp)
+	set(SRC
+		cycles_server.cpp
+	)
+	add_executable(cycles_server ${SRC})
 	target_link_libraries(cycles_server ${LIBRARIES})
 
 	if(UNIX AND NOT APPLE)
 		set_target_properties(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
 	endif()
+	unset(SRC)
 endif()
 
