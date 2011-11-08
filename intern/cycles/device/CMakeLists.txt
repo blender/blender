@@ -22,5 +22,6 @@ set(headers
 	device_intern.h
 	device_network.h)
 
+add_definitions(-DGLEW_STATIC)
 add_library(cycles_device ${sources} ${headers})
 
