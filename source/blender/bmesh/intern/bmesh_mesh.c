@@ -160,6 +160,47 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	BMO_ClearStack(bm);
 }
 
+void BM_Clear_Mesh(BMesh *bm)
+{
+	/*allocate the structure*/
+	int vsize, esize, lsize, fsize, lstsize;
+	/*I really need to make the allocation sizes defines, there's no reason why the API
+	  should allow client code to mess around with this - joeedh*/
+	int allocsize[5] = {512, 512, 512, 2048, 512};
+	Object *ob = bm->ob;
+	
+	/*free old mesh*/
+	BM_Free_Mesh_Data(bm);
+	memset(bm, 0, sizeof(BMesh));
+	
+	/*re-initialize mesh*/
+	vsize = sizeof(BMVert);
+	esize = sizeof(BMEdge);
+	lsize = sizeof(BMLoop);
+	fsize = sizeof(BMFace);
+	lstsize = sizeof(BMLoopList);
+
+	bm->ob = ob;
+	
+   /*allocate the memory pools for the mesh elements*/
+	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
+	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
+	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], 0, 0);
+	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], 0, 0);
+	bm->fpool = BLI_mempool_create(fsize, allocsize[4], allocsize[4], 0, 1);
+
+	/*allocate one flag pool that we dont get rid of.*/
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0, 0);
+	bm->stackdepth = 1;
+	bm->totflags = 1;
+}
+
+/*	
+ *	BMESH FREE MESH
+ *
+ *	Frees a BMesh structure.
+*/
+
 void BM_Free_Mesh(BMesh *bm)
 {
 	BM_Free_Mesh_Data(bm);

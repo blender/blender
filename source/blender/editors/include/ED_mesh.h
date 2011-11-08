@@ -296,6 +296,7 @@ int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
 void EDBM_selectmode_to_scene(struct bContext *C);
+void EDBM_ClearMesh(struct BMEditMesh *em);
 
 #include "../mesh/editbmesh_bvh.h"
 

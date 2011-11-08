@@ -2400,7 +2400,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 	int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
 	int res;
 
-	result = CDDM_copy(dm);
+	result = CDDM_copy(dm, 0);
 	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) {
 		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
 		if (sourceRecastData) {

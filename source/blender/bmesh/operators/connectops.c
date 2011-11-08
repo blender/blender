@@ -352,7 +352,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		if (wdir == 0) {
 			for (i=0; i<BLI_array_count(ee1); i++) {
 				j = CLAMP_INDEX((i*dir1)+starti, lenv1);
-				if (ee1[j]->l) {
+				if (ee1[j]->l && ee2[j]->l) {
 					wdir = (ee2[j]->l->v == vv2[j]) ? (1) : (-1);
 					break;
 				}

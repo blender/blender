@@ -135,7 +135,7 @@ int buildRawVertIndicesData(DerivedMesh* dm, int *nverts_r, float **verts_r,
 
 	//calculate number of tris
 	nfaces = dm->getNumFaces(dm);
-	faces = dm->getFaceArray(dm);
+	faces = dm->getTessFaceArray(dm);
 	ntris = nfaces;
 	for (fi=0; fi<nfaces; fi++)
 	{

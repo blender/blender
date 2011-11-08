@@ -94,6 +94,29 @@ void EDBM_RecalcNormals(BMEditMesh *em)
 	BM_Compute_Normals(em->bm);
 }
 
+void EDBM_ClearMesh(BMEditMesh *em)
+{
+	/*clear bmesh*/
+	BM_Clear_Mesh(em->bm);
+	
+	/*free derived meshes*/
+	if (em->derivedCage) {
+		em->derivedCage->needsFree = 1;
+		em->derivedCage->release(em->derivedCage);
+	}
+	if (em->derivedFinal && em->derivedFinal != em->derivedCage) {
+		em->derivedFinal->needsFree = 1;
+		em->derivedFinal->release(em->derivedFinal);
+	}
+	
+	em->derivedCage = em->derivedFinal = NULL;
+	
+	/*free tesselation data*/
+	em->tottri = 0;
+	if (em->looptris) 
+		MEM_freeN(em->looptris);
+}
+
 void EDBM_stats_update(BMEditMesh *em)
 {
 	BMIter iter;
