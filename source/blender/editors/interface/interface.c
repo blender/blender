@@ -756,6 +756,9 @@ static int ui_but_is_rna_undo(uiBut *but)
 			return TRUE;
 		}
 	}
+	else if (but->rnapoin.type && !RNA_struct_undo_check(but->rnapoin.type)) {
+		return FALSE;
+	}
 
 	return TRUE;
 }
