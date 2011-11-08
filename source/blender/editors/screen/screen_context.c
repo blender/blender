@@ -35,6 +35,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -50,6 +52,8 @@
 #include "ED_object.h"
 #include "ED_armature.h"
 
+#include "WM_api.h"
+
 #include "screen_intern.h"
 
 const char *screen_context_dir[] = {
@@ -62,6 +66,7 @@ const char *screen_context_dir[] = {
 	"sculpt_object", "vertex_paint_object", "weight_paint_object",
 	"image_paint_object", "particle_edit_object",
 	"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
+	"active_operator",
 	NULL};
 
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -384,6 +389,25 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				}
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "active_operator")) {
+		wmOperator *op= NULL;
+
+		SpaceFile *sfile= CTX_wm_space_file(C);
+		if(sfile) {
+			op= sfile->op;
+		}
+		else {
+			/* note, this checks poll, could be a problem, but this also
+			 * happens for the toolbar */
+			op= WM_operator_last_redo(C);
+		}
+		/* TODO, get the operator from popup's */
+
+		if (op && op->ptr) {
+			CTX_data_pointer_set(result, NULL, &RNA_Operator, op);
 			return 1;
 		}
 	}
