@@ -446,13 +446,13 @@ int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTr
 	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
 	int count= 0;
 
-	for(i= 0; i<tot; i++) {
-		if(a>=src_track->markersnr) {
-			b++;
+	while(a<src_track->markersnr || b<dst_track->markersnr) {
+		if(b>=dst_track->markersnr) {
+			a++;
 			count++;
 		}
-		else if(b>=dst_track->markersnr) {
-			a++;
+		else if(a>=src_track->markersnr) {
+			b++;
 			count++;
 		}
 		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
