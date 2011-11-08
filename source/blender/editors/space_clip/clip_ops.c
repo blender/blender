@@ -970,7 +970,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Clip Mode";
-	ot->description = "Sets the clip interaction mode";
+	ot->description = "Set the clip interaction mode";
 	ot->idname= "CLIP_OT_mode_set";
 
 	/* api callbacks */
