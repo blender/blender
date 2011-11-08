@@ -42,10 +42,6 @@ static bNodeSocketTemplate sh_node_geometry_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_geometry(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static int node_shader_gpu_geometry(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_geometry", in, out,
@@ -58,13 +54,13 @@ void register_node_type_sh_geometry(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, 0);
+	node_type_base(&ntype, SH_NODE_NEW_GEOMETRY, "Geometry", NODE_CLASS_INPUT, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_geometry_out);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_geometry);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_geometry);
 
 	nodeRegisterType(lb, &ntype);

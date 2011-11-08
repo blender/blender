@@ -36,10 +36,6 @@ static bNodeSocketTemplate sh_node_output_lamp_in[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_output_lamp(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 /* node type definition */
 void register_node_type_sh_output_lamp(ListBase *lb)
 {
@@ -51,7 +47,7 @@ void register_node_type_sh_output_lamp(ListBase *lb)
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_output_lamp);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, NULL);
 
 	nodeRegisterType(lb, &ntype);

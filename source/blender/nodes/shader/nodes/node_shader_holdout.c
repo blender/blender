@@ -40,10 +40,6 @@ static bNodeSocketTemplate sh_node_holdout_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_holdout(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 
 /* node type definition */
 void register_node_type_sh_holdout(ListBase *lb)
@@ -56,7 +52,7 @@ void register_node_type_sh_holdout(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_holdout);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, NULL);
 
 	nodeRegisterType(lb, &ntype);

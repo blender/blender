@@ -2167,6 +2167,14 @@ static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
 				}
 			}
 		}
+		else if(node->type == SH_NODE_MIX_RGB) {
+			bNodeSocket *sock = node->inputs.first;
+
+			sock=sock->next;
+			strcpy(sock->name, "Color1");
+			sock=sock->next;
+			strcpy(sock->name, "Color2");
+		}
 		else {
 			for(sock=node->inputs.first; sock; sock=sock->next) {
 				if(strcmp(sock->name, "Closure1") == 0)

@@ -1536,7 +1536,7 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
 class VIEW3D_MT_edit_mesh_extrude(Menu):
     bl_label = "Extrude"
 
-    _extrude_funcs = { \
+    _extrude_funcs = {
         "VERT": lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
         "EDGE": lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
         "FACE": lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),

@@ -124,7 +124,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             split.template_ID(ob, "active_material", new="material.new")
             row = split.row()
             if mat:
-                row.prop(mat, "use_nodes", icon="NODETREE", text="")
+                row.prop(mat, "use_nodes", icon='NODETREE', text="")
 
             if slot:
                 row.prop(slot, "link", text="")
@@ -501,8 +501,8 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
         sub.menu("MATERIAL_MT_sss_presets", text=bpy.types.MATERIAL_MT_sss_presets.bl_label)
-        sub.operator("material.sss_preset_add", text="", icon="ZOOMIN")
-        sub.operator("material.sss_preset_add", text="", icon="ZOOMOUT").remove_active = True
+        sub.operator("material.sss_preset_add", text="", icon='ZOOMIN')
+        sub.operator("material.sss_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         split = layout.split()
 

@@ -36,7 +36,7 @@
 
 /* **************** TEXTURE ******************** */
 static bNodeSocketTemplate sh_node_texture_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},	/* no limit */
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},	/* no limit */
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_texture_out[]= {

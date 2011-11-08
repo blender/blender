@@ -84,7 +84,7 @@ Image *ED_space_image(SpaceImage *sima)
 /* called to assign images to UV faces */
 void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 {
-	ED_uvedit_assign_image(G.main, scene, obedit, ima, sima->image);
+	ED_uvedit_assign_image(CTX_data_main(C), scene, obedit, ima, sima->image);
 	
 	/* change the space ima after because uvedit_face_visible uses the space ima
 	 * to check if the face is displayed in UV-localview */

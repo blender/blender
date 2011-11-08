@@ -38,10 +38,6 @@ static bNodeSocketTemplate sh_node_attribute_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_attribute(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeShaderAttribute *attr = MEM_callocN(sizeof(NodeShaderAttribute), "NodeShaderAttribute");
@@ -59,7 +55,7 @@ void register_node_type_sh_attribute(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_attribute);
 	node_type_storage(&ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, node_shader_exec_attribute);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, NULL);
 
 	nodeRegisterType(lb, &ntype);

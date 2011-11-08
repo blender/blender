@@ -138,7 +138,7 @@ void register_node_type_sh_geom(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_GEOM, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(&ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_geom_out);

@@ -42,10 +42,6 @@ static bNodeSocketTemplate sh_node_emission_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_emission(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static int node_shader_gpu_emission(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_emission", in, out, GPU_builtin(GPU_VIEW_NORMAL));
@@ -62,7 +58,7 @@ void register_node_type_sh_emission(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_emission);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_emission);
 
 	nodeRegisterType(lb, &ntype);

@@ -130,7 +130,6 @@ set(SRC
 	shader/nodes/node_shader_vectMath.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
-	shader/nodes/node_shader_bsdf_anisotropic.c
 	shader/nodes/node_shader_bsdf_diffuse.c
 	shader/nodes/node_shader_bsdf_glossy.c
 	shader/nodes/node_shader_bsdf_glass.c
@@ -149,7 +148,6 @@ set(SRC
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_output_lamp.c
 	shader/nodes/node_shader_output_material.c
-	shader/nodes/node_shader_output_texture.c
 	shader/nodes/node_shader_output_world.c
 	shader/nodes/node_shader_tex_gradient.c
 	shader/nodes/node_shader_tex_coord.c
@@ -161,7 +159,6 @@ set(SRC
 	shader/nodes/node_shader_tex_sky.c
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
-	shader/nodes/node_shader_noise.h
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 

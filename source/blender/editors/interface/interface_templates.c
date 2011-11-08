@@ -2609,9 +2609,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-
-	/* XXX linking hack */
-	uiTemplateNodeView(NULL, NULL, NULL, NULL, NULL);
 }
 
 /********************************* Keymap *************************************/

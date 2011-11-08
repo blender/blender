@@ -2233,7 +2233,6 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
 		if(scene_use_new_shading_nodes(scene)) {
-			/* todo: use orco in textured draw mode */
 			if(v3d->drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}

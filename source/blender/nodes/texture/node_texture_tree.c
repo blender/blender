@@ -62,6 +62,19 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 	}
 }
 
+static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+{
+	func(calldata, NODE_CLASS_INPUT, "Input");
+	func(calldata, NODE_CLASS_OUTPUT, "Output");
+	func(calldata, NODE_CLASS_OP_COLOR, "Color");
+	func(calldata, NODE_CLASS_PATTERN, "Patterns");
+	func(calldata, NODE_CLASS_TEXTURE, "Textures");
+	func(calldata, NODE_CLASS_CONVERTOR, "Convertor");
+	func(calldata, NODE_CLASS_DISTORT, "Distort");
+	func(calldata, NODE_CLASS_GROUP, "Group");
+	func(calldata, NODE_CLASS_LAYOUT, "Layout");
+}
+
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	bNode *lnode;
@@ -91,6 +104,7 @@ bNodeTreeType ntreeType_Texture = {
 	/* free_cache */			NULL,
 	/* free_node_cache */		NULL,
 	/* foreach_nodetree */	foreach_nodetree,
+	/* foreach_nodeclass */	foreach_nodeclass,
 	/* localize */			NULL,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,

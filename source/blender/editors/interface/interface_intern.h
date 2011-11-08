@@ -97,11 +97,6 @@ typedef enum {
 	
 } uiWidgetTypeEnum;
 
-
-
-#define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	128
-
 /* panel limits */
 #define UI_PANEL_MINX	100
 #define UI_PANEL_MINY	70

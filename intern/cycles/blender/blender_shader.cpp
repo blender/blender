@@ -118,7 +118,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_COMBRGB: break;
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
-		case BL::ShaderNode::type_GEOM: break;
+		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_HUE_SAT: break;
 		case BL::ShaderNode::type_INVERT: break;
 		case BL::ShaderNode::type_MATERIAL: break;
@@ -218,10 +218,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new HoldoutNode();
 			break;
 		}
-		case BL::ShaderNode::type_BSDF_ANISOTROPIC: {
-			node = new WardBsdfNode();
-			break;
-		}
 		case BL::ShaderNode::type_BSDF_DIFFUSE: {
 			node = new DiffuseBsdfNode();
 			break;
@@ -285,7 +281,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new TransparentVolumeNode();
 			break;
 		}
-		case BL::ShaderNode::type_GEOMETRY: {
+		case BL::ShaderNode::type_NEW_GEOMETRY: {
 			node = new GeometryNode();
 			break;
 		}

@@ -29,77 +29,6 @@
 
 #include "../node_shader_util.h"
 
-static void magic(float rgb[3], float p[3], int n, float distortion)
-{
-	float x = sinf((p[0] + p[1] + p[2])*5.0f);
-	float y = cosf((-p[0] + p[1] - p[2])*5.0f);
-	float z = -cosf((-p[0] - p[1] + p[2])*5.0f);
-
-	if(n > 0) {
-		x *= distortion;
-		y *= distortion;
-		z *= distortion;
-		y = -cosf(x-y+z);
-		y *= distortion;
-
-		if(n > 1) {
-			x= cosf(x-y-z);
-			x *= distortion;
-
-			if(n > 2) {
-				z= sinf(-x-y-z);
-				z *= distortion;
-
-				if(n > 3) {
-					x= -cosf(-x+y-z);
-					x *= distortion;
-
-					if(n > 4) {
-						y= -sinf(-x+y+z);
-						y *= distortion;
-
-						if(n > 5) {
-							y= -cosf(-x+y+z);
-							y *= distortion;
-
-							if(n > 6) {
-								x= cosf(x+y+z);
-								x *= distortion;
-
-								if(n > 7) {
-									z= sinf(x+y-z);
-									z *= distortion;
-
-									if(n > 8) {
-										x= -cosf(-x-y+z);
-										x *= distortion;
-
-										if(n > 9) {
-											y= -sinf(x-y+z);
-											y *= distortion;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if(distortion != 0.0f) {
-		distortion *= 2.0f;
-		x /= distortion;
-		y /= distortion;
-		z /= distortion;
-	}
-
-	rgb[0]= 0.5f - x;
-	rgb[1]= 0.5f - y;
-	rgb[2]= 0.5f - z;
-}
-
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_magic_in[]= {
@@ -123,24 +52,6 @@ static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode* node, bN
 	tex->depth = 2;
 
 	node->storage = tex;
-}
-
-static void node_shader_exec_tex_magic(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	ShaderCallData *scd= (ShaderCallData*)data;
-	NodeTexMagic *tex= (NodeTexMagic*)node->storage;
-	bNodeSocket *vecsock = node->inputs.first;
-	float vec[3], distortion;
-	
-	if(vecsock->link)
-		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
-	else
-		copy_v3_v3(vec, scd->co);
-
-	nodestack_get_vec(&distortion, SOCK_FLOAT, in[1]);
-
-	magic(out[0]->vec, vec, tex->depth, distortion);
-	out[1]->vec[0] = (out[0]->vec[0] + out[0]->vec[1] + out[0]->vec[2])*(1.0f/3.0f); 
 }
 
 static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -167,7 +78,7 @@ void register_node_type_sh_tex_magic(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tex_magic);
 	node_type_storage(&ntype, "NodeTexMagic", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, node_shader_exec_tex_magic);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_tex_magic);
 
 	nodeRegisterType(lb, &ntype);

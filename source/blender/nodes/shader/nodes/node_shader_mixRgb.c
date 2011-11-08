@@ -35,8 +35,8 @@
 /* **************** MIX RGB ******************** */
 static bNodeSocketTemplate sh_node_mix_rgb_in[]= {
 	{	SOCK_FLOAT, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f},
-	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f},
+	{	SOCK_RGBA, 1, "Color1",			0.5f, 0.5f, 0.5f, 1.0f},
+	{	SOCK_RGBA, 1, "Color2",			0.5f, 0.5f, 0.5f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_mix_rgb_out[]= {

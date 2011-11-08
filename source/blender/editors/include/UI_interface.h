@@ -77,6 +77,10 @@ typedef struct uiLayout uiLayout;
 
 /* Defines */
 
+/* names */
+#define UI_MAX_DRAW_STR	400
+#define UI_MAX_NAME_STR	128
+
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use widget style for drawing */
 #define UI_EMBOSSN		1	/* Nothing, only icon and/or text */
@@ -131,11 +135,11 @@ typedef struct uiLayout uiLayout;
 #define UI_ICON_LEFT	128
 #define UI_ICON_SUBMENU	256
 #define UI_ICON_PREVIEW	512
-	/* control for button type block */
-#define UI_MAKE_TOP		1024
-#define UI_MAKE_DOWN	2048
-#define UI_MAKE_LEFT	4096
-#define UI_MAKE_RIGHT	8192
+
+#define UI_BUT_NODE_LINK	1024
+#define UI_BUT_NODE_ACTIVE	2048
+#define UI_FLAG_UNUSED		4096
+#define UI_FLAG_UNUSED2		8192
 
 	/* button align flag, for drawing groups together */
 #define UI_BUT_ALIGN		(UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT|UI_BUT_ALIGN_DOWN)
@@ -159,8 +163,6 @@ typedef struct uiLayout uiLayout;
 
 #define UI_BUT_VEC_SIZE_LOCK (1<<30) /* used to flag if color hsv-circle should keep luminance */
 #define UI_BUT_COLOR_CUBIC	(1<<31) /* cubic saturation for the color wheel */
-#define UI_BUT_NODE_LINK	(1<<30) /* node link drawing hint for pulldowns */
-#define UI_BUT_NODE_ACTIVE	(1<<31) /* node link drawing hint for pulldowns */
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160

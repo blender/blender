@@ -42,10 +42,6 @@ static bNodeSocketTemplate sh_node_add_shader_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_add_shader(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static int node_shader_gpu_add_shader(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_add_shader", in, out);
@@ -62,7 +58,7 @@ void register_node_type_sh_add_shader(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_add_shader);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_add_shader);
 
 	nodeRegisterType(lb, &ntype);

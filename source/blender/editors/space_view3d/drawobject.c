@@ -2563,7 +2563,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				copy_v3_v3(v1, eed->v1->co);
 				copy_v3_v3(v2, eed->v2->co);
 
-				interp_v3_v3v3(vmid, v1, v2, 0.5f);
+				mid_v3_v3v3(vmid, v1, v2);
 
 				if(do_global) {
 					mul_mat3_m4_v3(ob->obmat, v1);

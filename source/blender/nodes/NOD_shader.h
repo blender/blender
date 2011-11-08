@@ -82,7 +82,6 @@ void register_node_type_sh_background(ListBase *lb);
 void register_node_type_sh_bsdf_diffuse(ListBase *lb);
 void register_node_type_sh_bsdf_glossy(ListBase *lb);
 void register_node_type_sh_bsdf_glass(ListBase *lb);
-void register_node_type_sh_bsdf_anisotropic(ListBase *lb);
 void register_node_type_sh_bsdf_translucent(ListBase *lb);
 void register_node_type_sh_bsdf_transparent(ListBase *lb);
 void register_node_type_sh_bsdf_velvet(ListBase *lb);
@@ -95,7 +94,6 @@ void register_node_type_sh_add_shader(ListBase *lb);
 
 void register_node_type_sh_output_lamp(ListBase *lb);
 void register_node_type_sh_output_material(ListBase *lb);
-void register_node_type_sh_output_texture(ListBase *lb);
 void register_node_type_sh_output_world(ListBase *lb);
 
 void register_node_type_sh_tex_image(ListBase *lb);

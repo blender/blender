@@ -1125,7 +1125,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_VECT_MATH: 
 			ntype->uifunc= node_shader_buts_vect_math;
 			break; 
-		case SH_NODE_GEOM:
+		case SH_NODE_GEOMETRY:
 			ntype->uifunc= node_shader_buts_geometry;
 			break;
 		case SH_NODE_ATTRIBUTE:

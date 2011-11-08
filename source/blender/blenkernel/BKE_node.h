@@ -245,6 +245,7 @@ typedef struct bNodeType {
 struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
+typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
 typedef struct bNodeTreeType
 {
 	int type;						/* type identifier */
@@ -256,6 +257,7 @@ typedef struct bNodeTreeType
 	void (*free_cache)(struct bNodeTree *ntree);
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
 	void (*foreach_nodetree)(struct Main *main, void *calldata, bNodeTreeCallback func);		/* iteration over all node trees */
+	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
@@ -440,7 +442,7 @@ struct ShadeResult;
 #define SH_NODE_RGBTOBW		105
 #define SH_NODE_TEXTURE		106
 #define SH_NODE_NORMAL		107
-#define SH_NODE_GEOM		108
+#define SH_NODE_GEOMETRY	108
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
@@ -470,7 +472,7 @@ struct ShadeResult;
 #define SH_NODE_BSDF_TRANSPARENT		138
 #define SH_NODE_BSDF_VELVET				139
 #define SH_NODE_EMISSION				140
-#define SH_NODE_GEOMETRY				141
+#define SH_NODE_NEW_GEOMETRY			141
 #define SH_NODE_LIGHT_PATH				142
 #define SH_NODE_TEX_IMAGE				143
 #define SH_NODE_TEX_SKY					145

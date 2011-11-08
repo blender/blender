@@ -28,27 +28,6 @@
  */
 
 #include "../node_shader_util.h"
-#include "node_shader_noise.h"
-
-static float wave(float vec[3], float scale, int type, float distortion, float detail)
-{
-	float p[3], w, n;
-
-	mul_v3_v3fl(p, vec, scale);
-
-	if(type == SHD_WAVE_BANDS)
-		n= (p[0] + p[1] + p[2])*10.0f;
-	else /* if(type == SHD_WAVE_RINGS) */
-		n= len_v3(p)*20.0f;
-	
-	w = noise_wave(SHD_WAVE_SINE, n);
-	
-	/* XXX size compare! */
-	if(distortion != 0.0f)
-		w += distortion * noise_turbulence(p, SHD_NOISE_PERLIN, detail, 0);
-
-	return w;
-}
 
 /* **************** WAVE ******************** */
 
@@ -77,29 +56,6 @@ static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode* node, bNo
 	node->storage = tex;
 }
 
-static void node_shader_exec_tex_wave(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	ShaderCallData *scd= (ShaderCallData*)data;
-	NodeTexWave *tex= (NodeTexWave*)node->storage;
-	bNodeSocket *vecsock = node->inputs.first;
-	float vec[3], scale, detail, distortion, fac;
-	
-	if(vecsock->link)
-		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
-	else
-		copy_v3_v3(vec, scd->co);
-
-	nodestack_get_vec(&scale, SOCK_FLOAT, in[1]);
-	nodestack_get_vec(&detail, SOCK_FLOAT, in[1]);
-	nodestack_get_vec(&distortion, SOCK_FLOAT, in[2]);
-
-	fac= wave(vec, scale, tex->wave_type, distortion, detail);
-	out[0]->vec[0]= fac;
-	out[0]->vec[1]= fac;
-	out[0]->vec[2]= fac;
-	out[1]->vec[0]= fac;
-}
-
 static int node_shader_gpu_tex_wave(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
 {
 	if(!in[0].link)
@@ -121,7 +77,7 @@ void register_node_type_sh_tex_wave(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, node_shader_init_tex_wave);
 	node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, node_shader_exec_tex_wave);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_tex_wave);
 
 	nodeRegisterType(lb, &ntype);

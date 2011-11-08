@@ -42,10 +42,6 @@ static bNodeSocketTemplate sh_node_volume_transparent_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_volume_transparent(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static int node_shader_gpu_volume_transparent(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
 	return 0;
@@ -62,7 +58,7 @@ void register_node_type_sh_volume_transparent(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_volume_transparent);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_volume_transparent);
 
 	nodeRegisterType(lb, &ntype);

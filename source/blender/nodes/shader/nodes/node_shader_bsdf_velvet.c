@@ -42,10 +42,6 @@ static bNodeSocketTemplate sh_node_bsdf_velvet_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_bsdf_velvet(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-}
-
 static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_bsdf_velvet", in, out, GPU_builtin(GPU_VIEW_NORMAL));
@@ -62,7 +58,7 @@ void register_node_type_sh_bsdf_velvet(ListBase *lb)
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_bsdf_velvet);
+	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_velvet);
 
 	nodeRegisterType(lb, &ntype);

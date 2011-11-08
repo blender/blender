@@ -1183,7 +1183,6 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			widget_draw_icon(but, ICON_DOT, dualset?1.0f:0.25f, rect);
 		}
 		else if(but->type==MENU && (but->flag & UI_BUT_NODE_LINK)) {
-			/* node link hacking */
 			int tmp = rect->xmin;
 			rect->xmin = rect->xmax - (rect->ymax - rect->ymin) - 1;
 			widget_draw_icon(but, ICON_LAYER_USED, 1.0f, rect);
@@ -2546,28 +2545,19 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 {
 	/* silly node link button hacks */
 	uiWidgetBase wtb;
-	unsigned char tmp[4];
-	unsigned char tmp2[4];
+	uiWidgetColors wcol_backup= *wcol;
 	
 	widget_init(&wtb);
 	
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 
-	memcpy(tmp, wcol->inner, sizeof(char)*4);
-	memcpy(tmp2, wcol->outline, sizeof(char)*4);
-	wcol->inner[0] += 15;
-	wcol->inner[1] += 15;
-	wcol->inner[2] += 15;
-	wcol->outline[0] += 15;
-	wcol->outline[1] += 15;
-	wcol->outline[2] += 15;
+	wcol->inner[0] += 15; wcol->inner[1] += 15; wcol->inner[2] += 15;
+	wcol->outline[0] += 15; wcol->outline[1] += 15; wcol->outline[2] += 15;
 	
 	/* decoration */
 	widgetbase_draw(&wtb, wcol);
-
-	memcpy(wcol->inner, tmp, sizeof(char)*4);
-	memcpy(wcol->outline, tmp2, sizeof(char)*4);
+	*wcol= wcol_backup;
 }
 
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
