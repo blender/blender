@@ -974,7 +974,7 @@ elseif(WIN32)
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
-		set(PLATFORM_LINKFLAGS "--stack,2097152")
+		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 	endif()
 
