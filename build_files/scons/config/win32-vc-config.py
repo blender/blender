@@ -161,7 +161,7 @@ BF_OIIO_LIBPATH = '#../lib/windows/openimageio/lib'
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = '#../lib/windows/boost/include'
-BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_46_1 libboost_filesystem-vc90-mt-s-1_46_1 libboost_regex-vc90-mt-s-1_46_1 libboost_system-vc90-mt-s-1_46_1 libboost_thread-vc90-mt-s-1_46_1'
+BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_47 libboost_filesystem-vc90-mt-s-1_47 libboost_regex-vc90-mt-s-1_47 libboost_system-vc90-mt-s-1_47 libboost_thread-vc90-mt-s-1_47'
 BF_BOOST_LIBPATH = '#../lib/windows/boost/lib'
 
 #Ray trace optimization
