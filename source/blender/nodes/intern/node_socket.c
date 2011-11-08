@@ -305,6 +305,7 @@ struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct
 	default:
 		sock = nodeAddSocket(ntree, node, SOCK_IN, stemp->name, stemp->type);
 	}
+	sock->flag |= stemp->flag;
 	return sock;
 }
 
@@ -351,6 +352,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 		sock->type= stemp->type;		/* in future, read this from tydefs! */
 		if(stemp->limit==0) sock->limit= 0xFFF;
 		else sock->limit= stemp->limit;
+		sock->flag |= stemp->flag;
 		
 		/* Copy the property range and subtype parameters in case the template changed.
 		 * NOT copying the actual value here, only button behavior changes!

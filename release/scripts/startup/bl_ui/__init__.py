@@ -52,6 +52,7 @@ _modules = (
     "properties_scene",
     "properties_texture",
     "properties_world",
+    "space_clip",
     "space_console",
     "space_dopesheet",
     "space_filebrowser",

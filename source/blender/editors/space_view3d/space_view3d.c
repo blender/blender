@@ -250,6 +250,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->gridflag &= ~V3D_SHOW_Z;
 	
 	v3d->flag |= V3D_SELECT_OUTLINE;
+	v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 	
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
@@ -258,6 +259,9 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype= V3D_MANIP_TRANSLATE;
 	v3d->around= V3D_CENTROID;
+	
+	v3d->bundle_size= 0.2f;
+	v3d->bundle_drawtype= OB_PLAINAXES;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");
@@ -744,6 +748,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_TEXTURE:	
 			/* same as above */
 			ED_region_tag_redraw(ar);
+			break;
+		case NC_MOVIECLIP:
+			if(wmn->data==ND_DISPLAY)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D) {

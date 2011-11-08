@@ -1,0 +1,312 @@
+commit 531c79bf95fddaaa70707d1abcd4fdafda16bbf0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Aug 20 00:00:42 2011 +0200
+
+    Display warped pattern in marker preview.
+
+commit bb5c27e671b6f8eb56ddf490f0795d59bede591b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 18:37:48 2011 +0200
+
+    Fix CMake build.
+
+commit 2ac7281ff6b9545b425dd84fb03bf9c5c98b4de2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:34:45 2011 +0200
+
+    Avoid symbol shadowing.
+
+commit 2a7c3de4acc60e0433b4952f69e30528dbafe0d2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:22:47 2011 +0200
+
+    Better dragging behavior when hitting borders.
+
+commit a14eb3953c9521b2e08ff9ddd45b33ff1f8aeafb
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:12:12 2011 +0200
+
+    Update marker preview to new affine tracking.
+
+commit 5299ea67043459eda147950e589c2d327a8fbced
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 16:05:54 2011 +0200
+
+    sqrt takes double precision.
+
+commit 9f9221ce151d788c49b48f6f293ab2e2f8813978
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 16:04:37 2011 +0200
+
+    MSVC compatibility: heap allocate pattern, explicit float cast.
+
+commit 702658d2f8616964a6eeb3743fd85e97ac7ff09d
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 14:59:24 2011 +0200
+
+    Expose regularization parameters (areaPenalty and conditionPenalty) in API.
+
+commit 3e84ae5fbac10451d4935418f6281a90cedace11
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 14:19:27 2011 +0200
+
+    Add LaplaceFilter.
+    Add regularization in affine SAD Tracker (keep constant area and good condition number).
+    UI: Better track display (+enable line antialiasing).
+
+commit 6d26d9a8ccc4ce009fbf253898fea8864dd5001a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 10:25:26 2011 +0200
+
+    Add optimization for integer pixel search.
+    Allows more agressive settings for affine coordinate descent.
+
+commit 70ceae81c0ab561b07e640ecb9933f0a902b57cd
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 00:02:12 2011 +0200
+
+    Document coordinate descent method in affine SAD matcher.
+    Add heuristic to prevent high distortions.
+
+commit 75520f4bc4ccbb272a1b4149d3b8d05a90f7f896
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 23:14:17 2011 +0200
+
+    Fix affine iteration.
+
+commit 4e8e0aa6018e3eb2fbebdad7f1cbd6c909d26e79
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 23:03:26 2011 +0200
+
+    Handle rotations.
+
+commit 3ce41cf3c1b5c136a61d8f4c63ccae3cafbdb8da
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 22:24:47 2011 +0200
+
+    Slow brute-force affine diamond search implementation.
+
+commit 1c4acd03e030c1c50dc6fc36c419c72ea69a0713
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 20:51:43 2011 +0200
+
+    Fix detect.cc.
+
+commit ec18cc5ea9ae2e641075a847e82d0aacb8415ad8
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 17:45:37 2011 +0200
+
+    Compute and return Pearson product-moment correlation coefficient between reference and matched pattern.
+
+commit 21d4245c63a01bfc736192d55baf10983e7c9ec7
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 16:18:44 2011 +0200
+
+    UI and API support for affine tracking.
+
+commit a4876d8c40dcde615b44009c38c49e9a1b1d4698
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 20:26:01 2011 +0200
+
+    Hack to make sad.cc compile with MSVC on system without support for the SSE instruction set.
+
+commit 0de723dfce5bbe44dbd19be8cd6dd6e9b03b7924
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 20:10:46 2011 +0200
+
+    Fix slow path (for computers without SSE2).
+    Heap allocate scores in detect.cc
+
+commit 65a9d496f81e8b37eae39a4063957b8be9a4e6f0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 19:25:17 2011 +0200
+
+    Fix compilation on OSX.
+
+commit d22720e618456329388d2c107422c3b371657cba
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 14:14:45 2011 +0200
+
+    Improve Detect and SAD Tracker API and documentation.
+
+commit 5d6cd4ad365b061901bad40695b51d568487a0cf
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 11:57:29 2011 +0200
+
+    MSVC support fixes.
+
+commit 50f0323173c6deebd6aaf9c126f0b51b2a79c3c1
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 23:21:37 2011 +0200
+
+    Detector can detect features similar to a given pattern.
+
+commit 5734cc27bbf84c2b6edcfcc1ea736798e12d5820
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 22:53:54 2011 +0200
+
+    Ensure SAD Tracker is C compatible.
+    Update Detect API documentation.
+
+commit 701c42842574064fea992f8822e3899cb9066108
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:56:42 2011 +0200
+
+    Remove FAST detector.
+    Add Moravec detector.
+    This detector is more suited to tracking since it try to choose patterns which are unlikely to drift by computing SAD with neighbouring patches.
+    It could be improved to better avoid edges.
+
+commit 9bdf93e13fc880c78b6f34397da673388c16040e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:55:08 2011 +0200
+
+    Fix Qt Tracker GL to work with AMD drivers.
+
+commit 81613ee0cc94b315f333c9632b18b95d426aad05
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:54:12 2011 +0200
+
+    Make CameraIntrinsics (and thus Qt tracker) compilable without linking libmv.
+
+commit a1d9a8fa8b01ef7cf2a79b3b891633fc333fc9cf
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:24:51 2011 +0200
+
+    Fix SAD tracker. Pattern was transposed by affine pattern sampler.
+
+commit c3b794da2e7fd23f2fbdf90dbd71de0e6b3bc811
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:19:02 2011 +0200
+
+    Fix SAD tracker. Pattern was transposed by affine pattern sampler.
+
+commit a9b61bf3356f27174cdd983f562f99c3a6a2cc35
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 14 09:56:51 2011 +0200
+
+    Clarify CameraIntrinsics documentation.
+    Edit CameraInstrinsics test to fail.
+
+commit 10bdad9ad2cea2603896263cde5a5339169a9af0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 21:05:32 2011 +0200
+
+    Fix out of bound access in warp bilinear sampling.
+
+commit dd9a418db021a28af2c1198d5e5b9e68fe048a03
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 19:14:36 2011 +0200
+
+    Fix compilation with -funsigned-char.
+
+commit bd1a268ede39b67f2ba4b360f6fc693419e7cd7f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 18:39:27 2011 +0200
+
+    CameraIntrinsics fixes.
+
+commit ae513b39fb779632f96ceff7c1e014fb8e68702a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 19:38:58 2011 +0200
+
+    Remove stray QDebug include.
+
+commit 1e58f55078ce6009a885be30ae0316aec6ed8239
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 14:16:31 2011 +0200
+
+    Make API future-proof (for an eventual affine or planar tracker).
+
+commit c2af303e7bf0dddcb02937323ac5846b1801e6cc
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 11:13:29 2011 +0200
+
+    Remove reconstruction breaking debug code.
+
+commit 8792a633e5c5f1c1f12e164b9e8897ca0790ac59
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 10:49:18 2011 +0200
+
+    Remove getchar()s.
+
+commit 63a9bdee0cbd1197e0315d01c27bfc2361bd5656
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 10:35:07 2011 +0200
+
+    Adapt patch to new PipelineRoutines code generation strategy.
+
+commit 096ff1a4070f7212c50fb0a4b2feec7ca9d97158
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 09:54:12 2011 +0200
+
+    Merge max_image and max_track fix from tomato.
+
+commit d8450cd3c37278a397482cd36b1e2419f154cfb9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 09:38:49 2011 +0200
+
+    Synchronize tree with Tomato: Merge patch for better resection, keep deprecated KLT tracker.
+
+commit e9b2dca920cf9575c15150a4988634b00e343a41
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Aug 8 17:07:08 2011 +0200
+
+    Fixes, Documentation.
+
+commit 4fc1c57a2d92442808ac4a3676e6d9a25a51e310
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 14:35:08 2011 +0200
+
+    Improve tracker resilience by penalizing large motion vectors.
+
+commit cc8e7e8e08cd91f75c080a0091461ca9fe969664
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 09:28:09 2011 +0200
+
+    Leverage SSE2 SAD instruction for 16x speed improvement in integer pixel search resulting in ~1ms per marker for 16x16 pattern on 128x128 region.
+
+commit f362ab4999a768370fca57552464b459eb9fbddc
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 09:06:04 2011 +0200
+
+    Improve SAD Tracker subpixel precision (avoid drift even when adapting at each frame).
+
+commit fce7a214c561b5f5f0e17115c31fb48814bde2db
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Aug 6 21:57:06 2011 +0200
+
+    Track using simple Sum of Absolute Differences matching.
+    This method is simpler, more robust, faster and accurate.
+
+commit 620a7a35d9a2818bf6e9dbf5d11debda4be6bc26
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 29 12:35:57 2011 +0200
+
+    Add Intersect unit test.
+
+commit a2bf58fa57be11215eb17ff7f7de58f97d480ec3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jul 28 11:08:06 2011 +0200
+
+    Remove tests depending on dead code.
+    Fix CameraIntrinsics test.
+    Add Intersect and Resect tests.
+
+commit 19bddee10b4879c8cd2238ccdf5b8f7620cf8384
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 12:07:21 2011 +0200
+
+    Image Distortion: Fixes and more testing.
+
+commit 0454d97da328fb0eda8c6c50511ac31864a6d3d6
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 10:32:37 2011 +0200
+
+    Test float image distortion.
+
+commit 8db01595a8721f766d85931a8d92b780461d8741
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 10:27:07 2011 +0200
+
+    Image Distortion: Bilinear sampling, Optimization, Instantiate all variants (Distort/Undistort, float/ubyte, 1-4 channels).

@@ -1030,7 +1030,20 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Outline Width", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "bundle_solid", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "bundle_solid");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Bundle Solid", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "camera_path", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "camera_path");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Camera Path", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
+
 
 static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 {
@@ -1741,6 +1754,94 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
+static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	/* space_clip */
+
+	srna= RNA_def_struct(brna, "ThemeClipEditor", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_ui_text(srna, "Theme Clip Editor", "Theme settings for the Movie Clip Editor");
+
+	rna_def_userdef_theme_spaces_main(srna, SPACE_CLIP);
+
+	prop= RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "marker_outline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Marker Outline Color", "Color of marker's outile");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Marker Color", "Color of marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "active_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "act_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Active Marker", "Color of active marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "selected_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "sel_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Selected Marker", "Color of sleected marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "disabled_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "dis_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Disabled Marker", "Color of disabled marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "locked_marker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lock_marker");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Locked Marker", "Color of locked marker");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "path_before", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "path_before");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Path Before", "Color of path before current frame");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "path_after", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "path_after");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Path After", "Color of path after current frame");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Grid", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "cframe");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_vertex", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Handle Vertex", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_vertex_select", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Handle Vertex Select", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 255);
+	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
 static void rna_def_userdef_themes(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1765,6 +1866,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{15, "INFO", ICON_INFO, "Info", ""},
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
+	    {20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Theme", NULL);
@@ -1887,6 +1989,12 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "tarm", "");
 	RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
 	RNA_def_property_ui_text(prop, "Bone Color Sets", "");
+
+	prop= RNA_def_property(srna, "clip_editor", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tclip");
+	RNA_def_property_struct_type(prop, "ThemeClipEditor");
+	RNA_def_property_ui_text(prop, "Clip Editor", "");
 }
 
 static void rna_def_userdef_addon(BlenderRNA *brna)
@@ -1926,6 +2034,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_userpref(brna);
 	rna_def_userdef_theme_space_console(brna);
 	rna_def_userdef_theme_space_logic(brna);
+	rna_def_userdef_theme_space_clip(brna);
 	rna_def_userdef_theme_colorset(brna);
 	rna_def_userdef_themes(brna);
 }

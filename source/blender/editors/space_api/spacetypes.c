@@ -63,6 +63,7 @@
 #include "ED_uvedit.h"
 #include "ED_mball.h"
 #include "ED_logic.h"
+#include "ED_clip.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
@@ -91,6 +92,7 @@ void ED_spacetypes_init(void)
 	ED_spacetype_logic();
 	ED_spacetype_console();
 	ED_spacetype_userpref();
+	ED_spacetype_clip();
 //	...
 	
 	/* register operator types for screen and all spaces */
@@ -131,6 +133,7 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_file();
 	ED_operatormacros_graph();
 	ED_operatormacros_action();
+	ED_operatormacros_clip();
 	
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();

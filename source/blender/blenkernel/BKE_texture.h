@@ -103,9 +103,12 @@ void set_current_particle_texture(struct ParticleSettings *part, struct Tex *tex
 
 int has_current_material_texture(struct Material *ma);
 
-struct TexMapping *add_mapping(void);
-void init_mapping(struct TexMapping *texmap);
+struct TexMapping *add_tex_mapping(void);
+void default_tex_mapping(struct TexMapping *texmap);
+void init_tex_mapping(struct TexMapping *texmap);
 
+struct ColorMapping *add_color_mapping(void);
+void default_color_mapping(struct ColorMapping *colormap);
 
 void    BKE_free_envmapdata(struct EnvMap *env);
 void    BKE_free_envmap(struct EnvMap *env);

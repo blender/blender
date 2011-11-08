@@ -202,6 +202,9 @@ option(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
+# Camera/motion tracking
+option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
+
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)
@@ -485,6 +488,36 @@ if(UNIX AND NOT APPLE)
 		if(SPACENAV_FOUND)
 			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
 			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
+		endif()
+	endif()
+
+	if(WITH_BOOST)
+		set(BOOST "/usr" CACHE PATH "Boost Directory")
+
+		if(NOT BOOST_CUSTOM)
+			set(BOOST_ROOT ${BOOST})
+			set(Boost_USE_MULTITHREADED ON)
+			find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
+		endif()
+
+		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+		set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+		set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
+		set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+	endif()
+
+	if(WITH_OPENIMAGEIO)
+		set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
+
+		set(OPENIMAGEIO_ROOT_DIR ${OPENIMAGEIO})
+		find_package(OpenImageIO REQUIRED)
+
+		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
+		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+		set(OPENIMAGEIO_DEFINITIONS)
+
+		if(NOT OPENIMAGEIO_FOUND)
+			set(WITH_OPENIMAGEIO OFF)
 		endif()
 	endif()
 
@@ -774,6 +807,28 @@ elseif(WIN32)
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
+		if(WITH_BOOST)
+			set(BOOST ${LIBDIR}/boost)
+			set(BOOST_INCLUDE_DIR ${BOOST}/include)
+			set(BOOST_POSTFIX "vc90-mt-s-1_47.lib")
+			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_47.lib")
+			set(BOOST_LIBRARIES
+				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
+				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
+				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+		endif()
+			
+		if(WITH_OPENIMAGEIO)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
+			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
+			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+			set(OPENIMAGEIO_DEFINITIONS)
+		endif()
+
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
 
 		# MSVC only, Mingw doesnt need
@@ -882,6 +937,28 @@ elseif(WIN32)
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
+		endif()
+
+		if(WITH_BOOST)
+			set(BOOST ${LIBDIR}/boost)
+			set(BOOST_INCLUDE_DIR ${BOOST}/include)
+			set(BOOST_POSTFIX "vc90-mt-s-1_46_1")
+			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1")
+			set(BOOST_LIBRARIES
+				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
+				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
+				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+		endif()
+			
+		if(WITH_OPENIMAGEIO)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
+			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
+			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
 		set(PLATFORM_LINKFLAGS "--stack,2097152")
@@ -1085,6 +1162,22 @@ elseif(APPLE)
 
 	if (WITH_INPUT_NDOF)
 		# linker needs "-weak_framework 3DconnexionClient"
+	endif()
+
+	if(WITH_BOOST)
+		set(BOOST ${LIBDIR}/boost)
+		set(BOOST_INCLUDE_DIR ${BOOST}/include)
+		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		set(BOOST_LIBPATH ${BOOST}/lib)
+		set(BOOST_DEFINITIONS)
+	endif()
+
+	if(WITH_OPENIMAGEIO)
+		set(OPENIMAGEIO ${LIBDIR}/openimageio)
+		set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
+		set(OPENIMAGEIO_LIBRARIES OpenImageIO ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
+		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
+		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)

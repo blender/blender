@@ -122,6 +122,10 @@
 #include "binreloc.h"
 #endif
 
+#ifdef WITH_LIBMV
+#include "libmv-capi.h"
+#endif
+
 static int no_handler = 0;
 
 // from buildinfo.c
@@ -381,6 +385,10 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 #ifdef WITH_BUILDINFO
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
 #endif // WITH_BUILDINFO
+
+#ifdef WITH_LIBMV
+	libmv_startDebugLogging();
+#endif
 
 	BLI_argsPrint(data);
 	return 0;
@@ -1160,6 +1168,10 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_BINRELOC
 	br_init( NULL );
+#endif
+
+#ifdef WITH_LIBMV
+	libmv_initLogging(argv[0]);
 #endif
 
 	setCallbacks();

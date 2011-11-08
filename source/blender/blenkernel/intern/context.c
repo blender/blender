@@ -361,6 +361,13 @@ struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
 	return NULL;
 }
 
+struct SpaceClip *CTX_wm_space_clip(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_CLIP)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 {
 	C->wm.manager= wm;
@@ -880,6 +887,11 @@ struct Image *CTX_data_edit_image(const bContext *C)
 struct Text *CTX_data_edit_text(const bContext *C)
 {
 	return ctx_data_pointer_get(C, "edit_text");
+}
+
+struct MovieClip *CTX_data_edit_movieclip(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "edit_movieclip");
 }
 
 struct EditBone *CTX_data_active_bone(const bContext *C)

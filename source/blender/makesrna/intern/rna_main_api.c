@@ -66,6 +66,7 @@
 #include "BKE_node.h"
 #include "BKE_depsgraph.h"
 #include "BKE_speaker.h"
+#include "BKE_movieclip.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -85,6 +86,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_node_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "ED_screen.h"
 
@@ -521,6 +523,26 @@ void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSetting
 	/* XXX python now has invalid pointer? */
 }
 
+MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+{
+	MovieClip *clip;
+
+	errno= 0;
+	clip= BKE_add_movieclip_file(filepath);
+
+	if(!clip)
+		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unable to load movie clip");
+
+	return clip;
+}
+
+void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
+{
+	unlink_movieclip(bmain, clip);
+	free_libblock(&bmain->movieclip, clip);
+	/* XXX python now has invalid pointer? */
+}
+
 /* tag functions, all the same */
 void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
 void rna_Main_scenes_tag(Main *bmain, int value) { tag_main_lb(&bmain->scene, value); }
@@ -550,6 +572,7 @@ void rna_Main_armatures_tag(Main *bmain, int value) { tag_main_lb(&bmain->armatu
 void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, value); }
 void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
 void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
+void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
@@ -1466,6 +1489,37 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_gpencil_is_updated_get", NULL);
+}
+
+void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BlendDataMovieClips");
+	srna= RNA_def_struct(brna, "BlendDataMovieClips", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Movie Clips", "Collection of movie clips");
+
+	func= RNA_def_function(srna, "tag", "rna_Main_movieclips_tag");
+	parm= RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_movieclips_remove");
+	RNA_def_function_ui_description(func, "Remove a movie clip from the current blendfile.");
+	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	/* load func */
+	func= RNA_def_function(srna, "load", "rna_Main_movieclip_load");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Add a new movie clip to the main database from a file");
+	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock");
+	RNA_def_function_return(func, parm);
 }
 
 #endif

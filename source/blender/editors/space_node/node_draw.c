@@ -108,7 +108,8 @@ void ED_node_changed_update(ID *id, bNode *node)
 			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
-		nodeUpdate(edittree, node);
+		if(node)
+			nodeUpdate(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
 		node= node_tree_get_editgroup(nodetree);
@@ -691,7 +692,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		if (sock->link) {
+		if (sock->link || (sock->flag & SOCK_HIDE_VALUE)) {
 			uiDefBut(node->block, LABEL, 0, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, NODE_DY,
 					 NULL, 0, 0, 0, 0, "");
 		}

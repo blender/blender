@@ -425,15 +425,6 @@ static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max)
 	*max = val->max;
 }
 
-static void rna_Node_mapping_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-
-	init_mapping((TexMapping *)node->storage);
-	
-	rna_Node_update(bmain, scene, ptr);
-}
-
 static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node= (bNode*)ptr->data;
@@ -1077,48 +1068,12 @@ static void def_sh_material(StructRNA *srna)
 static void def_sh_mapping(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Location", "Location offset for the input coordinate");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_XYZ); /* Not PROP_EUL, this is already in degrees, not radians */
-	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation offset for the input coordinate");
-	RNA_def_property_ui_range(prop, -360.f, 360.f, 1.f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Scale", "Scale adjustment for the input coordinate");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_mapping_update");
-	
-	prop = RNA_def_property(srna, "use_min", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
-	RNA_def_property_ui_text(prop, "Clamp Minimum", "Clamp the output coordinate to a minimum value");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop= RNA_def_property(srna, "min", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "min");
-	RNA_def_property_ui_text(prop, "Minimum", "Minimum value to clamp coordinate to");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "use_max", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
-	RNA_def_property_ui_text(prop, "Clamp Maximum", "Clamp the output coordinate to a maximum value");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "max");
-	RNA_def_property_ui_text(prop, "Maximum", "Maximum value to clamp coordinate to");
-	RNA_def_property_ui_range(prop, -10.f, 10.f, 0.1f, 2);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop= RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "storage");
+	RNA_def_property_struct_type(prop, "TexMapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Mapping", "Texture coordinate mapping settings");
 }
 
 static void def_sh_geometry(StructRNA *srna)
@@ -2411,6 +2366,84 @@ static void def_cmp_ycc(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, node_ycc_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_movieclip(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "MovieClipUser", "storage");
+}
+
+static void def_cmp_stabilize2d(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem filter_type_items[] = {
+		{0, "NEAREST",   0, "Nearest",   ""},
+		{1, "BILINEAR",   0, "Bilinear",   ""},
+		{2, "BICUBIC", 0, "Bicubic", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter stabilization");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_moviedistortion(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem distortion_type_items[] = {
+		{0, "UNDISTORT",   0, "Undistort",   ""},
+		{1, "DISTORT", 0, "Distort", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, distortion_type_items);
+	RNA_def_property_ui_text(prop, "Distortion", "Distortion to use to filter image");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void dev_cmd_transform(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem filter_type_items[] = {
+		{0, "NEAREST",   0, "Nearest",   ""},
+		{1, "BILINEAR",   0, "Bilinear",   ""},
+		{2, "BICUBIC", 0, "Bicubic", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter transform");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

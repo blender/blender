@@ -47,6 +47,7 @@ set(SRC
 	../include/BIF_glutil.h
 	../include/ED_anim_api.h
 	../include/ED_armature.h
+	../include/ED_clip.h
 	../include/ED_curve.h
 	../include/ED_datafiles.h
 	../include/ED_fileselect.h

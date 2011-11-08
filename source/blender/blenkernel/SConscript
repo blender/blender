@@ -97,6 +97,10 @@ if env['WITH_BF_GAMEENGINE']:
 else:
     sources.remove('intern' + os.sep + 'navmesh_conversion.c')
 
+if env['WITH_BF_LIBMV']:
+    incs += ' #/extern/libmv'
+    defs.append('WITH_LIBMV')
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
