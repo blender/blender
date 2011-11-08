@@ -276,7 +276,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
 
-
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name().c_str());

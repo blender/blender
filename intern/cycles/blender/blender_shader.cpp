@@ -665,10 +665,16 @@ void BlenderSync::sync_lamps()
 			}
 			else {
 				ShaderNode *closure, *out;
+				float strength = 1.0f;
+
+				if(b_lamp->type() == BL::Lamp::type_POINT ||
+				   b_lamp->type() == BL::Lamp::type_SPOT ||
+				   b_lamp->type() == BL::Lamp::type_AREA)
+					strength = 100.0f;
 
 				closure = graph->add(new EmissionNode());
 				closure->input("Color")->value = get_float3(b_lamp->color());
-				closure->input("Strength")->value.x = b_lamp->energy()*10.0f;
+				closure->input("Strength")->value.x = strength;
 				out = graph->output();
 
 				graph->connect(closure->output("Emission"), out->input("Surface"));
