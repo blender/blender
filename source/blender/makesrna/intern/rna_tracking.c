@@ -125,13 +125,6 @@ static void rna_tracking_trackerPyramid_update(Main *UNUSED(bmain), Scene *UNUSE
 	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 }
 
-static int rna_tracking_markers_length(PointerRNA *ptr)
-{
-	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
-
-	return track->markersnr;
-}
-
 static float rna_trackingCamera_focal_mm_get(PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
@@ -499,7 +492,6 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingMarker");
 	RNA_def_property_collection_sdna(prop, NULL, "markers", "markersnr");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, "rna_tracking_markers_length", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Markers", "Collection of markers in track");
 
 	/* ** channels ** */

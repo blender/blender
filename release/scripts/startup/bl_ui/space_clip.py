@@ -312,10 +312,10 @@ class CLIP_PT_track(Panel):
         row = layout.row(align=True)
         label = bpy.types.CLIP_MT_track_color_presets.bl_label
         row.menu('CLIP_MT_track_color_presets', text=label)
-        row.menu('CLIP_MT_track_color_specials', text="", icon="DOWNARROW_HLT")
-        row.operator("clip.track_color_preset_add", text="", icon="ZOOMIN")
+        row.menu('CLIP_MT_track_color_specials', text="", icon='DOWNARROW_HLT')
+        row.operator("clip.track_color_preset_add", text="", icon='ZOOMIN')
         props = row.operator("clip.track_color_preset_add",
-            text="", icon="ZOOMOUT")
+                             text="", icon='ZOOMOUT')
         props.remove_active = True
 
         row = layout.row()
@@ -349,8 +349,8 @@ class CLIP_PT_tracking_camera(Panel):
         row = layout.row(align=True)
         label = bpy.types.CLIP_MT_camera_presets.bl_label
         row.menu('CLIP_MT_camera_presets', text=label)
-        row.operator("clip.camera_preset_add", text="", icon="ZOOMIN")
-        props = row.operator("clip.camera_preset_add", text="", icon="ZOOMOUT")
+        row.operator("clip.camera_preset_add", text="", icon='ZOOMIN')
+        props = row.operator("clip.camera_preset_add", text="", icon='ZOOMOUT')
         props.remove_active = True
 
         row = layout.row(align=True)
@@ -441,11 +441,11 @@ class CLIP_PT_track_settings(Panel):
 
         active = clip.tracking.tracks.active
         if active:
-          layout.prop(active, "tracker")
-          if active.tracker == "KLT":
-              layout.prop(active, "pyramid_levels")
-          if active.tracker == "SAD":
-              layout.prop(active, "correlation_min")
+            layout.prop(active, "tracker")
+            if active.tracker == 'KLT':
+                layout.prop(active, "pyramid_levels")
+            elif active.tracker == 'SAD':
+                layout.prop(active, "correlation_min")
 
         layout.prop(settings, "frames_adjust")
         layout.prop(settings, "speed")
@@ -489,7 +489,7 @@ class CLIP_PT_stabilization(Panel):
         sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
 
         sub.menu('CLIP_MT_stabilize_2d_specials', text="",
-            icon="DOWNARROW_HLT")
+                 icon='DOWNARROW_HLT')
 
         layout.prop(stab, "influence_location")
 

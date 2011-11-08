@@ -108,6 +108,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         col.prop(cam, "clip_start", text="Start")
         col.prop(cam, "clip_end", text="End")
 
+
 class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -120,8 +121,8 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         row = layout.row(align=True)
 
         row.menu("CAMERA_MT_presets", text=bpy.types.CAMERA_MT_presets.bl_label)
-        row.operator("camera.preset_add", text="", icon="ZOOMIN")
-        row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
+        row.operator("camera.preset_add", text="", icon='ZOOMIN')
+        row.operator("camera.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.label(text="Sensor:")
 
@@ -136,6 +137,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         col = split.column(align=True)
         col.prop(cam, "sensor_fit", text="")
+
 
 class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     bl_label = "Depth of Field"
@@ -155,6 +157,7 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
 
         col.active = cam.dof_object is None
         col.prop(cam, "dof_distance", text="Distance")
+
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"

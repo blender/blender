@@ -134,8 +134,8 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
         row = layout.row(align=True)
         row.prop(lamp, "use_sky")
         row.menu("LAMP_MT_sunsky_presets", text=bpy.types.LAMP_MT_sunsky_presets.bl_label)
-        row.operator("lamp.sunsky_preset_add", text="", icon="ZOOMIN")
-        row.operator("lamp.sunsky_preset_add", text="", icon="ZOOMOUT").remove_active = True
+        row.operator("lamp.sunsky_preset_add", text="", icon='ZOOMIN')
+        row.operator("lamp.sunsky_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         row = layout.row()
         row.active = lamp.use_sky or lamp.use_atmosphere

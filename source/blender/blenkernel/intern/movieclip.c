@@ -517,7 +517,7 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 	return cache->undistibuf;
 }
 
-static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distoriton, ImBuf *ibuf)
+static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distortion, ImBuf *ibuf)
 {
 	ImBuf *undistibuf;
 
@@ -525,8 +525,8 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	        otherwise, undistorted proxy can be darker than it should */
 	imb_freerectfloatImBuf(ibuf);
 
-	if(distoriton)
-		undistibuf= BKE_tracking_distortion_exec(distoriton, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
+	if(distortion)
+		undistibuf= BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
 		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
