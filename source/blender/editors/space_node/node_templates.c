@@ -432,7 +432,7 @@ static void node_menu_column_foreach_cb(void *calldata, int nclass, const char *
 	NodeLinkArg *arg = (NodeLinkArg*)calldata;
 
 	if(!ELEM(nclass, NODE_CLASS_GROUP, NODE_CLASS_LAYOUT))
-		ui_node_menu_column(arg, nclass, IFACE_(name));
+		ui_node_menu_column(arg, nclass, name);
 }
 
 static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_p)
