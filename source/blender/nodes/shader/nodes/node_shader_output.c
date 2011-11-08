@@ -57,10 +57,10 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		if(node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr= ((ShaderCallData *)data)->shr;
 			
-			QUATCOPY(shr->combined, col);
+			copy_v4_v4(shr->combined, col);
 			shr->alpha= col[3];
 			
-			//	VECCOPY(shr->nor, in[3]->vec);
+			//	copy_v3_v3(shr->nor, in[3]->vec);
 		}
 	}	
 }
@@ -83,6 +83,7 @@ void register_node_type_sh_output(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_output_in, NULL);
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_exec(&ntype, node_shader_exec_output);

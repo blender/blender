@@ -270,7 +270,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int retval= OPERATOR_FINISHED;
 	
 	if(opm==NULL)
-		printf("macro error, calling NULL modal()\n");
+		printf("%s: macro error, calling NULL modal()\n", __func__);
 	else {
 		retval = opm->type->modal(C, opm, event);
 		OPERATOR_RETVAL_CHECK(retval);
@@ -341,7 +341,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	wmOperatorType *ot;
 	
 	if(WM_operatortype_find(idname, TRUE)) {
-		printf("Macro error: operator %s exists\n", idname);
+		printf("%s: macro error: operator %s exists\n", __func__, idname);
 		return NULL;
 	}
 	
@@ -658,10 +658,11 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	uiLayout *layout;
 
 	if(prop==NULL) {
-		printf("WM_menu_invoke: %s has no enum property set\n", op->type->idname);
+		printf("%s: %s has no enum property set\n", __func__, op->type->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
+		printf("%s: %s \"%s\" is not an enum property\n",
+		       __func__, op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
 		const int retval= op->type->exec(C, op);
@@ -686,10 +687,12 @@ static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, cons
 	PropertyRNA *prop= ot->prop;
 
 	if(prop==NULL) {
-		printf("WM_enum_search_invoke: %s has no enum property set\n", ot->idname);
+		printf("%s: %s has no enum property set\n",
+		       __func__, ot->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_enum_search_invoke: %s \"%s\" is not an enum property\n", ot->idname, RNA_property_identifier(prop));
+		printf("%s: %s \"%s\" is not an enum property\n",
+		       __func__, ot->idname, RNA_property_identifier(prop));
 	}
 	else {
 		PointerRNA ptr;
@@ -725,7 +728,7 @@ static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
 			WM_operator_properties_free(&props_ptr);
 		}
 		else {
-			printf("operator_enum_call_cb: op->prop for '%s' is NULL\n", ot->idname);
+			printf("%s: op->prop for '%s' is NULL\n", __func__, ot->idname);
 		}
 	}
 }
@@ -1949,7 +1952,10 @@ static int blend_save_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
-	if(BLI_replace_extension(filepath, sizeof(filepath), ".blend")) {
+	if(!BLO_has_bfile_extension(filepath)) {
+		/* some users would prefer BLI_replace_extension(),
+		 * we keep getting knit-picking bug reports about this - campbell */
+		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
 		RNA_string_set(op->ptr, "filepath", filepath);
 		return TRUE;
 	}
@@ -2616,7 +2622,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 				memcpy(gesture->customdata, old_lasso, 2*sizeof(short)*gesture->size);
 				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
 				MEM_freeN(old_lasso);
-				printf("realloc\n");
+				// printf("realloc\n");
 			}
 
 			{
@@ -3447,6 +3453,28 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 	ot->exec= memory_statistics_exec;
 }
 
+/* ************************** memory statistics for testing ***************** */
+
+static int dependency_relations_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	DAG_print_dependencies(bmain, scene, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_dependency_relations(wmOperatorType *ot)
+{
+	ot->name= "Dependency Relations";
+	ot->idname= "WM_OT_dependency_relations";
+	ot->description= "Print dependency graph relations to the console";
+	
+	ot->exec= dependency_relations_exec;
+}
+
 /* ******************************************************* */
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
@@ -3529,6 +3557,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_mainfile);
 	WM_operatortype_append(WM_OT_redraw_timer);
 	WM_operatortype_append(WM_OT_memory_statistics);
+	WM_operatortype_append(WM_OT_dependency_relations);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
@@ -3596,6 +3625,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
 	WM_modalkeymap_assign(keymap, "UV_OT_circle_select");
+	WM_modalkeymap_assign(keymap, "CLIP_OT_select_circle");
 
 }
 
@@ -3675,6 +3705,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_view_ghost_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "CLIP_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");

@@ -777,7 +777,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				
 				fac= ((float)(evt->x - mm->firstx)*dx);
 				
-				if (ELEM(mm->slink->spacetype, SPACE_TIME, SPACE_SOUND)) 
+				if (mm->slink->spacetype == SPACE_TIME) 
 					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, FPS, 0.1*FPS, 0);
 				else
 					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, 1.0, 0.1, 0 /*was: U.flag & USER_AUTOGRABGRID*/);
@@ -796,7 +796,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				
 				if (totmark==1) {	
 					/* we print current marker value */
-					if (ELEM(mm->slink->spacetype, SPACE_TIME, SPACE_SOUND)) {
+					if (mm->slink->spacetype == SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)mm->slink;
 						if (stime->flag & TIME_DRAWFRAMES) 
 							BLI_snprintf(str, sizeof(str), "Marker %d offset %d", selmarker->frame, offs);
@@ -816,7 +816,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				}
 				else {
 					/* we only print the offset */
-					if (ELEM(mm->slink->spacetype, SPACE_TIME, SPACE_SOUND)) { 
+					if (mm->slink->spacetype == SPACE_TIME) { 
 						SpaceTime *stime= (SpaceTime *)mm->slink;
 						if (stime->flag & TIME_DRAWFRAMES) 
 							BLI_snprintf(str, sizeof(str), "Marker offset %d ", offs);
@@ -1069,6 +1069,8 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
+#else
+	(void)camera;
 #endif
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
@@ -1493,6 +1495,8 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 	RNA_boolean_set(kmi->ptr, "camera", 1);
+#else
+	(void)kmi;
 #endif
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);

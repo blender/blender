@@ -245,6 +245,12 @@ static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 	rna_iterator_listbase_begin(iter, &bmain->wm, NULL);
 }
 
+static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain= (Main*)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->movieclip, NULL);
+}
+
 static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
@@ -313,6 +319,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks", RNA_def_main_actions},
 		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks", RNA_def_main_particles},
 		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks", RNA_def_main_gpencil},
+		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks", RNA_def_main_movieclips},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style datablocks", RNA_def_main_linestyles},
 		{NULL, NULL, NULL, NULL, NULL, NULL}};
 
@@ -331,7 +338,7 @@ void RNA_def_main(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_dirty_get", NULL);
-	RNA_def_property_ui_text(prop, "File is Saved", "Have recent edits been saved to disk");
+	RNA_def_property_ui_text(prop, "File Has Unsaved Changes", "Have recent edits been saved to disk");
 
 	prop= RNA_def_property(srna, "is_saved", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

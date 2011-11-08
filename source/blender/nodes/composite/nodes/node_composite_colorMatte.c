@@ -34,8 +34,8 @@
 
 /* ******************* Color Key ********************************************************** */
 static bNodeSocketTemplate cmp_node_color_in[]={
-	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f},
+	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -52,7 +52,7 @@ static void do_color_key(bNode *node, float *out, float *in)
 	c=node->storage;
 
 
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 
 	if(
 	/* do hue last because it needs to wrap, and does some more checks  */

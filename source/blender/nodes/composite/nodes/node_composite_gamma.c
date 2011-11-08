@@ -36,7 +36,7 @@
 /* **************** Gamma Tools  ******************** */
   
 static bNodeSocketTemplate cmp_node_gamma_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Gamma",			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f, PROP_UNSIGNED},
 	{	-1, 0, ""	}
 };

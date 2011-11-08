@@ -35,7 +35,7 @@
 
 /* ******************* Luma Matte Node ********************************* */
 static bNodeSocketTemplate cmp_node_luma_matte_in[]={
-	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f},
+	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1,0,""}
 };
 

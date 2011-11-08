@@ -57,7 +57,7 @@ typedef struct KX_3DSoundSettings
 
 class KX_SoundActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	bool					m_isplaying;
 	AUD_Reference<AUD_IFactory>				m_sound;
 	float					m_volume;

@@ -50,7 +50,7 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 
 class KX_Camera : public KX_GameObject
 {
-	Py_Header;
+	Py_Header
 protected:
 	friend class KX_Scene;
 	/** Camera parameters (clips distances, focal length). These
@@ -199,6 +199,12 @@ public:
 	float				GetLens() const;
 	/** Gets the ortho scale. */
 	float				GetScale() const;
+	/** Gets the horizontal size of the sensor - for camera matching */
+	float				GetSensorWidth() const;
+	/** Gets the vertical size of the sensor - for camera matching */
+	float				GetSensorHeight() const;
+	/** Gets the mode FOV is calculating from sensor dimensions */
+	short				GetSensorFit() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */

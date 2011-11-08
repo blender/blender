@@ -55,6 +55,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_tracking.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -753,6 +754,37 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
+static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
+{
+	MovieTrackingTrack *track;
+	MovieClip *clip= object_get_movieclip(scene, ob, 0);
+	int ok= 0;
+	float min[3], max[3], mat[4][4], pos[3];
+
+	if(!clip)
+		return;
+
+	BKE_get_tracking_mat(scene, ob, mat);
+
+	INIT_MINMAX(min, max);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		int selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
+		if((track->flag&TRACK_HAS_BUNDLE) && selected) {
+			ok= 1;
+			mul_v3_m4v3(pos, mat, track->bundle_pos);
+			DO_MINMAX(pos, min, max);
+		}
+
+		track= track->next;
+	}
+
+	if(ok) {
+		interp_v3_v3v3(vec, min, max, 0.5);
+	}
+}
+
 static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -817,6 +849,15 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 		else {
 			CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 				copy_v3_v3(vec, ob->obmat[3]);
+
+				/* special case for camera -- snap to bundles */
+				if(ob->type==OB_CAMERA) {
+					/* snap to bundles should happen only when bundles are visible */
+					if(v3d->flag2&V3D_SHOW_RECONSTRUCTION) {
+						bundle_midpoint(scene, ob, vec);
+					}
+				}
+
 				add_v3_v3(centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;

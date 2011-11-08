@@ -1533,15 +1533,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
 
-		/* only used for automatic toolbox, so can set the shift flag */
-		if(but->flag & UI_MAKE_TOP) {
-			block->direction= UI_TOP|UI_SHIFT_FLIPPED;
-			uiBlockFlipOrder(block);
-		}
-		if(but->flag & UI_MAKE_DOWN) block->direction= UI_DOWN|UI_SHIFT_FLIPPED;
-		if(but->flag & UI_MAKE_LEFT) block->direction |= UI_LEFT;
-		if(but->flag & UI_MAKE_RIGHT) block->direction |= UI_RIGHT;
-
 		ui_block_position(window, butregion, but, block);
 	}
 	else {
@@ -2126,7 +2117,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	VECCOPY(handle->retvec, but->editvec);
+	copy_v3_v3(handle->retvec, but->editvec);
 	
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
 	

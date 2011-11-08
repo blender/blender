@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/mathutils_Quaternion.c
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Quaternion.c
+ *  \ingroup pymathutils
  */
 
 
@@ -39,6 +39,7 @@
 #define QUAT_SIZE 4
 
 static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self);
+static void      quat__axis_angle_sanitize(float axis[3], float *angle);
 static PyObject *Quaternion_copy(QuaternionObject *self);
 
 //-----------------------------METHODS------------------------------
@@ -140,6 +141,39 @@ static PyObject *Quaternion_to_matrix(QuaternionObject *self)
 	quat_to_mat3((float (*)[3])mat, self->quat);
 	return newMatrixObject(mat, 3, 3, Py_NEW, NULL);
 }
+
+//----------------------------Quaternion.toMatrix()------------------
+PyDoc_STRVAR(Quaternion_to_axis_angle_doc,
+".. method:: to_axis_angle()\n"
+"\n"
+"   Return the axis, angle representation of the quaternion.\n"
+"\n"
+"   :return: axis, angle.\n"
+"   :rtype: (:class:`Vector`, float) pair\n"
+);
+static PyObject *Quaternion_to_axis_angle(QuaternionObject *self)
+{
+	PyObject *ret;
+
+	float tquat[4];
+
+	float axis[3];
+	float angle;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	normalize_qt_qt(tquat, self->quat);
+	quat_to_axis_angle(axis, &angle, tquat);
+
+	quat__axis_angle_sanitize(axis, &angle);
+
+	ret= PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, newVectorObject(axis, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(angle));
+	return ret;
+}
+
 
 //----------------------------Quaternion.cross(other)------------------
 PyDoc_STRVAR(Quaternion_cross_doc,
@@ -881,12 +915,18 @@ static PyObject *Quaternion_getMagnitude(QuaternionObject *self, void *UNUSED(cl
 static PyObject *Quaternion_getAngle(QuaternionObject *self, void *UNUSED(closure))
 {
 	float tquat[4];
+	float angle;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	normalize_qt_qt(tquat, self->quat);
-	return PyFloat_FromDouble(2.0f * (saacos(tquat[0])));
+
+	angle= 2.0f * saacos(tquat[0]);
+
+	quat__axis_angle_sanitize(NULL, &angle);
+
+	return PyFloat_FromDouble(angle);
 }
 
 static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UNUSED(closure))
@@ -895,7 +935,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 	float len;
 
 	float axis[3], angle_dummy;
-	double angle;
+	float angle;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
@@ -913,13 +953,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 
 	angle= angle_wrap_rad(angle);
 
-	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
-	if (	EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
-	) {
-		axis[0] = 1.0f;
-	}
+	quat__axis_angle_sanitize(axis, &angle);
 
 	axis_angle_to_quat(self->quat, axis, angle);
 	mul_qt_fl(self->quat, len);
@@ -935,21 +969,15 @@ static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *UNUSED(clos
 	float tquat[4];
 
 	float axis[3];
-	float angle;
+	float angle_dummy;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	normalize_qt_qt(tquat, self->quat);
-	quat_to_axis_angle(axis, &angle, tquat);
+	quat_to_axis_angle(axis, &angle_dummy, tquat);
 
-	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
-	if (	EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
-	) {
-		axis[0] = 1.0f;
-	}
+	quat__axis_angle_sanitize(axis, NULL);
 
 	return (PyObject *) newVectorObject(axis, 3, Py_NEW, NULL);
 }
@@ -970,6 +998,8 @@ static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *
 
 	if (mathutils_array_parse(axis, 3, 3, value, "quat.axis = other") == -1)
 		return -1;
+
+	quat__axis_angle_sanitize(axis, &angle);
 
 	axis_angle_to_quat(self->quat, axis, angle);
 	mul_qt_fl(self->quat, len);
@@ -1029,6 +1059,33 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 	}
 }
 
+/* axis vector suffers from precission errors, use this function to ensure */
+static void quat__axis_angle_sanitize(float axis[3], float *angle)
+{
+	if (axis) {
+		if (   !finite(axis[0]) ||
+			   !finite(axis[1]) ||
+			   !finite(axis[2]))
+		{
+			axis[0]= 1.0f;
+			axis[1]= 0.0f;
+			axis[2]= 0.0f;
+		}
+		else if (    EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
+					 EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
+					 EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
+		) {
+			axis[0] = 1.0f;
+		}
+	}
+
+	if (angle) {
+		if (!finite(*angle)) {
+			*angle= 0.0f;
+		}
+	}
+}
+
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Quaternion_methods[] = {
 	/* in place only */
@@ -1048,6 +1105,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 	/* return converted representation */
 	{"to_euler", (PyCFunction) Quaternion_to_euler, METH_VARARGS, Quaternion_to_euler_doc},
 	{"to_matrix", (PyCFunction) Quaternion_to_matrix, METH_NOARGS, Quaternion_to_matrix_doc},
+	{"to_axis_angle", (PyCFunction) Quaternion_to_axis_angle, METH_NOARGS, Quaternion_to_axis_angle_doc},
 
 	/* operation between 2 or more types  */
 	{"cross", (PyCFunction) Quaternion_cross, METH_O, Quaternion_cross_doc},

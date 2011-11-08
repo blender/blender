@@ -43,10 +43,11 @@
 #include <string.h>
 #include <limits.h>
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_action_types.h"
 
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -628,7 +629,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 		if(newtree==ntree) break;
 	if(newtree) {
-		newtree= copy_libblock(ntree);
+		newtree= copy_libblock(&ntree->id);
 	} else {
 		newtree= MEM_dupallocN(ntree);
 		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
@@ -1320,7 +1321,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_ID;
 }
 
-/* use flags are not persistant yet, groups might need different tagging, so we do it each time
+/* use flags are not persistent yet, groups might need different tagging, so we do it each time
    when we need to get this info */
 void ntreeSocketUseFlags(bNodeTree *ntree)
 {
@@ -1751,6 +1752,10 @@ void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMate
 	ntype->gpuextfunc = gpuextfunc;
 }
 
+void node_type_compatibility(struct bNodeType *ntype, short compatibility)
+{
+	ntype->compatibility = compatibility;
+}
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
 {
@@ -1785,6 +1790,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_value(ntypelist);
 	register_node_type_cmp_rgb(ntypelist);
 	register_node_type_cmp_curve_time(ntypelist);
+	register_node_type_cmp_movieclip(ntypelist);
 	
 	register_node_type_cmp_composite(ntypelist);
 	register_node_type_cmp_viewer(ntypelist);
@@ -1849,6 +1855,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_glare(ntypelist);
 	register_node_type_cmp_tonemap(ntypelist);
 	register_node_type_cmp_lensdist(ntypelist);
+	register_node_type_cmp_transform(ntypelist);
+	register_node_type_cmp_stabilize2d(ntypelist);
+	register_node_type_cmp_moviedistortion(ntypelist);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 

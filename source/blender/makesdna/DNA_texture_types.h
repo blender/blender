@@ -267,11 +267,13 @@ typedef struct Tex {
 	
 } Tex;
 
-/* used for mapping node. note: rot is in degrees */
+/* used for mapping and texture nodes. note: rot is in degrees */
 
 typedef struct TexMapping {
 	float loc[3], rot[3], size[3];
 	int flag;
+	char projx, projy, projz, mapping;
+	int pad;
 	
 	float mat[4][4];
 	float min[3], max[3];
@@ -279,10 +281,24 @@ typedef struct TexMapping {
 
 } TexMapping;
 
-/* texmap->flag */
-#define TEXMAP_CLIP_MIN	1
-#define TEXMAP_CLIP_MAX	2
+typedef struct ColorMapping {
+	struct ColorBand coba;
 
+	float bright, contrast, saturation;
+	int flag;
+
+	float blend_color[3];
+	float blend_factor;
+	int blend_type, pad[3];
+} ColorMapping;
+
+/* texmap->flag */
+#define TEXMAP_CLIP_MIN		1
+#define TEXMAP_CLIP_MAX		2
+#define TEXMAP_UNIT_MATRIX	4
+
+/* colormap->flag */
+#define COLORMAP_USE_RAMP 1
 
 /* **************** TEX ********************* */
 

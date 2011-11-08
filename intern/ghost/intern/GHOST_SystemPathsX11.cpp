@@ -41,6 +41,11 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+#ifdef WITH_XDG_USER_DIRS
+#  include <pwd.h> // for get home without use getenv()
+#  include <limits.h> // for PATH_MAX
+#endif
+
 #ifdef PREFIX
 static const char *static_path= PREFIX "/share" ;
 #else
@@ -63,7 +68,27 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 {
+#ifndef WITH_XDG_USER_DIRS
 	return (const GHOST_TUns8 *)getenv("HOME");
+#else /* WITH_XDG_USER_DIRS */
+	const char *home= getenv("XDG_CONFIG_HOME");
+
+	if (home) {
+		return (const GHOST_TUns8 *)home;
+	}
+	else {
+		static char user_path[PATH_MAX];
+
+		home= getenv("HOME");
+
+		if (home == NULL) {
+			home= getpwuid(getuid())->pw_dir;
+		}
+
+		snprintf(user_path, sizeof(user_path), "%s/.config", home);
+		return (const GHOST_TUns8 *)user_path;
+	}
+#endif /* WITH_XDG_USER_DIRS */
 }
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getBinaryDir() const

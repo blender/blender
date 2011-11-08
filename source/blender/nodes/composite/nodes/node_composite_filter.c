@@ -34,8 +34,8 @@
 
 /* **************** FILTER  ******************** */
 static bNodeSocketTemplate cmp_node_filter_in[]= {
-	{	SOCK_FLOAT, 1, "Fac",			1.0f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_FLOAT, 1, "Fac",			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_filter_out[]= {
@@ -64,7 +64,7 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 		fp= out->rect + pix*y*rowlen;
 		
 		if(pix==CB_RGBA) {
-			QUATCOPY(fp, row2);
+			copy_v4_v4(fp, row2);
 			fp+= pix;
 			
 			for(x=2; x<rowlen; x++) {
@@ -78,7 +78,7 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 				/* no alpha... will clear it completely */
 				fp++; row1++; row2++; row3++;
 			}
-			QUATCOPY(fp, row2+4);
+			copy_v4_v4(fp, row2+4);
 		}
 		else if(pix==CB_VAL) {
 			fp+= pix;
@@ -138,7 +138,7 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 			fp[1]= row2[3];
 		}
 		else if(pixlen==3) {
-			VECCOPY(fp, row2);
+			copy_v3_v3(fp, row2);
 			fp+= 3;
 			
 			for(x=2; x<rowlen; x++) {
@@ -147,10 +147,10 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 					fp++; row1++; row2++; row3++;
 				}
 			}
-			VECCOPY(fp, row2+3);
+			copy_v3_v3(fp, row2+3);
 		}
 		else {
-			QUATCOPY(fp, row2);
+			copy_v4_v4(fp, row2);
 			fp+= 4;
 			
 			for(x=2; x<rowlen; x++) {
@@ -159,7 +159,7 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 					fp++; row1++; row2++; row3++;
 				}
 			}
-			QUATCOPY(fp, row2+4);
+			copy_v4_v4(fp, row2+4);
 		}
 	}
 }

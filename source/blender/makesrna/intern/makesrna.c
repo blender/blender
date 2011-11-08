@@ -70,25 +70,28 @@ static int replace_if_different(char *tmpfile, const char *dep_files[])
 {
 	// return 0; // use for testing had edited rna
 
-#define REN_IF_DIFF \
-	{ \
-		FILE *file_test= fopen(orgfile, "rb"); \
-		if(file_test) { \
-			fclose(file_test); \
-			if(fp_org) fclose(fp_org); \
-			if(fp_new) fclose(fp_new); \
-			if(remove(orgfile) != 0) { \
-				fprintf(stderr, "%s:%d, Remove Error (%s): \"%s\"\n", __FILE__, __LINE__, strerror(errno), orgfile); \
-				return -1; \
-			} \
-		} \
-	} \
-	if(rename(tmpfile, orgfile) != 0) { \
-		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n", __FILE__, __LINE__, strerror(errno), tmpfile, orgfile); \
-		return -1; \
-	} \
-	remove(tmpfile); \
-	return 1; \
+#define REN_IF_DIFF                                                           \
+	{                                                                         \
+		FILE *file_test= fopen(orgfile, "rb");                                \
+		if(file_test) {                                                       \
+			fclose(file_test);                                                \
+			if(fp_org) fclose(fp_org);                                        \
+			if(fp_new) fclose(fp_new);                                        \
+			if(remove(orgfile) != 0) {                                        \
+				fprintf(stderr, "%s:%d, Remove Error (%s): \"%s\"\n",         \
+				        __FILE__, __LINE__, strerror(errno), orgfile);        \
+				return -1;                                                    \
+			}                                                                 \
+		}                                                                     \
+	}                                                                         \
+	if(rename(tmpfile, orgfile) != 0) {                                       \
+		fprintf(stderr, "%s:%d, Rename Error (%s): \"%s\" -> \"%s\"\n",       \
+		        __FILE__, __LINE__, strerror(errno), tmpfile, orgfile);       \
+		return -1;                                                            \
+	}                                                                         \
+	remove(tmpfile);                                                          \
+	return 1;                                                                 \
+
 /* end REN_IF_DIFF */
 
 
@@ -2477,6 +2480,8 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_vfont.c", NULL, RNA_def_vfont},
 	{"rna_wm.c", "rna_wm_api.c", RNA_def_wm},
 	{"rna_world.c", NULL, RNA_def_world},	
+	{"rna_movieclip.c", NULL, RNA_def_movieclip},
+	{"rna_tracking.c", NULL, RNA_def_tracking},
 	{NULL, NULL}};
 
 static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const char *api_filename)

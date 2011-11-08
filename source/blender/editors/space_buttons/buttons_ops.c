@@ -100,7 +100,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 {
 	FileBrowseOp *fbo= op->customdata;
 	ID *id;
-	char *base, *str, path[FILE_MAX];
+	char *str, path[FILE_MAX];
 	const char *path_prop= RNA_struct_find_property(op->ptr, "directory") ? "directory" : "filepath";
 	
 	if (RNA_property_is_set(op->ptr, path_prop)==0 || fbo==NULL)
@@ -113,10 +113,9 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 		char name[FILE_MAX];
 		
 		id = fbo->ptr.id.data;
-		base = (id && id->lib)? id->lib->filepath: G.main->name;
 
 		BLI_strncpy(path, str, FILE_MAX);
-		BLI_path_abs(path, base);
+		BLI_path_abs(path, id ? ID_BLEND_PATH(G.main, id) : G.main->name);
 		
 		if(BLI_is_dir(path)) {
 			str = MEM_reallocN(str, strlen(str)+2);

@@ -35,7 +35,7 @@
 
 /* **************** RGB ******************** */
 static bNodeSocketTemplate cmp_node_rgb_out[]= {
-	{	SOCK_RGBA, 0, "RGBA",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 0, "RGBA",			0.5f, 0.5f, 0.5f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -55,7 +55,7 @@ static void node_composit_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack *
 	bNodeSocket *sock= node->outputs.first;
 	float *col= ((bNodeSocketValueRGBA*)sock->default_value)->value;
 	
-	QUATCOPY(out[0]->vec, col);
+	copy_v4_v4(out[0]->vec, col);
 }
 
 void register_node_type_cmp_rgb(ListBase *lb)

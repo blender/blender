@@ -58,6 +58,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_fileselect.h"
+#include "ED_clip.h"
 
 #include "UI_interface.h"
 
@@ -1808,6 +1809,8 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 	/* update animated image textures for gpu, etc,
 	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
+
+	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */

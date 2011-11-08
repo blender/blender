@@ -120,12 +120,21 @@ void	DAG_ids_flush_update(struct Main *bmain, int time);
 void	DAG_id_tag_update(struct ID *id, short flag);
 		/* flush all tagged updates */
 void	DAG_ids_flush_tagged(struct Main *bmain);
+		/* check and clear ID recalc flags */
+void	DAG_ids_check_recalc(struct Main *bmain);
+void	DAG_ids_clear_recalc(struct Main *bmain);
+		/* test if any of this id type is tagged for update */
+void	DAG_id_type_tag(struct Main *bmain, short idtype);
+int		DAG_id_type_tagged(struct Main *bmain, short idtype);
 
 		/* (re)-create dependency graph for armature pose */
 void	DAG_pose_sort(struct Object *ob);
 
 		/* callback for editors module to do updates */
 void	DAG_editors_update_cb(void (*func)(struct Main *bmain, struct ID *id));
+
+		/* debugging */
+void	DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 #ifdef __cplusplus
 }

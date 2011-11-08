@@ -55,6 +55,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 #include "BIK_api.h"
 
 #ifdef WITH_PYTHON
@@ -401,6 +402,23 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 					/* clear the bound flag, forcing a rebind next time this is evaluated */
 					data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;
 				}
+			}
+			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+				bFollowTrackConstraint *data = curcon->data;
+
+				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0) {
+					if(data->clip != NULL && data->track[0]) {
+						if (!BKE_tracking_named_track(&data->clip->tracking, data->track))
+							curcon->flag |= CONSTRAINT_DISABLE;
+					}
+					else curcon->flag |= CONSTRAINT_DISABLE;
+				}
+			}
+			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
+				bCameraSolverConstraint *data = curcon->data;
+
+				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
+					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			
 			/* Check targets for constraints */
@@ -1368,7 +1386,9 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 				BPY_pyconstraint_update(ob, con);
 			}
 #endif
+			break;
 		}
+
 		default:
 			break;
 	}

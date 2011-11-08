@@ -36,11 +36,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -97,10 +99,17 @@ void ED_node_changed_update(ID *id, bNode *node)
 
 	if(treetype==NTREE_SHADER) {
 		DAG_id_tag_update(id, 0);
-		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
+
+		if(GS(id->name) == ID_MA)
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
+		else if(GS(id->name) == ID_LA)
+			WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, id);
+		else if(GS(id->name) == ID_WO)
+			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
-		nodeUpdate(edittree, node);
+		if(node)
+			nodeUpdate(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
 		node= node_tree_get_editgroup(nodetree);
@@ -683,7 +692,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		if (sock->link) {
+		if (sock->link || (sock->flag & SOCK_HIDE_VALUE)) {
 			uiDefBut(node->block, LABEL, 0, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, NODE_DY,
 					 NULL, 0, 0, 0, 0, "");
 		}

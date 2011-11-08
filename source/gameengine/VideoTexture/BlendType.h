@@ -43,15 +43,15 @@ public:
 		if (m_objType == NULL)
 		{
 			// compare names of type
-			if (strcmp(obj->ob_type->tp_name, m_name) == 0)
+			if (strcmp(Py_TYPE(obj)->tp_name, m_name) == 0)
 				// if name of type match, save pointer to type
-				m_objType = obj->ob_type;
+				m_objType = Py_TYPE(obj);
 			else
 				// if names of type don't match, return NULL
 				return NULL;
 		}
 		// if pointer to type is set and don't match to type of provided object, return NULL
-		else if (obj->ob_type != m_objType) 
+		else if (Py_TYPE(obj) != m_objType)
 			return NULL;
 		// return pointer to object, this class can only be used for KX object =>
 		// the Py object is actually a proxy

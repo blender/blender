@@ -32,8 +32,11 @@
 
 #include <string.h>
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -43,6 +46,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "GPU_material.h"
@@ -56,11 +60,37 @@
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
 	Material *ma;
-	for(ma= main->mat.first; ma; ma= ma->id.next) {
-		if(ma->nodetree) {
+	Lamp *la;
+	World *wo;
+
+	for(ma= main->mat.first; ma; ma= ma->id.next)
+		if(ma->nodetree)
 			func(calldata, &ma->id, ma->nodetree);
-		}
+
+	for(la= main->lamp.first; la; la= la->id.next)
+		if(la->nodetree)
+			func(calldata, &la->id, la->nodetree);
+
+	for(wo= main->world.first; wo; wo= wo->id.next)
+		if(wo->nodetree)
+			func(calldata, &wo->id, wo->nodetree);
+}
+
+static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback func)
+{
+	func(calldata, NODE_CLASS_INPUT, "Input");
+	func(calldata, NODE_CLASS_OUTPUT, "Output");
+
+	if(scene_use_new_shading_nodes(scene)) {
+		func(calldata, NODE_CLASS_SHADER, "Shader");
+		func(calldata, NODE_CLASS_TEXTURE, "Texture");
 	}
+
+	func(calldata, NODE_CLASS_OP_COLOR, "Color");
+	func(calldata, NODE_CLASS_OP_VECTOR, "Vector");
+	func(calldata, NODE_CLASS_CONVERTOR, "Convertor");
+	func(calldata, NODE_CLASS_GROUP, "Group");
+	func(calldata, NODE_CLASS_LAYOUT, "Layout");
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
@@ -97,6 +127,7 @@ bNodeTreeType ntreeType_Shader = {
 	/* free_cache */		NULL,
 	/* free_node_cache */	NULL,
 	/* foreach_nodetree */	foreach_nodetree,
+	/* foreach_nodeclass */	foreach_nodeclass,
 	/* localize */			NULL,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
@@ -212,8 +243,15 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* each material node has own local shaderesult, with optional copying */
 	memset(shr, 0, sizeof(ShadeResult));
 	
-	if (!exec)
-		exec = ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+	/* ensure execdata is only initialized once */
+	if (!exec) {
+		BLI_lock_thread(LOCK_NODES);
+		if(!ntree->execdata)
+			ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
+		BLI_unlock_thread(LOCK_NODES);
+
+		exec = ntree->execdata;
+	}
 	
 	nts= ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);

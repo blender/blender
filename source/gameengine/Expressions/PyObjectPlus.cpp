@@ -470,7 +470,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		case KX_PYATTRIBUTE_TYPE_STRING:
 			{
 				STR_String *val = reinterpret_cast<STR_String*>(ptr);
-				return PyUnicode_FromString(*val);
+				return PyUnicode_From_STR_String(*val);
 			}
 		case KX_PYATTRIBUTE_TYPE_CHAR:
 			{
@@ -1012,8 +1012,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 			{
 				if (PyUnicode_Check(value)) 
 				{
-					Py_ssize_t val_len;
-					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
+					Py_ssize_t val_size;
+					const char *val = _PyUnicode_AsStringAndSize(value, &val_size);
 					strncpy(ptr, val, attrdef->m_size);
 					ptr[attrdef->m_size-1] = 0;
 				}
@@ -1030,7 +1030,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				if (PyUnicode_Check(value)) 
 				{
 					Py_ssize_t val_len;
-					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
+					const char *val = _PyUnicode_AsStringAndSize(value, &val_len); /* XXX, should be 'const' but we do a silly trick to have a shorter string */
 					if (attrdef->m_clamp)
 					{
 						if (val_len < attrdef->m_imin)
@@ -1042,10 +1042,8 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
-							char c = val[attrdef->m_imax];
-							val[attrdef->m_imax] = 0;
-							*var = val;
-							val[attrdef->m_imax] = c;
+							var->SetLength(attrdef->m_imax);
+							memcpy(var->Ptr(), val, attrdef->m_imax - 1);
 							break;
 						}
 					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
@@ -1171,6 +1169,11 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		Py_DECREF(self->m_proxy); /* could avoid thrashing here but for now its ok */
 	}
 	return self->m_proxy;
+}
+
+PyObject *PyUnicode_From_STR_String(const STR_String& str)
+{
+	return PyUnicode_FromStringAndSize(str.ReadPtr(), str.Length());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

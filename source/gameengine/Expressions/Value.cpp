@@ -532,7 +532,7 @@ PyAttributeDef CValue::Attributes[] = {
 
 PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
 	CValue * self = static_cast<CValue *> (self_v);
-	return PyUnicode_FromString(self->GetName());
+	return PyUnicode_From_STR_String(self->GetName());
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
@@ -596,22 +596,24 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 
 }
 
-PyObject*	CValue::ConvertKeysToPython( void )
+PyObject* CValue::ConvertKeysToPython(void)
 {
-	PyObject *pylist = PyList_New( 0 );
-	PyObject *pystr;
-	
 	if (m_pNamedPropertyArray)
 	{
+		PyObject *pylist= PyList_New(m_pNamedPropertyArray->size());
+		Py_ssize_t i= 0;
+
 		std::map<STR_String,CValue*>::iterator it;
 		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
-			pystr = PyUnicode_FromString( (*it).first );
-			PyList_Append(pylist, pystr);
-			Py_DECREF( pystr );
+			PyList_SET_ITEM(pylist, i++, PyUnicode_From_STR_String((*it).first));
 		}
+
+		return pylist;
 	}
-	return pylist;
+	else {
+		return PyList_New(0);
+	}
 }
 
 #endif // WITH_PYTHON

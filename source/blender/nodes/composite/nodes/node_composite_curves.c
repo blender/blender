@@ -121,7 +121,7 @@ void register_node_type_cmp_curve_vec(ListBase *lb)
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketTemplate cmp_node_curve_rgb_in[]= {
 	{	SOCK_FLOAT, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_RGBA, 1, "Image",	0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",	1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Black Level",	0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "White Level",	1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -144,7 +144,7 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 	if(*fac>=1.0)
 		curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	else if(*fac<=0.0) {
-		VECCOPY(out, in);
+		copy_v3_v3(out, in);
 	}
 	else {
 		float col[4], mfac= 1.0f-*fac;
@@ -175,7 +175,7 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 		
 		curvemapping_set_black_white(node->storage, in[2]->vec, in[3]->vec);
 		
-		if(in[0]->vec[0] == 1.0)
+		if(in[0]->data==NULL && in[0]->vec[0] == 1.0)
 			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);
 		else
 			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);

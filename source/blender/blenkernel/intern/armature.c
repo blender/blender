@@ -68,6 +68,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "BIK_api.h"
 #include "BKE_sketch.h"
@@ -157,12 +158,11 @@ void make_local_armature(bArmature *arm)
 		id_clear_lib_data(bmain, &arm->id);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, arm->id.lib->filepath};
 		bArmature *armn= copy_armature(arm);
 		armn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &armn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &armn->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == arm) {
@@ -204,7 +204,7 @@ bArmature *copy_armature(bArmature *arm)
 	Bone		*oldBone, *newBone;
 	Bone		*newActBone= NULL;
 	
-	newArm= copy_libblock (arm);
+	newArm= copy_libblock(&arm->id);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 	
 	/*	Duplicate the childrens' lists*/
@@ -1818,7 +1818,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		tree->ikData= ikData;
 		
 		/* AND! link the tree to the root */
-		BLI_addtail(&pchanRoot->iktree, tree);
+		BLI_addtail(&pchanRoot->siktree, tree);
 	}
 	
 	/* mark root channel having an IK tree */
@@ -2045,27 +2045,24 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 	tSplineIK_Tree *tree;
 	
 	/* for each pose-tree, execute it if it is spline, otherwise just free it */
-	for (tree= pchan_root->iktree.first; tree; tree= pchan_root->iktree.first) {
-		/* only evaluate if tagged for Spline IK */
-		if (tree->type == CONSTRAINT_TYPE_SPLINEIK) {
-			int i;
-			
-			/* walk over each bone in the chain, calculating the effects of spline IK
-			 * 	- the chain is traversed in the opposite order to storage order (i.e. parent to children)
-			 *	  so that dependencies are correct
-			 */
-			for (i= tree->chainlen-1; i >= 0; i--) {
-				bPoseChannel *pchan= tree->chain[i];
-				splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
-			}
-			
-			/* free the tree info specific to SplineIK trees now */
-			if (tree->chain) MEM_freeN(tree->chain);
-			if (tree->free_points) MEM_freeN(tree->points);
+	while ((tree = pchan_root->siktree.first) != NULL) {
+		int i;
+		
+		/* walk over each bone in the chain, calculating the effects of spline IK
+		 * 	- the chain is traversed in the opposite order to storage order (i.e. parent to children)
+		 *	  so that dependencies are correct
+		 */
+		for (i= tree->chainlen-1; i >= 0; i--) {
+			bPoseChannel *pchan= tree->chain[i];
+			splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
 		}
 		
+		/* free the tree info specific to SplineIK trees now */
+		if (tree->chain) MEM_freeN(tree->chain);
+		if (tree->free_points) MEM_freeN(tree->points);
+		
 		/* free this tree */
-		BLI_freelinkN(&pchan_root->iktree, tree);
+		BLI_freelinkN(&pchan_root->siktree, tree);
 	}
 }
 
@@ -2407,7 +2404,7 @@ void where_is_pose (Scene *scene, Object *ob)
 	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 
 		armature_rebuild_pose(ob, arm);
 	   
-	ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
+	ctime= BKE_curframe(scene);	/* not accurate... */
 	
 	/* In editmode or restposition we read the data from the bones */
 	if(arm->edbo || (arm->flag & ARM_RESTPOS)) {

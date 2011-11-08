@@ -46,7 +46,6 @@ void ED_spacetype_node(void);
 void ED_spacetype_buttons(void);
 void ED_spacetype_info(void);
 void ED_spacetype_file(void);
-void ED_spacetype_sound(void);
 void ED_spacetype_action(void);
 void ED_spacetype_nla(void);
 void ED_spacetype_script(void);
@@ -55,6 +54,7 @@ void ED_spacetype_sequencer(void);
 void ED_spacetype_logic(void);
 void ED_spacetype_console(void);
 void ED_spacetype_userpref(void);
+void ED_spacetype_clip(void);
 
 /* calls for instancing and freeing spacetype static data 
    called in WM_init_exit */

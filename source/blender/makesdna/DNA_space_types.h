@@ -37,6 +37,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"		/* for TreeStoreElem */
 #include "DNA_image_types.h"	/* ImageUser */
+#include "DNA_movieclip_types.h"	/* MovieClipUser */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -62,6 +63,8 @@ struct bScreen;
 struct Scene;
 struct wmOperator;
 struct wmTimer;
+struct MovieClip;
+struct MovieClipScopes;
 
 	/**
 	 * The base structure all the other spaces
@@ -400,7 +403,9 @@ typedef struct SpaceNode {
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;		/* treetype: as same nodetree->type */
 	short texfrom;		/* texfrom object, world or brush */
+	short shaderfrom;	/* shader from object or world */
 	short recalc;		/* currently on 0/1, for auto compo */
+	short pad[3];
 	ListBase linkdrag;	/* temporary data for modal linking operator */
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
@@ -418,6 +423,10 @@ typedef struct SpaceNode {
 #define SNODE_TEX_WORLD		1
 #define SNODE_TEX_BRUSH		2
 
+/* snode->shaderfrom */
+#define SNODE_SHADER_OBJECT	0
+#define SNODE_SHADER_WORLD	1
+
 typedef struct SpaceLogic {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -431,68 +440,6 @@ typedef struct SpaceLogic {
 	
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceLogic;
-
-/* note, this entire struct isnt used anymore!,
- * may remove some day - campbell */
-typedef struct SpaceImaSel {
-	SpaceLink *next, *prev;
-	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-	
-	short blockhandler[8];
-
-	View2D v2d; /* deprecated, copied to region */
-
-	struct FileList *files;
-
-	/* specific stuff for drawing */
-	char title[24];
-	char dir[240];
-	char file[80];
-
-	short type, menu, flag, sort;
-
-	void *curfont;
-	int	active_file;
-
-	int numtilesx;
-	int numtilesy;
-
-	int selstate;
-
-	struct rcti viewrect;
-	struct rcti bookmarkrect;
-
-	float scrollpos; /* current position of scrollhandle */
-	float scrollheight; /* height of the scrollhandle */
-	float scrollarea; /* scroll region, scrollpos is from 0 to scrollarea */
-
-	float aspect;
-	unsigned short retval;		/* event */
-
-	short ipotype;
-	
-	short filter;
-	short active_bookmark;
-	short pad, pad1;
-
-	/* view settings */
-	short prv_w;
-	short prv_h;
-
-	/* one day we'll add unions to dna */
-	void (*returnfunc)(char *);
-	void (*returnfunc_event)(unsigned short);
-	void (*returnfunc_args)(char *, void *, void *);
-	
-	void *arg1, *arg2;
-	short *menup;	/* pointer to menu result or ID browsing */
-	char *pupmenu;	/* optional menu in header */
-
-	struct ImBuf *img;
-} SpaceImaSel;
-
 
 typedef struct ConsoleLine {
 	struct ConsoleLine *next, *prev;
@@ -545,21 +492,31 @@ typedef struct SpaceUserPref {
 
 } SpaceUserPref;
 
-typedef struct SpaceSound {
-	struct SpaceLink *next, *prev;
+typedef struct SpaceClip {
+	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
-	float blockscale;
-	struct ScrArea *area;
-	
-	View2D v2d;
-	
-	struct bSound *sound;
-	short mode, sndnr;
-	short xof, yof;
-	short flag, lock;
-	int pad2;
-} SpaceSound;
+
+	float xof, yof;				/* user defined offset, image is centered */
+	float xlockof, ylockof;		/* user defined offset from locked position */
+	float zoom;					/* user defined zoom level */
+
+	struct MovieClipUser user;		/* user of clip */
+	struct MovieClip *clip;			/* clip data */
+	struct MovieClipScopes scopes;	/* different scoped displayed in space panels */
+
+	int flag;					/* flags */
+	short mode;					/* editor mode (editing context being displayed) */
+	short view;					/* type of the clip editor view */
+
+	int path_length;			/* length of displaying path, in frames */
+
+	/* current stabilization data */
+	float loc[2], scale, angle;	/* pre-composed stabilization data */
+	int pad;
+	float stabmat[4][4], unistabmat[4][4];		/* current stabilization matrix and the same matrix in unified space,
+												   defined when drawing and used for mouse position calculation */
+} SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
 
@@ -896,6 +853,7 @@ enum {
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
 #define TIME_NODES				256
+#define TIME_CLIPS				512
 
 /* time->cache */
 #define TIME_CACHE_DISPLAY		1
@@ -933,6 +891,33 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_100       99
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
 
+/* SpaceClip->flag */
+#define SC_SHOW_MARKER_PATTERN	(1<<0)
+#define SC_SHOW_MARKER_SEARCH	(1<<1)
+#define SC_LOCK_SELECTION		(1<<2)
+#define SC_SHOW_TINY_MARKER		(1<<3)
+#define SC_SHOW_TRACK_PATH		(1<<4)
+#define SC_SHOW_BUNDLES			(1<<5)
+#define SC_MUTE_FOOTAGE			(1<<6)
+#define SC_HIDE_DISABLED		(1<<7)
+#define SC_SHOW_NAMES			(1<<8)
+#define SC_SHOW_GRID			(1<<9)
+#define SC_SHOW_STABLE			(1<<10)
+#define SC_MANUAL_CALIBRATION	(1<<11)
+#define SC_SHOW_GPENCIL			(1<<12)
+#define SC_SHOW_FILTERS			(1<<13)
+#define SC_SHOW_GRAPH_FRAMES	(1<<14)
+#define SC_SHOW_GRAPH_TRACKS	(1<<15)
+#define SC_SHOW_PYRAMID_LEVELS		(1<<16)
+
+/* SpaceClip->mode */
+#define SC_MODE_TRACKING		0
+#define SC_MODE_RECONSTRUCTION	1
+#define SC_MODE_DISTORTION		2
+
+/* SpaceClip->view */
+#define SC_VIEW_CLIP		0
+#define SC_VIEW_GRAPH		1
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
@@ -947,17 +932,18 @@ enum {
 	SPACE_INFO,
 	SPACE_SEQ,
 	SPACE_TEXT,
-	SPACE_IMASEL,
-	SPACE_SOUND,
+	SPACE_IMASEL, /* deprecated */
+	SPACE_SOUND, /* Deprecated */
 	SPACE_ACTION,
 	SPACE_NLA,
-	SPACE_SCRIPT,
+	SPACE_SCRIPT, /* Deprecated */
 	SPACE_TIME,
 	SPACE_NODE,
 	SPACE_LOGIC,
 	SPACE_CONSOLE,
 	SPACE_USERPREF,
-	SPACEICONMAX = SPACE_USERPREF
+	SPACE_CLIP,
+	SPACEICONMAX = SPACE_CLIP
 };
 
 #endif

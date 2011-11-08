@@ -146,13 +146,10 @@ void make_local_action(bAction *act)
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		char *bpath_user_data[2]= {bmain->name, act->id.lib->filepath};
-
 		mlac.actn= copy_action(act);
 		mlac.actn->id.us= 0;
 
-		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &mlac.actn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &mlac.actn->id);
 
 		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
 	}
@@ -188,7 +185,7 @@ bAction *copy_action (bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst= copy_libblock(src);
+	dst= copy_libblock(&src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);

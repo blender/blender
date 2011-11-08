@@ -145,6 +145,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	if (changed) {
+		DAG_id_type_tag(bmain, ID_OB);
 		DAG_scene_sort(bmain, scene);
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
@@ -197,6 +198,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (changed) {
+		DAG_id_type_tag(bmain, ID_OB);
 		DAG_scene_sort(bmain, scene);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
@@ -1128,19 +1130,19 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				base->object->recalc |= OB_RECALC_OB;
 				
 				if(event==1) {  /* loc */
-					VECCOPY(base->object->loc, ob->loc);
-					VECCOPY(base->object->dloc, ob->dloc);
+					copy_v3_v3(base->object->loc, ob->loc);
+					copy_v3_v3(base->object->dloc, ob->dloc);
 				}
 				else if(event==2) {  /* rot */
-					VECCOPY(base->object->rot, ob->rot);
-					VECCOPY(base->object->drot, ob->drot);
+					copy_v3_v3(base->object->rot, ob->rot);
+					copy_v3_v3(base->object->drot, ob->drot);
 
-					QUATCOPY(base->object->quat, ob->quat);
-					QUATCOPY(base->object->dquat, ob->dquat);
+					copy_qt_qt(base->object->quat, ob->quat);
+					copy_qt_qt(base->object->dquat, ob->dquat);
 				}
 				else if(event==3) {  /* size */
-					VECCOPY(base->object->size, ob->size);
-					VECCOPY(base->object->dsize, ob->dsize);
+					copy_v3_v3(base->object->size, ob->size);
+					copy_v3_v3(base->object->dsize, ob->dsize);
 				}
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;
@@ -1180,7 +1182,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->min_vel= ob->min_vel;
 					base->object->max_vel= ob->max_vel;
 					if (ob->gameflag & OB_BOUNDS) {
-						base->object->boundtype = ob->boundtype;
+						base->object->collision_boundtype = ob->collision_boundtype;
 					}
 					base->object->margin= ob->margin;
 					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);
@@ -1329,7 +1331,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->index= ob->index;
 				}
 				else if(event==31) { /* object color */
-					QUATCOPY(base->object->col, ob->col);
+					copy_v4_v4(base->object->col, ob->col);
 				}
 			}
 		}

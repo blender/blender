@@ -1880,7 +1880,7 @@ PyTypeObject KX_GameObject::Type = {
 PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	return PyUnicode_FromString(self->GetName().ReadPtr());
+	return PyUnicode_From_STR_String(self->GetName());
 }
 
 PyObject* KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -2683,7 +2683,7 @@ PyObject* KX_GameObject::PyGetPhysicsId()
 
 PyObject* KX_GameObject::PyGetPropertyNames()
 {
-	PyObject *list=  ConvertKeysToPython();
+	PyObject *list= ConvertKeysToPython();
 	
 	if(m_attr_dict) {
 		PyObject *key, *value;

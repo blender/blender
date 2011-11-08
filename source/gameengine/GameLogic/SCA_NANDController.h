@@ -36,7 +36,7 @@
 
 class SCA_NANDController : public SCA_IController
 {
-	Py_Header;
+	Py_Header
 	//virtual void Trigger(class SCA_LogicManager* logicmgr);
 public:
 	SCA_NANDController(SCA_IObject* gameobj);

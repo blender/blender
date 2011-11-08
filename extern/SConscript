@@ -28,3 +28,6 @@ if env['WITH_BF_LZO']:
 
 if env['WITH_BF_LZMA']:
     SConscript(['lzma/SConscript'])
+
+if env['WITH_BF_LIBMV']:
+    SConscript(['libmv/SConscript'])

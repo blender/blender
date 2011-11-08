@@ -45,7 +45,7 @@ class SCA_IScene;
 
 class KX_SCA_AddObjectActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 	/// Time field: lifetime of the new object
 	int	m_timeProp;

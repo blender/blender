@@ -75,6 +75,18 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 	}
 }
 
+void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
+{
+	bController *cont= (bController *)ptr->data;
+
+	BLI_strncpy_utf8(cont->name, value, sizeof(cont->name));
+
+	if (ptr->id.data) {
+		Object *ob= (Object *)ptr->id.data;
+		BLI_uniquename(&ob->controllers, cont, "Controller", '.', offsetof(bController, name), sizeof(cont->name));
+	}
+}
+
 static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
 {
 	bController *cont= (bController *)ptr->data;
@@ -177,6 +189,7 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Constroller_name_set");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

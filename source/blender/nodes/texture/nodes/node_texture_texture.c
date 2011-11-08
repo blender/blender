@@ -54,12 +54,18 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	float co[3], dxt[3], dyt[3];
 	
 	copy_v3_v3(co, p->co);
-	copy_v3_v3(dxt, p->dxt);
-	copy_v3_v3(dyt, p->dyt);
+	if (p->osatex) {
+		copy_v3_v3(dxt, p->dxt);
+		copy_v3_v3(dyt, p->dyt);
+	}
+	else {
+		zero_v3(dxt);
+		zero_v3(dyt);
+	}
 	
 	if(node->custom2 || node->need_exec==0) {
 		/* this node refers to its own texture tree! */
-		QUATCOPY(out, (fabs(co[0] - co[1]) < .01) ? white : red );
+		copy_v4_v4(out, (fabs(co[0] - co[1]) < .01) ? white : red );
 	}
 	else if(nodetex) {
 		TexResult texres;
@@ -75,10 +81,10 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			&texres, thread, 0, p->shi, p->mtex);
 		
 		if(textype & TEX_RGB) {
-			QUATCOPY(out, &texres.tr);
+			copy_v4_v4(out, &texres.tr);
 		}
 		else {
-			QUATCOPY(out, col1);
+			copy_v4_v4(out, col1);
 			ramp_blend(MA_RAMP_BLEND, out, out+1, out+2, texres.tin, col2);
 		}
 	}

@@ -51,11 +51,6 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
 void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar);
 
 /* **************************************** */
-/* nla_header.c */
-
-void nla_header_buttons(const bContext *C, ARegion *ar);
-
-/* **************************************** */
 /* nla_select.c */
 
 /* defines for left-right select tool */

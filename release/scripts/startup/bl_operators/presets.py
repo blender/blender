@@ -195,6 +195,25 @@ class AddPresetRender(AddPresetBase, Operator):
     preset_subdir = "render"
 
 
+class AddPresetCamera(AddPresetBase, Operator):
+    '''Add a Camera Preset'''
+    bl_idname = "camera.preset_add"
+    bl_label = "Add Camera Preset"
+    preset_menu = "CAMERA_MT_presets"
+
+    preset_defines = [
+        "cam = bpy.context.object.data"
+    ]
+
+    preset_values = [
+        "cam.sensor_width",
+        "cam.sensor_height",
+        "cam.sensor_fit"
+    ]
+
+    preset_subdir = "camera"
+
+
 class AddPresetSSS(AddPresetBase, Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
@@ -298,6 +317,47 @@ class AddPresetInteraction(AddPresetBase, Operator):
     ]
 
     preset_subdir = "interaction"
+
+
+class AddPresetTrackingCamera(AddPresetBase, Operator):
+    '''Add a Tracking Camera Intrinsics  Preset'''
+    bl_idname = "clip.camera_preset_add"
+    bl_label = "Add Camera Preset"
+    preset_menu = "CLIP_MT_camera_presets"
+
+    preset_defines = [
+        "camera = bpy.context.edit_movieclip.tracking.camera"
+    ]
+
+    preset_values = [
+        "camera.sensor_width",
+        "camera.units",
+        "camera.focal_length",
+        "camera.pixel_aspect",
+        "camera.k1",
+        "camera.k2",
+        "camera.k3"
+    ]
+
+    preset_subdir = "tracking_camera"
+
+
+class AddPresetTrackingTrackColor(AddPresetBase, Operator):
+    '''Add a Clip Track Color Preset'''
+    bl_idname = "clip.track_color_preset_add"
+    bl_label = "Add Track Color Preset"
+    preset_menu = "CLIP_MT_track_color_presets"
+
+    preset_defines = [
+        "track = bpy.context.edit_movieclip.tracking.tracks"
+    ]
+
+    preset_values = [
+        "track.color",
+        "track.use_custom_color"
+    ]
+
+    preset_subdir = "tracking_track_color"
 
 
 class AddPresetKeyconfig(AddPresetBase, Operator):

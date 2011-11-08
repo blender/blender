@@ -31,7 +31,7 @@
  *  \ingroup DNA
  */
 
-// XXX, temp feature
+// XXX, temp feature - campbell
 #define DURIAN_CAMERA_SWITCH
 
 #ifdef __cplusplus
@@ -55,6 +55,7 @@ struct AnimData;
 struct Editing;
 struct SceneStats;
 struct bGPdata;
+struct MovieClip;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -868,6 +869,9 @@ typedef struct Scene {
 
 	/* Physics simulation settings */
 	struct PhysicsSettings physics_settings;
+
+	/* Movie Tracking */
+	struct MovieClip *clip;			/* active movie clip */
 } Scene;
 
 
@@ -1343,7 +1347,6 @@ typedef enum SculptFlags {
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
 #define USER_UNIT_ROT_RADIANS	2
-
 
 #ifdef __cplusplus
 }

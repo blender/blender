@@ -120,7 +120,7 @@ MetaBall *copy_mball(MetaBall *mb)
 	MetaBall *mbn;
 	int a;
 	
-	mbn= copy_libblock(mb);
+	mbn= copy_libblock(&mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
@@ -174,12 +174,11 @@ void make_local_mball(MetaBall *mb)
 		extern_local_mball(mb);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, mb->id.lib->filepath};
 		MetaBall *mbn= copy_mball(mb);
 		mbn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &mbn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &mbn->id);
 
 		for(ob= G.main->object.first; ob; ob= ob->id.next) {
 			if(ob->data == mb) {

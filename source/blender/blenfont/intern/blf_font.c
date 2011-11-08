@@ -122,36 +122,37 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 /* Note,
  * blf_font_ensure_ascii_table(font); must be called before this macro */
 
-#define BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table)             \
-	if(((c)= (str)[i]) < 0x80) {                                              \
-		g= (glyph_ascii_table)[c];                                            \
-		i++;                                                                  \
+#define BLF_UTF8_NEXT_FAST(_font, _g, _str, _i, _c, _glyph_ascii_table)       \
+	if(((_c)= (_str)[_i]) < 0x80) {                                           \
+		_g= (_glyph_ascii_table)[_c];                                         \
+		_i++;                                                                 \
 	}                                                                         \
-	else if ((c= BLI_str_utf8_as_unicode_step((str), &(i))) != BLI_UTF8_ERR) {               \
-		if ((g= blf_glyph_search((font)->glyph_cache, c)) == NULL) {          \
-			g= blf_glyph_add(font, FT_Get_Char_Index((font)->face, c), c);    \
+	else if ((_c= BLI_str_utf8_as_unicode_step(_str, &(_i)))!=BLI_UTF8_ERR) { \
+		if ((_g= blf_glyph_search((_font)->glyph_cache, _c)) == NULL) {       \
+			_g= blf_glyph_add(_font,                                          \
+			                  FT_Get_Char_Index((_font)->face, _c), _c);      \
 		}                                                                     \
 	}                                                                         \
 
 
 #define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode)                     \
-	const short has_kerning= FT_HAS_KERNING((_font)->face);                   \
-	const FT_UInt kern_mode= (has_kerning == 0) ? 0 :                         \
+	const short _has_kerning= FT_HAS_KERNING((_font)->face);                  \
+	const FT_UInt _kern_mode= (_has_kerning == 0) ? 0 :                       \
 	                         (((_font)->flags & BLF_KERNING_DEFAULT) ?        \
 	                          ft_kerning_default : FT_KERNING_UNFITTED)       \
 
 
-#define BLF_KERNING_STEP(_font, kern_mode, g_prev, g, delta, pen_x)           \
+#define BLF_KERNING_STEP(_font, _kern_mode, _g_prev, _g, _delta, _pen_x)      \
 {                                                                             \
-	if (g_prev) {                                                             \
-		delta.x= delta.y= 0;                                                  \
+	if (_g_prev) {                                                            \
+		_delta.x= _delta.y= 0;                                                \
 		if (FT_Get_Kerning((_font)->face,                                     \
-		                   (g_prev)->idx,                                     \
-		                   (g)->idx,                                          \
-		                   kern_mode,                                         \
-		                   &(delta)) == 0)                                    \
+		                   (_g_prev)->idx,                                    \
+		                   (_g)->idx,                                         \
+		                   _kern_mode,                                        \
+		                   &(_delta)) == 0)                                   \
 		{                                                                     \
-			pen_x += delta.x >> 6;                                            \
+			_pen_x += delta.x >> 6;                                           \
 		}                                                                     \
 	}                                                                         \
 }                                                                             \

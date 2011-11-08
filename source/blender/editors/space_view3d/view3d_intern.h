@@ -121,6 +121,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 #define V3D_CACHE_TEXT_ZBUF			(1<<0)
 #define V3D_CACHE_TEXT_WORLDSPACE	(1<<1)
 #define V3D_CACHE_TEXT_ASCII		(1<<2)
+#define V3D_CACHE_TEXT_GLOBALSPACE	(1<<3)
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline);
@@ -135,7 +136,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(ListBase *lb, Base *base, int flag);
-void view3d_viewborder_size_get(struct Scene *scene, struct ARegion *ar, float size_r[2]);
+void view3d_viewborder_size_get(struct Scene *scene, struct Object *camob, struct ARegion *ar, float size_r[2]);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);

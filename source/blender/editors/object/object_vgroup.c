@@ -99,8 +99,7 @@ int ED_vgroup_object_is_edit_mode(Object *ob)
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
-	
-	if(!ob || !ELEM(ob->type, OB_MESH, OB_LATTICE))
+	if(!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
@@ -1528,14 +1527,32 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
                             const char sel, const char sel_mirr,
                             const int *flip_map, const int flip_map_len,
-                            const short mirror_weights, const short flip_vgroups)
+                            const short mirror_weights, const short flip_vgroups,
+                            const short all_vgroups, const int act_vgroup)
 {
 	BLI_assert(sel || sel_mirr);
 
 	if(sel_mirr && sel) {
 		/* swap */
-		if(mirror_weights)
-			SWAP(MDeformVert, *dvert, *dvert_mirr);
+		if(mirror_weights) {
+			if (all_vgroups) {
+				SWAP(MDeformVert, *dvert, *dvert_mirr);
+			}
+			else {
+				MDeformWeight *dw=      defvert_find_index(dvert, act_vgroup);
+				MDeformWeight *dw_mirr= defvert_find_index(dvert_mirr, act_vgroup);
+
+				if (dw || dw_mirr) {
+					if (dw_mirr == NULL)
+						dw_mirr= defvert_verify_index(dvert_mirr, act_vgroup);
+					if (dw == NULL)
+						dw= defvert_verify_index(dvert, act_vgroup);
+
+					SWAP(float, dw->weight, dw_mirr->weight);
+				}
+			}
+		}
+
 		if(flip_vgroups) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 			defvert_flip(dvert_mirr, flip_map, flip_map_len);
@@ -1555,52 +1572,109 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 	}
 }
 
-void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_vgroups)
+/* TODO, vgroup locking */
+/* TODO, face masking */
+void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_vgroups, const short all_vgroups)
 {
-#define VGROUP_MIRR_OP dvert_mirror_op(dvert, dvert_mirr, sel, sel_mirr, flip_map, flip_map_len, mirror_weights, flip_vgroups)
+
+#define VGROUP_MIRR_OP                                                        \
+        dvert_mirror_op(dvert, dvert_mirr,                                    \
+                        sel, sel_mirr,                                        \
+                        flip_map, flip_map_len,                               \
+                        mirror_weights, flip_vgroups,                         \
+                        all_vgroups, act_vgroup                               \
+                        )
 
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
 	short sel, sel_mirr;
 	int	*flip_map, flip_map_len;
+	const int act_vgroup= ob->actdef > 0 ? ob->actdef-1 : 0;
 
 	if(mirror_weights==0 && flip_vgroups==0)
 		return;
 
-	flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
+	flip_map= all_vgroups ?
+	            defgroup_flip_map(ob, &flip_map_len, FALSE) :
+	            defgroup_flip_map_single(ob, &flip_map_len, FALSE, act_vgroup);
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
+		if (em) {
+			if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
+				MEM_freeN(flip_map);
+				return;
+			}
 
-		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
-			MEM_freeN(flip_map);
-			return;
+			EM_cache_x_mirror_vert(ob, em);
+
+			/* Go through the list of editverts and assign them */
+			for(eve=em->verts.first; eve; eve=eve->next){
+				if((eve_mirr=eve->tmp.v)) {
+					sel= eve->f & SELECT;
+					sel_mirr= eve_mirr->f & SELECT;
+
+					if((sel || sel_mirr) && (eve != eve_mirr)) {
+						dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+						dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
+						if(dvert && dvert_mirr) {
+							VGROUP_MIRR_OP;
+						}
+					}
+
+					eve->tmp.v= eve_mirr->tmp.v= NULL;
+				}
+			}
+
+			BKE_mesh_end_editmesh(me, em);
 		}
+		else {
+			/* object mode / weight paint */
+			MVert *mv, *mv_mirr;
+			int vidx, vidx_mirr;
+			const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
-		EM_cache_x_mirror_vert(ob, em);
+			if (me->dvert == NULL) {
+				MEM_freeN(flip_map);
+				return;
+			}
 
-		/* Go through the list of editverts and assign them */
-		for(eve=em->verts.first; eve; eve=eve->next){
-			if((eve_mirr=eve->tmp.v)) {
-				sel= eve->f & SELECT;
-				sel_mirr= eve_mirr->f & SELECT;
+			if (!use_vert_sel) {
+				sel= sel_mirr= TRUE;
+			}
 
-				if((sel || sel_mirr) && (eve != eve_mirr)) {
-					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
-					if(dvert && dvert_mirr) {
+			/* tag verts we have used */
+			for(vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
+				mv->flag &= ~ME_VERT_TMP_TAG;
+			}
+
+			for(vidx= 0, mv= me->mvert; vidx < me->totvert; vidx++, mv++) {
+				if (    ((mv->flag & ME_VERT_TMP_TAG) == 0) &&
+				        ((vidx_mirr= mesh_get_x_mirror_vert(ob, vidx)) != -1) &&
+				        (vidx != vidx_mirr) &&
+				        ((((mv_mirr= me->mvert + vidx_mirr)->flag) & ME_VERT_TMP_TAG) == 0))
+				{
+
+					if (use_vert_sel) {
+						sel= mv->flag & SELECT;
+						sel_mirr= mv_mirr->flag & SELECT;
+					}
+
+					if (sel || sel_mirr) {
+						dvert= &me->dvert[vidx];
+						dvert_mirr= &me->dvert[vidx_mirr];
+
 						VGROUP_MIRR_OP;
 					}
-				}
 
-				eve->tmp.v= eve_mirr->tmp.v= NULL;
+					mv->flag |= ME_VERT_TMP_TAG;
+					mv_mirr->flag |= ME_VERT_TMP_TAG;
+				}
 			}
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt= ob->data;
@@ -2013,7 +2087,7 @@ static int vertex_group_poll(bContext *C)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	ID *data= (ob)? ob->data: NULL;
-	return (ob && !ob->id.lib && ELEM(ob->type, OB_MESH, OB_LATTICE) && data && !data->lib);
+	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
 static int vertex_group_poll_edit(bContext *C)
@@ -2509,7 +2583,10 @@ static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	ED_vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
+	ED_vgroup_mirror(ob,
+	                 RNA_boolean_get(op->ptr,"mirror_weights"),
+	                 RNA_boolean_get(op->ptr,"flip_group_names"),
+	                 RNA_boolean_get(op->ptr,"all_groups"));
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -2527,7 +2604,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	                 "flipping when both sides are selected otherwise copy from unselected";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit;
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_mirror_exec;
 
 	/* flags */
@@ -2536,6 +2613,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
 	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names");
+	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Mirror all vertex groups weights");
 
 }
 

@@ -359,7 +359,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 	BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
 
 	/* first try to append data from exotic file formats... */
-	/* it throws error box when file doesnt exist and returns -1 */
+	/* it throws error box when file doesn't exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
 	retval= wm_read_exotic(CTX_data_scene(C), filepath);
 	
@@ -368,7 +368,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		int G_f= G.f;
 		ListBase wmbase;
 
-		/* put aside screens to match with persistant windows later */
+		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
 		
@@ -408,7 +408,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
-		BPY_app_handlers_reset();
+		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 #endif
 
@@ -480,7 +480,7 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
 	
-	/* put aside screens to match with persistant windows later */
+	/* put aside screens to match with persistent windows later */
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
@@ -538,7 +538,7 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
-		BPY_app_handlers_reset();
+		BPY_app_handlers_reset(FALSE);
 		BPY_modules_load_user(C);
 	}
 #endif
@@ -576,7 +576,7 @@ void WM_read_history(void)
 
 	G.recent_files.first = G.recent_files.last = NULL;
 
-	/* read list of recent opend files from recent-files.txt to memory */
+	/* read list of recent opened files from recent-files.txt to memory */
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
@@ -733,7 +733,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
-			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.200s'", filepath);
+			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.240s'", filepath);
 			return -1;
 		}
 	}

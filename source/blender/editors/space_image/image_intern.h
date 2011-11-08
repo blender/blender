@@ -51,14 +51,11 @@ struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
 extern const char *image_context_dir[]; /* doc access */
 
-/* image_header.c */
-void image_header_buttons(const struct bContext *C, struct ARegion *ar);
-
 void IMAGE_OT_toolbox(struct wmOperatorType *ot);
 
 /* image_draw.c */
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
-void draw_image_info(struct ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf);
+void draw_image_info(struct ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4], int *zp, float *zpf);
 void draw_image_grease_pencil(struct bContext *C, short onlyv2d);
 
 /* image_ops.c */

@@ -479,11 +479,11 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 	
 	if(do_tangent) {
 		tav= RE_vertren_get_tangent(obr, v1, 1);
-		VECADD(tav, tav, tang);
+		add_v3_v3(tav, tang);
 		tav= RE_vertren_get_tangent(obr, v2, 1);
-		VECADD(tav, tav, tang);
+		add_v3_v3(tav, tang);
 		tav= RE_vertren_get_tangent(obr, v3, 1);
-		VECADD(tav, tav, tang);
+		add_v3_v3(tav, tang);
 	}
 	
 	if(do_nmap_tangent) {
@@ -497,11 +497,11 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 		
 		if(do_tangent) {
 			tav= RE_vertren_get_tangent(obr, v1, 1);
-			VECADD(tav, tav, tang);
+			add_v3_v3(tav, tang);
 			tav= RE_vertren_get_tangent(obr, v3, 1);
-			VECADD(tav, tav, tang);
+			add_v3_v3(tav, tang);
 			tav= RE_vertren_get_tangent(obr, v4, 1);
-			VECADD(tav, tav, tang);
+			add_v3_v3(tav, tang);
 		}
 
 		if(do_nmap_tangent) {
@@ -1358,20 +1358,20 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 
 	psys_make_billboard(bb, xvec, yvec, zvec, bb_center);
 
-	VECADD(vlr->v1->co, bb_center, xvec);
-	VECADD(vlr->v1->co, vlr->v1->co, yvec);
+	add_v3_v3v3(vlr->v1->co, bb_center, xvec);
+	add_v3_v3(vlr->v1->co, yvec);
 	mul_m4_v3(re->viewmat, vlr->v1->co);
 
-	VECSUB(vlr->v2->co, bb_center, xvec);
-	VECADD(vlr->v2->co, vlr->v2->co, yvec);
+	sub_v3_v3v3(vlr->v2->co, bb_center, xvec);
+	add_v3_v3(vlr->v2->co, yvec);
 	mul_m4_v3(re->viewmat, vlr->v2->co);
 
-	VECSUB(vlr->v3->co, bb_center, xvec);
-	VECSUB(vlr->v3->co, vlr->v3->co, yvec);
+	sub_v3_v3v3(vlr->v3->co, bb_center, xvec);
+	sub_v3_v3v3(vlr->v3->co, vlr->v3->co, yvec);
 	mul_m4_v3(re->viewmat, vlr->v3->co);
 
-	VECADD(vlr->v4->co, bb_center, xvec);
-	VECSUB(vlr->v4->co, vlr->v4->co, yvec);
+	add_v3_v3v3(vlr->v4->co, bb_center, xvec);
+	sub_v3_v3(vlr->v4->co, yvec);
 	mul_m4_v3(re->viewmat, vlr->v4->co);
 
 	normal_quad_v3( vlr->n,vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
@@ -1969,8 +1969,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					if(k==1){
 						sd.first = 1;
 						sd.time = 0.0f;
-						VECSUB(loc0,loc1,loc);
-						VECADD(loc0,loc1,loc0);
+						sub_v3_v3v3(loc0,loc1,loc);
+						add_v3_v3v3(loc0,loc1,loc0);
 
 						particle_curve(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed, pa_co);
 					}
@@ -2392,7 +2392,7 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float im
 	/* Object Size with parenting */
 	obt=obr->ob;
 	while(obt){
-		add_v3_v3v3(temp, obt->size, obt->dsize);
+		mul_v3_v3v3(temp, obt->size, obt->dsize);
 		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
 		obt=obt->parent;
 	}
@@ -3516,7 +3516,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 											float * ftang = RE_vlakren_get_nmap_tangent(obr, vlr, 1);
 											for(vindex=0; vindex<nr_verts; vindex++)
 											{
-												QUATCOPY(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
+												copy_v4_v4(ftang+vindex*4, tangent+a*16+rev_tab[vindex]*4);
 												mul_mat3_m4_v3(mat, ftang+vindex*4);
 												normalize_v3(ftang+vindex*4);
 											}
@@ -3623,7 +3623,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	
 	if(shb==NULL) return;
 	
-	VECCOPY(shb->co, lar->co);
+	VECCOPY(shb->co, lar->co); /* int copy */
 	
 	/* percentage render: keep track of min and max */
 	shb->size= (lar->bufsize*re->r.size)/100;
@@ -4234,7 +4234,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 			v2= vlr->v2;
 			v3= vlr->v3;
 			v4= vlr->v4;
-			VECSUB(nor, v1->co, v2->co);
+			sub_v3_v3v3(nor, v1->co, v2->co);
 			if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 				vlr->v1= v2;
 				vlr->v2= v3;
@@ -4242,19 +4242,19 @@ static void check_non_flat_quads(ObjectRen *obr)
 				vlr->v4= NULL;
 			}
 			else {
-				VECSUB(nor, v2->co, v3->co);
+				sub_v3_v3v3(nor, v2->co, v3->co);
 				if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 					vlr->v2= v3;
 					vlr->v3= v4;
 					vlr->v4= NULL;
 				}
 				else {
-					VECSUB(nor, v3->co, v4->co);
+					sub_v3_v3v3(nor, v3->co, v4->co);
 					if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 						vlr->v4= NULL;
 					}
 					else {
-						VECSUB(nor, v4->co, v1->co);
+						sub_v3_v3v3(nor, v4->co, v1->co);
 						if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 							vlr->v4= NULL;
 						}
@@ -5458,12 +5458,12 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 
 					interp_weights_face_v3( w,co1, co2, co3, co4, strand->vert->co);
 
-					speed[0]= speed[1]= speed[2]= speed[3]= 0.0f;
-					QUATADDFAC(speed, speed, winspeed[face[0]], w[0]);
-					QUATADDFAC(speed, speed, winspeed[face[1]], w[1]);
-					QUATADDFAC(speed, speed, winspeed[face[2]], w[2]);
+					zero_v4(speed);
+					madd_v4_v4fl(speed, winspeed[face[0]], w[0]);
+					madd_v4_v4fl(speed, winspeed[face[1]], w[1]);
+					madd_v4_v4fl(speed, winspeed[face[2]], w[2]);
 					if(face[3])
-						QUATADDFAC(speed, speed, winspeed[face[3]], w[3]);
+						madd_v4_v4fl(speed, winspeed[face[3]], w[3]);
 				}
 			}
 

@@ -216,7 +216,7 @@ Material *copy_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man= copy_libblock(ma);
+	man= copy_libblock(&ma->id);
 	
 	id_lib_extern((ID *)man->group);
 	
@@ -248,7 +248,7 @@ Material *localize_material(Material *ma)
 	Material *man;
 	int a;
 	
-	man= copy_libblock(ma);
+	man= copy_libblock(&ma->id);
 	BLI_remlink(&G.main->mat, man);
 
 	/* no increment for texture ID users, in previewrender.c it prevents decrement */
@@ -365,13 +365,12 @@ void make_local_material(Material *ma)
 	}
 	/* Both user and local, so copy. */
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, ma->id.lib->filepath};
 		Material *man= copy_material(ma);
 
 		man->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &man->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &man->id);
 
 		/* do objects */
 		ob= bmain->object.first;

@@ -129,7 +129,7 @@ void pd_point_from_soft(struct Scene *scene, float *loc, float *vel, int index, 
 
 /* needed for boids */
 float effector_falloff(struct EffectorCache *eff, struct EffectorData *efd, struct EffectedPoint *point, struct EffectorWeights *weights);
-int closest_point_on_surface(struct SurfaceModifierData *surmd, float *co, float *surface_co, float *surface_nor, float *surface_vel);
+int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], float surface_co[3], float surface_nor[3], float surface_vel[3]);
 int get_effector_data(struct EffectorCache *eff, struct EffectorData *efd, struct EffectedPoint *point, int real_velocity);
 
 /* required for particle_system.c */

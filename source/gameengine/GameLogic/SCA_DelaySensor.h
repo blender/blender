@@ -38,7 +38,7 @@
 
 class SCA_DelaySensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	bool			m_lastResult;
 	bool			m_repeat;
 	int				m_delay; 

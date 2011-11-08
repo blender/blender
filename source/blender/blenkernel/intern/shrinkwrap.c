@@ -167,13 +167,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 
 		//Convert the vertex to tree coordinates
-		if(calc->vert)
-		{
-			VECCOPY(tmp_co, calc->vert[i].co);
+		if(calc->vert) {
+			copy_v3_v3(tmp_co, calc->vert[i].co);
 		}
-		else
-		{
-			VECCOPY(tmp_co, co);
+		else {
+			copy_v3_v3(tmp_co, co);
 		}
 		space_transform_apply(&calc->local2target, tmp_co);
 
@@ -198,7 +196,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 			if(dist > FLT_EPSILON) weight *= (dist - calc->keepDist)/dist;
 
 			//Convert the coordinates back to mesh coordinates
-			VECCOPY(tmp_co, nearest.co);
+			copy_v3_v3(tmp_co, nearest.co);
 			space_transform_invert(&calc->local2target, tmp_co);
 
 			interp_v3_v3v3(co, co, tmp_co, weight);	//linear interpolation
@@ -228,11 +226,11 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 	//Apply space transform (TODO readjust dist)
 	if(transf)
 	{
-		VECCOPY( tmp_co, vert );
+		copy_v3_v3( tmp_co, vert );
 		space_transform_apply( transf, tmp_co );
 		co = tmp_co;
 
-		VECCOPY( tmp_no, dir );
+		copy_v3_v3( tmp_no, dir );
 		space_transform_apply_normal( transf, tmp_no );
 		no = tmp_no;
 
@@ -350,17 +348,17 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 				/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
 				/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
 				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
-					VECCOPY(tmp_co, calc->vert[i].co);
+					copy_v3_v3(tmp_co, calc->vert[i].co);
 					normal_short_to_float_v3(tmp_no, calc->vert[i].no);
 				} else {
-					VECCOPY(tmp_co, co);
-					VECCOPY(tmp_no, proj_axis);
+					copy_v3_v3(tmp_co, co);
+					copy_v3_v3(tmp_no, proj_axis);
 				}
 			}
 			else
 			{
-				VECCOPY(tmp_co, co);
-				VECCOPY(tmp_no, proj_axis);
+				copy_v3_v3(tmp_co, co);
+				copy_v3_v3(tmp_no, proj_axis);
 			}
 
 
@@ -443,11 +441,11 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		//Convert the vertex to tree coordinates
 		if(calc->vert)
 		{
-			VECCOPY(tmp_co, calc->vert[i].co);
+			copy_v3_v3(tmp_co, calc->vert[i].co);
 		}
 		else
 		{
-			VECCOPY(tmp_co, co);
+			copy_v3_v3(tmp_co, co);
 		}
 		space_transform_apply(&calc->local2target, tmp_co);
 
@@ -469,7 +467,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE)
 			{
 				//Make the vertex stay on the front side of the face
-				VECADDFAC(tmp_co, nearest.co, nearest.no, calc->keepDist);
+				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
 			else
 			{
@@ -478,7 +476,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 				if(dist > FLT_EPSILON)
 					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist)/dist);	//linear interpolation
 				else
-					VECCOPY( tmp_co, nearest.co );
+					copy_v3_v3( tmp_co, nearest.co );
 			}
 
 			//Convert the coordinates back to mesh coordinates

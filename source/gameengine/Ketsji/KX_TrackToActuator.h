@@ -40,7 +40,7 @@
 
 class KX_TrackToActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 	// Object reference. Actually, we use the object's 'life'
 	SCA_IObject*	m_object;
 	// 3d toggle

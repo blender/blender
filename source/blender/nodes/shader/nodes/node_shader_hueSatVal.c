@@ -65,7 +65,7 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float *hue, float *s
 		out[2]= mfac*in[2] + *fac*col[2];
 	}
 	else {
-		QUATCOPY(out, in);
+		copy_v4_v4(out, in);
 	}
 }
 
@@ -85,6 +85,7 @@ void register_node_type_sh_hue_sat(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_hue_sat_in, sh_node_hue_sat_out);
 	node_type_size(&ntype, 150, 80, 250);
 	node_type_exec(&ntype, node_shader_exec_hue_sat);

@@ -66,6 +66,9 @@ struct uiWidgetColors;
 struct Tex;
 struct MTex;
 struct ImBuf;
+struct bNodeTree;
+struct bNode;
+struct bNodeSocket;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -73,6 +76,10 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef struct uiLayout uiLayout;
 
 /* Defines */
+
+/* names */
+#define UI_MAX_DRAW_STR	400
+#define UI_MAX_NAME_STR	128
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use widget style for drawing */
@@ -128,11 +135,11 @@ typedef struct uiLayout uiLayout;
 #define UI_ICON_LEFT	128
 #define UI_ICON_SUBMENU	256
 #define UI_ICON_PREVIEW	512
-	/* control for button type block */
-#define UI_MAKE_TOP		1024
-#define UI_MAKE_DOWN	2048
-#define UI_MAKE_LEFT	4096
-#define UI_MAKE_RIGHT	8192
+
+#define UI_TEXT_RIGHT		1024
+#define UI_BUT_NODE_LINK	2048
+#define UI_BUT_NODE_ACTIVE	4096
+#define UI_FLAG_UNUSED		8192
 
 	/* button align flag, for drawing groups together */
 #define UI_BUT_ALIGN		(UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT|UI_BUT_ALIGN_DOWN)
@@ -222,18 +229,19 @@ typedef struct uiLayout uiLayout;
 #define TOGBUT		(37<<9)
 #define OPTION		(38<<9)
 #define OPTIONN		(39<<9)
+#define TRACKPREVIEW	(40<<9)
 		/* buttons with value >= SEARCH_MENU don't get undo pushes */
-#define SEARCH_MENU	(40<<9)
-#define BUT_EXTRA	(41<<9)
-#define HSVCIRCLE	(42<<9)
-#define LISTBOX		(43<<9)
-#define LISTROW		(44<<9)
-#define HOTKEYEVT	(45<<9)
-#define BUT_IMAGE	(46<<9)
-#define HISTOGRAM	(47<<9)
-#define WAVEFORM	(48<<9)
-#define VECTORSCOPE	(49<<9)
-#define PROGRESSBAR	(50<<9)
+#define SEARCH_MENU	(41<<9)
+#define BUT_EXTRA	(42<<9)
+#define HSVCIRCLE	(43<<9)
+#define LISTBOX		(44<<9)
+#define LISTROW		(45<<9)
+#define HOTKEYEVT	(46<<9)
+#define BUT_IMAGE	(47<<9)
+#define HISTOGRAM	(48<<9)
+#define WAVEFORM	(49<<9)
+#define VECTORSCOPE	(50<<9)
+#define PROGRESSBAR	(51<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -506,8 +514,6 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, const char *str, int x1, i
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, int x1, int y1, short x2, short y2, float a1, float a2, const char *tip);
 
-void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
-
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
 int uiDefAutoButsRNA(uiLayout *layout, struct PointerRNA *ptr, int (*check_prop)(struct PropertyRNA *), const char label_align);
 
@@ -750,6 +756,12 @@ void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, const char *prop_list, int rows, int maxrows, int type);
+void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
+void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int cmpact);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

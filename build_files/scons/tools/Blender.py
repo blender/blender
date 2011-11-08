@@ -192,6 +192,11 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_OPENMP']:
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
+            
+    if lenv['WITH_BF_OIIO']:
+        libincs += Split(lenv['BF_OIIO_LIBPATH'])
+    if lenv['WITH_BF_BOOST']:
+        libincs += Split(lenv['BF_BOOST_LIBPATH'])
 
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
@@ -275,6 +280,11 @@ def setup_syslibs(lenv):
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
 
+    if lenv['WITH_BF_OIIO']:
+        syslibs += Split(lenv['BF_OIIO_LIB'])
+    if lenv['WITH_BF_BOOST']:
+        syslibs += Split(lenv['BF_BOOST_LIB'])
+
     syslibs += lenv['LLIBS']
 
     return syslibs
@@ -318,6 +328,10 @@ def creator(env):
 
     if env['WITH_BF_SDL']:
         defs.append('WITH_SDL')
+
+    if env['WITH_BF_LIBMV']:
+        incs.append('#/extern/libmv')
+        defs.append('WITH_LIBMV')
 
     if env['WITH_BF_PYTHON']:
         incs.append('#/source/blender/python')

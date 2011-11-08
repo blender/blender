@@ -409,7 +409,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 			t->modifiers |= MOD_PRECISION;
 			/* shift is modifier for higher precision transform
 			 * store the mouse position where the normal movement ended */
-			VECCOPY2D(mi->precision_mval, event->mval);
+			copy_v2_v2_int(mi->precision_mval, event->mval);
 			mi->precision = 1;
 		}
 		else

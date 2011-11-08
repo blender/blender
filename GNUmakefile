@@ -135,9 +135,6 @@ help:
 	@echo "  * package_pacman  - build an arch linux pacmanpackage"
 	@echo "  * package_archive - build an archive package"
 	@echo ""
-	@echo "Other Targets (not assosiated with building blender)"
-	@echo "  * translations  - update blenders translation files in po/"
-	@echo ""
 	@echo "Testing Targets (not assosiated with building blender)"
 	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
 	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
@@ -151,6 +148,7 @@ help:
 	@echo ""
 	@echo "Documentation Targets (not assosiated with building blender)"
 	@echo "  * doc_py   - generate sphinx python api docs"
+	@echo "  * doc_doxy - generate doxygen C/C++ docs"
 	@echo "  * doc_dna  - generate blender file format reference"
 	@echo "  * doc_man  - generate manpage"
 	@echo ""
@@ -167,16 +165,6 @@ package_pacman:
 package_archive:
 	make -C $(BUILD_DIR) -s package_archive
 	@echo archive in "$(BUILD_DIR)/release"
-
-
-# -----------------------------------------------------------------------------
-# Other Targets
-#
-translations:
-	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python po/update_msg.py
-	python3 po/update_pot.py
-	python3 po/update_po.py
-	python3 po/update_mo.py
 
 
 # -----------------------------------------------------------------------------
@@ -238,8 +226,12 @@ check_sparse:
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py:
 	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
-	cd doc/python_api ; sphinx-build -n -b html sphinx-in sphinx-out
+	cd doc/python_api ; sphinx-build -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
+
+doc_doxy:
+	cd doc/doxygen; doxygen 
+	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna:
 	$(BUILD_DIR)/bin/blender --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py

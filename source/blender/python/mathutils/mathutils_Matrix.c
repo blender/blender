@@ -24,8 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/mathutils_Matrix.c
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Matrix.c
+ *  \ingroup pymathutils
  */
 
 

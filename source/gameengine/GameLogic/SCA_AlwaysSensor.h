@@ -38,7 +38,7 @@
 
 class SCA_AlwaysSensor : public SCA_ISensor
 {
-	Py_Header;
+	Py_Header
 	bool			m_alwaysresult;
 public:
 	SCA_AlwaysSensor(class SCA_EventManager* eventmgr,

@@ -157,6 +157,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 
 	/* view stuff in env render */
 	envre->lens= 16.0f;
+	envre->sensor_x= 32.0f;
 	if(env->type==ENV_PLANE)
 		envre->lens*= env->viewscale;
 	envre->ycor= 1.0f; 
@@ -703,7 +704,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	}
 	
 	/* rotate to envmap space, if object is set */
-	VECCOPY(vec, texvec);
+	copy_v3_v3(vec, texvec);
 	if(env->object) mul_m3_v3(env->obimat, vec);
 	else mul_mat3_m4_v3(R.viewinv, vec);
 	

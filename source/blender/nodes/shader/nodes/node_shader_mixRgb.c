@@ -59,7 +59,7 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data), bNode *node, bNodeStack
 	nodestack_get_vec(vec, SOCK_VECTOR, in[2]);
 
 	ramp_blend(node->custom1, col, col+1, col+2, fac, vec);
-	VECCOPY(out[0]->vec, col);
+	copy_v3_v3(out[0]->vec, col);
 }
 
 static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
@@ -78,6 +78,7 @@ void register_node_type_sh_mix_rgb(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_mix_rgb_in, sh_node_mix_rgb_out);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_label(&ntype, node_blend_label);

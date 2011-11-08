@@ -109,7 +109,7 @@
 #define TS_CHUNK	128
 
 /* ********************************************************* */
-/* Persistant Data */
+/* Persistent Data */
 
 static void outliner_storage_cleanup(SpaceOops *soops)
 {
@@ -156,7 +156,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 	}
 }
 
-static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
+static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
 {
 	TreeStore *ts;
 	TreeStoreElem *tselem;
@@ -818,7 +818,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	/* add to the visual tree */
 	BLI_addtail(lb, te);
 	/* add to the storage */
-	check_persistant(soops, te, id, type, index);
+	check_persistent(soops, te, id, type, index);
 	tselem= TREESTORE(te);	
 	
 	/* if we are searching for something expand to see child elements */

@@ -2117,7 +2117,7 @@ PySequenceMethods KX_Scene::Sequence = {
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return PyUnicode_FromString(self->GetName().ReadPtr());
+	return PyUnicode_From_STR_String(self->GetName());
 }
 
 PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

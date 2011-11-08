@@ -2255,13 +2255,14 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 {
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	float xfac, yfac;
 	float size[2];
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
 
-	view3d_viewborder_size_get(scene, ar, size);
+	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
 
 	/* 4px is just a little room from the edge of the area */
 	xfac= (float)ar->winx / (float)(size[0] + 4);
@@ -2523,13 +2524,13 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 }
 
 /* sets the view to 1:1 camera/render-pixel */
-static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
+static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float size[2];
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
-	view3d_viewborder_size_get(scene, ar, size);
+	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
 
 	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac((float)im_width/size[0]);
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
@@ -2540,7 +2541,7 @@ static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 
-	view3d_set_1_to_1_viewborder(scene, ar);
+	view3d_set_1_to_1_viewborder(scene, ar, CTX_wm_view3d(C));
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 
@@ -2939,17 +2940,8 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
-	
-	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
-	bgpic->size= 5.0;
-	bgpic->blend= 0.5;
-	bgpic->iuser.fie_ima= 2;
-	bgpic->iuser.ok= 1;
-	bgpic->view= 0; /* 0 for all */
-	
-	BLI_addtail(&v3d->bgpicbase, bgpic);
-	
-	return bgpic;
+
+	return ED_view3D_background_image_add(v3d);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3025,7 +3017,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 
 	if(bgpic_rem) {
 		BLI_remlink(&vd->bgpicbase, bgpic_rem);
-		if(bgpic_rem->ima) bgpic_rem->ima->id.us--;
+		if(bgpic_rem->ima) 	id_us_min(&bgpic_rem->ima->id);
+		if(bgpic_rem->clip) id_us_min(&bgpic_rem->clip->id);
 		MEM_freeN(bgpic_rem);
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
 		return OPERATOR_FINISHED;
@@ -3460,8 +3453,8 @@ int ED_view3d_autodist_depth_seg(struct ARegion *ar, const int mval_sta[2], cons
 	data.margin= margin;
 	data.depth= FLT_MAX;
 
-	VECCOPY2D(p1, mval_sta);
-	VECCOPY2D(p2, mval_end);
+	copy_v2_v2_int(p1, mval_sta);
+	copy_v2_v2_int(p2, mval_end);
 
 	plot_line_v2v2i(p1, p2, depth_segment_cb, &data);
 
@@ -3531,4 +3524,19 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
 	object_apply_mat4(ob, mat, TRUE, TRUE);
+}
+
+BGpic *ED_view3D_background_image_add(View3D *v3d)
+{
+	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
+
+	bgpic->size= 5.0;
+	bgpic->blend= 0.5;
+	bgpic->iuser.fie_ima= 2;
+	bgpic->iuser.ok= 1;
+	bgpic->view= 0; /* 0 for all */
+
+	BLI_addtail(&v3d->bgpicbase, bgpic);
+
+	return bgpic;
 }

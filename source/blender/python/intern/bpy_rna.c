@@ -22,8 +22,13 @@
 
 /** \file blender/python/intern/bpy_rna.c
  *  \ingroup pythonintern
+ *
+ * This file is the main interface between python and blenders data api (RNA),
+ * exposing RNA to python so blender data can be accessed in a python like way.
+ *
+ * The two main types are 'BPy_StructRNA' and 'BPy_PropertyRNA' - the base
+ * classes for most of the data python accesses in blender.
  */
-
 
 #include <Python.h>
 
@@ -82,10 +87,10 @@
 static PyObject* pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
-#define BPY_DOC_ID_PROP_TYPE_NOTE \
-"   .. note::\n" \
-"\n" \
-"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n" \
+#define BPY_DOC_ID_PROP_TYPE_NOTE                                             \
+"   .. note::\n"                                                              \
+"\n"                                                                          \
+"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n"            \
 "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
 
 
@@ -6404,17 +6409,19 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 		if (item==NULL) {
 			/* Sneaky workaround to use the class name as the bl_idname */
 
-#define		BPY_REPLACEMENT_STRING(rna_attr, py_attr) \
-			if (strcmp(identifier, rna_attr) == 0) { \
-				item= PyObject_GetAttrString(py_class, py_attr); \
-				if (item && item != Py_None) { \
-					if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) { \
-						Py_DECREF(item); \
-						return -1; \
-					} \
-				} \
-				Py_XDECREF(item); \
-			} \
+#define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
+			if (strcmp(identifier, rna_attr) == 0) {                          \
+				item= PyObject_GetAttrString(py_class, py_attr);              \
+				if (item && item != Py_None) {                                \
+					if (pyrna_py_to_prop(dummyptr, prop, NULL,                \
+					                     item, "validating class:") != 0)     \
+					{                                                         \
+						Py_DECREF(item);                                      \
+						return -1;                                            \
+					}                                                         \
+				}                                                             \
+				Py_XDECREF(item);                                             \
+			}                                                                 \
 
 
 			BPY_REPLACEMENT_STRING("bl_idname", "__name__");
@@ -6468,7 +6475,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	const int is_operator= RNA_struct_is_a(ptr->type, &RNA_Operator);
 	const char *func_id= RNA_function_identifier(func);
 	/* testing, for correctness, not operator and not draw function */
-	const short is_readonly= strstr("draw", func_id) || /*strstr("render", func_id) ||*/ !is_operator;
+	const short is_readonly= ((strncmp("draw", func_id, 4) ==0) || /* draw or draw_header */
+							 /*strstr("render", func_id) ||*/
+							 !is_operator);
 #endif
 
 	py_class= RNA_struct_py_type_get(ptr->type);

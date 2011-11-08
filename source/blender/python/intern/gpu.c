@@ -27,6 +27,9 @@
 
 /** \file blender/python/intern/gpu.c
  *  \ingroup pythonintern
+ *
+ * This file defines the 'gpu' module, used to get GLSL shader code and data
+ * from blender materials.
  */
 
 /* python redefines */

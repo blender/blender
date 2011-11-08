@@ -64,7 +64,7 @@ bNodeStack **out)
 		col[2] = in[0]->vec[0]*col[2] + (facm*in[1]->vec[2]);
 	}
 	
-	VECCOPY(out[0]->vec, col);
+	copy_v3_v3(out[0]->vec, col);
 }
 
 static int gpu_shader_invert(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
@@ -77,6 +77,7 @@ void register_node_type_sh_invert(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_invert_in, sh_node_invert_out);
 	node_type_size(&ntype, 90, 80, 100);
 	node_type_exec(&ntype, node_shader_exec_invert);

@@ -39,11 +39,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
-#include "DNA_object_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -267,36 +269,61 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_shader_default(Material *ma)
+void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
+	bNodeTree *ntree;
 	bNodeTemplate ntemp;
+	int output_type, shader_type;
 	
-	/* but lets check it anyway */
-	if(ma->nodetree) {
-		if (G.f & G_DEBUG)
-			printf("error in shader initialize\n");
-		return;
+	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
+
+	switch(GS(id->name)) {
+		case ID_MA: {
+			Material *ma= (Material*)id;
+			ma->nodetree = ntree;
+
+			output_type = SH_NODE_OUTPUT;
+			shader_type = SH_NODE_MATERIAL;
+			break;
+		}
+		case ID_WO: {
+			World *wo= (World*)id;
+			wo->nodetree = ntree;
+
+			output_type = SH_NODE_OUTPUT;
+			shader_type = SH_NODE_MATERIAL;
+			break;
+		}
+		case ID_LA: {
+			Lamp *la= (Lamp*)id;
+			la->nodetree = ntree;
+
+			output_type = SH_NODE_OUTPUT;
+			shader_type = SH_NODE_MATERIAL;
+			break;
+		}
+		default:
+			printf("ED_node_shader_default called on wrong ID type.\n");
+			return;
 	}
 	
-	ma->nodetree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
-	
-	ntemp.type = SH_NODE_OUTPUT;
-	out= nodeAddNode(ma->nodetree, &ntemp);
+	ntemp.type = output_type;
+	out= nodeAddNode(ntree, &ntemp);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	ntemp.type = SH_NODE_MATERIAL;
-	in= nodeAddNode(ma->nodetree, &ntemp);
+	ntemp.type = shader_type;
+	in= nodeAddNode(ntree, &ntemp);
 	in->locx= 10.0f; in->locy= 300.0f;
-	nodeSetActive(ma->nodetree, in);
+	nodeSetActive(ntree, in);
 	
 	/* only a link from color to color */
 	fromsock= in->outputs.first;
 	tosock= out->inputs.first;
-	nodeAddLink(ma->nodetree, in, fromsock, out, tosock);
+	nodeAddLink(ntree, in, fromsock, out, tosock);
 	
-	ntreeUpdateTree(ma->nodetree);
+	ntreeUpdateTree(ntree);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -387,6 +414,14 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 			*ntree= ((Material*)id)->nodetree;
 			if(treetype) *treetype= NTREE_SHADER;
 		}
+		else if(idtype == ID_LA) {
+			*ntree= ((Lamp*)id)->nodetree;
+			if(treetype) *treetype= NTREE_SHADER;
+		}
+		else if(idtype == ID_WO) {
+			*ntree= ((World*)id)->nodetree;
+			if(treetype) *treetype= NTREE_SHADER;
+		}
 		else if(idtype == ID_SCE) {
 			*ntree= ((Scene*)id)->nodetree;
 			if(treetype) *treetype= NTREE_COMPOSIT;
@@ -428,11 +463,25 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 	
 	if(snode->treetype==NTREE_SHADER) {
 		/* need active object, or we allow pinning... */
-		if(ob) {
-			Material *ma= give_current_material(ob, ob->actcol);
-			if(ma) {
-				snode->from= &ob->id;
-				snode->id= &ma->id;
+		if(snode->shaderfrom == SNODE_SHADER_OBJECT) {
+			if(ob) {
+				if(ob->type == OB_LAMP) {
+					snode->from= &ob->id;
+					snode->id= ob->data;
+				}
+				else {
+					Material *ma= give_current_material(ob, ob->actcol);
+					if(ma) {
+						snode->from= &ob->id;
+						snode->id= &ma->id;
+					}
+				}
+			}
+		}
+		else { /* SNODE_SHADER_WORLD */
+			if(scene->world) {
+				snode->from= NULL;
+				snode->id= &scene->world->id;
 			}
 		}
 	}
@@ -526,7 +575,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 		/* tree specific activate calls */
 		if(ntree->type==NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
-			if(node->id && GS(node->id->name)==ID_MA)
+			if(node->id && ELEM3(GS(node->id->name), ID_MA, ID_LA, ID_WO))
 				nodeClearActiveID(ntree, ID_TE);
 			
 			if(node->type==SH_NODE_OUTPUT) {
@@ -2158,8 +2207,14 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 		ED_node_set_active(bmain, snode->edittree, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
-			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
+			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE)) {
 				node->id = &scene->id;
+			}
+			else if(ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
+				if(G.main->movieclip.first == G.main->movieclip.last) {
+					node->id= G.main->movieclip.first;
+				}
+			}
 			
 			ntreeCompositForceHidden(snode->edittree, scene);
 		}

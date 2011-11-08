@@ -1,6 +1,4 @@
-
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +22,13 @@
 
 /** \file blender/python/intern/bpy_operator.c
  *  \ingroup pythonintern
+ *
+ * This file defines '_bpy.ops', an internal python module which gives python
+ * the ability to inspect and call both C and Python defined operators.
+ *
+ * \note
+ * This module is exposed to the user via 'release/scripts/modules/bpy/ops.py'
+ * which fakes exposing operators as modules/functions using its own classes.
  */
 
 
@@ -380,7 +385,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
 	PointerRNA ptr;
-	char *opname= _PyUnicode_AsString(value);
+	const char *opname= _PyUnicode_AsString(value);
 	BPy_StructRNA *pyrna= NULL;
 	
 	if (opname==NULL) {
@@ -413,7 +418,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 	wmOperatorType *ot;
 	wmOperator *op;
 	PointerRNA ptr;
-	char *opname= _PyUnicode_AsString(value);
+	const char *opname= _PyUnicode_AsString(value);
 	BPy_StructRNA *pyrna= NULL;
 
 	if (opname==NULL) {

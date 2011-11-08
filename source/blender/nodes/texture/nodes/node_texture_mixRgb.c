@@ -55,7 +55,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	
 	CLAMP(fac, 0.0f, 1.0f);
 	
-	QUATCOPY(out, col1);
+	copy_v4_v4(out, col1);
 	ramp_blend(node->custom1, out, out+1, out+2, fac, col2);
 }
 

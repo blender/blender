@@ -52,6 +52,7 @@ void register_node_type_cmp_texture(ListBase *lb);
 void register_node_type_cmp_value(ListBase *lb);
 void register_node_type_cmp_rgb(ListBase *lb);
 void register_node_type_cmp_curve_time(ListBase *lb);
+void register_node_type_cmp_movieclip(ListBase *lb);
 
 void register_node_type_cmp_composite(ListBase *lb);
 void register_node_type_cmp_viewer(ListBase *lb);
@@ -113,6 +114,9 @@ void register_node_type_cmp_flip(ListBase *lb);
 void register_node_type_cmp_crop(ListBase *lb);
 void register_node_type_cmp_displace(ListBase *lb);
 void register_node_type_cmp_mapuv(ListBase *lb);
+void register_node_type_cmp_transform(ListBase *lb);
+void register_node_type_cmp_stabilize2d(ListBase *lb);
+void register_node_type_cmp_moviedistortion(ListBase *lb);
 
 void register_node_type_cmp_glare(ListBase *lb);
 void register_node_type_cmp_tonemap(ListBase *lb);

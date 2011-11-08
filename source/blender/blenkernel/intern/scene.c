@@ -72,6 +72,8 @@
 
 #include "BKE_sound.h"
 
+#include "RE_engine.h"
+
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
@@ -126,7 +128,7 @@ Scene *copy_scene(Scene *sce, int type)
 		scen->r.layers= lb;
 	}
 	else {
-		scen= copy_libblock(sce);
+		scen= copy_libblock(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
 		clear_id_newpoins();
@@ -811,6 +813,8 @@ int scene_camera_switch_update(Scene *scene)
 		scene->camera= camera;
 		return 1;
 	}
+#else
+	(void)scene;
 #endif
 	return 0;
 }
@@ -913,15 +917,20 @@ int scene_check_setscene(Main *bmain, Scene *sce)
 }
 
 /* This function is needed to cope with fractional frames - including two Blender rendering features
-* mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. */
-
-/* see also bsystem_time in object.c */
+ * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. 
+ */
 float BKE_curframe(Scene *scene)
 {
-	float ctime = scene->r.cfra;
-	ctime+= scene->r.subframe;
-	ctime*= scene->r.framelen;	
+	return BKE_frame_to_ctime(scene, scene->r.cfra);
+}
 
+/* This function is used to obtain arbitrary fractional frames */
+float BKE_frame_to_ctime(Scene *scene, const float frame)
+{
+	float ctime = frame;
+	ctime += scene->r.subframe;
+	ctime *= scene->r.framelen;	
+	
 	return ctime;
 }
 
@@ -995,16 +1004,22 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 /* this is called in main loop, doing tagged updates before redraw */
 void scene_update_tagged(Main *bmain, Scene *scene)
 {
+	/* keep this first */
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
+	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
 
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
-	   by depgraph or manual, no layer check here, gets correct flushed */
+	   by depgraph or manual, no layer check here, gets correct flushed
 
+	   in the future this should handle updates for all datablocks, not
+	   only objects and scenes. - brecht */
 	scene_update_tagged_recursive(bmain, scene, scene);
 
-	/* recalc scene animation data here (for sequencer) */
+	/* extra call here to recalc scene animation (for sequencer) */
 	{
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
 		float ctime = BKE_curframe(scene);
@@ -1013,11 +1028,20 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
+	/* quick point cache updates */
 	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
-	/* in the future this should handle updates for all datablocks, not
-	   only objects and scenes. - brecht */
+	/* notify editors about recalc */
+	DAG_ids_check_recalc(bmain);
+
+	/* keep this last */
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+}
+
+void scene_clear_tagged(Main *bmain, Scene *UNUSED(scene))
+{
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* applies changes right away, does all sets too */
@@ -1027,7 +1051,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	Scene *sce_iter;
 
 	/* keep this first */
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	
@@ -1039,6 +1064,10 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 			DAG_scene_sort(bmain, sce_iter);
 	}
 
+	/* flush recalc flags to dependencies, if we were only changing a frame
+	   this would not be necessary, but if a user or a script has modified
+	   some datablock before scene_update_tagged was called, we need the flush */
+	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive
 	 * so dont call within 'scene_update_tagged_recursive' */
@@ -1057,7 +1086,10 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* keep this last */
-	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
+
+	DAG_ids_clear_recalc(bmain);
 }
 
 /* return default layer, also used to patch old files */
@@ -1135,3 +1167,10 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 
 	return NULL;
 }
+
+int scene_use_new_shading_nodes(Scene *scene)
+{
+	RenderEngineType *type= RE_engines_find(scene->r.engine);
+	return (type->flag & RE_USE_SHADING_NODES);
+}
+

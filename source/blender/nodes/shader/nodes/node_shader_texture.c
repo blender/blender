@@ -36,7 +36,7 @@
 
 /* **************** TEXTURE ******************** */
 static bNodeSocketTemplate sh_node_texture_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},	/* no limit */
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},	/* no limit */
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_texture_out[]= {
@@ -82,7 +82,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		else {
-			VECCOPY(vec, shi->lo);
+			copy_v3_v3(vec, shi->lo);
 			retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		
@@ -111,7 +111,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 			out[1]->vec[3]= 1.0f;
 		}
 		
-		VECCOPY(out[2]->vec, nor);
+		copy_v3_v3(out[2]->vec, nor);
 		
 		if(shi->do_preview)
 			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys, shi->do_manage);
@@ -136,6 +136,7 @@ void register_node_type_sh_texture(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_texture_in, sh_node_texture_out);
 	node_type_size(&ntype, 120, 80, 240);
 	node_type_exec(&ntype, node_shader_exec_texture);

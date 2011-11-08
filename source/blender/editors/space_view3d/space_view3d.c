@@ -56,6 +56,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RE_engine.h"
 
 #include "RNA_access.h"
 
@@ -249,6 +250,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->gridflag &= ~V3D_SHOW_Z;
 	
 	v3d->flag |= V3D_SELECT_OUTLINE;
+	v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
 	
 	v3d->lens= 35.0f;
 	v3d->near= 0.01f;
@@ -257,6 +259,9 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype= V3D_MANIP_TRANSLATE;
 	v3d->around= V3D_CENTROID;
+	
+	v3d->bundle_size= 0.2f;
+	v3d->bundle_drawtype= OB_PLAINAXES;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");
@@ -344,6 +349,9 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
+
+	if(v3dn->drawtype == OB_RENDER)
+		v3dn->drawtype = OB_SOLID;
 	
 	/* copy or clear inside new stuff */
 
@@ -549,6 +557,9 @@ static void view3d_main_area_free(ARegion *ar)
 		if(rv3d->ri) { 
 			// XXX		BIF_view3d_previewrender_free(rv3d);
 		}
+
+		if(rv3d->render_engine)
+			RE_engine_free(rv3d->render_engine);
 		
 		if(rv3d->depths) {
 			if(rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
@@ -573,6 +584,7 @@ static void *view3d_main_area_duplicate(void *poin)
 		
 		new->depths= NULL;
 		new->ri= NULL;
+		new->render_engine= NULL;
 		new->gpd= NULL;
 		new->sms= NULL;
 		new->smooth_timer= NULL;
@@ -736,6 +748,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* same as above */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_MOVIECLIP:
+			if(wmn->data==ND_DISPLAY)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D) {
 				if (wmn->subtype == NS_VIEW3D_GPU) {
@@ -866,6 +882,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_LAYER_CONTENT:
+				case ND_TOOLSETTINGS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

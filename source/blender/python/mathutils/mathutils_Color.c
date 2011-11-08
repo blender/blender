@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/mathutils_Color.c
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_Color.c
+ *  \ingroup pymathutils
  */
 
 

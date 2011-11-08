@@ -52,7 +52,7 @@
 #include "GHOST_Path-api.h"
 
 #if defined WIN32 && !defined _LIBC
-# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#  include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
 #  ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
@@ -61,35 +61,34 @@
 #endif
 
 #ifdef WIN32
-#include <io.h>
-
-#ifdef _WIN32_IE
-#undef _WIN32_IE
-#endif
-#define _WIN32_IE 0x0501
-#include <windows.h>
-#include <shlobj.h>
-
-#include "BLI_winstuff.h"
-
+#  include <io.h>
+#  ifdef _WIN32_IE
+#    undef _WIN32_IE
+#  endif
+#  define _WIN32_IE 0x0501
+#  include <windows.h>
+#  include <shlobj.h>
+#  include "BLI_winstuff.h"
 #else /* non windows */
-
-#ifdef WITH_BINRELOC
-#include "binreloc.h"
-#endif
-
+#  ifdef WITH_BINRELOC
+#    include "binreloc.h"
+#  endif
 #endif /* WIN32 */
 
 /* standard paths */
 #ifdef WIN32
-#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
-#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#  define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#  define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
 #elif defined(__APPLE__)
-#define BLENDER_USER_FORMAT			"%s/Blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
-#else
-#define BLENDER_USER_FORMAT			"%s/.blender/%s"
-#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
+#  define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#  define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
+#else /* UNIX */
+#  ifndef WITH_XDG_USER_DIRS /* oldschool unix ~/.blender/ */
+#    define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#  else /* new XDG ~/blender/.config/ */
+#    define BLENDER_USER_FORMAT			"%s/blender/%s"
+#  endif // WITH_XDG_USER_DIRS
+#  define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
 #endif
 
 /* local */
@@ -797,10 +796,18 @@ void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
    as default location to save documents */
 const char *BLI_getDefaultDocumentFolder(void)
 {
-	#if !defined(WIN32)
+#ifndef WIN32
+
+#ifdef WITH_XDG_USER_DIRS
+		const char *xdg_documents_dir= getenv("XDG_DOCUMENTS_DIR");
+		if (xdg_documents_dir) {
+			return xdg_documents_dir;
+		}
+#endif
+
 		return getenv("HOME");
 
-	#else /* Windows */
+#else /* Windows */
 		const char * ret;
 		static char documentfolder[MAXPATHLEN];
 		HRESULT hResult;
@@ -825,7 +832,7 @@ const char *BLI_getDefaultDocumentFolder(void)
 		}
 		
 		return NULL;
-	#endif
+#endif /* WIN32 */
 }
 
 /* NEW stuff, to be cleaned up when fully migrated */
@@ -1397,22 +1404,51 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 
 int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
+	size_t path_len= strlen(path);
+	size_t ext_len= strlen(ext);
 	size_t a;
 
-	for(a=strlen(path); a>0; a--) {
-		if(path[a-1] == '.' || path[a-1] == '/' || path[a-1] == '\\') {
-			a--;
+	for(a= path_len - 1; a >= 0; a--) {
+		if (ELEM3(path[a], '.', '/', '\\')) {
 			break;
 		}
 	}
-	
-	if(path[a] != '.')
-		a= strlen(path);
 
-	if(a + strlen(ext) >= maxlen)
+	if(a + ext_len >= maxlen)
 		return 0;
 
-	strcpy(path+a, ext);
+	memcpy(path+a, ext, ext_len + 1);
+	return 1;
+}
+
+/* strip's trailing '.'s and adds the extension only when needed */
+int BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
+{
+	size_t path_len= strlen(path);
+	size_t ext_len= strlen(ext);
+	size_t a;
+
+	/* first check the extension is alread there */
+	if (    (ext_len <= path_len) &&
+	        (strcmp(path + (path_len - ext_len), ext) == 0))
+	{
+		return 1;
+	}
+
+	for(a= path_len - 1; a >= 0; a--) {
+		if (path[a] == '.') {
+			path[a]= '\0';
+		}
+		else {
+			break;
+		}
+	}
+	a++;
+
+	if(a + ext_len >= maxlen)
+		return 0;
+
+	memcpy(path+a, ext, ext_len + 1);
 	return 1;
 }
 

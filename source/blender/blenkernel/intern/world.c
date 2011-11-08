@@ -42,12 +42,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_bpath.h"
 
-#include "BKE_world.h"
-#include "BKE_library.h"
 #include "BKE_animsys.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_icons.h"
+#include "BKE_library.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_world.h"
 
 void free_world(World *wrld)
 {
@@ -62,6 +64,12 @@ void free_world(World *wrld)
 	BKE_previewimg_free(&wrld->preview);
 
 	BKE_free_animdata((ID *)wrld);
+
+	/* is no lib link block, but world extension */
+	if(wrld->nodetree) {
+		ntreeFreeTree(wrld->nodetree);
+		MEM_freeN(wrld->nodetree);
+	}
 
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
@@ -110,7 +118,7 @@ World *copy_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(wrld);
+	wrldn= copy_libblock(&wrld->id);
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
@@ -119,6 +127,9 @@ World *copy_world(World *wrld)
 			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
+
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeCopyTree(wrld->nodetree);
 	
 	if(wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
@@ -131,7 +142,7 @@ World *localize_world(World *wrld)
 	World *wrldn;
 	int a;
 	
-	wrldn= copy_libblock(wrld);
+	wrldn= copy_libblock(&wrld->id);
 	BLI_remlink(&G.main->world, wrldn);
 	
 	for(a=0; a<MAX_MTEX; a++) {
@@ -143,6 +154,9 @@ World *localize_world(World *wrld)
 		}
 	}
 
+	if(wrld->nodetree)
+		wrldn->nodetree= ntreeLocalize(wrld->nodetree);
+	
 	wrldn->preview= NULL;
 	
 	return wrldn;
@@ -176,12 +190,11 @@ void make_local_world(World *wrld)
 		id_clear_lib_data(bmain, &wrld->id);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, wrld->id.lib->filepath};
 		World *wrldn= copy_world(wrld);
 		wrldn->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &wrldn->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &wrldn->id);
 
 		for(sce= bmain->scene.first; sce; sce= sce->id.next) {
 			if(sce->world == wrld) {

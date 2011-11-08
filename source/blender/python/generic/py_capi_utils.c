@@ -20,6 +20,13 @@
 
 /** \file blender/python/generic/py_capi_utils.c
  *  \ingroup pygen
+ *
+ * Extend upon CPython's API, filling in some gaps, these functions use PyC_
+ * prefix to distinguish them apart from CPython.
+ *
+ * \note
+ * This module should only depend on CPython, however it currently uses
+ * BLI_string_utf8() for unicode conversion.
  */
 
 
@@ -363,7 +370,7 @@ error_cleanup:
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
-	char *result;
+	const char *result;
 
 	result= _PyUnicode_AsString(py_str);
 

@@ -344,8 +344,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-PyObject* BL_ActionActuator::PyGetChannel(PyObject* value) {
-	char *string= _PyUnicode_AsString(value);
+PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
+{
+	const char *string= _PyUnicode_AsString(value);
 	
 	if (!string) {
 		PyErr_SetString(PyExc_TypeError, "expected a single string");
@@ -444,9 +445,9 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
 		
 		if(pchan) {
-			VECCOPY (pchan->loc, matrix[3]);
-			mat4_to_size( pchan->size,matrix);
-			mat4_to_quat( pchan->quat,matrix);
+			copy_v3_v3(pchan->loc, matrix[3]);
+			mat4_to_size(pchan->size, matrix);
+			mat4_to_quat(pchan->quat, matrix);
 		}
 	}
 	else {

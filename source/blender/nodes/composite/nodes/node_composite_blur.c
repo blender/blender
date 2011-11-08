@@ -35,7 +35,7 @@
 
 /* **************** BLUR ******************** */
 static bNodeSocketTemplate cmp_node_blur_in[]= {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Size",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
@@ -512,7 +512,7 @@ static void blur_with_reference(bNode *node, CompBuf *new, CompBuf *img, CompBuf
 				if(pix==1)
 					dest[0]= src[0];
 				else
-					QUATCOPY(dest, src);
+					copy_v4_v4(dest, src);
 			}
 			else {
 				int minxr= x-refradx<0?-x:-refradx;

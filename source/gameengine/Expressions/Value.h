@@ -200,7 +200,7 @@ public:
 class CValue  : public PyObjectPlus
 
 {
-Py_Header;
+Py_Header
 public:
 	enum AllocationTYPE {
 		STACKVALUE		= 0,
@@ -319,7 +319,7 @@ public:
 
 	virtual const STR_String &	GetText() = 0;
 	virtual double		GetNumber() = 0;
-	double*				ZeroVector() { return m_sZeroVec; };
+	double*				ZeroVector() { return m_sZeroVec; }
 	virtual double*		GetVector3(bool bGetTransformedVec = false);
 
 	virtual STR_String&	GetName() = 0;											// Retrieve the name of the value
@@ -348,11 +348,11 @@ public:
 	virtual bool		IsSelected()											{ return m_ValFlags.Selected; }
 	inline bool			IsReleaseRequested()									{ return m_ValFlags.ReleaseRequested; }
 	virtual bool		IsVisible()												{ return m_ValFlags.Visible;}
-	virtual void		SetCustomFlag1(bool bCustomFlag)						{ m_ValFlags.CustomFlag1 = bCustomFlag;};
-	virtual bool		IsCustomFlag1()											{ return m_ValFlags.CustomFlag1;};
+	virtual void		SetCustomFlag1(bool bCustomFlag)						{ m_ValFlags.CustomFlag1 = bCustomFlag;}
+	virtual bool		IsCustomFlag1()											{ return m_ValFlags.CustomFlag1;}
 
-	virtual void		SetCustomFlag2(bool bCustomFlag)						{ m_ValFlags.CustomFlag2 = bCustomFlag;};
-	virtual bool		IsCustomFlag2()											{ return m_ValFlags.CustomFlag2;};
+	virtual void		SetCustomFlag2(bool bCustomFlag)						{ m_ValFlags.CustomFlag2 = bCustomFlag;}
+	virtual bool		IsCustomFlag2()											{ return m_ValFlags.CustomFlag2;}
 
 protected:																		
 	virtual void		DisableRefCount();										// Disable reference counting for this value
@@ -379,18 +379,23 @@ private:
 // of object. So, for *any* CValue-derived object this should be set to CValue,
 // for *any* CExpression-derived object this should be set to CExpression.
 //
-#define PLUGIN_DECLARE_SERIAL(class_name, root_base_class_name)											\
-public:																									\
-	virtual root_base_class_name *	Copy()					{ return new class_name; }					\
-	virtual bool EdSerialize(CompressorArchive& arch,class CFactoryManager* facmgr,bool bIsStoring);    \
-	virtual bool EdIdSerialize(CompressorArchive& arch,class CFactoryManager* facmgr,bool bIsStoring)	\
-{																										\
-	if (bIsStoring)																						\
-		arch.StoreString(#class_name);																	\
-																										\
-	return false;																						\
-}																										\
-	
+#define PLUGIN_DECLARE_SERIAL(class_name, root_base_class_name)                \
+public:                                                                        \
+	virtual root_base_class_name *Copy() {                                     \
+		return new class_name;                                                 \
+	}                                                                          \
+	virtual bool EdSerialize(CompressorArchive& arch,                          \
+	                         class CFactoryManager* facmgr,                    \
+	                         bool bIsStoring);                                 \
+	virtual bool EdIdSerialize(CompressorArchive& arch,                        \
+	                           class CFactoryManager* facmgr,                  \
+	                           bool bIsStoring)                                \
+	{                                                                          \
+		if (bIsStoring)                                                        \
+			arch.StoreString(#class_name);                                     \
+		return false;                                                          \
+	}                                                                          \
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -424,7 +429,7 @@ public:
 		//if (namefromprop.Length() > 0)
 		//	return namefromprop;
 		return m_strNewName;
-	};						// name of Value
+	}						// name of Value
 	
 protected:
 	STR_String					m_strNewName;				    // Identification

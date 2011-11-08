@@ -56,6 +56,7 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -259,7 +260,7 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if(U.uiflag & USER_CONTINUOUS_MOUSE)
-		if(ELEM3(but->type, NUM, NUMABS, HSVCIRCLE))
+		if(ELEM4(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW))
 			return TRUE;
 
 	return FALSE;
@@ -922,6 +923,13 @@ static void ui_apply_but_WAVEFORM(bContext *C, uiBut *but, uiHandleButtonData *d
 	data->applied= 1;
 }
 
+static void ui_apply_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
+	data->retval= but->retval;
+	data->applied= 1;
+}
+
 
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
@@ -944,7 +952,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		data->origstr= NULL;
 		data->value= data->origvalue;
 		data->origvalue= 0.0;
-		VECCOPY(data->vec, data->origvec);
+		copy_v3_v3(data->vec, data->origvec);
 		data->origvec[0]= data->origvec[1]= data->origvec[2]= 0.0f;
 	}
 	else {
@@ -1050,6 +1058,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case WAVEFORM:
 			ui_apply_but_WAVEFORM(C, but, data);
+			break;
+		case TRACKPREVIEW:
+			ui_apply_but_TRACKPREVIEW(C, but, data);
 			break;
 		default:
 			break;
@@ -2121,7 +2132,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			break;
 		case COL:
 			ui_get_but_vectorf(but, data->origvec);
-			VECCOPY(data->vec, data->origvec);
+			copy_v3_v3(data->vec, data->origvec);
 			but->editvec= data->vec;
 
 			handlefunc= ui_block_func_COL;
@@ -3216,6 +3227,63 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	return changed;
 }
 
+static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+{
+	float *hsv= ui_block_hsv_get(but->block);
+	float rgb[3];
+	float sensitivity = (shift?0.15:0.3) * ndof->dt;
+	
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
+
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
+	switch((int)but->a1) {
+		case UI_GRAD_SV:
+			hsv[2] += ndof->ry * sensitivity;
+			hsv[1] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_HV:
+			hsv[0] += ndof->ry * sensitivity;
+			hsv[2] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_HS:
+			hsv[0] += ndof->ry * sensitivity;
+			hsv[1] += ndof->rx * sensitivity;
+			break;
+		case UI_GRAD_H:
+			hsv[0] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_S:
+			hsv[1] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_V:
+			hsv[2] += ndof->ry * sensitivity;
+			break;
+		case UI_GRAD_V_ALT:	
+			/* vertical 'value' strip */
+			
+			/* exception only for value strip - use the range set in but->min/max */
+			hsv[2] += ndof->rx * sensitivity;
+			
+			if (color_profile)
+				hsv[2] = srgb_to_linearrgb(hsv[2]);
+			
+			CLAMP(hsv[2], but->softmin, but->softmax);
+		default:
+			assert(!"invalid hsv type");
+	}
+	
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+	copy_v3_v3(data->vec, rgb);
+	ui_set_but_vectorf(but, data->vec);
+}
+
 static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	int mx, my;
@@ -3238,8 +3306,18 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+		else if (event->type == NDOF_MOTION) {
+			wmNDOFMotionData *ndof = (wmNDOFMotionData*) event->customdata;
+			
+			ui_ndofedit_but_HSVCUBE(but, data, ndof, event->shift);
+			
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_apply_button(C, but->block, but, data, 1);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			if (but->a1==UI_GRAD_V_ALT){
 				int len;
 				
@@ -3337,11 +3415,62 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	return changed;
 }
 
+static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmNDOFMotionData *ndof, int shift)
+{
+	float *hsv= ui_block_hsv_get(but->block);
+	float rgb[3];
+	float phi, r /*, sqr */ /* UNUSED */, v[2];
+	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
+	
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
+	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
+	phi = fmodf(hsv[0]+0.25f, 1.0f) * -2.0f*M_PI;
+	r = hsv[1];
+	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
+	
+	/* Convert to 2d vectors */
+	v[0] = r * cosf(phi);
+	v[1] = r * sinf(phi);
+	
+	/* Use ndof device y and x rotation to move the vector in 2d space */
+	v[0] += ndof->ry * sensitivity;
+	v[1] += ndof->rx * sensitivity;
+
+	/* convert back to polar coords on circle */
+	phi = atan2(v[0], v[1])/(2.0f*(float)M_PI) + 0.5f;
+	
+	/* use ndof z rotation to additionally rotate hue */
+	phi -= ndof->rz * sensitivity * 0.5f;
+	
+	r = len_v2(v);
+	CLAMP(r, 0.0f, 1.0f);
+	
+	/* convert back to hsv values, in range [0,1] */
+	hsv[0] = fmodf(phi, 1.0f);
+	hsv[1] = r;
+
+	/* exception, when using color wheel in 'locked' value state:
+	 * allow choosing a hue for black values, by giving a tiny increment */
+	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
+		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
+	}
+	
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec+1, data->vec+2);
+	
+	if((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
+		normalize_v3(data->vec);
+		mul_v3_fl(data->vec, but->a2);
+	}
+	
+	ui_set_but_vectorf(but, data->vec);
+}
+
 
 static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	int mx, my;
-	
 	mx= event->x;
 	my= event->y;
 	ui_window_to_block(data->region, block, &mx, &my);
@@ -3360,8 +3489,18 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+		else if (event->type == NDOF_MOTION) {
+			wmNDOFMotionData *ndof = (wmNDOFMotionData*) event->customdata;
+			
+			ui_ndofedit_but_HSVCIRCLE(but, data, ndof, event->shift);
+
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			ui_apply_button(C, but->block, but, data, 1);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			int len;
 			
 			/* reset only saturation */
@@ -3810,7 +3949,7 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			Histogram *hist = (Histogram *)but->poin;
 			hist->ymax = 1.f;
 			
@@ -3893,7 +4032,7 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* XXX hardcoded keymap check.... */
-		else if (ELEM(event->type, ZEROKEY, PAD0) && event->val == KM_PRESS) {
+		else if (event->type == DELKEY && event->val == KM_PRESS) {
 			Scopes *scopes = (Scopes *)but->poin;
 			scopes->wavefrm_yfac = 1.f;
 
@@ -4123,6 +4262,88 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		}
 	}
 	
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
+{
+	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
+	int changed= 1;
+	float dx, dy;
+
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+
+	if(shift) {
+		dx /= 5.0f;
+		dy /= 5.0f;
+	}
+
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize preview widget itself */
+		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		if(scopes->marker) {
+			if(scopes->marker->framenr!=scopes->framenr)
+				scopes->marker= BKE_tracking_ensure_marker(scopes->track, scopes->framenr);
+
+			scopes->marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
+			scopes->marker->pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
+			scopes->marker->pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+		}
+
+		scopes->ok= 0;
+	}
+
+	data->draglastx= mx;
+	data->draglasty= my;
+
+	return changed;
+}
+
+static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+			/* also do drag the first time */
+			if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+				ui_numedit_apply(C, block, but, data);
+
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
 	return WM_UI_HANDLER_CONTINUE;
 }
 
@@ -4662,6 +4883,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case LINK:
 	case INLINK:
 		retval= ui_do_but_LINK(C, but, data, event);
+		break;
+	case TRACKPREVIEW:
+		retval= ui_do_but_TRACKPREVIEW(C, block, but, data, event);
 		break;
 	}
 	
@@ -5599,7 +5823,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 	/* copy over return values from the closing menu */
 	if(menu->menuretval == UI_RETURN_OK || menu->menuretval == UI_RETURN_UPDATE) {
 		if(but->type == COL)
-			VECCOPY(data->vec, menu->retvec)
+			copy_v3_v3(data->vec, menu->retvec);
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value= menu->retvalue;
 	}

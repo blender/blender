@@ -145,6 +145,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if(RNA_struct_is_a(type, &RNA_VectorFont)) return ID_VF;
 	if(RNA_struct_is_a(type, &RNA_World)) return ID_WO;
 	if(RNA_struct_is_a(type, &RNA_WindowManager)) return ID_WM;
+	if(RNA_struct_is_a(type, &RNA_MovieClip)) return ID_MC;
 
 	return 0;
 }
@@ -180,6 +181,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_VF: return &RNA_VectorFont;
 		case ID_WO: return &RNA_World;
 		case ID_WM: return &RNA_WindowManager;
+		case ID_MC: return &RNA_MovieClip;
 		default: return &RNA_ID;
 	}
 }
@@ -488,6 +490,16 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_DOIT);
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Tag", "Tools can use this to tag data (initial state is undefined)");
+
+	prop= RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Updated", "Datablock is tagged for recalculation");
+
+	prop= RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC_DATA);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Updated Data", "Datablock data is tagged for recalculation");
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");

@@ -37,7 +37,7 @@
 
 class SCA_2DFilterActuator : public SCA_IActuator
 {
-	Py_Header;
+	Py_Header
 
 private:
 	vector<STR_String> m_propNames;

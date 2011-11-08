@@ -34,8 +34,8 @@
 
 /* ******************* channel Distance Matte ********************************* */
 static bNodeSocketTemplate cmp_node_distance_matte_in[]={
-	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f},
+	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -59,7 +59,7 @@ static void do_distance_matte(bNode *node, float *out, float *in)
 				  (c->key[1]-in[1])*(c->key[1]-in[1]) +
 				  (c->key[2]-in[2])*(c->key[2]-in[2]));
 
-	VECCOPY(out, in);
+	copy_v3_v3(out, in);
 
 	/*make 100% transparent */
 	if(distance < tolerence) {

@@ -242,7 +242,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 
 	tstart();
 
-	VECSUB(size, max, min);
+	sub_v3_v3v3(size, max, min);
 
 	// maxx, maxy, maxz
 	cv[0][0] = max[0];

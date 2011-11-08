@@ -45,6 +45,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
@@ -122,6 +123,34 @@ static void active_node_panel(const bContext *C, Panel *pa)
 		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 }
 
+static int node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	return (snode && snode->nodetree && G.rt == 777);
+}
+
+static void node_sockets_panel(const bContext *C, Panel *pa)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
+	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
+	bNodeSocket *sock;
+	uiLayout *layout= pa->layout, *split;
+	char name[UI_MAX_NAME_STR];
+	
+	if(ELEM(NULL, ntree, node))
+		return;
+	
+	for(sock=node->inputs.first; sock; sock=sock->next) {
+		BLI_snprintf(name, sizeof(name), "%s:", sock->name);
+
+		split = uiLayoutSplit(layout, 0.35f, 0);
+		uiItemL(split, name, ICON_NONE);
+		uiTemplateNodeLink(split, ntree, node, sock);
+	}
+}
+
 /* ******************* node buttons registration ************** */
 
 void node_buttons_register(ARegionType *art)
@@ -133,6 +162,14 @@ void node_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Active Node");
 	pt->draw= active_node_panel;
 	pt->poll= active_node_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel node sockets");
+	strcpy(pt->idname, "NODE_PT_sockets");
+	strcpy(pt->label, "Sockets");
+	pt->draw= node_sockets_panel;
+	pt->poll= node_sockets_poll;
+	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype node panel gpencil");

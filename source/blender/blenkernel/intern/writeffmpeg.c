@@ -1046,7 +1046,7 @@ void ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 	}
 }
 
-IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int parent_index)
+IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index, int parent_index)
 {
 	AVCodecContext c;
 	const AVOption * o;

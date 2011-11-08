@@ -129,6 +129,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_movieclip_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
@@ -711,6 +712,8 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
+				/* pass */ ;
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
@@ -1858,6 +1861,12 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
+
+			/* nodetree is integral part of lamps, no libdata */
+			if(wrld->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, wrld->nodetree);
+				write_nodetree(wd, wrld->nodetree);
+			}
 			
 			write_previews(wd, wrld->preview);
 		}
@@ -1887,6 +1896,12 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
 			
+			/* nodetree is integral part of lamps, no libdata */
+			if(la->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, la->nodetree);
+				write_nodetree(wd, la->nodetree);
+			}
+
 			write_previews(wd, la->preview);
 			
 		}
@@ -2218,10 +2233,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					if(sima->cumap)
 						write_curvemapping(wd, sima->cumap);
 				}
-				else if(sl->spacetype==SPACE_IMASEL) {
-					// XXX: depreceated... do we still want to keep this?
-					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
-				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
@@ -2232,9 +2243,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					writestruct(wd, DATA, "SpaceAction", 1, sl);
-				}
-				else if(sl->spacetype==SPACE_SOUND) {
-					writestruct(wd, DATA, "SpaceSound", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					SpaceNla *snla= (SpaceNla *)sl;
@@ -2265,6 +2273,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_USERPREF) {
 					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_CLIP) {
+					writestruct(wd, DATA, "SpaceClip", 1, sl);
 				}
 
 				sl= sl->next;
@@ -2512,6 +2523,38 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 			if (script->id.properties) IDP_WriteProperty(script->id.properties, wd);
 		}
 	}
+}
+
+static void write_movieclips(WriteData *wd, ListBase *idbase)
+{
+	MovieClip *clip;
+
+	clip= idbase->first;
+	while(clip) {
+		if(clip->id.us>0 || wd->current) {
+			MovieTracking *tracking= &clip->tracking;
+			MovieTrackingTrack *track;
+			writestruct(wd, ID_MC, "MovieClip", 1, clip);
+
+			if(tracking->reconstruction.camnr)
+				writestruct(wd, DATA, "MovieReconstructedCamera", tracking->reconstruction.camnr, tracking->reconstruction.cameras);
+
+			track= tracking->tracks.first;
+			while(track) {
+				writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
+
+				if(track->markers)
+					writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
+
+				track= track->next;
+			}
+		}
+
+		clip= clip->id.next;
+	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
@@ -2780,6 +2823,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 		write_windowmanagers(wd, &mainvar->wm);
 		write_screens  (wd, &mainvar->screen);
 	}
+	write_movieclips (wd, &mainvar->movieclip);
 	write_scenes   (wd, &mainvar->scene);
 	write_curves   (wd, &mainvar->curve);
 	write_mballs   (wd, &mainvar->mball);

@@ -672,7 +672,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 			else ver++;
 			
 			if(clipflag[a]) {
-				VECCOPY(vec, ver->co);
+				copy_v3_v3(vec, ver->co);
 				mul_m4_v3(obviewmat, vec);
 				/* Z on visible side of lamp space */
 				if(vec[2] < 0.0f) {
@@ -2063,7 +2063,7 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	float dface, fac, siz;
 	
 	RE_vlakren_get_normal(&R, obi, vlr, nor);
-	VECCOPY(v1, vlr->v1->co);
+	copy_v3_v3(v1, vlr->v1->co);
 	if(obi->flag & R_TRANSFORMED)
 		mul_m4_v3(obi->mat, v1);
 
@@ -2156,7 +2156,7 @@ static int isb_add_samples(RenderPart *pa, ISBBranch *root, MemArena *memarena, 
 	int xi, yi, *xcos, *ycos;
 	int sample, bsp_err= 0;
 	
-	/* bsp split doesn't like to handle regular sequenes */
+	/* bsp split doesn't like to handle regular sequences */
 	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
 	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
 	for(xi=0; xi<pa->rectx; xi++)
@@ -2301,7 +2301,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 			
 			isb_bsp_fillfaces(&R, lar, &root);	/* shb->persmat should have been calculated */
 			
-			/* copy shadow samples to persistant buffer, reduce memory overhead */
+			/* copy shadow samples to persistent buffer, reduce memory overhead */
 			if(R.osa) {
 				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 				
@@ -2360,7 +2360,7 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 	int xi, yi, *xcos, *ycos;
 	int sample, bsp_err= 0;
 	
-	/* bsp split doesn't like to handle regular sequenes */
+	/* bsp split doesn't like to handle regular sequences */
 	xcos= MEM_mallocN( pa->rectx*sizeof(int), "xcos");
 	ycos= MEM_mallocN( pa->recty*sizeof(int), "ycos");
 	for(xi=0; xi<pa->rectx; xi++)
@@ -2463,7 +2463,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 											samp->facenr= apn->p[a] & ~RE_QUAD_OFFS;
 											samp->shadfac= &apn->shadfac[a];
 											
-											VECCOPY(samp->zco, zco);
+											copy_v3_v3(samp->zco, zco);
 											bound_rectf((rctf *)&root.box, samp->zco);
 										}
 									}
@@ -2479,7 +2479,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 									samp->facenr= apn->p[a] & ~RE_QUAD_OFFS;
 									samp->shadfac= &apn->shadfac[a];
 									
-									VECCOPY(samp->zco, zco);
+									copy_v3_v3(samp->zco, zco);
 									bound_rectf((rctf *)&root.box, samp->zco);
 								}
 							}
@@ -2505,7 +2505,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 			/* go over all faces and fill in shadow values */
 			isb_bsp_fillfaces(&R, lar, &root);	/* shb->persmat should have been calculated */
 			
-			/* copy shadow samples to persistant buffer, reduce memory overhead */
+			/* copy shadow samples to persistent buffer, reduce memory overhead */
 			isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 			
 			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");

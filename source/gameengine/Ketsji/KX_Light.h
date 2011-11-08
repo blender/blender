@@ -44,7 +44,7 @@ class MT_Transform;
 
 class KX_LightObject : public KX_GameObject
 {
-	Py_Header;
+	Py_Header
 protected:
 	RAS_LightObject		m_lightobj;
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj

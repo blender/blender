@@ -257,10 +257,8 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
             layout.prop(ob, "dupli_group", text="Group")
 
 
-# XXX: the following options are all quite buggy, ancient hacks that should be dropped
-
-class OBJECT_PT_animation(ObjectButtonsPanel, Panel):
-    bl_label = "Animation Hacks"
+class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
+    bl_label = "Relations Extras"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -271,21 +269,15 @@ class OBJECT_PT_animation(ObjectButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Time Offset:")
-        col.prop(ob, "use_time_offset_edit", text="Edit")
-        row = col.row()
-        row.prop(ob, "use_time_offset_parent", text="Parent")
-        row.active = (ob.parent is not None)
-        row = col.row()
-        row.prop(ob, "use_slow_parent")
-        row.active = (ob.parent is not None)
-        col.prop(ob, "time_offset", text="Offset")
-
-        # XXX: these are still used for a few curve-related tracking features
-        col = split.column()
         col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
+
+        col = split.column()
+        col.prop(ob, "use_slow_parent")
+        row = col.row()
+        row.active = ((ob.parent is not None) and (ob.use_slow_parent))
+        row.prop(ob, "slow_parent_offset", text="Offset")
 
 
 from bl_ui.properties_animviz import (

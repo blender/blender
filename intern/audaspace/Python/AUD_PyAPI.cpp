@@ -226,7 +226,7 @@ Factory_lowpass(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f|f:lowpass", &frequency, &Q))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -267,7 +267,7 @@ Factory_delay(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f:delay", &delay))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -303,7 +303,7 @@ PyDoc_STRVAR(M_aud_Factory_join_doc,
 static PyObject *
 Factory_join(Factory* self, PyObject* object)
 {
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 
 	if(!PyObject_TypeCheck(object, type))
 	{
@@ -354,7 +354,7 @@ Factory_highpass(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f|f:highpass", &frequency, &Q))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -395,7 +395,7 @@ Factory_limit(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "ff:limit", &start, &end))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -439,7 +439,7 @@ Factory_pitch(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f:pitch", &factor))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -481,7 +481,7 @@ Factory_volume(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f:volume", &volume))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -524,7 +524,7 @@ Factory_fadein(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "ff:fadein", &start, &length))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -568,7 +568,7 @@ Factory_fadeout(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "ff:fadeout", &start, &length))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -610,7 +610,7 @@ Factory_loop(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "i:loop", &loop))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -646,7 +646,7 @@ PyDoc_STRVAR(M_aud_Factory_mix_doc,
 static PyObject *
 Factory_mix(Factory* self, PyObject* object)
 {
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 
 	if(!PyObject_TypeCheck(object, type))
 	{
@@ -686,7 +686,7 @@ PyDoc_STRVAR(M_aud_Factory_pingpong_doc,
 static PyObject *
 Factory_pingpong(Factory* self)
 {
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -725,7 +725,7 @@ PyDoc_STRVAR(M_aud_Factory_reverse_doc,
 static PyObject *
 Factory_reverse(Factory* self)
 {
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -763,7 +763,7 @@ PyDoc_STRVAR(M_aud_Factory_buffer_doc,
 static PyObject *
 Factory_buffer(Factory* self)
 {
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -802,7 +802,7 @@ Factory_square(Factory* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "|f:square", &threshold))
 		return NULL;
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
@@ -905,7 +905,7 @@ Factory_filter(Factory* self, PyObject* args)
 	else
 		a.push_back(1);
 
-	PyTypeObject* type = ((PyObject*)self)->ob_type;
+	PyTypeObject* type = Py_TYPE(self);
 	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)

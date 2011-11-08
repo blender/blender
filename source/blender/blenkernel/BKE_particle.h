@@ -254,8 +254,8 @@ void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
 int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
 int psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
-void psys_interpolate_uvs(struct MTFace *tface, int quad, float *uv, float *uvco);
-void psys_interpolate_mcol(struct MCol *mcol, int quad, float *uv, struct MCol *mc);
+void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
+void psys_interpolate_mcol(const struct MCol *mcol, int quad, const float w[4], struct MCol *mc);
 
 void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int time);
 
@@ -335,12 +335,12 @@ void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *r
 
 /* BLI_bvhtree_ray_cast callback */
 void BKE_psys_collision_neartest_cb(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
-void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
+void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3], float orco[3], float ornor[3]);
 
 /* particle_system.c */
 void initialize_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, int p);
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
-int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);
+int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node);
 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
 

@@ -38,7 +38,10 @@ struct Tex;
 struct SpaceLink;
 struct Base;
 struct BoundBox;
+struct MovieClip;
+struct MovieClipUser;
 struct RenderInfo;
+struct RenderEngine;
 struct bGPdata;
 struct SmoothViewStore;
 struct wmTimer;
@@ -54,6 +57,7 @@ struct wmTimer;
 
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
+#include "DNA_movieclip_types.h"
 
 /* ******************************** */
 
@@ -66,10 +70,12 @@ typedef struct BGpic {
 
 	struct Image *ima;
 	struct ImageUser iuser;
+	struct MovieClip *clip;
+	struct MovieClipUser cuser;
 	float xof, yof, size, blend;
 	short view;
 	short flag;
-	float pad2;
+	short source, pad;
 } BGpic;
 
 /* ********************************* */
@@ -115,6 +121,7 @@ typedef struct RegionView3D {
 	
 	struct RegionView3D *localvd; /* allocated backup of its self while in localview */
 	struct RenderInfo *ri;
+	struct RenderEngine *render_engine;
 	struct ViewDepths *depths;
 	
 	/* animated smooth view */
@@ -144,7 +151,12 @@ typedef struct View3D {
 	float blockscale;
 	short blockhandler[8];
 	
-	float viewquat[4], dist, pad1;	/* XXX depricated */
+	float viewquat[4], dist;	/* XXX depricated */
+
+	float bundle_size;			/* size of bundles in reconstructed data */
+	short bundle_drawtype;		/* display style for bundle */
+
+	char pad[6];
 	
 	unsigned int lay_used; /* used while drawing */
 	
@@ -164,8 +176,8 @@ typedef struct View3D {
 	int layact;
 	
 	/**
-	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURE */
+	 * The drawing mode for the 3d display. Set to OB_BOUNDBOX, OB_WIRE, OB_SOLID,
+	 * OB_TEXTURE, OB_MATERIAL or OB_RENDER */
 	short drawtype;
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, around;
@@ -246,6 +258,9 @@ typedef struct View3D {
 #define V3D_DISPGP				16
 #define V3D_LOCK_CAMERA			32
 #define V3D_RENDER_SHADOW		64 /* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
+#define V3D_SHOW_RECONSTRUCTION		128
+#define V3D_SHOW_CAMERAPATH		256
+#define V3D_SHOW_BUNDLENAME		512
 
 /* View3D->around */
 #define V3D_CENTER		 0
@@ -292,6 +307,12 @@ typedef struct View3D {
 /* BGPic->flag */
 /* may want to use 1 for select ?*/
 #define V3D_BGPIC_EXPANDED		2
+#define V3D_BGPIC_CAMERACLIP	4
+
+/* BGPic->source */
+/* may want to use 1 for select ?*/
+#define V3D_BGPIC_IMAGE		0
+#define V3D_BGPIC_MOVIE		1
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

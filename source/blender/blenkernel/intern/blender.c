@@ -172,7 +172,7 @@ static void clean_paths(Main *main)
 {
 	Scene *scene;
 
-	bpath_traverse_main(main, clean_paths_visit_cb, 0, NULL);
+	bpath_traverse_main(main, clean_paths_visit_cb, BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
 		BLI_clean(scene->r.pic);
@@ -663,7 +663,7 @@ int BKE_undo_valid(const char *name)
 
 /* get name of undo item, return null if no item with this index */
 /* if active pointer, set it to 1 if true */
-char *BKE_undo_get_name(int nr, int *active)
+const char *BKE_undo_get_name(int nr, int *active)
 {
 	UndoElem *uel= BLI_findlink(&undobase, nr);
 	

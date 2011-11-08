@@ -363,7 +363,7 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
-	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? (id->lib ? id->lib->filepath : bmain->name) : NULL;
+	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
 	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;
@@ -500,6 +500,11 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 							StripElem *se= seq->strip->stripdata;
 							int len= MEM_allocN_len(se) / sizeof(*se);
 							int i;
+
+							if (flag & BPATH_TRAVERSE_SKIP_MULTIFILE) {
+								/* only operate on one path */
+								len= MIN2(1, len);
+							}
 
 							for(i= 0; i < len; i++, se++) {
 								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);

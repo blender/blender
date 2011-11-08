@@ -223,19 +223,25 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl= NULL;
-	Render *re= RE_NewRender(scene->id.name);
+	Render *re;
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
 	Main *mainp= CTX_data_main(C);
-	unsigned int lay= (v3d)? v3d->lay: scene->lay;
+	unsigned int lay;
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 	struct Object *camera_override= v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
+
+	/* custom scene and single layer re-render */
+	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
 	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
+
+	re= RE_NewRender(scene->id.name);
+	lay= (v3d)? v3d->lay: scene->lay;
 
 	G.afbreek= 0;
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
@@ -251,9 +257,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	seq_stripelem_cache_cleanup();
 
 	RE_SetReports(re, op->reports);
-
-	/* custom scene and single layer re-render */
-	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
 	if(is_animation)
 		RE_BlenderAnim(re, mainp, scene, camera_override, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
@@ -500,6 +503,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 	struct Object *camera_override= v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
+	const char *name;
 	
 	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
@@ -574,7 +578,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->reports= op->reports;
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Render", jobflag);
+	if(RE_seq_render_active(scene, &scene->r)) name= "Sequence Render";
+	else name= "Render";
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag);
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);

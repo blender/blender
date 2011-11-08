@@ -88,11 +88,11 @@ static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 	if(ibuf->rect_float) {
 		if(ibuf->channels==4) {
 			float *fp= ibuf->rect_float + 4*ofs;
-			QUATCOPY(col, fp);
+			copy_v4_v4(col, fp);
 		}
 		else if(ibuf->channels==3) {
 			float *fp= ibuf->rect_float + 3*ofs;
-			VECCOPY(col, fp);
+			copy_v3_v3(col, fp);
 			col[3]= 1.0f;
 		}
 		else {

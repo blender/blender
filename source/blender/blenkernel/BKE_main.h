@@ -85,6 +85,7 @@ typedef struct Main {
 	ListBase particle;
 	ListBase wm;
 	ListBase gpencil;
+	ListBase movieclip;
 	ListBase linestyle;
 
 	char id_tag_update[256];

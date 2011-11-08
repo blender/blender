@@ -669,8 +669,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
-        row.operator("render.preset_add", text="", icon="ZOOMIN")
-        row.operator("render.preset_add", text="", icon="ZOOMOUT").remove_active = True
+        row.operator("render.preset_add", text="", icon='ZOOMIN')
+        row.operator("render.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         split = layout.split()
 

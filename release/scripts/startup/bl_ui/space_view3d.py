@@ -976,10 +976,8 @@ class VIEW3D_MT_make_links(Menu):
         if(len(bpy.data.scenes) > 10):
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("object.make_links_scene", text="Objects to Scene...", icon='OUTLINER_OB_EMPTY')
-            layout.operator("object.make_links_scene", text="Markers to Scene...", icon='OUTLINER_OB_EMPTY')
         else:
             layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
-            layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
 
         layout.operator_enum("object.make_links_data", "type")  # inline
 
@@ -1086,6 +1084,7 @@ class VIEW3D_MT_paint_weight(Menu):
 
         layout.operator("object.vertex_group_normalize_all", text="Normalize All")
         layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_mirror", text="Mirror")
         layout.operator("object.vertex_group_invert", text="Invert")
         layout.operator("object.vertex_group_clean", text="Clean")
         layout.operator("object.vertex_group_levels", text="Levels")
@@ -1537,7 +1536,7 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
 class VIEW3D_MT_edit_mesh_extrude(Menu):
     bl_label = "Extrude"
 
-    _extrude_funcs = { \
+    _extrude_funcs = {
         "VERT": lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
         "EDGE": lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
         "FACE": lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),
@@ -2074,7 +2073,22 @@ class VIEW3D_PT_view3d_properties(Panel):
         subcol.label(text="Local Camera:")
         subcol.prop(view, "camera", text="")
 
-        layout.column().prop(view, "cursor_location")
+
+class VIEW3D_PT_view3d_cursor(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "3D Cursor"
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        layout.column().prop(view, "cursor_location", text="Location")
 
 
 class VIEW3D_PT_view3d_name(Panel):
@@ -2152,10 +2166,21 @@ class VIEW3D_PT_view3d_display(Panel):
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
-        col = layout.column()
-        col.label(text="Shading:")
-        col.prop(gs, "material_mode", text="")
-        col.prop(view, "show_textured_solid")
+        if not scene.render.use_shading_nodes:
+            col = layout.column()
+            col.label(text="Shading:")
+            col.prop(gs, "material_mode", text="")
+            col.prop(view, "show_textured_solid")
+
+        layout.separator()
+
+        layout.prop(view, "show_reconstruction")
+        if view.show_reconstruction:
+            layout.label(text="Bundle type:")
+            layout.prop(view, "bundle_draw_type", text="")
+            layout.prop(view, "bundle_draw_size")
+            layout.prop(view, "show_bundle_name")
+            layout.prop(view, "show_camera_path")
 
         layout.separator()
 
@@ -2266,8 +2291,10 @@ class VIEW3D_PT_background_image(Panel):
             box = layout.box()
             row = box.row(align=True)
             row.prop(bg, "show_expanded", text="", emboss=False)
-            if bg.image:
+            if bg.source == 'IMAGE' and bg.image:
                 row.prop(bg.image, "name", text="", emboss=False)
+            if bg.source == 'MOVIE' and bg.clip:
+                row.prop(bg.clip, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
             row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
@@ -2276,10 +2303,36 @@ class VIEW3D_PT_background_image(Panel):
 
             if bg.show_expanded:
                 row = box.row()
-                row.template_ID(bg, "image", open="image.open")
-                if (bg.image):
-                    box.template_image(bg, "image", bg.image_user, compact=True)
+                row.prop(bg, "source", expand=True)
 
+                hasbg = False
+                if bg.source == 'IMAGE':
+                    row = box.row()
+                    row.template_ID(bg, "image", open="image.open")
+                    if (bg.image):
+                        box.template_image(bg, "image", bg.image_user, compact=True)
+                        hasbg = True
+
+                elif bg.source == 'MOVIE':
+                    has_clip = False
+                    box.prop(bg, 'use_camera_clip')
+
+                    column = box.column()
+                    column.active = not bg.use_camera_clip
+                    column.template_ID(bg, "clip", open="clip.open")
+
+                    if bg.clip:
+                        column.template_movieclip(bg, "clip", compact=True)
+
+                    if bg.use_camera_clip or bg.clip:
+                        hasbg = True
+
+                    column = box.column()
+                    column.active = hasbg
+                    column.prop(bg.clip_user, "proxy_render_size", text="")
+                    column.prop(bg.clip_user, "use_render_undistorted")
+
+                if hasbg:
                     box.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")

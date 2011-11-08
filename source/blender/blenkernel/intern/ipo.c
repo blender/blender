@@ -703,14 +703,7 @@ static const char *world_adrcodes_to_paths (int adrcode, int *array_index)
 			return "mist.start";
 		case WO_MISTHI:
 			return "mist.height";
-		
-	/*	Star Color is unused -- recommend removal */
-	/*	case WO_STAR_R:
-			*array_index= 0; return "stars.color";
-		case WO_STAR_G:
-			*array_index= 1; return "stars.color";
-		case WO_STAR_B:
-			*array_index= 2; return "stars.color"; */
+
 		case WO_STAR_R:
 		case WO_STAR_G:
 		case WO_STAR_B:

@@ -214,6 +214,8 @@ void ImageRender::Render()
 	} else
 	{
 		float lens = m_camera->GetLens();
+		float sensor_x = m_camera->GetSensorWidth();
+		float sensor_y = m_camera->GetSensorHeight();
 		bool orthographic = !m_camera->GetCameraData()->m_perspective;
 		float nearfrust = m_camera->GetCameraNear();
 		float farfrust = m_camera->GetCameraFar();
@@ -233,6 +235,7 @@ void ImageRender::Render()
 			            farfrust,
 			            m_camera->GetScale(),
 			            aspect_ratio,
+						m_camera->GetSensorFit(),
 			            frustrum
 			            );
 
@@ -244,6 +247,9 @@ void ImageRender::Render()
 			            nearfrust,
 			            farfrust,
 			            lens,
+			            sensor_x,
+			            sensor_y,
+			            RAS_SENSORFIT_AUTO,
 			            aspect_ratio,
 			            frustrum);
 			

@@ -35,7 +35,7 @@
 
 /* **************** NORMALIZE single channel, useful for Z buffer ******************** */
 static bNodeSocketTemplate cmp_node_normalize_in[]= {
-	{   SOCK_FLOAT, 1, "Value",         1.0f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+	{   SOCK_FLOAT, 1, "Value",         1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{   -1, 0, ""   }
 };
 static bNodeSocketTemplate cmp_node_normalize_out[]= {
@@ -69,7 +69,7 @@ static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeS
 
 	/* Input has no image buffer? Then pass the value */
 	if(in[0]->data==NULL) {
-		QUATCOPY(out[0]->vec, in[0]->vec);
+		copy_v4_v4(out[0]->vec, in[0]->vec);
 	}
 	else {
 		float min = 1.0f+BLENDER_ZMAX;
@@ -109,7 +109,6 @@ void register_node_type_cmp_normalize(ListBase *lb)
 	node_type_socket_templates(&ntype, cmp_node_normalize_in, cmp_node_normalize_out);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, node_composit_exec_normalize);
-	node_type_storage(&ntype, "TexMapping", NULL, NULL);
 	
 	nodeRegisterType(lb, &ntype);
 }

@@ -42,7 +42,7 @@
  */
 class SCA_IController : public SCA_ILogicBrick
 {
-	Py_Header;
+	Py_Header
 protected:
 	std::vector<class SCA_ISensor*>		m_linkedsensors;
 	std::vector<class SCA_IActuator*>	m_linkedactuators;

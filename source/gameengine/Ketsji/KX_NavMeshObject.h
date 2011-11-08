@@ -36,7 +36,7 @@ class MT_Transform;
 
 class KX_NavMeshObject: public KX_GameObject
 {
-	Py_Header;
+	Py_Header
 
 protected:
 	dtStatNavMesh* m_navMesh;

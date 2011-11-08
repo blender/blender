@@ -605,9 +605,9 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					{
 						if(efa->f & SELECT)
 						{
-							VECADD(normal, normal, efa->n);
+							add_v3_v3(normal, efa->n);
 							sub_v3_v3v3(vec, efa->v2->co, efa->v1->co);
-							VECADD(plane, plane, vec);
+							add_v3_v3(plane, vec);
 						}
 					}
 					
@@ -661,7 +661,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						if(eed->f & SELECT) {
 							/* use average vert normals as plane and edge vector as normal */
 							copy_v3_v3(plane, eed->v1->no);
-							VECADD(plane, plane, eed->v2->no);
+							add_v3_v3(plane, eed->v2->no);
 							sub_v3_v3v3(normal, eed->v2->co, eed->v1->co);
 							break;
 						}
@@ -682,7 +682,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 								v2 = eve;
 								
 								copy_v3_v3(plane, v1->no);
-								VECADD(plane, plane, v2->no);
+								add_v3_v3(plane, v2->no);
 								sub_v3_v3v3(normal, v2->co, v1->co);
 								break; 
 							}

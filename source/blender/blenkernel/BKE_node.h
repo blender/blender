@@ -83,6 +83,7 @@ typedef struct bNodeSocketTemplate {
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
 	PropertySubType subtype;
+	int flag;
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used to hold verified socket */
@@ -130,7 +131,7 @@ typedef struct bNodeType {
 	char name[32];
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
-	short nclass, flag;
+	short nclass, flag, compatibility;
 	
 	/* templates for static sockets */
 	bNodeSocketTemplate *inputs, *outputs;
@@ -230,7 +231,12 @@ typedef struct bNodeType {
 #define NODE_CLASS_PARTICLES		25
 #define NODE_CLASS_TRANSFORM		30
 #define NODE_CLASS_COMBINE			31
+#define NODE_CLASS_SHADER 			40
 #define NODE_CLASS_LAYOUT			100
+
+/* nodetype->compatibility */
+#define NODE_OLD_SHADING	1
+#define NODE_NEW_SHADING	2
 
 /* enum values for input/output */
 #define SOCK_IN		1
@@ -239,6 +245,7 @@ typedef struct bNodeType {
 struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
+typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
 typedef struct bNodeTreeType
 {
 	int type;						/* type identifier */
@@ -250,6 +257,7 @@ typedef struct bNodeTreeType
 	void (*free_cache)(struct bNodeTree *ntree);
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
 	void (*foreach_nodetree)(struct Main *main, void *calldata, bNodeTreeCallback func);		/* iteration over all node trees */
+	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
@@ -388,6 +396,7 @@ void			node_type_exec_new(struct bNodeType *ntype,
 								   void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata, struct bNodeStack **, struct bNodeStack **));
 void			node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out));
 void			node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out));
+void			node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
 /* ************** COMMON NODES *************** */
 
@@ -561,6 +570,10 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_COLOR_MATTE 259
 #define CMP_NODE_COLORBALANCE 260
 #define CMP_NODE_HUECORRECT 261
+#define CMP_NODE_MOVIECLIP	262
+#define CMP_NODE_STABILIZE2D	263
+#define CMP_NODE_TRANSFORM	264
+#define CMP_NODE_MOVIEDISTORTION	265
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

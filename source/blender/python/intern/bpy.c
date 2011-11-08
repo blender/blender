@@ -22,11 +22,11 @@
 
 /** \file blender/python/intern/bpy.c
  *  \ingroup pythonintern
+ *
+ * This file defines the '_bpy' module which is used by python's 'bpy' package
+ * to access C defined builtin functions.
+ * A script writer should never directly access this module.
  */
-
- 
-/* This file defines the '_bpy' module which is used by python's 'bpy' package.
- * a script writer should never directly access this module */
  
 #define WITH_PYTHON /* for AUD_PyInit.h, possibly others */
 

@@ -1387,6 +1387,8 @@ static void delete_mesh(EditMesh *em, wmOperator *op, int event)
 		}
 	}
 
+	recalc_editnormals(em);
+
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 }
 
@@ -1456,11 +1458,11 @@ void MESH_OT_delete(wmOperatorType *ot)
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int beauty, float perc)
 {
-	float vec1[3], fac;
+	float tvec[3], fac;
 
 	if(beauty & B_SMOOTH) {
-		/* we calculate an offset vector vec1[], to be added to *co */
-		float len, fac, nor[3], nor1[3], nor2[3];
+		/* we calculate an offset vector tvec[], to be added to *co */
+		float len, nor[3], nor1[3], nor2[3];
 
 		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
 		len= 0.5f*normalize_v3(nor);
@@ -1469,43 +1471,31 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		copy_v3_v3(nor2, edge->v2->no);
 
 		/* cosine angle */
-		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
-
-		vec1[0]= fac*nor1[0];
-		vec1[1]= fac*nor1[1];
-		vec1[2]= fac*nor1[2];
+		fac=  dot_v3v3(nor, nor1);
+		mul_v3_v3fl(tvec, nor1, fac);
 
 		/* cosine angle */
-		fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
-
-		vec1[0]+= fac*nor2[0];
-		vec1[1]+= fac*nor2[1];
-		vec1[2]+= fac*nor2[2];
+		fac= -dot_v3v3(nor, nor2);
+		madd_v3_v3fl(tvec, nor2, fac);
 
 		/* falloff for multi subdivide */
 		smooth *= sqrtf(fabs(1.0f - 2.0f*fabsf(0.5f-perc)));
 
-		vec1[0]*= smooth*len;
-		vec1[1]*= smooth*len;
-		vec1[2]*= smooth*len;
+		mul_v3_fl(tvec, smooth * len);
 
-		co[0] += vec1[0];
-		co[1] += vec1[1];
-		co[2] += vec1[2];
+		add_v3_v3(co, tvec);
 	}
 	else if(beauty & B_SPHERE) { /* subdivide sphere */
 		normalize_v3(co);
-		co[0]*= smooth;
-		co[1]*= smooth;
-		co[2]*= smooth;
+		mul_v3_fl(co, smooth);
 	}
 
 	if(beauty & B_FRACTAL) {
 		fac= fractal*len_v3v3(edge->v1->co, edge->v2->co);
-		vec1[0]= fac*(float)(0.5-BLI_drand());
-		vec1[1]= fac*(float)(0.5-BLI_drand());
-		vec1[2]= fac*(float)(0.5-BLI_drand());
-		add_v3_v3(co, vec1);
+		tvec[0]= fac*(float)(0.5-BLI_drand());
+		tvec[1]= fac*(float)(0.5-BLI_drand());
+		tvec[2]= fac*(float)(0.5-BLI_drand());
+		add_v3_v3(co, tvec);
 	}
 }
 
@@ -1517,9 +1507,7 @@ static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float smoo
 	EditVert *ev;
 	float co[3];
 
-	co[0] = (edge->v2->co[0]-edge->v1->co[0])*percent + edge->v1->co[0];
-	co[1] = (edge->v2->co[1]-edge->v1->co[1])*percent + edge->v1->co[1];
-	co[2] = (edge->v2->co[2]-edge->v1->co[2])*percent + edge->v1->co[2];
+	interp_v3_v3v3(co, edge->v1->co, edge->v2->co, percent);
 
 	/* offset for smooth or sphere or fractal */
 	alter_co(co, edge, smooth, fractal, beauty, percent);
@@ -1543,9 +1531,7 @@ static EditVert *subdivide_edge_addvert(EditMesh *em, EditEdge *edge, float smoo
 	EM_data_interp_from_verts(em, edge->v1, edge->v2, ev, percent);
 
 	/* normal */
-	ev->no[0] = (edge->v2->no[0]-edge->v1->no[0])*percent + edge->v1->no[0];
-	ev->no[1] = (edge->v2->no[1]-edge->v1->no[1])*percent + edge->v1->no[1];
-	ev->no[2] = (edge->v2->no[2]-edge->v1->no[2])*percent + edge->v1->no[2];
+	interp_v3_v3v3(ev->no, edge->v1->no, edge->v2->no, percent);
 	normalize_v3(ev->no);
 
 	return ev;
@@ -6987,12 +6973,12 @@ static void beautify_fill(EditMesh *em)
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], vindex[1], 4+vindex[2], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 									onedone= 1;
 								}
@@ -7008,12 +6994,11 @@ static void beautify_fill(EditMesh *em)
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[1], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
-
+									EM_select_face(w, 1);
 
 									w= EM_face_from_faces(em, efaa[0], efaa[1],
 														  vindex[0], 4+vindex[1], 4+vindex[3], -1);
-									w->f |= SELECT;
+									EM_select_face(w, 1);
 
 									onedone= 1;
 								}

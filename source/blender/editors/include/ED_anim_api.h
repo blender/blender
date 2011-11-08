@@ -464,10 +464,8 @@ enum {
 	DRAWCFRA_SHOW_NUMBOX	= (1<<0),
 		/* time indication in seconds or frames */
 	DRAWCFRA_UNIT_SECONDS 	= (1<<1),
-		/* show time-offset line */
-	DRAWCFRA_SHOW_TIMEOFS	= (1<<2),
 		/* draw indicator extra wide (for timeline) */
-	DRAWCFRA_WIDE			= (1<<3)
+	DRAWCFRA_WIDE			= (1<<2)
 } eAnimEditDraw_CurrentFrame; 
 
 /* main call to draw current-frame indicator in an Animation Editor */

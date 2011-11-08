@@ -385,13 +385,12 @@ void make_local_image(struct Image *ima)
 		extern_local_image(ima);
 	}
 	else if(is_local && is_lib) {
-		char *bpath_user_data[2]= {bmain->name, ima->id.lib->filepath};
 		Image *iman= copy_image(ima);
 
 		iman->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		bpath_traverse_id(bmain, &iman->id, bpath_relocate_visitor, 0, bpath_user_data);
+		BKE_id_lib_local_paths(bmain, &iman->id);
 
 		tex= bmain->tex.first;
 		while(tex) {
@@ -981,7 +980,7 @@ int BKE_add_image_extension(char *string, int imtype)
 				  || (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt))) {
 			return BLI_replace_extension(string, FILE_MAX, extension);
 		} else {
-			strcat(string, extension);
+			return BLI_ensure_extension(string, FILE_MAX, extension);
 			return TRUE;
 		}
 		

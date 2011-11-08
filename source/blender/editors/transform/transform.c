@@ -48,6 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
 
 #include "RNA_access.h"
@@ -71,6 +72,7 @@
 #include "ED_markers.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_clip.h"
 
 #include "UI_view2d.h"
 #include "WM_types.h"
@@ -118,10 +120,22 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+static void convertViewVec2D(View2D *v2d, float *vec, int dx, int dy)
+{
+	float divx, divy;
+	
+	divx= v2d->mask.xmax - v2d->mask.xmin;
+	divy= v2d->mask.ymax - v2d->mask.ymin;
+
+	vec[0]= (v2d->cur.xmax - v2d->cur.xmin) * dx / divx;
+	vec[1]= (v2d->cur.ymax - v2d->cur.ymin) * dy / divy;
+	vec[2]= 0.0f;
+}
+
 void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 {
-	if (t->spacetype==SPACE_VIEW3D) {
-		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+	if(t->spacetype==SPACE_VIEW3D) {
+		if(t->ar->regiontype == RGN_TYPE_WINDOW) {
 			float mval_f[2];
 			mval_f[0]= dx;
 			mval_f[1]= dy;
@@ -129,42 +143,22 @@ void convertViewVec(TransInfo *t, float *vec, int dx, int dy)
 		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
-		View2D *v2d = t->view;
-		float divx, divy, aspx, aspy;
+		float aspx, aspy;
+
+		convertViewVec2D(t->view, vec, dx, dy);
 
 		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= aspx*(v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= aspy*(v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
+		vec[0]*= aspx;
+		vec[1]*= aspy;
 	}
 	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+		convertViewVec2D(t->view, vec, dx, dy);
+	}
+	else if(ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
+		convertViewVec2D(&t->ar->v2d, vec, dx, dy);
+	}
+	else if(t->spacetype==SPACE_CLIP) {
 		View2D *v2d = t->view;
-		float divx, divy;
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx) / (divx);
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy) / (divy);
-		vec[2]= 0.0f;
-	}
-	else if(t->spacetype==SPACE_NODE) {
-		View2D *v2d = &t->ar->v2d;
-		float divx, divy;
-
-		divx= v2d->mask.xmax-v2d->mask.xmin;
-		divy= v2d->mask.ymax-v2d->mask.ymin;
-
-		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
-		vec[2]= 0.0f;
-	}
-	else if(t->spacetype==SPACE_SEQ) {
-		View2D *v2d = &t->ar->v2d;
 		float divx, divy;
 
 		divx= v2d->mask.xmax-v2d->mask.xmin;
@@ -224,6 +218,9 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
+	else if(t->spacetype==SPACE_CLIP) {
+		UI_view2d_to_region_no_clip(t->view, vec[0], vec[1], adr, adr+1);
+	}
 }
 
 void projectFloatView(TransInfo *t, float *vec, float *adr)
@@ -232,7 +229,7 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		if(t->ar->regiontype == RGN_TYPE_WINDOW)
 			project_float_noclip(t->ar, vec, adr);
 	}
-	else if(t->spacetype==SPACE_IMAGE) {
+	else if(ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
 		int a[2];
 
 		projectIntView(t, vec, a);
@@ -329,6 +326,15 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
 		if(sima->lock) WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
 		else ED_area_tag_redraw(t->sa);
+	}
+	else if (t->spacetype==SPACE_CLIP) {
+		SpaceClip *sc= (SpaceClip*)t->sa->spacedata.first;
+		MovieClip *clip= ED_space_clip(sc);
+
+		/* objects could be parented to tracking data, so send this for viewport refresh */
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 	}
 }
 
@@ -564,7 +570,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	if (event->type == MOUSEMOVE)
 	{
-		VECCOPY2D(t->mval, event->mval);
+		copy_v2_v2_int(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
 		t->redraw |= TREDRAW_HARD;
@@ -595,10 +601,18 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
+				else if(t->mode == TFM_TRANSLATION) {
+					if(t->options&CTX_MOVIECLIP) {
+						restoreTransObjects(t);
+
+						t->flag^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+					}
+				}
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
-				if(!(t->options & CTX_TEXTURE)) {
+				if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
 					if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 						
 						resetTransRestrictions(t);
@@ -853,7 +867,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case RKEY:
 			/* only switch when... */
-			if(!(t->options & CTX_TEXTURE)) {
+			if(!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
 				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 
 					resetTransRestrictions(t);
@@ -1517,6 +1531,11 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+	}
+	else if(t->spacetype == SPACE_CLIP) {
+		unit_m3(t->spacemtx);
+		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+		t->options |= CTX_MOVIECLIP;
 	}
 	else
 		unit_m3(t->spacemtx);
@@ -3312,7 +3331,7 @@ void initTranslation(TransInfo *t)
 			t->snap[2] = t->snap[1] * 0.1f;
 		}
 	}
-	else if(t->spacetype == SPACE_IMAGE) {
+	else if(ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
 		t->snap[0] = 0.0f;
 		t->snap[1] = 0.125f;
 		t->snap[2] = 0.0625f;
@@ -3901,7 +3920,7 @@ int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 		else {
 			d = distance;
 		}
-		VECADDFAC(td->loc,td->center,td->axismtx[0],(*td->val)*d);
+		madd_v3_v3v3fl(td->loc, td->center, td->axismtx[0], (*td->val) * d);
 	}
 
 	recalcData(t);
@@ -4866,7 +4885,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 						interp_v2_v2v2(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
 						fuv_link = suv->fuv_list;
 						while (fuv_link) {
-							VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+							copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 							fuv_link = fuv_link->next;
 						}
 					}
@@ -4897,7 +4916,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 							interp_v2_v2v2(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
 							fuv_link = suv->fuv_list;
 							while (fuv_link) {
-								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+								copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 								fuv_link = fuv_link->next;
 							}
 						}
@@ -4914,7 +4933,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 							interp_v2_v2v2(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
 							fuv_link = suv->fuv_list;
 							while (fuv_link) {
-								VECCOPY2D(((float *)fuv_link->link), uv_tmp);
+								copy_v2_v2(((float *)fuv_link->link), uv_tmp);
 								fuv_link = fuv_link->next;
 							}
 						}
@@ -5880,7 +5899,7 @@ int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 
 /* ************************************ */
 
-void BIF_TransformSetUndo(char *UNUSED(str))
+void BIF_TransformSetUndo(const char *UNUSED(str))
 {
 	// TRANSFORM_FIX_ME
 	//Trans.undostr= str;

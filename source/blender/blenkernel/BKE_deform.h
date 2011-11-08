@@ -45,6 +45,7 @@ struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
 struct bDeformGroup *defgroup_find_name(struct Object *ob, const char *name);
 int					 defgroup_find_index(struct Object *ob, struct bDeformGroup *dg);
 int					*defgroup_flip_map(struct Object *ob, int *flip_map_len, int use_default);
+int					*defgroup_flip_map_single(struct Object *ob, int *flip_map_len, int use_default, int defgroup);
 int					 defgroup_flip_index(struct Object *ob, int index, int use_default);
 int					 defgroup_name_index(struct Object *ob, const char *name);
 void				 defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
@@ -57,7 +58,7 @@ float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index
 
 void defvert_copy(struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
 void defvert_sync(struct MDeformVert *dvert_r, const struct MDeformVert *dvert, int use_verify);
-void defvert_sync_mapped(struct MDeformVert *dvert_r, const struct MDeformVert *dvert, const int *flip_map, const int flip_map_len, int use_verify);
+void defvert_sync_mapped(struct MDeformVert *dvert_r, const struct MDeformVert *dvert, const int *flip_map, const int flip_map_len, const int use_verify);
 void defvert_remap (struct MDeformVert *dvert, int *map);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_normalize(struct MDeformVert *dvert);
