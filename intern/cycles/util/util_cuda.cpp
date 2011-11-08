@@ -373,10 +373,8 @@ bool cuLibraryInit()
 	/* cuda 4.0 */
 	CUDA_LIBRARY_FIND(cuCtxSetCurrent);
 
-#ifndef WITH_CUDA_BINARIES
 	if(cuCompilerPath() == "")
 		return false;
-#endif
 
 	/* success */
 	result = true;

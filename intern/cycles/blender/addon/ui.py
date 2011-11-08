@@ -436,7 +436,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         world = context.world
-        return world and world.node_tree and CyclesButtonsPanel.poll(context)
+        return False # world and world.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -467,7 +467,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         mat = context.material
-        return mat and mat.node_tree and CyclesButtonsPanel.poll(context)
+        return False #mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

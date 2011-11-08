@@ -85,18 +85,3 @@ if(WITH_CYCLES_BLENDER)
 	add_definitions(-DBLENDER_PLUGIN)
 endif()
 
-###########################################################################
-# CUDA
-
-if(WITH_CYCLES_CUDA)
-	find_package(CUDA) # Try to auto locate CUDA toolkit
-	if(CUDA_FOUND)
-		message(STATUS "CUDA nvcc = ${CUDA_NVCC_EXECUTABLE}")
-		set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
-		set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
-	else()
-		message(STATUS "CUDA compiler not found, disabling WITH_CYCLES_CUDA")
-		set(WITH_CYCLES_CUDA OFF)
-	endif()
-endif()
-

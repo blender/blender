@@ -48,7 +48,7 @@ __device float svm_gradient(float3 p, NodeBlendType type)
 		return atan2(y, x)/(2.0f*M_PI_F) + 0.5f;
 	}
 	else {
-		float r = fmaxf(1.0f - sqrtf(x*x + y*y + p.z*p.z), 0.0f);
+		float r = fmaxf(1.0f - sqrtf(x*x + y*y + z*z), 0.0f);
 
 		if(type == NODE_BLEND_QUADRATIC_SPHERE)
 			return r*r;

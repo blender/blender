@@ -74,33 +74,6 @@ set(util_headers
 	../util/util_transform.h
 	../util/util_types.h)
 
-# CUDA module
-
-if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-	set(CUDA_BITS 64)
-else()
-	set(CUDA_BITS 32)
-endif()
-
-if(WITH_CYCLES_CUDA)
-	set(cuda_sources kernel.cu ${headers} ${svm_headers})
-	set(cuda_cubins)
-
-	foreach(arch ${CYCLES_CUDA_ARCH})
-		set(cuda_cubin kernel_${arch}.cubin)
-
-		add_custom_command(
-			OUTPUT ${cuda_cubin}
-			COMMAND ${CUDA_NVCC_EXECUTABLE} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CYCLES_CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
-			DEPENDS ${cuda_sources})
-
-		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
-		list(APPEND cuda_cubins ${cuda_cubin})
-	endforeach()
-
-	add_custom_target(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})
-endif()
-
 # OSL module
 
 if(WITH_CYCLES_OSL)

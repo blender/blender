@@ -215,11 +215,6 @@ option(WITH_PYTHON_INSTALL       "Copy system python into the blender install fo
 
 # Cycles
 option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
-OPTION(WITH_CYCLES_OSL		"Build with Open Shading Language support" OFF)
-OPTION(WITH_CYCLES_CUDA		"Build with CUDA binaries" OFF)
-OPTION(WITH_CYCLES_BLENDER	"Build Blender Python extension" ON)
-OPTION(WITH_CYCLES_PARTIO	"Build with Partio point cloud support (unfinished)" OFF)
-OPTION(WITH_CYCLES_NETWORK	"Build with network rendering support (unfinished)" OFF)
 OPTION(WITH_CYCLES_TEST		"Build cycles test application" OFF)
 
 # disable for now, but plan to support on all platforms eventually
@@ -953,6 +948,9 @@ elseif(WIN32)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
+
+		# disable for now, not building yet
+		set(WITH_CYCLES OFF)
 
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)

@@ -26,7 +26,8 @@
 #include "util_types.h"
 #include "util_vector.h"
 
-/* Hacks to hook into Blender API */
+/* Hacks to hook into Blender API
+   todo: clean this up ... */
 
 extern "C" {
 

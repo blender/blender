@@ -41,10 +41,6 @@ if(WITH_CYCLES_NETWORK)
   add_definitions(-DWITH_NETWORK)
 endif()
 
-if(WITH_CYCLES_CUDA)
-  add_definitions(-DWITH_CUDA_BINARIES)
-endif()
-
 if(WITH_CYCLES_OSL)
   add_definitions(-DWITH_OSL)
 endif()
@@ -63,6 +59,8 @@ include_directories(
 	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
 
 # Subdirectories
+
+SET(WITH_CYCLES_BLENDER ON)
 
 if(WITH_CYCLES_BLENDER)
 	add_subdirectory(blender)
