@@ -952,7 +952,7 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_BOOST)
-			set(BOOST ${LIBDIR}/gcc/boost)
+			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
 			set(BOOST_POSTFIX "mgw45-mt-s-1_47")
 			set(BOOST_DEBUG_POSTFIX "mgw45-mt-sd-1_47")
@@ -961,7 +961,7 @@ elseif(WIN32)
 				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX} boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
-			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_LIBPATH ${BOOST}/lib/gcc)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
 			
