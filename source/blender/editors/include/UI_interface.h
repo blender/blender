@@ -758,6 +758,8 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, const char *prop_list, int rows, int maxrows, int type);
 void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);

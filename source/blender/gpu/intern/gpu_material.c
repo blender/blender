@@ -1415,28 +1415,32 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		if(((GPUMaterial*)link->data)->scene == scene)
 			return link->data;
 
+	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
 
 	if(!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
+		/* create nodes */
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
+		/* create material */
 		outlink = GPU_blender_material(mat, ma);
 		GPU_material_output_link(mat, outlink);
 	}
 
-	if(gpu_do_color_management(mat))
-		if(mat->outlink)
-			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
+	if(!scene_use_new_shading_nodes(scene)) {
+		if(gpu_do_color_management(mat))
+			if(mat->outlink)
+				GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
+	}
 
-	/*if(!GPU_material_construct_end(mat)) {
-		GPU_material_free(mat);
-		mat= NULL;
-		return 0;
-	}*/
 
 	GPU_material_construct_end(mat);
+
+	/* note that even if building the shader fails in some way, we still keep
+	   it to avoid trying to compile again and again, and simple do not use
+	   the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
 	link->data = mat;

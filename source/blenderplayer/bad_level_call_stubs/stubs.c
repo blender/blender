@@ -374,6 +374,8 @@ void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *p
 void uiTemplateVectorscope(struct uiLayout *_self, struct PointerRNA *data, char* property, int expand){}
 void uiTemplateNodeLink(struct uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input) {}
 void uiTemplateNodeView(struct uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input) {}
+void uiTemplateTextureUser(struct uiLayout *layout, struct bContext *C) {}
+void uiTemplateTextureShow(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop) {}
 void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *ptr){}
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact){}
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname){}

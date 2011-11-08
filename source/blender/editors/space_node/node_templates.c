@@ -215,6 +215,11 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 			}
 		}
 
+		/* also preserve mapping for texture nodes */
+		if(node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
+		   node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE)
+			memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
+
 		/* remove node */
 		node_remove_linked(ntree, node_prev);
 	}
@@ -503,6 +508,10 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 	but->flag |= UI_TEXT_LEFT|UI_BUT_NODE_LINK;
 	but->poin= (char*)but;
 	but->func_argN = arg;
+
+	if(sock->link && sock->link->fromnode)
+		if(sock->link->fromnode->flag & NODE_ACTIVE_TEXTURE)
+			but->flag |= UI_BUT_NODE_ACTIVE;
 }
 
 /**************************** Node Tree Layout *******************************/

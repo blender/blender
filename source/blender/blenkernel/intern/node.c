@@ -1314,11 +1314,15 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 			if(GS(node->id->name) == GS(tnode->id->name))
 				tnode->flag &= ~NODE_ACTIVE_ID;
 		}
+		if(node->typeinfo->nclass == NODE_CLASS_TEXTURE)
+			tnode->flag &= ~NODE_ACTIVE_TEXTURE;
 	}
 	
 	node->flag |= NODE_ACTIVE;
 	if(node->id)
 		node->flag |= NODE_ACTIVE_ID;
+	if(node->typeinfo->nclass == NODE_CLASS_TEXTURE)
+		node->flag |= NODE_ACTIVE_TEXTURE;
 }
 
 /* use flags are not persistent yet, groups might need different tagging, so we do it each time

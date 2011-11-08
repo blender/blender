@@ -2229,11 +2229,17 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 {
 	CustomDataMask mask= 0;
 
-	if((v3d->drawtype == OB_TEXTURE) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
+	if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if(scene->gm.matmode == GAME_MAT_GLSL)
-			mask |= CD_MASK_ORCO;
+		if(scene_use_new_shading_nodes(scene)) {
+			if(v3d->drawtype == OB_MATERIAL)
+				mask |= CD_MASK_ORCO;
+		}
+		else {
+			if(scene->gm.matmode == GAME_MAT_GLSL)
+				mask |= CD_MASK_ORCO;
+		}
 	}
 
 	return mask;

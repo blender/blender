@@ -242,6 +242,29 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 		node_data_from_gpu_stack(ns[i], &gs[i]);
 }
 
+bNode *nodeGetActiveTexture(bNodeTree *ntree)
+{
+	/* this is the node we texture paint and draw in textured draw */
+	bNode *node;
+
+	if(!ntree)
+		return NULL;
+
+	/* check for group edit */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
+
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_ACTIVE_TEXTURE)
+			return node;
+	
+	return NULL;
+}
+
 void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 {
 	bNodeExec *nodeexec;

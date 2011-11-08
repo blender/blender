@@ -51,6 +51,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 
 #include "PIL_time.h"
@@ -73,6 +74,7 @@
 
 static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 {
+	Main *bmain= CTX_data_main(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
@@ -118,7 +120,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	}
 	
 	if(ima)
-		ED_uvedit_assign_image(scene, obedit, ima, NULL);
+		ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 	
 	/* select new UV's */
 	for(efa=em->faces.first; efa; efa=efa->next) {
