@@ -503,18 +503,11 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_BOOST)
 		
-		# not sure this is needed, commenting, campbell
-		# ---
-		# set(BOOST "/usr" CACHE PATH "Boost Directory")
-		# 
-		# if(NOT BOOST_CUSTOM)
-		# 	set(BOOST_ROOT ${BOOST})
-		# 	set(Boost_USE_MULTITHREADED ON)
-		# 	find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
-		# endif()
-
-		set(Boost_USE_MULTITHREADED ON)
-		find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+		# uses in build instructions to override include and library variables
+		if(NOT BOOST_CUSTOM)
+			set(Boost_USE_MULTITHREADED ON)
+			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+		endif()
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
 		set(BOOST_LIBRARIES ${Boost_LIBRARIES})
