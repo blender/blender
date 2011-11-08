@@ -1634,8 +1634,9 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	{
+	if (bmain->versionfile < 260 || (bmain->versionfile == 260 && bmain->subversionfile < 3)) {
 		bTheme *btheme;
+
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			if(btheme->tv3d.bundle_solid[3] == 0)
 				SETCOL(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
@@ -1660,6 +1661,13 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
 				btheme->tclip.handle_vertex_size= 4;
 			}
+		}
+
+		/* enable addon by default */
+		if(!BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module))) {
+			bAddon *baddon= MEM_callocN(sizeof(bAddon), "bAddon");
+			BLI_strncpy(baddon->module, "cycles", sizeof(baddon->module));
+			BLI_addtail(&U.addons, baddon);
 		}
 	}
 

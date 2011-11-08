@@ -751,6 +751,16 @@ if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
 
+if(WITH_CYCLES)
+	list(APPEND BLENDER_LINK_LIBS
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd)
+endif()
+
 #if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS
@@ -854,6 +864,13 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		bf_intern_cycles
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd
 	)
 
 	if(WITH_LIBMV)

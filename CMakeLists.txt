@@ -213,6 +213,10 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+# Cycles
+option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
+OPTION(WITH_CYCLES_TEST		"Build cycles test application" OFF)
+
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 mark_as_advanced(WITH_MEM_JEMALLOC)
@@ -282,6 +286,12 @@ endif()
 # may as well build python module without a UI
 if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
+endif()
+
+# auto enable openimageio and boost for cycles
+if(WITH_CYCLES)
+	set(WITH_OPENIMAGEIO ON)
+	set(WITH_BOOST ON)
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -497,7 +507,7 @@ if(UNIX AND NOT APPLE)
 		if(NOT BOOST_CUSTOM)
 			set(BOOST_ROOT ${BOOST})
 			set(Boost_USE_MULTITHREADED ON)
-			find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
+			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
 		endif()
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
@@ -510,7 +520,7 @@ if(UNIX AND NOT APPLE)
 		set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
 
 		set(OPENIMAGEIO_ROOT_DIR ${OPENIMAGEIO})
-		find_package(OpenImageIO REQUIRED)
+		find_package(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
@@ -518,6 +528,8 @@ if(UNIX AND NOT APPLE)
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
+			set(WITH_CYCLES OFF)
+			message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
 		endif()
 	endif()
 
@@ -1480,6 +1492,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
 	info_cfg_option(WITH_INPUT_NDOF)
+	info_cfg_option(WITH_CYCLES)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)
