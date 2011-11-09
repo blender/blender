@@ -34,7 +34,7 @@ BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/
 
 # Don't depend on system's libstdc++
 WITH_BF_STATICCXX = True
-BF_CXX_LIB_STATIC = '/usr/lib/gcc/i486-linux-gnu/4.3.2/libstdc++.a'
+BF_CXX_LIB_STATIC = '/usr/lib/gcc/i486-linux-gnu/4.3.4/libstdc++.a'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = True
@@ -92,9 +92,22 @@ WITH_BF_STATICFFTW3 = True
 # JACK
 WITH_BF_JACK = True
 
+# Cycles
+WITH_BF_CYCLES = True
+
+WITH_BF_OIIO = True
+BF_OIIO = '/opt/oiio'
+BF_OIIO_INC = '/opt/oiio/include'
+BF_OIIO_LIB = 'OpenImageIO IlmImf'
+BF_OIIO_LIBPATH = '/opt/oiio/lib'
+
+WITH_BF_BOOST = True
+BF_BOOST = '/opt/boost'
+BF_BOOST_INC = '/opt/boost/include'
+BF_BOOST_LIB = 'libboost_date_time libboost_filesystem libboost_regex libboost_system libboost_thread'
+BF_BOOST_LIBPATH = '/opt/boost/lib'
+
 # Compilation and optimization
 BF_DEBUG = False
-REL_CFLAGS = []
-REL_CXXFLAGS = []
-REL_CCFLAGS = ['-O2']  # C & C++
+REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib32']
