@@ -99,7 +99,7 @@ WITH_BF_OIIO = True
 WITH_BF_STATICOIIO = True
 BF_OIIO = '/opt/oiio'
 BF_OIIO_INC = '${BF_OIIO}/include'
-BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a'
+BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a ${BF_OPENEXR}/lib/libIlmImf.a'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_BOOST = True
