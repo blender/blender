@@ -24,9 +24,9 @@ defs.append('WITH_MULTI')
 defs.append('WITH_CUDA')
 
 if env['OURPLATFORM'] in ('win32-mingw'):
-	cxxflags.append('-fno-rtti -ffast-math -msse -msse2 -msse3 -mtune=native'.split())
-	ccflags.append('-ffast-math -msse -msse2 -msse3 -mtune=native'.split())
-	defs.append('BOOST_NO_RTTI BOOST_NO_TYPEID'.split())
+    cxxflags.append('-fno-rtti -ffast-math -msse -msse2 -msse3 -mtune=native'.split())
+    ccflags.append('-ffast-math -msse -msse2 -msse3 -mtune=native'.split())
+    defs.append('BOOST_NO_RTTI BOOST_NO_TYPEID'.split())
 	
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())

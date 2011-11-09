@@ -282,7 +282,7 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_BOOST']:
         syslibs += Split(lenv['BF_BOOST_LIB'])
 
-	syslibs += Split(lenv['BF_JPEG_LIB'])
+    syslibs += Split(lenv['BF_JPEG_LIB'])
     syslibs += Split(lenv['BF_PNG_LIB'])
 	
     syslibs += lenv['LLIBS']
