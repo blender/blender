@@ -550,10 +550,6 @@ def AppIt(target=None, source=None, env=None):
     bldroot = env.Dir('.').abspath
     binary = env['BINARYKIND']
      
-    if b=='verse':
-        print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
-        return 0
-    
     sourcedir = bldroot + '/source/darwin/%s.app'%binary
     sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
     targetinfo = installdir +'/' + "%s.app/Contents/Info.plist"%binary
@@ -581,6 +577,23 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
+
+        if env['WITH_BF_CYCLES']:
+            croot = '%s/intern/cycles' % (bldroot)
+            cinstalldir = '%s/%s.app/Contents/MacOS/%s/scripts/addons/cycles' % (installdir,binary,VERSION)
+
+            cmd = 'mkdir %s' % (cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'mkdir %s/kernel' % (cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'cp -R %s/blender/addon/*.py %s/' % (croot, cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'cp -R %s/doc/license %s/license' % (croot, cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'cp -R %s/kernel/*.h %s/kernel/*.cl %s/kernel/*.cu %s/kernel/' % (croot, croot, croot, cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'cp -R %s/kernel/svm %s/util/util_color.h %s/util/util_math.h %s/util/util_transform.h %s/util/util_types.h %s/kernel/' % (croot, croot, croot, croot, croot, cinstalldir)
+            commands.getoutput(cmd)
 
     if env['WITH_OSX_STATICPYTHON']:
         cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
