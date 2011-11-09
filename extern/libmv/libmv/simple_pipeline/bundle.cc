@@ -27,6 +27,8 @@
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
+#include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "third_party/ssba/Geometry/v3d_cameramatrix.h"
@@ -38,6 +40,18 @@ namespace libmv {
 
 void EuclideanBundle(const Tracks &tracks,
                      EuclideanReconstruction *reconstruction) {
+  CameraIntrinsics intrinsics;
+  EuclideanBundleCommonIntrinsics(tracks,
+                                  BUNDLE_NO_INTRINSICS,
+                                  reconstruction,
+                                  &intrinsics);
+}
+
+void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
+                                     int bundle_intrinsics,
+                                     EuclideanReconstruction *reconstruction,
+                                     CameraIntrinsics *intrinsics) {
+  LG << "Original intrinsics: " << *intrinsics;
   vector<Marker> markers = tracks.AllMarkers();
 
   // "index" in this context is the index that V3D's optimizer will see. The
@@ -69,18 +83,20 @@ void EuclideanBundle(const Tracks &tracks,
     }
   }
 
-  // Make a V3D identity matrix, needed in a few places for K, since this
-  // assumes a calibrated setup.
-  V3D::Matrix3x3d identity3x3;
-  identity3x3[0][0] = 1.0;
-  identity3x3[0][1] = 0.0;
-  identity3x3[0][2] = 0.0;
-  identity3x3[1][0] = 0.0;
-  identity3x3[1][1] = 1.0;
-  identity3x3[1][2] = 0.0;
-  identity3x3[2][0] = 0.0;
-  identity3x3[2][1] = 0.0;
-  identity3x3[2][2] = 1.0;
+  // Convert libmv's K matrix to V3d's K matrix.
+  V3D::Matrix3x3d v3d_K;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      v3d_K[i][j] = intrinsics->K()(i, j);
+    }
+  }
+
+  // Convert libmv's distortion to v3d distortion.
+  V3D::StdDistortionFunction v3d_distortion;
+  v3d_distortion.k1 = intrinsics->k1();
+  v3d_distortion.k2 = intrinsics->k2();
+  v3d_distortion.p1 = intrinsics->p1();
+  v3d_distortion.p2 = intrinsics->p2();
 
   // Convert libmv's cameras to V3D's cameras.
   std::vector<V3D::CameraMatrix> v3d_cameras(index_to_camera.size());
@@ -98,7 +114,7 @@ void EuclideanBundle(const Tracks &tracks,
       }
       t[i] = t_libmv(i);
     }
-    v3d_cameras[k].setIntrinsic(identity3x3);
+    v3d_cameras[k].setIntrinsic(v3d_K);
     v3d_cameras[k].setRotation(R);
     v3d_cameras[k].setTranslation(t);
   }
@@ -134,27 +150,81 @@ void EuclideanBundle(const Tracks &tracks,
   }
   LG << "Number of residuals: " << num_residuals;
   
-  // This is calibrated reconstruction, so use zero distortion.
-  V3D::StdDistortionFunction v3d_distortion;
-  v3d_distortion.k1 = 0;
-  v3d_distortion.k2 = 0;
-  v3d_distortion.p1 = 0;
-  v3d_distortion.p2 = 0;
+  // Convert from libmv's specification for which intrinsics to bundle to V3D's.
+  int v3d_bundle_intrinsics;
+  if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
+    LG << "Bundling only camera positions.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_METRIC;
+  } else if (bundle_intrinsics == BUNDLE_FOCAL_LENGTH) {
+    LG << "Bundling f.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_LENGTH;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT)) {
+    LG << "Bundling f, px, py.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_LENGTH_PP;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT |
+                                   BUNDLE_RADIAL)) {
+    LG << "Bundling f, px, py, k1, k2.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT |
+                                   BUNDLE_RADIAL |
+                                   BUNDLE_TANGENTIAL)) {
+    LG << "Bundling f, px, py, k1, k2, p1, p2.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL_TANGENTIAL;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL |
+                                   BUNDLE_TANGENTIAL)) {
+    LG << "Bundling f, px, py, k1, k2, p1, p2.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL_TANGENTIAL;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL)) {
+    LG << "Bundling f, k1, k2.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_AND_RADIAL;
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL_K1)) {
+    LG << "Bundling f, k1.";
+    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_AND_RADIAL_K1;
+  } else {
+    LOG(FATAL) << "Unsupported bundle combination.";
+  }
+
+  // Ignore any outliers; assume supervised tracking.
+  double v3d_inlier_threshold = 500000.0;
 
   // Finally, run the bundle adjustment.
-  double const inlierThreshold = 500000.0;
-  V3D::CommonInternalsMetricBundleOptimizer opt(V3D::FULL_BUNDLE_METRIC,
-                                                inlierThreshold,
-                                                identity3x3,
+  V3D::CommonInternalsMetricBundleOptimizer opt(v3d_bundle_intrinsics,
+                                                v3d_inlier_threshold,
+                                                v3d_K,
                                                 v3d_distortion,
                                                 v3d_cameras,
                                                 v3d_points,
                                                 v3d_measurements,
                                                 v3d_camera_for_measurement,
                                                 v3d_point_for_measurement);
-  opt.maxIterations = 50;
+  opt.maxIterations = 500;
   opt.minimize();
-  LG << "Bundle status: " << opt.status;
+  if (opt.status == V3D::LEVENBERG_OPTIMIZER_TIMEOUT) {
+    LG << "Bundle status: Timed out.";
+  } else if (opt.status == V3D::LEVENBERG_OPTIMIZER_SMALL_UPDATE) {
+    LG << "Bundle status: Small update.";
+  } else if (opt.status == V3D::LEVENBERG_OPTIMIZER_CONVERGED) {
+    LG << "Bundle status: Converged.";
+  }
+
+  // Convert V3D's K matrix back to libmv's K matrix.
+  Mat3 K;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      K(i, j) = v3d_K[i][j];
+    }
+  }
+  intrinsics->SetK(K);
+
+  // Convert V3D's distortion back to libmv's distortion.
+  intrinsics->SetRadialDistortion(v3d_distortion.k1, v3d_distortion.k2, 0.0);
+  intrinsics->SetTangentialDistortion(v3d_distortion.p1, v3d_distortion.p2);
 
   // Convert V3D's cameras back to libmv's cameras.
   for (int k = 0; k < num_cameras; k++) {
@@ -173,6 +243,7 @@ void EuclideanBundle(const Tracks &tracks,
       index_to_point[k]->X(i) = v3d_points[k][i];
     }
   }
+  LG << "Final intrinsics: " << *intrinsics;
 }
 
 void ProjectiveBundle(const Tracks & /*tracks*/,

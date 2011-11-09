@@ -348,4 +348,26 @@ void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, i
   //else assert("channels must be between 1 and 4");
 }
 
+std::ostream& operator <<(std::ostream &os,
+                          const CameraIntrinsics &intrinsics) {
+  if (intrinsics.focal_length_x() == intrinsics.focal_length_x()) {
+    os << "f=" << intrinsics.focal_length();
+  } else {
+    os <<  "fx=" << intrinsics.focal_length_x()
+       << " fy=" << intrinsics.focal_length_y();
+  }
+  os << " cx=" << intrinsics.principal_point_x()
+     << " cy=" << intrinsics.principal_point_y()
+     << " w=" << intrinsics.image_width()
+     << " h=" << intrinsics.image_height();
+
+  if (intrinsics.k1() != 0.0) { os << " k1=" << intrinsics.k1(); }
+  if (intrinsics.k2() != 0.0) { os << " k2=" << intrinsics.k2(); }
+  if (intrinsics.k3() != 0.0) { os << " k3=" << intrinsics.k3(); }
+  if (intrinsics.p1() != 0.0) { os << " p1=" << intrinsics.p1(); }
+  if (intrinsics.p2() != 0.0) { os << " p2=" << intrinsics.p2(); }
+
+  return os;
+}
+
 }  // namespace libmv

@@ -63,15 +63,32 @@ bool PyramidRegionTracker::Track(const FloatImage &image1,
     *x2 *= 2;
     *y2 *= 2;
 
-    // Track the point on this level with the base tracker.
-    bool succeeded = tracker_->Track(pyramid1[i], pyramid2[i], xx, yy, x2, y2);
+    // Save the previous best guess for this level, since tracking within this
+    // level might fail.
+    double x2_new = *x2;
+    double y2_new = *y2;
 
-    if (i == 0 && !succeeded) {
-      // Only fail on the highest-resolution level, because a failure on a
-      // coarse level does not mean failure at a lower level (consider
-      // out-of-bounds conditions).
-      LG << "Finest level of pyramid tracking failed; failing.";
-      return false;
+    // Track the point on this level with the base tracker.
+    LG << "Tracking on level " << i;
+    bool succeeded = tracker_->Track(pyramid1[i], pyramid2[i], xx, yy,
+                                     &x2_new, &y2_new);
+
+    if (!succeeded) {
+      if (i == 0) {
+        // Only fail on the highest-resolution level, because a failure on a
+        // coarse level does not mean failure at a lower level (consider
+        // out-of-bounds conditions).
+        LG << "Finest level of pyramid tracking failed; failing.";
+        return false;
+      }
+
+      LG << "Failed to track at level " << i << "; restoring guess.";
+    } else {
+      // Only save the update if the track for this level succeeded. This is a
+      // bit of a hack; the jury remains out on whether this is better than
+      // re-using the previous failed-attempt.
+      *x2 = x2_new;
+      *y2 = y2_new;
     }
   }
   return true;

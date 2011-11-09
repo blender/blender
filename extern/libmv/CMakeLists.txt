@@ -52,8 +52,10 @@ set(SRC
 	libmv/image/array_nd.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/sad.cc
+	libmv/tracking/esm_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
 	libmv/tracking/klt_region_tracker.cc
+	libmv/tracking/lmicklt_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
 	libmv/multiview/projection.cc
 	libmv/multiview/conditioning.cc
@@ -99,8 +101,10 @@ set(SRC
 	libmv/tracking/retrack_region_tracker.h
 	libmv/tracking/sad.h
 	libmv/tracking/pyramid_region_tracker.h
+	libmv/tracking/esm_region_tracker.h
 	libmv/tracking/trklt_region_tracker.h
 	libmv/tracking/klt_region_tracker.h
+	libmv/tracking/lmicklt_region_tracker.h
 	libmv/base/id_generator.h
 	libmv/base/vector.h
 	libmv/base/scoped_ptr.h

@@ -33,8 +33,10 @@
 #include "glog/logging.h"
 #include "Math/v3d_optimization.h"
 
+#include "libmv/tracking/esm_region_tracker.h"
 #include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/tracking/trklt_region_tracker.h"
+#include "libmv/tracking/lmicklt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
 
 #include "libmv/tracking/sad.h"
@@ -47,6 +49,7 @@
 #include "libmv/simple_pipeline/camera_intrinsics.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #ifdef DUMP_FAILURE
 #  include <png.h>
@@ -59,7 +62,7 @@
 #define DEFAULT_WINDOW_HALFSIZE	5
 
 typedef struct libmv_RegionTracker {
-	libmv::TrkltRegionTracker *trklt_region_tracker;
+	libmv::EsmRegionTracker *klt_region_tracker;
 	libmv::RegionTracker *region_tracker;
 } libmv_RegionTracker;
 
@@ -112,17 +115,17 @@ void libmv_setLoggingVerbosity(int verbosity)
 
 libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level)
 {
-	libmv::TrkltRegionTracker *trklt_region_tracker = new libmv::TrkltRegionTracker;
+	libmv::EsmRegionTracker *klt_region_tracker = new libmv::EsmRegionTracker;
 
-	trklt_region_tracker->half_window_size = DEFAULT_WINDOW_HALFSIZE;
-	trklt_region_tracker->max_iterations = max_iterations;
-	trklt_region_tracker->min_determinant = 1e-4;
+	klt_region_tracker->half_window_size = DEFAULT_WINDOW_HALFSIZE;
+	klt_region_tracker->max_iterations = max_iterations;
+	klt_region_tracker->min_determinant = 1e-4;
 
 	libmv::PyramidRegionTracker *region_tracker =
-		new libmv::PyramidRegionTracker(trklt_region_tracker, pyramid_level);
+		new libmv::PyramidRegionTracker(klt_region_tracker, pyramid_level);
 
 	libmv_RegionTracker *configured_region_tracker = new libmv_RegionTracker;
-	configured_region_tracker->trklt_region_tracker = trklt_region_tracker;
+	configured_region_tracker->klt_region_tracker = klt_region_tracker;
 	configured_region_tracker->region_tracker = region_tracker;
 
 	return configured_region_tracker;
@@ -271,13 +274,13 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *im
 			 double x1, double y1, double *x2, double *y2)
 {
 	libmv::RegionTracker *region_tracker;
-	libmv::TrkltRegionTracker *trklt_region_tracker;
+	libmv::EsmRegionTracker *klt_region_tracker;
 	libmv::FloatImage old_patch, new_patch;
 
-	trklt_region_tracker = libmv_tracker->trklt_region_tracker;
+	klt_region_tracker = libmv_tracker->klt_region_tracker;
 	region_tracker = libmv_tracker->region_tracker;
 
-	trklt_region_tracker->half_window_size = half_window_size;
+	klt_region_tracker->half_window_size = half_window_size;
 
 	floatBufToImage(ima1, width, height, &old_patch);
 	floatBufToImage(ima2, width, height, &new_patch);
@@ -353,8 +356,24 @@ void libmv_tracksDestroy(libmv_Tracks *libmv_tracks)
 
 /* ************ Reconstruction solver ************ */
 
+int libmv_refineParametersAreValid(int parameters) {
+	return (parameters == (LIBMV_REFINE_FOCAL_LENGTH))         ||
+	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
+	                       LIBMV_REFINE_PRINCIPAL_POINT))      ||
+	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
+	                       LIBMV_REFINE_PRINCIPAL_POINT        |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K1   |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K2)) ||
+	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K1   |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K2)) ||
+	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K1));
+}
+
+
 libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3)
+		int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3)
 {
 	/* Invert the camera intrinsics. */
 	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
@@ -378,12 +397,33 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 
 	libmv::Tracks normalized_tracks(markers);
 
+	printf("frames to init from: %d, %d\n", keyframe1, keyframe2);
 	libmv::vector<libmv::Marker> keyframe_markers =
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
+	printf("number of markers for init: %d\n", keyframe_markers.size());
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, reconstruction);
+
 	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
+
+	if (refine_intrinsics) {
+		/* only a few combinations are supported but trust the caller */
+		int libmv_refine_flags = 0;
+		if (refine_intrinsics & LIBMV_REFINE_FOCAL_LENGTH) {
+			libmv_refine_flags |= libmv::BUNDLE_FOCAL_LENGTH;
+		}
+		if (refine_intrinsics & LIBMV_REFINE_PRINCIPAL_POINT) {
+			libmv_refine_flags |= libmv::BUNDLE_PRINCIPAL_POINT;
+		}
+		if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K1) {
+			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K1;
+		}
+		if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K2) {
+			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K2;
+		}
+		libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags, reconstruction, intrinsics);
+	}
 
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
 	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
@@ -608,6 +648,10 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features)
 
 /* ************ camera intrinsics ************ */
 
+struct libmv_CameraIntrinsics *libmv_ReconstructionExtractIntrinsics(struct libmv_Reconstruction *libmv_Reconstruction) {
+  return (struct libmv_CameraIntrinsics *)&libmv_Reconstruction->intrinsics;
+}
+
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
 			double k1, double k2, double k3, int width, int height)
 {
@@ -652,6 +696,16 @@ void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics
 
 	if (intrinsics->image_width() != width || intrinsics->image_height() != height)
 		intrinsics->SetImageSize(width, height);
+}
+
+void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmvIntrinsics, double *focal_length,
+			double *principal_x, double *principal_y, double *k1, double *k2, double *k3, int *width, int *height) {
+	libmv::CameraIntrinsics *intrinsics= (libmv::CameraIntrinsics *) libmvIntrinsics;
+	*focal_length = intrinsics->focal_length();
+	*principal_x = intrinsics->principal_point_x();
+	*principal_y = intrinsics->principal_point_y();
+	*k1 = intrinsics->k1();
+	*k2 = intrinsics->k2();
 }
 
 void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,

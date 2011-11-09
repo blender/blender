@@ -61,8 +61,14 @@ void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track,
 void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 
 /* Reconstruction solver */
+#define LIBMV_REFINE_FOCAL_LENGTH	(1<<0)
+#define LIBMV_REFINE_PRINCIPAL_POINT	(1<<1)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K1 (1<<2)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K2 (1<<4)
+int libmv_refineParametersAreValid(int parameters);
+
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
+			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
 double libmv_reporojectionErrorForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track);
 double libmv_reporojectionErrorForImage(struct libmv_Reconstruction *libmv_reconstruction, int image);
@@ -80,10 +86,10 @@ void libmv_getFeature(struct libmv_Features *libmv_features, int number, double 
 void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 
 /* camera intrinsics */
+struct libmv_CameraIntrinsics *libmv_ReconstructionExtractIntrinsics(struct libmv_Reconstruction *libmv_Reconstruction);
+
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
 			double k1, double k2, double k3, int width, int height);
-
-struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmvIntrinsics);
 
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmvIntrinsics);
 
@@ -91,6 +97,9 @@ void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsic
 
 void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
 			double principal_x, double principal_y, double k1, double k2, double k3, int width, int height);
+
+void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmvIntrinsics, double *focal_length,
+			double *principal_x, double *principal_y, double *k1, double *k2, double *k3, int *width, int *height);
 
 void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);

@@ -63,24 +63,26 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   }
 }
 
-// Solve the tracking equation
-//
-//   [gxx gxy] [dx] = [ex]
-//   [gxy gyy] [dy] = [ey]
-//
-// for dx and dy.  Borrowed from Stan Birchfield's KLT implementation.
-static bool SolveTrackingEquation(float gxx, float gxy, float gyy,
-                                  float ex, float ey,
-                                  float min_determinant,
-                                  float *dx, float *dy) {
-  float det = gxx * gyy - gxy * gxy;
-  if (det < min_determinant) {
-    *dx = 0;
-    *dy = 0;
+bool RegionIsInBounds(const FloatImage &image1,
+                      double x, double y,
+                      int half_window_size) {
+  // Check the minimum coordinates.
+  int min_x = floor(x) - half_window_size - 1;
+  int min_y = floor(y) - half_window_size - 1;
+  if (min_x < 0.0 ||
+      min_y < 0.0) {
     return false;
   }
-  *dx = (gyy * ex - gxy * ey) / det;
-  *dy = (gxx * ey - gxy * ex) / det;
+
+  // Check the maximum coordinates.
+  int max_x = ceil(x) + half_window_size + 1;
+  int max_y = ceil(y) + half_window_size + 1;
+  if (max_x > image1.cols() ||
+      max_y > image1.rows()) {
+    return false;
+  }
+
+  // Ok, we're good.
   return true;
 }
 
@@ -88,6 +90,12 @@ bool KltRegionTracker::Track(const FloatImage &image1,
                              const FloatImage &image2,
                              double  x1, double  y1,
                              double *x2, double *y2) const {
+  if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
+    LG << "Fell out of image1's window with x1=" << x1 << ", y1=" << y1
+       << ", hw=" << half_window_size << ".";
+    return false;
+  }
+
   Array3Df image_and_gradient1;
   Array3Df image_and_gradient2;
   BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
@@ -96,6 +104,13 @@ bool KltRegionTracker::Track(const FloatImage &image1,
   int i;
   float dx = 0, dy = 0;
   for (i = 0; i < max_iterations; ++i) {
+    // Check that the entire image patch is within the bounds of the images.
+    if (!RegionIsInBounds(image2, *x2, *y2, half_window_size)) {
+      LG << "Fell out of image2's window with x2=" << *x2 << ", y2=" << *y2
+         << ", hw=" << half_window_size << ".";
+      return false;
+    }
+
     // Compute gradient matrix and error vector.
     float gxx, gxy, gyy, ex, ey;
     ComputeTrackingEquation(image_and_gradient1,
@@ -105,18 +120,31 @@ bool KltRegionTracker::Track(const FloatImage &image1,
                             half_window_size,
                             &gxx, &gxy, &gyy, &ex, &ey);
 
-    // Solve the linear system for the best update to x2 and y2.
-    if (!SolveTrackingEquation(gxx, gxy, gyy, ex, ey, min_determinant,
-                               &dx, &dy)) {
-      // The determinant, which indicates the trackiness of the point, is too
-      // small, so fail out.
-      LG << "Determinant too small; failing tracking.";
-      return false;
-    }
+    // Solve the tracking equation
+    //
+    //   [gxx gxy] [dx] = [ex]
+    //   [gxy gyy] [dy] = [ey]
+    //
+    // for dx and dy.  Borrowed from Stan Birchfield's KLT implementation.
+    float determinant = gxx * gyy - gxy * gxy;
+    dx = (gyy * ex - gxy * ey) / determinant;
+    dy = (gxx * ey - gxy * ex) / determinant;
 
     // Update the position with the solved displacement.
     *x2 += dx;
     *y2 += dy;
+
+    // Check for the quality of the solution, but not until having already
+    // updated the position with our best estimate. The reason to do the update
+    // anyway is that the user already knows the position is bad, so we may as
+    // well try our best.
+    if (determinant < min_determinant) {
+      // The determinant, which indicates the trackiness of the point, is too
+      // small, so fail out.
+      LG << "Determinant " << determinant << " is too small; failing tracking.";
+      return false;
+    }
+    LG << "x=" << *x2 << ", y=" << *y2 << ", dx=" << dx << ", dy=" << dy << ", det=" << determinant;
 
     // If the update is small, then we probably found the target.
     if (dx * dx + dy * dy < min_update_squared_distance) {
@@ -125,7 +153,7 @@ bool KltRegionTracker::Track(const FloatImage &image1,
     }
   }
   // Getting here means we hit max iterations, so tracking failed.
-  LG << "Too many iterations.";
+  LG << "Too many iterations; max is set to " << max_iterations << ".";
   return false;
 }
 

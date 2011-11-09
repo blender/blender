@@ -262,7 +262,6 @@ double InternalReprojectionError(const Tracks &image_tracks,
            ex,
            ey,
            sqrt(ex*ex + ey*ey));
-    //LG << line;
     total_error += sqrt(ex*ex + ey*ey);
   }
   LG << "Skipped " << num_skipped << " markers.";

@@ -158,6 +158,31 @@ namespace V3D
 
       switch (_mode)
       {
+         case FULL_BUNDLE_FOCAL_AND_RADIAL_K1:
+         {
+            // Focal length.
+            Ck[0][0] = xd[0];
+            Ck[1][0] = xd[1];
+
+            // For radial, k1 only.
+            Matrix2x2d dxd_dk1k2 = _distortion.derivativeWrtRadialParameters(xu);
+            Matrix2x2d d_dk1k2 = dp_dxd * dxd_dk1k2;
+            Ck[0][1] = d_dk1k2[0][0];
+            Ck[1][1] = d_dk1k2[1][0];
+            break;
+         }
+         case FULL_BUNDLE_FOCAL_AND_RADIAL:
+         {
+            // Focal length.
+            Ck[0][0] = xd[0];
+            Ck[1][0] = xd[1];
+
+            // Radial k1 and k2.
+            Matrix2x2d dxd_dk1k2 = _distortion.derivativeWrtRadialParameters(xu);
+            Matrix2x2d d_dk1k2 = dp_dxd * dxd_dk1k2;
+            copyMatrixSlice(d_dk1k2, 0, 0, 2, 2, Ck, 0, 1);
+            break;
+         }
          case FULL_BUNDLE_RADIAL_TANGENTIAL:
          {
             Matrix2x2d dxd_dp1p2 = _distortion.derivativeWrtTangentialParameters(xu);
@@ -194,6 +219,21 @@ namespace V3D
    {
       switch (_mode)
       {
+         case FULL_BUNDLE_FOCAL_AND_RADIAL_K1:
+         {
+            _K[0][0] += deltaC[0];
+            _K[1][1] = _cachedAspectRatio * _K[0][0];
+            _distortion.k1 += deltaC[1];
+            break;
+         }
+         case FULL_BUNDLE_FOCAL_AND_RADIAL:
+         {
+            _K[0][0] += deltaC[0];
+            _K[1][1] = _cachedAspectRatio * _K[0][0];
+            _distortion.k1 += deltaC[1];
+            _distortion.k2 += deltaC[2];
+            break;
+         }
          case FULL_BUNDLE_RADIAL_TANGENTIAL:
          {
             _distortion.p1 += deltaC[5];

@@ -1535,6 +1535,13 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "At least 8 tracks on both of keyframes are needed for reconstruction");
 		return OPERATOR_CANCELLED;
 	}
+        /* XXX sergey, please fix this. it's not obvious to me that it is not
+         * an encapsulation violation to call the libmv c api from here. */
+        /*
+	if(!libmv_refineParametersAreValid(tracking->settings.refine_camera_intrinsics)) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid combination for intrinsic refinement");
+		return OPERATOR_CANCELLED;
+	}*/
 
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_get_size(clip, NULL, &width, &height);

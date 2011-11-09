@@ -21,10 +21,14 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 #define LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 
+#include <iostream>
+#include <string>
+
 #include <Eigen/Core>
-typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
+
+typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 struct Grid;
 
@@ -35,7 +39,6 @@ class CameraIntrinsics {
   ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }
-  // FIXME(MatthiasF): these should be CamelCase methods
   double      focal_length()      const { return K_(0, 0);      }
   double      focal_length_x()    const { return K_(0, 0);      }
   double      focal_length_y()    const { return K_(1, 1);      }
@@ -55,8 +58,10 @@ class CameraIntrinsics {
   /// Set both x and y focal length in pixels.
   void SetFocalLength(double focal_x, double focal_y);
 
+  /// Set principal point in pixels.
   void SetPrincipalPoint(double cx, double cy);
 
+  /// Set the image size in pixels.
   void SetImageSize(int width, int height);
 
   void SetRadialDistortion(double k1, double k2, double k3 = 0);
@@ -92,6 +97,7 @@ class CameraIntrinsics {
   */
   void Distort(const float* src, float* dst,
                int width, int height, double overscan, int channels);
+
   /*!
       Distort an image using the current camera instrinsics
 
@@ -102,6 +108,7 @@ class CameraIntrinsics {
   */
   void Distort(const unsigned char* src, unsigned char* dst,
                int width, int height, double overscan, int channels);
+
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -112,6 +119,7 @@ class CameraIntrinsics {
   */
   void Undistort(const float* src, float* dst,
                  int width, int height, double overscan, int channels);
+
   /*!
       Undistort an image using the current camera instrinsics
 
@@ -146,6 +154,10 @@ class CameraIntrinsics {
   struct Grid *distort_;
   struct Grid *undistort_;
 };
+
+/// A human-readable representation of the camera intrinsic parameters.
+std::ostream& operator <<(std::ostream &os,
+                          const CameraIntrinsics &intrinsics);
 
 }  // namespace libmv
 

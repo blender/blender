@@ -28,6 +28,8 @@
 
 namespace libmv {
 
+// TODO(keir): Switch this to use the smarter LM loop like in ESM.
+
 // Computes U and e from the Ud = e equation (number 14) from the paper.
 static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
                                     const Array3Df &image_and_gradient2,
@@ -79,10 +81,39 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
 }
 
+bool RegionIsInBounds(const FloatImage &image1,
+                      double x, double y,
+                      int half_window_size) {
+  // Check the minimum coordinates.
+  int min_x = floor(x) - half_window_size - 1;
+  int min_y = floor(y) - half_window_size - 1;
+  if (min_x < 0.0 ||
+      min_y < 0.0) {
+    return false;
+  }
+
+  // Check the maximum coordinates.
+  int max_x = ceil(x) + half_window_size + 1;
+  int max_y = ceil(y) + half_window_size + 1;
+  if (max_x > image1.cols() ||
+      max_y > image1.rows()) {
+    return false;
+  }
+
+  // Ok, we're good.
+  return true;
+}
+
 bool TrkltRegionTracker::Track(const FloatImage &image1,
                                const FloatImage &image2,
                                double  x1, double  y1,
                                double *x2, double *y2) const {
+  if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
+    LG << "Fell out of image1's window with x1=" << x1 << ", y1=" << y1
+       << ", hw=" << half_window_size << ".";
+    return false;
+  }
+
   Array3Df image_and_gradient1;
   Array3Df image_and_gradient2;
   BlurredImageAndDerivativesChannels(image1, sigma, &image_and_gradient1);
@@ -91,6 +122,13 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
   int i;
   Vec2f d = Vec2f::Zero();
   for (i = 0; i < max_iterations; ++i) {
+    // Check that the entire image patch is within the bounds of the images.
+    if (!RegionIsInBounds(image2, *x2, *y2, half_window_size)) {
+      LG << "Fell out of image2's window with x2=" << *x2 << ", y2=" << *y2
+         << ", hw=" << half_window_size << ".";
+      return false;
+    }
+
     // Compute gradient matrix and error vector.
     Mat2f U;
     Vec2f e;
@@ -120,6 +158,8 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
       LG << "Determinant " << determinant << " is too small; failing tracking.";
       return false;
     }
+    LG << "x=" << *x2 << ", y=" << *y2 << ", dx=" << d[0] << ", dy=" << d[1] << ", det=" << determinant;
+
 
     // If the update is small, then we probably found the target.
     if (d.squaredNorm() < min_update_squared_distance) {

@@ -23,6 +23,7 @@
 
 namespace libmv {
 
+class CameraIntrinsics;
 class EuclideanReconstruction;
 class ProjectiveReconstruction;
 class Tracks;
@@ -46,6 +47,46 @@ class Tracks;
 */
 void EuclideanBundle(const Tracks &tracks,
                      EuclideanReconstruction *reconstruction);
+
+/*!
+    Refine camera poses and 3D coordinates using bundle adjustment.
+
+    This routine adjusts all cameras positions, points, and the camera
+    intrinsics (assumed common across all images) in \a *reconstruction. This
+    assumes a full observation for reconstructed tracks; this implies that if
+    there is a reconstructed 3D point (a bundle) for a track, then all markers
+    for that track will be included in the minimization. \a tracks should
+    contain markers used in the initial reconstruction.
+
+    The cameras, bundles, and intrinsics are refined in-place.
+
+    The only supported combinations of bundle parameters are:
+
+    BUNDLE_NO_INTRINSICS
+    BUNDLE_FOCAL_LENGTH
+    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT
+    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL
+    BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL | BUNDLE_TANGENTIAL
+
+    \note This assumes an outlier-free set of markers.
+
+    \sa EuclideanResect, EuclideanIntersect, EuclideanReconstructTwoFrames
+*/
+enum BundleIntrinsics {
+  BUNDLE_NO_INTRINSICS = 0,
+  BUNDLE_FOCAL_LENGTH = 1,
+  BUNDLE_PRINCIPAL_POINT = 2,
+  BUNDLE_RADIAL_K1 = 4,
+  BUNDLE_RADIAL_K2 = 8,
+  BUNDLE_RADIAL = 12,
+  BUNDLE_TANGENTIAL_P1 = 16,
+  BUNDLE_TANGENTIAL_P2 = 32,
+  BUNDLE_TANGENTIAL = 48,
+};
+void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
+                                     int bundle_intrinsics,
+                                     EuclideanReconstruction *reconstruction,
+                                     CameraIntrinsics *intrinsics);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.

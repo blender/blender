@@ -1267,6 +1267,24 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 	float origin[3]= {0.0f, 0.0f, 0.0f};
 	int ok= 1;
 
+	/* take the intrinscis back from libmv */
+	{
+		struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
+
+		float aspy= 1.0f/tracking->camera.pixel_aspect;
+
+		double focal_length, principal_x, principal_y, k1, k2, k3;
+		int width, height;
+		libmv_CameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
+				&k1, &k2, &k3, &width, &height);
+		tracking->camera.focal = focal_length;
+		tracking->camera.principal[0] = principal_x;
+		/* todo: verify divide by aspy is correct */
+		tracking->camera.principal[1] = principal_y / aspy; 
+		tracking->camera.k1 = k1;
+		tracking->camera.k2 = k2;
+	}
+
 	track= tracking->tracks.first;
 	while(track) {
 		double pos[3];
@@ -1359,9 +1377,11 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 	{
 		MovieTrackingCamera *camera= &tracking->camera;
 		float aspy= 1.0f/tracking->camera.pixel_aspect;
+		
 		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
+		        tracking->settings.refine_camera_intrinsics,
 		        camera->focal,
 		        camera->principal[0], camera->principal[1]*aspy,
 		        camera->k1, camera->k2, camera->k3);

@@ -278,6 +278,26 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
 	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
 
+	/* intrinsics refinement during bundle adjustment - focal length */
+	prop= RNA_def_property(srna, "refine_focal_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_FOCAL_LENGTH);
+	RNA_def_property_ui_text(prop, "Focal length", "Refine focal length during solving");
+
+	/* intrinsics refinement during bundle adjustment - principal point */
+	prop= RNA_def_property(srna, "refine_principal_point", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_PRINCIPAL_POINT);
+	RNA_def_property_ui_text(prop, "Principal Point", "Refine principal point during solving");
+
+	/* intrinsics refinement during bundle adjustment - radial distortion k1 */
+	prop= RNA_def_property(srna, "refine_radial_distortion_k1", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K1);
+	RNA_def_property_ui_text(prop, "Radial Distortion K1", "Refine K1 radial distortion parameter during solving");
+
+	/* intrinsics refinement during bundle adjustment - radial distortion k2 */
+	prop= RNA_def_property(srna, "refine_radial_distortion_k2", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K2);
+	RNA_def_property_ui_text(prop, "Radial Distortion K2", "Refine K2 radial distortion parameter during solving");
+
 	/* tool settings */
 
 	/* distance */

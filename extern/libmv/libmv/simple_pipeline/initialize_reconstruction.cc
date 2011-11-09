@@ -67,6 +67,7 @@ void GetImagesInMarkers(const vector<Marker> &markers,
 bool EuclideanReconstructTwoFrames(const vector<Marker> &markers,
                                    EuclideanReconstruction *reconstruction) {
   if (markers.size() < 16) {
+    LG << "Not enough markers to initialize from two frames: " << markers.size();
     return false;
   }
 
@@ -105,6 +106,7 @@ bool EuclideanReconstructTwoFrames(const vector<Marker> &markers,
                                             K, x1.col(0),
                                             K, x2.col(0),
                                             &R, &t)) {
+    LG << "Failed to compute R and t from E and K.";
     return false;
   }
 
