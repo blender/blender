@@ -46,7 +46,7 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadGC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_OPENEXR = True  # TODO, gives linking problems for the moment.
+WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/gcc/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
