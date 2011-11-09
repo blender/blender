@@ -216,11 +216,7 @@ def setup_staticlibs(lenv):
     return statlibs, libincs
 
 def setup_syslibs(lenv):
-    syslibs = [
-        
-        lenv['BF_JPEG_LIB'],
-        lenv['BF_PNG_LIB'],
-        ]
+    syslibs = []
 
     if not lenv['WITH_BF_FREETYPE_STATIC']:
         syslibs += Split(lenv['BF_FREETYPE_LIB'])
@@ -241,6 +237,9 @@ def setup_syslibs(lenv):
             syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
+    if lenv['WITH_BF_OIIO']:
+        syslibs += Split(lenv['BF_OIIO_LIB'])
+
     if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_TIFF'] and not lenv['WITH_BF_STATICTIFF']:
@@ -280,16 +279,12 @@ def setup_syslibs(lenv):
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
                 
-    if lenv['WITH_BF_OIIO']:
-        syslibs += Split(lenv['BF_OIIO_LIB'])
     if lenv['WITH_BF_BOOST']:
         syslibs += Split(lenv['BF_BOOST_LIB'])
 
-    if lenv['WITH_BF_OIIO']:
-        syslibs += Split(lenv['BF_OIIO_LIB'])
-    if lenv['WITH_BF_BOOST']:
-        syslibs += Split(lenv['BF_BOOST_LIB'])
-
+	syslibs += Split(lenv['BF_JPEG_LIB'])
+    syslibs += Split(lenv['BF_PNG_LIB'])
+	
     syslibs += lenv['LLIBS']
 
     return syslibs

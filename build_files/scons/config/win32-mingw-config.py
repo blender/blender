@@ -17,7 +17,7 @@ BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
-WITH_BF_FFMPEG = False
+WITH_BF_FFMPEG = True
 BF_FFMPEG_LIB = 'avformat-53 avcodec-53 avdevice-53 avutil-51 swscale-2'
 BF_FFMPEG_LIBPATH = LIBDIR + '/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/ffmpeg/include'
@@ -46,11 +46,11 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadGC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_OPENEXR = False  # TODO, gives linking problems for the moment.
+WITH_BF_OPENEXR = True  # TODO, gives linking problems for the moment.
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/gcc/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
-BF_OPENEXR_LIB = ' Half IlmImf Iex IlmThread '
+BF_OPENEXR_LIB = 'Half IlmImf Imath IlmThread Iex'
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
@@ -100,8 +100,8 @@ BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'fftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
-WITH_BF_GAMEENGINE = False
-WITH_BF_PLAYER = False
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -140,7 +140,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
              '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
              '${BF_OPENGL}/lib/libX11.a', '${BF_OPENGL}/lib/libXi.a' ]
 
-WITH_BF_COLLADA = False  # TODO, gives linking problems at the moment.
+WITH_BF_COLLADA = True
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
@@ -150,8 +150,23 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
+#Cycles
+WITH_BF_CYCLES = True 
+
+WITH_BF_OIIO = True
+BF_OIIO = LIBDIR + '/gcc/openimageio'
+BF_OIIO_INC = '#../lib/windows/gcc/openimageio/include'
+BF_OIIO_LIB = 'OpenImageIO'
+BF_OIIO_LIBPATH = '#../lib/windows/gcc/openimageio/lib'
+
+WITH_BF_BOOST = True
+BF_BOOST = LIBDIR + '/boost'
+BF_BOOST_INC = '#../lib/windows/boost/include'
+BF_BOOST_LIB = 'boost_date_time-mgw45-mt-s-1_47 boost_filesystem-mgw45-mt-s-1_47 boost_regex-mgw45-mt-s-1_47 boost_system-mgw45-mt-s-1_47 boost_thread-mgw45-mt-s-1_47'
+BF_BOOST_LIBPATH = '#../lib/windows/boost/lib/gcc'
+
 #Ray trace optimization
-WITH_BF_RAYOPTIMIZATION = False
+WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 
 ##
@@ -161,7 +176,7 @@ CXX = 'g++'
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 CXXFLAGS = []
 
-CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE']
+CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE', '-DBOOST_ALL_NO_LIB', '-DBOOST_THREAD_USE_LIB', '-DGLEW_STATIC']
 REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG',  '-O2']
@@ -170,9 +185,9 @@ C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-pro
 
 CC_WARN = [ '-Wall' ]
 
-LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid', '-lwsock32']
+LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++','-lole32','-luuid', '-lwsock32', '-lpsapi']
 
-PLATFORM_LINKFLAGS = ['--stack,2097152']
+PLATFORM_LINKFLAGS = ['-Xlinker', '--stack=2097152']
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g', '-D_DEBUG']
