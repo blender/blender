@@ -206,7 +206,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 
         col = split.column()
         if scene.use_gravity:
-            col.label(text="Use Scene Gravity", icon="SCENE_DATA")
+            col.label(text="Use Scene Gravity", icon='SCENE_DATA')
             sub = col.column()
             sub.enabled = False
             sub.prop(fluid, "gravity", text="")
@@ -215,7 +215,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
             col.prop(fluid, "gravity", text="")
 
         if scene.unit_settings.system != 'NONE':
-            col.label(text="Use Scene Size Units", icon="SCENE_DATA")
+            col.label(text="Use Scene Size Units", icon='SCENE_DATA')
             sub = col.column()
             sub.enabled = False
             sub.prop(fluid, "simulation_scale", text="Metres")

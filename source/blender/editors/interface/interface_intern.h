@@ -79,6 +79,7 @@ typedef enum {
 	UI_WTYPE_MENU_RADIO,
 	UI_WTYPE_MENU_ICON_RADIO,
 	UI_WTYPE_MENU_POINTER_LINK,
+	UI_WTYPE_MENU_NODE_LINK,
 	
 	UI_WTYPE_PULLDOWN,
 	UI_WTYPE_MENU_ITEM,
@@ -95,11 +96,6 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR,
 	
 } uiWidgetTypeEnum;
-
-
-
-#define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	128
 
 /* panel limits */
 #define UI_PANEL_MINX	100

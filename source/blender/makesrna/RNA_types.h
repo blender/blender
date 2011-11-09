@@ -326,12 +326,13 @@ typedef enum StructFlag {
 	/* indicates that this struct is an ID struct, and to use refcounting */
 	STRUCT_ID = 1,
 	STRUCT_ID_REFCOUNT = 2,
+	STRUCT_UNDO = 4, /* defaults on, clear for user preferences and similar */
 
 	/* internal flags */
-	STRUCT_RUNTIME = 4,
-	STRUCT_GENERATED = 8,
-	STRUCT_FREE_POINTERS = 16,
-	STRUCT_NO_IDPROPERTIES = 32 /* Menu's and Panels don't need properties */
+	STRUCT_RUNTIME = 8,
+	STRUCT_GENERATED = 16,
+	STRUCT_FREE_POINTERS = 32,
+	STRUCT_NO_IDPROPERTIES = 64 /* Menu's and Panels don't need properties */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

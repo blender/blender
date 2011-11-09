@@ -324,6 +324,14 @@ struct DerivedMesh {
 															   float t),
 								  void *userData);
 
+	/* Draw all faces with materials
+	 *  o setMaterial is called for every different material nr
+	 *  o setFace is called to verify if a face must be hidden
+	 */
+	void (*drawMappedFacesMat)(DerivedMesh *dm,
+		void (*setMaterial)(void *userData, int, void *attribs),
+		int (*setFace)(void *userData, int index), void *userData);
+
 	/* Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
 	void (*release)(DerivedMesh *dm);

@@ -3651,9 +3651,9 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 	/* fill shadeinput data depending on material type */
 	if (mat->material_type == MA_TYPE_SURFACE) {
 		/* global coordinates */
-		VECCOPY(shi.gl, surface_co);
+		copy_v3_v3(shi.gl, surface_co);
 		/* object space coordinates */
-		VECCOPY(shi.co, surface_co);
+		copy_v3_v3(shi.co, surface_co);
 		mul_m4_v3(ob->imat, shi.co);
 		/* orco coordinates */
 		{

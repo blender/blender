@@ -61,7 +61,7 @@ class IMAGE_MT_view(Menu):
 
         layout.separator()
 
-        ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
+        ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for a, b in ratios:
             layout.operator("image.view_zoom_ratio", text="Zoom" + " %d:%d" % (a, b)).ratio = a / b
@@ -746,12 +746,12 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         layout.template_curve_mapping(brush, "curve")
 
         row = layout.row(align=True)
-        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
-        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
-        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
-        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
-        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

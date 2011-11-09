@@ -543,6 +543,11 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene, Obj
 	return flags;
 }
 
+static int brush_usesMaterial(DynamicPaintBrushSettings *brush, Scene *scene)
+{
+	return ((brush->flags & MOD_DPAINT_USE_MATERIAL) && (!strcmp(scene->r.engine, "BLENDER_RENDER")));
+}
+
 /* check whether two bounds intersect */
 static int boundsIntersect(Bounds3D *b1, Bounds3D *b2)
 {
@@ -3375,7 +3380,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 							sampleColor[2] = brush->b;
 						
 							/* Get material+textures color on hit point if required	*/
-							if (brush->flags & MOD_DPAINT_USE_MATERIAL)
+							if (brush_usesMaterial(brush, scene))
 								dynamicPaint_doMaterialTex(bMats, sampleColor, &alpha_factor, brushOb, bData->realCoord[bData->s_pos[index]+ss].v, hitCoord, hitFace, hitQuad, brush->dm);
 
 							/* Sample proximity colorband if required	*/
@@ -3716,7 +3721,7 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 			float velocity_val = 0.0f;
 
 			/* material */
-			if (brush->flags & MOD_DPAINT_USE_MATERIAL) {
+			if (brush_usesMaterial(brush, scene)) {
 				float alpha_factor = 1.0f;
 				float hit_coord[3];
 				MVert *mvert = brush->dm->getVertArray(brush->dm);
@@ -3759,7 +3764,7 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 					paintColor[2] = colorband[2];
 				}
 				else {
-					if (!(brush->flags & MOD_DPAINT_USE_MATERIAL)) {
+					if (!brush_usesMaterial(brush, scene)) {
 						paintColor[0] = brush->r;
 						paintColor[1] = brush->g;
 						paintColor[2] = brush->b;
@@ -4765,7 +4770,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 						subframe_updateObject(scene, brushObj, UPDATE_EVERYTHING, BKE_curframe(scene));
 					}
 					/* Prepare materials if required	*/
-					if (brush->flags & MOD_DPAINT_USE_MATERIAL)
+					if (brush_usesMaterial(brush, scene))
 						dynamicPaint_updateBrushMaterials(brushObj, brush->mat, scene, &bMats);
 
 					/* Apply brush on the surface depending on it's collision type */
@@ -4789,7 +4794,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					}
 
 					/* free temp material data */
-					if (brush->flags & MOD_DPAINT_USE_MATERIAL)
+					if (brush_usesMaterial(brush, scene))
 						dynamicPaint_freeBrushMaterials(&bMats);
 					/* reset object to it's original state */
 					if (subframe) {

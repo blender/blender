@@ -125,13 +125,6 @@ static void rna_tracking_trackerPyramid_update(Main *UNUSED(bmain), Scene *UNUSE
 	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 }
 
-static int rna_tracking_markers_length(PointerRNA *ptr)
-{
-	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
-
-	return track->markersnr;
-}
-
 static float rna_trackingCamera_focal_mm_get(PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
@@ -249,7 +242,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
-	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_range(prop, 0, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Frames Limit", "Amount of frames to be tracked during single tracking operation");
 
 	/* adjust frames */
@@ -425,7 +418,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 
 	static EnumPropertyItem tracker_items[] = {
 		{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker"},
-		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
+		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi tracker"},
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_trackingMarker(brna);
@@ -499,7 +492,6 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingMarker");
 	RNA_def_property_collection_sdna(prop, NULL, "markers", "markersnr");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, "rna_tracking_markers_length", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Markers", "Collection of markers in track");
 
 	/* ** channels ** */

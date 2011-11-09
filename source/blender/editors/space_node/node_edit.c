@@ -61,6 +61,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
@@ -88,6 +89,8 @@
 #include "IMB_imbuf.h"
 
 #include "RNA_enum_types.h"
+
+#include "GPU_material.h"
 
 #include "node_intern.h"
 
@@ -269,13 +272,14 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
+void ED_node_shader_default(Scene *scene, ID *id)
 {
 	bNode *in, *out;
-	bNodeSocket *fromsock, *tosock;
+	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
 	bNodeTemplate ntemp;
 	int output_type, shader_type;
+	float color[3], strength = 1.0f;
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
@@ -284,24 +288,42 @@ void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			if(scene_use_new_shading_nodes(scene)) {
+				output_type = SH_NODE_OUTPUT_MATERIAL;
+				shader_type = SH_NODE_BSDF_DIFFUSE;
+			}
+			else {
+				output_type = SH_NODE_OUTPUT;
+				shader_type = SH_NODE_MATERIAL;
+			}
+
+			copy_v3_v3(color, &ma->r);
+			strength= 0.0f;
 			break;
 		}
 		case ID_WO: {
 			World *wo= (World*)id;
 			wo->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			output_type = SH_NODE_OUTPUT_WORLD;
+			shader_type = SH_NODE_BACKGROUND;
+
+			copy_v3_v3(color, &wo->horr);
+			strength= 1.0f;
 			break;
 		}
 		case ID_LA: {
 			Lamp *la= (Lamp*)id;
 			la->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT;
-			shader_type = SH_NODE_MATERIAL;
+			output_type = SH_NODE_OUTPUT_LAMP;
+			shader_type = SH_NODE_EMISSION;
+
+			copy_v3_v3(color, &la->r);
+			if(la->type == LA_LOCAL || la->type == LA_SPOT || la->type == LA_AREA)
+				strength= 100.0f;
+			else
+				strength= 1.0f;
 			break;
 		}
 		default:
@@ -322,6 +344,17 @@ void ED_node_shader_default(Scene *UNUSED(scene), ID *id)
 	fromsock= in->outputs.first;
 	tosock= out->inputs.first;
 	nodeAddLink(ntree, in, fromsock, out, tosock);
+
+	/* default values */
+	if(scene_use_new_shading_nodes(scene)) {
+		sock= in->inputs.first;
+		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
+
+		if(strength != 0.0f) {
+			sock= in->inputs.last;
+			((bNodeSocketValueFloat*)sock->default_value)->value= strength;
+		}
+	}
 	
 	ntreeUpdateTree(ntree);
 }
@@ -567,6 +600,8 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 {
+	int was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE);
+
 	nodeSetActive(ntree, node);
 	
 	if(node->type!=NODE_GROUP) {
@@ -588,6 +623,15 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0)
 					ED_node_generic_update(bmain, ntree, node);
+			}
+
+			/* if active texture changed, free glsl materials */
+			if((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+				Material *ma;
+
+				for(ma=bmain->mat.first; ma; ma=ma->id.next)
+					if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+						GPU_material_free(ma);
 			}
 
 			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
@@ -2211,9 +2255,7 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 				node->id = &scene->id;
 			}
 			else if(ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
-				if(G.main->movieclip.first == G.main->movieclip.last) {
-					node->id= G.main->movieclip.first;
-				}
+				node->id = (ID *)scene->clip;
 			}
 			
 			ntreeCompositForceHidden(snode->edittree, scene);

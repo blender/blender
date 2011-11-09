@@ -87,6 +87,7 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
 
             elif (md.ui_type == "BRUSH"):
                 brush = md.brush_settings
+                engine = context.scene.render.engine
                 
                 if (not brush):
                     layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
@@ -101,10 +102,11 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                     col.prop(brush, "paint_wetness", text="Wetness")
                 
                     col = split.column()
-                    sub = col.column()
-                    sub.active = (brush.paint_source != "PARTICLE_SYSTEM");
-                    sub.prop(brush, "use_material")
-                    if brush.use_material and brush.paint_source != "PARTICLE_SYSTEM":
+                    if (engine == 'BLENDER_RENDER'):
+                        sub = col.column()
+                        sub.active = (brush.paint_source != "PARTICLE_SYSTEM");
+                        sub.prop(brush, "use_material")
+                    if brush.use_material and brush.paint_source != "PARTICLE_SYSTEM" and (engine == 'BLENDER_RENDER'):
                         col.prop(brush, "material", text="")
                         col.prop(brush, "paint_alpha", text="Alpha Factor")
                     else:

@@ -44,6 +44,8 @@
 
 #include "BLF_translation.h"
 
+#include "DNA_userdef_types.h" /* For user settings. */
+
 #ifdef WITH_INTERNATIONAL
 const char unifont_filename[]="droidsans.ttf.gz";
 static unsigned char *unifont_ttf= NULL;
@@ -88,3 +90,46 @@ const char* BLF_gettext(const char *msgid)
 	return msgid;
 #endif
 }
+
+int BLF_translate_iface(void)
+{
+#ifdef WITH_INTERNATIONAL
+	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
+#else
+	return 0;
+#endif
+}
+
+int BLF_translate_tooltips(void)
+{
+#ifdef WITH_INTERNATIONAL
+	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
+#else
+	return 0;
+#endif
+}
+
+const char *BLF_translate_do_iface(const char *msgid)
+{
+#ifdef WITH_INTERNATIONAL
+	if(BLF_translate_iface())
+		return BLF_gettext(msgid);
+	else
+		return msgid;
+#else
+	return msgid;
+#endif
+}
+
+const char *BLF_translate_do_tooltip(const char *msgid)
+{
+#ifdef WITH_INTERNATIONAL
+	if(BLF_translate_tooltips())
+		return BLF_gettext(msgid);
+	else
+		return msgid;
+#else
+	return msgid;
+#endif
+}
+

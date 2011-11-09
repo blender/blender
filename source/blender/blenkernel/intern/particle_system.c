@@ -3176,7 +3176,7 @@ static int collision_response(ParticleData *pa, ParticleCollision *col, BVHTreeR
 				mul_v3_fl(v1_tan, 1.0f - 0.01f * frict);
 
 				/* surface_velocity is opposite to cm velocity */
-				mul_v3_v3fl(vr_tan, v1_tan, -1.0f);
+				negate_v3_v3(vr_tan, v1_tan);
 
 				/* get back to global coordinates */
 				add_v3_v3(v1_tan, vc_tan);

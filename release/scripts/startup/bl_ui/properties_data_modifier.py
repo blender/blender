@@ -231,7 +231,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "strength")
 
     def DYNAMIC_PAINT(self, layout, ob, md):
-        layout.label(text="See Dynamic Paint panel.")
+        layout.label(text="Settings can be found inside the Physics context")
 
     def EDGE_SPLIT(self, layout, ob, md):
         split = layout.split()

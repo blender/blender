@@ -371,7 +371,9 @@ if(WITH_GAMEENGINE)
 endif()
 
 if(WITH_LIBMV)
-	list(APPEND INC ../../../extern/libmv)
+	list(APPEND INC
+		../../../extern/libmv
+	)
 	add_definitions(-DWITH_LIBMV)
 endif()
 

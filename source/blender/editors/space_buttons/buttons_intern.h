@@ -31,14 +31,20 @@
 #ifndef ED_BUTTONS_INTERN_H
 #define ED_BUTTONS_INTERN_H
 
+#include "DNA_listBase.h"
+#include "RNA_types.h"
+
 struct ARegion;
 struct ARegionType;
+struct ID;
+struct SpaceButs;
+struct Tex;
 struct bContext;
 struct bContextDataResult;
-struct SpaceButs;
+struct bNode;
+struct bNodeTree;
 struct uiLayout;
 struct wmOperatorType;
-struct ID;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -53,6 +59,42 @@ struct ID;
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
+/* context data */
+
+typedef struct ButsContextPath {
+	PointerRNA ptr[8];
+	int len;
+	int flag;
+	int tex_ctx;
+} ButsContextPath;
+
+typedef struct ButsTextureUser {
+	struct ButsTextureUser *next, *prev;
+
+	struct ID *id;
+
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	struct bNodeTree *ntree;
+	struct bNode *node;
+
+	const char *category;
+	int icon;
+	const char *name;
+
+	int index;
+} ButsTextureUser;
+
+typedef struct ButsContextTexture {
+	ListBase users;
+
+	struct Tex *texture;
+
+	struct ButsTextureUser *user;
+	int index;
+} ButsContextTexture;
+
 /* internal exports only */
 
 /* buttons_header.c */
@@ -66,6 +108,9 @@ void buttons_context_register(struct ARegionType *art);
 struct ID *buttons_context_id_path(const struct bContext *C);
 
 extern const char *buttons_context_dir[]; /* doc access */
+
+/* buttons_texture.c */
+void buttons_texture_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);

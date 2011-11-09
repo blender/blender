@@ -155,7 +155,8 @@ class CLIP_OT_delete_proxy(Operator):
             self._rmproxy(d + '_undistorted')
             self._rmproxy(os.path.join(absproxy, 'proxy_' + str(x) + '.avi'))
 
-        tc = ('free_run.blen_tc', 'interp_free_run.blen_tc', \
+        tc = ('free_run.blen_tc',
+              'interp_free_run.blen_tc',
               'record_run.blen_tc')
 
         for x in tc:
@@ -280,10 +281,10 @@ class CLIP_OT_constraint_to_fcurve(Operator):
                 efra = max(efra, track.markers[-1].frame)
 
         if sfra is None or efra is None:
-           return
+            return
 
         # Store object matrices
-        for x in range(sfra, efra+1):
+        for x in range(sfra, efra + 1):
             scene.frame_set(x)
             matrices.append(ob.matrix_world.copy())
 
@@ -291,7 +292,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
 
         # Apply matrices on object and insert keyframes
         i = 0
-        for x in range(sfra, efra+1):
+        for x in range(sfra, efra + 1):
             scene.frame_set(x)
             ob.matrix_world = matrices[i]
 

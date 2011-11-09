@@ -448,6 +448,26 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
+	func= RNA_def_function(srna, "template_node_link", "uiTemplateNodeLink");
+	parm= RNA_def_pointer(func, "ntree", "NodeTree", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "template_node_view", "uiTemplateNodeView");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "ntree", "NodeTree", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "template_texture_user", "uiTemplateTextureUser");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
 	func= RNA_def_function(srna, "template_keymap_item_properties", "uiTemplateKeymapItemProperties");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);

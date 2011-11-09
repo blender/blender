@@ -146,7 +146,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 static void foreachTexLink(ModifierData *md, Object *ob,
 					   TexWalkFunc walk, void *userData)
 {
-	walk(userData, ob, md, ""); /* property name isn't used */
+	//walk(userData, ob, md, ""); /* re-enable when possible */
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {

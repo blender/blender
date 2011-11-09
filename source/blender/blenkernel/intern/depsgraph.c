@@ -592,7 +592,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 
 			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
-				dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Object Visualisation");
+				/* note that this relation actually runs in the wrong direction, the problem
+				   is that dupli system all have this (due to parenting), and the render
+				   engine instancing assumes particular ordering of objects in list */
+				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Object Visualisation");
 			}

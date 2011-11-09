@@ -5646,6 +5646,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			else if(sl->spacetype==SPACE_BUTS) {
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				sbuts->path= NULL;
+				sbuts->texuser= NULL;
 			}
 			else if(sl->spacetype==SPACE_CONSOLE) {
 				SpaceConsole *sconsole= (SpaceConsole *)sl;
@@ -6026,7 +6027,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	if(id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us= 0;
 	id->icon_id = 0;
-	id->flag &= ~LIB_ID_RECALC;
+	id->flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);
 
 	/* this case cannot be direct_linked: it's just the ID part */
 	if(bhead->code==ID_ID) {
@@ -7266,6 +7267,22 @@ static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
 			/* default Image output value should have 0 alpha */
 			sock = node->outputs.first;
 			((bNodeSocketValueRGBA*)sock->default_value)->value[3] = 0.0f;
+		}
+	}
+}
+
+static void do_version_ntree_tex_mapping_260(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node=node->next) {
+		if(node->type == SH_NODE_MAPPING) {
+			TexMapping *tex_mapping;
+
+			tex_mapping= node->storage;
+			tex_mapping->projx= PROJ_X;
+			tex_mapping->projy= PROJ_Y;
+			tex_mapping->projz= PROJ_Z;
 		}
 	}
 }
@@ -12353,6 +12370,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
 		}
+	}
+
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 2)) {
+		bNodeTreeType *ntreetype= ntreeGetType(NTREE_SHADER);
+
+		if(ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
 	}
 
 	/* put compatibility code here until next subversion bump */

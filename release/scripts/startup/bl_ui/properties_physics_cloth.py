@@ -73,8 +73,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
             col.label(text="Presets:")
             sub = col.row(align=True)
             sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
-            sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
-            sub.operator("cloth.preset_add", text="", icon="ZOOMOUT").remove_active = True
+            sub.operator("cloth.preset_add", text="", icon='ZOOMIN')
+            sub.operator("cloth.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
             col.label(text="Quality:")
             col.prop(cloth, "quality", text="Steps", slider=True)

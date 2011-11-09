@@ -25,8 +25,8 @@
 set(INC
 	.
 	../Eigen3
-	./third_party/ssba
-	./third_party/ldl/Include
+	third_party/ssba
+	third_party/ldl/Include
 	../colamd/Include
 )
 
@@ -130,7 +130,7 @@ set(SRC
 	third_party/msinttypes/inttypes.h
 )
 
-IF(WIN32)
+if(WIN32)
 	list(APPEND SRC
 		third_party/glog/src/logging.cc
 		third_party/glog/src/raw_logging.cc
@@ -158,18 +158,23 @@ IF(WIN32)
 	)
 
 	list(APPEND INC
-		./third_party/glog/src/windows
-		./third_party/msinttypes
+		third_party/glog/src/windows
 	)
 
-	IF(MSVC)
+	if(NOT MINGW)
+		list(APPEND INC
+			third_party/msinttypes
+		)
+	endif()
+
+	if(MSVC)
 		set(MSVC_OFLAGS O1 O2 Ox)
 		foreach(FLAG )
 			string(REPLACE "" "Od" CMAKE_CXX_FLAGS_RELEASE "")
 			string(REPLACE "" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "")
 		endforeach()
-	ENDIF(MSVC)
-ELSE(WIN32)
+	endif()
+else(WIN32)
 	list(APPEND SRC
 		third_party/glog/src/utilities.cc
 		third_party/glog/src/symbolize.cc
@@ -201,9 +206,9 @@ ELSE(WIN32)
 	)
 
 	list(APPEND INC
-		./third_party/glog/src
+		third_party/glog/src
 	)
-ENDIF(WIN32)
+endif()
 
 add_definitions(-DV3DLIB_ENABLE_SUITESPARSE -DGOOGLE_GLOG_DLL_DECL=)
 

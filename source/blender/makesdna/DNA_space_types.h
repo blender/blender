@@ -145,6 +145,8 @@ typedef struct SpaceButs {
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
 	ID *pinid;
+
+	void *texuser;
 } SpaceButs;
 
 typedef struct SpaceSeq {

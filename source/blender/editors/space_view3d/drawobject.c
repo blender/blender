@@ -109,7 +109,7 @@
 
 /* this condition has been made more complex since editmode can draw textures */
 #define CHECK_OB_DRAWTEXTURE(vd, dt)                                          \
-	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||                             \
+	((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt>OB_SOLID) ||          \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
 static void draw_bounding_volume(Scene *scene, Object *ob, char type);
@@ -252,6 +252,8 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	if(!CHECK_OB_DRAWTEXTURE(v3d, dt))
 		return 0;
 	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
+		return 0;
+	if(scene_use_new_shading_nodes(scene))
 		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
@@ -2562,7 +2564,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				copy_v3_v3(v1, eed->v1->co);
 				copy_v3_v3(v2, eed->v2->co);
 
-				interp_v3_v3v3(vmid, v1, v2, 0.5f);
+				mid_v3_v3v3(vmid, v1, v2);
 
 				if(do_global) {
 					mul_mat3_m4_v3(ob->obmat, v1);
@@ -2914,7 +2916,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_IS_PAINT_SEL : 0;
+	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
 		return;
@@ -2946,7 +2948,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (draw_flags & DRAW_IS_PAINT_SEL) draw_wire = 0;
+	if (draw_flags & DRAW_FACE_SELECT) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2960,10 +2962,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(draw_flags & DRAW_IS_PAINT_SEL || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if(	(draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || (draw_flags & DRAW_IS_PAINT_SEL)) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -2981,7 +2983,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
 		}
 
-		if(!(draw_flags & DRAW_IS_PAINT_SEL)) {
+		if(!(draw_flags & DRAW_FACE_SELECT)) {
 			if(base->flag & SELECT)
 				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			else

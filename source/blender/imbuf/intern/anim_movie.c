@@ -890,7 +890,7 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 
 static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 				IMB_Timecode_Type tc) {
-	int64_t pts_to_search = 0;
+	unsigned long long pts_to_search = 0;
 	double frame_rate;
 	double pts_time_base;
 	long long st_time; 

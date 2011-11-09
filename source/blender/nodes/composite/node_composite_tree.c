@@ -39,6 +39,8 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_fcurve.h"
@@ -66,6 +68,20 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 			func(calldata, &sce->id, sce->nodetree);
 		}
 	}
+}
+
+static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+{
+	func(calldata, NODE_CLASS_INPUT, IFACE_("Input"));
+	func(calldata, NODE_CLASS_OUTPUT, IFACE_("Output"));
+	func(calldata, NODE_CLASS_OP_COLOR, IFACE_("Color"));
+	func(calldata, NODE_CLASS_OP_VECTOR, IFACE_("Vector"));
+	func(calldata, NODE_CLASS_OP_FILTER, IFACE_("Filter"));
+	func(calldata, NODE_CLASS_CONVERTOR, IFACE_("Convertor"));
+	func(calldata, NODE_CLASS_MATTE, IFACE_("Matte"));
+	func(calldata, NODE_CLASS_DISTORT, IFACE_("Distort"));
+	func(calldata, NODE_CLASS_GROUP, IFACE_("Group"));
+	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
 }
 
 static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
@@ -207,6 +223,7 @@ bNodeTreeType ntreeType_Composite = {
 	/* free_cache */		free_cache,
 	/* free_node_cache */	free_node_cache,
 	/* foreach_nodetree */	foreach_nodetree,
+	/* foreach_nodeclass */	foreach_nodeclass,
 	/* localize */			localize,
 	/* local_sync */		local_sync,
 	/* local_merge */		local_merge,

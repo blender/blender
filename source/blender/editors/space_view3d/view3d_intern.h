@@ -60,7 +60,7 @@ struct wmNDOFMotionData;
 
 /* draw_mesh_fancy draw_flags */
 #define DRAW_DYNAMIC_PAINT_PREVIEW 1
-#define DRAW_IS_PAINT_SEL 2
+#define DRAW_FACE_SELECT 2
 
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);

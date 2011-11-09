@@ -117,7 +117,7 @@ void register_node_type_sh_rgbtobw(ListBase *lb)
 	static bNodeType ntype;
 
 	node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_rgbtobw_in, sh_node_rgbtobw_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_exec(&ntype, node_shader_exec_rgbtobw);

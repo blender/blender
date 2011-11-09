@@ -59,7 +59,7 @@
 
 // Annoying stuff for windows -- makes sure clients can import these functions
 #ifndef GOOGLE_GLOG_DLL_DECL
-# if defined(_WIN32) && !defined(__CYGWIN__)
+# if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #   define GOOGLE_GLOG_DLL_DECL  __declspec(dllimport)
 # else
 #   define GOOGLE_GLOG_DLL_DECL
@@ -86,6 +86,15 @@
 #include "third_party/gflags/gflags.h"
 #endif
 
+#ifdef __MINGW32__
+#  include <stdlib.h>
+#  include <unistd.h>
+#  include <stdint.h>             // the normal place uint16_t is defined
+#  include <sys/types.h>          // the normal place u_int16_t is defined
+#  include <inttypes.h>           // a third place for uint16_t or u_int16_t
+#  define _exit(x) exit(x)
+#endif
+
 namespace google {
 
 #if 0      // the C99 format
@@ -98,11 +107,16 @@ typedef int32_t int32;
 typedef u_int32_t uint32;
 typedef int64_t int64;
 typedef u_int64_t uint64;
-#elif 1    // the windows (vc7) format
+#elif defined(_MSC_VER)
 typedef __int32 int32;
 typedef unsigned __int32 uint32;
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
+#elif defined(__MINGW32__)
+typedef int32_t int32;
+typedef uint32_t uint32;
+typedef int64_t int64;
+typedef uint64_t uint64;
 #else
 #error Do not know how to define a 32-bit integer quantity on your system
 #endif

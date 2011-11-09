@@ -108,6 +108,7 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 }
 
 #define M_PI 3.14159265358979323846
+#define M_1_PI 0.31830988618379069
 
 /*********** SHADER NODES ***************/
 
@@ -1800,5 +1801,321 @@ void shade_alpha_opaque(vec4 col, out vec4 outcol)
 void shade_alpha_obcolor(vec4 col, vec4 obcol, out vec4 outcol)
 {
 	outcol = vec4(col.rgb, col.a*obcol.a);
+}
+
+/*********** NEW SHADER UTILITIES **************/
+
+float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
+{
+    /* compute fresnel reflectance without explicitly computing
+       the refracted direction */
+    float c = abs(dot(Incoming, Normal));
+    float g = eta * eta - 1.0 + c * c;
+    float result;
+
+    if(g > 0.0) {
+        g = sqrt(g);
+        float A =(g - c)/(g + c);
+        float B =(c *(g + c)- 1.0)/(c *(g - c)+ 1.0);
+        result = 0.5 * A * A *(1.0 + B * B);
+    }
+    else
+        result = 1.0;  /* TIR (no refracted component) */
+
+    return result;
+}
+
+float hypot(float x, float y)
+{
+	return sqrt(x*x + y*y);
+}
+
+/*********** NEW SHADER NODES ***************/
+
+#define NUM_LIGHTS 3
+
+/* bsdfs */
+
+void node_bsdf_diffuse(vec4 color, vec3 N, out vec4 result)
+{
+	/* ambient light */
+	vec3 L = vec3(0.2);
+
+	/* directional lights */
+	for(int i = 0; i < NUM_LIGHTS; i++) {
+		vec3 light_position = gl_LightSource[i].position.xyz;
+		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
+
+		float bsdf = max(dot(N, light_position), 0.0);
+		L += light_diffuse*bsdf;
+	}
+
+	result = vec4(L*color.rgb, 1.0);
+}
+
+void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 result)
+{
+	vec3 L = vec3(0.0);
+
+	/* directional lights */
+	for(int i = 0; i < NUM_LIGHTS; i++) {
+		vec3 H = gl_LightSource[i].halfVector.xyz;
+		vec3 light_specular = gl_LightSource[i].specular.rgb;
+
+		float bsdf = pow(max(dot(N, H), 0.0), 1.0/roughness);
+		L += light_specular*bsdf;
+	}
+
+	result = vec4(L*color.rgb, 1.0);
+}
+
+void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 N, vec3 I, out vec4 result)
+{
+	node_bsdf_diffuse(color, N, result);
+}
+
+void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, vec3 I, out vec4 result)
+{
+	node_bsdf_diffuse(color, N, result);
+}
+
+void node_bsdf_translucent(vec4 color, vec3 N, out vec4 result)
+{
+	node_bsdf_diffuse(color, N, result);
+}
+
+void node_bsdf_transparent(vec4 color, out vec4 result)
+{
+	/* this isn't right */
+	result.r = color.r;
+	result.g = color.g;
+	result.b = color.b;
+	result.a = 0.0;
+}
+
+void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
+{
+	node_bsdf_diffuse(color, N, result);
+}
+
+/* emission */
+
+void node_emission(vec4 color, float strength, vec3 N, out vec4 result)
+{
+	result = color*strength;
+}
+
+/* closures */
+
+void node_mix_shader(float fac, vec4 shader1, vec4 shader2, out vec4 shader)
+{
+	shader = mix(shader1, shader2, fac);
+}
+
+void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
+{
+	shader = shader1 + shader2;
+}
+
+/* fresnel */
+
+void node_fresnel(float ior, vec3 N, vec3 I, out float result)
+{
+	float eta = max(ior, 0.00001);
+	result = fresnel_dielectric(I, N, eta); //backfacing()? 1.0/eta: eta);
+}
+
+/* geometry */
+
+void node_geometry(vec3 I, vec3 N, mat4 toworld,
+	out vec3 position, out vec3 normal, out vec3 tangent,
+	out vec3 true_normal, out vec3 incoming, out vec3 parametric,
+	out float backfacing)
+{
+	position = (toworld*vec4(I, 1.0)).xyz;
+	normal = N;
+	tangent = vec3(0.0);
+	true_normal = N;
+	incoming = I;
+	parametric = vec3(0.0);
+	backfacing = 0.0;
+}
+
+void node_tex_coord(vec3 I, vec3 N, mat4 toworld,
+	vec3 attr_orco, vec3 attr_uv,
+	out vec3 generated, out vec3 uv, out vec3 object,
+	out vec3 camera, out vec3 window, out vec3 reflection)
+{
+	generated = attr_orco;
+	uv = attr_uv;
+	object = I;
+	camera = I;
+	window = gl_FragCoord.xyz;
+	reflection = reflect(N, I);
+
+}
+
+/* textures */
+
+void node_tex_blend(vec3 co, out float fac)
+{
+	fac = 1.0;
+}
+
+void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
+{
+	color = vec4(1.0);
+	fac = 1.0;
+}
+
+void node_tex_distnoise(vec3 co, float size, float distortion, out float fac)
+{
+	fac = 1.0;
+}
+
+void node_tex_environment(vec3 co, sampler2D ima, out vec4 color)
+{
+	float u = (atan(co.y, co.x) + M_PI)/(2.0*M_PI);
+	float v = atan(co.z, hypot(co.x, co.y))/M_PI + 0.5;
+
+	color = texture2D(ima, vec2(u, v));
+}
+
+void node_tex_image(vec3 co, sampler2D ima, out vec4 color)
+{
+	color = texture2D(ima, co.xy);
+}
+
+void node_tex_magic(vec3 p, float turbulence, float n, out vec4 color)
+{
+	float turb = turbulence/5.0;
+
+	float x = sin((p.x + p.y + p.z)*5.0);
+	float y = cos((-p.x + p.y - p.z)*5.0);
+	float z = -cos((-p.x - p.y + p.z)*5.0);
+
+	if(n > 0.0) {
+		x *= turb;
+		y *= turb;
+		z *= turb;
+		y = -cos(x-y+z);
+		y *= turb;
+
+		if(n > 1.0) {
+			x= cos(x-y-z);
+			x *= turb;
+
+			if(n > 2.0) {
+				z= sin(-x-y-z);
+				z *= turb;
+
+				if(n > 3.0) {
+					x= -cos(-x+y-z);
+					x *= turb;
+
+					if(n > 4.0) {
+						y= -sin(-x+y+z);
+						y *= turb;
+
+						if(n > 5.0) {
+							y= -cos(-x+y+z);
+							y *= turb;
+
+							if(n > 6.0) {
+								x= cos(x+y+z);
+								x *= turb;
+
+								if(n > 7.0) {
+									z= sin(x+y-z);
+									z *= turb;
+
+									if(n > 8.0) {
+										x= -cos(-x-y+z);
+										x *= turb;
+
+										if(n > 9.0) {
+											y= -sin(x-y+z);
+											y *= turb;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if(turb != 0.0) {
+		turb *= 2.0;
+		x /= turb;
+		y /= turb;
+		z /= turb;
+	}
+
+	color = vec4(0.5 - x, 0.5 - y, 0.5 - z, 1.0);
+}
+
+void node_tex_marble(vec3 co, float size, float turbulence, out float fac)
+{
+	fac = 1.0;
+}
+
+void node_tex_musgrave(vec3 co, float size, float dimension, float lacunarity, float octaves, float offset, float gain, out float fac)
+{
+	fac = 1.0;
+}
+
+void node_tex_noise(vec3 co, out vec4 color, out float fac)
+{
+	color = vec4(1.0);
+	fac = 1.0;
+}
+
+void node_tex_sky(vec3 co, out vec4 color)
+{
+	color = vec4(1.0);
+}
+
+void node_tex_stucci(vec3 co, float size, float turbulence, out float fac)
+{
+	fac = 1.0;
+}
+
+void node_tex_voronoi(vec3 co, float size, float weight1, float weight2, float weight3, float weight4, float exponent, out vec4 color, out float fac)
+{
+	color = vec4(1.0);
+	fac = 1.0;
+}
+
+void node_tex_wood(vec3 co, float size, float turbulence, out float fac)
+{
+	fac = 1.0;
+}
+
+/* light path */
+
+void node_light_path(
+	out float is_camera_ray,
+	out float is_shadow_ray,
+	out float is_diffuse_ray,
+	out float is_glossy_ray,
+	out float is_reflection_ray,
+	out float is_transmission_ray)
+{
+	is_camera_ray = 1.0;
+	is_shadow_ray = 0.0;
+	is_diffuse_ray = 0.0;
+	is_glossy_ray = 0.0;
+	is_reflection_ray = 0.0;
+	is_transmission_ray = 0.0;
+}
+
+/* output */
+
+void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)
+{
+	result = surface;
 }
 

@@ -105,8 +105,7 @@ class QuickFur(Operator):
             psys.settings.child_type = 'INTERPOLATED'
 
             obj.data.materials.append(mat)
-            obj.particle_systems[-1].settings.material = \
-                    len(obj.data.materials)
+            psys.settings.material = len(obj.data.materials)
 
         return {'FINISHED'}
 

@@ -244,6 +244,29 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 		node_data_from_gpu_stack(ns[i], &gs[i]);
 }
 
+bNode *nodeGetActiveTexture(bNodeTree *ntree)
+{
+	/* this is the node we texture paint and draw in textured draw */
+	bNode *node;
+
+	if(!ntree)
+		return NULL;
+
+	/* check for group edit */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
+
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_ACTIVE_TEXTURE)
+			return node;
+	
+	return NULL;
+}
+
 void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 {
 	bNodeExec *nodeexec;
@@ -287,3 +310,22 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 		}
 	}
 }
+
+void node_shader_gpu_tex_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *UNUSED(out))
+{
+	NodeTexBase *base= node->storage;
+	TexMapping *texmap= &base->tex_mapping;
+	float domin= (texmap->flag & TEXMAP_CLIP_MIN) != 0;
+	float domax= (texmap->flag & TEXMAP_CLIP_MAX) != 0;
+
+	if(domin || domax || !(texmap->flag & TEXMAP_UNIT_MATRIX)) {
+		GPUNodeLink *tmat = GPU_uniform((float*)texmap->mat);
+		GPUNodeLink *tmin = GPU_uniform(texmap->min);
+		GPUNodeLink *tmax = GPU_uniform(texmap->max);
+		GPUNodeLink *tdomin = GPU_uniform(&domin);
+		GPUNodeLink *tdomax = GPU_uniform(&domax);
+
+		GPU_link(mat, "mapping", in[0].link, tmat, tmin, tmax, tdomin, tdomax, &in[0].link);
+	}
+}
+

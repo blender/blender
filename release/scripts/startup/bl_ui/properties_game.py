@@ -315,11 +315,9 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
             split = layout.split()
 
-            if dome_type == 'FISHEYE' or \
-               dome_type == 'TRUNCATED_REAR' or \
-               dome_type == 'TRUNCATED_FRONT':
-
+            if dome_type in {'FISHEYE', 'TRUNCATED_REAR', 'TRUNCATED_FRONT'}:
                 col = split.column()
+
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 col.prop(gs, "dome_angle", slider=True)
 
@@ -336,6 +334,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
             else:  # cube map
                 col = split.column()
+
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
 
                 col = split.column()
