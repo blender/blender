@@ -841,7 +841,6 @@ endif()
 		extern_minilzo
 		extern_lzma
 		extern_colamd
-		extern_libmv
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_phys_common
