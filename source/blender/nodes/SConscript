@@ -11,7 +11,7 @@ incs += '#/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
 incs += ' ../render/extern/include ../makesrna '
 incs += ' ../imbuf ../avi '
 incs += ' ../blenloader'
-incs += ' ../blenkernel ../renderconverter '
+incs += ' ../blenfont ../blenkernel ../renderconverter '
 incs += ' ../gpu #/extern/glew/include '
 
 incs += ' ' + env['BF_OPENGL_INC']
