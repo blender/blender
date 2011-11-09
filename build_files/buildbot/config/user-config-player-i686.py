@@ -83,6 +83,9 @@ BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib32'
 # JACK
 WITH_BF_JACK = True
 
+# Motion Tracking
+WITH_BF_LIBMV = False
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
