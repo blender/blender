@@ -240,6 +240,7 @@ def read_opts(env, cfg, args):
     localopts = Variables.Variables(cfg, args)
     localopts.AddVariables(
         ('LCGDIR', 'location of cvs lib dir'),
+        ('LIBDIR', 'root dir of libs'),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
         (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'Base path for python', ''),
@@ -541,11 +542,13 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_CYCLES', 'Build with the Cycles engine', True)),
         
         (BoolVariable('WITH_BF_OIIO', 'Build with OpenImageIO', False)),
+        ('BF_OIIO', 'OIIO root path', ''),
         ('BF_OIIO_INC', 'OIIO include path', ''),
         ('BF_OIIO_LIB', 'OIIO library', ''),
         ('BF_OIIO_LIBPATH', 'OIIO library path', ''),
         
         (BoolVariable('WITH_BF_BOOST', 'Build with Boost', False)),
+        ('BF_BOOST', 'Boost root path', ''),
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
         ('BF_BOOST_LIBPATH', 'Boost library path', '')
