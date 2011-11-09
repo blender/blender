@@ -96,16 +96,18 @@ WITH_BF_JACK = True
 WITH_BF_CYCLES = True
 
 WITH_BF_OIIO = True
+WITH_BF_STATICOIIO = True
 BF_OIIO = '/opt/oiio'
-BF_OIIO_INC = '/opt/oiio/include'
-BF_OIIO_LIB = 'OpenImageIO IlmImf'
-BF_OIIO_LIBPATH = '/opt/oiio/lib'
+BF_OIIO_INC = '${BF_OIIO}/include'
+BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_BOOST = True
+WITH_BF_STATICBOOST = True
 BF_BOOST = '/opt/boost'
-BF_BOOST_INC = '/opt/boost/include'
-BF_BOOST_LIB = 'libboost_date_time libboost_filesystem libboost_regex libboost_system libboost_thread'
-BF_BOOST_LIBPATH = '/opt/boost/lib'
+BF_BOOST_INC = '${BF_BOOST}/include'
+BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBPATH}/libboost_date_time.a ${BF_BOOST_LIBPATH}/libboost_regex.a ${BF_BOOST_LIBPATH}/libboost_system.a ${BF_BOOST_LIBPATH}/libboost_thread.a'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 # Compilation and optimization
 BF_DEBUG = False

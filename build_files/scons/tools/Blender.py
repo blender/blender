@@ -195,8 +195,13 @@ def setup_staticlibs(lenv):
             
     if lenv['WITH_BF_OIIO']:
         libincs += Split(lenv['BF_OIIO_LIBPATH'])
+        if lenv['WITH_BF_STATICOIIO']:
+            statlibs += Split(lenv['BF_OIIO_LIB_STATIC'])
+
     if lenv['WITH_BF_BOOST']:
         libincs += Split(lenv['BF_BOOST_LIBPATH'])
+        if lenv['WITH_BF_STATICBOOST']:
+            statlibs += Split(lenv['BF_BOOST_LIB_STATIC'])
 
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
@@ -238,7 +243,8 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OIIO']:
-        syslibs += Split(lenv['BF_OIIO_LIB'])
+        if not lenv['WITH_BF_STATICOIIO']:
+            syslibs += Split(lenv['BF_OIIO_LIB'])
 
     if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
@@ -279,7 +285,7 @@ def setup_syslibs(lenv):
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
                 
-    if lenv['WITH_BF_BOOST']:
+    if lenv['WITH_BF_BOOST'] and not lenv['WITH_BF_STATICBOOST']:
         syslibs += Split(lenv['BF_BOOST_LIB'])
 
     syslibs += Split(lenv['BF_JPEG_LIB'])
