@@ -180,6 +180,18 @@ BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
 WITH_BF_CYCLES = False
 
+WITH_BF_OIIO = True
+BF_OIIO = LIBDIR + '/openimageio'
+BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_LIB = 'OpenImageIO'
+BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+
+WITH_BF_BOOST = True
+BF_BOOST = LIBDIR + '/boost'
+BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+
 WITH_BF_OPENMP = True
 
 #Ray trace optimization

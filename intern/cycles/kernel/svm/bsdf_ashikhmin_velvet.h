@@ -68,8 +68,11 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const S
 		float cosNH = dot(m_N, H);
 		float cosHO = fabsf(dot(I, H));
 
+		if(!(fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f))
+			return make_float3(0, 0, 0);
+
 		float cosNHdivHO = cosNH / cosHO;
-		cosNHdivHO = fmaxf(cosNHdivHO, 0.00001f);
+		cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
 
 		float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
 		float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
@@ -86,6 +89,7 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const S
 		*pdf = 0.5f * M_1_PI_F;
 		return make_float3(out, out, out);
 	}
+
 	return make_float3(0, 0, 0);
 }
 
@@ -116,31 +120,36 @@ __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, const ShaderClos
 		float cosNH = dot(m_N, H);
 		float cosHO = fabsf(dot(sd->I, H));
 
-		float cosNHdivHO = cosNH / cosHO;
-		cosNHdivHO = fmaxf(cosNHdivHO, 0.00001f);
+		if(fabsf(cosNO) > 1e-5f && fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f) {
+			float cosNHdivHO = cosNH / cosHO;
+			cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
 
-		float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
-		float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
+			float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
+			float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
 
-		float sinNH2 = 1 - cosNH * cosNH;
-		float sinNH4 = sinNH2 * sinNH2;
-		float cotangent2 =  (cosNH * cosNH) / sinNH2;
+			float sinNH2 = 1 - cosNH * cosNH;
+			float sinNH4 = sinNH2 * sinNH2;
+			float cotangent2 =  (cosNH * cosNH) / sinNH2;
 
-		float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
-		float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
+			float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
+			float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
-		float power = 0.25f * (D * G) / cosNO;
+			float power = 0.25f * (D * G) / cosNO;
 
-		*eval = make_float3(power, power, power);
+			*eval = make_float3(power, power, power);
 
 #ifdef __RAY_DIFFERENTIALS__
-		// TODO: find a better approximation for the retroreflective bounce
-		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
-		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
-		*domega_in_dx *= 125.0f;
-		*domega_in_dy *= 125.0f;
+			// TODO: find a better approximation for the retroreflective bounce
+			*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
+			*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
+			*domega_in_dx *= 125.0f;
+			*domega_in_dy *= 125.0f;
 #endif
-	} else
+		}
+		else
+			*pdf = 0.0f;
+	}
+	else
 		*pdf = 0.0f;
 
 	return LABEL_REFLECT|LABEL_DIFFUSE;

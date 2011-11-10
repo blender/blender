@@ -24,11 +24,12 @@ defs.append('WITH_MULTI')
 defs.append('WITH_CUDA')
 
 if env['OURPLATFORM'] in ('win32-mingw'):
-    cxxflags.append('-fno-rtti'.split())
     if env['WITH_BF_RAYOPTIMIZATION']:
         cxxflags.append('-ffast-math -msse -msse2 -msse3'.split())
         ccflags.append('-ffast-math -msse -msse2 -msse3'.split())
-    defs.append('BOOST_NO_RTTI BOOST_NO_TYPEID'.split())
+    # not needed yet, is for open shading language
+    # cxxflags.append('-fno-rtti'.split())
+    # defs.append('BOOST_NO_RTTI BOOST_NO_TYPEID'.split())
 
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())

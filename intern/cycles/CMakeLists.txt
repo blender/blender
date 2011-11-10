@@ -32,6 +32,9 @@ if(UNIX AND NOT APPLE)
 	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 endif()
 
+# not needed yet, is for open shading language
+set(RTTI_DISABLE_FLAGS "")
+
 # Definitions and Includes
 
 add_definitions(${BOOST_DEFINITIONS} ${OPENIMAGEIO_DEFINITIONS})

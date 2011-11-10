@@ -46,12 +46,13 @@
 
 /* SIMD Types */
 
+/* not needed yet, will be for qbvh
 #ifndef __KERNEL_GPU__
 
 #include <emmintrin.h>
 #include <xmmintrin.h>
 
-#endif
+#endif*/
 
 #ifndef _WIN32
 #ifndef __KERNEL_GPU__
