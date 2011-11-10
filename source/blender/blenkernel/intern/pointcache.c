@@ -680,7 +680,7 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 	ptcache_file_write(pf, (void *)DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
 
 	if(surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
-		unsigned int total_points=surface->data->total_points;
+		int total_points=surface->data->total_points;
 		unsigned int in_len;
 		unsigned char *out;
 

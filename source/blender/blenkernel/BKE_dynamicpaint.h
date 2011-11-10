@@ -24,7 +24,7 @@ typedef struct PaintSurfaceData {
 	struct PaintAdjData *adj_data; /* adjacency data for current surface */
 
 	struct PaintBakeData *bData; /* temporary per step data used for frame calculation */
-	unsigned int total_points;
+	int total_points;
 
 } PaintSurfaceData;
 
