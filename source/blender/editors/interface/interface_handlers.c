@@ -5471,6 +5471,38 @@ void uiContextActivePropertyHandle(bContext *C)
 	}
 }
 
+wmOperator *uiContextActiveOperator(const struct bContext *C)
+{
+	ARegion *ar_ctx= CTX_wm_region(C);
+	uiBlock *block;
+
+	/* scan active regions ui */
+	for(block=ar_ctx->uiblocks.first; block; block=block->next) {
+		if (block->ui_operator) {
+			return block->ui_operator;
+		}
+	}
+
+	/* scan popups */
+	{
+		bScreen *sc= CTX_wm_screen(C);
+		ARegion *ar;
+
+		for (ar= sc->regionbase.first; ar; ar= ar->next) {
+			if (ar == ar_ctx) {
+				continue;
+			}
+			for(block=ar->uiblocks.first; block; block=block->next) {
+				if (block->ui_operator) {
+					return block->ui_operator;
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 /* helper function for insert keyframe, reset to default, etc operators */
 void uiContextAnimUpdate(const bContext *C)
 {

@@ -53,6 +53,7 @@
 #include "ED_armature.h"
 
 #include "WM_api.h"
+#include "UI_interface.h"
 
 #include "screen_intern.h"
 
@@ -398,6 +399,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		SpaceFile *sfile= CTX_wm_space_file(C);
 		if(sfile) {
 			op= sfile->op;
+		}
+		else if ((op= uiContextActiveOperator(C))) {
+			/* do nothign */
 		}
 		else {
 			/* note, this checks poll, could be a problem, but this also

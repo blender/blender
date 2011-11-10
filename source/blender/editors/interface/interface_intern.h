@@ -314,7 +314,10 @@ struct uiBlock {
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-	
+
+	struct wmOperator *ui_operator;// use so presets can find the operator,
+								// across menus and from nested popups which fail for operator context.
+
 	void *evil_C;				// XXX hack for dynamic operator enums
 
 	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.

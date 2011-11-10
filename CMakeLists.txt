@@ -507,6 +507,7 @@ if(UNIX AND NOT APPLE)
 		if(NOT BOOST_CUSTOM)
 			set(Boost_USE_MULTITHREADED ON)
 			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})

@@ -2767,6 +2767,8 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		PointerRNA op_ptr;
 		uiLayout *row;
 
+		uiLayoutGetBlock(layout)->ui_operator= op;
+
 		row= uiLayoutRow(layout, TRUE);
 		uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
 
