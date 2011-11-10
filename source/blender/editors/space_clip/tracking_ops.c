@@ -1504,24 +1504,6 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 /********************** solve camera operator *********************/
 
-static int check_solve_track_count(MovieTracking *tracking)
-{
-	int tot= 0;
-	int frame1= tracking->settings.keyframe1, frame2= tracking->settings.keyframe2;
-	MovieTrackingTrack *track;
-
-	track= tracking->tracks.first;
-	while(track) {
-		if(BKE_tracking_has_marker(track, frame1))
-			if(BKE_tracking_has_marker(track, frame2))
-				tot++;
-
-		track= track->next;
-	}
-
-	return tot>=8;
-}
-
 static int solve_camera_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -1530,18 +1512,13 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	MovieTracking *tracking= &clip->tracking;
 	int width, height;
 	float error;
+	char error_msg[255];
 
-	if(!check_solve_track_count(tracking)) {
-		BKE_report(op->reports, RPT_ERROR, "At least 8 tracks on both of keyframes are needed for reconstruction");
+	if(!BKE_tracking_can_solve(tracking, error_msg, sizeof(error_msg))) {
+		BKE_report(op->reports, RPT_ERROR, error_msg);
+
 		return OPERATOR_CANCELLED;
 	}
-        /* XXX sergey, please fix this. it's not obvious to me that it is not
-         * an encapsulation violation to call the libmv c api from here. */
-        /*
-	if(!libmv_refineParametersAreValid(tracking->settings.refine_camera_intrinsics)) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid combination for intrinsic refinement");
-		return OPERATOR_CANCELLED;
-	}*/
 
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_get_size(clip, NULL, &width, &height);

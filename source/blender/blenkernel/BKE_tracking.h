@@ -91,6 +91,8 @@ void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingCont
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
 /* Camera solving */
+int BKE_tracking_can_solve(struct MovieTracking *tracking, char *error_msg, int error_size);
+
 float BKE_tracking_solve_reconstruction(struct MovieTracking *tracking, int width, int height);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);

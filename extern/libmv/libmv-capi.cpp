@@ -397,10 +397,10 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 
 	libmv::Tracks normalized_tracks(markers);
 
-	printf("frames to init from: %d, %d\n", keyframe1, keyframe2);
+	// printf("frames to init from: %d, %d\n", keyframe1, keyframe2);
 	libmv::vector<libmv::Marker> keyframe_markers =
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
-	printf("number of markers for init: %d\n", keyframe_markers.size());
+	// printf("number of markers for init: %d\n", keyframe_markers.size());
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, reconstruction);

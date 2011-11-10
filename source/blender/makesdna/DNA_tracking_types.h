@@ -124,8 +124,9 @@ typedef struct MovieTrackingSettings {
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 
 	/* ** which camera intrinsics to refine. uses on the REFINE_* flags */
-	int refine_camera_intrinsics;
-	char pad2[4];
+	short refine_camera_intrinsics;
+
+	char pad2[6];
 
 	/* ** tool settings ** */
 
@@ -186,12 +187,6 @@ enum {
 #define MARKER_TRACKED	(1<<1)
 #define MARKER_GRAPH_SEL (1<<2)
 
-/* MovieTrackingSettings->refine_camera_intrinsics */
-#define REFINE_FOCAL_LENGTH	(1<<0)
-#define REFINE_PRINCIPAL_POINT	(1<<1)
-#define REFINE_RADIAL_DISTORTION_K1 (1<<2)
-#define REFINE_RADIAL_DISTORTION_K2 (1<<4)
-
 /* MovieTrackingTrack->flag */
 #define TRACK_HAS_BUNDLE	(1<<1)
 #define TRACK_DISABLE_RED	(1<<2)
@@ -212,6 +207,12 @@ enum {
 #define TRACKING_SPEED_HALF			2
 #define TRACKING_SPEED_QUARTER		4
 #define TRACKING_SPEED_DOUBLE		5
+
+/* MovieTrackingSettings->refine_camera_intrinsics */
+#define REFINE_FOCAL_LENGTH			(1<<0)
+#define REFINE_PRINCIPAL_POINT		(1<<1)
+#define REFINE_RADIAL_DISTORTION_K1	(1<<2)
+#define REFINE_RADIAL_DISTORTION_K2	(1<<4)
 
 /* MovieTrackingStrabilization->flag */
 #define TRACKING_2D_STABILIZATION	(1<<0)

@@ -157,14 +157,13 @@ class CLIP_PT_tools_solving(Panel):
         col.operator("clip.solve_camera")
         col.operator("clip.clear_solution")
 
-        layout.prop(settings, "refine_focal_length")
-        layout.prop(settings, "refine_principal_point")
-        layout.prop(settings, "refine_radial_distortion_k1")
-        layout.prop(settings, "refine_radial_distortion_k2")
-
         col = layout.column(align=True)
         col.prop(settings, "keyframe_a")
         col.prop(settings, "keyframe_b")
+
+        col = layout.column(align=True)
+        col.label(text="Refine:")
+        col.prop(settings, "refine_intrinsics", text="")
 
 
 class CLIP_PT_tools_cleanup(Panel):

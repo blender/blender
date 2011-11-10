@@ -236,6 +236,23 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem refine_items[] = {
+		{0, "NONE", 0, "Nothing", "Do not refine camera intrinsics"},
+		{REFINE_FOCAL_LENGTH, "FOCAL_LENGTH", 0, "Focal Length", "Refine focal length"},
+		{REFINE_FOCAL_LENGTH|
+		 REFINE_PRINCIPAL_POINT, "FOCAL_LENGTH_PRINCIPAL_POINT", 0, "Focal Length, Principal Point", "Refine focal length and principal point"},
+		{REFINE_FOCAL_LENGTH|
+		 REFINE_PRINCIPAL_POINT|
+		 REFINE_RADIAL_DISTORTION_K1|
+		 REFINE_RADIAL_DISTORTION_K2,
+		 "FOCAL_LENGTH_PRINCIPAL_POINT_RADIAL_K1_K2", 0, "Focal Length, Principal Point, K1, K2", "Refine focal length, principal point and radial distortion K1 and K2"},
+		{REFINE_FOCAL_LENGTH|
+		 REFINE_RADIAL_DISTORTION_K1|
+		 REFINE_RADIAL_DISTORTION_K2, "FOCAL_LENGTH_RADIAL_K1_K2", 0, "Focal length, K1. K2", "Refine focal length and radial distortion K1 and K2"},
+		{REFINE_FOCAL_LENGTH|REFINE_RADIAL_DISTORTION_K1, "FOCAL_LENGTH_RADIAL_K1", 0, "Focal length, K1", "Refine focal length and radial distortion K1"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match moving settings");
 
@@ -278,25 +295,12 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
 	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
 
-	/* intrinsics refinement during bundle adjustment - focal length */
-	prop= RNA_def_property(srna, "refine_focal_length", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_FOCAL_LENGTH);
-	RNA_def_property_ui_text(prop, "Focal length", "Refine focal length during solving");
-
-	/* intrinsics refinement during bundle adjustment - principal point */
-	prop= RNA_def_property(srna, "refine_principal_point", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_PRINCIPAL_POINT);
-	RNA_def_property_ui_text(prop, "Principal Point", "Refine principal point during solving");
-
-	/* intrinsics refinement during bundle adjustment - radial distortion k1 */
-	prop= RNA_def_property(srna, "refine_radial_distortion_k1", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K1);
-	RNA_def_property_ui_text(prop, "Radial Distortion K1", "Refine K1 radial distortion parameter during solving");
-
-	/* intrinsics refinement during bundle adjustment - radial distortion k2 */
-	prop= RNA_def_property(srna, "refine_radial_distortion_k2", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K2);
-	RNA_def_property_ui_text(prop, "Radial Distortion K2", "Refine K2 radial distortion parameter during solving");
+	/* intrinsics refinement during bundle adjustment */
+	prop= RNA_def_property(srna, "refine_intrinsics", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "refine_camera_intrinsics");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, refine_items);
+	RNA_def_property_ui_text(prop, "Refine", "Refine intrinsics during camera solving");
 
 	/* tool settings */
 
