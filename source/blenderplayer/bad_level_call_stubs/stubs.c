@@ -47,6 +47,7 @@ struct CSG_VertexIteratorDescriptor;
 struct ColorBand;
 struct CurveMapping;
 struct Curve;
+struct DerivedMesh;
 struct EditBone;
 struct EditFace;
 struct EditMesh;
@@ -77,6 +78,7 @@ struct RenderEngine;
 struct RenderEngineType;
 struct RenderLayer;
 struct RenderResult;
+struct Scene;
 struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
@@ -198,7 +200,7 @@ int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit){r
 int ED_space_image_show_render(struct SpaceImage *sima){return 0;}
 int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
 void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings){}
-void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
+void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
 void ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip){}

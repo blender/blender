@@ -82,9 +82,10 @@ Image *ED_space_image(SpaceImage *sima)
 }
 
 /* called to assign images to UV faces */
-void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
+void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 {
-	ED_uvedit_assign_image(CTX_data_main(C), scene, obedit, ima, sima->image);
+	/* context may be NULL, so use global */
+	ED_uvedit_assign_image(G.main, scene, obedit, ima, sima->image);
 	
 	/* change the space ima after because uvedit_face_visible uses the space ima
 	 * to check if the face is displayed in UV-localview */
@@ -99,13 +100,10 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 	if(sima->image && sima->image->id.us==0)
 		sima->image->id.us= 1;
 	
-	if(C) {
-		if(obedit)
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-		
-		ED_area_tag_redraw(CTX_wm_area(C));
-		
-	}
+	if(obedit)
+		WM_main_add_notifier(NC_GEOM|ND_DATA, obedit->data);
+
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_IMAGE, NULL);
 }
 
 ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
