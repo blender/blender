@@ -106,7 +106,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	faceMap = MEM_callocN(sizeof(*faceMap) * maxFaces, "build modifier faceMap");
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
-	frac = BKE_curframe(md->scene) - bmd->start / bmd->length;
+	frac = (BKE_curframe(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
 
 	numFaces = dm->getNumFaces(dm) * frac;
