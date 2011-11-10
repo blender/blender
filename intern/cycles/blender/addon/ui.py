@@ -350,7 +350,7 @@ def find_node_input(node, name):
 def panel_node_draw(layout, id, output_type, input_name):
     if not id.node_tree:
         layout.prop(id, "use_nodes", icon='NODETREE')
-        return
+        return False
 
     ntree = id.node_tree
 
@@ -360,6 +360,8 @@ def panel_node_draw(layout, id, output_type, input_name):
     else:
         input = find_node_input(node, input_name)
         layout.template_node_view(ntree, node, input);
+    
+    return True
 
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Lamp"
@@ -411,8 +413,9 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.lamp
-        panel_node_draw(layout, mat, 'OUTPUT_LAMP', 'Surface')
+        lamp = context.lamp
+        if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
+            layout.prop(lamp, "color")
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -425,8 +428,9 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.world
-        panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Surface')
+        world = context.world
+        if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
+            layout.prop(world, "horizon_color", text="Color")
 
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
@@ -457,7 +461,8 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface')
+        if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
+            layout.prop(mat, "diffuse_color")
 
 class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
