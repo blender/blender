@@ -214,7 +214,7 @@ endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 # Cycles
-option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
+option(WITH_CYCLES			"Enable Cycles Render Engine" OFF)
 OPTION(WITH_CYCLES_TEST		"Build cycles test application" OFF)
 
 # disable for now, but plan to support on all platforms eventually
