@@ -53,6 +53,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 
@@ -83,6 +84,7 @@
 
 static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 {
+	Main *bmain= CTX_data_main(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;
 	BMIter iter;
@@ -128,7 +130,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	}
 	
 	if(ima)
-		ED_uvedit_assign_image(scene, obedit, ima, NULL);
+		ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 	
 	/* select new UV's */
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {

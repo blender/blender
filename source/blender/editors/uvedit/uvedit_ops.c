@@ -38,7 +38,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_image_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -54,12 +56,15 @@
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -96,9 +101,46 @@ int ED_uvedit_test(Object *obedit)
 	return ret;
 }
 
+/**************************** object active image *****************************/
+
+static int is_image_texture_node(bNode *node)
+{
+	return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT);
+}
+
+int ED_object_get_active_image(Object *ob, int mat_nr, Image **ima, ImageUser **iuser, bNode **node_r)
+{
+	Material *ma= give_current_material(ob, mat_nr);
+	bNode *node= (ma && ma->use_nodes)? nodeGetActiveTexture(ma->nodetree): NULL;
+
+	if(node && is_image_texture_node(node)) {
+		if(ima) *ima= (Image*)node->id;
+		if(iuser) *iuser= NULL;
+		if(node_r) *node_r= node;
+		return TRUE;
+	}
+	
+	if(ima) *ima= NULL;
+	if(iuser) *iuser= NULL;
+	if(node_r) *node_r= node;
+
+	return FALSE;
+}
+
+void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *ima)
+{
+	Material *ma= give_current_material(ob, mat_nr);
+	bNode *node= (ma && ma->use_nodes)? nodeGetActiveTexture(ma->nodetree): NULL;
+
+	if(node && is_image_texture_node(node)) {
+		node->id= &ima->id;
+		ED_node_generic_update(bmain, ma->nodetree, node);
+	}
+}
+
 /************************* assign image ************************/
 
-void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *previma)
+void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
 	BMFace *efa;
@@ -118,36 +160,49 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	if(!em || !em->bm->totface) {
 		return;
 	}
-	
-	/* ensure we have a uv layer */
-	if(!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
-		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
-		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
-		update= 1;
+
+	if(scene_use_new_shading_nodes(scene)) {
+		/* new shading system, assign image in material */
+		int sloppy= 1;
+		BMFace *efa= BM_get_actFace(em->bm, sloppy);
+
+		if(efa)
+			ED_object_assign_active_image(bmain, obedit, efa->mat_nr, ima);
 	}
-
-	/* now assign to all visible faces */
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-
-		if(uvedit_face_visible(scene, previma, efa, tf)) {
-			if(ima) {
-				tf->tpage= ima;
-				
-				if(ima->id.us==0) id_us_plus(&ima->id);
-				else id_lib_extern(&ima->id);
-			}
-			else {
-				tf->tpage= NULL;
-			}
-
-			update = 1;
+	else {
+		/* old shading system, assign image to selected faces */
+		
+		/* ensure we have a uv layer */
+		if(!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
+			BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
+			BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
+			update= 1;
 		}
+
+		/* now assign to all visible faces */
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+
+			if(uvedit_face_visible(scene, previma, efa, tf)) {
+				if(ima) {
+					tf->tpage= ima;
+					
+					if(ima->id.us==0) id_us_plus(&ima->id);
+					else id_lib_extern(&ima->id);
+				}
+				else {
+					tf->tpage= NULL;
+				}
+
+				update = 1;
+			}
+		}
+
+		/* and update depdency graph */
+		if(update)
+			DAG_id_tag_update(obedit->data, 0);
 	}
 
-	/* and update depdency graph */
-	if(update)
-		DAG_id_tag_update(obedit->data, 0);
 }
 
 /* dotile -	1, set the tile flag (from the space image)

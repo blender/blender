@@ -90,6 +90,8 @@
 
 #include "RNA_enum_types.h"
 
+#include "GPU_material.h"
+
 #include "node_intern.h"
 
 static EnumPropertyItem socket_in_out_items[] = {
@@ -598,6 +600,8 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 {
+	int was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE);
+
 	nodeSetActive(ntree, node);
 	
 	if(node->type!=NODE_GROUP) {
@@ -619,6 +623,15 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0)
 					ED_node_generic_update(bmain, ntree, node);
+			}
+
+			/* if active texture changed, free glsl materials */
+			if((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+				Material *ma;
+
+				for(ma=bmain->mat.first; ma; ma=ma->id.next)
+					if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+						GPU_material_free(ma);
 			}
 
 			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);

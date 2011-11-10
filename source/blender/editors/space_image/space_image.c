@@ -47,7 +47,10 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "IMB_imbuf_types.h"
@@ -81,7 +84,7 @@ Image *ED_space_image(SpaceImage *sima)
 /* called to assign images to UV faces */
 void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 {
-	ED_uvedit_assign_image(scene, obedit, ima, sima->image);
+	ED_uvedit_assign_image(CTX_data_main(C), scene, obedit, ima, sima->image);
 	
 	/* change the space ima after because uvedit_face_visible uses the space ima
 	 * to check if the face is displayed in UV-localview */
@@ -570,6 +573,7 @@ static void image_dropboxes(void)
 
 static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
+	Scene *scene = CTX_data_scene(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima;
@@ -584,19 +588,31 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
 		struct BMEditMesh *em= me->edit_btmesh;
-		MTexPoly *tf;
-		
-		if(em && EDBM_texFaceCheck(em)) {
-			sima->image= NULL;
+		int sloppy= 1; /* partially selected face is ok */
+
+		if(scene_use_new_shading_nodes(scene)) {
+			/* new shading system, get image from material */
+			BMFace *efa = BM_get_actFace(em->bm, sloppy);
+
+			if(efa)
+				ED_object_get_active_image(obedit, efa->mat_nr, &sima->image, NULL, NULL);
+		}
+		else {
+			/* old shading system, we set texface */
+			MTexPoly *tf;
 			
-			tf = EDBM_get_active_mtexpoly(em, NULL, 1); /* partially selected face is ok */
-			
-			if(tf) {
-				/* don't need to check for pin here, see above */
-				sima->image= tf->tpage;
+			if(em && EDBM_texFaceCheck(em)) {
+				sima->image= NULL;
 				
-				if(sima->flag & SI_EDITTILE);
-				else sima->curtile= tf->tile;
+				tf = EDBM_get_active_mtexpoly(em, NULL, 1); /* partially selected face is ok */
+				
+				if(tf) {
+					/* don't need to check for pin here, see above */
+					sima->image= tf->tpage;
+					
+					if(sima->flag & SI_EDITTILE);
+					else sima->curtile= tf->tile;
+				}
 			}
 		}
 	}

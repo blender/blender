@@ -41,12 +41,13 @@
 
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_object_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
@@ -55,6 +56,7 @@
 #include "BKE_paint.h"
 #include "BKE_property.h"
 #include "BKE_tessmesh.h"
+#include "BKE_scene.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -67,6 +69,7 @@
 #include "GPU_material.h"
 
 #include "ED_mesh.h"
+#include "ED_uvedit.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -646,7 +649,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
 	Mesh *me= ob->data;
 	
@@ -701,5 +704,181 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	
 	/* in editmode, the blend mode needs to be set incase it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+/************************** NEW SHADING NODES ********************************/
+
+typedef struct TexMatCallback {
+	Scene *scene;
+	Object *ob;
+	Mesh *me;
+	DerivedMesh *dm;
+} TexMatCallback;
+
+static void tex_mat_set_material_cb(void *UNUSED(userData), int mat_nr, void *attribs)
+{
+	/* all we have to do here is simply enable the GLSL material, but note
+	   that the GLSL code will give different result depending on the drawtype,
+	   in texture draw mode it will output the active texture node, in material
+	   draw mode it will show the full material. */
+	GPU_enable_material(mat_nr, attribs);
+}
+
+static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
+{
+	/* texture draw mode without GLSL */
+	TexMatCallback *data= (TexMatCallback*)userData;
+	GPUVertexAttribs *gattribs = attribs;
+	Image *ima;
+	ImageUser *iuser;
+	bNode *node;
+	int texture_set= 0;
+
+	/* draw image texture if we find one */
+	if(ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node)) {
+		/* get openl texture */
+		int mipmap= 1;
+		int bindcode= (ima)? GPU_verify_image(ima, iuser, 0, 0, mipmap): 0;
+		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		if(bindcode) {
+			NodeTexBase *texbase= node->storage;
+
+			/* disable existing material */
+			GPU_disable_material();
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+
+			/* bind texture */
+			glEnable(GL_COLOR_MATERIAL);
+			glEnable(GL_TEXTURE_2D);
+
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+			glMatrixMode(GL_TEXTURE);
+			glLoadMatrixf(texbase->tex_mapping.mat);
+			glMatrixMode(GL_MODELVIEW);
+
+			/* use active UV texture layer */
+			memset(gattribs, 0, sizeof(*gattribs));
+
+			gattribs->layer[0].type= CD_MTFACE;
+			gattribs->layer[0].name[0]= '\0';
+			gattribs->layer[0].gltexco= 1;
+			gattribs->totlayer= 1;
+
+			texture_set= 1;
+		}
+	}
+
+	if(!texture_set) {
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+
+		/* disable texture */
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_COLOR_MATERIAL);
+
+		/* draw single color */
+		GPU_enable_material(mat_nr, attribs);
+	}
+}
+
+static int tex_mat_set_face_mesh_cb(void *userData, int index)
+{
+	/* faceselect mode face hiding */
+	TexMatCallback *data= (TexMatCallback*)userData;
+	Mesh *me = (Mesh*)data->me;
+	MFace *mface = &me->mface[index];
+
+	return !(mface->flag & ME_HIDE);
+}
+
+static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
+{
+	/* editmode face hiding */
+	EditFace *efa= EM_get_face_for_index(index);
+
+	return !(efa->h);
+}
+
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+{
+	if(!scene_use_new_shading_nodes(scene)) {
+		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, faceselect);
+		return;
+	}
+
+	/* set opengl state for negative scale & color */
+	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+	else glFrontFace(GL_CCW);
+
+	glEnable(GL_LIGHTING);
+
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
+		/* weight paint mode exception */
+		int useColors= 1;
+
+		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions,
+			ob->data, useColors, GPU_enable_material, NULL);
+	}
+	else {
+		Mesh *me= ob->data;
+		TexMatCallback data = {scene, ob, me, dm};
+		int (*set_face_cb)(void*, int);
+		int glsl;
+		
+		/* face hiding callback depending on mode */
+		if(ob == scene->obedit)
+			set_face_cb= tex_mat_set_face_editmesh_cb;
+		else if(faceselect)
+			set_face_cb= tex_mat_set_face_mesh_cb;
+		else
+			set_face_cb= NULL;
+
+		/* test if we can use glsl */
+		glsl= (v3d->drawtype == OB_MATERIAL) && GPU_glsl_support();
+
+		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+
+		if(glsl) {
+			/* draw glsl */
+			dm->drawMappedFacesMat(dm,
+				tex_mat_set_material_cb,
+				set_face_cb, &data);
+		}
+		else {
+			float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+			/* draw textured */
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+
+			dm->drawMappedFacesMat(dm,
+				tex_mat_set_texture_cb,
+				set_face_cb, &data);
+		}
+
+		GPU_end_object_materials();
+	}
+
+	/* reset opengl state */
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFrontFace(GL_CCW);
+
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+
+	/* faceselect mode drawing over textured mesh */
+	if(!(ob == scene->obedit) && faceselect)
+		draw_mesh_face_select(rv3d, ob->data, dm);
 }
 

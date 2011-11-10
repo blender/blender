@@ -1120,6 +1120,141 @@ static void bmDM_drawFacesGLSL(DerivedMesh *dm,
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
 
+
+static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
+			   void (*setMaterial)(void *userData, int, void *attribs),
+			   int (*setFace)(void *userData, int index), void *userData)
+{
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	EditMesh *em= bmdm->em;
+	float (*vertexCos)[3]= bmdm->vertexCos;
+	float (*vertexNos)[3]= bmdm->vertexNos;
+	EditVert *eve;
+	EditFace *efa;
+	DMVertexAttribs attribs= {{{0}}};
+	GPUVertexAttribs gattribs;
+	int i, b, matnr, new_matnr;
+
+	matnr = -1;
+
+	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
+	glShadeModel(GL_SMOOTH);
+
+	for (i=0,eve=em->verts.first; eve; eve= eve->next)
+		eve->tmp.l = (intptr_t) i++;
+
+#define PASSATTRIB(efa, eve, vert) {											\
+	if(attribs.totorco) {														\
+		float *orco = attribs.orco.array[eve->tmp.l];							\
+		if(attribs.orco.glTexco)												\
+			glTexCoord3fv(orco);												\
+		else																	\
+			glVertexAttrib3fvARB(attribs.orco.glIndex, orco);					\
+	}																			\
+	for(b = 0; b < attribs.tottface; b++) {										\
+		MTFace *_tf = (MTFace*)((char*)efa->data + attribs.tface[b].emOffset);	\
+		if(attribs.tface[b].glTexco)											\
+			glTexCoord2fv(_tf->uv[vert]);										\
+		else																	\
+			glVertexAttrib2fvARB(attribs.tface[b].glIndex, _tf->uv[vert]);		\
+	}																			\
+	for(b = 0; b < attribs.totmcol; b++) {										\
+		MCol *cp = (MCol*)((char*)efa->data + attribs.mcol[b].emOffset);		\
+		GLubyte col[4];															\
+		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
+		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+	}																			\
+	if(attribs.tottang) {														\
+		float *tang = attribs.tang.array[i*4 + vert];							\
+		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
+	}																			\
+}
+
+	for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+		int drawSmooth= (efa->flag & ME_SMOOTH);
+
+		/* face hiding */
+		if(setFace && !setFace(userData, i))
+			continue;
+
+		/* material */
+		new_matnr = efa->mat_nr + 1;
+		if(new_matnr != matnr) {
+			setMaterial(userData, matnr = new_matnr, &gattribs);
+			DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+		}
+
+		/* face */
+		glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+		if (!drawSmooth) {
+			if(vertexCos) glNormal3fv(bmdm->faceNos[i]);
+			else glNormal3fv(efa->n);
+
+			PASSATTRIB(efa, efa->v1, 0);
+			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+			else glVertex3fv(efa->v1->co);
+
+			PASSATTRIB(efa, efa->v2, 1);
+			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+			else glVertex3fv(efa->v2->co);
+
+			PASSATTRIB(efa, efa->v3, 2);
+			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+			else glVertex3fv(efa->v3->co);
+
+			if(efa->v4) {
+				PASSATTRIB(efa, efa->v4, 3);
+				if(vertexCos) glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+				else glVertex3fv(efa->v4->co);
+			}
+		} else {
+			PASSATTRIB(efa, efa->v1, 0);
+			if(vertexCos) {
+				glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
+				glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+			}
+			else {
+				glNormal3fv(efa->v1->no);
+				glVertex3fv(efa->v1->co);
+			}
+
+			PASSATTRIB(efa, efa->v2, 1);
+			if(vertexCos) {
+				glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
+				glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+			}
+			else {
+				glNormal3fv(efa->v2->no);
+				glVertex3fv(efa->v2->co);
+			}
+
+			PASSATTRIB(efa, efa->v3, 2);
+			if(vertexCos) {
+				glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
+				glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+			}
+			else {
+				glNormal3fv(efa->v3->no);
+				glVertex3fv(efa->v3->co);
+			}
+
+			if(efa->v4) {
+				PASSATTRIB(efa, efa->v4, 3);
+				if(vertexCos) {
+					glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+				}
+				else {
+					glNormal3fv(efa->v4->no);
+					glVertex3fv(efa->v4->co);
+				}
+			}
+		}
+		glEnd();
+	}
+#undef PASSATTRIB
+}
+
 static void bmDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -1561,6 +1696,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	bmdm->dm.drawMappedFaces = bmDM_drawMappedFaces;
 	bmdm->dm.drawMappedFacesTex = bmDM_drawMappedFacesTex;
 	bmdm->dm.drawMappedFacesGLSL = bmDM_drawMappedFacesGLSL;
+	bmdm->dm.drawMappedFacesMat = bmDM_drawMappedFacesMat;
 	bmdm->dm.drawFacesTex = bmDM_drawFacesTex;
 	bmdm->dm.drawFacesGLSL = bmDM_drawFacesGLSL;
 	bmdm->dm.drawUVEdges = bmDM_drawUVEdges;

@@ -332,7 +332,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 	return N_("Browse ID data to be linked");
 }
 
-static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, const char *newop, const char *openop, const char *unlinkop)
+static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, short idcode, int flag, const char *newop, const char *openop, const char *unlinkop)
 {
 	uiBut *but;
 	uiBlock *block;
@@ -478,6 +478,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		if((idfrom && idfrom->lib) || !editable)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
+
+	if(idcode == ID_TE)
+		uiTemplateTextureShow(layout, C, &template->ptr, template->prop);
 	
 	uiBlockEndAlign(block);
 }
@@ -487,6 +490,7 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, const
 	TemplateID *template;
 	PropertyRNA *prop;
 	StructRNA *type;
+	short idcode;
 
 	prop= RNA_struct_find_property(ptr, propname);
 
@@ -507,14 +511,15 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, const
 		flag |= UI_ID_OPEN;
 
 	type= RNA_property_pointer_type(ptr, prop);
-	template->idlb= which_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
+	idcode= RNA_type_to_ID_code(type);
+	template->idlb= which_libbase(CTX_data_main(C), idcode);
 	
 	/* create UI elements for this template
 	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons
 	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
-		template_ID(C, layout, template, type, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template, type, idcode, flag, newop, openop, unlinkop);
 	}
 
 	MEM_freeN(template);

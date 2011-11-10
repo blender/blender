@@ -52,6 +52,7 @@
 #include "BKE_displist.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
@@ -379,6 +380,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
@@ -428,7 +430,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	
-	ED_uvedit_assign_image(scene, obedit, ima, NULL);
+	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
 	if(exitmode) {
 		EDBM_LoadEditBMesh(scene, obedit);
