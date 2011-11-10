@@ -766,7 +766,7 @@ __device_inline float __uint_as_float(uint i)
 
 /* Interpolation */
 
-template<class A, class B> __device_inline A lerp(const A& a, const A& b, const B& t)
+template<class A, class B> A lerp(const A& a, const A& b, const B& t)
 {
 	return (A)(a * ((B)1 - t) + b * t);
 }
