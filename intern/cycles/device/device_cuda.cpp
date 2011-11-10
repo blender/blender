@@ -223,6 +223,10 @@ public:
 		if(path_exists(cubin))
 			return cubin;
 
+#ifdef WITH_CUDA_BINARIES
+		fprintf(stderr, "CUDA binary kernel for this graphics card not found.\n");
+		return "";
+#else
 		/* if not, find CUDA compiler */
 		string nvcc = cuCompilerPath();
 
@@ -260,6 +264,7 @@ public:
 		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
 
 		return cubin;
+#endif
 	}
 
 	bool load_kernels()

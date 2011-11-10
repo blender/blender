@@ -85,3 +85,16 @@ if(WITH_CYCLES_BLENDER)
 	add_definitions(-DBLENDER_PLUGIN)
 endif()
 
+###########################################################################
+# CUDA
+
+if(WITH_CYCLES_CUDA_BINARIES)
+	find_package(CUDA) # Try to auto locate CUDA toolkit
+	if(CUDA_FOUND)
+		message(STATUS "CUDA nvcc = ${CUDA_NVCC_EXECUTABLE}")
+	else()
+		message(STATUS "CUDA compiler not found, disabling WITH_CYCLES_CUDA_BINARIES")
+		set(WITH_CYCLES_CUDA_BINARIES OFF)
+	endif()
+endif()
+

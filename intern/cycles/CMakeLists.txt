@@ -49,6 +49,10 @@ if(WITH_CYCLES_PARTIO)
   add_definitions(-DWITH_PARTIO)
 endif()
 
+if(WITH_CYCLES_CUDA_BINARIES)
+  add_definitions(-DWITH_CUDA_BINARIES)
+endif()
+
 add_definitions(-DWITH_OPENCL)
 add_definitions(-DWITH_CUDA)
 add_definitions(-DWITH_MULTI)
@@ -72,3 +76,4 @@ add_subdirectory(kernel)
 add_subdirectory(render)
 add_subdirectory(subd)
 add_subdirectory(util)
+
