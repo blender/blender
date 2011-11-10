@@ -52,6 +52,7 @@
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf_types.h"
 

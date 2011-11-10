@@ -797,12 +797,14 @@ static int tex_mat_set_face_mesh_cb(void *userData, int index)
 	return !(mface->flag & ME_HIDE);
 }
 
-static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
+static int tex_mat_set_face_editmesh_cb(void *userData, int index)
 {
 	/* editmode face hiding */
-	EditFace *efa= EM_get_face_for_index(index);
+	TexMatCallback *data= (TexMatCallback*)userData;
+	Mesh *me = (Mesh*)data->me;
+	BMFace *efa= EDBM_get_face_for_index(me->edit_btmesh, index);
 
-	return !(efa->h);
+	return !BM_TestHFlag(efa, BM_HIDDEN);
 }
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)

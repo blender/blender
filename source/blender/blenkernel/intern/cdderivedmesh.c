@@ -1397,9 +1397,9 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	DMVertexAttribs attribs;
 	MVert *mvert = cddm->mvert;
 	MFace *mf = cddm->mface;
-	float (*nors)[3] = dm->getFaceDataArray(dm, CD_NORMAL);
+	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	int a, matnr, new_matnr;
-	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 

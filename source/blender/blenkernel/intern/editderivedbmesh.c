@@ -1112,6 +1112,7 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			glEnd();
 		}
 	}
+#undef PASSATTRIB
 }
 
 static void bmDM_drawFacesGLSL(DerivedMesh *dm,
@@ -1126,43 +1127,41 @@ static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
 			   int (*setFace)(void *userData, int index), void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
-	EditMesh *em= bmdm->em;
+	BMesh *bm= bmdm->tc->bm;
+	BMEditMesh *em = bmdm->tc;
 	float (*vertexCos)[3]= bmdm->vertexCos;
 	float (*vertexNos)[3]= bmdm->vertexNos;
-	EditVert *eve;
-	EditFace *efa;
+	BMVert *eve;
+	BMFace *efa;
+	BMIter iter;
+	BMLoop **ltri;
 	DMVertexAttribs attribs= {{{0}}};
 	GPUVertexAttribs gattribs;
-	int i, b, matnr, new_matnr;
+	int i, b, matnr, new_matnr, dodraw;
 
 	matnr = -1;
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
 
-	for (i=0,eve=em->verts.first; eve; eve= eve->next)
-		eve->tmp.l = (intptr_t) i++;
+	BM_ITER_INDEX(eve, &iter, bm, BM_VERTS_OF_MESH, NULL, i) {
+		 BM_SetIndex(eve, i);
+	}
 
-#define PASSATTRIB(efa, eve, vert) {											\
+#define PASSATTRIB(loop, eve, vert) {											\
 	if(attribs.totorco) {														\
-		float *orco = attribs.orco.array[eve->tmp.l];							\
-		if(attribs.orco.glTexco)												\
-			glTexCoord3fv(orco);												\
-		else																	\
-			glVertexAttrib3fvARB(attribs.orco.glIndex, orco);					\
+		float *orco = attribs.orco.array[BM_GetIndex(eve)];						\
+		glVertexAttrib3fvARB(attribs.orco.glIndex, orco);						\
 	}																			\
 	for(b = 0; b < attribs.tottface; b++) {										\
-		MTFace *_tf = (MTFace*)((char*)efa->data + attribs.tface[b].emOffset);	\
-		if(attribs.tface[b].glTexco)											\
-			glTexCoord2fv(_tf->uv[vert]);										\
-		else																	\
-			glVertexAttrib2fvARB(attribs.tface[b].glIndex, _tf->uv[vert]);		\
+		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPUV, b);\
+		glVertexAttrib2fvARB(attribs.tface[b].glIndex, _luv->uv);				\
 	}																			\
 	for(b = 0; b < attribs.totmcol; b++) {										\
-		MCol *cp = (MCol*)((char*)efa->data + attribs.mcol[b].emOffset);		\
-		GLubyte col[4];															\
-		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data, CD_MLOOPCOL, b);\
+		GLubyte _col[4];														\
+		_col[0]= _cp->b; _col[1]= _cp->g; _col[2]= _cp->r; _col[3]= _cp->a;		\
+		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, _col);					\
 	}																			\
 	if(attribs.tottang) {														\
 		float *tang = attribs.tang.array[i*4 + vert];							\
@@ -1170,11 +1169,13 @@ static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
 	}																			\
 }
 
-	for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
-		int drawSmooth= (efa->flag & ME_SMOOTH);
+	for (i=0, ltri=em->looptris[0]; i<em->tottri; i++, ltri += 3) {
+		int drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+
+		efa = ltri[0]->f;
 
 		/* face hiding */
-		if(setFace && !setFace(userData, i))
+		if(setFace && !setFace(userData, BM_GetIndex(efa)))
 			continue;
 
 		/* material */
@@ -1185,69 +1186,52 @@ static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
 		}
 
 		/* face */
-		glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+		glBegin(GL_TRIANGLES);
 		if (!drawSmooth) {
 			if(vertexCos) glNormal3fv(bmdm->faceNos[i]);
-			else glNormal3fv(efa->n);
+			else glNormal3fv(efa->no);
 
-			PASSATTRIB(efa, efa->v1, 0);
-			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
-			else glVertex3fv(efa->v1->co);
+			PASSATTRIB(ltri[0], ltri[0]->v, 0);
+			if(vertexCos) glVertex3fv(vertexCos[BM_GetIndex(ltri[0]->v)]);
+			else glVertex3fv(ltri[0]->v->co);
 
-			PASSATTRIB(efa, efa->v2, 1);
-			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
-			else glVertex3fv(efa->v2->co);
+			PASSATTRIB(ltri[1], ltri[1]->v, 1);
+			if(vertexCos) glVertex3fv(vertexCos[BM_GetIndex(ltri[1]->v)]);
+			else glVertex3fv(ltri[1]->v->co);
 
-			PASSATTRIB(efa, efa->v3, 2);
-			if(vertexCos) glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
-			else glVertex3fv(efa->v3->co);
+			PASSATTRIB(ltri[2], ltri[2]->v, 2);
+			if(vertexCos) glVertex3fv(vertexCos[BM_GetIndex(ltri[2]->v)]);
+			else glVertex3fv(ltri[2]->v->co);
 
-			if(efa->v4) {
-				PASSATTRIB(efa, efa->v4, 3);
-				if(vertexCos) glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
-				else glVertex3fv(efa->v4->co);
-			}
 		} else {
-			PASSATTRIB(efa, efa->v1, 0);
+			PASSATTRIB(ltri[0], ltri[0]->v, 0);
 			if(vertexCos) {
-				glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
-				glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+				glNormal3fv(vertexNos[BM_GetIndex(ltri[0]->v)]);
+				glVertex3fv(vertexCos[BM_GetIndex(ltri[0]->v)]);
 			}
 			else {
-				glNormal3fv(efa->v1->no);
-				glVertex3fv(efa->v1->co);
+				glNormal3fv(ltri[0]->v->no);
+				glVertex3fv(ltri[0]->v->co);
 			}
 
-			PASSATTRIB(efa, efa->v2, 1);
+			PASSATTRIB(ltri[1], ltri[1]->v, 1);
 			if(vertexCos) {
-				glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
-				glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+				glNormal3fv(vertexNos[BM_GetIndex(ltri[1]->v)]);
+				glVertex3fv(vertexCos[BM_GetIndex(ltri[1]->v)]);
 			}
 			else {
-				glNormal3fv(efa->v2->no);
-				glVertex3fv(efa->v2->co);
+				glNormal3fv(ltri[1]->v->no);
+				glVertex3fv(ltri[1]->v->co);
 			}
 
-			PASSATTRIB(efa, efa->v3, 2);
+			PASSATTRIB(ltri[2], ltri[2]->v, 2);
 			if(vertexCos) {
-				glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
-				glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+				glNormal3fv(vertexNos[BM_GetIndex(ltri[2]->v)]);
+				glVertex3fv(vertexCos[BM_GetIndex(ltri[2]->v)]);
 			}
 			else {
-				glNormal3fv(efa->v3->no);
-				glVertex3fv(efa->v3->co);
-			}
-
-			if(efa->v4) {
-				PASSATTRIB(efa, efa->v4, 3);
-				if(vertexCos) {
-					glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
-					glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
-				}
-				else {
-					glNormal3fv(efa->v4->no);
-					glVertex3fv(efa->v4->co);
-				}
+				glNormal3fv(ltri[2]->v->no);
+				glVertex3fv(ltri[2]->v->co);
 			}
 		}
 		glEnd();

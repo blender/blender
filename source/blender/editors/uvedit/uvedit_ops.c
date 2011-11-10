@@ -59,7 +59,9 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_tessmesh.h"
 
 #include "ED_image.h"
