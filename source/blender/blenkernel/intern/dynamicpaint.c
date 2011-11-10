@@ -4482,7 +4482,7 @@ static int dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *ob
 	return ret;
 }
 
-static int surface_needsVelocityData(DynamicPaintSurface *surface, Scene *scene, Object *ob)
+static int surface_needsVelocityData(DynamicPaintSurface *surface, Scene *scene, Object *UNUSED(ob))
 {
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP)
 		return 1;
