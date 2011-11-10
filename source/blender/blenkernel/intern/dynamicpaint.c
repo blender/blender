@@ -6,7 +6,7 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * Contributor(s): Miika Hämäläinen
+ * Contributor(s): Miika HÃ¤mÃ¤lÃ¤inen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -204,7 +204,7 @@ typedef struct PaintAdjData {
 /***************************** General Utils ******************************/
 
 /* Set canvas error string to display at the bake report */
-static int setError(DynamicPaintCanvasSettings *canvas, char *string)
+static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
 	/* Add error to canvas ui info label */
 	BLI_snprintf(canvas->error, sizeof(canvas->error), string);
@@ -339,7 +339,7 @@ static int surface_duplicateNameExists(void *arg, const char *name)
 	return 0;
 }
 
-void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename)
+void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char *basename)
 {
 	char name[64];
 	BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
@@ -488,7 +488,7 @@ static void scene_setSubframe(Scene *scene, float subframe)
 
 #define BRUSH_USES_VELOCITY (1<<0)
 
-static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene, Object *ob)
+static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene, Object *UNUSED(ob))
 {
 	Base *base = NULL;
 	GroupObject *go = NULL;	
@@ -1516,7 +1516,10 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 /*
 *	Apply canvas data to the object derived mesh
 */
-static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
+static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
+                                                       Scene *UNUSED(scene),
+                                                       Object *ob,
+                                                       DerivedMesh *dm)
 {	
 	DerivedMesh *result = CDDM_copy(dm);
 
@@ -2068,7 +2071,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 	PaintUVPoint *tempPoints = NULL;
 	Vec3f *tempWeights = NULL;
-	MVert *mvert = NULL;
+	/* MVert *mvert = NULL; */ /* UNUSED */
 	MFace *mface = NULL;
 	MTFace *tface = NULL;
 	Bounds2D *faceBB = NULL;
@@ -2079,7 +2082,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) return setError(canvas, "Can't bake non-\"image sequence\" formats.");
 
 	numOfFaces = dm->getNumFaces(dm);
-	mvert = dm->getVertArray(dm);
+	/* mvert = dm->getVertArray(dm); */ /* UNUSED */
 	mface = dm->getFaceArray(dm);
 
 	/* get uv layer */
@@ -3039,7 +3042,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 }
 
 /* calculate velocity for object center point */
-static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, DynamicPaintBrushSettings *brush, Vec3f *brushVel, float timescale)
+static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, DynamicPaintBrushSettings *UNUSED(brush), Vec3f *brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	float cur_loc[3] = {0.0f}, prev_loc[3] = {0.0f};
@@ -3076,7 +3079,13 @@ static void dynamicPaint_brushObjectCalculateVelocity(Scene *scene, Object *ob, 
 /*
 *	Paint a brush object mesh to the surface
 */
-static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrushSettings *brush, Object *canvasOb, Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
+static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
+                                  DynamicPaintBrushSettings *brush,
+                                  Object *UNUSED(canvasOb),
+                                  Object *brushOb,
+                                  BrushMaterials *bMats,
+                                  Scene *scene,
+                                  float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -3449,7 +3458,10 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 /*
 *	Paint a particle system to the surface
 */
-static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSystem *psys, DynamicPaintBrushSettings *brush, Object *canvasOb, float timescale)
+static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
+                                       ParticleSystem *psys,
+                                       DynamicPaintBrushSettings *brush,
+                                       Object *UNUSED(canvasOb), float timescale)
 {
 	ParticleSettings *part=psys->part;
 	ParticleData *pa = NULL;
@@ -3686,7 +3698,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 
 /* paint a single point of defined proximity radius to the surface */
 static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
-										 Object *canvasOb, Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
+                                         Object *UNUSED(canvasOb), Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
 {
 	int index;
 	PaintSurfaceData *sData = surface->data;

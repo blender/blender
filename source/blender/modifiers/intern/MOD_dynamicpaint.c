@@ -6,7 +6,7 @@
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
 *
-* Contributor(s): Miika H‰m‰l‰inen
+* Contributor(s): Miika H√§m√§l√§inen
 *
 * ***** END GPL LICENSE BLOCK *****
 *
@@ -20,6 +20,8 @@
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_dynamicpaint.h"
@@ -53,7 +55,7 @@ static void freeData(ModifierData *md)
 	dynamicPaint_Modifier_free(pmd);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*)md;
 	CustomDataMask dataMask = 0;
@@ -88,8 +90,8 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
 						DerivedMesh *dm,
-						int useRenderParams,
-						int isFinalCalc)
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
@@ -120,7 +122,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }
@@ -143,8 +145,8 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	}
 }
 
-static void foreachTexLink(ModifierData *md, Object *ob,
-					   TexWalkFunc walk, void *userData)
+static void foreachTexLink(ModifierData *UNUSED(md), Object *UNUSED(ob),
+					   TexWalkFunc UNUSED(walk), void *UNUSED(userData))
 {
 	//walk(userData, ob, md, ""); /* re-enable when possible */
 }

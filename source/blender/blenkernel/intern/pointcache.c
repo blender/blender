@@ -122,7 +122,7 @@ static int ptcache_extra_datasize[] = {
 /* forward declerations */
 static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, unsigned int len);
 static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode);
-static int ptcache_file_write(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size);
+static int ptcache_file_write(PTCacheFile *pf, const void *f, unsigned int tot, unsigned int size);
 static int ptcache_file_read(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size);
 
 /* Common functions */
@@ -657,11 +657,11 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 }
 #else // WITH_SMOKE
 static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; };
-static void ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) {}
+static int  ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 #endif // WITH_SMOKE
 
-static int ptcache_dynamicpaint_totpoint(void *sd, int cfra)
+static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface*)sd;
 
@@ -677,7 +677,7 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 	int cache_compress = 1;
 
 	/* version header */
-	ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
+	ptcache_file_write(pf, (void *)DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
 
 	if(surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
 		unsigned int total_points=surface->data->total_points;
@@ -1261,7 +1261,7 @@ static int ptcache_file_read(PTCacheFile *pf, void *f, unsigned int tot, unsigne
 {
 	return (fread(f, size, tot, pf->fp) == tot);
 }
-static int ptcache_file_write(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size)
+static int ptcache_file_write(PTCacheFile *pf, const void *f, unsigned int tot, unsigned int size)
 {
 	return (fwrite(f, size, tot, pf->fp) == tot);
 }

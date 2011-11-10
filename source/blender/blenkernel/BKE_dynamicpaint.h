@@ -6,7 +6,7 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * Contributor(s): Miika H‰m‰l‰inen
+ * Contributor(s): Miika H√§m√§l√§inen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -66,7 +66,7 @@ void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 int  dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
 int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int index);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
-void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, char *basename);
+void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, const char *basename);
 void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);
 struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
 

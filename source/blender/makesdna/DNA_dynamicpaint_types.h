@@ -6,7 +6,7 @@
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
 *
-* Contributor(s): Miika H‰m‰l‰inen
+* Contributor(s): Miika H√§m√§l√§inen
 *
 * ***** END GPL LICENSE BLOCK *****
 */
