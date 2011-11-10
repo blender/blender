@@ -735,7 +735,22 @@ def get_panels():
         bpy.types.TEXTURE_PT_distortednoise,
         bpy.types.TEXTURE_PT_voxeldata,
         bpy.types.TEXTURE_PT_pointdensity,
-        bpy.types.TEXTURE_PT_pointdensity_turbulence]
+        bpy.types.TEXTURE_PT_pointdensity_turbulence,
+        bpy.types.PARTICLE_PT_context_particles,
+        bpy.types.PARTICLE_PT_emission,
+        bpy.types.PARTICLE_PT_hair_dynamics,
+        bpy.types.PARTICLE_PT_cache,
+        bpy.types.PARTICLE_PT_velocity,
+        bpy.types.PARTICLE_PT_rotation,
+        bpy.types.PARTICLE_PT_physics,
+        bpy.types.PARTICLE_PT_boidbrain,
+        bpy.types.PARTICLE_PT_render,
+        bpy.types.PARTICLE_PT_draw,
+        bpy.types.PARTICLE_PT_children,
+        bpy.types.PARTICLE_PT_field_weights,
+        bpy.types.PARTICLE_PT_force_fields,
+        bpy.types.PARTICLE_PT_vertexgroups,
+        bpy.types.PARTICLE_PT_custom_props]
 
 def register():
     bpy.types.RENDER_PT_render.append(draw_device)

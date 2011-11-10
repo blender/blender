@@ -229,8 +229,17 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 				}
 
 				object_free_duplilist(*b_ob);
+
+				/* check if we should render duplicator */
+				hide = true;
+				BL::Object::particle_systems_iterator b_psys;
+
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+					if(b_psys->settings().use_render_emitter())
+						hide = false;
 			}
-			else {
+
+			if(!hide) {
 				/* object itself */
 				Transform tfm = get_transform(b_ob->matrix_world());
 				sync_object(*b_ob, 0, *b_ob, tfm, visibility);
