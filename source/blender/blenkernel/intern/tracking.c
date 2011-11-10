@@ -118,10 +118,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		}
 	}
 	else if(event==CLAMP_SEARCH_DIM) {
-		float max_pyramid_level_factor = 1.0;
-		if (track->tracker == TRACKER_KLT) {
-			max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
-		}
 		for(a= 0; a<2; a++) {
 			/* search shouldn't be resized smaller than pattern */
 			track->search_min[a]= MIN2(pat_min[a], track->search_min[a]);
@@ -144,7 +140,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			}
 		}
 	}
-
 	else if(event==CLAMP_PYRAMID_LEVELS || (event==CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT))  {
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
@@ -616,18 +611,23 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
 							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
+							int wndx, wndy;
 
 							/* compute the maximum pyramid size */
-							double search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
+							float search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
 								/ MAX2(pattern_size_x, pattern_size_y);
-							double log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
+							float log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
 							int max_pyramid_levels= floor(log2_search_to_pattern_ratio + 1);
 
 							/* try to accomodate the user's choice of pyramid level in a way
 							 * that doesn't cause the coarsest pyramid pattern to be larger
 							 * than the search size */
 							int level= MIN2(track_context->track->pyramid_levels, max_pyramid_levels);
-							track_context->region_tracker= libmv_regionTrackerNew(100, level);
+
+							wndx= (int)((track->pat_max[0]-track->pat_min[0])*width)/2;
+							wndy= (int)((track->pat_max[1]-track->pat_min[1])*height)/2;
+
+							track_context->region_tracker= libmv_regionTrackerNew(100, level, MAX2(wndx, wndy));
 						}
 						else if(track_context->track->tracker==TRACKER_SAD) {
 							/* nothing to initialize */
@@ -877,7 +877,7 @@ static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTra
 	while(a>=0 && a<track->markersnr) {
 		int next= (context->backwards) ? a+1 : a-1;
 		int is_keyframed= 0;
-		MovieTrackingMarker *marker= &track->markers[a];
+		MovieTrackingMarker *cur_marker= &track->markers[a];
 		MovieTrackingMarker *next_marker= NULL;
 
 		if(next>=0 && next<track->markersnr)
@@ -887,11 +887,11 @@ static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTra
 		if(next_marker && next_marker->flag&MARKER_DISABLED)
 			is_keyframed= 1;
 
-		is_keyframed|= (marker->flag&MARKER_TRACKED)==0;
+		is_keyframed|= (cur_marker->flag&MARKER_TRACKED)==0;
 
 		if(is_keyframed) {
-			framenr= marker->framenr;
-			*marker_keyed= marker;
+			framenr= cur_marker->framenr;
+			*marker_keyed= cur_marker;
 			break;
 		}
 
@@ -1077,7 +1077,6 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				onbound= 1;
 			}
 			else if(track_context->track->tracker==TRACKER_KLT) {
-				int wndx, wndy;
 				float *patch_new;
 
 				if(need_readjust) {
@@ -1100,11 +1099,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				x2= pos[0];
 				y2= pos[1];
 
-				wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf_new->x)/2;
-				wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf_new->y)/2;
-
 				tracked= libmv_regionTrackerTrack(track_context->region_tracker, track_context->patch, patch_new,
-							width, height, MAX2(wndx, wndy), x1, y1, &x2, &y2);
+							width, height, x1, y1, &x2, &y2);
 
 				MEM_freeN(patch_new);
 			}
