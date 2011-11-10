@@ -33,6 +33,7 @@ set(SRC_HEADERS
 	util_cuda.h
 	util_debug.h
 	util_dynlib.h
+	util_foreach.h
 	util_function.h
 	util_hash.h
 	util_image.h

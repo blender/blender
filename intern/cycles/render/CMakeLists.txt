@@ -16,6 +16,7 @@ set(SRC
 	buffers.cpp
 	camera.cpp
 	film.cpp
+	# film_response.cpp  # XXX, why isnt this in?
 	filter.cpp
 	graph.cpp
 	image.cpp
@@ -40,6 +41,7 @@ set(SRC_HEADERS
 	buffers.h
 	camera.h
 	film.h
+	# film_response.h  # XXX, why isnt this in?
 	filter.h
 	graph.h
 	image.h

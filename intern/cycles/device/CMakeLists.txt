@@ -21,6 +21,7 @@ set(SRC
 
 set(SRC_HEADERS
 	device.h
+	device_memory.h
 	device_intern.h
 	device_network.h
 )
