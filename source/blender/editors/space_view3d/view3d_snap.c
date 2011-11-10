@@ -832,7 +832,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 	}
 
 	if(ok) {
-		interp_v3_v3v3(vec, min, max, 0.5);
+		mid_v3_v3v3(vec, min, max);
 	}
 }
 

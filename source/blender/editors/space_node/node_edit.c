@@ -2211,9 +2211,7 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 				node->id = &scene->id;
 			}
 			else if(ELEM3(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_MOVIEDISTORTION, CMP_NODE_STABILIZE2D)) {
-				if(G.main->movieclip.first == G.main->movieclip.last) {
-					node->id= G.main->movieclip.first;
-				}
+				node->id = (ID *)scene->clip;
 			}
 			
 			ntreeCompositForceHidden(snode->edittree, scene);

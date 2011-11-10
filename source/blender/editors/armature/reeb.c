@@ -3695,7 +3695,7 @@ void REEB_draw()
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
-			interp_v3_v3v3(vec, arc->head->p, arc->tail->p, 0.5f);
+			mid_v3_v3v3(vec, arc->head->p, arc->tail->p);
 			s += sprintf(s, "%i (%i-%i-%i) ", i, arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 		
 			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)

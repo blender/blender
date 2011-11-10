@@ -321,7 +321,7 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 	
 	if(co) {
 		if(vlr->v4)
-			interp_v3_v3v3(co, vlr->v1->co, vlr->v3->co, 0.5f);
+			mid_v3_v3v3(co, vlr->v1->co, vlr->v3->co);
 		else
 			cent_tri_v3(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 
@@ -1623,7 +1623,7 @@ static void *exec_strandsurface_sample(void *data)
 		if(face[3]) {
 			co4= mesh->co[face[3]];
 
-			interp_v3_v3v3(co, co1, co3, 0.5f);
+			mid_v3_v3v3(co, co1, co3);
 			normal_quad_v3( n,co1, co2, co3, co4);
 		}
 		else {
