@@ -1029,12 +1029,17 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 
 		vert2 = smoothvert_copy(vert, mesh);
 
-		/* replace vert with its copy in visited_faces (must be done after
-		* edge replacement so edges have correct vertices)
-		*/
-		repdata.find = vert;
-		repdata.replace = vert2;
-		BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+		/* bug [#29205] which is caused by exactly the same reason as [#26316]
+		   this check will only prevent crash without fixing actual issue and
+		   some vertices can stay unsplitted when they should (sergey) */
+		if(vert2) {
+			/* replace vert with its copy in visited_faces (must be done after
+			 * edge replacement so edges have correct vertices)
+			 */
+			repdata.find = vert;
+			repdata.replace = vert2;
+			BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+		}
 
 		/* copying and replacing is done; the mesh should be consistent.
 		* now propagate the split to the vertex at the other end
