@@ -1579,16 +1579,16 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Reconstruction", "Display reconstruction data from active movie clip");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "bundle_draw_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "tracks_draw_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_float_sdna(prop, NULL, "bundle_size");
-	RNA_def_property_ui_text(prop, "Bundle Size", "Display size of bundles from reconstructed data");
+	RNA_def_property_ui_text(prop, "Tracks Size", "Display size of tracks from reconstructed data");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "bundle_draw_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "tracks_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bundle_drawtype");
 	RNA_def_property_enum_items(prop, bundle_drawtype_items);
-	RNA_def_property_ui_text(prop, "Bundle Display Type", "Viewport display style for bundles");
+	RNA_def_property_ui_text(prop, "Tracks Display Type", "Viewport display style for tracks");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);
@@ -1596,9 +1596,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of camera");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "show_bundle_name", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Bundle Name", "Show names for bundle objects");
+	RNA_def_property_ui_text(prop, "Show Tracks Name", "Show names for tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */

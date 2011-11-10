@@ -205,7 +205,7 @@ class CLIP_PT_tools_geometry(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.bundles_to_mesh")
+        layout.operator("clip.tracks_to_mesh")
         layout.operator("clip.track_to_empty")
 
 
@@ -769,7 +769,7 @@ class CLIP_MT_reconstruction(Menu):
         layout.separator()
 
         layout.operator("clip.track_to_empty")
-        layout.operator("clip.bundles_to_mesh")
+        layout.operator("clip.tracks_to_mesh")
 
 
 class CLIP_MT_track_visibility(Menu):

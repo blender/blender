@@ -754,15 +754,14 @@ class ConstraintButtonsPanel():
         col.prop(con, "rotation_range", text="Pivot When")
 
     def FOLLOW_TRACK(self, context, layout, con):
-        layout.prop(con, "use_active_clip")
+        row = layout.row()
+        row.prop(con, "use_active_clip")
+        row.prop(con, "use_3d_position")
 
         if not con.use_active_clip:
             layout.prop(con, "clip")
 
         layout.prop(con, "track")
-
-        row = layout.row()
-        row.prop(con, "reference", expand=True)
 
         layout.operator("clip.constraint_to_fcurve")
 

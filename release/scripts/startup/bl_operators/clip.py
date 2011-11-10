@@ -63,16 +63,16 @@ class CLIP_OT_track_to_empty(Operator):
 
         constraint.clip = sc.clip
         constraint.track = track.name
-        constraint.reference = 'TRACK'
+        constraint.use_3d_position = False
 
         return {'FINISHED'}
 
 
-class CLIP_OT_bundles_to_mesh(Operator):
-    """Create vertex cloud using coordinates of bundles"""
+class CLIP_OT_tracks_to_mesh(Operator):
+    """Create vertex cloud using coordinates of tracks"""
 
-    bl_idname = "clip.bundles_to_mesh"
-    bl_label = "Bundles to Mesh"
+    bl_idname = "clip.tracks_to_mesh"
+    bl_label = "Tracks to Mesh"
     bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod
@@ -91,7 +91,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
         new_verts = []
 
-        mesh = bpy.data.meshes.new(name="Bundles")
+        mesh = bpy.data.meshes.new(name="Tracks")
         for track in clip.tracking.tracks:
             if track.has_bundle:
                 new_verts.append(track.bundle)
@@ -100,7 +100,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
             mesh.vertices.add(len(new_verts))
             mesh.vertices.foreach_set("co", unpack_list(new_verts))
 
-        ob = bpy.data.objects.new(name="Bundles", object_data=mesh)
+        ob = bpy.data.objects.new(name="Tracks", object_data=mesh)
 
         bpy.context.scene.objects.link(ob)
 
@@ -251,7 +251,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
         if not con:
             return
 
-        if con.type == 'FOLLOW_TRACK' and con.reference == 'BUNDLE':
+        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
             mat = ob.matrix_world.copy()
             ob.constraints.remove(con)
             ob.matrix_world = mat
