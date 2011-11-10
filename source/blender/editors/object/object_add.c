@@ -78,6 +78,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
+#include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 
@@ -92,6 +93,7 @@
 #include "ED_curve.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -326,6 +328,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
 	/* more editor stuff */
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
+	DAG_id_type_tag(bmain, ID_OB);
 	DAG_scene_sort(bmain, scene);
 	ED_render_id_flush_update(bmain, ob->data);
 
@@ -704,7 +707,9 @@ static const char *get_lamp_defname(int type)
 
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
+	Lamp *la;
 	int type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
 	unsigned int layer;
@@ -715,9 +720,16 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
-	((Lamp*)ob->data)->type= type;
-	rename_id((ID *)ob, get_lamp_defname(type));
-	rename_id((ID *)ob->data, get_lamp_defname(type));
+	la= (Lamp*)ob->data;
+
+	la->type= type;
+	rename_id(&ob->id, get_lamp_defname(type));
+	rename_id(&la->id, get_lamp_defname(type));
+
+	if(scene_use_new_shading_nodes(scene)) {
+		ED_node_shader_default(scene, &la->id);
+		la->use_nodes= 1;
+	}
 	
 	return OPERATOR_FINISHED;
 }

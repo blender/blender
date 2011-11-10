@@ -233,7 +233,8 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	@note: preserve material from ShadeInput for material id, nodetree execs change it
 	fix for bug "[#28012] Mat ID messy with shader nodes"
 	*/
-	Material *mat = shi->mat;	bNodeThreadStack *nts = NULL;
+	Material *mat = shi->mat;
+	bNodeThreadStack *nts = NULL;
 	bNodeTreeExec *exec = ntree->execdata;
 	
 	/* convert caller data to struct */

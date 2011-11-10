@@ -108,6 +108,27 @@ EnumPropertyItem node_filter_items[] = {
 {6, "SHADOW",  0, "Shadow",  ""},
 {0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem prop_noise_basis_items[] = {
+	{SHD_NOISE_PERLIN, "PERLIN", 0, "Perlin", ""},
+	{SHD_NOISE_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", ""},
+	{SHD_NOISE_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", ""},
+	{SHD_NOISE_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", ""},
+	{SHD_NOISE_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", ""},
+	{SHD_NOISE_VORONOI_F2_F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", ""},
+	{SHD_NOISE_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", ""},
+	{SHD_NOISE_CELL_NOISE, "CELL_NOISE", 0, "Cell Noise", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem prop_noise_type_items[] = {
+	{SHD_NOISE_SOFT, "SOFT", 0, "Soft", ""},
+	{SHD_NOISE_HARD, "HARD", 0, "Hard", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem prop_wave_items[] = {
+	{SHD_WAVE_SINE, "SINE", 0, "Sine", "Uses a sine wave to produce bands"},
+	{SHD_WAVE_SAW, "SAW", 0, "Saw", "Uses a saw wave to produce bands"},
+	{SHD_WAVE_TRI, "TRI", 0, "Tri", "Uses a triangle wave to produce bands"},
+	{0, NULL, 0, NULL, NULL}};
 
 /* Add any new socket value subtype here.
  * When adding a new subtype here, make sure you also add it
@@ -762,6 +783,12 @@ static EnumPropertyItem node_ycc_items[] = {
 { 2, "JFIF",     0, "Jpeg",     ""},
 {0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem node_glossy_items[] = {
+{SHD_GLOSSY_SHARP,    "SHARP",    0, "Sharp",    ""},
+{SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
+{SHD_GLOSSY_GGX,      "GGX",      0, "GGX",      ""},
+{0, NULL, 0, NULL, NULL}};
+
 #define MaxNodes 50000
 
 enum
@@ -1093,6 +1120,212 @@ static void def_sh_geometry(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_attribute(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeShaderAttribute", "storage");
+	
+	prop = RNA_def_property(srna, "attribute_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Attribute Name", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_sh_tex(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "texture_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "base.tex_mapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Texture Mapping", "Texture coordinate mapping settings");
+
+	prop= RNA_def_property(srna, "color_mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "base.color_mapping");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Color Mapping", "Color mapping settings");
+}
+
+static void def_sh_tex_sky(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexSky", "storage");
+	def_sh_tex(srna);
+	
+	prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_ui_text(prop, "Sun Direction", "Direction from where the sun is shining");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "turbidity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Turbidity", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_sh_tex_environment(StructRNA *srna)
+{
+	static const EnumPropertyItem prop_color_space_items[]= {
+		{SHD_COLORSPACE_SRGB, "SRGB", 0, "sRGB", "Image is in sRGB color space"},
+		{SHD_COLORSPACE_LINEAR, "LINEAR", 0, "Linear", "Image is in scene linear color space"},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_color_space_items);
+	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_image(StructRNA *srna)
+{
+	static const EnumPropertyItem prop_color_space_items[]= {
+		{SHD_COLORSPACE_LINEAR, "LINEAR", 0, "Linear", "Image is in scene linear color space"},
+		{SHD_COLORSPACE_SRGB, "SRGB", 0, "sRGB", "Image is in sRGB color space"},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_color_space_items);
+	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_gradient(StructRNA *srna)
+{
+	static EnumPropertyItem prop_gradient_type[] = {
+		{SHD_BLEND_LINEAR, "LINEAR", 0, "Linear", "Creates a linear progression"},
+		{SHD_BLEND_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Creates a quadratic progression"},
+		{SHD_BLEND_EASING, "EASING", 0, "Easing", "Creates a progression easing from one step to the next"},
+		{SHD_BLEND_DIAGONAL, "DIAGONAL", 0, "Diagonal", "Creates a diagonal progression"},
+		{SHD_BLEND_SPHERICAL, "SPHERICAL", 0, "Spherical", "Creates a spherical progression"},
+		{SHD_BLEND_QUADRATIC_SPHERE, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
+		{SHD_BLEND_RADIAL, "RADIAL", 0, "Radial", "Creates a radial progression"},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexGradient", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "gradient_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_gradient_type);
+	RNA_def_property_ui_text(prop, "Gradient Type", "Sets the style of the color blending");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_noise(StructRNA *srna)
+{
+	RNA_def_struct_sdna_from(srna, "NodeTexNoise", "storage");
+	def_sh_tex(srna);
+}
+
+static void def_sh_tex_magic(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexMagic", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "turbulence_depth", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "depth");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Depth", "Level of detail in the added turbulent noise");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_musgrave(StructRNA *srna)
+{
+	static EnumPropertyItem prop_musgrave_type[] = {
+		{SHD_MUSGRAVE_MULTIFRACTAL, "MULTIFRACTAL", 0, "Multifractal", ""},
+		{SHD_MUSGRAVE_RIDGED_MULTIFRACTAL, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal", ""},
+		{SHD_MUSGRAVE_HYBRID_MULTIFRACTAL, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal", ""},
+		{SHD_MUSGRAVE_FBM, "FBM", 0, "fBM", ""},
+		{SHD_MUSGRAVE_HETERO_TERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexMusgrave", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "musgrave_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "musgrave_type");
+	RNA_def_property_enum_items(prop, prop_musgrave_type);
+	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_voronoi(StructRNA *srna)
+{
+	static EnumPropertyItem prop_coloring_items[] = {
+		{SHD_VORONOI_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity"},
+		{SHD_VORONOI_CELLS, "CELLS", 0, "Cells", "Color cells by position"},
+		{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexVoronoi", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "coloring", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "coloring");
+	RNA_def_property_enum_items(prop, prop_coloring_items);
+	RNA_def_property_ui_text(prop, "Coloring", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_sh_tex_wave(StructRNA *srna)
+{
+	static EnumPropertyItem prop_wave_type_items[] = {
+	{SHD_WAVE_BANDS, "BANDS", 0, "Bands", "Uses standard wave texture in bands"},
+	{SHD_WAVE_RINGS, "RINGS", 0, "Rings", "Uses wave texture in rings"},
+	{0, NULL, 0, NULL, NULL}};
+
+	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "NodeTexWave", "storage");
+	def_sh_tex(srna);
+
+	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wave_type");
+	RNA_def_property_enum_items(prop, prop_wave_type_items);
+	RNA_def_property_ui_text(prop, "Wave Type", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_glossy(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, node_glossy_items);
+	RNA_def_property_ui_text(prop, "Distribution", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
 
 /* -- Compositor Nodes ------------------------------------------------------ */
 
@@ -2707,6 +2940,16 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Socket name");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeGroupSocket_update");
+
+	prop = RNA_def_property(srna, "group_socket", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "groupsock");
+	RNA_def_property_struct_type(prop, "NodeSocket");
+	RNA_def_property_ui_text(prop, "Group Socket", "For group nodes, the group input or output socket this corresponds to");
+
+	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SOCK_COLLAPSED);
+	RNA_def_property_ui_text(prop, "Expanded", "Socket links are expanded in the user interface");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, NULL);
 }
 
 static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype, const char *name, const char *ui_name)
@@ -2842,6 +3085,11 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent this node is attached to");
+
+	prop = RNA_def_property(srna, "show_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_TEXTURE);
+	RNA_def_property_ui_text(prop, "Show Texture", "Draw node in viewport textured draw mode");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
 static void rna_def_node_link(BlenderRNA *brna)
