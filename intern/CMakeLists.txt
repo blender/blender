@@ -57,3 +57,8 @@ endif()
 if(WITH_IK_ITASC)
 	add_subdirectory(itasc)
 endif()
+
+if(WITH_CYCLES)
+	add_subdirectory(cycles)
+endif()
+

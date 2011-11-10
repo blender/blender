@@ -625,6 +625,8 @@ StructRNA *RNA_struct_base(StructRNA *type);
 int RNA_struct_is_ID(StructRNA *type);
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
 
+int RNA_struct_undo_check(StructRNA *type);
+
 StructRegisterFunc RNA_struct_register(StructRNA *type);
 StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
 void **RNA_struct_instance(PointerRNA *ptr);

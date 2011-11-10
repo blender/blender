@@ -98,7 +98,6 @@ set(SRC
 	intern/AUD_IWriter.h
 	intern/AUD_JOSResampleFactory.cpp
 	intern/AUD_JOSResampleFactory.h
-	intern/AUD_JOSResampleReaderCoeff.cpp
 	intern/AUD_JOSResampleReader.cpp
 	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp

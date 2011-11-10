@@ -751,6 +751,16 @@ if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
 
+if(WITH_CYCLES)
+	list(APPEND BLENDER_LINK_LIBS
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd)
+endif()
+
 #if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS
@@ -770,7 +780,6 @@ endif()
 		bf_editor_space_outliner
 		bf_editor_space_script
 		bf_editor_space_sequencer
-		bf_editor_space_sound
 		bf_editor_space_time
 		bf_editor_space_userpref
 		bf_editor_space_view3d
@@ -833,7 +842,6 @@ endif()
 		extern_minilzo
 		extern_lzma
 		extern_colamd
-		extern_libmv
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_phys_common
@@ -855,6 +863,13 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		bf_intern_cycles
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd
 	)
 
 	if(WITH_LIBMV)

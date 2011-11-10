@@ -178,6 +178,8 @@ BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib'
 BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
+WITH_BF_CYCLES = False
+
 WITH_BF_OPENMP = True
 
 #Ray trace optimization

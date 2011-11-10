@@ -90,50 +90,6 @@
 
 static void ui_free_but(const bContext *C, uiBut *but);
 
-/* ************* translation ************** */
-
-int UI_translate_iface(void)
-{
-#ifdef WITH_INTERNATIONAL
-	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
-#else
-	return 0;
-#endif
-}
-
-int UI_translate_tooltips(void)
-{
-#ifdef WITH_INTERNATIONAL
-	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
-#else
-	return 0;
-#endif
-}
-
-const char *UI_translate_do_iface(const char *msgid)
-{
-#ifdef WITH_INTERNATIONAL
-	if(UI_translate_iface())
-		return BLF_gettext(msgid);
-	else
-		return msgid;
-#else
-	return msgid;
-#endif
-}
-
-const char *UI_translate_do_tooltip(const char *msgid)
-{
-#ifdef WITH_INTERNATIONAL
-	if(UI_translate_tooltips())
-		return BLF_gettext(msgid);
-	else
-		return msgid;
-#else
-	return msgid;
-#endif
-}
-
 /* ************* window matrix ************** */
 
 void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
@@ -755,6 +711,9 @@ static int ui_but_is_rna_undo(uiBut *but)
 		else {
 			return TRUE;
 		}
+	}
+	else if (but->rnapoin.type && !RNA_struct_undo_check(but->rnapoin.type)) {
+		return FALSE;
 	}
 
 	return TRUE;

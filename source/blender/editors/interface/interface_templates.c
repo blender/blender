@@ -40,6 +40,8 @@
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"

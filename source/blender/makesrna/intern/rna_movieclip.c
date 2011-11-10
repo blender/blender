@@ -75,9 +75,9 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 
 	static const EnumPropertyItem clip_tc_items[]= {
 		{IMB_TC_NONE, "NONE", 0, "No TC in use", ""},
-		{IMB_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run", "use images in the order as they are recorded"},
-		{IMB_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", "use global timestamp written by recording device"},
-		{IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)", "interpolate a global timestamp using the record date and time written by recording device"},
+		{IMB_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run", "Use images in the order they are recorded"},
+		{IMB_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", "Use global timestamp written by recording device"},
+		{IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)", "Interpolate a global timestamp using the record date and time written by recording device"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "MovieClipProxy", NULL);

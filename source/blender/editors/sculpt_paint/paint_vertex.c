@@ -1421,16 +1421,16 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 		if(vgroup_validmap && total_changed < 0 && total_valid) {
 			totchange_allowed = total_valid;
 		}
+		/* the way you modify the unlocked+unchanged groups is different depending
+		 * on whether or not you are painting the weight(s) up or down */
+		if(totchange < 0) {
+			totchange_allowed = total_valid - totchange_allowed;
+		}
+		else {
+			totchange_allowed *= -1;
+		}
 		/* there needs to be change allowed, or you should not bother */
 		if(totchange_allowed) {
-			/* the way you modify the unlocked+unchanged groups is different depending
-			 * on whether or not you are painting the weight(s) up or down */
-			if(totchange < 0) {
-				totchange_allowed = total_valid - totchange_allowed;
-			}
-			else {
-				totchange_allowed *= -1;
-			}
 			left_over = 0;
 			if(fabsf(totchange_allowed) < fabsf(totchange)) {
 				/* this amount goes back onto the changed, unlocked weights */
@@ -1454,11 +1454,15 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 					odw = defvert_find_index(odv, designatedw);
 					storedw = ndw->weight;
 					for(i = 0; i < ndv->totweight; i++) {
-						if(change_status[ndw->def_nr] == 2) {
+						if(ndv->dw[i].def_nr == designatedw) {
+							continue;
+						}
+						ndw2 = &ndv->dw[i];
+						if(change_status[ndw2->def_nr] == 2) {
 							odw2 = &odv->dw[i];
-							ndw2 = &ndv->dw[i];
+							
 							if(!designatedw_changed) {
-								ndw->weight = (totchange_allowed + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
+								ndw->weight = (-left_over + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
 								designatedw_changed = TRUE;
 							}
 							ndw2->weight = ndw->weight * ndw2->weight / storedw;

@@ -5533,7 +5533,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	TransDataTracking *tdt;
 	int framenr = sc->user.framenr;
 
-	if(clip && !BKE_movieclip_has_frame(clip, &sc->user)) {
+	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user)) {
 		t->total = 0;
 		return;
 	}

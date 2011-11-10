@@ -58,8 +58,18 @@ void BLF_lang_encoding_name(const char *str);
 
 void BLF_lang_encoding(const char *str);
 
+/* translation */
+int BLF_translate_iface(void);
+int BLF_translate_tooltips(void);
+const char *BLF_translate_do_iface(const char *msgid);
+const char *BLF_translate_do_tooltip(const char *msgid);
+
+
 /*#define _(msgid) BLF_gettext(msgid)*/
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
+/* Those macros should be used everywhere in UI code. */
+#define IFACE_(msgid) BLF_translate_do_iface(msgid)
+#define TIP_(msgid) BLF_translate_do_tooltip(msgid)
 
 #endif /* BLF_TRANSLATION_H */

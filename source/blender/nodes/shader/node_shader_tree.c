@@ -43,6 +43,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -78,19 +80,19 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 
 static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback func)
 {
-	func(calldata, NODE_CLASS_INPUT, "Input");
-	func(calldata, NODE_CLASS_OUTPUT, "Output");
+	func(calldata, NODE_CLASS_INPUT, IFACE_("Input"));
+	func(calldata, NODE_CLASS_OUTPUT, IFACE_("Output"));
 
 	if(scene_use_new_shading_nodes(scene)) {
-		func(calldata, NODE_CLASS_SHADER, "Shader");
-		func(calldata, NODE_CLASS_TEXTURE, "Texture");
+		func(calldata, NODE_CLASS_SHADER, IFACE_("Shader"));
+		func(calldata, NODE_CLASS_TEXTURE, IFACE_("Texture"));
 	}
 
-	func(calldata, NODE_CLASS_OP_COLOR, "Color");
-	func(calldata, NODE_CLASS_OP_VECTOR, "Vector");
-	func(calldata, NODE_CLASS_CONVERTOR, "Convertor");
-	func(calldata, NODE_CLASS_GROUP, "Group");
-	func(calldata, NODE_CLASS_LAYOUT, "Layout");
+	func(calldata, NODE_CLASS_OP_COLOR, IFACE_("Color"));
+	func(calldata, NODE_CLASS_OP_VECTOR, IFACE_("Vector"));
+	func(calldata, NODE_CLASS_CONVERTOR, IFACE_("Convertor"));
+	func(calldata, NODE_CLASS_GROUP, IFACE_("Group"));
+	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
