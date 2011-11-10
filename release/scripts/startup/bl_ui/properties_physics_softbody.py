@@ -39,8 +39,6 @@ class PhysicButtonsPanel():
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-#        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
-# i really hate touching things i do not understand completely .. but i think this should read (bjornmose)
         return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine) and (context.soft_body)
 
 
@@ -53,22 +51,21 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         md = context.soft_body
         ob = context.object
 
-        if md:
-            softbody = md.settings
+        softbody = md.settings
 
-            # General
-            split = layout.split()
-            split.enabled = softbody_panel_enabled(md)
+        # General
+        split = layout.split()
+        split.enabled = softbody_panel_enabled(md)
 
-            col = split.column()
-            col.label(text="Object:")
-            col.prop(softbody, "friction")
-            col.prop(softbody, "mass")
-            col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass:")
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(softbody, "friction")
+        col.prop(softbody, "mass")
+        col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass:")
 
-            col = split.column()
-            col.label(text="Simulation:")
-            col.prop(softbody, "speed")
+        col = split.column()
+        col.label(text="Simulation:")
+        col.prop(softbody, "speed")
 
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):

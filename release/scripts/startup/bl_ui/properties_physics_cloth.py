@@ -60,61 +60,59 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
         md = context.cloth
         ob = context.object
+        cloth = md.settings
 
-        if md:
-            cloth = md.settings
+        split = layout.split()
 
-            split = layout.split()
+        split.active = cloth_panel_enabled(md)
 
-            split.active = cloth_panel_enabled(md)
+        col = split.column()
 
-            col = split.column()
+        col.label(text="Presets:")
+        sub = col.row(align=True)
+        sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
+        sub.operator("cloth.preset_add", text="", icon='ZOOMIN')
+        sub.operator("cloth.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
-            col.label(text="Presets:")
-            sub = col.row(align=True)
-            sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
-            sub.operator("cloth.preset_add", text="", icon='ZOOMIN')
-            sub.operator("cloth.preset_add", text="", icon='ZOOMOUT').remove_active = True
+        col.label(text="Quality:")
+        col.prop(cloth, "quality", text="Steps", slider=True)
 
-            col.label(text="Quality:")
-            col.prop(cloth, "quality", text="Steps", slider=True)
+        col.label(text="Material:")
+        col.prop(cloth, "mass")
+        col.prop(cloth, "structural_stiffness", text="Structural")
+        col.prop(cloth, "bending_stiffness", text="Bending")
 
-            col.label(text="Material:")
-            col.prop(cloth, "mass")
-            col.prop(cloth, "structural_stiffness", text="Structural")
-            col.prop(cloth, "bending_stiffness", text="Bending")
+        col = split.column()
 
-            col = split.column()
+        col.label(text="Damping:")
+        col.prop(cloth, "spring_damping", text="Spring")
+        col.prop(cloth, "air_damping", text="Air")
 
-            col.label(text="Damping:")
-            col.prop(cloth, "spring_damping", text="Spring")
-            col.prop(cloth, "air_damping", text="Air")
+        col.prop(cloth, "use_pin_cloth", text="Pinning")
+        sub = col.column()
+        sub.active = cloth.use_pin_cloth
+        sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
+        sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
-            col.prop(cloth, "use_pin_cloth", text="Pinning")
-            sub = col.column()
-            sub.active = cloth.use_pin_cloth
-            sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
-            sub.prop(cloth, "pin_stiffness", text="Stiffness")
+        col.label(text="Pre roll:")
+        col.prop(cloth, "pre_roll", text="Frame")
 
-            col.label(text="Pre roll:")
-            col.prop(cloth, "pre_roll", text="Frame")
+        # Disabled for now
+        """
+        if cloth.vertex_group_mass:
+            layout.label(text="Goal:")
 
-            # Disabled for now
-            """
-            if cloth.vertex_group_mass:
-                layout.label(text="Goal:")
+            col = layout.column_flow()
+            col.prop(cloth, "goal_default", text="Default")
+            col.prop(cloth, "goal_spring", text="Stiffness")
+            col.prop(cloth, "goal_friction", text="Friction")
+        """
 
-                col = layout.column_flow()
-                col.prop(cloth, "goal_default", text="Default")
-                col.prop(cloth, "goal_spring", text="Stiffness")
-                col.prop(cloth, "goal_friction", text="Friction")
-            """
+        key = ob.data.shape_keys
 
-            key = ob.data.shape_keys
-
-            if key:
-                col.label(text="Rest Shape Key:")
-                col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
+        if key:
+            col.label(text="Rest Shape Key:")
+            col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):

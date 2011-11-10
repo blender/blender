@@ -45,73 +45,72 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
         md = context.dynamic_paint
         ob = context.object
 
-        if md:
-            layout.prop(md, "ui_type", expand=True)
+        layout.prop(md, "ui_type", expand=True)
 
-            if (md.ui_type == "CANVAS"):
-                canvas = md.canvas_settings
+        if (md.ui_type == "CANVAS"):
+            canvas = md.canvas_settings
+            
+            if (not canvas):
+                layout.operator("dpaint.type_toggle", text="Add Canvas").type = 'CANVAS'
+            else:
+                layout.operator("dpaint.type_toggle", text="Remove Canvas", icon='X').type = 'CANVAS'
+
+                surface = canvas.canvas_surfaces.active
+                row = layout.row()
+                row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
+
+                col = row.column(align=True)
+                col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
+                col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
                 
-                if (not canvas):
-                    layout.operator("dpaint.type_toggle", text="Add Canvas").type = 'CANVAS'
-                else:
-                    layout.operator("dpaint.type_toggle", text="Remove Canvas", icon='X').type = 'CANVAS'
-
-                    surface = canvas.canvas_surfaces.active
-                    row = layout.row()
-                    row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
-
-                    col = row.column(align=True)
-                    col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
-                    col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
+                if surface:
+                    layout.prop(surface, "name")
+                    layout.prop(surface, "surface_format", expand=False)
+                    col = layout.column()
                     
-                    if surface:
-                        layout.prop(surface, "name")
-                        layout.prop(surface, "surface_format", expand=False)
-                        col = layout.column()
-                        
-                        if surface.surface_format != "VERTEX":
-                            col.label(text="Quality:")
-                            col.prop(surface, "image_resolution")
-                        col.prop(surface, "use_antialiasing")
-                    
-                        col = layout.column()
-                        col.label(text="Frames:")
-                        split = col.split()
-                    
-                        col = split.column(align=True)
-                        col.prop(surface, "frame_start", text="Start")
-                        col.prop(surface, "frame_end", text="End")
-                    
-                        col = split.column()
-                        col.prop(surface, "frame_substeps")
-
-            elif (md.ui_type == "BRUSH"):
-                brush = md.brush_settings
-                engine = context.scene.render.engine
+                    if surface.surface_format != "VERTEX":
+                        col.label(text="Quality:")
+                        col.prop(surface, "image_resolution")
+                    col.prop(surface, "use_antialiasing")
                 
-                if (not brush):
-                    layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
-                else:
-                    layout.operator("dpaint.type_toggle", text="Remove Brush", icon='X').type = 'BRUSH'
-
-                    split = layout.split()
-
-                    col = split.column()
-                    col.prop(brush, "absolute_alpha")
-                    col.prop(brush, "paint_erase")
-                    col.prop(brush, "paint_wetness", text="Wetness")
+                    col = layout.column()
+                    col.label(text="Frames:")
+                    split = col.split()
+                
+                    col = split.column(align=True)
+                    col.prop(surface, "frame_start", text="Start")
+                    col.prop(surface, "frame_end", text="End")
                 
                     col = split.column()
-                    if (engine == 'BLENDER_RENDER'):
-                        sub = col.column()
-                        sub.active = (brush.paint_source != "PARTICLE_SYSTEM");
-                        sub.prop(brush, "use_material")
-                    if brush.use_material and brush.paint_source != "PARTICLE_SYSTEM" and (engine == 'BLENDER_RENDER'):
-                        col.prop(brush, "material", text="")
-                        col.prop(brush, "paint_alpha", text="Alpha Factor")
-                    else:
-                        col.prop(brush, "paint_color", text="")
-                        col.prop(brush, "paint_alpha", text="Alpha")
+                    col.prop(surface, "frame_substeps")
+
+        elif (md.ui_type == "BRUSH"):
+            brush = md.brush_settings
+            engine = context.scene.render.engine
+            
+            if (not brush):
+                layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
+            else:
+                layout.operator("dpaint.type_toggle", text="Remove Brush", icon='X').type = 'BRUSH'
+
+                split = layout.split()
+
+                col = split.column()
+                col.prop(brush, "absolute_alpha")
+                col.prop(brush, "paint_erase")
+                col.prop(brush, "paint_wetness", text="Wetness")
+            
+                col = split.column()
+                if (engine == 'BLENDER_RENDER'):
+                    sub = col.column()
+                    sub.active = (brush.paint_source != "PARTICLE_SYSTEM");
+                    sub.prop(brush, "use_material")
+                if brush.use_material and brush.paint_source != "PARTICLE_SYSTEM" and (engine == 'BLENDER_RENDER'):
+                    col.prop(brush, "material", text="")
+                    col.prop(brush, "paint_alpha", text="Alpha Factor")
+                else:
+                    col.prop(brush, "paint_color", text="")
+                    col.prop(brush, "paint_alpha", text="Alpha")
 
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
