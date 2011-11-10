@@ -8,7 +8,9 @@ include(cmake/external_libs.cmake)
 
 # Build Flags
 
-set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3 -mtune=native")
+if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+	set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3")
+endif()
 
 if(APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_OPTIM_FLAGS}")
