@@ -239,7 +239,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 	dm->release(dm);
 
 }
-static void cache_pointdensity(Render *re, Tex *tex)
+void cache_pointdensity(Render *re, Tex *tex)
 {
 	PointDensity *pd = tex->pd;
 	

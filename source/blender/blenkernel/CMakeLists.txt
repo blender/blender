@@ -89,6 +89,7 @@ set(SRC
 	intern/deform.c
 	intern/depsgraph.c
 	intern/displist.c
+	intern/dynamicpaint.c
 	intern/effect.c
 	intern/fcurve.c
 	intern/fluidsim.c

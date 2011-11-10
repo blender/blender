@@ -114,6 +114,8 @@ extern EnumPropertyItem node_filter_items[];
 
 extern EnumPropertyItem ramp_blend_items[];
 
+extern EnumPropertyItem prop_dynamicpaint_type_items[];
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;

@@ -684,7 +684,7 @@ const char *buttons_context_dir[] = {
 	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
 	"texture", "texture_slot", "texture_user", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable",
-	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint", NULL};
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -942,6 +942,16 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if(CTX_data_equals(member, "brush")) {
 		set_pointer_type(path, result, &RNA_Brush);
 		return 1;
+	}
+	else if(CTX_data_equals(member, "dynamic_paint")) {
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_DynamicPaint);
+			CTX_data_pointer_set(result, &ob->id, &RNA_DynamicPaintModifier, md);
+			return 1;
+		}
 	}
 	else {
 		return 0; /* not found */

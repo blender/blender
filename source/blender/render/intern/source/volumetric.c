@@ -289,7 +289,7 @@ float vol_get_density(struct ShadeInput *shi, const float co[3])
 	float density_scale = shi->mat->vol.density_scale;
 		
 	if (shi->mat->mapto_textured & MAP_DENSITY)
-		do_volume_tex(shi, co, MAP_DENSITY, NULL, &density);
+		do_volume_tex(shi, co, MAP_DENSITY, NULL, &density, &R);
 	
 	// if meta-object, modulate by metadensity without increasing it
 	if (shi->obi->obr->ob->type == OB_MBALL) {
@@ -311,11 +311,11 @@ static void vol_get_reflection_color(ShadeInput *shi, float ref_col[3], const fl
 	copy_v3_v3(ref_col, shi->mat->vol.reflection_col);
 	
 	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_REFLECTION_COL))
-		do_volume_tex(shi, co, MAP_SCATTERING+MAP_REFLECTION_COL, ref_col, &scatter);
+		do_volume_tex(shi, co, MAP_SCATTERING+MAP_REFLECTION_COL, ref_col, &scatter, &R);
 	
 	/* only one single float parameter at a time... :s */
 	if (shi->mat->mapto_textured & (MAP_REFLECTION))
-		do_volume_tex(shi, co, MAP_REFLECTION, NULL, &reflection);
+		do_volume_tex(shi, co, MAP_REFLECTION, NULL, &reflection, &R);
 	
 	ref_col[0] = reflection * ref_col[0] * scatter;
 	ref_col[1] = reflection * ref_col[1] * scatter;
@@ -330,7 +330,7 @@ static void vol_get_emission(ShadeInput *shi, float emission_col[3], const float
 	copy_v3_v3(emission_col, shi->mat->vol.emission_col);
 	
 	if (shi->mat->mapto_textured & (MAP_EMISSION+MAP_EMISSION_COL))
-		do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission);
+		do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission, &R);
 	
 	emission_col[0] = emission_col[0] * emission;
 	emission_col[1] = emission_col[1] * emission;
@@ -350,7 +350,7 @@ static void vol_get_sigma_t(ShadeInput *shi, float sigma_t[3], const float co[3]
 	float scattering = shi->mat->vol.scattering;
 	
 	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_TRANSMISSION_COL))
-		do_volume_tex(shi, co, MAP_SCATTERING+MAP_TRANSMISSION_COL, transmission_col, &scattering);
+		do_volume_tex(shi, co, MAP_SCATTERING+MAP_TRANSMISSION_COL, transmission_col, &scattering, &R);
 	
 	sigma_t[0] = (1.0f - transmission_col[0]) + scattering;
 	sigma_t[1] = (1.0f - transmission_col[1]) + scattering;

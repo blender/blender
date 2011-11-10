@@ -36,6 +36,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -2911,13 +2912,29 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
-	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
+	ModifierData *md = NULL;
+	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
 		return;
+
+	/* check to draw dynamic paint colors */
+	if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
+	{
+		/* check if target has an active dpaint modifier	*/
+		if(md && (md->mode & eModifierMode_Realtime))					
+		{
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+			/* if canvas is ready to preview vertex colors */
+			if (pmd->canvas && pmd->canvas->flags & MOD_DPAINT_PREVIEW_READY &&
+				DM_get_face_data_layer(dm, CD_WEIGHT_MCOL)) {
+				draw_flags |= DRAW_DYNAMIC_PAINT_PREVIEW;
+			}
+		}
+	}
 	
 	if (ob->dtx&OB_DRAWWIRE) {
 		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
@@ -2931,7 +2948,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (is_paint_sel) draw_wire = 0;
+	if (draw_flags & DRAW_FACE_SELECT) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2945,14 +2962,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(is_paint_sel || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if(	(draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || is_paint_sel) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
-		if(draw_glsl_material(scene, ob, v3d, dt)) {
+		if(draw_glsl_material(scene, ob, v3d, dt) && !(draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)) {
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 			dm->drawFacesGLSL(dm, GPU_enable_material);
@@ -2963,10 +2980,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, is_paint_sel);
+			draw_mesh_textured(scene, v3d, rv3d, ob, dm, draw_flags);
 		}
 
-		if(!is_paint_sel) {
+		if(!(draw_flags & DRAW_FACE_SELECT)) {
 			if(base->flag & SELECT)
 				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			else
@@ -3001,6 +3018,38 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			
 			/* since we already draw wire as wp guide, dont draw over the top */
 			draw_wire= 0;
+		}
+		else if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW) {
+			/* for object selection draws no shade */
+			if (flag & (DRAW_PICKING|DRAW_CONSTCOLOR)) {
+				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			}
+			else {
+				/* draw outline */
+				if((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+					draw_mesh_object_outline(v3d, ob, dm);
+
+				/* materials arent compatible with vertex colors */
+				GPU_end_object_materials();
+
+				GPU_enable_material(0, NULL);
+				
+				/* set default spec */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+				glEnable(GL_COLOR_MATERIAL);	/* according manpages needed */
+				glColor3ub(120, 120, 120);
+				glDisable(GL_COLOR_MATERIAL);
+				/* diffuse */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
+
+				dm->drawMappedFaces(dm, NULL, NULL, 1, GPU_enable_material, NULL);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+
+				GPU_disable_material();
+			}
 		}
 		else {
 			Paint *p;

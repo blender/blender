@@ -56,6 +56,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
@@ -4190,6 +4191,40 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				else
 					smd->type = 0;
 
+			}
+		}
+		else if (md->type==eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
+
+			if(pmd->canvas)
+			{
+				pmd->canvas = newdataadr(fd, pmd->canvas);
+				pmd->canvas->pmd = pmd;
+				pmd->canvas->dm = NULL;
+				pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
+
+				if (pmd->canvas->surfaces.first) {
+					DynamicPaintSurface *surface;
+					link_list(fd, &pmd->canvas->surfaces);
+
+					for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next) {
+						surface->canvas = pmd->canvas;
+						surface->data = NULL;
+						direct_link_pointcache_list(fd, &(surface->ptcaches), &(surface->pointcache), 1);
+
+						if(!(surface->effector_weights = newdataadr(fd, surface->effector_weights)))
+							surface->effector_weights = BKE_add_effector_weights(NULL);
+					}
+				}
+			}
+			if(pmd->brush)
+			{
+				pmd->brush = newdataadr(fd, pmd->brush);
+				pmd->brush->pmd = pmd;
+				pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
+				pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
+				pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
+				pmd->brush->dm = NULL;
 			}
 		}
 		else if (md->type==eModifierType_Collision) {
@@ -11513,7 +11548,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						/* enable all cache display */
 						stime->cache_display |= TIME_CACHE_DISPLAY;
 						stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
-						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
+						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE|TIME_CACHE_DYNAMICPAINT);
 					}
 				}
 			}

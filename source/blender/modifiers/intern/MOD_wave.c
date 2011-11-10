@@ -196,7 +196,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 			char uvname[32];
 			MTFace *tf;
 
-			validate_layer_name(&dm->faceData, CD_MTFACE, wmd->uvlayer_name, uvname);
+			CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, wmd->uvlayer_name, uvname);
 			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 			/* verts are given the UV from the first face that uses them */

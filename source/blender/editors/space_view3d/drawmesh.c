@@ -402,6 +402,13 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 		return 1; /* Set color from mcol */
 	}
 }
+
+static int draw_mcol__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
+{
+	if (has_mcol) return 1;
+	else return 2;
+}
+
 static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
@@ -622,7 +629,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
-void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
 	Mesh *me= ob->data;
 	
@@ -644,7 +651,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, &data);
 	}
-	else if(faceselect) {
+	else if(draw_flags & DRAW_FACE_SELECT) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material, NULL);
 		else
@@ -652,7 +659,10 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	}
 	else {
 		if(GPU_buffer_legacy(dm)) {
-			dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
+			if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)
+				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy);
+			else 
+				dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
 		}
 		else {
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
@@ -669,7 +679,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	draw_textured_end();
 	
 	/* draw edges and selected faces over textured mesh */
-	if(!(ob == scene->obedit) && faceselect)
+	if(!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT))
 		draw_mesh_face_select(rv3d, me, dm);
 
 	/* reset from negative scale correction */
@@ -778,10 +788,10 @@ static int tex_mat_set_face_editmesh_cb(void *UNUSED(userData), int index)
 	return !(efa->h);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
-	if(!scene_use_new_shading_nodes(scene)) {
-		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, faceselect);
+	if((!scene_use_new_shading_nodes(scene)) || (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)) {
+		draw_mesh_textured_old(scene, v3d, rv3d, ob, dm, draw_flags);
 		return;
 	}
 
@@ -807,7 +817,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		/* face hiding callback depending on mode */
 		if(ob == scene->obedit)
 			set_face_cb= tex_mat_set_face_editmesh_cb;
-		else if(faceselect)
+		else if(draw_flags & DRAW_FACE_SELECT)
 			set_face_cb= tex_mat_set_face_mesh_cb;
 		else
 			set_face_cb= NULL;
@@ -851,7 +861,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	glMatrixMode(GL_MODELVIEW);
 
 	/* faceselect mode drawing over textured mesh */
-	if(!(ob == scene->obedit) && faceselect)
+	if(!(ob == scene->obedit) && (draw_flags & DRAW_FACE_SELECT))
 		draw_mesh_face_select(rv3d, ob->data, dm);
 }
 
