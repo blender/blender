@@ -344,7 +344,7 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *name)
 {
-	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
+	CustomData *data= (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
 	CustomDataLayer *cdl;
 	int index;
 
