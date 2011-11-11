@@ -550,6 +550,17 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             elif modifier.type == "GUIDING_LINES":
                 box.prop(modifier, "offset")
 
+            elif modifier.type == "BLUEPRINT":
+                row = box.row()
+                row.prop(modifier, "shape", expand=True)
+                box.prop(modifier, "rounds")
+                if modifier.shape in ["CIRCLES", "ELLIPSES"]:
+                    box.prop(modifier, "random_radius")
+                    box.prop(modifier, "random_center")
+                elif modifier.shape == "SQUARES":
+                    box.prop(modifier, "backbone_length")
+                    box.prop(modifier, "random_backbone")
+
     def draw(self, context):
         layout = self.layout
 

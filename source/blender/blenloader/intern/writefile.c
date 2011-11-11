@@ -2723,6 +2723,9 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 		case LS_MODIFIER_GUIDING_LINES:
 			struct_name = "LineStyleGeometryModifier_GuidingLines";
 			break;
+		case LS_MODIFIER_BLUEPRINT:
+			struct_name = "LineStyleGeometryModifier_Blueprint";
+			break;
 		default:
 			struct_name = "LineStyleGeometryModifier"; // this should not happen
 		}

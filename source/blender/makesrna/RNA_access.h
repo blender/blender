@@ -299,6 +299,7 @@ extern StructRNA RNA_LineStyleColorModifier_Material;
 extern StructRNA RNA_LineStyleGeometryModifier;
 extern StructRNA RNA_LineStyleGeometryModifier_BackboneStretcher;
 extern StructRNA RNA_LineStyleGeometryModifier_BezierCurve;
+extern StructRNA RNA_LineStyleGeometryModifier_Blueprint;
 extern StructRNA RNA_LineStyleGeometryModifier_GuidingLines;
 extern StructRNA RNA_LineStyleGeometryModifier_PerlinNoise1D;
 extern StructRNA RNA_LineStyleGeometryModifier_PerlinNoise2D;

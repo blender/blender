@@ -959,15 +959,19 @@ class pyPerlinNoise2DShader(StrokeShader):
 		stroke.UpdateLength()
 
 class pyBluePrintCirclesShader(StrokeShader):
-	def __init__(self, turns = 1):
+	def __init__(self, turns = 1, random_radius = 3, random_center = 5):
 		StrokeShader.__init__(self)
 		self.__turns = turns
+		self.__random_center = random_center
+		self.__random_radius = random_radius
 	def getName(self):
 		return "pyBluePrintCirclesShader"
 	def shade(self, stroke):
-		p_min = Vector([10000, 10000])
-		p_max = Vector([0, 0])
 		it = stroke.strokeVerticesBegin()
+		if it.isEnd():
+			return
+		p_min = it.getObject().getPoint()
+		p_max = it.getObject().getPoint()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
 			if (p.x < p_min.x):
@@ -986,23 +990,30 @@ class pyBluePrintCirclesShader(StrokeShader):
 #		print("max  :", p_max.x, p_max.y) # DEBUG
 #		print("----------------------") # DEBUG
 #######################################################	
-		sv_nb = sv_nb / self.__turns
+		sv_nb = sv_nb // self.__turns
 		center = (p_min + p_max) / 2
 		radius = (center.x - p_min.x + center.y - p_min.y) / 2
 		p_new = Vector([0, 0])
 #######################################################
+		R = self.__random_radius
+		C = self.__random_center
+		i = 0
 		it = stroke.strokeVerticesBegin()
 		for j in range(self.__turns):
-			radius = radius + randint(-3, 3)
-			center.x = center.x + randint(-5, 5)
-			center.y = center.y + randint(-5, 5)
-			i = 0
+			prev_radius = radius
+			prev_center = center
+			radius = radius + randint(-R, R)
+			center = center + Vector([randint(-C, C), randint(-C, C)])
 			while i < sv_nb and it.isEnd() == 0:
-				p_new.x = center.x + radius * cos(2 * pi * float(i) / float(sv_nb - 1))
-				p_new.y = center.y + radius * sin(2 * pi * float(i) / float(sv_nb - 1))
+				t = float(i) / float(sv_nb - 1)
+				r = prev_radius + (radius - prev_radius) * t
+				c = prev_center + (center - prev_center) * t
+				p_new.x = c.x + r * cos(2 * pi * t)
+				p_new.y = c.y + r * sin(2 * pi * t)
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
+			i = 1
 		verticesToRemove = []
 		while it.isEnd() == 0:
 			verticesToRemove.append(it.getObject())
@@ -1012,15 +1023,19 @@ class pyBluePrintCirclesShader(StrokeShader):
 		stroke.UpdateLength()
 
 class pyBluePrintEllipsesShader(StrokeShader):
-	def __init__(self, turns = 1):
+	def __init__(self, turns = 1, random_radius = 3, random_center = 5):
 		StrokeShader.__init__(self)
 		self.__turns = turns
+		self.__random_center = random_center
+		self.__random_radius = random_radius
 	def getName(self):
 		return "pyBluePrintEllipsesShader"
 	def shade(self, stroke):
-		p_min = Vector([10000, 10000])
-		p_max = Vector([0, 0])
 		it = stroke.strokeVerticesBegin()
+		if it.isEnd():
+			return
+		p_min = it.getObject().getPoint()
+		p_max = it.getObject().getPoint()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
 			if (p.x < p_min.x):
@@ -1034,25 +1049,30 @@ class pyBluePrintEllipsesShader(StrokeShader):
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
-		sv_nb = sv_nb / self.__turns
+		sv_nb = sv_nb // self.__turns
 		center = (p_min + p_max) / 2
-		radius_x = center.x - p_min.x
-		radius_y = center.y - p_min.y
+		radius = center - p_min
 		p_new = Vector([0, 0])
 #######################################################
+		R = self.__random_radius
+		C = self.__random_center
+		i = 0
 		it = stroke.strokeVerticesBegin()
 		for j in range(self.__turns):
-			radius_x = radius_x + randint(-3, 3)
-			radius_y = radius_y + randint(-3, 3)
-			center.x = center.x + randint(-5, 5)
-			center.y = center.y + randint(-5, 5)
-			i = 0
+			prev_radius = radius
+			prev_center = center
+			radius = radius + Vector([randint(-R, R), randint(-R, R)])
+			center = center + Vector([randint(-C, C), randint(-C, C)])
 			while i < sv_nb and it.isEnd() == 0:
-				p_new.x = center.x + radius_x * cos(2 * pi * float(i) / float(sv_nb - 1))
-				p_new.y = center.y + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1))
+				t = float(i) / float(sv_nb - 1)
+				r = prev_radius + (radius - prev_radius) * t
+				c = prev_center + (center - prev_center) * t
+				p_new.x = c.x + r.x * cos(2 * pi * t)
+				p_new.y = c.y + r.y * sin(2 * pi * t)
 				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
+			i = 1
 		verticesToRemove = []
 		while it.isEnd() == 0:
 			verticesToRemove.append(it.getObject())
@@ -1063,18 +1083,21 @@ class pyBluePrintEllipsesShader(StrokeShader):
 
 
 class pyBluePrintSquaresShader(StrokeShader):
-	def __init__(self, turns = 1, bb_len = 10):
+	def __init__(self, turns = 1, bb_len = 10, bb_rand = 0):
 		StrokeShader.__init__(self)
 		self.__turns = turns
 		self.__bb_len = bb_len
+		self.__bb_rand = bb_rand
 
 	def getName(self):
 		return "pyBluePrintSquaresShader"
 
 	def shade(self, stroke):
-		p_min = Vector([10000, 10000])
-		p_max = Vector([0, 0])
 		it = stroke.strokeVerticesBegin()
+		if it.isEnd():
+			return
+		p_min = it.getObject().getPoint()
+		p_max = it.getObject().getPoint()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
 			if (p.x < p_min.x):
@@ -1089,23 +1112,37 @@ class pyBluePrintSquaresShader(StrokeShader):
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
 #######################################################	
-		sv_nb = sv_nb / self.__turns
-		first = sv_nb / 4
+		sv_nb = sv_nb // self.__turns
+		first = sv_nb // 4
 		second = 2 * first
 		third = 3 * first
 		fourth = sv_nb
-		vec_first = Vector([p_max.x - p_min.x + 2 * self.__bb_len, 0])
-		vec_second = Vector([0, p_max.y - p_min.y + 2 * self.__bb_len])
-		vec_third = vec_first * -1
-		vec_fourth = vec_second * -1
 		p_first = Vector([p_min.x - self.__bb_len, p_min.y])
+		p_first_end = Vector([p_max.x + self.__bb_len, p_min.y])
 		p_second = Vector([p_max.x, p_min.y - self.__bb_len])
+		p_second_end = Vector([p_max.x, p_max.y + self.__bb_len])
 		p_third = Vector([p_max.x + self.__bb_len, p_max.y])
+		p_third_end = Vector([p_min.x - self.__bb_len, p_max.y])
 		p_fourth = Vector([p_min.x, p_max.y + self.__bb_len])
+		p_fourth_end = Vector([p_min.x, p_min.y - self.__bb_len])
 #######################################################
+		R = self.__bb_rand
+		r = self.__bb_rand // 2
 		it = stroke.strokeVerticesBegin()
 		visible = 1
 		for j in range(self.__turns):
+			p_first = p_first + Vector([randint(-R, R), randint(-r, r)])
+			p_first_end = p_first_end + Vector([randint(-R, R), randint(-r, r)])
+			p_second = p_second + Vector([randint(-r, r), randint(-R, R)])
+			p_second_end = p_second_end + Vector([randint(-r, r), randint(-R, R)])
+			p_third = p_third + Vector([randint(-R, R), randint(-r, r)])
+			p_third_end = p_third_end + Vector([randint(-R, R), randint(-r, r)])
+			p_fourth = p_fourth + Vector([randint(-r, r), randint(-R, R)])
+			p_fourth_end = p_fourth_end + Vector([randint(-r, r), randint(-R, R)])
+			vec_first = p_first_end - p_first
+			vec_second = p_second_end - p_second
+			vec_third = p_third_end - p_third
+			vec_fourth = p_fourth_end - p_fourth
 			i = 0
 			while i < sv_nb and it.isEnd() == 0:
 				if i < first:
@@ -1156,20 +1193,10 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 	def shade(self, stroke):
 		stroke.Resample(32 * self.__turns)
 		p_mean = Vector([0, 0])
-		p_min = Vector([10000, 10000])
-		p_max = Vector([0, 0])
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
 			p_mean = p_mean + p
-## 			if (p.x < p_min.x):
-## 				p_min.x = p.x
-## 			if (p.x > p_max.x):
-## 				p_max.x = p.x
-## 			if (p.y < p_min.y):
-## 				p_min.y = p.y
-## 			if (p.y > p_max.y):
-## 				p_max.y = p.y
 			it.increment()
 		sv_nb = stroke.strokeVerticesSize()
 		p_mean = p_mean / sv_nb
@@ -1202,8 +1229,8 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 			e1 = Vector([cos(theta), sin(theta)]) * sqrt(lambda1) * self.__mult
 			e2 = Vector([cos(theta + pi / 2), sin(theta + pi / 2)]) * sqrt(lambda2) * self.__mult
 #######################################################	
-		sv_nb = sv_nb / self.__turns
-		first = sv_nb / 4
+		sv_nb = sv_nb // self.__turns
+		first = sv_nb // 4
 		second = 2 * first
 		third = 3 * first
 		fourth = sv_nb

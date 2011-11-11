@@ -973,7 +973,7 @@ def process(layer_name, lineset_name):
                 m.frequency, m.amplitude, m.octaves, m.angle, _seed.get(m.seed)))
         elif m.type == "BACKBONE_STRETCHER":
             shaders_list.append(BackboneStretcherShader(
-                m.amount))
+                m.backbone_length))
         elif m.type == "TIP_REMOVER":
             shaders_list.append(TipRemoverShader(
                 m.tip_length))
@@ -983,6 +983,16 @@ def process(layer_name, lineset_name):
         elif m.type == "GUIDING_LINES":
             shaders_list.append(GuidingLinesShader(
                 m.offset))
+        elif m.type == "BLUEPRINT":
+            if m.shape == "CIRCLES":
+                shaders_list.append(pyBluePrintCirclesShader(
+                    m.rounds, m.random_radius, m.random_center))
+            elif m.shape == "ELLIPSES":
+                shaders_list.append(pyBluePrintEllipsesShader(
+                    m.rounds, m.random_radius, m.random_center))
+            elif m.shape == "SQUARES":
+                shaders_list.append(pyBluePrintSquaresShader(
+                    m.rounds, m.backbone_length, m.random_backbone))
     color = linestyle.color
     shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
     shaders_list.append(ConstantThicknessShader(linestyle.thickness))

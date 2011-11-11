@@ -64,7 +64,8 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_CALLIGRAPHY            13
 #define LS_MODIFIER_POLYGONIZATION         14
 #define LS_MODIFIER_GUIDING_LINES          15
-#define LS_MODIFIER_NUM                    16
+#define LS_MODIFIER_BLUEPRINT              16
+#define LS_MODIFIER_NUM                    17
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -284,7 +285,7 @@ typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 typedef struct LineStyleGeometryModifier_BackboneStretcher {
 	struct LineStyleModifier modifier;
 
-	float amount;
+	float backbone_length;
 	int pad;
 
 } LineStyleGeometryModifier_BackboneStretcher;
@@ -312,6 +313,23 @@ typedef struct LineStyleGeometryModifier_GuidingLines {
 	int pad;
 
 } LineStyleGeometryModifier_GuidingLines;
+
+/* LineStyleGeometryModifier_BluePrintLines::shape */
+#define LS_MODIFIER_BLUEPRINT_CIRCLES   1
+#define LS_MODIFIER_BLUEPRINT_ELLIPSES  2
+#define LS_MODIFIER_BLUEPRINT_SQUARES   4
+
+typedef struct LineStyleGeometryModifier_Blueprint {
+	struct LineStyleModifier modifier;
+
+	int flags;
+	unsigned int rounds;
+	float backbone_length;
+	unsigned int random_radius;
+	unsigned int random_center;
+	unsigned int random_backbone;
+
+} LineStyleGeometryModifier_Blueprint;
 
 /* Calligraphic thickness modifier */
 

@@ -61,6 +61,7 @@ EnumPropertyItem linestyle_thickness_modifier_type_items[] ={
 EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
 	{LS_MODIFIER_BACKBONE_STRETCHER, "BACKBONE_STRETCHER", ICON_MODIFIER, "Backbone Stretcher", ""},
 	{LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bezier Curve", ""},
+	{LS_MODIFIER_BLUEPRINT, "BLUEPRINT", ICON_MODIFIER, "Blueprint", ""},
 	{LS_MODIFIER_GUIDING_LINES, "GUIDING_LINES", ICON_MODIFIER, "Guiding Lines", ""},
 	{LS_MODIFIER_PERLIN_NOISE_1D, "PERLIN_NOISE_1D", ICON_MODIFIER, "Perlin Noise 1D", ""},
 	{LS_MODIFIER_PERLIN_NOISE_2D, "PERLIN_NOISE_2D", ICON_MODIFIER, "Perlin Noise 2D", ""},
@@ -154,6 +155,8 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(struct PointerRNA *ptr)
 			return &RNA_LineStyleGeometryModifier_Polygonalization;
 		case LS_MODIFIER_GUIDING_LINES:
 			return &RNA_LineStyleGeometryModifier_GuidingLines;
+		case LS_MODIFIER_BLUEPRINT:
+			return &RNA_LineStyleGeometryModifier_Blueprint;
 		default:
 			return &RNA_LineStyleGeometryModifier;
 	}
@@ -377,6 +380,12 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem blueprint_shape_items[] = {
+		{LS_MODIFIER_BLUEPRINT_CIRCLES, "CIRCLES", 0, "Circles", "Draw a blueprint using circular contour strokes"},
+		{LS_MODIFIER_BLUEPRINT_ELLIPSES, "ELLIPSES", 0, "Ellipses", "Draw a blueprint using elliptic contour strokes"},
+		{LS_MODIFIER_BLUEPRINT_SQUARES, "SQUARES", 0, "Squares", "Draw a blueprint using square contour strokes"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LineStyleModifier", NULL);
 	RNA_def_struct_ui_text(srna, "Line Style Modifier", "Base type to define modifiers");
@@ -651,9 +660,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Backbone Stretcher", "Stretch the beginning and the end of stroke backbone");
 	rna_def_geometry_modifier(srna);
 
-	prop= RNA_def_property(srna, "amount", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "amount");
-	RNA_def_property_ui_text(prop, "Amount", "Amount of stretching");
+	prop= RNA_def_property(srna, "backbone_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "backbone_length");
+	RNA_def_property_ui_text(prop, "Backbone Length", "Amount of backbone stretching");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_TipRemover", "LineStyleGeometryModifier");
@@ -681,6 +690,42 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset", "Displacement that is applied to the main direction line along its normal");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_Blueprint", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Blueprint", "Produce a blueprint using circular, elliptic, and square contour strokes");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "shape", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, blueprint_shape_items);
+	RNA_def_property_ui_text(prop, "Shape", "Select the shape of blueprint contour strokes");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "rounds", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "rounds");
+	RNA_def_property_range(prop, 1, 1000);
+	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in contour strokes");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "backbone_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "backbone_length");
+	RNA_def_property_ui_text(prop, "Backbone Length", "Amount of backbone stretching");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "random_radius", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "random_radius");
+	RNA_def_property_ui_text(prop, "Random Radius", "Randomness of the radius");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "random_center", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "random_center");
+	RNA_def_property_ui_text(prop, "Random Center", "Randomness of the center");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "random_backbone", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "random_backbone");
+	RNA_def_property_ui_text(prop, "Random Backbone", "Randomness of the backbone stretching");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 }

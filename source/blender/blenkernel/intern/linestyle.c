@@ -63,7 +63,8 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	"Tip Remover",
 	"Calligraphy",
 	"Polygonalization",
-	"Guiding Lines"};
+	"Guiding Lines",
+	"Blueprint"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
@@ -398,6 +399,9 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 	case LS_MODIFIER_GUIDING_LINES:
 		size = sizeof(LineStyleGeometryModifier_GuidingLines);
 		break;
+	case LS_MODIFIER_BLUEPRINT:
+		size = sizeof(LineStyleGeometryModifier_Blueprint);
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -435,7 +439,7 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = 45.0;
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
-		((LineStyleGeometryModifier_BackboneStretcher *)m)->amount = 10.0;
+		((LineStyleGeometryModifier_BackboneStretcher *)m)->backbone_length = 10.0;
 		break;
 	case LS_MODIFIER_TIP_REMOVER:
 		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0;
@@ -445,6 +449,14 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 		break;
 	case LS_MODIFIER_GUIDING_LINES:
 		((LineStyleGeometryModifier_GuidingLines *)m)->offset = 0.0;
+		break;
+	case LS_MODIFIER_BLUEPRINT:
+		((LineStyleGeometryModifier_Blueprint *)m)->flags = LS_MODIFIER_BLUEPRINT_CIRCLES;
+		((LineStyleGeometryModifier_Blueprint *)m)->rounds = 1;
+		((LineStyleGeometryModifier_Blueprint *)m)->backbone_length = 10.f;
+		((LineStyleGeometryModifier_Blueprint *)m)->random_radius = 3;
+		((LineStyleGeometryModifier_Blueprint *)m)->random_center = 5;
+		((LineStyleGeometryModifier_Blueprint *)m)->random_backbone = 5;
 		break;
 	}
 	add_to_modifier_list(&linestyle->geometry_modifiers, m);
@@ -473,6 +485,8 @@ void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineS
 	case LS_MODIFIER_POLYGONIZATION:
 		break;
 	case LS_MODIFIER_GUIDING_LINES:
+		break;
+	case LS_MODIFIER_BLUEPRINT:
 		break;
 	}
 	BLI_freelinkN(&linestyle->geometry_modifiers, m);
