@@ -431,8 +431,9 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
 
-	if(!me->mcol)
-		make_vertexcol(ob);
+	if(!me->mcol) make_vertexcol(ob);
+	if(!me->mcol) return; /* possible we can't make mcol's */
+
 
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
@@ -1758,8 +1759,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		if(dv_copy.dw) {
 			MEM_freeN(dv_copy.dw);
 		}
+#if 0
 		/* dv may have been altered greatly */
 		dw = defvert_find_index(dv, vgroup);
+#else
+		dw = NULL; /* UNUSED after assignment, set to NULL to ensuyre we don't
+			        * use again, we thats needed un-ifdef the line above */
+		(void)dw;  /* quiet warnigns */
+#endif
 
 		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 			int index_mirr= mesh_get_x_mirror_vert(ob, index);

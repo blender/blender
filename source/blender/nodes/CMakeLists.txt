@@ -131,6 +131,7 @@ set(SRC
 	shader/nodes/node_shader_vectMath.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
+	# shader/nodes/node_shader_bsdf_anisotropic.c  # XXX, why not included?
 	shader/nodes/node_shader_bsdf_diffuse.c
 	shader/nodes/node_shader_bsdf_glossy.c
 	shader/nodes/node_shader_bsdf_glass.c

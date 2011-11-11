@@ -1,7 +1,7 @@
 
 set(INC
 	.
-	../
+	..
 	../svm
 	../../render
 	../../util

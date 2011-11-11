@@ -50,6 +50,8 @@ set(SRC_OSL
 
 set(SRC_OSL_HEADERS
 	node_texture.h
+	node_color.h
+	node_fresnel.h
 	stdosl.h
 )
 

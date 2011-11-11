@@ -93,6 +93,9 @@ def cmake_get_src(f):
     # print(f)
 
     def is_definition(l, f, i, name):
+        if l.startswith("unset("):
+            return False
+
         if ('set(%s' % name) in l or ('set(' in l and l.endswith(name)):
             if len(l.split()) > 1:
                 raise Exception("strict formatting not kept 'set(%s*' %s:%d" % (name, f, i))
