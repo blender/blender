@@ -3175,12 +3175,19 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 					{
 
 						float ray_start[3], ray_dir[3];
-						float colorband[4] = {0.0f};
-						float sample_factor;
+						float sample_factor = 0.0f;
 						float sampleStrength = 0.0f;
 						BVHTreeRayHit hit;
 						BVHTreeNearest nearest;
 						short hit_found = 0;
+
+						/* volume sample */
+						float volume_factor = 0.0f;
+						/* proximity sample */
+						float proximity_factor = 0.0f;
+						float prox_colorband[4] = {0.0f};
+						int inner_proximity = (brush->flags & MOD_DPAINT_INVERSE_PROX && 
+												   brush->collision == MOD_DPAINT_COL_VOLDIST);
 
 						/* hit data	*/
 						float hitCoord[3];
@@ -3236,7 +3243,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								if(hit.index != -1) {
 									/* Add factor on supersample filter	*/
-									sampleStrength += sample_factor;
+									volume_factor = 1.0f;
 									hit_found = HIT_VOLUME;
 
 									/* Mark hit info */
@@ -3256,8 +3263,6 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							float hitCo[3];
 							short hQuad;
 							int face;
-							int inner_proximity = (brush->flags & MOD_DPAINT_INVERSE_PROX && 
-												   brush->collision == MOD_DPAINT_COL_VOLDIST);
 
 							/* if inverse prox and no hit found, skip this sample */
 							if (inner_proximity && !hit_found) continue;
@@ -3299,25 +3304,12 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 							/* If a hit was found, calculate required values	*/
 							if (proxDist >= 0.0f && proxDist <= brush->paint_distance) {
-								float dist_rate = proxDist / brush->paint_distance;
-								float prox_influence = 0.0f;
-
-								/* in case of inverse prox also undo volume effect */
-								if (inner_proximity) {
-									sampleStrength -= sample_factor;
-									dist_rate = 1.0f - dist_rate;
-								}
-
-								/* if using proximity color ramp use it's alpha */
-								if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP && do_colorband(brush->paint_ramp, dist_rate, colorband))
-									prox_influence = colorband[3];
-								else if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH) {
-									prox_influence = (1.0f - dist_rate) * sample_factor;
-								}
-								else prox_influence = inner_proximity ? 0.0f : 1.0f;
+								proximity_factor = proxDist / brush->paint_distance;
+								CLAMP(proximity_factor, 0.0f, 1.0f);
+								if (!inner_proximity)
+									proximity_factor = 1.0f - proximity_factor;
 
 								hit_found = HIT_PROXIMITY;
-								sampleStrength += prox_influence*sample_factor;
 
 								/* if no volume hit, use prox point face info */
 								if (hitFace == -1) {
@@ -3328,7 +3320,32 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							}
 						}
 
-						if (!hit_found) continue;
+						/* mix final sample strength depending on brush settings */
+						if (hit_found) {
+							/* if "negate volume" enabled, negate all factors within volume*/
+							if (brush->collision == MOD_DPAINT_COL_VOLDIST && brush->flags & MOD_DPAINT_NEGATE_VOLUME) {
+								volume_factor = 1.0f - volume_factor;
+								if (inner_proximity)
+									proximity_factor = 1.0f - proximity_factor;
+							}
+
+							/* apply final sample depending on final hit type */
+							if (hit_found == HIT_VOLUME) {
+								sampleStrength = volume_factor;
+							}
+							else if (hit_found == HIT_PROXIMITY) {
+								/* apply falloff curve to the proximity_factor */
+								if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP && do_colorband(brush->paint_ramp, (1.0f-proximity_factor), prox_colorband))
+									proximity_factor = prox_colorband[3];
+								else if (brush->proximity_falloff == MOD_DPAINT_PRFALL_CONSTANT)
+									proximity_factor = (!inner_proximity || brush->flags & MOD_DPAINT_NEGATE_VOLUME) ? 1.0f : 0.0f;
+								/* apply sample */
+								sampleStrength = proximity_factor;
+							}
+
+							sampleStrength *= sample_factor;
+						}
+						else continue;
 
 						/* velocity brush, only do on main sample */
 						if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss==0 && brushVelocity) {
@@ -3395,9 +3412,9 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							/* Sample proximity colorband if required	*/
 							if ((hit_found == HIT_PROXIMITY) && (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP)) {
 								if (!(brush->flags & MOD_DPAINT_RAMP_ALPHA)) {
-									sampleColor[0] = colorband[0];
-									sampleColor[1] = colorband[1];
-									sampleColor[2] = colorband[2];
+									sampleColor[0] = prox_colorband[0];
+									sampleColor[1] = prox_colorband[1];
+									sampleColor[2] = prox_colorband[2];
 								}
 							}
 
@@ -3478,7 +3495,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	float range = solidradius + smooth;
 	float particle_timestep = 0.04f * part->timetweak;
 
-	Bounds3D part_bb;
+	Bounds3D part_bb = {0};
 
 	if (psys->totpart < 1) return 1;
 
@@ -4482,7 +4499,7 @@ static int dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *ob
 	return ret;
 }
 
-static int surface_needsVelocityData(DynamicPaintSurface *surface, Scene *scene, Object *UNUSED(ob))
+static int surface_needsVelocityData(DynamicPaintSurface *surface, Scene *scene)
 {
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP)
 		return 1;
@@ -4509,7 +4526,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 	PaintBakeData *bData = sData->bData;
 	DerivedMesh *dm = surface->canvas->dm;
 	int index, new_bdata = 0;
-	int do_velocity_data = surface_needsVelocityData(surface, scene, ob);
+	int do_velocity_data = surface_needsVelocityData(surface, scene);
 	int do_accel_data = surface_needsAccelerationData(surface);
 
 	int canvasNumOfVerts = dm->getNumVerts(dm);

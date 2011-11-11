@@ -144,6 +144,7 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
 #define MOD_DPAINT_PROX_PROJECT (1<<5) /* do proximity check only in defined dir */
 #define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
+#define MOD_DPAINT_NEGATE_VOLUME (1<<7) /* negates volume influence on "volume + prox" mode */
 
 #define MOD_DPAINT_DO_SMUDGE (1<<8) /* brush smudges existing paint */
 #define MOD_DPAINT_VELOCITY_ALPHA (1<<9) /* multiply brush influence by velocity */
@@ -160,7 +161,7 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_COL_POINT 4 /* use distance to object center point */
 
 /* proximity_falloff */
-#define MOD_DPAINT_PRFALL_SHARP 0 /* no-falloff */
+#define MOD_DPAINT_PRFALL_CONSTANT 0 /* no-falloff */
 #define MOD_DPAINT_PRFALL_SMOOTH 1 /* smooth, linear falloff */
 #define MOD_DPAINT_PRFALL_RAMP 2 /* use color ramp */
 

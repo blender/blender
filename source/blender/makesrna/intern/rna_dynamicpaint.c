@@ -695,7 +695,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_dynamicpaint_prox_falloff[] = {
 			{MOD_DPAINT_PRFALL_SMOOTH, "SMOOTH", ICON_SPHERECURVE, "Smooth", ""},
-			{MOD_DPAINT_PRFALL_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+			{MOD_DPAINT_PRFALL_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
 			{MOD_DPAINT_PRFALL_RAMP, "RAMP", ICON_COLOR, "Color Ramp", ""},
 			{0, NULL, 0, NULL, NULL}};
 
@@ -846,6 +846,11 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "proximity_inverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_INVERSE_PROX);
 	RNA_def_property_ui_text(prop, "Inner Proximity", "Proximity falloff is applied inside the volume");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+
+	prop= RNA_def_property(srna, "negate_volume", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_NEGATE_VOLUME);
+	RNA_def_property_ui_text(prop, "Negate Volume", "Negate influence inside the volume");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 	
 
