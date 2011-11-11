@@ -26,7 +26,7 @@ class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
-        from bl_ui.space_dopesheet import dopesheet_filter
+        from .space_dopesheet import dopesheet_filter
 
         layout = self.layout
 

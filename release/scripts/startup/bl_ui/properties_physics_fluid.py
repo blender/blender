@@ -40,151 +40,149 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         md = context.fluid
+        fluid = md.settings
 
-        if md:
-            fluid = md.settings
+        row = layout.row()
+        if fluid is None:
+            row.label("Built without fluids")
+            return
 
-            row = layout.row()
-            if fluid is None:
-                row.label("Built without fluids")
-                return
+        row.prop(fluid, "type")
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+            row.prop(fluid, "use", text="")
 
-            row.prop(fluid, "type")
-            if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
-                row.prop(fluid, "use", text="")
+        layout = layout.column()
+        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
+            layout.active = fluid.use
 
-            layout = layout.column()
-            if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID'}:
-                layout.active = fluid.use
+        if fluid.type == 'DOMAIN':
+            layout.operator("fluid.bake", text="Bake (Req. Memory:" + " %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
+            split = layout.split()
 
-            if fluid.type == 'DOMAIN':
-                layout.operator("fluid.bake", text="Bake (Req. Memory:" + " %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
-                split = layout.split()
+            col = split.column()
+            col.label(text="Resolution:")
+            col.prop(fluid, "resolution", text="Final")
+            col.label(text="Render Display:")
+            col.prop(fluid, "render_display_mode", text="")
 
-                col = split.column()
-                col.label(text="Resolution:")
-                col.prop(fluid, "resolution", text="Final")
-                col.label(text="Render Display:")
-                col.prop(fluid, "render_display_mode", text="")
+            col = split.column()
+            col.label()
+            col.prop(fluid, "preview_resolution", text="Preview")
+            col.label(text="Viewport Display:")
+            col.prop(fluid, "viewport_display_mode", text="")
 
-                col = split.column()
-                col.label()
-                col.prop(fluid, "preview_resolution", text="Preview")
-                col.label(text="Viewport Display:")
-                col.prop(fluid, "viewport_display_mode", text="")
+            split = layout.split()
 
-                split = layout.split()
+            col = split.column()
+            col.label(text="Time:")
+            sub = col.column(align=True)
+            sub.prop(fluid, "start_time", text="Start")
+            sub.prop(fluid, "end_time", text="End")
 
-                col = split.column()
-                col.label(text="Time:")
-                sub = col.column(align=True)
-                sub.prop(fluid, "start_time", text="Start")
-                sub.prop(fluid, "end_time", text="End")
+            col = split.column()
+            col.label()
+            col.prop(fluid, "use_speed_vectors")
+            col.prop(fluid, "use_reverse_frames")
 
-                col = split.column()
-                col.label()
-                col.prop(fluid, "use_speed_vectors")
-                col.prop(fluid, "use_reverse_frames")
+            layout.prop(fluid, "filepath", text="")
 
-                layout.prop(fluid, "filepath", text="")
+        elif fluid.type == 'FLUID':
+            split = layout.split()
 
-            elif fluid.type == 'FLUID':
-                split = layout.split()
+            col = split.column()
+            col.label(text="Volume Initialization:")
+            col.prop(fluid, "volume_initialization", text="")
+            col.prop(fluid, "use_animated_mesh")
 
-                col = split.column()
-                col.label(text="Volume Initialization:")
-                col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "use_animated_mesh")
+            col = split.column()
+            col.label(text="Initial Velocity:")
+            col.prop(fluid, "initial_velocity", text="")
 
-                col = split.column()
-                col.label(text="Initial Velocity:")
-                col.prop(fluid, "initial_velocity", text="")
+        elif fluid.type == 'OBSTACLE':
+            split = layout.split()
 
-            elif fluid.type == 'OBSTACLE':
-                split = layout.split()
+            col = split.column()
+            col.label(text="Volume Initialization:")
+            col.prop(fluid, "volume_initialization", text="")
+            col.prop(fluid, "use_animated_mesh")
 
-                col = split.column()
-                col.label(text="Volume Initialization:")
-                col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "use_animated_mesh")
+            col = split.column()
+            col.label(text="Slip Type:")
+            col.prop(fluid, "slip_type", text="")
+            if fluid.slip_type == 'PARTIALSLIP':
+                col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
 
-                col = split.column()
-                col.label(text="Slip Type:")
-                col.prop(fluid, "slip_type", text="")
-                if fluid.slip_type == 'PARTIALSLIP':
-                    col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
+            col.label(text="Impact:")
+            col.prop(fluid, "impact_factor", text="Factor")
 
-                col.label(text="Impact:")
-                col.prop(fluid, "impact_factor", text="Factor")
+        elif fluid.type == 'INFLOW':
+            split = layout.split()
 
-            elif fluid.type == 'INFLOW':
-                split = layout.split()
+            col = split.column()
+            col.label(text="Volume Initialization:")
+            col.prop(fluid, "volume_initialization", text="")
+            col.prop(fluid, "use_animated_mesh")
+            row = col.row()
+            row.active = not fluid.use_animated_mesh
+            row.prop(fluid, "use_local_coords")
 
-                col = split.column()
-                col.label(text="Volume Initialization:")
-                col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "use_animated_mesh")
-                row = col.row()
-                row.active = not fluid.use_animated_mesh
-                row.prop(fluid, "use_local_coords")
+            col = split.column()
+            col.label(text="Inflow Velocity:")
+            col.prop(fluid, "inflow_velocity", text="")
 
-                col = split.column()
-                col.label(text="Inflow Velocity:")
-                col.prop(fluid, "inflow_velocity", text="")
+        elif fluid.type == 'OUTFLOW':
+            split = layout.split()
 
-            elif fluid.type == 'OUTFLOW':
-                split = layout.split()
+            col = split.column()
+            col.label(text="Volume Initialization:")
+            col.prop(fluid, "volume_initialization", text="")
+            col.prop(fluid, "use_animated_mesh")
 
-                col = split.column()
-                col.label(text="Volume Initialization:")
-                col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "use_animated_mesh")
+            split.column()
 
-                split.column()
+        elif fluid.type == 'PARTICLE':
+            split = layout.split()
 
-            elif fluid.type == 'PARTICLE':
-                split = layout.split()
+            col = split.column()
+            col.label(text="Influence:")
+            col.prop(fluid, "particle_influence", text="Size")
+            col.prop(fluid, "alpha_influence", text="Alpha")
 
-                col = split.column()
-                col.label(text="Influence:")
-                col.prop(fluid, "particle_influence", text="Size")
-                col.prop(fluid, "alpha_influence", text="Alpha")
+            col = split.column()
+            col.label(text="Type:")
+            col.prop(fluid, "use_drops")
+            col.prop(fluid, "use_floats")
+            col.prop(fluid, "show_tracer")
 
-                col = split.column()
-                col.label(text="Type:")
-                col.prop(fluid, "use_drops")
-                col.prop(fluid, "use_floats")
-                col.prop(fluid, "show_tracer")
+            layout.prop(fluid, "filepath", text="")
 
-                layout.prop(fluid, "filepath", text="")
+        elif fluid.type == 'CONTROL':
+            split = layout.split()
 
-            elif fluid.type == 'CONTROL':
-                split = layout.split()
+            col = split.column()
+            col.label(text="")
+            col.prop(fluid, "quality", slider=True)
+            col.prop(fluid, "use_reverse_frames")
 
-                col = split.column()
-                col.label(text="")
-                col.prop(fluid, "quality", slider=True)
-                col.prop(fluid, "use_reverse_frames")
+            col = split.column()
+            col.label(text="Time:")
+            sub = col.column(align=True)
+            sub.prop(fluid, "start_time", text="Start")
+            sub.prop(fluid, "end_time", text="End")
 
-                col = split.column()
-                col.label(text="Time:")
-                sub = col.column(align=True)
-                sub.prop(fluid, "start_time", text="Start")
-                sub.prop(fluid, "end_time", text="End")
+            split = layout.split()
 
-                split = layout.split()
+            col = split.column()
+            col.label(text="Attraction Force:")
+            sub = col.column(align=True)
+            sub.prop(fluid, "attraction_strength", text="Strength")
+            sub.prop(fluid, "attraction_radius", text="Radius")
 
-                col = split.column()
-                col.label(text="Attraction Force:")
-                sub = col.column(align=True)
-                sub.prop(fluid, "attraction_strength", text="Strength")
-                sub.prop(fluid, "attraction_radius", text="Radius")
-
-                col = split.column()
-                col.label(text="Velocity Force:")
-                sub = col.column(align=True)
-                sub.prop(fluid, "velocity_strength", text="Strength")
-                sub.prop(fluid, "velocity_radius", text="Radius")
+            col = split.column()
+            col.label(text="Velocity Force:")
+            sub = col.column(align=True)
+            sub.prop(fluid, "velocity_strength", text="Strength")
+            sub.prop(fluid, "velocity_radius", text="Radius")
 
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):

@@ -373,8 +373,14 @@ bool cuLibraryInit()
 	/* cuda 4.0 */
 	CUDA_LIBRARY_FIND(cuCtxSetCurrent);
 
+#ifndef WITH_CUDA_BINARIES
+#ifdef _WIN32
+	return false; /* runtime build doesn't work at the moment */
+#else
 	if(cuCompilerPath() == "")
 		return false;
+#endif
+#endif
 
 	/* success */
 	result = true;
@@ -401,7 +407,15 @@ string cuCompilerPath()
 	else
 		nvcc = path_join(defaultpath, executable);
 
-	return (path_exists(nvcc))? nvcc: "";
+	if(path_exists(nvcc))
+		return nvcc;
+
+#ifndef _WIN32
+	if(system("which nvcc") == 0)
+		return "nvcc";
+#endif
+
+	return "";
 }
 
 CCL_NAMESPACE_END

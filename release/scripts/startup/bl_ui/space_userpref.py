@@ -743,7 +743,7 @@ class USERPREF_PT_file(Panel):
         sub.active = paths.use_auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
-from bl_ui.space_userpref_keymap import InputKeyMapPanel
+from .space_userpref_keymap import InputKeyMapPanel
 
 
 class USERPREF_MT_ndof_settings(Menu):

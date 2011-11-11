@@ -612,7 +612,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
         col.prop(halo, "flare_subflare_size", text="Subsize")
 
 
-class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_game_settings(MaterialButtonsPanel, Panel):
     bl_label = "Game Settings"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -637,7 +637,7 @@ class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(game, "face_orientation", text="")
 
 
-class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 

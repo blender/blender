@@ -181,6 +181,7 @@ set(SRC
 	BKE_deform.h
 	BKE_depsgraph.h
 	BKE_displist.h
+	BKE_dynamicpaint.h
 	BKE_effect.h
 	BKE_fcurve.h
 	BKE_fluidsim.h

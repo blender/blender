@@ -162,7 +162,7 @@ if cxx:
 
 if sys.platform=='win32':
     if env['CC'] in ['cl', 'cl.exe']:
-         platform = 'win64-vc' if bitness == 64 else 'win32-vc'
+        platform = 'win64-vc' if bitness == 64 else 'win32-vc'
     elif env['CC'] in ['gcc']:
         platform = 'win32-mingw'
 

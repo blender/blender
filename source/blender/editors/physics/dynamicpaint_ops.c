@@ -24,6 +24,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
@@ -52,7 +53,7 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
-static int surface_slot_add_exec(bContext *C, wmOperator *op)
+static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	DynamicPaintModifierData *pmd = 0;
 	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
@@ -94,7 +95,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int surface_slot_remove_exec(bContext *C, wmOperator *op)
+static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	DynamicPaintModifierData *pmd = 0;
 	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;

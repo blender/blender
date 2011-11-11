@@ -43,7 +43,7 @@ template<typename T> struct texture  {
 		return data[index];
 	}
 
-	__m128 fetch_m128(int index)
+	/*__m128 fetch_m128(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128*)data)[index];
@@ -53,7 +53,7 @@ template<typename T> struct texture  {
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128i*)data)[index];
-	}
+	}*/
 
 	float interp(float x)
 	{

@@ -312,19 +312,19 @@ class IMAGE_MT_uvs_select_mode(Menu):
 
         else:
             prop = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
-            prop.value = "VERTEX"
+            prop.value = 'VERTEX'
             prop.data_path = "tool_settings.uv_select_mode"
 
             prop = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
-            prop.value = "EDGE"
+            prop.value = 'EDGE'
             prop.data_path = "tool_settings.uv_select_mode"
 
             prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
-            prop.value = "FACE"
+            prop.value = 'FACE'
             prop.data_path = "tool_settings.uv_select_mode"
 
             prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
-            prop.value = "ISLAND"
+            prop.value = 'ISLAND'
             prop.data_path = "tool_settings.uv_select_mode"
 
 

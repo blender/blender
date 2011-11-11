@@ -8,7 +8,9 @@ include(cmake/external_libs.cmake)
 
 # Build Flags
 
-set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3 -mtune=native")
+if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+	set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3")
+endif()
 
 if(APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_OPTIM_FLAGS}")
@@ -30,6 +32,9 @@ if(UNIX AND NOT APPLE)
 	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 endif()
 
+# not needed yet, is for open shading language
+set(RTTI_DISABLE_FLAGS "")
+
 # Definitions and Includes
 
 add_definitions(${BOOST_DEFINITIONS} ${OPENIMAGEIO_DEFINITIONS})
@@ -47,6 +52,10 @@ endif()
 
 if(WITH_CYCLES_PARTIO)
   add_definitions(-DWITH_PARTIO)
+endif()
+
+if(WITH_CYCLES_CUDA_BINARIES)
+  add_definitions(-DWITH_CUDA_BINARIES)
 endif()
 
 add_definitions(-DWITH_OPENCL)
@@ -72,3 +81,4 @@ add_subdirectory(kernel)
 add_subdirectory(render)
 add_subdirectory(subd)
 add_subdirectory(util)
+

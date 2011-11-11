@@ -1499,6 +1499,71 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 	}
 }
 
+void object_tfm_protected_backup(const Object *ob,
+                                 ObjectTfmProtectedChannels *obtfm)
+{
+
+#define TFMCPY(   _v) (obtfm->_v = ob->_v)
+#define TFMCPY3D( _v) copy_v3_v3(obtfm->_v, ob->_v)
+#define TFMCPY4D( _v) copy_v4_v4(obtfm->_v, ob->_v)
+
+	TFMCPY3D(loc);
+	TFMCPY3D(dloc);
+	TFMCPY3D(size);
+	TFMCPY3D(dsize);
+	TFMCPY3D(rot);
+	TFMCPY3D(drot);
+	TFMCPY4D(quat);
+	TFMCPY4D(dquat);
+	TFMCPY3D(rotAxis);
+	TFMCPY3D(drotAxis);
+	TFMCPY(rotAngle);
+	TFMCPY(drotAngle);
+
+#undef TFMCPY
+#undef TFMCPY3D
+#undef TFMCPY4D
+
+}
+
+void object_tfm_protected_restore(Object *ob,
+                                  const ObjectTfmProtectedChannels *obtfm,
+                                  const short protectflag)
+{
+	unsigned int i;
+
+	for (i= 0; i < 3; i++) {
+		if (protectflag & (OB_LOCK_LOCX<<i)) {
+			ob->loc[i]=  obtfm->loc[i];
+			ob->dloc[i]= obtfm->dloc[i];
+		}
+
+		if (protectflag & (OB_LOCK_SCALEX<<i)) {
+			ob->size[i]=  obtfm->size[i];
+			ob->dsize[i]= obtfm->dsize[i];
+		}
+
+		if (protectflag & (OB_LOCK_ROTX<<i)) {
+			ob->rot[i]=  obtfm->rot[i];
+			ob->drot[i]= obtfm->drot[i];
+
+			ob->quat[i + 1]=  obtfm->quat[i + 1];
+			ob->dquat[i + 1]= obtfm->dquat[i + 1];
+
+			ob->rotAxis[i]=  obtfm->rotAxis[i];
+			ob->drotAxis[i]= obtfm->drotAxis[i];
+		}
+	}
+
+	if ((protectflag & OB_LOCK_ROT4D) && (protectflag & OB_LOCK_ROTW)) {
+		ob->quat[0]=  obtfm->quat[0];
+		ob->dquat[0]= obtfm->dquat[0];
+
+		ob->rotAngle=  obtfm->rotAngle;
+		ob->drotAngle= obtfm->drotAngle;
+	}
+}
+
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const short use_parent)
 {

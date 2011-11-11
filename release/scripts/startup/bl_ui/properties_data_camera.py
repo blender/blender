@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
@@ -33,12 +33,12 @@ class CameraButtonsPanel():
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class CAMERA_MT_presets(bpy.types.Menu):
+class CAMERA_MT_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):

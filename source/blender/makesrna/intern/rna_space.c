@@ -514,7 +514,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	SpaceImage *sima= (SpaceImage*)(ptr->data);
 	bScreen *sc= (bScreen*)ptr->id.data;
 
-	ED_space_image_set(NULL, sima, sc->scene, sc->scene->obedit, (Image*)value.data);
+	ED_space_image_set(sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,

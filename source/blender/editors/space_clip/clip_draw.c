@@ -936,7 +936,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				draw_marker_slide_zones(sc, track, marker, cur_pos, 1, 0, 0, width, height);
 				draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 0, 0, width, height);
 
-				if(fp) fp+= 2;
+				if(fp)
+					fp+= 2;
 			}
 		}
 
@@ -950,20 +951,19 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
 			int act= track==act_track;
+			marker= BKE_tracking_get_marker(track, framenr);
 
-			if(!act) {
-				marker= BKE_tracking_get_marker(track, framenr);
-
-				if(MARKER_VISIBLE(sc, marker)) {
+			if(MARKER_VISIBLE(sc, marker)) {
+				if(!act) {
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
 					draw_marker_areas(sc, track, marker, cur_pos, width, height, 0, 1);
 					draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 1, 0, width, height);
 				}
-			}
 
-			if(MARKER_VISIBLE(sc, marker) && fp)
-				fp+= 2;
+				if(fp)
+					fp+= 2;
+			}
 		}
 
 		track= track->next;

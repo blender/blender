@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
@@ -32,7 +33,7 @@ class DataButtonsPanel():
         return context.speaker and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_speaker(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_speaker(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -52,7 +53,7 @@ class DATA_PT_context_speaker(DataButtonsPanel, bpy.types.Panel):
             split.template_ID(space, "pin_id")
 
 
-class DATA_PT_speaker(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_speaker(DataButtonsPanel, Panel):
     bl_label = "Sound"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -71,7 +72,7 @@ class DATA_PT_speaker(DataButtonsPanel, bpy.types.Panel):
         row.prop(speaker, "pitch")
 
 
-class DATA_PT_distance(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_distance(DataButtonsPanel, Panel):
     bl_label = "Distance"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -94,7 +95,7 @@ class DATA_PT_distance(DataButtonsPanel, bpy.types.Panel):
         col.prop(speaker, "distance_reference", text="Reference")
 
 
-class DATA_PT_cone(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_cone(DataButtonsPanel, Panel):
     bl_label = "Cone"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -116,7 +117,7 @@ class DATA_PT_cone(DataButtonsPanel, bpy.types.Panel):
         col.prop(speaker, "cone_volume_outer", text="Outer")
 
 
-class DATA_PT_custom_props_speaker(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_speaker(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Speaker
