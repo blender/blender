@@ -58,7 +58,7 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 			   fabs(inColor2[2]-inColor1[2]);
 
 	/*average together the distances*/
-	difference=difference/3.0;
+	difference=difference/3.0f;
 
 	copy_v3_v3(outColor, inColor1);
 

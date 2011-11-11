@@ -197,8 +197,9 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						
 						clip = 0;
 						if(axis & 1) {
-							if(fabs(iloc[0])<=tolerance[0] ||
-							   loc[0]*iloc[0]<0.0f) {
+							if(fabsf(iloc[0])<=tolerance[0] ||
+							   loc[0]*iloc[0]<0.0f)
+							{
 								loc[0]= 0.0f;
 								clip = 1;
 							}
@@ -206,14 +207,16 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						
 						if(axis & 2) {
 							if(fabs(iloc[1])<=tolerance[1] ||
-							   loc[1]*iloc[1]<0.0f) {
+							   loc[1]*iloc[1]<0.0f)
+							{
 								loc[1]= 0.0f;
 								clip = 1;
 							}
 						}
 						if(axis & 4) {
 							if(fabs(iloc[2])<=tolerance[2] ||
-							   loc[2]*iloc[2]<0.0f) {
+							   loc[2]*iloc[2]<0.0f)
+							{
 								loc[2]= 0.0f;
 								clip = 1;
 							}

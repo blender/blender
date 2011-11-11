@@ -58,8 +58,8 @@ typedef struct BokehCoeffs {
 static void makeBokeh(char bktype, char ro, int* len_bkh, float* inradsq, BokehCoeffs BKH[8], float bkh_b[4])
 {
 	float x0, x1, y0, y1, dx, dy, iDxy;
-	float w = MAX2(1e-5f, ro)*M_PI/180.f;	// never reported stangely enough, but a zero offset causes missing center line...
-	float wi = (360.f/bktype)*M_PI/180.f;
+	float w = MAX2(1e-5f, ro)*(float)(M_PI/180);	// never reported stangely enough, but a zero offset causes missing center line...
+	float wi = (360.f/bktype)*(float)(M_PI/180);
 	int i, ov, nv;
 	
 	// bktype must be at least 3 & <= 8
@@ -81,7 +81,7 @@ static void makeBokeh(char bktype, char ro, int* len_bkh, float* inradsq, BokehC
 		BKH[i].x0 = x0;
 		BKH[i].y0 = y0;
 		dx = x1-x0, dy = y1-y0;
-		iDxy = 1.f / sqrt(dx*dx + dy*dy);
+		iDxy = 1.f / sqrtf(dx*dx + dy*dy);
 		dx *= iDxy;
 		dy *= iDxy;
 		BKH[i].dx = dx;
@@ -146,6 +146,7 @@ static float RI_vdC(unsigned int bits, unsigned int r)
 // single channel IIR gaussian filtering
 // much faster than anything else, constant time independent of width
 // should extend to multichannel and make this a node, could be useful
+// note: this is an almost exact copy of 'IIR_gauss'
 static void IIR_gauss_single(CompBuf* buf, float sigma)
 {
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
@@ -156,14 +157,14 @@ static void IIR_gauss_single(CompBuf* buf, float sigma)
 	if (buf->type != CB_VAL) return;
 
 	// <0.5 not valid, though can have a possibly useful sort of sharpening effect
-	if (sigma < 0.5) return;
+	if (sigma < 0.5f) return;
 	
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
-	if (sigma >= 3.556)
-		q = 0.9804*(sigma - 3.556) + 2.5091;
+	if (sigma >= 3.556f)
+		q = 0.9804f*(sigma - 3.556f) + 2.5091f;
 	else // sigma >= 0.5
-		q = (0.0561*sigma + 0.5784)*sigma - 0.2568;
+		q = (0.0561f*sigma + 0.5784f)*sigma - 0.2568f;
 	q2 = q*q;
 	sc = (1.1668 + q)*(3.203729649  + (2.21566 + q)*q);
 	// no gabor filtering here, so no complex multiplies, just the regular coefs.
@@ -260,7 +261,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
 		cam_fdist = dof_camera(camob);
-		if (cam_fdist==0.0) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */ 
+		if (cam_fdist==0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
 		cam_invfdist = 1.f/cam_fdist;
 	}
 
@@ -362,7 +363,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					// scale crad back to original maximum and blend
 					crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
 					*/
-					crad->rect[px] = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
+					crad->rect[px] = 0.5f*fabsf(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
 					
 					// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
 					crad->rect[px] = MAX2(crad->rect[px], 0.5f);
@@ -530,12 +531,13 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 							}\
 						}\
 					}
+
 					i = ceil(ct_crad);
 					j = 0;
 					T = 0;
 					while (i > j) {
 						Dj = sqrt(cR2 - j*j);
-						Dj -= floor(Dj);
+						Dj -= floorf(Dj);
 						di = 0;
 						if (Dj > T) { i--;  di = 1; }
 						T = Dj;
@@ -548,26 +550,26 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 						lwt = wt*Dj;
 						if (i!=j) {
 							// outer pixels
-							AAPIX(x+j, y+i);
-							AAPIX(x+j, y-i);
+							AAPIX(x+j, y+i)
+							AAPIX(x+j, y-i)
 							if (j) {
-								AAPIX(x-j, y+i); // BL
-								AAPIX(x-j, y-i); // TL
+								AAPIX(x-j, y+i) // BL
+								AAPIX(x-j, y-i) // TL
 							}
 							if (di) { // only when i changed, interior of outer section
-								CSCAN(j, i); // bottom
-								CSCAN(j, -i); // top
+								CSCAN(j, i) // bottom
+								CSCAN(j, -i) // top
 							}
 						}
 						// lower mid section
-						AAPIX(x+i, y+j);
-						if (i) AAPIX(x-i, y+j);
-						CSCAN(i, j);
+						AAPIX(x+i, y+j)
+						if (i) AAPIX(x-i, y+j)
+						CSCAN(i, j)
 						// upper mid section
 						if (j) {
-							AAPIX(x+i, y-j);
-							if (i) AAPIX(x-i, y-j);
-							CSCAN(i, -j);
+							AAPIX(x+i, y-j)
+							if (i) AAPIX(x-i, y-j)
+							CSCAN(i, -j)
 						}
 						j++;
 					}
@@ -600,7 +602,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 							fxe = fxe*ct_crad + x;
 							xs = (int)floor(fxs), xe = (int)ceil(fxe);
 							// AA hack for first and last x pixel, near vertical edges only
-							if (fabs(mind) <= 1.f) {
+							if (fabsf(mind) <= 1.f) {
 								if ((xs >= 0) && (xs < new->x)) {
 									lwt = 1.f-(fxs - xs);
 									aacol[0] = wtcol[0]*lwt;
@@ -619,7 +621,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 									}
 								}
 							}
-							if (fabs(maxd) <= 1.f) {
+							if (fabsf(maxd) <= 1.f) {
 								if ((xe >= 0) && (xe < new->x)) {
 									lwt = 1.f-(xe - fxe);
 									aacol[0] = wtcol[0]*lwt;
@@ -676,7 +678,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 							fys = fys*ct_crad + y;
 							fye = fye*ct_crad + y;
 							// near horizontal edges only, line slope <= 1
-							if (fabs(mind) <= 1.f) {
+							if (fabsf(mind) <= 1.f) {
 								int iys = (int)floor(fys);
 								if ((iys >= 0) && (iys < new->y)) {
 									lwt = 1.f - (fys - iys);
@@ -696,7 +698,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 									}
 								}
 							}
-							if (fabs(maxd) <= 1.f) {
+							if (fabsf(maxd) <= 1.f) {
 								int iye = ceil(fye);
 								if ((iye >= 0) && (iye < new->y)) {
 									lwt = 1.f - (iye - fye);

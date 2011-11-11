@@ -508,7 +508,7 @@ static void sk_drawEdge(GLUquadric *quad, SK_Point *pt0, SK_Point *pt1, float si
 
 	angle = angle_normalized_v3v3(vec2, vec1);
 
-	glRotatef(angle * 180 / M_PI + 180, axis[0], axis[1], axis[2]);
+	glRotatef(angle * (float)(180.0/M_PI) + 180.0f, axis[0], axis[1], axis[2]);
 
 	gluCylinder(quad, sk_clampPointSize(pt1, size), sk_clampPointSize(pt0, size), length, 8, 8);
 }
@@ -529,7 +529,7 @@ static void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float heig
 
 	angle = angle_normalized_v3v3(vec2, pt->no);
 
-	glRotatef(angle * 180 / M_PI, axis[0], axis[1], axis[2]);
+	glRotatef(angle * (float)(180.0/M_PI), axis[0], axis[1], axis[2]);
 
 	glColor3f(0, 1, 1);
 	gluCylinder(quad, sk_clampPointSize(pt, size), 0, sk_clampPointSize(pt, height), 10, 2);
@@ -1817,7 +1817,7 @@ int sk_detectTrimGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSE
 		sub_v3_v3v3(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		sub_v3_v3v3(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = RAD2DEG(angle_v2v2(s1, s2));
+		angle = RAD2DEGF(angle_v2v2(s1, s2));
 
 		if (angle > 60 && angle < 120)
 		{
@@ -1935,7 +1935,7 @@ int sk_detectDeleteGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNU
 		sub_v3_v3v3(s1, gest->segments->points[1].p, gest->segments->points[0].p);
 		sub_v3_v3v3(s2, gest->segments->points[2].p, gest->segments->points[1].p);
 
-		angle = RAD2DEG(angle_v2v2(s1, s2));
+		angle = RAD2DEGF(angle_v2v2(s1, s2));
 
 		if (angle > 120)
 		{
@@ -2067,7 +2067,7 @@ int sk_detectReverseGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UN
 					sub_v3_v3v3(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
 				}
 
-				angle = RAD2DEG(angle_v2v2(start_v, end_v));
+				angle = RAD2DEGF(angle_v2v2(start_v, end_v));
 
 				if (angle > 120)
 				{

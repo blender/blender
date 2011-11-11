@@ -1560,11 +1560,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		/* draw content of pattern area */
 		glScissor(ar->winrct.xmin+rect.xmin, ar->winrct.ymin+rect.ymin, scissor[2], scissor[3]);
 
-		zoomx= (rect.xmax-rect.xmin) / (scopes->track_preview->x-2.f);
-		zoomy= (rect.ymax-rect.ymin) / (scopes->track_preview->y-2.f);
+		zoomx= (rect.xmax-rect.xmin) / (scopes->track_preview->x-2.0f);
+		zoomy= (rect.ymax-rect.ymin) / (scopes->track_preview->y-2.0f);
 
-		off_x= ((int)scopes->track_pos[0]-scopes->track_pos[0]-0.5)*zoomx;
-		off_y= ((int)scopes->track_pos[1]-scopes->track_pos[1]-0.5)*zoomy;
+		off_x= ((int)scopes->track_pos[0]-scopes->track_pos[0]-0.5f)*zoomx;
+		off_y= ((int)scopes->track_pos[1]-scopes->track_pos[1]-0.5f)*zoomy;
 
 		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, zoomx, zoomy);
 		glaDrawPixelsSafe(off_x+rect.xmin, off_y+rect.ymin, rect.xmax-rect.xmin+1.f-off_x, rect.ymax-rect.ymin+1.f-off_y, drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);

@@ -49,7 +49,7 @@ static bNodeSocketTemplate cmp_node_displace_out[]= {
 
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
-#define DISPLACE_EPSILON	0.01
+#define DISPLACE_EPSILON	0.01f
 
 static void do_displace(bNode *node, CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *UNUSED(veccol), CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
 {

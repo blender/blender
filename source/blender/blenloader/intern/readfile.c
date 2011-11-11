@@ -12366,10 +12366,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Camera *cam;
 			for(cam= main->camera.first; cam; cam= cam->id.next) {
-				if (cam->sensor_x < 0.01)
+				if (cam->sensor_x < 0.01f)
 					cam->sensor_x = DEFAULT_SENSOR_WIDTH;
 
-				if (cam->sensor_y < 0.01)
+				if (cam->sensor_y < 0.01f)
 					cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 			}
 		}

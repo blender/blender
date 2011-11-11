@@ -638,7 +638,7 @@ static float psys_render_projected_area(ParticleSystem *psys, const float center
 	w= co[2]*data->winmat[2][3] + data->winmat[3][3];
 	dx= data->winx*ortho2[0]*data->winmat[0][0];
 	dy= data->winy*ortho2[1]*data->winmat[1][1];
-	w= sqrt(dx*dx + dy*dy)/w;
+	w= sqrtf(dx*dx + dy*dy)/w;
 
 	/* w squared because we are working with area */
 	area= area*w*w;

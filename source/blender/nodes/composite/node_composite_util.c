@@ -762,7 +762,7 @@ void premul_compbuf(CompBuf *img, int inversed)
 	drect= img->rect;
 	if(inversed) {
 		for(x=img->x*img->y; x>0; x--, drect+=4) {
-			if(fabs(drect[3]) < 1e-5f) {
+			if(fabsf(drect[3]) < 1e-5f) {
 				drect[0]= 0.0f;
 				drect[1]= 0.0f;
 				drect[2]= 0.0f;
@@ -1314,7 +1314,7 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 	int i, x, y, sz;
 
 	// <0.5 not valid, though can have a possibly useful sort of sharpening effect
-	if (sigma < 0.5) return;
+	if (sigma < 0.5f) return;
 	
 	if ((xy < 1) || (xy > 3)) xy = 3;
 	
@@ -1326,10 +1326,10 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
-	if (sigma >= 3.556)
-		q = 0.9804*(sigma - 3.556) + 2.5091;
+	if (sigma >= 3.556f)
+		q = 0.9804f*(sigma - 3.556f) + 2.5091f;
 	else // sigma >= 0.5
-		q = (0.0561*sigma + 0.5784)*sigma - 0.2568;
+		q = (0.0561f*sigma + 0.5784f)*sigma - 0.2568f;
 	q2 = q*q;
 	sc = (1.1668 + q)*(3.203729649  + (2.21566 + q)*q);
 	// no gabor filtering here, so no complex multiplies, just the regular coefs.

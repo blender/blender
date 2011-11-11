@@ -4691,7 +4691,7 @@ static int createSlideVerts(TransInfo *t)
 							uv_new = tf->uv[k];
 
 							if (ev->tmp.l) {
-								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabs(suv->origuv[1]-uv_new[1]) > 0.0001f) {
+								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabsf(suv->origuv[1]-uv_new[1]) > 0.0001f) {
 									ev->tmp.l = -1; /* Tag as invalid */
 									BLI_linklist_free(suv->fuv_list,NULL);
 									suv->fuv_list = NULL;
@@ -5462,7 +5462,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 #endif
 		{
-			val= (float)( floor(val+0.5f) );
+			val= floorf(val+0.5f);
 		}
 		
 		/* convert frame out of nla-action time */
@@ -5548,13 +5548,13 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				val= floor(val/secf + 0.5f);
+				val= floor((double)val/secf + 0.5f);
 			else
 				val= floor(val + 0.5f);
 		}
 		else {
 			if (doTime)
-				val= val / secf;
+				val= (float)((double)val / secf);
 		}
 		
 		if (autosnap == SACTSNAP_FRAME)

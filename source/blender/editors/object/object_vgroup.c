@@ -1094,8 +1094,8 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				dm_deform_clear(dm, ob); dm = NULL;
 			}
 		}
-	} while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) ==
-	                     (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
+	} while(wasChange && (distToStart-distToBe)/fabsf(distToStart-distToBe) ==
+	                     (dists[bestIndex]-distToBe)/fabsf(dists[bestIndex]-distToBe));
 	MEM_freeN(upDown);
 	MEM_freeN(changes);
 	MEM_freeN(dists);

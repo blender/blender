@@ -211,7 +211,7 @@ void quat_to_mat4(float m[][4], const float q[4])
 	double q0, q1, q2, q3, qda,qdb,qdc,qaa,qab,qac,qbb,qbc,qcc;
 
 #ifdef DEBUG
-	if(!((q0=dot_qtqt(q, q))==0.0f || (fabs(q0-1.0) < QUAT_EPSILON))) {
+	if(!((q0=dot_qtqt(q, q))==0.0f || (fabsf(q0-1.0) < QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n", (float)q0);
 	}
 #endif
@@ -257,7 +257,7 @@ void mat3_to_quat(float *q, float wmat[][3])
 
 	/* work on a copy */
 	copy_m3_m3(mat, wmat);
-	normalize_m3(mat);			/* this is needed AND a NormalQuat in the end */
+	normalize_m3(mat);  /* this is needed AND a 'normalize_qt' in the end */
 	
 	tr= 0.25* (double)(1.0f+mat[0][0]+mat[1][1]+mat[2][2]);
 	
@@ -271,31 +271,31 @@ void mat3_to_quat(float *q, float wmat[][3])
 	}
 	else {
 		if(mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
-			s= 2.0*sqrtf(1.0f + mat[0][0] - mat[1][1] - mat[2][2]);
+			s= 2.0f*sqrtf(1.0f + mat[0][0] - mat[1][1] - mat[2][2]);
 			q[1]= (float)(0.25*s);
 
 			s= 1.0/s;
-			q[0]= (float)((mat[2][1] - mat[1][2])*s);
-			q[2]= (float)((mat[1][0] + mat[0][1])*s);
-			q[3]= (float)((mat[2][0] + mat[0][2])*s);
+			q[0]= (float)((double)(mat[2][1] - mat[1][2])*s);
+			q[2]= (float)((double)(mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((double)(mat[2][0] + mat[0][2])*s);
 		}
 		else if(mat[1][1] > mat[2][2]) {
-			s= 2.0*sqrtf(1.0f + mat[1][1] - mat[0][0] - mat[2][2]);
+			s= 2.0f*sqrtf(1.0f + mat[1][1] - mat[0][0] - mat[2][2]);
 			q[2]= (float)(0.25*s);
 
 			s= 1.0/s;
-			q[0]= (float)((mat[2][0] - mat[0][2])*s);
-			q[1]= (float)((mat[1][0] + mat[0][1])*s);
-			q[3]= (float)((mat[2][1] + mat[1][2])*s);
+			q[0]= (float)((double)(mat[2][0] - mat[0][2])*s);
+			q[1]= (float)((double)(mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((double)(mat[2][1] + mat[1][2])*s);
 		}
 		else {
-			s= 2.0*sqrtf(1.0 + mat[2][2] - mat[0][0] - mat[1][1]);
+			s= 2.0f*sqrtf(1.0f + mat[2][2] - mat[0][0] - mat[1][1]);
 			q[3]= (float)(0.25*s);
 
 			s= 1.0/s;
-			q[0]= (float)((mat[1][0] - mat[0][1])*s);
-			q[1]= (float)((mat[2][0] + mat[0][2])*s);
-			q[2]= (float)((mat[2][1] + mat[1][2])*s);
+			q[0]= (float)((double)(mat[1][0] - mat[0][1])*s);
+			q[1]= (float)((double)(mat[2][0] + mat[0][2])*s);
+			q[2]= (float)((double)(mat[2][1] + mat[1][2])*s);
 		}
 	}
 

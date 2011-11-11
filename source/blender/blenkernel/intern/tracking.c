@@ -1794,8 +1794,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 		*angle*= stab->rotinf;
 
 		/* convert to rotation around image center */
-		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x)*(*scale);
-		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y)*(*scale);
+		loc[0]-= (x0 + (x-x0)*cosf(*angle)-(y-y0)*sinf(*angle) - x)*(*scale);
+		loc[1]-= (y0 + (x-x0)*sinf(*angle)+(y-y0)*cosf(*angle) - y)*(*scale);
 	}
 }
 

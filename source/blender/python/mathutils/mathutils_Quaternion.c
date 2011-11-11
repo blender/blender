@@ -945,7 +945,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 
 	angle= PyFloat_AsDouble(value);
 
-	if (angle==-1.0 && PyErr_Occurred()) { /* parsed item not a number */
+	if (angle==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "Quaternion.angle = value: float expected");
 		return -1;

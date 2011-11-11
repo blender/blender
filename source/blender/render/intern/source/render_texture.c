@@ -325,7 +325,7 @@ static float wood_int(Tex *tex, float x, float y, float z)
 		wi = waveform[wf]((x + y + z)*10.0f);
 	}
 	else if (wt==TEX_RING) {
-		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0f);
+		wi = waveform[wf](sqrtf(x*x + y*y + z*z)*20.0f);
 	}
 	else if (wt==TEX_BANDNOISE) {
 		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
@@ -333,7 +333,7 @@ static float wood_int(Tex *tex, float x, float y, float z)
 	}
 	else if (wt==TEX_RINGNOISE) {
 		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0f + wi);
+		wi = waveform[wf](sqrtf(x*x + y*y + z*z)*20.0f + wi);
 	}
 	
 	return wi;
@@ -659,7 +659,7 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 	if (sc!=0.f) sc =  tex->ns_outscale/sc;
 
 	voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-	texres->tin = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+	texres->tin = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 
 	if (tex->vn_coltype) {
 		float ca[3];	/* cell color */
@@ -699,11 +699,11 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 		/* calculate bumpnormal */
 		voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[0] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[0] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[1] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[1] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[2] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[2] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		
 		tex_normal_derivate(tex, texres);
 		rv |= TEX_NOR;
@@ -1450,9 +1450,9 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 	case MTEX_DIFF:
 		fact*= facg;
 		facm= 1.0f-fact;
-		in[0]= facm*out[0] + fact*fabs(tex[0]-out[0]);
-		in[1]= facm*out[1] + fact*fabs(tex[1]-out[1]);
-		in[2]= facm*out[2] + fact*fabs(tex[2]-out[2]);
+		in[0]= facm*out[0] + fact*fabsf(tex[0]-out[0]);
+		in[1]= facm*out[1] + fact*fabsf(tex[1]-out[1]);
+		in[2]= facm*out[2] + fact*fabsf(tex[2]-out[2]);
 		break;
 
 	case MTEX_DARK:
@@ -1557,7 +1557,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		break;
 
 	case MTEX_DIFF:
-		in= facm*out + fact*fabs(tex-out);
+		in= facm*out + fact*fabsf(tex-out);
 		break;
 
 	case MTEX_DARK:
@@ -2478,7 +2478,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 							texres.nor[0] = -texres.nor[0];
 							texres.nor[1] = -texres.nor[1];
 						}
-						fact = Tnor*fabs(norfac);
+						fact = Tnor*fabsf(norfac);
 						if (fact>1.f) fact = 1.f;
 						facm = 1.f-fact;
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
@@ -3031,7 +3031,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				/* only works with texture being "real" */
 				/* use saacos(), fixes bug [#22398], float precision caused lo[2] to be slightly less then -1.0 */
 				if(lo[0] || lo[1]) { /* check for zero case [#24807] */
-					fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1]));
+					fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrtf(lo[0]*lo[0] + lo[1]*lo[1]));
 					tempvec[0]= lo[0]*fact;
 					tempvec[1]= lo[1]*fact;
 					tempvec[2]= 0.0;
@@ -3721,15 +3721,12 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 		obi.ob = ob;
 		shi.obi = &obi;
 		unit_m4(re.viewinv);
-
-		color[0] = mat->vol.reflection_col[0];
-		color[1] = mat->vol.reflection_col[1];
-		color[2] = mat->vol.reflection_col[2];
+		copy_v3_v3(color, mat->vol.reflection_col);
 		*alpha = mat->vol.density;
 
 		/* do texture */
 		do_volume_tex(&shi, volume_co, (MAP_TRANSMISSION_COL | MAP_REFLECTION_COL | MAP_DENSITY),
-			color, alpha, &re);
+		              color, alpha, &re);
 	}
 }
 

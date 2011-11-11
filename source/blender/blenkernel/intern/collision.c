@@ -464,7 +464,7 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 
 	d = ( a * c - b * b );
 
-	if ( ABS ( d ) < ALMOST_ZERO )
+	if ( ABS ( d ) < (double)ALMOST_ZERO )
 	{
 		*w1 = *w2 = *w3 = 1.0 / 3.0;
 		return;
@@ -554,14 +554,14 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 			// Decrease in magnitude of relative tangential velocity due to coulomb friction
 			// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01 * magrelVel,sqrt ( INPR ( vrel_t_pre,vrel_t_pre ) ) );
+			magtangent = MIN2 ( clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf( INPR ( vrel_t_pre,vrel_t_pre ) ) );
 
 			// Apply friction impulse.
 			if ( magtangent > ALMOST_ZERO )
 			{
 				normalize_v3( vrel_t_pre );
 
-				impulse = magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3 ); // 2.0 * 
+				impulse = magtangent / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // 2.0 *
 				VECADDMUL ( cloth1->verts[collpair->ap1].impulse, vrel_t_pre, w1 * impulse );
 				VECADDMUL ( cloth1->verts[collpair->ap2].impulse, vrel_t_pre, w2 * impulse );
 				VECADDMUL ( cloth1->verts[collpair->ap3].impulse, vrel_t_pre, w3 * impulse );
@@ -585,17 +585,17 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
 			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
-			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
-			if ( ( magrelVel < 0.1*d*spf ) && ( d > ALMOST_ZERO ) )
+			d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
+			if ( ( magrelVel < 0.1f*d*spf ) && ( d > ALMOST_ZERO ) )
 			{
-				repulse = MIN2 ( d*1.0/spf, 0.1*d*spf - magrelVel );
+				repulse = MIN2 ( d*1.0f/spf, 0.1f*d*spf - magrelVel );
 
 				// stay on the safe side and clamp repulse
 				if ( impulse > ALMOST_ZERO )
 					repulse = MIN2 ( repulse, 5.0*impulse );
 				repulse = MAX2 ( impulse, repulse );
 
-				impulse = repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
+				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
 				VECADDMUL ( cloth1->verts[collpair->ap1].impulse, collpair->normal,  impulse );
 				VECADDMUL ( cloth1->verts[collpair->ap2].impulse, collpair->normal,  impulse );
 				VECADDMUL ( cloth1->verts[collpair->ap3].impulse, collpair->normal,  impulse );
@@ -1492,8 +1492,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 			collmd->current_xnew[collpair->bp2].co,
 			collmd->current_xnew[collpair->bp3].co, &l, 0))
 		{
-			if (l >= 0.0 && l < sdis) {
-				mul_v3_fl(n2, (l-sdis)*cloth->verts[collpair->ap1].mass*dt*clmd->coll_parms->repel_force*0.1);
+			if (l >= 0.0f && l < sdis) {
+				mul_v3_fl(n2, (l-sdis)*cloth->verts[collpair->ap1].mass*dt*clmd->coll_parms->repel_force*0.1f);
 
 				add_v3_v3(cloth->verts[collpair->ap1].tv, n2);
 				add_v3_v3(cloth->verts[collpair->ap2].tv, n2);
@@ -1507,7 +1507,7 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
 #else
 		// just be sure that we don't add anything
-		distance = 2.0 * ( epsilon1 + epsilon2 + ALMOST_ZERO );
+		distance = 2.0 * (double)( epsilon1 + epsilon2 + ALMOST_ZERO );
 #endif
 
 		if ( distance <= ( epsilon1 + epsilon2 + ALMOST_ZERO ) )
@@ -2534,7 +2534,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 							}
 							else
 							{
-								mul_v3_fl( temp, -correction*0.5 );
+								mul_v3_fl( temp, correction * -0.5 );
 								VECADD ( verts[j].tx, verts[j].tx, temp );
 	
 								VECSUB ( verts[i].tx, verts[i].tx, temp );

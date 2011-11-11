@@ -1068,14 +1068,14 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			float dfac;
 			
 			if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-				if(winx>winy) dfac= (sensor_x * 2.0) / (fac*winx*lens);
-				else dfac= (sensor_x * 2.0) / (fac*winy*lens);
+				if(winx>winy) dfac= (sensor_x * 2.0f) / (fac*winx*lens);
+				else dfac= (sensor_x * 2.0f) / (fac*winy*lens);
 			}
 			else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-				dfac= (sensor_x * 2.0) / (fac*winx*lens);
+				dfac= (sensor_x * 2.0f) / (fac*winx*lens);
 			}
 			else {
-				dfac= (sensor_y * 2.0) / (fac*winy*lens);
+				dfac= (sensor_y * 2.0f) / (fac*winy*lens);
 			}
 			
 			x1= - *clipsta * winx*dfac;

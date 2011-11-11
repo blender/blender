@@ -708,7 +708,7 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 		sub_v3_v3v3(offset, ctrl->bone->head, link->head);
 
 		/* if root matches, check for direction too */		
-		if (dot_v3v3(offset, offset) < 0.0001)
+		if (dot_v3v3(offset, offset) < 0.0001f)
 		{
 			float vbone[3], vparent[3];
 			
@@ -726,7 +726,7 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 				cross_v3_v3v3(nor, vbone, vparent);
 				
 				len = dot_v3v3(nor, nor);
-				if (len < 0.0001)
+				if (len < 0.0001f)
 				{
 					flag |= RIG_CTRL_FIT_BONE;
 				}
@@ -859,8 +859,8 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 						{
 							int fit = 0;
 							
-							fit = len_v3v3(ctrl->bone->head, edge->bone->head) < 0.0001;
-							fit = fit || len_v3v3(ctrl->bone->tail, edge->bone->tail) < 0.0001;
+							fit = len_v3v3(ctrl->bone->head, edge->bone->head) < 0.0001f;
+							fit = fit || len_v3v3(ctrl->bone->tail, edge->bone->tail) < 0.0001f;
 							
 							if (fit)
 							{
@@ -1016,13 +1016,13 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				/* don't link with parent */
 				if (bone->parent != ctrl->bone)
 				{
-					if (len_v3v3(ctrl->bone->tail, bone->head) < 0.01)
+					if (len_v3v3(ctrl->bone->tail, bone->head) < 0.01f)
 					{
 						ctrl->tail_mode = TL_HEAD;
 						ctrl->link_tail = bone;
 						break;
 					}
-					else if (len_v3v3(ctrl->bone->tail, bone->tail) < 0.01)
+					else if (len_v3v3(ctrl->bone->tail, bone->tail) < 0.01f)
 					{
 						ctrl->tail_mode = TL_TAIL;
 						ctrl->link_tail = bone;
@@ -1122,14 +1122,14 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 		
 		if (first_edge->bone == NULL)
 		{
-			if (first_edge->bone == NULL && len_v3v3(first_edge->tail, arc->head->p) <= 0.001)
+			if (first_edge->bone == NULL && len_v3v3(first_edge->tail, arc->head->p) <= 0.001f)
 			{
 				BLI_remlink(&arc->edges, first_edge);
 				MEM_freeN(first_edge);
 			}
 			else if (arc->head->degree == 1)
 			{
-				RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, first_edge->tail, 0.001);
+				RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, first_edge->tail, 0.001f);
 				
 				if (new_node)
 				{
@@ -1252,14 +1252,14 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 		
 		if (last_edge->bone == NULL)
 		{
-			if (len_v3v3(last_edge->head, arc->tail->p) <= 0.001)
+			if (len_v3v3(last_edge->head, arc->tail->p) <= 0.001f)
 			{
 				BLI_remlink(&arc->edges, last_edge);
 				MEM_freeN(last_edge);
 			}
 			else if (arc->tail->degree == 1)
 			{
-				RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, last_edge->head, 0.001);
+				RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, last_edge->head, 0.001f);
 				
 				if (new_node)
 				{
@@ -2013,11 +2013,11 @@ static float costAngle(float original_angle, float vec_first[3], float vec_secon
 		{
 			current_angle = saacos(dot_v3v3(vec_first, vec_second));
 
-			return angle_weight * fabs(current_angle - original_angle);
+			return angle_weight * fabsf(current_angle - original_angle);
 		}
 		else
 		{
-			return angle_weight * M_PI;
+			return angle_weight * (float)M_PI;
 		}
 	}
 	else

@@ -77,7 +77,7 @@ static float *make_bloomtab(int rad)
 	bloomtab = (float *) MEM_mallocN(n * sizeof(float), "bloom");
 	
 	for (i = -rad; i <= rad; i++) {
-		val = pow(1.0 - fabs((float)i)/((float)rad), 4.0);
+		val = powf(1.0f - fabsf((float)i)/((float)rad), 4.0f);
 		bloomtab[i+rad] = val;
 	}
 	

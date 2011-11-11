@@ -426,9 +426,9 @@ void mul_m3_v3_double(float mat[][3], double vec[3])
 
 	x=vec[0]; 
 	y=vec[1];
-	vec[0]= x*mat[0][0] + y*mat[1][0] + mat[2][0]*vec[2];
-	vec[1]= x*mat[0][1] + y*mat[1][1] + mat[2][1]*vec[2];
-	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
+	vec[0]= x*(double)mat[0][0] + y*(double)mat[1][0] + (double)mat[2][0]*vec[2];
+	vec[1]= x*(double)mat[0][1] + y*(double)mat[1][1] + (double)mat[2][1]*vec[2];
+	vec[2]= x*(double)mat[0][2] + y*(double)mat[1][2] + (double)mat[2][2]*vec[2];
 }
 
 void add_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])

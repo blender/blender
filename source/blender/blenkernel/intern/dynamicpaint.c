@@ -677,7 +677,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 		volume = td[0]*td[1]*td[2];
 
 		/* determine final grid size by trying to fit average 10.000 points per grid cell */
-		dim_factor = pow(volume / ((double)sData->total_points / 10000.f), 1.0f/axis);
+		dim_factor = (float)pow(volume / ((double)sData->total_points / 10000.0), 1.0/(double)axis);
 
 		/* define final grid size using dim_factor, use min 3 for active axises */
 		for (i=0; i<3; i++) {
@@ -3695,7 +3695,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 							 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
 						 /* get displace depth	*/
-						disp_intersect = (1.0f - sqrt(disp_intersect / radius)) * radius;
+						disp_intersect = (1.0f - sqrtf(disp_intersect / radius)) * radius;
 						depth = (radius - disp_intersect) / bData->bNormal[index].normal_scale;
 						if (depth<0.0f) depth = 0.0f;
 					}
@@ -3803,7 +3803,7 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 			else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
 					 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
 				 /* get displace depth	*/
-				float disp_intersect = (1.0f - sqrt((brush->paint_distance-distance) / brush->paint_distance)) * brush->paint_distance;
+				float disp_intersect = (1.0f - sqrtf((brush->paint_distance-distance) / brush->paint_distance)) * brush->paint_distance;
 				depth = (brush->paint_distance - disp_intersect) / bData->bNormal[index].normal_scale;
 				if (depth<0.0f) depth = 0.0f;
 			}
@@ -3863,7 +3863,7 @@ static void dynamicPaint_prepareNeighbourData(DynamicPaintSurface *surface, int 
 		int numOfNeighs = adj_data->n_num[index];
 
 		for (i=0; i<numOfNeighs; i++) {
-			bData->average_dist += bNeighs[adj_data->n_index[index]+i].dist;
+			bData->average_dist += (double)bNeighs[adj_data->n_index[index]+i].dist;
 		}
 	}
 	bData->average_dist  /= adj_data->total_targets;
@@ -3922,18 +3922,18 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		/* get drip factor based on force dir in relation to angle between those neighbours */
 		temp = dot_v3v3(bNeighs[closest_id[0]].dir, force_proj);
 		CLAMP(temp, -1.0f, 1.0f); /* float precision might cause values > 1.0f that return infinite */
-		closest_d[1] = acos(temp)/neigh_diff;
+		closest_d[1] = acosf(temp)/neigh_diff;
 		closest_d[0] = 1.0f - closest_d[1];
 
 		/* and multiply depending on how deeply force intersects surface */
 		temp = fabs(force_intersect);
 		CLAMP(temp, 0.0f, 1.0f);
-		closest_d[0] *= acos(temp)/1.57079633f;
-		closest_d[1] *= acos(temp)/1.57079633f;
+		closest_d[0] *= acosf(temp)/1.57079633f;
+		closest_d[1] *= acosf(temp)/1.57079633f;
 	}
 	else {
 		/* if only single neighbour, still linearize force intersection effect */
-		closest_d[0] = 1.0f - acos(closest_d[0])/1.57079633f;
+		closest_d[0] = 1.0f - acosf(closest_d[0])/1.57079633f;
 	}
 }
 

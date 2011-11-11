@@ -62,13 +62,14 @@ static bNodeSocketTemplate cmp_node_bilateralblur_out[]= {
 #define KERNEL_ELEMENT_C3(k)                                                  \
 	temp_color = src + deltas[k];                                             \
 	ref_color = ref + deltas[k];                                              \
-	w = weight_tab[k] + COLOR_DISTANCE_C3(ref, ref_color )*i2sigma_color;     \
+	w = weight_tab[k] +                                                       \
+		(double)COLOR_DISTANCE_C3(ref, ref_color ) * i2sigma_color;           \
 	w = 1.0/(w*w + 1);                                                        \
 	mean0 += w;                                                               \
-	mean1[0] += temp_color[0]*w;                                              \
-	mean1[1] += temp_color[1]*w;                                              \
-	mean1[2] += temp_color[2]*w;                                              \
-	mean1[3] += temp_color[3]*w;
+	mean1[0] += (double)temp_color[0]*w;                                      \
+	mean1[1] += (double)temp_color[1]*w;                                      \
+	mean1[2] += (double)temp_color[2]*w;                                      \
+	mean1[3] += (double)temp_color[3]*w;
 
 /* write blurred values to image */
 #define UPDATE_OUTPUT_C3                                                      \
@@ -137,8 +138,8 @@ static void node_composit_exec_bilateralblur(void *UNUSED(data), bNode *node, bN
 	sigma_color= nbbd->sigma_color;
 	sigma_space= nbbd->sigma_space;
 	
-	i2sigma_color= 1. / (sigma_color * sigma_color);
-	i2sigma_space= 1. / (sigma_space * sigma_space);
+	i2sigma_color= 1.0f / (sigma_color * sigma_color);
+	i2sigma_space= 1.0f / (sigma_space * sigma_space);
 
 	INIT_3X3_DELTAS(deltas, step, pix);
 

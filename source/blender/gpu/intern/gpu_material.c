@@ -1337,8 +1337,8 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		if(world) {
 			/* exposure correction */
 			if(world->exp!=0.0f || world->range!=1.0f) {
-				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
-				logfac= log((linfac-1.0f)/linfac)/world->range;
+				linfac= 1.0f + powf((2.0f*world->exp + 0.5f), -10);
+				logfac= logf((linfac-1.0f)/linfac)/world->range;
 
 				GPU_link(mat, "set_value", GPU_uniform(&linfac), &ulinfac);
 				GPU_link(mat, "set_value", GPU_uniform(&logfac), &ulogfac);
@@ -1518,7 +1518,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	if(lamp->mode & LA_HALO)
 		if(lamp->spotsi > 170.0f)
 			lamp->spotsi = 170.0f;
-	lamp->spotsi= cos(M_PI*lamp->spotsi/360.0);
+	lamp->spotsi= cosf((float)M_PI*lamp->spotsi/360.0f);
 	lamp->spotbl= (1.0f - lamp->spotsi)*la->spotblend;
 	lamp->k= la->k;
 
@@ -1539,7 +1539,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 	/* makeshadowbuf */
 	angle= saacos(lamp->spotsi);
-	temp= 0.5f*lamp->size*cos(angle)/sin(angle);
+	temp= 0.5f*lamp->size*cosf(angle)/sinf(angle);
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		
