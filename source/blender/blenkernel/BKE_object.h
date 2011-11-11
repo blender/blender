@@ -116,6 +116,22 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 void *object_tfm_backup(struct Object *ob);
 void object_tfm_restore(struct Object *ob, void *obtfm_pt);
 
+typedef struct ObjectTfmProtectedChannels {
+	float loc[3],     dloc[3];
+	float size[3],    dsize[3];
+	float rot[3],     drot[3];
+	float quat[4],    dquat[4];
+	float rotAxis[3], drotAxis[3];
+	float rotAngle,   drotAngle;
+} ObjectTfmProtectedChannels;
+
+void object_tfm_protected_backup(const struct Object *ob,
+                                 ObjectTfmProtectedChannels *obtfm);
+
+void object_tfm_protected_restore(struct Object *ob,
+                                  const ObjectTfmProtectedChannels *obtfm,
+                                  const short protectflag);
+
 void object_handle_update(struct Scene *scene, struct Object *ob);
 void object_sculpt_modifiers_changed(struct Object *ob);
 
