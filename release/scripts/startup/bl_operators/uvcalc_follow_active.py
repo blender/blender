@@ -233,10 +233,13 @@ class FollowActiveQuads(Operator):
     bl_label = "Follow Active Quads"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.EnumProperty(items=(("EVEN", "Even", "Space all UVs evently"), ("LENGTH", "Length", "Average space UVs edge length of each loop")),
-                        name="Edge Length Mode",
-                        description="Method to space UV edge loops",
-                        default="LENGTH")
+    mode = bpy.props.EnumProperty(
+            name="Edge Length Mode",
+            description="Method to space UV edge loops",
+            items=(('EVEN', "Even", "Space all UVs evently"),
+                   ('LENGTH', "Length", "Average space UVs edge length of each loop")),
+            default='LENGTH',
+            )
 
     @classmethod
     def poll(cls, context):

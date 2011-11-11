@@ -656,7 +656,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 	return 1;
 }
 #else // WITH_SMOKE
-static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; };
+static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; }
 static int  ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 #endif // WITH_SMOKE
@@ -677,7 +677,7 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 	int cache_compress = 1;
 
 	/* version header */
-	ptcache_file_write(pf, (void *)DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
+	ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
 
 	if(surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
 		int total_points=surface->data->total_points;

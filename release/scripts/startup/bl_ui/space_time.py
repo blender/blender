@@ -92,7 +92,7 @@ class TIME_HT_header(Header):
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
-class TIME_MT_marker(bpy.types.Menu):
+class TIME_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):

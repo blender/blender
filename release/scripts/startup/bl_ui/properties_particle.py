@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
-from bl_ui.properties_physics_common import (
+from .properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
     basic_force_field_settings_ui,
@@ -76,21 +76,15 @@ class ParticleButtonsPanel():
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    # COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return (context.particle_system or context.object or context.space_data.pin_id)# and (engine in cls.COMPAT_ENGINES)
+        return (context.particle_system or context.object or context.space_data.pin_id) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
-        
-        if context.scene.render.engine == "BLENDER_GAME":
-            layout.label("The Blender particle system is")
-            layout.label("not available for use in the")
-            layout.label("Blender Game Engine")
-            return
 
         ob = context.object
         psys = context.particle_system
