@@ -545,7 +545,7 @@ if(UNIX AND NOT APPLE)
 	if(WITH_OPENIMAGEIO)
 		# use lib dir if available and nothing else specified
 		if(LIBDIR AND NOT OPENIMAGEIO_ROOT_DIR)
-			set(OPENIMAGEIO_ROOT_DIR ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO_ROOT_DIR ${LIBDIR}/oiio)
 		endif()
 
 		find_package(OpenImageIO)

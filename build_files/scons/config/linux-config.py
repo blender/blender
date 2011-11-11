@@ -197,8 +197,8 @@ BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
 WITH_BF_OIIO = True 
-BF_OIIO = LIBDIR + '/openimageio'
-if not os.path.exists(LCGDIR + '/openimageio'):
+BF_OIIO = LIBDIR + '/oiio'
+if not os.path.exists(LCGDIR + '/oiio'):
     WITH_BF_OIIO = False
     BF_OIIO = '/usr'
 BF_OIIO_INC = BF_OIIO + '/include'
