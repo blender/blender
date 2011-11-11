@@ -700,6 +700,9 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* nullify inverse matrix first */
+	unit_m4(data->invmat);
+	
 	/* try to find a pose channel */
 	// TODO: get from context instead?
 	if (ob && ob->pose)
@@ -733,18 +736,15 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		where_is_pose(scene, ob);
 	}
 	else if (ob) {
-		Object workob;
-		/* use what_does_parent to find inverse - just like for normal parenting.
-		 * NOTE: what_does_parent uses a static workob defined in object.c 
-		 */
+		Object workob = {0};
+		
+		/* use what_does_parent to find inverse - just like for normal parenting */
 		what_does_parent(scene, ob, &workob);
 		invert_m4_m4(data->invmat, workob.obmat);
 	}
-	else
-		unit_m4(data->invmat);
-		
+	
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
-		
+	
 	return OPERATOR_FINISHED;
 }
 
