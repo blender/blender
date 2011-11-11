@@ -48,7 +48,7 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float v0[3], const float v1[3], const float v2[3])
+float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float v0[3], const float v1[3], const float v2[3])
 {
 	float dist;
 
@@ -81,7 +81,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
  * Function adapted from David Eberly's distance tools (LGPL)
  * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-static float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3])
+float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3])
 {
 	float diff[3];
 	float e0[3];
@@ -456,7 +456,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	{	
 		float dist;
 		if(data->sphere_radius == 0.0f)
-			dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
 			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 

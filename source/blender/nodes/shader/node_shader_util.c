@@ -117,6 +117,8 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 							*texco |= TEXCO_NORM|NEED_UV; break;
 						case GEOM_OUT_VCOL:
 							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
+						case GEOM_OUT_VCOL_ALPHA:
+							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
 					}
 				}
 			}

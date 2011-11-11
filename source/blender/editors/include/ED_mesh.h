@@ -294,6 +294,7 @@ int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me, const char *name
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_remove_named(struct bContext *C, struct Object *ob, struct Mesh *me, const char *name);
 
 void EDBM_selectmode_to_scene(struct bContext *C);
 void EDBM_ClearMesh(struct BMEditMesh *em);

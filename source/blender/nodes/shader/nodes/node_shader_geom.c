@@ -45,6 +45,7 @@ static bNodeSocketTemplate sh_node_geom_out[]= {
 	{	SOCK_VECTOR, 0, "UV"},
 	{	SOCK_VECTOR, 0, "Normal"},
 	{	SOCK_RGBA,   0, "Vertex Color"},
+	{	SOCK_FLOAT,   0, "Vertex Alpha"},
 	{	SOCK_FLOAT,   0, "Front/Back"},
 	{	-1, 0, ""	}
 };
@@ -91,10 +92,13 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 			}
 
 			copy_v3_v3(out[GEOM_OUT_VCOL]->vec, scol->col);
-			out[GEOM_OUT_VCOL]->vec[3]= 1.0f;
+			out[GEOM_OUT_VCOL]->vec[3]= scol->col[3];
+			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= scol->col[3];
 		}
-		else
+		else  {
 			memcpy(out[GEOM_OUT_VCOL]->vec, defaultvcol, sizeof(defaultvcol));
+			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= 1.0f;
+		}
 		
 		if(shi->osatex) {
 			out[GEOM_OUT_GLOB]->data= shi->dxgl;

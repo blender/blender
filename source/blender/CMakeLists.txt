@@ -39,6 +39,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_customdata_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_documentation.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_dynamicpaint_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_effect_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fileglobal_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h

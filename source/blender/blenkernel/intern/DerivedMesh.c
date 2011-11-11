@@ -1095,7 +1095,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
 	LinkNode *datamasks, *curr;
-	CustomDataMask mask, nextmask;
+	CustomDataMask mask, nextmask, append_mask = 0;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm=NULL, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
@@ -1321,6 +1321,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 			/* needMapping check here fixes bug [#28112], otherwise its
 			 * possible that it wont be copied */
+			mask |= append_mask;
 			DM_set_only_copy(dm, mask | (needMapping ? CD_MASK_ORIGINDEX : 0));
 			
 			/* add cloth rest shape key if need */
@@ -1379,6 +1380,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					clothorcodm = ndm;
 				}
 			}
+
+			/* in case of dynamic paint, make sure preview mask remains for following modifiers */
+			if (md->type == eModifierType_DynamicPaint)
+				append_mask |= CD_MASK_WEIGHT_MCOL;
 		}
 
 		isPrevDeform= (mti->type == eModifierTypeType_OnlyDeform);

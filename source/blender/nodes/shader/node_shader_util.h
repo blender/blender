@@ -92,7 +92,8 @@ typedef struct ShaderCallData {
 #define GEOM_OUT_UV		4
 #define GEOM_OUT_NORMAL	5
 #define GEOM_OUT_VCOL	6
-#define GEOM_OUT_FRONTBACK	7
+#define GEOM_OUT_VCOL_ALPHA	7
+#define GEOM_OUT_FRONTBACK	8
 
 
 /* input socket defines */

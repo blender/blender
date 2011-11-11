@@ -136,6 +136,7 @@ typedef struct EffectorWeights {
 #define BPHYS_DATA_VELOCITY		2
 #define BPHYS_DATA_SMOKE_HIGH	2
 #define BPHYS_DATA_ROTATION		3
+#define BPHYS_DATA_DYNAMICPAINT 3
 #define BPHYS_DATA_AVELOCITY	4	/* used for particles */
 #define BPHYS_DATA_XCONST		4	/* used for cloth */
 #define BPHYS_DATA_SIZE			5
@@ -398,6 +399,7 @@ typedef struct SoftBody {
 #define PTCACHE_IGNORE_LIBPATH		2048
 /* high resolution cache is saved for smoke for backwards compatibility, so set this flag to know it's a "fake" cache */
 #define PTCACHE_FAKE_SMOKE			(1<<12)
+#define PTCACHE_IGNORE_CLEAR		(1<<13)
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258

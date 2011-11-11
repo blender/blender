@@ -74,6 +74,7 @@ extern ModifierTypeInfo modifierType_NavMesh;
 extern ModifierTypeInfo modifierType_WeightVGEdit;
 extern ModifierTypeInfo modifierType_WeightVGMix;
 extern ModifierTypeInfo modifierType_WeightVGProximity;
+extern ModifierTypeInfo modifierType_DynamicPaint;
 extern ModifierTypeInfo modifierType_NgonInterp;
 
 /* MOD_util.c */

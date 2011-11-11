@@ -911,7 +911,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				if(useColors && mc)
 					cp = (unsigned char *)&mc[i * 4];
 
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				/* no need to set shading mode to flat because
+				*  normals are already used to change shading */
+				glShadeModel(GL_SMOOTH);
 				glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 
 				if (!drawSmooth) {

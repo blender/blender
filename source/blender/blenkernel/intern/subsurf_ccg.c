@@ -2203,11 +2203,14 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 					  glEnable(GL_POLYGON_STIPPLE);
 					  glPolygonStipple(stipple_quarttone);
 				}
+
+				/* no need to set shading mode to flat because
+				*  normals are already used to change shading */
+				glShadeModel(GL_SMOOTH);
 				
 				for (S=0; S<numVerts; S++) {
 					DMGridData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 					if (drawSmooth) {
-						glShadeModel(GL_SMOOTH);
 						for (y=0; y<gridFaces; y++) {
 							DMGridData *a, *b;
 							glBegin(GL_QUAD_STRIP);
@@ -2242,7 +2245,6 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 							glEnd();
 						}
 					} else {
-						glShadeModel(GL_FLAT);
 						glBegin(GL_QUADS);
 						for (y=0; y<gridFaces; y++) {
 							for (x=0; x<gridFaces; x++) {

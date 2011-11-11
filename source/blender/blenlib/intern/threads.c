@@ -674,3 +674,17 @@ void BLI_thread_queue_nowait(ThreadQueue *queue)
 	pthread_mutex_unlock(&queue->mutex);
 }
 
+void BLI_begin_threaded_malloc(void)
+{
+	if(thread_levels == 0) {
+		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+	}
+	thread_levels++;
+}
+
+void BLI_end_threaded_malloc(void)
+{
+	thread_levels--;
+	if(thread_levels==0)
+		MEM_set_lock_callback(NULL, NULL);
+}

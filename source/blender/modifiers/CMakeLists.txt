@@ -56,6 +56,7 @@ set(SRC
 	intern/MOD_curve.c
 	intern/MOD_decimate.c
 	intern/MOD_displace.c
+	intern/MOD_dynamicpaint.c
 	intern/MOD_edgesplit.c
 	intern/MOD_explode.c
 	intern/MOD_fluidsim.c

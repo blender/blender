@@ -2844,6 +2844,25 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 	BLI_uniquename_cb(customdata_unique_check, &data_arg, typeInfo->defaultname, '.', nlayer->name, sizeof(nlayer->name));
 }
 
+void CustomData_validate_layer_name(const CustomData *data, int type, char *name, char *outname)
+{
+	int index = -1;
+
+	/* if a layer name was given, try to find that layer */
+	if(name[0])
+		index = CustomData_get_named_layer_index(data, type, name);
+
+	if(index < 0) {
+		/* either no layer was specified, or the layer we want has been
+		* deleted, so assign the active layer to name
+		*/
+		index = CustomData_get_active_layer_index(data, type);
+		strcpy(outname, data->layers[index].name);
+	}
+	else
+		strcpy(outname, name);
+}
+
 int CustomData_verify_versions(struct CustomData *data, int index)
 {
 	const LayerTypeInfo *typeInfo;

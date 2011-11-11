@@ -2290,7 +2290,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	
 	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 	
-	do_material_tex(shi);
+	do_material_tex(shi, re);
 	
 	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
 	//vr->co[0], vr->co[1], vr->co[2]);
