@@ -361,6 +361,19 @@ if(UNIX AND NOT APPLE)
 		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
 	endif()
 
+	# set lib directory if it exists
+	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+		if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux64)
+		else()
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux)
+		endif()
+
+		if(NOT EXISTS ${LIBDIR})
+			unset(LIBDIR)
+		endif()
+	endif()
+
 	find_package(JPEG REQUIRED)
 	find_package(PNG REQUIRED)
 	find_package(ZLIB REQUIRED)
@@ -435,10 +448,17 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT FFMPEG)
+			set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora theoraenc theoradec vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
+		else()
+			set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		endif()
+
 		mark_as_advanced(FFMPEG)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -504,6 +524,10 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_BOOST)
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT BOOST_ROOT)
+			set(BOOST_ROOT ${LIBDIR}/boost)
+		endif()
 		
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
@@ -519,6 +543,11 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT OPENIMAGEIO_ROOT_DIR)
+			set(OPENIMAGEIO_ROOT_DIR ${LIBDIR}/openimageio)
+		endif()
+
 		find_package(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
