@@ -211,7 +211,7 @@ if not os.path.exists(LCGDIR + '/boost'):
     WITH_BF_BOOST = False
     BF_BOOST = '/usr'
 BF_BOOST_INC = BF_BOOST + '/include'
-BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+BF_BOOST_LIB = 'boost_date_time boost_filesystem boost_regex boost_system boost_thread'
 BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 
 WITH_BF_CYCLES = WITH_BF_OIIO and WITH_BF_BOOST

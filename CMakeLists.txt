@@ -524,14 +524,15 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_BOOST)
-		# use lib dir if available and nothing else specified
-		if(LIBDIR AND NOT BOOST_ROOT)
-			set(BOOST_ROOT ${LIBDIR}/boost)
-		endif()
-		
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
-			set(Boost_USE_MULTITHREADED ON)
+			# use lib dir if available and nothing else specified
+			if(LIBDIR AND NOT BOOST_ROOT)
+				set(BOOST_ROOT ${LIBDIR}/boost)
+				set(Boost_USE_MULTITHREADED OFF)
+			else()
+				set(Boost_USE_MULTITHREADED ON)
+			endif()
 			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
