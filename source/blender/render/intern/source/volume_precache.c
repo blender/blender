@@ -285,7 +285,7 @@ static inline int lc_to_ms_I(int x, int y, int z, int *n)
 /* *** multiple scattering approximation *** */
 
 /* get the total amount of light energy in the light cache. used to normalise after multiple scattering */
-static float total_ss_energy(VolumePrecache *vp)
+static float total_ss_energy(Render *re, int do_test_break, VolumePrecache *vp)
 {
 	int x, y, z;
 	int *res = vp->res;
@@ -301,12 +301,14 @@ static float total_ss_energy(VolumePrecache *vp)
 				if (vp->data_b[i] > 0.f) energy += vp->data_b[i];
 			}
 		}
+
+		if (do_test_break && re->test_break(re->tbh)) break;
 	}
 	
 	return energy;
 }
 
-static float total_ms_energy(float *sr, float *sg, float *sb, int *res)
+static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg, float *sb, int *res)
 {
 	int x, y, z;
 	float energy=0.f;
@@ -321,16 +323,19 @@ static float total_ms_energy(float *sr, float *sg, float *sb, int *res)
 				if (sb[i] > 0.f) energy += sb[i];
 			}
 		}
+
+		if (do_test_break && re->test_break(re->tbh)) break;
 	}
 	
 	return energy;
 }
 
-static void ms_diffuse(float *x0, float *x, float diff, int *n) //n is the unpadded resolution
+static void ms_diffuse(Render *re, int do_test_break, float *x0, float *x, float diff, int *n) //n is the unpadded resolution
 {
 	int i, j, k, l;
 	const float dt = VOL_MS_TIMESTEP;
-	const float a = dt*diff*n[0]*n[1]*n[2];
+	size_t size = n[0]*n[1]*n[2];
+	const float a = dt*diff*size;
 	
 	for (l=0; l<20; l++)
 	{
@@ -345,7 +350,11 @@ static void ms_diffuse(float *x0, float *x, float diff, int *n) //n is the unpad
 																		) / (1+6*a);
 				}
 			}
+
+			if (do_test_break && re->test_break(re->tbh)) break;
 		}
+
+		if (re->test_break(re->tbh)) break;
 	}
 }
 
@@ -359,6 +368,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 	int x, y, z, m;
 	int *n = vp->res;
 	const int size = (n[0]+2)*(n[1]+2)*(n[2]+2);
+	const int do_test_break = (size > 100000);
 	double time, lasttime= PIL_check_seconds_timer();
 	float total;
 	float c=1.0f;
@@ -374,7 +384,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 
 	total = (float)(n[0]*n[1]*n[2]*simframes);
 	
-	energy_ss = total_ss_energy(vp);
+	energy_ss = total_ss_energy(re, do_test_break, vp);
 	
 	/* Scattering as diffusion pass */
 	for (m=0; m<simframes; m++)
@@ -409,21 +419,26 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 					}
 				}
 			}
+
+			if (do_test_break && re->test_break(re->tbh)) break;
 		}
+
+		if (re->test_break(re->tbh)) break;
+
 		SWAP(float *,sr,sr0);
 		SWAP(float *,sg,sg0);
 		SWAP(float *,sb,sb0);
 
 		/* main diffusion simulation */
-		ms_diffuse(sr0, sr, diff, n);
-		ms_diffuse(sg0, sg, diff, n);
-		ms_diffuse(sb0, sb, diff, n);
+		ms_diffuse(re, do_test_break, sr0, sr, diff, n);
+		ms_diffuse(re, do_test_break, sg0, sg, diff, n);
+		ms_diffuse(re, do_test_break, sb0, sb, diff, n);
 		
 		if (re->test_break(re->tbh)) break;
 	}
 	
 	/* normalisation factor to conserve energy */
-	energy_ms = total_ms_energy(sr, sg, sb, n);
+	energy_ms = total_ms_energy(re, do_test_break, sr, sg, sb, n);
 	fac *= (energy_ss / energy_ms);
 	
 	/* blend multiple scattering back in the light cache */
@@ -449,6 +464,8 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 				vp->data_b[i] = origf * vp->data_b[i] + fac * sb[j];
 			}
 		}
+
+		if (do_test_break && re->test_break(re->tbh)) break;
 	}
 
 	MEM_freeN(sr0);
