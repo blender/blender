@@ -475,7 +475,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
 		ok= 1;
-		 make_editText(ob);
+		make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
@@ -536,9 +536,9 @@ static int editmode_toggle_poll(bContext *C)
 		return 0;
 
 	return (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
-			  ob->type == OB_FONT || ob->type == OB_MBALL ||
-			  ob->type == OB_LATTICE || ob->type == OB_SURF ||
-			  ob->type == OB_CURVE);
+	        ob->type == OB_FONT || ob->type == OB_MBALL ||
+	        ob->type == OB_LATTICE || ob->type == OB_SURF ||
+	        ob->type == OB_CURVE);
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)

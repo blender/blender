@@ -214,14 +214,14 @@ typedef enum IMB_Proxy_Size {
 void IMB_anim_set_index_dir(struct anim * anim, const char * dir);
 
 int IMB_anim_index_get_frame_index(struct anim * anim, IMB_Timecode_Type tc,
-				   int position);
+                                   int position);
 
 /* will rebuild all used indices and proxies at once */
 void IMB_anim_index_rebuild(struct anim * anim, 
-			    IMB_Timecode_Type build_tcs,
-			    IMB_Proxy_Size build_preview_sizes, 
-			    int build_quality,
-			    short *stop, short *do_update, float *progress);
+                            IMB_Timecode_Type build_tcs,
+                            IMB_Proxy_Size build_preview_sizes,
+                            int build_quality,
+                            short *stop, short *do_update, float *progress);
 
 /**
  * Return the length (in frames) of the given @a anim.
@@ -234,7 +234,7 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc);
  * and frs_sec and frs_sec_base untouched if none available!)
  */
 int IMB_anim_get_fps(struct anim * anim, 
-		     short * frs_sec, float * frs_sec_base);
+                     short * frs_sec, float * frs_sec_base);
 
 /**
  *

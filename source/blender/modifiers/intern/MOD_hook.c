@@ -170,7 +170,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 	invert_m4_m4(ob->imat, ob->obmat);
 	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv,
-			 NULL, NULL, NULL, NULL, NULL);
+	             NULL, NULL, NULL, NULL, NULL);
 
 	modifier_get_vgroup(ob, dm, hmd->name, &dvert, &defgrp_index);
 	max_dvert = (dvert)? numVerts: 0;

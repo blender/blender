@@ -64,7 +64,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	else
 		return NULL;
 
-	 sizeof_bhead = 16 + pointer_size;
+	sizeof_bhead = 16 + pointer_size;
 
 	if(buf[8]=='V')
 		endian= B_ENDIAN; /* big: PPC */

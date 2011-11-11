@@ -123,15 +123,15 @@ public:
 	int m_type;
 
 	KX_IpoActuator(SCA_IObject* gameobj,
-				   const STR_String& propname,
-				   const STR_String& framePropname,
-				   float starttime,
-				   float endtime,
-				   bool recurse,
-				   int acttype,
-				   bool ipo_as_force, 
-				   bool ipo_add,
-				   bool ipo_local);
+	               const STR_String& propname,
+	               const STR_String& framePropname,
+	               float starttime,
+	               float endtime,
+	               bool recurse,
+	               int acttype,
+	               bool ipo_as_force,
+	               bool ipo_add,
+	               bool ipo_local);
 	virtual ~KX_IpoActuator() {};
 
 	virtual CValue* GetReplica() {

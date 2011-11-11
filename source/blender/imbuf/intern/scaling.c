@@ -539,7 +539,7 @@ static void shrink_picture_byte(
 				*dst++ = (val= (dst_line1[x].a * f) >> 15) > 255 ? 255: val;
 			}
 			memset(dst_line1, 0, dst_width *
-				   sizeof(struct scale_outpix_byte));
+			       sizeof(struct scale_outpix_byte));
 			temp = dst_line1;
 			dst_line1 = dst_line2;
 			dst_line2 = temp;
@@ -740,7 +740,7 @@ static void shrink_picture_float(
 				*dst++ = dst_line1[x].a * f;
 			}
 			memset(dst_line1, 0, dst_width *
-				   sizeof(struct scale_outpix_float));
+			       sizeof(struct scale_outpix_float));
 			temp = dst_line1;
 			dst_line1 = dst_line2;
 			dst_line2 = temp;
@@ -803,21 +803,21 @@ static int q_scale_linear_interpolation(
 	}
 
 	if (ibuf->rect) {
-		unsigned char * newrect = 
-			MEM_mallocN(newx * newy * sizeof(int), "q_scale rect");
+		unsigned char * newrect =
+		        MEM_mallocN(newx * newy * sizeof(int), "q_scale rect");
 		q_scale_byte((unsigned char *)ibuf->rect, newrect, ibuf->x, ibuf->y,
-				 newx, newy);
+		             newx, newy);
 
 		imb_freerectImBuf(ibuf);
 		ibuf->mall |= IB_rect;
 		ibuf->rect = (unsigned int *) newrect;
 	}
 	if (ibuf->rect_float) {
-		float * newrect = 
-			MEM_mallocN(newx * newy * 4 *sizeof(float), 
-					"q_scale rectfloat");
+		float * newrect =
+		        MEM_mallocN(newx * newy * 4 *sizeof(float),
+		                    "q_scale rectfloat");
 		q_scale_float(ibuf->rect_float, newrect, ibuf->x, ibuf->y,
-				  newx, newy);
+		              newx, newy);
 		imb_freerectfloatImBuf(ibuf);
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = newrect;

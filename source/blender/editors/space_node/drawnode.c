@@ -340,8 +340,9 @@ static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *
 	uiBut *bt;
 	
 	bt= uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "", 
-			  (short)butr->xmin, (short)butr->xmin, butr->xmax-butr->xmin, butr->xmax-butr->xmin, 
-			  nor, 0.0f, 1.0f, 0, 0, "");
+	              (short)butr->xmin, (short)butr->xmin,
+	              butr->xmax-butr->xmin, butr->xmax-butr->xmin,
+	              nor, 0.0f, 1.0f, 0, 0, "");
 	uiButSetFunc(bt, node_normal_cb, ntree, node);
 }
 #if 0 // not used in 2.5x yet
@@ -627,9 +628,9 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 			uiButSetFunc(bt, update_group_output_cb, snode, ngroup);
 	}
 	else {
-		uiDefBut(gnode->block, LABEL, 0, sock->name, 
-				 sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
-				 NULL, 0, 31, 0, 0, "");
+		uiDefBut(gnode->block, LABEL, 0, sock->name,
+		         sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
+		         NULL, 0, 31, 0, 0, "");
 	}
 }
 

@@ -296,8 +296,8 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		}
 		else if(nr==5) {
 			if(base->object->dup_group==ob->dup_group) {
-				 base->flag |= SELECT;
-				 changed = 1;
+				base->flag |= SELECT;
+				changed = 1;
 			}
 		}
 		else if(nr==6) {

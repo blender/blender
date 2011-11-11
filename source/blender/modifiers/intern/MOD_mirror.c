@@ -91,7 +91,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
 
 		dag_add_relation(forest, latNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mirror Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mirror Modifier");
 	}
 }
 

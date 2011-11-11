@@ -788,20 +788,20 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 
 bool BOP_Mesh::isClosedMesh()
 {
-	 for(unsigned int i=0; i<m_edges.size(); i++) {
-			 BOP_Edge *edge = m_edges[i];
-			 BOP_Indexs faces = edge->getFaces();
-			 unsigned int count = 0;
-			 const BOP_IT_Indexs facesEnd = faces.end();
-			 for(BOP_IT_Indexs it = faces.begin();it!=facesEnd;it++) {
-					 if (m_faces[*it]->getTAG()!=BROKEN)
-							 count++;
-			 }
+	for(unsigned int i=0; i<m_edges.size(); i++) {
+		BOP_Edge *edge = m_edges[i];
+		BOP_Indexs faces = edge->getFaces();
+		unsigned int count = 0;
+		const BOP_IT_Indexs facesEnd = faces.end();
+		for(BOP_IT_Indexs it = faces.begin();it!=facesEnd;it++) {
+			if (m_faces[*it]->getTAG()!=BROKEN)
+				count++;
+		}
 
-			 if ((count%2)!=0) return false;
-	 }
+		if ((count%2)!=0) return false;
+	}
 
-	 return true;
+	return true;
 }
 
 

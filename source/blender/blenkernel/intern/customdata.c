@@ -90,7 +90,7 @@ typedef struct LayerTypeInfo {
 	 * count gives the number of elements in sources
 	 */
 	void (*interp)(void **sources, float *weights, float *sub_weights,
-				   int count, void *dest);
+	               int count, void *dest);
 
 	/* a function to swap the data in corners of the element */
 	void (*swap)(void *data, const int *corner_indices);

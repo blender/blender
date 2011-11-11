@@ -561,7 +561,7 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/
-	   base = base->next;
+		base = base->next;
 	} /* while (base) */
 }
 
@@ -589,7 +589,7 @@ static void ccd_update_deflector_hash(Scene *scene, Object *vertexowner, GHash *
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/
-	   base = base->next;
+		base = base->next;
 	} /* while (base) */
 }
 
@@ -3356,7 +3356,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-length of the springs */
-			   if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
+			if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 
 		}
 

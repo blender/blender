@@ -231,7 +231,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
-				   me->totface, me->totvert);
+		                    me->totface, me->totvert);
 
 		if(ss->modifiers_active && ob->derivedDeform) {
 			DerivedMesh *deformdm= ob->derivedDeform;

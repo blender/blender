@@ -1034,8 +1034,8 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 
 	/* dot */
 	vresult.v = (vec_splat_float(n[0])*gx +
-				 vec_splat_float(n[1])*gy +
-				 vec_splat_float(n[2])*gz)*vangle;
+	             vec_splat_float(n[1])*gy +
+	             vec_splat_float(n[2])*gz)*vangle;
 
 	result= (vresult.f[0] + vresult.f[1] + vresult.f[2] + vresult.f[3])*(0.5f/(float)M_PI);
 	result= MAX2(result, 0.0f);

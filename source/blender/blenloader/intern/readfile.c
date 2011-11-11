@@ -1554,14 +1554,14 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 			IDP_DirectLinkIDPArray(prop, switch_endian, fd);
 			break;
 		case IDP_DOUBLE:
-			/*erg, stupid doubles.  since I'm storing them
-			 in the same field as int val; val2 in the
-			 IDPropertyData struct, they have to deal with
-			 endianness specifically
-			 
-			 in theory, val and val2 would've already been swapped
-			 if switch_endian is true, so we have to first unswap
-			 them then reswap them as a single 64-bit entity.
+			/* erg, stupid doubles.  since I'm storing them
+			 * in the same field as int val; val2 in the
+			 * IDPropertyData struct, they have to deal with
+			 * endianness specifically
+
+			 * in theory, val and val2 would've already been swapped
+			 * if switch_endian is true, so we have to first unswap
+			 * them then reswap them as a single 64-bit entity.
 			 */
 			
 			if (switch_endian) {
@@ -3567,8 +3567,8 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	int i;
 
 	/* Add pseudo-references (not fake users!) to images used by texface. A
-	   little bogus; it would be better if each mesh consistently added one ref
-	   to each image it used. - z0r */
+	 * little bogus; it would be better if each mesh consistently added one ref
+	 * to each image it used. - z0r */
 	for (i=0; i<totface; i++, tf++) {
 		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
 		if(tf->tpage && tf->tpage->id.us==0)
@@ -3769,7 +3769,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	}
 
 	/* if multires is present but has no valid vertex data,
-	   there's no way to recover it; silently remove multires */
+	 * there's no way to recover it; silently remove multires */
 	if(mesh->mr && !mesh->mr->verts) {
 		multires_free(mesh->mr);
 		mesh->mr = NULL;
@@ -8844,7 +8844,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			/* make sure old cameras have title safe on */
 			if (!(cam->flag & CAM_SHOWTITLESAFE))
-			 cam->flag |= CAM_SHOWTITLESAFE;
+				cam->flag |= CAM_SHOWTITLESAFE;
 			
 			/* set an appropriate camera passepartout alpha */
 			if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
@@ -9141,7 +9141,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(group= main->group.first; group; group= group->id.next)
 			if(group->layer==0)
-			   group->layer= (1<<20)-1;
+				group->layer= (1<<20)-1;
 		
 		/* History fix (python?), shape key adrcode numbers have to be sorted */
 		sort_shape_fix(main);

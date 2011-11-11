@@ -103,7 +103,7 @@ typedef struct bCollisionSensor {
 	// struct Material *ma; // XXX remove materialName
 	short damptimer, damp;
 	short mode;             /* flag to choose material or property */
-	 short pad2;
+	short pad2;
 } bCollisionSensor;
 
 typedef struct bRadarSensor {

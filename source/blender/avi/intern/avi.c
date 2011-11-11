@@ -731,9 +731,9 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	movie->header->fcc = FCC("avih");
 	movie->header->size = 56;
 	movie->header->MicroSecPerFrame = 66667;
-	 movie->header->MaxBytesPerSec = 0; 
-	 movie->header->PaddingGranularity = 0; 
-	 movie->header->Flags = AVIF_HASINDEX | AVIF_MUSTUSEINDEX;
+	movie->header->MaxBytesPerSec = 0;
+	movie->header->PaddingGranularity = 0;
+	movie->header->Flags = AVIF_HASINDEX | AVIF_MUSTUSEINDEX;
 	movie->header->TotalFrames = 0;
 	movie->header->InitialFrames = 0;
 	movie->header->Streams = streams;

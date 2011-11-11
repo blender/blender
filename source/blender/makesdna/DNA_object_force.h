@@ -296,9 +296,9 @@ typedef struct SoftBody {
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
-	 char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
-							starting to fix old bug .. nastyness that VG are indexes 
-								rather find them by name tag to find it -> jow20090613 */
+	char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
+	                               starting to fix old bug .. nastyness that VG are indexes
+	                               rather find them by name tag to find it -> jow20090613 */
 	
 	/* baking */
 	int sfra, efra;

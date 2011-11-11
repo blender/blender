@@ -689,7 +689,7 @@ int main(int /*argc*/, char** /*argv*/)
 		//DWORD keyValue;
 //		lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable");
 		lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
-			 KEY_ALL_ACCESS );
+		                      KEY_ALL_ACCESS);
 
 		if(lresult == ERROR_SUCCESS)
 			printf("Succesfully opened key\n");

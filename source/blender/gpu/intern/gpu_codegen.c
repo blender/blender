@@ -909,7 +909,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 		gpu_node_input_link(node, sock->link, sock->type);
 	}
 	else {
-		 link = GPU_node_link_create(0);
+		link = GPU_node_link_create(0);
 		link->ptr1 = sock->vec;
 		gpu_node_input_link(node, link, sock->type);
 	}

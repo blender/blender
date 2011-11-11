@@ -1326,9 +1326,9 @@ static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float o
 
 static void glColor3ubvShade(unsigned char *col, int shade)
 {
-	glColor3ub(col[0]-shade>0?col[0]-shade:0, 
-			   col[1]-shade>0?col[1]-shade:0,
-			   col[2]-shade>0?col[2]-shade:0);
+	glColor3ub(col[0]-shade>0?col[0]-shade:0,
+	           col[1]-shade>0?col[1]-shade:0,
+	           col[2]-shade>0?col[2]-shade:0);
 }
 
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect)

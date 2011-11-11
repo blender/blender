@@ -53,9 +53,9 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 	float difference;
 	float alpha;
 
-	difference= fabs(inColor2[0]-inColor1[0])+
-			   fabs(inColor2[1]-inColor1[1])+
-			   fabs(inColor2[2]-inColor1[2]);
+	difference= fabs(inColor2[0]-inColor1[0]) +
+	        fabs(inColor2[1]-inColor1[1]) +
+	        fabs(inColor2[2]-inColor1[2]);
 
 	/*average together the distances*/
 	difference=difference/3.0f;

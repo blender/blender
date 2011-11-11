@@ -977,7 +977,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	   ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */

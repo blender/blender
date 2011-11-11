@@ -267,7 +267,7 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	std::string controller_id = get_controller_id(ob_arm, ob);
 
 	openSkin(controller_id, controller_name,
-			 COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
+	         COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
 
 	add_bind_shape_mat(ob);
 

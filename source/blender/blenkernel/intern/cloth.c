@@ -60,9 +60,9 @@ double tval( void )
 }
 #else
 #include <sys/time.h>
-			 static struct timeval _tstart, _tend;
-	 static struct timezone tz;
-	 void tstart ( void )
+static struct timeval _tstart, _tend;
+static struct timezone tz;
+void tstart ( void )
 {
 	gettimeofday ( &_tstart, &tz );
 }

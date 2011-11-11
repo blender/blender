@@ -79,9 +79,9 @@ double itval(void)
 // #include <pmmintrin.h>
 // #include <pthread.h>
 
-			 static struct timeval _itstart, _itend;
-	 static struct timezone itz;
-	 void itstart(void)
+static struct timeval _itstart, _itend;
+static struct timezone itz;
+void itstart(void)
 {
 	gettimeofday(&_itstart, &itz);
 }

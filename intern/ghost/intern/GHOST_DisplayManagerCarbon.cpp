@@ -88,7 +88,7 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::getDisplaySetting(GHOST_TUns8 display
 	displayModes = ::CGDisplayAvailableModes(d);
 	//CFIndex numModes = ::CFArrayGetCount(displayModes);/*unused*/
 	//GHOST_TInt32 numSettings = (GHOST_TInt32)numModes; /*unused*/
-	 CFDictionaryRef displayModeValues = (CFDictionaryRef)::CFArrayGetValueAtIndex(displayModes, index);
+	CFDictionaryRef displayModeValues = (CFDictionaryRef)::CFArrayGetValueAtIndex(displayModes, index);
 			
 	setting.xPixels		= getValue(displayModeValues, kCGDisplayWidth);
 	setting.yPixels		= getValue(displayModeValues, kCGDisplayHeight);

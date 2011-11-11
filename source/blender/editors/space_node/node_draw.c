@@ -585,8 +585,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(color_id);
 	
 	if(node->flag & NODE_MUTED)
-	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
-		
+		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
+
 	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
@@ -758,7 +758,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* body */
 	UI_ThemeColor(color_id);
 	if(node->flag & NODE_MUTED)
-	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);	
+		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */

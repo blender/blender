@@ -1256,7 +1256,7 @@ static void createTransArmatureVerts(TransInfo *t)
 static void createTransMBallVerts(TransInfo *t)
 {
 	MetaBall *mb = (MetaBall*)t->obedit->data;
-	 MetaElem *ml;
+	MetaElem *ml;
 	TransData *td;
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];

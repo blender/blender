@@ -219,14 +219,13 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  * Note we do *not* do INPUT_SYNC before calling fill_input_buffer,
  * but we must reload the local copies after a successful fill.
  */
-#define MAKE_BYTE_AVAIL(cinfo,action)  \
-	if (bytes_in_buffer == 0) {  \
-	  if (! (*datasrc->fill_input_buffer) (cinfo))  \
-	    { action; }  \
-	  INPUT_RELOAD(cinfo);  \
+#define MAKE_BYTE_AVAIL(cinfo, action)                                        \
+	if (bytes_in_buffer == 0) {                                               \
+		if (! (*datasrc->fill_input_buffer) (cinfo))                          \
+			{ action; }                                                       \
+		INPUT_RELOAD(cinfo);  \
 	}
 
-	
 
 /* Read a byte into variable V.
  * If must suspend, take the specified action (typically "return FALSE").

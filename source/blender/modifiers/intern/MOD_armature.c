@@ -110,7 +110,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, amd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Armature Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Armature Modifier");
 	}
 }
 
@@ -169,7 +169,7 @@ static void deformMatricesEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
-				  amd->deformflag, NULL, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -183,7 +183,7 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	if(!derivedData) dm = CDDM_from_mesh((Mesh*)ob->data, ob);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
-				  amd->deformflag, NULL, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }

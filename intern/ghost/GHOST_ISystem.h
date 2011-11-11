@@ -252,7 +252,7 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0) = 0;
+		const bool stereoVisual) = 0;
 
 	/**
 	 * Ends full screen mode.
@@ -358,7 +358,7 @@ public:
 	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
 	 *
 	 */
-	 virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
+	virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
 
 	/**
 	 * Put data to the Clipboard

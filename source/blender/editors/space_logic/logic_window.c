@@ -2335,7 +2335,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		str= "Edit Object %t|Add Object %x0|End Object %x1|Replace Mesh %x2|Track to %x3|Dynamics %x4";
 		uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &eoa->type, 0.0, 0.0, 0, 0, "");
 
-		 yco-= ysize;
+		yco-= ysize;
 
 		break;
 
@@ -2472,9 +2472,9 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 		}
 		str= "Constraint Type %t|Location %x0|Distance %x1|Orientation %x2|Force field %x3";
 		but = uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-23, (width-80), 19, &coa->type, 0.0, 0.0, 0, 0, "");
-		 yco-= ysize;
+		yco-= ysize;
 		break;
- 
+
 	case ACT_SCENE:
 		sca= act->data;
 		

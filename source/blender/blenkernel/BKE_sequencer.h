@@ -198,8 +198,8 @@ int input_have_to_preprocess(
 	SeqRenderData context, struct Sequence * seq, float cfra);
 
 void seq_proxy_rebuild(struct Main * bmain, 
-		       struct Scene *scene, struct Sequence * seq,
-		       short *stop, short *do_update, float *progress);
+                       struct Scene *scene, struct Sequence * seq,
+                       short *stop, short *do_update, float *progress);
 
 
 /* **********************************************************************

@@ -1208,7 +1208,7 @@ GPUPixelBuffer *gpu_pixelbuffer_create(int x, int y, int halffloat, int numbuffe
 	pb->numbuffers = numbuffers;
 	pb->halffloat = halffloat;
 
-	   glGenBuffersARB(pb->numbuffers, pb->bindcode);
+	glGenBuffersARB(pb->numbuffers, pb->bindcode);
 
 	if (!pb->bindcode[0]) {
 		fprintf(stderr, "GPUPixelBuffer allocation failed\n");

@@ -2721,9 +2721,9 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
-			else if(mtex->texco==TEXCO_GLOB) {							
-			   copy_v3_v3(co, xyz);
-			   mul_m4_v3(re->viewinv, co);
+			else if(mtex->texco==TEXCO_GLOB) {
+				copy_v3_v3(co, xyz);
+				mul_m4_v3(re->viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 

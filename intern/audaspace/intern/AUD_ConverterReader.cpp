@@ -73,5 +73,5 @@ void AUD_ConverterReader::read(int& length, bool& eos, sample_t* buffer)
 	m_reader->read(length, eos, m_buffer.getBuffer());
 
 	m_convert((data_t*)buffer, (data_t*)m_buffer.getBuffer(),
-			  length * specs.channels);
+	          length * specs.channels);
 }

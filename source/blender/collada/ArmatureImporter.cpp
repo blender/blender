@@ -112,8 +112,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	bone->roll=angle;
 	// set head
 	copy_v3_v3(bone->head, mat[3]);
-   
-	
+
 	// set tail, don't set it to head because 0-length bones are not allowed
 	float vec[3] = {0.0f, 0.5f, 0.0f};
 	add_v3_v3v3(bone->tail, bone->head, vec);
@@ -427,7 +426,7 @@ void ArmatureImporter::create_armature_bones( )
 		   TODO:
 		   check if bones have already been created for a given joint
 		*/
-	 leaf_bone_length = FLT_MAX;
+		leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
 		fix_leaf_bones();
@@ -593,17 +592,16 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 	}
 	else {
 		copy_m4_m4(mat, obmat);
-		 float invObmat[4][4];
-	   invert_m4_m4(invObmat, ob_arm->obmat);
-	   mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
-	  
+		float invObmat[4][4];
+		invert_m4_m4(invObmat, ob_arm->obmat);
+		mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
 	}
-		
-	 mat4_to_axis_angle(ax,&angle,mat);
-	   pchan->bone->roll = angle;
-	
 
-   COLLADAFW::NodePointerArray& children = root_node->getChildNodes();
+	mat4_to_axis_angle(ax,&angle,mat);
+	pchan->bone->roll = angle;
+
+
+	COLLADAFW::NodePointerArray& children = root_node->getChildNodes();
 	for (unsigned int i = 0; i < children.getCount(); i++) {
 		set_pose(ob_arm, children[i], bone_name, mat);
 	}
@@ -762,8 +760,8 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 		if (skin.uses_joint_or_descendant(node))
 			return skin.get_armature();
 	}
-   
-	 std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
+
+	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
 	for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
 		if(arm->first == node->getUniqueId() )
 			return arm->second;

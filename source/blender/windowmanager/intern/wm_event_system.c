@@ -457,14 +457,14 @@ void WM_event_print(wmEvent *event)
 		RNA_enum_identifier(event_value_items, event->val, &val_id);
 
 		printf("wmEvent - type:%d/%s, val:%d/%s, "
-			   "shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, "
-			   "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
-			   "keymap_idname:%s, pointer:%p\n",
-			   event->type, type_id, event->val, val_id,
-			   event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
-			   event->x, event->y, event->ascii,
+		       "shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, "
+		       "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
+		       "keymap_idname:%s, pointer:%p\n",
+		       event->type, type_id, event->val, val_id,
+		       event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
+		       event->x, event->y, event->ascii,
 		       BLI_str_utf8_size(event->utf8_buf), event->utf8_buf,
-			   event->keymap_idname, (void *)event);
+		       event->keymap_idname, (void *)event);
 	}
 	else {
 		printf("wmEvent - NULL\n");

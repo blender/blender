@@ -116,25 +116,25 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, amd->start_cap);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->end_cap) {
 		DagNode *curNode = dag_get_node(forest, amd->end_cap);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->curve_ob) {
 		DagNode *curNode = dag_get_node(forest, amd->curve_ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->offset_ob) {
 		DagNode *curNode = dag_get_node(forest, amd->offset_ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 }
 
@@ -275,8 +275,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			unit_m4(obinv);
 
 		mul_serie_m4(result_mat, offset,
-				 obinv, amd->offset_ob->obmat,
-	 NULL, NULL, NULL, NULL, NULL);
+		             obinv, amd->offset_ob->obmat,
+		             NULL, NULL, NULL, NULL, NULL);
 		copy_m4_m4(offset, result_mat);
 	}
 

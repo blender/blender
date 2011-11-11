@@ -49,12 +49,12 @@ protected:
 	KX_ClientObjectInfo*	m_client_info;
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
-			class KX_GameObject* gameobj,
-			float margin,
-			float resetmargin,
-			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			 PHY_IPhysicsController*	ctrl);
+	              class KX_GameObject* gameobj,
+	              float margin,
+	              float resetmargin,
+	              bool bFindMaterial,
+	              const STR_String& touchedpropname,
+	              PHY_IPhysicsController*	ctrl);
 /*
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,

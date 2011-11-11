@@ -218,8 +218,8 @@ public:
 
 	/* Helped function for get data from the clipboard. */
 	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
-			 unsigned char **txt, unsigned long *len,
-			 unsigned int *context) const;
+	                        unsigned char **txt, unsigned long *len,
+	                        unsigned int *context) const;
 
 	/**
 	 * Returns unsinged char from CUT_BUFFER0

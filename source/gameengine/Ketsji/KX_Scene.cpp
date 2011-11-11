@@ -1247,9 +1247,10 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end()) 
-			&& ((*it) != cam) ) {
-	  it++;
+	while ( (it != m_cameras.end())
+	        && ((*it) != cam) )
+	{
+		it++;
 	}
 
 	return ((it == m_cameras.end()) ? NULL : (*it));
@@ -1260,9 +1261,10 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end()) 
-			&& ((*it)->GetName() != name) ) {
-	  it++;
+	while ( (it != m_cameras.end())
+	        && ((*it)->GetName() != name) )
+	{
+		it++;
 	}
 
 	return ((it == m_cameras.end()) ? NULL : (*it));

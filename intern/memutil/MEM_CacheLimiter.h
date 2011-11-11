@@ -115,7 +115,7 @@ private:
 
 	T * data;
 	int refcount;
-	typename std::list<MEM_CacheLimiterHandle<T> *, 
+	typename std::list<MEM_CacheLimiterHandle<T> *,
 	  MEM_Allocator<MEM_CacheLimiterHandle<T> *> >::iterator me;
 	MEM_CacheLimiter<T> * parent;
 };
@@ -160,7 +160,8 @@ public:
 		}
 
 		for (iterator it = queue.begin(); 
-		     it != queue.end() && mem_in_use > max;) {
+		     it != queue.end() && mem_in_use > max;)
+		{
 			iterator jt = it;
 			++it;
 

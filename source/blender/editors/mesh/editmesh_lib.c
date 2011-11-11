@@ -525,9 +525,9 @@ void EM_set_flag_all(EditMesh *em, int flag)
 
 void EM_set_flag_all_selectmode(EditMesh *em, int flag)
 {
-	 EditVert *eve;
-	 EditEdge *eed;
-	 EditFace *efa;
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
 
 	int selvert= 0, seledge= 0, selface= 0;
 

@@ -688,8 +688,8 @@ static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
 
 static void bezt_to_key(BezTriple *bezt, float *key)
 {
-	 memcpy(key, bezt->vec, sizeof(float) * 9);
-	 key[9] = bezt->alfa;
+	memcpy(key, bezt->vec, sizeof(float) * 9);
+	key[9] = bezt->alfa;
 }
 
 static void calc_keyHandles(ListBase *nurb, float *key)

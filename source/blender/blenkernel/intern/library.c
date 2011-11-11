@@ -671,10 +671,10 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_PA:
 			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
-			  break;
+			break;
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
-			  break;
+			break;
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
 			break;

@@ -596,7 +596,7 @@ static void gpu_verify_repeat(Image *ima)
 {
 	/* set either clamp or repeat in X/Y */
 	if (ima->tpageflag & IMA_CLAMP_U)
-	   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
@@ -809,11 +809,11 @@ void GPU_free_smoke(SmokeModifierData *smd)
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
 	{
 		if(smd->domain->tex)
-			 GPU_texture_free(smd->domain->tex);
+			GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
 
 		if(smd->domain->tex_shadow)
-			 GPU_texture_free(smd->domain->tex_shadow);
+			GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
 	}
 }

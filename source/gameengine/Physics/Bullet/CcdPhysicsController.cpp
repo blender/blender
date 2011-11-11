@@ -2130,8 +2130,8 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 		{
 			compoundShape = new btCompoundShape();
 			for (std::vector<CcdShapeConstructionInfo*>::iterator sit = m_shapeArray.begin();
-				 sit != m_shapeArray.end();
-				 sit++)
+			     sit != m_shapeArray.end();
+			     sit++)
 			{
 				collisionShape = (*sit)->CreateBulletShape(margin, useGimpact, useBvh);
 				if (collisionShape)
@@ -2156,8 +2156,8 @@ void CcdShapeConstructionInfo::AddShape(CcdShapeConstructionInfo* shapeInfo)
 CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 {
 	for (std::vector<CcdShapeConstructionInfo*>::iterator sit = m_shapeArray.begin();
-		 sit != m_shapeArray.end();
-		 sit++)
+	     sit != m_shapeArray.end();
+	     sit++)
 	{
 		(*sit)->Release();
 	}

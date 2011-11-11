@@ -2287,8 +2287,8 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 
 	/* set joints to best position */
 	for (edge = iarc->edges.first, i = 0;
-		 edge;
-		 edge = edge->next, i++)
+	     edge;
+	     edge = edge->next, i++)
 	{
 		float *no = NULL;
 		if (i < nb_joints)

@@ -157,13 +157,13 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, dmd->map_object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	}
 	
 
 	if(dmd->texmapping == MOD_DISP_MAP_GLOBAL)
 		dag_add_relation(forest, obNode, obNode,
-						 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	
 }
 
@@ -244,7 +244,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	DerivedMesh *dm= get_cddm(ob, NULL, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
-				 vertexCos, numVerts);
+	                    vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);
@@ -257,7 +257,7 @@ static void deformVertsEM(
 	DerivedMesh *dm= get_cddm(ob, editData, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
-				 vertexCos, numVerts);
+	                    vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);

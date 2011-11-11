@@ -128,9 +128,9 @@ typedef struct IndexNode {
 	int index;
 } IndexNode;
 void create_vert_face_map(ListBase **map, IndexNode **mem, const struct MFace *mface,
-			  const int totvert, const int totface);
+                          const int totvert, const int totface);
 void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *medge,
-			  const int totvert, const int totedge);
+                          const int totvert, const int totedge);
 
 /* Partial Mesh Visibility */
 struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);

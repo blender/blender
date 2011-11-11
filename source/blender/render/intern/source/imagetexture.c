@@ -1092,7 +1092,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	if (tex->imaflag & TEX_FILTER_MIN) {
 		// make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy)
-		 const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
+		const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
 		if (addval > minx) minx = addval;
 		if (addval > miny) miny = addval;
 	}

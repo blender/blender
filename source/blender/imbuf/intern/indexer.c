@@ -48,12 +48,12 @@ static char magic[] = "BlenMIdx";
 static char temp_ext [] = "_part";
 
 static int proxy_sizes[] = { IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75,
-			     IMB_PROXY_100 };
+                             IMB_PROXY_100 };
 static float proxy_fac[] = { 0.25, 0.50, 0.75, 1.00 };
 
 #ifdef WITH_FFMPEG
 static int tc_types[] = { IMB_TC_RECORD_RUN, IMB_TC_FREE_RUN,
-			  IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN };
+                          IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN };
 #endif
 
 #define INDEX_FILE_VERSION 1
@@ -73,9 +73,9 @@ extern void IMB_indexer_dv_new(anim_index_builder * idx);
 anim_index_builder * IMB_index_builder_create(const char * name)
 {
 
-	anim_index_builder * rv 
-		= MEM_callocN( sizeof(struct anim_index_builder), 
-			       "index builder");
+	anim_index_builder * rv
+	        = MEM_callocN( sizeof(struct anim_index_builder),
+	                       "index builder");
 
 	fprintf(stderr, "Starting work on index: %s\n", name);
 
@@ -197,13 +197,13 @@ struct anim_index * IMB_indexer_open(const char * name)
 				    * idx->num_entries, "anim_index_entries");
 
 	for (i = 0; i < idx->num_entries; i++) {
-		fread(&idx->entries[i].frameno, 
+		fread(&idx->entries[i].frameno,
 		      sizeof(int), 1, fp);
-		fread(&idx->entries[i].seek_pos, 
+		fread(&idx->entries[i].seek_pos,
 		      sizeof(unsigned long long), 1, fp);
-		fread(&idx->entries[i].seek_pos_dts, 
+		fread(&idx->entries[i].seek_pos_dts,
 		      sizeof(unsigned long long), 1, fp);
-		fread(&idx->entries[i].pts, 
+		fread(&idx->entries[i].pts,
 		      sizeof(unsigned long long), 1, fp);
 	}
 
@@ -392,7 +392,7 @@ static void get_proxy_filename(struct anim * anim, IMB_Proxy_Size preview_size,
 	get_index_dir(anim, index_dir);
 
 	BLI_join_dirfile(fname, FILE_MAXFILE + FILE_MAXDIR, index_dir, 
-			 temp ? proxy_temp_name : proxy_name);
+	                 temp ? proxy_temp_name : proxy_name);
 }
 
 static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
@@ -418,7 +418,7 @@ static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
 	get_index_dir(anim, index_dir);
 	
 	BLI_join_dirfile(fname, FILE_MAXFILE + FILE_MAXDIR, 
-			 index_dir, index_name);
+	                 index_dir, index_name);
 }
 
 /* ----------------------------------------------------------------------
@@ -533,15 +533,16 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 
 	rv->orig_height = st->codec->height;
 
-	if (st->codec->width != width || st->codec->height != height
-	    || st->codec->pix_fmt != rv->c->pix_fmt) {
+	if (st->codec->width != width || st->codec->height != height ||
+	        st->codec->pix_fmt != rv->c->pix_fmt)
+	{
 		rv->frame = avcodec_alloc_frame();
-		avpicture_fill((AVPicture*) rv->frame, 
-			       MEM_mallocN(avpicture_get_size(
-						   rv->c->pix_fmt, 
-						   round_up(width, 16), height),
-					   "alloc proxy output frame"),
-			       rv->c->pix_fmt, round_up(width, 16), height);
+		avpicture_fill((AVPicture*) rv->frame,
+		               MEM_mallocN(avpicture_get_size(
+		                               rv->c->pix_fmt,
+		                               round_up(width, 16), height),
+		                           "alloc proxy output frame"),
+		               rv->c->pix_fmt, round_up(width, 16), height);
 
 		rv->sws_ctx = sws_getContext(
 			st->codec->width,
@@ -567,12 +568,13 @@ static int add_to_proxy_output_ffmpeg(
 		return 0;
 	}
 
-	if (ctx->sws_ctx && frame && 
-	    (frame->data[0] || frame->data[1] ||
-	     frame->data[2] || frame->data[3])) {
+	if (    ctx->sws_ctx && frame &&
+	        (frame->data[0] || frame->data[1] ||
+	         frame->data[2] || frame->data[3]))
+	{
 		sws_scale(ctx->sws_ctx, (const uint8_t * const*) frame->data,
-			  frame->linesize, 0, ctx->orig_height, 
-			  ctx->frame->data, ctx->frame->linesize);
+		          frame->linesize, 0, ctx->orig_height,
+		          ctx->frame->data, ctx->frame->linesize);
 	}
 
 	frame = ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame;
@@ -664,13 +666,13 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 	}
 
 	get_proxy_filename(ctx->anim, ctx->proxy_size, 
-			   fname_tmp, TRUE);
+	                   fname_tmp, TRUE);
 
 	if (rollback) {
 		unlink(fname_tmp);
 	} else {
 		get_proxy_filename(ctx->anim, ctx->proxy_size, 
-				   fname, FALSE);
+		                   fname, FALSE);
 		rename(fname_tmp, fname);
 	}
 	

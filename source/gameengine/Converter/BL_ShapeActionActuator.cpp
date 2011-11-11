@@ -177,8 +177,9 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 	dstweight = 1.0F - srcweight;
 
 	for (it=m_blendshape.begin(), kb = (KeyBlock*)key->block.first; 
-		 kb && it != m_blendshape.end(); 
-		 kb = (KeyBlock*)kb->next, it++) {
+	     kb && it != m_blendshape.end();
+	     kb = (KeyBlock*)kb->next, it++)
+	{
 		kb->curval = kb->curval * dstweight + (*it) * srcweight;
 	}
 }

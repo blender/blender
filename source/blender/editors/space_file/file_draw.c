@@ -177,17 +177,17 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetFunc(block, file_draw_check_cb, NULL, NULL);
 
 		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
-				 min_x, line1_y, line1_w-chan_offs, btn_h, 
-				 params->dir, 0.0, (float)FILE_MAX, 0, 0,
-				 TIP_("File path"));
+		                    min_x, line1_y, line1_w-chan_offs, btn_h,
+		                    params->dir, 0.0, (float)FILE_MAX, 0, 0,
+		                    TIP_("File path"));
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
 		if((params->flag & FILE_DIRSEL_ONLY) == 0) {
 			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
-					 min_x, line2_y, line2_w-chan_offs, btn_h,
-					 params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
-					 TIP_(overwrite_alert ?N_("File name, overwrite existing") : N_("File name")));
+			               min_x, line2_y, line2_w-chan_offs, btn_h,
+			               params->file, 0.0, (float)FILE_MAXFILE, 0, 0,
+			               TIP_(overwrite_alert ?N_("File name, overwrite existing") : N_("File name")));
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
 
@@ -205,16 +205,16 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	if (fnumbuttons && (params->flag & FILE_DIRSEL_ONLY) == 0) {
 		uiBlockBeginAlign(block);
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
-				min_x + line2_w + separator - chan_offs, line2_y,
-				btn_fn_w, btn_h,
-				TIP_("Decrement the filename number"));
-		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
-	
+		                    min_x + line2_w + separator - chan_offs, line2_y,
+		                    btn_fn_w, btn_h,
+		                    TIP_("Decrement the filename number"));
+		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1);
+
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN,
-				min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y,
-				btn_fn_w, btn_h,
-				TIP_("Increment the filename number"));
-		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
+		                    min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y,
+		                    btn_fn_w, btn_h,
+		                    TIP_("Increment the filename number"));
+		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1);
 		uiBlockEndAlign(block);
 	}
 	
@@ -235,7 +235,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 
 static void draw_tile(int sx, int sy, int width, int height, int colorid, int shade)
-{	
+{
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(UI_CNR_ALL);
 	uiRoundBox((float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f);

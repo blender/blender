@@ -141,7 +141,7 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
+		const bool stereoVisual);
 
 	/**
 	 * Ends full screen mode.
@@ -276,7 +276,7 @@ public:
 	 * @return 				Returns the clipboard data
 	 *
 	 */
-	 virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
+	virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
 	  
 	  /**
 	   * Put data to the Clipboard
@@ -305,7 +305,7 @@ protected:
 	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
+		const bool stereoVisual);
 
 	/** The display manager (platform dependant). */
 	GHOST_DisplayManager* m_displayManager;
