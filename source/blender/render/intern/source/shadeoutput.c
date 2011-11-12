@@ -1665,8 +1665,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
-			if((ma->mode & (MA_FACETEXTURE_ALPHA)) || ma->vcol_alpha)
+			if(ma->mode & (MA_FACETEXTURE_ALPHA))
 				shi->alpha= shi->vcol[3];
+		}
+		else if(ma->vcol_alpha) {
+			shi->r= shi->vcol[0];
+			shi->g= shi->vcol[1];
+			shi->b= shi->vcol[2];
+			shi->alpha= shi->vcol[3];
 		}
 		else if(ma->mode & (MA_VERTEXCOLP)) {
 			float neg_alpha = 1.0f - shi->vcol[3];
