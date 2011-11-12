@@ -171,8 +171,14 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	Object *object;
 	bool object_updated = false;
 
+	if(object_map.sync(&object, b_ob, b_parent, key))
+		object_updated = true;
+	
+	/* mesh sync */
+	object->mesh = sync_mesh(b_ob, object_updated);
+
 	/* object sync */
-	if(object_map.sync(&object, b_ob, b_parent, key)) {
+	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
 		object->tfm = tfm;
 		
@@ -181,11 +187,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 			object->visibility &= object_ray_visibility(b_parent);
 
 		object->tag_update(scene);
-		object_updated = true;
 	}
-
-	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, object_updated);
 }
 
 /* Object Loop */

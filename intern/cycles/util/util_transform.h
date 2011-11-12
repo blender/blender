@@ -234,6 +234,15 @@ __device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
    return false;
 }
 
+__device_inline bool transform_negative_scale(const Transform& tfm)
+{
+	float3 c0 = transform_get_column(&tfm, 0);
+	float3 c1 = transform_get_column(&tfm, 1);
+	float3 c2 = transform_get_column(&tfm, 2);
+
+	return (dot(cross(c0, c1), c2) < 0.0f);
+}
+
 #endif
 
 CCL_NAMESPACE_END
