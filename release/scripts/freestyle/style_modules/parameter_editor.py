@@ -463,10 +463,11 @@ class PerlinNoise1DShader(StrokeShader):
     def getName(self):
         return "PerlinNoise1DShader"
     def shade(self, stroke):
+        length = stroke.getLength2D()
         it = stroke.strokeVerticesBegin()
         while not it.isEnd():
             v = it.getObject()
-            nres = self.__noise.turbulence1(v.u(), self.__freq, self.__amp, self.__oct)
+            nres = self.__noise.turbulence1(length * v.u(), self.__freq, self.__amp, self.__oct)
             v.setPoint(v.getPoint() + nres * self.__dir)
             it.increment()
         stroke.UpdateLength()
