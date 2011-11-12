@@ -420,7 +420,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	if (		BaseMath_ReadCallback(line_a) == -1 ||
+	if (    BaseMath_ReadCallback(line_a) == -1 ||
 	        BaseMath_ReadCallback(line_b) == -1 ||
 	        BaseMath_ReadCallback(plane_co) == -1 ||
 	        BaseMath_ReadCallback(plane_no) == -1
@@ -559,7 +559,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 		return NULL;
 	}
 
-	if (		BaseMath_ReadCallback(line_a) == -1 ||
+	if (    BaseMath_ReadCallback(line_a) == -1 ||
 	        BaseMath_ReadCallback(line_b) == -1 ||
 	        BaseMath_ReadCallback(sphere_co) == -1
 	) {
@@ -686,7 +686,7 @@ PyDoc_STRVAR(M_Geometry_intersect_point_quad_2d_doc,
 "   Takes 5 vectors (using only the x and y coordinates): one is the point and the next 4 define the quad, only the x and y are used from the vectors. Returns 1 if the point is within the quad, otherwise 0.\n"
 "\n"
 "   :arg pt: Point\n"
-"   :type v1: :class:`mathutils.Vector`\n"
+"   :type pt: :class:`mathutils.Vector`\n"
 "   :arg quad_p1: First point of the quad\n"
 "   :type quad_p1: :class:`mathutils.Vector`\n"
 "   :arg quad_p2: Second point of the quad\n"
@@ -715,6 +715,42 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 		return NULL;
 	
 	return PyLong_FromLong(isect_point_quad_v2(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
+}
+
+PyDoc_STRVAR(M_Geometry_distance_point_to_plane_doc,
+".. function:: distance_point_to_plane(pt, plane_co, plane_no)\n"
+"\n"
+"   Returns the signed distance between a point and a plane "
+"   (negative when below the normal).\n"
+"\n"
+"   :arg pt: Point\n"
+"   :type pt: :class:`mathutils.Vector`\n"
+"   :arg plane_co: First point of the quad\n"
+"   :type plane_co: :class:`mathutils.Vector`\n"
+"   :arg plane_no: Second point of the quad\n"
+"   :type plane_no: :class:`mathutils.Vector`\n"
+"   :rtype: float\n"
+);
+static PyObject *M_Geometry_distance_point_to_plane(PyObject *UNUSED(self), PyObject* args)
+{
+	VectorObject *pt, *plene_co, *plane_no;
+
+	if (!PyArg_ParseTuple(args, "O!O!O!:distance_point_to_plane",
+	                      &vector_Type, &pt,
+	                      &vector_Type, &plene_co,
+	                      &vector_Type, &plane_no)
+	) {
+		return NULL;
+	}
+
+	if (    BaseMath_ReadCallback(pt) == -1 ||
+	        BaseMath_ReadCallback(plene_co) == -1 ||
+	        BaseMath_ReadCallback(plane_no) == -1)
+	{
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(dist_to_plane_v3(pt->vec, plene_co->vec, plane_no->vec));
 }
 
 PyDoc_STRVAR(M_Geometry_barycentric_transform_doc,
@@ -1103,6 +1139,7 @@ static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_line_plane", (PyCFunction) M_Geometry_intersect_line_plane, METH_VARARGS, M_Geometry_intersect_line_plane_doc},
 	{"intersect_line_sphere", (PyCFunction) M_Geometry_intersect_line_sphere, METH_VARARGS, M_Geometry_intersect_line_sphere_doc},
 	{"intersect_line_sphere_2d", (PyCFunction) M_Geometry_intersect_line_sphere_2d, METH_VARARGS, M_Geometry_intersect_line_sphere_2d_doc},
+	{"distance_point_to_plane", (PyCFunction) M_Geometry_distance_point_to_plane, METH_VARARGS, M_Geometry_distance_point_to_plane_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
 	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
