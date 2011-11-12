@@ -177,6 +177,7 @@ public:
 	bool opencl_version_check()
 	{
 		char version[256];
+
 		int major, minor, req_major = 1, req_minor = 1;
 
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
@@ -265,6 +266,20 @@ public:
 
 		build_options += "-I " + kernel_path + ""; /* todo: escape path */
 		build_options += " -cl-fast-relaxed-math ";
+		
+		/* Full Shading only on NVIDIA cards at the moment */
+		char vendor[256];
+
+		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(vendor), &vendor, NULL);
+		string name = vendor;
+		
+		if (name == "NVIDIA CUDA") {
+			build_options += "-D __SVM__ ";
+			build_options += "-D __EMISSION__ ";
+			build_options += "-D __TEXTURES__ ";
+			build_options += "-D __HOLDOUT__ ";
+			build_options += "-D __MULTI_CLOSURE__ ";
+		}
 
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
