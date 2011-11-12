@@ -193,6 +193,7 @@ protected:
   // SHARP //
   /*! checks whether a WEdge has already been processed or not */
   bool stopSharpViewEdge(WXEdge *iFace);
+  int retrieveFaceMarks(WXEdge *iEdge);
   OWXEdge FindNextWEdge(const OWXEdge& iEdge);
   OWXEdge FindPreviousWEdge(const OWXEdge& iEdge);
   FEdge * BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe);

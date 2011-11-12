@@ -311,6 +311,9 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer& iFaceLayer)
           // maybe should test whether this face has 
           // also a vertex_edge configuration
           WXFaceLayer * winner = sameNatureLayers[0];
+		  // check face mark continuity
+		  if(winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark())
+			return OWXFaceLayer(0,true);
           if(woeend == winner->getSmoothEdge()->woea()->twin())
             return OWXFaceLayer(winner,true);
           else
@@ -333,6 +336,9 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer& iFaceLayer)
       return OWXFaceLayer(0,true);
     else{
       WXFaceLayer * winner = sameNatureLayers[0];
+	  // check face mark continuity
+	  if(winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark())
+		return OWXFaceLayer(0,true);
       if(woeend == winner->getSmoothEdge()->woea()->twin())
         return OWXFaceLayer(winner,true);
       else
@@ -375,6 +381,9 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer& iFaceLa
           // maybe should test whether this face has 
           // also a vertex_edge configuration
           WXFaceLayer * winner = sameNatureLayers[0];
+		  // check face mark continuity
+		  if(winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark())
+			return OWXFaceLayer(0,true);
           if(woebegin == winner->getSmoothEdge()->woeb()->twin())
             return OWXFaceLayer(winner,true);
           else
@@ -398,6 +407,9 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer& iFaceLa
       return OWXFaceLayer(0,true);
     else{
       WXFaceLayer * winner = sameNatureLayers[0];
+	  // check face mark continuity
+	  if(winner->getFace()->GetMark() != iFaceLayer.fl->getFace()->GetMark())
+	    return OWXFaceLayer(0,true);
       if(woebegin == winner->getSmoothEdge()->woeb()->twin())
         return OWXFaceLayer(winner,true);
       else
@@ -501,6 +513,18 @@ bool ViewEdgeXBuilder::stopSmoothViewEdge(WXFaceLayer *iFaceLayer){
   return true;
 }
 
+int ViewEdgeXBuilder::retrieveFaceMarks(WXEdge *iEdge)
+{
+  WFace *aFace = iEdge->GetaFace();
+  WFace *bFace = iEdge->GetbFace();
+  int result = 0;
+  if (aFace && aFace->GetMark())
+    result += 1;
+  if (bFace && bFace->GetMark())
+    result += 2;
+  return result;
+}
+
 OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge& iEdge){
   if(Nature::NO_FEATURE == iEdge.e->nature())
     return OWXEdge(0, true);
@@ -515,6 +539,7 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge& iEdge){
     return 0;
 
   
+  int faceMarks = retrieveFaceMarks(iEdge.e);
   vector<WEdge*>& vEdges = (v)->GetEdges();
   for(vector<WEdge*>::iterator ve=vEdges.begin(),veend=vEdges.end();
   ve!=veend;
@@ -526,6 +551,10 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge& iEdge){
     if(wxe->nature() != iEdge.e->nature())
       continue;
       
+	// check face mark continuity
+	if(retrieveFaceMarks(wxe) != faceMarks)
+	  continue;
+
     if(wxe->GetaVertex() == v){
      // That means that the face necesarily lies on the edge left.
      // So the vertex order is OK.
@@ -554,6 +583,7 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge& iEdge){
     return 0;
 
   
+  int faceMarks = retrieveFaceMarks(iEdge.e);
   vector<WEdge*>& vEdges = (v)->GetEdges();
   for(vector<WEdge*>::iterator ve=vEdges.begin(),veend=vEdges.end();
   ve!=veend;
@@ -565,6 +595,10 @@ OWXEdge ViewEdgeXBuilder::FindPreviousWEdge(const OWXEdge& iEdge){
     if(wxe->nature() != iEdge.e->nature())
       continue;
       
+	// check face mark continuity
+	if(retrieveFaceMarks(wxe) != faceMarks)
+	  continue;
+
     if(wxe->GetbVertex() == v){
       return OWXEdge(wxe, true);
     }else{
