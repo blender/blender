@@ -78,24 +78,26 @@ typedef struct anim_index_builder {
 	void * private_data;
 
 	void (*delete_priv_data)(struct anim_index_builder * idx);
-	void (*proc_frame)(struct anim_index_builder * idx, 
-			   unsigned char * buffer,
-			   int data_size, 
-			   struct anim_index_entry * entry);
+	void (*proc_frame)(struct anim_index_builder * idx,
+	                   unsigned char * buffer,
+	                   int data_size,
+	                   struct anim_index_entry * entry);
 } anim_index_builder;
 
 anim_index_builder * IMB_index_builder_create(const char * name);
-void IMB_index_builder_add_entry(anim_index_builder * fp, 
-				 int frameno, unsigned long long seek_pos,
-				 unsigned long long seek_pos_dts,
-				 unsigned long long pts);
+void IMB_index_builder_add_entry(
+        anim_index_builder * fp,
+        int frameno, unsigned long long seek_pos,
+        unsigned long long seek_pos_dts,
+        unsigned long long pts);
 
-void IMB_index_builder_proc_frame(anim_index_builder * fp, 
-				  unsigned char * buffer,
-				  int data_size,
-				  int frameno, unsigned long long seek_pos,
-				  unsigned long long seek_pos_dts,
-				  unsigned long long pts);
+void IMB_index_builder_proc_frame(
+        anim_index_builder * fp,
+        unsigned char * buffer,
+        int data_size,
+        int frameno, unsigned long long seek_pos,
+        unsigned long long seek_pos_dts,
+        unsigned long long pts);
 
 void IMB_index_builder_finish(anim_index_builder * fp, int rollback);
 
@@ -111,7 +113,7 @@ unsigned long long IMB_indexer_get_pts(struct anim_index * idx,
 int IMB_indexer_get_duration(struct anim_index * idx);
 
 int IMB_indexer_can_scan(struct anim_index * idx, 
-			 int old_frame_index, int new_frame_index);
+                         int old_frame_index, int new_frame_index);
 
 void IMB_indexer_close(struct anim_index * idx);
 

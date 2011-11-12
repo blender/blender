@@ -76,7 +76,7 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
@@ -284,7 +284,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 		dupli_render_particle_set(scene, go->ob, level+1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
+void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 {
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis");
@@ -306,7 +306,7 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-static void rna_Object_free_duplilist(Object *ob)
+void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);

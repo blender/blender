@@ -465,8 +465,8 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	
 	invert_m4_m4(ob->imat, ob->obmat);
 	/* apparently this call goes from right to left... */
-	mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
-				 NULL, NULL, NULL, NULL, NULL);
+	mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL,
+	             NULL, NULL, NULL, NULL, NULL);
 	
 	DAG_scene_sort(bmain, scene);
 }

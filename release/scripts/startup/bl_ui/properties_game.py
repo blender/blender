@@ -406,7 +406,7 @@ class SceneButtonsPanel():
     bl_context = "scene"
 
 
-class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
+class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
     bl_label = "Navigation mesh"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_GAME'}

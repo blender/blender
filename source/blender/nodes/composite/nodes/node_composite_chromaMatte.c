@@ -50,14 +50,14 @@ static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *i
 	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 
 	//normalize to 0..1.0
-	out[0]=out[0]/255.0;
-	out[1]=out[1]/255.0;
-	out[2]=out[2]/255.0;
+	out[0]=out[0]/255.0f;
+	out[1]=out[1]/255.0f;
+	out[2]=out[2]/255.0f;
 
 	//rescale to -1.0..1.0
-	out[0]=(out[0]*2.0)-1.0;
-	out[1]=(out[1]*2.0)-1.0;
-	out[2]=(out[2]*2.0)-1.0;
+	out[0]=(out[0]*2.0f)-1.0f;
+	out[1]=(out[1]*2.0f)-1.0f;
+	out[2]=(out[2]*2.0f)-1.0f;
 
 //	out[0]=((out[0])-16)/255.0;
 //	out[1]=((out[1])-128)/255.0;
@@ -68,13 +68,13 @@ static void do_rgba_to_ycca_normalized(bNode *UNUSED(node), float *out, float *i
 static void do_ycca_to_rgba_normalized(bNode *UNUSED(node), float *out, float *in)
 {
 	/*un-normalize the normalize from above */
-	in[0]=(in[0]+1.0)/2.0;
-	in[1]=(in[1]+1.0)/2.0;
-	in[2]=(in[2]+1.0)/2.0;
+	in[0]=(in[0]+1.0f)/2.0f;
+	in[1]=(in[1]+1.0f)/2.0f;
+	in[2]=(in[2]+1.0f)/2.0f;
 
-	in[0]=(in[0]*255.0);
-	in[1]=(in[1]*255.0);
-	in[2]=(in[2]*255.0);
+	in[0]=(in[0]*255.0f);
+	in[1]=(in[1]*255.0f);
+	in[2]=(in[2]*255.0f);
 
 	//	in[0]=(in[0]*255.0)+16;
 //	in[1]=(in[1]*255.0)+128;
@@ -98,27 +98,27 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	theta=atan2(c->key[2], c->key[1]);
 
 	/*rotate the cb and cr into x/z space */
-	x=in[1]*cos(theta)+in[2]*sin(theta);
-	z=in[2]*cos(theta)-in[1]*sin(theta);
+	x=in[1]*cosf(theta)+in[2]*sinf(theta);
+	z=in[2]*cosf(theta)-in[1]*sinf(theta);
 
 	/*if within the acceptance angle */
-	angle=c->t1*M_PI/180.0; /* convert to radians */
+	angle=c->t1*(float)M_PI/180.0f; /* convert to radians */
 
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg=x-(fabs(z)/tan(angle/2.0));
+	kfg= x-(fabsf(z)/tanf(angle/2.0f));
 
 	out[0]=in[0];
 	out[1]=in[1];
 	out[2]=in[2];
 
-	if(kfg>0.0) {  /* found a pixel that is within key color */
-		alpha=(1.0-kfg)*(c->fstrength);
+	if(kfg>0.0f) {  /* found a pixel that is within key color */
+		alpha=(1.0f-kfg)*(c->fstrength);
 
 		beta=atan2(z,x);
-		angle2=c->t2*M_PI/180.0;
+		angle2=c->t2*(float)(M_PI/180.0);
 
 		/* if beta is within the cutoff angle */
-		if(fabs(beta)<(angle2/2.0)) {
+		if(fabsf(beta) < (angle2/2.0f)) {
 			alpha=0.0;
 		}
 

@@ -141,9 +141,9 @@ static void do_curves(bNode *node, float *out, float *in)
 static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 {
 	
-	if(*fac>=1.0)
+	if(*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(node->storage, out, in);
-	else if(*fac<=0.0) {
+	else if(*fac <= 0.0f) {
 		copy_v3_v3(out, in);
 	}
 	else {
@@ -175,7 +175,7 @@ static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeS
 		
 		curvemapping_set_black_white(node->storage, in[2]->vec, in[3]->vec);
 		
-		if(in[0]->data==NULL && in[0]->vec[0] == 1.0)
+		if(in[0]->data==NULL && in[0]->vec[0] == 1.0f)
 			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);
 		else
 			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);

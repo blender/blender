@@ -3062,8 +3062,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 	if(*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
 		MEM_freeN(str);
 		BKE_reportf(op->reports, RPT_ERROR,
-			    "Property from path %s has length %d instead of %d",
-			    name, len, req_length);
+		            "Property from path %s has length %d instead of %d",
+		            name, len, req_length);
 		return 0;
 	}
 

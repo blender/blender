@@ -443,16 +443,17 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 
 int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
-	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	int a= 0, b= 0;
+	/* int tot= dst_track->markersnr+src_track->markersnr; */ /* UNUSED */
 	int count= 0;
 
-	for(i= 0; i<tot; i++) {
-		if(a>=src_track->markersnr) {
-			b++;
+	while(a<src_track->markersnr || b<dst_track->markersnr) {
+		if(b>=dst_track->markersnr) {
+			a++;
 			count++;
 		}
-		else if(b>=dst_track->markersnr) {
-			a++;
+		else if(a>=src_track->markersnr) {
+			b++;
 			count++;
 		}
 		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
@@ -1793,8 +1794,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 		*angle*= stab->rotinf;
 
 		/* convert to rotation around image center */
-		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x)*(*scale);
-		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y)*(*scale);
+		loc[0]-= (x0 + (x-x0)*cosf(*angle)-(y-y0)*sinf(*angle) - x)*(*scale);
+		loc[1]-= (y0 + (x-x0)*sinf(*angle)+(y-y0)*cosf(*angle) - y)*(*scale);
 	}
 }
 

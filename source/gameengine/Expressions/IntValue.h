@@ -36,8 +36,8 @@ public:
 	CIntValue();
 	CIntValue(cInt innie);
 	CIntValue(cInt innie,
-			  const char *name,
-			  AllocationTYPE alloctype=CValue::HEAPVALUE);
+	          const char *name,
+	          AllocationTYPE alloctype=CValue::HEAPVALUE);
 	
 	virtual	CValue* Calc(VALUE_OPERATOR op,
 						 CValue *val);

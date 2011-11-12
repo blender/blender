@@ -1617,41 +1617,33 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
-		bTheme *btheme;
-		
-		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead */
-		if (U.keyhandles_new == HD_AUTO) 
-			U.keyhandles_new = HD_AUTO_ANIM;
-			
-		/* theme color additions */
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* auto-clamped handles -> based on auto */
-			SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
-			SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
-		}
-	}
-	
 	if (bmain->versionfile < 259 || (bmain->versionfile == 259 && bmain->subversionfile < 1)) {
 		bTheme *btheme;
-
+		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			btheme->tv3d.speaker[3] = 255;
 		}
 	}
 
-	{
+	if (bmain->versionfile < 260 || (bmain->versionfile == 260 && bmain->subversionfile < 3)) {
 		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+		
+		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead 
+		 * was changed in 260 as part of GSoC11, but version patch was wrong
+		 */
+		if (U.keyhandles_new == HD_AUTO) 
+			U.keyhandles_new = HD_AUTO_ANIM;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {		
 			if(btheme->tv3d.bundle_solid[3] == 0)
 				SETCOL(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
-
+			
 			if(btheme->tv3d.camera_path[3] == 0)
 				SETCOL(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
-
+				
 			if((btheme->tclip.back[3]) == 0) {
 				btheme->tclip= btheme->tv3d;
-
+				
 				SETCOL(btheme->tclip.marker_outline, 0x00, 0x00, 0x00, 255);
 				SETCOL(btheme->tclip.marker, 0x7f, 0x7f, 0x00, 255);
 				SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
@@ -1666,6 +1658,19 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.handle_vertex_select, 0xff, 0xff, 0, 0xff);
 				btheme->tclip.handle_vertex_size= 4;
 			}
+			
+			/* auto-clamped handles -> based on auto */
+			if(btheme->tipo.handle_auto_clamped[3] == 0)
+				SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
+			if(btheme->tipo.handle_sel_auto_clamped[3] == 0)
+				SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
+		}
+		
+		/* enable (Cycles) addon by default */
+		if(!BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module))) {
+			bAddon *baddon= MEM_callocN(sizeof(bAddon), "bAddon");
+			BLI_strncpy(baddon->module, "cycles", sizeof(baddon->module));
+			BLI_addtail(&U.addons, baddon);
 		}
 	}
 

@@ -91,14 +91,14 @@ CSG_PerformBooleanOperation(
 	
 	switch( op_type ) {
 	case e_csg_union:
-	  boolType = BOP_UNION;
-	  break;
+		boolType = BOP_UNION;
+		break;
 	case e_csg_difference:
-	  boolType = BOP_DIFFERENCE;
-	  break;
+		boolType = BOP_DIFFERENCE;
+		break;
 	default:
-	  boolType = BOP_INTERSECTION;
-	  break;
+		boolType = BOP_INTERSECTION;
+		break;
 	}
 
 	BoolOpState boolOpResult;

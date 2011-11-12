@@ -197,6 +197,10 @@ extern StructRNA RNA_Driver;
 extern StructRNA RNA_DriverTarget;
 extern StructRNA RNA_DriverVariable;
 extern StructRNA RNA_DupliObject;
+extern StructRNA RNA_DynamicPaintBrushSettings;
+extern StructRNA RNA_DynamicPaintCanvasSettings;
+extern StructRNA RNA_DynamicPaintModifier;
+extern StructRNA RNA_DynamicPaintSurface;
 extern StructRNA RNA_EdgeSplitModifier;
 extern StructRNA RNA_EditBone;
 extern StructRNA RNA_EffectSequence;
@@ -655,6 +659,8 @@ StructRNA *RNA_struct_base(StructRNA *type);
 
 int RNA_struct_is_ID(StructRNA *type);
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
+
+int RNA_struct_undo_check(StructRNA *type);
 
 StructRegisterFunc RNA_struct_register(StructRNA *type);
 StructUnregisterFunc RNA_struct_unregister(StructRNA *type);

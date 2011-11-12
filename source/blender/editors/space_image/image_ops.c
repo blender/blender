@@ -804,7 +804,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 	else if(sima) {
-		ED_space_image_set(C, sima, scene, obedit, ima);
+		ED_space_image_set(sima, scene, obedit, ima);
 		iuser= &sima->iuser;
 	}
 	else {
@@ -1420,7 +1420,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &ptr, prop);
 	}
 	else if(sima)
-		ED_space_image_set(C, sima, scene, obedit, ima);
+		ED_space_image_set(sima, scene, obedit, ima);
 
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_USER_NEW_IMAGE);

@@ -99,6 +99,7 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
 	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
+		ObjectTfmProtectedChannels obtfm;
 		Object *root_parent;
 
 		if((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (root_parent= v3d->camera->parent)) {
@@ -117,7 +118,10 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			mul_m4_m4m4(diff_mat, v3d->camera->imat, view_mat);
 
 			mul_m4_m4m4(parent_mat, root_parent->obmat, diff_mat);
+
+			object_tfm_protected_backup(root_parent, &obtfm);
 			object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
+			object_tfm_protected_restore(root_parent, &obtfm, root_parent->protectflag);
 
 			ob_update= v3d->camera;
 			while(ob_update) {
@@ -127,7 +131,10 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			}
 		}
 		else {
+			object_tfm_protected_backup(v3d->camera, &obtfm);
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+			object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
 		}
@@ -346,6 +353,7 @@ typedef struct ViewOpsData {
 	double timer_lastdraw;
 
 	float oldquat[4];
+	float viewquat[4]; /* working copy of rv3d->viewquat */
 	float trackvec[3];
 	float mousevec[3]; /* dolly only */
 	float reverse, dist0;
@@ -408,6 +416,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_camera_lock_init(vod->v3d, vod->rv3d);
 
 	vod->dist0= rv3d->dist;
+	copy_qt_qt(vod->viewquat, rv3d->viewquat);
 	copy_qt_qt(vod->oldquat, rv3d->viewquat);
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
@@ -643,13 +652,13 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		q1[0]= cos(phi);
 		mul_v3_fl(q1+1, sin(phi));
-		mul_qt_qtqt(rv3d->viewquat, q1, vod->oldquat);
+		mul_qt_qtqt(vod->viewquat, q1, vod->oldquat);
 
 		if (vod->use_dyn_ofs) {
 			/* compute the post multiplication quat, to rotate the offset correctly */
 			copy_qt_qt(q1, vod->oldquat);
 			conjugate_qt(q1);
-			mul_qt_qtqt(q1, q1, rv3d->viewquat);
+			mul_qt_qtqt(q1, q1, vod->viewquat);
 
 			conjugate_qt(q1); /* conj == inv for unit quat */
 			copy_v3_v3(rv3d->ofs, vod->ofs);
@@ -671,7 +680,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		const float sensitivity = 0.0035f;
 
 		/* Get the 3x3 matrix and its inverse from the quaternion */
-		quat_to_mat3( m,rv3d->viewquat);
+		quat_to_mat3( m,vod->viewquat);
 		invert_m3_m3(m_inv,m);
 
 		/* Determine the direction of the x vector (for rotating up and down) */
@@ -682,7 +691,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		phi = sensitivity * -(y - vod->oldy);
 		q1[0] = cos(phi);
 		mul_v3_v3fl(q1+1, xvec, sin(phi));
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1); /* conj == inv for unit quat */
@@ -696,7 +705,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		q1[0] = cos(phi);
 		q1[1] = q1[2] = 0.0;
 		q1[3] = sin(phi);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+		mul_qt_qtqt(vod->viewquat, vod->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1);
@@ -711,7 +720,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		int i;
 		float viewquat_inv[4];
 		float zaxis[3]={0,0,1};
-		invert_qt_qt(viewquat_inv, rv3d->viewquat);
+		invert_qt_qt(viewquat_inv, vod->viewquat);
 
 		mul_qt_v3(viewquat_inv, zaxis);
 
@@ -736,7 +745,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 				 * for testing roll */
 				rotation_between_vecs_to_quat(viewquat_align, zaxis_test, zaxis);
 				normalize_qt(viewquat_align);
-				mul_qt_qtqt(viewquat_align, rv3d->viewquat, viewquat_align);
+				mul_qt_qtqt(viewquat_align, vod->viewquat, viewquat_align);
 				normalize_qt(viewquat_align);
 				invert_qt_qt(viewquat_align_inv, viewquat_align);
 
@@ -766,7 +775,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 					}
 				}
 
-				copy_qt_qt(rv3d->viewquat, quat_best);
+				copy_qt_qt(vod->viewquat, quat_best);
 				rv3d->view= view; /* if we snap to a rolled camera the grid is invalid */
 
 				break;
@@ -777,7 +786,11 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	vod->oldy= y;
 
 	/* avoid precision loss over time */
-	normalize_qt(rv3d->viewquat);
+	normalize_qt(vod->viewquat);
+
+	/* use a working copy so view rotation locking doesnt overwrite the locked
+	 * rotation back into the view we calculate with */
+	copy_qt_qt(rv3d->viewquat, vod->viewquat);
 
 	ED_view3d_camera_lock_sync(vod->v3d, rv3d);
 

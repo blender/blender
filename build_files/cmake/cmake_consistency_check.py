@@ -93,6 +93,9 @@ def cmake_get_src(f):
     # print(f)
 
     def is_definition(l, f, i, name):
+        if l.startswith("unset("):
+            return False
+
         if ('set(%s' % name) in l or ('set(' in l and l.endswith(name)):
             if len(l.split()) > 1:
                 raise Exception("strict formatting not kept 'set(%s*' %s:%d" % (name, f, i))
@@ -171,6 +174,12 @@ def cmake_get_src(f):
                             elif new_file.endswith(".list"):
                                 pass
                             elif new_file.endswith(".def"):
+                                pass
+                            elif new_file.endswith(".cl"):  # opencl
+                                pass
+                            elif new_file.endswith(".cu"):  # cuda
+                                pass
+                            elif new_file.endswith(".osl"):  # open shading language
                                 pass
                             else:
                                 raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))

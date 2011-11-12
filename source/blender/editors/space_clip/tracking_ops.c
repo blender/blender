@@ -1159,7 +1159,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 			{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
 			{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
 			{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
-			{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as actiev track"},
+			{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as active track"},
 			{6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
 			{0, NULL, 0, NULL, NULL}
 	};
@@ -1317,8 +1317,8 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 				break;
 
 			exec_time= PIL_check_seconds_timer()-start_time;
-			if(tmj->delay>exec_time)
-				PIL_sleep_ms(tmj->delay-exec_time);
+			if(tmj->delay > (float)exec_time)
+				PIL_sleep_ms(tmj->delay-(float)exec_time);
 		} else if(!BKE_tracking_next(tmj->context))
 				break;
 
@@ -1537,7 +1537,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	}
 
 	/* could fail if footage uses images with different sizes */
-	BKE_movieclip_get_size(clip, NULL, &width, &height);
+	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
 	error= BKE_tracking_solve_reconstruction(tracking, width, height);
 
@@ -1545,6 +1545,9 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
 		BKE_reportf(op->reports, RPT_INFO, "Average reprojection error %.3f", error);
+
+	if(scene->clip)
+		id_us_min(&clip->id);
 
 	scene->clip= clip;
 	id_us_plus(&clip->id);
@@ -1659,7 +1662,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 {
 	static EnumPropertyItem clear_path_actions[] = {
 			{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
-			{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remained frames (after current)"},
+			{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remaining frames (after current)"},
 			{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
 			{0, NULL, 0, NULL, NULL}
 	};
@@ -1797,7 +1800,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Origin";
-	ot->description= "Set active marker as origin by moving camera (or it's parent if present) in 3d space";
+	ot->description= "Set active marker as origin by moving camera (or it's parent if present) in 3D space";
 	ot->idname= "CLIP_OT_set_origin";
 
 	/* api callbacks */
@@ -1817,13 +1820,13 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 	BKE_get_tracking_mat(scene, NULL, mat);
 	mul_v3_m4v3(vec, mat, track->bundle_pos);
 
-	if(len_v2(vec)<1e-3)
+	if(len_v2(vec) < 1e-3f)
 		return;
 
 	unit_m4(mat);
 
 	if(axis=='X') {
-		if(fabsf(vec[1])<1e-3) {
+		if(fabsf(vec[1])<1e-3f) {
 			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
 			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
 			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
@@ -1834,7 +1837,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 			cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		}
 	} else {
-		if(fabsf(vec[0])<1e-3) {
+		if(fabsf(vec[0])<1e-3f) {
 			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
 			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
 			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
@@ -1949,7 +1952,7 @@ void CLIP_OT_set_floor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Floor";
-	ot->description= "Set floor based on 3 selected bundles by moving camera (or it's parent if present) in 3d space";
+	ot->description= "Set floor based on 3 selected bundles by moving camera (or it's parent if present) in 3D space";
 	ot->idname= "CLIP_OT_set_floor";
 
 	/* api callbacks */
@@ -2059,7 +2062,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 
 	sub_v3_v3(vec[0], vec[1]);
 
-	if(len_v3(vec[0])>1e-5) {
+	if(len_v3(vec[0])>1e-5f) {
 		scale= dist / len_v3(vec[0]);
 
 		mul_v3_fl(parent->size, scale);
@@ -2291,8 +2294,8 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 {
 	static EnumPropertyItem placement_items[] = {
 			{0, "FRAME",			0, "Whole Frame",			"Place markers across the whole frame"},
-			{1, "INSIDE_GPENCIL",	0, "Inside grease pencil",	"Place markers only inside areas oulined with grease pencil"},
-			{2, "OUTSIDE_GPENCIL",	0, "Outside grease pencil",	"Place markers only outside areas oulined with grease pencil"},
+			{1, "INSIDE_GPENCIL",	0, "Inside grease pencil",	"Place markers only inside areas outlined with grease pencil"},
+			{2, "OUTSIDE_GPENCIL",	0, "Outside grease pencil",	"Place markers only outside areas outlined with grease pencil"},
 			{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2383,7 +2386,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 	static EnumPropertyItem position_items[] = {
 			{0, "PATHSTART",	0, "Path Start",		"Jump to start of current path"},
 			{1, "PATHEND",		0, "Path End",			"Jump to end of current path"},
-			{2, "FAILEDPREV",	0, "Previons Failed",	"Jump to previous failed frame"},
+			{2, "FAILEDPREV",	0, "Previous Failed",	"Jump to previous failed frame"},
 			{2, "FAILNEXT",		0, "Next Failed",		"Jump to next failed frame"},
 			{0, NULL, 0, NULL, NULL}
 	};
@@ -2454,7 +2457,7 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Join Tracks";
-	ot->description= "Joint Selected Tracks";
+	ot->description= "Join selected tracks";
 	ot->idname= "CLIP_OT_join_tracks";
 
 	/* api callbacks */
@@ -2734,7 +2737,7 @@ void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Rotation Track";
-	ot->description= "Use active track to compensate rotaiton when doing 2D stabilization";
+	ot->description= "Use active track to compensate rotation when doing 2D stabilization";
 	ot->idname= "CLIP_OT_stabilize_2d_set_rotation";
 
 	/* api callbacks */

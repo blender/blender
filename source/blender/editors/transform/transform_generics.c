@@ -197,8 +197,9 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						
 						clip = 0;
 						if(axis & 1) {
-							if(fabs(iloc[0])<=tolerance[0] ||
-							   loc[0]*iloc[0]<0.0f) {
+							if(fabsf(iloc[0])<=tolerance[0] ||
+							   loc[0]*iloc[0]<0.0f)
+							{
 								loc[0]= 0.0f;
 								clip = 1;
 							}
@@ -206,14 +207,16 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						
 						if(axis & 2) {
 							if(fabs(iloc[1])<=tolerance[1] ||
-							   loc[1]*iloc[1]<0.0f) {
+							   loc[1]*iloc[1]<0.0f)
+							{
 								loc[1]= 0.0f;
 								clip = 1;
 							}
 						}
 						if(axis & 4) {
 							if(fabs(iloc[2])<=tolerance[2] ||
-							   loc[2]*iloc[2]<0.0f) {
+							   loc[2]*iloc[2]<0.0f)
+							{
 								loc[2]= 0.0f;
 								clip = 1;
 							}
@@ -619,6 +622,65 @@ static void recalcData_nla(TransInfo *t)
 	}
 }
 
+/* helper for recalcData() - for Image Editor transforms */
+static void recalcData_image(TransInfo *t)
+{
+	if (t->obedit && t->obedit->type == OB_MESH) {
+		SpaceImage *sima= t->sa->spacedata.first;
+		
+		flushTransUVs(t);
+		if(sima->flag & SI_LIVE_UNWRAP)
+			ED_uvedit_live_unwrap_re_solve();
+		
+		DAG_id_tag_update(t->obedit->data, 0);
+	}
+}
+
+/* helper for recalcData() - for Movie Clip transforms */
+static void recalcData_clip(TransInfo *t)
+{
+	SpaceClip *sc= t->sa->spacedata.first;
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	
+	if(t->state == TRANS_CANCEL) {
+		track= clip->tracking.tracks.first;
+		while(track) {
+			if(TRACK_VIEW_SELECTED(sc, track)) {
+				MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+				
+				marker->flag= track->transflag;
+			}
+			
+			track= track->next;
+		}
+	}
+	
+	flushTransTracking(t);
+	
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_VIEW_SELECTED(sc, track)) {
+			if (t->mode == TFM_TRANSLATION) {
+				if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+					BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
+				if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+					BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
+			}
+			else if (t->mode == TFM_RESIZE) {
+				if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+					BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
+				if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+					BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
+			}
+		}
+		
+		track= track->next;
+	}
+	
+	DAG_id_tag_update(&clip->id, 0);
+}
+
 /* helper for recalcData() - for 3d-view transforms */
 static void recalcData_view3d(TransInfo *t)
 {
@@ -853,60 +915,13 @@ void recalcData(TransInfo *t)
 		recalcData_nla(t);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		if (t->obedit && t->obedit->type == OB_MESH) {
-			SpaceImage *sima= t->sa->spacedata.first;
-			
-			flushTransUVs(t);
-			if(sima->flag & SI_LIVE_UNWRAP)
-				ED_uvedit_live_unwrap_re_solve();
-			
-			DAG_id_tag_update(t->obedit->data, 0);
-		}
+		recalcData_image(t);
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		recalcData_view3d(t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		SpaceClip *sc= t->sa->spacedata.first;
-		MovieClip *clip= ED_space_clip(sc);
-		MovieTrackingTrack *track;
-
-		if(t->state == TRANS_CANCEL) {
-			track= clip->tracking.tracks.first;
-			while(track) {
-				if(TRACK_VIEW_SELECTED(sc, track)) {
-					MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
-
-					marker->flag= track->transflag;
-				}
-
-				track= track->next;
-			}
-		}
-
-		flushTransTracking(t);
-
-		track= clip->tracking.tracks.first;
-		while(track) {
-			if(TRACK_VIEW_SELECTED(sc, track)) {
-				if (t->mode == TFM_TRANSLATION) {
-					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-						BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
-					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-						BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
-				}
-				else if (t->mode == TFM_RESIZE) {
-					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-						BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
-					if(TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-						BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
-				}
-			}
-
-			track= track->next;
-		}
-
-		DAG_id_tag_update(&clip->id, 0);
+		recalcData_clip(t);
 	}
 }
 

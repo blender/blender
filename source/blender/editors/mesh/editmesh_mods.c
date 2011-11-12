@@ -1328,7 +1328,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
 int mesh_layers_menu_charlen(CustomData *data, int type)
 {
-	 int i, len = 0;
+	int i, len = 0;
 	/* see if there is a duplicate */
 	for(i=0; i<data->totlayer; i++) {
 		if((&data->layers[i])->type == type) {

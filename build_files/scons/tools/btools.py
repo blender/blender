@@ -156,8 +156,9 @@ def validate_arguments(args, bc):
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
             'BUILDBOT_BRANCH',
             'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC',
-            'WITH_BF_OIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIBPATH',
-            'WITH_BF_BOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIBPATH'
+            'WITH_BF_CYCLES', 'WITH_BF_CYCLES_BINARIES' 'BF_CYCLES_BINARIES_ARCH',
+            'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
+            'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH'
             ]
     
     # Have options here that scons expects to be lists
@@ -239,6 +240,7 @@ def read_opts(env, cfg, args):
     localopts = Variables.Variables(cfg, args)
     localopts.AddVariables(
         ('LCGDIR', 'location of cvs lib dir'),
+        ('LIBDIR', 'root dir of libs'),
         (BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
         (BoolVariable('WITH_BF_PYTHON_SAFETY', 'Internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency)', False)),
         ('BF_PYTHON', 'Base path for python', ''),
@@ -536,16 +538,26 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False)),
 
         ('BUILDBOT_BRANCH', 'Buildbot branch name', ''),
-        
+    ) # end of opts.AddOptions()
+
+    localopts.AddVariables(
+        (BoolVariable('WITH_BF_CYCLES', 'Build with the Cycles engine', True)),
+
         (BoolVariable('WITH_BF_OIIO', 'Build with OpenImageIO', False)),
+        (BoolVariable('WITH_BF_STATICOIIO', 'Staticly link to OpenImageIO', False)),
+        ('BF_OIIO', 'OIIO root path', ''),
         ('BF_OIIO_INC', 'OIIO include path', ''),
         ('BF_OIIO_LIB', 'OIIO library', ''),
         ('BF_OIIO_LIBPATH', 'OIIO library path', ''),
-        
+        ('BF_OIIO_LIB_STATIC', 'OIIO static library', ''),
+
         (BoolVariable('WITH_BF_BOOST', 'Build with Boost', False)),
+        (BoolVariable('WITH_BF_STATICBOOST', 'Staticly link to boost', False)),
+        ('BF_BOOST', 'Boost root path', ''),
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
-        ('BF_BOOST_LIBPATH', 'Boost library path', '')
+        ('BF_BOOST_LIBPATH', 'Boost library path', ''),
+        ('BF_BOOST_LIB_STATIC', 'Boost static library', '')
     ) # end of opts.AddOptions()
 
     return localopts

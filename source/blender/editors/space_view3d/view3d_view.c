@@ -370,6 +370,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ObjectTfmProtectedChannels obtfm;
 
 	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
 	rv3d->lview= rv3d->view;
@@ -377,7 +378,12 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 		rv3d->lpersp= rv3d->persp;
 	}
 
+	object_tfm_protected_backup(v3d->camera, &obtfm);
+
 	ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+
+	object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+
 	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
@@ -1062,14 +1068,14 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			float dfac;
 			
 			if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-				if(winx>winy) dfac= (sensor_x * 2.0) / (fac*winx*lens);
-				else dfac= (sensor_x * 2.0) / (fac*winy*lens);
+				if(winx>winy) dfac= (sensor_x * 2.0f) / (fac*winx*lens);
+				else dfac= (sensor_x * 2.0f) / (fac*winy*lens);
 			}
 			else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-				dfac= (sensor_x * 2.0) / (fac*winx*lens);
+				dfac= (sensor_x * 2.0f) / (fac*winx*lens);
 			}
 			else {
-				dfac= (sensor_y * 2.0) / (fac*winy*lens);
+				dfac= (sensor_y * 2.0f) / (fac*winy*lens);
 			}
 			
 			x1= - *clipsta * winx*dfac;

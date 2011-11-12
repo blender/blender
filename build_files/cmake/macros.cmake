@@ -272,7 +272,7 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${BOOST_LIBRARIES})
 	endif()
 	if(WITH_IMAGE_OPENEXR)
-		if(WIN32 AND NOT UNIX)
+		if(WIN32 AND NOT UNIX AND NOT CMAKE_COMPILER_IS_GNUCC)
 			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
 			target_link_libraries_debug(${target} "${OPENEXR_LIBRARIES_DEBUG}")
 			target_link_libraries_optimized(${target} "${OPENEXR_LIBRARIES}")

@@ -70,12 +70,12 @@ public:
 	  * Determine the directory of the current binary
 	  * @return Unsigned char string pointing to the binary dir
 	  */
-	 virtual const GHOST_TUns8* getBinaryDir() const;
+	virtual const GHOST_TUns8* getBinaryDir() const;
 
-	 /**
-	  * Add the file to the operating system most recently used files
-	  */
-	 void addToSystemRecentFiles(const char* filename) const;
+	/**
+	 * Add the file to the operating system most recently used files
+	 */
+	void addToSystemRecentFiles(const char* filename) const;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

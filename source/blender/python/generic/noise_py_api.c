@@ -263,10 +263,10 @@ static void noise_vector(float x, float y, float z, int nb, float v[3])
 {
 	/* Simply evaluate noise at 3 different positions */
 	v[0]= (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
-				 nb) - 1.0f);
+	                                nb) - 1.0f);
 	v[1]= (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
 	v[2]= (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
-				 nb) - 1.0f);
+	                                nb) - 1.0f);
 }
 
 static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args)
@@ -442,10 +442,10 @@ static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	voronoi(x, y, z, da, pa, me, dtype);
 	return Py_BuildValue("[[ffff][[fff][fff][fff][fff]]]",
-			      da[0], da[1], da[2], da[3],
-			      pa[0], pa[1], pa[2],
-			      pa[3], pa[4], pa[5],
-			      pa[6], pa[7], pa[8], pa[9], pa[10], pa[11]);
+	                     da[0], da[1], da[2], da[3],
+	                     pa[0], pa[1], pa[2],
+	                     pa[3], pa[4], pa[5],
+	                     pa[6], pa[7], pa[8], pa[9], pa[10], pa[11]);
 }
 
 /*-------------------------------------------------------------------------*/

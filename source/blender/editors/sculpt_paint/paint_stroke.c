@@ -423,15 +423,15 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 	/* save lots of GL state
 	   TODO: check on whether all of these are needed? */
 	glPushAttrib(GL_COLOR_BUFFER_BIT|
-		     GL_CURRENT_BIT|
-		     GL_DEPTH_BUFFER_BIT|
-		     GL_ENABLE_BIT|
-		     GL_LINE_BIT|
-		     GL_POLYGON_BIT|
-		     GL_STENCIL_BUFFER_BIT|
-		     GL_TRANSFORM_BIT|
-		     GL_VIEWPORT_BIT|
-		     GL_TEXTURE_BIT);
+	             GL_CURRENT_BIT|
+	             GL_DEPTH_BUFFER_BIT|
+	             GL_ENABLE_BIT|
+	             GL_LINE_BIT|
+	             GL_POLYGON_BIT|
+	             GL_STENCIL_BUFFER_BIT|
+	             GL_TRANSFORM_BIT|
+	             GL_VIEWPORT_BIT|
+	             GL_TEXTURE_BIT);
 
 	if(load_tex(sd, brush, vc)) {
 		glEnable(GL_BLEND);
@@ -484,9 +484,9 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 
 		/* set quad color */
 		glColor4f(U.sculpt_paint_overlay_col[0],
-			  U.sculpt_paint_overlay_col[1],
-			  U.sculpt_paint_overlay_col[2],
-			  brush->texture_overlay_alpha / 100.0f);
+		          U.sculpt_paint_overlay_col[1],
+		          U.sculpt_paint_overlay_col[2],
+		          brush->texture_overlay_alpha / 100.0f);
 
 		/* draw textured quad */
 		glBegin(GL_QUADS);
@@ -619,7 +619,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			visual_strength = 1;
 
 		outline_alpha = ((paint->flags & PAINT_SHOW_BRUSH_ON_SURFACE) ?
-				 min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f);
+		                     min_alpha + (visual_strength*(max_alpha-min_alpha)) : 0.50f);
 
 		if(sd->draw_anchored) {
 			final_radius = sd->anchored_size;

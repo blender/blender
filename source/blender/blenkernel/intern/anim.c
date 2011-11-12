@@ -67,6 +67,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
 #include "BKE_anim.h"
+#include "BKE_report.h"
 
 
 // XXX bad level call...
@@ -147,7 +148,7 @@ void animviz_free_motionpath(bMotionPath *mpath)
  *	- ob: object to add paths for (must be provided)
  *	- pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
  */
-bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *pchan)
+bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Object *ob, bPoseChannel *pchan)
 {
 	bAnimVizSettings *avs;
 	bMotionPath *mpath, **dst;
@@ -170,6 +171,11 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 
 	/* avoid 0 size allocs */
 	if (avs->path_sf >= avs->path_ef) {
+		BKE_reportf(reports, RPT_ERROR,
+					"Motion Path frame extents invalid for %s (%d to %d).%s\n",
+					(pchan)? pchan->name : ob->id.name,
+					avs->path_sf, avs->path_ef,
+					(avs->path_sf == avs->path_ef)? " Cannot have single-frame paths." : "");
 		return NULL;
 	}
 

@@ -174,7 +174,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(!CustomData_has_layer(&dm->faceData, CD_MTFACE)) return dm;
 
 	/* make sure we're using an existing layer */
-	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
+	CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
 
 	/* calculate a projection matrix and normal for each projector */
 	for(i = 0; i < num_projectors; ++i) {

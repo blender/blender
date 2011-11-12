@@ -2291,7 +2291,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	
 	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 	
-	do_material_tex(shi);
+	do_material_tex(shi, re);
 	
 	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
 	//vr->co[0], vr->co[1], vr->co[2]);
@@ -3665,7 +3665,7 @@ static void area_lamp_vectors(LampRen *lar)
 	float xsize= 0.5f*lar->area_size, ysize= 0.5f*lar->area_sizey, multifac;
 
 	/* make it smaller, so area light can be multisampled */
-	multifac= 1.0f/sqrt((float)lar->ray_totsamp);
+	multifac= 1.0f/sqrtf((float)lar->ray_totsamp);
 	xsize *= multifac;
 	ysize *= multifac;
 	
@@ -3845,7 +3845,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	if(lar->mode & LA_HALO) {
 		if(lar->spotsi>170.0f) lar->spotsi= 170.0f;
 	}
-	lar->spotsi= cos( M_PI*lar->spotsi/360.0f );
+	lar->spotsi= cosf( (float)M_PI*lar->spotsi/360.0f );
 	lar->spotbl= (1.0f-lar->spotsi)*la->spotblend;
 
 	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));
@@ -4072,8 +4072,8 @@ void init_render_world(Render *re)
 		re->wrld.misi= 1.0f;
 	}
 	
-	re->wrld.linfac= 1.0 + pow((2.0*re->wrld.exp + 0.5), -10);
-	re->wrld.logfac= log( (re->wrld.linfac-1.0)/re->wrld.linfac )/re->wrld.range;
+	re->wrld.linfac= 1.0f + powf((2.0f*re->wrld.exp + 0.5f), -10);
+	re->wrld.logfac= logf((re->wrld.linfac-1.0f)/re->wrld.linfac) / re->wrld.range;
 }
 
 
@@ -4126,7 +4126,7 @@ static void set_phong_threshold(ObjectRen *obr)
 	
 	if(tot) {
 		thresh/= (float)tot;
-		obr->ob->smoothresh= cos(0.5*M_PI-saacos(thresh));
+		obr->ob->smoothresh= cosf(0.5f*(float)M_PI-saacos(thresh));
 	}
 }
 
@@ -5321,11 +5321,11 @@ static void speedvector_project(Render *re, float zco[2], const float co[3], con
 		/* angle between (0,0,-1) and (co) */
 		copy_v3_v3(vec, co);
 
-		ang= saacos(-vec[2]/sqrt(vec[0]*vec[0] + vec[2]*vec[2]));
+		ang= saacos(-vec[2]/sqrtf(vec[0]*vec[0] + vec[2]*vec[2]));
 		if(vec[0]<0.0f) ang= -ang;
 		zco[0]= ang/pixelphix + zmulx;
 		
-		ang= 0.5f*M_PI - saacos(vec[1]/sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));
+		ang= 0.5f*M_PI - saacos(vec[1]/sqrtf(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));
 		zco[1]= ang/pixelphiy + zmuly;
 		
 	}
@@ -5353,7 +5353,7 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 	/* maximize speed for image width, otherwise it never looks good */
 	len= zco[0]*zco[0] + zco[1]*zco[1];
 	if(len > winsq) {
-		len= winroot/sqrt(len);
+		len= winroot/sqrtf(len);
 		zco[0]*= len;
 		zco[1]*= len;
 	}
@@ -5563,7 +5563,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// maximize speed as usual
 		len= zco[0]*zco[0] + zco[1]*zco[1];
 		if(len > winsq) {
-			len= winroot/sqrt(len);
+			len= winroot/sqrtf(len);
 			zco[0]*= len; zco[1]*= len;
 		}
 		

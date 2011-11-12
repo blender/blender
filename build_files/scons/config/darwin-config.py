@@ -282,6 +282,21 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT_LIB = 'expat'
 #BF_EXPAT_LIBPATH = '/usr/lib'
 
+#Cycles
+WITH_BF_CYCLES = True 
+
+WITH_BF_OIIO = True
+BF_OIIO = LIBDIR + '/openimageio'
+BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_LIB = 'OpenImageIO'
+BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+
+WITH_BF_BOOST = True
+BF_BOOST = LIBDIR + '/boost'
+BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+
 #Ray trace optimization
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':
     WITH_BF_RAYOPTIMIZATION = True

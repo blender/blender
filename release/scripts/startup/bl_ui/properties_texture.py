@@ -44,7 +44,7 @@ class TEXTURE_MT_envmap_specials(Menu):
         layout.operator("texture.envmap_clear", icon='FILE_REFRESH')
         layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
 
-from bl_ui.properties_material import active_node_mat
+from .properties_material import active_node_mat
 
 
 def context_tex_datablock(context):
@@ -726,7 +726,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         col.prop(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.prop(pd, "falloff_soft")
-        if pd.falloff == "PARTICLE_VELOCITY":
+        if pd.falloff == 'PARTICLE_VELOCITY':
             col.prop(pd, "falloff_speed_scale")
 
         col.prop(pd, "use_falloff_curve")

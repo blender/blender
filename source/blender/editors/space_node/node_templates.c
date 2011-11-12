@@ -40,6 +40,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
@@ -214,6 +216,11 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 				}
 			}
 		}
+
+		/* also preserve mapping for texture nodes */
+		if(node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
+		   node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE)
+			memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
 
 		/* remove node */
 		node_remove_linked(ntree, node_prev);
@@ -432,7 +439,7 @@ static void node_menu_column_foreach_cb(void *calldata, int nclass, const char *
 	NodeLinkArg *arg = (NodeLinkArg*)calldata;
 
 	if(!ELEM(nclass, NODE_CLASS_GROUP, NODE_CLASS_LAYOUT))
-		ui_node_menu_column(arg, nclass, IFACE_(name));
+		ui_node_menu_column(arg, nclass, name);
 }
 
 static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_p)
@@ -503,6 +510,10 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 	but->flag |= UI_TEXT_LEFT|UI_BUT_NODE_LINK;
 	but->poin= (char*)but;
 	but->func_argN = arg;
+
+	if(sock->link && sock->link->fromnode)
+		if(sock->link->fromnode->flag & NODE_ACTIVE_TEXTURE)
+			but->flag |= UI_BUT_NODE_ACTIVE;
 }
 
 /**************************** Node Tree Layout *******************************/

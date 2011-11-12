@@ -79,6 +79,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -88,6 +89,7 @@
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"
@@ -498,6 +500,40 @@ static void image_undo_free(ListBase *lb)
 		MEM_freeN(tile->rect);
 }
 
+/* get active image for face depending on old/new shading system */
+
+static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
+{
+	Image *ima;
+
+	if(scene_use_new_shading_nodes(s->scene)) {
+		MFace *mf = s->me->mface+face_index;
+		ED_object_get_active_image(s->ob, mf->mat_nr, &ima, NULL, NULL);
+	}
+	else {
+		MTFace *tf = s->me->mtface+face_index;
+		ima = tf->tpage;
+	}
+
+	return ima;
+}
+
+static Image *project_paint_face_image(const ProjPaintState *ps, int face_index)
+{
+	Image *ima;
+
+	if(scene_use_new_shading_nodes(ps->scene)) {
+		MFace *mf = ps->dm_mface+face_index;
+		ED_object_get_active_image(ps->ob, mf->mat_nr, &ima, NULL, NULL);
+	}
+	else {
+		MTFace *tf = ps->dm_mtface+face_index;
+		ima = tf->tpage;
+	}
+
+	return ima;
+}
+
 /* fast projection bucket array lookup, use the safe version for bound checking  */
 static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[2])
 {
@@ -670,6 +706,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	int side;
 	int face_index;
 	MTFace *tf;
+	Image *ima;
 	ImBuf *ibuf;
 	int xi, yi;
 	
@@ -687,8 +724,9 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	else { /* QUAD */
 		interp_v2_v2v2v2(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
-	
-	ibuf = tf->tpage->ibufs.first; /* we must have got the imbuf before getting here */
+
+	ima = project_paint_face_image(ps, face_index);
+	ibuf = ima->ibufs.first; /* we must have got the imbuf before getting here */
 	if (!ibuf) return 0;
 	
 	if (interp) {
@@ -1053,6 +1091,9 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 			
 			/* Only need to check if 'i2_fidx' is valid because we know i1_fidx is the same vert on both faces */
 			if (i2_fidx != -1) {
+				Image *tpage = project_paint_face_image(ps, face_index);
+				Image *orig_tpage = project_paint_face_image(ps, orig_face);
+
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				tf = ps->dm_mtface + face_index;
 				
@@ -1061,7 +1102,7 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 				*orig_fidx = (i1_fidx < i2_fidx) ? i1_fidx : i2_fidx;
 				
 				/* first test if they have the same image */
-				if (	(orig_tf->tpage == tf->tpage) &&
+				if (	(orig_tpage == tpage) &&
 						cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
 						cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
 				{
@@ -1308,9 +1349,10 @@ static float project_paint_uvpixel_mask(
 	if (ps->do_layer_stencil) {
 		/* another UV layers image is masking this one's */
 		ImBuf *ibuf_other;
+		Image *other_tpage = project_paint_face_image(ps, face_index);
 		const MTFace *tf_other = ps->dm_mtface_stencil + face_index;
 		
-		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
+		if (other_tpage && (ibuf_other = BKE_image_get_ibuf(other_tpage, NULL))) {
 			/* BKE_image_get_ibuf - TODO - this may be slow */
 			unsigned char rgba_ub[4];
 			float rgba_f[4];
@@ -1464,9 +1506,10 @@ static ProjPixel *project_paint_uvpixel_init(
 	if (ps->tool==PAINT_TOOL_CLONE) {
 		if (ps->dm_mtface_clone) {
 			ImBuf *ibuf_other;
+			Image *other_tpage = project_paint_face_image(ps, face_index);
 			const MTFace *tf_other = ps->dm_mtface_clone + face_index;
 			
-			if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
+			if (other_tpage && (ibuf_other = BKE_image_get_ibuf(other_tpage, NULL))) {
 				/* BKE_image_get_ibuf - TODO - this may be slow */
 				
 				if (ibuf->rect_float) {
@@ -2684,11 +2727,8 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 	LinkNode *node;
 	int face_index, image_index=0;
 	ImBuf *ibuf = NULL;
+	Image *tpage_last = NULL, *tpage;
 	Image *ima = NULL;
-	MTFace *tf;
-	
-	Image *tpage_last = NULL;
-	
 
 	if (ps->image_tot==1) {
 		/* Simple loop, no context switching */
@@ -2706,9 +2746,9 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 			face_index = GET_INT_FROM_POINTER(node->link);
 				
 			/* Image context switching */
-			tf = ps->dm_mtface+face_index;
-			if (tpage_last != tf->tpage) {
-				tpage_last = tf->tpage;
+			tpage = project_paint_face_image(ps, face_index);
+			if (tpage_last != tpage) {
+				tpage_last = tpage;
 
 				for (image_index=0; image_index < ps->image_tot; image_index++) {
 					if (ps->projImages[image_index].ima == tpage_last) {
@@ -2876,7 +2916,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	LinkNode *node;
 	
 	ProjPaintImage *projIma;
-	Image *tpage_last = NULL;
+	Image *tpage_last = NULL, *tpage;
 	
 	/* Face vars */
 	MFace *mf;
@@ -3210,7 +3250,9 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 #endif
 		
-		if (tf->tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK)==0 || mf->flag & ME_FACE_SEL)) {
+		tpage = project_paint_face_image(ps, face_index);
+
+		if (tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK)==0 || mf->flag & ME_FACE_SEL)) {
 			
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS=NULL;
 			
@@ -3283,17 +3325,17 @@ static void project_paint_begin(ProjPaintState *ps)
 				}
 			}
 			
-			if (tpage_last != tf->tpage) {
+			if (tpage_last != tpage) {
 				
-				image_index = BLI_linklist_index(image_LinkList, tf->tpage);
+				image_index = BLI_linklist_index(image_LinkList, tpage);
 				
-				if (image_index==-1 && BKE_image_get_ibuf(tf->tpage, NULL)) { /* MemArena dosnt have an append func */
-					BLI_linklist_append(&image_LinkList, tf->tpage);
+				if (image_index==-1 && BKE_image_get_ibuf(tpage, NULL)) { /* MemArena dosnt have an append func */
+					BLI_linklist_append(&image_LinkList, tpage);
 					image_index = ps->image_tot;
 					ps->image_tot++;
 				}
 				
-				tpage_last = tf->tpage;
+				tpage_last = tpage;
 			}
 			
 			if (image_index != -1) {
@@ -4481,7 +4523,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 		) {
 			ImBuf *ibuf;
 			
-			newimage = (s->me->mtface+newfaceindex)->tpage;
+			newimage = imapaint_face_image(s, newfaceindex);
 			ibuf= BKE_image_get_ibuf(newimage, s->sima? &s->sima->iuser: NULL);
 
 			if(ibuf && ibuf->rect)

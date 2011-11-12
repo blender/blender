@@ -4,7 +4,7 @@
 
 Import ('env')
 
-incs = '. ../editors/include ../makesdna ../makesrna ../blenlib ../blenkernel ../nodes'
+incs = '. ../editors/include ../makesdna ../makesrna ../blenfont ../blenlib ../blenkernel ../nodes'
 incs += ' ../imbuf ../blenloader ../gpu ../render/extern/include ../windowmanager'
 incs += ' ../freestyle/intern/python'
 incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include'
@@ -43,6 +43,9 @@ if env['BF_BUILDINFO']:
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
 
 sources = env.Glob('intern/*.c')
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361])

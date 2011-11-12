@@ -1955,11 +1955,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	/* not supported yet
-	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-	 RNA_def_property_float(prop, NULL, "rot");
-	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	 RNA_def_property_editable_func(prop, texspace_editable);
-	 RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");*/
+	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_float(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	RNA_def_property_editable_func(prop, texspace_editable);
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+	*/
 	
 	/* materials */
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);

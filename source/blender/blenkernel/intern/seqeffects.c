@@ -2144,7 +2144,7 @@ static struct ImBuf * do_transform_effect(
 	struct ImBuf * out = prepare_effect_imbufs(context,ibuf1, ibuf2, ibuf3);
 
 	do_transform(context.scene, seq, facf0, 
-		     context.rectx, context.recty, ibuf1, out);
+	             context.rectx, context.recty, ibuf1, out);
 
 	return out;
 }
@@ -2541,7 +2541,7 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-			 index= (x+y*width)*4;
+			index= (x+y*width)*4;
 
 			/*	Isolate the intensity */
 			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
@@ -2570,7 +2570,7 @@ static void RVIsolateHighlights_float (float* in, float* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-			 index= (x+y*width)*4;
+			index= (x+y*width)*4;
 
 			/*	Isolate the intensity */
 			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);

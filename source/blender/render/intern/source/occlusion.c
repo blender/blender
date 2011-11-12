@@ -321,7 +321,7 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 	
 	if(co) {
 		if(vlr->v4)
-			interp_v3_v3v3(co, vlr->v1->co, vlr->v3->co, 0.5f);
+			mid_v3_v3v3(co, vlr->v1->co, vlr->v3->co);
 		else
 			cent_tri_v3(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 
@@ -1034,8 +1034,8 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 
 	/* dot */
 	vresult.v = (vec_splat_float(n[0])*gx +
-				 vec_splat_float(n[1])*gy +
-				 vec_splat_float(n[2])*gz)*vangle;
+	             vec_splat_float(n[1])*gy +
+	             vec_splat_float(n[2])*gz)*vangle;
 
 	result= (vresult.f[0] + vresult.f[1] + vresult.f[2] + vresult.f[3])*(0.5f/(float)M_PI);
 	result= MAX2(result, 0.0f);
@@ -1623,7 +1623,7 @@ static void *exec_strandsurface_sample(void *data)
 		if(face[3]) {
 			co4= mesh->co[face[3]];
 
-			interp_v3_v3v3(co, co1, co3, 0.5f);
+			mid_v3_v3v3(co, co1, co3);
 			normal_quad_v3( n,co1, co2, co3, co4);
 		}
 		else {

@@ -47,13 +47,13 @@ typedef struct VFontData {
 	// float	    resol[MAX_VF_CHARS];
 	// float	    width[MAX_VF_CHARS];
 	// float	    *points[MAX_VF_CHARS];
-	 char		name[128];	
+	char		name[128];
 } VFontData;
 
 typedef struct VChar {
 	struct VChar    *next, *prev;
-	 ListBase        nurbsbase;
-	intptr_t   index;
+	ListBase        nurbsbase;
+	intptr_t        index;
 	float           resol;
 	float           width;
 	float           *points;

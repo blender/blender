@@ -67,8 +67,8 @@
 
 /* local */
 static int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
-			   short cox, short coy, 
-			   float *labda, float *mu, float *vec);
+                      short cox, short coy,
+                      float *labda, float *mu, float *vec);
 
 void unlink_curve(Curve *cu)
 {

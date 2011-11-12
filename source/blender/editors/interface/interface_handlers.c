@@ -3231,7 +3231,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 {
 	float *hsv= ui_block_hsv_get(but->block);
 	float rgb[3];
-	float sensitivity = (shift?0.15:0.3) * ndof->dt;
+	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 	
 	int color_profile = but->block->color_profile;
 	
@@ -3426,7 +3426,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
-	phi = fmodf(hsv[0]+0.25f, 1.0f) * -2.0f*M_PI;
+	phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
 	r = hsv[1];
 	/* sqr= r>0.f?sqrtf(r):1; */ /* UNUSED */
 	
@@ -3439,7 +3439,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	v[1] += ndof->rx * sensitivity;
 
 	/* convert back to polar coords on circle */
-	phi = atan2(v[0], v[1])/(2.0f*(float)M_PI) + 0.5f;
+	phi = atan2f(v[0], v[1])/(2.0f*(float)M_PI) + 0.5f;
 	
 	/* use ndof z rotation to additionally rotate hue */
 	phi -= ndof->rz * sensitivity * 0.5f;
@@ -5469,6 +5469,38 @@ void uiContextActivePropertyHandle(bContext *C)
 			block->handle_func(C, block->handle_func_arg, 0);
 		}
 	}
+}
+
+wmOperator *uiContextActiveOperator(const struct bContext *C)
+{
+	ARegion *ar_ctx= CTX_wm_region(C);
+	uiBlock *block;
+
+	/* scan active regions ui */
+	for(block=ar_ctx->uiblocks.first; block; block=block->next) {
+		if (block->ui_operator) {
+			return block->ui_operator;
+		}
+	}
+
+	/* scan popups */
+	{
+		bScreen *sc= CTX_wm_screen(C);
+		ARegion *ar;
+
+		for (ar= sc->regionbase.first; ar; ar= ar->next) {
+			if (ar == ar_ctx) {
+				continue;
+			}
+			for(block=ar->uiblocks.first; block; block=block->next) {
+				if (block->ui_operator) {
+					return block->ui_operator;
+				}
+			}
+		}
+	}
+
+	return NULL;
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */

@@ -395,9 +395,8 @@ class AddPresetOperator(AddPresetBase, Operator):
             options={'HIDDEN'},
             )
 
-    # XXX, not ideal
     preset_defines = [
-        "op = bpy.context.space_data.operator",
+        "op = bpy.context.active_operator",
     ]
 
     @property
@@ -432,7 +431,7 @@ class WM_MT_operator_presets(Menu):
     bl_label = "Operator Presets"
 
     def draw(self, context):
-        self.operator = context.space_data.operator.bl_idname
+        self.operator = context.active_operator.bl_idname
         Menu.draw_preset(self, context)
 
     @property

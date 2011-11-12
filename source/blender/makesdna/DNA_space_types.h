@@ -145,6 +145,8 @@ typedef struct SpaceButs {
 	void *path;						/* runtime */
 	int pathflag, dataicon;			/* runtime */
 	ID *pinid;
+
+	void *texuser;
 } SpaceButs;
 
 typedef struct SpaceSeq {
@@ -861,6 +863,7 @@ enum {
 #define TIME_CACHE_PARTICLES	4
 #define TIME_CACHE_CLOTH		8
 #define TIME_CACHE_SMOKE		16
+#define TIME_CACHE_DYNAMICPAINT	32
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

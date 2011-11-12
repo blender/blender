@@ -317,11 +317,12 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	/* not supported yet
-	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-	 RNA_def_property_float(prop, NULL, "rot");
-	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	 RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
-	 RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");*/
+	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_float(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	*/
 	
 	/* materials */
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);

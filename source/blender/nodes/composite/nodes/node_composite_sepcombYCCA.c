@@ -53,9 +53,9 @@ static void do_sepycca_601(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT601);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]= y/255.0;
-	out[1]= cb/255.0;
-	out[2]= cr/255.0;
+	out[0]=  y/255.0f;
+	out[1]= cb/255.0f;
+	out[2]= cr/255.0f;
 	out[3]= in[3];
 }
 
@@ -66,9 +66,9 @@ static void do_sepycca_709(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT709);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]= y/255.0;
-	out[1]= cb/255.0;
-	out[2]= cr/255.0;
+	out[0]=  y/255.0f;
+	out[1]= cb/255.0f;
+	out[2]= cr/255.0f;
 	out[3]= in[3];
 }
 
@@ -79,9 +79,9 @@ static void do_sepycca_jfif(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_JFIF_0_255);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]= y/255.0;
-	out[1]= cb/255.0;
-	out[2]= cr/255.0;
+	out[0]=  y/255.0f;
+	out[1]= cb/255.0f;
+	out[2]= cr/255.0f;
 	out[3]= in[3];
 }
 
@@ -106,9 +106,9 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 		}
 	
 		/*divided by 255 to normalize for viewing in */
-		out[0]->vec[0] = y/255.0;
-		out[1]->vec[0] = cb/255.0;
-		out[2]->vec[0] = cr/255.0;
+		out[0]->vec[0] =  y/255.0f;
+		out[1]->vec[0] = cb/255.0f;
+		out[2]->vec[0] = cr/255.0f;
 		out[3]->vec[0] = in[0]->vec[3];
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {

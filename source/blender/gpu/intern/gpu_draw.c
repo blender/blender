@@ -62,7 +62,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-
+#include "BKE_scene.h"
 
 #include "BLI_threads.h"
 #include "BLI_blenlib.h"
@@ -596,7 +596,7 @@ static void gpu_verify_repeat(Image *ima)
 {
 	/* set either clamp or repeat in X/Y */
 	if (ima->tpageflag & IMA_CLAMP_U)
-	   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
@@ -775,7 +775,7 @@ int GPU_update_image_time(Image *ima, double time)
 	if (ima->lastupdate<0)
 		ima->lastupdate = 0;
 
-	if (ima->lastupdate>time)
+	if (ima->lastupdate > (float)time)
 		ima->lastupdate=(float)time;
 
 	if(ima->tpageflag & IMA_TWINANIM) {
@@ -783,7 +783,7 @@ int GPU_update_image_time(Image *ima, double time)
 		
 		/* check: is the bindcode not in the array? Then free. (still to do) */
 		
-		diff = (float)(time-ima->lastupdate);
+		diff = (float)((float)time - ima->lastupdate);
 		inc = (int)(diff*(float)ima->animspeed);
 
 		ima->lastupdate+=((float)inc/(float)ima->animspeed);
@@ -809,11 +809,11 @@ void GPU_free_smoke(SmokeModifierData *smd)
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
 	{
 		if(smd->domain->tex)
-			 GPU_texture_free(smd->domain->tex);
+			GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
 
 		if(smd->domain->tex_shadow)
-			 GPU_texture_free(smd->domain->tex_shadow);
+			GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
 	}
 }
@@ -952,15 +952,17 @@ static struct GPUMaterialState {
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
-static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob)
+static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes)
 {
-	if (bmat->mode & MA_SHLESS) {
+	if(new_shading_nodes || bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
 		smat->diff[3]= 1.0;
 
-		if(gamma) {
+		if(gamma)
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
-		}	
+
+		zero_v4(smat->spec);
+		smat->hard= 0;
 	}
 	else {
 		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
@@ -1001,6 +1003,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	int new_shading_nodes = scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -1032,7 +1035,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob);
+		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes);
 
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
@@ -1049,7 +1052,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	for(a=1; a<=ob->totcol; a++) {
 		/* find a suitable material */
 		ma= give_current_material(ob, a);
-		if(!glsl) ma= gpu_active_node_material(ma);
+		if(!glsl && !new_shading_nodes) ma= gpu_active_node_material(ma);
 		if(ma==NULL) ma= &defmaterial;
 
 		/* create glsl material if requested */
@@ -1062,7 +1065,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		}
 		else {
 			/* fixed function opengl materials */
-			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob);
+			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
 
 			alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 			if(do_alpha_pass && GMS.alphapass)
@@ -1223,6 +1226,7 @@ void GPU_end_object_materials(void)
 
 int GPU_default_lights(void)
 {
+	float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f}, position[4];
 	int a, count = 0;
 	
 	/* initialize */
@@ -1248,27 +1252,28 @@ int GPU_default_lights(void)
 
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
 
-	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
-	glLightfv(GL_LIGHT0, GL_SPECULAR, U.light[0].spec); 
-
-	glLightfv(GL_LIGHT1, GL_POSITION, U.light[1].vec); 
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, U.light[1].col); 
-	glLightfv(GL_LIGHT1, GL_SPECULAR, U.light[1].spec); 
-
-	glLightfv(GL_LIGHT2, GL_POSITION, U.light[2].vec); 
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, U.light[2].col); 
-	glLightfv(GL_LIGHT2, GL_SPECULAR, U.light[2].spec); 
-
 	for(a=0; a<8; a++) {
 		if(a<3) {
 			if(U.light[a].flag) {
 				glEnable(GL_LIGHT0+a);
+
+				normalize_v3_v3(position, U.light[a].vec);
+				position[3]= 0.0f;
+				
+				glLightfv(GL_LIGHT0+a, GL_POSITION, position); 
+				glLightfv(GL_LIGHT0+a, GL_DIFFUSE, U.light[a].col); 
+				glLightfv(GL_LIGHT0+a, GL_SPECULAR, U.light[a].spec); 
+
 				count++;
 			}
-			else
+			else {
 				glDisable(GL_LIGHT0+a);
-			
+
+				glLightfv(GL_LIGHT0+a, GL_POSITION, zero); 
+				glLightfv(GL_LIGHT0+a, GL_DIFFUSE, zero); 
+				glLightfv(GL_LIGHT0+a, GL_SPECULAR, zero);
+			}
+
 			// clear stuff from other opengl lamp usage
 			glLightf(GL_LIGHT0+a, GL_SPOT_CUTOFF, 180.0);
 			glLightf(GL_LIGHT0+a, GL_CONSTANT_ATTENUATION, 1.0);

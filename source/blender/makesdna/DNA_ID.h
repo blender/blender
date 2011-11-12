@@ -58,8 +58,8 @@ typedef struct IDProperty {
 	IDPropertyData data;	/* note, alignment for 64 bits */
 	int len; /* array length, also (this is important!) string length + 1.
 				the idea is to be able to reuse array realloc functions on strings.*/
-	/*totallen is total length of allocated array/string, including a buffer.
-	  Note that the buffering is mild; the code comes from python's list implementation.*/
+	/* totallen is total length of allocated array/string, including a buffer.
+	 * Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
 					saved.*/
 } IDProperty;

@@ -229,7 +229,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 static void node_menu_add_foreach_cb(void *calldata, int nclass, const char *name)
 {
 	uiLayout *layout= calldata;
-	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu, SET_INT_IN_POINTER(nclass));
+	uiItemMenuF(layout, name, 0, node_add_menu, SET_INT_IN_POINTER(nclass));
 }
 
 static void node_menu_add(const bContext *C, Menu *menu)

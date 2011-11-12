@@ -957,4 +957,17 @@ typedef struct WeightVGProximityModifierData {
 #define MOD_WVG_MASK_TEX_USE_VAL			7
 #define MOD_WVG_MASK_TEX_USE_ALPHA			8
 
+/* Dynamic paint modifier flags */
+#define MOD_DYNAMICPAINT_TYPE_CANVAS (1 << 0)
+#define MOD_DYNAMICPAINT_TYPE_BRUSH (1 << 1)
+
+typedef struct DynamicPaintModifierData {
+	ModifierData modifier;
+
+	struct DynamicPaintCanvasSettings *canvas;
+	struct DynamicPaintBrushSettings *brush;
+	int type;  /* ui display: canvas / brush */
+	int pad;
+} DynamicPaintModifierData;
+
 #endif

@@ -1256,7 +1256,7 @@ static void createTransArmatureVerts(TransInfo *t)
 static void createTransMBallVerts(TransInfo *t)
 {
 	MetaBall *mb = (MetaBall*)t->obedit->data;
-	 MetaElem *ml;
+	MetaElem *ml;
 	TransData *td;
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
@@ -5396,7 +5396,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	TransDataTracking *tdt;
 	int framenr = sc->user.framenr;
 
-	if(clip && !BKE_movieclip_has_frame(clip, &sc->user)) {
+	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user)) {
 		t->total = 0;
 		return;
 	}

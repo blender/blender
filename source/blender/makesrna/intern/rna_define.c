@@ -654,6 +654,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	srna->identifier= identifier;
 	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description= "";
+	srna->flag |= STRUCT_UNDO;
 	if(!srnafrom)
 		srna->icon= ICON_DOT;
 

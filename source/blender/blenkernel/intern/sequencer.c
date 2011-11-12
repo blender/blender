@@ -1160,13 +1160,13 @@ static void seq_open_anim_file(Sequence * seq)
 		return;
 	}
 
-	BLI_join_dirfile(name, sizeof(name), 
-			 seq->strip->dir, seq->strip->stripdata->name);
+	BLI_join_dirfile(name, sizeof(name),
+	                 seq->strip->dir, seq->strip->stripdata->name);
 	BLI_path_abs(name, G.main->name);
 	
 	seq->anim = openanim(name, IB_rect |
-			     ((seq->flag & SEQ_FILTERY) ? 
-			      IB_animdeinterlace : 0), seq->streamindex);
+	                     ((seq->flag & SEQ_FILTERY) ?
+	                          IB_animdeinterlace : 0), seq->streamindex);
 
 	if (seq->anim == NULL) {
 		return;
@@ -1211,8 +1211,8 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		BLI_join_dirfile(name, PROXY_MAXFILE, 
-				 dir, seq->strip->proxy->file);
+		BLI_join_dirfile(name, PROXY_MAXFILE,
+		                 dir, seq->strip->proxy->file);
 		BLI_path_abs(name, G.main->name);
 
 		return TRUE;
@@ -1227,14 +1227,13 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 
 	if (seq->type == SEQ_IMAGE) {
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
-			 context.preview_render_size, 
-			 give_stripelem(seq, cfra)->name);
+		             context.preview_render_size,
+		             give_stripelem(seq, cfra)->name);
 		frameno = 1;
 	} else {
-		frameno = (int) give_stripelem_index(seq, cfra) 
-			+ seq->anim_startofs;
+		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
-			 context.preview_render_size);
+		             context.preview_render_size);
 	}
 
 	BLI_path_abs(name, G.main->name);
@@ -1504,7 +1503,7 @@ static void color_balance_byte_byte(Sequence * seq, ImBuf* ibuf, float mul)
 
 	for (c = 0; c < 3; c++) {
 		make_cb_table_byte(cb.lift[c], cb.gain[c], cb.gamma[c],
-				   cb_tab[c], mul);
+		                   cb_tab[c], mul);
 	}
 
 	while (p < e) {
@@ -1847,14 +1846,14 @@ static ImBuf* seq_render_effect_strip_impl(
 
 	switch (early_out) {
 	case EARLY_NO_INPUT:
-		out = sh.execute(context, seq, cfra, fac, facf, 
-				 NULL, NULL, NULL);
+		out = sh.execute(context, seq, cfra, fac, facf,
+		                 NULL, NULL, NULL);
 		break;
 	case EARLY_DO_EFFECT:
 		for(i=0; i<3; i++) {
 			if(input[i])
 				ibuf[i] = seq_render_strip(
-					context, input[i], cfra);
+				            context, input[i], cfra);
 		}
 
 		if (ibuf[0] && ibuf[1]) {
@@ -2909,7 +2908,7 @@ int seq_single_check(Sequence *seq)
 	return (seq->len==1 && (
 			seq->type == SEQ_IMAGE 
 			|| ((seq->type & SEQ_EFFECT) && 
-			    get_sequence_effect_num_inputs(seq->type) == 0)));
+	            get_sequence_effect_num_inputs(seq->type) == 0)));
 }
 
 /* check if the selected seq's reference unselected seq's */

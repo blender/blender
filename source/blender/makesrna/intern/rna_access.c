@@ -549,6 +549,11 @@ int RNA_struct_is_ID(StructRNA *type)
 	return (type->flag & STRUCT_ID) != 0;
 }
 
+int RNA_struct_undo_check(StructRNA *type)
+{
+	return (type->flag & STRUCT_UNDO) != 0;
+}
+
 int RNA_struct_idprops_register_check(StructRNA *type)
 {
 	return (type->flag & STRUCT_NO_IDPROPERTIES) == 0;

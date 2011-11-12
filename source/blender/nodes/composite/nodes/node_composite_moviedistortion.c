@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
+static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(in[0]->data) {
 		if(node->id) {
@@ -57,14 +57,18 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 			ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 
 			if(ibuf) {
+				RenderData *rd= data;
 				ImBuf *obuf;
 				MovieTracking *tracking= &clip->tracking;
 				int width, height;
 				float overscan= 0.0f;
+				MovieClipUser user= {0};
+
+				BKE_movieclip_user_set_frame(&user, rd->cfra);
 
 				ibuf->rect_float= cbuf->rect;
 
-				BKE_movieclip_get_size(clip, NULL, &width, &height);
+				BKE_movieclip_get_size(clip, &user, &width, &height);
 
 				if(!node->storage)
 					node->storage= BKE_tracking_distortion_create();

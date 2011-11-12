@@ -207,6 +207,21 @@ float dist_to_line_segment_v2(const float v1[2], const float v2[2], const float 
 	return sqrtf(rc[0]*rc[0]+ rc[1]*rc[1]);
 }
 
+/* point closest to v1 on line v2-v3 in 2D */
+void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2])
+{
+	float lambda, cp[2];
+
+	lambda= closest_to_line_v2(cp,p, l1, l2);
+
+	if(lambda <= 0.0f)
+		copy_v2_v2(closest, l1);
+	else if(lambda >= 1.0f)
+		copy_v2_v2(closest, l2);
+	else
+		copy_v2_v2(closest, cp);
+}
+
 /* point closest to v1 on line v2-v3 in 3D */
 void closest_to_line_segment_v3(float closest[3], const float v1[3], const float v2[3], const float v3[3])
 {
@@ -220,6 +235,18 @@ void closest_to_line_segment_v3(float closest[3], const float v1[3], const float
 		copy_v3_v3(closest, v3);
 	else
 		copy_v3_v3(closest, cp);
+}
+
+/* signed distance from the point to the plane in 3D */
+float dist_to_plane_v3(const float p[2], const float plane_co[3], const float plane_no[2])
+{
+	float plane_no_unit[3];
+	float plane_co_other[3];
+
+	normalize_v3_v3(plane_no_unit, plane_no);
+	add_v3_v3v3(plane_co_other, plane_co, plane_no_unit);
+
+	return -line_point_factor_v3(p, plane_co, plane_co_other);
 }
 
 /* distance v1 to line-piece v2-v3 in 3D */

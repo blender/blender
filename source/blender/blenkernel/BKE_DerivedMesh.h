@@ -324,6 +324,14 @@ struct DerivedMesh {
 															   float t),
 								  void *userData);
 
+	/* Draw all faces with materials
+	 *  o setMaterial is called for every different material nr
+	 *  o setFace is called to verify if a face must be hidden
+	 */
+	void (*drawMappedFacesMat)(DerivedMesh *dm,
+		void (*setMaterial)(void *userData, int, void *attribs),
+		int (*setFace)(void *userData, int index), void *userData);
+
 	/* Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
 	void (*release)(DerivedMesh *dm);
@@ -339,7 +347,7 @@ void DM_init_funcs(DerivedMesh *dm);
  * sets up the custom data layers)
  */
 void DM_init(DerivedMesh *dm, DerivedMeshType type,
-			 int numVerts, int numEdges, int numFaces);
+             int numVerts, int numEdges, int numFaces);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source

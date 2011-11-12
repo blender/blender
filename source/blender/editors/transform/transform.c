@@ -513,7 +513,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
 	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, "Increase Proportional Influence", ""},
-	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Poportional Influence", ""},
+	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Proportional Influence", ""},
 	{TFM_MODAL_AUTOIK_LEN_INC, "AUTOIK_CHAIN_LEN_UP", 0, "Increase Max AutoIK Chain Length", ""},
 	{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, "Decrease Max AutoIK Chain Length", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -4691,7 +4691,7 @@ static int createSlideVerts(TransInfo *t)
 							uv_new = tf->uv[k];
 
 							if (ev->tmp.l) {
-								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabs(suv->origuv[1]-uv_new[1]) > 0.0001f) {
+								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabsf(suv->origuv[1]-uv_new[1]) > 0.0001f) {
 									ev->tmp.l = -1; /* Tag as invalid */
 									BLI_linklist_free(suv->fuv_list,NULL);
 									suv->fuv_list = NULL;
@@ -5462,7 +5462,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 #endif
 		{
-			val= (float)( floor(val+0.5f) );
+			val= floorf(val+0.5f);
 		}
 		
 		/* convert frame out of nla-action time */
@@ -5548,13 +5548,13 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				val= floor(val/secf + 0.5f);
+				val= floor((double)val/secf + 0.5f);
 			else
 				val= floor(val + 0.5f);
 		}
 		else {
 			if (doTime)
-				val= val / secf;
+				val= (float)((double)val / secf);
 		}
 		
 		if (autosnap == SACTSNAP_FRAME)

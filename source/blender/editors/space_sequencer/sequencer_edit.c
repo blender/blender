@@ -170,7 +170,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		BLI_mutex_unlock(&pj->queue_lock);
 
 		seq_proxy_rebuild(pj->main, pj->scene, seq, 
-				  stop, do_update, progress);
+		                  stop, do_update, progress);
 		seq_free_sequence_recurse(pj->scene, seq);
 	}
 
@@ -195,7 +195,7 @@ static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 	seq = seq_dupli_recursive(scene, scene, seq, 0);
 
 	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), 
-			    sa, "Building Proxies", WM_JOB_PROGRESS);
+	                    sa, "Building Proxies", WM_JOB_PROGRESS);
 
 	pj = WM_jobs_get_customdata(steve);
 
@@ -209,9 +209,9 @@ static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 
 		WM_jobs_customdata(steve, pj, proxy_freejob);
 		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_SEQUENCER,
-			      NC_SCENE|ND_SEQUENCER);
-		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, 
-				  proxy_endjob);
+		              NC_SCENE|ND_SEQUENCER);
+		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL,
+		                  proxy_endjob);
 	}
 
 	BLI_mutex_lock(&pj->queue_lock);
@@ -250,9 +250,9 @@ static void UNUSED_FUNCTION(change_plugin_seq)(Scene *scene, char *str) /* calle
 	sh.free(last_seq);
 	sh.init_plugin(last_seq, str);
 
-	last_seq->machine = MAX3(last_seq->seq1->machine, 
-				 last_seq->seq2->machine, 
-				 last_seq->seq3->machine);
+	last_seq->machine = MAX3(last_seq->seq1->machine,
+	                         last_seq->seq2->machine,
+	                         last_seq->seq3->machine);
 
 	if( seq_test_overlap(ed->seqbasep, last_seq) ) shuffle_seq(ed->seqbasep, last_seq, scene);
 	

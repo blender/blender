@@ -191,15 +191,13 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 {
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
-	int loadflag /*, size */ /* UNUSED */, undistort;
+	int loadflag, use_proxy= 0;
 
-	/* size= rendersize_to_number(user->render_size); */
-
-	undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
-
-	if((flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+	use_proxy= (flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
+	if(use_proxy) {
+		int undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
-	else
+	} else
 		get_sequence_fname(clip, framenr, name);
 
 	loadflag= IB_rect|IB_multilayer;
@@ -318,7 +316,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 	if(clip->cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr= user?user->framenr:clip->lastframe;
+		key.framenr= user->framenr;
 
 		if(flag&MCLIP_USE_PROXY) {
 			key.proxy= rendersize_to_proxy(user, flag);
@@ -346,7 +344,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 				moviecache_hashcmp, moviecache_keydata);
 	}
 
-	key.framenr= user?user->framenr:clip->lastframe;
+	key.framenr= user->framenr;
 
 	if(flag&MCLIP_USE_PROXY) {
 		key.proxy= rendersize_to_proxy(user, flag);
@@ -478,9 +476,6 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 
 static int need_undistorted_cache(MovieClipUser *user, int flag)
 {
-	if (!user)
-		return 0;
-
 	/* only full undistorted render can be used as on-fly undistorting image */
 	if(flag&MCLIP_USE_PROXY) {
 		if(user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL || (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT)==0)
@@ -495,7 +490,7 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 {
 	MovieClipCache *cache= clip->cache;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 
 	/* no cache or no cached undistorted image */
 	if(!clip->cache || !clip->cache->undistibuf)
@@ -530,7 +525,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	else
 		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if(undistibuf->userflags|= IB_RECT_INVALID) {
+	if(undistibuf->userflags&IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
 		IMB_rect_from_float(undistibuf);
 	}
@@ -547,7 +542,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 
 	copy_v2_v2(cache->principal, camera->principal);
 	copy_v3_v3(&cache->k1, &camera->k1);
-	cache->undist_framenr= user?user->framenr:clip->lastframe;
+	cache->undist_framenr= user->framenr;
 
 	if(cache->undistibuf)
 		IMB_freeImBuf(cache->undistibuf);
@@ -568,7 +563,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
@@ -586,11 +581,11 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 		ibuf= get_imbuf_cache(clip, user, clip->flag);
 
 	if(!ibuf) {
-		int use_sequence= 1;
+		int use_sequence= 0;
 
 		/* undistorted proxies for movies should be read as image sequence */
-		use_sequence&= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
-		use_sequence&= user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL;
+		use_sequence= (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) &&
+			(user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL);
 
 		if(clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
 			ibuf= movieclip_load_sequence_file(clip, user, framenr, clip->flag);
@@ -622,7 +617,7 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	ImBuf *ibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
@@ -668,7 +663,7 @@ ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int fla
 ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
 {
 	ImBuf *ibuf, *stableibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 
 	ibuf= BKE_movieclip_get_ibuf(clip, user);
 
@@ -749,7 +744,7 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
-	if(!user || user->framenr==clip->lastframe) {
+	if(user->framenr==clip->lastframe) {
 		*width= clip->lastsize[0];
 		*height= clip->lastsize[1];
 	} else {

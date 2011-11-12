@@ -38,6 +38,7 @@ set(SRC
 	buttons_context.c
 	buttons_header.c
 	buttons_ops.c
+	buttons_texture.c
 	space_buttons.c
 
 	buttons_intern.h

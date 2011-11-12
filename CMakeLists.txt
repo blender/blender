@@ -213,6 +213,12 @@ if(UNIX AND NOT APPLE)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+# Cycles
+option(WITH_CYCLES					"Enable cycles Render Engine" ON)
+option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
+option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
+set(CYCLES_CUDA_BINARIES_ARCH		sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
+
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 mark_as_advanced(WITH_MEM_JEMALLOC)
@@ -284,6 +290,12 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
+# auto enable openimageio and boost for cycles
+if(WITH_CYCLES)
+	set(WITH_OPENIMAGEIO ON)
+	set(WITH_BOOST ON)
+endif()
+
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
 
 # don't store paths to libs for portable distrobution
@@ -347,6 +359,19 @@ if(UNIX AND NOT APPLE)
 	# needed for ubuntu 11.04
 	if(EXISTS "/usr/lib/x86_64-linux-gnu")
 		set(CMAKE_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu;${CMAKE_LIBRARY_PATH}")
+	endif()
+
+	# set lib directory if it exists
+	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+		if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux64)
+		else()
+			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux)
+		endif()
+
+		if(NOT EXISTS ${LIBDIR})
+			unset(LIBDIR)
+		endif()
 	endif()
 
 	find_package(JPEG REQUIRED)
@@ -423,10 +448,17 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT FFMPEG)
+			set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora theoraenc theoradec vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
+		else()
+			set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		endif()
+
 		mark_as_advanced(FFMPEG)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -492,12 +524,17 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_BOOST)
-		set(BOOST "/usr" CACHE PATH "Boost Directory")
-
+		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
-			set(BOOST_ROOT ${BOOST})
-			set(Boost_USE_MULTITHREADED ON)
-			find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
+			# use lib dir if available and nothing else specified
+			if(LIBDIR AND NOT BOOST_ROOT)
+				set(BOOST_ROOT ${LIBDIR}/boost)
+				set(Boost_USE_MULTITHREADED OFF)
+			else()
+				set(Boost_USE_MULTITHREADED ON)
+			endif()
+			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
@@ -507,10 +544,12 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
-		set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
+		# use lib dir if available and nothing else specified
+		if(LIBDIR AND NOT OPENIMAGEIO_ROOT_DIR)
+			set(OPENIMAGEIO_ROOT_DIR ${LIBDIR}/oiio)
+		endif()
 
-		set(OPENIMAGEIO_ROOT_DIR ${OPENIMAGEIO})
-		find_package(OpenImageIO REQUIRED)
+		find_package(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
@@ -518,6 +557,8 @@ if(UNIX AND NOT APPLE)
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
+			set(WITH_CYCLES OFF)
+			message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
 		endif()
 	endif()
 
@@ -843,7 +884,7 @@ elseif(WIN32)
 	else()
 		# keep GCC specific stuff here
 		if(CMAKE_COMPILER_IS_GNUCC)
-			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32")
+			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
 			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
@@ -942,26 +983,26 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "vc90-mt-s-1_46_1")
-			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1")
+			set(BOOST_POSTFIX "mgw45-mt-s-1_47")
+			set(BOOST_DEBUG_POSTFIX "mgw45-mt-sd-1_47")
 			set(BOOST_LIBRARIES
-				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
-				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
-				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
-			set(BOOST_LIBPATH ${BOOST}/lib)
-			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
+				boost_regex-${BOOST_POSTFIX} boost_system-${BOOST_POSTFIX} boost_thread-${BOOST_POSTFIX}
+				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
+				boost_regex-${BOOST_DEBUG_POSTFIX} boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
+			set(BOOST_LIBPATH ${BOOST}/lib/gcc)
+			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
 			
 		if(WITH_OPENIMAGEIO)
-			set(OPENIMAGEIO ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO ${LIBDIR}/gcc/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
-		set(PLATFORM_LINKFLAGS "--stack,2097152")
+		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 	endif()
 
@@ -1480,6 +1521,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
 	info_cfg_option(WITH_INPUT_NDOF)
+	info_cfg_option(WITH_CYCLES)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

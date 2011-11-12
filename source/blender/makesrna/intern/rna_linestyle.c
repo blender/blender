@@ -207,8 +207,8 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
 		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
 		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-		{MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
-		{MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
+		{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""}, 
+		{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem value_blend_items[] = {

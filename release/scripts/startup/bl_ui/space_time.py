@@ -92,7 +92,7 @@ class TIME_HT_header(Header):
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
-class TIME_MT_marker(bpy.types.Menu):
+class TIME_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -144,6 +144,7 @@ class TIME_MT_cache(Menu):
         col.prop(st, "cache_particles")
         col.prop(st, "cache_cloth")
         col.prop(st, "cache_smoke")
+        col.prop(st, "cache_dynamicpaint")
 
 
 class TIME_MT_frame(Menu):

@@ -77,7 +77,7 @@
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_INTERNATIONAL
-#include "UI_interface.h" /* bad level call into editors */
+#include "BLF_translation.h"
 #endif
 
 #define USE_PEDANTIC_WRITE

@@ -46,6 +46,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_dynamicpaint.h"
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
@@ -94,6 +95,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
+	{eModifierType_DynamicPaint, "DYNAMIC_PAINT", ICON_MOD_DYNAMICPAINT, "Dynamic Paint", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -192,6 +194,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_VertexWeightMixModifier;
 		case eModifierType_WeightVGProximity:
 			return &RNA_VertexWeightProximityModifier;
+		case eModifierType_DynamicPaint:
+			return &RNA_DynamicPaintModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -2008,6 +2012,31 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Smoke_set_type");
 }
 
+static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "DynamicPaintModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Dynamic Paint Modifier", "Dynamic Paint modifier");
+	RNA_def_struct_sdna(srna, "DynamicPaintModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DYNAMICPAINT);
+	
+	prop= RNA_def_property(srna, "canvas_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "canvas");
+	RNA_def_property_ui_text(prop, "Canvas Settings", "");
+	
+	prop= RNA_def_property(srna, "brush_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "brush");
+	RNA_def_property_ui_text(prop, "Brush Settings", "");
+
+	prop= RNA_def_property(srna, "ui_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+}
+
 static void rna_def_modifier_collision(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2880,6 +2909,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_weightvgedit(brna);
 	rna_def_modifier_weightvgmix(brna);
 	rna_def_modifier_weightvgproximity(brna);
+	rna_def_modifier_dynamic_paint(brna);
 }
 
 #endif

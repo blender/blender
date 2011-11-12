@@ -781,7 +781,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 	}
 
 	if(ok) {
-		interp_v3_v3v3(vec, min, max, 0.5);
+		mid_v3_v3v3(vec, min, max);
 	}
 }
 
@@ -977,7 +977,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
-	   ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */

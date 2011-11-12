@@ -79,7 +79,7 @@ extern PyTypeObject TextureType;
 
 // load texture
 void loadTexture (unsigned int texId, unsigned int * texture, short * size,
-				  bool mipmap = false);
+                  bool mipmap = false);
 
 // get material
 RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID);

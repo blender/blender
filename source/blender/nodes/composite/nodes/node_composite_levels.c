@@ -63,7 +63,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0) { /* don't count transparent pixels */
+			if(value[3] > 0.0f) { /* don't count transparent pixels */
 				switch(node->custom1) {
 					case 1: { /* all colors */
 						rgb_tobw(value[0],value[1],value[2], &value[0]);
@@ -120,7 +120,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0) { /* don't count transparent pixels */
+			if(value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
 				switch(node->custom1)
 				{
@@ -172,7 +172,7 @@ static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
 			/* get the pixel */
 			qd_getPixel(in, x, y, value);
 
-			if(value[3] > 0.0) { /* don't count transparent pixels */
+			if(value[3] > 0.0f) { /* don't count transparent pixels */
 				numPixels++;
 				switch(node->custom1)
 				{
@@ -233,7 +233,7 @@ static void draw_histogram(bNode *node, CompBuf *out, int* bins)
 		for(y=0;y<out->y; y++) {
 
 			/* get normalized value (0..255) */
-			value=((float)bins[x]/(float)max)*255.0; 
+			value=((float)bins[x]/(float)max)*255.0f;
 
 			if(y < (int)value) { /*if the y value is below the height of the bar for this line then draw with the color */
 				switch (node->custom1) {

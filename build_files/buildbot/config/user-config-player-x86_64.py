@@ -28,7 +28,7 @@ BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/
 
 # Don't depend on system's libstdc++
 WITH_BF_STATICCXX = True
-BF_CXX_LIB_STATIC = '/usr/lib/gcc/x86_64-linux-gnu/4.3.2/libstdc++.a'
+BF_CXX_LIB_STATIC = '/usr/lib/gcc/x86_64-linux-gnu/4.3.4/libstdc++.a'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = True
@@ -83,9 +83,10 @@ BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib64'
 # JACK
 WITH_BF_JACK = True
 
+# Motion Tracking
+WITH_BF_LIBMV = False
+
 # Compilation and optimization
 BF_DEBUG = False
-REL_CFLAGS = []
-REL_CXXFLAGS = []
-REL_CCFLAGS = ['-O2']  # C & C++
+REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib64']

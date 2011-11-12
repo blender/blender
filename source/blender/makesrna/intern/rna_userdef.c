@@ -316,6 +316,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeFontStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiFontStyle");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font");
 	
 	prop= RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
@@ -366,6 +367,7 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiStyle");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Style", "Theme settings for style sets");
 	
 	/* (not used yet)
@@ -410,6 +412,7 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeWidgetColors", NULL);
 	RNA_def_struct_sdna(srna, "uiWidgetColors");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Widget Color Set", "Theme settings for widget color sets");
 		
 	prop= RNA_def_property(srna, "outline", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -465,6 +468,7 @@ static void rna_def_userdef_theme_ui_wcol_state(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeWidgetStateColors", NULL);
 	RNA_def_struct_sdna(srna, "uiWidgetStateColors");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Widget State Color", "Theme settings for widget state colors");
 		
 	prop= RNA_def_property(srna, "inner_anim", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -512,6 +516,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeUserInterface", NULL);
 	RNA_def_struct_sdna(srna, "ThemeUI");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme User Interface", "Theme settings for user interface elements");
 
 	prop= RNA_def_property(srna, "wcol_regular", PROP_POINTER, PROP_NONE);
@@ -927,6 +932,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeView3D", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme 3D View", "Theme settings for the 3D View");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_VIEW3D);
@@ -1064,6 +1070,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeGraphEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Graph Editor", "Theme settings for the graph editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_IPO);
@@ -1148,6 +1155,7 @@ static void rna_def_userdef_theme_space_file(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeFileBrowser", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme File Browser", "Theme settings for the File Browser");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_FILE);
@@ -1197,6 +1205,7 @@ static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeOutliner", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Outliner", "Theme settings for the Outliner");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_OUTLINER);
@@ -1210,6 +1219,7 @@ static void rna_def_userdef_theme_space_userpref(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeUserPreferences", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme User Preferences", "Theme settings for the User Preferences");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_USERPREF);
@@ -1224,6 +1234,7 @@ static void rna_def_userdef_theme_space_console(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeConsole", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Console", "Theme settings for the Console");
 	
 	rna_def_userdef_theme_spaces_main(srna, SPACE_CONSOLE);
@@ -1267,6 +1278,7 @@ static void rna_def_userdef_theme_space_info(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeInfo", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Info", "Theme settings for Info");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_INFO);
@@ -1282,6 +1294,7 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeTextEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Text Editor", "Theme settings for the Text Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_TEXT);
@@ -1350,6 +1363,7 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeNodeEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Node Editor", "Theme settings for the Node Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_NODE);
@@ -1419,6 +1433,7 @@ static void rna_def_userdef_theme_space_logic(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "ThemeLogicEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Logic Editor", "Theme settings for the Logic Editor");
 	
 	rna_def_userdef_theme_spaces_main(srna, SPACE_LOGIC);
@@ -1439,6 +1454,7 @@ static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeProperties", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Properties", "Theme settings for the Properties");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_BUTS);
@@ -1458,6 +1474,7 @@ static void rna_def_userdef_theme_space_time(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeTimeline", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Timeline", "Theme settings for the Timeline");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_TIME);
@@ -1483,6 +1500,7 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeImageEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Image Editor", "Theme settings for the Image Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_IMAGE);
@@ -1510,6 +1528,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeSequenceEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_IMAGE);
@@ -1601,6 +1620,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeDopeSheet", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme DopeSheet", "Theme settings for the DopeSheet");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_ACTION);
@@ -1686,6 +1706,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeNLAEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme NLA Editor", "Theme settings for the NLA Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_NLA);
@@ -1739,6 +1760,7 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeBoneColorSet", NULL);
 	RNA_def_struct_sdna(srna, "ThemeWireColor");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Bone Color Set", "Theme settings for bone color sets");
 
 	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1773,6 +1795,7 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeClipEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme Clip Editor", "Theme settings for the Movie Clip Editor");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_CLIP);
@@ -1881,6 +1904,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Theme", NULL);
 	RNA_def_struct_sdna(srna, "bTheme");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme", "Theme settings defining draw style and colors in the user interface");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -2014,6 +2038,7 @@ static void rna_def_userdef_addon(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Addon", NULL);
 	RNA_def_struct_sdna(srna, "bAddon");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Addon", "Python addons to be loaded automatically");
 
 	prop= RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
@@ -2057,6 +2082,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "UserSolidLight", NULL);
 	RNA_def_struct_sdna(srna, "SolidLight");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Solid Light", "Light used for OpenGL lighting in solid draw mode");
 	
 	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
@@ -2106,6 +2132,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UserPreferencesView", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "View & Controls", "Preferences related to viewing data");
 
 	/* View  */
@@ -2321,6 +2348,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Edit Methods", "Settings for interacting with Blender data");
 	
 	/* Edit Methods */
@@ -2599,12 +2627,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, "DEFAULT", 0, "Default (Default)", ""},
 		{1, "ENGLISH", 0, "English (English)", "en_US"},
 		{8, "FRENCH", 0, "French (Français)", "fr_FR"},
-		{9, "SPANISH", 0, "Spanish (Español)", "es_ES"},
+		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
+		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
+		{9, "SPANISH", 0, "Spanish (Español)", "es_ES"},
 		{0, "", 0, "In progress", ""},
 		{2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
-		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
 		{5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
@@ -2612,7 +2641,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
 		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{17, "SERBIAN", 0, "Serbian (Српском језику)", "sr_RS"},
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
@@ -2632,6 +2660,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "System & OpenGL", "Graphics driver and operating system settings");
 
 	/* Language */
@@ -2876,6 +2905,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices");
 	
 	prop= RNA_def_property(srna, "select_mouse", PROP_ENUM, PROP_NONE);
@@ -3031,6 +3061,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "UserPreferencesFilePaths", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "File Paths", "Default paths for external files");
 	
 	prop= RNA_def_property(srna, "show_hidden_files_datablocks", PROP_BOOLEAN, PROP_NONE);
@@ -3148,6 +3179,7 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "Addons");
 	srna= RNA_def_struct(brna, "Addons", NULL);
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "User Addons", "Collection of addons");
 
 	func= RNA_def_function(srna, "new", "rna_userdef_addon_new");
@@ -3184,6 +3216,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "UserPreferences", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "User Preferences", "Global user preferences");
 
 	prop= RNA_def_property(srna, "active_section", PROP_ENUM, PROP_NONE);

@@ -38,6 +38,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
@@ -55,16 +56,20 @@
 #include "BKE_node.h"
 #include "BKE_plugin_types.h"
 
-
+#include "BKE_animsys.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_scene.h"
 
 #include "BKE_library.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "envmap.h"
 #include "pointdensity.h"
@@ -320,7 +325,7 @@ static float wood_int(Tex *tex, float x, float y, float z)
 		wi = waveform[wf]((x + y + z)*10.0f);
 	}
 	else if (wt==TEX_RING) {
-		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0f);
+		wi = waveform[wf](sqrtf(x*x + y*y + z*z)*20.0f);
 	}
 	else if (wt==TEX_BANDNOISE) {
 		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
@@ -328,7 +333,7 @@ static float wood_int(Tex *tex, float x, float y, float z)
 	}
 	else if (wt==TEX_RINGNOISE) {
 		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0f + wi);
+		wi = waveform[wf](sqrtf(x*x + y*y + z*z)*20.0f + wi);
 	}
 	
 	return wi;
@@ -654,7 +659,7 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 	if (sc!=0.f) sc =  tex->ns_outscale/sc;
 
 	voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-	texres->tin = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+	texres->tin = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 
 	if (tex->vn_coltype) {
 		float ca[3];	/* cell color */
@@ -694,11 +699,11 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 		/* calculate bumpnormal */
 		voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[0] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[0] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[1] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[1] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp,  tex->vn_distm);
-		texres->nor[2] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		texres->nor[2] = sc * fabsf(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		
 		tex_normal_derivate(tex, texres);
 		rv |= TEX_NOR;
@@ -1445,9 +1450,9 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 	case MTEX_DIFF:
 		fact*= facg;
 		facm= 1.0f-fact;
-		in[0]= facm*out[0] + fact*fabs(tex[0]-out[0]);
-		in[1]= facm*out[1] + fact*fabs(tex[1]-out[1]);
-		in[2]= facm*out[2] + fact*fabs(tex[2]-out[2]);
+		in[0]= facm*out[0] + fact*fabsf(tex[0]-out[0]);
+		in[1]= facm*out[1] + fact*fabsf(tex[1]-out[1]);
+		in[2]= facm*out[2] + fact*fabsf(tex[2]-out[2]);
 		break;
 
 	case MTEX_DARK:
@@ -1552,7 +1557,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		break;
 
 	case MTEX_DIFF:
-		in= facm*out + fact*fabs(tex-out);
+		in= facm*out + fact*fabsf(tex-out);
 		break;
 
 	case MTEX_DARK:
@@ -2141,7 +2146,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	return rgbnor;
 }
 
-void do_material_tex(ShadeInput *shi)
+void do_material_tex(ShadeInput *shi, Render *re)
 {
 	CompatibleBump compat_bump;
 	NTapBump ntap_bump;
@@ -2159,7 +2164,7 @@ void do_material_tex(ShadeInput *shi)
 	compatible_bump_init(&compat_bump);
 	ntap_bump_init(&ntap_bump);
 
-	if (R.r.scemode & R_NO_TEX) return;
+	if (re->r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 
 	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -2395,7 +2400,7 @@ void do_material_tex(ShadeInput *shi)
 							float len= normalize_v3(texres.nor);
 							// can be optimized... (ton)
 							mul_mat3_m4_v3(shi->obr->ob->obmat, texres.nor);
-							mul_mat3_m4_v3(R.viewmat, texres.nor);
+							mul_mat3_m4_v3(re->viewmat, texres.nor);
 							normalize_v3(texres.nor);
 							mul_v3_fl(texres.nor, len);
 						}
@@ -2428,7 +2433,7 @@ void do_material_tex(ShadeInput *shi)
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					if (ibuf && !(ibuf->rect_float) && re->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 						srgb_to_linearrgb_v3_v3(tcol, tcol);
 				}
 				
@@ -2473,7 +2478,7 @@ void do_material_tex(ShadeInput *shi)
 							texres.nor[0] = -texres.nor[0];
 							texres.nor[1] = -texres.nor[1];
 						}
-						fact = Tnor*fabs(norfac);
+						fact = Tnor*fabsf(norfac);
 						if (fact>1.f) fact = 1.f;
 						facm = 1.f-fact;
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
@@ -2498,12 +2503,12 @@ void do_material_tex(ShadeInput *shi)
 
 							if(mtex->normapspace == MTEX_NSPACE_CAMERA);
 							else if(mtex->normapspace == MTEX_NSPACE_WORLD) {
-								mul_mat3_m4_v3(R.viewmat, nor);
+								mul_mat3_m4_v3(re->viewmat, nor);
 							}
 							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
 								if(shi->obr && shi->obr->ob)
 									mul_mat3_m4_v3(shi->obr->ob->obmat, nor);
-								mul_mat3_m4_v3(R.viewmat, nor);
+								mul_mat3_m4_v3(re->viewmat, nor);
 							}
 
 							normalize_v3(nor);
@@ -2651,9 +2656,9 @@ void do_material_tex(ShadeInput *shi)
 					if(shi->amb<0.0f) shi->amb= 0.0f;
 					else if(shi->amb>1.0f) shi->amb= 1.0f;
 					
-					shi->ambr= shi->amb*R.wrld.ambr;
-					shi->ambg= shi->amb*R.wrld.ambg;
-					shi->ambb= shi->amb*R.wrld.ambb;
+					shi->ambr= shi->amb*re->wrld.ambr;
+					shi->ambg= shi->amb*re->wrld.ambg;
+					shi->ambb= shi->amb*re->wrld.ambb;
 				}
 			}
 		}
@@ -2667,7 +2672,7 @@ void do_material_tex(ShadeInput *shi)
 }
 
 
-void do_volume_tex(ShadeInput *shi, const float xyz[3], int mapto_flag, float col[3], float *val)
+void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col, float *val, Render *re)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -2676,7 +2681,7 @@ void do_volume_tex(ShadeInput *shi, const float xyz[3], int mapto_flag, float co
 	float co[3], texvec[3];
 	float fact, stencilTin=1.0;
 	
-	if (R.r.scemode & R_NO_TEX) return;
+	if (re->r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 	
 	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -2716,9 +2721,9 @@ void do_volume_tex(ShadeInput *shi, const float xyz[3], int mapto_flag, float co
 					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
-			else if(mtex->texco==TEXCO_GLOB) {							
-			   copy_v3_v3(co, xyz);
-			   mul_m4_v3(R.viewinv, co);
+			else if(mtex->texco==TEXCO_GLOB) {
+				copy_v3_v3(co, xyz);
+				mul_m4_v3(re->viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 
@@ -3026,7 +3031,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				/* only works with texture being "real" */
 				/* use saacos(), fixes bug [#22398], float precision caused lo[2] to be slightly less then -1.0 */
 				if(lo[0] || lo[1]) { /* check for zero case [#24807] */
-					fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1]));
+					fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrtf(lo[0]*lo[0] + lo[1]*lo[1]));
 					tempvec[0]= lo[0]*fact;
 					tempvec[1]= lo[1]*fact;
 					tempvec[2]= 0.0;
@@ -3470,6 +3475,259 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	shi->vcol[1]*= texr.tg;
 	shi->vcol[2]*= texr.tb;
 	shi->vcol[3]*= texr.ta;
+}
+
+/* A modified part of shadeinput.c -> shade_input_set_uv()
+*  Used for sampling UV mapped texture color */
+static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
+{
+
+	float detsh, t00, t10, t01, t11, xn, yn, zn;
+	int axis1, axis2;
+
+	/* find most stable axis to project */
+	xn= fabs(normal[0]);
+	yn= fabs(normal[1]);
+	zn= fabs(normal[2]);
+
+	if(zn>=xn && zn>=yn) { axis1= 0; axis2= 1; }
+	else if(yn>=xn && yn>=zn) { axis1= 0; axis2= 2; }
+	else { axis1= 1; axis2= 2; }
+
+	/* compute u,v and derivatives */
+	t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
+	t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
+
+	detsh= 1.0f/(t00*t11-t10*t01);
+	t00*= detsh; t01*=detsh; 
+	t10*=detsh; t11*=detsh;
+
+	uv[0] = (hit[axis1]-v3[axis1])*t11-(hit[axis2]-v3[axis2])*t10;
+	uv[1] = (hit[axis2]-v3[axis2])*t00-(hit[axis1]-v3[axis1])*t01;
+
+	/* u and v are in range -1 to 0, we allow a little bit extra but not too much, screws up speedvectors */
+	CLAMP(uv[0], -2.0f, 1.0f);
+	CLAMP(uv[1], -2.0f, 1.0f);
+}
+
+/* Generate an updated copy of material to use for color sampling. */
+Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
+{
+	Tex *tex = NULL;
+	Material *mat;
+	int tex_nr;
+
+	if (!orig_mat) return NULL;
+
+	/* copy material */
+	mat = localize_material(orig_mat);
+
+	/* update material anims */
+	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+
+	/* strip material copy from unsupported flags */
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
+		if(mat->septex & (1<<tex_nr)) continue;
+	
+		if(mat->mtex[tex_nr]) {
+			MTex *mtex = mat->mtex[tex_nr];
+
+			/* only keep compatible texflags */
+			mtex->texflag = mtex->texflag & (MTEX_RGBTOINT | MTEX_STENCIL | MTEX_NEGATIVE | MTEX_ALPHAMIX);
+
+			/* depending of material type, strip non-compatible mapping modes */
+			if (mat->material_type == MA_TYPE_SURFACE) {
+				if (!ELEM4(mtex->texco, TEXCO_ORCO, TEXCO_OBJECT, TEXCO_GLOB, TEXCO_UV)) {
+					/* ignore this texture */
+					mtex->texco = 0;
+					continue;
+				}
+				/* strip all mapto flags except color and alpha */
+				mtex->mapto = (mtex->mapto & MAP_COL) | (mtex->mapto & MAP_ALPHA);
+			}
+			else if (mat->material_type == MA_TYPE_VOLUME) {
+				if (!ELEM3(mtex->texco, TEXCO_OBJECT, TEXCO_ORCO, TEXCO_GLOB)) {
+					/* ignore */
+					mtex->texco = 0;
+					continue;
+				}
+				/* strip all mapto flags except color and alpha */
+				mtex->mapto = mtex->mapto & (MAP_TRANSMISSION_COL | MAP_REFLECTION_COL | MAP_DENSITY);
+			}
+			
+			/* if mapped to an object, calculate inverse matrices */
+			if(mtex->texco==TEXCO_OBJECT) { 
+				Object *ob= mtex->object;
+				if(ob) {
+					invert_m4_m4(ob->imat, ob->obmat);
+					copy_m4_m4(ob->imat_ren, ob->imat);
+				}
+			}
+
+			/* copy texture */
+			tex= mtex->tex = localize_texture(mtex->tex);
+
+			/* update texture anims */
+			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+
+			/* update texture cache if required */
+			if(tex->type==TEX_VOXELDATA) {
+				cache_voxeldata(tex, (int)scene->r.cfra);
+			}
+			if(tex->type==TEX_POINTDENSITY) {
+				/* set dummy values for render and do cache */
+				Render dummy_re = {0};
+				dummy_re.scene = scene;
+				unit_m4(dummy_re.viewinv);
+				unit_m4(dummy_re.viewmat);
+				unit_m4(dummy_re.winmat);
+				dummy_re.winx = dummy_re.winy = 128;
+				cache_pointdensity(&dummy_re, tex);
+			}
+
+			/* update image sequences and movies */
+			if(tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
+					BKE_image_user_calc_frame(&tex->iuser, (int)scene->r.cfra, 0);
+			}
+		}
+	}
+	return mat;
+}
+
+/* free all duplicate data allocated by RE_init_sample_material() */
+void RE_free_sample_material(Material *mat)
+{
+	int tex_nr;
+
+	/* free textures */
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
+		if(mat->septex & (1<<tex_nr)) continue;
+		if(mat->mtex[tex_nr]) {
+			MTex *mtex= mat->mtex[tex_nr];
+			free_texture(mtex->tex);
+			MEM_freeN(mtex->tex);
+			mtex->tex = NULL;
+		}
+	}
+
+	free_material(mat);
+	MEM_freeN(mat);
+}
+
+
+
+/*
+*	Get material diffuse color and alpha (including linked textures) in given coordinates
+*	
+*	color,alpha : input/output color values
+*	volume_co : sample coordinate in global space. used by volumetric materials
+*	surface_co : sample surface coordinate in global space. used by "surface" materials
+*	face_index : surface face index
+*	hit_quad : whether point is on second "half" of a quad
+*	orcoDm : orco state derived mesh
+*/
+void RE_sample_material_color(Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3], int face_index, short hit_quad, DerivedMesh *orcoDm, Object *ob)
+{
+	MFace *mface;
+	int v1, v2, v3;
+	MVert *mvert;
+	float uv[3], normal[3];
+	ShadeInput shi = {0};
+	Render re = {0};
+
+	/* Get face data	*/
+	mvert = orcoDm->getVertArray(orcoDm);
+	mface = orcoDm->getFaceArray(orcoDm);
+
+	if (!mvert || !mface || !mat) return;
+	v1=mface[face_index].v1, v2=mface[face_index].v2, v3=mface[face_index].v3;
+	if (hit_quad) {v2=mface[face_index].v3; v3=mface[face_index].v4;}
+	normal_tri_v3( normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+
+	/* generate shadeinput with data required */
+	shi.mat = mat;
+
+	/* fill shadeinput data depending on material type */
+	if (mat->material_type == MA_TYPE_SURFACE) {
+		/* global coordinates */
+		copy_v3_v3(shi.gl, surface_co);
+		/* object space coordinates */
+		copy_v3_v3(shi.co, surface_co);
+		mul_m4_v3(ob->imat, shi.co);
+		/* orco coordinates */
+		{
+			float l;
+			/* Get generated UV */
+			textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+			l= 1.0f+uv[0]+uv[1];
+
+			/* calculate generated coordinate */
+			shi.lo[0]= l*mvert[v3].co[0]-uv[0]*mvert[v1].co[0]-uv[1]*mvert[v2].co[0];
+			shi.lo[1]= l*mvert[v3].co[1]-uv[0]*mvert[v1].co[1]-uv[1]*mvert[v2].co[1];
+			shi.lo[2]= l*mvert[v3].co[2]-uv[0]*mvert[v1].co[2]-uv[1]*mvert[v2].co[2];
+		}
+		/* uv coordinates */
+		{
+			int i, layers = CustomData_number_of_layers(&orcoDm->faceData, CD_MTFACE);
+			int layer_index = CustomData_get_layer_index(&orcoDm->faceData, CD_MTFACE);
+
+			/* for every uv layer set coords and name */
+			for (i=0; i<layers; i++) {
+				if(layer_index >= 0) {
+					float *uv1, *uv2, *uv3;
+					float l;
+					CustomData *data = &orcoDm->faceData;
+					MTFace *tface = (MTFace*) data->layers[layer_index+i].data;
+					float uv[3];
+					/* point layer name from actual layer data */
+					shi.uv[i].name = data->layers[i].name;
+					/* Get generated coordinates to calculate UV from */
+					textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+					/* Get UV mapping coordinate */
+					l= 1.0f+uv[0]+uv[1];
+						
+					uv1= tface[face_index].uv[0];
+					uv2= (hit_quad) ? tface[face_index].uv[2] : tface[face_index].uv[1];
+					uv3= (hit_quad) ? tface[face_index].uv[3] : tface[face_index].uv[2];
+								
+					shi.uv[i].uv[0]= -1.0f + 2.0f*(l*uv3[0]-uv[0]*uv1[0]-uv[1]*uv2[0]);
+					shi.uv[i].uv[1]= -1.0f + 2.0f*(l*uv3[1]-uv[0]*uv1[1]-uv[1]*uv2[1]);
+					shi.uv[i].uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
+				}
+			}
+			/* active uv layer */
+			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData,CD_MTFACE) - layer_index;
+			shi.totuv = layers;
+		}
+
+		/* apply initial values from material */
+		shi.r = mat->r;
+		shi.g = mat->g;
+		shi.b = mat->b;
+		shi.alpha = mat->alpha;
+
+		/* do texture */
+		do_material_tex(&shi, &re);
+
+		/* apply result	*/
+		color[0] = shi.r;
+		color[1] = shi.g;
+		color[2] = shi.b;
+		*alpha = shi.alpha;
+	}
+	else if (mat->material_type == MA_TYPE_VOLUME) {
+		ObjectInstanceRen obi = {0};
+		obi.ob = ob;
+		shi.obi = &obi;
+		unit_m4(re.viewinv);
+		copy_v3_v3(color, mat->vol.reflection_col);
+		*alpha = mat->vol.density;
+
+		/* do texture */
+		do_volume_tex(&shi, volume_co, (MAP_TRANSMISSION_COL | MAP_REFLECTION_COL | MAP_DENSITY),
+		              color, alpha, &re);
+	}
 }
 
 /* eof */

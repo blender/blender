@@ -1537,10 +1537,10 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
     bl_label = "Extrude"
 
     _extrude_funcs = {
-        "VERT": lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
-        "EDGE": lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
-        "FACE": lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),
-        "REGION": lambda layout: layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region"),
+        'VERT': lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
+        'EDGE': lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
+        'FACE': lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),
+        'REGION': lambda layout: layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region"),
     }
 
     @staticmethod
@@ -1550,11 +1550,11 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         menu = []
         if mesh.total_face_sel:
-            menu += ["REGION", "FACE"]
+            menu += ['REGION', 'FACE']
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
-            menu += ["EDGE"]
+            menu += ['EDGE']
         if mesh.total_vert_sel and select_mode[0]:
-            menu += ["VERT"]
+            menu += ['VERT']
 
         # should never get here
         return menu

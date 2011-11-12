@@ -640,6 +640,22 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 			if (smd->domain->effector_weights == ew)
 				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", md->name);
 		}
+
+		/* check dynamic paint modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
+		if (md) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+
+			if (pmd->canvas) {
+				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+
+				for(; surface; surface=surface->next) {
+					if (surface->effector_weights == ew)
+						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"].effector_weights",
+							md->name, surface->name);
+				}
+			}
+		}
 	}
 	return NULL;
 }

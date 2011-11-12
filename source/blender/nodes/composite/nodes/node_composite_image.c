@@ -358,41 +358,41 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 
 static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
 {
-   if(out[RRES_OUT_Z]->hasoutput)
-	  out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
-   if(out[RRES_OUT_VEC]->hasoutput)
-	  out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_VECTOR);
-   if(out[RRES_OUT_NORMAL]->hasoutput)
-	  out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_NORMAL);
-   if(out[RRES_OUT_UV]->hasoutput)
-	  out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_UV);
+	if(out[RRES_OUT_Z]->hasoutput)
+		out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
+	if(out[RRES_OUT_VEC]->hasoutput)
+		out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_VECTOR);
+	if(out[RRES_OUT_NORMAL]->hasoutput)
+		out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_NORMAL);
+	if(out[RRES_OUT_UV]->hasoutput)
+		out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_UV);
 
-   if(out[RRES_OUT_RGBA]->hasoutput)
-	  out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RGBA);
-   if(out[RRES_OUT_DIFF]->hasoutput)
-	  out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_DIFFUSE);
-   if(out[RRES_OUT_SPEC]->hasoutput)
-	  out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SPEC);
-   if(out[RRES_OUT_SHADOW]->hasoutput)
-	  out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SHADOW);
-   if(out[RRES_OUT_AO]->hasoutput)
-	  out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_AO);
-   if(out[RRES_OUT_REFLECT]->hasoutput)
-	  out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
-   if(out[RRES_OUT_REFRACT]->hasoutput)
-	  out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
-   if(out[RRES_OUT_INDIRECT]->hasoutput)
-	  out[RRES_OUT_INDIRECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDIRECT);
-   if(out[RRES_OUT_INDEXOB]->hasoutput)
-	   out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
+	if(out[RRES_OUT_RGBA]->hasoutput)
+		out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RGBA);
+	if(out[RRES_OUT_DIFF]->hasoutput)
+		out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_DIFFUSE);
+	if(out[RRES_OUT_SPEC]->hasoutput)
+		out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SPEC);
+	if(out[RRES_OUT_SHADOW]->hasoutput)
+		out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SHADOW);
+	if(out[RRES_OUT_AO]->hasoutput)
+		out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_AO);
+	if(out[RRES_OUT_REFLECT]->hasoutput)
+		out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
+	if(out[RRES_OUT_REFRACT]->hasoutput)
+		out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
+	if(out[RRES_OUT_INDIRECT]->hasoutput)
+		out[RRES_OUT_INDIRECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDIRECT);
+	if(out[RRES_OUT_INDEXOB]->hasoutput)
+		out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
 	if(out[RRES_OUT_INDEXMA]->hasoutput)
 		out[RRES_OUT_INDEXMA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXMA);
-   if(out[RRES_OUT_MIST]->hasoutput)
-	   out[RRES_OUT_MIST]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_MIST);
-   if(out[RRES_OUT_EMIT]->hasoutput)
-	   out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
-   if(out[RRES_OUT_ENV]->hasoutput)
-	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
+	if(out[RRES_OUT_MIST]->hasoutput)
+		out[RRES_OUT_MIST]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_MIST);
+	if(out[RRES_OUT_EMIT]->hasoutput)
+		out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
+	if(out[RRES_OUT_ENV]->hasoutput)
+		out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
 }
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)

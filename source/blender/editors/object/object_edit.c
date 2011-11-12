@@ -475,7 +475,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
 		ok= 1;
-		 make_editText(ob);
+		make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
@@ -536,9 +536,9 @@ static int editmode_toggle_poll(bContext *C)
 		return 0;
 
 	return (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
-			  ob->type == OB_FONT || ob->type == OB_MBALL ||
-			  ob->type == OB_LATTICE || ob->type == OB_SURF ||
-			  ob->type == OB_CURVE);
+	        ob->type == OB_FONT || ob->type == OB_MBALL ||
+	        ob->type == OB_LATTICE || ob->type == OB_SURF ||
+	        ob->type == OB_CURVE);
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
@@ -1461,7 +1461,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
+static int object_calculate_paths_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -1469,7 +1469,7 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)  
 	{
 		/* verify makes sure that the selected bone has a bone with the appropriate settings */
-		animviz_verify_motionpaths(scene, ob, NULL);
+		animviz_verify_motionpaths(op->reports, scene, ob, NULL);
 	}
 	CTX_DATA_END;
 	

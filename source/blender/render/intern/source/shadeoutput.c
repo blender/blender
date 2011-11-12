@@ -174,7 +174,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		VECCOPY(npos, p1);	// npos is double!
 		
 		/* pre-scale */
-		npos[2]*= lar->sh_zfac;
+		npos[2] *= (double)lar->sh_zfac;
 	}
 	else {
 		VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
@@ -204,11 +204,11 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabs(nray[2]) < FLT_EPSILON ) use_yco= 1;
+		if( fabsf(nray[2]) < FLT_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	
-	nray[2]*= lar->sh_zfac;
+	nray[2] *= (double)lar->sh_zfac;
 	/* nray does not need normalization */
 	
 	ladist= lar->sh_zfac*lar->dist;
@@ -260,7 +260,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		
 		/* intersction point with -ladist, the bottom of the cone */
 		if(use_yco==0) {
-			t3= (-ladist-npos[2])/nray[2];
+			t3= ((double)(-ladist)-npos[2])/nray[2];
 				
 			/* de we have to replace one of the intersection points? */
 			if(ok1) {
@@ -413,7 +413,7 @@ float fresnel_fac(float *view, float *vn, float grad, float fac)
 	if(t1>0.0f)  t2= 1.0f+t1;
 	else t2= 1.0f-t1;
 	
-	t2= grad + (1.0f-grad)*pow(t2, fac);
+	t2= grad + (1.0f-grad)*powf(t2, fac);
 	
 	if(t2<0.0f) return 0.0f;
 	else if(t2>1.0f) return 1.0f;
@@ -698,7 +698,7 @@ static float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 	angle = tan(saacos(nh));
 	alpha = MAX2(rms, 0.001f);
 
-	i= nl * (1.0f/(4.0f*M_PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
+	i= nl * (1.0f/(4.0f*(float)M_PI*alpha*alpha)) * (expf( -(angle*angle)/(alpha*alpha))/(sqrtf(nv*nl)));
 
 	return i;
 }
@@ -777,7 +777,7 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	
 	b*= 0.95f;	/* prevent tangens from shooting to inf, 'nl' can be not a dot product here. */
 				/* overflow only happens with extreme size area light, and higher roughness */
-	i = nl * ( A + ( B * t * sin(a) * tan(b) ) );
+	i = nl * ( A + ( B * t * sinf(a) * tanf(b) ) );
 	
 	return i;
 }
@@ -864,16 +864,22 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 {
 	Material *ma= shi->mat;
 
-	if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
+	if(ma->mode & (MA_FACETEXTURE)) {
 		shi->r= shi->vcol[0];
 		shi->g= shi->vcol[1];
 		shi->b= shi->vcol[2];
 		if(ma->mode & (MA_FACETEXTURE_ALPHA))
 			shi->alpha= shi->vcol[3];
 	}
+	else if(ma->mode & (MA_VERTEXCOLP)) {
+		float neg_alpha = 1.0f - shi->vcol[3];
+		shi->r= shi->r*neg_alpha + shi->vcol[0]*shi->vcol[3];
+		shi->g= shi->g*neg_alpha + shi->vcol[1]*shi->vcol[3];
+		shi->b= shi->b*neg_alpha + shi->vcol[2]*shi->vcol[3];
+	}
 	
 	if(ma->texco)
-		do_material_tex(shi);
+		do_material_tex(shi, &R);
 
 	if(ma->fresnel_tra!=0.0f) 
 		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
@@ -1630,9 +1636,9 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 static void wrld_exposure_correct(float diff[3])
 {
 	
-	diff[0]= R.wrld.linfac*(1.0f-exp( diff[0]*R.wrld.logfac) );
-	diff[1]= R.wrld.linfac*(1.0f-exp( diff[1]*R.wrld.logfac) );
-	diff[2]= R.wrld.linfac*(1.0f-exp( diff[2]*R.wrld.logfac) );
+	diff[0]= R.wrld.linfac*(1.0f-expf( diff[0]*R.wrld.logfac) );
+	diff[1]= R.wrld.linfac*(1.0f-expf( diff[1]*R.wrld.logfac) );
+	diff[2]= R.wrld.linfac*(1.0f-expf( diff[2]*R.wrld.logfac) );
 }
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
@@ -1655,15 +1661,21 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* material color itself */
 	if(passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA)) {
-		if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
+		if(ma->mode & (MA_FACETEXTURE)) {
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
 			if((ma->mode & (MA_FACETEXTURE_ALPHA)) || ma->vcol_alpha)
-				shi->alpha= (shi->mode & MA_TRANSP) ? shi->vcol[3] : 1.0f;
+				shi->alpha= shi->vcol[3];
+		}
+		else if(ma->mode & (MA_VERTEXCOLP)) {
+			float neg_alpha = 1.0f - shi->vcol[3];
+			shi->r= shi->r*neg_alpha + shi->vcol[0]*shi->vcol[3];
+			shi->g= shi->g*neg_alpha + shi->vcol[1]*shi->vcol[3];
+			shi->b= shi->b*neg_alpha + shi->vcol[2]*shi->vcol[3];
 		}
 		if(ma->texco){
-			do_material_tex(shi);
+			do_material_tex(shi, &R);
 			if (!(shi->mode & MA_TRANSP)) shi->alpha = 1.0f;
 		}
 		
