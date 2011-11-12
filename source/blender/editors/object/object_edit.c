@@ -1461,7 +1461,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
+static int object_calculate_paths_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -1469,7 +1469,7 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)  
 	{
 		/* verify makes sure that the selected bone has a bone with the appropriate settings */
-		animviz_verify_motionpaths(scene, ob, NULL);
+		animviz_verify_motionpaths(op->reports, scene, ob, NULL);
 	}
 	CTX_DATA_END;
 	
