@@ -278,7 +278,7 @@ typedef struct Tex {
 	
 } Tex;
 
-/* used for mapping and texture nodes. note: rot is in degrees */
+/* used for mapping and texture nodes. note: rot is now in radians */
 
 typedef struct TexMapping {
 	float loc[3], rot[3], size[3];

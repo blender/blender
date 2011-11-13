@@ -102,7 +102,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	z=in[2]*cosf(theta)-in[1]*sinf(theta);
 
 	/*if within the acceptance angle */
-	angle=c->t1*(float)M_PI/180.0f; /* convert to radians */
+	angle=c->t1; /* t1 is radians. */
 
 	/* if kfg is <0 then the pixel is outside of the key color */
 	kfg= x-(fabsf(z)/tanf(angle/2.0f));
@@ -115,7 +115,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 		alpha=(1.0f-kfg)*(c->fstrength);
 
 		beta=atan2(z,x);
-		angle2=c->t2*(float)(M_PI/180.0);
+		angle2=c->t2; /* t2 is radians. */
 
 		/* if beta is within the cutoff angle */
 		if(fabsf(beta) < (angle2/2.0f)) {
@@ -180,8 +180,8 @@ static void node_composit_init_chroma_matte(bNodeTree *UNUSED(ntree), bNode* nod
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
 	node->storage= c;
-	c->t1= 30.0f;
-	c->t2= 10.0f;
+	c->t1= DEG2RADF(30.0f);
+	c->t2= DEG2RADF(10.0f);
 	c->t3= 0.0f;
 	c->fsize= 0.0f;
 	c->fstrength= 1.0f;

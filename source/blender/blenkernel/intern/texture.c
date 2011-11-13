@@ -229,7 +229,7 @@ void default_tex_mapping(TexMapping *texmap)
 
 void init_tex_mapping(TexMapping *texmap)
 {
-	float eul[3], smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
+	float smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
 
 	if(texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
 	   is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
@@ -252,10 +252,8 @@ void init_tex_mapping(TexMapping *texmap)
 		size_to_mat3(smat, texmap->size);
 		
 		/* rotation */
-		eul[0]= DEG2RADF(texmap->rot[0]);
-		eul[1]= DEG2RADF(texmap->rot[1]);
-		eul[2]= DEG2RADF(texmap->rot[2]);
-		eul_to_mat3( rmat,eul);
+		/* XXX TexMapping rotation are now in radians. */
+		eul_to_mat3(rmat, texmap->rot);
 		
 		/* compose it all */
 		mul_m3_m3m3(mat, rmat, smat);

@@ -376,9 +376,10 @@ typedef struct NodeVertexCol {
 
 /* qdn: Defocus blur node */
 typedef struct NodeDefocus {
-	char bktype, rotation, preview, gamco;
+	char bktype, pad_c1, preview, gamco;
 	short samples, no_zbuf;
 	float fstop, maxblur, bthresh, scale;
+	float rotation, pad_f1;
 } NodeDefocus;
 
 typedef struct NodeScriptDict {
@@ -389,8 +390,9 @@ typedef struct NodeScriptDict {
 /* qdn: glare node */
 typedef struct NodeGlare {
 	char quality, type, iter;
-	char angle, angle_ofs, size, pad[2];
+	char angle, pad_c1, size, pad[2];
 	float colmod, mix, threshold, fade;
+	float angle_ofs, pad_f1;
 } NodeGlare;
 
 /* qdn: tonemap node */
