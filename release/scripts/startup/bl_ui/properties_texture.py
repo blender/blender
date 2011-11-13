@@ -778,14 +778,14 @@ class TEXTURE_PT_ocean(TextureTypePanel, Panel):
     bl_label = "Ocean"
     tex_type = 'OCEAN'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         tex = context.texture
         ot = tex.ocean
-    
-        col = layout.column()        
+
+        col = layout.column()
         col.prop(ot, "ocean_object")
         col.prop(ot, "output")
 

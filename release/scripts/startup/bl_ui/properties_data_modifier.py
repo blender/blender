@@ -420,14 +420,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             return
 
         layout.prop(md, "geometry_mode")
-        
+
         if md.geometry_mode == 'GENERATE':
             row = layout.row()
             row.prop(md, "repeat_x")
             row.prop(md, "repeat_y")
 
         layout.separator()
-        
+
         flow = layout.column_flow()
         flow.prop(md, "time")
         flow.prop(md, "resolution")
@@ -435,15 +435,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         flow.prop(md, "depth")
 
         layout.label("Waves:")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.prop(md, "choppiness")
         col.prop(md, "wave_scale", text="Scale")
         col.prop(md, "smallest_wave")
         col.prop(md, "wind_velocity")
-        
+
         col = split.column()
         col.prop(md, "wave_alignment", text="Alignment")
         sub = col.column()
@@ -452,33 +452,33 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.prop(md, "damp")
 
         layout.separator()
-        
+
         layout.prop(md, "generate_normals")
-        
+
         row = layout.row()
         row.prop(md, "generate_foam")
         sub = row.row()
         sub.active = md.generate_foam
         sub.prop(md, "foam_coverage", text="Coverage")
-        
+
         layout.separator()
 
         if md.is_cached:
-            layout.operator("object.ocean_bake", text="Free Bake").free=True
+            layout.operator("object.ocean_bake", text="Free Bake").free = True
         else:
             layout.operator("object.ocean_bake")
-            
+
         split = layout.split()
         split.enabled = not md.is_cached
-        
+
         col = split.column(align=True)
         col.prop(md, "bake_start", text="Start")
         col.prop(md, "bake_end", text="End")
-        
+
         col = split.column(align=True)
         col.label(text="Cache path:")
         col.prop(md, "filepath", text="")
-        
+
         #col.prop(md, "bake_foam_fade")
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
