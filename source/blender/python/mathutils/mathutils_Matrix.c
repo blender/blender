@@ -1489,9 +1489,10 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 	mat2 = (MatrixObject*)m2;
 
 	if (!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Matrix addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Matrix addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
@@ -1520,9 +1521,11 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 	mat2 = (MatrixObject*)m2;
 
 	if (!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Matrix addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Matrix subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name
+		             );
 		return NULL;
 	}
 

@@ -707,9 +707,10 @@ static PyObject *Quaternion_add(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if (!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Quaternion addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Quaternion addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 	quat1 = (QuaternionObject*)q1;
@@ -730,9 +731,10 @@ static PyObject *Quaternion_sub(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if (!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Quaternion addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Quaternion subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 

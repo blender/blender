@@ -370,9 +370,10 @@ static PyObject *Color_add(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -392,9 +393,10 @@ static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL, *color2 = NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color addition: (%s += %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -417,9 +419,10 @@ static PyObject *Color_sub(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -439,9 +442,10 @@ static PyObject *Color_isub(PyObject *v1, PyObject *v2)
 	ColorObject *color1= NULL, *color2= NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color subtraction: (%s -= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -554,9 +558,10 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 		mul_vn_fl(color->col, COLOR_SIZE, scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color multiplication: "
-		                "arguments not acceptable for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color multiplication: (%s *= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 
@@ -585,9 +590,10 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 		mul_vn_fl(color->col, COLOR_SIZE, 1.0f / scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color multiplication: "
-		                "arguments not acceptable for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color division: (%s /= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 
