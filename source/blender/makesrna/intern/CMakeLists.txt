@@ -206,7 +206,7 @@ if(WITH_FFTW3)
 	add_definitions(-DWITH_FFTW3)
 endif()
 
-if(WITH_OCEANSIM)
+if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
 

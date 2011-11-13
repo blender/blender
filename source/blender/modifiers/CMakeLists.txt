@@ -117,7 +117,7 @@ if(WITH_MOD_FLUID)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
-if(WITH_OCEANSIM)
+if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
 
