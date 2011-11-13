@@ -1815,6 +1815,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 				if(tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
 			}
 			if(tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
+			if(tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {

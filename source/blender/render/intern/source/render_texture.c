@@ -79,6 +79,7 @@
 #include "rendercore.h"
 #include "shading.h"
 #include "texture.h"
+#include "texture_ocean.h"
 
 #include "renderdatabase.h" /* needed for UV */
 
@@ -1264,7 +1265,9 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_VOXELDATA:
 		retval= voxeldatatex(tex, texvec, texres);  
 		break;
-
+	case TEX_OCEAN:
+		retval= ocean_texture(tex, texvec, texres);  
+		break;
 	}
 
 	if (tex->flag & TEX_COLORBAND) {
@@ -2192,6 +2195,12 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			if(shi->osatex==0 && use_ntap_bump) {
 				use_ntap_bump = 0;
 				use_compat_bump = 1;
+			}
+			
+			/* case ocean */
+			if(tex->type == TEX_OCEAN) {
+				use_ntap_bump = 0;
+				use_compat_bump = 0;
 			}
 
 			/* which coords */

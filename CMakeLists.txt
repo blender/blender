@@ -171,6 +171,7 @@ option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
+option(WITH_OCEANSIM            "Enable Ocean Modifier" OFF)
 
 # Image format support
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
@@ -283,6 +284,10 @@ if(WITH_CODEC_QUICKTIME AND MINGW)
 	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
 						"because it is currently unsupported, remove this "
 						"line if youre a developer who wants to add support.")
+endif()
+
+if(NOT WITH_FFTW3 AND WITH_OCEANSIM)
+	message(FATAL_ERROR "WITH_OCEANSIM requires WITH_FFTW3 to be ON")
 endif()
 
 # may as well build python module without a UI
@@ -1562,6 +1567,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_MOD_BOOLEAN)
 	info_cfg_option(WITH_MOD_DECIMATE)
 	info_cfg_option(WITH_MOD_FLUID)
+	info_cfg_option(WITH_OCEANSIM)
 
 	info_cfg_text("")
 

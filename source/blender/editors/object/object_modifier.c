@@ -34,6 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -48,6 +49,7 @@
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -63,6 +65,7 @@
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_object.h"
+#include "BKE_ocean.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
 
@@ -1402,5 +1405,221 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
+}
+
+
+/****************** ocean bake operator *********************/
+
+static int ocean_bake_poll(bContext *C)
+{
+	return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0);
+}
+
+/* copied from init_ocean_modifier, MOD_ocean.c */
+static void init_ocean_modifier_bake(struct Ocean *oc, struct OceanModifierData *omd)
+{
+	int do_heightfield, do_chop, do_normals, do_jacobian;
+	
+	if (!omd || !oc) return; 
+	
+	do_heightfield = TRUE;
+	do_chop = (omd->chop_amount > 0);
+	do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
+	do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
+	
+	BKE_init_ocean(oc, omd->resolution*omd->resolution, omd->resolution*omd->resolution, omd->spatial_size, omd->spatial_size, 
+				   omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment, 
+				   omd->depth, omd->time,
+				   do_heightfield, do_chop, do_normals, do_jacobian,
+				   omd->seed);
+}
+
+typedef struct OceanBakeJob {
+	/* from wmJob */
+	void *owner;
+	short *stop, *do_update;
+	float *progress;
+	int current_frame;
+	struct OceanCache *och;
+	struct Ocean *ocean;
+	struct OceanModifierData *omd;
+} OceanBakeJob;
+
+static void oceanbake_free(void *customdata)
+{
+	OceanBakeJob *oj= customdata;
+	MEM_freeN(oj);
+}
+
+/* called by oceanbake, only to check job 'stop' value */
+static int oceanbake_breakjob(void *UNUSED(customdata))
+{
+	//OceanBakeJob *ob= (OceanBakeJob *)customdata;
+	//return *(ob->stop);
+	
+	/* this is not nice yet, need to make the jobs list template better 
+	 * for identifying/acting upon various different jobs */
+	/* but for now we'll reuse the render break... */
+	return (G.afbreek);
+}
+
+/* called by oceanbake, wmJob sends notifier */
+static void oceanbake_update(void *customdata, float progress, int *cancel)
+{
+	OceanBakeJob *oj= customdata;
+	
+	if (oceanbake_breakjob(oj))
+		*cancel = 1;
+	
+	*(oj->do_update)= 1;
+	*(oj->progress)= progress;
+}
+
+static void oceanbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+{
+	OceanBakeJob *oj= customdata;
+	
+	oj->stop= stop;
+	oj->do_update = do_update;
+	oj->progress = progress;
+	
+	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
+	
+	BKE_bake_ocean(oj->ocean, oj->och, oceanbake_update, (void *)oj);
+	
+	*do_update= 1;
+	*stop = 0;
+}
+
+static void oceanbake_endjob(void *customdata)
+{
+	OceanBakeJob *oj= customdata;
+	
+	if (oj->ocean) {
+		BKE_free_ocean(oj->ocean);
+		oj->ocean = NULL;
+	}
+	
+	oj->omd->oceancache = oj->och;
+	oj->omd->cached = TRUE;
+}
+
+static int ocean_bake_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	OceanModifierData *omd = (OceanModifierData *)edit_modifier_property_get(op, ob, eModifierType_Ocean);
+	Scene *scene = CTX_data_scene(C);
+	OceanCache *och;
+	struct Ocean *ocean;
+	int f, cfra, i=0;
+	int free= RNA_boolean_get(op->ptr, "free");
+	
+	wmJob *steve;
+	OceanBakeJob *oj;
+	
+	if (!omd)
+		return OPERATOR_CANCELLED;
+	
+	if (free) {
+		omd->refresh |= MOD_OCEAN_REFRESH_CLEAR_CACHE;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+		return OPERATOR_FINISHED;
+	}
+	
+	och = BKE_init_ocean_cache(omd->cachepath, omd->bakestart, omd->bakeend, omd->wave_scale, 
+							   omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
+	
+	och->time = MEM_mallocN(och->duration*sizeof(float), "foam bake time");
+	
+	cfra = scene->r.cfra;
+	
+	/* precalculate time variable before baking */
+	for (f=omd->bakestart; f<=omd->bakeend; f++) {
+		/* from physics_fluid.c:
+		 
+		 * XXX: This can't be used due to an anim sys optimisation that ignores recalc object animation,
+		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
+		 * --> BKE_animsys_evaluate_all_animation(G.main, eval_time);
+		 * This doesn't work with drivers:
+		 * --> BKE_animsys_evaluate_animdata(&fsDomain->id, fsDomain->adt, eval_time, ADT_RECALC_ALL);
+		 */
+		
+		/* Modifying the global scene isn't nice, but we can do it in 
+		 * this part of the process before a threaded job is created */
+		
+		//scene->r.cfra = f;
+		//ED_update_for_newframe(CTX_data_main(C), scene, CTX_wm_screen(C), 1);
+		
+		/* ok, this doesn't work with drivers, but is way faster. 
+		 * let's use this for now and hope nobody wants to drive the time value... */
+		BKE_animsys_evaluate_animdata(scene, (ID *)ob, ob->adt, f, ADT_RECALC_ANIM);
+		
+		och->time[i] = omd->time;
+		i++;
+	}
+	
+	/* make a copy of ocean to use for baking - threadsafety */
+	ocean = BKE_add_ocean();
+	init_ocean_modifier_bake(ocean, omd);
+	
+	/*
+	 BKE_bake_ocean(ocean, och);
+	
+	omd->oceancache = och;
+	omd->cached = TRUE;
+	
+	scene->r.cfra = cfra;
+	
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	*/
+	
+	/* job stuff */
+	
+	scene->r.cfra = cfra;
+	
+	/* setup job */
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation", WM_JOB_PROGRESS);
+	oj= MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
+	oj->ocean = ocean;
+	oj->och = och;
+	oj->omd = omd;
+	
+	WM_jobs_customdata(steve, oj, oceanbake_free);
+	WM_jobs_timer(steve, 0.1, NC_OBJECT|ND_MODIFIER, NC_OBJECT|ND_MODIFIER);
+	WM_jobs_callbacks(steve, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
+	
+	WM_jobs_start(CTX_wm_manager(C), steve);
+	
+	
+	
+	return OPERATOR_FINISHED;
+}
+
+static int ocean_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	if (edit_modifier_invoke_properties(C, op))
+		return ocean_bake_exec(C, op);
+	else
+		return OPERATOR_CANCELLED;
+}
+
+
+void OBJECT_OT_ocean_bake(wmOperatorType *ot)
+{
+	ot->name= "Bake Ocean";
+	ot->description= "Bake an image sequence of ocean data";
+	ot->idname= "OBJECT_OT_ocean_bake";
+	
+	ot->poll= ocean_bake_poll;
+	ot->invoke= ocean_bake_invoke;
+	ot->exec= ocean_bake_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	edit_modifier_properties(ot);
+	
+	RNA_def_boolean(ot->srna, "free", FALSE, "Free", "Free the bake, rather than generating it");
 }
 

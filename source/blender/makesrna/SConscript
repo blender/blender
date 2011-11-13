@@ -55,6 +55,9 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
+if env['WITH_BF_OCEANSIM']:
+    defs.append('WITH_OCEANSIM')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
