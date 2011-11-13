@@ -542,7 +542,7 @@ extern "C" {
 		BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
 	}
 
-	void FRS_add_lineset(FreestyleConfig *config)
+	FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
 	{
 		int lineset_index = BLI_countlist(&config->linesets);
 
@@ -563,6 +563,30 @@ extern "C" {
 		else
 			strcpy(lineset->name, "LineSet");
 		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name), sizeof(lineset->name));
+
+		return lineset;
+	}
+
+	void FRS_copy_active_lineset(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+
+		if (lineset) {
+			FreestyleLineSet *new_lineset = FRS_add_lineset(config);
+			new_lineset->linestyle = lineset->linestyle;
+			new_lineset->linestyle->id.us++;
+			new_lineset->flags = lineset->flags;
+			new_lineset->selection = lineset->selection;
+			new_lineset->qi = lineset->qi;
+			new_lineset->qi_start = lineset->qi_start;
+			new_lineset->qi_end = lineset->qi_end;
+			new_lineset->edge_types = lineset->edge_types;
+			if (lineset->group) {
+				new_lineset->group = lineset->group;
+				new_lineset->group->id.us++;
+			}
+			new_lineset->flags |= FREESTYLE_LINESET_CURRENT;
+		}
 	}
 
 	void FRS_delete_active_lineset(FreestyleConfig *config)

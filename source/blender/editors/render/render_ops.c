@@ -66,6 +66,7 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_freestyle_module_remove);
 	WM_operatortype_append(SCENE_OT_freestyle_module_move);
 	WM_operatortype_append(SCENE_OT_freestyle_lineset_add);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_copy);
 	WM_operatortype_append(SCENE_OT_freestyle_lineset_remove);
 	WM_operatortype_append(SCENE_OT_freestyle_lineset_move);
 	WM_operatortype_append(SCENE_OT_freestyle_linestyle_new);

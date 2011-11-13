@@ -175,6 +175,14 @@ class RENDER_PT_layers(RenderButtonsPanel, Panel):
         row.prop(rl, "exclude_refraction", text="")
 
 
+class RENDER_MT_lineset_specials(Menu):
+    bl_label = "Lineset Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("scene.freestyle_lineset_copy", icon='ZOOMIN')
+
+
 class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -218,6 +226,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
             subsub = sub.column(align=True)
             subsub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
             subsub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+            subsub.menu("RENDER_MT_lineset_specials", icon='DOWNARROW_HLT', text="")
             if lineset:
                 sub.separator()
                 subsub = sub.column(align=True)

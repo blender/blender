@@ -57,6 +57,7 @@ void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_lineset_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_copy(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_lineset_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_lineset_move(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_linestyle_new(struct wmOperatorType *ot);
