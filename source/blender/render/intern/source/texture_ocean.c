@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -64,55 +64,55 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 	int cfra = R.r.cfra;
 	int normals= 0;
 	ModifierData *md;
-	
+
 	texres->tin = 0.0f;
-	
+
 	if (!ot || !ot->object || !ot->object->modifiers.first)
 		return 0;
-	
+
 	if ((md = (ModifierData *)modifiers_findByType(ot->object, eModifierType_Ocean))) {
 		OceanModifierData *omd = (OceanModifierData *)md;
-		
+
 		if (!omd->ocean)
 			return 0;
 
 		normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
-		
+
 		if (omd->oceancache && omd->cached==TRUE) {
-			
+
 			CLAMP(cfra, omd->bakestart, omd->bakeend);
 			cfra -= omd->bakestart;	// shift to 0 based
-		
+
 			BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
-		
+
 		} else {	// non-cached
-			
+
 			if (G.rendering)
 				BKE_ocean_eval_uv_catrom(omd->ocean, &ocr, u, v);
 			else
 				BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
-			
+
 			ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
 		}
 	}
-	
-	
+
+
 	switch (ot->output) {
 		case TEX_OCN_DISPLACEMENT:
 			/* XYZ displacement */
 			texres->tr = 0.5f + 0.5f * ocr.disp[0];
 			texres->tg = 0.5f + 0.5f * ocr.disp[2];
 			texres->tb = 0.5f + 0.5f * ocr.disp[1];
-			
+
 			texres->tr = MAX2(0.0f, texres->tr);
 			texres->tg = MAX2(0.0f, texres->tg);
 			texres->tb = MAX2(0.0f, texres->tb);
 
 			BRICONTRGB;
-			
+
 			retval = TEX_RGB;
 			break;
-		
+
 		case TEX_OCN_EMINUS:
 			/* -ve eigenvectors ? */
 			texres->tr = ocr.Eminus[0];
@@ -120,7 +120,7 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 			texres->tb = ocr.Eminus[1];
 			retval = TEX_RGB;
 			break;
-		
+
 		case TEX_OCN_EPLUS:
 			/* -ve eigenvectors ? */
 			texres->tr = ocr.Eplus[0];
@@ -128,18 +128,18 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 			texres->tb = ocr.Eplus[1];
 			retval = TEX_RGB;
 			break;
-			
+
 		case TEX_OCN_JPLUS:
 			texres->tin = ocr.Jplus;
 			retval = TEX_INT;
 			break;
 
 		case TEX_OCN_FOAM:
-			
+
 			texres->tin = ocr.foam;
 
 			BRICONT;
-			
+
 			retval = TEX_INT;
 			break;
 	}
@@ -150,9 +150,8 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 		normalize_v3_v3(texres->nor, ocr.normal);
 		retval |= TEX_NOR;
 	}
-	
+
 	texres->ta = 1.0f;
-	
+
 	return retval;
 }
-
