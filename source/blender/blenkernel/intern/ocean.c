@@ -1204,7 +1204,7 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		/* add new foam */
 		for (y=0; y < res_y; y++) {
 			for (x=0; x < res_x; x++) {
-				float r, pr=0.0f, foam_result;
+				float /*r,*/ /* UNUSED */ pr=0.0f, foam_result;
 				float neg_disp, neg_eplus;
 
 				BKE_ocean_eval_ij(o, &ocr, x, y);
@@ -1218,7 +1218,7 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 				if (i>0)
 					pr = prev_foam[res_x*y + x];
 
-				r = BLI_frand();	// randomly reduce foam
+				/* r = BLI_frand(); */ /* UNUSED */ // randomly reduce foam
 
 				//pr = pr * och->foam_fade;		// overall fade
 
