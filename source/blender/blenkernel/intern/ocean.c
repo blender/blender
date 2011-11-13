@@ -1314,6 +1314,8 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 /* stub */
 typedef struct Ocean {
+	/* need some data here, C does not allow empty struct */	
+	int stub;
 } Ocean;
 
 
