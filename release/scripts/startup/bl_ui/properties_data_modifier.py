@@ -416,7 +416,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def OCEAN(self, layout, ob, md):
         if not md.build_enabled:
-            col.label("Built without OceanSim modifier")
+            layout.label("Built without OceanSim modifier")
             return
 
         layout.prop(md, "geometry_mode")
