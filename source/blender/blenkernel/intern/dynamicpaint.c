@@ -207,7 +207,7 @@ typedef struct PaintAdjData {
 static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
 	/* Add error to canvas ui info label */
-	BLI_snprintf(canvas->error, sizeof(canvas->error), string);
+	BLI_strncpy(canvas->error, string, sizeof(canvas->error));
 	return 0;
 }
 
@@ -1919,7 +1919,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 		/* Get closest edge to that subpixel on UV map	*/
 		{
 			float pixel[2], dist, t_dist;
-			int i, uindex[2], edge1_index, edge2_index,
+			int i, uindex[3], edge1_index, edge2_index,
 				e1_index, e2_index, target_face;
 			float closest_point[2], lambda, dir_vec[2];
 			int target_uv1, target_uv2, final_pixel[2], final_index;
