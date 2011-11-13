@@ -102,6 +102,7 @@ BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
+WITH_BF_OCEANSIM = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
