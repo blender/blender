@@ -73,9 +73,8 @@ typedef enum ModifierType {
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
-	eModifierType_EmptySlot,    /* keep so DynamicPaint keep loading, can re-use later */
-	eModifierType_DynamicPaint, /* reserve slot */
 	eModifierType_Ocean,
+	eModifierType_DynamicPaint,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
