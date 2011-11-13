@@ -24,6 +24,7 @@
 
 #include "segment.hpp"
 #include <string>
+#include <Eigen/StdVector>
 
 namespace KDL {
     /**
