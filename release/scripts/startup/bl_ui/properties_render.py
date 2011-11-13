@@ -588,7 +588,18 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             # Splitting
             col = layout.column()
             col.label(text="Splitting:")
-            row = col.row(align=True)
+            sub = col.row()
+            subcol = sub.column()
+            subcol.prop(linestyle, "use_min_angle", text="Min Angle")
+            subsub = subcol.split()
+            subsub.prop(linestyle, "min_angle", text="")
+            subsub.enabled = linestyle.use_min_angle
+            subcol = sub.column()
+            subcol.prop(linestyle, "use_max_angle", text="Max Angle")
+            subsub = subcol.split()
+            subsub.prop(linestyle, "max_angle", text="")
+            subsub.enabled = linestyle.use_max_angle
+            row = col.row()
             row.prop(linestyle, "material_boundary")
             # Selection
             col = layout.column()

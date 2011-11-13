@@ -184,7 +184,7 @@ static char *rna_LineStyle_geometry_modifier_path(PointerRNA *ptr)
 
 #else
 
-#include "DNA_material_types.h"
+#include "BLI_math.h"
 
 static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items, int blend, int color)
 {
@@ -821,6 +821,28 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
 	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "use_min_angle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_ANGLE);
+	RNA_def_property_ui_text(prop, "Use Min 2D Angle", "Split chains at points with angles smaller than the minimum 2D angle");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "min_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "min_angle");
+	RNA_def_property_range(prop, 0.0f, (float)M_PI);
+	RNA_def_property_ui_text(prop, "Min 2D Angle", "Minimum 2D angle for splitting chains");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "use_max_angle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MAX_2D_ANGLE);
+	RNA_def_property_ui_text(prop, "Use Max 2D Angle", "Split chains at points with angles larger than the maximum 2D angle");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "max_angle");
+	RNA_def_property_range(prop, 0.0f, (float)M_PI);
+	RNA_def_property_ui_text(prop, "Max 2D Angle", "Maximum 2D angle for splitting chains");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "use_min_length", PROP_BOOLEAN, PROP_NONE);

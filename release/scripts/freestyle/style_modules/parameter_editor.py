@@ -802,6 +802,23 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
         idx2 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
         return idx1 != idx2
 
+class Curvature2DAngleThresholdUP0D(UnaryPredicate0D):
+    def __init__(self, min_angle=None, max_angle=None):
+        UnaryPredicate0D.__init__(self)
+        print(min_angle, max_angle)
+        self._min_angle = min_angle
+        self._max_angle = max_angle
+        self._func = Curvature2DAngleF0D()
+    def getName(self):
+        return "Curvature2DAngleThresholdUP0D"
+    def __call__(self, inter):
+        angle = math.pi - self._func(inter)
+        if self._min_angle is not None and angle < self._min_angle:
+            return True
+        if self._max_angle is not None and angle > self._max_angle:
+            return True
+        return False
+
 # Seed for random number generation
 
 class Seed:
@@ -926,6 +943,10 @@ def process(layer_name, lineset_name):
     # split chains
     if linestyle.material_boundary:
         Operators.sequentialSplit(MaterialBoundaryUP0D())
+    if linestyle.use_min_angle or linestyle.use_max_angle:
+        min_angle = linestyle.min_angle if linestyle.use_min_angle else None
+        max_angle = linestyle.max_angle if linestyle.use_max_angle else None
+        Operators.sequentialSplit(Curvature2DAngleThresholdUP0D(min_angle, max_angle))
     # select chains
     if linestyle.use_min_length or linestyle.use_max_length:
         min_length = linestyle.min_length if linestyle.use_min_length else None
