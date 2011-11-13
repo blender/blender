@@ -1289,8 +1289,27 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 		}
 
 		if(track->markersnr) {
-			if(track->markers[0].framenr<sfra) sfra= track->markers[0].framenr;
-			if(track->markers[track->markersnr-1].framenr>efra) efra= track->markers[track->markersnr-1].framenr;
+			int first= 0, last= track->markersnr;
+			MovieTrackingMarker *first_marker= &track->markers[0];
+			MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
+
+			/* find first not-disabled marker */
+			while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+				first++;
+				first_marker++;
+			}
+
+			/* find last not-disabled marker */
+			while(last>=0 && last_marker->flag&MARKER_DISABLED) {
+				last--;
+				last_marker--;
+			}
+
+			if(first<track->markersnr-1)
+				sfra= MIN2(sfra, first_marker->framenr);
+
+			if(last>=0)
+				efra= MAX2(efra, last_marker->framenr);
 		}
 
 		track= track->next;
