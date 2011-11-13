@@ -385,7 +385,9 @@ if(WITH_LIBMV)
 endif()
 
 if(WITH_FFTW3)
-	list(APPEND INC_SYS ${FFTW3_INCLUDE_DIRS})	
+	list(APPEND INC_SYS
+		${FFTW3_INCLUDE_DIRS}
+	)
 	add_definitions(-DFFTW3=1)
 endif()
 

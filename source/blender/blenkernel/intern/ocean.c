@@ -46,6 +46,7 @@
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
@@ -994,26 +995,27 @@ void BKE_free_ocean(struct Ocean *oc)
 #define CACHE_TYPE_FOAM		2
 #define CACHE_TYPE_NORMAL	3
 
-static void cache_filename(char *string, char *path, int frame, int type)
+static void cache_filename(char *string, const char *path, int frame, int type)
 {
-	char *cachepath=NULL;
+	char cachepath[FILE_MAX];
+	const char *fname;
 	
 	switch(type) {
 		case CACHE_TYPE_FOAM:
-			cachepath = BLI_strdupcat(path, "foam_");
+			fname= "foam_";
 			break;
 		case CACHE_TYPE_NORMAL:
-			cachepath = BLI_strdupcat(path, "normal_");
+			fname= "normal_";
 			break;
 		case CACHE_TYPE_DISPLACE:
 		default:
-			cachepath = BLI_strdupcat(path, "disp_");
+			fname= "disp_";
 			break;
 	}		
-	
+
+	BLI_join_dirfile(cachepath, sizeof(cachepath), path, fname);
+
 	BKE_makepicstring(string, cachepath, frame, R_OPENEXR, 1, TRUE);
-	
-	MEM_freeN(cachepath);
 }
 
 void BKE_free_ocean_cache(struct OceanCache *och)

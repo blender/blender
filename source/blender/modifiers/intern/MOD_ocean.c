@@ -122,9 +122,9 @@ static void initData(ModifierData *md)
 	omd->size = 1.0;
 	omd->repeat_x = 1;
 	omd->repeat_y = 1;
-	
-	strcpy(omd->cachepath, "//ocean_cache/");
-	
+
+	BLI_strncpy(omd->cachepath, "//ocean_cache", sizeof(omd->cachepath));
+
 	omd->cached = 0;
 	omd->bakestart = 1;
 	omd->bakeend = 250;
