@@ -1001,6 +1001,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	*simple= mmd->simple;
 
 	tmp_mmd.lvl= mmd->totlvl;
+	tmp_mmd.sculptlvl= mmd->totlvl;
 	dm= multires_dm_create_from_derived(&tmp_mmd, 1, cddm, ob, 0, 0);
 	cddm->release(cddm);
 
