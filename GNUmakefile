@@ -34,7 +34,10 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_TYPE:=Release
-BUILD_CMAKE_ARGS:=
+
+ifndef BUILD_CMAKE_ARGS
+	BUILD_CMAKE_ARGS:=
+endif
 
 ifndef BUILD_DIR
 	BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
@@ -123,6 +126,7 @@ help:
 	@echo "  * bpy       - build as a python module which can be loaded from python directly"
 	@echo ""
 	@echo "  Note, passing the argument 'BUILD_DIR=path' when calling make will override the default build dir."
+	@echo "  Note, passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments."
 	@echo ""
 	@echo ""
 	@echo "Project Files for IDE's"
