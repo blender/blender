@@ -49,7 +49,7 @@ typedef struct KernelGlobals {
 	OSLGlobals osl;
 #endif
 
-} KernelGLobals;
+} KernelGlobals;
 
 #endif
 
