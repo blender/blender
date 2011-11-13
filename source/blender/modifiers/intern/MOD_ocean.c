@@ -1,6 +1,4 @@
 /**
- * $Id: MOD_ocean.c 28135 2010-04-11 23:20:03Z gsrb3d $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -43,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_math_inline.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "MOD_util.h"
 
