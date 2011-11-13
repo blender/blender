@@ -664,15 +664,11 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 		mesh->mvert,
 		mesh->totface,
 		mesh->totloop,
-		mesh->totpoly,
-		0,
-		0);
+		mesh->totpoly);
 
 	mesh_update_customdata_pointers(mesh);
 
-	/* origindex for tesselated faces currently holds indices of the poly
-	   the face was tesselated from */
-	polyindex = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
+	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
 	   contain the normal of the poly the face was tesselated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);

@@ -2758,6 +2758,11 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	return ccgdm->pbvh;
 }
 
+static void ccgDM_calcNormals(DerivedMesh *UNUSED(dm))
+{
+	/* Nothing to do: CCG calculates normals during drawing */
+}
+
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 										 int drawInteriorEdges,
 										 int useSubsurfUv,
@@ -2847,6 +2852,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getEdgeData = DM_get_edge_data;
 	ccgdm->dm.getTessFaceData = DM_get_face_data;
 
+	ccgdm->dm.calcNormals = ccgDM_calcNormals;
+
 	ccgdm->dm.getVertCos = cgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = cgdm_foreachMappedVert;
 	ccgdm->dm.foreachMappedEdge = cgdm_foreachMappedEdge;
@@ -2867,7 +2874,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	ccgdm->dm.drawMappedEdgesInterp = cgdm_drawMappedEdgesInterp;
 	ccgdm->dm.drawMappedEdges = cgdm_drawMappedEdges;
-	
+
 	ccgdm->dm.release = cgdm_release;
 	
 	ccgdm->ss = ss;

@@ -512,6 +512,8 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	MTFace mtf;
 	int matnr = me->mpoly[index].mat_nr;
 
+	BLI_assert(index >= 0 && index < me->totpoly);
+
 	if (mpoly && mpoly->flag&ME_HIDE) return 0;
 
 	memset(&mtf, 0, sizeof(mtf));

@@ -3657,6 +3657,22 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				convert_mfaces_to_mpolys(me);
 			}
 			
+			/*
+			 * Re-tesselate, even if the polys were just created from tessfaces, this
+			 * is important because it:
+			 *  - fill the CD_POLYINDEX layer
+			 *  - gives consistency of tessface between loading from a file and
+			 *    converting an edited BMesh back into a mesh (i.e. it replaces
+			 *    quad tessfaces in a loaded mesh immediately, instead of lazily
+			 *    waiting until edit mode has been entered/exited, making it easier
+			 *    to recognize problems that would otherwise only show up after edits).
+			 */
+			me->totface = mesh_recalcTesselation(
+				&me->fdata, &me->ldata, &me->pdata,
+				me->mvert, me->totface, me->totloop, me->totpoly);
+
+			mesh_update_customdata_pointers(me);
+
 			me->id.flag -= LIB_NEEDLINK;
 		}
 		me= me->id.next;

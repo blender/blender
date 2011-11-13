@@ -362,6 +362,12 @@ static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
 	}
 }
 
+static void bmDM_calcNormals(DerivedMesh *UNUSED(dm))
+{
+	/* Nothing to do: normals are already calculated and stored on the
+	   BMVerts and BMFaces */
+}
+
 static void bmDM_recalcTesselation(DerivedMesh *UNUSED(dm))
 {
 	//EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -1668,6 +1674,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 
 	bmdm->dm.getTessFaceDataArray = bmDM_getFaceDataArray;
 
+	bmdm->dm.calcNormals = bmDM_calcNormals;
 	bmdm->dm.recalcTesselation = bmDM_recalcTesselation;
 
 	bmdm->dm.foreachMappedVert = bmDM_foreachMappedVert;

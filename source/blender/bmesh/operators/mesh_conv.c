@@ -428,7 +428,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter; float *facenors = NULL;
-	int i, j, *keyi, ototvert, totloop, totface, numTex, numCol;
+	int i, j, *keyi, ototvert, totloop, totface, numTex, numCol, *polyindex = NULL;
 	int dotess = !BMO_Get_Int(op, "notesselation");
 
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
@@ -574,16 +574,18 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		else {
 			mface= MEM_callocN(totface*sizeof(MFace), "loadeditbMesh face");
 			facenors = MEM_callocN(totface*sizeof(float)*3, "facenors");
+			polyindex = MEM_callocN(totface*sizeof(int), "polyindex");
 		}
 
 		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
+		CustomData_add_layer(&me->fdata, CD_POLYINDEX, CD_ASSIGN, polyindex, me->totface);
 		CustomData_add_layer(&me->fdata, CD_NORMAL, CD_ASSIGN, facenors, me->totface);
 		CustomData_from_bmeshpoly(&me->fdata, &bm->pdata, &bm->ldata, totface);
 
 		mesh_update_customdata_pointers(me);
 		
 		i = 0;
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER_INDEX(f, &iter, bm, BM_FACES_OF_MESH, NULL, j) {
 			EditVert *eve, *lasteve = NULL, *firsteve = NULL;
 			EditFace *efa;
 			BMLoop *ls[3];
@@ -633,8 +635,11 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				loops_to_corners(bm, me, i, f, ls, numTex, numCol);
 				copy_v3_v3(facenors, ls[0]->f->no);
 
+				*polyindex = j;
+
 				mface++;
 				facenors += 3;
+				polyindex++;
 				i++;
 			}
 			BLI_end_edgefill();

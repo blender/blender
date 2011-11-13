@@ -129,10 +129,13 @@ struct DerivedMesh {
 	struct GPUDrawObject *drawObject;
 	DerivedMeshType type;
 
-	/* Misc. Queries */
-	
-	/*recalculates mesh tesselation*/
+	/* calculate vert and face normals */
+	void (*calcNormals)(DerivedMesh *dm);
+
+	/* recalculates mesh tesselation */
 	void (*recalcTesselation)(DerivedMesh *dm);
+
+	/* Misc. Queries */
 
 	/* Also called in Editmode */
 	int (*getNumVerts)(DerivedMesh *dm);
@@ -166,8 +169,8 @@ struct DerivedMesh {
 	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
 	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
 	void (*copyTessFaceArray)(DerivedMesh *dm, struct MFace *face_r);
-		void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *loop_r);
-		void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *poly_r);
+	void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *loop_r);
+	void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *poly_r);
 
 	/* return a copy of all verts/edges/faces from the derived mesh
 	 * it is the caller's responsibility to free the returned pointer
@@ -175,8 +178,8 @@ struct DerivedMesh {
 	struct MVert *(*dupVertArray)(DerivedMesh *dm);
 	struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*dupTessFaceArray)(DerivedMesh *dm);
-		struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
-		struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
+	struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
+	struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
 
 	/* return a pointer to a single element of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not

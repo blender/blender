@@ -1948,13 +1948,6 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
-	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
-	  so instead we have to regenerate the tesselation faces altogether.*/
-	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
-		me->mvert, me->totface, me->totloop, me->totpoly, 1, 0);
-	mesh_update_customdata_pointers(me);
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
-
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert) {
 		ED_vgroup_data_create(&me->id);
@@ -2420,14 +2413,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me,
 
 	vd->polyfacemap = BLI_memarena_alloc(vd->arena, sizeof(ListBase)*me->totpoly);
 
-	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
-	  so instead we have to regenerate the tesselation faces altogether.*/
-	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
-		me->mvert, me->totface, me->totloop, me->totpoly, 1, 0);
-	mesh_update_customdata_pointers(me);
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
-
-	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
+	origIndex = CustomData_get_layer(&me->fdata, CD_POLYINDEX);
 	mf = me->mface;
 
 	if (!origIndex)

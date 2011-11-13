@@ -4811,15 +4811,6 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		
 		me = pop->s.me;
 
-		/*recalc mesh tesselation so the face origindex values point
-		  to the tesselation faces themselves, instead of polys*/
-		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, 
-			&me->pdata, me->mvert, me->totface, me->totloop, me->totpoly, 0, 1);
-		mesh_update_customdata_pointers(me);
-		
-		/*force customdata update*/
-		makeDerivedMesh(scene, pop->ps.ob, NULL, CD_MASK_BAREMESH, 0);
-
 		/* Dont allow brush size below 2 */
 		if (pop->ps.brush && pop->ps.brush->size<=1)
 			pop->ps.brush->size = 2;

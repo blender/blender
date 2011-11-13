@@ -75,7 +75,7 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
  */
 int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
 	struct CustomData *pdata, struct MVert *mvert, int totface, 
-	int totloop, int totpoly, int use_poly_origindex, int use_face_origindex);
+	int totloop, int totpoly);
 
 /*calculates a face normal.*/
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 

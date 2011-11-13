@@ -83,18 +83,19 @@ void paintface_flush_flags(Object *ob)
 	}
 
 	/*
-	 * Try to push updated mesh poly flags to two other data sets:
+	 * Try to push updated mesh poly flags to three other data sets:
 	 *  - Mesh polys => Mesh tess faces
-	 *  - Mesh polys => Final derived mesh polys
+	 *  - Mesh polys => Final derived polys
+	 *  - Final derived polys => Final derived tessfaces
 	 */
 
-	if ((index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX))) {
+	if ((index_array = CustomData_get_layer(&me->fdata, CD_POLYINDEX))) {
 		faces = me->mface;
 		totface = me->totface;
 		
 		/* loop over tessfaces */
 		for (i= 0; i<totface; i++) {
-			/* Copy flags onto the tessface from its poly */
+			/* Copy flags onto the original tessface from its original poly */
 			mp_orig = me->mpoly + index_array[i];
 			faces[i].flag = mp_orig->flag;
 		}
@@ -106,9 +107,22 @@ void paintface_flush_flags(Object *ob)
 
 		/* loop over final derived polys */
 		for (i= 0; i<totpoly; i++) {
-			/* Copy flags onto the mesh poly from its final derived poly */
+			/* Copy flags onto the final derived poly from the original mesh poly */
 			mp_orig = me->mpoly + index_array[i];
 			polys[i].flag = mp_orig->flag;
+		}
+	}
+
+	if ((index_array = CustomData_get_layer(&dm->faceData, CD_POLYINDEX))) {
+		polys = dm->getPolyArray(dm);
+		faces = dm->getTessFaceArray(dm);;
+		totface = dm->getNumTessFaces(dm);
+
+		/* loop over tessfaces */
+		for (i= 0; i<totface; i++) {
+			/* Copy flags onto the final tessface from its final poly */
+			mp_orig = polys + index_array[i];
+			faces[i].flag = mp_orig->flag;
 		}
 	}
 }
@@ -123,14 +137,6 @@ static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int
 	if (!me || me->totpoly==0)
 		return 0;
 
-	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
-	  so instead we have to regenerate the tesselation faces altogether.
-	  
-	  the final 0, 0 paramters causes it to use the index of each mpoly, instead
-	  of reading from the origindex layer.*/
-	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
-		me->mvert, me->totface, me->totloop, me->totpoly, 0, 0);
-	mesh_update_customdata_pointers(me);
 	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
 
 	// XXX 	if (v3d->flag & V3D_INVALID_BACKBUF) {

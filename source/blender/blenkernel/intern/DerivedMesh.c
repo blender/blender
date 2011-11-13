@@ -365,13 +365,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
-	totface = tmp.totface = dm->getNumTessFaces(dm);
 	totpoly = tmp.totpoly = dm->getNumFaces(dm);
 	totloop = tmp.totloop = dm->numLoopData;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
-	CustomData_copy(&dm->faceData, &tmp.fdata, CD_MASK_MESH, CD_DUPLICATE, totface);
 	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
 	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
 
@@ -406,8 +404,6 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN, dm->dupVertArray(dm), totvert);
 	if(!CustomData_has_layer(&tmp.edata, CD_MEDGE))
 		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
-	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
-		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupTessFaceArray(dm), totface);
 	if(!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
 		tmp.mloop = dm->dupLoopArray(dm);
 		tmp.mpoly = dm->dupPolyArray(dm);
@@ -425,6 +421,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 		}
 	}
 
+	tmp.totface = mesh_recalcTesselation(&tmp.fdata, &tmp.ldata, &tmp.pdata, tmp.mvert, tmp.totface, tmp.totloop, tmp.totpoly);
 	mesh_update_customdata_pointers(&tmp);
 
 	CustomData_free(&me->vdata, me->totvert);
@@ -530,7 +527,7 @@ void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
 
 void *DM_get_tessface_data_layer(DerivedMesh *dm, int type)
 {
-	if(type == CD_MFACE)
+	if (type == CD_MFACE)
 		return dm->getTessFaceArray(dm);
 
 	return CustomData_get_layer(&dm->faceData, type);
@@ -1457,6 +1454,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	}
 #endif /* WITH_GAMEENGINE */
 
+	finaldm->calcNormals(finaldm);
+
 	*final_r = finaldm;
 
 	if(orcodm)
@@ -1508,7 +1507,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
-	DerivedMesh *dm = NULL, *orcodm = NULL;
+	DerivedMesh *dm = NULL, *orcodm = NULL, *finaldm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -1660,20 +1659,23 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	 * then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		*final_r = CDDM_copy(dm, 0);
+		finaldm = CDDM_copy(dm, 0);
 
 		if(!(cage_r && dm == *cage_r)) dm->release(dm);
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
-		CDDM_calc_normals(*final_r);
 	} else if (dm) {
-		*final_r = dm;
+		finaldm = dm;
 	} else if (!deformedVerts && cage_r && *cage_r) {
-		*final_r = *cage_r;
+		finaldm = *cage_r;
 	} else {
-		*final_r = getEditDerivedBMesh(em, ob, deformedVerts);
+		finaldm = getEditDerivedBMesh(em, ob, deformedVerts);
 		deformedVerts = NULL;
 	}
+
+	finaldm->calcNormals(finaldm);
+
+	*final_r = finaldm;
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO)

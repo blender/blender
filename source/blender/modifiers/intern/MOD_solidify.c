@@ -722,7 +722,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		CDDM_calc_normals(result);
 	}
 	else {
-		CDDM_recalc_tesselation(result, 1);
+		CDDM_recalc_tesselation(result);
 	}
 	
 	if (dm != odm) {

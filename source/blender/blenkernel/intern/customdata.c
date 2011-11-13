@@ -1048,8 +1048,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
-	/* 9: CD_FLAGS */
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_POLYINDEX */
+	{sizeof(int), "MIntProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float", layerCopy_propFloat,NULL,NULL,NULL},
 	/* 11: CD_PROP_INT */
@@ -1103,7 +1103,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	/*   5-9 */ "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
+	/*   5-9 */ "CDMCol", "CDOrigIndex", "CDNormal", "CDPolyIndex","CDMFloatProperty",
 	/* 10-14 */ "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
 	/* 15-19 */ "CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
 	/* 20-24 */ "CDMLoop", "CDMClothOrco", "CDMLoopCol", "CDIDCol", "CDTextureCol",
@@ -1126,10 +1126,11 @@ const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MDISPS | CD_MASK_SHAPEKEY | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
+	CD_MASK_MCOL | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_WEIGHT_MLOOPCOL |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | 
-	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY | CD_MASK_RECAST;
+	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY | CD_MASK_RECAST |
+	CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
 	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS;

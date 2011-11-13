@@ -98,7 +98,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		dm = copy = CDDM_copy(dm, 0);
 	}
 	
-	CDDM_recalc_tesselation(dm, 1);
+	CDDM_recalc_tesselation(dm);
 	
 	mf = dm->getTessFaceArray(dm);
 	of = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);

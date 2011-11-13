@@ -1142,6 +1142,12 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 
 		make_edges(me, 0);	// all edges
 		convert_mfaces_to_mpolys(me);
+
+		me->totface = mesh_recalcTesselation(
+			&me->fdata, &me->ldata, &me->pdata,
+			me->mvert, me->totface, me->totloop, me->totpoly);
+
+		mesh_update_customdata_pointers(me);
 	}
 }
 
@@ -1968,6 +1974,8 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 	/* note, we dont convert FGons at all, these are not even real ngons,
 	 * they have their own UV's, colors etc - its more an editing feature. */
 
+	mesh_update_customdata_pointers(mesh);
+
 	BLI_edgehash_free(eh, NULL);
 }
 
@@ -1978,7 +1986,7 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 	
 	if (numVerts_r) *numVerts_r = numVerts;
 	for (i=0; i<numVerts; i++)
-		VECCOPY(cos[i], me->mvert[i].co);
+		copy_v3_v3(cos[i], me->mvert[i].co);
 	
 	return cos;
 }
@@ -2260,21 +2268,11 @@ void mesh_loops_to_tri_corners(CustomData *fdata, CustomData *ldata,
 /*
   this function recreates a tesselation.
   returns number of tesselation faces.
-
-  use_poly_origindex sets whether or not the tesselation faces' origindex
-  layer should point to original poly indices or real poly indices.
-
-  use_face_origindex sets the tesselation faces' origindex layer
-  to point to the tesselation faces themselves, not the polys.
-
-  if both of the above are 0, it'll use the indices of the mpolys of the MPoly
-  data in pdata, and ignore the origindex layer altogether.
  */
 int mesh_recalcTesselation(CustomData *fdata, 
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int UNUSED(totloop),
-                           int totpoly, int use_poly_origindex, 
-			   int use_face_origindex)
+                           int totpoly)
 {
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
@@ -2282,8 +2280,11 @@ int mesh_recalcTesselation(CustomData *fdata,
 	BLI_array_declare(mf);
 	EditVert *v, *lastv, *firstv;
 	EditFace *f;
+	int *origIndex = NULL;
 	BLI_array_declare(origIndex);
-	int i, j, k, lindex[4], *origIndex = NULL, *polyorigIndex;
+	int *polyIndex = NULL;
+	BLI_array_declare(polyIndex);
+	int i, j, k, lindex[4], *polyorigIndex;
 	int numTex, numCol;
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
@@ -2294,7 +2295,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	
 	k = 0;
 	mp = mpoly;
-	polyorigIndex = use_poly_origindex? CustomData_get_layer(pdata, CD_ORIGINDEX) : NULL;
+	polyorigIndex = CustomData_get_layer(pdata, CD_ORIGINDEX);
 	for (i=0; i<totpoly; i++, mp++) {
 		if (mp->totloop > 2) {		
 			ml = mloop + mp->loopstart;
@@ -2304,10 +2305,6 @@ int mesh_recalcTesselation(CustomData *fdata,
 			lastv = NULL;
 			for (j=0; j<mp->totloop; j++, ml++) {
 				v = BLI_addfillvert(mvert[ml->v].co);
-				if (polyorigIndex && use_poly_origindex)
-					v->hash = polyorigIndex[i];
-				else
-					v->hash = i;
 	
 				v->keyindex = mp->loopstart + j;
 	
@@ -2323,20 +2320,21 @@ int mesh_recalcTesselation(CustomData *fdata,
 			BLI_edgefill(2);
 			for (f=fillfacebase.first; f; f=f->next) {
 				BLI_array_growone(mf);
-				BLI_array_growone(origIndex);
+				BLI_array_append(polyIndex, i);
 	
 				/*these are loop indices, they'll be transformed
 				  into vert indices later.*/
 				mf[k].v1 = f->v1->keyindex;
 				mf[k].v2 = f->v2->keyindex;
 				mf[k].v3 = f->v3->keyindex;
-				
-				/*put poly index in mf->v4*/
-				mf[k].v4 = f->v1->hash;
+				mf[k].v4 = 0;
 				
 				mf[k].mat_nr = mp->mat_nr;
 				mf[k].flag = mp->flag;
-				origIndex[k] = use_face_origindex ? k : f->v1->hash;
+
+				if (polyorigIndex) {
+					BLI_array_append(origIndex, polyorigIndex[polyIndex[k]]);
+				}
 	
 				k++;
 			}
@@ -2350,8 +2348,22 @@ int mesh_recalcTesselation(CustomData *fdata,
 	totface = k;
 	
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mf, totface);
-	CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, origIndex, totface);
+	CustomData_add_layer(fdata, CD_POLYINDEX, CD_ASSIGN, polyIndex, totface);
+	if (origIndex) {
+		CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, origIndex, totface);
+	}
+
 	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+
+	/* If polys have a normals layer, copying that to faces can help
+	   avoid the need to recalculate normals later */
+	if (CustomData_has_layer(pdata, CD_NORMAL)) {
+		float *pnors = CustomData_get_layer(pdata, CD_NORMAL);
+		float *fnors = CustomData_add_layer(fdata, CD_NORMAL, CD_CALLOC, NULL, totface);
+		for (i=0; i<totface; i++, fnors++) {
+			copy_v3_v3(fnors, &pnors[polyIndex[i]]);
+		}
+	}
 
 	mface = mf;
 	for (i=0; i<totface; i++, mf++) {
@@ -2374,9 +2386,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 		mf->v3 = mloop[mf->v3].v;
 
 		mesh_loops_to_tri_corners(fdata, ldata, pdata,
-			lindex, i, mf->v4);
-		
-		mf->v4 = 0;
+			lindex, i, polyIndex[i]);
 	}
 
 	return totface;
@@ -2450,7 +2460,6 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 	normal[0] = (float) n[0];
 	normal[1] = (float) n[1];
 	normal[2] = (float) n[2];
-
 }
 
 void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
