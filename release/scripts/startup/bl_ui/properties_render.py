@@ -539,7 +539,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
                 box.prop(modifier, "seed")
 
             elif modifier.type == "BACKBONE_STRETCHER":
-                box.prop(modifier, "amount")
+                box.prop(modifier, "backbone_length")
 
             elif modifier.type == "TIP_REMOVER":
                 box.prop(modifier, "tip_length")
