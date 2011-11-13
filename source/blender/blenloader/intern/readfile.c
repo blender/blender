@@ -11861,9 +11861,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 3)) {
 		Object *ob;
-		Tex *tex;
-		
-		
+
 		/* ocean res is now squared, reset old ones - will be massive */
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;

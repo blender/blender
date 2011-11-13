@@ -57,13 +57,12 @@ extern struct Render R;
 int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 {
 	int retval = TEX_INT;
-	OceanTex *ot= tex->ot;	
-	OceanResult or;
-	const float u = 0.5+0.5*texvec[0];
-	const float v = 0.5+0.5*texvec[1];
-	float foam;
+	OceanTex *ot= tex->ot;
+	OceanResult ocr;
+	const float u = 0.5f+0.5f*texvec[0];
+	const float v = 0.5f+0.5f*texvec[1];
 	int cfra = R.r.cfra;
-	int normals=0;
+	int normals= 0;
 	ModifierData *md;
 	
 	texres->tin = 0.0f;
@@ -84,16 +83,16 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 			CLAMP(cfra, omd->bakestart, omd->bakeend);
 			cfra -= omd->bakestart;	// shift to 0 based
 		
-			BKE_ocean_cache_eval_uv(omd->oceancache, &or, cfra, u, v);
+			BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 		
 		} else {	// non-cached
 			
 			if (G.rendering)
-				BKE_ocean_eval_uv_catrom(omd->ocean, &or, u, v);
+				BKE_ocean_eval_uv_catrom(omd->ocean, &ocr, u, v);
 			else
-				BKE_ocean_eval_uv(omd->ocean, &or, u, v);
+				BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
 			
-			or.foam = BKE_ocean_jminus_to_foam(or.Jminus, omd->foam_coverage);
+			ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
 		}
 	}
 	
@@ -101,13 +100,13 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 	switch (ot->output) {
 		case TEX_OCN_DISPLACEMENT:
 			/* XYZ displacement */
-			texres->tr = 0.5 + 0.5 * or.disp[0];
-			texres->tg = 0.5 + 0.5 * or.disp[2];
-			texres->tb = 0.5 + 0.5 * or.disp[1];
+			texres->tr = 0.5f + 0.5f * ocr.disp[0];
+			texres->tg = 0.5f + 0.5f * ocr.disp[2];
+			texres->tb = 0.5f + 0.5f * ocr.disp[1];
 			
-			texres->tr = MAX2(0.0, texres->tr);
-			texres->tg = MAX2(0.0, texres->tg);
-			texres->tb = MAX2(0.0, texres->tb);
+			texres->tr = MAX2(0.0f, texres->tr);
+			texres->tg = MAX2(0.0f, texres->tg);
+			texres->tb = MAX2(0.0f, texres->tb);
 
 			BRICONTRGB;
 			
@@ -116,46 +115,43 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 		
 		case TEX_OCN_EMINUS:
 			/* -ve eigenvectors ? */
-			texres->tr = or.Eminus[0];
-			texres->tg = or.Eminus[2];
-			texres->tb = or.Eminus[1];
+			texres->tr = ocr.Eminus[0];
+			texres->tg = ocr.Eminus[2];
+			texres->tb = ocr.Eminus[1];
 			retval = TEX_RGB;
 			break;
 		
 		case TEX_OCN_EPLUS:
 			/* -ve eigenvectors ? */
-			texres->tr = or.Eplus[0];
-			texres->tg = or.Eplus[2];
-			texres->tb = or.Eplus[1];
+			texres->tr = ocr.Eplus[0];
+			texres->tg = ocr.Eplus[2];
+			texres->tb = ocr.Eplus[1];
 			retval = TEX_RGB;
 			break;
 			
 		case TEX_OCN_JPLUS:
-			texres->tin = or.Jplus;
+			texres->tin = ocr.Jplus;
 			retval = TEX_INT;
+			break;
+
 		case TEX_OCN_FOAM:
 			
-			texres->tin = or.foam;
+			texres->tin = ocr.foam;
 
-			BRICONT;			
+			BRICONT;
 			
 			retval = TEX_INT;
 			break;
 	}
-			
+
 	/* if normals needed */
 
 	if (texres->nor && normals) {
-
-		texres->nor[0] = or.normal[0];
-		texres->nor[1] = or.normal[2];
-		texres->nor[2] = or.normal[1];
-
-		normalize_v3(texres->nor);
+		normalize_v3_v3(texres->nor, ocr.normal);
 		retval |= TEX_NOR;
 	}
 	
-	texres->ta = 1.0;
+	texres->ta = 1.0f;
 	
 	return retval;
 }
