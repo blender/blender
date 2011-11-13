@@ -60,7 +60,7 @@ float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2]);
 float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2]);
 
-float dist_to_plane_v3(const float p[2], const float plane_co[3], const float plane_no[2]);
+float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3]);
 float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
@@ -92,9 +92,11 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
  * */
 
 int isect_line_line_v3(const float v1[3], const float v2[3],
-	const float v3[3], const float v4[3], float i1[3], float i2[3]);
+                       const float v3[3], const float v4[3],
+                       float i1[3], float i2[3]);
 int isect_line_line_strict_v3(const float v1[3], const float v2[3],
-	const float v3[3], const float v4[3], float vi[3], float *lambda);
+                              const float v3[3], const float v4[3],
+                              float vi[3], float *lambda);
 
 /*if clip is nonzero, will only return true if lambda is >= 0.0
   (i.e. intersection point is along positive d)*/
@@ -112,6 +114,21 @@ int isect_ray_plane_v3(float p1[3], float d[3], float v0[3],
  */
 int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
                         const float plane_co[3], const float plane_no[3], const short no_flip);
+
+/**
+ * Intersect two planes, return a point on the intersection and a vector
+ * that runs on the direction of the intersection.
+ * Return error code is the same as 'isect_line_line_v3'.
+ * @param r_isect_co The resulting intersection point.
+ * @param r_isect_no The resulting vector of the intersection.
+ * @param plane_a_co The point on the first plane.
+ * @param plane_a_no The normal of the first plane.
+ * @param plane_b_co The point on the second plane.
+ * @param plane_b_no The normal of the second plane.
+ */
+int isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
+                         const float plane_a_co[3], const float plane_a_no[3],
+                         const float plane_b_co[3], const float plane_b_no[3]);
 
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],

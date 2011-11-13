@@ -695,8 +695,8 @@ static void rna_OceanModifier_ocean_chop_set(PointerRNA *ptr, float value)
 	
 	omd->chop_amount = value;
 	
-	if ((old_value == 0.0 && value > 0.0) ||
-		(old_value > 0.0 && value == 0.0))
+	if ((old_value == 0.0f && value > 0.0f) ||
+		(old_value > 0.0f && value == 0.0f))
 	{
 		omd->refresh |= MOD_OCEAN_REFRESH_RESET;
 		omd->refresh |= MOD_OCEAN_REFRESH_CLEAR_CACHE;

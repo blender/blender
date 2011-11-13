@@ -238,7 +238,7 @@ void closest_to_line_segment_v3(float closest[3], const float v1[3], const float
 }
 
 /* signed distance from the point to the plane in 3D */
-float dist_to_plane_v3(const float p[2], const float plane_co[3], const float plane_no[2])
+float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3])
 {
 	float plane_no_unit[3];
 	float plane_co_other[3];
@@ -832,6 +832,27 @@ int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3], cons
 		return 1;
 	}
 }
+
+int isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
+                          const float plane_a_co[3], const float plane_a_no[3],
+                          const float plane_b_co[3], const float plane_b_no[3])
+{
+	float p1_co_other[3], p2_co_other[3];
+	float isect_co_dummy[3];
+
+	cross_v3_v3v3(r_isect_no, plane_a_no, plane_b_no);
+	cross_v3_v3v3(p1_co_other, plane_a_no, r_isect_no);
+	cross_v3_v3v3(p2_co_other, plane_b_no, r_isect_no);
+
+	add_v3_v3(p1_co_other, plane_a_co);
+	add_v3_v3(p2_co_other, plane_b_co);
+
+	/* we could use either ix_1, ix_2 - doesnt matter in this case */
+	return isect_line_line_v3(plane_a_co, p1_co_other,
+	                          plane_b_co, p2_co_other,
+	                          r_isect_co, isect_co_dummy);
+}
+
 
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
