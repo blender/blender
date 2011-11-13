@@ -415,73 +415,72 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.label()
 
     def OCEAN(self, layout, ob, md):
-        col = layout.column()
-        
         if not md.build_enabled:
             col.label("Built without OceanSim modifier")
             return
 
-        col.prop(md, "geometry_mode")
+        layout.prop(md, "geometry_mode")
         
         if md.geometry_mode == 'GENERATE':
-            row = col.row()
+            row = layout.row()
             row.prop(md, "repeat_x")
             row.prop(md, "repeat_y")
 
-        col.separator()
+        layout.separator()
         
-        col.prop(md, "time")
-        col.prop(md, "resolution")
-        colflow = col.column_flow()
-        colflow.prop(md, "spatial_size")
-        colflow.prop(md, "depth")
+        flow = layout.column_flow()
+        flow.prop(md, "time")
+        flow.prop(md, "resolution")
+        flow.prop(md, "spatial_size")
+        flow.prop(md, "depth")
+
+        layout.label("Waves:")
         
+        split = layout.split()
         
-        col.label("Waves:")
+        col = split.column()
         col.prop(md, "choppiness")
         col.prop(md, "wave_scale", text="Scale")
-        
-        col.prop(md, "wave_alignment", text="Alignment")
-        row = col.row()
-        row.active = md.wave_alignment > 0
-        row.prop(md, "wave_direction", text="Direction")
-        row.prop(md, "damp")
-        
         col.prop(md, "smallest_wave")
         col.prop(md, "wind_velocity")
         
-        
-        col = layout.column()
-        col.separator()
-        
-        col.prop(md, "generate_normals")
-        
-        split = col.split()
-        split.column().prop(md, "generate_foam")
-        
         col = split.column()
-        col.active = md.generate_foam
-        col.prop(md, "foam_coverage", text="Coverage")
+        col.prop(md, "wave_alignment", text="Alignment")
+        sub = col.column()
+        sub.active = md.wave_alignment > 0
+        sub.prop(md, "wave_direction", text="Direction")
+        sub.prop(md, "damp")
+
+        layout.separator()
         
+        layout.prop(md, "generate_normals")
         
-        col = layout.column()
-        col.separator()
+        row = layout.row()
+        row.prop(md, "generate_foam")
+        sub = row.row()
+        sub.active = md.generate_foam
+        sub.prop(md, "foam_coverage", text="Coverage")
         
+        layout.separator()
+
         if md.is_cached:
-            col.operator("object.ocean_bake", text="Free Bake").free=True
+            layout.operator("object.ocean_bake", text="Free Bake").free=True
         else:
-            col.operator("object.ocean_bake")
-        row = col.row()
-        row.enabled = not md.is_cached
-        row.prop(md, "bake_start", text="Start")
-        row.prop(md, "bake_end", text="End")
-        col.prop(md, "cachepath")
+            layout.operator("object.ocean_bake")
+            
+        split = layout.split()
+        split.enabled = not md.is_cached
+        
+        col = split.column(align=True)
+        col.prop(md, "bake_start", text="Start")
+        col.prop(md, "bake_end", text="End")
+        
+        col = split.column(align=True)
+        col.label(text="Cache path:")
+        col.prop(md, "filepath", text="")
         
         #col.prop(md, "bake_foam_fade")
-        
-        
-        
-    
+
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
         layout.prop(md, "particle_system_index", text="Particle System")
