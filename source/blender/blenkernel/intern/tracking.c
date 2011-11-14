@@ -1449,6 +1449,7 @@ int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_s
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+	(void)tracking;
 
 	return 0;
 #endif

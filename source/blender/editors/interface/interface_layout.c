@@ -2821,3 +2821,14 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		}
 	}
 }
+
+/* this is a bit of a hack but best keep it in one place at least */
+MenuType *uiButGetMenuType(uiBut *but)
+{
+	if(but->menu_create_func == ui_item_menutype_func) {
+		return (MenuType *)but->poin;
+	}
+	else {
+		return NULL;
+	}
+}

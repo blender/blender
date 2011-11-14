@@ -688,6 +688,7 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 void uiLayoutOperatorButs(const struct bContext *C, struct uiLayout *layout, struct wmOperator *op, int (*check_prop)(struct PropertyRNA *), const char label_align, const short flag);
+struct MenuType *uiButGetMenuType(uiBut *but);
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);

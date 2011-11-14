@@ -763,7 +763,6 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "track")
 
-
         layout.operator("clip.constraint_to_fcurve")
 
     def CAMERA_SOLVER(self, context, layout, con):

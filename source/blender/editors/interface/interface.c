@@ -48,6 +48,8 @@
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_unit.h"
+#include "BKE_screen.h"
+#include "BKE_idprop.h"
 #include "BKE_utildefines.h" /* FILE_MAX */
 
 #include "BIF_gl.h"
@@ -793,26 +795,61 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
-	IDProperty *prop;
 	char buf[512];
+
+	/* for menu's */
+	MenuType *mt;
+	IDProperty *prop_menu= NULL;
+	IDProperty *prop_menu_name= NULL;
 
 	/* only do it before bounding */
 	if(block->minx != block->maxx)
 		return;
 
+
+#define UI_MENU_KEY_STR_CAT                                                   \
+	char *butstr_orig= BLI_strdup(but->str);                                  \
+	BLI_snprintf(but->strdata,                                                \
+				 sizeof(but->strdata),                                        \
+				 "%s|%s",                                                     \
+				 butstr_orig, buf);                                           \
+	MEM_freeN(butstr_orig);                                                   \
+	but->str= but->strdata;                                                   \
+	ui_check_but(but);                                                        \
+
+
 	for(but=block->buttons.first; but; but=but->next) {
 		if(but->optype) {
-			prop= (but->opptr)? but->opptr->data: NULL;
+			IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 
-			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-				char *butstr_orig= BLI_strdup(but->str);
-				BLI_snprintf(but->strdata, sizeof(but->strdata), "%s|%s", butstr_orig, buf);
-				MEM_freeN(butstr_orig);
-				but->str= but->strdata;
-				ui_check_but(but);
+			if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
+				UI_MENU_KEY_STR_CAT
+			}
+		}
+		else if ((mt= uiButGetMenuType(but))) {
+			/* only allocate menu property once */
+			if (prop_menu == NULL) {
+				/* annoying, create a property */
+				IDPropertyTemplate val = {0};
+				prop_menu= IDP_New(IDP_GROUP, val, __func__); /* dummy, name is unimportant  */
+				IDP_AddToGroup(prop_menu, (prop_menu_name= IDP_NewString("", "name", sizeof(mt->idname))));
+			}
+
+			IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
+
+			if(WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, FALSE, buf, sizeof(buf))) {
+				UI_MENU_KEY_STR_CAT
 			}
 		}
 	}
+
+	if (prop_menu) {
+		IDP_FreeProperty(prop_menu);
+		MEM_freeN(prop_menu);
+	}
+
+#undef UI_MENU_KEY_STR_CAT
+
 }
 
 void uiEndBlock(const bContext *C, uiBlock *block)
