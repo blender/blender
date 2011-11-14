@@ -2333,6 +2333,69 @@ int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 	return ok;
 }
 
+void BKE_object_foreach_display_point(
+        Object *ob, float obmat[4][4],
+        void (*func_cb)(const float[3], void *), void *user_data)
+{
+	float co[3];
+
+	if (ob->derivedFinal) {
+		DerivedMesh *dm= ob->derivedFinal;
+		MVert *mv= dm->getVertArray(dm);
+		int totvert= dm->getNumVerts(dm);
+		int i;
+
+		for (i= 0; i < totvert; i++, mv++) {
+			mul_v3_m4v3(co, obmat, mv->co);
+			func_cb(co, user_data);
+		}
+	}
+	else if (ob->disp.first) {
+		DispList *dl;
+
+		for (dl=ob->disp.first; dl; dl=dl->next) {
+			float *v3= dl->verts;
+			int totvert= dl->nr;
+			int i;
+
+			for (i= 0; i < totvert; i++, v3+=3) {
+				mul_v3_m4v3(co, obmat, v3);
+				func_cb(co, user_data);
+			}
+		}
+	}
+}
+
+void BKE_scene_foreach_display_point(
+        Scene *scene, View3D *v3d, const short flag,
+        void (*func_cb)(const float[3], void *), void *user_data)
+{
+	Base *base;
+	Object *ob;
+
+	for(base= FIRSTBASE; base; base = base->next) {
+		if(BASE_VISIBLE(v3d, base) && (base->flag & flag) == flag) {
+			ob= base->object;
+
+			if ((ob->transflag & OB_DUPLI)==0) {
+				BKE_object_foreach_display_point(ob, ob->obmat, func_cb, user_data);
+			}
+			else {
+				ListBase *lb;
+				DupliObject *dob;
+
+				lb= object_duplilist(scene, ob);
+				for(dob= lb->first; dob; dob= dob->next) {
+					if(dob->no_draw == 0) {
+						BKE_object_foreach_display_point(dob->ob, dob->mat, func_cb, user_data);
+					}
+				}
+				free_object_duplilist(lb);	/* does restore */
+			}
+		}
+	}
+}
+
 /* copied from DNA_object_types.h */
 typedef struct ObTfmBack {
 	float loc[3], dloc[3], orig[3];

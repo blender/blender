@@ -41,6 +41,7 @@ struct Object;
 struct RenderData;
 struct Scene;
 struct rctf;
+struct View3D;
 
 void *add_camera(const char *name);
 struct Camera *copy_camera(struct Camera *cam);
@@ -62,6 +63,10 @@ void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float draw
                           float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3]);
 
 void camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);
+
+int camera_view_frame_fit_to_scene(
+        struct Scene *scene, struct View3D *v3d, struct Object *camera_ob,
+        float r_co[3]);
 
 #ifdef __cplusplus
 }

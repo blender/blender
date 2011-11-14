@@ -110,6 +110,17 @@ void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float min[3], float max[3]);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+
+/* sometimes min-max isnt enough, we need to loop over each point */
+void BKE_object_foreach_display_point(
+        struct Object *ob, float obmat[4][4],
+        void (*func_cb)(const float[3], void *), void *user_data);
+void BKE_scene_foreach_display_point(
+        struct Scene *scene,
+        struct View3D *v3d,
+        const short flag,
+        void (*func_cb)(const float[3], void *), void *user_data);
+
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 

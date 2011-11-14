@@ -41,6 +41,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
+#include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -394,3 +395,109 @@ void camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
 	                     dummy_asp, dummy_shift, &dummy_drawsize, r_vec);
 }
 
+
+typedef struct CameraViewFrameData {
+	float frame_tx[4][3];
+	float normal_tx[4][3];
+	float dist_vals[4];
+	unsigned int tot;
+} CameraViewFrameData;
+
+static void camera_to_frame_view_cb(const float co[3], void *user_data)
+{
+	CameraViewFrameData *data= (CameraViewFrameData *)user_data;
+	unsigned int i;
+
+	for (i= 0; i < 4; i++) {
+		float nd= -dist_to_plane_v3(co, data->frame_tx[i], data->normal_tx[i]);
+		if (nd < data->dist_vals[i]) {
+			data->dist_vals[i]= nd;
+		}
+	}
+
+	data->tot++;
+}
+
+/* dont move the camera, just yield the fit location */
+int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
+{
+	float plane_tx[4][3];
+	float rot_obmat[3][3];
+	const float zero[3]= {0,0,0};
+	CameraViewFrameData data_cb;
+
+	unsigned int i;
+
+	camera_view_frame(scene, camera_ob->data, data_cb.frame_tx);
+
+	copy_m3_m4(rot_obmat, camera_ob->obmat);
+	normalize_m3(rot_obmat);
+
+	for (i= 0; i < 4; i++) {
+		mul_m3_v3(rot_obmat, data_cb.frame_tx[i]);
+	}
+
+	for (i= 0; i < 4; i++) {
+		normal_tri_v3(data_cb.normal_tx[i],
+		              zero, data_cb.frame_tx[i], data_cb.frame_tx[(i + 1) % 4]);
+	}
+
+	/* initialize callback data */
+	data_cb.dist_vals[0]=
+	data_cb.dist_vals[1]=
+	data_cb.dist_vals[2]=
+	data_cb.dist_vals[3]= FLT_MAX;
+	data_cb.tot= 0;
+	/* run callback on all visible points */
+	BKE_scene_foreach_display_point(scene, v3d, BA_SELECT,
+	                                camera_to_frame_view_cb, &data_cb);
+
+	if (data_cb.tot <= 1) {
+		return FALSE;
+	}
+	else {
+		float plane_isect_1[3], plane_isect_1_other[3];
+		float plane_isect_2[3], plane_isect_2_other[3];
+
+		float plane_isect_pt_1[3], plane_isect_pt_2[3];
+
+		/* apply the dist-from-plane's to the transformed plane points */
+		for (i= 0; i < 4; i++) {
+			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], data_cb.dist_vals[i]);
+		}
+
+		if ( (isect_plane_plane_v3(plane_isect_1, plane_isect_1_other,
+		                           plane_tx[0], data_cb.normal_tx[0],
+		                           plane_tx[2], data_cb.normal_tx[2]) == 0) ||
+		     (isect_plane_plane_v3(plane_isect_2, plane_isect_2_other,
+		                           plane_tx[1], data_cb.normal_tx[1],
+		                           plane_tx[3], data_cb.normal_tx[3]) == 0))
+		{
+			/* this is very unlikely */
+			return FALSE;
+		}
+		else {
+
+			add_v3_v3(plane_isect_1_other, plane_isect_1);
+			add_v3_v3(plane_isect_2_other, plane_isect_2);
+
+			if (isect_line_line_v3(plane_isect_1, plane_isect_1_other,
+			                       plane_isect_2, plane_isect_2_other,
+			                       plane_isect_pt_1, plane_isect_pt_2) == 0)
+			{
+				return FALSE;
+			}
+			else {
+				float cam_plane_no[3]= {0.0f, 0.0f, -1.0f};
+				float tvec[3];
+				mul_m3_v3(rot_obmat, cam_plane_no);
+
+				sub_v3_v3v3(tvec, plane_isect_pt_2, plane_isect_pt_1);
+				copy_v3_v3(r_co, dot_v3v3(tvec, cam_plane_no) > 0.0f ?
+				               plane_isect_pt_1 : plane_isect_pt_2);
+
+				return TRUE;
+			}
+		}
+	}
+}
