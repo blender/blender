@@ -2696,8 +2696,7 @@ static int draw_em_fancy__setFaceOpts(void *UNUSED(userData), int index, int *UN
 {
 	EditFace *efa = EM_get_face_for_index(index);
 
-	/* efa=0 for constructive modifier on empty mesh */
-	if (efa && efa->h==0) {
+	if (efa->h==0) {
 		GPU_enable_material(efa->mat_nr+1, NULL);
 		return 1;
 	}
@@ -2736,29 +2735,35 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	if(dt>OB_WIRE) {
 		if(CHECK_OB_DRAWTEXTURE(v3d, dt)) {
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
-				glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+				/* if em has no faces the drawMappedFaces callback will fail */
+				if(em->faces.first) {
+					glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
-					draw_em_fancy__setGLSLFaceOpts, NULL);
-				GPU_disable_material();
+					finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
+												 draw_em_fancy__setGLSLFaceOpts, NULL);
+					GPU_disable_material();
 
-				glFrontFace(GL_CCW);
+					glFrontFace(GL_CCW);
+				}
 			}
 			else {
 				draw_mesh_textured(scene, v3d, rv3d, ob, finalDM, 0);
 			}
 		}
 		else {
-			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+			/* if em has no faces the drawMappedFaces callback will fail */
+			if(em->faces.first) {
+				/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
+				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
-			glEnable(GL_LIGHTING);
-			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+				glEnable(GL_LIGHTING);
+				glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0, GPU_enable_material, NULL);
+				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0, GPU_enable_material, NULL);
 
-			glFrontFace(GL_CCW);
-			glDisable(GL_LIGHTING);
+				glFrontFace(GL_CCW);
+				glDisable(GL_LIGHTING);
+			}
 		}
 			
 		// Setup for drawing wire over, disable zbuffer
