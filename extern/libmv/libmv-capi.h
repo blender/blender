@@ -43,10 +43,9 @@ void libmv_startDebugLogging(void);
 void libmv_setLoggingVerbosity(int verbosity);
 
 /* RegionTracker */
-struct libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level);
+struct libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level, int half_window_size);
 int libmv_regionTrackerTrack(struct libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
-			int width, int height, int half_window_size,
-			double  x1, double  y1, double *x2, double *y2);
+			int width, int height, double  x1, double  y1, double *x2, double *y2);
 void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 
 /* SAD Tracker */
