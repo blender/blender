@@ -166,7 +166,9 @@ namespace V3D
       FULL_BUNDLE_FOCAL_LENGTH = 1,      // f
       FULL_BUNDLE_FOCAL_LENGTH_PP = 2,   // f, cx, cy
       FULL_BUNDLE_RADIAL = 3,            // f, cx, cy, k1, k2
-      FULL_BUNDLE_RADIAL_TANGENTIAL = 4  // f, cx, cy, k1, k2, p1, p2
+      FULL_BUNDLE_RADIAL_TANGENTIAL = 4, // f, cx, cy, k1, k2, p1, p2
+      FULL_BUNDLE_FOCAL_AND_RADIAL_K1 = 5,      // f, k1
+      FULL_BUNDLE_FOCAL_AND_RADIAL = 6,      // f, k1, k2
    };
 
    struct CommonInternalsMetricBundleOptimizer : public MetricBundleOptimizerBase
@@ -175,11 +177,13 @@ namespace V3D
          {
             switch (mode)
             {
-               case FULL_BUNDLE_METRIC:            return 0;
-               case FULL_BUNDLE_FOCAL_LENGTH:      return 1;
-               case FULL_BUNDLE_FOCAL_LENGTH_PP:   return 3;
-               case FULL_BUNDLE_RADIAL:            return 5;
-               case FULL_BUNDLE_RADIAL_TANGENTIAL: return 7;
+               case FULL_BUNDLE_METRIC:              return 0;
+               case FULL_BUNDLE_FOCAL_LENGTH:        return 1;
+               case FULL_BUNDLE_FOCAL_LENGTH_PP:     return 3;
+               case FULL_BUNDLE_RADIAL:              return 5;
+               case FULL_BUNDLE_RADIAL_TANGENTIAL:   return 7;
+               case FULL_BUNDLE_FOCAL_AND_RADIAL_K1: return 2;
+               case FULL_BUNDLE_FOCAL_AND_RADIAL:    return 3;
             }
             return 0;
          }
@@ -266,11 +270,13 @@ namespace V3D
          {
             switch (mode)
             {
-               case FULL_BUNDLE_METRIC:            return 0;
-               case FULL_BUNDLE_FOCAL_LENGTH:      return 1;
-               case FULL_BUNDLE_FOCAL_LENGTH_PP:   return 3;
-               case FULL_BUNDLE_RADIAL:            return 5;
-               case FULL_BUNDLE_RADIAL_TANGENTIAL: return 7;
+               case FULL_BUNDLE_METRIC:              return 0;
+               case FULL_BUNDLE_FOCAL_LENGTH:        return 1;
+               case FULL_BUNDLE_FOCAL_LENGTH_PP:     return 3;
+               case FULL_BUNDLE_RADIAL:              return 5;
+               case FULL_BUNDLE_RADIAL_TANGENTIAL:   return 7;
+               case FULL_BUNDLE_FOCAL_AND_RADIAL_K1: return 2;
+               case FULL_BUNDLE_FOCAL_AND_RADIAL:    return 3;
             }
             return 0;
          }

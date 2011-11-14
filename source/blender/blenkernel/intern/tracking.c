@@ -47,6 +47,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 #include "BKE_tracking.h"
@@ -1260,7 +1261,28 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 	return tracks;
 }
 
-static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+{
+	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
+
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
+
+	double focal_length, principal_x, principal_y, k1, k2, k3;
+	int width, height;
+
+	libmv_CameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
+			&k1, &k2, &k3, &width, &height);
+
+	tracking->camera.focal= focal_length;
+	tracking->camera.principal[0]= principal_x;
+
+	/* todo: verify divide by aspy is correct */
+	tracking->camera.principal[1]= principal_y / aspy;
+	tracking->camera.k1= k1;
+	tracking->camera.k2= k2;
+}
+
+static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
 {
 	int tracknr= 0;
 	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
@@ -1373,7 +1395,68 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 	return ok;
 }
 
+static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+{
+	/* take the intrinscis back from libmv */
+	retrieve_libmv_reconstruct_intrinscis(tracking, libmv_reconstruction);
+
+	return retrieve_libmv_reconstruct_tracks(tracking, libmv_reconstruction);
+}
+
+static int get_refine_intrinsics_flags(MovieTracking *tracking)
+{
+	int refine= tracking->settings.refine_camera_intrinsics;
+	int flags= 0;
+
+	if(refine&REFINE_FOCAL_LENGTH)
+		flags|= LIBMV_REFINE_FOCAL_LENGTH;
+
+	if(refine&REFINE_PRINCIPAL_POINT)
+		flags|= LIBMV_REFINE_PRINCIPAL_POINT;
+
+	if(refine&REFINE_RADIAL_DISTORTION_K1)
+		flags|= REFINE_RADIAL_DISTORTION_K1;
+
+	if(refine&REFINE_RADIAL_DISTORTION_K2)
+		flags|= REFINE_RADIAL_DISTORTION_K2;
+
+	return flags;
+}
+
+static int count_tracks_on_both_keyframes(MovieTracking *tracking)
+{
+	int tot= 0;
+	int frame1= tracking->settings.keyframe1, frame2= tracking->settings.keyframe2;
+	MovieTrackingTrack *track;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(BKE_tracking_has_marker(track, frame1))
+			if(BKE_tracking_has_marker(track, frame2))
+				tot++;
+
+		track= track->next;
+	}
+
+	return tot;
+}
 #endif
+
+int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_size)
+{
+#if WITH_LIBMV
+	if(count_tracks_on_both_keyframes(tracking)<8) {
+		BLI_strncpy(error_msg, "At least 8 tracks on both of keyframes are needed for reconstruction", error_size);
+		return 0;
+	}
+
+	return 1;
+#else
+	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+
+	return 0;
+#endif
+}
 
 float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
 {
@@ -1384,6 +1467,7 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
+		        get_refine_intrinsics_flags(tracking),
 		        camera->focal,
 		        camera->principal[0], camera->principal[1]*aspy,
 		        camera->k1, camera->k2, camera->k3);

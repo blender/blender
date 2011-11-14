@@ -161,6 +161,10 @@ class CLIP_PT_tools_solving(Panel):
         col.prop(settings, "keyframe_a")
         col.prop(settings, "keyframe_b")
 
+        col = layout.column(align=True)
+        col.label(text="Refine:")
+        col.prop(settings, "refine_intrinsics", text="")
+
 
 class CLIP_PT_tools_cleanup(Panel):
     bl_space_type = 'CLIP_EDITOR'
