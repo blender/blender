@@ -332,6 +332,7 @@ if env['WITH_BF_FLUID'] == 1:
 
 # build with ocean sim?
 if env['WITH_BF_OCEANSIM'] == 1:
+    env['WITH_BF_FFTW3']  = 1  # ocean needs fftw3 so enable it 
     env['CPPFLAGS'].append('-DWITH_MOD_OCEANSIM')
 
 
