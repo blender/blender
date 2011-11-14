@@ -197,15 +197,11 @@ static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 }
 
 /* is point cache used */
-static int rna_DynamicPaint_uses_cache_get(PointerRNA *ptr)
+static int rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
 	DynamicPaintSurface *surface= (DynamicPaintSurface*)ptr->data;
 
 	return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ?  1 : 0;
-}
-
-static void rna_DynamicPaint_uses_cache_set(PointerRNA *ptr, int value)
-{
 }
 
 /* does output layer exist*/
@@ -543,7 +539,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	/*
 	*   Output settings
 	*/
-	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_MULALPHA);
 	RNA_def_property_ui_text(prop, "Premultiply alpha", "Multiplies color by alpha. (Recommended for Blender input)");
@@ -641,7 +637,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Spring", "Spring force that pulls water level back to zero");
 
-	prop= RNA_def_property(srna, "wave_open_borders", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_wave_open_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_WAVE_OPEN_BORDERS);
 	RNA_def_property_ui_text(prop, "Open Borders", "Passes waves through mesh edges");
 
@@ -653,10 +649,10 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
 	/* is cache used */
-	prop= RNA_def_property(srna, "uses_cache", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_uses_cache_get", "rna_DynamicPaint_uses_cache_set");
+	prop= RNA_def_property(srna, "is_cache_user", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_is_cache_user_get", NULL);
 	RNA_def_property_ui_text(prop, "Uses Cache", "");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
 }
 
 static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
@@ -743,7 +739,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 	
-	prop= RNA_def_property(srna, "absolute_alpha", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_absolute_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ABS_ALPHA);
 	RNA_def_property_ui_text(prop, "Absolute Alpha", "Only increase alpha value if paint alpha is higher than existing");
 	
@@ -754,7 +750,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paint Wetness", "Paint wetness. Visible in wetmap. Some effects only affect wet paint");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 	
-	prop= RNA_def_property(srna, "paint_erase", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_paint_erase", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ERASE);
 	RNA_def_property_ui_text(prop, "Erase Paint", "Erase / remove paint instead of adding it");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
@@ -789,17 +785,17 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.1, 2.0, 5, 2);
 	RNA_def_property_ui_text(prop, "Max Velocity", "Velocity considered as maximum influence. (Blender units per frame)");
 
-	prop= RNA_def_property(srna, "velocity_alpha", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_velocity_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_VELOCITY_ALPHA);
 	RNA_def_property_ui_text(prop, "Multiply Alpha", "Multiply brush influence by velocity color ramp alpha");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
-	prop= RNA_def_property(srna, "velocity_depth", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_velocity_depth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_VELOCITY_DEPTH);
 	RNA_def_property_ui_text(prop, "Multiply Depth", "Multiply brush intersection depth (displace, waves) by velocity ramp alpha");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
-	prop= RNA_def_property(srna, "velocity_color", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_velocity_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_VELOCITY_COLOR);
 	RNA_def_property_ui_text(prop, "Replace Color", "Replace brush color by velocity color ramp");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
@@ -821,7 +817,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proximity Distance", "Maximum distance from brush to mesh surface to affect paint");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 	
-	prop= RNA_def_property(srna, "proximity_ramp_alpha", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_proximity_ramp_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_RAMP_ALPHA);
 	RNA_def_property_ui_text(prop, "Only Use Alpha", "Only reads color ramp alpha");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
@@ -833,7 +829,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Falloff", "Proximity falloff type");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 	
-	prop= RNA_def_property(srna, "proximity_project", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_proximity_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PROX_PROJECT);
 	RNA_def_property_ui_text(prop, "Project", "Brush is projected to canvas from defined direction within brush proximity");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
@@ -844,12 +840,12 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ray Direction", "Defines ray direction to use for projection. If brush object is located in that direction it's painted");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
-	prop= RNA_def_property(srna, "proximity_inverse", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_proximity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_INVERSE_PROX);
 	RNA_def_property_ui_text(prop, "Inner Proximity", "Proximity falloff is applied inside the volume");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
-	prop= RNA_def_property(srna, "negate_volume", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_negative_volume", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_NEGATE_VOLUME);
 	RNA_def_property_ui_text(prop, "Negate Volume", "Negate influence inside the volume");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
