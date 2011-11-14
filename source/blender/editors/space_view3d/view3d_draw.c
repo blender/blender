@@ -2878,6 +2878,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else	
 		draw_view_icon(rv3d);
 	
+	ob= OBACT;
+	if(U.uiflag & USER_DRAWVIEWINFO) 
+		draw_selected_name(scene, ob);
+
 	if(rv3d->render_engine) {
 		view3d_main_area_draw_engine_info(rv3d, ar);
 		return;
@@ -2899,10 +2903,6 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
 	}
-
-	ob= OBACT;
-	if(U.uiflag & USER_DRAWVIEWINFO) 
-		draw_selected_name(scene, ob);
 }
 
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
