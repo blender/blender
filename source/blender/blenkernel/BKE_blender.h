@@ -53,6 +53,8 @@ extern "C" {
 		/* alpha/beta/rc/release, docs use this */
 #define BLENDER_VERSION_CYCLE	beta
 
+extern char versionstr[]; /* from blender.c */
+
 struct ListBase;
 struct MemFile;
 struct bContext;

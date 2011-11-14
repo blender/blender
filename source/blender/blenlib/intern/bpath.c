@@ -131,7 +131,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 
 void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {0};
+	BPathRemap_Data data= {NULL};
 
 	if(basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -174,7 +174,7 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 /* similar to makeFilesRelative - keep in sync! */
 void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {0};
+	BPathRemap_Data data= {NULL};
 
 	if(basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -280,7 +280,7 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 
 void findMissingFiles(Main *bmain, const char *searchpath, ReportList *reports)
 {
-	struct BPathFind_Data data= {0};
+	struct BPathFind_Data data= {NULL};
 
 	data.reports= reports;
 	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));

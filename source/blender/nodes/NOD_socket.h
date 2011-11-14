@@ -62,6 +62,9 @@ struct bNodeSocket *nodeAddOutputVector(struct bNodeTree *ntree, struct bNode *n
 struct bNodeSocket *nodeAddInputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name, float r, float g, float b, float a);
 struct bNodeSocket *nodeAddOutputRGBA(struct bNodeTree *ntree, struct bNode *node, const char *name);
 
+struct bNodeSocket *nodeAddInputShader(struct bNodeTree *ntree, struct bNode *node, const char *name);
+struct bNodeSocket *nodeAddOutputShader(struct bNodeTree *ntree, struct bNode *node, const char *name);
+
 struct bNodeSocket *nodeAddInputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name);
 struct bNodeSocket *nodeAddOutputMesh(struct bNodeTree *ntree, struct bNode *node, const char *name);
 

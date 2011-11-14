@@ -338,41 +338,43 @@ EnumPropertyItem keymap_propvalue_items[] = {
 		{0, "NONE", 0, "", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem keymap_modifiers_items[] = {
-		{KM_ANY, "ANY", 0, "Any", ""},
-		{0, "NONE", 0, "None", ""},
-		{1, "FIRST", 0, "First", ""},
-		{2, "SECOND", 0, "Second", ""},
-		{0, NULL, 0, NULL, NULL}};
+#if 0
+static EnumPropertyItem keymap_modifiers_items[] = {
+	{KM_ANY, "ANY", 0, "Any", ""},
+	{0, "NONE", 0, "None", ""},
+	{1, "FIRST", 0, "First", ""},
+	{2, "SECOND", 0, "Second", ""},
+	{0, NULL, 0, NULL, NULL}};
+#endif
 
 EnumPropertyItem operator_flag_items[] = {
-		{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
-		{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
-		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
-		{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
-		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", "Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled"},
-		{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
-		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
-		{0, NULL, 0, NULL, NULL}};
+	{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
+	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
+	{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
+	{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
+	{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", "Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled"},
+	{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
+	{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {
-		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
-		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
-		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
-		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"}, // used as a flag
-		{0, NULL, 0, NULL, NULL}};
+	{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
+	{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
+	{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
+	{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"}, // used as a flag
+	{0, NULL, 0, NULL, NULL}};
 
 /* flag/enum */
 EnumPropertyItem wm_report_items[] = {
-		{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
-		{RPT_INFO, "INFO", 0, "Info", ""},
-		{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
-		{RPT_WARNING, "WARNING", 0, "Warning", ""},
-		{RPT_ERROR, "ERROR", 0, "Error", ""},
-		{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},\
-		{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
-		{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
-		{0, NULL, 0, NULL, NULL}};
+	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
+	{RPT_INFO, "INFO", 0, "Info", ""},
+	{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
+	{RPT_WARNING, "WARNING", 0, "Warning", ""},
+	{RPT_ERROR, "ERROR", 0, "Error", ""},
+	{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},\
+	{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
+	{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #define KMI_TYPE_KEYBOARD	0
 #define KMI_TYPE_MOUSE		1

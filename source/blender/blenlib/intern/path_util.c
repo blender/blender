@@ -1841,7 +1841,7 @@ const char *BLI_program_dir(void)
 * @param fullname The full path to the temp directory
 * @param userdir Directory specified in user preferences 
 */
-void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
+static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir)
 {
 	fullname[0] = '\0';
 	

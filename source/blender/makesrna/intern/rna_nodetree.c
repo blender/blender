@@ -70,43 +70,43 @@ EnumPropertyItem node_socket_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_math_items[] = {
-{ 0, "ADD",          0, "Add",          ""},
-{ 1, "SUBTRACT",     0, "Subtract",     ""},
-{ 2, "MULTIPLY",     0, "Multiply",     ""},
-{ 3, "DIVIDE",       0, "Divide",       ""},
-{ 4, "SINE",         0, "Sine",         ""},
-{ 5, "COSINE",       0, "Cosine",       ""},
-{ 6, "TANGENT",      0, "Tangent",      ""},
-{ 7, "ARCSINE",      0, "Arcsine",      ""},
-{ 8, "ARCCOSINE",    0, "Arccosine",    ""},
-{ 9, "ARCTANGENT",   0, "Arctangent",   ""},
-{10, "POWER",        0, "Power",        ""},
-{11, "LOGARITHM",    0, "Logarithm",    ""},
-{12, "MINIMUM",      0, "Minimum",      ""},
-{13, "MAXIMUM",      0, "Maximum",      ""},
-{14, "ROUND",        0, "Round",        ""},
-{15, "LESS_THAN",    0, "Less Than",    ""},
-{16, "GREATER_THAN", 0, "Greater Than", ""},
-{0, NULL, 0, NULL, NULL}};
+	{ 0, "ADD",          0, "Add",          ""},
+	{ 1, "SUBTRACT",     0, "Subtract",     ""},
+	{ 2, "MULTIPLY",     0, "Multiply",     ""},
+	{ 3, "DIVIDE",       0, "Divide",       ""},
+	{ 4, "SINE",         0, "Sine",         ""},
+	{ 5, "COSINE",       0, "Cosine",       ""},
+	{ 6, "TANGENT",      0, "Tangent",      ""},
+	{ 7, "ARCSINE",      0, "Arcsine",      ""},
+	{ 8, "ARCCOSINE",    0, "Arccosine",    ""},
+	{ 9, "ARCTANGENT",   0, "Arctangent",   ""},
+	{10, "POWER",        0, "Power",        ""},
+	{11, "LOGARITHM",    0, "Logarithm",    ""},
+	{12, "MINIMUM",      0, "Minimum",      ""},
+	{13, "MAXIMUM",      0, "Maximum",      ""},
+	{14, "ROUND",        0, "Round",        ""},
+	{15, "LESS_THAN",    0, "Less Than",    ""},
+	{16, "GREATER_THAN", 0, "Greater Than", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_vec_math_items[] = {
-{0, "ADD",           0, "Add",           ""},
-{1, "SUBTRACT",      0, "Subtract",      ""},
-{2, "AVERAGE",       0, "Average",       ""},
-{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
-{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
-{5, "NORMALIZE",     0, "Normalize",     ""},
-{0, NULL, 0, NULL, NULL}};
+	{0, "ADD",           0, "Add",           ""},
+	{1, "SUBTRACT",      0, "Subtract",      ""},
+	{2, "AVERAGE",       0, "Average",       ""},
+	{3, "DOT_PRODUCT",   0, "Dot Product",   ""},
+	{4, "CROSS_PRODUCT", 0, "Cross Product", ""},
+	{5, "NORMALIZE",     0, "Normalize",     ""},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_filter_items[] = {
-{0, "SOFTEN",  0, "Soften",  ""},
-{1, "SHARPEN", 0, "Sharpen", ""},
-{2, "LAPLACE", 0, "Laplace", ""},
-{3, "SOBEL",   0, "Sobel",   ""},
-{4, "PREWITT", 0, "Prewitt", ""},
-{5, "KIRSCH",  0, "Kirsch",  ""},
-{6, "SHADOW",  0, "Shadow",  ""},
-{0, NULL, 0, NULL, NULL}};
+	{0, "SOFTEN",  0, "Soften",  ""},
+	{1, "SHARPEN", 0, "Sharpen", ""},
+	{2, "LAPLACE", 0, "Laplace", ""},
+	{3, "SOBEL",   0, "Sobel",   ""},
+	{4, "PREWITT", 0, "Prewitt", ""},
+	{5, "KIRSCH",  0, "Kirsch",  ""},
+	{6, "SHADOW",  0, "Shadow",  ""},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem prop_noise_basis_items[] = {
 	{SHD_NOISE_PERLIN, "PERLIN", 0, "Perlin", ""},
@@ -124,11 +124,13 @@ EnumPropertyItem prop_noise_type_items[] = {
 	{SHD_NOISE_HARD, "HARD", 0, "Hard", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+#if 0
 EnumPropertyItem prop_wave_items[] = {
 	{SHD_WAVE_SINE, "SINE", 0, "Sine", "Uses a sine wave to produce bands"},
 	{SHD_WAVE_SAW, "SAW", 0, "Saw", "Uses a saw wave to produce bands"},
 	{SHD_WAVE_TRI, "TRI", 0, "Tri", "Uses a triangle wave to produce bands"},
 	{0, NULL, 0, NULL, NULL}};
+#endif
 
 /* Add any new socket value subtype here.
  * When adding a new subtype here, make sure you also add it

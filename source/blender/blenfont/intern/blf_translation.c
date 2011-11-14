@@ -47,7 +47,7 @@
 #include "DNA_userdef_types.h" /* For user settings. */
 
 #ifdef WITH_INTERNATIONAL
-const char unifont_filename[]="droidsans.ttf.gz";
+static const char unifont_filename[]="droidsans.ttf.gz";
 static unsigned char *unifont_ttf= NULL;
 static int unifont_size= 0;
 

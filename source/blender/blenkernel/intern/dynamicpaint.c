@@ -317,7 +317,7 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 	return 0;
 }
 
-void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
+static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
 	char name[64];
 	BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
