@@ -86,6 +86,11 @@ WITH_BF_JACK = True
 # Motion Tracking
 WITH_BF_LIBMV = False
 
+# Ocean Simulation
+WITH_BF_FFTW3 = True
+WITH_BF_STATICFFTW3 = True
+WITH_BF_OCEANSIM = True
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
