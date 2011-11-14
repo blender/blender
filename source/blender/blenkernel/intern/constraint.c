@@ -3939,7 +3939,6 @@ static void followtrack_new_data (void *cdata)
 
 	data->clip= NULL;
 	data->flag|= FOLLOWTRACK_ACTIVECLIP;
-	data->reference= FOLLOWTRACK_TRACK;
 }
 
 static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -3967,7 +3966,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	if(!track)
 		return;
 
-	if(data->reference==FOLLOWTRACK_BUNDLE) {
+	if(data->flag&FOLLOWTRACK_USE_3D_POSITION) {
 		if(track->flag&TRACK_HAS_BUNDLE) {
 			float pos[3], mat[4][4], obmat[4][4];
 

@@ -233,12 +233,12 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{0, "NONE", 0, "Nothing", "Do not refine camera intrinsics"},
 		{REFINE_FOCAL_LENGTH, "FOCAL_LENGTH", 0, "Focal Length", "Refine focal length"},
 		{REFINE_FOCAL_LENGTH|
-		 REFINE_PRINCIPAL_POINT, "FOCAL_LENGTH_PRINCIPAL_POINT", 0, "Focal Length, Principal Point", "Refine focal length and principal point"},
+		 REFINE_PRINCIPAL_POINT, "FOCAL_LENGTH_PRINCIPAL_POINT", 0, "Focal Length, Optical Center", "Refine focal length and optical center"},
 		{REFINE_FOCAL_LENGTH|
 		 REFINE_PRINCIPAL_POINT|
 		 REFINE_RADIAL_DISTORTION_K1|
 		 REFINE_RADIAL_DISTORTION_K2,
-		 "FOCAL_LENGTH_PRINCIPAL_POINT_RADIAL_K1_K2", 0, "Focal Length, Principal Point, K1, K2", "Refine focal length, principal point and radial distortion K1 and K2"},
+		 "FOCAL_LENGTH_PRINCIPAL_POINT_RADIAL_K1_K2", 0, "Focal Length, Optical Center, K1, K2", "Refine focal length, optical center and radial distortion K1 and K2"},
 		{REFINE_FOCAL_LENGTH|
 		 REFINE_RADIAL_DISTORTION_K1|
 		 REFINE_RADIAL_DISTORTION_K2, "FOCAL_LENGTH_RADIAL_K1_K2", 0, "Focal length, K1. K2", "Refine focal length and radial distortion K1 and K2"},

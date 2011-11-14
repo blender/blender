@@ -205,7 +205,7 @@ class CLIP_PT_tools_geometry(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.bundles_to_mesh")
+        layout.operator("clip.tracks_to_mesh")
         layout.operator("clip.track_to_empty")
 
 
@@ -227,7 +227,6 @@ class CLIP_PT_tools_orientation(Panel):
         settings = sc.clip.tracking.settings
 
         col = layout.column(align=True)
-        col.label(text="Scene Orientation:")
         col.operator("clip.set_floor")
         col.operator("clip.set_origin")
 
@@ -371,7 +370,7 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "pixel_aspect")
 
         col = layout.column()
-        col.label(text="Principal Point")
+        col.label(text="Optical Center:")
         row = col.row()
         row.prop(clip.tracking.camera, "principal", text="")
         col.operator("clip.set_center_principal", text="Center")
@@ -769,7 +768,7 @@ class CLIP_MT_reconstruction(Menu):
         layout.separator()
 
         layout.operator("clip.track_to_empty")
-        layout.operator("clip.bundles_to_mesh")
+        layout.operator("clip.tracks_to_mesh")
 
 
 class CLIP_MT_track_visibility(Menu):
