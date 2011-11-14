@@ -805,7 +805,6 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
 class Curvature2DAngleThresholdUP0D(UnaryPredicate0D):
     def __init__(self, min_angle=None, max_angle=None):
         UnaryPredicate0D.__init__(self)
-        print(min_angle, max_angle)
         self._min_angle = min_angle
         self._max_angle = max_angle
         self._func = Curvature2DAngleF0D()
