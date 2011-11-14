@@ -2235,6 +2235,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	else {
 		/* A tesselation already exists, it should always have a CD_POLYINDEX */
 		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
+		CustomData_free_layers(&dm->faceData, CD_NORMAL, dm->numFaceData);
 	}
 
 	face_nors = MEM_mallocN(sizeof(float)*3*dm->numFaceData, "face_nors");
