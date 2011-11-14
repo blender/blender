@@ -415,7 +415,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.label()
 
     def OCEAN(self, layout, ob, md):
-        if not md.build_enabled:
+        if not md.is_build_enabled:
             layout.label("Built without OceanSim modifier")
             return
 
@@ -441,7 +441,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "choppiness")
         col.prop(md, "wave_scale", text="Scale")
-        col.prop(md, "smallest_wave")
+        col.prop(md, "wave_scale_min")
         col.prop(md, "wind_velocity")
 
         col = split.column()
@@ -449,16 +449,16 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub = col.column()
         sub.active = md.wave_alignment > 0
         sub.prop(md, "wave_direction", text="Direction")
-        sub.prop(md, "damp")
+        sub.prop(md, "damping")
 
         layout.separator()
 
-        layout.prop(md, "generate_normals")
+        layout.prop(md, "use_normals")
 
         row = layout.row()
-        row.prop(md, "generate_foam")
+        row.prop(md, "use_foam")
         sub = row.row()
-        sub.active = md.generate_foam
+        sub.active = md.use_foam
         sub.prop(md, "foam_coverage", text="Coverage")
 
         layout.separator()
@@ -472,8 +472,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split.enabled = not md.is_cached
 
         col = split.column(align=True)
-        col.prop(md, "bake_start", text="Start")
-        col.prop(md, "bake_end", text="End")
+        col.prop(md, "frame_start", text="Start")
+        col.prop(md, "frame_end", text="End")
 
         col = split.column(align=True)
         col.label(text="Cache path:")

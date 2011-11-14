@@ -652,13 +652,13 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
 		md->projectors[a]= NULL;
 }
 
-static int rna_OceanModifier_build_enabled_get(PointerRNA *UNUSED(ptr))
+static int rna_OceanModifier_is_build_enabled_get(PointerRNA *UNUSED(ptr))
 {
-	#ifdef WITH_OCEANSIM
+#ifdef WITH_OCEANSIM
 	return 1;
-	#else // WITH_OCEANSIM
+#else // WITH_OCEANSIM
 	return 0;
-	#endif // WITH_OCEANSIM
+#endif // WITH_OCEANSIM
 }
 
 static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2879,9 +2879,9 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "OceanModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_FLUIDSIM);
 	
-	/* General check if OceanSim modifier code is enabled */
-	prop= RNA_def_property(srna, "build_enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_OceanModifier_build_enabled_get", NULL);
+	/* General check if blender was built with OceanSim modifier support */
+	prop= RNA_def_property(srna, "is_build_enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_OceanModifier_is_build_enabled_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Build Enabled", "True if the OceanSim modifier is enabled in this build");
 	
@@ -2913,13 +2913,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Repeat Y", "Repetitions of the generated surface in Y");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
 
-	prop= RNA_def_property(srna, "generate_normals", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_NORMALS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Generate Normals", "Outputs normals for bump mapping - disabling can speed up performance if its not needed");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 	
-	prop= RNA_def_property(srna, "generate_foam", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_foam", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_FOAM);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Generate Foam", "Generates foam mask as a vertex color channel");
@@ -2945,13 +2945,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wind Velocity", "Wind speed (m/s)");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 	
-	prop= RNA_def_property(srna, "damp", PROP_FLOAT, PROP_FACTOR);
+	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "damp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Damping", "Damp reflected waves going in opposite direction to the wind");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 	
-	prop= RNA_def_property(srna, "smallest_wave", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "wave_scale_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "smallest_wave");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
@@ -3012,13 +3012,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random Seed", "");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 	
-	prop= RNA_def_property(srna, "bake_start", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bakestart");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake Start", "");
 	RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 	
-	prop= RNA_def_property(srna, "bake_end", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bakeend");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Bake End", "");
