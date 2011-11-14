@@ -490,6 +490,8 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i,int j)
 		ocr->normal[0] = oc->_N_x[i*oc->_N+j];
 		ocr->normal[1] = oc->_N_y/*oc->_N_y[i*oc->_N+j] (MEM01)*/;
 		ocr->normal[2] = oc->_N_z[i*oc->_N+j];
+
+		normalize_v3(ocr->normal);
 	}
 
 	if (oc->_do_jacobian)
@@ -1175,9 +1177,14 @@ void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
 
 void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel), void *update_cb_data)
 {
+	/* note: some of these values remain uninitialized unless certain options
+	 * are enabled, take care that BKE_ocean_eval_ij() initializes a member
+	 * before use - campbell */
+	OceanResult ocr;
+
 	int f, i=0, x, y, cancel=0;
 	float progress;
-	OceanResult ocr;
+
 	ImBuf *ibuf_foam, *ibuf_disp, *ibuf_normal;
 	float *prev_foam;
 	int res_x = och->resolution_x;
@@ -1186,7 +1193,8 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 	if (!o) return;
 
-	prev_foam = MEM_callocN(res_x*res_y*sizeof(float), "previous frame foam bake data");
+	if (o->_do_jacobian) prev_foam = MEM_callocN(res_x*res_y*sizeof(float), "previous frame foam bake data");
+	else                 prev_foam = NULL;
 
 	BLI_srand(0);
 
@@ -1204,56 +1212,8 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		/* add new foam */
 		for (y=0; y < res_y; y++) {
 			for (x=0; x < res_x; x++) {
-				float /*r,*/ /* UNUSED */ pr=0.0f, foam_result;
-				float neg_disp, neg_eplus;
 
 				BKE_ocean_eval_ij(o, &ocr, x, y);
-
-				normalize_v3(ocr.normal);
-
-				/* foam */
-				ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, och->foam_coverage);
-
-				/* accumulate previous value for this cell */
-				if (i>0)
-					pr = prev_foam[res_x*y + x];
-
-				/* r = BLI_frand(); */ /* UNUSED */ // randomly reduce foam
-
-				//pr = pr * och->foam_fade;		// overall fade
-
-				// remember ocean coord sys is Y up!
-				// break up the foam where height (Y) is low (wave valley),
-				// and X and Z displacement is greatest
-
-				/*
-				 vec[0] = ocr.disp[0];
-				vec[1] = ocr.disp[2];
-				hor_stretch = len_v2(vec);
-				CLAMP(hor_stretch, 0.0, 1.0);
-				*/
-
-				neg_disp = ocr.disp[1] < 0.0f ? 1.0f+ocr.disp[1] : 1.0f;
-				neg_disp = neg_disp < 0.0f ? 0.0f : neg_disp;
-
-				neg_eplus = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2]:1.0f;
-				neg_eplus = neg_eplus<0.0f ? 0.0f : neg_eplus;
-
-				//if (ocr.disp[1] < 0.0 || r > och->foam_fade)
-				//	pr *= och->foam_fade;
-
-
-				//pr = pr * (1.0 - hor_stretch) * ocr.disp[1];
-				//pr = pr * neg_disp * neg_eplus;
-
-				if (pr < 1.0f) pr *=pr;
-
-				pr *= och->foam_fade * (0.75f + neg_eplus * 0.25f);
-
-
-				foam_result = pr + ocr.foam;
-
-				prev_foam[res_x*y + x] = foam_result;
 
 				/* add to the image */
 				ibuf_disp->rect_float[4*(res_x*y + x) + 0] = ocr.disp[0];
@@ -1262,6 +1222,56 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 				ibuf_disp->rect_float[4*(res_x*y + x) + 3] = 1.0f;
 
 				if (o->_do_jacobian) {
+					/* TODO, cleanup unused code - campbell */
+
+					float /*r,*/ /* UNUSED */ pr=0.0f, foam_result;
+					float neg_disp, neg_eplus;
+
+					ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, och->foam_coverage);
+
+					/* accumulate previous value for this cell */
+					if (i > 0) {
+						pr = prev_foam[res_x*y + x];
+					}
+
+					/* r = BLI_frand(); */ /* UNUSED */ // randomly reduce foam
+
+					//pr = pr * och->foam_fade;		// overall fade
+
+					// remember ocean coord sys is Y up!
+					// break up the foam where height (Y) is low (wave valley),
+					// and X and Z displacement is greatest
+
+					/*
+					vec[0] = ocr.disp[0];
+					vec[1] = ocr.disp[2];
+					hor_stretch = len_v2(vec);
+					CLAMP(hor_stretch, 0.0, 1.0);
+					*/
+
+					neg_disp = ocr.disp[1] < 0.0f ? 1.0f+ocr.disp[1] : 1.0f;
+					neg_disp = neg_disp < 0.0f ? 0.0f : neg_disp;
+
+					/* foam, 'ocr.Eplus' only initialized with do_jacobian */
+					neg_eplus = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2]:1.0f;
+					neg_eplus = neg_eplus<0.0f ? 0.0f : neg_eplus;
+
+					//if (ocr.disp[1] < 0.0 || r > och->foam_fade)
+					//	pr *= och->foam_fade;
+
+
+					//pr = pr * (1.0 - hor_stretch) * ocr.disp[1];
+					//pr = pr * neg_disp * neg_eplus;
+
+					if (pr < 1.0f) pr *=pr;
+
+					pr *= och->foam_fade * (0.75f + neg_eplus * 0.25f);
+
+
+					foam_result = pr + ocr.foam;
+
+					prev_foam[res_x*y + x] = foam_result;
+
 					ibuf_foam->rect_float[4*(res_x*y + x) + 0] = foam_result;
 					ibuf_foam->rect_float[4*(res_x*y + x) + 1] = foam_result;
 					ibuf_foam->rect_float[4*(res_x*y + x) + 2] = foam_result;
@@ -1274,7 +1284,6 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 					ibuf_normal->rect_float[4*(res_x*y + x) + 2] = ocr.normal[2];
 					ibuf_normal->rect_float[4*(res_x*y + x) + 3] = 1.0;
 				}
-
 			}
 		}
 
@@ -1304,12 +1313,12 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		update_cb(update_cb_data, progress, &cancel);
 
 		if (cancel) {
-			MEM_freeN(prev_foam);
+			if (prev_foam) MEM_freeN(prev_foam);
 			return;
 		}
 	}
 
-	MEM_freeN(prev_foam);
+	if (prev_foam) MEM_freeN(prev_foam);
 	och->baked = 1;
 }
 
