@@ -421,6 +421,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 /* dont move the camera, just yield the fit location */
 int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
 {
+	float shift[2];
 	float plane_tx[4][3];
 	float rot_obmat[3][3];
 	const float zero[3]= {0,0,0};
@@ -432,6 +433,21 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 
 	copy_m3_m4(rot_obmat, camera_ob->obmat);
 	normalize_m3(rot_obmat);
+
+	for (i= 0; i < 4; i++) {
+		/* normalize so Z is always 1.0f*/
+		mul_v3_fl(data_cb.frame_tx[i], 1.0f/data_cb.frame_tx[i][2]);
+	}
+
+	/* get the shift back out of the frame */
+	shift[0]= (data_cb.frame_tx[0][0] +
+	           data_cb.frame_tx[1][0] +
+	           data_cb.frame_tx[2][0] +
+	           data_cb.frame_tx[3][0]) / 4.0f;
+	shift[1]= (data_cb.frame_tx[0][1] +
+	           data_cb.frame_tx[1][1] +
+	           data_cb.frame_tx[2][1] +
+	           data_cb.frame_tx[3][1]) / 4.0f;
 
 	for (i= 0; i < 4; i++) {
 		mul_m3_v3(rot_obmat, data_cb.frame_tx[i]);
@@ -456,8 +472,8 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 		return FALSE;
 	}
 	else {
-		float plane_isect_1[3], plane_isect_1_other[3];
-		float plane_isect_2[3], plane_isect_2_other[3];
+		float plane_isect_1[3], plane_isect_1_no[3], plane_isect_1_other[3];
+		float plane_isect_2[3], plane_isect_2_no[3], plane_isect_2_other[3];
 
 		float plane_isect_pt_1[3], plane_isect_pt_2[3];
 
@@ -466,10 +482,10 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], data_cb.dist_vals[i]);
 		}
 
-		if ( (isect_plane_plane_v3(plane_isect_1, plane_isect_1_other,
+		if ( (isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
 		                           plane_tx[0], data_cb.normal_tx[0],
 		                           plane_tx[2], data_cb.normal_tx[2]) == 0) ||
-		     (isect_plane_plane_v3(plane_isect_2, plane_isect_2_other,
+		     (isect_plane_plane_v3(plane_isect_2, plane_isect_2_no,
 		                           plane_tx[1], data_cb.normal_tx[1],
 		                           plane_tx[3], data_cb.normal_tx[3]) == 0))
 		{
@@ -478,8 +494,8 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 		}
 		else {
 
-			add_v3_v3(plane_isect_1_other, plane_isect_1);
-			add_v3_v3(plane_isect_2_other, plane_isect_2);
+			add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
+			add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
 
 			if (isect_line_line_v3(plane_isect_1, plane_isect_1_other,
 			                       plane_isect_2, plane_isect_2_other,
@@ -489,12 +505,29 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 			}
 			else {
 				float cam_plane_no[3]= {0.0f, 0.0f, -1.0f};
-				float tvec[3];
+				float plane_isect_delta[3];
+				float plane_isect_delta_len;
+
 				mul_m3_v3(rot_obmat, cam_plane_no);
 
-				sub_v3_v3v3(tvec, plane_isect_pt_2, plane_isect_pt_1);
-				copy_v3_v3(r_co, dot_v3v3(tvec, cam_plane_no) > 0.0f ?
-				               plane_isect_pt_1 : plane_isect_pt_2);
+				sub_v3_v3v3(plane_isect_delta, plane_isect_pt_2, plane_isect_pt_1);
+				plane_isect_delta_len= len_v3(plane_isect_delta);
+
+				if (dot_v3v3(plane_isect_delta, cam_plane_no) > 0.0f) {
+					copy_v3_v3(r_co, plane_isect_pt_1);
+
+					/* offset shift */
+					normalize_v3(plane_isect_1_no);
+					madd_v3_v3fl(r_co, plane_isect_1_no, shift[1] * -plane_isect_delta_len);
+				}
+				else {
+					copy_v3_v3(r_co, plane_isect_pt_2);
+
+					/* offset shift */
+					normalize_v3(plane_isect_2_no);
+					madd_v3_v3fl(r_co, plane_isect_2_no, shift[0] * -plane_isect_delta_len);
+				}
+
 
 				return TRUE;
 			}
