@@ -213,33 +213,33 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 # paintmap output
                 row = layout.row()
-                row.prop_search(surface, "output_name", ob.data, "vertex_colors", text="Paintmap layer: ")
+                row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap layer: ")
                 if surface.output_exists(object=ob, index=0):
                     ic = 'ZOOMOUT'
                 else:
                     ic = 'ZOOMIN'
 
-                row.operator("dpaint.output_toggle", icon=ic, text="").index = 0
+                row.operator("dpaint.output_toggle", icon=ic, text="").output = 'A'
 
                 # wetmap output
                 row = layout.row()
-                row.prop_search(surface, "output_name2", ob.data, "vertex_colors", text="Wetmap layer: ")
+                row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap layer: ")
                 if surface.output_exists(object=ob, index=1):
                     ic = 'ZOOMOUT'
                 else:
                     ic = 'ZOOMIN'
 
-                row.operator("dpaint.output_toggle", icon=ic, text="").index = 1
+                row.operator("dpaint.output_toggle", icon=ic, text="").output = 'B'
 
             elif surface_type == 'WEIGHT':
                 row = layout.row()
-                row.prop_search(surface, "output_name", ob, "vertex_groups", text="Vertex Group: ")
+                row.prop_search(surface, "output_name_a", ob, "vertex_groups", text="Vertex Group: ")
                 if surface.output_exists(object=ob, index=0):
                     ic = 'ZOOMOUT'
                 else:
                     ic = 'ZOOMIN'
 
-                row.operator("dpaint.output_toggle", icon=ic, text="").index = 0
+                row.operator("dpaint.output_toggle", icon=ic, text="").output = 'A'
 
         # image format outputs
         if surface.surface_format == 'IMAGE':
@@ -254,19 +254,19 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
             if surface_type == 'PAINT':
                 split = layout.split(percentage=0.4)
-                split.prop(surface, "do_output1", text="Paintmaps:")
+                split.prop(surface, "use_output_a", text="Paintmaps:")
                 sub = split.row()
-                sub.active = surface.do_output1
-                sub.prop(surface, "output_name", text="")
+                sub.active = surface.use_output_a
+                sub.prop(surface, "output_name_a", text="")
 
                 split = layout.split(percentage=0.4)
-                split.prop(surface, "do_output2", text="Wetmaps:")
+                split.prop(surface, "do_output_b", text="Wetmaps:")
                 sub = split.row()
-                sub.active = surface.do_output2
-                sub.prop(surface, "output_name2", text="")
+                sub.active = surface.do_output_b
+                sub.prop(surface, "output_name_b", text="")
             else:
                 col = layout.column()
-                col.prop(surface, "output_name", text="Filename: ")
+                col.prop(surface, "output_name_a", text="Filename: ")
                 if surface_type == 'DISPLACE':
                     col.prop(surface, "displace_type", text="Displace Type")
                     col.prop(surface, "depth_clamp")
@@ -454,14 +454,14 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
 
         col = layout.column()
         col.active = (brush.velocity_alpha or brush.velocity_color or brush.velocity_depth)
-        col.prop(brush, "max_velocity")
+        col.prop(brush, "velocity_max")
         col.template_color_ramp(brush, "velocity_ramp", expand=True)
         layout.separator()
 
         row = layout.row()
-        row.prop(brush, "do_smudge")
+        row.prop(brush, "use_smudge")
         sub = row.row()
-        sub.active = brush.do_smudge
+        sub.active = brush.use_smudge
         sub.prop(brush, "smudge_strength")
 
 

@@ -197,24 +197,23 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 
 static int output_toggle_exec(bContext *C, wmOperator *op)
 {
-
 	Object *ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
 	DynamicPaintSurface *surface;
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
-	int index= RNA_int_get(op->ptr, "index");
+	int output= RNA_enum_get(op->ptr, "output"); /* currently only 1/0 */
 
 	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
 	surface = get_activeSurface(pmd->canvas);
 
 	/* if type is already enabled, toggle it off */
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-		int exists = dynamicPaint_outputLayerExists(surface, ob, index);
-		char *name;
+		int exists = dynamicPaint_outputLayerExists(surface, ob, output);
+		const char *name;
 		
-		if (index == 0)
+		if (output == 0)
 			name = surface->output_name;
-		else if (index == 1)
+		else
 			name = surface->output_name2;
 
 		/* Vertex Color Layer */
@@ -226,8 +225,9 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 		}
 		/* Vertex Weight Layer */
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-			if (!exists)
+			if (!exists) {
 				ED_vgroup_add_name(ob, name);
+			}
 			else {
 				bDeformGroup *defgroup = defgroup_find_name(ob, name);
 				if (defgroup) ED_vgroup_delete(ob, defgroup);
@@ -240,7 +240,11 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 
 void DPAINT_OT_output_toggle(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
+	static EnumPropertyItem prop_output_toggle_types[] = {
+		{0, "A", 0, "Output A", ""},
+		{1, "B", 0, "Output B", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name= "Toggle Output Layer";
@@ -255,8 +259,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_int(ot->srna, "index", 0, 0, 1, "Index", "", 0, 1);
-	ot->prop= prop;
+	ot->prop= RNA_def_enum(ot->srna, "output", prop_output_toggle_types, 0, "Output Toggle", "");
 }
 
 

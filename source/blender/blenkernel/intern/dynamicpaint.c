@@ -279,13 +279,13 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 	}
 }
 
-int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int index)
+int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int output)
 {
 	char *name;
 
-	if (index == 0)
+	if (output == 0)
 		name = surface->output_name;
-	else if (index == 1)
+	else if (output == 1)
 		name = surface->output_name2;
 	else
 		return 0;

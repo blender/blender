@@ -553,20 +553,20 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Output Path", "Directory to save the textures");
 
 	/* output for primary surface data */
-	prop= RNA_def_property(srna, "output_name", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "output_name_a", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "output_name");
 	RNA_def_property_ui_text(prop, "Output name", "");
 
-	prop= RNA_def_property(srna, "do_output1", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_output_a", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT1);
 	RNA_def_property_ui_text(prop, "Save layer", "Output name");
 
 	/* output for secondary sufrace data */
-	prop= RNA_def_property(srna, "output_name2", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "output_name_b", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "output_name2");
 	RNA_def_property_ui_text(prop, "Output name", "Output name");
 
-	prop= RNA_def_property(srna, "do_output2", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_output_b", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT2);
 	RNA_def_property_ui_text(prop, "Save layer", "");
 
@@ -774,7 +774,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.00, 5.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Clamp Waves", "Maximum level of surface intersection used to influence waves. Use 0.0 to disable");
 
-	prop= RNA_def_property(srna, "do_smudge", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smudge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DO_SMUDGE);
 	RNA_def_property_ui_text(prop, "Do Smudge", "Makes this brush to smudge existing paint as it moves");
 
@@ -783,7 +783,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 2);
 	RNA_def_property_ui_text(prop, "Smudge Strength", "Smudge effect strength");
 
-	prop= RNA_def_property(srna, "max_velocity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max_velocity");
 	RNA_def_property_range(prop, 0.0001, 10.0);
 	RNA_def_property_ui_range(prop, 0.1, 2.0, 5, 2);
 	RNA_def_property_ui_text(prop, "Max Velocity", "Velocity considered as maximum influence. (Blender units per frame)");
