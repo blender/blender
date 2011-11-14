@@ -183,7 +183,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Type Active";
 	ot->idname= "DPAINT_OT_type_toggle";
-	ot->description = "Toggles whether given type is active or not";
+	ot->description = "Toggle whether given type is active or not";
 	
 	/* api callbacks */
 	ot->exec= type_toggle_exec;
@@ -251,7 +251,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Output Layer";
 	ot->idname= "DPAINT_OT_output_toggle";
-	ot->description = "Adds or removes Dynamic Paint output data layer";
+	ot->description = "Add or remove Dynamic Paint output data layer";
 	
 	/* api callbacks */
 	ot->exec= output_toggle_exec;

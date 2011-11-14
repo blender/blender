@@ -108,7 +108,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
         cls.aperture_size = FloatProperty(name="Aperture Size", description="Radius of the aperture for depth of field",
             default=0.0, min=0.0, max=10.0)
-        cls.aperture_blades = IntProperty(name="Aperture Blades", description="Number of blades in aperture for polygonal bokeh (need 3 or more)",
+        cls.aperture_blades = IntProperty(name="Aperture Blades", description="Number of blades in aperture for polygonal bokeh (at least 3)",
             default=0, min=0, max=100)
         cls.aperture_rotation = FloatProperty(name="Aperture Rotation", description="Rotation of blades in aperture",
             default=0, soft_min=-math.pi, soft_max=math.pi, subtype='ANGLE')

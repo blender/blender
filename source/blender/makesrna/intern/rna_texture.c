@@ -1874,9 +1874,9 @@ static void rna_def_texture_ocean(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem ocean_output_items[] = {
-		{TEX_OCN_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Outputs XYZ displacement in RGB channels"},
+		{TEX_OCN_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Output XYZ displacement in RGB channels"},
 		//{TEX_OCN_NORMALS, "NORMALS", 0, "Normals", "Outputs wave normals"},	// these are in nor channel now
-		{TEX_OCN_FOAM, "FOAM", 0, "Foam", "Outputs Foam (wave overlap) amount in single channel"},
+		{TEX_OCN_FOAM, "FOAM", 0, "Foam", "Output Foam (wave overlap) amount in single channel"},
 		{TEX_OCN_JPLUS, "JPLUS", 0, "Eigenvalues", "Positive Eigenvalues"},
 		{TEX_OCN_EMINUS, "EMINUS", 0, "Eigenvectors (-)", "Negative Eigenvectors"},
 		{TEX_OCN_EPLUS, "EPLUS", 0, "Eigenvectors (+)", "Positive Eigenvectors"},
