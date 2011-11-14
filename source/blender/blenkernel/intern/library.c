@@ -364,7 +364,8 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_GD:
 			return 0; /* not implemented */
 		case ID_LS:
-			return 0; /* not implemented */
+			if(!test) *newid= (ID*)FRS_copy_linestyle((FreestyleLineStyle*)id);
+			return 1;
 	}
 	
 	return 0;

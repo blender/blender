@@ -44,11 +44,17 @@ struct Object;
 
 FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main);
 void FRS_free_linestyle(FreestyleLineStyle *linestyle);
+FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle);
 
-int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type);
-int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type);
-int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type);
-int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type);
+LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type);
+LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type);
+LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type);
+LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type);
+
+LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *FRS_copy_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
+LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m);
 
 void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
