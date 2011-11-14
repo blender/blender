@@ -796,6 +796,7 @@ void txt_move_left(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, oundoing= undoing;
+	int tabsize = 1, i=0;
 	
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
@@ -803,14 +804,34 @@ void txt_move_left(Text *text, short sel)
 	if (!*linep) return;
 
 	undoing= 1;
+
+	// do nice left only if there are only spaces
+	// TXT_TABSIZE hardcoded in DNA_text_types.h
+	if (text->flags & TXT_TABSTOSPACES) {
+		tabsize = TXT_TABSIZE;
+
+		if (*charp < tabsize)
+			tabsize = *charp;
+		else {
+			for (i=0;i<(*charp);i++)
+				if ((*linep)->line[i] != ' ') {
+					tabsize = 1;
+					break;
+				}
+			// if in the middle of the space-tab
+			if ((*charp) % tabsize != 0)
+					tabsize = ((*charp) % tabsize);
+		}
+	}
+
 	if (*charp== 0) {
 		if ((*linep)->prev) {
 			txt_move_up(text, sel);
 			*charp= (*linep)->len;
 		}
-	} else {
-		(*charp)--;
 	}
+	else (*charp)-= tabsize;
+
 	undoing= oundoing;
 	if(!undoing) txt_undo_add_op(text, sel?UNDO_SLEFT:UNDO_CLEFT);
 	
@@ -821,6 +842,7 @@ void txt_move_right(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, oundoing= undoing;
+	int tabsize=1, i=0;
 	
 	if (!text) return;
 	if(sel) txt_curs_sel(text, &linep, &charp);
@@ -828,13 +850,32 @@ void txt_move_right(Text *text, short sel)
 	if (!*linep) return;
 
 	undoing= 1;
+
+	// do nice right only if there are only spaces
+	// spaces hardcoded in DNA_text_types.h
+	if (text->flags & TXT_TABSTOSPACES) {
+		tabsize = TXT_TABSIZE;
+
+		if ((*charp) + tabsize > (*linep)->len)
+			tabsize = 1;
+		else {
+			for (i=0;i<(*charp) + tabsize - ((*charp) % tabsize);i++)
+				if ((*linep)->line[i] != ' ') {
+					tabsize = 1;
+					break;
+				}
+			// if in the middle of the space-tab
+			tabsize -= (*charp) % tabsize;
+		}
+	}
+
 	if (*charp== (*linep)->len) {
 		if ((*linep)->next) {
 			txt_move_down(text, sel);
 			*charp= 0;
 		}
 	} else {
-		(*charp)++;
+		(*charp)+=tabsize;
 	}
 	undoing= oundoing;
 	if(!undoing) txt_undo_add_op(text, sel?UNDO_SRIGHT:UNDO_CRIGHT);
