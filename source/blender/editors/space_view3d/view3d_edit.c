@@ -1031,21 +1031,17 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 				rv3d->view = RV3D_VIEW_USER;
 		
 				if (U.flag & USER_TRACKBALL) {
-					const int invert_roll = U.ndof_flag & NDOF_ROLL_INVERT_AXIS;
-					const int invert_tilt = U.ndof_flag & NDOF_TILT_INVERT_AXIS;
-					const int invert_rot = U.ndof_flag & NDOF_ROTATE_INVERT_AXIS;
-
 					float rot[4];
 					float axis[3];
 					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
 
-					if (invert_roll)
+					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
 						axis[2] = -axis[2];
 
-					if (invert_tilt)
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						axis[0] = -axis[0];
 
-					if (invert_rot)
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
 
 					// transform rotation axis from view to world coordinates
@@ -1061,8 +1057,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 				} else {
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-					const int invert = U.ndof_flag & NDOF_ORBIT_INVERT_AXES;
-
 					float angle, rot[4];
 					float xvec[3] = {1,0,0};
 		
@@ -1071,7 +1065,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		
 					/* Perform the up/down rotation */
 					angle = rot_sensitivity * dt * ndof->rvec[0];
-					if (invert)
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						angle = -angle;
 					rot[0] = cos(angle);
 					mul_v3_v3fl(rot+1, xvec, sin(angle));
@@ -1079,7 +1073,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		
 					/* Perform the orbital rotation */
 					angle = rot_sensitivity * dt * ndof->rvec[1];
-					if (invert)
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						angle = -angle;
 		
 					// update the onscreen doo-dad
@@ -1164,23 +1158,19 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 			const float vertical_sensitivity = 0.4f;
 			const float lateral_sensitivity = 0.6f;
 
-			const int invert_panx = U.ndof_flag & NDOF_PANX_INVERT_AXIS;
-			const int invert_pany = U.ndof_flag & NDOF_PANY_INVERT_AXIS;
-			const int invert_panz = U.ndof_flag & NDOF_PANZ_INVERT_AXIS;
-
 			float pan_vec[3];
 
-			if (invert_panx)
+			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
 				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
 			else
 				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
 
-			if (invert_panz)
+			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
 				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
 			else
 				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
 
-			if (invert_pany)
+			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
 				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
 			else
 				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
