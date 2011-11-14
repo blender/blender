@@ -757,6 +757,13 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	return NULL;
 }
 
+static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	init_tex_mapping(node->storage);
+	rna_Node_update(bmain, scene, ptr);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -1097,12 +1104,43 @@ static void def_sh_material(StructRNA *srna)
 static void def_sh_mapping(StructRNA *srna)
 {
 	PropertyRNA *prop;
+	
+	RNA_def_struct_sdna_from(srna, "TexMapping", "storage");
 
-	prop= RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "storage");
-	RNA_def_property_struct_type(prop, "TexMapping");
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_ui_text(prop, "Mapping", "Texture coordinate mapping settings");
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER); /* Not PROP_XYZ, this is now in radians, no more degrees */
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Rotation", "");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Scale", "");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "min", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for clipping");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for clipping");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "use_min", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
+	RNA_def_property_ui_text(prop, "Has Minimum", "Whether to use minimum clipping value");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
+	
+	prop= RNA_def_property(srna, "use_max", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
+	RNA_def_property_ui_text(prop, "Has Maximum", "Whether to use maximum clipping value");
+	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
 }
 
 static void def_sh_geometry(StructRNA *srna)
