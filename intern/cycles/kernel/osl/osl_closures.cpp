@@ -69,6 +69,7 @@ static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, O
 void OSLShader::register_closures(OSL::ShadingSystem *ss)
 {
 	register_closure(ss, "diffuse", OSL_CLOSURE_BSDF_DIFFUSE_ID, bsdf_diffuse_params, bsdf_diffuse_prepare);
+	register_closure(ss, "oren_nayar", OSL_CLOSURE_BSDF_OREN_NAYAR_ID, bsdf_oren_nayar_params, bsdf_oren_nayar_prepare);
 	register_closure(ss, "translucent", OSL_CLOSURE_BSDF_TRANSLUCENT_ID, bsdf_translucent_params, bsdf_translucent_prepare);
 	register_closure(ss, "reflection", OSL_CLOSURE_BSDF_REFLECTION_ID, bsdf_reflection_params, bsdf_reflection_prepare);
 	register_closure(ss, "refraction", OSL_CLOSURE_BSDF_REFRACTION_ID, bsdf_refraction_params, bsdf_refraction_prepare);

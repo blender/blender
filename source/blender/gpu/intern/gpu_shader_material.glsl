@@ -1837,7 +1837,7 @@ float hypot(float x, float y)
 
 /* bsdfs */
 
-void node_bsdf_diffuse(vec4 color, vec3 N, out vec4 result)
+void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
 {
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -1856,14 +1856,19 @@ void node_bsdf_diffuse(vec4 color, vec3 N, out vec4 result)
 
 void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 result)
 {
-	vec3 L = vec3(0.0);
+	/* ambient light */
+	vec3 L = vec3(0.2);
 
 	/* directional lights */
 	for(int i = 0; i < NUM_LIGHTS; i++) {
+		vec3 light_position = gl_LightSource[i].position.xyz;
 		vec3 H = gl_LightSource[i].halfVector.xyz;
+		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 		vec3 light_specular = gl_LightSource[i].specular.rgb;
 
-		float bsdf = pow(max(dot(N, H), 0.0), 1.0/roughness);
+		/* we mix in some diffuse so low roughness still shows up */
+		float bsdf = 0.5*pow(max(dot(N, H), 0.0), 1.0/roughness);
+		bsdf += 0.5*max(dot(N, light_position), 0.0);
 		L += light_specular*bsdf;
 	}
 
@@ -1872,17 +1877,17 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 resu
 
 void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 N, vec3 I, out vec4 result)
 {
-	node_bsdf_diffuse(color, N, result);
+	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, vec3 I, out vec4 result)
 {
-	node_bsdf_diffuse(color, N, result);
+	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 void node_bsdf_translucent(vec4 color, vec3 N, out vec4 result)
 {
-	node_bsdf_diffuse(color, N, result);
+	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 void node_bsdf_transparent(vec4 color, out vec4 result)
@@ -1896,7 +1901,7 @@ void node_bsdf_transparent(vec4 color, out vec4 result)
 
 void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
 {
-	node_bsdf_diffuse(color, N, result);
+	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
 /* emission */

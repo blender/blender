@@ -31,6 +31,7 @@
 
 static bNodeSocketTemplate sh_node_bsdf_diffuse_in[]= {
 	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, "Roughness",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

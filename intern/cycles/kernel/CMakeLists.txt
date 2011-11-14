@@ -42,6 +42,7 @@ set(SRC_SVM_HEADERS
 	svm/bsdf.h
 	svm/bsdf_ashikhmin_velvet.h
 	svm/bsdf_diffuse.h
+	svm/bsdf_oren_nayar.h
 	svm/bsdf_microfacet.h
 	svm/bsdf_reflection.h
 	svm/bsdf_refraction.h
