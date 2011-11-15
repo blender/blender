@@ -28,10 +28,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 #include "RNA_define.h"
 
 #ifdef RNA_RUNTIME
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+static void rna_Text_clear(Text *text)
+{
+	clear_text(text);
+	WM_main_add_notifier(NC_TEXT|NA_EDITED, text);
+}
+
+static void rna_Text_write(Text *text, const char *str)
+{
+	write_text(text, str);
+	WM_main_add_notifier(NC_TEXT|NA_EDITED, text);
+}
 
 #else
 
@@ -40,10 +54,10 @@ void RNA_api_text(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *prop;
 
-	func= RNA_def_function(srna, "clear", "clear_text");
+	func= RNA_def_function(srna, "clear", "rna_Text_clear");
 	RNA_def_function_ui_description(func, "clear the text block");
 
-	func= RNA_def_function(srna, "write", "write_text");
+	func= RNA_def_function(srna, "write", "rna_Text_write");
 	RNA_def_function_ui_description(func, "write text at the cursor location and advance to the end of the text block");
 	prop= RNA_def_string(func, "text", "Text", 0, "", "New text for this datablock");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
