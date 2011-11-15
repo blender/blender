@@ -121,7 +121,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 	/* quality of proxied image */
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
-	RNA_def_property_ui_text(prop, "Quality", "JPEG of proxy images");
+	RNA_def_property_ui_text(prop, "Quality", "JPEG quality of proxy images");
 	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
 
 	prop= RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
