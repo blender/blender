@@ -89,6 +89,8 @@ void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint
 
 int ED_curve_updateAnimPaths(struct Object *obedit);
 
+int ED_curve_actSelection(struct Curve *cu, float center[3]);
+
 /* debug only */
 void printknots(struct Object *obedit);
 
