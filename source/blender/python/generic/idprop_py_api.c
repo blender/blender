@@ -28,7 +28,7 @@
 
 #include <Python.h>
 
-#include "IDProp.h"
+#include "idprop_py_api.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"

@@ -73,7 +73,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 
-#include "../generic/IDProp.h" /* for IDprop lookups */
+#include "../generic/idprop_py_api.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_INTERNATIONAL

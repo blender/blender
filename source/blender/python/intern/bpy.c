@@ -53,7 +53,7 @@
 #include "MEM_guardedalloc.h"
 
  /* external util modules */
-#include "../generic/IDProp.h"
+#include "../generic/idprop_py_api.h"
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
 #include "../mathutils/mathutils.h"
