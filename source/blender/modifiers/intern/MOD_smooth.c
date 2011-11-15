@@ -225,7 +225,7 @@ static void deformVerts(
 	DerivedMesh *dm= get_dm(ob, NULL, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
-			   vertexCos, numVerts);
+	                  vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);
@@ -238,7 +238,7 @@ static void deformVertsEM(
 	DerivedMesh *dm= get_dm(ob, editData, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
-			   vertexCos, numVerts);
+	                  vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);

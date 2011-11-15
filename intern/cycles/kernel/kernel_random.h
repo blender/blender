@@ -22,6 +22,11 @@ typedef uint RNG;
 
 #ifdef __SOBOL__
 
+/* skip initial numbers that are not as well distributed, especially the
+   first sequence is just 0 everywhere, which can be problematic for e.g.
+   path termination */
+#define SOBOL_SKIP 64
+
 /* High Dimensional Sobol */
 
 /* van der corput radical inverse */
@@ -103,7 +108,7 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dime
 	return r;
 #else
 	/* compute sobol sequence value using direction vectors */
-	uint result = sobol_dimension(kg, sample, dimension);
+	uint result = sobol_dimension(kg, sample + SOBOL_SKIP, dimension);
 	float r = (float)result * (1.0f/(float)0xFFFFFFFF);
 
 	/* Cranly-Patterson rotation using rng seed */

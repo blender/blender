@@ -875,24 +875,25 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	/*do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
 		
-		 if (waitForEvent) {
-		 GHOST_TUns64 next = timerMgr->nextFireTime();
-		 double timeOut;
-		 
-		 if (next == GHOST_kFireTimeNever) {
-		 timeOut = kEventDurationForever;
-		 } else {
-		 timeOut = (double)(next - getMilliSeconds())/1000.0;
-		 if (timeOut < 0.0)
-		 timeOut = 0.0;
-		 }
-		 
-		 ::ReceiveNextEvent(0, NULL, timeOut, false, &event);
-		 }
-		 
-		 if (timerMgr->fireTimers(getMilliSeconds())) {
-		 anyProcessed = true;
-		 }*/
+		if (waitForEvent) {
+		GHOST_TUns64 next = timerMgr->nextFireTime();
+		double timeOut;
+
+		if (next == GHOST_kFireTimeNever) {
+		timeOut = kEventDurationForever;
+		} else {
+		timeOut = (double)(next - getMilliSeconds())/1000.0;
+		if (timeOut < 0.0)
+		timeOut = 0.0;
+		}
+
+		::ReceiveNextEvent(0, NULL, timeOut, false, &event);
+		}
+
+		if (timerMgr->fireTimers(getMilliSeconds())) {
+		anyProcessed = true;
+		}
+		*/
 		
 		do {
 			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];

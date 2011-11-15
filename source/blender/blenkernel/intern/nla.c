@@ -356,7 +356,7 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 	{
 		AUD_SoundInfo info = AUD_getInfo(speaker->sound->playback_handle);
 		
-		strip->end = ceil(info.length * FPS);
+		strip->end = (float)ceil((double)info.length * FPS);
 	}
 	else 
 #endif

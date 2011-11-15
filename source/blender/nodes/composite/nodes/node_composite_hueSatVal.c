@@ -48,12 +48,12 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
 	
-	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0 || nhs->val!=1.0)) {
+	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0f || nhs->val!=1.0f)) {
 		float col[3], hsv[3], mfac= 1.0f - *fac;
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
 		hsv[0]+= (nhs->hue - 0.5f);
-		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
+		if(hsv[0]>1.0f) hsv[0]-=1.0f; else if(hsv[0]<0.0f) hsv[0]+= 1.0f;
 		hsv[1]*= nhs->sat;
 		hsv[2]*= nhs->val;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);

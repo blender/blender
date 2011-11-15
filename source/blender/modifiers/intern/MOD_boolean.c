@@ -85,7 +85,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, bmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Boolean Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Boolean Modifier");
 	}
 }
 

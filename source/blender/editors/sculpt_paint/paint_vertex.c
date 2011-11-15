@@ -2400,8 +2400,7 @@ typedef struct VPaintData {
 	ListBase *polyfacemap;
 } VPaintData;
 
-static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me,
-				      Object *ob, Scene *scene)
+static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 {
 	MFace *mf;
 	polyfacemap_e *e;
@@ -2459,7 +2458,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
 	vpd->indexar= get_indexarray(me);
 	vpd->paintcol= vpaint_get_current_col(vp);
-	vpaint_build_poly_facemap(vpd, me, ob, scene);
+	vpaint_build_poly_facemap(vpd, me);
 	
 	/* for filtering */
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);

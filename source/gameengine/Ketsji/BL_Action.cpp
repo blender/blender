@@ -309,8 +309,9 @@ void BL_Action::BlendShape(Key* key, float srcweight, std::vector<float>& blends
 	dstweight = 1.0F - srcweight;
 	//printf("Dst: %f\tSrc: %f\n", srcweight, dstweight);
 	for (it=blendshape.begin(), kb = (KeyBlock*)key->block.first; 
-		 kb && it != blendshape.end(); 
-		 kb = (KeyBlock*)kb->next, it++) {
+	     kb && it != blendshape.end();
+	     kb = (KeyBlock*)kb->next, it++)
+	{
 		//printf("OirgKeys: %f\t%f\n", kb->curval, (*it));
 		kb->curval = kb->curval * dstweight + (*it) * srcweight;
 		//printf("NewKey: %f\n", kb->curval);

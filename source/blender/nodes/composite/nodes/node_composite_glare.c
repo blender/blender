@@ -253,7 +253,7 @@ static void streaks(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 			const float p4 = pow(4.0, (double)n);
 			const float vxp = vx*p4, vyp = vy*p4;
 			const float wt = pow((double)ndg->fade, (double)p4);
-			const float cmo = 1.f - pow((double)ndg->colmod, (double)n+1);	// colormodulation amount relative to current pass
+			const float cmo = 1.f - (float)pow((double)ndg->colmod, (double)n+1);	// colormodulation amount relative to current pass
 			float* tdstcol = tdst->rect;
 			for (y=0; y<tsrc->y; ++y) {
 				for (x=0; x<tsrc->x; ++x, tdstcol+=4) {

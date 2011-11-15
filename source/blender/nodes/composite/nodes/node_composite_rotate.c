@@ -58,7 +58,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 		int x, y, yo, xo;
 		ImBuf *ibuf, *obuf;
 
-		rad= (M_PI*in[1]->vec[0])/180.0f;
+		rad= ((float)M_PI*in[1]->vec[0])/180.0f;
 
 
 		s= sin(rad);

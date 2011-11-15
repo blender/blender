@@ -953,9 +953,10 @@ static PyObject *Vector_add(PyObject *v1, PyObject *v2)
 	float vec[MAX_DIMENSIONS];
 
 	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
-		                "Vector addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_AttributeError,
+		             "Vector addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	vec1 = (VectorObject*)v1;
@@ -983,9 +984,10 @@ static PyObject *Vector_iadd(PyObject *v1, PyObject *v2)
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
 	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
-		                "Vector addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_AttributeError,
+		             "Vector addition: (%s += %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	vec1 = (VectorObject*)v1;
@@ -1015,9 +1017,10 @@ static PyObject *Vector_sub(PyObject *v1, PyObject *v2)
 	float vec[MAX_DIMENSIONS];
 
 	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
-		                "Vector subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_AttributeError,
+		             "Vector subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	vec1 = (VectorObject*)v1;
@@ -1044,9 +1047,10 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 	VectorObject *vec1= NULL, *vec2= NULL;
 
 	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
-		PyErr_SetString(PyExc_AttributeError,
-		                "Vector subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_AttributeError,
+		             "Vector subtraction: (%s -= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	vec1 = (VectorObject*)v1;
@@ -1281,9 +1285,10 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		mul_vn_fl(vec->vec, vec->size, scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError,
-		                "Vector multiplication: "
-		                "arguments not acceptable for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Vector multiplication: (%s *= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 

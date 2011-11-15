@@ -601,31 +601,31 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 	}
 	else {
 		/* which face */
-		if( vec[2]<=-fabs(vec[0]) && vec[2]<=-fabs(vec[1]) ) {
+		if( vec[2] <= -fabsf(vec[0]) && vec[2] <= -fabsf(vec[1]) ) {
 			face= 0;
 			labda= -1.0f/vec[2];
 			answ[0]= labda*vec[0];
 			answ[1]= labda*vec[1];
 		}
-		else if( vec[2]>=fabs(vec[0]) && vec[2]>=fabs(vec[1]) ) {
+		else if (vec[2] >= fabsf(vec[0]) && vec[2] >= fabsf(vec[1])) {
 			face= 1;
 			labda= 1.0f/vec[2];
 			answ[0]= labda*vec[0];
 			answ[1]= -labda*vec[1];
 		}
-		else if( vec[1]>=fabs(vec[0]) ) {
+		else if (vec[1] >= fabsf(vec[0])) {
 			face= 2;
 			labda= 1.0f/vec[1];
 			answ[0]= labda*vec[0];
 			answ[1]= labda*vec[2];
 		}
-		else if( vec[0]<=-fabs(vec[1]) ) {
+		else if (vec[0] <= -fabsf(vec[1])) {
 			face= 3;
 			labda= -1.0f/vec[0];
 			answ[0]= labda*vec[1];
 			answ[1]= labda*vec[2];
 		}
-		else if( vec[1]<=-fabs(vec[0]) ) {
+		else if (vec[1] <= -fabsf(vec[0])) {
 			face= 4;
 			labda= -1.0f/vec[1];
 			answ[0]= -labda*vec[0];

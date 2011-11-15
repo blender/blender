@@ -507,13 +507,13 @@ static void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
 	bvh->nodes[node_index].orig_vb= bvh->nodes[node_index].vb;
 
 	end = partition_indices(bvh->prim_indices, offset, offset + count - 1,
-				axis,
-				(cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-				prim_bbc);
+	                        axis,
+	                        (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+	                        prim_bbc);
 	check_partitioning(bvh->prim_indices, offset, offset + count - 1,
-			   axis,
-			   (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-			   prim_bbc, end);
+	                   axis,
+	                   (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+	                   prim_bbc, end);
 
 	build_sub(bvh, bvh->nodes[node_index].children_offset, NULL,
 		  prim_bbc, offset, end - offset);

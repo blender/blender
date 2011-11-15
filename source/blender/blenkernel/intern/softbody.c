@@ -561,7 +561,7 @@ static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *h
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/
-	   base = base->next;
+		base = base->next;
 	} /* while (base) */
 }
 
@@ -589,7 +589,7 @@ static void ccd_update_deflector_hash(Scene *scene, Object *vertexowner, GHash *
 			}/*--- only with deflecting set */
 
 		}/* mesh && layer*/
-	   base = base->next;
+		base = base->next;
 	} /* while (base) */
 }
 
@@ -2270,7 +2270,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
 				add_v3_v3v3(auxvect,velgoal,bp->vec);
 
-				if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
+				if (forcetime > 0.0f) { /* make sure friction does not become rocket motor on time reversal */
 					bp->force[0]-= kd * (auxvect[0]);
 					bp->force[1]-= kd * (auxvect[1]);
 					bp->force[2]-= kd * (auxvect[2]);
@@ -2675,7 +2675,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
 					add_v3_v3v3(auxvect,velgoal,bp->vec);
 
-					if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
+					if (forcetime > 0.0f) { /* make sure friction does not become rocket motor on time reversal */
 						bp->force[0]-= kd * (auxvect[0]);
 						bp->force[1]-= kd * (auxvect[1]);
 						bp->force[2]-= kd * (auxvect[2]);
@@ -3149,7 +3149,7 @@ static void apply_spring_memory(Object *ob)
 			bp2 =&sb->bpoint[bs->v2];
 			l = len_v3v3(bp1->pos,bp2->pos);
 			r = bs->len/l;
-			if (( r > 1.05f) || (r < 0.95)){
+			if (( r > 1.05f) || (r < 0.95f)){
 			bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
 			}
 		}
@@ -3356,7 +3356,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-length of the springs */
-			   if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
+			if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 
 		}
 
@@ -3952,7 +3952,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 		{
 			/* set goals in time */
-			interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
+			interpolate_exciter(ob,200,(int)(200.0f*(timedone/dtime)));
 
 			sb->scratch->flag &= ~SBF_DOFUZZY;
 			/* do predictive euler step */
@@ -3993,7 +3993,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 				timedone += forcetime;
 				newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
 				//if (newtime > forcetime) printf("up,");
-				if (forcetime > 0.0)
+				if (forcetime > 0.0f)
 					forcetime = MIN2(dtime - timedone,newtime);
 				else
 					forcetime = MAX2(dtime - timedone,newtime);

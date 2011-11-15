@@ -147,6 +147,8 @@ tcuCtxSetCurrent *cuCtxSetCurrent;
 CCL_NAMESPACE_BEGIN
 
 /* utility macros */
+#define CUDA_LIBRARY_FIND_CHECKED(name) \
+	name = (t##name*)dynamic_library_find(lib, #name);
 
 #define CUDA_LIBRARY_FIND(name) \
 	name = (t##name*)dynamic_library_find(lib, #name); \
@@ -188,7 +190,7 @@ bool cuLibraryInit()
 	/* detect driver version */
 	int driver_version = 1000;
 
-	CUDA_LIBRARY_FIND(cuDriverGetVersion);
+	CUDA_LIBRARY_FIND_CHECKED(cuDriverGetVersion);
 	if(cuDriverGetVersion)
 		cuDriverGetVersion(&driver_version);
 

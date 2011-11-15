@@ -1317,8 +1317,8 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 				break;
 
 			exec_time= PIL_check_seconds_timer()-start_time;
-			if(tmj->delay>exec_time)
-				PIL_sleep_ms(tmj->delay-exec_time);
+			if(tmj->delay > (float)exec_time)
+				PIL_sleep_ms(tmj->delay-(float)exec_time);
 		} else if(!BKE_tracking_next(tmj->context))
 				break;
 
@@ -1820,13 +1820,13 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 	BKE_get_tracking_mat(scene, NULL, mat);
 	mul_v3_m4v3(vec, mat, track->bundle_pos);
 
-	if(len_v2(vec)<1e-3)
+	if(len_v2(vec) < 1e-3f)
 		return;
 
 	unit_m4(mat);
 
 	if(axis=='X') {
-		if(fabsf(vec[1])<1e-3) {
+		if(fabsf(vec[1])<1e-3f) {
 			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
 			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
 			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
@@ -1837,7 +1837,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 			cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		}
 	} else {
-		if(fabsf(vec[0])<1e-3) {
+		if(fabsf(vec[0])<1e-3f) {
 			mat[0][0]= -1.0f; mat[0][1]= 0.0f; mat[0][2]= 0.0f;
 			mat[1][0]= 0.0f; mat[1][1]= -1.0f; mat[1][2]= 0.0f;
 			mat[2][0]= 0.0f; mat[2][1]= 0.0f; mat[2][2]= 1.0f;
@@ -2062,7 +2062,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 
 	sub_v3_v3(vec[0], vec[1]);
 
-	if(len_v3(vec[0])>1e-5) {
+	if(len_v3(vec[0])>1e-5f) {
 		scale= dist / len_v3(vec[0]);
 
 		mul_v3_fl(parent->size, scale);

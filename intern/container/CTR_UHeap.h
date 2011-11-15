@@ -229,13 +229,13 @@ private:
 	Parent(
 		unsigned int i
 	) {
-		 return (i-1) >> 1; 
+		return (i-1) >> 1;
 	}
 		int 
 	Left(
 		int i
 	) {
-		return (i<<1)+1; 
+		return (i<<1)+1;
 	}
 
 		int 

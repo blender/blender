@@ -329,7 +329,7 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
+	index= CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
 	cdl= (index == -1)? NULL: &me->ldata.layers[index];
 
 	if(!cdl)
@@ -348,7 +348,7 @@ int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *na
 	CustomDataLayer *cdl;
 	int index;
 
-	 index= CustomData_get_named_layer_index(data, CD_MCOL, name);
+	index= CustomData_get_named_layer_index(data, CD_MCOL, name);
 	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)

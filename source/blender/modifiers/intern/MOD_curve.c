@@ -106,7 +106,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, cmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Curve Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Curve Modifier");
 	}
 }
 
@@ -120,7 +120,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
 	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
-			   cmd->name, cmd->defaxis);
+	                   cmd->name, cmd->defaxis);
 }
 
 static void deformVertsEM(

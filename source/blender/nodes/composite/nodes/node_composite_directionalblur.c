@@ -48,7 +48,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 	if ((dist != 0.f) || (spin != 0.f) || (zoom != 0.f)) {
 		void (*getpix)(CompBuf*, float, float, float*) = wrap ? qd_getPixelLerpWrap : qd_getPixelLerp;
 		const float a= angle * (float)M_PI / 180.f;
-		const float itsc= 1.f / pow(2.f, (float)iterations);
+		const float itsc= 1.f / powf(2.f, (float)iterations);
 		float D;
 		float center_x_pix, center_y_pix;
 		float tx, ty;
@@ -62,14 +62,14 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		center_x_pix= center_x * img->x;
 		center_y_pix= center_y * img->y;
 
-		tx=  itsc * D * cos(a);
-		ty= -itsc * D * sin(a);
+		tx=  itsc * D * cosf(a);
+		ty= -itsc * D * sinf(a);
 		sc=  itsc * zoom;
 		rot= itsc * spin * (float)M_PI / 180.f;
 
 		/* blur the image */
 		for(i= 0; i < iterations; ++i) {
-			const float cs= cos(rot), ss= sin(rot);
+			const float cs= cosf(rot), ss= sinf(rot);
 			const float isc= 1.f / (1.f + sc);
 			unsigned int x, y;
 			float col[4]= {0,0,0,0};

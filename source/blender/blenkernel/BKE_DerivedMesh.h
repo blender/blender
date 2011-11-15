@@ -405,7 +405,7 @@ void DM_init_funcs(DerivedMesh *dm);
  * sets up the custom data layers)
  */
 void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges, 
-	     int numFaces, int numLoops, int numPolys);
+             int numFaces, int numLoops, int numPolys);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source

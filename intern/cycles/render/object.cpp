@@ -60,6 +60,11 @@ void Object::apply_transform()
 
 	Transform ntfm = transform_transpose(transform_inverse(tfm));
 
+	/* we keep normals pointing in same direction on negative scale, notify
+	   mesh about this in it (re)calculates normals */
+	if(transform_negative_scale(tfm))
+		mesh->transform_negative_scaled = true;
+
 	if(attr_fN) {
 		float3 *fN = attr_fN->data_float3();
 
@@ -232,8 +237,10 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 	/* apply transforms for objects with single user meshes */
 	foreach(Object *object, scene->objects) {
 		if(mesh_users[object->mesh] == 1) {
-			object->apply_transform();
-			object->mesh->transform_applied = true;
+			if(!object->mesh->transform_applied) {
+				object->apply_transform();
+				object->mesh->transform_applied = true;
+			}
 
 			if(progress.get_cancel()) return;
 		}

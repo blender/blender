@@ -5354,7 +5354,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 #endif
 		{
-			val= (float)( floor(val+0.5f) );
+			val= floorf(val+0.5f);
 		}
 		
 		/* convert frame out of nla-action time */
@@ -5440,13 +5440,13 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				val= floor(val/secf + 0.5f);
+				val= floor((double)val/secf + 0.5f);
 			else
 				val= floor(val + 0.5f);
 		}
 		else {
 			if (doTime)
-				val= val / secf;
+				val= (float)((double)val / secf);
 		}
 		
 		if (autosnap == SACTSNAP_FRAME)

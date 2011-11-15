@@ -414,6 +414,7 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
                 sub.prop(brush, "proximity_project")
             elif brush.paint_source == 'VOLUME_DISTANCE':
                 sub.prop(brush, "proximity_inverse")
+                sub.prop(brush, "negate_volume")
 
             sub = split.column()
             if brush.paint_source == 'DISTANCE':

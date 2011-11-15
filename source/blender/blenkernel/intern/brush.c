@@ -333,7 +333,7 @@ void brush_reset_sculpt(Brush *br)
 	/* enable this to see any non-default
 	   settings used by a brush:
 
-	   brush_debug_print_state(br);
+	brush_debug_print_state(br);
 	*/
 
 	brush_set_defaults(br);

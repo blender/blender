@@ -395,7 +395,7 @@ void AUD_FFMPEGReader::read(int& length, bool& eos, sample_t* buffer)
 	{
 		data_size = AUD_MIN(pkgbuf_pos, left * sample_size);
 		m_convert((data_t*) buf, (data_t*) m_pkgbuf.getBuffer(),
-				  data_size / AUD_FORMAT_SIZE(m_specs.format));
+		          data_size / AUD_FORMAT_SIZE(m_specs.format));
 		buf += data_size / AUD_FORMAT_SIZE(m_specs.format);
 		left -= data_size/sample_size;
 	}

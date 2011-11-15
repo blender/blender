@@ -776,7 +776,7 @@ void *new_pgn_element(int size)
 	if(cur) {
 		if(size+offs < blocksize) {
 			adr= (void *) (cur->data+offs);
-			 offs+= size;
+			offs+= size;
 			return adr;
 		}
 	}

@@ -1148,8 +1148,8 @@ void graph_bfs(void)
 			set_node_xy(node, node->BFS_dist*DEPSX*2, pos[node->BFS_dist]*DEPSY*2);
 			node->color = DAG_BLACK;
 			/*
-			 fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);	
-			 */
+			fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
+			*/
 		}
 	}
 	queue_delete(nqueue);
@@ -1208,8 +1208,8 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 			post_func(node->ob,data);
 			node->color = DAG_BLACK;
 			/*
-			 fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);	
-			 */
+			fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);
+			*/
 		}
 	}
 	queue_delete(nqueue);
@@ -1325,7 +1325,7 @@ DagNodeQueue * graph_dfs(void)
 				set_node_xy(node, node->DFS_dist*DEPSX*2, pos[node->DFS_dist]*DEPSY*2);
 				
 				/*
-				 fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm ); 	
+				fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm );
 				*/
 				push_stack(retqueue,node);
 				
@@ -1574,7 +1574,7 @@ int	is_acyclic( DagForest	*dag) {
 
 void set_node_xy(DagNode *node, float x, float y)
 {
-	 node->x = x;
+	node->x = x;
 	node->y = y;
 }
 

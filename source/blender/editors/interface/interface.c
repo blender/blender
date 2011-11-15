@@ -274,7 +274,7 @@ void ui_bounds_block(uiBlock *block)
 			if(bt->x1 < block->minx) block->minx= bt->x1;
 			if(bt->y1 < block->miny) block->miny= bt->y1;
 	
-			  if(bt->x2 > block->maxx) block->maxx= bt->x2;
+			if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
 
 			bt= bt->next;
@@ -363,7 +363,7 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	oldheight= oldheight > 0 ? oldheight : MAX2(1, height);
 
 	/* offset block based on mouse position, user offset is scaled
-	   along in case we resized the block in ui_text_bounds_block */
+	 * along in case we resized the block in ui_text_bounds_block */
 	startx= window->eventstate->x + block->minx + (block->mx*width)/oldwidth;
 	starty= window->eventstate->y + block->miny + (block->my*height)/oldheight;
 
@@ -633,7 +633,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				}
 				
 				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
-				   when scrolling without moving mouse (see [#28432]) */
+				 * when scrolling without moving mouse (see [#28432]) */
 				if(ELEM(oldbut->type, ROW, LISTROW))
 					oldbut->hardmax= but->hardmax;
 				
@@ -659,7 +659,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 }
 
 /* needed for temporarily rename buttons, such as in outliner or fileselect,
-   they should keep calling uiDefButs to keep them alive */
+ * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
 int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 {
@@ -1890,8 +1890,8 @@ static void ui_free_but(const bContext *C, uiBut *but)
 	if(but->func_argN) MEM_freeN(but->func_argN);
 	if(but->active) {
 		/* XXX solve later, buttons should be free-able without context ideally,
-		   however they may have open tooltips or popup windows, which need to
-		   be closed using a context pointer */
+		 * however they may have open tooltips or popup windows, which need to
+		 * be closed using a context pointer */
 		if(C) 
 			ui_button_active_free(C, but);
 		else
@@ -2424,14 +2424,13 @@ void ui_block_do_align(uiBlock *block)
 }
 
 /*
-ui_def_but is the function that draws many button types
+ * ui_def_but is the function that draws many button types
 
-for float buttons:
-	"a1" Click Step (how much to change the value each click)
-	"a2" Number of decimal point values to display. 0 defaults to 3 (0.000) 1,2,3, and a maximum of 4,
-	   all greater values will be clamped to 4.
-
-*/
+ * for float buttons:
+ *   "a1" Click Step (how much to change the value each click)
+ *   "a2" Number of decimal point values to display. 0 defaults to 3 (0.000)
+ *        1,2,3, and a maximum of 4, all greater values will be clamped to 4.
+ */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
 {
 	uiBut *but;

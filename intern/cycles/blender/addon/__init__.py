@@ -20,13 +20,14 @@ bl_info = {
     "name": "Cycles Render Engine",
     "author": "",
     "version": (0,0),
-    "blender": (2, 5, 6),
-    "api": 34462,
+    "blender": (2, 6, 0),
+    "api": 41670,
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration.",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Dev:2.6/Source/Render/Cycles",
     "tracker_url": "",
+    "support": 'OFFICIAL',
     "category": "Render"}
 
 import bpy
