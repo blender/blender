@@ -84,8 +84,8 @@ __device void bsdf_oren_nayar_setup(ShaderData *sd, ShaderClosure *sc, float sig
 
 	sigma = clamp(sigma, 0.0f, 1.0f);
 
-	sc->data0 =  1.0f / ((1.0f + 0.5f * sigma) * M_PI);
-	sc->data1 = sigma / ((1.0f + 0.5f * sigma) * M_PI);
+	sc->data0 =  1.0f / ((1.0f + 0.5f * sigma) * M_PI_F);
+	sc->data1 = sigma / ((1.0f + 0.5f * sigma) * M_PI_F);
 }
 
 __device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
