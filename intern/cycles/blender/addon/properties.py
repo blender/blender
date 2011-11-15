@@ -16,12 +16,15 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 import bpy
 from bpy.props import *
 
 import math
 
 from cycles import enums
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -30,7 +33,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.device = EnumProperty(name="Device", description="Device to use for rendering",
             items=enums.devices, default="CPU")
-            
+
         cls.gpu_type = EnumProperty(name="GPU Type", description="Processing system to use on the GPU",
             items=enums.gpu_type, default="CUDA")
 
@@ -101,6 +104,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.cycles
 
+
 class CyclesCameraSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -112,10 +116,11 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
             default=0, min=0, max=100)
         cls.aperture_rotation = FloatProperty(name="Aperture Rotation", description="Rotation of blades in aperture",
             default=0, soft_min=-math.pi, soft_max=math.pi, subtype='ANGLE')
-    
+
     @classmethod
     def unregister(cls):
         del bpy.types.Camera.cycles
+
 
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -128,6 +133,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Material.cycles
 
+
 class CyclesLampSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -138,6 +144,7 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Lamp.cycles
 
+
 class CyclesWorldSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -146,6 +153,7 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.World.cycles
+
 
 class CyclesVisibilitySettings(bpy.types.PropertyGroup):
     @classmethod
@@ -161,6 +169,7 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.Object.cycles_visibility
+
 
 class CyclesMeshSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -181,6 +190,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         del bpy.types.Curve.cycles
         del bpy.types.MetaBall.cycles
 
+
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
     bpy.utils.register_class(CyclesCameraSettings)
@@ -189,7 +199,8 @@ def register():
     bpy.utils.register_class(CyclesWorldSettings)
     bpy.utils.register_class(CyclesVisibilitySettings)
     bpy.utils.register_class(CyclesMeshSettings)
-    
+
+
 def unregister():
     bpy.utils.unregister_class(CyclesRenderSettings)
     bpy.utils.unregister_class(CyclesCameraSettings)
@@ -198,4 +209,3 @@ def unregister():
     bpy.utils.unregister_class(CyclesWorldSettings)
     bpy.utils.unregister_class(CyclesMeshSettings)
     bpy.utils.unregister_class(CyclesVisibilitySettings)
-
