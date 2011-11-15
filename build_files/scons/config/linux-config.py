@@ -198,7 +198,7 @@ BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
 WITH_BF_OIIO = True
-WITH_BF_OIIO = False
+WITH_BF_STATICOIIO = False
 BF_OIIO = LIBDIR + '/oiio'
 if not os.path.exists(LCGDIR + '/oiio'):
     WITH_BF_OIIO = False
