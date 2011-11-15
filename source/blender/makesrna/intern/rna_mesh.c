@@ -1675,7 +1675,8 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh String Property", "User defined string text value in a string properties layer");
 	RNA_def_struct_path_func(srna, "rna_MeshStringProperty_path");
 
-	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
+	/* low level mesh data access, treat as bytes */
+	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_BYTESTRING);
 	RNA_def_property_string_sdna(prop, NULL, "s");
 	RNA_def_property_ui_text(prop, "Value", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");

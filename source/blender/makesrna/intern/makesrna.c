@@ -524,7 +524,11 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
@@ -739,7 +743,11 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
