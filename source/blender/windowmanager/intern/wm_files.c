@@ -155,8 +155,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	CTX_wm_window_set(C, active_win);
 
 	ED_editors_exit(C);
-	
-return;	
+
+	/* just had return; here from r12991, this code could just get removed?*/
+#if 0
 	if(wm==NULL) return;
 	if(G.fileflags & G_FILE_NO_UI) return;
 	
@@ -168,6 +169,7 @@ return;
 			//BLI_addtail(screenbase, win->screen);
 		}
 	}
+#endif
 }
 
 /* match old WM with new, 4 cases:
@@ -193,9 +195,10 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		
 		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
+			bScreen *screen= NULL;
+
 			/* when loading without UI, no matching needed */
-			if(!(G.fileflags & G_FILE_NO_UI)) {
-				bScreen *screen= CTX_wm_screen(C);
+			if(!(G.fileflags & G_FILE_NO_UI) && (screen= CTX_wm_screen(C))) {
 
 				/* match oldwm to new dbase, only old files */
 				for(wm= oldwmlist->first; wm; wm= wm->id.next) {

@@ -42,7 +42,7 @@
 
 #ifdef RNA_RUNTIME
 
-int text_file_modified(Text *text);
+int text_file_modified(Text *text); /* XXX bad level call */
 
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
