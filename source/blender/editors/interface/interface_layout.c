@@ -1492,11 +1492,11 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 	w= ui_text_icon_width(layout, name, icon, 0);
 
 	if(icon && name[0])
-		uiDefIconTextButF(block, BUT, 0, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconTextButF(block, BUT, argval, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 	else if(icon)
-		uiDefIconButF(block, BUT, 0, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconButF(block, BUT, argval, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 	else
-		uiDefButF(block, BUT, 0, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefButF(block, BUT, argval, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 }
 
 /* separator item */
@@ -2517,7 +2517,7 @@ static void ui_item_layout(uiItem *item)
 static void ui_layout_end(uiBlock *block, uiLayout *layout, int *x, int *y)
 {
 	if(layout->root->handlefunc)
-		uiBlockSetButmFunc(block, layout->root->handlefunc, layout->root->argv);
+		uiBlockSetHandleFunc(block, layout->root->handlefunc, layout->root->argv);
 
 	ui_item_estimate(&layout->item);
 	ui_item_layout(&layout->item);
