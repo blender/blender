@@ -6,7 +6,7 @@ cycles = env.Clone()
 
 cycles.Depends('../../source/blender/makesrna/intern/RNA_blender_cpp.h', 'makesrna')
 
-sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('kernel/*.cpp') + cycles.Glob('render/*.cpp') + cycles.Glob('subd/*.cpp') + cycles.Glob('util/*.cpp') + cycles.Glob('util/*.c') + cycles.Glob('blender/*.cpp')
+sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('kernel/*.cpp') + cycles.Glob('render/*.cpp') + cycles.Glob('subd/*.cpp') + cycles.Glob('util/*.cpp') + cycles.Glob('blender/*.cpp')
 
 sources.remove(path.join('util', 'util_view.cpp'))
 sources.remove(path.join('render', 'film_response.cpp'))
