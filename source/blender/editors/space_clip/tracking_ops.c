@@ -2910,7 +2910,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clean Tracks";
-	ot->description= "Clean tracks with low trackness or high error";
+	ot->description= "Clean tracks with high error values or few frames";
 	ot->idname= "CLIP_OT_clean_tracks";
 
 	/* api callbacks */
