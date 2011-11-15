@@ -2275,11 +2275,11 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value)
 		/* editing bytes is not 100% supported
 		 * since they can contain NIL chars */
 		if (idprop->subtype == IDP_STRING_SUB_BYTE) {
-			memcpy(value, IDP_String(idprop), idprop->len + 1);
+			memcpy(value, IDP_String(idprop), idprop->len);
 			value[idprop->len]= '\0';
 		}
 		else {
-			strcpy(value, IDP_String(idprop));
+			memcpy(value, IDP_String(idprop), idprop->len);
 		}
 	}
 	else if(sprop->get) {
@@ -2336,6 +2336,10 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
 			return idprop->len;
 		}
 		else {
+#ifndef NDEBUG
+			/* these _must_ stay in sync */
+			BLI_assert(strlen(IDP_String(idprop)) == idprop->len - 1);
+#endif
 			return idprop->len - 1;
 		}
 	}
