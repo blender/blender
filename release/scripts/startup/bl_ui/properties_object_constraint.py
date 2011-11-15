@@ -420,7 +420,9 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "volume")
 
-        self.space_template(layout, con)
+        row = layout.row()
+        row.label(text="Convert:")
+        row.prop(con, "owner_space", text="")
 
     def COPY_TRANSFORMS(self, context, layout, con):
         self.target_template(layout, con)
