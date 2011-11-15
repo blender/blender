@@ -56,6 +56,8 @@ EnumPropertyItem operator_context_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include <assert.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -411,6 +413,7 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
+static char _menu_descr[1024];
 static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
                                     StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -418,10 +421,16 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	Menu dummymenu= {NULL};
 	PointerRNA dummymtr;
 	int have_function[2];
+	size_t over_alloc= 0; /* warning, if this becomes a bess, we better do another alloc */
+	size_t description_size= 0;
 
 	/* setup dummy menu & menu type to store static properties in */
 	dummymenu.type= &dummymt;
+	dummymenu.type->description= _menu_descr;
 	RNA_pointer_create(NULL, &RNA_Menu, &dummymenu, &dummymtr);
+
+	/* clear incase they are left unset */
+	_menu_descr[0]= '\0';
 
 	/* validate the python class */
 	if(validate(&dummymtr, data, have_function) != 0)
@@ -439,8 +448,19 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 		rna_Menu_unregister(bmain, mt->ext.srna);
 	
 	/* create a new menu type */
-	mt= MEM_callocN(sizeof(MenuType), "python buttons menu");
+	if (_menu_descr[0]) {
+		description_size= strlen(_menu_descr) + 1;
+		over_alloc += description_size;
+	}
+
+	mt= MEM_callocN(sizeof(MenuType) + over_alloc, "python buttons menu");
 	memcpy(mt, &dummymt, sizeof(dummymt));
+
+	if (_menu_descr[0]) {
+		char *buf= (char *)(mt + 1);
+		memcpy(buf, _menu_descr, description_size);
+		mt->description= buf;
+	}
 
 	mt->ext.srna= RNA_def_struct(&BLENDER_RNA, mt->idname, "Menu"); 
 	mt->ext.data= data;
@@ -464,6 +484,14 @@ static StructRNA* rna_Menu_refine(PointerRNA *mtr)
 {
 	Menu *hdr= (Menu*)mtr->data;
 	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Menu;
+}
+
+static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
+{
+	Menu *data= (Menu*)(ptr->data);
+	char *str= (char *)data->type->description;
+	if(!str[0])	strcpy(str, value);
+	else		assert(!"setting the bl_description on a non-builtin menu");
 }
 
 static int rna_UILayout_active_get(PointerRNA *ptr)
@@ -799,6 +827,13 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The menu label");
+
+	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	RNA_def_property_string_sdna(prop, NULL, "type->description");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Menu_bl_description_set");
+	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	RNA_define_verify_sdna(1);
 }

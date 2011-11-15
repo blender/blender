@@ -1430,7 +1430,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
-	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, ""); /* TODO, menu description */
+	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, mt->description);
 }
 
 /* label item */
