@@ -1593,12 +1593,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_CAMERAPATH);
-	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of camera");
+	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed camera path");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Tracks Name", "Show names for tracks objects");
+	RNA_def_property_ui_text(prop, "Show Track Names", "Show names for tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
@@ -2893,7 +2893,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 	/* show tiny markers */
 	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
+	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers in a more compact manner");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
@@ -2960,13 +2960,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* show graph_frames */
 	prop= RNA_def_property(srna, "show_graph_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_FRAMES);
-	RNA_def_property_ui_text(prop, "Show Frames", "Show curves for frames in graph editor");
+	RNA_def_property_ui_text(prop, "Show Frames", "Show curve for per-frame average error (camera motion should be solved first)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* show graph_tracks */
 	prop= RNA_def_property(srna, "show_graph_tracks", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_TRACKS);
-	RNA_def_property_ui_text(prop, "Show Tracks", "Show curves for tracks in graph editor");
+	RNA_def_property_ui_text(prop, "Show Tracks", "Display the speed curves (in \"x\" direction red, in \"y\" direction green) for the selected tracks");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 

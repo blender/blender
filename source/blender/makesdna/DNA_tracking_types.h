@@ -217,6 +217,7 @@ enum {
 /* MovieTrackingStrabilization->flag */
 #define TRACKING_2D_STABILIZATION	(1<<0)
 #define TRACKING_AUTOSCALE			(1<<1)
+#define TRACKING_STABILIZE_ROTATION	(1<<2)
 
 /* MovieTrackingReconstruction->flag */
 #define TRACKING_RECONSTRUCTED	(1<<0)
