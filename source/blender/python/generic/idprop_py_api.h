@@ -53,14 +53,13 @@ typedef struct BPy_IDGroup_Iter {
 	int mode;
 } BPy_IDGroup_Iter;
 
-PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
 PyObject *BPy_Wrap_GetKeys(struct IDProperty *prop);
 PyObject *BPy_Wrap_GetValues(struct ID *id, struct IDProperty *prop);
 PyObject *BPy_Wrap_GetItems(struct ID *id, struct IDProperty *prop);
 int BPy_Wrap_SetMapItem(struct IDProperty *prop, PyObject *key, PyObject *val);
 
 
-PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop );
+PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
 const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDProperty *group, PyObject *ob);
 
 void IDProp_Init_Types(void);

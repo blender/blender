@@ -2782,7 +2782,7 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
 		return NULL;
 	}
 
-	return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
+	return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
 }
 
 static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObject *value)
@@ -3892,7 +3892,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 		idprop= IDP_GetPropertyFromGroup(group, key);
 
 		if (idprop) {
-			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
+			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
 		}
 	}
 
