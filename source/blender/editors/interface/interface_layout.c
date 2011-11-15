@@ -1370,7 +1370,7 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 	mt->draw(C, &menu);
 }
 
-static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN)
+static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN, const char *tip)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -1393,11 +1393,11 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 		w -= 10;
 
 	if(name[0] && icon)
-		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, "");
+		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);
 	else if(icon)
-		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, "");
+		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
 	else
-		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, "");
+		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, tip);
 
 	if(argN) { /* ugly .. */
 		but->poin= (char*)but;
@@ -1430,7 +1430,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
-	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
+	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, ""); /* TODO, menu description */
 }
 
 /* label item */
@@ -1514,7 +1514,7 @@ void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc 
 	if(!func)
 		return;
 
-	ui_item_menu(layout, name, icon, func, arg, NULL);
+	ui_item_menu(layout, name, icon, func, arg, NULL, "");
 }
 
 typedef struct MenuItemLevel {
@@ -1560,7 +1560,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl);
+	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, ot->description);
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
@@ -1593,7 +1593,7 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl);
+	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl, RNA_property_description(prop));
 }
 
 /**************************** Layout Items ***************************/
