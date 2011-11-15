@@ -349,17 +349,20 @@ static IDProperty *IDP_CopyString(IDProperty *prop)
 
 void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
-	int stlen;
-
-	stlen = strlen(st);
+	int stlen = strlen(st);
 
 	if(maxlen > 0 && maxlen < stlen)
 		stlen= maxlen;
 
-	stlen++; /* make room for null byte */
-
-	IDP_ResizeArray(prop, stlen);
-	BLI_strncpy(prop->data.pointer, st, stlen);
+	if (prop->subtype == IDP_STRING_SUB_BYTE) {
+		IDP_ResizeArray(prop, stlen);
+		memcpy(prop->data.pointer, st, stlen);
+	}
+	else {
+		stlen++; /* make room for null byte */
+		IDP_ResizeArray(prop, stlen);
+		BLI_strncpy(prop->data.pointer, st, stlen);
+	}
 }
 
 void IDP_ConcatStringC(IDProperty *prop, const char *st)
@@ -703,18 +706,36 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 		}
 		case IDP_STRING:
 		{
-			char *st = val.str;
+			const char *st = val.string.str;
 
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
-			if (st == NULL) {
-				prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
-				prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
-				prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
-			} else {
-				int stlen = strlen(st) + 1;
-				prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
-				prop->len = prop->totallen = stlen;
-				memcpy(prop->data.pointer, st, stlen);
+			if (val.string.subtype == IDP_STRING_SUB_BYTE) {
+				/* note, intentionally not null terminated */
+				if (st == NULL) {
+					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
+					prop->len = 0;
+				}
+				else {
+					prop->data.pointer = MEM_mallocN(val.string.len, "id property string 2");
+					prop->len = prop->totallen = val.string.len;
+					memcpy(prop->data.pointer, st, val.string.len);
+				}
+				prop->subtype= IDP_STRING_SUB_BYTE;
+			}
+			else {
+				if (st == NULL) {
+					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
+					prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
+				}
+				else {
+					int stlen = strlen(st) + 1;
+					prop->data.pointer = MEM_mallocN(stlen, "id property string 3");
+					prop->len = prop->totallen = stlen;
+					memcpy(prop->data.pointer, st, stlen);
+				}
+				prop->subtype= IDP_STRING_SUB_UTF8;
 			}
 			break;
 		}

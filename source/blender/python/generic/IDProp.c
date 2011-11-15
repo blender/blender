@@ -64,11 +64,18 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 {
 	switch ( prop->type ) {
 		case IDP_STRING:
+
+		if (prop->subtype == IDP_STRING_SUB_BYTE) {
+			return PyBytes_FromStringAndSize(IDP_Array(prop), prop->len);
+		}
+		else {
 #ifdef USE_STRING_COERCE
-            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
+			return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
+			return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
 #endif
+		}
+
 		case IDP_INT:
 			return PyLong_FromLong( (long)prop->data.val );
 		case IDP_FLOAT:
@@ -332,13 +339,23 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 	else if (PyUnicode_Check(ob)) {
 #ifdef USE_STRING_COERCE
 		PyObject *value_coerce= NULL;
-		val.str = (char *)PyC_UnicodeAsByte(ob, &value_coerce);
+		val.string.str = (char *)PyC_UnicodeAsByte(ob, &value_coerce);
+		val.string.subtype = IDP_STRING_SUB_UTF8;
 		prop = IDP_New(IDP_STRING, val, name);
 		Py_XDECREF(value_coerce);
 #else
 		val.str = _PyUnicode_AsString(ob);
 		prop = IDP_New(IDP_STRING, val, name);
 #endif
+	}
+	else if (PyBytes_Check(ob)) {
+		val.string.str= PyBytes_AS_STRING(ob);
+		val.string.len= PyBytes_GET_SIZE(ob);
+		val.string.subtype= IDP_STRING_SUB_BYTE;
+
+		prop = IDP_New(IDP_STRING, val, name);
+		//prop = IDP_NewString(PyBytes_AS_STRING(ob), name, PyBytes_GET_SIZE(ob));
+		//prop->subtype= IDP_STRING_SUB_BYTE;
 	}
 	else if (PySequence_Check(ob)) {
 		PyObject *item;
@@ -493,11 +510,16 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
 	switch (prop->type) {
 		case IDP_STRING:
+			if (prop->subtype == IDP_STRING_SUB_BYTE) {
+				return PyBytes_FromStringAndSize(IDP_Array(prop), prop->len);
+			}
+			else {
 #ifdef USE_STRING_COERCE
-            return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
+				return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-            return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
+				return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
 #endif
+			}
 			break;
 		case IDP_FLOAT:
 			return PyFloat_FromDouble(*((float*)&prop->data.val));

@@ -2271,12 +2271,23 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value)
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		strcpy(value, IDP_String(idprop));
-	else if(sprop->get)
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		/* editing bytes is not 100% supported
+		 * since they can contain NIL chars */
+		if (idprop->subtype == IDP_STRING_SUB_BYTE) {
+			memcpy(value, IDP_String(idprop), idprop->len + 1);
+			value[idprop->len]= '\0';
+		}
+		else {
+			strcpy(value, IDP_String(idprop));
+		}
+	}
+	else if(sprop->get) {
 		sprop->get(ptr, value);
-	else
+	}
+	else {
 		strcpy(value, sprop->defaultvalue);
+	}
 }
 
 char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop,
@@ -2320,8 +2331,14 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		return strlen(IDP_String(idprop));
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if (idprop->subtype == IDP_STRING_SUB_BYTE) {
+			return idprop->len;
+		}
+		else {
+			return strlen(IDP_String(idprop));
+		}
+	}
 	else if(sprop->length)
 		return sprop->length(ptr);
 	else
@@ -2336,6 +2353,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
+		/* both IDP_STRING_SUB_BYTE / IDP_STRING_SUB_UTF8 */
 		IDP_AssignString(idprop, value, RNA_property_string_maxlength(prop) - 1);
 	else if(sprop->set)
 		sprop->set(ptr, value); /* set function needs to clamp its self */

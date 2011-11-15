@@ -40,7 +40,11 @@ typedef union IDPropertyTemplate {
 	int i;
 	float f;
 	double d;
-	char *str;
+	struct {
+		char *str;
+		short len;
+		char subtype;
+	} string;
 	struct ID *id;
 	struct {
 		short type;
