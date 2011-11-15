@@ -1414,6 +1414,10 @@ int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 		}
 	}
 
+	if (path[a] != '.') {
+		a= path_len;
+	}
+
 	if(a + ext_len >= maxlen)
 		return 0;
 
