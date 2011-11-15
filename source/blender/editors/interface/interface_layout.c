@@ -1492,11 +1492,11 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 	w= ui_text_icon_width(layout, name, icon, 0);
 
 	if(icon && name[0])
-		uiDefIconTextButF(block, BUTM, 0, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconTextButF(block, BUT, 0, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 	else if(icon)
-		uiDefIconButF(block, BUTM, 0, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconButF(block, BUT, 0, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 	else
-		uiDefButF(block, BUTM, 0, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefButF(block, BUT, 0, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
 }
 
 /* separator item */
