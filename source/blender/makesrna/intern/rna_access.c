@@ -2336,7 +2336,7 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
 			return idprop->len;
 		}
 		else {
-			return strlen(IDP_String(idprop));
+			return idprop->len - 1;
 		}
 	}
 	else if(sprop->length)

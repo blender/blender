@@ -40,8 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
-
 /* IDPropertyTemplate is a union in DNA_ID.h */
 
 /*local size table.*/
@@ -464,7 +462,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 	IDProperty *loop, *prop;
 	for (prop=src->data.group.first; prop; prop=prop->next) {
 		for (loop=dest->data.group.first; loop; loop=loop->next) {
-			if (BSTR_EQ(loop->name, prop->name)) {
+			if (strcmp(loop->name, prop->name) == 0) {
 				IDProperty *copy = IDP_CopyProperty(prop);
 
 				BLI_insertlink(&dest->data.group, loop, copy);
@@ -635,7 +633,7 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	else if(prop1->type == IDP_DOUBLE)
 		return (IDP_Double(prop1) == IDP_Double(prop2));
 	else if(prop1->type == IDP_STRING)
-		return BSTR_EQ(IDP_String(prop1), IDP_String(prop2));
+		return ((prop1->len == prop2->len) && strncmp(IDP_String(prop1), IDP_String(prop2), prop1->len) == 0);
 	else if(prop1->type == IDP_ARRAY) {
 		if(prop1->len == prop2->len && prop1->subtype == prop2->subtype)
 			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype]*prop1->len);
