@@ -271,7 +271,7 @@ int ui_is_but_utf8(uiBut *but)
 {
 	if (but->rnaprop) {
 		const int subtype= RNA_property_subtype(but->rnaprop);
-		return !(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME));
+		return !(ELEM4(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING));
 	}
 	else {
 		return !(but->flag & UI_BUT_NO_UTF8);

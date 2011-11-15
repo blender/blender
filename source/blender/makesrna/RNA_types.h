@@ -108,7 +108,9 @@ typedef enum PropertySubType {
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
 	PROP_FILENAME = 3,
-	PROP_TRANSLATE = 4, /* a string which should be translated */
+	PROP_BYTESTRING = 4, /* a string which should be represented as bytes
+	                      * in python, still NULL terminated though. */
+	PROP_TRANSLATE = 5, /* a string which should be translated */
 
 	/* numbers */
 	PROP_UNSIGNED = 13,

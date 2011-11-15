@@ -1328,14 +1328,22 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		buf= RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed), &buf_len);
 #ifdef USE_STRING_COERCE
 		/* only file paths get special treatment, they may contain non utf-8 chars */
-		if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+		if (subtype == PROP_BYTESTRING) {
+			ret= PyBytes_FromStringAndSize(buf, buf_len);
+		}
+		else if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
 			ret= PyC_UnicodeFromByteAndSize(buf, buf_len);
 		}
 		else {
 			ret= PyUnicode_FromStringAndSize(buf, buf_len);
 		}
 #else // USE_STRING_COERCE
-		ret= PyUnicode_FromStringAndSize(buf, buf_len);
+		if (subtype == PROP_BYTESTRING) {
+			ret= PyBytes_FromStringAndSize(buf, buf_len);
+		}
+		else {
+			ret= PyUnicode_FromStringAndSize(buf, buf_len);
+		}
 #endif // USE_STRING_COERCE
 		if (buf_fixed != buf) {
 			MEM_freeN((void *)buf);
@@ -1534,53 +1542,91 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		}
 		case PROP_STRING:
 		{
-			const char *param;
-#ifdef USE_STRING_COERCE
-			PyObject *value_coerce= NULL;
 			int subtype= RNA_property_subtype(prop);
-			if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-				/* TODO, get size */
-				param= PyC_UnicodeAsByte(value, &value_coerce);
-			}
-			else {
-				param= _PyUnicode_AsString(value);
-#ifdef WITH_INTERNATIONAL
-				if (subtype == PROP_TRANSLATE) {
-					param= IFACE_(param);
-				}
-#endif // WITH_INTERNATIONAL
+			const char *param;
 
-			}
-#else // USE_STRING_COERCE
-			param= _PyUnicode_AsString(value);
-#endif // USE_STRING_COERCE
+			if (subtype == PROP_BYTESTRING) {
 
-			if (param==NULL) {
-				if (PyUnicode_Check(value)) {
-					/* there was an error assigning a string type,
-					 * rather than setting a new error, prefix the existing one
-					 */
-					PyC_Err_Format_Prefix(PyExc_TypeError,
-					                      "%.200s %.200s.%.200s error assigning string",
-										  error_prefix, RNA_struct_identifier(ptr->type),
-										  RNA_property_identifier(prop));
+				/* Byte String */
+
+				param= PyBytes_AsString(value);
+
+				if (param==NULL) {
+					if (PyBytes_Check(value)) {
+						/* there was an error assigning a string type,
+						 * rather than setting a new error, prefix the existing one
+						 */
+						PyC_Err_Format_Prefix(PyExc_TypeError,
+						                      "%.200s %.200s.%.200s error assigning bytes",
+						                      error_prefix, RNA_struct_identifier(ptr->type),
+						                      RNA_property_identifier(prop));
+					}
+					else {
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s %.200s.%.200s expected a bytes type, not %.200s",
+						             error_prefix, RNA_struct_identifier(ptr->type),
+						             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					}
+
+					return -1;
 				}
 				else {
-					PyErr_Format(PyExc_TypeError,
-								 "%.200s %.200s.%.200s expected a string type, not %.200s",
-								 error_prefix, RNA_struct_identifier(ptr->type),
-								 RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					/* same as unicode */
+					if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+					else        RNA_property_string_set(ptr, prop, param);
 				}
-
-				return -1;
 			}
 			else {
-				if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
-				else        RNA_property_string_set(ptr, prop, param);
-			}
+
+				/* Unicode String */
+
 #ifdef USE_STRING_COERCE
-			Py_XDECREF(value_coerce);
+				PyObject *value_coerce= NULL;
+				if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+					/* TODO, get size */
+					param= PyC_UnicodeAsByte(value, &value_coerce);
+				}
+				else {
+					param= _PyUnicode_AsString(value);
+#ifdef WITH_INTERNATIONAL
+					if (subtype == PROP_TRANSLATE) {
+						param= IFACE_(param);
+					}
+#endif // WITH_INTERNATIONAL
+
+				}
+#else // USE_STRING_COERCE
+				param= _PyUnicode_AsString(value);
 #endif // USE_STRING_COERCE
+
+				if (param==NULL) {
+					if (PyUnicode_Check(value)) {
+						/* there was an error assigning a string type,
+						 * rather than setting a new error, prefix the existing one
+						 */
+						PyC_Err_Format_Prefix(PyExc_TypeError,
+						                      "%.200s %.200s.%.200s error assigning string",
+						                      error_prefix, RNA_struct_identifier(ptr->type),
+						                      RNA_property_identifier(prop));
+					}
+					else {
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s %.200s.%.200s expected a string type, not %.200s",
+						             error_prefix, RNA_struct_identifier(ptr->type),
+						             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					}
+
+					return -1;
+				}
+				else {
+					/* same as bytes */
+					if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+					else        RNA_property_string_set(ptr, prop, param);
+				}
+#ifdef USE_STRING_COERCE
+				Py_XDECREF(value_coerce);
+#endif // USE_STRING_COERCE
+			}
 			break;
 		}
 		case PROP_ENUM:
@@ -2751,7 +2797,7 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, key)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (group==NULL) {
 		PyErr_SetString(PyExc_TypeError, "bpy_struct[key]= val: id properties not supported for this type");
@@ -3440,7 +3486,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __setattr__ must be a string");
@@ -3600,7 +3646,7 @@ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pynam
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_prop: __setattr__ must be a string");
@@ -4450,14 +4496,22 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				data_ch= *(char **)data;
 
 #ifdef USE_STRING_COERCE
-			if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+			if (subtype == PROP_BYTESTRING) {
+				ret= PyBytes_FromString(data_ch);
+			}
+			else if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
 				ret= PyC_UnicodeFromByte(data_ch);
 			}
 			else {
 				ret= PyUnicode_FromString(data_ch);
 			}
 #else
-			ret= PyUnicode_FromString(data_ch);
+			if (subtype == PROP_BYTESTRING) {
+				ret= PyBytes_FromString(buf);
+			}
+			else {
+				ret= PyUnicode_FromString(data_ch);
+			}
 #endif
 
 #ifdef USE_STRING_COERCE
