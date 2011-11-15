@@ -48,6 +48,9 @@ public:
 	{
 		kg = kernel_globals_create();
 
+		/* do now to avoid thread issues */
+		system_cpu_support_optimized();
+
 		if(threads_num == 0)
 			threads_num = system_cpu_thread_count();
 
@@ -155,12 +158,26 @@ public:
 			OSLShader::thread_init(kg);
 #endif
 
-		for(int y = task.y; y < task.y + task.h; y++) {
-			for(int x = task.x; x < task.x + task.w; x++)
-				kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state, task.sample, x, y);
+#ifdef WITH_OPTIMIZED_KERNEL
+		if(system_cpu_support_optimized()) {
+			for(int y = task.y; y < task.y + task.h; y++) {
+				for(int x = task.x; x < task.x + task.w; x++)
+					kernel_cpu_optimized_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state, task.sample, x, y);
 
-			if(tasks.worker_cancel())
-				break;
+				if(tasks.worker_cancel())
+					break;
+			}
+		}
+		else
+#endif
+		{
+			for(int y = task.y; y < task.y + task.h; y++) {
+				for(int x = task.x; x < task.x + task.w; x++)
+					kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state, task.sample, x, y);
+
+				if(tasks.worker_cancel())
+					break;
+			}
 		}
 
 #ifdef WITH_OSL
@@ -171,9 +188,18 @@ public:
 
 	void thread_tonemap(DeviceTask& task)
 	{
-		for(int y = task.y; y < task.y + task.h; y++) {
-			for(int x = task.x; x < task.x + task.w; x++)
-				kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer, task.sample, task.resolution, x, y);
+#ifdef WITH_OPTIMIZED_KERNEL
+		if(system_cpu_support_optimized()) {
+			for(int y = task.y; y < task.y + task.h; y++)
+				for(int x = task.x; x < task.x + task.w; x++)
+					kernel_cpu_optimized_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer, task.sample, task.resolution, x, y);
+		}
+		else
+#endif
+		{
+			for(int y = task.y; y < task.y + task.h; y++)
+				for(int x = task.x; x < task.x + task.w; x++)
+					kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer, task.sample, task.resolution, x, y);
 		}
 	}
 
@@ -184,11 +210,24 @@ public:
 			OSLShader::thread_init(kg);
 #endif
 
-		for(int x = task.displace_x; x < task.displace_x + task.displace_w; x++) {
-			kernel_cpu_displace(kg, (uint4*)task.displace_input, (float3*)task.displace_offset, x);
+#ifdef WITH_OPTIMIZED_KERNEL
+		if(system_cpu_support_optimized()) {
+			for(int x = task.displace_x; x < task.displace_x + task.displace_w; x++) {
+				kernel_cpu_optimized_displace(kg, (uint4*)task.displace_input, (float3*)task.displace_offset, x);
 
-			if(tasks.worker_cancel())
-				break;
+				if(tasks.worker_cancel())
+					break;
+			}
+		}
+		else
+#endif
+		{
+			for(int x = task.displace_x; x < task.displace_x + task.displace_w; x++) {
+				kernel_cpu_displace(kg, (uint4*)task.displace_input, (float3*)task.displace_offset, x);
+
+				if(tasks.worker_cancel())
+					break;
+			}
 		}
 
 #ifdef WITH_OSL

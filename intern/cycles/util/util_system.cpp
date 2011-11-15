@@ -118,5 +118,78 @@ int system_cpu_bits()
 	return (sizeof(void*)*8);
 }
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86)
+
+struct CPUCapabilities {
+	bool x64;
+	bool mmx;
+	bool sse;
+	bool sse2;
+	bool sse3;
+	bool ssse3;
+	bool sse41;
+	bool sse42;
+	bool sse4a;
+	bool avx;
+	bool xop;
+	bool fma3;
+	bool fma4;
+};
+
+bool system_cpu_support_optimized()
+{
+	static CPUCapabilities caps;
+	static bool caps_init = false;
+
+	if(!caps_init) {
+		int result[4], num, num_ex;
+
+		memset(&caps, 0, sizeof(caps));
+
+		__cpuid(result, 0);
+		num = result[0];
+
+		__cpuid(result, 0x80000000);
+		num_ex = result[0];
+
+		if(num >= 1){
+			__cpuid(result, 0x00000001);
+			caps.mmx = (result[3] & ((int)1 << 23)) != 0;
+			caps.sse = (result[3] & ((int)1 << 25)) != 0;
+			caps.sse2 = (result[3] & ((int)1 << 26)) != 0;
+			caps.sse3 = (result[2] & ((int)1 <<  0)) != 0;
+
+			caps.ssse3 = (result[2] & ((int)1 <<  9)) != 0;
+			caps.sse41 = (result[2] & ((int)1 << 19)) != 0;
+			caps.sse42 = (result[2] & ((int)1 << 20)) != 0;
+
+			caps.avx = (result[2] & ((int)1 << 28)) != 0;
+			caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
+		}
+
+		/*if(num_ex >= 0x80000001){
+			__cpuid(result, 0x80000001);
+			caps.x64 = (result[3] & ((int)1 << 29)) != 0;
+			caps.sse4a = (result[2] & ((int)1 <<  6)) != 0;
+			caps.fma4 = (result[2] & ((int)1 << 16)) != 0;
+			caps.xop = (result[2] & ((int)1 << 11)) != 0;
+		}*/
+
+		caps_init = true;
+	}
+
+	/* optimization flags use these */
+	return caps.sse && caps.sse2 && caps.sse3;
+}
+
+#else
+
+bool system_cpu_support_optimized()
+{
+	return false;
+}
+
+#endif
+
 CCL_NAMESPACE_END
 

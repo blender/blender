@@ -10,11 +10,10 @@ sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('
 
 sources.remove(path.join('util', 'util_view.cpp'))
 sources.remove(path.join('render', 'film_response.cpp'))
+sources.remove(path.join('kernel', 'kernel_optimized.cpp'))
 
 incs = [] 
 defs = []
-ccflags = []
-cxxflags = []
 
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
@@ -22,14 +21,6 @@ defs.append('CCL_NAMESPACE_END=}')
 defs.append('WITH_OPENCL')
 defs.append('WITH_MULTI')
 defs.append('WITH_CUDA')
-
-if env['OURPLATFORM'] in ('win32-mingw'):
-    if env['WITH_BF_RAYOPTIMIZATION']:
-        cxxflags.append('-ffast-math -msse -msse2 -msse3'.split())
-        ccflags.append('-ffast-math -msse -msse2 -msse3'.split())
-    # not needed yet, is for open shading language
-    # cxxflags.append('-fno-rtti'.split())
-    # defs.append('BOOST_NO_RTTI BOOST_NO_TYPEID'.split())
 
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
@@ -39,5 +30,20 @@ incs.append(cycles['BF_OIIO_INC'])
 incs.append(cycles['BF_BOOST_INC'])
 incs.append(cycles['BF_PYTHON_INC'])
 
-cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], compileflags=[None], cc_compileflags=ccflags, cxx_compileflags=cxxflags)
+# optimized kernel
+if env['WITH_BF_RAYOPTIMIZATION']:
+    optim_cxxflags = []
+
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+        optim_cxxflags.append('/Ox /Ot /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /EHsc /fp:fast'.split())
+    else:
+        optim_cxxflags.append('-ffast-math -msse -msse2 -msse3'.split())
+    
+    optim_defs = defs + ['WITH_OPTIMIZED_KERNEL']
+    optim_sources = [path.join('kernel', 'kernel_optimized.cpp')]
+
+    cycles_optim = cycles.Clone()
+    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[0], compileflags=[None], cxx_compileflags=optim_cxxflags)
+
+cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], compileflags=[None])
 
