@@ -677,7 +677,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 		}
 		else {
 			IDPropertyTemplate val = {0};
-			opptr->data= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+			opptr->data= IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 		}
 
 		return *opptr;
@@ -2747,7 +2747,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 {
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+		op->properties= IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 	}
 
 	if(flag & UI_LAYOUT_OP_SHOW_TITLE) {

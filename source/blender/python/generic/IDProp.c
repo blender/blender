@@ -330,18 +330,18 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 	if (PyFloat_Check(ob)) {
 		val.d = PyFloat_AsDouble(ob);
-		prop = IDP_New(IDP_DOUBLE, val, name);
+		prop = IDP_New(IDP_DOUBLE, &val, name);
 	}
 	else if (PyLong_Check(ob)) {
 		val.i = (int) PyLong_AsSsize_t(ob);
-		prop = IDP_New(IDP_INT, val, name);
+		prop = IDP_New(IDP_INT, &val, name);
 	}
 	else if (PyUnicode_Check(ob)) {
 #ifdef USE_STRING_COERCE
 		PyObject *value_coerce= NULL;
 		val.string.str = (char *)PyC_UnicodeAsByte(ob, &value_coerce);
 		val.string.subtype = IDP_STRING_SUB_UTF8;
-		prop = IDP_New(IDP_STRING, val, name);
+		prop = IDP_New(IDP_STRING, &val, name);
 		Py_XDECREF(value_coerce);
 #else
 		val.str = _PyUnicode_AsString(ob);
@@ -353,7 +353,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		val.string.len= PyBytes_GET_SIZE(ob);
 		val.string.subtype= IDP_STRING_SUB_BYTE;
 
-		prop = IDP_New(IDP_STRING, val, name);
+		prop = IDP_New(IDP_STRING, &val, name);
 		//prop = IDP_NewString(PyBytes_AS_STRING(ob), name, PyBytes_GET_SIZE(ob));
 		//prop->subtype= IDP_STRING_SUB_BYTE;
 	}
@@ -372,7 +372,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 		switch(val.array.type) {
 		case IDP_DOUBLE:
-			prop = IDP_New(IDP_ARRAY, val, name);
+			prop = IDP_New(IDP_ARRAY, &val, name);
 			for (i=0; i<val.array.len; i++) {
 				item = PySequence_GetItem(ob, i);
 				((double*)IDP_Array(prop))[i] = (float)PyFloat_AsDouble(item);
@@ -380,7 +380,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 			}
 			break;
 		case IDP_INT:
-			prop = IDP_New(IDP_ARRAY, val, name);
+			prop = IDP_New(IDP_ARRAY, &val, name);
 			for (i=0; i<val.array.len; i++) {
 				item = PySequence_GetItem(ob, i);
 				((int*)IDP_Array(prop))[i] = (int)PyLong_AsSsize_t(item);
@@ -410,7 +410,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 		/*we allocate the group first; if we hit any invalid data,
 		  we can delete it easily enough.*/
-		prop = IDP_New(IDP_GROUP, val, name);
+		prop = IDP_New(IDP_GROUP, &val, name);
 		len = PyMapping_Length(ob);
 		for (i=0; i<len; i++) {
 			key = PySequence_GetItem(keys, i);

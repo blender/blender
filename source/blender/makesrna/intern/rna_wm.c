@@ -421,7 +421,7 @@ static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
-		ptr->data= IDP_New(IDP_GROUP, val, "RNA_OperatorProperties group");
+		ptr->data= IDP_New(IDP_GROUP, &val, "RNA_OperatorProperties group");
 	}
 
 	return ptr->data;

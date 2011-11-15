@@ -597,7 +597,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 {
 	if(*properties==NULL) {
 		IDPropertyTemplate val = {0};
-		*properties= IDP_New(IDP_GROUP, val, "wmOpItemProp");
+		*properties= IDP_New(IDP_GROUP, &val, "wmOpItemProp");
 	}
 
 	if(*ptr==NULL) {

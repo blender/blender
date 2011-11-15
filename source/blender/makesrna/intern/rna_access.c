@@ -1617,7 +1617,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_INT, val, prop->identifier));
+			IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
 	}
 }
 
@@ -1696,7 +1696,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group) {
-			idprop= IDP_New(IDP_ARRAY, val, prop->identifier);
+			idprop= IDP_New(IDP_ARRAY, &val, prop->identifier);
 			IDP_AddToGroup(group, idprop);
 			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
 		}
@@ -1814,7 +1814,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_INT, val, prop->identifier));
+			IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
 	}
 }
 
@@ -1930,7 +1930,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group) {
-			idprop= IDP_New(IDP_ARRAY, val, prop->identifier);
+			idprop= IDP_New(IDP_ARRAY, &val, prop->identifier);
 			IDP_AddToGroup(group, idprop);
 			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
 		}
@@ -2050,7 +2050,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_FLOAT, val, prop->identifier));
+			IDP_AddToGroup(group, IDP_New(IDP_FLOAT, &val, prop->identifier));
 	}
 }
 
@@ -2184,7 +2184,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group) {
-			idprop= IDP_New(IDP_ARRAY, val, prop->identifier);
+			idprop= IDP_New(IDP_ARRAY, &val, prop->identifier);
 			IDP_AddToGroup(group, idprop);
 			memcpy(IDP_Array(idprop), values, sizeof(float)*idprop->len);
 		}
@@ -2439,7 +2439,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_INT, val, prop->identifier));
+			IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
 	}
 }
 
@@ -2535,7 +2535,7 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 
 		group= RNA_struct_idprops(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_GROUP, val, prop->identifier));
+			IDP_AddToGroup(group, IDP_New(IDP_GROUP, &val, prop->identifier));
 	}
 	else
 		printf("%s %s.%s: only supported for id properties.\n", __func__, ptr->type->identifier, prop->identifier);
@@ -2658,7 +2658,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 		IDPropertyTemplate val = {0};
 		IDProperty *item;
 
-		item= IDP_New(IDP_GROUP, val, "");
+		item= IDP_New(IDP_GROUP, &val, "");
 		IDP_AppendArray(idprop, item);
 		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory 
 		MEM_freeN(item);
@@ -2672,7 +2672,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			idprop= IDP_NewIDPArray(prop->identifier);
 			IDP_AddToGroup(group, idprop);
 
-			item= IDP_New(IDP_GROUP, val, "");
+			item= IDP_New(IDP_GROUP, &val, "");
 			IDP_AppendArray(idprop, item);
 			// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
 			MEM_freeN(item);

@@ -5669,7 +5669,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 		val.array.len = PROJ_VIEW_DATA_SIZE;
 		val.array.type = IDP_FLOAT;
-		view_data = IDP_New(IDP_ARRAY, val, PROJ_VIEW_DATA_ID);
+		view_data = IDP_New(IDP_ARRAY, &val, PROJ_VIEW_DATA_ID);
 
 		array= (float *)IDP_Array(view_data);
 		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat)/sizeof(float);

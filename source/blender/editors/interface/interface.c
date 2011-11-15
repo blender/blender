@@ -831,7 +831,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 			if (prop_menu == NULL) {
 				/* annoying, create a property */
 				IDPropertyTemplate val = {0};
-				prop_menu= IDP_New(IDP_GROUP, val, __func__); /* dummy, name is unimportant  */
+				prop_menu= IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
 				IDP_AddToGroup(prop_menu, (prop_menu_name= IDP_NewString("", "name", sizeof(mt->idname))));
 			}
 
