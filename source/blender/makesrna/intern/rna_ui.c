@@ -413,7 +413,7 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static char _menu_descr[1024];
+static char _menu_descr[RNA_DYN_DESCR_MAX];
 static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
                                     StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -490,7 +490,7 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	Menu *data= (Menu*)(ptr->data);
 	char *str= (char *)data->type->description;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);  /* utf8 already ensured */
 	else		assert(!"setting the bl_description on a non-builtin menu");
 }
 
@@ -830,7 +830,7 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Menu_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
