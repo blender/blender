@@ -155,6 +155,9 @@ void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 		m_cache_ok = true;
 	}
 
+	if(length == 0)
+		return;
+
 	for(int channel = 0; channel < m_channels; channel++)
 	{
 		for(int i = 0; i < length; i++)

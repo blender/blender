@@ -73,8 +73,8 @@ typedef enum ModifierType {
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
-	eModifierType_EmptySlot,    /* keep so DynamicPaint keep loading, can re-use later */
-	eModifierType_DynamicPaint, /* reserve slot */
+	eModifierType_Ocean,
+	eModifierType_DynamicPaint,
 
 	/* BMESH ONLY - keeps getting bumped by new modifiers in trunk */
 	eModifierType_NgonInterp,
@@ -754,6 +754,65 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
+typedef struct OceanModifierData {
+	ModifierData modifier;		
+	
+	struct Ocean *ocean;
+	struct OceanCache *oceancache;
+	
+	int		resolution;
+	int		spatial_size;
+	
+	float	wind_velocity;
+	
+	float	damp;
+	float	smallest_wave;
+	float	depth;
+	
+	float	wave_alignment;
+	float	wave_direction;
+	float	wave_scale;
+	
+	float	chop_amount;
+	float	foam_coverage;
+	float	time;
+	
+	int		seed;
+	int		flag;
+	int		output;
+	
+	int		refresh;
+	
+	int		bakestart;
+	int		bakeend;
+	
+	char	cachepath[240];	// FILE_MAX
+	int		cached;
+	
+	int		geometry_mode;
+	float	size;
+	int		repeat_x;
+	int		repeat_y;
+	
+	float	foam_fade;
+	
+} OceanModifierData;
+
+#define MOD_OCEAN_GEOM_GENERATE	0
+#define MOD_OCEAN_GEOM_DISPLACE	1
+#define MOD_OCEAN_GEOM_SIM_ONLY	2
+
+#define MOD_OCEAN_REFRESH_RESET			1
+#define MOD_OCEAN_REFRESH_SIM			2
+#define MOD_OCEAN_REFRESH_ADD			4
+#define MOD_OCEAN_REFRESH_CLEAR_CACHE	8
+#define MOD_OCEAN_REFRESH_TOPOLOGY		16
+
+#define MOD_OCEAN_GENERATE_FOAM	1
+#define MOD_OCEAN_GENERATE_NORMALS	2
+
+
+/* BMESH_ONLY */
 typedef struct NgonInterpModifierData {
 	ModifierData modifier;
 	int		resolution, pad0;

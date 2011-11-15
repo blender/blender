@@ -122,6 +122,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node.h" // for tree type defines
+#include "BKE_ocean.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -3113,6 +3114,8 @@ static void lib_link_texture(FileData *fd, Main *main)
 			if(tex->pd)
 				tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
 			if(tex->vd) tex->vd->object= newlibadr(fd, tex->id.lib, tex->vd->object);
+			if(tex->ot) tex->ot->object= newlibadr(fd, tex->id.lib, tex->ot->object);
+				
 
 			if(tex->nodetree)
 				lib_link_ntree(fd, &tex->id, tex->nodetree);
@@ -3163,6 +3166,8 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		if(tex->type == TEX_VOXELDATA)
 			tex->vd= MEM_callocN(sizeof(VoxelData), "direct_link_texture VoxelData");
 	}
+	
+	tex->ot= newdataadr(fd, tex->ot);
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);
 	if(tex->nodetree)
@@ -4449,6 +4454,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					for(a=0; a<mmd->totcagevert*3; a++)
 						SWITCH_INT(mmd->bindcos[a])
 			}
+		}
+		else if (md->type==eModifierType_Ocean) {
+			OceanModifierData *omd = (OceanModifierData*) md;
+			omd->oceancache = NULL;
+			omd->ocean = NULL;
+			omd->refresh = (MOD_OCEAN_REFRESH_ADD|MOD_OCEAN_REFRESH_RESET|MOD_OCEAN_REFRESH_SIM);
 		}
 		else if (md->type==eModifierType_Warp) {
 			WarpModifierData *tmd = (WarpModifierData *) md;
@@ -7368,6 +7379,52 @@ static void do_version_ntree_tex_mapping_260(void *UNUSED(data), ID *UNUSED(id),
 			tex_mapping->projx= PROJ_X;
 			tex_mapping->projy= PROJ_Y;
 			tex_mapping->projz= PROJ_Z;
+		}
+	}
+}
+
+static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
+{
+	bNode *node;
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type == CMP_NODE_ROTATE) {
+			/* Convert degrees to radians. */
+			bNodeSocket *sock = ((bNodeSocket*)node->inputs.first)->next;
+			((bNodeSocketValueFloat*)sock->default_value)->value = DEG2RADF(((bNodeSocketValueFloat*)sock->default_value)->value);
+		}
+		else if (node->type == CMP_NODE_DBLUR) {
+			/* Convert degrees to radians. */
+			NodeDBlurData *ndbd= node->storage;
+			ndbd->angle = DEG2RADF(ndbd->angle);
+			ndbd->spin = DEG2RADF(ndbd->spin);
+		}
+		else if (node->type == CMP_NODE_DEFOCUS) {
+			/* Convert degrees to radians. */
+			NodeDefocus *nqd = node->storage;
+			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
+			nqd->rotation = DEG2RADF(nqd->rotation*255.0f);
+		}
+		else if (node->type == CMP_NODE_CHROMA_MATTE) {
+			/* Convert degrees to radians. */
+			NodeChroma *ndc = node->storage;
+			ndc->t1 = DEG2RADF(ndc->t1);
+			ndc->t2 = DEG2RADF(ndc->t2);
+		}
+		else if (node->type == CMP_NODE_GLARE) {
+			/* Convert degrees to radians. */
+			NodeGlare* ndg = node->storage;
+			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
+			ndg->angle_ofs = DEG2RADF(ndg->angle_ofs*255.0f);
+		}
+		/* XXX TexMapping struct is used by other nodes too (at least node_composite_mapValue),
+		 *     but not the rot part...
+		 */
+		else if (node->type == SH_NODE_MAPPING) {
+			/* Convert degrees to radians. */
+			TexMapping* tmap = node->storage;
+			tmap->rot[0] = DEG2RADF(tmap->rot[0]);
+			tmap->rot[1] = DEG2RADF(tmap->rot[1]);
+			tmap->rot[2] = DEG2RADF(tmap->rot[2]);
 		}
 	}
 }
@@ -11928,6 +11985,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+	/* put compatibility code here until next subversion bump */
+	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 3)) {
+		Object *ob;
+
+		/* ocean res is now squared, reset old ones - will be massive */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Ocean) {
+					OceanModifierData *omd = (OceanModifierData *)md;
+					omd->resolution = 7;
+					omd->oceancache = NULL;
+				}
+			}
+		}		
+	}
+
+	/* put compatibility code here until next subversion bump */
 	
 	if (main->versionfile < 256) {
 		bScreen *sc;
@@ -12464,9 +12540,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_tex_mapping_260);
 	}
 
-	/* put compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 4)){
 		{
+			/* Convert node angles to radians! */
+			Scene *sce;
+			Material *mat;
+			bNodeTree *ntree;
+
+			for (sce=main->scene.first; sce; sce=sce->id.next) {
+				if (sce->nodetree)
+					do_versions_nodetree_convert_angle(sce->nodetree);
+			}
+
+			for (mat=main->mat.first; mat; mat=mat->id.next) {
+				if (mat->nodetree)
+					do_versions_nodetree_convert_angle(mat->nodetree);
+			}
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_convert_angle(ntree);
+		}
+
+		{
+			/* Tomato compatibility code. */
 			bScreen *sc;
 			MovieClip *clip;
 
@@ -12525,6 +12621,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

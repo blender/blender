@@ -810,6 +810,11 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 }
 
 
+static int ui_but_draw_menu_icon(uiBut *but)
+{
+	return (but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP);
+}
+
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
@@ -888,8 +893,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 		else
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
-	
-	if((but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP)) {
+
+	if (ui_but_draw_menu_icon(but)) {
 		xs= rect->xmax-17;
 		ys= (rect->ymin+rect->ymax- height)/2;
 		
@@ -1139,7 +1144,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	/* part text right aligned */
 	if(cpoin) {
 		fstyle->align= UI_STYLE_TEXT_RIGHT;
-		rect->xmax-=5;
+		rect->xmax -= ui_but_draw_menu_icon(but) ? UI_DPI_ICON_SIZE : 5;
 		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}

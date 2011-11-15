@@ -27,12 +27,14 @@
 
 #include <string>
 #include <map>
+#include <Eigen/Core>
 
 namespace KDL
 {
     //Forward declaration
     class TreeElement;
-    typedef std::map<std::string,TreeElement> SegmentMap;
+    // Eigen allocator is needed for alignment of Eigen data types
+    typedef std::map<std::string,TreeElement, std::less<std::string>, Eigen::aligned_allocator<std::pair<std::string, TreeElement> > > SegmentMap;
 
     class TreeElement
     {

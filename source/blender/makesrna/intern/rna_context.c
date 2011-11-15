@@ -35,6 +35,8 @@
 
 #include "BKE_context.h"
 
+#include "rna_internal.h" /* own include */
+
 #ifdef RNA_RUNTIME
 
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)

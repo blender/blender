@@ -171,6 +171,7 @@ option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
+option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
 # Image format support
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
@@ -218,6 +219,7 @@ option(WITH_CYCLES					"Enable cycles Render Engine" OFF)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH		sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
+mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
@@ -283,6 +285,10 @@ if(WITH_CODEC_QUICKTIME AND MINGW)
 	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
 						"because it is currently unsupported, remove this "
 						"line if youre a developer who wants to add support.")
+endif()
+
+if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
+	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
 endif()
 
 # may as well build python module without a UI
@@ -1562,6 +1568,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_MOD_BOOLEAN)
 	info_cfg_option(WITH_MOD_DECIMATE)
 	info_cfg_option(WITH_MOD_FLUID)
+	info_cfg_option(WITH_MOD_OCEANSIM)
 
 	info_cfg_text("")
 

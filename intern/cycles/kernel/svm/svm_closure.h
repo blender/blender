@@ -80,7 +80,12 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 		case CLOSURE_BSDF_DIFFUSE_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
-			bsdf_diffuse_setup(sd, sc);
+
+			float roughness = param1;
+			if(roughness == 0.0f)
+				bsdf_diffuse_setup(sd, sc);
+			else
+				bsdf_oren_nayar_setup(sd, sc, roughness);
 			break;
 		}
 		case CLOSURE_BSDF_TRANSLUCENT_ID: {

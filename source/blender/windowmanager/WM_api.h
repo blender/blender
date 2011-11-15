@@ -233,7 +233,6 @@ void		WM_operator_py_idname(char *to, const char *from);
 void				WM_menutype_init(void);
 struct MenuType		*WM_menutype_find(const char *idname, int quiet);
 int					WM_menutype_add(struct MenuType* mt);
-int					WM_menutype_contains(struct MenuType* mt);
 void				WM_menutype_freelink(struct MenuType* mt);
 void				WM_menutype_free(void);
 

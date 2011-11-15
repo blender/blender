@@ -34,6 +34,8 @@
 
 #include "BLF_api.h"
 
+#include "BLF_translation.h" /* own include */
+
 #ifdef WITH_INTERNATIONAL
 
 #include <locale.h>

@@ -802,7 +802,7 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count)
 		}
 	}
 	if(!length) {
-		return 0;
+		return NULL;
 	}
 	tverts = MEM_mallocN(sizeof(int)*length, "tempSurroundingVerts");
 	mf = me->mface;

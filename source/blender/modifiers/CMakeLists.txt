@@ -69,6 +69,7 @@ set(SRC
 	intern/MOD_multires.c
 	intern/MOD_ngoninterp.c
 	intern/MOD_none.c
+	intern/MOD_ocean.c
 	intern/MOD_particleinstance.c
 	intern/MOD_particlesystem.c
 	intern/MOD_screw.c
@@ -118,6 +119,10 @@ if(WITH_MOD_FLUID)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
 
+if(WITH_MOD_OCEANSIM)
+	add_definitions(-DWITH_OCEANSIM)
+endif()
+
 if(WITH_GAMEENGINE)
 	# for MOD_navmesh.c
 	add_definitions(-DWITH_GAMEENGINE)
@@ -125,6 +130,10 @@ if(WITH_GAMEENGINE)
 		../gpu
 		../../../extern/recastnavigation
 	)
+endif()
+
+if(WITH_OPENMP)
+	add_definitions(-DPARALLEL=1)
 endif()
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

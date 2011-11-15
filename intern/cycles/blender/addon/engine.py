@@ -50,11 +50,16 @@ def free(engine):
 
 def render(engine):
     import bcycles
-    bcycles.render(engine.session)
+    if "session" in dir(engine):
+        bcycles.render(engine.session)
 
 def update(engine, data, scene):
     import bcycles
-    bcycles.sync(engine.session)
+    if scene.render.use_border:
+        engine.report({'ERROR'}, "Border rendering not supported yet")
+        free(engine)
+    else:
+        bcycles.sync(engine.session)
 
 def draw(engine, region, v3d, rv3d):
     import bcycles

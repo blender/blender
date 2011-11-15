@@ -118,7 +118,7 @@ static void storage_free(bNode *node)
 	node->storage= NULL;
 }
 
-void storage_copy(bNode *orig_node, bNode *new_node)
+static void storage_copy(bNode *orig_node, bNode *new_node)
 {
 	if(orig_node->storage)
 		new_node->storage= BKE_tracking_distortion_copy(orig_node->storage);

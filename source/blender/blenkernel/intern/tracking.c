@@ -47,6 +47,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 #include "BKE_tracking.h"
@@ -119,10 +120,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		}
 	}
 	else if(event==CLAMP_SEARCH_DIM) {
-		float max_pyramid_level_factor = 1.0;
-		if (track->tracker == TRACKER_KLT) {
-			max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
-		}
 		for(a= 0; a<2; a++) {
 			/* search shouldn't be resized smaller than pattern */
 			track->search_min[a]= MIN2(pat_min[a], track->search_min[a]);
@@ -145,7 +142,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			}
 		}
 	}
-
 	else if(event==CLAMP_PYRAMID_LEVELS || (event==CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT))  {
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
@@ -618,18 +614,23 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
 							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
+							int wndx, wndy;
 
 							/* compute the maximum pyramid size */
-							double search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
+							float search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
 								/ MAX2(pattern_size_x, pattern_size_y);
-							double log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
+							float log2_search_to_pattern_ratio = log(floor(search_to_pattern_ratio)) / M_LN2;
 							int max_pyramid_levels= floor(log2_search_to_pattern_ratio + 1);
 
 							/* try to accomodate the user's choice of pyramid level in a way
 							 * that doesn't cause the coarsest pyramid pattern to be larger
 							 * than the search size */
 							int level= MIN2(track_context->track->pyramid_levels, max_pyramid_levels);
-							track_context->region_tracker= libmv_regionTrackerNew(100, level);
+
+							wndx= (int)((track->pat_max[0]-track->pat_min[0])*width)/2;
+							wndy= (int)((track->pat_max[1]-track->pat_min[1])*height)/2;
+
+							track_context->region_tracker= libmv_regionTrackerNew(100, level, MAX2(wndx, wndy));
 						}
 						else if(track_context->track->tracker==TRACKER_SAD) {
 							/* nothing to initialize */
@@ -879,7 +880,7 @@ static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTra
 	while(a>=0 && a<track->markersnr) {
 		int next= (context->backwards) ? a+1 : a-1;
 		int is_keyframed= 0;
-		MovieTrackingMarker *marker= &track->markers[a];
+		MovieTrackingMarker *cur_marker= &track->markers[a];
 		MovieTrackingMarker *next_marker= NULL;
 
 		if(next>=0 && next<track->markersnr)
@@ -889,11 +890,11 @@ static ImBuf *get_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTra
 		if(next_marker && next_marker->flag&MARKER_DISABLED)
 			is_keyframed= 1;
 
-		is_keyframed|= (marker->flag&MARKER_TRACKED)==0;
+		is_keyframed|= (cur_marker->flag&MARKER_TRACKED)==0;
 
 		if(is_keyframed) {
-			framenr= marker->framenr;
-			*marker_keyed= marker;
+			framenr= cur_marker->framenr;
+			*marker_keyed= cur_marker;
 			break;
 		}
 
@@ -1079,7 +1080,6 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				onbound= 1;
 			}
 			else if(track_context->track->tracker==TRACKER_KLT) {
-				int wndx, wndy;
 				float *patch_new;
 
 				if(need_readjust) {
@@ -1102,11 +1102,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				x2= pos[0];
 				y2= pos[1];
 
-				wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf_new->x)/2;
-				wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf_new->y)/2;
-
 				tracked= libmv_regionTrackerTrack(track_context->region_tracker, track_context->patch, patch_new,
-							width, height, MAX2(wndx, wndy), x1, y1, &x2, &y2);
+							width, height, x1, y1, &x2, &y2);
 
 				MEM_freeN(patch_new);
 			}
@@ -1260,7 +1257,28 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 	return tracks;
 }
 
-static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+{
+	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
+
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
+
+	double focal_length, principal_x, principal_y, k1, k2, k3;
+	int width, height;
+
+	libmv_CameraIntrinsicsExtract(libmv_intrinsics, &focal_length, &principal_x, &principal_y,
+			&k1, &k2, &k3, &width, &height);
+
+	tracking->camera.focal= focal_length;
+	tracking->camera.principal[0]= principal_x;
+
+	/* todo: verify divide by aspy is correct */
+	tracking->camera.principal[1]= principal_y / aspy;
+	tracking->camera.k1= k1;
+	tracking->camera.k2= k2;
+}
+
+static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
 {
 	int tracknr= 0;
 	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
@@ -1289,8 +1307,27 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 		}
 
 		if(track->markersnr) {
-			if(track->markers[0].framenr<sfra) sfra= track->markers[0].framenr;
-			if(track->markers[track->markersnr-1].framenr>efra) efra= track->markers[track->markersnr-1].framenr;
+			int first= 0, last= track->markersnr;
+			MovieTrackingMarker *first_marker= &track->markers[0];
+			MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
+
+			/* find first not-disabled marker */
+			while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+				first++;
+				first_marker++;
+			}
+
+			/* find last not-disabled marker */
+			while(last>=0 && last_marker->flag&MARKER_DISABLED) {
+				last--;
+				last_marker--;
+			}
+
+			if(first<track->markersnr-1)
+				sfra= MIN2(sfra, first_marker->framenr);
+
+			if(last>=0)
+				efra= MAX2(efra, last_marker->framenr);
 		}
 
 		track= track->next;
@@ -1354,7 +1391,69 @@ static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reco
 	return ok;
 }
 
+static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+{
+	/* take the intrinscis back from libmv */
+	retrieve_libmv_reconstruct_intrinscis(tracking, libmv_reconstruction);
+
+	return retrieve_libmv_reconstruct_tracks(tracking, libmv_reconstruction);
+}
+
+static int get_refine_intrinsics_flags(MovieTracking *tracking)
+{
+	int refine= tracking->settings.refine_camera_intrinsics;
+	int flags= 0;
+
+	if(refine&REFINE_FOCAL_LENGTH)
+		flags|= LIBMV_REFINE_FOCAL_LENGTH;
+
+	if(refine&REFINE_PRINCIPAL_POINT)
+		flags|= LIBMV_REFINE_PRINCIPAL_POINT;
+
+	if(refine&REFINE_RADIAL_DISTORTION_K1)
+		flags|= REFINE_RADIAL_DISTORTION_K1;
+
+	if(refine&REFINE_RADIAL_DISTORTION_K2)
+		flags|= REFINE_RADIAL_DISTORTION_K2;
+
+	return flags;
+}
+
+static int count_tracks_on_both_keyframes(MovieTracking *tracking)
+{
+	int tot= 0;
+	int frame1= tracking->settings.keyframe1, frame2= tracking->settings.keyframe2;
+	MovieTrackingTrack *track;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(BKE_tracking_has_marker(track, frame1))
+			if(BKE_tracking_has_marker(track, frame2))
+				tot++;
+
+		track= track->next;
+	}
+
+	return tot;
+}
 #endif
+
+int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_size)
+{
+#if WITH_LIBMV
+	if(count_tracks_on_both_keyframes(tracking)<8) {
+		BLI_strncpy(error_msg, "At least 8 tracks on both of keyframes are needed for reconstruction", error_size);
+		return 0;
+	}
+
+	return 1;
+#else
+	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+	(void)tracking;
+
+	return 0;
+#endif
+}
 
 float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
 {
@@ -1365,6 +1464,7 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
+		        get_refine_intrinsics_flags(tracking),
 		        camera->focal,
 		        camera->principal[0], camera->principal[1]*aspy,
 		        camera->k1, camera->k2, camera->k3);

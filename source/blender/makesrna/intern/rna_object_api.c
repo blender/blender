@@ -128,16 +128,20 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		free_libblock_us( &G.main->object, tmpobj );
 		break;
 
-	case OB_MBALL:
+	case OB_MBALL: {
 		/* metaballs don't have modifiers, so just convert to mesh */
-		ob = find_basis_mball( sce, ob );
+		Object *basis_ob = find_basis_mball( sce, ob );
 		/* todo, re-generatre for render-res */
 		/* metaball_polygonize(scene, ob) */
+
+		if(ob != basis_ob)
+			return NULL; /* only do basis metaball */
 
 		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
 		break;
 
+	}
 	case OB_MESH:
 		/* copies object and modifiers (but not the data) */
 		if (cage) {

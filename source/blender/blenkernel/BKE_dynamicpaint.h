@@ -64,7 +64,7 @@ void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);
 
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 int  dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
-int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int index);
+int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int output);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
 void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, const char *basename);
 void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);

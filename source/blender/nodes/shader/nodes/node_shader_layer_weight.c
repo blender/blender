@@ -1,6 +1,4 @@
-/**
- * $Id: node_shader_layer_weight.c 32517 2010-10-16 14:32:17Z campbellbarton $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

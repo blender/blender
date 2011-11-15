@@ -24,6 +24,7 @@
 
 #include "segment.hpp"
 #include <string>
+#include <Eigen/StdVector>
 
 namespace KDL {
     /**
@@ -34,7 +35,8 @@ namespace KDL {
      */
     class Chain {
     private:
-        std::vector<Segment> segments;
+        // Eigen allocator is needed for alignment of Eigen data types
+        std::vector<Segment, Eigen::aligned_allocator<Segment> > segments;
         unsigned int nrOfJoints;
         unsigned int nrOfSegments;
     public:

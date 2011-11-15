@@ -2819,28 +2819,34 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	if(dt>OB_WIRE) {
 		if(CHECK_OB_DRAWTEXTURE(v3d, dt)) {
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
-				glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+				/* if em has no faces the drawMappedFaces callback will fail */
+				if(em->bm->totface) {
+					glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
-					draw_em_fancy__setGLSLFaceOpts, em);
-				GPU_disable_material();
+					finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
+					                             draw_em_fancy__setGLSLFaceOpts, em);
+					GPU_disable_material();
 
-				glFrontFace(GL_CCW);
+					glFrontFace(GL_CCW);
+				}
 			}
 			else {
 				draw_mesh_textured(scene, v3d, rv3d, ob, finalDM, 0);
 			}
 		}
 		else {
-			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+			/* if em has no faces the drawMappedFaces callback will fail */
+			if(em->bm->totface) {
+				/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
+				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
-			glEnable(GL_LIGHTING);
-			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, me->edit_btmesh, 0, GPU_enable_material, NULL);
+				glEnable(GL_LIGHTING);
+				glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, me->edit_btmesh, 0, GPU_enable_material, NULL);
 
-			glFrontFace(GL_CCW);
-			glDisable(GL_LIGHTING);
+				glFrontFace(GL_CCW);
+				glDisable(GL_LIGHTING);
+			}
 		}
 			
 		// Setup for drawing wire over, disable zbuffer

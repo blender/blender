@@ -41,6 +41,7 @@ CCL_NAMESPACE_BEGIN
 
 enum {
 	OSL_CLOSURE_BSDF_DIFFUSE_ID,
+	OSL_CLOSURE_BSDF_OREN_NAYAR_ID,
 	OSL_CLOSURE_BSDF_TRANSLUCENT_ID,
 	OSL_CLOSURE_BSDF_REFLECTION_ID,
 	OSL_CLOSURE_BSDF_REFRACTION_ID,
@@ -62,6 +63,7 @@ enum {
 };
 
 extern OSL::ClosureParam bsdf_diffuse_params[];
+extern OSL::ClosureParam bsdf_oren_nayar_params[];
 extern OSL::ClosureParam bsdf_translucent_params[];
 extern OSL::ClosureParam bsdf_reflection_params[];
 extern OSL::ClosureParam bsdf_refraction_params[];
@@ -82,6 +84,7 @@ extern OSL::ClosureParam closure_holdout_params[];
 extern OSL::ClosureParam closure_subsurface_params[];
 
 void bsdf_diffuse_prepare(OSL::RendererServices *, int id, void *data);
+void bsdf_oren_nayar_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_translucent_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_reflection_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_refraction_prepare(OSL::RendererServices *, int id, void *data);

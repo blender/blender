@@ -578,7 +578,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	if (strstr(rstring,"MacBookAir") ||
 		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
 		m_hasMultiTouchTrackpad = true;
-	else m_hasMultiTouchTrackpad = true;  // experimental, changes only MagicMouse behaviour (zoom->pan) but enables MagicTrackpad for all Macs
+	else m_hasMultiTouchTrackpad = false;
 	
 	free( rstring );
 	rstring = NULL;

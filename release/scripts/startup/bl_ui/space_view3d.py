@@ -366,6 +366,7 @@ class VIEW3D_MT_view_align(Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
+        layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
@@ -2169,16 +2170,6 @@ class VIEW3D_PT_view3d_display(Panel):
 
         layout.separator()
 
-        layout.prop(view, "show_reconstruction")
-        if view.show_reconstruction:
-            layout.label(text="Bundle type:")
-            layout.prop(view, "bundle_draw_type", text="")
-            layout.prop(view, "bundle_draw_size")
-            layout.prop(view, "show_bundle_name")
-            layout.prop(view, "show_camera_path")
-
-        layout.separator()
-
         region = view.region_quadview
 
         layout.operator("screen.region_quadview", text="Toggle Quad View")
@@ -2192,6 +2183,37 @@ class VIEW3D_PT_view3d_display(Panel):
             row = col.row()
             row.enabled = region.lock_rotation and region.show_sync_view
             row.prop(region, "use_box_clip")
+
+
+class VIEW3D_PT_view3d_motion_tracking(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Motion Tracking"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw_header(self, context):
+        layout = self.layout
+        view = context.space_data
+
+        layout.prop(view, "show_reconstruction", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+
+        col = layout.column()
+        col.active = view.show_reconstruction
+        col.prop(view, "show_tracks_name", text="Show Names")
+        col.prop(view, "show_camera_path")
+        col.label(text="Tracks:")
+        col.prop(view, "tracks_draw_type", text="")
+        col.prop(view, "tracks_draw_size", text="Size")
 
 
 class VIEW3D_PT_view3d_meshdisplay(Panel):

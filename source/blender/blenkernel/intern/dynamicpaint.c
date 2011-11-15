@@ -207,7 +207,7 @@ typedef struct PaintAdjData {
 static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
 	/* Add error to canvas ui info label */
-	BLI_snprintf(canvas->error, sizeof(canvas->error), string);
+	BLI_strncpy(canvas->error, string, sizeof(canvas->error));
 	return 0;
 }
 
@@ -279,13 +279,13 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 	}
 }
 
-int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int index)
+int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int output)
 {
 	char *name;
 
-	if (index == 0)
+	if (output == 0)
 		name = surface->output_name;
-	else if (index == 1)
+	else if (output == 1)
 		name = surface->output_name2;
 	else
 		return 0;
@@ -317,7 +317,7 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 	return 0;
 }
 
-void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
+static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
 	char name[64];
 	BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
@@ -1919,7 +1919,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 		/* Get closest edge to that subpixel on UV map	*/
 		{
 			float pixel[2], dist, t_dist;
-			int i, uindex[2], edge1_index, edge2_index,
+			int i, uindex[3], edge1_index, edge2_index,
 				e1_index, e2_index, target_face;
 			float closest_point[2], lambda, dir_vec[2];
 			int target_uv1, target_uv2, final_pixel[2], final_index;
@@ -4139,13 +4139,13 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				totalAlpha += ePoint->e_alpha;
 
 				/* do color mixing */
-				if (color_mix) mixColors(pPoint->e_color, pPoint->e_alpha, ePoint->e_color, color_mix);
+				if (color_mix > MIN_WETNESS) mixColors(pPoint->e_color, pPoint->e_alpha, ePoint->e_color, color_mix);
 
 				/* Check if neighbouring point has higher wetness,
 				*  if so, add it's wetness to this point as well*/
 				if (ePoint->wetness <= pPoint->wetness) continue;
 				w_factor = ePoint->wetness/numOfNeighs * (ePoint->wetness - pPoint->wetness) * speed_scale;
-				if (w_factor <= 0.0f) continue;
+				if (w_factor <= MIN_WETNESS) continue;
 
 				if (ePoint->e_alpha > pPoint->e_alpha) {
 					alphaAdd = ePoint->e_alpha/numOfNeighs * (ePoint->wetness*ePoint->e_alpha - pPoint->wetness*pPoint->e_alpha) * speed_scale;

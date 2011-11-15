@@ -58,8 +58,9 @@ typedef struct BokehCoeffs {
 static void makeBokeh(char bktype, char ro, int* len_bkh, float* inradsq, BokehCoeffs BKH[8], float bkh_b[4])
 {
 	float x0, x1, y0, y1, dx, dy, iDxy;
-	float w = MAX2(1e-5f, ro)*(float)(M_PI/180);	// never reported stangely enough, but a zero offset causes missing center line...
-	float wi = (360.f/bktype)*(float)(M_PI/180);
+	/* ro now is in radians. */
+	float w = MAX2(1e-6f, ro);  // never reported stangely enough, but a zero offset causes missing center line...
+	float wi = DEG2RADF(360.f/bktype);
 	int i, ov, nv;
 	
 	// bktype must be at least 3 & <= 8
@@ -862,7 +863,7 @@ static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bN
 	/* qdn: defocus node */
 	NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");
 	nbd->bktype = 0;
-	nbd->rotation = 0.f;
+	nbd->rotation = 0.0f;
 	nbd->preview = 1;
 	nbd->gamco = 0;
 	nbd->samples = 16;

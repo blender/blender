@@ -109,6 +109,9 @@ BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBPATH}/libboost_date_time.a ${BF_BOOST_LIBPATH}/libboost_regex.a ${BF_BOOST_LIBPATH}/libboost_system.a ${BF_BOOST_LIBPATH}/libboost_thread.a'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
+# Ocean Simulation
+WITH_BF_OCEANSIM = True
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++

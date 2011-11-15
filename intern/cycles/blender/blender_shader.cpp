@@ -100,12 +100,19 @@ static float get_node_output_value(BL::Node b_node, const string& name)
 static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping b_mapping)
 {
 	mapping->translation = get_float3(b_mapping.location());
-	mapping->rotation = get_float3(b_mapping.rotation())*(M_PI/180.0f); /* in degrees! */
+	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
 
 	mapping->x_mapping = (TextureMapping::Mapping)b_mapping.mapping_x();
 	mapping->y_mapping = (TextureMapping::Mapping)b_mapping.mapping_y();
 	mapping->z_mapping = (TextureMapping::Mapping)b_mapping.mapping_z();
+}
+
+static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_mapping)
+{
+	mapping->translation = get_float3(b_mapping.location());
+	mapping->rotation = get_float3(b_mapping.rotation());
+	mapping->scale = get_float3(b_mapping.scale());
 }
 
 static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *b_group_node, BL::ShaderNode b_node)
@@ -174,7 +181,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			BL::ShaderNodeMapping b_mapping_node(b_node);
 			MappingNode *mapping = new MappingNode();
 
-			get_tex_mapping(&mapping->tex_mapping, b_mapping_node.mapping());
+			get_tex_mapping(&mapping->tex_mapping, b_mapping_node);
 
 			node = mapping;
 			break;
