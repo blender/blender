@@ -252,7 +252,7 @@ void init_tex_mapping(TexMapping *texmap)
 		size_to_mat3(smat, texmap->size);
 		
 		/* rotation */
-		/* XXX TexMapping rotation are now in radians. */
+		/* TexMapping rotation are now in radians. */
 		eul_to_mat3(rmat, texmap->rot);
 		
 		/* compose it all */

@@ -598,7 +598,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	int subtype, totdim;
 	int len;
 	int is_thick;
-	int flag= RNA_property_flag(prop);
+	const int flag= RNA_property_flag(prop);
 
 	/* disallow dynamic sized arrays to be wrapped since the size could change
 	 * to a size mathutils does not support */
@@ -614,7 +614,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		if (!is_thick)
 			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the mathutils PyObject */
 
-		switch(RNA_property_subtype(prop)) {
+		switch(subtype) {
 		case PROP_ALL_VECTOR_SUBTYPES:
 			if (len>=2 && len <= 4) {
 				if (is_thick) {
@@ -902,7 +902,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	}
 
 	/* if a pointer, try to print name of pointer target too */
-	if (RNA_property_type(self->prop) == PROP_POINTER) {
+	if (type == PROP_POINTER) {
 		ptr= RNA_property_pointer_get(&self->ptr, self->prop);
 		name= RNA_struct_name_get_alloc(&ptr, NULL, 0, NULL);
 
@@ -916,7 +916,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 			return ret;
 		}
 	}
-	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+	if (type == PROP_COLLECTION) {
 		PointerRNA r_ptr;
 		if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
 			return PyUnicode_FromFormat("<bpy_%.200s, %.200s>",
@@ -1301,7 +1301,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
-	int type= RNA_property_type(prop);
+	const int type= RNA_property_type(prop);
 
 	if (RNA_property_array_check(prop)) {
 		return pyrna_py_from_array(ptr, prop);
@@ -1320,7 +1320,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	case PROP_STRING:
 	{
-		int subtype= RNA_property_subtype(prop);
+		const int subtype= RNA_property_subtype(prop);
 		const char *buf;
 		int buf_len;
 		char buf_fixed[32];
@@ -1458,7 +1458,7 @@ static PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
 static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
 {
 	/* XXX hard limits should be checked here */
-	int type= RNA_property_type(prop);
+	const int type= RNA_property_type(prop);
 
 
 	if (RNA_property_array_check(prop)) {
@@ -1542,7 +1542,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		}
 		case PROP_STRING:
 		{
-			int subtype= RNA_property_subtype(prop);
+			const int subtype= RNA_property_subtype(prop);
 			const char *param;
 
 			if (subtype == PROP_BYTESTRING) {
@@ -4411,8 +4411,8 @@ static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UN
 static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
-	int type= RNA_property_type(prop);
-	int flag= RNA_property_flag(prop);
+	const int type= RNA_property_type(prop);
+	const int flag= RNA_property_flag(prop);
 
 	if (RNA_property_array_check(prop)) {
 		int a, len;
@@ -4488,7 +4488,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 		{
 			char *data_ch;
 			PyObject *value_coerce= NULL;
-			int subtype= RNA_property_subtype(prop);
+			const int subtype= RNA_property_subtype(prop);
 
 			if (flag & PROP_THICK_WRAP)
 				data_ch= (char *)data;
