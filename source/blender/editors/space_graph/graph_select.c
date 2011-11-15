@@ -81,8 +81,9 @@
  *		0 = deselect
  *		1 = select
  *		2 = invert
+ *	- do_channels: whether to affect selection status of channels
  */
-static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
+static void deselect_graph_keys (bAnimContext *ac, short test, short sel, short do_channels)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -121,19 +122,22 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 		/* Keyframes First */
 		ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL);
 		
-		/* only change selection of channel when the visibility of keyframes doesn't depend on this */
-		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
-			/* deactivate the F-Curve, and deselect if deselecting keyframes.
-			 * otherwise select the F-Curve too since we've selected all the keyframes
-			 */
-			if (sel == SELECT_SUBTRACT) 
-				fcu->flag &= ~FCURVE_SELECTED;
-			else
-				fcu->flag |= FCURVE_SELECTED;
+		/* affect channel selection status? */
+		if (do_channels) {
+			/* only change selection of channel when the visibility of keyframes doesn't depend on this */
+			if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
+				/* deactivate the F-Curve, and deselect if deselecting keyframes.
+				 * otherwise select the F-Curve too since we've selected all the keyframes
+				 */
+				if (sel == SELECT_SUBTRACT) 
+					fcu->flag &= ~FCURVE_SELECTED;
+				else
+					fcu->flag |= FCURVE_SELECTED;
+			}
+			
+			/* always deactivate all F-Curves if we perform batch ops for selection */
+			fcu->flag &= ~FCURVE_ACTIVE;
 		}
-		
-		/* always deactivate all F-Curves if we perform batch ops for selection */
-		fcu->flag &= ~FCURVE_ACTIVE;
 	}
 	
 	/* Cleanup */
@@ -152,9 +156,9 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_graph_keys(&ac, 0, SELECT_INVERT);
+		deselect_graph_keys(&ac, 0, SELECT_INVERT, TRUE);
 	else
-		deselect_graph_keys(&ac, 1, SELECT_ADD);
+		deselect_graph_keys(&ac, 1, SELECT_ADD, TRUE);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
@@ -735,7 +739,7 @@ static void graphkeys_select_leftright (bAnimContext *ac, short leftright, short
 		/* - deselect all other keyframes, so that just the newly selected remain
 		 * - channels aren't deselected, since we don't re-select any as a consequence
 		 */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, FALSE);
 	}
 	
 	/* set callbacks and editing data */
@@ -1106,8 +1110,8 @@ static void mouse_graph_keys (bAnimContext *ac, const int mval[2], short select_
 		/* reset selection mode */
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other keyframes */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+		/* deselect all other keyframes (+ F-Curves too) */
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, TRUE);
 		
 		/* deselect other channels too, but only only do this if 
 		 * selection of channel when the visibility of keyframes 
@@ -1217,7 +1221,6 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 	bAnimListElem *ale;
 	int filter;
 	
-	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked;
 	tNearestVertInfo *nvi;
@@ -1237,20 +1240,15 @@ static void graphkeys_mselect_column (bAnimContext *ac, const int mval[2], short
 	else if (nvi->fpt)
 		selx= nvi->fpt->vec[0];
 	
-	/* if select mode is replace, deselect all keyframes (and channels) first */
+	/* if select mode is replace, deselect all keyframes first */
 	if (select_mode==SELECT_REPLACE) {
 		/* reset selection mode to add to selection */
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other keyframes */
-		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
-		
-		/* deselect other channels too, but only only do this if 
-		 * selection of channel when the visibility of keyframes 
-		 * doesn't depend on this 
+		/* - deselect all other keyframes, so that just the newly selected remain
+		 * - channels aren't deselected, since we don't re-select any as a consequence
 		 */
-		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
-			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		deselect_graph_keys(ac, 0, SELECT_SUBTRACT, FALSE);
 	}
 	
 	/* initialise keyframe editing data */
