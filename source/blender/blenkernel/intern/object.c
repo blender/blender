@@ -50,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -961,7 +962,6 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 
 void copy_object_particlesystems(Object *obn, Object *ob)
 {
-	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys, *npsys;
 	ModifierData *md;
 
@@ -974,9 +974,27 @@ void copy_object_particlesystems(Object *obn, Object *ob)
 		/* need to update particle modifiers too */
 		for(md=obn->modifiers.first; md; md=md->next) {
 			if(md->type==eModifierType_ParticleSystem) {
-				psmd= (ParticleSystemModifierData*)md;
+				ParticleSystemModifierData *psmd= (ParticleSystemModifierData*)md;
 				if(psmd->psys==psys)
 					psmd->psys= npsys;
+			}
+			else if(md->type==eModifierType_DynamicPaint) {
+				DynamicPaintModifierData *pmd= (DynamicPaintModifierData*)md;
+				if (pmd->brush) {
+					if(pmd->brush->psys==psys) {
+						pmd->brush->psys= npsys;
+					}
+				}
+			}
+			else if (md->type==eModifierType_Smoke) {
+				SmokeModifierData *smd = (SmokeModifierData*) md;
+
+				if(smd->type==MOD_SMOKE_TYPE_FLOW) {
+					if (smd->flow) {
+						if (smd->flow->psys == psys)
+							smd->flow->psys= npsys;
+					}
+				}
 			}
 		}
 	}
