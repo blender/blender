@@ -111,7 +111,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
 		mpchunk->data = use_sysmalloc ? malloc(pool->csize) : MEM_mallocN(pool->csize, "BLI Mempool Chunk Data");
 		BLI_addtail(&(pool->chunks), mpchunk);
 		
-		if(i==0) {
+		if (i==0) {
 			pool->free = mpchunk->data; /*start of the list*/
 			if (pool->allow_iter)
 				pool->free->freeword = FREEWORD;
@@ -129,7 +129,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
 			}
 		}
 		/*final pointer in the previously allocated chunk is wrong.*/
-		if(lasttail) {
+		if (lasttail) {
 			lasttail->next = mpchunk->data;
 			if (pool->allow_iter)
 				lasttail->freeword = FREEWORD;
@@ -148,8 +148,6 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
 void *BLI_mempool_alloc(BLI_mempool *pool)
 {
 	void *retval=NULL;
-
-	if (!pool) return NULL;
 
 	pool->totused++;
 
@@ -245,7 +243,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
 	if (!pool->allow_iter) {
-		fprintf(stderr, "evil! you can't iterate over this mempool!\n");
+		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
 		iter->curchunk = NULL;
 		iter->curindex = 0;
 		
