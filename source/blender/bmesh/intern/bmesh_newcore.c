@@ -589,7 +589,7 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 			if (!md->totdisp || !md->disps)
 				continue;
 					
-			sides=sqrt(md->totdisp);
+			sides= (int)sqrt(md->totdisp);
 			co = md->disps;
 			
 			for (x=0; x<sides; x++) {

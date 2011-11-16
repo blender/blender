@@ -621,7 +621,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		           y
 		*****/
 		  
-		sides = sqrt(mdp->totdisp);
+		sides = (int)sqrt(mdp->totdisp);
 		for (y=0; y<sides; y++) {
 			add_v3_v3v3(co1, mdn->disps[y*sides], mdl->disps[y]);
 			mul_v3_fl(co1, 0.5);
@@ -660,7 +660,7 @@ void BM_multires_smooth_bounds(BMesh *bm, BMFace *f)
 		else
 			mdl2 = CustomData_bmesh_get(&bm->ldata, l->radial_next->next->head.data, CD_MDISPS);
 			
-		sides = sqrt(mdl1->totdisp);
+		sides = (int)sqrt(mdl1->totdisp);
 		for (y=0; y<sides; y++) {
 			int a1, a2, o1, o2;
 			
@@ -729,12 +729,12 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	   the 2d projected coords are the same and faster to compute */
-	xn= (float)fabs(source->no[0]);
-	yn= (float)fabs(source->no[1]);
-	zn= (float)fabs(source->no[2]);
-	if(zn>=xn && zn>=yn) {ax= 0; ay= 1;}
-	else if(yn>=xn && yn>=zn) {ax= 0; ay= 2;}
-	else {ax= 1; ay= 2;} 
+	xn= fabsf(source->no[0]);
+	yn= fabsf(source->no[1]);
+	zn= fabsf(source->no[2]);
+	if (zn >= xn && zn >= yn)       { ax= 0; ay= 1; }
+	else if (yn >= xn && yn >= zn)  { ax= 0; ay= 2; }
+	else                            { ax= 1; ay= 2; }
 	
 	/* scale source face coordinates a bit, so points sitting directonly on an
 	   edge will work.*/

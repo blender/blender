@@ -108,12 +108,13 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 #if 0
 		sub_v3_v3v3(v1, w, v);
 		sub_v3_v3v3(v2, v, u);
-		Normalize_d(v1);
-		Normalize_d(v2);
+		normalize_v3(v1);
+		normalize_v3(v2);
 
-		l = INPR(v1, v2);
-		if (ABS(l-1.0) < 0.1)
+		l = dot_v3v3(v1, v2);
+		if (fabsf(l-1.0) < 0.1f) {
 			continue;
+		}
 #endif
 		/* newell's method
 		
@@ -516,7 +517,7 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-static int linecrosses(double *v1, double *v2, double *v3, double *v4)
+static int UNUSED_FUNCTION(linecrosses)(double *v1, double *v2, double *v3, double *v4)
 {
 	int w1, w2, w3, w4, w5;
 	
@@ -602,12 +603,13 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 	   this probably isn't all that accurate, but it has the advantage of
 	   being fast (especially compared to projecting into the face orientation)
 	*/
-	xn= (float)fabs(f->no[0]);
-	yn= (float)fabs(f->no[1]);
-	zn= (float)fabs(f->no[2]);
-	if(zn>=xn && zn>=yn) {ax= 0; ay= 1;}
-	else if(yn>=xn && yn>=zn) {ax= 0; ay= 2;}
-	else {ax= 1; ay= 2;}
+	xn= fabsf(f->no[0]);
+	yn= fabsf(f->no[1]);
+	zn= fabsf(f->no[2]);
+
+	if (zn >= xn && zn >= yn)       { ax= 0; ay= 1; }
+	else if (yn >= xn && yn >= zn)  { ax= 0; ay= 2; }
+	else                            { ax= 1; ay= 2; }
 
 	co2[0] = co[ax];
 	co2[1] = co[ay];

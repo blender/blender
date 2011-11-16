@@ -869,8 +869,8 @@ int BLI_edgefill(short mat_nr)
 			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
 				float inner = angle_v3v3v3(v1, v2, eve->co);
 				
-				if (fabs(inner-M_PI) < limit || fabs(inner) < limit) {
-					eve = eve->next;	
+				if (fabsf(inner-M_PI) < limit || fabsf(inner) < limit) {
+					eve = eve->next;
 					continue;
 				}
 

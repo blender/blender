@@ -98,12 +98,12 @@
 
 #include "editbmesh_bvh.h"
 
-static void add_normal_aligned(float *nor, float *add)
+static void add_normal_aligned(float nor[3], const float add[3])
 {
-	if( INPR(nor, add) < -0.9999f)
-		sub_v3_v3v3(nor, nor, add);
+	if(dot_v3v3(nor, add) < -0.9999f)
+		sub_v3_v3(nor, add);
 	else
-		add_v3_v3v3(nor, nor, add);
+		sub_v3_v3(nor, add);
 }
 
 
@@ -783,7 +783,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 			copy_v3_v3(vec, min);
 			normalize_v3(vec);
-			dot= INPR(vec, nor);
+			dot= dot_v3v3(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];

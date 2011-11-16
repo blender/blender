@@ -457,18 +457,14 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 
 float BM_Face_Angle(BMesh *UNUSED(bm), BMEdge *e)
 {
-	BMLoop *l1, *l2;
-	int radlen;
-	float edge_angle_cos = 0.0;
-
-	radlen = BM_Edge_FaceCount(e);
-	if(radlen == 2){
-		l1 = e->l;
-		l2 = e->l->radial_next;
-		edge_angle_cos = INPR(l1->f->no, l2->f->no);
+	if (BM_Edge_FaceCount(e) == 2) {
+		BMLoop *l1= e->l;
+		BMLoop *l2= e->l->radial_next;
+		return acosf(dot_v3v3(l1->f->no, l2->f->no));
 	}
-	return acos(edge_angle_cos);
-
+	else {
+		return (float)M_PI / 2.0f; /* acos(0.0) */
+	}
 }
 
 /*

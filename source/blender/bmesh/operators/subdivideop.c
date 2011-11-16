@@ -886,10 +886,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			normalize_v3(vec1);
 			normalize_v3(vec2);
 
-			angle = INPR(vec1, vec2);
-			angle = ABS(angle);
-			if (ABS(angle - 1.0f) < 0.01f)
+			angle = dot_v3v3(vec1, vec2);
+			angle = fabsf(angle);
+			if (fabsf(angle - 1.0f) < 0.01f) {
 				totesel = 0;
+			}
 		}
 
 		if (BMO_TestFlag(bmesh, face, FACE_CUSTOMFILL)) {

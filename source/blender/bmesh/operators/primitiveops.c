@@ -427,7 +427,7 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 		tv[i]= BM_Make_Vert(bm, v, NULL);
 		BMO_SetFlag(bm, tv[i], VERT_MARK);
 
-		tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]: (eve=BM_Make_Vert(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
+		tv[monkeynv+i]= (fabsf(v[0]= -v[0]) < 0.001f) ? tv[i]: (eve= BM_Make_Vert(bm, v, NULL), mul_m4_v3(mat, eve->co), eve);
 		BMO_SetFlag(bm, tv[monkeynv+i], VERT_MARK);
 
 		mul_m4_v3(mat, tv[i]->co);

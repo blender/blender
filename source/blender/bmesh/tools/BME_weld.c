@@ -126,11 +126,11 @@ int BME_remove_doubles(BME_Mesh *bm, float limit)
 				though) */
 				v2= sb1->v1;
 				if(!(v2->tflag1)) {
-					dist= (float)fabs(v2->co[0]-v->co[0]);
+					dist= fabsf(v2->co[0]-v->co[0]);
 					if(dist<=limit) {
-						dist= (float)fabs(v2->co[1]-v->co[1]);
+						dist= fabsf(v2->co[1]-v->co[1]);
 						if(dist<=limit) {
-							dist= (float)fabs(v2->co[2]-v->co[2]);
+							dist= fabsf(v2->co[2]-v->co[2]);
 							if(dist<=limit) {
 								/*v2 is a double of v. We want to throw out v1 and relink everything to v*/
 								BLI_ghash_insert(vhash,v2, v);

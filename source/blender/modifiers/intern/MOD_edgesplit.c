@@ -92,7 +92,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 				if (l->radial_next == l)
 					continue;
 				
-				edge_angle_cos = INPR(f->no, l->radial_next->f->no);
+				edge_angle_cos = dot_v3v3(f->no, l->radial_next->f->no);
 				if (edge_angle_cos < threshold) {
 					BMO_SetFlag(bm, l->e, EDGE_MARK);
 				}

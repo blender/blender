@@ -382,7 +382,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE)
 	{
-		float dist = sqrt(INPR(offset[3], offset[3]));
+		float dist = sqrtf(dot_v3v3(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end

@@ -189,7 +189,7 @@ static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int 
 	normalize_v3(vec3);
 	c1 = dot_v3v3(vec3,vec1);
 	c2 = dot_v3v3(vec1,vec1);
-	if (fabs(c1) < 0.000001f || fabs(c2) < 0.000001f) {
+	if (fabsf(c1) < 0.000001f || fabsf(c2) < 0.000001f) {
 		factor = 0.0f;
 	}
 	else {
