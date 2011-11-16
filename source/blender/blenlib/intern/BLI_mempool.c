@@ -68,25 +68,28 @@ typedef struct BLI_mempool_chunk {
 
 typedef struct BLI_mempool {
 	struct ListBase chunks;
-	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
-	BLI_freenode *free;		/*free element list. Interleaved into chunk datas.*/
-	int totalloc, totused; /*total number of elements allocated in total, and currently in use*/
-	int use_sysmalloc, allow_iter;
+	int esize, csize, pchunk;        /* size of elements and chunks in bytes
+	                                  * and number of elements per chunk*/
+	short use_sysmalloc, allow_iter;
+	/* keeps aligned to 16 bits */
+
+	BLI_freenode *free;	             /* free element list. Interleaved into chunk datas.*/
+	int totalloc, totused;           /* total number of elements allocated in total,
+	                                  * and currently in use*/
 } BLI_mempool;
 
+#define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
+
 BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
-                                int use_sysmalloc, int allow_iter)
+                                short use_sysmalloc, short allow_iter)
 {
 	BLI_mempool  *pool = NULL;
 	BLI_freenode *lasttail = NULL, *curnode = NULL;
 	int i,j, maxchunks;
 	char *addr;
-	
-	if (esize < sizeof(void*)*2)
-		esize = sizeof(void*)*2;
-	
-	if (esize < sizeof(void*)*2)
-		esize = sizeof(void*)*2;
+
+	if (esize < MEMPOOL_ELEM_SIZE_MIN)
+		esize = MEMPOOL_ELEM_SIZE_MIN;
 
 	/*allocate the pool structure*/
 	pool = use_sysmalloc ? malloc(sizeof(BLI_mempool)) : MEM_mallocN(sizeof(BLI_mempool), "memory pool");
