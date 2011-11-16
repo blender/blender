@@ -623,8 +623,8 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Damping", "Wave damping factor");
 
 	prop= RNA_def_property(srna, "wave_speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.01, 3.0);
-	RNA_def_property_ui_range(prop, 0.01, 1.5, 1, 2);
+	RNA_def_property_range(prop, 0.01, 5.0);
+	RNA_def_property_ui_range(prop, 0.20, 4.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Speed", "Wave propogation speed");
 
 	prop= RNA_def_property(srna, "wave_timescale", PROP_FLOAT, PROP_NONE);
@@ -696,6 +696,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 			{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_dynamicpaint_brush_wave_type[] = {
+			{MOD_DPAINT_WAVEB_CHANGE, "CHANGE", 0, "Depth Change", ""},
 			{MOD_DPAINT_WAVEB_DEPTH, "DEPTH", 0, "Obstacle", ""},
 			{MOD_DPAINT_WAVEB_FORCE, "FORCE", 0, "Force", ""},
 			{MOD_DPAINT_WAVEB_REFLECT, "REFLECT", 0, "Reflect Only", ""},
@@ -758,7 +759,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "wave_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_wave_type);
-	RNA_def_property_ui_text(prop, "Brush Effect", "");
+	RNA_def_property_ui_text(prop, "Wave Type", "");
 
 	prop= RNA_def_property(srna, "wave_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -2.0, 2.0);

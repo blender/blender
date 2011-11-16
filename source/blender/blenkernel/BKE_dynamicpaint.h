@@ -46,6 +46,7 @@ typedef struct PaintWavePoint {
 
 	float height;
 	float velocity;
+	float brush_isect;
 	short state;
 } PaintWavePoint;
 
@@ -82,6 +83,7 @@ void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface, char* 
 #define DPAINT_PAINT_NEW 2
 
 /* PaintWavePoint state */
+#define DPAINT_WAVE_ISECT_CHANGED -1
 #define DPAINT_WAVE_NONE 0
 #define DPAINT_WAVE_OBSTACLE 1
 #define DPAINT_WAVE_REFLECT_ONLY 2
