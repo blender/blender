@@ -23,7 +23,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
-	BM_SetIndex(v, bm->totvert);
+	BM_SetIndex(v, bm->totvert); /* set_ok */
 
 	bm->totvert += 1;
 
@@ -79,7 +79,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 	
 	e = BLI_mempool_calloc(bm->epool);
 
-	BM_SetIndex(e, bm->totedge);
+	BM_SetIndex(e, bm->totedge); /* set_ok */
 
 	bm->totedge += 1;
 
@@ -228,7 +228,7 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nod
 	
 	f = BLI_mempool_calloc(bm->fpool);
 
-	BM_SetIndex(f, bm->totface);
+	BM_SetIndex(f, bm->totface); /* set_ok */
 
 	bm->totface += 1;
 
@@ -1587,7 +1587,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		   the edges & faces and assign an index to each connected set */
 		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
-			BM_SetIndex(e, maxindex);
+			BM_SetIndex(e, maxindex); /* set_dirty! */ /* BMESH_TODO, check the indexs are is invalid after this function runs */
 
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
 				nl = (l->v == v) ? l->prev : l->next;
@@ -1599,6 +1599,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 
 		maxindex++;
 	}
+	em->bm->elem_index_dirty |= BM_EDGE;
 
 	/* Make enough verts to split v for each group */
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, "bmesh_cutvert");

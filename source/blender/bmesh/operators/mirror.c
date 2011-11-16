@@ -73,11 +73,12 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op)
 		BLI_array_growone(vmap);
 		vmap[i] = v;
 
-		BM_SetIndex(v2, i);
+		BM_SetIndex(v2, i); /* set_dirty! */ /*BMESH_TODO, double check this is being made dirty, 99% sure it is - campbell */
 		v2 = BMIter_Step(&iter);
 
-		i += 1;
+		i++;
 	}
+	bm->elem_index_dirty |= BM_VERT;
 
 	/*feed old data to transform bmop*/
 	scale[axis] = -1.0f;

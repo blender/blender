@@ -355,11 +355,7 @@ static void calc_solidify_normals(BMesh *bm)
 		BM_SetHFlag(v, BM_TMP_TAG);
 	}
 
-	/* todo - replace with func! */
-	i= 0;
-	BM_ITER(e, &eiter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, i++);
-	}
+	BM_ElemIndex_Ensure(bm, BM_EDGE);
 
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, f, FACE_MARK)) {
@@ -509,11 +505,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 	float *angles = NULL;
 	BLI_array_staticdeclare(angles, 16);
 
-	/* BMESH_TODO, remove this when we are sure the array will be valid */
-	i = 0;
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i++);
-	}
+	BM_ElemIndex_Ensure(bm, BM_VERT);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if(!BMO_TestFlag(bm, f, FACE_MARK)) {

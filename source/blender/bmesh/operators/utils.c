@@ -1232,9 +1232,10 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op)
 		vert_list[i].v = v;
 		vert_list[i].parent = NULL;
 		vert_list[i].weight = FLT_MAX;
-		BM_SetIndex(v, i);
+		BM_SetIndex(v, i); /* set_inline */
 		i++;
 	}
+	bm->elem_index_dirty &= ~BM_VERT;
 
 	/*
 	** we now have everything we need, start Dijkstra path finding algorithm

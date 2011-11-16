@@ -131,7 +131,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		normal_short_to_float_v3(v->no, mvert->no);
 
 		vt[i] = v;
-		BM_SetIndex(v, i);
 
 		/*transfer flags*/
 		v->head.hflag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
@@ -242,7 +241,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		j = 0;
 		BM_ITER_INDEX(l, &iter, bm, BM_LOOPS_OF_FACE, f, j) {
 			/* Save index of correspsonding MLoop */
-			BM_SetIndex(l, mpoly->loopstart+j);
+			BM_SetIndex(l, mpoly->loopstart+j); /* set_loop */
 		}
 
 		/*Copy Custom Data*/
@@ -261,7 +260,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 				int li = BM_GetIndex(l);
 				CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
-				BM_SetIndex(l, 0);
+				BM_SetIndex(l, 0); /* set_loop */
 			}
 		}
 	}
@@ -503,7 +502,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		
 		mvert->flag = BMFlags_To_MEFlags(v);
 
-		BM_SetIndex(v, i);
+		BM_SetIndex(v, i); /* set_inline */
 
 		/*copy over customdata*/
 		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
@@ -513,6 +512,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 		BM_CHECK_ELEMENT(bm, v);
 	}
+	bm->elem_index_dirty &= ~BM_VERT;
 
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -526,7 +526,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		
 		medge->flag = BMFlags_To_MEFlags(e);
 		
-		BM_SetIndex(e, i);
+		BM_SetIndex(e, i); /* set_inline */
 
 		/*copy over customdata*/
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
@@ -535,6 +535,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		medge++;
 		BM_CHECK_ELEMENT(bm, e);
 	}
+	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/*new scanfill tesselation code*/
 	if (dotess) {
@@ -549,7 +550,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				eve = BLI_addfillvert(l->v->co);
 				eve->tmp.p = l;
 				
-				BM_SetIndex(l, i);
+				BM_SetIndex(l, i); /* set_loop */
 
 				if (lasteve) {
 					BLI_addfilledge(lasteve, eve);

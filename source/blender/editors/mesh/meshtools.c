@@ -964,13 +964,9 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		}
 
 		if(em) {
-			BMVert *eve;
+			BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
-			totvert= 0;
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				BM_SetIndex(eve, totvert);
-				totvert++;
-			}
+			totvert= em->bm->totvert;
 		}
 		else {
 			totvert = me->totvert;

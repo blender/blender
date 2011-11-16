@@ -1997,11 +1997,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	/*add tesselation mface layers*/
 	CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
 
-	/* set vert index */
-	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++)
-		BM_SetIndex(eve, i);
-
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
@@ -2010,7 +2005,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		copy_v3_v3(mv->co, eve->co);
 
-		BM_SetIndex(eve, i);
+		BM_SetIndex(eve, i); /* set_inline */
 
 		normal_float_to_short_v3(mv->no, eve->no);
 
@@ -2023,13 +2018,14 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		CustomData_from_bmesh_block(&bm->vdata, &dm->vertData, eve->head.data, i);
 	}
+	bm->elem_index_dirty &= ~BM_VERT;
 
 	index = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
 	eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 	for (i=0; eed; eed=BMIter_Step(&iter), i++, index++) {
 		MEdge *med = &medge[i];
 
-		BM_SetIndex(eed, i);
+		BM_SetIndex(eed, i); /* set_inline */
 
 		med->v1 = BM_GetIndex(eed->v1);
 		med->v2 = BM_GetIndex(eed->v2);
@@ -2044,11 +2040,9 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
 	}
+	bm->elem_index_dirty &= ~BM_EDGE;
 
-	efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-	for (i=0; efa; i++, efa=BMIter_Step(&iter)) {
-		BM_SetIndex(efa, i);
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_FACE);
 
 	polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 	index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);

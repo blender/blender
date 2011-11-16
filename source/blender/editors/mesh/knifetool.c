@@ -1366,10 +1366,13 @@ static void remerge_faces(knifetool_opdata *kcd)
 			f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
 			if (f2)  {
 				BMO_SetFlag(bm, f2, FACE_NEW);
-				BM_SetIndex(f2, idx);
+				BM_SetIndex(f2, idx); /* set_dirty! */ /* BMESH_TODO, check if this is valid or not */
 			}
 		}
 	}
+	/* BMESH_TODO, check if the code above validates the indicies */
+	/* bm->elem_index_dirty &= ~BM_FACE; */
+	bm->elem_index_dirty |= BM_FACE;
 
 	BLI_array_free(stack);
 	BLI_array_free(faces);
@@ -1399,10 +1402,11 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
 	i = 0;
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, i);
+		BM_SetIndex(f, i); /* set_inline */
 		faces[i] = f;
 		i++;
 	}
+	bm->elem_index_dirty &= ~BM_FACE;
 	
 	BM_ITER(e, &bmiter, bm, BM_EDGES_OF_MESH, NULL) {
 		BMO_SetFlag(bm, e, BOUNDARY);
@@ -1568,10 +1572,10 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			} while (l != bm_firstfaceloop(f2));
 	
 			BMO_ClearFlag(bm, f2, DEL);
-			BM_SetIndex(f2, i);
-			
+			BM_SetIndex(f2, i); /* set_dirty! */ /* note, not 100% sure this is dirty? need to check */
+
 			BM_Face_UpdateNormal(bm, f2);
-			if (dot_v3v3(f->no, f2->no) < 0.0) {
+			if (dot_v3v3(f->no, f2->no) < 0.0f) {
 				BM_flip_normal(bm, f2);
 			}
 		}
@@ -1579,13 +1583,14 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		BLI_end_edgefill();
 		BLI_smallhash_release(hash);
 	}
+	bm->elem_index_dirty |= BM_FACE;
 	
 	/* interpolate customdata */
 	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
 		BMLoop *l1;
 		BMFace *f2; 
 		BMIter liter1;
-		
+
 		if (!BMO_TestFlag(bm, f, FACE_NEW))
 			continue;
 		
@@ -1600,7 +1605,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			BM_loop_interp_from_face(bm, l1, f2, 1, 1);
 		}
 	}
-	
+
 	/*merge triangles back into faces*/
 	remerge_faces(kcd);
 
@@ -1718,9 +1723,6 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	Object *obedit = CTX_data_edit_object(C);
 	DerivedMesh *cage, *final;
 	SmallHash shash;
-	BMIter iter;
-	BMVert *v;
-	int i;
 	void *data[3];
 	
 	/* alloc new customdata */
@@ -1734,10 +1736,8 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	em_setup_viewcontext(C, &kcd->vc);
 
 	kcd->em= ((Mesh *)kcd->ob->data)->edit_btmesh;
-	
-	BM_ITER_INDEX(v, &iter, kcd->em->bm, BM_VERTS_OF_MESH, NULL, i) {
-		BM_SetIndex(v, i);
-	}
+
+	BM_ElemIndex_Ensure(kcd->em->bm, BM_VERT);
 
 	cage = editbmesh_get_derived_cage_and_final(scene, obedit, kcd->em, &final, CD_MASK_DERIVEDMESH);
 	kcd->cagecos = MEM_callocN(sizeof(float)*3*kcd->em->bm->totvert, "knife cagecos");

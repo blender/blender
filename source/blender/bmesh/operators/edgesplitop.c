@@ -102,7 +102,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		if (l->e != l2->e) {
 			/*set up data for figuring out the two sides of
 			  the splits*/
-			BM_SetIndex(l2->e, BM_GetIndex(l->e));
+			BM_SetIndex(l2->e, BM_GetIndex(l->e)); /* set_dirty! */ /* BMESH_TODO, double check this is being set dirty - campbell */
 			et = etags + BM_GetIndex(l->e);
 			
 			if (!et->newe1) {
@@ -128,6 +128,7 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		BMO_SetFlag(bm, l->e, EDGE_MARK);
 		BMO_SetFlag(bm, l2->e, EDGE_MARK);
 	}
+	bm->elem_index_dirty |= BM_EDGE; /* double check this, see above */
 
 	return f2;
 }
@@ -247,12 +248,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	}
 
 	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
-	
-	i = 0;
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, i);
-		i++;
-	}
+
+	BM_ElemIndex_Ensure(bm, BM_EDGE);
 
 #ifdef ETV
 #  undef ETV

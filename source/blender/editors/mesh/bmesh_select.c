@@ -1217,21 +1217,19 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 
 	BLI_smallhash_init(&visithash);
 
-	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-	/* we need the vert */
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, totvert);
-		totvert++;
-	}
+	/* note, would pass BM_EDGE except we are looping over all edges anyway */
+	BM_ElemIndex_Ensure(em->bm, BM_VERT /* | BM_EDGE */ );
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		e->head.flags[0].f = 0;
 		if (BM_TestHFlag(e, BM_HIDDEN)) {
 			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
 		}
-		BM_SetIndex(e, totedge);
+
+		BM_SetIndex(e, totedge); /* set_inline */
 		totedge++;
 	}
+	em->bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* alloc */
 	nedges = MEM_callocN(sizeof(*nedges)*totvert+1, "SeamPathNEdges");

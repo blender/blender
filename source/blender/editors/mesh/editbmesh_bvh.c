@@ -157,9 +157,11 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 		
 		tree->cos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cos");
 		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
-			BM_SetIndex(v, i);
+			BM_SetIndex(v, i); /* set_inline */
 			copy_v3_v3(tree->cos[i], v->co);
 		}
+		em->bm->elem_index_dirty &= ~BM_VERT;
+
 
 		cage = editbmesh_get_derived_cage_and_final(scene, obedit, em, &final, CD_MASK_DERIVEDMESH);
 		cagecos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cagecos");

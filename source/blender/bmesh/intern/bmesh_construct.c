@@ -525,9 +525,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		v2 = BM_Make_Vert(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
 		BM_Copy_Attributes(bmold, bm, v, v2);
 		vtable[i] = v2;
-		BM_SetIndex(v, i);
-		BM_SetIndex(v2, i);
+		BM_SetIndex(v, i); /* set_inline */
+		BM_SetIndex(v2, i); /* set_inline */
 	}
+	bmold->elem_index_dirty &= ~BM_VERT;
+	bm->elem_index_dirty &= ~BM_VERT;
+
 	/* safety check */
 	BLI_assert(i == bmold->totvert);
 	
@@ -538,14 +541,19 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
 		etable[i] = e2;
-		BM_SetIndex(e, i);
-		BM_SetIndex(e2, i);
+		BM_SetIndex(e, i); /* set_inline */
+		BM_SetIndex(e2, i); /* set_inline */
 	}
+	bmold->elem_index_dirty &= ~BM_EDGE;
+	bm->elem_index_dirty &= ~BM_EDGE;
+
 	/* safety check */
 	BLI_assert(i == bmold->totedge);
 	
 	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
 	for (i=0; f; f=BMIter_Step(&iter), i++) {
+		BM_SetIndex(f, i); /* set_inline */
+
 		BLI_array_empty(loops);
 		BLI_array_empty(edges);
 		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
@@ -568,7 +576,6 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		if (!f2)
 			continue;
 
-		BM_SetIndex(f, i);
 		ftable[i] = f2;
 
 		BM_Copy_Attributes(bmold, bm, f, f2);
@@ -581,6 +588,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 		if (f == bmold->act_face) bm->act_face = f2;
 	}
+	bmold->elem_index_dirty &= ~BM_FACE;
+	bm->elem_index_dirty &= ~BM_FACE;
+
 	/* safety check */
 	BLI_assert(i == bmold->totface);
 

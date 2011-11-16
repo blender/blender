@@ -753,11 +753,13 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	l = bm_firstfaceloop(f);
 	do{
 		copy_v3_v3(projectverts[i], l->v->co);
-		BM_SetIndex(l->v, i);
+		BM_SetIndex(l->v, i); /* set dirty! */
 		i++;
 		l = l->next;
 	}while(l != bm_firstfaceloop(f));
-	
+
+	bm->elem_index_dirty |= BM_VERT; /* see above */
+
 	///bmesh_update_face_normal(bm, f, projectverts);
 
 	compute_poly_normal(f->no, projectverts, f->len);
@@ -854,7 +856,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 	for (; l; l=BMIter_Step(&iter)) {
-		BM_SetIndex(l, i);
+		BM_SetIndex(l, i); /* set_loop */
 		copy_v3_v3(projverts[i], l->v->co);
 		i++;
 	}

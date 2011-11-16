@@ -154,6 +154,31 @@ BM_INLINE void BM_ClearHFlag(void *element, const char hflag);
 /*stuff for dealing BM_ToggleHFlag header flags*/
 BM_INLINE void BM_ToggleHFlag(void *element, const char hflag);
 BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b);
+
+/* notes on BM_SetIndex(...) usage,
+ * Set index is sometimes abused as temp storage, other times we cant be
+ * sure if the index values are valid because certain operations have modified
+ * the mesh structure.
+ *
+ * To set the elements to valid indicies 'BM_ElemIndex_Ensure' should be used
+ * rather then adding inline loops, however there are cases where we still
+ * set the index directly
+ *
+ * In an attempt to manage this, here are 3 tags Im adding to uses of
+ * 'BM_SetIndex'
+ *
+ * - 'set_inline'  -- since the data is already being looped over set to a
+ *                    valid value inline.
+ *
+ * - 'set_dirty!'  -- intentionally sets the index to an invalid value,
+ *                    flagging 'bm->elem_index_dirty' so we dont use it.
+ *
+ * - 'set_ok'      -- this is valid use since the part of the code is low level.
+ *
+ * - 'set_loop'    -- currently loop index values are not used used much so
+ *                    assume each case they are dirty.
+ * - campbell */
+
 BM_INLINE void BM_SetIndex(void *element, const int index);
 BM_INLINE int BM_GetIndex(const void *element);
 

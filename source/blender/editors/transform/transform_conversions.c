@@ -1840,13 +1840,10 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMIter viter;
 	int i, start;
 	
-	i = 0;
-	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i);
-		dists[i] = FLT_MAX;
-		i++;
-	}
-	
+	fill_vn(dists, em->bm->totvert, FLT_MAX);
+
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
+
 	BLI_smallhash_init(visit);
 
 	BM_ITER(v, &viter, em->bm, BM_VERTS_OF_MESH, NULL) {

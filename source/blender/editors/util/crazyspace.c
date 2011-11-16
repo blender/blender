@@ -146,13 +146,8 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 	int *vert_table = MEM_callocN(sizeof(int)*em->bm->totvert, "vert_table");
 	int index = 0;
 
-	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, index);
-		index++;
-	}
-	
-	index = 0;
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
+
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_TestHFlag(v, BM_SELECT) || BM_TestHFlag(v, BM_HIDDEN))
 			continue;
@@ -179,17 +174,16 @@ void crazyspace_set_quats_editmesh(BMEditMesh *em, float *origcos, float *mapped
 		}
 	}
 
-	/* BMESH_TODO, don't overwrite invalid index info! */
-
 	index = 0;
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (vert_table[index] != 0)
-			BM_SetIndex(v, vert_table[index]-1);
+			BM_SetIndex(v, vert_table[index]-1); /* set_dirty! */
 		else
-			BM_SetIndex(v, -1);
+			BM_SetIndex(v, -1); /* set_dirty! */
 		
 		index++;
 	}
+	em->bm->elem_index_dirty |= BM_VERT;
 
 	MEM_freeN(vert_table);
 #if 0

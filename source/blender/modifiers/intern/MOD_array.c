@@ -432,14 +432,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 			i = 0;
 			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
-				BM_SetIndex(h, i);
+				BM_SetIndex(h, i); /* set_dirty */
 				i++;
 			}
 
 			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
-				BM_SetIndex(h, i);
+				BM_SetIndex(h, i); /* set_dirty */
 				i++;
 			}
+			/* above loops over all, so set all to dirty, if this is somehow
+			 * setting valid values, this line can be remvoed - campbell */
+			em->bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
 
 			BMO_Exec_Op(em->bm, &findop);
 

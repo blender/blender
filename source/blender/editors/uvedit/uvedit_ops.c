@@ -665,11 +665,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 	mindist= 1e10f;
 	memset(hit, 0, sizeof(*hit));
 
-	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
-		BM_SetIndex(eve, i);
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -811,10 +807,7 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 	mindist= 1e10f;
 	memset(hit, 0, sizeof(*hit));
 	
-	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; eve; eve=BMIter_Step(&iter), i++) {
-		BM_SetIndex(eve, i);
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -981,7 +974,6 @@ static int uv_edge_tag_faces(BMEditMesh *em, UvMapVert *first1, UvMapVert *first
 
 static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit *hit, float limit[2], int extend)
 {
-	BMVert *eve;
 	BMFace *efa;
 	BMIter iter, liter;
 	BMLoop *l;
@@ -994,12 +986,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	EDBM_init_index_arrays(em, 0, 0, 1);
 	vmap= EDBM_make_uv_vert_map(em, 0, 0, limit);
 
-	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-	count = 0;
-	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(eve, count);
-		count++;
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
 	count = 0;
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -1009,11 +996,11 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 		
 		BMO_ClearFlag(em->bm, efa, EFA_F1_FLAG);
 
-		/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-		BM_SetIndex(efa, count);
+		BM_SetIndex(efa, count); /* set_inline */
 
 		count++;
 	}
+	em->bm->elem_index_dirty &= ~BM_FACE;
 
 	/* set flags for first face and verts */
 	nverts= hit->efa->len;
@@ -1652,17 +1639,10 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		UVVertAverage *uv_average, *uvav;
-		int count;
 
-		/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-		// index and count verts
-		count=0;
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BM_SetIndex(eve, count);
-			count++;
-		}
-		
-		uv_average= MEM_callocN(sizeof(UVVertAverage)*count, "Stitch");
+		BM_ElemIndex_Ensure(em->bm, BM_VERT);
+
+		uv_average= MEM_callocN(sizeof(UVVertAverage)*em->bm->totvert, "Stitch");
 		
 		// gather uv averages per vert
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
@@ -2052,14 +2032,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 
 		/* (de)select sticky uv nodes */
 		if(sticky != SI_STICKY_DISABLE) {
-			BMVert *ev;
 
-			/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-			a = 0;
-			BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				BM_SetIndex(ev, a);
-				a++;
-			}
+			BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
 			/* deselect */
 			if(select==0) {
@@ -2885,7 +2859,8 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 
 	/* set all verts to -1 : an unused index*/
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-		BM_SetIndex(eve, -1);
+		BM_SetIndex(eve, -1); /* set_dirty! */
+	em->bm->elem_index_dirty |= BM_VERT;
 	
 	/* index every vert that has a selected UV using it, but only once so as to
 	 * get unique indices and to count how much to malloc */
@@ -2901,11 +2876,12 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 		change = 1;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if (uvedit_uv_selected(em, scene, l) && BM_GetIndex(l->v) == -1) {
-				BM_SetIndex(l->v, count);
+				BM_SetIndex(l->v, count); /* set_dirty! */
 				count++;
 			}
 		}
 	}
+	em->bm->elem_index_dirty |= BM_VERT; /* set above but include for completeness since they are made dirty again */
 	
 	coords = MEM_callocN(sizeof(float)*count*2, "snap to adjacent coords");
 	usercount = MEM_callocN(sizeof(short)*count, "snap to adjacent counts");

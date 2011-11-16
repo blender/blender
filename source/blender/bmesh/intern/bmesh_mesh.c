@@ -270,15 +270,16 @@ void BM_Compute_Normals(BMesh *bm)
 	index = 0;
 	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
 	BM_ITER(e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_SetIndex(e, index); /* set_inline */
 		if (!e->l) {
 			/* the edge vector will not be needed when the edge has no radial */
 			continue;
 		}
-		BM_SetIndex(e, index);
 		sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
 		normalize_v3(edgevec[index]);
 		index++;
 	}
+	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/*add weighted face normals to vertices*/
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
@@ -486,31 +487,88 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 {
 	BMIter iter;
 	BMHeader *ele;
-	int index;
 
-	/* TODO, mark arrays as dirty, only calculate if needed! */
+	/* TODO, mark arrays as dirty, only calculate if needed!,
+	 * uncomment bm->elem_index_dirty checks */
 
-	if (hflag & BM_VERT) {
-		index= 0;
+	if ((hflag & BM_VERT) /* && (bm->elem_index_dirty & BM_VERT) */) {
+		int index= 0;
 		BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			BM_SetIndex(ele, index);
+			BM_SetIndex(ele, index); /* set_ok */
 			index++;
 		}
+		bm->elem_index_dirty &= ~BM_VERT;
 	}
 
-	if (hflag & BM_EDGE) {
-		index= 0;
+	if ((hflag & BM_EDGE) /* && (bm->elem_index_dirty & BM_EDGE) */) {
+		int index= 0;
 		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			BM_SetIndex(ele, index);
+			BM_SetIndex(ele, index); /* set_ok */
 			index++;
+		}
+		bm->elem_index_dirty &= ~BM_EDGE;
+	}
+
+	if ((hflag & BM_FACE) /* && (bm->elem_index_dirty & BM_FACES) */) {
+		int index= 0;
+		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_SetIndex(ele, index); /* set_ok */
+			index++;
+		}
+		bm->elem_index_dirty &= ~BM_FACE;
+	}
+}
+
+
+/* array checking/setting macros */
+/* currently vert/edge/loop/face index data is being abused, but we should
+ * eventually be able to rely on it being valid. To this end are macro's
+ * that validate them (so blender doesnt crash), but also print errors so we can
+ * fix the offending parts of the code, this way after some months we can
+ * confine this code for debug mode.
+ *
+ *
+ */
+
+void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char *type_names[3]= {"vert", "edge", "face"};
+	int i;
+	int is_any_error= 0;
+
+	for (i=0; i<3; i++) {
+		int index= 0;
+		int is_error= 0;
+		int err_val= 0;
+		int err_idx= 0;
+
+		BM_ITER(ele, &iter, bm, types[i], NULL) {
+			if (BM_GetIndex(ele) != index) {
+				err_val= BM_GetIndex(ele);
+				err_idx= index;
+				is_error= 1;
+			}
+
+			BM_SetIndex(ele, index); /* set_ok */
+			index++;
+		}
+
+		if (is_error) {
+			is_any_error= 1;
+			fprintf(stderr,
+			        "Invalid Index: at %s, %s, %s[%d] invalid index %d, '%s', '%s'\n",
+			        location, func, type_names[i], err_idx, err_val, msg_a, msg_b);
 		}
 	}
 
-	if (hflag & BM_FACE) {
-		index= 0;
-		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_SetIndex(ele, index);
-			index++;
-		}
+#ifdef DEBUG
+	if (is_any_error == 0) {
+		fprintf(stderr,
+				"Valid Index Success: at %s, %s, '%s', '%s'\n",
+				location, func, msg_a, msg_b);
 	}
+#endif
 }

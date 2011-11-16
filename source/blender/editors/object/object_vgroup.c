@@ -1389,12 +1389,9 @@ static void vgroup_blend(Object *ob)
 
 		def_nr= ob->actdef-1;
 
-		i= 0;
-		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			BM_SetIndex(eve, i);
-			i++;
-		}
-		dvert_tot= i;
+		BM_ElemIndex_Ensure(em->bm, BM_VERT);
+
+		dvert_tot= em->bm->totvert;
 
 		vg_weights= MEM_callocN(sizeof(float)*dvert_tot, "vgroup_blend_f");
 		vg_users= MEM_callocN(sizeof(int)*dvert_tot, "vgroup_blend_i");

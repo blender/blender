@@ -544,7 +544,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			continue;
 		
 		//cv = BM_Make_Vert(bm, cent, v);
-		//BM_SetIndex(cv, -1);
+		//BM_SetIndex(cv, -1);  /* set_dirty! */
 		i = 0;
 		e = vdata[BM_GetIndex(v)].e;
 		lastv = NULL;
@@ -565,7 +565,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			add_v3_v3(co, vdata[BM_GetIndex(v)].offco);
 			
 			v2 = BM_Make_Vert(bm, co, NULL);
-			BM_SetIndex(v2, -1);
+			BM_SetIndex(v2, -1); /* set_dirty! */
 			//BM_Make_Edge(bm, cv, v2, NULL, 0);
 			
 			BM_Select(bm, v2, 1);
@@ -850,11 +850,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
 	BMO_Flag_Buffer(bm, op, "excludefaces", FACE_IGNORE, BM_FACE);
 	
-	i = 0;
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i);
-		i++;	
-	}
+	BM_ElemIndex_Ensure(bm, BM_VERT);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BMO_SetFlag(bm, f, ELE_ORIG);
@@ -862,14 +858,15 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, i);
+		BM_SetIndex(e, i); /* set_inline */
 		
 		if (!BMO_TestFlag(bm, e, EDGE_MARK)) {
 			edata[i].tag = 2;
 		}
 
-		i += 1;
+		i++;
 	}
+	bm->elem_index_dirty &= ~BM_EDGE;
 
 	init_rotsys(bm, edata, vdata);
 	

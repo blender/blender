@@ -125,14 +125,15 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 	/* BMESH_TODO, stop abusing face index here */
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, 0);
+		BM_SetIndex(f, 0); /* set_dirty! */
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_TestFlag(bm, l->v, ELE_DEL))
 				BMO_SetFlag(bm, f, FACE_MARK|ELE_DEL);
 			if (BMO_TestFlag(bm, l->e, EDGE_COL)) 
-				BM_SetIndex(f, BM_GetIndex(f)+1);
+				BM_SetIndex(f, BM_GetIndex(f)+1); /* set_dirty! */
 		}
 	}
+	bm->elem_index_dirty |= BM_FACE;
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, f, FACE_MARK))

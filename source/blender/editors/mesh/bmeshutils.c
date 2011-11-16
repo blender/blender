@@ -630,14 +630,9 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 	if (do_face_idx_array)
 		EDBM_init_index_arrays(em, 0, 0, 1);
 
-	/* BMESH_TODO this should be valid now, leaving here until we can ensure this - campbell */
-	/* we need the vert */
-	totverts=0;
-	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(ev, totverts);
-		totverts++;
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 	
+	totverts= em->bm->totvert;
 	totuv = 0;
 
 	/* generate UvMapVert array */
@@ -827,15 +822,7 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 
 	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
 
-	/* BMESH_TODO, we should STOP overwriting the vertex index data with bad
-	 * indicies, once createTransEditVerts() stops doing this, this loop can be
-	 * removed - campbell */
-	i= 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, i++);
-	}
-	/* END BMESH_TODO */
-
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *mirr;

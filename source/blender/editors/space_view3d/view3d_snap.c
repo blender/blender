@@ -234,26 +234,31 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		void *userdata[2] = {em, NULL};
 		/*int proptrans= 0; */ /*UNUSED*/
 		
+		/* abuses vertex index all over, set, just set dirty here,
+		 * perhaps this could use its own array instead? - campbell */
+
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
-					BM_SetIndex(eve, 1);
+					BM_SetIndex(eve, 1); /* set_dirty! */
 					tottrans++;
 				}
-				else BM_SetIndex(eve, 0);
+				else BM_SetIndex(eve, 0); /* set_dirty! */
 			}
 		}
 		else if(em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BM_SetIndex(eve, 0);
+				BM_SetIndex(eve, 0); /* set_dirty! */
 
 			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
-					BM_SetIndex(eed->v1, 1), BM_SetIndex(eed->v2, 1);
+				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT)) {
+					BM_SetIndex(eed->v1, 1); /* set_dirty! */
+					BM_SetIndex(eed->v2, 1); /* set_dirty! */
+				}
 			}
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
@@ -263,7 +268,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			BMFace *efa;
 
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
-				BM_SetIndex(eve, 0);
+				BM_SetIndex(eve, 0); /* set_dirty! */
 
 			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
@@ -271,7 +276,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 					BMLoop *l;
 					
 					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
-						BM_SetIndex(l->v, 1);
+						BM_SetIndex(l->v, 1); /* set_dirty! */
 					}
 				}
 			}
@@ -279,6 +284,8 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				if(BM_GetIndex(eve)) tottrans++;
 		}
+		/* for any of the 3 loops above which all dirty the indicies */
+		bm->elem_index_dirty |= BM_VERT;
 		
 		/* and now make transverts */
 		if(tottrans) {
@@ -287,7 +294,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 			a = 0;
 			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(BM_GetIndex(eve)) {
-					BM_SetIndex(eve, a);
+					BM_SetIndex(eve, a); /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0] != 0.0f || eve->no[1] != 0.0f ||eve->no[2] != 0.0f)
@@ -295,9 +302,10 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 					tv->flag= BM_GetIndex(eve) & SELECT;
 					tv++;
 					a++;
-				} else BM_SetIndex(eve, -1);
+				} else BM_SetIndex(eve, -1); /* set_dirty! */
 			}
-			
+			/* set dirty already, above */
+
 			userdata[1] = transvmain;
 		}
 		

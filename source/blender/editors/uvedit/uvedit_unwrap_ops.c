@@ -207,11 +207,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	}
 	
 	/* we need the vert indices */
-	a = 0;
-	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(ev, a);
-		a++;
-	}
+	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		EditVert *v, *lastv, *firstv;

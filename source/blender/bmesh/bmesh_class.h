@@ -123,6 +123,12 @@ typedef struct BMFlagLayer {
 typedef struct BMesh {
 	int totvert, totedge, totloop, totface;
 	int totvertsel, totedgesel, totfacesel;
+
+	/* flag index arrays as being dirty so we can check if they are clean and
+	 * avoid looping over the entire vert/edge/face array in those cases.
+	 * valid flags are - BM_VERT | BM_EDGE | BM_FACE.
+	 * BM_LOOP isnt handled so far. */
+	char elem_index_dirty;
 	
 	/*element pools*/
 	struct BLI_mempool *vpool, *epool, *lpool, *fpool;
