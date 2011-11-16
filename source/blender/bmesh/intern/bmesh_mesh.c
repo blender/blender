@@ -522,7 +522,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 
 /* array checking/setting macros */
 /* currently vert/edge/loop/face index data is being abused, but we should
- * eventually be able to rely on it being valid. To this end are macro's
+ * eventually be able to rely on it being valid. To this end, there are macros
  * that validate them (so blender doesnt crash), but also print errors so we can
  * fix the offending parts of the code, this way after some months we can
  * confine this code for debug mode.
@@ -536,12 +536,14 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 	BMHeader *ele;
 	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	const char *type_names[3]= {"vert", "edge", "face"};
+	const char type_flags[3]= {BM_VERT, BM_EDGE, BM_FACE};
 	int i;
 	int is_any_error= 0;
 
 	for (i=0; i<3; i++) {
+		const int is_dirty= (type_flags[i] & bm->elem_index_dirty);
 		int index= 0;
-		int is_error= 0;
+		int is_error= FALSE;
 		int err_val= 0;
 		int err_idx= 0;
 
@@ -549,18 +551,24 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 			if (BM_GetIndex(ele) != index) {
 				err_val= BM_GetIndex(ele);
 				err_idx= index;
-				is_error= 1;
+				is_error= TRUE;
 			}
 
 			BM_SetIndex(ele, index); /* set_ok */
 			index++;
 		}
 
-		if (is_error) {
-			is_any_error= 1;
+		if ((is_error == TRUE) && (is_dirty == FALSE)) {
+			is_any_error= TRUE;
 			fprintf(stderr,
 			        "Invalid Index: at %s, %s, %s[%d] invalid index %d, '%s', '%s'\n",
 			        location, func, type_names[i], err_idx, err_val, msg_a, msg_b);
+		}
+		else if ((is_error == FALSE) && (is_dirty == TRUE)) {
+			/* dirty may have been incorrectly set */
+			fprintf(stderr,
+			        "Invalid Dirty: at %s, %s (%s), dirty flag was set but all index values are correct, '%s', '%s'\n",
+			        location, func, type_names[i], msg_a, msg_b);
 		}
 	}
 

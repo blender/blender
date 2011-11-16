@@ -1599,7 +1599,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 
 		maxindex++;
 	}
-	em->bm->elem_index_dirty |= BM_EDGE;
+	bm->elem_index_dirty |= BM_EDGE;
 
 	/* Make enough verts to split v for each group */
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, "bmesh_cutvert");
