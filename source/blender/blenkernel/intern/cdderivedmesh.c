@@ -2363,7 +2363,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 		if (!c)
 			continue;
 		
-		mp2 = BLI_array_append(mpoly, *mp);
+		mp2 = BLI_array_append_r(mpoly, *mp);
 		mp2->totloop = c;
 		mp2->loopstart = BLI_array_count(mloop) - c;
 		
@@ -2509,7 +2509,7 @@ void CDDM_calc_edges_poly(DerivedMesh *dm)
 	EdgeHash *eh = BLI_edgehash_new();
 	int v1, v2;
 	int *eindex;
-	int i, j, k, *index, numEdges = cddm->dm.numEdgeData, maxFaces = dm->numPolyData;
+	int i, j, *index, numEdges = cddm->dm.numEdgeData, maxFaces = dm->numPolyData;
 
 	eindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
 
@@ -2531,7 +2531,6 @@ void CDDM_calc_edges_poly(DerivedMesh *dm)
 		}
 	}
 
-	k = numEdges;
 	numEdges = BLI_edgehash_size(eh);
 
 	/* write new edges into a temporary CustomData */

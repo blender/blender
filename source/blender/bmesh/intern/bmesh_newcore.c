@@ -25,7 +25,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
 
 	BM_SetIndex(v, bm->totvert); /* set_ok */
 
-	bm->totvert += 1;
+	bm->totvert++;
 
 	v->head.htype = BM_VERT;
 
@@ -81,7 +81,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 
 	BM_SetIndex(e, bm->totedge); /* set_ok */
 
-	bm->totedge += 1;
+	bm->totedge++;
 
 	e->head.htype = BM_EDGE;
 	
@@ -230,7 +230,7 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nod
 
 	BM_SetIndex(f, bm->totface); /* set_ok */
 
-	bm->totface += 1;
+	bm->totface++;
 
 	f->head.htype = BM_FACE;
 
@@ -690,7 +690,7 @@ error:
 	return 0;
 }
 
-static int count_flagged_disk(BMVert *v, int flag)
+static int UNUSED_FUNCTION(count_flagged_disk)(BMVert *v, int flag)
 {
 	BMEdge *e = v->e;
 	int i=0;
@@ -1412,7 +1412,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	BMLoop *curloop, *f1loop=NULL, *f2loop=NULL;
-	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok, shared;
+	int newlen = 0,i, f1len=0, f2len=0, radlen=0, edok, shared;
 	BMIter iter;
 
 	/*can't join a face to itself*/
@@ -1675,7 +1675,7 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
  *
  * edges must already have the same vertices
  */
-static int bmesh_spliceedge(BMesh *bm, BMEdge *e, BMEdge *etarget)
+static int UNUSED_FUNCTION(bmesh_spliceedge)(BMesh *bm, BMEdge *e, BMEdge *etarget)
 {
 	BMLoop *l;
 

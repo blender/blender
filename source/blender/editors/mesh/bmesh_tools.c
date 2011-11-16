@@ -3108,7 +3108,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	struct GHash *gh;
 	float isect=0.0;
 	float  *scr, co[4];
-	int len=0, isected, i;
+	int len=0, isected;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */
@@ -3147,8 +3147,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	if (!EDBM_InitOpf(em, &bmop, op, "esubd")) {
 		return OPERATOR_CANCELLED;
 	}
-	
-	i = 0;
+
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
 	for (be=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be=BMIter_Step(&iter)) {
 		if( BM_Selected(bm, be) ) {

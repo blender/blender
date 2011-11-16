@@ -129,23 +129,23 @@ static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
 
 /* There probably is a better way to swap BLI_arrays, or if there
    isn't there should be... */
-#define ARRAY_SWAP(elemtype, arr1, arr2)						\
-	{																		\
-		int i;															\
-		elemtype *arr_tmp = NULL;									\
-		BLI_array_declare(arr_tmp);								\
-		for (i = 0; i < BLI_array_count(arr1); i++) {		\
-			BLI_array_append(arr_tmp, arr1[i]);					\
-		}																	\
-		BLI_array_empty(arr1);										\
-		for (i = 0; i < BLI_array_count(arr2); i++) {		\
-			BLI_array_append(arr1, arr2[i]);						\
-		}																	\
-		BLI_array_empty(arr2);										\
-		for (i = 0; i < BLI_array_count(arr_tmp); i++) {	\
-			BLI_array_append(arr2, arr_tmp[i]);					\
-		}																	\
-		BLI_array_free(arr_tmp);									\
+#define ARRAY_SWAP(elemtype, arr1, arr2)                                      \
+	{                                                                         \
+		int i;                                                                \
+		elemtype *arr_tmp = NULL;                                             \
+		BLI_array_declare(arr_tmp);                                           \
+		for (i = 0; i < BLI_array_count(arr1); i++) {                         \
+			BLI_array_append(arr_tmp, arr1[i]);                               \
+		}                                                                     \
+		BLI_array_empty(arr1);                                                \
+		for (i = 0; i < BLI_array_count(arr2); i++) {                         \
+			BLI_array_append(arr1, arr2[i]);                                  \
+		}                                                                     \
+		BLI_array_empty(arr2);                                                \
+		for (i = 0; i < BLI_array_count(arr_tmp); i++) {                      \
+			BLI_array_append(arr2, arr_tmp[i]);                               \
+		}                                                                     \
+		BLI_array_free(arr_tmp);                                              \
 	}
 
 void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)

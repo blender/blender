@@ -354,7 +354,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */
 	Mesh tmp = *me;
-	int totvert, totedge, totface, totloop, totpoly;
+	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys=0;
 	
 	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
@@ -484,7 +484,7 @@ void DM_add_tessface_layer(DerivedMesh *dm, int type, int alloctype, void *layer
 	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numFaceData);
 }
 
-static void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->loopData, type, alloctype, layer, dm->numLoopData);
 }

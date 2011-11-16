@@ -140,7 +140,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 	BMLoop *l, *startl;
 	BMEdge *e;
 	BMVert *v;
-	int i, j, ok;
+	int i, ok;
 	
 	ok=0;
 	while (ok++ < 100000) {		
@@ -164,7 +164,6 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			
 			v = i ? l->next->v : l->v;
 
-			j = 0;
 			while (1) {
 				et = etags + BM_GetIndex(l->e);
 				if (et->newe1 == l->e) {

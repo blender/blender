@@ -185,10 +185,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	BMFace *efa;
 	BMLoop *l;
 	BMEdge *eed;
-	BMVert *ev;
 	BMIter iter, liter;
 	MTexPoly *tf;
-	int a;
 	
 	handle = param_construct_begin();
 
@@ -196,8 +194,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		efa = BM_get_actFace(em->bm, 1);
 
 		if(efa) {
-			MTexPoly *tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			float aspx, aspy;
+			tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
 		
@@ -223,7 +221,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		if((BM_TestHFlag(efa, BM_HIDDEN)) || (sel && BM_TestHFlag(efa, BM_SELECT)==0))
 			continue;
 
-		tf= (MTexPoly *)CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		/* tf= (MTexPoly *)CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		lsel = 0;
 
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -1399,7 +1397,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
+	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
 	float no[3], cube_size, *loc, dx, dy;
 	int cox, coy;
@@ -1418,7 +1416,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		int first=1;
 
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		if (!BM_TestHFlag(efa, BM_SELECT))
 			continue;
 		

@@ -1207,7 +1207,6 @@ static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
 static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target)
 {
 	BMEdge *e;
-	BMVert *v;
 	BMIter iter;
 	Heap *heap;
 	SmallHash visithash;

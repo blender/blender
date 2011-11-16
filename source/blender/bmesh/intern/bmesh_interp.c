@@ -82,7 +82,7 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 */
 
 
-static void BM_Data_Vert_Average(BMesh *UNUSED(bm), BMFace *UNUSED(f))
+static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNUSED(f))
 {
 	// BMIter iter;
 }
@@ -244,7 +244,7 @@ static double closest_to_line_v3_d(double cp[3], const double p[3], const double
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-static void closest_to_line_segment_v3_d(double *closest, double v1[3], double v2[3], double v3[3])
+static void UNUSED_FUNCTION(closest_to_line_segment_v3_d)(double *closest, double v1[3], double v2[3], double v3[3])
 {
 	double lambda, cp[3];
 
@@ -259,12 +259,12 @@ static void closest_to_line_segment_v3_d(double *closest, double v1[3], double v
 	}
 }
 
-static double len_v3_d(const double a[3])
+static double UNUSED_FUNCTION(len_v3_d)(const double a[3])
 {
 	return sqrt(INPR(a, a));
 }
 
-static double len_v3v3_d(const double a[3], const double b[3])
+static double UNUSED_FUNCTION(len_v3v3_d)(const double a[3], const double b[3])
 {
 	double d[3];
 
@@ -279,14 +279,14 @@ static void cent_quad_v3_d(double *cent, double *v1, double *v2, double *v3, dou
 	cent[2]= 0.25*(v1[2]+v2[2]+v3[2]+v4[2]);
 }
 
-static void cent_tri_v3_d(double *cent, double *v1, double *v2, double *v3)
+static void UNUSED_FUNCTION(cent_tri_v3_d)(double *cent, double *v1, double *v2, double *v3)
 {
 	cent[0]= 0.33333*(v1[0]+v2[0]+v3[0]);
 	cent[1]= 0.33333*(v1[1]+v2[1]+v3[1]);
 	cent[2]= 0.33333*(v1[2]+v2[2]+v3[2]);
 }
 
-static void cross_v3_v3v3_d(double r[3], const double a[3], const double b[3])
+static void UNUSED_FUNCTION(cross_v3_v3v3_d)(double r[3], const double a[3], const double b[3])
 {
 	r[0]= a[1]*b[2] - a[2]*b[1];
 	r[1]= a[2]*b[0] - a[0]*b[2];
@@ -294,7 +294,7 @@ static void cross_v3_v3v3_d(double r[3], const double a[3], const double b[3])
 }
 
 /* distance v1 to line-piece v2-v3 */
-static double dist_to_line_segment_v2_d(double v1[3], double v2[3], double v3[3]) 
+static double UNUSED_FUNCTION(dist_to_line_segment_v2_d)(double v1[3], double v2[3], double v3[3])
 {
 	double labda, rc[2], pt[2], len;
 	
@@ -550,12 +550,12 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	for (x=0.0f, ix=0; ix<res; x += d, ix++) {
 		for (y=0.0f, iy=0; iy<res; y+= d, iy++) {
 			double co1[3], co2[3], co[3];
-			double xx, yy;
+			/* double xx, yy; */ /* UNUSED */
 			
 			VECCOPY(co1, e1);
 			
-			if (!iy) yy = y + (double)FLT_EPSILON*20;
-			else yy = y - (double)FLT_EPSILON*20;
+			/* if (!iy) yy = y + (double)FLT_EPSILON*20; */
+			/* else yy = y - (double)FLT_EPSILON*20; */
 			
 			VECMUL(co1, y);
 			VECADD2(co1, v1);
@@ -564,8 +564,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			VECMUL(co2, y);
 			VECADD2(co2, v4);
 			
-			if (!ix) xx = x + (double)FLT_EPSILON*20;
-			else xx = x - (double)FLT_EPSILON*20;
+			/* if (!ix) xx = x + (double)FLT_EPSILON*20; */ /* UNUSED */
+			/* else xx = x - (double)FLT_EPSILON*20; */ /* UNUSED */
 			
 			VECSUB(co, co2, co1);
 			VECMUL(co, x);
@@ -580,8 +580,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 				md2 = CustomData_bmesh_get(&bm->ldata, l2->head.data, CD_MDISPS);
 				
 				if (mdisp_in_mdispquad(bm, target, l2, co, &x2, &y2, res)) {
-					int ix2 = (int)x2;
-					int iy2 = (int)y2;
+					/* int ix2 = (int)x2; */ /* UNUSED */
+					/* int iy2 = (int)y2; */ /* UNUSED */
 					
 					old_mdisps_bilinear(md1->disps[iy*res+ix], md2->disps, res, (float)x2, (float)y2);
 				}

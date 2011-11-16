@@ -280,6 +280,8 @@ typedef struct IndexMapEntry {
 	short merge_final;
 } IndexMapEntry;
 
+#if 0 /* BMESH_TODO, keep this function??? */
+
 /* indexMap - an array of IndexMap entries
  * oldIndex - the old index to map
  * copyNum - the copy number to map to (original = 0, first copy = 1, etc.)
@@ -304,6 +306,8 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 						copyNum - 1);
 	}
 }
+
+#endif
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,

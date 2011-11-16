@@ -19,7 +19,7 @@
 
 #define VERT_MARK	1
 
-static int check_hole_in_region(BMesh *bm, BMFace *f)
+static int UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 {
 	BMWalker regwalker;
 	BMIter liter2;

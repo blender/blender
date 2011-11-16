@@ -97,8 +97,8 @@ static int rotsys_append_edge(struct BMEdge *e, struct BMVert *v,
 	return 1;
 }
 
-static void rotsys_remove_edge(struct BMEdge *e, struct BMVert *v, 
-						EdgeData *edata, VertData *vdata)
+static void UNUSED_FUNCTION(rotsys_remove_edge)(struct BMEdge *e, struct BMVert *v,
+                                                EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = edata + BM_GetIndex(e);
 	VertData *vd = vdata + BM_GetIndex(v);
@@ -167,7 +167,7 @@ static void rotsys_reverse(struct BMEdge *UNUSED(e), struct BMVert *v, EdgeData 
 	BLI_array_free(edges);
 }
 
-static int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
+static int UNUSED_FUNCTION(rotsys_count)(struct BMVert *v, EdgeData *edata, VertData *vdata)
 {
 	BMEdge *e = vdata[BM_GetIndex(v)].e;
 	int i=0;
@@ -191,7 +191,7 @@ static int rotsys_count(struct BMVert *v, EdgeData *edata, VertData *vdata)
 	return i;
 }
 
-static int rotsys_fill_faces(BMesh *bm, EdgeData *edata, VertData *vdata)
+static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertData *vdata)
 {
 	BMIter iter;
 	BMEdge *e, **edges = NULL;
@@ -829,7 +829,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMFace *f;
 	BMEdge *e, *edge;
-	BMVert *v, **verts = NULL;
+	BMVert **verts = NULL;
 	BLI_array_declare(verts);
 	EPath *path;
 	EPathNode *node;

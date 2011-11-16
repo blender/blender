@@ -1122,7 +1122,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	BMOpDefine *def;
 	char *opname, *ofmt, *fmt = (char*)_fmt;
 	char slotname[64] = {0};
-	int i /*, n=strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state, c;
+	int i /*, n=strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state;
 	int noslot=0;
 
 	/*we muck around in here, so dup it*/
@@ -1148,8 +1148,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	
 	i = 0;
 	state = 1; //0: not inside slotcode name, 1: inside slotcode name
-	c = 0;
-	
+
 	while (*fmt) {
 		if (state) {
 			/*jump past leading whitespace*/

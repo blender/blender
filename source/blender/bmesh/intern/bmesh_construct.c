@@ -265,7 +265,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *ev1, *ev2;
-	int overlap = 0, i, /* j,*/ v1found, reverse;
+	int i, /* j,*/ v1found, reverse;
 
 	/*this code is hideous, yeek.  I'll have to think about ways of
 	  cleaning it up.  basically, it now combines the old BM_Make_Ngon

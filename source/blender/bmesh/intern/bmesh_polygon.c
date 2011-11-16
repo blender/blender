@@ -746,7 +746,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 {
 	int i, done, nvert, nf_i = 0;
 	BMLoop *l, *newl, *nextloop;
-	BMVert *v;
+	/* BMVert *v; */ /* UNUSED */
 
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
@@ -778,7 +778,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		l = find_ear(bm, f, projectverts, nvert);
 		if(l) {
 			done = 0;
-			v = l->v;
+			/* v = l->v; */ /* UNUSED */
 			f = BM_Split_Face(bm, l->f, l->prev->v,
 			                  l->next->v,
 			                  &newl, NULL);

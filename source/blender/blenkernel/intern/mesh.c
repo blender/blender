@@ -117,7 +117,7 @@ static const char *cmpcode_to_str(int code)
 		case MESHCMP_VERTCOMISMATCH:
 					return "Vertex Coordinate Mismatch";
 		case MESHCMP_CDLAYERS_MISMATCH:
-					"CustomData Layer Count Mismatch";
+					return "CustomData Layer Count Mismatch";
 		default:
 				return "Mesh Comparison Code Unknown";
 		}

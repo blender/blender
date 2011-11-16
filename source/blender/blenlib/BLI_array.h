@@ -120,14 +120,19 @@ behaviour, though it may not be the best in practice.
 )
 
 
-/* appends an item to the array and returns a pointer to the item in the array.
- * item is not a pointer, but actual data value.*/
+/* appends an item to the array. */
 #define BLI_array_append(arr, item)  (                                        \
-	BLI_array_growone(arr),                                                   \
-	(arr[_##arr##_count-1] = item),                                           \
-	(arr+(_##arr##_count-1))                                                  \
+	(void) BLI_array_growone(arr),                                            \
+	(void) (arr[_##arr##_count-1] = item)                                     \
 )
 
+/* appends an item to the array and returns a pointer to the item in the array.
+ * item is not a pointer, but actual data value.*/
+#define BLI_array_append_r(arr, item)  (                                      \
+	(void) BLI_array_growone(arr),                                            \
+	(void) (arr[_##arr##_count-1] = item),                                    \
+	(&arr[_##arr##_count-1])                                                  \
+)
 
 /* grow an array by a specified number of items. */
 /* TODO, this could be done in a less crappy way by not looping - campbell */

@@ -656,7 +656,6 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 	MTexPoly *tf;
 	BMFace *efa;
 	BMLoop *l;
-	BMVert *eve;
 	BMIter iter, liter;
 	MLoopUV *luv, *nextluv;
 	float mindist, dist;
@@ -787,11 +786,10 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	return (c1*c2 >= 0.0f);
 }
 
-static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em, 
+static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				 float co[2], float penalty[2], NearestHit *hit)
 {
 	BMFace *efa;
-	BMVert *eve;
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf;
@@ -1848,7 +1846,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	MTexPoly *tf;
 	MLoopUV *luv;
 	NearestHit hit;
-	int a, i, select = 1, selectmode, sticky, sync, *hitv=NULL, nvert;
+	int i, select = 1, selectmode, sticky, sync, *hitv=NULL, nvert;
 	BLI_array_declare(hitv);
 	int flush = 0, hitlen=0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], **hituv = NULL;
@@ -2437,7 +2435,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	}
 	else if((ts->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_LOC) {
 		BMFace *efa_vlist;
-		MTexPoly *tf_vlist;
+		/* MTexPoly *tf_vlist; */ /* UNUSED */
 		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
@@ -2489,7 +2487,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 						
 						if(efa_index != vlist_iter->f) {
 							efa_vlist = EDBM_get_face_for_index(em, vlist_iter->f);
-							tf_vlist = CustomData_bmesh_get(&em->bm->pdata, efa_vlist->head.data, CD_MTEXPOLY);
+							/* tf_vlist = CustomData_bmesh_get(&em->bm->pdata, efa_vlist->head.data, CD_MTEXPOLY); */ /* UNUSED */
 							
 							if(select)
 								uvedit_uv_select(em, scene, BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex));

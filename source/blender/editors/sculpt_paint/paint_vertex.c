@@ -2436,7 +2436,6 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	VPaint *vp= ts->vpaint;
 	struct VPaintData *vpd;
 	Object *ob= CTX_data_active_object(C);
-	Scene *scene = CTX_data_scene(C);
 	Mesh *me;
 	float mat[4][4], imat[4][4];
 
@@ -2525,7 +2524,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	RNA_float_get_array(itemptr, "mouse", mval);
 	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
-			
+
+	(void)flip; /* BMESH_TODO */
+
 	view3d_operator_needs_opengl(C);
 			
 	/* load projection matrix */

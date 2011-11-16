@@ -399,8 +399,6 @@ static void bmDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 	int i;
 	
 	if (bmdm->vertexCos) {
-		BMVert *eve;
-		BMIter viter;
 
 		BM_ElemIndex_Ensure(bmdm->tc->bm, BM_VERT);
 
@@ -563,7 +561,6 @@ static void bmDM__calcFaceCent(BMesh *bm, BMFace *efa, float cent[3],
 static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
-	BMVert *eve;
 	BMFace *efa;
 	BMIter iter;
 	float cent[3];
@@ -588,7 +585,6 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMFace *efa;
-	BMIter iter;
 	int i, draw;
 
 	const int skip_normals= !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
@@ -773,8 +769,6 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 	float (*vertexCos)[3]= bmdm->vertexCos;
 	float (*vertexNos)[3]= bmdm->vertexNos;
 	BMFace *efa;
-	BMVert *eve;
-	BMIter iter;
 	MLoopUV *luv[3], dummyluv = {{0}};
 	MLoopCol *lcol[3], dummylcol = {0};
 	int i, has_vcol = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
@@ -978,9 +972,7 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	BMEditMesh *em = bmdm->tc;
 	float (*vertexCos)[3]= bmdm->vertexCos;
 	float (*vertexNos)[3]= bmdm->vertexNos;
-	BMVert *eve;
 	BMFace *efa;
-	BMIter iter;
 	BMLoop **ltri;
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
@@ -1104,13 +1096,11 @@ static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
 	BMEditMesh *em = bmdm->tc;
 	float (*vertexCos)[3]= bmdm->vertexCos;
 	float (*vertexNos)[3]= bmdm->vertexNos;
-	BMVert *eve;
 	BMFace *efa;
-	BMIter iter;
 	BMLoop **ltri;
 	DMVertexAttribs attribs= {{{0}}};
 	GPUVertexAttribs gattribs;
-	int i, b, matnr, new_matnr, dodraw;
+	int i, b, matnr, new_matnr;
 
 	matnr = -1;
 
@@ -1368,7 +1358,6 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMEdge *ee;
 	BMIter iter;
-	BMVert *ev;
 	int has_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
 	int has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
 
@@ -1396,12 +1385,10 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMFace *ef;
-	BMVert *ev;
-	BMIter iter;
 	BMLoop **l;
 	int i;
 
-	BM_ElemIndex_Ensure(bmdm->tc->bm, BM_VERT);
+	BM_ElemIndex_Ensure(bm, BM_VERT);
 
 	for (i=0; i<bmdm->tc->tottri; i++, face_r++) {
 		l = bmdm->tc->looptris[i];

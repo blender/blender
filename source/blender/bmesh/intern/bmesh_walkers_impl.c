@@ -356,11 +356,11 @@ static void *islandWalker_yield(BMWalker *walker)
 
 static void *islandWalker_step(BMWalker *walker)
 {
-	islandWalker *iwalk = BMW_currentstate(walker), *owalk;
+	islandWalker *iwalk = BMW_currentstate(walker);
+	/* islandWalker *owalk= iwalk; */ /* UNUSED */
 	BMIter iter, liter;
 	BMFace *f, *curf = iwalk->cur;
 	BMLoop *l;
-	owalk = iwalk;
 	
 	BMW_removestate(walker);
 

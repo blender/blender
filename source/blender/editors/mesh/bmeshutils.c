@@ -135,7 +135,7 @@ void EDBM_stats_update(BMEditMesh *em)
 		ele = BMIter_New(&iter, em->bm, types[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(ele, BM_SELECT)) {
-				*tots[i]++;
+				(*tots[i])++;
 			}
 		}
 	}
@@ -802,8 +802,8 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMVert *v;
-	float invmat[4][4];
-	int li, i, topo = 0;
+	/* float invmat[4][4]; */ /* UNUSED */
+	int li, topo = 0;
 
 	if (me && (me->editflag & ME_EDIT_MIRROR_TOPO)) {
 		topo = 1;
