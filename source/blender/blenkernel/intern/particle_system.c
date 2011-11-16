@@ -2679,7 +2679,7 @@ static float nr_signed_distance_to_plane(float *p, float radius, ParticleCollisi
 	}
 
 	if(pce->inv_nor == 1) {
-		mul_v3_fl(nor, -1.f);
+		negate_v3(nor);
 		d = -d;
 	}
 
@@ -2799,7 +2799,7 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 				normalize_v3(nor);
 
 				if(pce->inv_nor == 1)
-					mul_v3_fl(nor, -1.f);
+					negate_v3(nor);
 
 				madd_v3_v3v3fl(co, pce->x0, nor, col->radius);
 				madd_v3_v3fl(co, e1, pce->uv[0]);

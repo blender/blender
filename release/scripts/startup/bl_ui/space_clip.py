@@ -115,7 +115,6 @@ class CLIP_PT_tools_tracking(Panel):
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
-        settings = clip.tracking.settings
 
         row = layout.row(align=True)
 
@@ -641,7 +640,6 @@ class CLIP_PT_tools_clip(Panel):
 
     def draw(self, context):
         layout = self.layout
-        clip = context.space_data.clip
 
         layout.operator("clip.set_viewport_background")
 
@@ -697,9 +695,6 @@ class CLIP_MT_proxy(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        sc = context.space_data
-        clip = sc.clip
 
         layout.operator("clip.rebuild_proxy")
         layout.operator("clip.delete_proxy")
@@ -804,8 +799,6 @@ class CLIP_MT_select(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        sc = context.space_data
 
         layout.operator("clip.select_border")
         layout.operator("clip.select_circle")

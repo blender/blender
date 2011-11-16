@@ -1911,7 +1911,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 	switch(type) {
 	case PART_KINK_CURL:
 	{
-		mul_v3_fl(par_vec, -1.f);
+		negate_v3(par_vec);
 
 		if(flat > 0.f) {
 			float proj[3];
@@ -1977,7 +1977,7 @@ static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float 
 			mul_qt_v3(par_rot, z_vec);
 		}
 		
-		mul_v3_fl(par_vec, -1.f);
+		negate_v3(par_vec);
 		normalize_v3_v3(vec_one, par_vec);
 
 		inp_y=dot_v3v3(y_vec, vec_one);
