@@ -91,18 +91,24 @@ behaviour, though it may not be the best in practice.
 /* grow the array by one.  zeroes the new elements. */
 #define _BLI_array_growone(arr)  (                                            \
 	(BLI_array_totalsize(arr) > _##arr##_count) ?                             \
-		++_##arr##_count :                                                    \
-		((_##arr##_tmp = MEM_callocN(                                         \
-				sizeof(*arr)*(_##arr##_count*2+2),                            \
-				#arr " " __FILE__ ":" STRINGIFY(__LINE__)                     \
-				)                                                             \
-		 ),                                                                   \
-		(arr && memcpy(_##arr##_tmp, arr, sizeof(*arr) * _##arr##_count)),    \
-		(arr && ((void *)(arr) != (void*)_##arr##_static ?                    \
-				(MEM_freeN(arr), arr) :                                       \
-				arr)),                                                        \
-		(arr = _##arr##_tmp),                                                 \
-		_##arr##_count++)                                                     \
+		++_##arr##_count :  (                                                 \
+		(void) (_##arr##_tmp = MEM_callocN(                                   \
+		        sizeof(*arr)*(_##arr##_count*2+2),                            \
+		        #arr " " __FILE__ ":" STRINGIFY(__LINE__)                     \
+		        )                                                             \
+		        ),                                                            \
+		(void) (arr && memcpy(_##arr##_tmp,                                   \
+		                      arr,                                            \
+		                      sizeof(*arr) * _##arr##_count)                  \
+		        ),                                                            \
+		(void) (arr && ((void *)(arr) != (void*)_##arr##_static ?             \
+		        (MEM_freeN(arr), arr) :                                       \
+		        arr)                                                          \
+		        ),                                                            \
+		(void)(arr = _##arr##_tmp                                             \
+		       ),                                                             \
+		_##arr##_count++                                                      \
+	)                                                                         \
 )
 
 
