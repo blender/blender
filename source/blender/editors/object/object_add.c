@@ -78,6 +78,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
+#include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 
@@ -92,6 +93,7 @@
 #include "ED_curve.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -322,6 +324,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	/* more editor stuff */
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
+	DAG_id_type_tag(bmain, ID_OB);
 	DAG_scene_sort(bmain, scene);
 	ED_render_id_flush_update(bmain, ob->data);
 
@@ -700,7 +703,9 @@ static const char *get_lamp_defname(int type)
 
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
+	Lamp *la;
 	int type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
 	unsigned int layer;
@@ -711,9 +716,16 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
-	((Lamp*)ob->data)->type= type;
-	rename_id((ID *)ob, get_lamp_defname(type));
-	rename_id((ID *)ob->data, get_lamp_defname(type));
+	la= (Lamp*)ob->data;
+
+	la->type= type;
+	rename_id(&ob->id, get_lamp_defname(type));
+	rename_id(&la->id, get_lamp_defname(type));
+
+	if(scene_use_new_shading_nodes(scene)) {
+		ED_node_shader_default(scene, &la->id);
+		la->use_nodes= 1;
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -873,10 +885,11 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_delete_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+	const short use_global= RNA_boolean_get(op->ptr, "global");
 	/* int islamp= 0; */ /* UNUSED */
 	
 	if(CTX_data_edit_object(C)) 
@@ -891,6 +904,22 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* remove from current scene only */
 		ED_base_object_free_and_unlink(bmain, scene, base);
+
+		if (use_global) {
+			Scene *scene_iter;
+			Base *base_other;
+
+			for (scene_iter= bmain->scene.first; scene_iter; scene_iter= scene_iter->id.next) {
+				if (scene_iter != scene && !(scene_iter->id.lib)) {
+					base_other= object_in_scene(base->object, scene_iter);
+					if (base_other) {
+						ED_base_object_free_and_unlink(bmain, scene_iter, base_other);
+					}
+				}
+			}
+		}
+		/* end global */
+
 	}
 	CTX_DATA_END;
 
@@ -917,6 +946,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "global", 0, "Delete Globally", "Remove object from all scenes");
 }
 
 /**************************** Copy Utilities ******************************/

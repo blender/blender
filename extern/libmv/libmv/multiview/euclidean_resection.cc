@@ -32,6 +32,8 @@
 namespace libmv {
 namespace euclidean_resection {
 
+typedef unsigned int uint;
+
 bool EuclideanResection(const Mat2X &x_camera, 
                         const Mat3X &X_world,
                         Mat3 *R, Vec3 *t,

@@ -65,7 +65,7 @@ static void do_invert_fac(bNode *node, float *out, float *in, float *fac)
 	do_invert(node, col, in);
 
 	/* blend inverted result against original input with fac */
-	facm = 1.0 - fac[0];
+	facm = 1.0f - fac[0];
 
 	if(node->custom1 & CMP_CHAN_RGB) {
 		col[0] = fac[0]*col[0] + (facm*in[0]);

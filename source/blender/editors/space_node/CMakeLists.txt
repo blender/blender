@@ -25,6 +25,7 @@ set(INC
 	../../blenlib
 	../../blenloader
 	../../imbuf
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../nodes
@@ -47,6 +48,7 @@ set(SRC
 	node_ops.c
 	node_select.c
 	node_state.c
+	node_templates.c
 	space_node.c
 
 	node_intern.h

@@ -131,7 +131,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 
 void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {0};
+	BPathRemap_Data data= {NULL};
 
 	if(basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -174,7 +174,7 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 /* similar to makeFilesRelative - keep in sync! */
 void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 {
-	BPathRemap_Data data= {0};
+	BPathRemap_Data data= {NULL};
 
 	if(basedir[0] == '\0') {
 		printf("%s: basedir='', this is a bug\n", __func__);
@@ -280,7 +280,7 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 
 void findMissingFiles(Main *bmain, const char *searchpath, ReportList *reports)
 {
-	struct BPathFind_Data data= {0};
+	struct BPathFind_Data data= {NULL};
 
 	data.reports= reports;
 	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
@@ -362,7 +362,7 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
-	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? (id->lib ? id->lib->filepath : bmain->name) : NULL;
+	const char *absbase= (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
 	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;
@@ -430,6 +430,10 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				else if (md->type==eModifierType_Cloth) {
 					ClothModifierData *clmd= (ClothModifierData*) md;
 					BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
+				}
+				else if (md->type==eModifierType_Ocean) {
+					OceanModifierData *omd= (OceanModifierData*) md;
+					rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
 				}
 			}
 

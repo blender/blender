@@ -852,19 +852,19 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C, const char *op
 	return found;
 }
 
-static wmKeyMapItem *wm_keymap_item_find(const bContext *C, const char *opname, int opcontext, IDProperty *properties, int hotkey, wmKeyMap **keymap_r)
+static wmKeyMapItem *wm_keymap_item_find(const bContext *C, const char *opname, int opcontext, IDProperty *properties, const short hotkey, const short sloppy, wmKeyMap **keymap_r)
 {
 	wmKeyMapItem *found= wm_keymap_item_find_props(C, opname, opcontext, properties, 1, hotkey, keymap_r);
 
-	if(!found)
+	if(!found && sloppy)
 		found= wm_keymap_item_find_props(C, opname, opcontext, NULL, 0, hotkey, keymap_r);
 
 	return found;
 }
 
-char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
+char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, const short sloppy, char *str, int len)
 {
-	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, 0, NULL);
+	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, 0, sloppy, NULL);
 	
 	if(kmi) {
 		WM_keymap_item_to_string(kmi, str, len);
@@ -876,7 +876,7 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 
 int WM_key_event_operator_id(const bContext *C, const char *opname, int opcontext, IDProperty *properties, int hotkey, wmKeyMap **keymap_r)
 {
-	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, hotkey, keymap_r);
+	wmKeyMapItem *kmi= wm_keymap_item_find(C, opname, opcontext, properties, hotkey, TRUE, keymap_r);
 	
 	if(kmi)
 		return kmi->id;

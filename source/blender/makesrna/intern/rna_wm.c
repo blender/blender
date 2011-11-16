@@ -338,41 +338,43 @@ EnumPropertyItem keymap_propvalue_items[] = {
 		{0, "NONE", 0, "", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem keymap_modifiers_items[] = {
-		{KM_ANY, "ANY", 0, "Any", ""},
-		{0, "NONE", 0, "None", ""},
-		{1, "FIRST", 0, "First", ""},
-		{2, "SECOND", 0, "Second", ""},
-		{0, NULL, 0, NULL, NULL}};
+#if 0
+static EnumPropertyItem keymap_modifiers_items[] = {
+	{KM_ANY, "ANY", 0, "Any", ""},
+	{0, "NONE", 0, "None", ""},
+	{1, "FIRST", 0, "First", ""},
+	{2, "SECOND", 0, "Second", ""},
+	{0, NULL, 0, NULL, NULL}};
+#endif
 
 EnumPropertyItem operator_flag_items[] = {
-		{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
-		{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
-		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
-		{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
-		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", "Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled"},
-		{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
-		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
-		{0, NULL, 0, NULL, NULL}};
+	{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
+	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
+	{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
+	{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
+	{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", "Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled"},
+	{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
+	{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
+	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {
-		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
-		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
-		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
-		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"}, // used as a flag
-		{0, NULL, 0, NULL, NULL}};
+	{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
+	{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
+	{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
+	{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"}, // used as a flag
+	{0, NULL, 0, NULL, NULL}};
 
 /* flag/enum */
 EnumPropertyItem wm_report_items[] = {
-		{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
-		{RPT_INFO, "INFO", 0, "Info", ""},
-		{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
-		{RPT_WARNING, "WARNING", 0, "Warning", ""},
-		{RPT_ERROR, "ERROR", 0, "Error", ""},
-		{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},\
-		{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
-		{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
-		{0, NULL, 0, NULL, NULL}};
+	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
+	{RPT_INFO, "INFO", 0, "Info", ""},
+	{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
+	{RPT_WARNING, "WARNING", 0, "Warning", ""},
+	{RPT_ERROR, "ERROR", 0, "Error", ""},
+	{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},\
+	{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
+	{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #define KMI_TYPE_KEYBOARD	0
 #define KMI_TYPE_MOUSE		1
@@ -419,7 +421,7 @@ static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
-		ptr->data= IDP_New(IDP_GROUP, val, "RNA_OperatorProperties group");
+		ptr->data= IDP_New(IDP_GROUP, &val, "RNA_OperatorProperties group");
 	}
 
 	return ptr->data;
@@ -964,7 +966,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata);
 
 static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
-static char _operator_descr[1024];
+static char _operator_descr[RNA_DYN_DESCR_MAX];
 static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmOperatorType dummyot = {NULL};
@@ -1159,7 +1161,7 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->idname;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_idname on a non-builtin operator");
 }
 
@@ -1167,7 +1169,7 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->name;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_label on a non-builtin operator");
 }
 
@@ -1175,7 +1177,7 @@ static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->description;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_description on a non-builtin operator");
 }
 
@@ -1230,14 +1232,14 @@ static void rna_def_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -1291,14 +1293,14 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

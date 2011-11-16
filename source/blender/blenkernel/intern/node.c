@@ -961,8 +961,8 @@ void ntreeSetOutput(bNodeTree *ntree)
 			
 			/* we need a check for which output node should be tagged like this, below an exception */
 			if(node->type==CMP_NODE_OUTPUT_FILE)
-			   continue;
-			   
+				continue;
+
 			/* there is more types having output class, each one is checked */
 			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
 				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
@@ -1314,11 +1314,15 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 			if(GS(node->id->name) == GS(tnode->id->name))
 				tnode->flag &= ~NODE_ACTIVE_ID;
 		}
+		if(node->typeinfo->nclass == NODE_CLASS_TEXTURE)
+			tnode->flag &= ~NODE_ACTIVE_TEXTURE;
 	}
 	
 	node->flag |= NODE_ACTIVE;
 	if(node->id)
 		node->flag |= NODE_ACTIVE_ID;
+	if(node->typeinfo->nclass == NODE_CLASS_TEXTURE)
+		node->flag |= NODE_ACTIVE_TEXTURE;
 }
 
 /* use flags are not persistent yet, groups might need different tagging, so we do it each time
@@ -1865,13 +1869,18 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_frame(ntypelist);
 	
 	register_node_type_sh_group(ntypelist);
-//	register_node_type_sh_forloop(ntypelist);
-//	register_node_type_sh_whileloop(ntypelist);
-	
+	//register_node_type_sh_forloop(ntypelist);
+	//register_node_type_sh_whileloop(ntypelist);
+
 	register_node_type_sh_output(ntypelist);
+	register_node_type_sh_material(ntypelist);
+	register_node_type_sh_camera(ntypelist);
+	register_node_type_sh_value(ntypelist);
+	register_node_type_sh_rgb(ntypelist);
 	register_node_type_sh_mix_rgb(ntypelist);
 	register_node_type_sh_valtorgb(ntypelist);
 	register_node_type_sh_rgbtobw(ntypelist);
+	register_node_type_sh_texture(ntypelist);
 	register_node_type_sh_normal(ntypelist);
 	register_node_type_sh_geom(ntypelist);
 	register_node_type_sh_mapping(ntypelist);
@@ -1880,17 +1889,47 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_math(ntypelist);
 	register_node_type_sh_vect_math(ntypelist);
 	register_node_type_sh_squeeze(ntypelist);
-	register_node_type_sh_camera(ntypelist);
-	register_node_type_sh_material(ntypelist);
+	//register_node_type_sh_dynamic(ntypelist);
 	register_node_type_sh_material_ext(ntypelist);
-	register_node_type_sh_value(ntypelist);
-	register_node_type_sh_rgb(ntypelist);
-	register_node_type_sh_texture(ntypelist);
-//	register_node_type_sh_dynamic(ntypelist);
 	register_node_type_sh_invert(ntypelist);
 	register_node_type_sh_seprgb(ntypelist);
 	register_node_type_sh_combrgb(ntypelist);
 	register_node_type_sh_hue_sat(ntypelist);
+
+	register_node_type_sh_attribute(ntypelist);
+	register_node_type_sh_geometry(ntypelist);
+	register_node_type_sh_light_path(ntypelist);
+	register_node_type_sh_fresnel(ntypelist);
+	register_node_type_sh_layer_weight(ntypelist);
+	register_node_type_sh_tex_coord(ntypelist);
+
+	register_node_type_sh_background(ntypelist);
+	register_node_type_sh_bsdf_diffuse(ntypelist);
+	register_node_type_sh_bsdf_glossy(ntypelist);
+	register_node_type_sh_bsdf_glass(ntypelist);
+	register_node_type_sh_bsdf_translucent(ntypelist);
+	register_node_type_sh_bsdf_transparent(ntypelist);
+	register_node_type_sh_bsdf_velvet(ntypelist);
+	register_node_type_sh_emission(ntypelist);
+	register_node_type_sh_holdout(ntypelist);
+	//register_node_type_sh_volume_transparent(ntypelist);
+	//register_node_type_sh_volume_isotropic(ntypelist);
+	register_node_type_sh_mix_shader(ntypelist);
+	register_node_type_sh_add_shader(ntypelist);
+
+	register_node_type_sh_output_lamp(ntypelist);
+	register_node_type_sh_output_material(ntypelist);
+	register_node_type_sh_output_world(ntypelist);
+
+	register_node_type_sh_tex_image(ntypelist);
+	register_node_type_sh_tex_environment(ntypelist);
+	register_node_type_sh_tex_sky(ntypelist);
+	register_node_type_sh_tex_noise(ntypelist);
+	register_node_type_sh_tex_wave(ntypelist);
+	register_node_type_sh_tex_voronoi(ntypelist);
+	register_node_type_sh_tex_musgrave(ntypelist);
+	register_node_type_sh_tex_gradient(ntypelist);
+	register_node_type_sh_tex_magic(ntypelist);
 }
 
 static void registerTextureNodes(ListBase *ntypelist)

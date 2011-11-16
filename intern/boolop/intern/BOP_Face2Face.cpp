@@ -167,39 +167,41 @@ void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
 		MT_Point3 p2 = mesh->getVertex(faceA->getVertex(1))->getPoint();
 		MT_Point3 p3 = mesh->getVertex(faceA->getVertex(2))->getPoint();
 
-	/* get (or create) bounding box for face A */
+		/* get (or create) bounding box for face A */
 		if( faceA->getBBox() == NULL )
-        	faceA->setBBox(p1,p2,p3);
+			faceA->setBBox(p1,p2,p3);
 		BOP_BBox *boxA = faceA->getBBox();
 
 	/* start checking B faces with the previously stored split index */
 
 		for(unsigned int idxFaceB=faceA->getSplit();
-			idxFaceB<facesB->size() && (faceA->getTAG() != BROKEN) && (faceA->getTAG() != PHANTOM);) {
+		    idxFaceB<facesB->size() && (faceA->getTAG() != BROKEN) && (faceA->getTAG() != PHANTOM);) {
 			BOP_Face *faceB = (*facesB)[idxFaceB];
 			faceA->setSplit(idxFaceB);
 			if ((faceB->getTAG() != BROKEN) && (faceB->getTAG() != PHANTOM)) {
 
-	/* get (or create) bounding box for face B */
-				if( faceB->getBBox() == NULL )
-        			faceB->setBBox(mesh->getVertex(faceB->getVertex(0))->getPoint(),
-                    mesh->getVertex(faceB->getVertex(1))->getPoint(),
-                    mesh->getVertex(faceB->getVertex(2))->getPoint());
-			  BOP_BBox *boxB = faceB->getBBox();
+				/* get (or create) bounding box for face B */
+				if( faceB->getBBox() == NULL ) {
+					faceB->setBBox(mesh->getVertex(faceB->getVertex(0))->getPoint(),
+					               mesh->getVertex(faceB->getVertex(1))->getPoint(),
+					               mesh->getVertex(faceB->getVertex(2))->getPoint());
+				}
+				BOP_BBox *boxB = faceB->getBBox();
 
-			  if (boxA->intersect(*boxB)) {
-			    MT_Plane3 planeB = faceB->getPlane();
-			    if (BOP_containsPoint(planeB,p1) && 
-				BOP_containsPoint(planeB,p2) && 
-				BOP_containsPoint(planeB,p3)) {
-			      if (BOP_orientation(planeB,planeA)>0) {
-				    BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
-			      }
-			    }
-			    else {
-			      BOP_intersectNonCoplanarFaces(mesh,facesA,facesB,faceA,faceB);
-			    }
-			  }			  
+				if (boxA->intersect(*boxB)) {
+					MT_Plane3 planeB = faceB->getPlane();
+					if (BOP_containsPoint(planeB,p1) &&
+					        BOP_containsPoint(planeB,p2) &&
+					        BOP_containsPoint(planeB,p3))
+					{
+						if (BOP_orientation(planeB,planeA)>0) {
+							BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
+						}
+					}
+					else {
+						BOP_intersectNonCoplanarFaces(mesh,facesA,facesB,faceA,faceB);
+					}
+				}
 			}
 			idxFaceB++;
 		}
@@ -656,16 +658,16 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
  * @param invert indicates if faceA has priority over faceB
  * @param segmemts array of the output x-segments
  */
- void BOP_createXS(BOP_Mesh*    mesh, 
-	 BOP_Face*    faceA, 
-	 BOP_Face*    faceB, 
-	 BOP_Segment  sA, 
-	 BOP_Segment  sB, 
-	 bool         invert, 
-	 BOP_Segment* segments) {    
-	 BOP_createXS(mesh, faceA, faceB, faceA->getPlane(), faceB->getPlane(),
-		 sA, sB, invert, segments);
- }
+void BOP_createXS(BOP_Mesh*    mesh,
+                  BOP_Face*    faceA,
+                  BOP_Face*    faceB,
+                  BOP_Segment  sA,
+                  BOP_Segment  sB,
+                  bool         invert,
+                  BOP_Segment* segments) {
+	BOP_createXS(mesh, faceA, faceB, faceA->getPlane(), faceB->getPlane(),
+	             sA, sB, invert, segments);
+}
 
 /**
  * Computes the x-segment of two segments (the shared interval). The segments needs to have sA.m_cfg1 > 0 && sB.m_cfg1 > 0 .
@@ -1169,7 +1171,7 @@ BOP_Face *BOP_getOppositeFace(BOP_Mesh*  mesh,
 void BOP_removeOverlappedFaces(BOP_Mesh *mesh,  BOP_Faces *facesA,  BOP_Faces *facesB)
 {
 	for(unsigned int i=0;i<facesA->size();i++) {
-		BOP_Face *faceI = (*facesA)[i];       
+		BOP_Face *faceI = (*facesA)[i];
 		if (faceI->getTAG()==BROKEN) continue;
 		bool overlapped = false;
 		MT_Point3 p1 = mesh->getVertex(faceI->getVertex(0))->getPoint();
@@ -1178,21 +1180,23 @@ void BOP_removeOverlappedFaces(BOP_Mesh *mesh,  BOP_Faces *facesA,  BOP_Faces *f
 		for(unsigned int j=0;j<facesB->size();) {
 			BOP_Face *faceJ = (*facesB)[j];
 			if (faceJ->getTAG()!=BROKEN) {
-			  MT_Plane3 planeJ = faceJ->getPlane();
-			  if (BOP_containsPoint(planeJ,p1) && BOP_containsPoint(planeJ,p2) 
-			      && BOP_containsPoint(planeJ,p3)) {
-			    MT_Point3 q1 = mesh->getVertex(faceJ->getVertex(0))->getPoint();
-			    MT_Point3 q2 = mesh->getVertex(faceJ->getVertex(1))->getPoint();
-			    MT_Point3 q3 = mesh->getVertex(faceJ->getVertex(2))->getPoint();
-			    if (BOP_overlap(MT_Vector3(planeJ.x(),planeJ.y(),planeJ.z()),
-					    p1,p2,p3,q1,q2,q3)) {
-			      facesB->erase(facesB->begin()+j,facesB->begin()+(j+1));
-			      faceJ->setTAG(BROKEN);
-			      overlapped = true;
-			    }
-			    else j++;
-			  }
-			  else j++;
+				MT_Plane3 planeJ = faceJ->getPlane();
+				if (BOP_containsPoint(planeJ,p1) && BOP_containsPoint(planeJ,p2)
+				        && BOP_containsPoint(planeJ,p3))
+				{
+					MT_Point3 q1 = mesh->getVertex(faceJ->getVertex(0))->getPoint();
+					MT_Point3 q2 = mesh->getVertex(faceJ->getVertex(1))->getPoint();
+					MT_Point3 q3 = mesh->getVertex(faceJ->getVertex(2))->getPoint();
+					if (BOP_overlap(MT_Vector3(planeJ.x(),planeJ.y(),planeJ.z()),
+					                p1,p2,p3,q1,q2,q3))
+					{
+						facesB->erase(facesB->begin()+j,facesB->begin()+(j+1));
+						faceJ->setTAG(BROKEN);
+						overlapped = true;
+					}
+					else j++;
+				}
+				else j++;
 			}else j++;
 		}
 		if (overlapped) faceI->setTAG(OVERLAPPED);

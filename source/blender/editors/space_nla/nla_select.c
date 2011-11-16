@@ -376,8 +376,9 @@ static void nlaedit_select_leftright (bContext *C, bAnimContext *ac, short leftr
 	if (select_mode==SELECT_REPLACE) {
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		/* - deselect all other keyframes, so that just the newly selected remain
+		 * - channels aren't deselected, since we don't re-select any as a consequence
+		 */
 		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 	}
 	

@@ -677,7 +677,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 		}
 		else {
 			IDPropertyTemplate val = {0};
-			opptr->data= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+			opptr->data= IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 		}
 
 		return *opptr;
@@ -1370,7 +1370,7 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 	mt->draw(C, &menu);
 }
 
-static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN)
+static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN, const char *tip)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -1393,11 +1393,11 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 		w -= 10;
 
 	if(name[0] && icon)
-		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, "");
+		but= uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);
 	else if(icon)
-		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, "");
+		but= uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
 	else
-		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, "");
+		but= uiDefMenuBut(block, func, arg, name, 0, 0, w, h, tip);
 
 	if(argN) { /* ugly .. */
 		but->poin= (char*)but;
@@ -1430,7 +1430,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if(layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon= ICON_BLANK1;
 
-	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL);
+	ui_item_menu(layout, name, icon, ui_item_menutype_func, mt, NULL, mt->description);
 }
 
 /* label item */
@@ -1492,11 +1492,11 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 	w= ui_text_icon_width(layout, name, icon, 0);
 
 	if(icon && name[0])
-		uiDefIconTextButF(block, BUTM, 0, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconTextButF(block, BUT, argval, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 	else if(icon)
-		uiDefIconButF(block, BUTM, 0, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefIconButF(block, BUT, argval, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 	else
-		uiDefButF(block, BUTM, 0, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, argval, "");
+		uiDefButF(block, BUT, argval, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, 0, "");
 }
 
 /* separator item */
@@ -1514,7 +1514,7 @@ void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc 
 	if(!func)
 		return;
 
-	ui_item_menu(layout, name, icon, func, arg, NULL);
+	ui_item_menu(layout, name, icon, func, arg, NULL, "");
 }
 
 typedef struct MenuItemLevel {
@@ -1560,7 +1560,7 @@ void uiItemMenuEnumO(uiLayout *layout, const char *opname, const char *propname,
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl);
+	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, ot->description);
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
@@ -1593,7 +1593,7 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext= layout->root->opcontext;
 
-	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl);
+	ui_item_menu(layout, name, icon, menu_item_enum_rna_menu, NULL, lvl, RNA_property_description(prop));
 }
 
 /**************************** Layout Items ***************************/
@@ -2517,7 +2517,7 @@ static void ui_item_layout(uiItem *item)
 static void ui_layout_end(uiBlock *block, uiLayout *layout, int *x, int *y)
 {
 	if(layout->root->handlefunc)
-		uiBlockSetButmFunc(block, layout->root->handlefunc, layout->root->argv);
+		uiBlockSetHandleFunc(block, layout->root->handlefunc, layout->root->argv);
 
 	ui_item_estimate(&layout->item);
 	ui_item_layout(&layout->item);
@@ -2747,7 +2747,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 {
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+		op->properties= IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 	}
 
 	if(flag & UI_LAYOUT_OP_SHOW_TITLE) {
@@ -2766,6 +2766,8 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
 		PointerRNA op_ptr;
 		uiLayout *row;
+
+		uiLayoutGetBlock(layout)->ui_operator= op;
 
 		row= uiLayoutRow(layout, TRUE);
 		uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
@@ -2817,5 +2819,16 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 				uiButSetFocusOnEnter(CTX_wm_window(C), but);
 			}
 		}
+	}
+}
+
+/* this is a bit of a hack but best keep it in one place at least */
+MenuType *uiButGetMenuType(uiBut *but)
+{
+	if(but->menu_create_func == ui_item_menutype_func) {
+		return (MenuType *)but->poin;
+	}
+	else {
+		return NULL;
 	}
 }

@@ -212,8 +212,11 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     # Edge intersect test
     for ed in edgeLoopsSource:
         for seg in edgeLoopsTarget:
-            i = geometry.intersect_line_line_2d(\
-            seg[0], seg[1], SourceOffset+ed[0], SourceOffset+ed[1])
+            i = geometry.intersect_line_line_2d(seg[0],
+                                                seg[1],
+                                                SourceOffset+ed[0],
+                                                SourceOffset+ed[1],
+                                                )
             if i:
                 return 1 # LINE INTERSECTION
 
@@ -773,15 +776,16 @@ def main_consts():
     global ROTMAT_2D_POS_45D
     global RotMatStepRotation
 
-    ROTMAT_2D_POS_90D = Matrix.Rotation( radians(90.0), 2)
-    ROTMAT_2D_POS_45D = Matrix.Rotation( radians(45.0), 2)
+    ROTMAT_2D_POS_90D = Matrix.Rotation(radians(90.0), 2)
+    ROTMAT_2D_POS_45D = Matrix.Rotation(radians(45.0), 2)
 
     RotMatStepRotation = []
     rot_angle = 22.5 #45.0/2
     while rot_angle > 0.1:
-        RotMatStepRotation.append([\
-         Matrix.Rotation( radians(rot_angle), 2),\
-         Matrix.Rotation( radians(-rot_angle), 2)])
+        RotMatStepRotation.append([
+            Matrix.Rotation(radians(+rot_angle), 2),
+            Matrix.Rotation(radians(-rot_angle), 2),
+            ])
 
         rot_angle = rot_angle/2.0
 

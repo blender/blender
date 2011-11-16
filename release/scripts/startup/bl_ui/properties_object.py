@@ -267,12 +267,12 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         ob = context.object
 
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
-        
+
         col = split.column()
         col.prop(ob, "use_slow_parent")
         row = col.row()
@@ -280,7 +280,7 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         row.prop(ob, "slow_parent_offset", text="Offset")
 
 
-from bl_ui.properties_animviz import (
+from .properties_animviz import (
     MotionPathButtonsPanel,
     OnionSkinButtonsPanel,
     )

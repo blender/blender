@@ -427,9 +427,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_string(func, "prop_list", "", 0, "",
-	                     "Identifier of a string property in each data member, specifying which "
-	                     "of its properties should have a widget displayed in its row");
+	RNA_def_string(func, "prop_list", "", 0, "",
+	               "Identifier of a string property in each data member, specifying which "
+	               "of its properties should have a widget displayed in its row "
+	               "(format: \"propname1:propname2:propname3:...\")");
 	RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display", 0, INT_MAX);
 	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display", 0, INT_MAX);
 	RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use");
@@ -446,6 +447,26 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	
 	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "template_node_link", "uiTemplateNodeLink");
+	parm= RNA_def_pointer(func, "ntree", "NodeTree", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "template_node_view", "uiTemplateNodeView");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "ntree", "NodeTree", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "template_texture_user", "uiTemplateTextureUser");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func= RNA_def_function(srna, "template_keymap_item_properties", "uiTemplateKeymapItemProperties");

@@ -39,6 +39,7 @@ from project_info import (SIMPLE_PROJECTFILE,
                           # is_py,
                           cmake_advanced_info,
                           cmake_compiler_defines,
+                          project_name_get,
                           )
 
 
@@ -59,7 +60,11 @@ def create_nb_project_main():
         includes = list(set(includes) | set(dirname(f) for f in files if is_c_header(f)))
         includes.sort()
 
-        PROJECT_NAME = "Blender"
+        if 0:
+            PROJECT_NAME = "Blender"
+        else:
+            # be tricky, get the project name from SVN if we can!
+            PROJECT_NAME = project_name_get(SOURCE_DIR)
 
         # --------------- NB spesific
         defines = [("%s=%s" % cdef) if cdef[1] else cdef[0] for cdef in defines]

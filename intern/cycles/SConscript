@@ -1,0 +1,49 @@
+#!/usr/bin/python
+from os import path
+Import('env')
+
+cycles = env.Clone()
+
+cycles.Depends('../../source/blender/makesrna/intern/RNA_blender_cpp.h', 'makesrna')
+
+sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('kernel/*.cpp') + cycles.Glob('render/*.cpp') + cycles.Glob('subd/*.cpp') + cycles.Glob('util/*.cpp') + cycles.Glob('blender/*.cpp')
+
+sources.remove(path.join('util', 'util_view.cpp'))
+sources.remove(path.join('render', 'film_response.cpp'))
+sources.remove(path.join('kernel', 'kernel_optimized.cpp'))
+
+incs = [] 
+defs = []
+
+defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
+defs.append('CCL_NAMESPACE_END=}')
+
+defs.append('WITH_OPENCL')
+defs.append('WITH_MULTI')
+defs.append('WITH_CUDA')
+
+incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
+incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
+incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())
+incs.extend('#extern/glew/include'.split())
+incs.append(cycles['BF_OIIO_INC'])
+incs.append(cycles['BF_BOOST_INC'])
+incs.append(cycles['BF_PYTHON_INC'])
+
+# optimized kernel
+if env['WITH_BF_RAYOPTIMIZATION']:
+    optim_cxxflags = []
+
+    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+        optim_cxxflags.append('/Ox /Ot /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /EHsc /fp:fast'.split())
+    else:
+        optim_cxxflags.append('-ffast-math -msse -msse2 -msse3'.split())
+    
+    optim_defs = defs + ['WITH_OPTIMIZED_KERNEL']
+    optim_sources = [path.join('kernel', 'kernel_optimized.cpp')]
+
+    cycles_optim = cycles.Clone()
+    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[0], compileflags=[None], cxx_compileflags=optim_cxxflags)
+
+cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], compileflags=[None])
+

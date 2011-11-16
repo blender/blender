@@ -38,6 +38,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_cloth_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -58,6 +59,7 @@
 #include "BKE_blender.h"
 #include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
+#include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -120,7 +122,7 @@ static int ptcache_extra_datasize[] = {
 /* forward declerations */
 static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, unsigned int len);
 static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode);
-static int ptcache_file_write(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size);
+static int ptcache_file_write(PTCacheFile *pf, const void *f, unsigned int tot, unsigned int size);
 static int ptcache_file_read(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size);
 
 /* Common functions */
@@ -601,7 +603,7 @@ static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 
 	return ret;
 }
-static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
+static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
@@ -650,12 +652,92 @@ static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 			ptcache_file_compressed_read(pf, (unsigned char*)tcw, out_len);
 		}
 	}
+
+	return 1;
 }
 #else // WITH_SMOKE
-static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; };
-static void ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) {}
+static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; }
+static int  ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
 #endif // WITH_SMOKE
+
+static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
+{
+	DynamicPaintSurface *surface = (DynamicPaintSurface*)sd;
+
+	if (!surface->data) return 0;
+	else return surface->data->total_points;
+}
+
+#define DPAINT_CACHE_VERSION "1.01"
+
+static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
+{	
+	DynamicPaintSurface *surface = (DynamicPaintSurface*)dp_v;
+	int cache_compress = 1;
+
+	/* version header */
+	ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
+
+	if(surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
+		int total_points=surface->data->total_points;
+		unsigned int in_len;
+		unsigned char *out;
+
+		/* cache type */
+		ptcache_file_write(pf, &surface->type, 1, sizeof(int));
+
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
+			in_len = sizeof(PaintPoint)*total_points;
+		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
+			in_len = sizeof(float)*total_points;
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+			in_len = sizeof(PaintWavePoint)*total_points;
+		else return 0;
+
+		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
+
+		ptcache_file_compressed_write(pf, (unsigned char *)surface->data->type_data, in_len, out, cache_compress);
+		MEM_freeN(out);
+
+	}
+	return 1;
+}
+static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
+{
+	DynamicPaintSurface *surface = (DynamicPaintSurface*)dp_v;
+	char version[4];
+	
+	/* version header */
+	ptcache_file_read(pf, version, 1, sizeof(char)*4);
+	if (strncmp(version, DPAINT_CACHE_VERSION,4)) {printf("Dynamic Paint: Invalid cache version: %s!\n",version); return 0;}
+
+	if(surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
+		unsigned int data_len;
+		int surface_type;
+
+		/* cache type */
+		ptcache_file_read(pf, &surface_type, 1, sizeof(int));
+
+		if (surface_type != surface->type)
+			return 0;
+
+		/* read surface data */
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT)
+			data_len = sizeof(PaintPoint);
+		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+				 surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
+			data_len = sizeof(float);
+		else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+			data_len = sizeof(PaintWavePoint);
+		else return 0;
+
+		ptcache_file_compressed_read(pf, (unsigned char*)surface->data->type_data, data_len*surface->data->total_points);
+
+	}
+	return 1;
+}
 
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
@@ -809,6 +891,40 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	if(sds->wt)
 		pid->data_types |= (1<<BPHYS_DATA_SMOKE_HIGH);
 }
+
+void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSurface *surface)
+{
+
+	memset(pid, 0, sizeof(PTCacheID));
+
+	pid->ob= ob;
+	pid->calldata= surface;
+	pid->type= PTCACHE_TYPE_DYNAMICPAINT;
+	pid->cache= surface->pointcache;
+	pid->cache_ptr= &surface->pointcache;
+	pid->ptcaches= &surface->ptcaches;
+	pid->totpoint= pid->totwrite= ptcache_dynamicpaint_totpoint;
+
+	pid->write_point			= NULL;
+	pid->read_point				= NULL;
+	pid->interpolate_point		= NULL;
+
+	pid->write_stream			= ptcache_dynamicpaint_write;
+	pid->read_stream			= ptcache_dynamicpaint_read;
+
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
+
+	pid->data_types= BPHYS_DATA_DYNAMICPAINT;
+	pid->info_types= 0;
+
+	pid->stack_index = pid->cache->index;
+}
+
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
@@ -849,13 +965,26 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 			BKE_ptcache_id_from_cloth(pid, ob, (ClothModifierData*)md);
 			BLI_addtail(lb, pid);
 		}
-		if(md->type == eModifierType_Smoke) {
+		else if(md->type == eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
 				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 				BKE_ptcache_id_from_smoke(pid, ob, (SmokeModifierData*)md);
 				BLI_addtail(lb, pid);
+			}
+		}
+		else if(md->type == eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+			if(pmd->canvas)
+			{
+				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+
+				for (; surface; surface=surface->next) {
+					pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+					BKE_ptcache_id_from_dynamicpaint(pid, ob, surface);
+					BLI_addtail(lb, pid);
+				}
 			}
 		}
 	}
@@ -998,7 +1127,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		if (!BLI_exists(filename)) {
 			return NULL;
 		}
-		 fp = fopen(filename, "rb");
+		fp = fopen(filename, "rb");
 	} else if (mode==PTCACHE_FILE_WRITE) {
 		BLI_make_existing_file(filename); /* will create the dir if needs be, same as //textures is created */
 		fp = fopen(filename, "wb");
@@ -1132,7 +1261,7 @@ static int ptcache_file_read(PTCacheFile *pf, void *f, unsigned int tot, unsigne
 {
 	return (fread(f, size, tot, pf->fp) == tot);
 }
-static int ptcache_file_write(PTCacheFile *pf, void *f, unsigned int tot, unsigned int size)
+static int ptcache_file_write(PTCacheFile *pf, const void *f, unsigned int tot, unsigned int size)
 {
 	return (fwrite(f, size, tot, pf->fp) == tot);
 }
@@ -1590,7 +1719,8 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
 		ptcache_file_pointers_init(pf);
 
 		// we have stream reading here
-		pid->read_stream(pf, pid->calldata);
+		if (!pid->read_stream(pf, pid->calldata))
+			error = 1;
 	}
 
 	ptcache_file_close(pf);
@@ -1726,15 +1856,21 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra)
 		return 0;
 
 	if(cfra1) {
-		if(pid->read_stream)
-			ptcache_read_stream(pid, cfra1);
+		
+		if(pid->read_stream) {
+			if (!ptcache_read_stream(pid, cfra1))
+				return 0;
+		}
 		else if(pid->read_point)
 			ptcache_read(pid, cfra1);
 	}
 
 	if(cfra2) {
-		if(pid->read_stream)
-			ptcache_read_stream(pid, cfra2);
+		
+		if(pid->read_stream) {
+			if (!ptcache_read_stream(pid, cfra2))
+				return 0;
+		}
 		else if(pid->read_point) {
 			if(cfra1 && cfra2 && pid->interpolate_point)
 				ptcache_interpolate(pid, cfra, cfra1, cfra2);
@@ -1973,6 +2109,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 	char ext[MAX_PTCACHE_PATH];
 
 	if(!pid || !pid->cache || pid->cache->flag & PTCACHE_BAKED)
+		return;
+
+	if (pid->cache->flag & PTCACHE_IGNORE_CLEAR)
 		return;
 
 	sta = pid->cache->startframe;
@@ -2288,6 +2427,8 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			smokeModifier_reset(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES)
 			smokeModifier_reset_turbulence(pid->calldata);
+		else if(pid->type == PTCACHE_TYPE_DYNAMICPAINT)
+			dynamicPaint_clearSurface((DynamicPaintSurface*)pid->calldata);
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
@@ -2342,6 +2483,18 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 			{
 				BKE_ptcache_id_from_smoke(&pid, ob, (SmokeModifierData*)md);
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
+			}
+		}
+		if(md->type == eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+			if(pmd->canvas)
+			{
+				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+
+				for (; surface; surface=surface->next) {
+					BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
+					reset |= BKE_ptcache_id_reset(scene, &pid, mode);
+				}
 			}
 		}
 	}

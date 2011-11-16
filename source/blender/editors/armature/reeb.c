@@ -545,12 +545,12 @@ static void verifyBucketsArc(ReebGraph *UNUSED(rg), ReebArc *arc)
 			}
 		}
 		
-		if (ceil(head->weight) != arc->buckets[0].val)
+		if (ceilf(head->weight) != arc->buckets[0].val)
 		{
 			printArc(arc);
 			printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
 		}
-		if (floor(tail->weight) != arc->buckets[arc->bcount - 1].val)
+		if (floorf(tail->weight) != arc->buckets[arc->bcount - 1].val)
 		{
 			printArc(arc);
 			printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
@@ -3684,7 +3684,7 @@ void REEB_draw()
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
-			interp_v3_v3v3(vec, arc->head->p, arc->tail->p, 0.5f);
+			mid_v3_v3v3(vec, arc->head->p, arc->tail->p);
 			s += sprintf(s, "%i (%i-%i-%i) ", i, arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 		
 			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)

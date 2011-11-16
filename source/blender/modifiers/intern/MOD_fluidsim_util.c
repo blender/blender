@@ -69,6 +69,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 	if(fluidmd)
 	{
 		FluidsimSettings *fss = MEM_callocN(sizeof(FluidsimSettings), "fluidsimsettings");
+		int surfdataPathMax = FILE_MAX;
 		
 		fluidmd->fss = fss;
 		
@@ -104,7 +105,22 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
 		/*  elubie: changed this to default to the same dir as the render output
 		to prevent saving to C:\ on Windows */
-		BLI_strncpy(fss->surfdataPath, BLI_temporary_dir(), FILE_MAX);
+		if (G.relbase_valid) {		/* is the .blend saved? */
+			/* subfolder next to saved file */
+			BLI_strncpy(fss->surfdataPath, "//fluid_cache", surfdataPathMax);
+			BLI_add_slash(fss->surfdataPath);
+		}
+		else {
+			/* subfolder in temp. directory */
+			BLI_strncpy(fss->surfdataPath, BLI_temporary_dir(), surfdataPathMax);
+			surfdataPathMax -= strlen(fss->surfdataPath);
+			if (surfdataPathMax > 1) {
+				BLI_strncpy(fss->surfdataPath+strlen(fss->surfdataPath), "fluid_cache", surfdataPathMax);
+				surfdataPathMax -= strlen("fluid_cache");
+				if (surfdataPathMax > 1)
+					BLI_add_slash(fss->surfdataPath);
+			}
+		}
 
 		// first init of bounding box
 		// no bounding box needed

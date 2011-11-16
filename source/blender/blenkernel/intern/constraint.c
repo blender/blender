@@ -3936,15 +3936,15 @@ static bConstraintTypeInfo CTI_PIVOT = {
 static void followtrack_new_data (void *cdata)
 {
 	bFollowTrackConstraint *data= (bFollowTrackConstraint *)cdata;
-
+	
 	data->clip= NULL;
-	data->flag|= FOLLOWTRACK_ACTIVECLIP;
+	data->flag |= FOLLOWTRACK_ACTIVECLIP;
 }
 
 static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
 	bFollowTrackConstraint *data= con->data;
-
+	
 	func(con, (ID**)&data->clip, userdata);
 }
 
@@ -3954,104 +3954,105 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	bFollowTrackConstraint *data= con->data;
 	MovieClip *clip= data->clip;
 	MovieTrackingTrack *track;
-
-	if(data->flag&FOLLOWTRACK_ACTIVECLIP)
+	
+	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
 		clip= scene->clip;
-
-	if(!clip || !data->track[0])
+	
+	if (!clip || !data->track[0])
 		return;
-
+	
 	track= BKE_tracking_named_track(&clip->tracking, data->track);
-
-	if(!track)
+	
+	if (!track)
 		return;
-
-	if(data->flag&FOLLOWTRACK_USE_3D_POSITION) {
-		if(track->flag&TRACK_HAS_BUNDLE) {
+	
+	if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
+		if (track->flag & TRACK_HAS_BUNDLE) {
 			float pos[3], mat[4][4], obmat[4][4];
-
+			
 			copy_m4_m4(obmat, cob->matrix);
-
+			
 			BKE_get_tracking_mat(cob->scene, NULL, mat);
 			mul_v3_m4v3(pos, mat, track->bundle_pos);
-
-			cob->matrix[3][0]+= pos[0];
-			cob->matrix[3][1]+= pos[1];
-			cob->matrix[3][2]+= pos[2];
+			
+			cob->matrix[3][0] += pos[0];
+			cob->matrix[3][1] += pos[1];
+			cob->matrix[3][2] += pos[2];
 		}
-	} else {
+	} 
+	else {
 		Object *camob= cob->scene->camera;
-
-		if(camob) {
+		
+		if (camob) {
 			MovieClipUser user;
 			MovieTrackingMarker *marker;
 			float vec[3], disp[3], axis[3], mat[4][4];
 			float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-			float sensor_x, sensor_y, lens, len, d, ortho_scale= 1.f;
-
+			float sensor_x, sensor_y, lens, len, d, ortho_scale= 1.0f;
+			
 			where_is_object_mat(scene, camob, mat);
-
+			
 			/* camera axis */
-			vec[0]= 0.f;
-			vec[1]= 0.f;
-			vec[2]= 1.f;
+			vec[0]= 0.0f;
+			vec[1]= 0.0f;
+			vec[2]= 1.0f;
 			mul_v3_m4v3(axis, mat, vec);
-
+			
 			/* distance to projection plane */
 			copy_v3_v3(vec, cob->matrix[3]);
 			sub_v3_v3(vec, mat[3]);
 			project_v3_v3v3(disp, vec, axis);
-
+			
 			len= len_v3(disp);
-
-			if(len>FLT_EPSILON) {
+			
+			if (len > FLT_EPSILON) {
 				float pos[2], rmat[4][4], shiftx= 0.0f, shifty= 0.0f, clipsta= 0.0f, clipend= 0.0f;
 				short is_ortho= 0, sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 				Camera *cam= NULL;
-
+				
 				user.framenr= scene->r.cfra;
 				marker= BKE_tracking_get_marker(track, user.framenr);
-
+				
 				add_v2_v2v2(pos, marker->pos, track->offset);
-
+				
 				object_camera_intrinsics(camob, &cam, &is_ortho, &shiftx, &shifty, &clipsta, &clipend, &lens, &sensor_x, &sensor_y, &sensor_fit);
-
-				if(is_ortho) {
-					if(cam)
+				
+				if (is_ortho) {
+					if (cam)
 						ortho_scale= cam->ortho_scale;
-
+					
 					vec[0]= ortho_scale * (pos[0]-0.5f+shiftx);
 					vec[1]= ortho_scale * (pos[1]-0.5f+shifty);
 					vec[2]= -len;
-
-					if(aspect>1.f) vec[1]/= aspect;
-					else vec[0]*= aspect;
-
+					
+					if (aspect > 1.0f) vec[1] /= aspect;
+					else vec[0] *= aspect;
+					
 					mul_v3_m4v3(disp, camob->obmat, vec);
-
+					
 					copy_m4_m4(rmat, camob->obmat);
 					zero_v3(rmat[3]);
 					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
-
+					
 					copy_v3_v3(cob->matrix[3], disp);
 				}
 				else {
-					d= (len*sensor_x) / (2.f*lens);
-
-					vec[0]= d*(2.f*(pos[0]+shiftx)-1.f);
-					vec[1]= d*(2.f*(pos[1]+shifty)-1.f);
+					d= (len*sensor_x) / (2.0f*lens);
+					
+					vec[0]= d*(2.0f*(pos[0]+shiftx)-1.0f);
+					vec[1]= d*(2.0f*(pos[1]+shifty)-1.0f);
 					vec[2]= -len;
-
-					if(aspect>1.f) vec[1]/= aspect;
-					else vec[0]*= aspect;
-
+					
+					if (aspect > 1.0f) vec[1] /= aspect;
+					else vec[0] *= aspect;
+					
 					mul_v3_m4v3(disp, camob->obmat, vec);
-
+					
 					/* apply camera rotation so Z-axis would be co-linear */
 					copy_m4_m4(rmat, camob->obmat);
 					zero_v3(rmat[3]);
 					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
-
+					
 					copy_v3_v3(cob->matrix[3], disp);
 				}
 			}
@@ -4080,15 +4081,15 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 static void camerasolver_new_data (void *cdata)
 {
 	bCameraSolverConstraint *data= (bCameraSolverConstraint *)cdata;
-
-	data->clip= NULL;
-	data->flag|= CAMERASOLVER_ACTIVECLIP;
+	
+	data->clip = NULL;
+	data->flag |= CAMERASOLVER_ACTIVECLIP;
 }
 
 static void camerasolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
 	bCameraSolverConstraint *data= con->data;
-
+	
 	func(con, (ID**)&data->clip, userdata);
 }
 
@@ -4097,15 +4098,15 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 	Scene *scene= cob->scene;
 	bCameraSolverConstraint *data= con->data;
 	MovieClip *clip= data->clip;
-
-	if(data->flag&CAMERASOLVER_ACTIVECLIP)
+	
+	if (data->flag & CAMERASOLVER_ACTIVECLIP)
 		clip= scene->clip;
-
-	if(clip) {
+	
+	if (clip) {
 		float mat[4][4], obmat[4][4];
-
+		
 		BKE_tracking_get_interpolated_camera(&clip->tracking, scene->r.cfra, mat);
-
+		
 		copy_m4_m4(obmat, cob->matrix);
 		mul_m4_m4m4(cob->matrix, mat, obmat);
 	}

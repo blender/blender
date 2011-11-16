@@ -25,6 +25,7 @@
 
 set(INC 
 	..
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -93,6 +94,10 @@ endif()
 
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
+endif()
+
+if(WITH_CYCLES)
+	add_definitions(-DWITH_CYCLES)
 endif()
 
 if(WITH_INTERNATIONAL)

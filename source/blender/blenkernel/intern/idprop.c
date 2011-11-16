@@ -40,8 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
-
 /* IDPropertyTemplate is a union in DNA_ID.h */
 
 /*local size table.*/
@@ -193,7 +191,7 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 
 		for(a=prop->len; a<newlen; a++) {
 			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-			array[a]= IDP_New(IDP_GROUP, val, "IDP_ResizeArray group");
+			array[a]= IDP_New(IDP_GROUP, &val, "IDP_ResizeArray group");
 		}
 	}
 	else {
@@ -349,17 +347,20 @@ static IDProperty *IDP_CopyString(IDProperty *prop)
 
 void IDP_AssignString(IDProperty *prop, const char *st, int maxlen)
 {
-	int stlen;
-
-	stlen = strlen(st);
+	int stlen = strlen(st);
 
 	if(maxlen > 0 && maxlen < stlen)
 		stlen= maxlen;
 
-	stlen++; /* make room for null byte */
-
-	IDP_ResizeArray(prop, stlen);
-	BLI_strncpy(prop->data.pointer, st, stlen);
+	if (prop->subtype == IDP_STRING_SUB_BYTE) {
+		IDP_ResizeArray(prop, stlen);
+		memcpy(prop->data.pointer, st, stlen);
+	}
+	else {
+		stlen++; /* make room for null byte */
+		IDP_ResizeArray(prop, stlen);
+		BLI_strncpy(prop->data.pointer, st, stlen);
+	}
 }
 
 void IDP_ConcatStringC(IDProperty *prop, const char *st)
@@ -461,7 +462,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 	IDProperty *loop, *prop;
 	for (prop=src->data.group.first; prop; prop=prop->next) {
 		for (loop=dest->data.group.first; loop; loop=loop->next) {
-			if (BSTR_EQ(loop->name, prop->name)) {
+			if (strcmp(loop->name, prop->name) == 0) {
 				IDProperty *copy = IDP_CopyProperty(prop);
 
 				BLI_insertlink(&dest->data.group, loop, copy);
@@ -632,7 +633,7 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	else if(prop1->type == IDP_DOUBLE)
 		return (IDP_Double(prop1) == IDP_Double(prop2));
 	else if(prop1->type == IDP_STRING)
-		return BSTR_EQ(IDP_String(prop1), IDP_String(prop2));
+		return ((prop1->len == prop2->len) && strncmp(IDP_String(prop1), IDP_String(prop2), prop1->len) == 0);
 	else if(prop1->type == IDP_ARRAY) {
 		if(prop1->len == prop2->len && prop1->subtype == prop2->subtype)
 			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype]*prop1->len);
@@ -670,32 +671,33 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	return 1;
 }
 
-IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
+/* 'val' is never NULL, dont check */
+IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name)
 {
 	IDProperty *prop=NULL;
 
 	switch (type) {
 		case IDP_INT:
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty int");
-			prop->data.val = val.i;
+			prop->data.val = val->i;
 			break;
 		case IDP_FLOAT:
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
-			*(float*)&prop->data.val = val.f;
+			*(float*)&prop->data.val = val->f;
 			break;
 		case IDP_DOUBLE:
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
-			*(double*)&prop->data.val = val.d;
+			*(double*)&prop->data.val = val->d;
 			break;		
 		case IDP_ARRAY:
 		{
 			/*for now, we only support float and int and double arrays*/
-			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE || val.array.type == IDP_GROUP) {
+			if (val->array.type == IDP_FLOAT || val->array.type == IDP_INT || val->array.type == IDP_DOUBLE || val->array.type == IDP_GROUP) {
 				prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
-				prop->subtype = val.array.type;
-				if (val.array.len)
-					prop->data.pointer = MEM_callocN(idp_size_table[val.array.type]*val.array.len, "id property array");
-				prop->len = prop->totallen = val.array.len;
+				prop->subtype = val->array.type;
+				if (val->array.len)
+					prop->data.pointer = MEM_callocN(idp_size_table[val->array.type]*val->array.len, "id property array");
+				prop->len = prop->totallen = val->array.len;
 				break;
 			} else {
 				return NULL;
@@ -703,18 +705,36 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 		}
 		case IDP_STRING:
 		{
-			char *st = val.str;
+			const char *st = val->string.str;
 
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
-			if (st == NULL) {
-				prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
-				prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
-				prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
-			} else {
-				int stlen = strlen(st) + 1;
-				prop->data.pointer = MEM_mallocN(stlen, "id property string 2");
-				prop->len = prop->totallen = stlen;
-				memcpy(prop->data.pointer, st, stlen);
+			if (val->string.subtype == IDP_STRING_SUB_BYTE) {
+				/* note, intentionally not null terminated */
+				if (st == NULL) {
+					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
+					prop->len = 0;
+				}
+				else {
+					prop->data.pointer = MEM_mallocN(val->string.len, "id property string 2");
+					prop->len = prop->totallen = val->string.len;
+					memcpy(prop->data.pointer, st, val->string.len);
+				}
+				prop->subtype= IDP_STRING_SUB_BYTE;
+			}
+			else {
+				if (st == NULL) {
+					prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
+					prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
+				}
+				else {
+					int stlen = strlen(st) + 1;
+					prop->data.pointer = MEM_mallocN(stlen, "id property string 3");
+					prop->len = prop->totallen = stlen;
+					memcpy(prop->data.pointer, st, stlen);
+				}
+				prop->subtype= IDP_STRING_SUB_UTF8;
 			}
 			break;
 		}

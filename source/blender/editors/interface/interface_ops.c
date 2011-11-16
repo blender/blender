@@ -494,7 +494,7 @@ struct uiEditSourceButStore {
 } uiEditSourceButStore;
 
 /* should only ever be set while the edit source operator is running */
-struct uiEditSourceStore *ui_editsource_info= NULL;
+static struct uiEditSourceStore *ui_editsource_info= NULL;
 
 int  UI_editsource_enable_check(void)
 {

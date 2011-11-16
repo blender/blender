@@ -70,12 +70,12 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
-#include "IMB_moviecache.h"
 #include "BKE_image.h"	/* openanim */
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_moviecache.h"
 
 /*********************** movieclip buffer loaders *************************/
 
@@ -154,15 +154,12 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 
 	/* movieclips always points to first image from sequence,
 	   autoguess offset for now. could be something smarter in the future */
-	offset= BKE_image_sequence_first_num(clip->name);
+	offset= sequence_guess_offset(clip->name, strlen(head), numlen);
 
-	if(numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
-	else strncpy(name, clip->name, sizeof(name));
+	if (numlen) BLI_stringenc(name, head, tail, numlen, offset+framenr-1);
+	else        BLI_strncpy(name, clip->name, sizeof(clip->name));
 
-	if(clip->id.lib)
-		BLI_path_abs(name, clip->id.lib->filepath);
-	else
-		BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, ID_BLEND_PATH(G.main, &clip->id));
 }
 
 /* supposed to work with sequences only */
@@ -174,7 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
 	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
-		strcpy(dir, clip->proxy.dir);
+		BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
 	} else {
 		BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
 	}
@@ -194,15 +191,13 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 {
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
-	int loadflag, size, undistort;
+	int loadflag, use_proxy= 0;
 
-	size= rendersize_to_number(user->render_size);
-
-	undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
-
-	if((flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+	use_proxy= (flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
+	if(use_proxy) {
+		int undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
-	else
+	} else
 		get_sequence_fname(clip, framenr, name);
 
 	loadflag= IB_rect|IB_multilayer;
@@ -222,11 +217,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 	if(!clip->anim) {
 		BLI_strncpy(str, clip->name, FILE_MAX);
-
-		if(clip->id.lib)
-			BLI_path_abs(str, clip->id.lib->filepath);
-		else
-			BLI_path_abs(str, G.main->name);
+		BLI_path_abs(str, ID_BLEND_PATH(G.main, &clip->id));
 
 		/* FIXME: make several stream accessible in image editor, too */
 		clip->anim= openanim(str, IB_rect, 0);
@@ -234,7 +225,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		if(clip->anim) {
 			if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 				char dir[FILE_MAX];
-				strcpy(dir, clip->proxy.dir);
+				BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
 				BLI_path_abs(dir, G.main->name);
 				IMB_anim_set_index_dir(clip->anim, dir);
 			}
@@ -243,7 +234,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 	if(clip->anim) {
 		int dur;
-		int fra= framenr-1;
+		int fra;
 
 		dur= IMB_anim_get_duration(clip->anim, tc);
 		fra= framenr-1;
@@ -325,7 +316,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 	if(clip->cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr= user?user->framenr:clip->lastframe;
+		key.framenr= user->framenr;
 
 		if(flag&MCLIP_USE_PROXY) {
 			key.proxy= rendersize_to_proxy(user, flag);
@@ -353,7 +344,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 				moviecache_hashcmp, moviecache_keydata);
 	}
 
-	key.framenr= user?user->framenr:clip->lastframe;
+	key.framenr= user->framenr;
 
 	if(flag&MCLIP_USE_PROXY) {
 		key.proxy= rendersize_to_proxy(user, flag);
@@ -485,9 +476,6 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 
 static int need_undistorted_cache(MovieClipUser *user, int flag)
 {
-	if (!user)
-		return 0;
-
 	/* only full undistorted render can be used as on-fly undistorting image */
 	if(flag&MCLIP_USE_PROXY) {
 		if(user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL || (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT)==0)
@@ -502,7 +490,7 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 {
 	MovieClipCache *cache= clip->cache;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 
 	/* no cache or no cached undistorted image */
 	if(!clip->cache || !clip->cache->undistibuf)
@@ -524,7 +512,7 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 	return cache->undistibuf;
 }
 
-static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distoriton, ImBuf *ibuf)
+static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distortion, ImBuf *ibuf)
 {
 	ImBuf *undistibuf;
 
@@ -532,12 +520,12 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	        otherwise, undistorted proxy can be darker than it should */
 	imb_freerectfloatImBuf(ibuf);
 
-	if(distoriton)
-		undistibuf= BKE_tracking_distortion_exec(distoriton, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
+	if(distortion)
+		undistibuf= BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
 		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if(undistibuf->userflags|= IB_RECT_INVALID) {
+	if(undistibuf->userflags&IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
 		IMB_rect_from_float(undistibuf);
 	}
@@ -554,7 +542,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 
 	copy_v2_v2(cache->principal, camera->principal);
 	copy_v3_v3(&cache->k1, &camera->k1);
-	cache->undist_framenr= user?user->framenr:clip->lastframe;
+	cache->undist_framenr= user->framenr;
 
 	if(cache->undistibuf)
 		IMB_freeImBuf(cache->undistibuf);
@@ -575,7 +563,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
@@ -593,11 +581,11 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 		ibuf= get_imbuf_cache(clip, user, clip->flag);
 
 	if(!ibuf) {
-		int use_sequence= 1;
+		int use_sequence= 0;
 
 		/* undistorted proxies for movies should be read as image sequence */
-		use_sequence&= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
-		use_sequence&= user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL;
+		use_sequence= (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT) &&
+			(user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL);
 
 		if(clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
 			ibuf= movieclip_load_sequence_file(clip, user, framenr, clip->flag);
@@ -629,7 +617,7 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	ImBuf *ibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
@@ -675,7 +663,7 @@ ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int fla
 ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
 {
 	ImBuf *ibuf, *stableibuf= NULL;
-	int framenr= user?user->framenr:clip->lastframe;
+	int framenr= user->framenr;
 
 	ibuf= BKE_movieclip_get_ibuf(clip, user);
 
@@ -756,7 +744,7 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
-	if(!user || user->framenr==clip->lastframe) {
+	if(user->framenr==clip->lastframe) {
 		*width= clip->lastsize[0];
 		*height= clip->lastsize[1];
 	} else {

@@ -1651,7 +1651,7 @@ static void fill_quad_single(EditMesh *em, EditFace *efa, struct GHash *gh, int 
 		facecopy(em, efa,hold);
 		if(i+1 != (vertsize-1)/2) {
 			if(seltype == SUBDIV_SELECT_INNER) {
-				 hold->e3->f2 |= EDGEINNER;
+				hold->e3->f2 |= EDGEINNER;
 			}
 		}
 	}
@@ -1720,7 +1720,7 @@ static void fill_tri_single(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 		hold = addfacelist(em, verts[i],verts[i+1],v[op],NULL,NULL,NULL);
 		if(i+1 != vertsize-1) {
 			if(seltype == SUBDIV_SELECT_INNER) {
-				 hold->e2->f2 |= EDGEINNER;
+				hold->e2->f2 |= EDGEINNER;
 			}
 		}
 		facecopy(em, efa,hold);
@@ -2369,7 +2369,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	}
 	// Clean up our dynamic multi-dim array
 	for(i=0;i<numcuts+2;i++) {
-	   MEM_freeN(innerverts[i]);
+		MEM_freeN(innerverts[i]);
 	}
 	MEM_freeN(innerverts);
 }

@@ -24,6 +24,9 @@ NEW_CSG='false'
 
 if env['WITH_BF_FLUID']:
     SConscript(['elbeem/SConscript'])
+    
+if env['WITH_BF_CYCLES']:
+    SConscript(['cycles/SConscript'])
 
 if NEW_CSG=='false':
     SConscript(['bsp/SConscript'])

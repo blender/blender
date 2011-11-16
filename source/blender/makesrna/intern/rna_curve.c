@@ -1394,11 +1394,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* not supported yet
-	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-	 RNA_def_property_float(prop, NULL, "rot");
-	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	 RNA_def_property_editable_func(prop, texspace_editable);
-	 RNA_def_property_update(prop, 0, "rna_Curve_update_data");*/
+	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	RNA_def_property_float(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	RNA_def_property_editable_func(prop, texspace_editable);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	*/
 	
 	prop= RNA_def_property(srna, "use_uv_as_generated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);

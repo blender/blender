@@ -98,8 +98,8 @@ static int checkAppleVideoCard(void)
 		StandardAlert (   kAlertStopAlert, (ConstStr255Param) &inError, (ConstStr255Param)&inText,NULL,&junkHit);
 		abort();
 	}
-CGLDestroyRendererInfo (rend);
-return 0;
+	CGLDestroyRendererInfo (rend);
+	return 0;
 }
 
 static void getMacAvailableBounds(short *top, short *left, short *bottom, short *right) 

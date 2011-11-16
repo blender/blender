@@ -50,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -961,7 +962,6 @@ static ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 
 void copy_object_particlesystems(Object *obn, Object *ob)
 {
-	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys, *npsys;
 	ModifierData *md;
 
@@ -974,9 +974,27 @@ void copy_object_particlesystems(Object *obn, Object *ob)
 		/* need to update particle modifiers too */
 		for(md=obn->modifiers.first; md; md=md->next) {
 			if(md->type==eModifierType_ParticleSystem) {
-				psmd= (ParticleSystemModifierData*)md;
+				ParticleSystemModifierData *psmd= (ParticleSystemModifierData*)md;
 				if(psmd->psys==psys)
 					psmd->psys= npsys;
+			}
+			else if(md->type==eModifierType_DynamicPaint) {
+				DynamicPaintModifierData *pmd= (DynamicPaintModifierData*)md;
+				if (pmd->brush) {
+					if(pmd->brush->psys==psys) {
+						pmd->brush->psys= npsys;
+					}
+				}
+			}
+			else if (md->type==eModifierType_Smoke) {
+				SmokeModifierData *smd = (SmokeModifierData*) md;
+
+				if(smd->type==MOD_SMOKE_TYPE_FLOW) {
+					if (smd->flow) {
+						if (smd->flow->psys == psys)
+							smd->flow->psys= npsys;
+					}
+				}
 			}
 		}
 	}
@@ -1495,6 +1513,71 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 			if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, tmat);
 			else			mat3_to_eulO(ob->rot, ob->rotmode, tmat);
 		}
+	}
+}
+
+void object_tfm_protected_backup(const Object *ob,
+                                 ObjectTfmProtectedChannels *obtfm)
+{
+
+#define TFMCPY(   _v) (obtfm->_v = ob->_v)
+#define TFMCPY3D( _v) copy_v3_v3(obtfm->_v, ob->_v)
+#define TFMCPY4D( _v) copy_v4_v4(obtfm->_v, ob->_v)
+
+	TFMCPY3D(loc);
+	TFMCPY3D(dloc);
+	TFMCPY3D(size);
+	TFMCPY3D(dsize);
+	TFMCPY3D(rot);
+	TFMCPY3D(drot);
+	TFMCPY4D(quat);
+	TFMCPY4D(dquat);
+	TFMCPY3D(rotAxis);
+	TFMCPY3D(drotAxis);
+	TFMCPY(rotAngle);
+	TFMCPY(drotAngle);
+
+#undef TFMCPY
+#undef TFMCPY3D
+#undef TFMCPY4D
+
+}
+
+void object_tfm_protected_restore(Object *ob,
+                                  const ObjectTfmProtectedChannels *obtfm,
+                                  const short protectflag)
+{
+	unsigned int i;
+
+	for (i= 0; i < 3; i++) {
+		if (protectflag & (OB_LOCK_LOCX<<i)) {
+			ob->loc[i]=  obtfm->loc[i];
+			ob->dloc[i]= obtfm->dloc[i];
+		}
+
+		if (protectflag & (OB_LOCK_SCALEX<<i)) {
+			ob->size[i]=  obtfm->size[i];
+			ob->dsize[i]= obtfm->dsize[i];
+		}
+
+		if (protectflag & (OB_LOCK_ROTX<<i)) {
+			ob->rot[i]=  obtfm->rot[i];
+			ob->drot[i]= obtfm->drot[i];
+
+			ob->quat[i + 1]=  obtfm->quat[i + 1];
+			ob->dquat[i + 1]= obtfm->dquat[i + 1];
+
+			ob->rotAxis[i]=  obtfm->rotAxis[i];
+			ob->drotAxis[i]= obtfm->drotAxis[i];
+		}
+	}
+
+	if ((protectflag & OB_LOCK_ROT4D) && (protectflag & OB_LOCK_ROTW)) {
+		ob->quat[0]=  obtfm->quat[0];
+		ob->dquat[0]= obtfm->dquat[0];
+
+		ob->rotAngle=  obtfm->rotAngle;
+		ob->drotAngle= obtfm->drotAngle;
 	}
 }
 
@@ -2266,6 +2349,69 @@ int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 	}
 
 	return ok;
+}
+
+void BKE_object_foreach_display_point(
+        Object *ob, float obmat[4][4],
+        void (*func_cb)(const float[3], void *), void *user_data)
+{
+	float co[3];
+
+	if (ob->derivedFinal) {
+		DerivedMesh *dm= ob->derivedFinal;
+		MVert *mv= dm->getVertArray(dm);
+		int totvert= dm->getNumVerts(dm);
+		int i;
+
+		for (i= 0; i < totvert; i++, mv++) {
+			mul_v3_m4v3(co, obmat, mv->co);
+			func_cb(co, user_data);
+		}
+	}
+	else if (ob->disp.first) {
+		DispList *dl;
+
+		for (dl=ob->disp.first; dl; dl=dl->next) {
+			float *v3= dl->verts;
+			int totvert= dl->nr;
+			int i;
+
+			for (i= 0; i < totvert; i++, v3+=3) {
+				mul_v3_m4v3(co, obmat, v3);
+				func_cb(co, user_data);
+			}
+		}
+	}
+}
+
+void BKE_scene_foreach_display_point(
+        Scene *scene, View3D *v3d, const short flag,
+        void (*func_cb)(const float[3], void *), void *user_data)
+{
+	Base *base;
+	Object *ob;
+
+	for(base= FIRSTBASE; base; base = base->next) {
+		if(BASE_VISIBLE(v3d, base) && (base->flag & flag) == flag) {
+			ob= base->object;
+
+			if ((ob->transflag & OB_DUPLI)==0) {
+				BKE_object_foreach_display_point(ob, ob->obmat, func_cb, user_data);
+			}
+			else {
+				ListBase *lb;
+				DupliObject *dob;
+
+				lb= object_duplilist(scene, ob);
+				for(dob= lb->first; dob; dob= dob->next) {
+					if(dob->no_draw == 0) {
+						BKE_object_foreach_display_point(dob->ob, dob->mat, func_cb, user_data);
+					}
+				}
+				free_object_duplilist(lb);	/* does restore */
+			}
+		}
+	}
 }
 
 /* copied from DNA_object_types.h */

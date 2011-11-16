@@ -79,6 +79,7 @@ typedef enum {
 	UI_WTYPE_MENU_RADIO,
 	UI_WTYPE_MENU_ICON_RADIO,
 	UI_WTYPE_MENU_POINTER_LINK,
+	UI_WTYPE_MENU_NODE_LINK,
 	
 	UI_WTYPE_PULLDOWN,
 	UI_WTYPE_MENU_ITEM,
@@ -95,11 +96,6 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR,
 	
 } uiWidgetTypeEnum;
-
-
-
-#define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	128
 
 /* panel limits */
 #define UI_PANEL_MINX	100
@@ -318,7 +314,10 @@ struct uiBlock {
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-	
+
+	struct wmOperator *ui_operator;// use so presets can find the operator,
+								// across menus and from nested popups which fail for operator context.
+
 	void *evil_C;				// XXX hack for dynamic operator enums
 
 	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.

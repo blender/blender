@@ -555,8 +555,8 @@ static int view_zoom_inout_invoke(bContext *C, wmOperator *op, wmEvent *event, i
 
 		ED_space_clip_size(sc, &width, &height);
 
-		sc->xof+= ((co[0]-0.5)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
-		sc->yof+= ((co[1]-0.5)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->xof+= ((co[0]-0.5f)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->yof+= ((co[1]-0.5f)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
 	}
 
 	return OPERATOR_FINISHED;
@@ -929,7 +929,7 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Rebuild Proxy and Timecode Indices";
 	ot->idname= "CLIP_OT_rebuild_proxy";
-	ot->description="Rebuild all selected proxies and timecode indeces using the job system";
+	ot->description= "Rebuild all selected proxies and timecode indeces in the background";
 
 	/* api callbacks */
 	ot->exec= sequencer_rebuild_proxy_exec;
@@ -970,7 +970,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Clip Mode";
-	ot->description = "Sets the clip interaction mode";
+	ot->description = "Set the clip interaction mode";
 	ot->idname= "CLIP_OT_mode_set";
 
 	/* api callbacks */

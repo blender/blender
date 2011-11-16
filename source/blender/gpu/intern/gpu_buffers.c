@@ -468,11 +468,11 @@ void GPU_drawobject_free(DerivedMesh *dm)
 }
 
 typedef void (*GPUBufferCopyFunc)(DerivedMesh *dm, float *varray, int *index,
-				  int *mat_orig_to_new, void *user_data);
+                                  int *mat_orig_to_new, void *user_data);
 
 static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
-				   int vector_size, int size, GLenum target,
-				   void *user, GPUBufferCopyFunc copy_f)
+                                   int vector_size, int size, GLenum target,
+                                   void *user, GPUBufferCopyFunc copy_f)
 {
 	GPUBufferPool *pool;
 	GPUBuffer *buffer;
@@ -546,8 +546,8 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 			while(uploaded == GL_FALSE) {
 				(*copy_f)(dm, varray, cur_index_per_mat, mat_orig_to_new, user);
 				/* glUnmapBuffer returns GL_FALSE if
-				   the data store is corrupted; retry
-				   in that case */
+				 * the data store is corrupted; retry
+				 * in that case */
 				uploaded = glUnmapBufferARB(target);
 			}
 		}
@@ -924,8 +924,8 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 	}
 
 	buf = gpu_buffer_setup(dm, dm->drawObject, ts->vector_size,
-			       gpu_buffer_size_from_type(dm, type),
-			       ts->gl_buffer_type, user_data, ts->copy);
+	                       gpu_buffer_size_from_type(dm, type),
+	                       ts->gl_buffer_type, user_data, ts->copy);
 
 	return buf;
 }
@@ -1144,8 +1144,8 @@ void GPU_buffer_unbind(void)
 		}
 	}
 	GLStates &= !(GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_NORMAL_STATE |
-		      GPU_BUFFER_TEXCOORD_STATE | GPU_BUFFER_COLOR_STATE |
-		      GPU_BUFFER_ELEMENT_STATE);
+	              GPU_BUFFER_TEXCOORD_STATE | GPU_BUFFER_COLOR_STATE |
+	              GPU_BUFFER_ELEMENT_STATE);
 
 	for(i = 0; i < MAX_GPU_ATTRIB_DATA; i++) {
 		if(attribData[i].index != -1) {
@@ -1310,8 +1310,8 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers_v, MVert *mvert,
 		/* Build VBO */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-				 sizeof(VertexBufferFormat) * totvert,
-				 NULL, GL_STATIC_DRAW_ARB);
+		                sizeof(VertexBufferFormat) * totvert,
+		                NULL, GL_STATIC_DRAW_ARB);
 		vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
 		if(vert_data) {
@@ -1359,7 +1359,7 @@ GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 		/* Generate index buffer object */
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
-				 sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW_ARB);
+		                sizeof(unsigned short) * tottri * 3, NULL, GL_STATIC_DRAW_ARB);
 
 		/* Fill the triangle buffer */
 		tri_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
@@ -1429,8 +1429,8 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers_v, DMGridData **grids,
 	if(buffers->vert_buf) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-				 sizeof(DMGridData) * totvert,
-				 NULL, GL_STATIC_DRAW_ARB);
+		                sizeof(DMGridData) * totvert,
+		                NULL, GL_STATIC_DRAW_ARB);
 		vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		if(vert_data) {
 			for(i = 0; i < totgrid; ++i) {

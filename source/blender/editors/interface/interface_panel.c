@@ -43,6 +43,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"

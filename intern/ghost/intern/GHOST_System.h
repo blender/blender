@@ -276,7 +276,7 @@ public:
 	 * @return 				Returns the clipboard data
 	 *
 	 */
-	 virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
+	virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
 	  
 	  /**
 	   * Put data to the Clipboard

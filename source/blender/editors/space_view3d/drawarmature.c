@@ -1946,7 +1946,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 				index+= 0x10000;	
 		}
 		/* restore things */
-		if ((arm->drawtype!=ARM_LINE)&& (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
+		if (!ELEM(arm->drawtype, ARM_WIRE, ARM_LINE) && (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
 			bglPolygonOffset(rv3d->dist, 0.0);
 	}	
 	

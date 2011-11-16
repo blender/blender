@@ -83,6 +83,7 @@ typedef struct bNodeSocketTemplate {
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
 	PropertySubType subtype;
+	int flag;
 	
 	/* after this line is used internal only */
 	struct bNodeSocket *sock;		/* used to hold verified socket */
@@ -244,6 +245,7 @@ typedef struct bNodeType {
 struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
+typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
 typedef struct bNodeTreeType
 {
 	int type;						/* type identifier */
@@ -255,6 +257,7 @@ typedef struct bNodeTreeType
 	void (*free_cache)(struct bNodeTree *ntree);
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
 	void (*foreach_nodetree)(struct Main *main, void *calldata, bNodeTreeCallback func);		/* iteration over all node trees */
+	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 
 	/* calls allowing threaded composite */
 	void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
@@ -348,6 +351,7 @@ struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
+struct bNode	*nodeGetActiveTexture(struct bNodeTree *ntree);
 
 void			nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
 int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
@@ -452,6 +456,40 @@ struct ShadeResult;
 #define SH_NODE_COMBRGB		121
 #define SH_NODE_HUE_SAT		122
 #define NODE_DYNAMIC		123
+
+#define SH_NODE_OUTPUT_MATERIAL			124
+#define SH_NODE_OUTPUT_WORLD			125
+#define SH_NODE_OUTPUT_LAMP				126
+#define SH_NODE_FRESNEL					127
+#define SH_NODE_MIX_SHADER				128
+#define SH_NODE_ATTRIBUTE				129
+#define SH_NODE_BACKGROUND				130
+#define SH_NODE_BSDF_ANISOTROPIC		131
+#define SH_NODE_BSDF_DIFFUSE			132
+#define SH_NODE_BSDF_GLOSSY				133
+#define SH_NODE_BSDF_GLASS				134
+#define SH_NODE_BSDF_TRANSLUCENT		137
+#define SH_NODE_BSDF_TRANSPARENT		138
+#define SH_NODE_BSDF_VELVET				139
+#define SH_NODE_EMISSION				140
+#define SH_NODE_NEW_GEOMETRY			141
+#define SH_NODE_LIGHT_PATH				142
+#define SH_NODE_TEX_IMAGE				143
+#define SH_NODE_TEX_SKY					145
+#define SH_NODE_TEX_GRADIENT			146
+#define SH_NODE_TEX_VORONOI				147
+#define SH_NODE_TEX_MAGIC				148
+#define SH_NODE_TEX_WAVE				149
+#define SH_NODE_TEX_NOISE				150
+#define SH_NODE_TEX_MUSGRAVE			152
+#define SH_NODE_TEX_COORD				155
+#define SH_NODE_ADD_SHADER				156
+#define SH_NODE_TEX_ENVIRONMENT			157
+#define SH_NODE_OUTPUT_TEXTURE			158
+#define SH_NODE_HOLDOUT					159
+#define SH_NODE_LAYER_WEIGHT			160
+#define SH_NODE_VOLUME_TRANSPARENT		161
+#define SH_NODE_VOLUME_ISOTROPIC		162
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

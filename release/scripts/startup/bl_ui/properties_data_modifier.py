@@ -230,6 +230,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "mid_level")
         row.prop(md, "strength")
 
+    def DYNAMIC_PAINT(self, layout, ob, md):
+        layout.label(text="Settings can be found inside the Physics context")
+
     def EDGE_SPLIT(self, layout, ob, md):
         split = layout.split()
 
@@ -410,6 +413,73 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         else:
             row.operator("object.multires_external_save", text="Save External...")
             row.label()
+
+    def OCEAN(self, layout, ob, md):
+        if not md.is_build_enabled:
+            layout.label("Built without OceanSim modifier")
+            return
+
+        layout.prop(md, "geometry_mode")
+
+        if md.geometry_mode == 'GENERATE':
+            row = layout.row()
+            row.prop(md, "repeat_x")
+            row.prop(md, "repeat_y")
+
+        layout.separator()
+
+        flow = layout.column_flow()
+        flow.prop(md, "time")
+        flow.prop(md, "resolution")
+        flow.prop(md, "spatial_size")
+        flow.prop(md, "depth")
+
+        layout.label("Waves:")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "choppiness")
+        col.prop(md, "wave_scale", text="Scale")
+        col.prop(md, "wave_scale_min")
+        col.prop(md, "wind_velocity")
+
+        col = split.column()
+        col.prop(md, "wave_alignment", text="Alignment")
+        sub = col.column()
+        sub.active = md.wave_alignment > 0
+        sub.prop(md, "wave_direction", text="Direction")
+        sub.prop(md, "damping")
+
+        layout.separator()
+
+        layout.prop(md, "use_normals")
+
+        row = layout.row()
+        row.prop(md, "use_foam")
+        sub = row.row()
+        sub.active = md.use_foam
+        sub.prop(md, "foam_coverage", text="Coverage")
+
+        layout.separator()
+
+        if md.is_cached:
+            layout.operator("object.ocean_bake", text="Free Bake").free = True
+        else:
+            layout.operator("object.ocean_bake")
+
+        split = layout.split()
+        split.enabled = not md.is_cached
+
+        col = split.column(align=True)
+        col.prop(md, "frame_start", text="Start")
+        col.prop(md, "frame_end", text="End")
+
+        col = split.column(align=True)
+        col.label(text="Cache path:")
+        col.prop(md, "filepath", text="")
+
+        #col.prop(md, "bake_foam_fade")
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")

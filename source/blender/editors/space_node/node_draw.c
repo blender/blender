@@ -108,7 +108,8 @@ void ED_node_changed_update(ID *id, bNode *node)
 			WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
-		nodeUpdate(edittree, node);
+		if(node)
+			nodeUpdate(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
 		node= node_tree_get_editgroup(nodetree);
@@ -584,8 +585,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(color_id);
 	
 	if(node->flag & NODE_MUTED)
-	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
-		
+		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
+
 	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
@@ -691,7 +692,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		if (sock->link) {
+		if (sock->link || (sock->flag & SOCK_HIDE_VALUE)) {
 			uiDefBut(node->block, LABEL, 0, sock->name, sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY, NODE_DY,
 					 NULL, 0, 0, 0, 0, "");
 		}
@@ -757,7 +758,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* body */
 	UI_ThemeColor(color_id);
 	if(node->flag & NODE_MUTED)
-	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);	
+		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active and selected emphasis */

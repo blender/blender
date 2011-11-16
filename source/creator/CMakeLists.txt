@@ -575,6 +575,14 @@ elseif(WIN32)
 		DESTINATION ${TARGETDIR}
 	)	
 
+	if(WITH_OPENIMAGEIO)
+		install(
+			FILES
+				${LIBDIR}/openimageio/bin/OpenImageIO.dll
+			DESTINATION ${TARGETDIR}
+		)
+	endif()
+
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 	set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
@@ -720,6 +728,9 @@ elseif(APPLE)
 	endif()
 endif()
 
+# install more files specified elsewhere
+delayed_do_install(${TARGETDIR_VER})
+
 unset(BLENDER_TEXT_FILES)
 
 
@@ -738,6 +749,16 @@ set(BLENDER_LINK_LIBS
 
 if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
+endif()
+
+if(WITH_CYCLES)
+	list(APPEND BLENDER_LINK_LIBS
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd)
 endif()
 
 #if(UNIX)
@@ -759,7 +780,6 @@ endif()
 		bf_editor_space_outliner
 		bf_editor_space_script
 		bf_editor_space_sequencer
-		bf_editor_space_sound
 		bf_editor_space_time
 		bf_editor_space_userpref
 		bf_editor_space_view3d
@@ -842,6 +862,13 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		bf_intern_cycles
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd
 	)
 
 	if(WITH_LIBMV)

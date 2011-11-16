@@ -98,7 +98,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *latNode = dag_get_node(forest, lmd->object);
 
 		dag_add_relation(forest, latNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Lattice Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Lattice Modifier");
 	}
 }
 
@@ -115,7 +115,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	lattice_deform_verts(lmd->object, ob, derivedData,
-				 vertexCos, numVerts, lmd->name);
+	                     vertexCos, numVerts, lmd->name);
 }
 
 static void deformVertsEM(

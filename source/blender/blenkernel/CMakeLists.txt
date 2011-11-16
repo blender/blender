@@ -89,6 +89,7 @@ set(SRC
 	intern/deform.c
 	intern/depsgraph.c
 	intern/displist.c
+	intern/dynamicpaint.c
 	intern/effect.c
 	intern/fcurve.c
 	intern/fluidsim.c
@@ -116,6 +117,7 @@ set(SRC
 	intern/multires.c
 	intern/nla.c
 	intern/node.c
+	intern/ocean.c
 	intern/object.c
 	intern/packedFile.c
 	intern/paint.c
@@ -177,6 +179,7 @@ set(SRC
 	BKE_deform.h
 	BKE_depsgraph.h
 	BKE_displist.h
+	BKE_dynamicpaint.h
 	BKE_effect.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
@@ -202,6 +205,7 @@ set(SRC
 	BKE_multires.h
 	BKE_nla.h
 	BKE_node.h
+	BKE_ocean.h
 	BKE_object.h
 	BKE_packedFile.h
 	BKE_paint.h
@@ -339,6 +343,10 @@ if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
+if(WITH_MOD_OCEANSIM)
+	add_definitions(-DWITH_OCEANSIM)
+endif()
+
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()
@@ -357,7 +365,6 @@ if(WITH_LZMA)
 	add_definitions(-DWITH_LZMA)
 endif()
 
-
 if(WITH_GAMEENGINE)
 	list(APPEND INC_SYS
 		../../../extern/recastnavigation
@@ -371,8 +378,17 @@ if(WITH_GAMEENGINE)
 endif()
 
 if(WITH_LIBMV)
-	list(APPEND INC ../../../extern/libmv)
+	list(APPEND INC
+		../../../extern/libmv
+	)
 	add_definitions(-DWITH_LIBMV)
+endif()
+
+if(WITH_FFTW3)
+	list(APPEND INC_SYS
+		${FFTW3_INCLUDE_DIRS}
+	)
+	add_definitions(-DFFTW3=1)
 endif()
 
 ## Warnings as errors, this is too strict!

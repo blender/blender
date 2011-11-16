@@ -208,7 +208,7 @@ class BPyOpsSubModOp(object):
         return "# %s\n%s" % (descr, as_string)
 
     def __str__(self):  # used for print(...)
-        return "<function bpy.ops.%s.%s at 0x%x'>" % \
-                (self.module, self.func, id(self))
+        return ("<function bpy.ops.%s.%s at 0x%x'>" %
+                (self.module, self.func, id(self)))
 
 ops_fake_module = BPyOps()

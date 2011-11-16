@@ -657,9 +657,12 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 	CheckError(err, "SCGetInfo fr error", reports);
 
 	if( (rd->frs_sec == 24 || rd->frs_sec == 30 || rd->frs_sec == 60) &&
-		(qtdata->gTemporalSettings.frameRate == 1571553 ||
-		 qtdata->gTemporalSettings.frameRate == 1964113 ||
-		 qtdata->gTemporalSettings.frameRate == 3928227)) {;} 
+	    (qtdata->gTemporalSettings.frameRate == 1571553 ||
+	     qtdata->gTemporalSettings.frameRate == 1964113 ||
+	     qtdata->gTemporalSettings.frameRate == 3928227))
+	{
+		/* do nothing */
+	}
 	else {
 		if (rd->frs_sec_base > 0)
 			qtdata->gTemporalSettings.frameRate = 

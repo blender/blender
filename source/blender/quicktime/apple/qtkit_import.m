@@ -311,11 +311,11 @@ int startquicktime (struct anim *anim)
 	[QTMovie enterQTKitOnThread];		
 
 	attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-				  [NSString stringWithCString:anim->name 
-									 encoding:[NSString defaultCStringEncoding]], QTMovieFileNameAttribute,
-				 [NSNumber numberWithBool:NO], QTMovieEditableAttribute,
-				 nil];
-	
+	        [NSString stringWithCString:anim->name
+	        encoding:[NSString defaultCStringEncoding]], QTMovieFileNameAttribute,
+	        [NSNumber numberWithBool:NO], QTMovieEditableAttribute,
+	    nil];
+
 	anim->qtime->movie = [QTMovie movieWithAttributes:attributes error:NULL];
 	
 	if (!anim->qtime->movie) {

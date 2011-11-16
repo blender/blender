@@ -304,14 +304,15 @@ static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep) {
 	FD_SET(fd, &fds);
 
 	if (maxSleep == -1) {
-	    select(fd + 1, &fds, NULL, NULL, NULL);
-	} else {
+		select(fd + 1, &fds, NULL, NULL, NULL);
+	}
+	else {
 		timeval tv;
 
 		tv.tv_sec = maxSleep/1000;
 		tv.tv_usec = (maxSleep - tv.tv_sec*1000)*1000;
 	
-	    select(fd + 1, &fds, NULL, NULL, &tv);
+		select(fd + 1, &fds, NULL, NULL, &tv);
 	}
 }
 

@@ -398,7 +398,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	
-	if(but->tip && strlen(but->tip)) {
+	if(but->tip && but->tip[0] != '\0') {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
 		data->color[data->totline]= 0xFFFFFF;
 		data->totline++;
@@ -408,7 +408,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* operator keymap (not menus, they already have it) */
 		prop= (but->opptr)? but->opptr->data: NULL;
 
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
 			data->color[data->totline]= 0x888888;
 			data->totline++;
@@ -493,8 +493,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	else if (ELEM(but->type, MENU, PULLDOWN)) {
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			if(but->menu_create_func && WM_menutype_contains((MenuType *)but->poin)) {
-				MenuType *mt= (MenuType *)but->poin;
+			MenuType *mt= uiButGetMenuType(but);
+			if (mt) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), mt->idname);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
@@ -1532,15 +1532,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	if(but) {
 		if(ELEM(but->type, BLOCK, PULLDOWN))
 			block->xofs = -2;	/* for proper alignment */
-
-		/* only used for automatic toolbox, so can set the shift flag */
-		if(but->flag & UI_MAKE_TOP) {
-			block->direction= UI_TOP|UI_SHIFT_FLIPPED;
-			uiBlockFlipOrder(block);
-		}
-		if(but->flag & UI_MAKE_DOWN) block->direction= UI_DOWN|UI_SHIFT_FLIPPED;
-		if(but->flag & UI_MAKE_LEFT) block->direction |= UI_LEFT;
-		if(but->flag & UI_MAKE_RIGHT) block->direction |= UI_RIGHT;
 
 		ui_block_position(window, butregion, but, block);
 	}

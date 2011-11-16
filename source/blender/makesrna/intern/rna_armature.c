@@ -169,7 +169,7 @@ static IDProperty *rna_Bone_idprops(PointerRNA *ptr, int create)
 
 	if(create && !bone->prop) {
 		IDPropertyTemplate val = {0};
-		bone->prop= IDP_New(IDP_GROUP, val, "RNA_Bone ID properties");
+		bone->prop= IDP_New(IDP_GROUP, &val, "RNA_Bone ID properties");
 	}
 
 	return bone->prop;
@@ -181,7 +181,7 @@ static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, int create)
 
 	if(create && !ebone->prop) {
 		IDPropertyTemplate val = {0};
-		ebone->prop= IDP_New(IDP_GROUP, val, "RNA_EditBone ID properties");
+		ebone->prop= IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
 	}
 
 	return ebone->prop;

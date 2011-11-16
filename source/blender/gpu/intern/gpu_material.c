@@ -1337,8 +1337,8 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		if(world) {
 			/* exposure correction */
 			if(world->exp!=0.0f || world->range!=1.0f) {
-				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
-				logfac= log((linfac-1.0f)/linfac)/world->range;
+				linfac= 1.0f + powf((2.0f*world->exp + 0.5f), -10);
+				logfac= logf((linfac-1.0f)/linfac)/world->range;
 
 				GPU_link(mat, "set_value", GPU_uniform(&linfac), &ulinfac);
 				GPU_link(mat, "set_value", GPU_uniform(&logfac), &ulogfac);
@@ -1415,28 +1415,32 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		if(((GPUMaterial*)link->data)->scene == scene)
 			return link->data;
 
+	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
 
 	if(!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
+		/* create nodes */
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
+		/* create material */
 		outlink = GPU_blender_material(mat, ma);
 		GPU_material_output_link(mat, outlink);
 	}
 
-	if(gpu_do_color_management(mat))
-		if(mat->outlink)
-			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
+	if(!scene_use_new_shading_nodes(scene)) {
+		if(gpu_do_color_management(mat))
+			if(mat->outlink)
+				GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
+	}
 
-	/*if(!GPU_material_construct_end(mat)) {
-		GPU_material_free(mat);
-		mat= NULL;
-		return 0;
-	}*/
 
 	GPU_material_construct_end(mat);
+
+	/* note that even if building the shader fails in some way, we still keep
+	   it to avoid trying to compile again and again, and simple do not use
+	   the actual shader on drawing */
 
 	link = MEM_callocN(sizeof(LinkData), "GPUMaterialLink");
 	link->data = mat;
@@ -1514,7 +1518,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	if(lamp->mode & LA_HALO)
 		if(lamp->spotsi > 170.0f)
 			lamp->spotsi = 170.0f;
-	lamp->spotsi= cos(M_PI*lamp->spotsi/360.0);
+	lamp->spotsi= cosf((float)M_PI*lamp->spotsi/360.0f);
 	lamp->spotbl= (1.0f - lamp->spotsi)*la->spotblend;
 	lamp->k= la->k;
 
@@ -1535,7 +1539,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 	/* makeshadowbuf */
 	angle= saacos(lamp->spotsi);
-	temp= 0.5f*lamp->size*cos(angle)/sin(angle);
+	temp= 0.5f*lamp->size*cosf(angle)/sinf(angle);
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		

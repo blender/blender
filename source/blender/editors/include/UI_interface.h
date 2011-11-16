@@ -66,6 +66,9 @@ struct uiWidgetColors;
 struct Tex;
 struct MTex;
 struct ImBuf;
+struct bNodeTree;
+struct bNode;
+struct bNodeSocket;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -73,6 +76,10 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef struct uiLayout uiLayout;
 
 /* Defines */
+
+/* names */
+#define UI_MAX_DRAW_STR	400
+#define UI_MAX_NAME_STR	128
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use widget style for drawing */
@@ -128,11 +135,11 @@ typedef struct uiLayout uiLayout;
 #define UI_ICON_LEFT	128
 #define UI_ICON_SUBMENU	256
 #define UI_ICON_PREVIEW	512
-	/* control for button type block */
-#define UI_MAKE_TOP		1024
-#define UI_MAKE_DOWN	2048
-#define UI_MAKE_LEFT	4096
-#define UI_MAKE_RIGHT	8192
+
+#define UI_TEXT_RIGHT		1024
+#define UI_BUT_NODE_LINK	2048
+#define UI_BUT_NODE_ACTIVE	4096
+#define UI_FLAG_UNUSED		8192
 
 	/* button align flag, for drawing groups together */
 #define UI_BUT_ALIGN		(UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT|UI_BUT_ALIGN_DOWN)
@@ -681,6 +688,7 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 void uiLayoutOperatorButs(const struct bContext *C, struct uiLayout *layout, struct wmOperator *op, int (*check_prop)(struct PropertyRNA *), const char label_align, const short flag);
+struct MenuType *uiButGetMenuType(uiBut *but);
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);
@@ -720,7 +728,7 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct Poin
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
 	const char *newop, const char *openop, const char *unlinkop);
 void uiTemplateIDBrowse(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-				  const char *newop, const char *openop, const char *unlinkop);
+                        const char *newop, const char *openop, const char *unlinkop);
 void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
 	const char *newop, const char *openop, const char *unlinkop, int rows, int cols);
 void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
@@ -737,7 +745,7 @@ void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, const char 
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type, int levels, int brush);
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
-			  PointerRNA *used_ptr, const char *used_propname, int active_layer);
+                      PointerRNA *used_ptr, const char *used_propname, int active_layer);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
@@ -749,6 +757,10 @@ void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, const char *prop_list, int rows, int maxrows, int type);
+void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
+void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureShow(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
@@ -791,6 +803,7 @@ void UI_buttons_operatortypes(void);
 uiBut *uiContextActiveButton(const struct bContext *C);
 void uiContextActiveProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
 void uiContextActivePropertyHandle(struct bContext *C);
+struct wmOperator *uiContextActiveOperator(const struct bContext *C);
 void uiContextAnimUpdate(const struct bContext *C);
 void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
@@ -808,16 +821,6 @@ void UI_DrawTriIcon(float x, float y, char dir);
 uiStyle* UI_GetStyle(void);
 /* linker workaround ack! */
 void UI_template_fix_linking(void);
-
-/* translation */
-int UI_translate_iface(void);
-int UI_translate_tooltips(void);
-const char *UI_translate_do_iface(const char *msgid);
-const char *UI_translate_do_tooltip(const char *msgid);
-
-/* Those macros should be used everywhere in UI code. */
-#define IFACE_(msgid) UI_translate_do_iface(msgid)
-#define TIP_(msgid) UI_translate_do_tooltip(msgid)
 
 /* UI_OT_editsource helpers */
 int  UI_editsource_enable_check(void);

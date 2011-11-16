@@ -49,18 +49,18 @@ static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *
 {
 	/*normalize to the range 0.0 to 1.0) */
 	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
-	out[0]=(out[0])/255.0;
-	out[1]=(out[1])/255.0;
-	out[2]=(out[2])/255.0;
+	out[0]=(out[0])/255.0f;
+	out[1]=(out[1])/255.0f;
+	out[2]=(out[2])/255.0f;
 	out[3]=in[3];
 }
 
 static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*un-normalize the normalize from above */
-	in[0]=in[0]*255.0;
-	in[1]=in[1]*255.0;
-	in[2]=in[2]*255.0;
+	in[0]=in[0]*255.0f;
+	in[1]=in[1]*255.0f;
+	in[2]=in[2]*255.0f;
 	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }

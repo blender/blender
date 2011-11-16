@@ -105,9 +105,9 @@ typedef struct tGPsdata {
 	short flags;		/* flags that can get set during runtime */
 
 	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
-						   to region space */
+						 * to region space */
 
-	float custom_color[3];	/* custom color for  */
+	float custom_color[4]; /* custom color for (?) */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -1771,8 +1771,6 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
-
-	p= op->customdata;
 
 	if(p->status != GP_STATUS_ERROR)
 		p->status= GP_STATUS_PAINTING;

@@ -59,7 +59,9 @@
 #include "IMB_imbuf.h"
 
 #ifdef WITH_LIBMV
-#include "libmv-capi.h"
+#  include "libmv-capi.h"
+#else
+struct libmv_Features;
 #endif
 
 typedef struct MovieDistortion {
@@ -437,16 +439,17 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 
 int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
-	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	int a= 0, b= 0;
+	/* int tot= dst_track->markersnr+src_track->markersnr; */ /* UNUSED */
 	int count= 0;
 
-	for(i= 0; i<tot; i++) {
-		if(a>=src_track->markersnr) {
-			b++;
+	while(a<src_track->markersnr || b<dst_track->markersnr) {
+		if(b>=dst_track->markersnr) {
+			a++;
 			count++;
 		}
-		else if(b>=dst_track->markersnr) {
-			a++;
+		else if(a>=src_track->markersnr) {
+			b++;
 			count++;
 		}
 		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
@@ -1304,8 +1307,27 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 		}
 
 		if(track->markersnr) {
-			if(track->markers[0].framenr<sfra) sfra= track->markers[0].framenr;
-			if(track->markers[track->markersnr-1].framenr>efra) efra= track->markers[track->markersnr-1].framenr;
+			int first= 0, last= track->markersnr;
+			MovieTrackingMarker *first_marker= &track->markers[0];
+			MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
+
+			/* find first not-disabled marker */
+			while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+				first++;
+				first_marker++;
+			}
+
+			/* find last not-disabled marker */
+			while(last>=0 && last_marker->flag&MARKER_DISABLED) {
+				last--;
+				last_marker--;
+			}
+
+			if(first<track->markersnr-1)
+				sfra= MIN2(sfra, first_marker->framenr);
+
+			if(last>=0)
+				efra= MAX2(efra, last_marker->framenr);
 		}
 
 		track= track->next;
@@ -1427,6 +1449,7 @@ int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_s
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+	(void)tracking;
 
 	return 0;
 #endif
@@ -1459,6 +1482,12 @@ float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int 
 
 		return error;
 	}
+#else
+	(void)tracking;
+	(void)width;
+	(void)height;
+
+	return -1.0f;
 #endif
 }
 
@@ -1661,6 +1690,10 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float n
 	/* result is in image coords already */
 	nco[0]= x;
 	nco[1]= y;
+#else
+	(void)camera;
+	(void)co;
+	(void)nco;
 #endif
 }
 
@@ -1677,9 +1710,14 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 
 	nco[0]= x * camera->focal + camera->principal[0];
 	nco[1]= y * camera->focal + camera->principal[1] * aspy;
+#else
+	(void)camera;
+	(void)co;
+	(void)nco;
 #endif
 }
 
+#ifdef WITH_LIBMV
 static int point_in_stroke(bGPDstroke *stroke, float x, float y)
 {
 	int i, prev;
@@ -1723,7 +1761,6 @@ static int point_in_layer(bGPDlayer *layer, float x, float y)
 static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Features *features,
 			int framenr, int width, int height, bGPDlayer *layer, int place_outside_layer)
 {
-#ifdef WITH_LIBMV
 	int a;
 
 	a= libmv_countFeatures(features);
@@ -1748,8 +1785,8 @@ static void retrieve_libmv_features(MovieTracking *tracking, struct libmv_Featur
 			track->search_flag|= SELECT;
 		}
 	}
-#endif
 }
+#endif
 
 void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 			int framenr, int margin, int min_trackness, int min_distance, bGPDlayer *layer,
@@ -1766,6 +1803,15 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 	retrieve_libmv_features(tracking, features, framenr, ibuf->x, ibuf->y, layer, place_outside_layer);
 
 	libmv_destroyFeatures(features);
+#else
+	(void)tracking;
+	(void)ibuf;
+	(void)framenr;
+	(void)margin;
+	(void)min_trackness;
+	(void)min_distance;
+	(void)layer;
+	(void)place_outside_layer;
 #endif
 }
 
@@ -1828,7 +1874,7 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 
 	mul_v2_fl(loc, stab->locinf);
 
-	if(stab->rot_track && stab->rotinf) {
+	if((stab->flag&TRACKING_STABILIZE_ROTATION) && stab->rot_track && stab->rotinf) {
 		MovieTrackingMarker *marker;
 		float a[2], b[2];
 		float x0= (float)width/2.0f, y0= (float)height/2.0f;
@@ -1848,8 +1894,8 @@ static void calculate_stabdata(MovieTracking *tracking, int framenr, float width
 		*angle*= stab->rotinf;
 
 		/* convert to rotation around image center */
-		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x)*(*scale);
-		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y)*(*scale);
+		loc[0]-= (x0 + (x-x0)*cosf(*angle)-(y-y0)*sinf(*angle) - x)*(*scale);
+		loc[1]-= (y0 + (x-x0)*sinf(*angle)+(y-y0)*cosf(*angle) - y)*(*scale);
 	}
 }
 
@@ -1870,7 +1916,8 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 
 		track= tracking->tracks.first;
 		while(track) {
-			if(track->flag&TRACK_USE_2D_STAB || track==stab->rot_track) {
+			if(track->flag&TRACK_USE_2D_STAB ||
+			   ((stab->flag&TRACKING_STABILIZE_ROTATION) && track==stab->rot_track)) {
 				if(track->markersnr) {
 					sfra= MIN2(sfra, track->markers[0].framenr);
 					efra= MAX2(efra, track->markers[track->markersnr-1].framenr);
@@ -2128,6 +2175,8 @@ MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
 
 #ifdef WITH_LIBMV
 	new_distortion->intrinsics= libmv_CameraIntrinsicsCopy(distortion->intrinsics);
+#else
+	(void)distortion;
 #endif
 
 	return new_distortion;
@@ -2148,6 +2197,12 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 				camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	}
+#else
+	(void)distortion;
+	(void)width;
+	(void)height;
+	(void)camera;
+	(void)aspy;
 #endif
 }
 
@@ -2187,6 +2242,11 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 		}
 #endif
 	}
+
+#ifndef WITH_LIBMV
+	(void)overscan;
+	(void)undistort;
+#endif
 
 	return resibuf;
 }

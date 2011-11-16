@@ -125,11 +125,13 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 			case PTCACHE_TYPE_SMOKE_HIGHRES:
 				if (!(stime->cache_display & TIME_CACHE_SMOKE))	continue;
 				break;
+			case PTCACHE_TYPE_DYNAMICPAINT:
+				if (!(stime->cache_display & TIME_CACHE_DYNAMICPAINT))	continue;
+				break;
 		}
 
 		if(pid->cache->cached_frames == NULL)
 			continue;
-
 
 		/* make sure we have stc with correct array length */
 		if(stc == NULL || MEM_allocN_len(stc->array) != len*2*sizeof(float)) {
@@ -185,6 +187,10 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 			case PTCACHE_TYPE_SMOKE_DOMAIN:
 			case PTCACHE_TYPE_SMOKE_HIGHRES:
 				col[0] = 0.2;	col[1] = 0.2;	col[2] = 0.2;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_DYNAMICPAINT:
+				col[0] = 1.0;	col[1] = 0.1;	col[2] = 0.75;
 				col[3] = 0.1;
 				break;
 		}
@@ -634,7 +640,7 @@ static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 	/* enable all cache display */
 	stime->cache_display |= TIME_CACHE_DISPLAY;
 	stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
-	stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
+	stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE|TIME_CACHE_DYNAMICPAINT);
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)

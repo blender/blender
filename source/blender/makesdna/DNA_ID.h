@@ -58,8 +58,8 @@ typedef struct IDProperty {
 	IDPropertyData data;	/* note, alignment for 64 bits */
 	int len; /* array length, also (this is important!) string length + 1.
 				the idea is to be able to reuse array realloc functions on strings.*/
-	/*totallen is total length of allocated array/string, including a buffer.
-	  Note that the buffering is mild; the code comes from python's list implementation.*/
+	/* totallen is total length of allocated array/string, including a buffer.
+	 * Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
 					saved.*/
 } IDProperty;
@@ -79,6 +79,13 @@ typedef struct IDProperty {
 #define IDP_DOUBLE		8
 #define IDP_IDPARRAY	9
 #define IDP_NUMTYPES	10
+
+/*->subtype */
+
+/* IDP_STRING */
+#define IDP_STRING_SUB_UTF8  0 /* default */
+#define IDP_STRING_SUB_BYTE  1 /* arbitrary byte array, _not_ null terminated */
+
 
 /* add any future new id property types here.*/
 
@@ -206,12 +213,6 @@ typedef struct PreviewImage {
 #define ID_NLA		MAKE_ID2('N', 'L')
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
-
-/* ******** NOTE!!! ********
-  Some areas of code is using staticly sized arrays to hold ID types to be processed
-  DO NOT forgot to update this value when you're adding new ID type!
-*/
-#define ID_NUMTYPES	37
 
 #define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
 

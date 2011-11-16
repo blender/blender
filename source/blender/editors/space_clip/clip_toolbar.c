@@ -50,6 +50,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "clip_intern.h" /* own include */
+
 /* ************************ header area region *********************** */
 
 /************************** properties ******************************/

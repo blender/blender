@@ -35,6 +35,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -42,9 +43,12 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "GPU_material.h"
@@ -72,6 +76,23 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 	for(wo= main->world.first; wo; wo= wo->id.next)
 		if(wo->nodetree)
 			func(calldata, &wo->id, wo->nodetree);
+}
+
+static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback func)
+{
+	func(calldata, NODE_CLASS_INPUT, IFACE_("Input"));
+	func(calldata, NODE_CLASS_OUTPUT, IFACE_("Output"));
+
+	if(scene_use_new_shading_nodes(scene)) {
+		func(calldata, NODE_CLASS_SHADER, IFACE_("Shader"));
+		func(calldata, NODE_CLASS_TEXTURE, IFACE_("Texture"));
+	}
+
+	func(calldata, NODE_CLASS_OP_COLOR, IFACE_("Color"));
+	func(calldata, NODE_CLASS_OP_VECTOR, IFACE_("Vector"));
+	func(calldata, NODE_CLASS_CONVERTOR, IFACE_("Convertor"));
+	func(calldata, NODE_CLASS_GROUP, IFACE_("Group"));
+	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
 }
 
 static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
@@ -108,6 +129,7 @@ bNodeTreeType ntreeType_Shader = {
 	/* free_cache */		NULL,
 	/* free_node_cache */	NULL,
 	/* foreach_nodetree */	foreach_nodetree,
+	/* foreach_nodeclass */	foreach_nodeclass,
 	/* localize */			NULL,
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
@@ -213,7 +235,8 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	@note: preserve material from ShadeInput for material id, nodetree execs change it
 	fix for bug "[#28012] Mat ID messy with shader nodes"
 	*/
-	Material *mat = shi->mat;	bNodeThreadStack *nts = NULL;
+	Material *mat = shi->mat;
+	bNodeThreadStack *nts = NULL;
 	bNodeTreeExec *exec = ntree->execdata;
 	
 	/* convert caller data to struct */

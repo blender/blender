@@ -51,6 +51,7 @@
 #include "BKE_displist.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
@@ -281,7 +282,26 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdl;
 	int index;
 
-	 index= CustomData_get_active_layer_index(data, CD_MCOL);
+	index= CustomData_get_active_layer_index(data, CD_MCOL);
+	cdl= (index == -1)? NULL: &data->layers[index];
+
+	if(!cdl)
+		return 0;
+
+	delete_customdata_layer(C, ob, cdl);
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return 1;
+}
+
+int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *name)
+{
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
+	CustomDataLayer *cdl;
+	int index;
+
+	index= CustomData_get_named_layer_index(data, CD_MCOL, name);
 	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)
@@ -331,6 +351,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
@@ -375,7 +396,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(me->edit_mesh==NULL)
 		return OPERATOR_CANCELLED;
 	
-	ED_uvedit_assign_image(scene, obedit, ima, NULL);
+	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
 	if(exitmode) {
 		load_editMesh(scene, obedit);

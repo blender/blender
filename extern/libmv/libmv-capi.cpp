@@ -368,14 +368,11 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	intrinsics->SetPrincipalPoint(principal_x, principal_y);
 	intrinsics->SetRadialDistortion(k1, k2, k3);
 
-	if(focal_length) {
-		/* do a lens undistortion if focal length is non-zero only */
-		for (int i = 0; i < markers.size(); ++i) {
-			intrinsics->InvertIntrinsics(markers[i].x,
-				markers[i].y,
-				&(markers[i].x),
-				&(markers[i].y));
-		}
+	for (int i = 0; i < markers.size(); ++i) {
+		intrinsics->InvertIntrinsics(markers[i].x,
+			markers[i].y,
+			&(markers[i].x),
+			&(markers[i].y));
 	}
 
 	libmv::Tracks normalized_tracks(markers);

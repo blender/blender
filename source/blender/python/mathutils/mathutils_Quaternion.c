@@ -639,7 +639,8 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
 		if (i < 0)
 			i += QUAT_SIZE;
 		return Quaternion_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
@@ -707,9 +708,10 @@ static PyObject *Quaternion_add(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if (!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Quaternion addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Quaternion addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 	quat1 = (QuaternionObject*)q1;
@@ -730,9 +732,10 @@ static PyObject *Quaternion_sub(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if (!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Quaternion addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Quaternion subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 
@@ -945,7 +948,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 
 	angle= PyFloat_AsDouble(value);
 
-	if (angle==-1.0 && PyErr_Occurred()) { /* parsed item not a number */
+	if (angle==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "Quaternion.angle = value: float expected");
 		return -1;

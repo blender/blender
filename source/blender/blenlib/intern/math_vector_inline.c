@@ -181,19 +181,19 @@ MINLINE void add_v4_fl(float r[4], float f)
 	r[3] += f;
 }
 
-MINLINE void add_v2_v2(float *r, const float *a)
+MINLINE void add_v2_v2(float r[2], const float a[2])
 {
 	r[0] += a[0];
 	r[1] += a[1];
 }
 
-MINLINE void add_v2_v2v2(float *r, const float *a, const float *b)
+MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2])
 {
 	r[0]= a[0] + b[0];
 	r[1]= a[1] + b[1];
 }
 
-MINLINE void add_v3_v3(float *r, const float *a)
+MINLINE void add_v3_v3(float r[3], const float a[3])
 {
 	r[0] += a[0];
 	r[1] += a[1];

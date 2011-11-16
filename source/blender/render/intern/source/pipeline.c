@@ -159,7 +159,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
 
 	fprintf(stdout, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
-				   megs_used_memory, mmap_used_memory, megs_peak_memory);
+	        megs_used_memory, mmap_used_memory, megs_peak_memory);
 
 	if(rs->curfield)
 		fprintf(stdout, "Field %d ", rs->curfield);
@@ -1831,7 +1831,7 @@ static void do_render_3d(Render *re)
 	if(render_scene_needs_vector(re))
 		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
 	else
-	   RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+		RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
 	
 	/* clear UI drawing locks */
 	if(re->draw_lock)

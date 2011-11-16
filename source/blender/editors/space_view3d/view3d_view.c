@@ -43,6 +43,7 @@
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
@@ -370,6 +371,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ObjectTfmProtectedChannels obtfm;
 
 	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
 	rv3d->lview= rv3d->view;
@@ -377,7 +379,12 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 		rv3d->lpersp= rv3d->persp;
 	}
 
+	object_tfm_protected_backup(v3d->camera, &obtfm);
+
 	ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+
+	object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+
 	DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 	rv3d->persp = RV3D_CAMOB;
 	
@@ -400,9 +407,8 @@ static int view3d_setcameratoview_poll(bContext *C)
 	return 0;
 }
 
-void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
+void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Align Camera To View";
 	ot->description= "Set camera view to active view";
@@ -412,6 +418,55 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	ot->exec= view3d_setcameratoview_exec;	
 	ot->poll= view3d_setcameratoview_poll;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* unlike VIEW3D_OT_view_selected this is for framing a render and not
+ * meant to take into account vertex/bone selection for eg. */
+static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	Object *camera_ob= v3d->camera;
+
+	float r_co[3]; /* the new location to apply */
+
+	/* this function does all the important stuff */
+	if (camera_view_frame_fit_to_scene(scene, v3d, camera_ob, r_co)) {
+
+		ObjectTfmProtectedChannels obtfm;
+		float obmat_new[4][4];
+
+		copy_m4_m4(obmat_new, camera_ob->obmat);
+		copy_v3_v3(obmat_new[3], r_co);
+
+		/* only touch location */
+		object_tfm_protected_backup(camera_ob, &obtfm);
+		object_apply_mat4(camera_ob, obmat_new, TRUE, TRUE);
+		object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
+
+		/* notifiers */
+		DAG_id_tag_update(&camera_ob->id, OB_RECALC_OB);
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, camera_ob);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Camera Fit Frame to Selected";
+	ot->description= "Move the camera so selected objects are framed";
+	ot->idname= "VIEW3D_OT_camera_to_view_selected";
+
+	/* api callbacks */
+	ot->exec= view3d_camera_to_view_selected_exec;
+	// ot->poll= view3d_setcameratoview_poll;
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -455,7 +510,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_object_as_camera";
 	
 	/* api callbacks */
-	ot->exec= view3d_setobjectascamera_exec;	
+	ot->exec= view3d_setobjectascamera_exec;
 	ot->poll= ED_operator_rv3d_unlock_poll;
 	
 	/* flags */
@@ -1062,14 +1117,14 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winxi, int winy
 			float dfac;
 			
 			if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-				if(winx>winy) dfac= (sensor_x * 2.0) / (fac*winx*lens);
-				else dfac= (sensor_x * 2.0) / (fac*winy*lens);
+				if(winx>winy) dfac= (sensor_x * 2.0f) / (fac*winx*lens);
+				else dfac= (sensor_x * 2.0f) / (fac*winy*lens);
 			}
 			else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-				dfac= (sensor_x * 2.0) / (fac*winx*lens);
+				dfac= (sensor_x * 2.0f) / (fac*winx*lens);
 			}
 			else {
-				dfac= (sensor_y * 2.0) / (fac*winy*lens);
+				dfac= (sensor_y * 2.0f) / (fac*winy*lens);
 			}
 			
 			x1= - *clipsta * winx*dfac;

@@ -941,8 +941,10 @@ static PyObject *Matrix_invert(MatrixObject *self)
 
 	int x, y, z = 0;
 	float det = 0.0f;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -964,9 +966,11 @@ static PyObject *Matrix_invert(MatrixObject *self)
 			mat[1] = -self->matrix[0][1];
 			mat[2] = -self->matrix[1][0];
 			mat[3] = self->matrix[0][0];
-		} else if (self->row_size == 3) {
+		}
+		else if (self->row_size == 3) {
 			adjoint_m3_m3((float (*)[3]) mat,(float (*)[3])self->contigPtr);
-		} else if (self->row_size == 4) {
+		}
+		else if (self->row_size == 4) {
 			adjoint_m4_m4((float (*)[4]) mat, (float (*)[4])self->contigPtr);
 		}
 		/*divide by determinate*/
@@ -1183,7 +1187,8 @@ static PyObject *Matrix_transpose(MatrixObject *self)
 		t = self->matrix[1][0];
 		self->matrix[1][0] = self->matrix[0][1];
 		self->matrix[0][1] = t;
-	} else if (self->row_size == 3) {
+	}
+	else if (self->row_size == 3) {
 		transpose_m3((float (*)[3])self->contigPtr);
 	}
 	else {
@@ -1253,7 +1258,8 @@ static PyObject *Matrix_identity(MatrixObject *self)
 		self->matrix[0][1] = 0.0f;
 		self->matrix[1][0] = 0.0f;
 		self->matrix[1][1] = 1.0f;
-	} else if (self->row_size == 3) {
+	}
+	else if (self->row_size == 3) {
 		unit_m3((float (*)[3])self->contigPtr);
 	}
 	else {
@@ -1489,9 +1495,10 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 	mat2 = (MatrixObject*)m2;
 
 	if (!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Matrix addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Matrix addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
@@ -1520,9 +1527,11 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 	mat2 = (MatrixObject*)m2;
 
 	if (!MatrixObject_Check(m1) || !MatrixObject_Check(m2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Matrix addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Matrix subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name
+		             );
 		return NULL;
 	}
 
@@ -1654,7 +1663,8 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 		if (i < 0)
 			i += self->row_size;
 		return Matrix_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, self->row_size, &start, &stop, &step, &slicelength) < 0)

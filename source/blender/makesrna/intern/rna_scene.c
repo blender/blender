@@ -76,7 +76,7 @@ EnumPropertyItem proportional_falloff_items[] ={
 	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
 	{PROP_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", "Sharp falloff"},
 	{PROP_LIN, "LINEAR", ICON_LINCURVE, "Linear", "Linear falloff"},
-	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", "Consant falloff"},
+	{PROP_CONST, "CONSTANT", ICON_NOCURVE, "Constant", "Constant falloff"},
 	{PROP_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", "Random falloff"},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -573,6 +573,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
 {
 	RenderData *rd= (RenderData*)ptr->data;
+	str[0]= '\0';
 	BKE_add_image_extension(str, rd->imtype);
 }
 
@@ -1058,14 +1059,7 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
-static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Scene *scene= (Scene*)ptr->id.data;
-	Object *camera= scene->camera;
 
-	if(camera)
-		DAG_id_tag_update(&camera->id, 0);
-}
 
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
@@ -1079,6 +1073,15 @@ static void rna_Scene_update_active_object_data(Main *UNUSED(bmain), Scene *scen
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT|ND_DRAW, &ob->id);
 	}
+}
+
+static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->id.data;
+	Object *camera= scene->camera;
+
+	if(camera)
+		DAG_id_tag_update(&camera->id, 0);
 }
 
 #else
@@ -3022,7 +3025,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_full_sample", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
-	 RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_full_sample_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_full_sample_get", NULL);
 	RNA_def_property_ui_text(prop, "Full Sample",
 	                         "Save for every anti-aliasing sample the entire RenderLayer results "
 	                         "(this solves anti-aliasing issues with compositing)");
@@ -3759,7 +3762,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TransformOrientation");
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
 
-	/* acctive MovieClip */
+	/* active MovieClip */
 	prop= RNA_def_property(srna, "active_clip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clip");
 	RNA_def_property_flag(prop, PROP_EDITABLE);

@@ -65,6 +65,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         if(ob.type == 'MESH'):
             physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
             physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+            physics_add(self, col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)
 
         col = split.column()
 
@@ -106,7 +107,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         layout.label(text=cache.info)
     else:
-        if cachetype == 'SMOKE':
+        if cachetype in {'SMOKE', 'DYNAMIC_PAINT'}:
             if not bpy.data.is_saved:
                 layout.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
@@ -118,17 +119,17 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         row = layout.row(align=True)
 
-        if cachetype != 'PSYS':
+        if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
             row.enabled = enabled
             row.prop(cache, "frame_start")
             row.prop(cache, "frame_end")
-        if cachetype not in {'SMOKE', 'CLOTH'}:
+        if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT'}:
             row.prop(cache, "frame_step")
             row.prop(cache, "use_quick_cache")
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 
-        if cachetype != 'SMOKE':
+        if cachetype not in {'SMOKE', 'DYNAMIC_PAINT'}:
             split = layout.split()
             split.enabled = enabled and bpy.data.is_saved
 

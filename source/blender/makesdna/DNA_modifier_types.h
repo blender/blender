@@ -30,7 +30,8 @@
 
 #define MODSTACK_DEBUG 1
 
-/* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
+/* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
+ * (ONLY ADD NEW ITEMS AT THE END) */
 
 typedef enum ModifierType {
 	eModifierType_None = 0,
@@ -72,8 +73,8 @@ typedef enum ModifierType {
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
-	eModifierType_EmptySlot,    /* keep so DynamicPaint keep loading, can re-use later */
-	eModifierType_DynamicPaint, /* reserve slot */
+	eModifierType_Ocean,
+	eModifierType_DynamicPaint,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -749,6 +750,66 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
+typedef struct OceanModifierData {
+	ModifierData modifier;
+	
+	struct Ocean *ocean;
+	struct OceanCache *oceancache;
+	
+	int		resolution;
+	int		spatial_size;
+	
+	float	wind_velocity;
+	
+	float	damp;
+	float	smallest_wave;
+	float	depth;
+	
+	float	wave_alignment;
+	float	wave_direction;
+	float	wave_scale;
+	
+	float	chop_amount;
+	float	foam_coverage;
+	float	time;
+	
+	int		bakestart;
+	int		bakeend;
+	
+	char	cachepath[240];	// FILE_MAX
+	char	cached;
+	char	geometry_mode;
+
+	char	flag;
+	char	refresh;
+
+	short	repeat_x;
+	short	repeat_y;
+
+	int		seed;
+
+	float	size;
+	
+	float	foam_fade;
+
+	int pad;
+
+} OceanModifierData;
+
+#define MOD_OCEAN_GEOM_GENERATE	0
+#define MOD_OCEAN_GEOM_DISPLACE	1
+#define MOD_OCEAN_GEOM_SIM_ONLY	2
+
+#define MOD_OCEAN_REFRESH_RESET			1
+#define MOD_OCEAN_REFRESH_SIM			2
+#define MOD_OCEAN_REFRESH_ADD			4
+#define MOD_OCEAN_REFRESH_CLEAR_CACHE	8
+#define MOD_OCEAN_REFRESH_TOPOLOGY		16
+
+#define MOD_OCEAN_GENERATE_FOAM	1
+#define MOD_OCEAN_GENERATE_NORMALS	2
+
+
 typedef struct WarpModifierData {
 	ModifierData modifier;
 
@@ -955,5 +1016,18 @@ typedef struct WeightVGProximityModifierData {
 #define MOD_WVG_MASK_TEX_USE_SAT			6
 #define MOD_WVG_MASK_TEX_USE_VAL			7
 #define MOD_WVG_MASK_TEX_USE_ALPHA			8
+
+/* Dynamic paint modifier flags */
+#define MOD_DYNAMICPAINT_TYPE_CANVAS (1 << 0)
+#define MOD_DYNAMICPAINT_TYPE_BRUSH (1 << 1)
+
+typedef struct DynamicPaintModifierData {
+	ModifierData modifier;
+
+	struct DynamicPaintCanvasSettings *canvas;
+	struct DynamicPaintBrushSettings *brush;
+	int type;  /* ui display: canvas / brush */
+	int pad;
+} DynamicPaintModifierData;
 
 #endif

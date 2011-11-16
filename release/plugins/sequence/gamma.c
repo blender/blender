@@ -117,13 +117,13 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 		src1= (unsigned char *) ibuf1->rect;
 
 		make_gamma_table(cast->setup_m, cast->gain_m, cast->gamma_m,
-				 gamma_table_m);
+		                 gamma_table_m);
 		make_gamma_table(cast->setup_r, cast->gain_r, cast->gamma_r,
-				 gamma_table_r);
+		                 gamma_table_r);
 		make_gamma_table(cast->setup_g, cast->gain_g, cast->gamma_g,
-				 gamma_table_g);
+		                 gamma_table_g);
 		make_gamma_table(cast->setup_b, cast->gain_b, cast->gamma_b,
-				 gamma_table_b);
+		                 gamma_table_b);
 
 		for (y = 0; y < height; y++) {
 			for (x = 0; x < width; x++) {

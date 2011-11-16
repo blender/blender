@@ -60,9 +60,9 @@ double tval( void )
 }
 #else
 #include <sys/time.h>
-			 static struct timeval _tstart, _tend;
-	 static struct timezone tz;
-	 void tstart ( void )
+static struct timeval _tstart, _tend;
+static struct timezone tz;
+void tstart ( void )
 {
 	gettimeofday ( &_tstart, &tz );
 }
@@ -1093,7 +1093,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			cloth->verts[spring->kl].spring_count++;
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
-			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0;
+			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
 			struct_springs++;
 			
 			BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1110,7 +1110,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	for(i = 0; i < numverts; i++)
 	{
-		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49 / ((float)cloth->verts[i].spring_count);
+		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f / ((float)cloth->verts[i].spring_count);
 	}
 	
 	// shear springs
@@ -1132,7 +1132,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		spring->kl = MAX2(mface[i].v3, mface[i].v1);
 		spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
-		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
+		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 
 		BLI_linklist_append ( &edgelist[spring->ij], spring );
 		BLI_linklist_append ( &edgelist[spring->kl], spring );
@@ -1195,7 +1195,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 					spring->kl = MAX2(tspring2->ij, index2);
 					spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 					spring->type = CLOTH_SPRING_TYPE_BENDING;
-					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
+					spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
 					BLI_edgehash_insert ( edgehash, spring->ij, spring->kl, NULL );
 					bend_springs++;
 
@@ -1234,7 +1234,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				spring->kl = tspring->kl;
 				spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest);
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
-				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
+				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
 				bend_springs++;
 
 				BLI_linklist_prepend ( &cloth->springs, spring );

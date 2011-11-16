@@ -198,7 +198,9 @@ typedef struct bPoseChannel {
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
-	struct ListBase		 iktree;		/* only while evaluating pose */
+	
+	struct ListBase		 iktree;		/* "IK trees" - only while evaluating pose */
+	struct ListBase 	siktree;		/* Spline-IK "trees" - only while evaluating pose */
 	
 	bMotionPath *mpath;				/* motion path cache for this bone */
 	struct Object *custom;			/* draws custom object instead of default bone shape */

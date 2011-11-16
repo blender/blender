@@ -88,9 +88,9 @@ class SCA_MouseSensor : public SCA_ISensor
 	bool isValid(KX_MOUSESENSORMODE);
 	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
-					int startx,int starty,
-				   short int mousemode,
-				   SCA_IObject* gameobj);
+	                int startx,int starty,
+	                short int mousemode,
+	                SCA_IObject* gameobj);
 
 	virtual ~SCA_MouseSensor();
 	virtual CValue* GetReplica();

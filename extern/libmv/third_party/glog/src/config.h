@@ -4,6 +4,8 @@
 /* Namespace for Google classes */
 #ifdef __APPLE__
  #include "config_mac.h"
+#elif __MINGW32__
+ #include "windows/config.h"
 #elif __GNUC__
  #include "config_linux.h"
 #elif _MSC_VER

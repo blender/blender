@@ -131,7 +131,7 @@ class ConstraintButtonsPanel():
         self.space_template(layout, con)
 
     def IK(self, context, layout, con):
-        if context.object.pose.ik_solver == "ITASC":
+        if context.object.pose.ik_solver == 'ITASC':
             layout.prop(con, "ik_type")
             getattr(self, 'IK_' + con.ik_type)(context, layout, con)
         else:
@@ -420,7 +420,9 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "volume")
 
-        self.space_template(layout, con)
+        row = layout.row()
+        row.label(text="Convert:")
+        row.prop(con, "owner_space", text="")
 
     def COPY_TRANSFORMS(self, context, layout, con):
         self.target_template(layout, con)

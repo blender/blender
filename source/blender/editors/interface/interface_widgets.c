@@ -810,6 +810,11 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 }
 
 
+static int ui_but_draw_menu_icon(uiBut *but)
+{
+	return (but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP);
+}
+
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
@@ -888,8 +893,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 		else
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
-	
-	if((but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP)) {
+
+	if (ui_but_draw_menu_icon(but)) {
 		xs= rect->xmax-17;
 		ys= (rect->ymin+rect->ymax- height)/2;
 		
@@ -1139,7 +1144,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	/* part text right aligned */
 	if(cpoin) {
 		fstyle->align= UI_STYLE_TEXT_RIGHT;
-		rect->xmax-=5;
+		rect->xmax -= ui_but_draw_menu_icon(but) ? UI_DPI_ICON_SIZE : 5;
 		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}
@@ -1180,6 +1185,12 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
 			
 			widget_draw_icon(but, ICON_DOT, dualset?1.0f:0.25f, rect);
+		}
+		else if(but->type==MENU && (but->flag & UI_BUT_NODE_LINK)) {
+			int tmp = rect->xmin;
+			rect->xmin = rect->xmax - (rect->ymax - rect->ymin) - 1;
+			widget_draw_icon(but, ICON_LAYER_USED, 1.0f, rect);
+			rect->xmin = tmp;
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
@@ -1542,6 +1553,10 @@ static void widget_state(uiWidgetType *wt, int state)
 	if(state & UI_BUT_REDALERT) {
 		char red[4]= {255, 0, 0};
 		widget_state_blend(wt->wcol.inner, red, 0.4f);
+	}
+	if(state & UI_BUT_NODE_ACTIVE) {
+		char blue[4]= {86, 128, 194};
+		widget_state_blend(wt->wcol.inner, blue, 0.3f);
 	}
 }
 
@@ -2530,6 +2545,29 @@ static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
+{
+	/* silly node link button hacks */
+	uiWidgetBase wtb;
+	uiWidgetColors wcol_backup= *wcol;
+	
+	widget_init(&wtb);
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+
+	wcol->inner[0] += 15;
+	wcol->inner[1] += 15;
+	wcol->inner[2] += 15;
+	wcol->outline[0] += 15;
+	wcol->outline[1] += 15;
+	wcol->outline[2] += 15;
+	
+	/* decoration */
+	widgetbase_draw(&wtb, wcol);
+	*wcol= wcol_backup;
+}
+
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	if(state & UI_ACTIVE) {
@@ -2804,6 +2842,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_menu;
 			wt.draw= widget_menubut;
 			break;
+
+		case UI_WTYPE_MENU_NODE_LINK:
+			wt.wcol_theme= &btheme->tui.wcol_menu;
+			wt.draw= widget_menunodebut;
+			break;
 			
 		case UI_WTYPE_PULLDOWN:
 			wt.wcol_theme= &btheme->tui.wcol_pulldown;
@@ -2996,7 +3039,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
-				if(!but->str[0] && but->icon)
+				if(but->flag & UI_BUT_NODE_LINK)
+					wt= widget_type(UI_WTYPE_MENU_NODE_LINK);
+				else if(!but->str[0] && but->icon)
 					wt= widget_type(UI_WTYPE_MENU_ICON_RADIO);
 				else
 					wt= widget_type(UI_WTYPE_MENU_RADIO);

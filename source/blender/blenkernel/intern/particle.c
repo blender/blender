@@ -45,6 +45,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_dynamicpaint_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -637,7 +638,7 @@ static float psys_render_projected_area(ParticleSystem *psys, const float center
 	w= co[2]*data->winmat[2][3] + data->winmat[3][3];
 	dx= data->winx*ortho2[0]*data->winmat[0][0];
 	dy= data->winy*ortho2[1]*data->winmat[1][1];
-	w= sqrt(dx*dx + dy*dy)/w;
+	w= sqrtf(dx*dx + dy*dy)/w;
 
 	/* w squared because we are working with area */
 	area= area*w*w;
@@ -3451,6 +3452,14 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		if((smd->type == MOD_SMOKE_TYPE_FLOW) && smd->flow && smd->flow->psys)
 			if(smd->flow->psys == psys)
 				smd->flow->psys = NULL;
+	}
+
+	if((md = modifiers_findByType(ob, eModifierType_DynamicPaint)))
+	{
+		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+		if(pmd->brush && pmd->brush->psys)
+			if(pmd->brush->psys == psys)
+				pmd->brush->psys = NULL;
 	}
 
 	/* clear modifier */

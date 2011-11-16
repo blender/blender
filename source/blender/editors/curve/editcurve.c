@@ -688,8 +688,8 @@ static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
 
 static void bezt_to_key(BezTriple *bezt, float *key)
 {
-	 memcpy(key, bezt->vec, sizeof(float) * 9);
-	 key[9] = bezt->alfa;
+	memcpy(key, bezt->vec, sizeof(float) * 9);
+	key[9] = bezt->alfa;
 }
 
 static void calc_keyHandles(ListBase *nurb, float *key)
@@ -5468,6 +5468,24 @@ static int point_on_nurb(Nurb *nu, void *point)
 	}
 }
 
+static Nurb *get_lastsel_nurb(Curve *cu)
+{
+	ListBase *nubase= curve_editnurbs(cu);
+	Nurb *nu= nubase->first;
+
+	if(!cu->lastsel)
+		return NULL;
+
+	while (nu) {
+		if (point_on_nurb(nu, cu->lastsel))
+			return nu;
+
+		nu= nu->next;
+	}
+
+	return NULL;
+}
+
 static void select_nth_bezt(Nurb *nu, BezTriple *bezt, int nth)
 {
 	int a, start;
@@ -5517,21 +5535,11 @@ static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
 int CU_select_nth(Object *obedit, int nth)
 {
 	Curve *cu= (Curve*)obedit->data;
-	ListBase *nubase= curve_editnurbs(cu);
 	Nurb *nu;
-	int ok=0;
 
-	/* Search nurb to which selected point belongs to */
-	nu= nubase->first;
-	while (nu) {
-		if (point_on_nurb(nu, cu->lastsel)) {
-			ok= 1;
-			break;
-		}
-		nu= nu->next;
-	}
-
-	if (!ok) return 0;
+	nu= get_lastsel_nurb(cu);
+	if (!nu)
+		return 0;
 
 	if (nu->bezt) {
 		select_nth_bezt(nu, cu->lastsel, nth);
@@ -7069,4 +7077,25 @@ void ED_curve_bpcpy(EditNurb *editnurb, BPoint *dst, BPoint *src, int count)
 {
 	memcpy(dst, src, count*sizeof(BPoint));
 	keyIndex_updateBP(editnurb, src, dst, count);
+}
+
+int ED_curve_actSelection(Curve *cu, float center[3])
+{
+	Nurb *nu= get_lastsel_nurb(cu);
+
+	if(!nu)
+		return 0;
+
+	if(nu->bezt) {
+		BezTriple *bezt= cu->lastsel;
+
+		copy_v3_v3(center, bezt->vec[1]);
+	}
+	else {
+		BPoint *bp= cu->lastsel;
+
+		copy_v3_v3(center, bp->vec);
+	}
+
+	return 1;
 }

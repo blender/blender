@@ -102,7 +102,8 @@ EnumPropertyItem viewport_shade_items[] = {
 	{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
-	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Textured", "Display the object solid, with face-assigned textures"},
+	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
+	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Display objects solid, with GLSL material"},
 	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -114,14 +115,14 @@ EnumPropertyItem viewport_shade_items[] = {
 
 #include "BLI_math.h"
 
-#include "BKE_screen.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_image.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "ED_image.h"
 #include "ED_node.h"
@@ -462,10 +463,12 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
+
+	if(scene_use_new_shading_nodes(scene))
+		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
 	
-	if(type->view_draw) {
+	if(type->view_draw)
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
-	}
 
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;
@@ -510,11 +513,8 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceImage *sima= (SpaceImage*)(ptr->data);
 	bScreen *sc= (bScreen*)ptr->id.data;
-	Scene *scene= sc->scene;
-	Image *ima= (Image*)value.data;
 
-	ED_space_image_set(NULL, sima, scene, scene->obedit, ima);
-	BKE_image_guess_offset(scene, ima, &sima->iuser);
+	ED_space_image_set(sima, sc->scene, sc->scene->obedit, (Image*)value.data);
 }
 
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,
@@ -1593,12 +1593,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_CAMERAPATH);
-	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed path of camera");
+	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed camera path");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Tracks Name", "Show names for tracks objects");
+	RNA_def_property_ui_text(prop, "Show Track Names", "Show names for tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
@@ -1671,6 +1671,17 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view_distance", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_zoom", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "camzoom");
+	RNA_def_property_ui_text(prop, "Camera Zoom", "Zoom factor in camera view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "view_camera_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "camdx");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Camera Offset", "View shift in camera view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
@@ -2378,6 +2389,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_SMOKE);
 	RNA_def_property_ui_text(prop, "Smoke", "Show the active object's smoke cache");	
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
+		
+	prop= RNA_def_property(srna, "cache_dynamicpaint", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_DYNAMICPAINT);
+	RNA_def_property_ui_text(prop, "Dynamic Paint", "Show the active object's Dynamic Paint cache");	
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
 }
 
 static void rna_def_console_line(BlenderRNA *brna)
@@ -2568,9 +2584,9 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
 	
-	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "active_operator", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "op");
-	RNA_def_property_ui_text(prop, "Operator", "");
+	RNA_def_property_ui_text(prop, "Active Operator", "");
 }
 
 static void rna_def_space_info(BlenderRNA *brna)
@@ -2877,7 +2893,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 	/* show tiny markers */
 	prop= RNA_def_property(srna, "show_tiny_markers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers tiny");
+	RNA_def_property_ui_text(prop, "Show Tiny Markers", "Show markers in a more compact manner");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_TINY_MARKER);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
@@ -2944,13 +2960,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* show graph_frames */
 	prop= RNA_def_property(srna, "show_graph_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_FRAMES);
-	RNA_def_property_ui_text(prop, "Show Frames", "Show curves for frames in graph editor");
+	RNA_def_property_ui_text(prop, "Show Frames", "Show curve for per-frame average error (camera motion should be solved first)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* show graph_tracks */
 	prop= RNA_def_property(srna, "show_graph_tracks", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_TRACKS);
-	RNA_def_property_ui_text(prop, "Show Tracks", "Show curves for tracks in graph editor");
+	RNA_def_property_ui_text(prop, "Show Tracks", "Display the speed curves (in \"x\" direction red, in \"y\" direction green) for the selected tracks");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 

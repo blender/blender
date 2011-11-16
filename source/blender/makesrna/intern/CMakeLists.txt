@@ -46,6 +46,7 @@ set(DEFSRC
 	rna_context.c
 	rna_controller.c
 	rna_curve.c
+	rna_dynamicpaint.c
 	rna_fcurve.c
 	rna_fluidsim.c
 	rna_gpencil.c
@@ -203,6 +204,10 @@ endif()
 
 if(WITH_FFTW3)
 	add_definitions(-DWITH_FFTW3)
+endif()
+
+if(WITH_MOD_OCEANSIM)
+	add_definitions(-DWITH_OCEANSIM)
 endif()
 
 if(WITH_SDL)

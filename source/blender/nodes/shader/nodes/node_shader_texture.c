@@ -36,7 +36,7 @@
 
 /* **************** TEXTURE ******************** */
 static bNodeSocketTemplate sh_node_texture_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},	/* no limit */
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},	/* no limit */
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_texture_out[]= {
@@ -51,6 +51,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 	if(data && node->id) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		TexResult texres;
+		bNodeSocket *sock_vector= node->inputs.first;
 		float vec[3], nor[3]={0.0f, 0.0f, 0.0f};
 		int retval;
 		short which_output = node->custom1;
@@ -63,7 +64,8 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		texres.nor= nor;
 		texres.tr= texres.tg= texres.tb= 0.0f;
 		
-		if(in[0]->hasinput) {
+		/* don't use in[0]->hasinput, see material node for explanation */
+		if(sock_vector->link) {
 			nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 			
 			if(in[0]->datatype==NS_OSA_VECTORS) {

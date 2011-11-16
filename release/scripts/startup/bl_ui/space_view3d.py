@@ -55,8 +55,8 @@ class VIEW3D_HT_header(Header):
                 sub.menu("VIEW3D_MT_object")
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        row = layout.row()  # XXX Narrowed down vert/edge/face selector in edit mode/solid drawmode. -DingTo
-        row.template_header_3D()
+        row = layout
+        layout.template_header_3D()
 
         if obj:
             # Particle edit
@@ -366,6 +366,7 @@ class VIEW3D_MT_view_align(Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
+        layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
@@ -1536,11 +1537,11 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
 class VIEW3D_MT_edit_mesh_extrude(Menu):
     bl_label = "Extrude"
 
-    _extrude_funcs = { \
-        "VERT": lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
-        "EDGE": lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
-        "FACE": lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),
-        "REGION": lambda layout: layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region"),
+    _extrude_funcs = {
+        'VERT': lambda layout: layout.operator("mesh.extrude_vertices_move", text="Vertices Only"),
+        'EDGE': lambda layout: layout.operator("mesh.extrude_edges_move", text="Edges Only"),
+        'FACE': lambda layout: layout.operator("mesh.extrude_faces_move", text="Individual Faces"),
+        'REGION': lambda layout: layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region"),
     }
 
     @staticmethod
@@ -1550,11 +1551,11 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         menu = []
         if mesh.total_face_sel:
-            menu += ["REGION", "FACE"]
+            menu += ['REGION', 'FACE']
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
-            menu += ["EDGE"]
+            menu += ['EDGE']
         if mesh.total_vert_sel and select_mode[0]:
-            menu += ["VERT"]
+            menu += ['VERT']
 
         # should never get here
         return menu
@@ -2203,7 +2204,7 @@ class VIEW3D_PT_view3d_motion_tracking(Panel):
 
         col = layout.column()
         col.active = view.show_reconstruction
-        col.prop(view, "show_tracks_name", text="Show Names")
+        col.prop(view, "show_tracks_name")
         col.prop(view, "show_camera_path")
         col.label(text="Tracks:")
         col.prop(view, "tracks_draw_type", text="")

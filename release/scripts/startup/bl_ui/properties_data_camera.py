@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
@@ -33,12 +33,12 @@ class CameraButtonsPanel():
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class CAMERA_MT_presets(bpy.types.Menu):
+class CAMERA_MT_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
@@ -98,20 +98,15 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column()
-        col.label(text="Depth of Field:")
-
-        col.prop(cam, "dof_object", text="")
-
-        col = col.column()
-        if cam.dof_object is not None:
-            col.enabled = False
-        col.prop(cam, "dof_distance", text="Distance")
-
         col = split.column(align=True)
         col.label(text="Shift:")
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
+
+        col = split.column(align=True)
+        col.label(text="Clipping:")
+        col.prop(cam, "clip_start", text="Start")
+        col.prop(cam, "clip_end", text="End")
 
 
 class DATA_PT_camera(CameraButtonsPanel, Panel):
@@ -126,8 +121,8 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
         row = layout.row(align=True)
 
         row.menu("CAMERA_MT_presets", text=bpy.types.CAMERA_MT_presets.bl_label)
-        row.operator("camera.preset_add", text="", icon="ZOOMIN")
-        row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
+        row.operator("camera.preset_add", text="", icon='ZOOMIN')
+        row.operator("camera.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.label(text="Sensor:")
 
@@ -142,11 +137,26 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         col = split.column(align=True)
         col.prop(cam, "sensor_fit", text="")
- 
-        layout.label(text="Clipping:")
-        row = layout.row(align=True)
-        row.prop(cam, "clip_start", text="Start")
-        row.prop(cam, "clip_end", text="End")
+
+
+class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
+    bl_label = "Depth of Field"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+
+        layout.label(text="Focus:")
+
+        split = layout.split()
+        split.prop(cam, "dof_object", text="")
+
+        col = split.column()
+
+        col.active = cam.dof_object is None
+        col.prop(cam, "dof_distance", text="Distance")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):

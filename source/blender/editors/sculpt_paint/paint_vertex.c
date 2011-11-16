@@ -364,8 +364,9 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
 
-	if(!me->mcol)
-		make_vertexcol(ob);
+	if(!me->mcol) make_vertexcol(ob);
+	if(!me->mcol) return; /* possible we can't make mcol's */
+
 
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
@@ -1342,16 +1343,16 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 		if(vgroup_validmap && total_changed < 0 && total_valid) {
 			totchange_allowed = total_valid;
 		}
+		/* the way you modify the unlocked+unchanged groups is different depending
+		 * on whether or not you are painting the weight(s) up or down */
+		if(totchange < 0) {
+			totchange_allowed = total_valid - totchange_allowed;
+		}
+		else {
+			totchange_allowed *= -1;
+		}
 		/* there needs to be change allowed, or you should not bother */
 		if(totchange_allowed) {
-			/* the way you modify the unlocked+unchanged groups is different depending
-			 * on whether or not you are painting the weight(s) up or down */
-			if(totchange < 0) {
-				totchange_allowed = total_valid - totchange_allowed;
-			}
-			else {
-				totchange_allowed *= -1;
-			}
 			left_over = 0;
 			if(fabsf(totchange_allowed) < fabsf(totchange)) {
 				/* this amount goes back onto the changed, unlocked weights */
@@ -1375,11 +1376,15 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 					odw = defvert_find_index(odv, designatedw);
 					storedw = ndw->weight;
 					for(i = 0; i < ndv->totweight; i++) {
-						if(change_status[ndw->def_nr] == 2) {
+						if(ndv->dw[i].def_nr == designatedw) {
+							continue;
+						}
+						ndw2 = &ndv->dw[i];
+						if(change_status[ndw2->def_nr] == 2) {
 							odw2 = &odv->dw[i];
-							ndw2 = &ndv->dw[i];
+							
 							if(!designatedw_changed) {
-								ndw->weight = (totchange_allowed + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
+								ndw->weight = (-left_over + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
 								designatedw_changed = TRUE;
 							}
 							ndw2->weight = ndw->weight * ndw2->weight / storedw;
@@ -1675,8 +1680,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		if(dv_copy.dw) {
 			MEM_freeN(dv_copy.dw);
 		}
+#if 0
 		/* dv may have been altered greatly */
 		dw = defvert_find_index(dv, vgroup);
+#else
+		dw = NULL; /* UNUSED after assignment, set to NULL to ensuyre we don't
+			        * use again, we thats needed un-ifdef the line above */
+		(void)dw;  /* quiet warnigns */
+#endif
 
 		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 			int index_mirr= mesh_get_x_mirror_vert(ob, index);

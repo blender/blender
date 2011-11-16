@@ -594,7 +594,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* pyramid */
-	if((sel == TRACK_SELECTED(track) && sel && (sc->flag&SC_SHOW_PYRAMID_LEVELS) && (track->tracker==TRACKER_KLT))) {
+	if(sel && TRACK_SELECTED(track) && (sc->flag&SC_SHOW_PYRAMID_LEVELS) && (track->tracker==TRACKER_KLT) && (marker->flag&MARKER_DISABLED)==0) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
@@ -626,7 +626,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			glDisable(GL_LINE_STIPPLE);
 			glPopMatrix();
 		}
-        }
+	}
 
 	if(tiny)
 		glDisable(GL_LINE_STIPPLE);
@@ -936,7 +936,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				draw_marker_slide_zones(sc, track, marker, cur_pos, 1, 0, 0, width, height);
 				draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 0, 0, width, height);
 
-				if(fp) fp+= 2;
+				if(fp)
+					fp+= 2;
 			}
 		}
 
@@ -950,20 +951,19 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
 			int act= track==act_track;
+			marker= BKE_tracking_get_marker(track, framenr);
 
-			if(!act) {
-				marker= BKE_tracking_get_marker(track, framenr);
-
-				if(MARKER_VISIBLE(sc, marker)) {
+			if(MARKER_VISIBLE(sc, marker)) {
+				if(!act) {
 					copy_v2_v2(cur_pos, fp ? fp : marker->pos);
 
 					draw_marker_areas(sc, track, marker, cur_pos, width, height, 0, 1);
 					draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 1, 0, width, height);
 				}
-			}
 
-			if(MARKER_VISIBLE(sc, marker) && fp)
-				fp+= 2;
+				if(fp)
+					fp+= 2;
+			}
 		}
 
 		track= track->next;

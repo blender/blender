@@ -97,6 +97,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
@@ -1326,6 +1327,31 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			writestruct(wd, DATA, "FluidsimSettings", 1, fluidmd->fss);
+		}
+		else if(md->type==eModifierType_DynamicPaint) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
+			
+			if(pmd->canvas)
+			{
+				DynamicPaintSurface *surface;
+				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
+				
+				/* write surfaces */
+				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next)
+					writestruct(wd, DATA, "DynamicPaintSurface", 1, surface);
+				/* write caches and effector weights */
+				for (surface=pmd->canvas->surfaces.first; surface; surface=surface->next) {
+					write_pointcaches(wd, &(surface->ptcaches));
+
+					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
+				}
+			}
+			if(pmd->brush)
+			{
+				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
+				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
+				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
+			}
 		} 
 		else if (md->type==eModifierType_Collision) {
 			
@@ -1789,6 +1815,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 				if(tex->pd->falloff_curve) write_curvemapping(wd, tex->pd->falloff_curve);
 			}
 			if(tex->type == TEX_VOXELDATA) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
+			if(tex->type == TEX_OCEAN && tex->ot) writestruct(wd, DATA, "OceanTex", 1, tex->ot);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {

@@ -743,7 +743,7 @@ class USERPREF_PT_file(Panel):
         sub.active = paths.use_auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
-from bl_ui.space_userpref_keymap import InputKeyMapPanel
+from .space_userpref_keymap import InputKeyMapPanel
 
 
 class USERPREF_MT_ndof_settings(Menu):
@@ -765,16 +765,18 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.label(text="Orbit options")
             if input_prefs.view_rotate_method == 'TRACKBALL':
                 layout.prop(input_prefs, "ndof_roll_invert_axis")
-                layout.prop(input_prefs, "ndof_tilt_invert_axis")
-                layout.prop(input_prefs, "ndof_rotate_invert_axis")
-            else:
-                layout.prop(input_prefs, "ndof_orbit_invert_axes")
+            layout.prop(input_prefs, "ndof_tilt_invert_axis")
+            layout.prop(input_prefs, "ndof_rotate_invert_axis")
+            layout.prop(input_prefs, "ndof_zoom_invert")
 
             layout.separator()
             layout.label(text="Pan options")
             layout.prop(input_prefs, "ndof_panx_invert_axis")
             layout.prop(input_prefs, "ndof_pany_invert_axis")
             layout.prop(input_prefs, "ndof_panz_invert_axis")
+
+            layout.label(text="Zoom options")
+            layout.prop(input_prefs, "ndof_zoom_updown")
 
             layout.separator()
             layout.label(text="Fly options")
@@ -967,10 +969,10 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if (filter == "All") or \
-                    (filter == info["category"]) or \
-                    (filter == "Enabled" and is_enabled) or \
-                    (filter == "Disabled" and not is_enabled):
+            if ((filter == "All") or
+                (filter == info["category"]) or
+                (filter == "Enabled" and is_enabled) or
+                (filter == "Disabled" and not is_enabled)):
 
                 if search and search not in info["name"].lower():
                     if info["author"]:

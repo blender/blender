@@ -370,9 +370,10 @@ static PyObject *Color_add(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color addition: (%s + %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -392,9 +393,10 @@ static PyObject *Color_iadd(PyObject *v1, PyObject *v2)
 	ColorObject *color1 = NULL, *color2 = NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color addition: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color addition: (%s += %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -417,9 +419,10 @@ static PyObject *Color_sub(PyObject *v1, PyObject *v2)
 	float col[COLOR_SIZE];
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color subtraction: (%s - %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -439,9 +442,10 @@ static PyObject *Color_isub(PyObject *v1, PyObject *v2)
 	ColorObject *color1= NULL, *color2= NULL;
 
 	if (!ColorObject_Check(v1) || !ColorObject_Check(v2)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color subtraction: "
-		                "arguments not valid for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color subtraction: (%s -= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 	color1 = (ColorObject*)v1;
@@ -554,9 +558,10 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 		mul_vn_fl(color->col, COLOR_SIZE, scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color multiplication: "
-		                "arguments not acceptable for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color multiplication: (%s *= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 
@@ -585,9 +590,10 @@ static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 		mul_vn_fl(color->col, COLOR_SIZE, 1.0f / scalar);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError,
-		                "Color multiplication: "
-		                "arguments not acceptable for this operation");
+		PyErr_Format(PyExc_TypeError,
+		             "Color division: (%s /= %s) "
+		             "invalid type for this operation",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 
@@ -828,18 +834,18 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 	self= base_type ?	(ColorObject *)base_type->tp_alloc(base_type, 0) :
 						(ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
 
-	if(self) {
+	if (self) {
 		/* init callbacks as NULL */
 		self->cb_user= NULL;
 		self->cb_type= self->cb_subtype= 0;
 
-		if(type == Py_WRAP) {
+		if (type == Py_WRAP) {
 			self->col = col;
 			self->wrapped = Py_WRAP;
 		}
 		else if (type == Py_NEW) {
 			self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
-			if(col)
+			if (col)
 				copy_v3_v3(self->col, col);
 			else
 				zero_v3(self->col);
@@ -857,7 +863,7 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 {
 	ColorObject *self= (ColorObject *)newColorObject(NULL, Py_NEW, NULL);
-	if(self) {
+	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;
 		self->cb_type=			(unsigned char)cb_type;

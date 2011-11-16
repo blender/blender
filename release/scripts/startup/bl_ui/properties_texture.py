@@ -44,7 +44,7 @@ class TEXTURE_MT_envmap_specials(Menu):
         layout.operator("texture.envmap_clear", icon='FILE_REFRESH')
         layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
 
-from bl_ui.properties_material import active_node_mat
+from .properties_material import active_node_mat
 
 
 def context_tex_datablock(context):
@@ -726,7 +726,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         col.prop(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.prop(pd, "falloff_soft")
-        if pd.falloff == "PARTICLE_VELOCITY":
+        if pd.falloff == 'PARTICLE_VELOCITY':
             col.prop(pd, "falloff_speed_scale")
 
         col.prop(pd, "use_falloff_curve")
@@ -772,6 +772,22 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
         col.prop(pd, "turbulence_scale")
         col.prop(pd, "turbulence_depth")
         col.prop(pd, "turbulence_strength")
+
+
+class TEXTURE_PT_ocean(TextureTypePanel, Panel):
+    bl_label = "Ocean"
+    tex_type = 'OCEAN'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+        ot = tex.ocean
+
+        col = layout.column()
+        col.prop(ot, "ocean_object")
+        col.prop(ot, "output")
 
 
 class TEXTURE_PT_mapping(TextureSlotPanel, Panel):

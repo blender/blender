@@ -110,11 +110,38 @@ void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float min[3], float max[3]);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+
+/* sometimes min-max isnt enough, we need to loop over each point */
+void BKE_object_foreach_display_point(
+        struct Object *ob, float obmat[4][4],
+        void (*func_cb)(const float[3], void *), void *user_data);
+void BKE_scene_foreach_display_point(
+        struct Scene *scene,
+        struct View3D *v3d,
+        const short flag,
+        void (*func_cb)(const float[3], void *), void *user_data);
+
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 
 void *object_tfm_backup(struct Object *ob);
 void object_tfm_restore(struct Object *ob, void *obtfm_pt);
+
+typedef struct ObjectTfmProtectedChannels {
+	float loc[3],     dloc[3];
+	float size[3],    dsize[3];
+	float rot[3],     drot[3];
+	float quat[4],    dquat[4];
+	float rotAxis[3], drotAxis[3];
+	float rotAngle,   drotAngle;
+} ObjectTfmProtectedChannels;
+
+void object_tfm_protected_backup(const struct Object *ob,
+                                 ObjectTfmProtectedChannels *obtfm);
+
+void object_tfm_protected_restore(struct Object *ob,
+                                  const ObjectTfmProtectedChannels *obtfm,
+                                  const short protectflag);
 
 void object_handle_update(struct Scene *scene, struct Object *ob);
 void object_sculpt_modifiers_changed(struct Object *ob);

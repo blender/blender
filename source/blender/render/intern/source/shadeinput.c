@@ -469,17 +469,20 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 					scol->col[0]= cp[3]/255.0f;
 					scol->col[1]= cp[2]/255.0f;
 					scol->col[2]= cp[1]/255.0f;
+					scol->col[3]= cp[0]/255.0f;
 				}
 
 				if(shi->totcol) {
 					shi->vcol[0]= shi->col[shi->actcol].col[0];
 					shi->vcol[1]= shi->col[shi->actcol].col[1];
 					shi->vcol[2]= shi->col[shi->actcol].col[2];
+					shi->vcol[3]= shi->col[shi->actcol].col[3];
 				}
 				else {
 					shi->vcol[0]= 0.0f;
 					shi->vcol[1]= 0.0f;
 					shi->vcol[2]= 0.0f;
+					shi->vcol[3]= 0.0f;
 				}
 			}
 
@@ -512,6 +515,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 						shi->vcol[0]= 1.0f;
 						shi->vcol[1]= 1.0f;
 						shi->vcol[2]= 1.0f;
+						shi->vcol[3]= 1.0f;
 					}
 				}
 			}
@@ -528,6 +532,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 					shi->vcol[0]= 1.0f;
 					shi->vcol[1]= 1.0f;
 					shi->vcol[2]= 1.0f;
+					shi->vcol[3]= 1.0f;
 				}
 			}
 
@@ -1096,6 +1101,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				for (i=0; (mcol=RE_vlakren_get_mcol(obr, vlr, i, &name, 0)); i++) {
 					ShadeInputCol *scol= &shi->col[i];
 					char *cp1, *cp2, *cp3;
+					float a[3];
 					
 					shi->totcol++;
 					scol->name= name;
@@ -1103,17 +1109,29 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					cp1= (char *)(mcol+j1);
 					cp2= (char *)(mcol+j2);
 					cp3= (char *)(mcol+j3);
-					
-					scol->col[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;
-					scol->col[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0f;
-					scol->col[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0f;
+
+					/* alpha values */
+					a[0] = ((float)cp1[0])/255.f;
+					a[1] = ((float)cp2[0])/255.f;
+					a[2] = ((float)cp3[0])/255.f;
+					scol->col[3]= l*a[2] - u*a[0] - v*a[1];
+
+					/* sample premultiplied color value */
+					scol->col[0]= (l*((float)cp3[3])*a[2] - u*((float)cp1[3])*a[0] - v*((float)cp2[3])*a[1])/255.f;
+					scol->col[1]= (l*((float)cp3[2])*a[2] - u*((float)cp1[2])*a[0] - v*((float)cp2[2])*a[1])/255.f;
+					scol->col[2]= (l*((float)cp3[1])*a[2] - u*((float)cp1[1])*a[0] - v*((float)cp2[1])*a[1])/255.f;
+
+					/* if not zero alpha, restore non-multiplied color */
+					if (scol->col[3]) {
+						mul_v3_fl(scol->col, 1.0f/scol->col[3]);
+					}
 				}
 
 				if(shi->totcol) {
 					shi->vcol[0]= shi->col[shi->actcol].col[0];
 					shi->vcol[1]= shi->col[shi->actcol].col[1];
 					shi->vcol[2]= shi->col[shi->actcol].col[2];
-					shi->vcol[3]= 1.0f;
+					shi->vcol[3]= shi->col[shi->actcol].col[3];
 				}
 				else {
 					shi->vcol[0]= 0.0f;

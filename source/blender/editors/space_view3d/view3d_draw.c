@@ -448,7 +448,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		if(usys) {
 			int i= bUnit_GetBaseUnit(usys);
 			*grid_unit= bUnit_GetNameDisplay(usys, i);
-			 grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
+			grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
 		}
 	}
 
@@ -1267,11 +1267,24 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
-			 paint_facesel_test(base->object)));
+	            paint_facesel_test(base->object)))
+	{
+		/* do nothing */
+	}
 	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
-		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
-	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
-	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
+	        scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE))
+	{
+		/* do nothing */
+	}
+	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) &&
+	        v3d->drawtype > OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT))
+	{
+		/* do nothing */
+	}
+	else if(scene->obedit && v3d->drawtype>OB_WIRE &&
+	        (v3d->flag & V3D_ZBUF_SELECT)) {
+		/* do nothing */
+	}
 	else {
 		v3d->flag &= ~V3D_INVALID_BACKBUF;
 		return;
@@ -2229,11 +2242,17 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 {
 	CustomDataMask mask= 0;
 
-	if((v3d->drawtype == OB_TEXTURE) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
+	if(ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) || ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX))) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if(scene->gm.matmode == GAME_MAT_GLSL)
-			mask |= CD_MASK_ORCO;
+		if(scene_use_new_shading_nodes(scene)) {
+			if(v3d->drawtype == OB_MATERIAL)
+				mask |= CD_MASK_ORCO;
+		}
+		else {
+			if(scene->gm.matmode == GAME_MAT_GLSL)
+				mask |= CD_MASK_ORCO;
+		}
 	}
 
 	return mask;
@@ -2859,6 +2878,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	else	
 		draw_view_icon(rv3d);
 	
+	ob= OBACT;
+	if(U.uiflag & USER_DRAWVIEWINFO) 
+		draw_selected_name(scene, ob);
+
 	if(rv3d->render_engine) {
 		view3d_main_area_draw_engine_info(rv3d, ar);
 		return;
@@ -2880,10 +2903,6 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
 	}
-
-	ob= OBACT;
-	if(U.uiflag & USER_DRAWVIEWINFO) 
-		draw_selected_name(scene, ob);
 }
 
 void view3d_main_area_draw(const bContext *C, ARegion *ar)

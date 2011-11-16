@@ -456,7 +456,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
 
-        elif strip.type == "MULTICAM":
+        elif strip.type == 'MULTICAM':
             layout.prop(strip, "multicam_source")
 
             row = layout.row(align=True)

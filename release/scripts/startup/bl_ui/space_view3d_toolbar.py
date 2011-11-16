@@ -172,7 +172,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_context = "mesh_edit"
     bl_label = "Mesh Options"
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object
@@ -912,12 +912,12 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, Panel):
         layout.template_curve_mapping(brush, "curve", brush=True)
 
         row = layout.row(align=True)
-        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
-        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
-        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
-        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
-        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
 class VIEW3D_PT_sculpt_options(PaintPanel, Panel):

@@ -546,21 +546,21 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 				m1=MAXSLOPE;
 				b1=x12;
 			}
-			x2max=MAX2(x21,x22)+0.001; /* prevent missed edges   */
-			x2min=MIN2(x21,x22)-0.001; /* due to round off error */
-			y2max=MAX2(y21,y22)+0.001;
-			y2min=MIN2(y21,y22)-0.001;
+			x2max=MAX2(x21,x22)+0.001f; /* prevent missed edges   */
+			x2min=MIN2(x21,x22)-0.001f; /* due to round off error */
+			y2max=MAX2(y21,y22)+0.001f;
+			y2min=MIN2(y21,y22)-0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1==m2){ /* co-incident lines */
 				/* cut at 50% of overlap area*/
 				x1max=MAX2(x11, x12);
 				x1min=MIN2(x11, x12);
-				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0;	
+				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0f;
 				
 				y1max=MAX2(y11, y12);
 				y1min=MIN2(y11, y12);
-				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0;
+				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0f;
 			}			
 			else if (m2==MAXSLOPE){ 
 				xi=x22;
@@ -594,7 +594,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 						}
 					}
 				}
-				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
+				if ((m2 <= 1.0f) && (m2 >= -1.0f)) perc = (xi-x21)/(x22-x21);
 				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
 				//isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
 				

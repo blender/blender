@@ -728,8 +728,9 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 	if (select_mode==SELECT_REPLACE) {
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		/* - deselect all other keyframes, so that just the newly selected remain
+		 * - channels aren't deselected, since we don't re-select any as a consequence
+		 */
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
@@ -917,8 +918,6 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked= {{NULL}};
-	
-	/* initialise keyframe editing data */
 	
 	/* set up BezTriple edit callbacks */
 	select_cb= ANIM_editkeyframes_select(select_mode);

@@ -90,7 +90,7 @@ typedef struct ShadeInputUV {
 } ShadeInputUV;
 
 typedef struct ShadeInputCol {
-	float col[3];
+	float col[4];
 	char *name;
 } ShadeInputCol;
 

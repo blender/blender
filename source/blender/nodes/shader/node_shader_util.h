@@ -40,6 +40,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
@@ -91,7 +92,8 @@ typedef struct ShaderCallData {
 #define GEOM_OUT_UV		4
 #define GEOM_OUT_NORMAL	5
 #define GEOM_OUT_VCOL	6
-#define GEOM_OUT_FRONTBACK	7
+#define GEOM_OUT_VCOL_ALPHA	7
+#define GEOM_OUT_FRONTBACK	8
 
 
 /* input socket defines */
@@ -122,6 +124,7 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);
 void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);
+void node_shader_gpu_tex_mapping(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
 
 void ntreeExecGPUNodes(struct bNodeTreeExec *exec, struct GPUMaterial *mat, int do_outputs);
 

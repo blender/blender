@@ -46,23 +46,23 @@
 #endif
 
 BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
-								   BOP_Faces* facesA,
-								   BOP_Faces* facesB,
-								   bool       invertMeshA,
-								   bool       invertMeshB);
+                                   BOP_Faces* facesA,
+                                   BOP_Faces* facesB,
+                                   bool       invertMeshA,
+                                   bool       invertMeshB);
 BOP_Face3* BOP_createFace(BOP_Mesh* mesh, 
-						  BOP_Index vertex1, 
-						  BOP_Index vertex2, 
-						  BOP_Index vertex3, 
-						  BOP_Index origFace);
+                          BOP_Index vertex1,
+                          BOP_Index vertex2,
+                          BOP_Index vertex3,
+                          BOP_Index origFace);
 void BOP_addMesh(BOP_Mesh*                     mesh,
-				 BOP_Faces*                    meshFacesId,
-				 CSG_FaceIteratorDescriptor&   face_it,
-				 CSG_VertexIteratorDescriptor& vertex_it,
-				 bool                          invert);
+                 BOP_Faces*                    meshFacesId,
+                 CSG_FaceIteratorDescriptor&   face_it,
+                 CSG_VertexIteratorDescriptor& vertex_it,
+                 bool                          invert);
 BSP_CSGMesh* BOP_newEmptyMesh();
 BSP_CSGMesh* BOP_exportMesh(BOP_Mesh*                  inputMesh, 
-							bool                       invert);
+                            bool                       invert);
 void BOP_meshFilter(BOP_Mesh* meshC, BOP_Faces* faces, BOP_BSPTree* bsp);
 void BOP_simplifiedMeshFilter(BOP_Mesh* meshC, BOP_Faces* faces, BOP_BSPTree* bsp, bool inverted);
 void BOP_meshClassify(BOP_Mesh* meshC, BOP_Faces* faces, BOP_BSPTree* bsp);
