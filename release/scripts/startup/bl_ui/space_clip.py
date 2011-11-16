@@ -54,7 +54,8 @@ class CLIP_HT_header(Header):
                 row = layout.row(align=True)
 
                 if sc.show_filters:
-                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN', text="Filters")
+                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN',
+                        text="Filters")
 
                     sub = row.column()
                     sub.active = clip.tracking.reconstruction.is_valid
@@ -62,7 +63,8 @@ class CLIP_HT_header(Header):
 
                     row.prop(sc, "show_graph_tracks", icon='ANIM', text="")
                 else:
-                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT', text="Filters")
+                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
+                        text="Filters")
 
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
@@ -719,7 +721,8 @@ class CLIP_MT_track(Menu):
         props = layout.operator("clip.clear_track_path", text="Clear Before")
         props.action = 'UPTO'
 
-        props = layout.operator("clip.clear_track_path", text="Clear Track Path")
+        props = layout.operator("clip.clear_track_path",
+            text="Clear Track Path")
         props.action = 'ALL'
 
         layout.separator()
