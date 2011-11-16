@@ -1490,7 +1490,7 @@ static void UV_OT_stitch(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static void select_all_perform(bContext *C, int action)
 {
 	Scene *scene;
 	ToolSettings *ts;
@@ -1499,7 +1499,6 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	EditFace *efa;
 	Image *ima;
 	MTFace *tf;
-	int action = RNA_enum_get(op->ptr, "action");
 	
 	scene= CTX_data_scene(C);
 	ts= CTX_data_tool_settings(C);
@@ -1560,6 +1559,15 @@ static int select_all_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
+}
+
+static int select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
+	int action= RNA_enum_get(op->ptr, "action");
+
+	select_all_perform(C, action);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
@@ -2275,7 +2283,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	rcti rect;
 	rctf rectf;
-	int change, pinned, select, faces;
+	int change, pinned, select, faces, extend;
 
 	/* get rectangle from operator */
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
@@ -2289,6 +2297,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	/* figure out what to select/deselect */
 	select= (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 	pinned= RNA_boolean_get(op->ptr, "pinned");
+	extend= RNA_boolean_get(op->ptr, "extend");
+
+	if(!extend)
+		select_all_perform(C, SEL_DESELECT);
 	
 	if(ts->uv_flag & UV_SYNC_SELECTION)
 		faces= (ts->selectmode == SCE_SELECT_FACE);
@@ -2411,7 +2423,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
 
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* ******************** circle select operator **************** */

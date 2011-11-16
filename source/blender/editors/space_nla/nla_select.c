@@ -282,11 +282,17 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode=0, selectmode=0;
+	int extend;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
+
+	/* clear all selection if not extending selection */
+	extend= RNA_boolean_get(op->ptr, "extend");
+	if (!extend)
+		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
+
 	/* get settings from operator */
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -341,7 +347,7 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, 0);
+	WM_operator_properties_gesture_border(ot, 1);
 	
 	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
