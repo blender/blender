@@ -176,7 +176,13 @@ static inline string get_enum_identifier(PointerRNA& ptr, const char *name)
 static inline string blender_absolute_path(BL::BlendData b_data, BL::ID b_id, const string& path)
 {
 	if(path.size() >= 2 && path[0] == '/' && path[1] == '/') {
-		string dirname = (b_id.library())? b_id.library().filepath(): b_data.filepath();
+		string dirname;
+		
+		if(b_id.library())
+			dirname = blender_absolute_path(b_data, b_id.library(), b_id.library().filepath());
+		else
+			dirname = b_data.filepath();
+
 		return path_join(path_dirname(dirname), path.substr(2));
 	}
 

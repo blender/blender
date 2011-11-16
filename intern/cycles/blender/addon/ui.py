@@ -459,7 +459,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        world = context.world
+        # world = context.world
         return False  # world and world.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
@@ -493,7 +493,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        mat = context.material
+        # mat = context.material
         return False  # mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
@@ -562,7 +562,7 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
         pin_id = space.pin_id
         use_pin_id = space.use_pin_id
         user = context.texture_user
-        node = context.texture_node
+        # node = context.texture_node
 
         if not use_pin_id or not isinstance(pin_id, bpy.types.Texture):
             pin_id = None
@@ -638,7 +638,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        tex = context.texture
+        # tex = context.texture
         node = context.texture_node
 
         mapping = node.texture_mapping
@@ -664,15 +664,15 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        tex = context.texture
-        node = context.texture_node
+        # tex = context.texture
+        # node = context.texture_node
         return False
         #return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
-        tex = context.texture
+        # tex = context.texture
         node = context.texture_node
 
         mapping = node.color_mapping

@@ -289,11 +289,17 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	short mode=0, selectmode=0;
 	short incl_handles;
+	int extend;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
+
+	/* clear all selection if not extending selection */
+	extend= RNA_boolean_get(op->ptr, "extend");
+	if (!extend)
+		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, TRUE);
+
 	/* get select mode 
 	 *	- 'gesture_mode' from the operator specifies how to select
 	 *	- 'include_handles' from the operator specifies whether to include handles in the selection
@@ -354,7 +360,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 	
 	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");

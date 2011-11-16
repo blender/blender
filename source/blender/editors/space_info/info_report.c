@@ -220,6 +220,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	ReportList *reports= CTX_wm_reports(C);
 	int report_mask= info_report_mask(sinfo);
+	int extend= RNA_boolean_get(op->ptr, "extend");
 	Report *report_min, *report_max, *report;
 
 	//View2D *v2d= UI_view2d_fromcontext(C);
@@ -243,6 +244,16 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	mval[1]= rect.ymax;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
 */
+
+	if(!extend) {
+		for(report= reports->list.first; report; report= report->next) {
+
+			if((report->type & report_mask)==0)
+				continue;
+
+			report->flag &= ~SELECT;
+		}
+	}
 
 	report_min= info_text_pick(sinfo, ar, reports, rect.ymax);
 	report_max= info_text_pick(sinfo, ar, reports, rect.ymin);
@@ -308,7 +319,7 @@ void INFO_OT_select_border(wmOperatorType *ot)
 	/* ot->flag= OPTYPE_REGISTER; */
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 

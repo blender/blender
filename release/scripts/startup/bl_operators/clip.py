@@ -86,13 +86,8 @@ class CLIP_OT_tracks_to_mesh(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type != 'CLIP_EDITOR':
-            return False
-
         sc = context.space_data
-        clip = sc.clip
-
-        return clip
+        return (sc.type == 'CLIP_EDITOR') and sc.clip
 
     def execute(self, context):
         sc = context.space_data

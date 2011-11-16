@@ -46,7 +46,6 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         md = context.dynamic_paint
-        ob = context.object
 
         layout.prop(md, "ui_type", expand=True)
 
@@ -129,7 +128,6 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
 
         canvas = context.dynamic_paint.canvas_settings
         surface = canvas.canvas_surfaces.active
-        ob = context.object
 
         surface_type = surface.surface_type
 
@@ -370,8 +368,6 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
                 md.canvas_settings.canvas_surfaces.active.is_cache_user)
 
     def draw(self, context):
-        layout = self.layout
-
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         cache = surface.point_cache
 
@@ -442,7 +438,6 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         brush = context.dynamic_paint.brush_settings
-        ob = context.object
 
         split = layout.split()
 
@@ -478,7 +473,6 @@ class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):
         layout = self.layout
 
         brush = context.dynamic_paint.brush_settings
-        ob = context.object
 
         layout.prop(brush, "wave_type")
         if brush.wave_type != 'REFLECT':

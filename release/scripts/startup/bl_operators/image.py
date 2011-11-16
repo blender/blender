@@ -147,7 +147,7 @@ class ProjectEdit(Operator):
 
         # opengl buffer may fail, we can't help this, but best report it.
         try:
-            ret = bpy.ops.paint.image_from_view()
+            bpy.ops.paint.image_from_view()
         except RuntimeError as err:
             self.report({'ERROR'}, str(err))
             return {'CANCELLED'}
