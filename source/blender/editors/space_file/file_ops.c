@@ -273,12 +273,19 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	rcti rect;
 	FileSelect ret;
-
+	int extend= RNA_boolean_get(op->ptr, "extend");
 	short select= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
+
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
+
+	if(!extend) {
+		SpaceFile *sfile= CTX_wm_space_file(C);
+
+		file_deselect_all(sfile, SELECTED_FILE);
+	}
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 
@@ -306,7 +313,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->cancel= WM_border_select_cancel;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, 0);
+	WM_operator_properties_gesture_border(ot, 1);
 }
 
 static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)

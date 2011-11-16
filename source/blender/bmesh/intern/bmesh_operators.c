@@ -821,7 +821,7 @@ static void alloc_flag_layer(BMesh *bm)
 	bm->totflags++;
 
 	/*allocate new flag pool*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 0, 0);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
 	
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
@@ -858,7 +858,7 @@ static void free_flag_layer(BMesh *bm)
 	/*de-increment the totflags first...*/
 	bm->totflags--;
 	/*allocate new flag pool*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 1, 0);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, TRUE, FALSE);
 	
 	/*now go through and memcpy all the flags*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){

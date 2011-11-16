@@ -1147,6 +1147,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	int xmax= RNA_int_get(op->ptr, "xmax");
 	int ymin= RNA_int_get(op->ptr, "ymin");
 	int ymax= RNA_int_get(op->ptr, "ymax");
+	int extend= RNA_boolean_get(op->ptr, "extend");
 	
 	UI_view2d_region_to_view(v2d, xmin, ymin, &xminf, &yminf);	
 	UI_view2d_region_to_view(v2d, xmax, ymax, &xmaxf, &ymaxf);	
@@ -1165,6 +1166,9 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 					marker->flag &= ~SELECT;
 					break;
 			}
+		}
+		else if (!extend) {
+			marker->flag &= ~SELECT;
 		}
 	}
 	
@@ -1198,7 +1202,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* *********************** (de)select all ***************** */

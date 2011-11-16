@@ -169,6 +169,7 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_WAVEB_DEPTH 0 /* use intersection depth */
 #define MOD_DPAINT_WAVEB_FORCE 1 /* act as a force on intersection area */
 #define MOD_DPAINT_WAVEB_REFLECT 2 /* obstacle that reflects waves */
+#define MOD_DPAINT_WAVEB_CHANGE 3  /* use change of intersection depth from previous frame */
 
 /* brush ray_dir */
 #define MOD_DPAINT_RAY_CANVAS 0

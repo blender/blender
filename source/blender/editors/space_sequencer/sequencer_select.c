@@ -827,6 +827,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf rectf, rq;
 	short selecting = (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
+	int extend = RNA_boolean_get(op->ptr, "extend");
 	int mval[2];
 
 	if(ed==NULL)
@@ -850,6 +851,10 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		if(BLI_isect_rctf(&rq, &rectf, NULL)) {
 			if(selecting)		seq->flag |= SELECT;
 			else				seq->flag &= ~SEQ_ALLSEL;
+			recurs_sel_seq(seq);
+		}
+		else if(!extend) {
+			seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);
 		}
 	}
@@ -880,7 +885,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* ****** Selected Grouped ****** */

@@ -590,8 +590,8 @@ static PathBase *edge_pathbase_new(void)
 {
 	PathBase *pb = MEM_callocN(sizeof(PathBase), "PathBase");
 
-	pb->nodepool = BLI_mempool_create(sizeof(EPathNode), 1, 512, 1, 0);
-	pb->pathpool = BLI_mempool_create(sizeof(EPath), 1, 512, 1, 0);
+	pb->nodepool = BLI_mempool_create(sizeof(EPathNode), 1, 512, TRUE, FALSE);
+	pb->pathpool = BLI_mempool_create(sizeof(EPath), 1, 512, TRUE, FALSE);
 
 	return pb;
 }

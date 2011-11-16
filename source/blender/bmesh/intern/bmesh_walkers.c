@@ -105,7 +105,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 		walker->order = bm_walker_types[type]->order;
 	}
 	
-	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, 1, 0);
+	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, TRUE, FALSE);
 	walker->states.first = walker->states.last = NULL;
 }
 

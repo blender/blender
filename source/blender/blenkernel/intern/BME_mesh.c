@@ -56,10 +56,10 @@ BME_Mesh *BME_make_mesh(int allocsize[4])
 	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
 	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0], 1, 0);
-	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1], 1, 0);
-	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2], 1, 0);
-	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3], 1, 0);
+	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0], TRUE, FALSE);
+	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1], TRUE, FALSE);
+	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2], TRUE, FALSE);
+	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3], TRUE, FALSE);
 	return bm;
 }
 /*	

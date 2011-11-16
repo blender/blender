@@ -87,14 +87,14 @@ BMesh *BM_Make_Mesh(struct Object *ob, int allocsize[4])
 	bm->ob = ob;
 	
    /*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
-	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
-	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], 0, 0);
-	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], 0, 0);
-	bm->fpool = BLI_mempool_create(fsize, allocsize[3], allocsize[3], 0, 1);
+	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
+	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
+	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
+	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
+	bm->fpool = BLI_mempool_create(fsize, allocsize[3], allocsize[3], FALSE, TRUE);
 
 	/*allocate one flag pool that we dont get rid of.*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0, 0);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 
@@ -183,14 +183,14 @@ void BM_Clear_Mesh(BMesh *bm)
 	bm->ob = ob;
 	
    /*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
-	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
-	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], 0, 0);
-	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], 0, 0);
-	bm->fpool = BLI_mempool_create(fsize, allocsize[4], allocsize[4], 0, 1);
+	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], FALSE, TRUE);
+	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], FALSE, TRUE);
+	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], FALSE, FALSE);
+	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], FALSE, FALSE);
+	bm->fpool = BLI_mempool_create(fsize, allocsize[4], allocsize[4], FALSE, TRUE);
 
 	/*allocate one flag pool that we dont get rid of.*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0, 0);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, FALSE, FALSE);
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 }

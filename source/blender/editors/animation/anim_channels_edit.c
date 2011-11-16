@@ -1917,7 +1917,7 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short selectmode=0;
-	int gesture_mode;
+	int gesture_mode, extend;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1928,8 +1928,13 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
-		
+	
 	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	extend= RNA_boolean_get(op->ptr, "extend");
+
+	if(!extend)
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_CLEAR);
+
 	if (gesture_mode == GESTURE_MODAL_SELECT)
 		selectmode = ACHANNEL_SETFLAG_ADD;
 	else
@@ -1963,7 +1968,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, FALSE);
+	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
 /* ******************* Rename Operator ***************************** */
