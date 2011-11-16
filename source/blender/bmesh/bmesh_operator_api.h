@@ -11,6 +11,7 @@ extern "C" {
 #include "BKE_utildefines.h"
 
 #include <stdarg.h>
+#include <string.h> /* for memcpy */
 
 /*
 operators represent logical, executable mesh modules.  all topological 

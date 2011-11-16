@@ -175,7 +175,7 @@ typedef struct knifetool_opdata {
 		MODE_IDLE,
 		MODE_DRAGGING,
 		MODE_CONNECT,
-		MODE_PANNING,
+		MODE_PANNING
 	} mode;
 	
 	int snap_midpoints, prevmode, extend;

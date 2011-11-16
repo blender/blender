@@ -2281,12 +2281,6 @@ class VIEW3D_PT_background_image(Panel):
     bl_label = "Background Images"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        #~ bg = context.space_data.background_image
-        return (view)
-
     def draw_header(self, context):
         layout = self.layout
         view = context.space_data
@@ -2320,16 +2314,15 @@ class VIEW3D_PT_background_image(Panel):
                 row = box.row()
                 row.prop(bg, "source", expand=True)
 
-                hasbg = False
+                has_bg = False
                 if bg.source == 'IMAGE':
                     row = box.row()
                     row.template_ID(bg, "image", open="image.open")
                     if (bg.image):
                         box.template_image(bg, "image", bg.image_user, compact=True)
-                        hasbg = True
+                        has_bg = True
 
                 elif bg.source == 'MOVIE':
-                    has_clip = False
                     box.prop(bg, 'use_camera_clip')
 
                     column = box.column()
@@ -2340,14 +2333,14 @@ class VIEW3D_PT_background_image(Panel):
                         column.template_movieclip(bg, "clip", compact=True)
 
                     if bg.use_camera_clip or bg.clip:
-                        hasbg = True
+                        has_bg = True
 
                     column = box.column()
-                    column.active = hasbg
+                    column.active = has_bg
                     column.prop(bg.clip_user, "proxy_render_size", text="")
                     column.prop(bg.clip_user, "use_render_undistorted")
 
-                if hasbg:
+                if has_bg:
                     box.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")

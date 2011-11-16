@@ -3235,7 +3235,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								/* Also cast a ray in opposite direction to make sure
 								*  point is at least surrounded by two brush faces */
-								mul_v3_fl(ray_dir, -1.0f);
+								negate_v3(ray_dir);
 								hit.index = -1;
 								hit.dist = 9999;
 

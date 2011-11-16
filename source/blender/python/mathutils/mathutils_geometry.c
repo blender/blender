@@ -48,8 +48,6 @@
 #include "BLI_utildefines.h"
 
 #define SWAP_FLOAT(a, b, tmp) tmp=a; a=b; b=tmp
-#define eps 0.000001
-
 
 /*-------------------------DOC STRINGS ---------------------------*/
 PyDoc_STRVAR(M_Geometry_doc,

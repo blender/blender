@@ -283,6 +283,11 @@ int RE_engine_render(Render *re, int do_all)
 	if(re->result==NULL)
 		return 1;
 
+	/* set render info */
+	re->i.cfra= re->scene->r.cfra;
+	BLI_strncpy(re->i.scenename, re->scene->id.name+2, sizeof(re->i.scenename));
+	re->i.totface=re->i.totvert=re->i.totstrand=re->i.totlamp=re->i.tothalo= 0;
+
 	/* render */
 	engine = RE_engine_create(type);
 	engine->re= re;

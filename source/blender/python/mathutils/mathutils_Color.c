@@ -834,18 +834,18 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 	self= base_type ?	(ColorObject *)base_type->tp_alloc(base_type, 0) :
 						(ColorObject *)PyObject_GC_New(ColorObject, &color_Type);
 
-	if(self) {
+	if (self) {
 		/* init callbacks as NULL */
 		self->cb_user= NULL;
 		self->cb_type= self->cb_subtype= 0;
 
-		if(type == Py_WRAP) {
+		if (type == Py_WRAP) {
 			self->col = col;
 			self->wrapped = Py_WRAP;
 		}
 		else if (type == Py_NEW) {
 			self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
-			if(col)
+			if (col)
 				copy_v3_v3(self->col, col);
 			else
 				zero_v3(self->col);
@@ -863,7 +863,7 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype)
 {
 	ColorObject *self= (ColorObject *)newColorObject(NULL, Py_NEW, NULL);
-	if(self) {
+	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;
 		self->cb_type=			(unsigned char)cb_type;

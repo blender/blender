@@ -36,6 +36,7 @@ def CLIP_track_view_selected(sc, track):
 
     return False
 
+
 class CLIP_OT_track_to_empty(Operator):
     """Create an Empty object which will be copying movement of active track"""
 
@@ -85,13 +86,8 @@ class CLIP_OT_tracks_to_mesh(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.space_data.type != 'CLIP_EDITOR':
-            return False
-
         sc = context.space_data
-        clip = sc.clip
-
-        return clip
+        return (sc.type == 'CLIP_EDITOR') and sc.clip
 
     def execute(self, context):
         sc = context.space_data
@@ -124,6 +120,9 @@ class CLIP_OT_delete_proxy(Operator):
 
     @classmethod
     def poll(cls, context):
+        if context.space_data.type != 'CLIP_EDITOR':
+            return False
+
         sc = context.space_data
 
         return sc.clip
@@ -187,7 +186,8 @@ class CLIP_OT_delete_proxy(Operator):
 
 
 class CLIP_OT_set_viewport_background(Operator):
-    """Set current movie clip as a camera background in 3D viewport (works only when a 3D viewport is visible)"""
+    """Set current movie clip as a camera background in 3D viewport \
+(works only when a 3D viewport is visible)"""
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
@@ -236,7 +236,8 @@ class CLIP_OT_set_viewport_background(Operator):
 
 
 class CLIP_OT_constraint_to_fcurve(Operator):
-    """Create F-Curves for object which will copy object's movement caused by this constraint"""
+    """Create F-Curves for object which will copy \
+object's movement caused by this constraint"""
 
     bl_idname = "clip.constraint_to_fcurve"
     bl_label = "Constraint to F-Curve"

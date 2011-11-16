@@ -1,4 +1,11 @@
 
+set(BLENDER_INCLUDE_DIRS
+	${CMAKE_SOURCE_DIR}/intern/guardedalloc
+	${CMAKE_SOURCE_DIR}/source/blender/makesdna
+	${CMAKE_SOURCE_DIR}/source/blender/makesrna
+	${CMAKE_SOURCE_DIR}/source/blender/blenloader
+	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
+
 set(INC
 	../render
 	../device

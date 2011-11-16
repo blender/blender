@@ -12,6 +12,8 @@
 #include "BLI_ghash.h"
 #include "BLI_array.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
 
 #include "bmesh_class.h"

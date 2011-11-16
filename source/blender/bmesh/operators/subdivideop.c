@@ -32,6 +32,7 @@
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 #include "BLI_array.h"
+#include "BLI_noise.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
