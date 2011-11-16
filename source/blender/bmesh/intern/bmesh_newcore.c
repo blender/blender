@@ -460,6 +460,7 @@ void BM_Kill_Face(BMesh *bm, BMFace *f)
 		bm->act_face = NULL;
 	
 	bm->totface--;
+	bm->elem_index_dirty |= BM_FACE;
 	BM_remove_selection(bm, f);
 	if (f->head.data)
 		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
@@ -494,6 +495,7 @@ void BM_Kill_Edge(BMesh *bm, BMEdge *e)
 	}
 	
 	bm->totedge--;
+	bm->elem_index_dirty |= BM_EDGE;
 	BM_remove_selection(bm, e);
 	if (e->head.data)
 		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
@@ -516,6 +518,7 @@ void BM_Kill_Vert(BMesh *bm, BMVert *v)
 	}
 
 	bm->totvert--;
+	bm->elem_index_dirty |= BM_VERT;
 	BM_remove_selection(bm, v);
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
@@ -919,6 +922,9 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 
 	f->head.htype = BM_FACE;
 	BLI_addtail(&f->loops, lst);
+
+	BM_SetIndex(f, bm->totface); /* set_ok */
+
 	bm->totface++;
 
 	/*allocate flags*/
@@ -1339,6 +1345,8 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			BLI_mempool_free(bm->toolflagpool, kv->head.flags);
 			BLI_mempool_free(bm->vpool, kv);
 			bm->totvert--;
+			/* account for both above */
+			bm->elem_index_dirty |= BM_VERT | BM_EDGE;
 
 			/*Validate disk cycle lengths of ov,tv are unchanged*/
 			edok = bmesh_disk_validate(valence1, ov->e, ov);
@@ -1505,6 +1513,8 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	BLI_mempool_free(bm->toolflagpool, f2->head.flags);
 	BLI_mempool_free(bm->fpool, f2);
 	bm->totface--;
+	/* account for both above */
+	bm->elem_index_dirty |= BM_EDGE | BM_FACE;
 
 	BM_CHECK_ELEMENT(bm, f1);
 

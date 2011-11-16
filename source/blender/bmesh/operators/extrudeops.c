@@ -180,7 +180,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	int rlen, found, fwd, delorig=0;
 
 	/*initialize our sub-operators*/
-	BMO_Init_Op(&dupeop, "dupe");
+	BMO_Init_Op(bm, &dupeop, "dupe");
 	
 	BMO_Flag_Buffer(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
 	
@@ -553,7 +553,7 @@ void bmesh_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	thickness = BMO_Get_Float(op, "thickness");
 
 	/* Flip original faces (so the shell is extruded inward) */
-	BMO_Init_Op(&reverseop, "reversefaces");
+	BMO_Init_Op(bm, &reverseop, "reversefaces");
 	BMO_CopySlot(op, &reverseop, "geom", "faces");
 	BMO_Exec_Op(bm, &reverseop);
 	BMO_Finish_Op(bm, &reverseop);

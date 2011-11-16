@@ -578,11 +578,13 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 		}
 	}
 
+#if 0 /* mostly annoying, even in debug mode */
 #ifdef DEBUG
 	if (is_any_error == 0) {
 		fprintf(stderr,
 				"Valid Index Success: at %s, %s, '%s', '%s'\n",
 				location, func, msg_a, msg_b);
 	}
+#endif
 #endif
 }

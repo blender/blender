@@ -318,7 +318,7 @@ void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Vec(op, "mergeco", vec);
 
 	//BMO_CallOpf(bm, "collapse_uvs edges=%s", op, "edges");
-	BMO_Init_Op(&weldop, "weldverts");
+	BMO_Init_Op(bm, &weldop, "weldverts");
 	
 	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
 		if (!snapv) {
@@ -344,7 +344,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	int i, tot;
 	
 	BMO_CallOpf(bm, "collapse_uvs edges=%s", op, "edges");
-	BMO_Init_Op(&weldop, "weldverts");
+	BMO_Init_Op(bm, &weldop, "weldverts");
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);	
 	BMW_Init(&walker, bm, BMW_SHELL, EDGE_MARK, 0);
@@ -519,7 +519,7 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 
-	BMO_Init_Op(&weldop, "weldverts");
+	BMO_Init_Op(bm, &weldop, "weldverts");
 	bmesh_finddoubles_common(bm, op, &weldop, "targetmap");
 	BMO_Exec_Op(bm, &weldop);
 	BMO_Finish_Op(bm, &weldop);
@@ -554,7 +554,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	BMO_Exec_Op(bm, &findop);
 
 	/* weld the vertices */
-	BMO_Init_Op(&weldop, "weldverts");
+	BMO_Init_Op(bm, &weldop, "weldverts");
 	BMO_CopySlot(&findop, &weldop, "targetmapout", "targetmap");
 	BMO_Exec_Op(bm, &weldop);
 

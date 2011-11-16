@@ -133,7 +133,7 @@ typedef struct BMOpDefine {
   have it set directly.  and never use BMO_Set_Pnt to
   pass in a list of edges or any arrays, really.*/
 
-void BMO_Init_Op(struct BMOperator *op, const char *opname);
+void BMO_Init_Op(struct BMesh *bm, struct BMOperator *op, const char *opname);
 
 /*executes an operator, pushing and popping a new tool flag 
   layer as appropriate.*/

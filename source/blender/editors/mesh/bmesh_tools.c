@@ -274,7 +274,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	ModifierData *md;
 	BMHeader *el;
 	
-	BMO_Init_Op(&extop, "extrudefaceregion");
+	BMO_Init_Op(bm, &extop, "extrudefaceregion");
 	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
 	                       hflag, BM_VERT|BM_EDGE|BM_FACE);
 

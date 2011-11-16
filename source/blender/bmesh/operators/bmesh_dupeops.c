@@ -322,7 +322,7 @@ void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, const char hflag)
 {
 	BMOperator dupeop;
 
-	BMO_Init_Op(&dupeop, "dupe");
+	BMO_Init_Op(bm, &dupeop, "dupe");
 	BMO_HeaderFlag_To_Slot(bm, &dupeop, "geom", hflag, etypeflag);
 
 	BMO_Exec_Op(bm, &dupeop);
@@ -361,8 +361,8 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	int found;
 
 	/*initialize our sub-operators*/
-	BMO_Init_Op(&dupeop, "dupe");
-	BMO_Init_Op(&delop, "del");
+	BMO_Init_Op(bm, &dupeop, "dupe");
+	BMO_Init_Op(bm, &delop, "del");
 	
 	BMO_CopySlot(splitop, &dupeop, "geom", "geom");
 	BMO_Exec_Op(bm, &dupeop);

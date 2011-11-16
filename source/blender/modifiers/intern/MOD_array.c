@@ -401,7 +401,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_push(em->bm, NULL);
 	bmesh_begin_edit(em->bm, 0);
 
-	BMO_Init_Op(&weldop, "weldverts");
+	BMO_Init_Op(em->bm, &weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
 	for (j=0; j < count - 1; j++) {

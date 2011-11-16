@@ -102,9 +102,15 @@ void BMO_pop(BMesh *bm)
  * Initializes an operator structure  
  * to a certain type
  */
-void BMO_Init_Op(BMOperator *op, const char *opname)
+void BMO_Init_Op(BMesh *bm, BMOperator *op, const char *opname)
 {
 	int i, opcode = bmesh_opname_to_opcode(opname);
+
+#ifdef DEBUG
+	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", opname);
+#else
+	(void)bm;
+#endif
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
@@ -154,7 +160,7 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
  * Does housekeeping chores related to finishing
  * up an operator.
  */
-void BMO_Finish_Op(BMesh *UNUSED(bm), BMOperator *op)
+void BMO_Finish_Op(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *slot;
 	int i;
@@ -168,6 +174,12 @@ void BMO_Finish_Op(BMesh *UNUSED(bm), BMOperator *op)
 	}
 
 	BLI_memarena_free(op->arena);
+
+#ifdef DEBUG
+	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", opdefines[op->type]->name);
+#else
+	(void)bm;
+#endif
 }
 
 /*
@@ -1131,7 +1143,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 	if (i == bmesh_total_ops) return 0;
 	
-	BMO_Init_Op(op, opname);
+	BMO_Init_Op(bm, op, opname);
 	def = opdefines[i];
 	
 	i = 0;
@@ -1289,10 +1301,6 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 	va_list list;
 	BMOperator op;
 
-#ifdef DEBUG
-	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", fmt);
-#endif
-
 	va_start(list, fmt);
 	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
 		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
@@ -1302,10 +1310,6 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 
 	BMO_Exec_Op(bm, &op);
 	BMO_Finish_Op(bm, &op);
-
-#ifdef DEBUG
-	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", fmt);
-#endif
 
 	va_end(list);
 	return 1;
