@@ -546,17 +546,21 @@ static void p_face_flip(PFace *f)
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 	PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 	int f1 = e1->flag, f2 = e2->flag, f3 = e3->flag;
+	float *orig_uv1 = e1->orig_uv, *orig_uv2 = e2->orig_uv, *orig_uv3 = e3->orig_uv;
 
 	e1->vert = v2;
 	e1->next = e3;
+	e1->orig_uv = orig_uv2;
 	e1->flag = (f1 & ~PEDGE_VERTEX_FLAGS) | (f2 & PEDGE_VERTEX_FLAGS);
 
 	e2->vert = v3;
 	e2->next = e1;
+	e2->orig_uv = orig_uv3;
 	e2->flag = (f2 & ~PEDGE_VERTEX_FLAGS) | (f3 & PEDGE_VERTEX_FLAGS);
 
 	e3->vert = v1;
 	e3->next = e2;
+	e3->orig_uv = orig_uv1;
 	e3->flag = (f3 & ~PEDGE_VERTEX_FLAGS) | (f1 & PEDGE_VERTEX_FLAGS);
 }
 

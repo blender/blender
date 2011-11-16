@@ -491,10 +491,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		v3d->modeselect = OB_MODE_OBJECT;
 	}
 	
-	uiBlockBeginAlign(block);
+	row= uiLayoutRow(layout, 1);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
 			  0,0,126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, TIP_("Mode"));
-	uiBlockEndAlign(block);
 	
 	/* Draw type */
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

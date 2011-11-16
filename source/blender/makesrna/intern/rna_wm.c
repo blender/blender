@@ -421,7 +421,7 @@ static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
-		ptr->data= IDP_New(IDP_GROUP, val, "RNA_OperatorProperties group");
+		ptr->data= IDP_New(IDP_GROUP, &val, "RNA_OperatorProperties group");
 	}
 
 	return ptr->data;
@@ -966,7 +966,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata);
 
 static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
-static char _operator_descr[1024];
+static char _operator_descr[RNA_DYN_DESCR_MAX];
 static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmOperatorType dummyot = {NULL};
@@ -1161,7 +1161,7 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->idname;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_idname on a non-builtin operator");
 }
 
@@ -1169,7 +1169,7 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->name;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_label on a non-builtin operator");
 }
 
@@ -1177,7 +1177,7 @@ static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data= (wmOperator*)(ptr->data);
 	char *str= (char *)data->type->description;
-	if(!str[0])	strcpy(str, value);
+	if(!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
 	else		assert(!"setting the bl_description on a non-builtin operator");
 }
 
@@ -1232,14 +1232,14 @@ static void rna_def_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -1293,14 +1293,14 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
-	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
 	// RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

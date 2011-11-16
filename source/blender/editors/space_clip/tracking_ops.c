@@ -1653,7 +1653,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clear Track Path";
-	ot->description= "Clear path of selected tracks";
+	ot->description= "Clear tracks after/before current position or clear the whole track";
 	ot->idname= "CLIP_OT_clear_track_path";
 
 	/* api callbacks */
@@ -2119,7 +2119,7 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Principal to Center";
-	ot->description= "Set principal point to center of footage";
+	ot->description= "Set optical center to center of footage";
 	ot->idname= "CLIP_OT_set_center_principal";
 
 	/* api callbacks */
@@ -2285,7 +2285,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Detect Features";
-	ot->description= "Automatically detect features to track";
+	ot->description= "Automatically detect features and place markers to track";
 	ot->idname= "CLIP_OT_detect_features";
 
 	/* api callbacks */
@@ -2910,7 +2910,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clean Tracks";
-	ot->description= "Clean tracks";
+	ot->description= "Clean tracks with high error values or few frames";
 	ot->idname= "CLIP_OT_clean_tracks";
 
 	/* api callbacks */

@@ -524,7 +524,11 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
@@ -739,7 +743,11 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
@@ -1816,6 +1824,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_FILEPATH: return "PROP_FILEPATH";
 		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
+		case PROP_BYTESTRING: return "PROP_BYTESTRING";
 		case PROP_TRANSLATE: return "PROP_TRANSLATE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
@@ -2472,7 +2481,7 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_space.c", NULL, RNA_def_space},
 	{"rna_speaker.c", NULL, RNA_def_speaker},
 	{"rna_test.c", NULL, RNA_def_test},
-	{"rna_text.c", NULL, RNA_def_text},
+	{"rna_text.c", "rna_text_api.c", RNA_def_text},
 	{"rna_timeline.c", NULL, RNA_def_timeline_marker},
 	{"rna_sound.c", NULL, RNA_def_sound},
 	{"rna_ui.c", "rna_ui_api.c", RNA_def_ui},

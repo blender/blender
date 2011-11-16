@@ -92,23 +92,23 @@
 
 /********************* PROTOTYPES ***********************/
 
-void setSnappingCallback(TransInfo *t);
+static void setSnappingCallback(TransInfo *t);
 
-void ApplySnapTranslation(TransInfo *t, float vec[3]);
-void ApplySnapRotation(TransInfo *t, float *vec);
-void ApplySnapResize(TransInfo *t, float *vec);
+static void ApplySnapTranslation(TransInfo *t, float vec[3]);
+static void ApplySnapRotation(TransInfo *t, float *vec);
+static void ApplySnapResize(TransInfo *t, float *vec);
 
-void CalcSnapGrid(TransInfo *t, float *vec);
-void CalcSnapGeometry(TransInfo *t, float *vec);
+static void CalcSnapGrid(TransInfo *t, float *vec);
+static void CalcSnapGeometry(TransInfo *t, float *vec);
 
-void TargetSnapMedian(TransInfo *t);
-void TargetSnapCenter(TransInfo *t);
-void TargetSnapClosest(TransInfo *t);
-void TargetSnapActive(TransInfo *t);
+static void TargetSnapMedian(TransInfo *t);
+static void TargetSnapCenter(TransInfo *t);
+static void TargetSnapClosest(TransInfo *t);
+static void TargetSnapActive(TransInfo *t);
 
-float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
-float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
-float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
+static float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
+static float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
+static float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 
 /****************** IMPLEMENTATIONS *********************/
@@ -485,7 +485,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	initSnappingMode(t);
 }
 
-void setSnappingCallback(TransInfo *t)
+static void setSnappingCallback(TransInfo *t)
 {
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
@@ -586,14 +586,14 @@ void getSnapPoint(TransInfo *t, float vec[3])
 
 /********************** APPLY **************************/
 
-void ApplySnapTranslation(TransInfo *t, float vec[3])
+static void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
 	float point[3];
 	getSnapPoint(t, point);
 	sub_v3_v3v3(vec, point, t->tsnap.snapTarget);
 }
 
-void ApplySnapRotation(TransInfo *t, float *vec)
+static void ApplySnapRotation(TransInfo *t, float *vec)
 {
 	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
 		*vec = t->tsnap.dist;
@@ -605,7 +605,7 @@ void ApplySnapRotation(TransInfo *t, float *vec)
 	}
 }
 
-void ApplySnapResize(TransInfo *t, float vec[3])
+static void ApplySnapResize(TransInfo *t, float vec[3])
 {
 	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
 		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
@@ -619,12 +619,12 @@ void ApplySnapResize(TransInfo *t, float vec[3])
 
 /********************** DISTANCE **************************/
 
-float TranslationBetween(TransInfo *UNUSED(t), float p1[3], float p2[3])
+static float TranslationBetween(TransInfo *UNUSED(t), float p1[3], float p2[3])
 {
 	return len_v3v3(p1, p2);
 }
 
-float RotationBetween(TransInfo *t, float p1[3], float p2[3])
+static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float angle, start[3], end[3], center[3];
 	
@@ -680,7 +680,7 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	return angle;
 }
 
-float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
+static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float d1[3], d2[3], center[3];
 	
@@ -703,12 +703,12 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 
 /********************** CALC **************************/
 
-void CalcSnapGrid(TransInfo *t, float *UNUSED(vec))
+static void CalcSnapGrid(TransInfo *t, float *UNUSED(vec))
 {
 	snapGridAction(t, t->tsnap.snapPoint, BIG_GEARS);
 }
 
-void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
+static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -868,7 +868,7 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 
 /********************** TARGET **************************/
 
-void TargetSnapCenter(TransInfo *t)
+static void TargetSnapCenter(TransInfo *t)
 {
 	// Only need to calculate once
 	if ((t->tsnap.status & TARGET_INIT) == 0)
@@ -883,7 +883,7 @@ void TargetSnapCenter(TransInfo *t)
 	}
 }
 
-void TargetSnapActive(TransInfo *t)
+static void TargetSnapActive(TransInfo *t)
 {
 	// Only need to calculate once
 	if ((t->tsnap.status & TARGET_INIT) == 0)
@@ -922,7 +922,7 @@ void TargetSnapActive(TransInfo *t)
 	}
 }
 
-void TargetSnapMedian(TransInfo *t)
+static void TargetSnapMedian(TransInfo *t)
 {
 	// Only need to calculate once
 	if ((t->tsnap.status & TARGET_INIT) == 0)
@@ -950,7 +950,7 @@ void TargetSnapMedian(TransInfo *t)
 	}
 }
 
-void TargetSnapClosest(TransInfo *t)
+static void TargetSnapClosest(TransInfo *t)
 {
 	// Only valid if a snap point has been selected
 	if (t->tsnap.status & POINT_INIT)

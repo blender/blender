@@ -398,7 +398,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	
-	if(but->tip && strlen(but->tip)) {
+	if(but->tip && but->tip[0] != '\0') {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
 		data->color[data->totline]= 0xFFFFFF;
 		data->totline++;

@@ -889,10 +889,11 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_delete_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+	const short use_global= RNA_boolean_get(op->ptr, "global");
 	/* int islamp= 0; */ /* UNUSED */
 	
 	if(CTX_data_edit_object(C)) 
@@ -907,6 +908,22 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 		/* remove from current scene only */
 		ED_base_object_free_and_unlink(bmain, scene, base);
+
+		if (use_global) {
+			Scene *scene_iter;
+			Base *base_other;
+
+			for (scene_iter= bmain->scene.first; scene_iter; scene_iter= scene_iter->id.next) {
+				if (scene_iter != scene && !(scene_iter->id.lib)) {
+					base_other= object_in_scene(base->object, scene_iter);
+					if (base_other) {
+						ED_base_object_free_and_unlink(bmain, scene_iter, base_other);
+					}
+				}
+			}
+		}
+		/* end global */
+
 	}
 	CTX_DATA_END;
 
@@ -933,6 +950,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "global", 0, "Delete Globally", "Remove object from all scenes");
 }
 
 /**************************** Copy Utilities ******************************/

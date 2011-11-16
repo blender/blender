@@ -1106,6 +1106,45 @@ static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bConte
 	return cdl;
 }
 
+static CustomDataLayer *rna_Mesh_int_property_new(struct Mesh *me, struct bContext *C, const char *name)
+{
+	CustomDataLayer *cdl = NULL;
+	int index;
+
+	CustomData_add_layer_named(&me->fdata, CD_PROP_INT, CD_DEFAULT, NULL, me->totface, name);
+	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_INT, name);
+
+	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+
+	return cdl;
+}
+
+static CustomDataLayer *rna_Mesh_float_property_new(struct Mesh *me, struct bContext *C, const char *name)
+{
+	CustomDataLayer *cdl = NULL;
+	int index;
+
+	CustomData_add_layer_named(&me->fdata, CD_PROP_FLT, CD_DEFAULT, NULL, me->totface, name);
+	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_FLT, name);
+
+	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+
+	return cdl;
+}
+
+static CustomDataLayer *rna_Mesh_string_property_new(struct Mesh *me, struct bContext *C, const char *name)
+{
+	CustomDataLayer *cdl = NULL;
+	int index;
+
+	CustomData_add_layer_named(&me->fdata, CD_PROP_STR, CD_DEFAULT, NULL, me->totface, name);
+	index = CustomData_get_named_layer_index(&me->fdata, CD_PROP_STR, name);
+
+	cdl = (index == -1) ? NULL : &(me->fdata.layers[index]);
+
+	return cdl;
+}
+
 static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, const char *name)
 {
 	CustomData *pdata;
@@ -1628,7 +1667,8 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh String Property", "User defined string text value in a string properties layer");
 	RNA_def_struct_path_func(srna, "rna_MeshStringProperty_path");
 
-	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
+	/* low level mesh data access, treat as bytes */
+	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_BYTESTRING);
 	RNA_def_property_string_sdna(prop, NULL, "s");
 	RNA_def_property_ui_text(prop, "Value", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -1828,6 +1868,69 @@ static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
+/* mesh int layers */
+static void rna_def_int_layers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "IntProperties");
+	srna= RNA_def_struct(brna, "IntProperties", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Int Properties", "Collection of int properties");
+
+	func= RNA_def_function(srna, "new", "rna_Mesh_int_property_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a integer property layer to Mesh");
+	RNA_def_string(func, "name", "Int Prop", 0, "",  "Int property name");
+	parm= RNA_def_pointer(func, "layer", "MeshIntPropertyLayer", "", "The newly created layer");
+	RNA_def_function_return(func, parm);
+}
+
+/* mesh float layers */
+static void rna_def_float_layers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "FloatProperties");
+	srna= RNA_def_struct(brna, "FloatProperties", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Float Properties", "Collection of float properties");
+
+	func= RNA_def_function(srna, "new", "rna_Mesh_float_property_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a float property layer to Mesh");
+	RNA_def_string(func, "name", "Float Prop", 0, "", "Float property name");
+	parm= RNA_def_pointer(func, "layer", "MeshFloatPropertyLayer", "", "The newly created layer");
+	RNA_def_function_return(func, parm);
+}
+
+/* mesh string layers */
+static void rna_def_string_layers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "StringProperties");
+	srna= RNA_def_struct(brna, "StringProperties", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "String Properties", "Collection of string properties");
+
+	func= RNA_def_function(srna, "new", "rna_Mesh_string_property_new");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Add a string property layer to Mesh");
+	RNA_def_string(func, "name", "String Prop", 0, "", "String property name");
+	parm= RNA_def_pointer(func, "layer", "MeshStringPropertyLayer", "", "The newly created layer");
+	RNA_def_function_return(func, parm);
+}
+
 /* mesh.uv_layers */
 static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -1964,6 +2067,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                                  "rna_Mesh_float_layers_length", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MeshFloatPropertyLayer");
 	RNA_def_property_ui_text(prop, "Float Property Layers", "");
+	rna_def_float_layers(brna, prop);
 
 	prop= RNA_def_property(srna, "layers_int", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "pdata.layers", "pdata.totlayer");
@@ -1971,6 +2075,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                                  "rna_Mesh_int_layers_length", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MeshIntPropertyLayer");
 	RNA_def_property_ui_text(prop, "Int Property Layers", "");
+	rna_def_int_layers(brna, prop);
 
 	prop= RNA_def_property(srna, "layers_string", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "pdata.layers", "pdata.totlayer");
@@ -1978,6 +2083,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                                  "rna_Mesh_string_layers_length", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MeshStringPropertyLayer");
 	RNA_def_property_ui_text(prop, "String Property Layers", "");
+	rna_def_string_layers(brna, prop);
 
 	prop= RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_AUTOSMOOTH);

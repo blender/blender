@@ -747,6 +747,8 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 			anim->next_pts = 
 				av_get_pts_from_frame(anim->pFormatCtx,
 						      anim->pFrame);
+
+			ffmpeg_postprocess(anim);
 		}
 
 		av_free_packet(&anim->next_packet);
@@ -797,6 +799,8 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 					== AV_NOPTS_VALUE) ?
 				       -1 : (long long int)anim->pFrame->pkt_pts,
 					(long long int)anim->next_pts);
+
+				ffmpeg_postprocess(anim);
 			}
 		}
 		av_free_packet(&anim->next_packet);
@@ -808,6 +812,7 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 		       AV_LOG_ERROR, "  DECODE READ FAILED: av_read_frame() "
 		       "returned error: %d\n",	rval);
 	}
+
 	return (rval >= 0);
 }
 
@@ -947,6 +952,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	}
 	 
 	IMB_freeImBuf(anim->last_frame);
+	anim->last_frame = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
 
 	if (anim->next_pts <= pts_to_search && 
 	    anim->next_undecoded_pts > pts_to_search) {
@@ -1050,10 +1056,6 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 		ffmpeg_decode_video_frame(anim);
 	}
 
-	anim->last_frame = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
-
-	ffmpeg_postprocess(anim);
-	
 	anim->last_pts = anim->next_pts;
 	
 	ffmpeg_decode_video_frame(anim);

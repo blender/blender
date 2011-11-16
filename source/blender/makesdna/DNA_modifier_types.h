@@ -755,7 +755,7 @@ typedef struct ScrewModifierData {
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
 typedef struct OceanModifierData {
-	ModifierData modifier;		
+	ModifierData modifier;
 	
 	struct Ocean *ocean;
 	struct OceanCache *oceancache;
@@ -777,25 +777,27 @@ typedef struct OceanModifierData {
 	float	foam_coverage;
 	float	time;
 	
-	int		seed;
-	int		flag;
-	int		output;
-	
-	int		refresh;
-	
 	int		bakestart;
 	int		bakeend;
 	
 	char	cachepath[240];	// FILE_MAX
-	int		cached;
-	
-	int		geometry_mode;
+	char	cached;
+	char	geometry_mode;
+
+	char	flag;
+	char	refresh;
+
+	short	repeat_x;
+	short	repeat_y;
+
+	int		seed;
+
 	float	size;
-	int		repeat_x;
-	int		repeat_y;
 	
 	float	foam_fade;
-	
+
+	int pad;
+
 } OceanModifierData;
 
 #define MOD_OCEAN_GEOM_GENERATE	0

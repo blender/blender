@@ -178,7 +178,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 	tomd->seed = omd->seed;
 	tomd->flag = omd->flag;
-	tomd->output = omd->output;
 
 	tomd->refresh = 0;
 

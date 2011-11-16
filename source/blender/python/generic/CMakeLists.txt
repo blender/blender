@@ -33,17 +33,17 @@ set(INC_SYS
 )
 
 set(SRC
-	IDProp.c
 	bgl.c
 	blf_py_api.c
 	bpy_internal_import.c
+	idprop_py_api.c
 	noise_py_api.c
 	py_capi_utils.c
 
-	IDProp.h
 	bgl.h
 	blf_py_api.h
 	bpy_internal_import.h
+	idprop_py_api.h
 	noise_py_api.h
 	py_capi_utils.h
 )

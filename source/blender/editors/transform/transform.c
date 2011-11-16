@@ -97,8 +97,8 @@
 
 #include <stdio.h>
 
-void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
-int doEdgeSlide(TransInfo *t, float perc);
+static void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+static int doEdgeSlide(TransInfo *t, float perc);
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
@@ -1788,7 +1788,7 @@ void transformApply(bContext *C, TransInfo *t)
 	t->context = NULL;
 }
 
-void drawTransformApply(const bContext *C, struct ARegion *UNUSED(ar), void *arg)
+static void drawTransformApply(const bContext *C, struct ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
 
@@ -4813,7 +4813,7 @@ void initEdgeSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
-int doEdgeSlide(TransInfo *t, float perc)
+static int doEdgeSlide(TransInfo *t, float perc)
 {
 	SlideData *sld = t->customData;
 	TransDataSlideVert *svlist = sld->sv, *sv;

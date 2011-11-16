@@ -2368,7 +2368,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* ---springs */
 		}/*omit on snap	*/
 	}/*loop all bp's*/
-return 0; /*done fine*/
+	return 0; /*done fine*/
 }
 
 static void *exec_softbody_calc_forces(void *data)

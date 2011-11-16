@@ -260,9 +260,9 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
                 sub.prop(surface, "output_name_a", text="")
 
                 split = layout.split(percentage=0.4)
-                split.prop(surface, "do_output_b", text="Wetmaps:")
+                split.prop(surface, "use_output_b", text="Wetmaps:")
                 sub = split.row()
-                sub.active = surface.do_output_b
+                sub.active = surface.use_output_b
                 sub.prop(surface, "output_name_b", text="")
             else:
                 col = layout.column()

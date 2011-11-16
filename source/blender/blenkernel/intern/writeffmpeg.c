@@ -1066,13 +1066,13 @@ IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index,
 
 	if (!rd->ffcodecdata.properties) {
 		rd->ffcodecdata.properties 
-			= IDP_New(IDP_GROUP, val, "ffmpeg"); 
+			= IDP_New(IDP_GROUP, &val, "ffmpeg"); 
 	}
 
 	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);
 	
 	if (!group) {
-		group = IDP_New(IDP_GROUP, val, type);
+		group = IDP_New(IDP_GROUP, &val, type);
 		IDP_AddToGroup(rd->ffcodecdata.properties, group);
 	}
 
@@ -1102,7 +1102,9 @@ IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index,
 		idp_type = IDP_FLOAT;
 		break;
 	case FF_OPT_TYPE_STRING:
-		val.str = (char *)"                                                                               ";
+		val.string.str = (char *)"                                                                               ";
+		val.string.len = 80;
+/*		val.str = (char *)"                                                                               ";*/
 		idp_type = IDP_STRING;
 		break;
 	case FF_OPT_TYPE_CONST:
@@ -1112,7 +1114,7 @@ IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index,
 	default:
 		return NULL;
 	}
-	prop = IDP_New(idp_type, val, name);
+	prop = IDP_New(idp_type, &val, name);
 	IDP_AddToGroup(group, prop);
 	return prop;
 }

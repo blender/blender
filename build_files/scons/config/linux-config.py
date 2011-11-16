@@ -197,7 +197,8 @@ BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib'
 BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
-WITH_BF_OIIO = True 
+WITH_BF_OIIO = True
+WITH_BF_STATICOIIO = False
 BF_OIIO = LIBDIR + '/oiio'
 if not os.path.exists(LCGDIR + '/oiio'):
     WITH_BF_OIIO = False
@@ -207,6 +208,7 @@ BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = BF_OIIO + '/lib'
 
 WITH_BF_BOOST = True
+WITH_BF_STATICBOOST = False
 BF_BOOST = LIBDIR + '/boost'
 if not os.path.exists(LCGDIR + '/boost'):
     WITH_BF_BOOST = False
@@ -225,6 +227,7 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
 #SpaceNavigator and friends
 WITH_BF_3DMOUSE = True
+WITH_BF_STATIC3DMOUSE = False
 BF_3DMOUSE = '/usr'
 BF_3DMOUSE_INC = '${BF_3DMOUSE}/include'
 BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib'

@@ -16,12 +16,15 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 import bpy
 
 from bpy.types import Panel, Menu
 
 from cycles import enums
 from cycles import engine
+
 
 class CYCLES_MT_integrator_presets(Menu):
     bl_label = "Integrator Presets"
@@ -30,15 +33,17 @@ class CYCLES_MT_integrator_presets(Menu):
     COMPAT_ENGINES = {'CYCLES'}
     draw = Menu.draw_preset
 
+
 class CyclesButtonsPanel():
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
-    
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
         return rd.engine == 'CYCLES'
+
 
 class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
     bl_label = "Integrator"
@@ -49,7 +54,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-        
+
         row = layout.row(align=True)
         row.menu("CYCLES_MT_integrator_presets", text=bpy.types.CYCLES_MT_integrator_presets.bl_label)
         row.operator("render.cycles_integrator_preset_add", text="", icon="ZOOMIN")
@@ -87,7 +92,8 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         #row = col.row()
         #row.prop(cscene, "blur_caustics")
         #row.active = not cscene.no_caustics
-        
+
+
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
     bl_label = "Film"
 
@@ -99,7 +105,7 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
 
         split = layout.split()
 
-        col = split.column();
+        col = split.column()
         col.prop(cscene, "film_exposure")
         col.prop(cscene, "film_transparent")
 
@@ -108,6 +114,7 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "filter_type", text="")
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
+
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
@@ -141,6 +148,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Acceleration structure:")
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
+
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
@@ -178,6 +186,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         layout.prop(rl, "material_override", text="Material")
 
+
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
@@ -195,6 +204,7 @@ class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "dither_intensity", text="Dither", slider=True)
+
 
 class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
     bl_label = "Depth of Field"
@@ -228,6 +238,7 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.prop(ccam, "aperture_blades", text="Blades")
         sub.prop(ccam, "aperture_rotation", text="Rotation")
+
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -277,13 +288,14 @@ class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
             split.template_ID(space, "pin_id")
             split.separator()
 
+
 class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.mesh or context.curve or context.meta_ball
+        return CyclesButtonsPanel.poll(context) and context.mesh or context.curve or context.meta_ball
 
     def draw(self, context):
         layout = self.layout
@@ -300,8 +312,9 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
             cdata = mball.cycles
 
         layout.prop(cdata, "displacement_method", text="Method")
-        layout.prop(cdata, "use_subdivision");
-        layout.prop(cdata, "dicing_rate");
+        layout.prop(cdata, "use_subdivision")
+        layout.prop(cdata, "dicing_rate")
+
 
 class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Ray Visibility"
@@ -311,7 +324,7 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return CyclesButtonsPanel.poll(context) and ob and ob.type in ('MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META') # todo: 'LAMP'
+        return CyclesButtonsPanel.poll(context) and ob and ob.type in ('MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META')  # todo: 'LAMP'
 
     def draw(self, context):
         layout = self.layout
@@ -330,6 +343,7 @@ class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
         col.prop(visibility, "transmission")
         col.prop(visibility, "shadow")
 
+
 def find_node(material, nodetype):
     if material and material.node_tree:
         ntree = material.node_tree
@@ -337,15 +351,17 @@ def find_node(material, nodetype):
         for node in ntree.nodes:
             if hasattr(node, 'type') and node.type == nodetype:
                 return node
-    
+
     return None
+
 
 def find_node_input(node, name):
     for input in node.inputs:
         if input.name == name:
             return input
-    
+
     return None
+
 
 def panel_node_draw(layout, id, output_type, input_name):
     if not id.node_tree:
@@ -359,9 +375,10 @@ def panel_node_draw(layout, id, output_type, input_name):
         layout.label(text="No output node.")
     else:
         input = find_node_input(node, input_name)
-        layout.template_node_view(ntree, node, input);
-    
+        layout.template_node_view(ntree, node, input)
+
     return True
+
 
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Lamp"
@@ -401,7 +418,8 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
             layout.label(text="Not supported, interpreted as point lamp.")
         elif lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp.")
-   
+
+
 class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
     bl_label = "Nodes"
     bl_context = "data"
@@ -416,6 +434,7 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
         lamp = context.lamp
         if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
             layout.prop(lamp, "color")
+
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -432,6 +451,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
+
 class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "world"
@@ -440,7 +460,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         world = context.world
-        return False # world and world.node_tree and CyclesButtonsPanel.poll(context)
+        return False  # world and world.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -448,6 +468,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
 
         world = context.world
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -464,6 +485,7 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
             layout.prop(mat, "diffuse_color")
 
+
 class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "material"
@@ -472,7 +494,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         mat = context.material
-        return False #mat and mat.node_tree and CyclesButtonsPanel.poll(context)
+        return False  # mat and mat.node_tree and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -484,6 +506,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
 
         layout.prop(cmat, "homogeneous_volume")
+
 
 class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"
@@ -499,6 +522,7 @@ class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
 
         mat = context.material
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')
+
 
 class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
@@ -523,6 +547,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(cmat, "sample_as_light")
 
+
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""
     bl_context = "texture"
@@ -535,7 +560,7 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
         tex = context.texture
         space = context.space_data
         pin_id = space.pin_id
-        use_pin_id = space.use_pin_id;
+        use_pin_id = space.use_pin_id
         user = context.texture_user
         node = context.texture_node
 
@@ -555,7 +580,7 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 col.template_ID(space, "pin_id")
             elif user:
                 col.template_ID(user, "texture", new="texture.new")
-            
+
             if tex:
                 row = split.row()
                 row.prop(tex, "use_nodes", icon="NODETREE", text="")
@@ -565,6 +590,7 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                     split = layout.split(percentage=0.2)
                     split.label(text="Type:")
                     split.prop(tex, "type", text="")
+
 
 class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
     bl_label = "Nodes"
@@ -581,6 +607,7 @@ class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
         tex = context.texture
         panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
 
+
 class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
     bl_label = "Node"
     bl_context = "texture"
@@ -596,6 +623,7 @@ class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
         node = context.texture_node
         ntree = node.id_data
         layout.template_node_view(ntree, node, None)
+
 
 class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
     bl_label = "Mapping"
@@ -627,6 +655,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
         row.prop(mapping, "mapping_x", text="")
         row.prop(mapping, "mapping_y", text="")
         row.prop(mapping, "mapping_z", text="")
+
 
 class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
     bl_label = "Color"
@@ -668,6 +697,7 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
         if mapping.use_color_ramp:
             layout.template_color_ramp(mapping, "color_ramp", expand=True)
 
+
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout
@@ -686,6 +716,7 @@ def draw_device(self, context):
         if cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
 
+
 def draw_pause(self, context):
     layout = self.layout
     scene = context.scene
@@ -696,6 +727,7 @@ def draw_pause(self, context):
         if view.viewport_shade == "RENDERED":
             cscene = scene.cycles
             layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+
 
 def get_panels():
     return [
@@ -752,17 +784,18 @@ def get_panels():
         bpy.types.PARTICLE_PT_vertexgroups,
         bpy.types.PARTICLE_PT_custom_props]
 
+
 def register():
     bpy.types.RENDER_PT_render.append(draw_device)
     bpy.types.VIEW3D_HT_header.append(draw_pause)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CYCLES')
-    
+
+
 def unregister():
     bpy.types.RENDER_PT_render.remove(draw_device)
     bpy.types.VIEW3D_HT_header.remove(draw_pause)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.remove('CYCLES')
-

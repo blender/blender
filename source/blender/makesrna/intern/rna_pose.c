@@ -157,7 +157,7 @@ static IDProperty *rna_PoseBone_idprops(PointerRNA *ptr, int create)
 
 	if(create && !pchan->prop) {
 		IDPropertyTemplate val = {0};
-		pchan->prop= IDP_New(IDP_GROUP, val, "RNA_PoseBone group");
+		pchan->prop= IDP_New(IDP_GROUP, &val, "RNA_PoseBone group");
 	}
 
 	return pchan->prop;

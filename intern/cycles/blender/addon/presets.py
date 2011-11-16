@@ -16,8 +16,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 from bl_operators.presets import AddPresetBase
 from bpy.types import Operator
+
 
 class AddPresetIntegrator(AddPresetBase, Operator):
     '''Add an Integrator Preset'''
@@ -41,13 +44,14 @@ class AddPresetIntegrator(AddPresetBase, Operator):
     ]
 
     preset_subdir = "cycles/integrator"
-    
+
+
 def register():
     pass
 
+
 def unregister():
     pass
-    
+
 if __name__ == "__main__":
     register()
-

@@ -1550,17 +1550,29 @@ void calculateCenter(TransInfo *t)
 		
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
-		if (t->obedit && t->obedit->type == OB_MESH) {
-			BMEditSelection ese;
-			BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
-			
-			if (EDBM_get_actSelection(em, &ese)) {
-			EDBM_editselection_center(em, t->center, &ese);
-			calculateCenter2D(t);
-			break;
+		if (t->obedit) {
+			if (t->obedit && t->obedit->type == OB_MESH) {
+				BMEditSelection ese;
+				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+
+				if (EDBM_get_actSelection(em, &ese)) {
+					EDBM_editselection_center(em, t->center, &ese);
+					calculateCenter2D(t);
+					break;
+				}
+			}
+			else if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
+				float center[3];
+				Curve *cu= (Curve *)t->obedit->data;
+
+				if (ED_curve_actSelection(cu, center)) {
+					copy_v3_v3(t->center, center);
+					calculateCenter2D(t);
+					break;
+				}
 			}
 		} /* END EDIT MODE ACTIVE ELEMENT */
-		
+
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0)
 		{

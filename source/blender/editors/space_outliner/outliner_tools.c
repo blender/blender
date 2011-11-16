@@ -236,6 +236,16 @@ static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 	}
 }
 
+static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Scene *parscene = (Scene *)tsep->id;
+	World *wo = (World *)tselem->id;
+	
+	/* need to use parent scene not just scene, otherwise may end up getting wrong one */
+	id_us_min(&wo->id);
+	parscene->world = NULL;
+}
+
 static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
@@ -345,6 +355,23 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 		
 		RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);
 		prop = RNA_struct_find_property(&ptr, "action");
+		
+		id_single_user(C, id, &ptr, prop);
+	}
+}
+
+static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	ID *id = tselem->id;
+	
+	/* need to use parent scene not just scene, otherwise may end up getting wrong one */
+	if (id) {
+		Scene *parscene = (Scene *)tsep->id;
+		PointerRNA ptr = {{NULL}};
+		PropertyRNA *prop;
+		
+		RNA_id_pointer_create(&parscene->id, &ptr);
+		prop = RNA_struct_find_property(&ptr, "world");
 		
 		id_single_user(C, id, &ptr, prop);
 	}
@@ -746,6 +773,12 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, NULL);
 					ED_undo_push(C, "Unlink texture");
 					break;
+				case ID_WO:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_world_cb);
+					
+					WM_event_add_notifier(C, NC_SCENE|ND_WORLD, NULL);
+					ED_undo_push(C, "Unlink world");
+					break;
 				default:
 					BKE_report(op->reports, RPT_WARNING, "Not Yet");
 					break;
@@ -770,6 +803,13 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					
 					WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 					ED_undo_push(C, "Single-User Action");
+					break;
+					
+				case ID_WO:
+					outliner_do_libdata_operation(C, scene, soops, &soops->tree, singleuser_world_cb);
+					
+					WM_event_add_notifier(C, NC_SCENE|ND_WORLD, NULL);
+					ED_undo_push(C, "Single-User World");
 					break;
 					
 				default:
@@ -799,12 +839,13 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		}
 			break;
 		case OUTLINER_IDOP_RENAME:
+		{
 			/* rename */
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
-
+			
 			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
 			ED_undo_push(C, "Rename");
-
+		}
 			break;
 			
 		default:

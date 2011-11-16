@@ -72,6 +72,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
@@ -382,56 +383,64 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
 			Curve *cu= obedit->data;
-			Nurb *nu;
-			BezTriple *bezt;
-			BPoint *bp;
-			ListBase *nurbs= curve_editnurbs(cu);
+			float center[3];
 
-			nu= nurbs->first;
-			while(nu) {
-				if(nu->type == CU_BEZIER) {
-					bezt= nu->bezt;
-					a= nu->pntsu;
-					while(a--) {
-						/* exceptions
-						 * if handles are hidden then only check the center points.
-						 * If the center knot is selected then only use this as the center point.
-						 */
-						if (cu->drawflag & CU_HIDE_HANDLES) {
-							if (bezt->f2 & SELECT) {
+			if (v3d->around==V3D_ACTIVE && ED_curve_actSelection(cu, center)) {
+			calc_tw_center(scene, center);
+				totsel++;
+			}
+			else {
+				Nurb *nu;
+				BezTriple *bezt;
+				BPoint *bp;
+				ListBase *nurbs= curve_editnurbs(cu);
+
+				nu= nurbs->first;
+				while(nu) {
+					if(nu->type == CU_BEZIER) {
+						bezt= nu->bezt;
+						a= nu->pntsu;
+						while(a--) {
+							/* exceptions
+							 * if handles are hidden then only check the center points.
+							 * If the center knot is selected then only use this as the center point.
+							 */
+							if (cu->drawflag & CU_HIDE_HANDLES) {
+								if (bezt->f2 & SELECT) {
+									calc_tw_center(scene, bezt->vec[1]);
+									totsel++;
+								}
+							}
+							else if (bezt->f2 & SELECT) {
 								calc_tw_center(scene, bezt->vec[1]);
 								totsel++;
 							}
+							else {
+								if(bezt->f1) {
+									calc_tw_center(scene, bezt->vec[0]);
+									totsel++;
+								}
+								if(bezt->f3) {
+									calc_tw_center(scene, bezt->vec[2]);
+									totsel++;
+								}
+							}
+							bezt++;
 						}
-						else if (bezt->f2 & SELECT) {
-							calc_tw_center(scene, bezt->vec[1]);
-							totsel++;
-						}
-						else {
-							if(bezt->f1) {
-								calc_tw_center(scene, bezt->vec[0]);
+					}
+					else {
+						bp= nu->bp;
+						a= nu->pntsu*nu->pntsv;
+						while(a--) {
+							if(bp->f1 & SELECT) {
+								calc_tw_center(scene, bp->vec);
 								totsel++;
 							}
-							if(bezt->f3) {
-								calc_tw_center(scene, bezt->vec[2]);
-								totsel++;
-							}
+							bp++;
 						}
-						bezt++;
 					}
+					nu= nu->next;
 				}
-				else {
-					bp= nu->bp;
-					a= nu->pntsu*nu->pntsv;
-					while(a--) {
-						if(bp->f1 & SELECT) {
-							calc_tw_center(scene, bp->vec);
-							totsel++;
-						}
-						bp++;
-					}
-				}
-				nu= nu->next;
 			}
 		}
 		else if(obedit->type==OB_MBALL) {
