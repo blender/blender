@@ -271,12 +271,15 @@ void BM_Compute_Normals(BMesh *bm)
 	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
 	BM_ITER(e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
 		BM_SetIndex(e, index); /* set_inline */
-		if (!e->l) {
-			/* the edge vector will not be needed when the edge has no radial */
-			continue;
+
+		if (e->l) {
+			sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
+			normalize_v3(edgevec[index]);
 		}
-		sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
-		normalize_v3(edgevec[index]);
+		else {
+			/* the edge vector will not be needed when the edge has no radial */
+		}
+
 		index++;
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
@@ -498,6 +501,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 			index++;
 		}
 		bm->elem_index_dirty &= ~BM_VERT;
+		BLI_assert(index == bm->totvert);
 	}
 
 	if ((hflag & BM_EDGE) /* && (bm->elem_index_dirty & BM_EDGE) */) {
@@ -507,6 +511,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 			index++;
 		}
 		bm->elem_index_dirty &= ~BM_EDGE;
+		BLI_assert(index == bm->totedge);
 	}
 
 	if ((hflag & BM_FACE) /* && (bm->elem_index_dirty & BM_FACES) */) {
@@ -516,6 +521,7 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 			index++;
 		}
 		bm->elem_index_dirty &= ~BM_FACE;
+		BLI_assert(index == bm->totface);
 	}
 }
 
