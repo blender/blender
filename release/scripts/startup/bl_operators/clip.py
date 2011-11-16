@@ -124,6 +124,9 @@ class CLIP_OT_delete_proxy(Operator):
 
     @classmethod
     def poll(cls, context):
+        if context.space_data.type != 'CLIP_EDITOR':
+            return False
+
         sc = context.space_data
 
         return sc.clip
