@@ -1289,6 +1289,10 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 	va_list list;
 	BMOperator op;
 
+#ifdef DEBUG
+	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", fmt);
+#endif
+
 	va_start(list, fmt);
 	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
 		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
@@ -1298,6 +1302,10 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 
 	BMO_Exec_Op(bm, &op);
 	BMO_Finish_Op(bm, &op);
+
+#ifdef DEBUG
+	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", fmt);
+#endif
 
 	va_end(list);
 	return 1;

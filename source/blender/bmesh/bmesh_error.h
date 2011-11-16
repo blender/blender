@@ -26,6 +26,9 @@ void BMO_ClearStack(BMesh *bm);
 int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #endif
 
+#define BM_ELEM_INDEX_VALIDATE(_bm, _msg_a, _msg_b) \
+	BM_ElemIndex_Validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)
+
 /*------ error code defines -------*/
 
 /*error messages*/
