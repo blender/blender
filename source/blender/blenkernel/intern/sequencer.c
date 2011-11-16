@@ -594,6 +594,9 @@ void calc_sequence(Scene *scene, Sequence *seq)
 		// seq->enddisp= MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
 
 		if (seq->seq1) {
+			/* XXX These resets should not be necessary, but users used to be able to
+			 *     edit effect's length, leading to strange results. See #29190. */
+			seq->startofs = seq->endofs = seq->startstill = seq->endstill = 0;
 			seq->start= seq->startdisp= MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
 			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
 			/* we cant help if strips don't overlap, it wont give useful results.
