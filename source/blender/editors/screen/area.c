@@ -169,8 +169,13 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
-	int dx= floor(0.3f*(x2-x1));
-	int dy= floor(0.3f*(y2-y1));
+	int dx = x2 - x1;
+	int dy = y2 - y1;
+
+	dx= copysign(ceil(0.3f*fabs(dx)), dx);
+	dy= copysign(ceil(0.3f*fabs(dy)), dy);
+
+	glEnable(GL_LINE_SMOOTH);
 	
 	glColor4ub(255, 255, 255, 180);
 	fdrawline(x1, y2, x2, y1);
@@ -185,8 +190,9 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	fdrawline(x1, y2-dy+1, x2-dx+1, y1);
 	glColor4ub(0, 0, 0, 150);
 	fdrawline(x1, y2-2*dy+1, x2-2*dx+1, y1);
-}
 
+	glDisable(GL_LINE_SMOOTH);
+}
 
 static void region_draw_azone_icon(AZone *az)
 {
@@ -550,19 +556,19 @@ static void area_azone_initialize(ScrArea *sa)
 	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
 	az->type= AZONE_AREA;
-	az->x1= sa->totrct.xmin;
-	az->y1= sa->totrct.ymin;
-	az->x2= sa->totrct.xmin + AZONESPOT;
-	az->y2= sa->totrct.ymin + AZONESPOT;
+	az->x1= sa->totrct.xmin - 1;
+	az->y1= sa->totrct.ymin - 1;
+	az->x2= sa->totrct.xmin + (AZONESPOT-1);
+	az->y2= sa->totrct.ymin + (AZONESPOT-1);
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
 	az->type= AZONE_AREA;
-	az->x1= sa->totrct.xmax+1;
-	az->y1= sa->totrct.ymax+1;
-	az->x2= sa->totrct.xmax-AZONESPOT;
-	az->y2= sa->totrct.ymax-AZONESPOT;
+	az->x1= sa->totrct.xmax + 1;
+	az->y1= sa->totrct.ymax + 1;
+	az->x2= sa->totrct.xmax - (AZONESPOT-1);
+	az->y2= sa->totrct.ymax - (AZONESPOT-1);
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
