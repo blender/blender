@@ -169,7 +169,8 @@ static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
 	if(clip->lastsize[0])
 		value= clip->lastsize[0]*value/camera->sensor_width;
 
-	camera->focal= value;
+	if(value>=0.0001)
+		camera->focal= value;
 }
 
 static int rna_track_2d_stabilization(CollectionPropertyIterator *UNUSED(iter), void *data)
@@ -372,7 +373,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	/* Focal Length */
 	prop= RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "focal");
-	RNA_def_property_range(prop, 0.0f, 5000.0f);
+	RNA_def_property_range(prop, 0.0001f, 5000.0f);
 	RNA_def_property_float_funcs(prop, "rna_trackingCamera_focal_mm_get", "rna_trackingCamera_focal_mm_set", NULL);
 	RNA_def_property_ui_text(prop, "Focal Length", "Camera's focal length");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
