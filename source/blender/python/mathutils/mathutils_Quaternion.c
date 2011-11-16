@@ -639,7 +639,8 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
 		if (i < 0)
 			i += QUAT_SIZE;
 		return Quaternion_item(self, i);
-	} else if (PySlice_Check(item)) {
+	}
+	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((void *)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
