@@ -1254,7 +1254,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 				state = 1;
 				break;
 			default:
-				printf("unrecognized bmop format char: %c\n", *fmt);
+				printf("%s: unrecognized bmop format char: %c\n", __func__, *fmt);
 				break;
 			}
 		}
@@ -1275,7 +1275,7 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, const char *fmt, ...)
 
 	va_start(list, fmt);
 	if (!BMO_VInitOpf(bm, op, fmt, list)) {
-		printf("BMO_InitOpf failed\n");
+		printf("%s: failed\n", __func__);
 		va_end(list);
 		return 0;
 	}
@@ -1291,7 +1291,7 @@ int BMO_CallOpf(BMesh *bm, const char *fmt, ...)
 
 	va_start(list, fmt);
 	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
-		printf("BMO_CallOpf failed, format is:\n    \"%s\"\n", fmt);
+		printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
 		va_end(list);
 		return 0;
 	}

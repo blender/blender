@@ -87,14 +87,14 @@ struct EditMesh;
  *
 */
 
-/*BMHeader->type*/
+/*BMHeader->htype (char) */
 #define BM_VERT 	1
 #define BM_EDGE 	2
 #define BM_LOOP 	4
 #define BM_FACE 	8
 #define BM_ALL		(BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 
-/*BMHeader->flag*/
+/*BMHeader->hflag (char, all bits used!) */
 #define BM_SELECT	(1<<0)
 
 #define BM_SEAM		(1<<1)
@@ -304,6 +304,8 @@ void BM_Kill_Face_Verts(BMesh *bm, BMFace *f) ;
 
 /*clear all data in bm*/
 void BM_Clear_Mesh(BMesh *bm);
+
+void BM_ElemIndex_Ensure(BMesh *bm, const char hflag);
 
 /*start/stop edit*/
 void bmesh_begin_edit(struct BMesh *bm, int flag);

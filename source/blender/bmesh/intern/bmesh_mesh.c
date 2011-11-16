@@ -481,3 +481,36 @@ void bmesh_end_edit(BMesh *bm, int flag)
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);
 }
+
+void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int index;
+
+	/* TODO, mark arrays as dirty, only calculate if needed! */
+
+	if (hflag & BM_VERT) {
+		index= 0;
+		BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			BM_SetIndex(ele, index);
+			index++;
+		}
+	}
+
+	if (hflag & BM_EDGE) {
+		index= 0;
+		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			BM_SetIndex(ele, index);
+			index++;
+		}
+	}
+
+	if (hflag & BM_FACE) {
+		index= 0;
+		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			BM_SetIndex(ele, index);
+			index++;
+		}
+	}
+}

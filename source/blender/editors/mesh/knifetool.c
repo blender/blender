@@ -1147,8 +1147,8 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], flo
 		if (cure && p) {
 			if (!kcd->ignore_edge_snapping || !(cure->e)) {
 				if (kcd->snap_midpoints) {
-					interp_v3_v3v3(p, cure->v1->co, cure->v2->co, 0.5f);
-					interp_v3_v3v3(cagep, cure->v1->cageco, cure->v2->cageco, 0.5f);
+					mid_v3_v3v3(p, cure->v1->co, cure->v2->co);
+					mid_v3_v3v3(cagep, cure->v1->cageco, cure->v2->cageco);
 				} else {
 					float d;
 					

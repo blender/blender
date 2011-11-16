@@ -22,7 +22,9 @@
 BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
-	
+
+	BM_SetIndex(v, bm->totvert);
+
 	bm->totvert += 1;
 
 	v->head.htype = BM_VERT;
@@ -76,7 +78,11 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 		return (BMEdge*)e;
 	
 	e = BLI_mempool_calloc(bm->epool);
+
+	BM_SetIndex(e, bm->totedge);
+
 	bm->totedge += 1;
+
 	e->head.htype = BM_EDGE;
 	
 	/*allocate flags*/
@@ -221,7 +227,11 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nod
 	}
 	
 	f = BLI_mempool_calloc(bm->fpool);
+
+	BM_SetIndex(f, bm->totface);
+
 	bm->totface += 1;
+
 	f->head.htype = BM_FACE;
 
 	startl = lastl = BM_Add_FaceBoundary(bm, (BMFace*)f, verts[0], edges[0]);
