@@ -73,7 +73,7 @@ def do_ignore(filepath, ignore_prefix_list):
 def makefile_log():
     import subprocess
     import time
-    # Check blender is not 2.5x until it supports playback again
+
     print("running make with --dry-run ...")
     process = subprocess.Popen(["make", "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
                                 stdout=subprocess.PIPE,
@@ -85,7 +85,7 @@ def makefile_log():
     out = process.stdout.read()
     process.stdout.close()
     print("done!", len(out), "bytes")
-    return out.decode("ascii").split("\n")
+    return out.decode("utf-8", errors="ignore").split("\n")
 
 
 def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
