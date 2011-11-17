@@ -276,12 +276,23 @@ install(
 
 if(WITH_PYTHON)
 	# install(CODE "message(\"copying blender scripts...\")")
+	
+	# exclude addons_contrib if release
+	if("${BLENDER_VERSION_CYCLE}" STREQUAL "release")
+		set(ADDON_EXCLUDE_CONDITIONAL "addons_contrib/*")
+	else()
+		set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # dummy, wont do anything
+	endif()
+
 	install(
 		DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
 		DESTINATION ${TARGETDIR_VER}
 		PATTERN ".svn" EXCLUDE
 		PATTERN "__pycache__" EXCLUDE
+		PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
 	)
+	
+	unset(ADDON_EXCLUDE_CONDITIONAL)
 endif()
 
 # localization
