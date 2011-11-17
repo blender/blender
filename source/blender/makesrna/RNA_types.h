@@ -303,13 +303,14 @@ typedef struct ParameterDynAlloc {
 
 typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
-	FUNC_USE_CONTEXT = 2,
-	FUNC_USE_REPORTS = 4,
+	FUNC_USE_MAIN = 2,
+	FUNC_USE_CONTEXT = 4,
+	FUNC_USE_REPORTS = 8,
 	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
-	FUNC_REGISTER = 8,
-	FUNC_REGISTER_OPTIONAL = 8|16,
+	FUNC_REGISTER = 16,
+	FUNC_REGISTER_OPTIONAL = 16|32,
 
 	/* internal flags */
 	FUNC_BUILTIN = 128,
