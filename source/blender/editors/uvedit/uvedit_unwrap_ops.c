@@ -1125,14 +1125,6 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me = (Mesh*)obedit->data;
-	BMEditMesh *em= me->edit_btmesh;
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
-	BLI_array_declare(uvs);
-	float **uvs = NULL;
-	int i;
 
 	/* add uvs if they don't exist yet */
 	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
@@ -1146,8 +1138,6 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	
-	BLI_array_free(uvs);
-
 	return OPERATOR_FINISHED;
 }
 

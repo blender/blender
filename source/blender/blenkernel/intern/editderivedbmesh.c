@@ -1131,9 +1131,10 @@ static void bmDM_drawMappedFacesMat(DerivedMesh *dm,
 }
 
 	for (i=0, ltri=em->looptris[0]; i<em->tottri; i++, ltri += 3) {
-		int drawSmooth= BM_TestHFlag(efa, BM_SMOOTH);
+		int drawSmooth;
 
 		efa = ltri[0]->f;
+		drawSmooth = BM_TestHFlag(efa, BM_SMOOTH);
 
 		/* face hiding */
 		if(setFace && !setFace(userData, BM_GetIndex(efa)))
