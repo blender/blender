@@ -164,24 +164,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 			/* set the expression */
 			// TODO: need some way of identifying variables used
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
-			
-			/* FIXME: for now, assume that 
-			 * 	- for expressions, users are likely to be using "frame" -> current frame" as a variable
-			 *	- driver_add_new_variable() adds a single-prop variable by default
-			 */
-			{
-				DriverVar *dvar;
-				DriverTarget *dtar;
-				
-				dvar = driver_add_new_variable(driver);
-				BLI_strncpy(dvar->name, "frame", sizeof(dvar->name));
-				
-				dtar = &dvar->targets[0];
-				dtar->id = (ID *)CTX_data_scene(C); // XXX: should we check that C is valid first?
-				dtar->idtype= ID_SCE;
-				dtar->rna_path = BLI_sprintfN("frame_current");
-			}
-			
+
 			/* updates */
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
 			WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME, NULL);

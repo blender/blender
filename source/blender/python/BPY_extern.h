@@ -74,7 +74,7 @@ void	BPY_modules_load_user(struct bContext *C);
 void	BPY_app_handlers_reset(const short do_all);
 
 void	BPY_driver_reset(void);
-float	BPY_driver_exec(struct ChannelDriver *driver);
+float	BPY_driver_exec(struct ChannelDriver *driver, const float evaltime);
 
 int		BPY_button_exec(struct bContext *C, const char *expr, double *value, const short verbose);
 int		BPY_string_exec(struct bContext *C, const char *expr);

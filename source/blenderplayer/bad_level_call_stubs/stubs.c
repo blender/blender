@@ -454,7 +454,7 @@ void BPY_text_free_code(struct Text *text) {}
 void BPY_id_release(struct Text *text) {}
 int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
-float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime) {return 0.0f;} /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
