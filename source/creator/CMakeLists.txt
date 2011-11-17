@@ -233,10 +233,6 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-
-# -----------------------------------------------------------------------------
-# Install Targets
-
 set(BLENDER_TEXT_FILES
 	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
@@ -244,8 +240,11 @@ set(BLENDER_TEXT_FILES
 	${CMAKE_SOURCE_DIR}/release/text/readme.html
 )
 
-if(UNIX AND NOT APPLE)
 
+# -----------------------------------------------------------------------------
+# Platform Spesific Var: TARGETDIR_VER
+
+if(UNIX AND NOT APPLE)
 	if(WITH_INSTALL_PORTABLE)
 		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 	else()
@@ -256,18 +255,60 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
-	# important to make a clean  install each time
-	# else old scripts get loaded.
-	install(
-		CODE
-		"file(REMOVE_RECURSE ${TARGETDIR_VER})"
-	)
+elseif(WIN32)
+	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 
+elseif(APPLE)
+	set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+
+endif()
+
+
+# -----------------------------------------------------------------------------
+# Install Targets (Generic, All Platforms)
+
+
+# important to make a clean  install each time, else old scripts get loaded.
+install(
+	CODE
+	"file(REMOVE_RECURSE ${TARGETDIR_VER})"
+)
+
+if(WITH_PYTHON)
+	# install(CODE "message(\"copying blender scripts...\")")
+	install(
+		DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
+		DESTINATION ${TARGETDIR_VER}
+		PATTERN ".svn" EXCLUDE
+		PATTERN "__pycache__" EXCLUDE
+	)
+endif()
+
+# localization
+if(WITH_INTERNATIONAL)
+	install(
+		DIRECTORY
+			${CMAKE_SOURCE_DIR}/release/datafiles/locale
+			${CMAKE_SOURCE_DIR}/release/datafiles/fonts
+		DESTINATION ${TARGETDIR_VER}/datafiles
+		PATTERN ".svn" EXCLUDE
+	)
+endif()
+
+# helpful tip when using make
+if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
 	# message after building.
 	add_custom_command(
 		TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 		COMMAND ${CMAKE_COMMAND} -E echo 'now run: \"make install\" to copy runtime files & scripts to ${TARGETDIR_VER}'
 	)
+endif()
+
+
+# -----------------------------------------------------------------------------
+# Install Targets (Platform Specific)
+
+if(UNIX AND NOT APPLE)
 
 	# there are a few differences between portable and system install
 	if(WITH_INSTALL_PORTABLE)
@@ -348,16 +389,6 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
-	if(WITH_INTERNATIONAL)
-		install(
-			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/datafiles/locale
-				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
-			DESTINATION ${TARGETDIR_VER}/datafiles
-			PATTERN ".svn" EXCLUDE
-		)
-	endif()
-
 		# plugins in blender 2.5 don't work at the moment.
 		#
 		# install(
@@ -367,14 +398,6 @@ if(UNIX AND NOT APPLE)
 		# )
 
 	if(WITH_PYTHON)
-		# install(CODE "message(\"copying blender scripts...\")")
-		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
-			DESTINATION ${TARGETDIR_VER}
-			PATTERN ".svn" EXCLUDE
-			PATTERN "__pycache__" EXCLUDE
-		)
-
 		if(WITH_PYTHON_INSTALL)
 			# Copy the systems python into the install directory
 			# Scons copy in tools/Blender.py
@@ -403,27 +426,12 @@ if(UNIX AND NOT APPLE)
 	endif()
 elseif(WIN32)
 
-	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
-
-	install(  # same as linux!, deduplicate
-		CODE
-		"file(REMOVE_RECURSE ${TARGETDIR_VER})"
-	)
-
-	install(  # same as linux!, deduplicate
+	install(
 		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
 	)
 
-	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
-		install(
-			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/datafiles/locale
-				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
-			DESTINATION ${TARGETDIR_VER}/datafiles
-			PATTERN ".svn" EXCLUDE
-		)
-
+	if(WITH_INTERNATIONAL)
 		install(
 			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
 			DESTINATION ${TARGETDIR}
@@ -446,13 +454,6 @@ elseif(WIN32)
 	# )
 
 	if(WITH_PYTHON)
-		# install(CODE "message(\"copying blender scripts...\")")
-		install(  # same as linux!, deduplicate
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
-			DESTINATION ${TARGETDIR_VER}
-			PATTERN ".svn" EXCLUDE
-			PATTERN "__pycache__" EXCLUDE
-		)
 
 		install(
 			FILES ${LIBDIR}/python/lib/python32.dll
@@ -584,29 +585,6 @@ elseif(WIN32)
 	endif()
 
 elseif(APPLE)
-	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
-	set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-	set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
-
-	# setup Info.plist
-	execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-	set_target_properties(blender PROPERTIES
-		MACOSX_BUNDLE_INFO_PLIST ${SOURCEINFO}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
-		MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
-
-	# important to make a clean  install each time else old scripts get loaded.
-	install(
-		CODE
-		"file(REMOVE_RECURSE ${TARGETDIR_VER})"
-	)
-
-	# message after building.
-	add_custom_command(
-		TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-		COMMAND ${CMAKE_COMMAND} -E echo 'now run: \"make install\" to copy runtime files & scripts to ${TARGETDIR_VER}'
-	)
 
 	# handy install macro to exclude files, we use \$ escape for the "to"
 	# argument when calling so ${BUILD_TYPE} does not get expanded
@@ -625,6 +603,17 @@ elseif(APPLE)
 		)
 	endmacro()
 
+	set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
+
+	# setup Info.plist
+	execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+	set_target_properties(blender PROPERTIES
+		MACOSX_BUNDLE_INFO_PLIST ${OSX_APP_SOURCEDIR}/Contents/Info.plist
+		MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
+		MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
+
+
 	# install release and app files
 	install(
 		FILES ${BLENDER_TEXT_FILES}
@@ -632,25 +621,14 @@ elseif(APPLE)
 	)
 
 	install(
-		FILES ${SOURCEDIR}/Contents/PkgInfo
+		FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
 		DESTINATION ${TARGETDIR}/blender.app/Contents
 	)
 
 	install_dir(
-		${SOURCEDIR}/Contents/Resources
+		${OSX_APP_SOURCEDIR}/Contents/Resources
 		\${TARGETDIR}/blender.app/Contents/
 	)
-
-	# localization
-	if(WITH_INTERNATIONAL)
-		install(
-			DIRECTORY
-				${CMAKE_SOURCE_DIR}/release/datafiles/locale
-				${CMAKE_SOURCE_DIR}/release/datafiles/fonts
-			DESTINATION ${TARGETDIR_VER}/datafiles
-			PATTERN ".svn" EXCLUDE
-		)
-	endif()
 
 	# python
 	if(WITH_PYTHON)
@@ -678,18 +656,13 @@ elseif(APPLE)
 			\${TARGETDIR_VER}
 		)
 
-		# copy scripts
-		install_dir(
-			${CMAKE_SOURCE_DIR}/release/scripts
-			\${TARGETDIR_VER}
-		)
 	endif()
 
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
 	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
-		set(PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
-		set(PLAYER_SOURCEINFO ${PLAYER_SOURCEDIR}/Contents/Info.plist)
+		set(OSX_APP_PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
+		set(PLAYER_SOURCEINFO ${OSX_APP_PLAYER_SOURCEDIR}/Contents/Info.plist)
 		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
 
 
@@ -700,12 +673,12 @@ elseif(APPLE)
 		)
 
 		install(
-			FILES ${PLAYER_SOURCEDIR}/Contents/PkgInfo
+			FILES ${OSX_APP_PLAYER_SOURCEDIR}/Contents/PkgInfo
 			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
 		)
 
 		install_dir(
-			${PLAYER_SOURCEDIR}/Contents/Resources
+			${OSX_APP_PLAYER_SOURCEDIR}/Contents/Resources
 			\${TARGETDIR}/blenderplayer.app/Contents/
 		)
 
@@ -727,6 +700,11 @@ elseif(APPLE)
 
 	endif()
 endif()
+
+# -----------------------------------------------------------------------------
+# Generic Install, for all targets
+
+
 
 # install more files specified elsewhere
 delayed_do_install(${TARGETDIR_VER})
