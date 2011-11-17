@@ -1454,6 +1454,12 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	}
 #endif /* WITH_GAMEENGINE */
 
+	/* Re-tesselation is necessary to push render data (uvs, textures, colors)
+	   from loops and polys onto the tessfaces. This may be currently be redundant
+	   in cases where the render mode doesn't use these inputs, but ideally
+	   eventually tesselation would happen on-demand, and this is one of the primary
+	   places it would be needed. */
+	finaldm->recalcTesselation(finaldm);
 	finaldm->calcNormals(finaldm);
 
 	*final_r = finaldm;

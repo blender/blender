@@ -2758,6 +2758,11 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	return ccgdm->pbvh;
 }
 
+static void ccgDM_recalcTesselection(DerivedMesh *UNUSED(dm))
+{
+	/* Nothing to do: CCG handles creating its own tessfaces */
+}
+
 static void ccgDM_calcNormals(DerivedMesh *UNUSED(dm))
 {
 	/* Nothing to do: CCG calculates normals during drawing */
@@ -2853,6 +2858,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getTessFaceData = DM_get_face_data;
 
 	ccgdm->dm.calcNormals = ccgDM_calcNormals;
+	ccgdm->dm.recalcTesselation = ccgDM_recalcTesselection;
 
 	ccgdm->dm.getVertCos = cgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = cgdm_foreachMappedVert;

@@ -1644,8 +1644,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->calcNormals = CDDM_calc_normals;
-	//doesn't work yet for all cases
-	//dm->recalcTesselation = CDDM_recalc_tesselation;
+	dm->recalcTesselation = CDDM_recalc_tesselation;
 
 	dm->getVertCos = cdDM_getVertCos;
 	dm->getVertCo = cdDM_getVertCo;
