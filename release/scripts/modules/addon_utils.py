@@ -62,7 +62,7 @@ def modules(module_cache):
     path_list = paths()
 
     # fake module importing
-    def fake_module(mod_name, mod_path, speedy=True):
+    def fake_module(mod_name, mod_path, speedy=True, force_support=None):
         global error_encoding
 
         if _bpy.app.debug:
@@ -134,6 +134,9 @@ def modules(module_cache):
                 traceback.print_exc()
                 raise
 
+            if force_support is not None:
+                mod.bl_info["support"] = force_support
+
             return mod
         else:
             return None
@@ -141,6 +144,10 @@ def modules(module_cache):
     modules_stale = set(module_cache.keys())
 
     for path in path_list:
+
+        # force all contrib addons to be 'TESTING'
+        force_support = 'TESTING' if path.endswith("addons_contrib") else None
+
         for mod_name, mod_path in _bpy.path.module_names(path):
             modules_stale -= {mod_name}
             mod = module_cache.get(mod_name)
@@ -161,7 +168,7 @@ def modules(module_cache):
                     mod = None
 
             if mod is None:
-                mod = fake_module(mod_name, mod_path)
+                mod = fake_module(mod_name, mod_path, force_support=force_support)
                 if mod:
                     module_cache[mod_name] = mod
 
