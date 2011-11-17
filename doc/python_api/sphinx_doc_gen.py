@@ -658,7 +658,7 @@ def pycontext2sphinx(BASEPATH):
         char_array = c_char_p_p.from_address(attr)
         i = 0
         while char_array[i] is not None:
-            member = ctypes.string_at(char_array[i]).decode()
+            member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
             fw(".. data:: %s\n\n" % member)
             member_type, is_seq = type_map[member]
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))

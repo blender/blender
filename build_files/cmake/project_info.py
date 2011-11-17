@@ -224,7 +224,9 @@ def project_name_get(path, fallback="Blender", prefix="Blender_"):
 
     import subprocess
     info = subprocess.Popen(["svn", "info", path],
-                            stdout=subprocess.PIPE).communicate()[0].decode()
+                            stdout=subprocess.PIPE).communicate()[0]
+    # string version, we only want the URL
+    info = info.decode(encoding="utf-8", errors="ignore")
 
     for l in info.split("\n"):
         l = l.strip()
