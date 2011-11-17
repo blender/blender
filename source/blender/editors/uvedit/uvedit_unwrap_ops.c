@@ -1124,7 +1124,8 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	Mesh *me = (Mesh*)obedit->data;
+	BMEditMesh *em= me->edit_btmesh;
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
@@ -1134,57 +1135,12 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	int i;
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
 		return OPERATOR_CANCELLED;
 	}
 
-	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		if (!BM_TestHFlag(efa, BM_SELECT))
-			continue;
-		
-		BLI_array_empty(uvs);
-		i = 0;
-		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			BLI_array_growone(uvs);
-
-			uvs[i++] = luv->uv;
-		}
-
-		if (i == 3) {
-			uvs[0][0] = 0.0;
-			uvs[0][1] = 0.0;
-			
-			uvs[1][0] = 1.0;
-			uvs[1][1] = 0.0;
-
-			uvs[2][0] = 1.0;
-			uvs[2][1] = 1.0;
-		} else if (i == 4) {
-			uvs[0][0] = 0.0;
-			uvs[0][1] = 0.0;
-			
-			uvs[1][0] = 1.0;
-			uvs[1][1] = 0.0;
-
-			uvs[2][0] = 1.0;
-			uvs[2][1] = 1.0;
-
-			uvs[3][0] = 0.0;
-			uvs[3][1] = 1.0;
-		  /*make sure we ignore 2-sided faces*/
-		} else if (i > 2) {
-			float fac = 0.0f, dfac = 1.0f / (float)efa->len;
-
-			dfac *= M_PI*2;
-
-			for (i=0; i<efa->len; i++) {
-				uvs[i][0] = sin(fac);
-				uvs[i][1] = cos(fac);
-
-				fac += dfac;
-			}
-		}
+	if (!ED_mesh_uv_loop_reset(C, me)) {
+		return OPERATOR_CANCELLED;
 	}
 
 	DAG_id_tag_update(obedit->data, 0);

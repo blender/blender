@@ -42,6 +42,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
@@ -200,6 +201,112 @@ static void copy_editface_active_customdata(BMEditMesh *em, int type, int index)
 #endif
 }
 
+int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
+{
+	BMEditMesh *em= me->edit_btmesh;
+	MLoopUV *luv;
+	BLI_array_declare(polylengths);
+	int *polylengths = NULL;
+	BLI_array_declare(uvs);
+	float **uvs = NULL;
+	float **fuvs = NULL;
+	int i, j;
+
+	if (em) {
+		/* Collect BMesh UVs */
+
+		BMFace *efa;
+		BMLoop *l;
+		BMIter iter, liter;
+
+		BLI_assert(CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV));
+
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(efa, BM_SELECT))
+				continue;
+
+			i = 0;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				BLI_array_append(uvs, luv->uv);
+				i++;
+			}
+
+			BLI_array_append(polylengths, efa->len);
+		}
+	}
+	else {
+		/* Collect Mesh UVs */
+
+		MPoly *mp;
+
+		BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
+
+		for (j = 0; j < me->totpoly; j++) {
+			mp = &me->mpoly[j];
+
+			for (i = 0; i < mp->totloop; i++) {
+				luv = &me->mloopuv[mp->loopstart + i];
+				BLI_array_append(uvs, luv->uv);
+			}
+
+			BLI_array_append(polylengths, mp->totloop);
+		}
+	}
+
+	fuvs = uvs;
+	for (j = 0; j < BLI_array_count(polylengths); j++) {
+		int len = polylengths[j];
+
+		if (len == 3) {
+			fuvs[0][0] = 0.0;
+			fuvs[0][1] = 0.0;
+			
+			fuvs[1][0] = 1.0;
+			fuvs[1][1] = 0.0;
+
+			fuvs[2][0] = 1.0;
+			fuvs[2][1] = 1.0;
+		} else if (len == 4) {
+			fuvs[0][0] = 0.0;
+			fuvs[0][1] = 0.0;
+			
+			fuvs[1][0] = 1.0;
+			fuvs[1][1] = 0.0;
+
+			fuvs[2][0] = 1.0;
+			fuvs[2][1] = 1.0;
+
+			fuvs[3][0] = 0.0;
+			fuvs[3][1] = 1.0;
+		  /*make sure we ignore 2-sided faces*/
+		} else if (len > 2) {
+			float fac = 0.0f, dfac = 1.0f / (float)len;
+
+			dfac *= M_PI*2;
+
+			for (i = 0; i < len; i++) {
+				fuvs[i][0] = 0.5f * sin(fac) + 0.5f;
+				fuvs[i][1] = 0.5f * cos(fac) + 0.5f;
+
+				fac += dfac;
+			}
+		}
+
+		fuvs += len;
+	}
+
+	/* BMESH_TODO: Copy poly UVs onto CD_MTFACE layer for tesselated faces */
+
+	BLI_array_free(uvs);
+	BLI_array_free(polylengths);
+
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return 1;
+}
+
 int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_set)
 {
 	BMEditMesh *em;
@@ -237,19 +344,24 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		if(me->mtpoly) {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
+			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
 		} else {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, name);
+			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, name);
 		}
 		
 		if(active_set || layernum==0) {
 			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum);
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum);
+
+			CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum);
 		}
-		
 
 		mesh_update_customdata_pointers(me);
 	}
+
+	ED_mesh_uv_loop_reset(C, me);
 
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
@@ -307,13 +419,19 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		if(layernum >= CD_MLOOPCOL)
 			return 0;
 
-		if(me->mloopcol)
+		if(me->mloopcol) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
-		else
+			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mloopcol, me->totface, name);
+		}
+		else {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
+			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface, name);
+		}
 
-		if(active_set || layernum==0)
+		if(active_set || layernum==0) {
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
+			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
+		}
 
 		mesh_update_customdata_pointers(me);
 	}

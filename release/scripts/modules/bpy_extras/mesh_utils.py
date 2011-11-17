@@ -140,8 +140,7 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
     edges = {}
 
     for f in faces:
-#        if len(f) == 4:
-        if f.vertices_raw[3] != 0:
+        if len(f.vertices) == 4:
             edge_keys = f.edge_keys
             for i, edkey in enumerate(f.edge_keys):
                 edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])

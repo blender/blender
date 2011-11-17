@@ -88,8 +88,8 @@ class prettyface(object):
             self.children = []
 
         else:  # blender face
-            # self.uv = data.uv
-            self.uv = data.id_data.uv_textures.active.data[data.index].uv  # XXX25
+            uv_layer = data.id_data.uv_loop_layers.active.data
+            self.uv = [uv_layer[i].uv for i in data.loops]
 
             # cos = [v.co for v in data]
             cos = [data.id_data.vertices[v].co for v in data.vertices]  # XXX25
@@ -158,7 +158,8 @@ class prettyface(object):
                 I = [i for a, i in angles_co]
 
                 #~ fuv = f.uv
-                fuv = f.id_data.uv_textures.active.data[f.index].uv  # XXX25
+                uv_layer = f.id_data.uv_loop_layers.active.data
+                fuv = [uv_layer[i].uv for i in f.loops]  # XXX25
 
                 if self.rot:
                     fuv[I[2]] = p1
@@ -219,15 +220,10 @@ def lightmap_uvpack(meshes,
         face_groups = []
 
     for me in meshes:
-        # Add face UV if it does not exist.
-        # All new faces are selected.
-        if not me.uv_textures:
-            me.uv_textures.new()
-
         if PREF_SEL_ONLY:
-            faces = [f for f in me.faces if f.select]
+            faces = [f for f in me.polygons if f.select]
         else:
-            faces = me.faces[:]
+            faces = me.polygons[:]
 
         if PREF_PACK_IN_ONE:
             face_groups[0].extend(faces)
@@ -235,6 +231,11 @@ def lightmap_uvpack(meshes,
             face_groups.append(faces)
 
         if PREF_NEW_UVLAYER:
+            me.uv_textures.new()
+
+        # Add face UV if it does not exist.
+        # All new faces are selected.
+        if not me.uv_textures:
             me.uv_textures.new()
 
     for face_sel in face_groups:
@@ -504,7 +505,7 @@ def lightmap_uvpack(meshes,
 
             for f in face_sel:
                 # f.image = image
-                f.id_data.uv_textures.active.data[f.index].image = image  # XXX25
+                f.id_data.uv_loop_layers.active.data[f.index].image = image  # XXX25
 
     for me in meshes:
         me.update()
@@ -528,7 +529,7 @@ def unwrap(operator, context, **kwargs):
         if obj and obj.type == 'MESH':
             meshes = [obj.data]
     else:
-        meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.faces and me.library is None})
+        meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.polygons and me.library is None})
 
     if not meshes:
         operator.report({'ERROR'}, "No mesh object")
