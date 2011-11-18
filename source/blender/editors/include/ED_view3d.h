@@ -206,7 +206,6 @@ void project_int_noclip(struct ARegion *ar, const float vec[3], int adr[2]);
 void project_float(struct ARegion *ar, const float vec[3], float adr[2]);
 void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
 
-void ED_view3d_ob_clip_range_get(struct Object *ob, float *lens, float *clipsta, float *clipend);
 int ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);

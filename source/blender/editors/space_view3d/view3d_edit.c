@@ -47,6 +47,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -3513,8 +3514,12 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 {
 	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
 
-	if (lens) {
-		ED_view3d_ob_clip_range_get(ob, lens, NULL, NULL);
+	if(lens) {
+		CameraParams params;
+
+		camera_params_init(&params);
+		camera_params_from_object(&params, ob);
+		*lens= params.lens;
 	}
 }
 

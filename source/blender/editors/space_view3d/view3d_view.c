@@ -104,31 +104,6 @@ float *give_cursor(Scene *scene, View3D *v3d)
 }
 
 
-/* Gets the lens and clipping values from a camera of lamp type object */
-void ED_view3d_ob_clip_range_get(Object *ob, float *lens, float *clipsta, float *clipend)
-{
-	if(ob->type==OB_LAMP ) {
-		Lamp *la = ob->data;
-		if (lens) {
-			float x1, fac;
-			fac= cosf((float)M_PI*la->spotsize/360.0f);
-			x1= saacos(fac);
-			*lens= 16.0f*fac/sinf(x1);
-		}
-		if (clipsta)	*clipsta= la->clipsta;
-		if (clipend)	*clipend= la->clipend;
-	}
-	else if(ob->type==OB_CAMERA) {
-		Camera *cam= ob->data;
-		if (lens)		*lens= cam->lens;
-		if (clipsta)	*clipsta= cam->clipsta;
-		if (clipend)	*clipend= cam->clipend;
-	}
-	else {
-		if (lens)		*lens= 35.0f;
-	}
-}
-
 /* ****************** smooth view operator ****************** */
 /* This operator is one of the 'timer refresh' ones like animation playback */
 
@@ -985,36 +960,15 @@ void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 /* copies logic of get_view3d_viewplane(), keep in sync */
 int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
 {
-	int orth= 0;
+	CameraParams params;
 
-	*clipsta= v3d->near;
-	*clipend= v3d->far;
+	camera_params_init(&params);
+	camera_params_from_view3d(&params, v3d, rv3d);
 
-	if(rv3d->persp==RV3D_CAMOB) {
-		if(v3d->camera) {
-			if(v3d->camera->type==OB_LAMP ) {
-				Lamp *la= v3d->camera->data;
-				*clipsta= la->clipsta;
-				*clipend= la->clipend;
-			}
-			else if(v3d->camera->type==OB_CAMERA) {
-				Camera *cam= v3d->camera->data;
-				*clipsta= cam->clipsta;
-				*clipend= cam->clipend;
+	*clipsta= params.clipsta;
+	*clipend= params.clipend;
 
-				if(cam->type==CAM_ORTHO)
-					orth= 1;
-			}
-		}
-	}
-
-	if(rv3d->persp==RV3D_ORTHO) {
-		*clipend *= 0.5f;	// otherwise too extreme low zbuffer quality
-		*clipsta= - *clipend;
-		orth= 1;
-	}
-
-	return orth;
+	return params.is_ortho;
 }
 
 /* also exposed in previewrender.c */
