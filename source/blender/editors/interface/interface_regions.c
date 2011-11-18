@@ -376,7 +376,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			data->totline++;
 		}
 
-		if(but->type == ROW) {
+		if(ELEM(but->type, ROW, MENU)) {
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
@@ -386,7 +386,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				if(item[i].identifier[0] && item[i].value == (int)but->hardmax) {
 					if(item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
-						data->color[data->totline]= 0xFFFFFF;
+						data->color[data->totline]= 0xDDDDDD;
 						data->totline++;
 					}
 					break;
