@@ -734,6 +734,25 @@ static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA valu
 	if (index != -1) rd->actlay= index;
 }
 
+static SceneRenderLayer *rna_RenderLayer_add(ID *id, RenderData *UNUSED(rd), const char *name)
+{
+	Scene *scene= (Scene *)id;
+	SceneRenderLayer *srl= scene_add_render_layer(scene, name);
+
+	WM_main_add_notifier(NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	return srl;
+}
+
+static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, SceneRenderLayer *srl)
+{
+	Scene *scene= (Scene *)id;
+
+	scene_remove_render_layer(bmain, scene, srl);
+
+	WM_main_add_notifier(NC_SCENE|ND_RENDER_OPTIONS, NULL);
+}
+
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -2186,8 +2205,8 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	// FunctionRNA *func;
-	// PropertyRNA *parm; 
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "RenderLayers");
 	srna= RNA_def_struct(brna, "RenderLayers", NULL);
@@ -2209,6 +2228,19 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Active Render Layer", "Active Render Layer");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	func= RNA_def_function(srna, "new", "rna_RenderLayer_add");
+	RNA_def_function_ui_description(func, "Add a render layer to scene");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm= RNA_def_string(func, "name", "RenderLayer", 0, "", "New name for the marker (not unique)");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "render_layer", "SceneRenderLayer", "", "Newly created render layer");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_RenderLayer_remove");
+	RNA_def_function_ui_description(func, "Remove a render layer");
+	RNA_def_function_flag(func, FUNC_USE_MAIN|FUNC_USE_SELF_ID);
+	parm= RNA_def_pointer(func, "layer", "SceneRenderLayer", "", "Timeline marker to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_scene_render_data(BlenderRNA *brna)

@@ -44,6 +44,7 @@ struct Main;
 struct Object;
 struct QuicktimeCodecData;
 struct RenderData;
+struct SceneRenderLayer;
 struct Scene;
 struct Text;
 struct Text;
@@ -93,7 +94,8 @@ void scene_clear_tagged(struct Main *bmain, struct Scene *sce);
 
 void scene_update_for_newframe(struct Main *bmain, struct Scene *sce, unsigned int lay);
 
-void scene_add_render_layer(struct Scene *sce);
+struct SceneRenderLayer *scene_add_render_layer(struct Scene *sce, const char *name);
+int scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
 
 /* render profile */
 int get_render_subsurf_level(struct RenderData *r, int level);

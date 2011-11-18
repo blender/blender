@@ -519,7 +519,7 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 
-	scene_add_render_layer(scene);
+	scene_add_render_layer(scene, NULL);
 	scene->r.actlay= BLI_countlist(&scene->r.layers) - 1;
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
@@ -543,32 +543,11 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C), *sce;
-	SceneRenderLayer *rl;
-	int act= scene->r.actlay;
+	Scene *scene = CTX_data_scene(C);
+	SceneRenderLayer *rl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 
-	if(BLI_countlist(&scene->r.layers) <= 1)
+	if(!scene_remove_render_layer(CTX_data_main(C), scene, rl))
 		return OPERATOR_CANCELLED;
-	
-	rl= BLI_findlink(&scene->r.layers, scene->r.actlay);
-	BLI_remlink(&scene->r.layers, rl);
-	MEM_freeN(rl);
-
-	scene->r.actlay= 0;
-
-	for(sce = CTX_data_main(C)->scene.first; sce; sce = sce->id.next) {
-		if(sce->nodetree) {
-			bNode *node;
-			for(node = sce->nodetree->nodes.first; node; node = node->next) {
-				if(node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
-					if(node->custom1==act)
-						node->custom1= 0;
-					else if(node->custom1>act)
-						node->custom1--;
-				}
-			}
-		}
-	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
