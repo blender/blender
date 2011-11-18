@@ -1446,6 +1446,8 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 void ui_popup_block_scrolltest(uiBlock *block)
 {
 	uiBut *bt;
+	/* Knowing direction is necessary for multi-column menus... */
+	int is_flip = (block->direction & UI_TOP) && !(block->flag & UI_BLOCK_NO_FLIP);
 	
 	block->flag &= ~(UI_BLOCK_CLIPBOTTOM|UI_BLOCK_CLIPTOP);
 	
@@ -1462,9 +1464,9 @@ void ui_popup_block_scrolltest(uiBlock *block)
 			block->flag |= UI_BLOCK_CLIPBOTTOM;
 			/* make space for arrow */
 			if(bt->y2 < block->miny +10) {
-				if(bt->next && bt->next->y1 > bt->y1)
+				if(is_flip && bt->next && bt->next->y1 > bt->y1)
 					bt->next->flag |= UI_SCROLLED;
-				if(bt->prev && bt->prev->y1 > bt->y1)
+				else if(!is_flip && bt->prev && bt->prev->y1 > bt->y1)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
@@ -1473,9 +1475,9 @@ void ui_popup_block_scrolltest(uiBlock *block)
 			block->flag |= UI_BLOCK_CLIPTOP;
 			/* make space for arrow */
 			if(bt->y1 > block->maxy -10) {
-				if(bt->next && bt->next->y2 < bt->y2)
+				if(!is_flip && bt->next && bt->next->y2 < bt->y2)
 					bt->next->flag |= UI_SCROLLED;
-				if(bt->prev && bt->prev->y2 < bt->y2)
+				else if(is_flip && bt->prev && bt->prev->y2 < bt->y2)
 					bt->prev->flag |= UI_SCROLLED;
 			}
 		}
