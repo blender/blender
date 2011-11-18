@@ -113,9 +113,9 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem sensor_fit_items[] = {
-		{CAMERA_SENSOR_FIT_AUTO, "AUTO", 0, "Auto", "Calculate field of view using sensor size, with direction depending on image resolution"},
-		{CAMERA_SENSOR_FIT_HOR, "HORIZONTAL", 0, "Horizontal", "Calculate field of view using sensor width"},
-		{CAMERA_SENSOR_FIT_VERT, "VERTICAL", 0, "Vertical", "Calculate field of view using sensor height"},
+		{CAMERA_SENSOR_FIT_AUTO, "AUTO", 0, "Auto", "Fit to the sensor width or height depending on image resolution"},
+		{CAMERA_SENSOR_FIT_HOR, "HORIZONTAL", 0, "Horizontal", "Fit to the sensor width"},
+		{CAMERA_SENSOR_FIT_VERT, "VERTICAL", 0, "Vertical", "Fit to the sensor height"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
@@ -138,7 +138,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sensor_fit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sensor_fit");
 	RNA_def_property_enum_items(prop, sensor_fit_items);
-	RNA_def_property_ui_text(prop, "Sensor Fit", "Mode of calculating field of view from sensor dimensions and focal length");
+	RNA_def_property_ui_text(prop, "Sensor Fit", "Method to fit image and field of view angle inside the sensor");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_update");
 
 	/* Number values */

@@ -364,24 +364,15 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	if (scene) {
 		float aspx= (float) scene->r.xsch*scene->r.xasp;
 		float aspy= (float) scene->r.ysch*scene->r.yasp;
+		int sensor_fit= camera_sensor_fit(camera->sensor_fit, aspx, aspy);
 
-		if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-			if(aspx < aspy) {
-				r_asp[0]= aspx / aspy;
-				r_asp[1]= 1.0;
-			}
-			else {
-				r_asp[0]= 1.0;
-				r_asp[1]= aspy / aspx;
-			}
-		}
-		else if(camera->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-			r_asp[0]= aspx / aspy;
-			r_asp[1]= 1.0;
-		}
-		else {
+		if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 			r_asp[0]= 1.0;
 			r_asp[1]= aspy / aspx;
+		}
+		else {
+			r_asp[0]= aspx / aspy;
+			r_asp[1]= 1.0;
 		}
 	}
 	else {

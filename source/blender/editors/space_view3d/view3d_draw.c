@@ -1228,19 +1228,39 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
-			/* assume fixed sensor width for now */
+			/* determine sensor fit, and get sensor x/y, for auto fit we
+			   assume and square sensor and only use sensor_x */
+			float sizex= scene->r.xsch*scene->r.xasp;
+			float sizey= scene->r.ysch*scene->r.yasp;
+			int sensor_fit = camera_sensor_fit(ca->sensor_fit, sizex, sizey);
+			float sensor_x= ca->sensor_x;
+			float sensor_y= (ca->sensor_fit == CAMERA_SENSOR_FIT_AUTO)? ca->sensor_x: ca->sensor_y;
 
-			/* float sensor_aspect = ca->sensor_x / ca->sensor_y; */ /* UNUSED */
-			float sensor_scale = (x2i-x1i) / ca->sensor_x;
-			float sensor_height = sensor_scale * ca->sensor_y;
+			/* determine sensor plane */
+			rctf rect;
 
-			float ymid = y1i + (y2i-y1i)/2.f;
-			float sy1= ymid - sensor_height/2.f;
-			float sy2= ymid + sensor_height/2.f;
+			if(sensor_fit == CAMERA_SENSOR_FIT_HOR) {
+				float sensor_scale = (x2i-x1i) / sensor_x;
+				float sensor_height = sensor_scale * sensor_y;
 
+				rect.xmin= x1i;
+				rect.xmax= x2i;
+				rect.ymin= (y1i + y2i)*0.5f - sensor_height*0.5f;
+				rect.ymax= rect.ymin + sensor_height;
+			}
+			else {
+				float sensor_scale = (y2i-y1i) / sensor_y;
+				float sensor_width = sensor_scale * sensor_x;
+
+				rect.xmin= (x1i + x2i)*0.5f - sensor_width*0.5f;
+				rect.xmax= rect.xmin + sensor_width;
+				rect.ymin= y1i;
+				rect.ymax= y2i;
+			}
+
+			/* draw */
 			UI_ThemeColorShade(TH_WIRE, 100);
-
-			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0f);
+			uiDrawBox(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f);
 		}
 	}
 
