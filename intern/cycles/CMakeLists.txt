@@ -62,6 +62,7 @@ include_directories(
 
 if(WITH_CYCLES_BLENDER)
 	add_subdirectory(blender)
+	add_definitions(-DBLENDER_PLUGIN)
 endif(WITH_CYCLES_BLENDER)
 
 add_subdirectory(app)
