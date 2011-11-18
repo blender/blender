@@ -34,6 +34,7 @@ import bcolors
 bc = bcolors.bcolors()
 import btools
 VERSION = btools.VERSION
+VERSION_RELEASE_CYCLE = btools.VERSION_RELEASE_CYCLE
 
 Split = SCons.Util.Split
 Action = SCons.Action.Action
@@ -583,6 +584,10 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
+
+        if VERSION_RELEASE_CYCLE == "release":
+            cmd = 'rm -rf %s/%s.app/Contents/MacOS/%s/scripts/addons_contrib'%(installdir,binary,VERSION)
+            commands.getoutput(cmd)
 
         if env['WITH_BF_CYCLES']:
             croot = '%s/intern/cycles' % (bldroot)
