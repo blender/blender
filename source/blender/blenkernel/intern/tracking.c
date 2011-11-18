@@ -1285,8 +1285,10 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 	MovieTrackingTrack *track;
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
-	float origin[3]= {0.0f, 0.0f, 0.0f};
 	int ok= 1;
+	float imat[4][4];
+
+	unit_m4(imat);
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -1354,12 +1356,13 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 					mat[i][j]= matd[i][j];
 
 			if(!origin_set) {
-				copy_v3_v3(origin, mat[3]);
+				copy_m4_m4(imat, mat);
+				invert_m4(imat);
 				origin_set= 1;
 			}
 
 			if(origin_set)
-				sub_v3_v3(mat[3], origin);
+				mul_m4_m4m4(mat, mat, imat);
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr= a;
@@ -1380,7 +1383,7 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 		track= tracking->tracks.first;
 		while(track) {
 			if(track->flag&TRACK_HAS_BUNDLE)
-				sub_v3_v3(track->bundle_pos, origin);
+				mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
 
 			track= track->next;
 		}
