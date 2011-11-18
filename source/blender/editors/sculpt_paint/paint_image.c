@@ -3057,25 +3057,23 @@ static void project_paint_begin(ProjPaintState *ps)
 				invert_m4_m4(viewinv, viewmat);
 			}
 			else if (ps->source==PROJ_SRC_IMAGE_CAM) {
-				Object *camera= ps->scene->camera;
-
-				/* dont actually use these */
-				float _viewdx, _viewdy, _ycor, _lens=0.0f, _sensor_x=DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
-				short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
-				rctf _viewplane;
+				Object *cam_ob= ps->scene->camera;
+				CameraParams params;
 
 				/* viewmat & viewinv */
-				copy_m4_m4(viewinv, ps->scene->camera->obmat);
+				copy_m4_m4(viewinv, cam_ob->obmat);
 				normalize_m4(viewinv);
 				invert_m4_m4(viewmat, viewinv);
 
-				/* camera winmat */
-				object_camera_mode(&ps->scene->r, camera);
-				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
-						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
-						&_lens, &_sensor_x, &_sensor_y, &_sensor_fit, &_ycor, &_viewdx, &_viewdy);
+				/* window matrix, clipping and ortho */
+				camera_params_init(&params);
+				camera_params_from_object(&params, cam_ob);
+				camera_params_compute(&params, ps->winx, ps->winy, 1.0f, 1.0f); /* XXX aspect? */
 
-				ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
+				copy_m4_m4(winmat, params.winmat);
+				ps->clipsta= params.clipsta;
+				ps->clipend= params.clipend;
+				ps->is_ortho= params.is_ortho;
 			}
 
 			/* same as view3d_get_object_project_mat */

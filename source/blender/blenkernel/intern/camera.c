@@ -46,6 +46,8 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
+/****************************** Camera Datablock *****************************/
+
 void *add_camera(const char *name)
 {
 	Camera *cam;
@@ -121,8 +123,26 @@ void make_local_camera(Camera *cam)
 	}
 }
 
+void free_camera(Camera *ca)
+{
+	BKE_free_animdata((ID *)ca);
+}
+
+/******************************** Camera Usage *******************************/
+
+void object_camera_mode(RenderData *rd, Object *cam_ob)
+{
+	rd->mode &= ~(R_ORTHO|R_PANORAMA);
+
+	if(cam_ob && cam_ob->type==OB_CAMERA) {
+		Camera *cam= cam_ob->data;
+		if(cam->type == CAM_ORTHO) rd->mode |= R_ORTHO;
+		if(cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
+	}
+}
+
 /* get the camera's dof value, takes the dof object into account */
-float dof_camera(Object *ob)
+float object_camera_dof_distance(Object *ob)
 {
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
@@ -141,174 +161,154 @@ float dof_camera(Object *ob)
 	return cam->YF_dofdist;
 }
 
-void free_camera(Camera *ca)
+/******************************** Camera Params *******************************/
+
+static int camera_sensor_fit(int sensor_fit, float sizex, float sizey)
 {
-	BKE_free_animdata((ID *)ca);
+	if(sensor_fit == CAMERA_SENSOR_FIT_AUTO) {
+		if(sizex >= sizey)
+			return CAMERA_SENSOR_FIT_HOR;
+		else
+			return CAMERA_SENSOR_FIT_VERT;
+	}
+
+	return sensor_fit;
 }
 
-void object_camera_mode(RenderData *rd, Object *camera)
+void camera_params_init(CameraParams *params)
 {
-	rd->mode &= ~(R_ORTHO|R_PANORAMA);
-	if(camera && camera->type==OB_CAMERA) {
-		Camera *cam= camera->data;
-		if(cam->type == CAM_ORTHO) rd->mode |= R_ORTHO;
-		if(cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
-	}
+	memset(params, 0, sizeof(CameraParams));
+
+	/* defaults */
+	params->sensor_x= DEFAULT_SENSOR_WIDTH;
+	params->sensor_y= DEFAULT_SENSOR_HEIGHT;
+	params->sensor_fit= CAMERA_SENSOR_FIT_AUTO;
 }
 
-void object_camera_intrinsics(Object *camera, Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit)
+void camera_params_from_object(CameraParams *params, Object *ob)
 {
-	Camera *cam= NULL;
+	if(!ob)
+		return;
 
-	(*shiftx)= 0.0f;
-	(*shifty)= 0.0f;
+	if(ob->type==OB_CAMERA) {
+		/* camera object */
+		Camera *cam= ob->data;
 
-	(*sensor_x)= DEFAULT_SENSOR_WIDTH;
-	(*sensor_y)= DEFAULT_SENSOR_HEIGHT;
-	(*sensor_fit)= CAMERA_SENSOR_FIT_AUTO;
+		if(cam->type == CAM_ORTHO)
+			params->is_ortho= TRUE;
+		params->lens= cam->lens;
+		params->ortho_scale= cam->ortho_scale;
 
-	if(camera->type==OB_CAMERA) {
-		cam= camera->data;
+		params->shiftx= cam->shiftx;
+		params->shifty= cam->shifty;
 
-		if(cam->type == CAM_ORTHO) {
-			*is_ortho= TRUE;
-		}
+		params->sensor_x= cam->sensor_x;
+		params->sensor_y= cam->sensor_y;
+		params->sensor_fit= cam->sensor_fit;
 
-		/* solve this too... all time depending stuff is in convertblender.c?
-		 * Need to update the camera early because it's used for projection matrices
-		 * and other stuff BEFORE the animation update loop is done
-		 * */
-#if 0 // XXX old animation system
-		if(cam->ipo) {
-			calc_ipo(cam->ipo, frame_to_float(re->scene, re->r.cfra));
-			execute_ipo(&cam->id, cam->ipo);
-		}
-#endif // XXX old animation system
-		(*shiftx)=cam->shiftx;
-		(*shifty)=cam->shifty;
-		(*lens)= cam->lens;
-		(*sensor_x)= cam->sensor_x;
-		(*sensor_y)= cam->sensor_y;
-		(*clipsta)= cam->clipsta;
-		(*clipend)= cam->clipend;
-		(*sensor_fit)= cam->sensor_fit;
+		params->clipsta= cam->clipsta;
+		params->clipend= cam->clipend;
 	}
-	else if(camera->type==OB_LAMP) {
-		Lamp *la= camera->data;
+	else if(ob->type==OB_LAMP) {
+		/* lamp object */
+		Lamp *la= ob->data;
 		float fac= cosf((float)M_PI*la->spotsize/360.0f);
 		float phi= acos(fac);
 
-		(*lens)= 16.0f*fac/sinf(phi);
-		if((*lens)==0.0f)
-			(*lens)= 35.0f;
-		(*clipsta)= la->clipsta;
-		(*clipend)= la->clipend;
-	}
-	else {	/* envmap exception... */;
-		if((*lens)==0.0f) /* is this needed anymore? */
-			(*lens)= 16.0f;
+		params->lens= 16.0f*fac/sinf(phi);
+		if(params->lens==0.0f)
+			params->lens= 35.0f;
 
-		if((*clipsta)==0.0f || (*clipend)==0.0f) {
-			(*clipsta)= 0.1f;
-			(*clipend)= 1000.0f;
-		}
+		params->clipsta= la->clipsta;
+		params->clipend= la->clipend;
 	}
-
-	(*cam_r)= cam;
 }
 
-/* 'lens' may be set for envmap only */
-void object_camera_matrix(
-		RenderData *rd, Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens,
-		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
-		float *viewdx, float *viewdy)
+void camera_params_compute(CameraParams *params, int winx, int winy, float xasp, float yasp)
 {
-	Camera *cam=NULL;
-	float pixsize;
-	float shiftx=0.0, shifty=0.0, winside, viewfac;
-	short is_ortho= FALSE;
+	rctf viewplane;
+	float pixsize, winside, viewfac;
+	int sensor_fit;
 
-	/* question mark */
-	(*ycor)= rd->yasp / rd->xasp;
-	if(rd->mode & R_FIELDS)
-		(*ycor) *= 2.0f;
+	/* fields rendering */
+	params->ycor= yasp/xasp;
+	if(params->use_fields)
+		params->ycor *= 2.0f;
 
-	object_camera_intrinsics(camera, &cam, &is_ortho, &shiftx, &shifty, clipsta, clipend, lens, sensor_x, sensor_y, sensor_fit);
+	/* determine sensor fit */
+	sensor_fit = camera_sensor_fit(params->sensor_fit, xasp*winx, yasp*winy);
 
-	/* ortho only with camera available */
-	if(cam && is_ortho) {
-		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
-			if(rd->xasp*winx >= rd->yasp*winy) viewfac= winx;
-			else viewfac= (*ycor) * winy;
-		}
-		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
+	if(params->is_ortho) {
+		/* orthographic camera, scale == 1.0 means exact 1 to 1 mapping */
+		if(sensor_fit==CAMERA_SENSOR_FIT_HOR)
 			viewfac= winx;
-		}
-		else { /* if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) { */
-			viewfac= (*ycor) * winy;
-		}
+		else
+			viewfac= params->ycor * winy;
 
-		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
-		pixsize= cam->ortho_scale/viewfac;
+		pixsize= params->ortho_scale/viewfac;
 	}
 	else {
-		if((*sensor_fit)==CAMERA_SENSOR_FIT_AUTO) {
-			if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx) / (*sensor_x);
-			else					viewfac= (*ycor) * ((*lens) * winy) / (*sensor_x);
-		}
-		else if((*sensor_fit)==CAMERA_SENSOR_FIT_HOR) {
-			viewfac= ((*lens) * winx) / (*sensor_x);
-		}
-		else { /* if((*sensor_fit)==CAMERA_SENSOR_FIT_VERT) { */
-			viewfac= ((*lens) * winy) / (*sensor_y);
-		}
+		/* perspective camera */
+		float sensor_size;
 
-		pixsize= (*clipsta) / viewfac;
+		/* note for auto fit sensor_x is both width and height */
+		if(params->sensor_fit == CAMERA_SENSOR_FIT_VERT)
+			sensor_size= params->sensor_y;
+		else
+			sensor_size= params->sensor_x;
+		
+		if(sensor_fit == CAMERA_SENSOR_FIT_HOR)
+			viewfac= (params->lens * winx) / sensor_size;
+		else
+			viewfac= params->ycor * (params->lens * winy) / sensor_size;
+
+		pixsize= params->clipsta/viewfac;
 	}
 
-	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
-	winside= MAX2(winx, winy);
+	/* compute view plane:
+	 * fully centered, zbuffer fills in jittered between -.5 and +.5 */
+	if(sensor_fit == CAMERA_SENSOR_FIT_HOR)
+		winside= winx;
+	else
+		winside= winy;
 
-	if(cam) {
-		if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR)
-			winside= winx;
-		else if(cam->sensor_fit==CAMERA_SENSOR_FIT_VERT)
-			winside= winy;
-	}
+	viewplane.xmin= -0.5f*(float)winx + params->shiftx*winside;
+	viewplane.ymin= -0.5f*params->ycor*(float)winy + params->shifty*winside;
+	viewplane.xmax=  0.5f*(float)winx + params->shiftx*winside;
+	viewplane.ymax=  0.5f*params->ycor*(float)winy + params->shifty*winside;
 
-	viewplane->xmin= -0.5f*(float)winx + shiftx*winside;
-	viewplane->ymin= -0.5f*(*ycor)*(float)winy + shifty*winside;
-	viewplane->xmax=  0.5f*(float)winx + shiftx*winside;
-	viewplane->ymax=  0.5f*(*ycor)*(float)winy + shifty*winside;
-
-	if(field_second) {
-		if(rd->mode & R_ODDFIELD) {
-			viewplane->ymin-= 0.5f * (*ycor);
-			viewplane->ymax-= 0.5f * (*ycor);
+	if(params->field_second) {
+		if(params->field_odd) {
+			viewplane.ymin-= 0.5f * params->ycor;
+			viewplane.ymax-= 0.5f * params->ycor;
 		}
 		else {
-			viewplane->ymin+= 0.5f * (*ycor);
-			viewplane->ymax+= 0.5f * (*ycor);
+			viewplane.ymin+= 0.5f * params->ycor;
+			viewplane.ymax+= 0.5f * params->ycor;
 		}
 	}
+
 	/* the window matrix is used for clipping, and not changed during OSA steps */
 	/* using an offset of +0.5 here would give clip errors on edges */
-	viewplane->xmin *= pixsize;
-	viewplane->xmax *= pixsize;
-	viewplane->ymin *= pixsize;
-	viewplane->ymax *= pixsize;
+	viewplane.xmin *= pixsize;
+	viewplane.xmax *= pixsize;
+	viewplane.ymin *= pixsize;
+	viewplane.ymax *= pixsize;
 
-	(*viewdx)= pixsize;
-	(*viewdy)= (*ycor) * pixsize;
+	params->viewdx= pixsize;
+	params->viewdy= params->ycor * pixsize;
 
-	if(is_ortho)
-		orthographic_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
+	if(params->is_ortho)
+		orthographic_m4(params->winmat, viewplane.xmin, viewplane.xmax,
+			viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
 	else
-		perspective_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
-
+		perspective_m4(params->winmat, viewplane.xmin, viewplane.xmax,
+			viewplane.ymin, viewplane.ymax, params->clipsta, params->clipend);
+	
+	params->viewplane= viewplane;
 }
+
+/***************************** Camera View Frame *****************************/
 
 void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const short do_clip, const float scale[3],
                           float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
@@ -331,7 +331,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 				r_asp[1]= aspy / aspx;
 			}
 		}
-		else if(camera->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
+		else if(camera->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 			r_asp[0]= aspx / aspy;
 			r_asp[1]= 1.0;
 		}

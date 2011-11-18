@@ -131,6 +131,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 static Render *envmap_render_copy(Render *re, EnvMap *env)
 {
 	Render *envre;
+	float viewscale;
 	int cuberes;
 	
 	envre= RE_NewRender("Envmap");
@@ -156,15 +157,8 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->lay= re->lay;
 
 	/* view stuff in env render */
-	envre->lens= 16.0f;
-	envre->sensor_x= 32.0f;
-	if(env->type==ENV_PLANE)
-		envre->lens*= env->viewscale;
-	envre->ycor= 1.0f; 
-	envre->clipsta= env->clipsta;	/* render_scene_set_window() respects this for now */
-	envre->clipend= env->clipend;
-	
-	RE_SetCamera(envre, env->object);
+	viewscale= (env->type == ENV_PLANE)? env->viewscale: 1.0f;
+	RE_SetEnvmapCamera(envre, env->object, viewscale, env->clipsta, env->clipend);
 	
 	/* callbacks */
 	envre->display_draw= re->display_draw;

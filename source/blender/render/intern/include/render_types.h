@@ -152,10 +152,7 @@ struct Render
 	int partx, party;
 	
 	/* values for viewing */
-	float lens;
-	float sensor_x, sensor_y; /* image sensor size, same variable in camera */
 	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
-	short sensor_fit;
 	
 	float panophi, panosi, panoco, panodxp, panodxv;
 	

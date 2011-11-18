@@ -188,6 +188,7 @@ void RE_SetDispRect (struct Render *re, rcti *disprect);
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetCamera(struct Render *re, struct Object *camera);
+void RE_SetEnvmapCamera(struct Render *re, struct Object *cam_ob, float viewscale, float clipsta, float clipend);
 void RE_SetWindow (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetPixelSize(struct Render *re, float pixsize);
