@@ -209,7 +209,7 @@ DLRBT_Node *BLI_dlrbTree_search_exact (DLRBT_Tree *tree, DLRBT_Comparator_FP cmp
 		}
 	}
 	
-	/* return the nearest matching node */
+	/* return the exactly matching node */
 	return (found == 1) ? (node) : (NULL);
 }
 

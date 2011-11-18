@@ -91,6 +91,29 @@ int bpy_pydriver_create_dict(void)
 	return 0;
 }
 
+/* note, this function should do nothing most runs, only when changing frame */
+static PyObject *bpy_pydriver_InternStr__frame= NULL;
+
+static void bpy_pydriver_update_dict(const float evaltime)
+{
+	/* not thread safe but neither is python */
+	static float evaltime_prev= FLT_MAX;
+
+	if (evaltime_prev != evaltime) {
+
+		/* currently only update the frame */
+		if (bpy_pydriver_InternStr__frame == NULL) {
+			bpy_pydriver_InternStr__frame= PyUnicode_FromString("frame");
+		}
+
+		PyDict_SetItem(bpy_pydriver_Dict,
+		               bpy_pydriver_InternStr__frame,
+		               PyFloat_FromDouble(evaltime));
+
+		evaltime_prev= evaltime;
+	}
+}
+
 /* Update function, it gets rid of pydrivers global dictionary, forcing
  * BPY_driver_exec to recreate it. This function is used to force
  * reloading the Blender text module "pydrivers.py", if available, so
@@ -108,6 +131,11 @@ void BPY_driver_reset(void)
 		PyDict_Clear(bpy_pydriver_Dict);
 		Py_DECREF(bpy_pydriver_Dict);
 		bpy_pydriver_Dict= NULL;
+	}
+
+	if (bpy_pydriver_InternStr__frame) {
+		Py_DECREF(bpy_pydriver_InternStr__frame);
+		bpy_pydriver_InternStr__frame= NULL;
 	}
 
 	if (use_gil)
@@ -139,7 +167,7 @@ static void pydriver_error(ChannelDriver *driver)
  * now release the GIL on python operator execution instead, using
  * PyEval_SaveThread() / PyEval_RestoreThread() so we dont lock up blender.
  */
-float BPY_driver_exec(ChannelDriver *driver)
+float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 {
 	PyObject *driver_vars=NULL;
 	PyObject *retval= NULL;
@@ -182,6 +210,10 @@ float BPY_driver_exec(ChannelDriver *driver)
 			return 0.0f;
 		}
 	}
+
+	/* update global namespace */
+	bpy_pydriver_update_dict(evaltime);
+
 
 	if (driver->expr_comp==NULL)
 		driver->flag |= DRIVER_FLAG_RECOMPILE;
@@ -245,6 +277,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 			PyErr_Clear();
 		}
 	}
+
 
 #if 0 // slow, with this can avoid all Py_CompileString above.
 	/* execute expression to get a value */

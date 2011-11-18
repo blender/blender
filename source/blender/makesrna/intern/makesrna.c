@@ -1709,6 +1709,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			first= 0;
 		}
 
+		if(func->flag & FUNC_USE_MAIN) {
+			if(!first) fprintf(f, ", ");
+			first= 0;
+			fprintf(f, "CTX_data_main(C)"); /* may have direct access later */
+		}
+
 		if(func->flag & FUNC_USE_CONTEXT) {
 			if(!first) fprintf(f, ", ");
 			first= 0;
@@ -2005,6 +2011,12 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;
+	}
+
+	if(func->flag & FUNC_USE_MAIN) {
+		if(!first) fprintf(f, ", ");
+		first= 0;
+		fprintf(f, "Main *bmain");
 	}
 
 	if(func->flag & FUNC_USE_CONTEXT) {

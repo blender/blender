@@ -116,11 +116,15 @@ def register():
             )
 
     WindowManager.addon_support = EnumProperty(
-            items=[('OFFICIAL', "Official", ""),
-                   ('COMMUNITY', 'Community', ""),
+            items=[('OFFICIAL', "Official", "Officially supported"),
+                   ('COMMUNITY', "Community", "Maintained by community developers"),
+                   ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"),
                   ],
             name="Support",
-            description="Display support level", default={'OFFICIAL', 'COMMUNITY'}, options={'ENUM_FLAG'})
+            description="Display support level",
+            default={'OFFICIAL', 'COMMUNITY'},
+            options={'ENUM_FLAG'},
+            )
     # done...
 
 

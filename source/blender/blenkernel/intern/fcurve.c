@@ -1576,7 +1576,7 @@ float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  * 	- has to return a float value 
  */
-static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
+static float evaluate_driver (ChannelDriver *driver, const float evaltime)
 {
 	DriverVar *dvar;
 	
@@ -1663,8 +1663,10 @@ static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 				/* this evaluates the expression using Python,and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */
-				driver->curval= BPY_driver_exec(driver);
+				driver->curval= BPY_driver_exec(driver, evaltime);
 			}
+#else /* WITH_PYTHON*/
+		(void)evaltime;
 #endif /* WITH_PYTHON*/
 		}
 			break;
@@ -2087,7 +2089,7 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
  * Note: this is also used for drivers
  */
-float evaluate_fcurve (FCurve *fcu, float evaltime) 
+float evaluate_fcurve (FCurve *fcu, float evaltime)
 {
 	float cvalue= 0.0f;
 	float devaltime;

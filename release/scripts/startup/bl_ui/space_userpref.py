@@ -891,6 +891,12 @@ class USERPREF_PT_addons(Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
+    _support_icon_mapping = {
+        'OFFICIAL': 'FILE_BLEND',
+        'COMMUNITY': 'POSE_DATA',
+        'TESTING': 'MOD_EXPLODE',
+        }
+
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
@@ -931,11 +937,12 @@ class USERPREF_PT_addons(Panel):
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
-        col.label(text="Categories")
-        col.prop(context.window_manager, "addon_filter", expand=True)
 
         col.label(text="Supported Level")
         col.prop(context.window_manager, "addon_support", expand=True)
+
+        col.label(text="Categories")
+        col.prop(context.window_manager, "addon_filter", expand=True)
 
         col = split.column()
 
@@ -995,12 +1002,7 @@ class USERPREF_PT_addons(Panel):
                     rowsub.label(icon='ERROR')
 
                 # icon showing support level.
-                if info["support"] == 'OFFICIAL':
-                    rowsub.label(icon='FILE_BLEND')
-                elif info["support"] == 'COMMUNITY':
-                    rowsub.label(icon='POSE_DATA')
-                else:
-                    rowsub.label(icon='QUESTION')
+                rowsub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
