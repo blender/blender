@@ -1919,11 +1919,10 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	object_apply_mat4(parent, newmat, 0, 0);
 
 	/* make camera have positive z-coordinate */
-	mul_v3_m4v3(vec[0], mat, camera->loc);
-	if(camera->loc[2]<0) {
+	if(parent->loc[2]<0) {
 		invert_m4(rot);
 		mul_m4_m4m4(newmat, mat, rot);
-		object_apply_mat4(camera, newmat, 0, 0);
+		object_apply_mat4(parent, newmat, 0, 0);
 	}
 
 	where_is_object(scene, parent);
