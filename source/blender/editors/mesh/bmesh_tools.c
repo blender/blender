@@ -3533,6 +3533,8 @@ static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Tris to Quads";
 	ot->idname= "MESH_OT_tris_convert_to_quads";
@@ -3544,8 +3546,9 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "limit", 40.0f, -180.0f, 180.0f, "Max Angle", "Angle Limit in Degrees", -180, 180.0f);
-	
+	prop= RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f), "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
+
 	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
 	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
 	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
