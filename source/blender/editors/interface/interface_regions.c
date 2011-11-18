@@ -379,11 +379,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if(ELEM(but->type, ROW, MENU)) {
 			EnumPropertyItem *item;
 			int i, totitem, free;
+			int value = (but->type == ROW)? but->hardmax: ui_get_but_val(but);
 
 			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
 
 			for(i=0; i<totitem; i++) {
-				if(item[i].identifier[0] && item[i].value == (int)but->hardmax) {
+				if(item[i].identifier[0] && item[i].value == value) {
 					if(item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
 						data->color[data->totline]= 0xDDDDDD;
