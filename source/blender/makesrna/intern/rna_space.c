@@ -891,13 +891,20 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
-static BGpic *rna_BackgroundImage_add(View3D *v3d)
+static BGpic *rna_BackgroundImage_new(View3D *v3d)
 {
-	BGpic *bgpic= ED_view3D_background_image_add(v3d);;
+	BGpic *bgpic= ED_view3D_background_image_new(v3d);
 
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return bgpic;
+}
+
+static void rna_BackgroundImage_remove(View3D *v3d, BGpic *bgpic)
+{
+	ED_view3D_background_image_remove(v3d, bgpic);
+
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
 }
 
 /* Space Node Editor */
@@ -1307,11 +1314,15 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "Background Images", "Collection of background images");
 
-	func= RNA_def_function(srna, "add", "rna_BackgroundImage_add");
+	func= RNA_def_function(srna, "new", "rna_BackgroundImage_new");
 	RNA_def_function_ui_description(func, "Add new background image");
-
 	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_BackgroundImage_remove");
+	RNA_def_function_ui_description(func, "Remove background image");
+	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)

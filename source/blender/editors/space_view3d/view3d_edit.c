@@ -2944,7 +2944,7 @@ static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 
-	return ED_view3D_background_image_add(v3d);
+	return ED_view3D_background_image_new(v3d);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3014,16 +3014,13 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 /* ***** remove image operator ******* */
 static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
-	View3D *vd = CTX_wm_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	int index = RNA_int_get(op->ptr, "index");
-	BGpic *bgpic_rem= BLI_findlink(&vd->bgpicbase, index);
+	BGpic *bgpic_rem= BLI_findlink(&v3d->bgpicbase, index);
 
 	if(bgpic_rem) {
-		BLI_remlink(&vd->bgpicbase, bgpic_rem);
-		if(bgpic_rem->ima) 	id_us_min(&bgpic_rem->ima->id);
-		if(bgpic_rem->clip) id_us_min(&bgpic_rem->clip->id);
-		MEM_freeN(bgpic_rem);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
+		ED_view3D_background_image_remove(v3d, bgpic_rem);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -3529,7 +3526,7 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 	object_apply_mat4(ob, mat, TRUE, TRUE);
 }
 
-BGpic *ED_view3D_background_image_add(View3D *v3d)
+BGpic *ED_view3D_background_image_new(View3D *v3d)
 {
 	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
 
@@ -3542,4 +3539,17 @@ BGpic *ED_view3D_background_image_add(View3D *v3d)
 	BLI_addtail(&v3d->bgpicbase, bgpic);
 
 	return bgpic;
+}
+
+void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic)
+{
+	BLI_remlink(&v3d->bgpicbase, bgpic);
+
+	if(bgpic->ima)
+		id_us_min(&bgpic->ima->id);
+
+	if(bgpic->clip)
+		id_us_min(&bgpic->clip->id);
+
+	MEM_freeN(bgpic);
 }

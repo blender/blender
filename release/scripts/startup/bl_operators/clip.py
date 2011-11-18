@@ -211,7 +211,7 @@ class CLIP_OT_set_viewport_background(Operator):
                 break
 
         if not bgpic:
-            bgpic = space_v3d.background_images.add()
+            bgpic = space_v3d.background_images.new()
 
         bgpic.source = 'MOVIE'
         bgpic.clip = clip
