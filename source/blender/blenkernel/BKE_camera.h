@@ -40,20 +40,26 @@ extern "C" {
 
 struct Camera;
 struct Object;
+struct RegionView3D;
 struct RenderData;
 struct Scene;
 struct rctf;
 struct View3D;
+
+/* Camera Datablock */
 
 void *add_camera(const char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
 void free_camera(struct Camera *ca);
 
-/* Camera Object */
+/* Camera Usage */
 
 float object_camera_dof_distance(struct Object *ob);
 void object_camera_mode(struct RenderData *rd, struct Object *ob);
+
+int camera_sensor_fit(int sensor_fit, float sizex, float sizey);
+float camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
 
 /* Camera Parameters:
  *
@@ -65,9 +71,12 @@ typedef struct CameraParams {
 	int is_ortho;
 	float lens;
 	float ortho_scale;
+	float zoom;
 
 	float shiftx;
 	float shifty;
+	float offsetx;
+	float offsety;
 
 	/* sensor */
 	float sensor_x;
@@ -95,6 +104,7 @@ typedef struct CameraParams {
 
 void camera_params_init(CameraParams *params);
 void camera_params_from_object(CameraParams *params, struct Object *camera);
+void camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
 void camera_params_compute(CameraParams *params, int winx, int winy, float aspx, float aspy);
 
 /* Camera View Frame */

@@ -39,34 +39,21 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_camera.h"
 #include "BKE_object.h"
 #include "BKE_depsgraph.h"
-
-/* only for rad/deg conversion! can remove later */
-static float get_camera_sensor(Camera *cam)
-{
-	if(cam->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-		return cam->sensor_x;
-	}
-	else if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-		return cam->sensor_x;
-	}
-	else {
-		return cam->sensor_y;
-	}
-}
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam= ptr->id.data;
-	float sensor= get_camera_sensor(cam);
+	float sensor= camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
 	Camera *cam= ptr->id.data;
-	float sensor= get_camera_sensor(cam);
+	float sensor= camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	cam->lens= fov_to_focallength(value, sensor);
 }
 
