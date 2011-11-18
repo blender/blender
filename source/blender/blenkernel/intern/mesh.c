@@ -2303,7 +2303,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	mp = mpoly;
 	polyorigIndex = CustomData_get_layer(pdata, CD_ORIGINDEX);
 	for (i=0; i<totpoly; i++, mp++) {
-		if (mp->totloop < 2) {
+		if (mp->totloop < 3) {
 			/* do nothing */
 		}
 
