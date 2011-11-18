@@ -2430,6 +2430,9 @@ int mesh_recalcTesselation(CustomData *fdata,
 	}
 
 	return totface;
+
+#undef USE_TESSFACE_SPEEDUP
+
 }
 
 /*

@@ -884,7 +884,7 @@ static void rna_MeshColorLayer_active_set(PointerRNA *ptr, int value)
 
 static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 {
-	Mesh *me = rna_mesh(ptr);
+	/* Mesh *me = rna_mesh(ptr); */ /* UNUSED */
 	/* CustomData *pdata = rna_mesh_pdata(ptr); */ /* UNUSED */
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
@@ -1875,7 +1875,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
 
-	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, texspace_editable);
@@ -2363,15 +2363,15 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
-	
+
 	/*prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
-	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);	
+	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	*/
-	
+
 	/* not supported yet
 	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float(prop, NULL, "rot");

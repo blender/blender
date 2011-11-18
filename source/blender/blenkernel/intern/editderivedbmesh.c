@@ -130,8 +130,12 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 
 static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 {
+	/* use this to avoid locking pthread for _every_ polygon
+	 * and calling the fill function */
+#define USE_TESSFACE_SPEEDUP
+
 	BMesh *bm = tm->bm;
-	BMLoop **looptris = NULL;
+	BMLoop *(*looptris)[3]= NULL;
 	BLI_array_declare(looptris);
 	BMIter iter, liter;
 	BMFace *f;
@@ -142,69 +146,99 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {
-		EditVert *v, *lastv=NULL, *firstv=NULL;
-		EditEdge *e;
-		EditFace *efa;
-
 		/*don't consider two-edged faces*/
-		if (f->len < 3) continue;
-		
-		BLI_begin_edgefill();
-		/*scanfill time*/
-		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		for (j=0; l; l=BMIter_Step(&liter), j++) {
-			/*mark order*/
-			l->_index = j;
-
-			v = BLI_addfillvert(l->v->co);
-			v->tmp.p = l;
-			
-			if (lastv) {
-				e = BLI_addfilledge(lastv, v);
-			}
-
-			lastv = v;
-			if (firstv==NULL) firstv = v;
+		if (f->len < 3) {
+			/* do nothing */
 		}
 
-		/*complete the loop*/
-		BLI_addfilledge(firstv, v);
+#ifdef USE_TESSFACE_SPEEDUP
 
-		BLI_edgefill(2);
-		
-		for (efa = fillfacebase.first; efa; efa=efa->next) {
-			BMLoop *l1, *l2, *l3;
+		/* no need to ensure the loop order, we know its ok */
 
+		else if (f->len == 3) {
 			BLI_array_growone(looptris);
-			BLI_array_growone(looptris);
-			BLI_array_growone(looptris);
-			
-			looptris[i*3] = l1 = efa->v1->tmp.p;
-			looptris[i*3+1] = l2 = efa->v2->tmp.p;
-			looptris[i*3+2] = l3 = efa->v3->tmp.p;
-			
-			if (l1->_index > l2->_index) {
-				SWAP(BMLoop*, l1, l2);
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (j=0; l; l=BMIter_Step(&liter), j++) {
+				looptris[i][j] = l;
 			}
-			if (l2->_index > l3->_index) {
-				SWAP(BMLoop*, l2, l3);
-			}
-			if (l1->_index > l2->_index) {
-				SWAP(BMLoop*, l1, l2);
-			}
-			
-			looptris[i*3] = l1;
-			looptris[i*3+1] = l2;
-			looptris[i*3+2] = l3;
+			i += 1;
+		}
+		else if (f->len == 4) {
+			BMLoop *ltmp[4];
+			BLI_array_growitems(looptris, 2);
 
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (j=0; l; l=BMIter_Step(&liter), j++) {
+				ltmp[j] = l;
+			}
+
+			looptris[i][0] = ltmp[0];
+			looptris[i][1] = ltmp[1];
+			looptris[i][2] = ltmp[2];
+			i += 1;
+
+			looptris[i][0] = ltmp[0];
+			looptris[i][1] = ltmp[2];
+			looptris[i][2] = ltmp[3];
 			i += 1;
 		}
 
-		BLI_end_edgefill();
+#endif /* USE_TESSFACE_SPEEDUP */
+
+		else {
+			EditVert *v, *lastv=NULL, *firstv=NULL;
+			EditEdge *e;
+			EditFace *efa;
+
+			BLI_begin_edgefill();
+			/*scanfill time*/
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (j=0; l; l=BMIter_Step(&liter), j++) {
+				/*mark order*/
+				l->_index = j;
+
+				v = BLI_addfillvert(l->v->co);
+				v->tmp.p = l;
+
+				if (lastv) {
+					e = BLI_addfilledge(lastv, v);
+				}
+
+				lastv = v;
+				if (firstv==NULL) firstv = v;
+			}
+
+			/*complete the loop*/
+			BLI_addfilledge(firstv, v);
+
+			BLI_edgefill(2);
+
+			for (efa = fillfacebase.first; efa; efa=efa->next) {
+				BMLoop *l1= efa->v1->tmp.p;
+				BMLoop *l2= efa->v2->tmp.p;
+				BMLoop *l3= efa->v3->tmp.p;
+
+				BLI_array_growone(looptris);
+
+				if (l1->_index > l2->_index) { SWAP(BMLoop*, l1, l2); }
+				if (l2->_index > l3->_index) { SWAP(BMLoop*, l2, l3); }
+				if (l1->_index > l2->_index) { SWAP(BMLoop*, l1, l2); }
+
+				looptris[i][0] = l1;
+				looptris[i][1] = l2;
+				looptris[i][2] = l3;
+				i += 1;
+			}
+
+			BLI_end_edgefill();
+		}
 	}
 
 	tm->tottri = i;
-	tm->looptris = (BMLoop *(*)[3])looptris;
+	tm->looptris = looptris;
+
+#undef USE_TESSFACE_SPEEDUP
+
 }
 
 void BMEdit_RecalcTesselation(BMEditMesh *em)

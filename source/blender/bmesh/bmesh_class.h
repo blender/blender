@@ -97,7 +97,7 @@ typedef struct BMLoop {
 	struct BMLoop *radial_next, *radial_prev;
 	
 	/*private variables*/
-	struct BMLoop *next, *prev; /*won't be able to use listbase API, ger, due to head*/\
+	struct BMLoop *next, *prev; /*won't be able to use listbase API, ger, due to head*/
 	int _index; /*used for sorting during tesselation*/
 } BMLoop;
 
@@ -108,10 +108,10 @@ typedef struct BMLoopList {
 
 typedef struct BMFace {
 	BMHeader head;
-	int len; /*includes all boundary loops*/\
-	int totbounds; /*total boundaries, is one plus the number of holes in the face*/\
+	int len; /*includes all boundary loops*/
+	int totbounds; /*total boundaries, is one plus the number of holes in the face*/
 	ListBase loops;
-	float no[3]; /*yes, we do store this here*/\
+	float no[3]; /*yes, we do store this here*/
 	short mat_nr;
 } BMFace;
 
