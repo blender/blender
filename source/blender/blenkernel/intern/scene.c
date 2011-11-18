@@ -1090,13 +1090,12 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 SceneRenderLayer *scene_add_render_layer(Scene *sce, const char *name)
 {
 	SceneRenderLayer *srl;
-//	int tot= 1 + BLI_countlist(&sce->r.layers);
 
 	if(!name)
 		name= "RenderLayer";
 
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
-	strcpy(srl->name, name);
+	BLI_strncpy(srl->name, name, sizeof(srl->name));
 	BLI_uniquename(&sce->r.layers, srl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), sizeof(srl->name));
 	BLI_addtail(&sce->r.layers, srl);
 
@@ -1108,20 +1107,27 @@ SceneRenderLayer *scene_add_render_layer(Scene *sce, const char *name)
 	return srl;
 }
 
-int scene_remove_render_layer(Main *main, Scene *scene, SceneRenderLayer *srl)
+int scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
 {
+	const int act= BLI_findindex(&scene->r.layers, srl);
 	Scene *sce;
-	int act= BLI_findindex(&scene->r.layers, srl);
 
-	if(BLI_countlist(&scene->r.layers) <= 1)
+	if (act == -1) {
 		return 0;
+	}
+	else if ( (scene->r.layers.first == scene->r.layers.last) &&
+	          (scene->r.layers.first == srl))
+	{
+		/* ensure 1 layer is kept */
+		return 0;
+	}
 
 	BLI_remlink(&scene->r.layers, srl);
 	MEM_freeN(srl);
 
 	scene->r.actlay= 0;
 
-	for(sce = main->scene.first; sce; sce = sce->id.next) {
+	for(sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if(sce->nodetree) {
 			bNode *node;
 			for(node = sce->nodetree->nodes.first; node; node = node->next) {
