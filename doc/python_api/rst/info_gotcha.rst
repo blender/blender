@@ -147,7 +147,7 @@ Armature Bones in Blender have three distinct data structures that contain them.
 
 .. note::
 
-	In the following examples ``bpy.context.object`` is assumed to be an armature object.
+   In the following examples ``bpy.context.object`` is assumed to be an armature object.
 
 
 Edit Bones
@@ -163,11 +163,11 @@ This is only possible in edit mode.
 
 This will be empty outside of editmode.
 
-	>>> mybones = bpy.context.selected_editable_bones
+   >>> mybones = bpy.context.selected_editable_bones
 
 Returns an editbone only in edit mode.
 
-	>>> bpy.context.active_bone
+   >>> bpy.context.active_bone
 
 
 Bones (Object Mode)
@@ -179,15 +179,15 @@ Example using :class:`bpy.types.Bone` in object or pose mode:
 
 Returns a bone (not an editbone) outside of edit mode
 
-	>>> bpy.context.active_bone
+   >>> bpy.context.active_bone
 
 This works, as with blender the setting can be edited in any mode
 
-	>>> bpy.context.object.data.bones["Bone"].use_deform = True
+   >>> bpy.context.object.data.bones["Bone"].use_deform = True
 
 Accessible but read-only
 
-	>>> tail = myobj.data.bones["Bone"].tail
+   >>> tail = myobj.data.bones["Bone"].tail
 
 
 Pose Bones
@@ -199,20 +199,20 @@ Examples using :class:`bpy.types.PoseBone` in object or pose mode:
 
 .. code-block:: python
 
-	# Gets the name of the first constraint (if it exists)
-	bpy.context.object.pose.bones["Bone"].constraints[0].name 
+   # Gets the name of the first constraint (if it exists)
+   bpy.context.object.pose.bones["Bone"].constraints[0].name 
 
-	# Gets the last selected pose bone (pose mode only)
-	bpy.context.active_pose_bone
+   # Gets the last selected pose bone (pose mode only)
+   bpy.context.active_pose_bone
 
-
-.. note::
-
-	Notice the pose is accessed from the object rather than the object data, this is why blender can have 2 or more objects sharing the same armature in different poses.
 
 .. note::
 
-	Strictly speaking PoseBone's are not bones, they are just the state of the armature, stored in the :class:`bpy.types.Object` rather than the :class:`bpy.types.Armature`, the real bones are however accessible from the pose bones - :class:`bpy.types.PoseBone.bone`
+   Notice the pose is accessed from the object rather than the object data, this is why blender can have 2 or more objects sharing the same armature in different poses.
+
+.. note::
+
+   Strictly speaking PoseBone's are not bones, they are just the state of the armature, stored in the :class:`bpy.types.Object` rather than the :class:`bpy.types.Armature`, the real bones are however accessible from the pose bones - :class:`bpy.types.PoseBone.bone`
 
 
 Armature Mode Switching
@@ -236,20 +236,20 @@ This can cause bugs when you add some data (normally imported) and then referenc
 
 .. code-block:: python
 
-	bpy.data.meshes.new(name=meshid)
-	
-	# normally some code, function calls...
-	bpy.data.meshes[meshid]
+   bpy.data.meshes.new(name=meshid)
+   
+   # normally some code, function calls...
+   bpy.data.meshes[meshid]
 
 
 Or with name assignment...
 
 .. code-block:: python
 
-	obj.name = objname
-	
-	# normally some code, function calls...
-	obj = bpy.data.meshes[objname]
+   obj.name = objname
+   
+   # normally some code, function calls...
+   obj = bpy.data.meshes[objname]
 
 
 Data names may not match the assigned values if they exceed the maximum length, are already used or an empty string.
@@ -262,16 +262,16 @@ If you do need to use name references, its best to use a dictionary to maintain 
 
 .. code-block:: python
 
-	# typically declared in the main body of the function.
-	mesh_name_mapping = {}
-	
-	mesh = bpy.data.meshes.new(name=meshid)
-	mesh_name_mapping[meshid] = mesh
-	
-	# normally some code, or function calls...
-	
-	# use own dictionary rather then bpy.data
-	mesh = mesh_name_mapping[meshid]
+   # typically declared in the main body of the function.
+   mesh_name_mapping = {}
+   
+   mesh = bpy.data.meshes.new(name=meshid)
+   mesh_name_mapping[meshid] = mesh
+   
+   # normally some code, or function calls...
+   
+   # use own dictionary rather then bpy.data
+   mesh = mesh_name_mapping[meshid]
 
 
 Library Collisions
