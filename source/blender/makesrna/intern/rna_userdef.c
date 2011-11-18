@@ -2620,7 +2620,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
 		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
-		{9, "SPANISH", 0, "Spanish (Español)", "es_ES"},
+		{9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{0, "", 0, "In progress", ""},
 		{2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},

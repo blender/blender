@@ -2409,9 +2409,15 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_EULER); // XXX
-	if(len != 0) RNA_def_property_array(prop, len);
-	if(default_value) RNA_def_property_float_array_default(prop, default_value);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, (len != 0) ? PROP_EULER : PROP_ANGLE);
+	if(len != 0) {
+		RNA_def_property_array(prop, len);
+		if(default_value) RNA_def_property_float_array_default(prop, default_value);
+	}
+	else {
+		/* RNA_def_property_float_default must be called outside */
+		BLI_assert(default_value == NULL);
+	}
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
