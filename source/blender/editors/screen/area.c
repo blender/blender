@@ -1481,7 +1481,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	}
 
 	x= 0;
-	y= -style->panelouter;
+	y= 0;
 
 	/* create panels */
 	uiBeginPanels(C, ar);
@@ -1553,11 +1553,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 				if(pt->flag & PNL_NO_HEADER)
 					y += yco;
 				else
-					y += yco-style->panelouter;
+					y += yco;
 			}
 			else {
 				x += w;
-				miny= MIN2(y, yco-style->panelouter-header);
+				miny= MIN2(y, yco-header);
 			}
 		}
 	}

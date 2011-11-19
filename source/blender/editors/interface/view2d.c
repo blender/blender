@@ -1558,7 +1558,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		/* only draw scrollbar when it doesn't fill the entire space */
 		if(vs->horfull==0) {
-			bTheme *btheme= U.themes.first;
+			bTheme *btheme= UI_GetTheme();
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
 			int state;
@@ -1669,7 +1669,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	if (scroll & V2D_SCROLL_VERTICAL) {
 		/* only draw scrollbar when it doesn't fill the entire space */
 		if(vs->vertfull==0) {
-			bTheme *btheme= U.themes.first;
+			bTheme *btheme= UI_GetTheme();
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
 			int state;
