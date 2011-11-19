@@ -482,7 +482,8 @@ void RE_SetEnvmapCamera(Render *re, Object *cam_ob, float viewscale, float clips
 	params.clipend= clipend;
 	
 	/* compute matrix, viewplane, .. */
-	camera_params_compute(&params, re->winx, re->winy, 1.0f, 1.0f);
+	camera_params_compute_viewplane(&params, re->winx, re->winy, 1.0f, 1.0f);
+	camera_params_compute_matrix(&params);
 
 	/* extract results */
 	re_camera_params_get(re, &params, cam_ob);
@@ -503,7 +504,8 @@ void RE_SetCamera(Render *re, Object *cam_ob)
 	params.field_odd= (re->r.mode & R_ODDFIELD);
 
 	/* compute matrix, viewplane, .. */
-	camera_params_compute(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
+	camera_params_compute_viewplane(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
+	camera_params_compute_matrix(&params);
 
 	/* extract results */
 	re_camera_params_get(re, &params, cam_ob);

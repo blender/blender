@@ -210,7 +210,8 @@ int ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, floa
 int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_project_float(struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
-void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short do_shift);
+void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
+void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);

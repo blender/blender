@@ -195,20 +195,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				free_uci= 1;
 			}
 			else {
-				float sensor= (cam->sensor_fit == CAMERA_SENSOR_FIT_VERT) ? (cam->sensor_y) : cam->sensor_x;
+				float sensor= camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+				int sensor_fit= camera_sensor_fit(cam->sensor_fit, aspx, aspy);
 				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * sensor / cam->lens : cam->ortho_scale;
 				float xmax, xmin, ymax, ymin;
 
-				if(cam->sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-					if(aspect > 1.0f) {
-						xmax = 0.5f * scale;
-						ymax = xmax / aspect;
-					} else {
-						ymax = 0.5f * scale;
-						xmax = ymax * aspect;
-					}
-				}
-				else if(cam->sensor_fit==CAMERA_SENSOR_FIT_HOR) {
+				if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
 					xmax = 0.5f * scale;
 					ymax = xmax / aspect;
 				}

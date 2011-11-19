@@ -983,8 +983,8 @@ int ED_view3d_clip_range_get(View3D *v3d, RegionView3D *rv3d, float *clipsta, fl
 	camera_params_init(&params);
 	camera_params_from_view3d(&params, v3d, rv3d);
 
-	*clipsta= params.clipsta;
-	*clipend= params.clipend;
+	if(clipsta) *clipsta= params.clipsta;
+	if(clipend) *clipend= params.clipend;
 
 	return params.is_ortho;
 }
@@ -996,11 +996,11 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 
 	camera_params_init(&params);
 	camera_params_from_view3d(&params, v3d, rv3d);
-	camera_params_compute(&params, winx, winy, 1.0f, 1.0f);
+	camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
-	*viewplane= params.viewplane;
-	*clipsta= params.clipsta;
-	*clipend= params.clipend;
+	if(viewplane) *viewplane= params.viewplane;
+	if(clipsta) *clipsta= params.clipsta;
+	if(clipend) *clipend= params.clipend;
 	
 	return params.is_ortho;
 }

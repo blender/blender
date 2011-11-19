@@ -2266,7 +2266,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
 
-	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
+	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
 
 	/* 4px is just a little room from the edge of the area */
 	xfac= (float)ar->winx / (float)(size[0] + 4);
@@ -2534,7 +2534,7 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	float size[2];
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
-	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
+	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
 
 	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac((float)im_width/size[0]);
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);

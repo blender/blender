@@ -923,75 +923,48 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
 }
 
-void view3d_viewborder_size_get(Scene *scene, Object *camob, ARegion *ar, float size_r[2])
+static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short no_shift, short no_zoom)
 {
-	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-	short sensor_fit= CAMERA_SENSOR_FIT_AUTO;
+	CameraParams params;
+	rctf rect_view, rect_camera;
 
-	if(camob && camob->type==OB_CAMERA) {
-		Camera *cam= (Camera *)camob->data;
-		sensor_fit= cam->sensor_fit;
-	}
+	/* get viewport viewplane */
+	camera_params_init(&params);
+	camera_params_from_view3d(&params, v3d, rv3d);
+	if(no_zoom)
+		params.zoom= 1.0f;
+	camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+	rect_view= params.viewplane;
 
-	if(sensor_fit==CAMERA_SENSOR_FIT_AUTO) {
-		float winmax= MAX2(ar->winx, ar->winy);
+	/* get camera viewplane */
+	camera_params_init(&params);
+	camera_params_from_object(&params, v3d->camera);
+	if(no_shift) {
+		params.shiftx= 0.0f;
+		params.shifty= 0.0f;
+	}
+	camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
+	rect_camera= params.viewplane;
 
-		if(aspect > 1.0f) {
-			size_r[0]= winmax;
-			size_r[1]= winmax/aspect;
-		} else {
-			size_r[0]= winmax*aspect;
-			size_r[1]= winmax;
-		}
-	}
-	else if(sensor_fit==CAMERA_SENSOR_FIT_HOR) {
-		size_r[0]= ar->winx;
-		size_r[1]= ar->winx/aspect;
-	}
-	else {
-		size_r[0]= ar->winy*aspect;
-		size_r[1]= ar->winy;
-	}
+	/* get camera border within viewport */
+	viewborder_r->xmin= ((rect_camera.xmin - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
+	viewborder_r->xmax= ((rect_camera.xmax - rect_view.xmin)/(rect_view.xmax - rect_view.xmin))*ar->winx;
+	viewborder_r->ymin= ((rect_camera.ymin - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
+	viewborder_r->ymax= ((rect_camera.ymax - rect_view.ymin)/(rect_view.ymax - rect_view.ymin))*ar->winy;
 }
 
-void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short do_shift)
+void ED_view3d_calc_camera_border_size(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, float size_r[2])
 {
-	const float zoomfac= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
-	float size[2];
-	float dx= 0.0f, dy= 0.0f;
-	
-	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
+	rctf viewborder;
 
-	size[0]= size[0]*zoomfac;
-	size[1]= size[1]*zoomfac;
-	
-	/* center in window */
-	viewborder_r->xmin= 0.5f * ar->winx - 0.5f * size[0];
-	viewborder_r->ymin= 0.5f * ar->winy - 0.5f * size[1];
-	viewborder_r->xmax= viewborder_r->xmin + size[0];
-	viewborder_r->ymax= viewborder_r->ymin + size[1];
-	
-	dx= ar->winx*rv3d->camdx*zoomfac*2.0f;
-	dy= ar->winy*rv3d->camdy*zoomfac*2.0f;
-	
-	/* apply offset */
-	viewborder_r->xmin-= dx;
-	viewborder_r->ymin-= dy;
-	viewborder_r->xmax-= dx;
-	viewborder_r->ymax-= dy;
-	
-	if(do_shift && v3d->camera && v3d->camera->type==OB_CAMERA) {
-		Camera *cam= v3d->camera->data;
-		float w = viewborder_r->xmax - viewborder_r->xmin;
-		float h = viewborder_r->ymax - viewborder_r->ymin;
-		float side = MAX2(w, h);
+	view3d_camera_border(scene, ar, v3d, rv3d, &viewborder, TRUE, TRUE);
+	size_r[0]= viewborder.xmax - viewborder.xmin;
+	size_r[1]= viewborder.ymax - viewborder.ymin;
+}
 
-		if(do_shift == -1) side *= -1;
-		viewborder_r->xmin+= cam->shiftx*side;
-		viewborder_r->xmax+= cam->shiftx*side;
-		viewborder_r->ymin+= cam->shifty*side;
-		viewborder_r->ymax+= cam->shifty*side;
-	}
+void ED_view3d_calc_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short no_shift)
+{
+	view3d_camera_border(scene, ar, v3d, rv3d, viewborder_r, no_shift, FALSE);
 }
 
 static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac)
@@ -2509,7 +2482,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 		camera_params_init(&params);
 		camera_params_from_object(&params, v3d->camera);
-		camera_params_compute(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
+		camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
+		camera_params_compute_matrix(&params);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat);
 	}
@@ -2568,7 +2542,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 
 		camera_params_init(&params);
 		camera_params_from_object(&params, v3d.camera);
-		camera_params_compute(&params, width, height, scene->r.xasp, scene->r.yasp);
+		camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
+		camera_params_compute_matrix(&params);
 
 		copy_m4_m4(rv3d.winmat, params.winmat);
 		v3d.near= params.clipsta;

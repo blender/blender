@@ -3068,7 +3068,8 @@ static void project_paint_begin(ProjPaintState *ps)
 				/* window matrix, clipping and ortho */
 				camera_params_init(&params);
 				camera_params_from_object(&params, cam_ob);
-				camera_params_compute(&params, ps->winx, ps->winy, 1.0f, 1.0f);
+				camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
+				camera_params_compute_matrix(&params);
 
 				copy_m4_m4(winmat, params.winmat);
 				ps->clipsta= params.clipsta;

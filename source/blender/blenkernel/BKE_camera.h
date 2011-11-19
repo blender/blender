@@ -92,20 +92,22 @@ typedef struct CameraParams {
 	int field_second;
 	int field_odd;
 
-	/* compute result */
+	/* computed viewplane */
 	float ycor;
-
 	float viewdx;
 	float viewdy;
 	rctf viewplane;
 
+	/* computed matrix */
 	float winmat[4][4];
 } CameraParams;
 
 void camera_params_init(CameraParams *params);
 void camera_params_from_object(CameraParams *params, struct Object *camera);
 void camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
-void camera_params_compute(CameraParams *params, int winx, int winy, float aspx, float aspy);
+
+void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float aspx, float aspy);
+void camera_params_compute_matrix(CameraParams *params);
 
 /* Camera View Frame */
 

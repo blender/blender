@@ -241,7 +241,7 @@ void camera_params_from_object(CameraParams *params, Object *ob)
 
 void camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *rv3d)
 {
-	/* perspective view */
+	/* common */
 	params->lens= v3d->lens;
 	params->clipsta= v3d->near;
 	params->clipend= v3d->far;
@@ -250,28 +250,32 @@ void camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *
 		/* camera view */
 		camera_params_from_object(params, v3d->camera);
 
-		params->zoom= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom) * 2.0f;
+		params->zoom= BKE_screen_view3d_zoom_to_fac((float)rv3d->camzoom);
+
+		params->offsetx= 2.0f*rv3d->camdx*params->zoom;
+		params->offsety= 2.0f*rv3d->camdy*params->zoom;
+
+		params->shiftx *= params->zoom;
+		params->shifty *= params->zoom;
+
 		params->zoom= 1.0f/params->zoom;
-
-		params->offsetx= rv3d->camdx;
-		params->offsety= rv3d->camdy;
-
-		params->shiftx *= 0.5f;
-		params->shifty *= 0.5f;
 	}
 	else if(rv3d->persp==RV3D_ORTHO) {
 		/* orthographic view */
 		params->clipend *= 0.5f;	// otherwise too extreme low zbuffer quality
 		params->clipsta= - params->clipend;
 
-		params->is_ortho= 1;
+		params->is_ortho= TRUE;
 		params->ortho_scale = rv3d->dist;
+		params->zoom= 2.0f;
 	}
-
-	params->zoom *= 2.0f;
+	else {
+		/* perspective view */
+		params->zoom= 2.0f;
+	}
 }
 
-void camera_params_compute(CameraParams *params, int winx, int winy, float xasp, float yasp)
+void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float xasp, float yasp)
 {
 	rctf viewplane;
 	float pixsize, viewfac, sensor_size, dx, dy;
@@ -344,6 +348,12 @@ void camera_params_compute(CameraParams *params, int winx, int winy, float xasp,
 	params->viewdx= pixsize;
 	params->viewdy= params->ycor * pixsize;
 	params->viewplane= viewplane;
+}
+
+/* viewplane is assumed to be already computed */
+void camera_params_compute_matrix(CameraParams *params)
+{
+	rctf viewplane= params->viewplane;
 
 	/* compute projection matrix */
 	if(params->is_ortho)
