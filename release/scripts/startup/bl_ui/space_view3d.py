@@ -2297,7 +2297,7 @@ class VIEW3D_PT_background_image(Panel):
             row.prop(bg, "show_expanded", text="", emboss=False)
             if bg.source == 'IMAGE' and bg.image:
                 row.prop(bg.image, "name", text="", emboss=False)
-            if bg.source == 'MOVIE' and bg.clip:
+            elif bg.source == 'MOVIE' and bg.clip:
                 row.prop(bg.clip, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
