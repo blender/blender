@@ -149,10 +149,11 @@ def cmake_advanced_info():
 
     from xml.dom.minidom import parse
     tree = parse(join(CMAKE_DIR, ".cproject"))
-    '''
-    f = open(".cproject_pretty", 'w')
-    f.write(tree.toprettyxml(indent="    ", newl=""))
-    '''
+
+    # to check on nicer xml
+    # f = open(".cproject_pretty", 'w')
+    # f.write(tree.toprettyxml(indent="    ", newl=""))
+
     ELEMENT_NODE = tree.ELEMENT_NODE
 
     cproject, = tree.getElementsByTagName("cproject")
