@@ -626,7 +626,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "priority", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Priority", "Execution priority - lower numbers will override actions with higher numbers. With 2 or more actions at once, the overriding channels must be lower in the stack");
+	RNA_def_property_ui_text(prop, "Priority", "Execution priority - lower numbers will override actions with higher numbers (with 2 or more actions at once, the overriding channels must be lower in the stack)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "layer", PROP_INT, PROP_NONE);

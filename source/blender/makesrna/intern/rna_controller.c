@@ -258,7 +258,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Module", "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
+	RNA_def_property_ui_text(prop, "Module", "Module name and function to run, e.g. \"someModule.main\" (internal texts and external python files can be used)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_debug", PROP_BOOLEAN, PROP_NONE);
