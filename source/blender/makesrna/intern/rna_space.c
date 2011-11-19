@@ -900,11 +900,15 @@ static BGpic *rna_BackgroundImage_new(View3D *v3d)
 	return bgpic;
 }
 
-static void rna_BackgroundImage_remove(View3D *v3d, BGpic *bgpic)
+static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, BGpic *bgpic)
 {
-	ED_view3D_background_image_remove(v3d, bgpic);
-
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	if (BLI_findindex(&v3d->bgpicbase, bgpic) == -1) {
+		BKE_report(reports, RPT_ERROR, "BackgroundImage can't be removed");
+	}
+	else {
+		ED_view3D_background_image_remove(v3d, bgpic);
+		WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	}
 }
 
 /* Space Node Editor */
@@ -1321,6 +1325,7 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_BackgroundImage_remove");
 	RNA_def_function_ui_description(func, "Remove background image");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
