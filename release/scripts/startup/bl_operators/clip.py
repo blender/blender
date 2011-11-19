@@ -116,7 +116,7 @@ class CLIP_OT_delete_proxy(Operator):
 
     bl_idname = "clip.delete_proxy"
     bl_label = "Delete Proxy"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {'REGISTER'}
 
     @classmethod
     def poll(cls, context):
@@ -191,7 +191,7 @@ class CLIP_OT_set_viewport_background(Operator):
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {'REGISTER'}
 
     @classmethod
     def poll(cls, context):
