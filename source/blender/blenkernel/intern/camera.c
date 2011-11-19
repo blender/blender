@@ -158,7 +158,7 @@ float object_camera_dof_distance(Object *ob)
 		normalize_m4(obmat);
 		invert_m4_m4(imat, obmat);
 		mul_m4_m4m4(mat, cam->dof_ob->obmat, imat);
-		return (float)fabs(mat[3][2]);
+		return fabsf(mat[3][2]);
 	}
 	return cam->YF_dofdist;
 }

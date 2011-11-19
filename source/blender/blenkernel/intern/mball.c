@@ -1781,11 +1781,11 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 
 		calc_mballco(mainb[a], vec);
 	
-		size= (float)fabs( vec[0] );
+		size= fabsf( vec[0] );
 		if( size > totsize ) totsize= size;
-		size= (float)fabs( vec[1] );
+		size= fabsf( vec[1] );
 		if( size > totsize ) totsize= size;
-		size= (float)fabs( vec[2] );
+		size= fabsf( vec[2] );
 		if( size > totsize ) totsize= size;
 
 		vec[0]= mainb[a]->x - mainb[a]->rad;
@@ -1794,11 +1794,11 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				
 		calc_mballco(mainb[a], vec);
 	
-		size= (float)fabs( vec[0] );
+		size= fabsf( vec[0] );
 		if( size > totsize ) totsize= size;
-		size= (float)fabs( vec[1] );
+		size= fabsf( vec[1] );
 		if( size > totsize ) totsize= size;
-		size= (float)fabs( vec[2] );
+		size= fabsf( vec[2] );
 		if( size > totsize ) totsize= size;
 	}
 

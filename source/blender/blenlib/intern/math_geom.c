@@ -134,9 +134,9 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	int a, px=0, py=1;
 
 	/* first: find dominant axis: 0==X, 1==Y, 2==Z */
-	x= (float)fabs(normal[0]);
-	y= (float)fabs(normal[1]);
-	z= (float)fabs(normal[2]);
+	x= fabsf(normal[0]);
+	y= fabsf(normal[1]);
+	z= fabsf(normal[2]);
 	max = MAX3(x, y, z);
 	if(max==y) py=2;
 	else if(max==x) {
@@ -1689,9 +1689,9 @@ static int barycentric_weights(const float v1[3], const float v2[3], const float
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	   the 2d projected coords are the same and faster to compute */
-	xn= (float)fabs(n[0]);
-	yn= (float)fabs(n[1]);
-	zn= (float)fabs(n[2]);
+	xn= fabsf(n[0]);
+	yn= fabsf(n[1]);
+	zn= fabsf(n[2]);
 	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
 	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
 	else {i= 1; j= 2;} 

@@ -1322,8 +1322,8 @@ void mat3_to_compatible_eulO(float eul[3], float oldrot[3], short order,float ma
 	compatible_eul(eul1, oldrot);
 	compatible_eul(eul2, oldrot);
 	
-	d1= (float)fabs(eul1[0]-oldrot[0]) + (float)fabs(eul1[1]-oldrot[1]) + (float)fabs(eul1[2]-oldrot[2]);
-	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
+	d1= fabsf(eul1[0]-oldrot[0]) + fabsf(eul1[1]-oldrot[1]) + fabsf(eul1[2]-oldrot[2]);
+	d2= fabsf(eul2[0]-oldrot[0]) + fabsf(eul2[1]-oldrot[1]) + fabsf(eul2[2]-oldrot[2]);
 	
 	/* return best, which is just the one with lowest difference */
 	if (d1 > d2)

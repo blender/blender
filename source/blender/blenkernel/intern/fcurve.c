@@ -1707,8 +1707,8 @@ void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
 	 *	- len2 	= length of handle of end key
 	 */
 	len= v4[0]- v1[0];
-	len1= (float)fabs(h1[0]);
-	len2= (float)fabs(h2[0]);
+	len1= fabsf(h1[0]);
+	len2= fabsf(h2[0]);
 	
 	/* if the handles have no length, no need to do any corrections */
 	if ((len1+len2) == 0.0f) 

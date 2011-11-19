@@ -291,7 +291,7 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 	amp = 1.f;
 	out = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
 	if (hard)
-		out = (float)fabs(out);
+		out = fabsf(out);
 	for (i = 1; i < oct; i++) {
 		amp *= ampscale;
 		x *= freqscale;
@@ -299,7 +299,7 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 		z *= freqscale;
 		t = (float)(amp * (2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f));
 		if (hard)
-			t = (float)fabs(t);
+			t = fabsf(t);
 		out += t;
 	}
 	return out;
@@ -321,16 +321,16 @@ static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
 /* Turbulence Vector */
 
 static void vTurb(float x, float y, float z, int oct, int hard, int nb,
-		   float ampscale, float freqscale, float v[3])
+                  float ampscale, float freqscale, float v[3])
 {
 	float amp, t[3];
 	int i;
 	amp = 1.f;
 	noise_vector(x, y, z, nb, v);
 	if (hard) {
-		v[0] = (float)fabs(v[0]);
-		v[1] = (float)fabs(v[1]);
-		v[2] = (float)fabs(v[2]);
+		v[0] = fabsf(v[0]);
+		v[1] = fabsf(v[1]);
+		v[2] = fabsf(v[2]);
 	}
 	for (i = 1; i < oct; i++) {
 		amp *= ampscale;
@@ -339,9 +339,9 @@ static void vTurb(float x, float y, float z, int oct, int hard, int nb,
 		z *= freqscale;
 		noise_vector(x, y, z, nb, t);
 		if (hard) {
-			t[0] = (float)fabs(t[0]);
-			t[1] = (float)fabs(t[1]);
-			t[2] = (float)fabs(t[2]);
+			t[0] = fabsf(t[0]);
+			t[1] = fabsf(t[1]);
+			t[2] = fabsf(t[2]);
 		}
 		v[0] += amp * t[0];
 		v[1] += amp * t[1];

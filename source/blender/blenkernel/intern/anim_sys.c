@@ -1373,17 +1373,17 @@ void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, 
 static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 {
 	/* sanity checks - normalise the blendin/out values? */
-	strip->blendin= (float)fabs(strip->blendin);
-	strip->blendout= (float)fabs(strip->blendout);
+	strip->blendin= fabsf(strip->blendin);
+	strip->blendout= fabsf(strip->blendout);
 	
 	/* result depends on where frame is in respect to blendin/out values */
 	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
 		/* there is some blend-in */
-		return (float)fabs(cframe - strip->start) / (strip->blendin);
+		return fabsf(cframe - strip->start) / (strip->blendin);
 	}
 	else if (IS_EQ(strip->blendout, 0)==0 && (cframe >= (strip->end - strip->blendout))) {
 		/* there is some blend-out */
-		return (float)fabs(strip->end - cframe) / (strip->blendout);
+		return fabsf(strip->end - cframe) / (strip->blendout);
 	}
 	else {
 		/* in the middle of the strip, we should be full strength */
