@@ -1887,13 +1887,6 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	}
 }
 
-// XXX what the hell is this?
-static int no_parent_ipo=0;
-void set_no_parent_ipo(int val)
-{
-	no_parent_ipo= val;
-}
-
 static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
 {
 	float *fp1, *fp2;
@@ -1933,7 +1926,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		if(no_parent_ipo==0 && stime != par->ctime) {
+		if(stime != par->ctime) {
 			// only for ipo systems? 
 			Object tmp= *par;
 			

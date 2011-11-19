@@ -342,7 +342,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 /* ****************** change view operators ****************** */
 
-static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
+static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -369,7 +369,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 
 }
 
-static int view3d_setcameratoview_poll(bContext *C)
+static int view3d_camera_to_view_poll(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	if(v3d && v3d->camera && v3d->camera->id.lib==NULL) {
@@ -390,8 +390,8 @@ void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
-	ot->exec= view3d_setcameratoview_exec;	
-	ot->poll= view3d_setcameratoview_poll;
+	ot->exec= view3d_camera_to_view_exec;
+	ot->poll= view3d_camera_to_view_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -431,6 +431,24 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *UNUSED(o
 	}
 }
 
+static int view3d_camera_to_view_selected_poll(bContext *C)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+	if(v3d && v3d->camera && v3d->camera->id.lib==NULL) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		if(rv3d) {
+			if (rv3d->is_persp == FALSE) {
+				CTX_wm_operator_poll_msg_set(C, "Only valid for a perspective camera view");
+			}
+			else if (!rv3d->viewlock) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -440,7 +458,7 @@ void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_camera_to_view_selected_exec;
-	// ot->poll= view3d_setcameratoview_poll;
+	ot->poll= view3d_camera_to_view_selected_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

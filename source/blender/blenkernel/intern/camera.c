@@ -74,7 +74,9 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(&cam->id);
-	
+
+	id_lib_extern((ID *)camn->dof_ob);
+
 	return camn;
 }
 
@@ -454,6 +456,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 }
 
 /* dont move the camera, just yield the fit location */
+/* only valid for perspective cameras */
 int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *camera_ob, float r_co[3])
 {
 	float shift[2];
