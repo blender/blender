@@ -46,6 +46,7 @@
 #include "BLI_utildefines.h"
 
 
+#include "BKE_camera.h"
 #include "BKE_DerivedMesh.h"
 
 #include "MOD_modifiertypes.h"
