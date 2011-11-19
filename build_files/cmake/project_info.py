@@ -44,7 +44,14 @@ __all__ = (
     "project_name_get"
 )
 
+
 import sys
+if not sys.version.startswith("3"):
+    print("\nPython3.x needed, found %s.\nAborting!\n" %
+          sys.version.partition(" ")[0])
+    sys.exit(1)
+
+
 import os
 from os.path import join, dirname, normpath, abspath, splitext, exists
 
