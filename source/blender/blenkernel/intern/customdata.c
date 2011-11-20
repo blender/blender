@@ -1314,13 +1314,13 @@ int CustomData_get_layer_index(const CustomData *data, int type)
 
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n)
 {
-	int i; 
+	int i = CustomData_get_layer_index(data, type);
 
-	for(i=0; i < data->totlayer; ++i)
-		if(data->layers[i].type == type)
-			return i + n;
+	if (i != -1) {
+		i = (data->layers[i + n].type == type) ? (i + n) : (-1);
+	}
 
-	return -1;	
+	return i;
 }
 
 int CustomData_get_named_layer_index(const CustomData *data, int type, const char *name)
@@ -1526,7 +1526,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 {
 	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
 	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
-	void *newlayerdata;
+	void *newlayerdata = NULL;
 
 	/* Passing a layerdata to copy from with an alloctype that won't copy is
 	   most likely a bug */
@@ -1541,7 +1541,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	if((alloctype == CD_ASSIGN) || (alloctype == CD_REFERENCE)) {
 		newlayerdata = layerdata;
 	}
-	else {
+	else if (size > 0) {
 		newlayerdata = MEM_callocN(size, layerType_getName(type));
 		if(!newlayerdata)
 			return NULL;
@@ -1957,7 +1957,7 @@ void *CustomData_get_n(const CustomData *data, int type, int index, int n)
 	/* get the layer index of the first layer of type */
 	layer_index = data->typemap[type];
 	if(layer_index < 0) return NULL;
-	
+
 	offset = layerType_getInfo(type)->size * index;
 	return (char *)data->layers[layer_index+n].data + offset;
 }
@@ -1974,10 +1974,10 @@ void *CustomData_get_layer(const CustomData *data, int type)
 void *CustomData_get_layer_n(const CustomData *data, int type, int n)
 {
 	/* get the layer index of the active layer of type */
-	int layer_index = CustomData_get_layer_index(data, type);
+	int layer_index = CustomData_get_layer_index_n(data, type, n);
 	if(layer_index < 0) return NULL;
 
-	return data->layers[layer_index+n].data;
+	return data->layers[layer_index].data;
 }
 
 void *CustomData_get_layer_named(const struct CustomData *data, int type,
@@ -2018,10 +2018,10 @@ void *CustomData_set_layer(const CustomData *data, int type, void *ptr)
 void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr)
 {
 	/* get the layer index of the first layer of type */
-	int layer_index = CustomData_get_layer_index(data, type);
+	int layer_index = CustomData_get_layer_index_n(data, type, n);
 	if(layer_index < 0) return NULL;
 
-	data->layers[layer_index+n].data = ptr;
+	data->layers[layer_index].data = ptr;
 
 	return ptr;
 }
@@ -2149,10 +2149,10 @@ void *CustomData_em_get_n(const CustomData *data, void *block, int type, int n)
 	int layer_index;
 	
 	/* get the layer index of the first layer of type */
-	layer_index = CustomData_get_layer_index(data, type);
+	layer_index = CustomData_get_layer_index_n(data, type, n);
 	if(layer_index < 0) return NULL;
 
-	return (char *)block + data->layers[layer_index+n].offset;
+	return (char *)block + data->layers[layer_index].offset;
 }
 
 void CustomData_em_set(CustomData *data, void *block, int type, void *source)
@@ -2326,29 +2326,35 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 			     int totloop, int totpoly)
 {
 	int i;
-	for(i=0; i < fdata->totlayer; i++){
-		if(fdata->layers[i].type == CD_MTFACE){
+	for(i=0; i < fdata->totlayer; i++) {
+		if(fdata->layers[i].type == CD_MTFACE) {
 			CustomData_add_layer_named(pdata, CD_MTEXPOLY, CD_CALLOC, NULL, totpoly, fdata->layers[i].name);
 			CustomData_add_layer_named(ldata, CD_MLOOPUV, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
 		}
-		else if(fdata->layers[i].type == CD_MCOL)
+		else if (fdata->layers[i].type == CD_MCOL) {
 			CustomData_add_layer_named(ldata, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
-		else if(fdata->layers[i].type == CD_MDISPS) 
+		}
+		else if (fdata->layers[i].type == CD_MDISPS) {
 			CustomData_add_layer_named(ldata, CD_MDISPS, CD_CALLOC, NULL, totloop, fdata->layers[i].name);
+		}
 	}
 }
+
 void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total)
 {
 	int i;
-	for(i=0; i < pdata->totlayer; i++){
-		if(pdata->layers[i].type == CD_MTEXPOLY)
+	for(i=0; i < pdata->totlayer; i++) {
+		if (pdata->layers[i].type == CD_MTEXPOLY) {
 			CustomData_add_layer_named(fdata, CD_MTFACE, CD_CALLOC, NULL, total, pdata->layers[i].name);
+		}
 	}
-	for(i=0; i < ldata->totlayer; i++){
-		if(ldata->layers[i].type == CD_MLOOPCOL)
+	for(i=0; i < ldata->totlayer; i++) {
+		if (ldata->layers[i].type == CD_MLOOPCOL) {
 			CustomData_add_layer_named(fdata, CD_MCOL, CD_CALLOC, NULL, total, ldata->layers[i].name);
-		if (ldata->layers[i].type == CD_WEIGHT_MLOOPCOL)
+		}
+		else if (ldata->layers[i].type == CD_WEIGHT_MLOOPCOL) {
 			CustomData_add_layer_named(fdata, CD_WEIGHT_MCOL, CD_CALLOC, NULL, total, ldata->layers[i].name);
+		}
 	}
 }
 
