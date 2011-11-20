@@ -736,9 +736,9 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 		tex_space_mesh(me);
 	}
 
-	if (loc_r) VECCOPY(loc_r, me->loc);
-	if (rot_r) VECCOPY(rot_r, me->rot);
-	if (size_r) VECCOPY(size_r, me->size);
+	if (loc_r) copy_v3_v3(loc_r, me->loc);
+	if (rot_r) copy_v3_v3(rot_r, me->rot);
+	if (size_r) copy_v3_v3(size_r, me->size);
 }
 
 float *get_mesh_orco_verts(Object *ob)
@@ -1118,7 +1118,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		nors= dl->nors;
 		verts= dl->verts;
 		while(a--) {
-			VECCOPY(mvert->co, verts);
+			copy_v3_v3(mvert->co, verts);
 			normal_float_to_short_v3(mvert->no, nors);
 			mvert++;
 			nors+= 3;
@@ -1231,7 +1231,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			a= dl->parts*dl->nr;
 			data= dl->verts;
 			while(a--) {
-				VECCOPY(mvert->co, data);
+				copy_v3_v3(mvert->co, data);
 				data+=3;
 				vertcount++;
 				mvert++;
@@ -1254,7 +1254,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				a= dl->parts*dl->nr;
 				data= dl->verts;
 				while(a--) {
-					VECCOPY(mvert->co, data);
+					copy_v3_v3(mvert->co, data);
 					data+=3;
 					vertcount++;
 					mvert++;
@@ -1277,7 +1277,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			a= dl->nr;
 			data= dl->verts;
 			while(a--) {
-				VECCOPY(mvert->co, data);
+				copy_v3_v3(mvert->co, data);
 				data+=3;
 				vertcount++;
 				mvert++;
@@ -1305,7 +1305,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			a= dl->parts*dl->nr;
 			data= dl->verts;
 			while(a--) {
-				VECCOPY(mvert->co, data);
+				copy_v3_v3(mvert->co, data);
 				data+=3;
 				vertcount++;
 				mvert++;
@@ -1767,7 +1767,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 		mf = mfaces;
 		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
 			if (*origIndexFace < numPolys) {
-				VECCOPY(fnors[i], pnors[*origIndexFace]);
+				copy_v3_v3(fnors[i], pnors[*origIndexFace]);
 			} else {
 				/*eek, we're not corrusponding to polys*/
 				printf("error in mesh_calc_normals; tesselation face indices are incorrect.  normals may look bad.\n");
@@ -2448,7 +2448,7 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 {
 
 	MVert *v1, *v2, *v3;
-	double u[3],  v[3], w[3];
+	double u[3], v[3], w[3];
 	double n[3] = {0.0, 0.0, 0.0}, l;
 	int i;
 

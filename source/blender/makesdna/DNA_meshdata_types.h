@@ -69,7 +69,7 @@ typedef struct MVert {
 
 /* tesselation vertex color data.
  * at the moment alpha is abused for vertex painting
- * and not used for transperency, note that red and blue are swapped */
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
@@ -107,7 +107,7 @@ typedef struct MLoopUV{
 #define MLOOPUV_PINNED	4
 
 /* at the moment alpha is abused for vertex painting
- * and not used for transperency, note that red and blue are swapped */
+ * and not used for transparency, note that red and blue are swapped */
 typedef struct MLoopCol{
 	char a, r, g, b;
 } MLoopCol;

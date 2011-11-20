@@ -1871,9 +1871,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-/*	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-*/
+
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }
@@ -1897,9 +1895,7 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 	/* dependencies graph and notification stuff */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-/*	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
-*/
+
 	/* we succeeded */
 	return OPERATOR_FINISHED;
 }

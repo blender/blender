@@ -127,8 +127,9 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
-		if (f != f2 && !BM_Join_TwoFaces(bm, f, f2, NULL))
+		if (f != f2 && !BM_Join_TwoFaces(bm, f, f2, e)) {
 			return 0;
+		}
 
 		return 1;
 	}
@@ -171,7 +172,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 
 		if (f != f2) {
 			/*join two remaining faces*/
-			if (!BM_Join_TwoFaces(bm, f, f2, NULL)) {
+			if (!BM_Join_TwoFaces(bm, f, f2, e)) {
 				return 0;
 			}
 		}

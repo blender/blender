@@ -331,7 +331,7 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	MLoopUV *mloopuv;
 	int i, j;
 
-	for(i=0; i < numTex; i++){
+	for(i=0; i < numTex; i++) {
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		

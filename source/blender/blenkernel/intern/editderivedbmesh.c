@@ -1613,12 +1613,6 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	
 	CustomData_from_bmeshpoly(&bmdm->dm.faceData, &em->bm->pdata, &em->bm->ldata, 0);
 	
-	bmdm->dm.numVertData = bm->totvert;
-	bmdm->dm.numEdgeData = bm->totedge;
-	bmdm->dm.numFaceData = em->tottri;
-	bmdm->dm.numLoopData = bm->totloop;
-	bmdm->dm.numPolyData = bm->totface;
-	
 	bmdm->dm.getVertCos = bmDM_getVertCos;
 	bmdm->dm.getMinMax = bmDM_getMinMax;
 

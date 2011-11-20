@@ -1599,7 +1599,6 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 		   the edges & faces and assign an index to each connected set */
 		while ((e = BLI_array_pop(stack))) {
 			BLI_ghash_insert(visithash, e, SET_INT_IN_POINTER(maxindex));
-			BM_SetIndex(e, maxindex); /* set_dirty! */ /* BMESH_TODO, check the indexs are is invalid after this function runs */
 
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
 				nl = (l->v == v) ? l->prev : l->next;
@@ -1611,7 +1610,6 @@ static int bmesh_cutvert(BMesh *bm, BMVert *v, BMVert ***vout, int *len)
 
 		maxindex++;
 	}
-	bm->elem_index_dirty |= BM_EDGE;
 
 	/* Make enough verts to split v for each group */
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, "bmesh_cutvert");

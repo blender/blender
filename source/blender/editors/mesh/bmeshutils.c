@@ -802,7 +802,6 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMVert *v;
-	/* float invmat[4][4]; */ /* UNUSED */
 	int li, topo = 0;
 
 	if (me && (me->editflag & ME_EDIT_MIRROR_TOPO)) {

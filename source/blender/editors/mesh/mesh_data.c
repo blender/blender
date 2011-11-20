@@ -312,36 +312,42 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	BMEditMesh *em;
 	int layernum;
 
-	if(me->edit_btmesh) {
+	if (me->edit_btmesh) {
 		em= me->edit_btmesh;
 
-		layernum= CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
-		if(layernum >= MAX_MTFACE)
+		layernum = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
+		if (layernum >= MAX_MTFACE) {
 			return 0;
+		}
 
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 		CustomData_set_layer_name(&em->bm->pdata, CD_MTEXPOLY, layernum, name);
 
-		if(layernum) /* copy data from active UV */
+		/* copy data from active UV */
+		if (layernum) {
 			copy_editface_active_customdata(em, CD_MTFACE, layernum);
+		}
 
-		if(active_set || layernum==0)
+		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
+		}
 
 		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
 		CustomData_set_layer_name(&em->bm->ldata, CD_MLOOPUV, layernum, name);
 		
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
-		if(active_set || layernum==0)
+		if(active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPUV, layernum);
+		}
 	}
 	else {
-		layernum= CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
-		if(layernum >= MAX_MTFACE)
+		layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+		if (layernum >= MAX_MTFACE) {
 			return 0;
+		}
 
-		if(me->mtpoly) {
+		if (me->mtpoly) {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DUPLICATE, me->mtface, me->totface, name);
@@ -351,7 +357,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface, name);
 		}
 		
-		if(active_set || layernum==0) {
+		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum);
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum);
 
@@ -398,26 +404,31 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 	BMEditMesh *em;
 	int layernum;
 
-	if(me->edit_btmesh) {
+	if (me->edit_btmesh) {
 		em= me->edit_btmesh;
 
 		layernum= CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
-		if(layernum >= MAX_MCOL)
+		if (layernum >= MAX_MCOL) {
 			return 0;
+		}
 
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MLOOPCOL);
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
 
-		if(layernum) /* copy data from active vertex color layer */
+		/* copy data from active vertex color layer */
+		if (layernum) {
 			copy_editface_active_customdata(em, CD_MCOL, layernum);
+		}
 
-		if(active_set || layernum==0)
+		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
+		}
 	}
 	else {
 		layernum= CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
-		if(layernum >= CD_MLOOPCOL)
+		if (layernum >= CD_MLOOPCOL) {
 			return 0;
+		}
 
 		if(me->mloopcol) {
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);

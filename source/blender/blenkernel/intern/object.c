@@ -2556,15 +2556,19 @@ void object_handle_update(Scene *scene, Object *ob)
 					BLI_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
 					if(em) {
 						makeDerivedMesh(scene, ob, em,  scene->customdata_mask, 0); /* was CD_MASK_BAREMESH */
-					} else
+					}
+					else {
 						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask, 0);
+					}
 
 #else				/* ensure CD_MASK_BAREMESH for now */
 					BMEditMesh *em = (ob == scene->obedit)? ((Mesh*)ob->data)->edit_btmesh : NULL;
 					if(em) {
 						makeDerivedMesh(scene, ob, em,  scene->customdata_mask | CD_MASK_BAREMESH, 0); /* was CD_MASK_BAREMESH */
-					} else
+					}
+					else {
 						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask | CD_MASK_BAREMESH, 0);
+					}
 #endif
 
 				}

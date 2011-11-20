@@ -85,13 +85,23 @@ BME_TransData *BME_assign_transdata(
 
 	vtd->bm = bm;
 	vtd->v = v;
-	if (co != NULL) copy_v3_v3(vtd->co,co);
-	if (org == NULL && is_new) { copy_v3_v3(vtd->org,v->co); } /* default */
-	else if (org != NULL) copy_v3_v3(vtd->org,org);
+
+	if (co != NULL) {
+		copy_v3_v3(vtd->co, co);
+	}
+
+	if (org == NULL && is_new) {
+		copy_v3_v3(vtd->org, v->co); /* default */
+	}
+	else if (org != NULL) {
+		copy_v3_v3(vtd->org,org);
+	}
+
 	if (vec != NULL) {
 		copy_v3_v3(vtd->vec,vec);
 		normalize_v3(vtd->vec);
 	}
+
 	vtd->loc = loc;
 
 	vtd->factor = factor;
@@ -352,19 +362,19 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 	BME_TransData *vtd1, *vtd2;
 	float max, fac1, fac2, vec1[3], vec2[3], vec3[3];
 
-	BME_bevel_get_vec(vec1,v1,v2,td);
-	vtd1 = BME_get_transdata(td,v1);
-	vtd2 = BME_get_transdata(td,v2);
+	BME_bevel_get_vec(vec1, v1, v2, td);
+	vtd1 = BME_get_transdata(td, v1);
+	vtd2 = BME_get_transdata(td, v2);
 
 	if (vtd1->loc == NULL) {
 		fac1 = 0;
 	}
 	else {
-		copy_v3_v3(vec2,vtd1->vec);
-		mul_v3_fl(vec2,vtd1->factor);
+		copy_v3_v3(vec2, vtd1->vec);
+		mul_v3_fl(vec2, vtd1->factor);
 		if (dot_v3v3(vec1, vec1)) {
-			project_v3_v3v3(vec2,vec2,vec1);
-			fac1 = len_v3(vec2)/value;
+			project_v3_v3v3(vec2, vec2,vec1);
+			fac1 = len_v3(vec2) / value;
 		}
 		else {
 			fac1 = 0;
@@ -375,11 +385,11 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 		fac2 = 0;
 	}
 	else {
-		copy_v3_v3(vec3,vtd2->vec);
-		mul_v3_fl(vec3,vtd2->factor);
+		copy_v3_v3(vec3, vtd2->vec);
+		mul_v3_fl(vec3, vtd2->factor);
 		if (dot_v3v3(vec1, vec1)) {
-			project_v3_v3v3(vec2,vec3,vec1);
-			fac2 = len_v3(vec2)/value;
+			project_v3_v3v3(vec2, vec3, vec1);
+			fac2 = len_v3(vec2) / value;
 		}
 		else {
 			fac2 = 0;
@@ -387,7 +397,7 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 	}
 
 	if (fac1 || fac2) {
-		max = len_v3(vec1)/(fac1 + fac2);
+		max = len_v3(vec1) / (fac1 + fac2);
 		if (vtd1->max && (*vtd1->max < 0 || max < *vtd1->max)) {
 			*vtd1->max = max;
 		}
@@ -876,7 +886,7 @@ static BMMesh *BME_bevel_mesh(BMMesh *bm, float value, int res, int options, int
 }
 
 BMesh *BME_bevel(BMMesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd)
-		{
+{
 	BMVert *v;
 	BMEdge *e;
 	BMIter *verts;

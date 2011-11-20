@@ -356,18 +356,6 @@ static void rna_MeshFace_material_index_range(PointerRNA *ptr, int *min, int *ma
 	*max= MAX2(0, *max);
 }
 
-static int rna_CustomDataLayer_length(CustomData *data, int type)
-{
-	CustomDataLayer *layer;
-	int i, length= 0;
-
-	for(layer=data->layers, i=0; i<data->totlayer; layer++, i++)
-		if(layer->type == type)
-			length++;
-
-	return length;
-}
-
 static int rna_CustomDataLayer_active_get(PointerRNA *ptr, CustomData *data, int type, int render)
 {
 	int n= ((CustomDataLayer*)ptr->data) - data->layers;
@@ -420,7 +408,7 @@ static void rna_Mesh_uv_loop_layers_begin(CollectionPropertyIterator *iter, Poin
 
 static int rna_Mesh_uv_loop_layers_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_ldata(ptr), CD_MLOOPUV);
+	return CustomData_number_of_layers(rna_mesh_ldata(ptr), CD_MLOOPUV);
 }
 
 static PointerRNA rna_Mesh_active_uv_loop_layer_get(PointerRNA *ptr)
@@ -564,7 +552,7 @@ static void rna_Mesh_uv_textures_begin(CollectionPropertyIterator *iter, Pointer
 
 static int rna_Mesh_uv_textures_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_pdata(ptr), CD_MTEXPOLY);
+	return CustomData_number_of_layers(rna_mesh_pdata(ptr), CD_MTEXPOLY);
 }
 
 static PointerRNA rna_Mesh_active_uv_texture_get(PointerRNA *ptr)
@@ -792,7 +780,7 @@ static void rna_Mesh_vertex_colors_begin(CollectionPropertyIterator *iter, Point
 
 static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_ldata(ptr), CD_MLOOPCOL);
+	return CustomData_number_of_layers(rna_mesh_ldata(ptr), CD_MLOOPCOL);
 }
 
 static PointerRNA rna_Mesh_active_vertex_color_get(PointerRNA *ptr)
@@ -918,7 +906,7 @@ static void rna_Mesh_float_layers_begin(CollectionPropertyIterator *iter, Pointe
 
 static int rna_Mesh_float_layers_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_pdata(ptr), CD_PROP_FLT);
+	return CustomData_number_of_layers(rna_mesh_pdata(ptr), CD_PROP_FLT);
 }
 
 static int rna_int_layer_check(CollectionPropertyIterator *iter, void *data)
@@ -948,7 +936,7 @@ static void rna_Mesh_int_layers_begin(CollectionPropertyIterator *iter, PointerR
 
 static int rna_Mesh_int_layers_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_pdata(ptr), CD_PROP_INT);
+	return CustomData_number_of_layers(rna_mesh_pdata(ptr), CD_PROP_INT);
 }
 
 static int rna_string_layer_check(CollectionPropertyIterator *iter, void *data)
@@ -978,7 +966,7 @@ static void rna_Mesh_string_layers_begin(CollectionPropertyIterator *iter, Point
 
 static int rna_Mesh_string_layers_length(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_length(rna_mesh_pdata(ptr), CD_PROP_STR);
+	return CustomData_number_of_layers(rna_mesh_pdata(ptr), CD_PROP_STR);
 }
 
 static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
