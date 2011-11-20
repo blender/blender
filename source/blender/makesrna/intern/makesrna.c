@@ -1434,21 +1434,21 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		case PROP_BOOLEAN: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline bool %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<int, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_INT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline int %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<int, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_FLOAT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline float %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<float, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
@@ -1509,21 +1509,21 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
 		case PROP_BOOLEAN: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tBOOLEAN_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tBOOLEAN_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_INT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tINT_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tINT_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_FLOAT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tFLOAT_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tFLOAT_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
