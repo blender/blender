@@ -1559,7 +1559,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	int xco, yco, x, y, miny=0, w, em, header, triangle, open, newcontext= 0;
+	int x, y, xco, yco, w, em, triangle, open, newcontext= 0;
 
 	if(contextnr >= 0)
 		newcontext= UI_view2d_tab_set(v2d, contextnr);
@@ -1572,9 +1572,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		w= UI_PANEL_WIDTH;
 		em= (ar->type->prefsizex)? UI_UNIT_Y/2: UI_UNIT_Y;
 	}
-
-	x= 0;
-	y= 0;
 
 	/* create panels */
 	uiBeginPanels(C, ar);
@@ -1594,16 +1591,12 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
 			/* bad fixed values */
-			header= (pt->flag & PNL_NO_HEADER)? 0: UI_UNIT_Y;
 			triangle= (int)(UI_UNIT_Y * 1.1f);
 
-			if(vertical)
-				y -= header;
-
-			if(pt->draw_header && header && (open || vertical)) {
+			if(pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					triangle, header+style->panelspace, header, 1, style);
+					triangle, UI_UNIT_Y+style->panelspace, UI_UNIT_Y, 1, style);
 
 				pt->draw_header(C, panel);
 
@@ -1641,30 +1634,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			}
 
 			uiEndBlock(C, block);
-
-			if(vertical) {
-				if(pt->flag & PNL_NO_HEADER)
-					y += yco;
-				else
-					y += yco;
-			}
-			else {
-				x += w;
-				miny= MIN2(y, yco-header);
-			}
 		}
 	}
 
-	if(vertical)
-		x += w;
-	else
-		y= miny;
-	
-	/* in case there are no panels */
-	if(x == 0 || y == 0) {
-		x= UI_PANEL_WIDTH;
-		y= UI_PANEL_WIDTH;
-	}
+	/* align panels and return size */
+	uiEndPanels(C, ar, &x, &y);
 
 	/* clear */
 	UI_ThemeClearColor((ar->type->regionid == RGN_TYPE_PREVIEW)?TH_PREVIEW_BACK:TH_BACK);
@@ -1706,9 +1680,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
 
-	/* this does the actual drawing! */
-	uiEndPanels(C, ar);
-	
+	/* draw panels */
+	uiDrawPanels(C, ar);
+
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
 	

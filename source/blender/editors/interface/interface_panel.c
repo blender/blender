@@ -779,6 +779,35 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	return done;
 }
 
+static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
+{
+	Panel *pa;
+	int align= panel_aligned(sa, ar);
+	int sizex = UI_PANEL_WIDTH;
+	int sizey = UI_PANEL_WIDTH;
+
+	/* compute size taken up by panels, for setting in view2d */
+	for(pa= ar->panels.first; pa; pa= pa->next) {
+		if(pa->runtime_flag & PNL_ACTIVE) {
+			int pa_sizex, pa_sizey;
+
+			if(align==BUT_VERTICAL) {
+				pa_sizex= pa->ofsx + pa->sizex;
+				pa_sizey= get_panel_real_ofsy(pa);
+			}
+			else {
+				pa_sizex= get_panel_real_ofsx(pa) + pa->sizex;
+				pa_sizey= pa->ofsy + get_panel_size_y(pa);
+			}
+
+			sizex= MAX2(sizex, pa_sizex);
+			sizey= MIN2(sizey, pa_sizey);
+		}
+	}
+
+	*x= sizex;
+	*y= sizey;
+}
 
 static void ui_do_animate(const bContext *C, Panel *panel)
 {
@@ -818,7 +847,7 @@ void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 }
 
 /* only draws blocks with panels */
-void uiEndPanels(const bContext *C, ARegion *ar)
+void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
@@ -871,6 +900,14 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	
 	if(firstpa)
 		firstpa->runtime_flag |= PNL_FIRST;
+	
+	/* compute size taken up by panel */
+	ui_panels_size(sa, ar, x, y);
+}
+
+void uiDrawPanels(const bContext *C, ARegion *ar)
+{
+	uiBlock *block;
 
 	UI_ThemeClearColor(TH_BACK);
 	
