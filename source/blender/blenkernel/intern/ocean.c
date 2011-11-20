@@ -1404,7 +1404,7 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *UNUSED(och), struct OceanResult 
 {
 }
 
-struct OceanCache *BKE_init_ocean_cache(char *UNUSED(bakepath), int UNUSED(start), int UNUSED(end), float UNUSED(wave_scale),
+struct OceanCache *BKE_init_ocean_cache(const char *UNUSED(bakepath), const char *UNUSED(relbase), int UNUSED(start), int UNUSED(end), float UNUSED(wave_scale),
 						  float UNUSED(chop_amount), float UNUSED(foam_coverage), float UNUSED(foam_fade), int UNUSED(resolution))
 {
 	OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
@@ -1412,7 +1412,7 @@ struct OceanCache *BKE_init_ocean_cache(char *UNUSED(bakepath), int UNUSED(start
 	return och;
 }
 
-void BKE_simulate_ocean_cache(struct OceanCache *UNUSED(och), const char *UNUSED(relbase), int UNUSED(frame))
+void BKE_simulate_ocean_cache(struct OceanCache *UNUSED(och), int UNUSED(frame))
 {
 }
 
