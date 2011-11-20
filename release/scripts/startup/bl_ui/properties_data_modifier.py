@@ -455,11 +455,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.prop(md, "use_normals")
 
+        layout.prop(md, "use_foam")
         row = layout.row()
-        row.prop(md, "use_foam")
-        sub = row.row()
-        sub.active = md.use_foam
-        sub.prop(md, "foam_coverage", text="Coverage")
+        row.active = md.use_foam
+        col = row.column()
+        col.prop(md, "foam_coverage", text="Coverage")
+        col = row.column()
+        col.label("Foam Data Layer Name")
+        col.prop(md, "foam_layer_name", text="")
 
         layout.separator()
 

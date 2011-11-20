@@ -147,6 +147,7 @@ static void initData(ModifierData *md)
 	omd->bakeend = 250;
 	omd->oceancache = NULL;
 	omd->foam_fade = 0.98;
+	omd->foamlayername[0] = '\0';	/* layer name empty by default */
 
 	omd->ocean = BKE_add_ocean();
 	init_ocean_modifier(omd);
@@ -441,7 +442,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 		if(cdlayer >= MAX_MCOL)
 			return dm;
 
-		CustomData_add_layer(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces);
+		CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
 
 		mc = dm->getFaceDataArray(dm, CD_MCOL);
 		mv = dm->getVertArray(dm);
