@@ -456,7 +456,7 @@ static void camera_to_frame_view_cb(const float co[3], void *user_data)
 	unsigned int i;
 
 	for (i= 0; i < 4; i++) {
-		float nd= -dist_to_plane_v3(co, data->frame_tx[i], data->normal_tx[i]);
+		float nd= dist_to_plane_v3(co, data->frame_tx[i], data->normal_tx[i]);
 		if (nd < data->dist_vals[i]) {
 			data->dist_vals[i]= nd;
 		}
@@ -530,55 +530,49 @@ int camera_view_frame_fit_to_scene(Scene *scene, struct View3D *v3d, Object *cam
 			mul_v3_v3fl(plane_tx[i], data_cb.normal_tx[i], data_cb.dist_vals[i]);
 		}
 
-		if ( (isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
-		                           plane_tx[0], data_cb.normal_tx[0],
-		                           plane_tx[2], data_cb.normal_tx[2]) == 0) ||
-		     (isect_plane_plane_v3(plane_isect_2, plane_isect_2_no,
-		                           plane_tx[1], data_cb.normal_tx[1],
-		                           plane_tx[3], data_cb.normal_tx[3]) == 0))
+		isect_plane_plane_v3(plane_isect_1, plane_isect_1_no,
+		                     plane_tx[0], data_cb.normal_tx[0],
+		                     plane_tx[2], data_cb.normal_tx[2]);
+		isect_plane_plane_v3(plane_isect_2, plane_isect_2_no,
+		                     plane_tx[1], data_cb.normal_tx[1],
+		                     plane_tx[3], data_cb.normal_tx[3]);
+
+		add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
+		add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
+
+		if (isect_line_line_v3(plane_isect_1, plane_isect_1_other,
+		                       plane_isect_2, plane_isect_2_other,
+		                       plane_isect_pt_1, plane_isect_pt_2) == 0)
 		{
-			/* this is very unlikely */
 			return FALSE;
 		}
 		else {
+			float cam_plane_no[3]= {0.0f, 0.0f, -1.0f};
+			float plane_isect_delta[3];
+			float plane_isect_delta_len;
 
-			add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
-			add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
+			mul_m3_v3(rot_obmat, cam_plane_no);
 
-			if (isect_line_line_v3(plane_isect_1, plane_isect_1_other,
-			                       plane_isect_2, plane_isect_2_other,
-			                       plane_isect_pt_1, plane_isect_pt_2) == 0)
-			{
-				return FALSE;
+			sub_v3_v3v3(plane_isect_delta, plane_isect_pt_2, plane_isect_pt_1);
+			plane_isect_delta_len= len_v3(plane_isect_delta);
+
+			if (dot_v3v3(plane_isect_delta, cam_plane_no) > 0.0f) {
+				copy_v3_v3(r_co, plane_isect_pt_1);
+
+				/* offset shift */
+				normalize_v3(plane_isect_1_no);
+				madd_v3_v3fl(r_co, plane_isect_1_no, shift[1] * -plane_isect_delta_len);
 			}
 			else {
-				float cam_plane_no[3]= {0.0f, 0.0f, -1.0f};
-				float plane_isect_delta[3];
-				float plane_isect_delta_len;
+				copy_v3_v3(r_co, plane_isect_pt_2);
 
-				mul_m3_v3(rot_obmat, cam_plane_no);
-
-				sub_v3_v3v3(plane_isect_delta, plane_isect_pt_2, plane_isect_pt_1);
-				plane_isect_delta_len= len_v3(plane_isect_delta);
-
-				if (dot_v3v3(plane_isect_delta, cam_plane_no) > 0.0f) {
-					copy_v3_v3(r_co, plane_isect_pt_1);
-
-					/* offset shift */
-					normalize_v3(plane_isect_1_no);
-					madd_v3_v3fl(r_co, plane_isect_1_no, shift[1] * -plane_isect_delta_len);
-				}
-				else {
-					copy_v3_v3(r_co, plane_isect_pt_2);
-
-					/* offset shift */
-					normalize_v3(plane_isect_2_no);
-					madd_v3_v3fl(r_co, plane_isect_2_no, shift[0] * -plane_isect_delta_len);
-				}
-
-
-				return TRUE;
+				/* offset shift */
+				normalize_v3(plane_isect_2_no);
+				madd_v3_v3fl(r_co, plane_isect_2_no, shift[0] * -plane_isect_delta_len);
 			}
+
+
+			return TRUE;
 		}
 	}
 }

@@ -497,6 +497,65 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	}
 }
 
+PyDoc_STRVAR(M_Geometry_intersect_plane_plane_doc,
+".. function:: intersect_plane_plane(plane_a_co, plane_a_no, plane_b_co, plane_b_no)\n"
+"\n"
+"   Return the intersection between two planes\n"
+"\n"
+"   :arg plane_a_co: Point on the first plane\n"
+"   :type plane_a_co: :class:`mathutils.Vector`\n"
+"   :arg plane_a_no: Normal of the first plane\n"
+"   :type plane_a_no: :class:`mathutils.Vector`\n"
+"   :arg plane_b_co: Point on the second plane\n"
+"   :type plane_b_co: :class:`mathutils.Vector`\n"
+"   :arg plane_b_no: Normal of the second plane\n"
+"   :type plane_b_no: :class:`mathutils.Vector`\n"
+"   :return: The line of the intersection represented as a point and a vector\n"
+"   :rtype: tuple pair of :class:`mathutils.Vector`\n"
+);
+static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObject* args)
+{
+	PyObject *ret;
+	VectorObject *plane_a_co, *plane_a_no, *plane_b_co, *plane_b_no;
+
+	float isect_co[3];
+	float isect_no[3];
+
+	if (!PyArg_ParseTuple(args, "O!O!O!O!|i:intersect_plane_plane",
+	                      &vector_Type, &plane_a_co,
+	                      &vector_Type, &plane_a_no,
+	                      &vector_Type, &plane_b_co,
+	                      &vector_Type, &plane_b_no))
+	{
+		return NULL;
+	}
+
+	if (    BaseMath_ReadCallback(plane_a_co) == -1 ||
+	        BaseMath_ReadCallback(plane_a_no) == -1 ||
+	        BaseMath_ReadCallback(plane_b_co) == -1 ||
+	        BaseMath_ReadCallback(plane_b_no) == -1)
+	{
+		return NULL;
+	}
+
+	if (ELEM4(2, plane_a_co->size, plane_a_no->size, plane_b_co->size, plane_b_no->size)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "geometry.intersect_plane_plane(...): "
+		                " can't use 2D Vectors");
+		return NULL;
+	}
+
+	isect_plane_plane_v3(isect_co, isect_no,
+	                     plane_a_co->vec, plane_a_no->vec,
+	                     plane_b_co->vec, plane_b_no->vec);
+
+	normalize_v3(isect_no);
+
+	ret= PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, newVectorObject(isect_co, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 1, newVectorObject(isect_no, 3, Py_NEW, NULL));
+	return ret;
+}
 
 PyDoc_STRVAR(M_Geometry_intersect_line_sphere_doc,
 ".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
@@ -1211,7 +1270,7 @@ static PyMethodDef M_Geometry_methods[]= {
 	{"intersect_line_line", (PyCFunction) M_Geometry_intersect_line_line, METH_VARARGS, M_Geometry_intersect_line_line_doc},
 	{"intersect_line_line_2d", (PyCFunction) M_Geometry_intersect_line_line_2d, METH_VARARGS, M_Geometry_intersect_line_line_2d_doc},
 	{"intersect_line_plane", (PyCFunction) M_Geometry_intersect_line_plane, METH_VARARGS, M_Geometry_intersect_line_plane_doc},
-	/* TODO: isect_plane_plane_v3 --> intersect_plane_plane */
+	{"intersect_plane_plane", (PyCFunction) M_Geometry_intersect_plane_plane, METH_VARARGS, M_Geometry_intersect_plane_plane_doc},
 	{"intersect_line_sphere", (PyCFunction) M_Geometry_intersect_line_sphere, METH_VARARGS, M_Geometry_intersect_line_sphere_doc},
 	{"intersect_line_sphere_2d", (PyCFunction) M_Geometry_intersect_line_sphere_2d, METH_VARARGS, M_Geometry_intersect_line_sphere_2d_doc},
 	{"distance_point_to_plane", (PyCFunction) M_Geometry_distance_point_to_plane, METH_VARARGS, M_Geometry_distance_point_to_plane_doc},

@@ -998,7 +998,7 @@ void BKE_free_ocean(struct Ocean *oc)
 #define CACHE_TYPE_FOAM		2
 #define CACHE_TYPE_NORMAL	3
 
-static void cache_filename(char *string, const char *path, int frame, int type)
+static void cache_filename(char *string, const char *path, const char *relbase, int frame, int type)
 {
 	char cachepath[FILE_MAX];
 	const char *fname;
@@ -1018,7 +1018,7 @@ static void cache_filename(char *string, const char *path, int frame, int type)
 
 	BLI_join_dirfile(cachepath, sizeof(cachepath), path, fname);
 
-	BKE_makepicstring(string, cachepath, frame, R_OPENEXR, 1, TRUE);
+	BKE_makepicstring(string, cachepath, relbase, frame, R_OPENEXR, 1, TRUE);
 }
 
 void BKE_free_ocean_cache(struct OceanCache *och)
@@ -1119,12 +1119,15 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
 	}
 }
 
-struct OceanCache *BKE_init_ocean_cache(char *bakepath, int start, int end, float wave_scale,
-						  float chop_amount, float foam_coverage, float foam_fade, int resolution)
+struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbase,
+                                        int start, int end, float wave_scale,
+                                        float chop_amount, float foam_coverage, float foam_fade, int resolution)
 {
 	OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
 
 	och->bakepath = bakepath;
+	och->relbase = relbase;
+
 	och->start = start;
 	och->end = end;
 	och->duration = (end - start) + 1;
@@ -1158,17 +1161,17 @@ void BKE_simulate_ocean_cache(struct OceanCache *och, int frame)
 	if (och->ibufs_disp[f] != NULL ) return;
 
 
-	cache_filename(string, och->bakepath, frame, CACHE_TYPE_DISPLACE);
+	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
 	och->ibufs_disp[f] = IMB_loadiffname(string, 0);
 	//if (och->ibufs_disp[f] == NULL) printf("error loading %s \n", string);
 	//else printf("loaded cache %s \n", string);
 
-	cache_filename(string, och->bakepath, frame, CACHE_TYPE_FOAM);
+	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
 	och->ibufs_foam[f] = IMB_loadiffname(string, 0);
 	//if (och->ibufs_foam[f] == NULL) printf("error loading %s \n", string);
 	//else printf("loaded cache %s \n", string);
 
-	cache_filename(string, och->bakepath, frame, CACHE_TYPE_NORMAL);
+	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
 	och->ibufs_norm[f] = IMB_loadiffname(string, 0);
 	//if (och->ibufs_norm[f] == NULL) printf("error loading %s \n", string);
 	//else printf("loaded cache %s \n", string);
@@ -1288,18 +1291,18 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 		}
 
 		/* write the images */
-		cache_filename(string, och->bakepath, f, CACHE_TYPE_DISPLACE);
+		cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
 		if(0 == BKE_write_ibuf(ibuf_disp, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
 			printf("Cannot save Displacement File Output to %s\n", string);
 
 		if (o->_do_jacobian) {
-			cache_filename(string, och->bakepath, f, CACHE_TYPE_FOAM);
+			cache_filename(string, och->bakepath, och->relbase,  f, CACHE_TYPE_FOAM);
 			if(0 == BKE_write_ibuf(ibuf_foam, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
 				printf("Cannot save Foam File Output to %s\n", string);
 		}
 
 		if (o->_do_normals) {
-			cache_filename(string, och->bakepath, f, CACHE_TYPE_NORMAL);
+			cache_filename(string, och->bakepath,  och->relbase, f, CACHE_TYPE_NORMAL);
 			if(0 == BKE_write_ibuf(ibuf_normal, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
 				printf("Cannot save Normal File Output to %s\n", string);
 		}
@@ -1409,7 +1412,7 @@ struct OceanCache *BKE_init_ocean_cache(char *UNUSED(bakepath), int UNUSED(start
 	return och;
 }
 
-void BKE_simulate_ocean_cache(struct OceanCache *UNUSED(och), int UNUSED(frame))
+void BKE_simulate_ocean_cache(struct OceanCache *UNUSED(och), const char *UNUSED(relbase), int UNUSED(frame))
 {
 }
 

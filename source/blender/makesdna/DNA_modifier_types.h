@@ -781,6 +781,7 @@ typedef struct OceanModifierData {
 	int		bakeend;
 	
 	char	cachepath[240];	// FILE_MAX
+	char	foamlayername[32];
 	char	cached;
 	char	geometry_mode;
 

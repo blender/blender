@@ -1484,11 +1484,11 @@ int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const
 }
 
 
-void BKE_makepicstring(char *string, const char *base, int frame, int imtype, const short use_ext, const short use_frames)
+void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, int imtype, const short use_ext, const short use_frames)
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	BLI_path_abs(string, G.main->name);
+	BLI_path_abs(string, relbase);
 
 	if(use_frames)
 		BLI_path_frame(string, frame, 4);

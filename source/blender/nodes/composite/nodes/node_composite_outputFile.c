@@ -56,6 +56,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			 * scrubbing through the timeline when the compositor updates */
 			return;
 		} else {
+			Main *bmain= G.main; /* TODO, have this passed along */
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 			char string[256];
@@ -74,7 +75,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION), TRUE);
+			BKE_makepicstring(string, nif->name, bmain->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
 			if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
 				printf("Cannot save Node File Output to %s\n", string);

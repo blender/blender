@@ -83,18 +83,19 @@ static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
-static int fluidsim_find_lastframe(FluidsimSettings *fss)
+static int fluidsim_find_lastframe(Object *ob, FluidsimSettings *fss)
 {
-	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	char targetFileTest[FILE_MAX];
+	char targetFile[FILE_MAX];
 	int curFrame = 1;
 
-	BLI_snprintf(targetDir, sizeof(targetDir), "%sfluidsurface_final_####.bobj.gz", fss->surfdataPath);
-	BLI_path_abs(targetDir, G.main->name);
+	BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_FINAL_OBJ_FNAME);
+	BLI_path_abs(targetFile, modifier_path_relbase(ob));
 
 	do {
-		BLI_strncpy(targetFile, targetDir, sizeof(targetFile));
-		BLI_path_frame(targetFile, curFrame++, 0);
-	} while(BLI_exists(targetFile));
+		BLI_strncpy(targetFileTest, targetFile, sizeof(targetFileTest));
+		BLI_path_frame(targetFileTest, curFrame++, 0);
+	} while(BLI_exists(targetFileTest));
 
 	return curFrame - 1;
 }
@@ -105,7 +106,7 @@ static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*)modifiers_findByType(ob, eModifierType_Fluidsim);
 
 	if(fluidmd->fss->flag & OB_FLUIDSIM_REVERSE) {
-		fluidmd->fss->lastgoodframe = fluidsim_find_lastframe(fluidmd->fss);
+		fluidmd->fss->lastgoodframe = fluidsim_find_lastframe(ob, fluidmd->fss);
 	}
 	else {
 		fluidmd->fss->lastgoodframe = -1;

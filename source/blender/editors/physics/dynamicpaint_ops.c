@@ -312,22 +312,22 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 		*/
 		{
 			char filename[FILE_MAX];
-			/* make sure output path has ending slash */
-			BLI_add_slash(surface->image_output_path);
 
 			/* primary output layer */
 			if (surface->flags & MOD_DPAINT_OUT1) {
 				/* set filepath */
-				BLI_snprintf(filename, sizeof(filename), "%s%s", surface->image_output_path, surface->output_name);
+				BLI_join_dirfile(filename, sizeof(filename), surface->image_output_path, surface->output_name);
 				BLI_path_frame(filename, frame, 4);
+
 				/* save image */
 				dynamicPaint_outputSurfaceImage(surface, filename, 0);
 			}
 			/* secondary output */
 			if (surface->flags & MOD_DPAINT_OUT2 && surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 				/* set filepath */
-				BLI_snprintf(filename, sizeof(filename), "%s%s", surface->image_output_path, surface->output_name2);
+				BLI_join_dirfile(filename, sizeof(filename), surface->image_output_path, surface->output_name2);
 				BLI_path_frame(filename, frame, 4);
+
 				/* save image */
 				dynamicPaint_outputSurfaceImage(surface, filename, 1);
 			}

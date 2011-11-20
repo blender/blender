@@ -2997,6 +2997,11 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 0);
 	RNA_def_property_update(prop, 0, NULL);
 	
+	prop= RNA_def_property(srna, "foam_layer_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "foamlayername");
+	RNA_def_property_ui_text(prop, "Foam Layer Name", "Name of the vertex color layer used for foam");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
 	prop= RNA_def_property(srna, "choppiness", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "chop_amount");
 	RNA_def_property_ui_text(prop, "Choppiness", "");

@@ -48,10 +48,13 @@
 #include "MOD_util.h"
 
 #ifdef WITH_OCEANSIM
-static void init_cache_data(struct OceanModifierData *omd)
+static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 {
-	omd->oceancache = BKE_init_ocean_cache(omd->cachepath, omd->bakestart, omd->bakeend, omd->wave_scale,
-										   omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
+	const char *relbase= modifier_path_relbase(ob);
+
+	omd->oceancache = BKE_init_ocean_cache(omd->cachepath, relbase,
+	                                       omd->bakestart, omd->bakeend, omd->wave_scale,
+	                                       omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 }
 
 static void clear_cache_data(struct OceanModifierData *omd)
@@ -97,7 +100,6 @@ static void initData(ModifierData *md)
 {
 #ifdef WITH_OCEANSIM
 	OceanModifierData *omd = (OceanModifierData*) md;
-	int cachepathmax = sizeof(omd->cachepath);
 
 	omd->resolution = 7;
 	omd->spatial_size = 50;
@@ -125,28 +127,14 @@ static void initData(ModifierData *md)
 	omd->repeat_x = 1;
 	omd->repeat_y = 1;
 
-	if (G.relbase_valid) {		/* is the .blend saved? */
-		/* subfolder next to saved file */
-		BLI_strncpy(omd->cachepath, "//ocean_cache", cachepathmax);
-		BLI_add_slash(omd->cachepath);
-	}
-	else {
-		/* subfolder in temp. directory */
-		BLI_strncpy(omd->cachepath, BLI_temporary_dir(), cachepathmax);
-		cachepathmax -= strlen(omd->cachepath);
-		if (cachepathmax > 1) {
-			BLI_strncpy(omd->cachepath+strlen(omd->cachepath), "ocean_cache", cachepathmax);
-			cachepathmax -= strlen("ocean_cache");
-			if (cachepathmax > 1)
-				BLI_add_slash(omd->cachepath);
-		}
-	}
+	modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "ocean_cache");
 
 	omd->cached = 0;
 	omd->bakestart = 1;
 	omd->bakeend = 250;
 	omd->oceancache = NULL;
 	omd->foam_fade = 0.98;
+	omd->foamlayername[0] = '\0';	/* layer name empty by default */
 
 	omd->ocean = BKE_add_ocean();
 	init_ocean_modifier(omd);
@@ -376,9 +364,9 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	return result;
 }
 
-static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
-							  DerivedMesh *derivedData,
-							  int UNUSED(useRenderParams))
+static DerivedMesh *doOcean(ModifierData *md, Object *ob,
+                            DerivedMesh *derivedData,
+                            int UNUSED(useRenderParams))
 {
 	OceanModifierData *omd = (OceanModifierData*) md;
 
@@ -409,7 +397,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 
 	/* do ocean simulation */
 	if (omd->cached == TRUE) {
-		if (!omd->oceancache) init_cache_data(omd);
+		if (!omd->oceancache) init_cache_data(ob, omd);
 		BKE_simulate_ocean_cache(omd->oceancache, md->scene->r.cfra);
 	} else {
 		simulate_ocean_modifier(omd);
@@ -441,7 +429,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 		if(cdlayer >= MAX_MCOL)
 			return dm;
 
-		CustomData_add_layer(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces);
+		CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
 
 		mc = dm->getFaceDataArray(dm, CD_MCOL);
 		mv = dm->getVertArray(dm);
