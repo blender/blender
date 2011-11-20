@@ -1643,7 +1643,7 @@ struct bNodeTemplate nodeMakeTemplate(struct bNode *node)
 	}
 }
 
-void node_type_base(bNodeTreeType *ttype, bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void node_type_base(bNodeTreeType *UNUSED(ttype), bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	memset(ntype, 0, sizeof(bNodeType));
 	
