@@ -2192,10 +2192,9 @@ class VIEW3D_PT_view3d_motion_tracking(Panel):
         return (view)
 
     def draw_header(self, context):
-        layout = self.layout
         view = context.space_data
 
-        layout.prop(view, "show_reconstruction", text="")
+        self.layout.prop(view, "show_reconstruction", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -2277,10 +2276,9 @@ class VIEW3D_PT_background_image(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
-        layout = self.layout
         view = context.space_data
 
-        layout.prop(view, "show_background_images", text="")
+        self.layout.prop(view, "show_background_images", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -2359,13 +2357,11 @@ class VIEW3D_PT_transform_orientations(Panel):
         layout = self.layout
 
         view = context.space_data
+        orientation = view.current_orientation
 
         col = layout.column()
-
         col.prop(view, "transform_orientation")
         col.operator("transform.create_orientation", text="Create")
-
-        orientation = view.current_orientation
 
         if orientation:
             col.prop(orientation, "name")

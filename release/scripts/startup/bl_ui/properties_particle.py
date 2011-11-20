@@ -262,10 +262,6 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         return psys.settings.type == 'HAIR' and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
-        #cloth = context.cloth.collision_settings
-
-        #self.layout.active = cloth_panel_enabled(context.cloth)
-        #self.layout.prop(cloth, "use_collision", text="")
         psys = context.particle_system
         self.layout.prop(psys, "use_hair_dynamics", text="")
 
