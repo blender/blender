@@ -59,6 +59,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "interface_intern.h"
 
@@ -173,7 +174,6 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 
 Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int *open)
 {
-	uiStyle *style= UI_GetStyle();
 	Panel *pa, *patab, *palast, *panext;
 	char *drawname= pt->label;
 	char *idname= pt->idname;
@@ -208,7 +208,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 		}
 	
 		pa->ofsx= 0;
-		pa->ofsy= style->panelouter;
+		pa->ofsy= 0;
 		pa->sizex= 0;
 		pa->sizey= 0;
 		pa->runtime_flag |= PNL_NEW_ADDED;
@@ -482,6 +482,7 @@ static void rectf_scale(rctf *rect, float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
+	bTheme *btheme= UI_GetTheme();
 	Panel *panel= block->panel;
 	rcti headrect;
 	rctf itemrect;
@@ -493,19 +494,37 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
 	headrect= *rect;
-	headrect.ymin= headrect.ymax;
+	headrect.ymin= headrect.ymax - 2.0f/block->aspect;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
-	if(!(panel->runtime_flag & PNL_FIRST)) {
-		float minx= rect->xmin+5.0f/block->aspect;
-		float maxx= rect->xmax-5.0f/block->aspect;
+	{
+		float minx= rect->xmin;
+		float maxx= rect->xmax;
 		float y= headrect.ymax;
-		
+
 		glEnable(GL_BLEND);
-		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-		fdrawline(minx, y+1, maxx, y+1);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-		fdrawline(minx, y, maxx, y);
+
+		if(btheme->tui.panel.show_header) {
+			/* draw with background color */
+			glEnable(GL_BLEND);
+			glColor4ubv((unsigned char*)btheme->tui.panel.header);
+			glRectf(minx, headrect.ymin, maxx, y);
+
+			fdrawline(minx, y, maxx, y);
+			fdrawline(minx, y, maxx, y);
+		}
+		else if(!(panel->runtime_flag & PNL_FIRST)) {
+			/* draw embossed separator */
+			minx += 5.0f/block->aspect;
+			maxx -= 5.0f/block->aspect;
+			
+			glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+			fdrawline(minx, y+1, maxx, y+1);
+			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+			fdrawline(minx, y, maxx, y);
+			glDisable(GL_BLEND);
+		}
+
 		glDisable(GL_BLEND);
 	}
 	
@@ -518,7 +537,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
 		itemrect.ymin= headrect.ymin;
 		itemrect.ymax= headrect.ymax;
-		rectf_scale(&itemrect, 0.8f);
+
+		rectf_scale(&itemrect, 0.7f);
 		ui_draw_panel_dragwidget(&itemrect);
 	}
 	
@@ -538,7 +558,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		/* in some occasions, draw a border */
 		if(panel->flag & PNL_SELECT) {
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(UI_CNR_ALL);
-			else uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+			else uiSetRoundBox(UI_CNR_NONE);
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);
@@ -567,7 +587,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	itemrect.ymin= headrect.ymin;
 	itemrect.ymax= headrect.ymax;
 	
-	rectf_scale(&itemrect, 0.5f);
+	rectf_scale(&itemrect, 0.35f);
 	
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_rect(&itemrect, 'h');
@@ -589,12 +609,12 @@ static int get_panel_header(Panel *pa)
 	return PNL_HEADER;
 }
 
-static int get_panel_size_y(uiStyle *style, Panel *pa)
+static int get_panel_size_y(Panel *pa)
 {
 	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
 		return pa->sizey;
 
-	return PNL_HEADER + pa->sizey + style->panelouter;
+	return PNL_HEADER + pa->sizey;
 }
 
 /* this function is needed because uiBlock and Panel itself dont
@@ -667,7 +687,6 @@ static int compare_panel(const void *a1, const void *a2)
 /* returns 1 when it did something */
 static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
-	uiStyle *style= UI_GetStyle();
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
 	int a, tot=0, done;
@@ -719,18 +738,18 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
 	ps->pa->ofsx= 0;
-	ps->pa->ofsy= -get_panel_size_y(style, ps->pa);
+	ps->pa->ofsy= -get_panel_size_y(ps->pa);
 
 	for(a=0; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
 		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - get_panel_size_y(style, psnext->pa);
+			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - get_panel_size_y(psnext->pa);
 		}
 		else {
 			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
-			psnext->pa->ofsy= ps->pa->ofsy + get_panel_size_y(style, ps->pa) - get_panel_size_y(style, psnext->pa);
+			psnext->pa->ofsy= ps->pa->ofsy + get_panel_size_y(ps->pa) - get_panel_size_y(psnext->pa);
 		}
 	}
 	

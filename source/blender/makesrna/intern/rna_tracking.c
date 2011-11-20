@@ -451,9 +451,9 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	/* enable */
-	prop= RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MARKER_DISABLED);
-	RNA_def_property_ui_text(prop, "Enable", "Is marker enabled for current frame");
+	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MARKER_DISABLED);
+	RNA_def_property_ui_text(prop, "Mode", "Is marker muted for current frame");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 

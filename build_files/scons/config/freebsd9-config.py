@@ -175,8 +175,8 @@ CXXFLAGS = []
 
 CPPFLAGS = []
 if WITH_BF_FFMPEG:
-  # libavutil needs UINT64_C()
-  CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
+    # libavutil needs UINT64_C()
+    CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
 REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']

@@ -474,16 +474,14 @@ class CLIP_PT_stabilization(Panel):
         return sc.mode == 'RECONSTRUCTION' and sc.clip
 
     def draw_header(self, context):
-        sc = context.space_data
-        tracking = sc.clip.tracking
-        stab = tracking.stabilization
-
+        stab = context.space_data.clip.tracking.stabilization
+        
         self.layout.prop(stab, "use_2d_stabilization", text="")
 
     def draw(self, context):
         layout = self.layout
-        sc = context.space_data
-        tracking = sc.clip.tracking
+
+        tracking = context.space_data.clip.tracking
         stab = tracking.stabilization
 
         layout.active = stab.use_2d_stabilization

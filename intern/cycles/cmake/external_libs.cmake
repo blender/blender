@@ -71,21 +71,6 @@ if(WITH_CYCLES_PARTIO)
 endif()
 
 ###########################################################################
-# Blender
-
-if(WITH_CYCLES_BLENDER)
-
-	set(BLENDER_INCLUDE_DIRS
-		${CMAKE_SOURCE_DIR}/intern/guardedalloc
-		${CMAKE_SOURCE_DIR}/source/blender/makesdna
-		${CMAKE_SOURCE_DIR}/source/blender/makesrna
-		${CMAKE_SOURCE_DIR}/source/blender/blenloader
-		${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
-
-	add_definitions(-DBLENDER_PLUGIN)
-endif()
-
-###########################################################################
 # CUDA
 
 if(WITH_CYCLES_CUDA_BINARIES)

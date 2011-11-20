@@ -36,28 +36,80 @@
 extern "C" {
 #endif
 
+#include "DNA_vec_types.h"
+
 struct Camera;
 struct Object;
+struct RegionView3D;
 struct RenderData;
 struct Scene;
 struct rctf;
 struct View3D;
+
+/* Camera Datablock */
 
 void *add_camera(const char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
 void free_camera(struct Camera *ca);
 
-float dof_camera(struct Object *ob);
+/* Camera Usage */
 
-void object_camera_mode(struct RenderData *rd, struct Object *camera);
-void object_camera_intrinsics(struct Object *camera, struct Camera **cam_r, short *is_ortho, float *shiftx, float *shifty,
-			float *clipsta, float *clipend, float *lens, float *sensor_x, float *sensor_y, short *sensor_fit);
-void object_camera_matrix(
-		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
-		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens,
-		float *sensor_x, float *sensor_y, short *sensor_fit, float *ycor,
-		float *viewdx, float *viewdy);
+float object_camera_dof_distance(struct Object *ob);
+void object_camera_mode(struct RenderData *rd, struct Object *ob);
+
+int camera_sensor_fit(int sensor_fit, float sizex, float sizey);
+float camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
+
+/* Camera Parameters:
+ *
+ * Intermediate struct for storing camera parameters from various sources,
+ * to unify computation of viewplane, window matrix, ... */
+
+typedef struct CameraParams {
+	/* lens */
+	int is_ortho;
+	float lens;
+	float ortho_scale;
+	float zoom;
+
+	float shiftx;
+	float shifty;
+	float offsetx;
+	float offsety;
+
+	/* sensor */
+	float sensor_x;
+	float sensor_y;
+	int sensor_fit;
+
+	/* clipping */
+	float clipsta;
+	float clipend;
+
+	/* fields */
+	int use_fields;
+	int field_second;
+	int field_odd;
+
+	/* computed viewplane */
+	float ycor;
+	float viewdx;
+	float viewdy;
+	rctf viewplane;
+
+	/* computed matrix */
+	float winmat[4][4];
+} CameraParams;
+
+void camera_params_init(CameraParams *params);
+void camera_params_from_object(CameraParams *params, struct Object *camera);
+void camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
+
+void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float aspx, float aspy);
+void camera_params_compute_matrix(CameraParams *params);
+
+/* Camera View Frame */
 
 void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
                           float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3]);

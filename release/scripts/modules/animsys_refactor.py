@@ -35,9 +35,9 @@ def drepr(string):
 
 
 class DataPathBuilder(object):
-    __slots__ = ("data_path", )
     """ Dummy class used to parse fcurve and driver data paths.
     """
+    __slots__ = ("data_path", )
     def __init__(self, attrs):
         self.data_path = attrs
 

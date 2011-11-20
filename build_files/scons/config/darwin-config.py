@@ -18,20 +18,20 @@ MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
 
 
 cmd = 'uname -p'
-MAC_PROC=commands.getoutput(cmd) 
+MAC_PROC=commands.getoutput(cmd)
 cmd = 'uname -r'
-cmd_res=commands.getoutput(cmd) 
+cmd_res=commands.getoutput(cmd)
 
 if cmd_res[:1]=='7':
-	MAC_CUR_VER='10.3'
+    MAC_CUR_VER='10.3'
 elif cmd_res[:1]=='8':
-	MAC_CUR_VER='10.4'
+    MAC_CUR_VER='10.4'
 elif cmd_res[:1]=='9':
-	MAC_CUR_VER='10.5'
+    MAC_CUR_VER='10.5'
 elif cmd_res[:2]=='10':
-	MAC_CUR_VER='10.6'
+    MAC_CUR_VER='10.6'
 elif cmd_res[:2]=='11':
-	MAC_CUR_VER='10.7'
+    MAC_CUR_VER='10.7'
 cmd = 'xcodebuild -version'
 cmd_xcode=commands.getoutput(cmd)
 XCODE_CUR_VER=cmd_xcode
@@ -40,7 +40,7 @@ cmd_sdk=commands.getoutput(cmd)
 MACOSX_SDK_CHECK=cmd_sdk
 
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
-	USE_QTKIT=True # Carbon quicktime is not available for 64bit
+    USE_QTKIT=True # Carbon quicktime is not available for 64bit
 
 
 # Default target OSX settings per architecture
@@ -48,41 +48,41 @@ if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 
 if MACOSX_ARCHITECTURE == 'ppc' and MAC_CUR_VER == '10.4':
 # all releases are now made for 10.5 !
-#	MAC_MIN_VERS = '10.3'
-#	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-#	LCGDIR = '#../lib/darwin-6.1-powerpc'
-#	CC = 'gcc-3.3'
-#	CXX = 'g++-3.3'
-	MAC_MIN_VERS = '10.4'
-	MACOSX_DEPLOYMENT_TARGET = '10.4'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-	LCGDIR = '#../lib/darwin-8.0.0-powerpc'
-	CC = 'gcc-4.0'
-	CXX = 'g++-4.0'
+#   MAC_MIN_VERS = '10.3'
+#   MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
+#   LCGDIR = '#../lib/darwin-6.1-powerpc'
+#   CC = 'gcc-3.3'
+#   CXX = 'g++-3.3'
+    MAC_MIN_VERS = '10.4'
+    MACOSX_DEPLOYMENT_TARGET = '10.4'
+    MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+    LCGDIR = '#../lib/darwin-8.0.0-powerpc'
+    CC = 'gcc-4.0'
+    CXX = 'g++-4.0'
 elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
-	MAC_MIN_VERS = '10.4'
-	MACOSX_DEPLOYMENT_TARGET = '10.4'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-	LCGDIR = '#../lib/darwin-8.x.i386'
-	CC = 'gcc-4.0'
-	CXX = 'g++-4.0'
+    MAC_MIN_VERS = '10.4'
+    MACOSX_DEPLOYMENT_TARGET = '10.4'
+    MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+    LCGDIR = '#../lib/darwin-8.x.i386'
+    CC = 'gcc-4.0'
+    CXX = 'g++-4.0'
 else :
-	if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
-		# OSX 10.5/6 with Xcode 3.x
-		MAC_MIN_VERS = '10.5'
-		MACOSX_DEPLOYMENT_TARGET = '10.5'
-		MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-		LCGDIR = '#../lib/darwin-9.x.universal'
-		CC = 'gcc-4.2'
-		CXX = 'g++-4.2'
-	else:
-		# OSX 10.6/7 with Xcode 4.x
-		MAC_MIN_VERS = '10.6'
-		MACOSX_DEPLOYMENT_TARGET = '10.6'
-		MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-		LCGDIR = '#../lib/darwin-9.x.universal'
-		CC = 'gcc-4.2'
-		CXX = 'g++-4.2'
+    if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
+        # OSX 10.5/6 with Xcode 3.x
+        MAC_MIN_VERS = '10.5'
+        MACOSX_DEPLOYMENT_TARGET = '10.5'
+        MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+        LCGDIR = '#../lib/darwin-9.x.universal'
+        CC = 'gcc-4.2'
+        CXX = 'g++-4.2'
+    else:
+        # OSX 10.6/7 with Xcode 4.x
+        MAC_MIN_VERS = '10.6'
+        MACOSX_DEPLOYMENT_TARGET = '10.6'
+        MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
+        LCGDIR = '#../lib/darwin-9.x.universal'
+        CC = 'gcc-4.2'
+        CXX = 'g++-4.2'
 
 LIBDIR = '${LCGDIR}'
 
@@ -109,32 +109,32 @@ BF_PYTHON_VERSION = '3.2'
 WITH_OSX_STATICPYTHON = True
 
 if WITH_OSX_STATICPYTHON:
-	# python 3.2 uses precompiled libraries in bf svn /lib by default
+    # python 3.2 uses precompiled libraries in bf svn /lib by default
 
-	BF_PYTHON = LIBDIR + '/python'
-	BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
+    BF_PYTHON = LIBDIR + '/python'
+    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+    # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+    BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+    # BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 else:
-	# python 3.2 uses Python-framework additionally installed in /Library/Frameworks
-	
-	BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-	BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}m'
-	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
-	#BF_PYTHON_LIB = ''
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-3.2m'
-	
+    # python 3.2 uses Python-framework additionally installed in /Library/Frameworks
+
+    BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+    BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}m'
+    BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
+    #BF_PYTHON_LIB = ''
+    BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-3.2m'
+
 WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
 # for gcc 3.4 and ulterior
 if MAC_PROC == 'powerpc':
-	BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
+    BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
 else :
-	BF_OPENAL = LIBDIR + '/openal'
+    BF_OPENAL = LIBDIR + '/openal'
 
 WITH_BF_STATICOPENAL = False
 BF_OPENAL_INC = '${BF_OPENAL}/include' # only headers from libdir needed for proper use of framework !!!!
@@ -233,7 +233,7 @@ BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
+#BF_NSPR_LIB =
 
 # Uncomment the following line to use Mozilla inplace of netscape
 #CPPFLAGS += -DMOZ_NOT_NET
@@ -284,7 +284,7 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT_LIBPATH = '/usr/lib'
 
 #Cycles
-WITH_BF_CYCLES = True 
+WITH_BF_CYCLES = True
 
 WITH_BF_OIIO = True
 BF_OIIO = LIBDIR + '/openimageio'
@@ -318,9 +318,9 @@ WITH_BF_3DMOUSE = True
 BF_QUIET = '1' # suppress verbose output
 
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
-	ARCH_FLAGS = ['-m64']
+    ARCH_FLAGS = ['-m64']
 else:
-	ARCH_FLAGS = ['-m32']
+    ARCH_FLAGS = ['-m32']
 
 CFLAGS = []
 CXXFLAGS = []
@@ -329,53 +329,53 @@ CCFLAGS = ['-pipe','-funsigned-char']
 CPPFLAGS = list(ARCH_FLAGS)
 
 if WITH_GHOST_COCOA:
-	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
+    PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 else:
-	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
+    PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
 if WITH_BF_QUICKTIME:
-	if USE_QTKIT:
-		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
-	else:
-		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
+    if USE_QTKIT:
+        PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
+    else:
+        PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
 if not WITH_OSX_STATICPYTHON:
-		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
+    PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
 
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 #for 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
 if MACOSX_DEPLOYMENT_TARGET == '10.7':
-	LLIBS = ['stdc++']
+    LLIBS = ['stdc++']
 else:
-	LLIBS = ['stdc++', 'SystemStubs']
+    LLIBS = ['stdc++', 'SystemStubs']
 
 # some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':
-	CCFLAGS = ['-fuse-cxa-atexit'] + CCFLAGS
-	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit'] + PLATFORM_LINKFLAGS
-	LLIBS.append('crt3.o')
-	
-if USE_SDK:
-	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
-	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
-	CCFLAGS=SDK_FLAGS+CCFLAGS
-	CXXFLAGS=SDK_FLAGS+CXXFLAGS
+    CCFLAGS = ['-fuse-cxa-atexit'] + CCFLAGS
+    PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit'] + PLATFORM_LINKFLAGS
+    LLIBS.append('crt3.o')
 
-#Intel Macs are CoreDuo and Up	
+if USE_SDK:
+    SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]
+    PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
+    CCFLAGS=SDK_FLAGS+CCFLAGS
+    CXXFLAGS=SDK_FLAGS+CXXFLAGS
+
+#Intel Macs are CoreDuo and Up
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = []
-	REL_CXXFLAGS = []
-	REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+    REL_CFLAGS = []
+    REL_CXXFLAGS = []
+    REL_CCFLAGS = ['-DNDEBUG', '-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
 else:
-	CCFLAGS += ['-fno-strict-aliasing']
-	REL_CFLAGS = []
-	REL_CXXFLAGS = []
-	REL_CCFLAGS = ['-DNDEBUG', '-O2']
+    CCFLAGS += ['-fno-strict-aliasing']
+    REL_CFLAGS = []
+    REL_CXXFLAGS = []
+    REL_CCFLAGS = ['-DNDEBUG', '-O2']
 
 # Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CCFLAGS += ['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
+    REL_CCFLAGS += ['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
 
 CC_WARN = ['-Wall']
 C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas', '-Wstrict-prototypes']

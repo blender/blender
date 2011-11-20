@@ -985,12 +985,12 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* x-axis transform */
 			dist = (v2d->mask.xmax - v2d->mask.xmin) / 2.0f;
-			dx= 1.0f - ((float)fabs(vzd->lastx - dist) + 2.0f) / ((float)fabs(event->x - dist) + 2.0f);
+			dx= 1.0f - (fabsf(vzd->lastx - dist) + 2.0f) / (fabsf(event->x - dist) + 2.0f);
 			dx*= 0.5f * (v2d->cur.xmax - v2d->cur.xmin);
 			
 			/* y-axis transform */
 			dist = (v2d->mask.ymax - v2d->mask.ymin) / 2.0f;
-			dy= 1.0f - ((float)fabs(vzd->lasty - dist) + 2.0f) / ((float)fabs(event->y - dist) + 2.0f);
+			dy= 1.0f - (fabsf(vzd->lasty - dist) + 2.0f) / (fabsf(event->y - dist) + 2.0f);
 			dy*= 0.5f * (v2d->cur.ymax - v2d->cur.ymin);
 		}
 		else {

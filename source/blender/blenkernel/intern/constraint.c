@@ -3990,7 +3990,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			MovieTrackingMarker *marker;
 			float vec[3], disp[3], axis[3], mat[4][4];
 			float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-			float sensor_x, sensor_y, lens, len, d, ortho_scale= 1.0f;
+			float len, d;
 			
 			where_is_object_mat(scene, camob, mat);
 			
@@ -4008,23 +4008,20 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			len= len_v3(disp);
 			
 			if (len > FLT_EPSILON) {
-				float pos[2], rmat[4][4], shiftx= 0.0f, shifty= 0.0f, clipsta= 0.0f, clipend= 0.0f;
-				short is_ortho= 0, sensor_fit= CAMERA_SENSOR_FIT_AUTO;
-				Camera *cam= NULL;
+				CameraParams params;
+				float pos[2], rmat[4][4];
 				
 				user.framenr= scene->r.cfra;
 				marker= BKE_tracking_get_marker(track, user.framenr);
 				
 				add_v2_v2v2(pos, marker->pos, track->offset);
 				
-				object_camera_intrinsics(camob, &cam, &is_ortho, &shiftx, &shifty, &clipsta, &clipend, &lens, &sensor_x, &sensor_y, &sensor_fit);
-				
-				if (is_ortho) {
-					if (cam)
-						ortho_scale= cam->ortho_scale;
-					
-					vec[0]= ortho_scale * (pos[0]-0.5f+shiftx);
-					vec[1]= ortho_scale * (pos[1]-0.5f+shifty);
+				camera_params_init(&params);
+				camera_params_from_object(&params, camob);
+
+				if (params.is_ortho) {
+					vec[0]= params.ortho_scale * (pos[0]-0.5f+params.shiftx);
+					vec[1]= params.ortho_scale * (pos[1]-0.5f+params.shifty);
 					vec[2]= -len;
 					
 					if (aspect > 1.0f) vec[1] /= aspect;
@@ -4039,10 +4036,10 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 					copy_v3_v3(cob->matrix[3], disp);
 				}
 				else {
-					d= (len*sensor_x) / (2.0f*lens);
+					d= (len*params.sensor_x) / (2.0f*params.lens);
 					
-					vec[0]= d*(2.0f*(pos[0]+shiftx)-1.0f);
-					vec[1]= d*(2.0f*(pos[1]+shifty)-1.0f);
+					vec[0]= d*(2.0f*(pos[0]+params.shiftx)-1.0f);
+					vec[1]= d*(2.0f*(pos[1]+params.shifty)-1.0f);
 					vec[2]= -len;
 					
 					if (aspect > 1.0f) vec[1] /= aspect;

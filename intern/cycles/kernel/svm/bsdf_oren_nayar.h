@@ -70,8 +70,8 @@ __device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc, float3 n,
 		cos_b = nl;
 	}
 
-	float sin_a = sqrtf(1.0f - cos_a * cos_a);
-	float tan_b = sqrtf(1.0f - cos_b * cos_b) / (cos_b + FLT_MIN);
+	float sin_a = sqrtf(max(1.0f - cos_a * cos_a, 0.0f));
+	float tan_b = sqrtf(max(1.0f - cos_b * cos_b, 0.0f)) / max(cos_b, 1e-8f);
 
 	float is = nl * (sc->data0 + sc->data1 * t * sin_a * tan_b);
 	return make_float3(is, is, is);
@@ -84,8 +84,10 @@ __device void bsdf_oren_nayar_setup(ShaderData *sd, ShaderClosure *sc, float sig
 
 	sigma = clamp(sigma, 0.0f, 1.0f);
 
-	sc->data0 =  1.0f / ((1.0f + 0.5f * sigma) * M_PI_F);
-	sc->data1 = sigma / ((1.0f + 0.5f * sigma) * M_PI_F);
+	float div = 1.0f / ((1.0f + 0.5f * sigma) * M_PI_F);
+
+	sc->data0 =  1.0f * div;
+	sc->data1 = sigma * div;
 }
 
 __device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)

@@ -634,12 +634,51 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui, "inner_key_sel")
             colsub.row().prop(ui, "blend")
 
-            ui = theme.user_interface
             col.separator()
             col.separator()
 
-            split = col.split(percentage=0.93)
-            split.prop(ui, "icon_file")
+            ui = theme.user_interface
+            col.label("Icons:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_file")
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_alpha")
+
+            col.separator()
+            col.separator()
+
+            ui = theme.user_interface.panel
+            col.label("Panels:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            rowsub = colsub.row()
+            rowsub.prop(ui, "show_header")
+            rowsub.label()
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "header")
 
             layout.separator()
             layout.separator()

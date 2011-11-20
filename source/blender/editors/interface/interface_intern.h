@@ -112,7 +112,7 @@ typedef enum {
 
 /* internal panel drawing defines */
 #define PNL_GRID	(UI_UNIT_Y / 5)	/* 4 default */
-#define PNL_HEADER  UI_UNIT_Y		/* 20 default */
+#define PNL_HEADER  (UI_UNIT_Y + 4)	/* 24 default */
 
 /* panel->flag */
 #define PNL_SELECT	1

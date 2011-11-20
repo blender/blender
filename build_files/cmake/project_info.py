@@ -44,7 +44,14 @@ __all__ = (
     "project_name_get"
 )
 
+
 import sys
+if not sys.version.startswith("3"):
+    print("\nPython3.x needed, found %s.\nAborting!\n" %
+          sys.version.partition(" ")[0])
+    sys.exit(1)
+
+
 import os
 from os.path import join, dirname, normpath, abspath, splitext, exists
 
@@ -142,10 +149,11 @@ def cmake_advanced_info():
 
     from xml.dom.minidom import parse
     tree = parse(join(CMAKE_DIR, ".cproject"))
-    '''
-    f = open(".cproject_pretty", 'w')
-    f.write(tree.toprettyxml(indent="    ", newl=""))
-    '''
+
+    # to check on nicer xml
+    # f = open(".cproject_pretty", 'w')
+    # f.write(tree.toprettyxml(indent="    ", newl=""))
+
     ELEMENT_NODE = tree.ELEMENT_NODE
 
     cproject, = tree.getElementsByTagName("cproject")

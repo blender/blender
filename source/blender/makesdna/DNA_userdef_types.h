@@ -112,9 +112,8 @@ typedef struct uiStyle {
 	short buttonspacex;
 	short buttonspacey;
 	short panelspace;
-	short panelouter;
 
-	short pad[1];
+	short pad[2];
 } uiStyle;
 
 typedef struct uiWidgetColors {
@@ -139,6 +138,12 @@ typedef struct uiWidgetStateColors {
 	float blend, pad;
 } uiWidgetStateColors;
 
+typedef struct uiPanelColors {
+	char header[4];
+	short show_header;
+	short pad;
+} uiPanelColors;
+
 typedef struct ThemeUI {
 	
 	/* Interface Elements (buttons, menus, icons) */
@@ -149,9 +154,13 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item;
 	
 	uiWidgetStateColors wcol_state;
-	
+
+	uiPanelColors panel;
+
 	char iconfile[80];	// FILE_MAXFILE length
-	
+	float icon_alpha;
+
+	float pad;
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well

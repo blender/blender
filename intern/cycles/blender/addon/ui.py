@@ -295,7 +295,7 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and context.mesh or context.curve or context.meta_ball
+        return CyclesButtonsPanel.poll(context) and (context.mesh or context.curve or context.meta_ball)
 
     def draw(self, context):
         layout = self.layout
