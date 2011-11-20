@@ -259,14 +259,10 @@ object's movement caused by this constraint"""
                 con = x
 
         if not con:
-            return
+            self.report({'ERROR'},
+                "Motion Tracking constraint to be converted not found")
 
-        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
-            mat = ob.matrix_world.copy()
-            ob.constraints.remove(con)
-            ob.matrix_world = mat
-
-            return
+            return {'CANCELLED'}
 
         # Get clip used for parenting
         if con.use_active_clip:
@@ -275,7 +271,17 @@ object's movement caused by this constraint"""
             clip = con.clip
 
         if not clip:
-            return
+            self.report({'ERROR'},
+                "Movie clip to use tracking data from isn't set")
+
+            return {'CANCELLED'}
+
+        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
+            mat = ob.matrix_world.copy()
+            ob.constraints.remove(con)
+            ob.matrix_world = mat
+
+            return {'FINISHED'}
 
         # Find start and end frames
         for track in clip.tracking.tracks:
