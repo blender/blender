@@ -112,12 +112,22 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
 // the X and Y components are unknown).
 void BlenderFileLoader::clipLine(float v1[3], float v2[3], float c[3], float z)
 {
+	// Order v1 and v2 by Z values to make sure that clipLine(P, Q, c, z)
+	// and clipLine(Q, P, c, z) gives exactly the same numerical result.
+	float *p, *q;
+	if (v1[2] < v2[2]) {
+		p = v1;
+		q = v2;
+	} else {
+		p = v2;
+		q = v1;
+	}
 	double d[3];
 	for (int i = 0; i < 3; i++)
-		d[i] = v2[i] - v1[i];
-	double t = (z - v1[2]) / d[2];
-	c[0] = v1[0] + t * d[0];
-	c[1] = v1[1] + t * d[1];
+		d[i] = q[i] - p[i];
+	double t = (z - p[2]) / d[2];
+	c[0] = p[0] + t * d[0];
+	c[1] = p[1] + t * d[1];
 	c[2] = z;
 }
 
