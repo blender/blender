@@ -552,6 +552,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	bNode *lnode;
 	char label[UI_MAX_NAME_STR];
 	int indent = (depth > 1)? 2*(depth - 1): 0;
+	int dependency_loop;
 
 	if(input->flag & SOCK_UNAVAIL)
 		return;
@@ -559,6 +560,10 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	/* to avoid eternal loops on cyclic dependencies */
 	node->flag |= NODE_TEST;
 	lnode = (input->link)? input->link->fromnode: NULL;
+
+	dependency_loop = (lnode && (lnode->flag & NODE_TEST));
+	if(dependency_loop)
+		lnode = NULL;
 
 	/* socket RNA pointer */
 	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, input, &inputptr);
@@ -593,7 +598,11 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	bt= block->buttons.last;
 	bt->flag= UI_TEXT_LEFT;
 
-	if(lnode) {
+	if(dependency_loop) {
+		row = uiLayoutRow(split, 0);
+		uiItemL(row, "Dependency Loop", ICON_ERROR);
+	}
+	else if(lnode) {
 		/* input linked to a node */
 		uiTemplateNodeLink(split, ntree, node, input);
 

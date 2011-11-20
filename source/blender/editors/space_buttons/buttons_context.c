@@ -805,7 +805,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 				if(ma) {
 					bNode *node= give_current_material_texture_node(ma);
-					CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
+					CTX_data_pointer_set(result, &ma->nodetree->id, &RNA_Node, node);
 				}
 			}
 

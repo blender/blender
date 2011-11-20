@@ -131,16 +131,18 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode* node, bNo
 	iuser->ok= 1;
 }
 
-void register_node_type_cmp_viewer(ListBase *lb)
+void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_base(ttype, &ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_viewer_in, NULL);
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_init(&ntype, node_composit_init_viewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_viewer);
+	/* Do not allow muting this node. */
+	node_type_mute(&ntype, NULL, NULL);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }

@@ -154,25 +154,23 @@ def resolve_ncase(path):
     returning a string with the path if found else return the original path.
     """
 
-    import os
-
     def _ncase_path_found(path):
-        if not path or os.path.exists(path):
+        if not path or _os.path.exists(path):
             return path, True
 
         # filename may be a directory or a file
-        filename = os.path.basename(path)
-        dirpath = os.path.dirname(path)
+        filename = _os.path.basename(path)
+        dirpath = _os.path.dirname(path)
 
         suffix = path[:0]  # "" but ensure byte/str match
         if not filename:  # dir ends with a slash?
             if len(dirpath) < len(path):
                 suffix = path[:len(path) - len(dirpath)]
 
-            filename = os.path.basename(dirpath)
-            dirpath = os.path.dirname(dirpath)
+            filename = _os.path.basename(dirpath)
+            dirpath = _os.path.dirname(dirpath)
 
-        if not os.path.exists(dirpath):
+        if not _os.path.exists(dirpath):
             if dirpath == path:
                 return path, False
 
@@ -184,8 +182,8 @@ def resolve_ncase(path):
         # at this point, the directory exists but not the file
 
         # we are expecting 'dirpath' to be a directory, but it could be a file
-        if os.path.isdir(dirpath):
-            files = os.listdir(dirpath)
+        if _os.path.isdir(dirpath):
+            files = _os.listdir(dirpath)
         else:
             return path, False
 
@@ -198,7 +196,7 @@ def resolve_ncase(path):
                 break
 
         if f_iter_nocase:
-            return os.path.join(dirpath, f_iter_nocase) + suffix, True
+            return _os.path.join(dirpath, f_iter_nocase) + suffix, True
         else:
             # cant find the right one, just return the path as is.
             return path, False
@@ -216,8 +214,7 @@ def ensure_ext(filepath, ext, case_sensitive=False):
     :arg case_sensitive: Check for matching case when comparing extensions.
     :type case_sensitive: bool
     """
-    import os
-    fn_base, fn_ext = os.path.splitext(filepath)
+    fn_base, fn_ext = _os.path.splitext(filepath)
     if fn_base and fn_ext:
         if ((case_sensitive and ext == fn_ext) or
             (ext.lower() == fn_ext.lower())):

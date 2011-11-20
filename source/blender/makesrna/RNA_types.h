@@ -108,7 +108,9 @@ typedef enum PropertySubType {
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
 	PROP_FILENAME = 3,
-	PROP_TRANSLATE = 4, /* a string which should be translated */
+	PROP_BYTESTRING = 4, /* a string which should be represented as bytes
+	                      * in python, still NULL terminated though. */
+	PROP_TRANSLATE = 5, /* a string which should be translated */
 
 	/* numbers */
 	PROP_UNSIGNED = 13,
@@ -301,13 +303,14 @@ typedef struct ParameterDynAlloc {
 
 typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
-	FUNC_USE_CONTEXT = 2,
-	FUNC_USE_REPORTS = 4,
+	FUNC_USE_MAIN = 2,
+	FUNC_USE_CONTEXT = 4,
+	FUNC_USE_REPORTS = 8,
 	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
-	FUNC_REGISTER = 8,
-	FUNC_REGISTER_OPTIONAL = 8|16,
+	FUNC_REGISTER = 16,
+	FUNC_REGISTER_OPTIONAL = 16|32,
 
 	/* internal flags */
 	FUNC_BUILTIN = 128,

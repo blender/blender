@@ -1,12 +1,10 @@
-/**
- * $Id: node_shader_output.c 32517 2010-10-16 14:32:17Z campbellbarton $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -45,11 +43,11 @@ static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode* node, bN
 }
 
 /* node type definition */
-void register_node_type_sh_attribute(ListBase *lb)
+void register_node_type_sh_attribute(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_attribute_out);
 	node_type_size(&ntype, 150, 60, 200);
@@ -58,6 +56,5 @@ void register_node_type_sh_attribute(ListBase *lb)
 	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, NULL);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

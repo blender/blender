@@ -138,11 +138,11 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 }
 
 /* node type definition */
-void register_node_type_sh_geom(ListBase *lb)
+void register_node_type_sh_geom(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_GEOMETRY, "Geometry", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_geom_out);
 	node_type_size(&ntype, 120, 80, 160);
@@ -151,6 +151,5 @@ void register_node_type_sh_geom(ListBase *lb)
 	node_type_exec(&ntype, node_shader_exec_geom);
 	node_type_gpu(&ntype, gpu_shader_geom);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

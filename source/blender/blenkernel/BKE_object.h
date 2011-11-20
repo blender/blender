@@ -94,7 +94,6 @@ void object_to_mat3(struct Object *ob, float mat[][3]);
 void object_to_mat4(struct Object *ob, float mat[][4]);
 void object_apply_mat4(struct Object *ob, float mat[][4], const short use_compat, const short use_parent);
 
-void set_no_parent_ipo(int val);
 struct Object *object_pose_armature_get(struct Object *ob);
 
 void where_is_object_time(struct Scene *scene, struct Object *ob, float ctime);
@@ -110,6 +109,17 @@ void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float min[3], float max[3]);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+
+/* sometimes min-max isnt enough, we need to loop over each point */
+void BKE_object_foreach_display_point(
+        struct Object *ob, float obmat[4][4],
+        void (*func_cb)(const float[3], void *), void *user_data);
+void BKE_scene_foreach_display_point(
+        struct Scene *scene,
+        struct View3D *v3d,
+        const short flag,
+        void (*func_cb)(const float[3], void *), void *user_data);
+
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 

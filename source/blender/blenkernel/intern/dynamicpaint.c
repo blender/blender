@@ -98,7 +98,8 @@ static int neighY[8] = {0,1,1, 1, 0,-1,-1,-1};
 /* paint effect default movement per frame in global units */
 #define EFF_MOVEMENT_PER_FRAME 0.05f
 /* initial wave time factor */
-#define WAVE_TIME_FAC 0.1
+#define WAVE_TIME_FAC (1.0f/24.f)
+#define WAVE_INIT_SIZE 5.0f
 /* drying limits */
 #define MIN_WETNESS 0.001f
 /* dissolve macro */
@@ -149,6 +150,7 @@ typedef struct PaintBakeData {
 	int *s_num;	/* num of realCoord samples */
 	Vec3f *realCoord;  /* current pixel center world-space coordinates for each sample
 					   *  ordered as (s_pos+s_num)*/
+	Bounds3D mesh_bounds;
 
 	/* adjacency info */
 	BakeNeighPoint *bNeighs; /* current global neighbour distances and directions, if required */
@@ -207,7 +209,7 @@ typedef struct PaintAdjData {
 static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
 	/* Add error to canvas ui info label */
-	BLI_snprintf(canvas->error, sizeof(canvas->error), string);
+	BLI_strncpy(canvas->error, string, sizeof(canvas->error));
 	return 0;
 }
 
@@ -279,13 +281,13 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 	}
 }
 
-int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int index)
+int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int output)
 {
 	char *name;
 
-	if (index == 0)
+	if (output == 0)
 		name = surface->output_name;
-	else if (index == 1)
+	else if (output == 1)
 		name = surface->output_name2;
 	else
 		return 0;
@@ -317,7 +319,7 @@ static int surface_duplicateOutputExists(void *arg, const char *name)
 	return 0;
 }
 
-void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
+static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
 	char name[64];
 	BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
@@ -969,13 +971,13 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->color_spread_speed = 1.0f;
 	surface->shrink_speed = 1.0f;
 
-	surface->wave_damping = 0.05f;
+	surface->wave_damping = 0.04f;
 	surface->wave_speed = 1.0f;
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20f;
 
-	BLI_snprintf(surface->image_output_path, sizeof(surface->image_output_path), "%sdynamicpaint", U.textudir);
-	BLI_cleanup_dir(NULL, surface->image_output_path);
+	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "dynamicpaint");
+
 	dynamicPaintSurface_setUniqueName(surface, "Surface");
 
 	surface->effector_weights = BKE_add_effector_weights(NULL);
@@ -1037,6 +1039,7 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			brush->particle_radius = 0.2f;
 			brush->particle_smooth = 0.05f;
 
+			brush->wave_type = MOD_DPAINT_WAVEB_CHANGE;
 			brush->wave_factor = 1.0f;
 			brush->wave_clamp = 0.0f;
 			brush->smudge_strength = 0.3f;
@@ -1472,11 +1475,12 @@ int dynamicPaint_resetSurface(DynamicPaintSurface *surface)
 }
 
 /* make sure allocated surface size matches current requirements */
-static void dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
+static int dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
 {
 	if (!surface->data || ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
-		dynamicPaint_resetSurface(surface);
+		return dynamicPaint_resetSurface(surface);
 	}
+	return 1;
 }
 
 
@@ -1611,6 +1615,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						/* paint layer */
 						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name);
+						/* if output layer is lost from a constructive modifier, re-add it */
+						if (!col && dynamicPaint_outputLayerExists(surface, ob, 0))
+							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name);
+						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
@@ -1631,6 +1639,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						/* wet layer */
 						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name2);
+						/* if output layer is lost from a constructive modifier, re-add it */
+						if (!col && dynamicPaint_outputLayerExists(surface, ob, 1))
+							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name2);
+						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
@@ -1789,7 +1801,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
 
 			/* make sure surface is valid */
-			dynamicPaint_checkSurfaceData(surface);
+			if (!dynamicPaint_checkSurfaceData(surface)) continue;
 
 			/* limit frame range */
 			CLAMP(current_frame, surface->start_frame, surface->end_frame);
@@ -1919,7 +1931,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 		/* Get closest edge to that subpixel on UV map	*/
 		{
 			float pixel[2], dist, t_dist;
-			int i, uindex[2], edge1_index, edge2_index,
+			int i, uindex[3], edge1_index, edge2_index,
 				e1_index, e2_index, target_face;
 			float closest_point[2], lambda, dir_vec[2];
 			int target_uv1, target_uv2, final_pixel[2], final_index;
@@ -2070,7 +2082,6 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 	PaintUVPoint *tempPoints = NULL;
 	Vec3f *tempWeights = NULL;
-	/* MVert *mvert = NULL; */ /* UNUSED */
 	MFace *mface = NULL;
 	MTFace *tface = NULL;
 	Bounds2D *faceBB = NULL;
@@ -2081,7 +2092,6 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) return setError(canvas, "Can't bake non-\"image sequence\" formats.");
 
 	numOfFaces = dm->getNumFaces(dm);
-	/* mvert = dm->getVertArray(dm); */ /* UNUSED */
 	mface = dm->getFaceArray(dm);
 
 	/* get uv layer */
@@ -2859,7 +2869,12 @@ static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index,
 /* applies given brush intersection value for wave surface */
 static void dynamicPaint_mixWaveHeight(PaintWavePoint *wPoint, DynamicPaintBrushSettings *brush, float isect_height)
 {
+	float isect_change = isect_height - wPoint->brush_isect;
 	int hit = 0;
+	/* intersection marked regardless of brush type or hit */
+	wPoint->brush_isect = isect_height;
+	wPoint->state = DPAINT_WAVE_ISECT_CHANGED;
+
 	isect_height *= brush->wave_factor;
 
 	/* determine hit depending on wave_factor */
@@ -2878,6 +2893,10 @@ static void dynamicPaint_mixWaveHeight(PaintWavePoint *wPoint, DynamicPaintBrush
 			wPoint->velocity = isect_height;
 		else if (brush->wave_type == MOD_DPAINT_WAVEB_REFLECT)
 			wPoint->state = DPAINT_WAVE_REFLECT_ONLY;
+		else if (brush->wave_type == MOD_DPAINT_WAVEB_CHANGE) {
+			if (isect_change < 0.0f)
+				wPoint->height += isect_change*brush->wave_factor;
+		}
 	}
 }
 
@@ -3235,7 +3254,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								/* Also cast a ray in opposite direction to make sure
 								*  point is at least surrounded by two brush faces */
-								mul_v3_fl(ray_dir, -1.0f);
+								negate_v3(ray_dir);
 								hit.index = -1;
 								hit.dist = 9999;
 
@@ -3386,7 +3405,8 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							velocity_val = len_v3(velocity);
 
 							/* if brush has smudge enabled store brush velocity */
-							if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+							if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
+								brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 								copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 								mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 								bData->brush_velocity[index*4+3] = velocity_val;
@@ -3680,7 +3700,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						velocity_val = len_v3(velocity);
 
 						/* store brush velocity for smudge */
-						if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
+							brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 							copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 							mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 							bData->brush_velocity[index*4+3] = velocity_val;
@@ -3778,7 +3799,8 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 				velocity_val = len_v3(velocity);
 
 				/* store brush velocity for smudge */
-				if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+				if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && 
+					brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 					copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 					mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 					bData->brush_velocity[index*4+3] = velocity_val;
@@ -4139,13 +4161,13 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				totalAlpha += ePoint->e_alpha;
 
 				/* do color mixing */
-				if (color_mix) mixColors(pPoint->e_color, pPoint->e_alpha, ePoint->e_color, color_mix);
+				if (color_mix > MIN_WETNESS) mixColors(pPoint->e_color, pPoint->e_alpha, ePoint->e_color, color_mix);
 
 				/* Check if neighbouring point has higher wetness,
 				*  if so, add it's wetness to this point as well*/
 				if (ePoint->wetness <= pPoint->wetness) continue;
 				w_factor = ePoint->wetness/numOfNeighs * (ePoint->wetness - pPoint->wetness) * speed_scale;
-				if (w_factor <= 0.0f) continue;
+				if (w_factor <= MIN_WETNESS) continue;
 
 				if (ePoint->e_alpha > pPoint->e_alpha) {
 					alphaAdd = ePoint->e_alpha/numOfNeighs * (ePoint->wetness*ePoint->e_alpha - pPoint->wetness*pPoint->e_alpha) * speed_scale;
@@ -4292,6 +4314,9 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 	float dt, min_dist, damp_factor;
 	float wave_speed = surface->wave_speed;
 	double average_dist = 0.0f;
+	Bounds3D *mb = &sData->bData->mesh_bounds;
+	float canvas_size = MAX3((mb->max[0]-mb->min[0]), (mb->max[1]-mb->min[1]), (mb->max[2]-mb->min[2]));
+	float wave_scale = WAVE_INIT_SIZE/canvas_size;
 
 	/* allocate memory */
 	PaintWavePoint *prevPoint = MEM_mallocN(sData->total_points*sizeof(PaintWavePoint), "Temp previous points for wave simulation");
@@ -4307,11 +4332,11 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 			average_dist += bNeighs[sData->adj_data->n_index[index]+i].dist;
 		}
 	}
-	average_dist  /= sData->adj_data->total_targets;
+	average_dist  *= wave_scale/sData->adj_data->total_targets;
 
 	/* determine number of required steps */
 	steps = (int)ceil((WAVE_TIME_FAC*timescale*surface->wave_timescale) / (average_dist/wave_speed/3));
-	CLAMP(steps, 1, 15);
+	CLAMP(steps, 1, 20);
 	timescale /= steps;
 
 	/* apply simulation values for final timescale */
@@ -4332,12 +4357,12 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 			int numOfN = 0, numOfRN = 0;
 			int i;
 
-			if (wPoint->state) continue;
+			if (wPoint->state > 0) continue;
 
 			/* calculate force from surrounding points */
 			for (i=0; i<numOfNeighs; i++) {
 				int n_index = sData->adj_data->n_index[index]+i;
-				float dist = bNeighs[n_index].dist;
+				float dist = bNeighs[n_index].dist*wave_scale;
 				PaintWavePoint *tPoint = &prevPoint[sData->adj_data->n_target[n_index]];
 
 				if (!dist || tPoint->state>0) continue;
@@ -4381,6 +4406,10 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 	#pragma omp parallel for schedule(static)
 	for (index = 0; index < sData->total_points; index++) {
 		PaintWavePoint *wPoint = &((PaintWavePoint*)sData->type_data)[index];
+		/* if there wasnt any brush intersection, clear isect height */
+		if (wPoint->state == DPAINT_WAVE_NONE) {
+			wPoint->brush_isect = 0.0f;
+		}
 		wPoint->state = DPAINT_WAVE_NONE;
 	}
 
@@ -4594,10 +4623,11 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 	/*
 	*	Make a transformed copy of canvas derived mesh vertices to avoid recalculation.
 	*/
-	#pragma omp parallel for schedule(static)
+	bData->mesh_bounds.valid = 0;
 	for (index=0; index<canvasNumOfVerts; index++) {
 		copy_v3_v3(canvas_verts[index].v, mvert[index].co);
 		mul_m4_v3(ob->obmat, canvas_verts[index].v);
+		boundInsert(&bData->mesh_bounds, canvas_verts[index].v);
 	}
 
 	/*
@@ -4784,7 +4814,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					BrushMaterials bMats = {0};
 
 					/* calculate brush speed vectors if required */
-					if (brush->flags & MOD_DPAINT_DO_SMUDGE) {
+					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {
 						bData->brush_velocity = MEM_callocN(sData->total_points*sizeof(float)*4, "Dynamic Paint brush velocity");
 						/* init adjacency data if not already */
 						if (!sData->adj_data)
@@ -4834,7 +4864,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 
 					/* process special brush effects, like smudge */
 					if (bData->brush_velocity) {
-						if (brush->flags & MOD_DPAINT_DO_SMUDGE)
+						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE)
 							dynamicPaint_doSmudge(surface, brush, timescale);
 						MEM_freeN(bData->brush_velocity);
 						bData->brush_velocity = NULL;

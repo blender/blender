@@ -592,7 +592,8 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
  * not clear yet so we postpone that. */
 
 void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
-void uiEndPanels(const struct bContext *C, struct ARegion *ar);
+void uiEndPanels(const struct bContext *C, struct ARegion *ar, int *x, int *y);
+void uiDrawPanels(const struct bContext *C, struct ARegion *ar);
 
 struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);
@@ -688,6 +689,7 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 void uiLayoutOperatorButs(const struct bContext *C, struct uiLayout *layout, struct wmOperator *op, int (*check_prop)(struct PropertyRNA *), const char label_align, const short flag);
+struct MenuType *uiButGetMenuType(uiBut *but);
 
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, int active);

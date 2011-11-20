@@ -40,7 +40,11 @@ typedef union IDPropertyTemplate {
 	int i;
 	float f;
 	double d;
-	char *str;
+	struct {
+		char *str;
+		short len;
+		char subtype;
+	} string;
 	struct ID *id;
 	struct {
 		short type;
@@ -183,7 +187,7 @@ Note that you MUST either attach the id property to an id property group with
 IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
 a memory leak.
 */
-struct IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name);
+struct IDProperty *IDP_New(const int type, const IDPropertyTemplate *val, const char *name);
 
 /** \note this will free all child properties of list arrays and groups!
   Also, note that this does NOT unlink anything!  Plus it doesn't free

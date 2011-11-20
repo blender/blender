@@ -634,12 +634,51 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui, "inner_key_sel")
             colsub.row().prop(ui, "blend")
 
-            ui = theme.user_interface
             col.separator()
             col.separator()
 
-            split = col.split(percentage=0.93)
-            split.prop(ui, "icon_file")
+            ui = theme.user_interface
+            col.label("Icons:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_file")
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_alpha")
+
+            col.separator()
+            col.separator()
+
+            ui = theme.user_interface.panel
+            col.label("Panels:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            rowsub = colsub.row()
+            rowsub.prop(ui, "show_header")
+            rowsub.label()
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "header")
 
             layout.separator()
             layout.separator()
@@ -765,16 +804,18 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.label(text="Orbit options")
             if input_prefs.view_rotate_method == 'TRACKBALL':
                 layout.prop(input_prefs, "ndof_roll_invert_axis")
-                layout.prop(input_prefs, "ndof_tilt_invert_axis")
-                layout.prop(input_prefs, "ndof_rotate_invert_axis")
-            else:
-                layout.prop(input_prefs, "ndof_orbit_invert_axes")
+            layout.prop(input_prefs, "ndof_tilt_invert_axis")
+            layout.prop(input_prefs, "ndof_rotate_invert_axis")
+            layout.prop(input_prefs, "ndof_zoom_invert")
 
             layout.separator()
             layout.label(text="Pan options")
             layout.prop(input_prefs, "ndof_panx_invert_axis")
             layout.prop(input_prefs, "ndof_pany_invert_axis")
             layout.prop(input_prefs, "ndof_panz_invert_axis")
+
+            layout.label(text="Zoom options")
+            layout.prop(input_prefs, "ndof_zoom_updown")
 
             layout.separator()
             layout.label(text="Fly options")
@@ -889,6 +930,12 @@ class USERPREF_PT_addons(Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
+    _support_icon_mapping = {
+        'OFFICIAL': 'FILE_BLEND',
+        'COMMUNITY': 'POSE_DATA',
+        'TESTING': 'MOD_EXPLODE',
+        }
+
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
@@ -929,11 +976,12 @@ class USERPREF_PT_addons(Panel):
         split = layout.split(percentage=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
-        col.label(text="Categories")
-        col.prop(context.window_manager, "addon_filter", expand=True)
 
         col.label(text="Supported Level")
         col.prop(context.window_manager, "addon_support", expand=True)
+
+        col.label(text="Categories")
+        col.prop(context.window_manager, "addon_filter", expand=True)
 
         col = split.column()
 
@@ -993,12 +1041,7 @@ class USERPREF_PT_addons(Panel):
                     rowsub.label(icon='ERROR')
 
                 # icon showing support level.
-                if info["support"] == 'OFFICIAL':
-                    rowsub.label(icon='FILE_BLEND')
-                elif info["support"] == 'COMMUNITY':
-                    rowsub.label(icon='POSE_DATA')
-                else:
-                    rowsub.label(icon='QUESTION')
+                rowsub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name

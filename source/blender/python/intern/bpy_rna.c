@@ -64,6 +64,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_main.h"
 #include "BKE_idcode.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
@@ -73,7 +74,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 
-#include "../generic/IDProp.h" /* for IDprop lookups */
+#include "../generic/idprop_py_api.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_INTERNATIONAL
@@ -598,7 +599,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	int subtype, totdim;
 	int len;
 	int is_thick;
-	int flag= RNA_property_flag(prop);
+	const int flag= RNA_property_flag(prop);
 
 	/* disallow dynamic sized arrays to be wrapped since the size could change
 	 * to a size mathutils does not support */
@@ -614,7 +615,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		if (!is_thick)
 			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the mathutils PyObject */
 
-		switch(RNA_property_subtype(prop)) {
+		switch(subtype) {
 		case PROP_ALL_VECTOR_SUBTYPES:
 			if (len>=2 && len <= 4) {
 				if (is_thick) {
@@ -902,7 +903,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	}
 
 	/* if a pointer, try to print name of pointer target too */
-	if (RNA_property_type(self->prop) == PROP_POINTER) {
+	if (type == PROP_POINTER) {
 		ptr= RNA_property_pointer_get(&self->ptr, self->prop);
 		name= RNA_struct_name_get_alloc(&ptr, NULL, 0, NULL);
 
@@ -916,7 +917,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 			return ret;
 		}
 	}
-	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+	if (type == PROP_COLLECTION) {
 		PointerRNA r_ptr;
 		if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
 			return PyUnicode_FromFormat("<bpy_%.200s, %.200s>",
@@ -1301,7 +1302,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
-	int type= RNA_property_type(prop);
+	const int type= RNA_property_type(prop);
 
 	if (RNA_property_array_check(prop)) {
 		return pyrna_py_from_array(ptr, prop);
@@ -1320,7 +1321,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	case PROP_STRING:
 	{
-		int subtype= RNA_property_subtype(prop);
+		const int subtype= RNA_property_subtype(prop);
 		const char *buf;
 		int buf_len;
 		char buf_fixed[32];
@@ -1328,14 +1329,22 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		buf= RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed), &buf_len);
 #ifdef USE_STRING_COERCE
 		/* only file paths get special treatment, they may contain non utf-8 chars */
-		if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+		if (subtype == PROP_BYTESTRING) {
+			ret= PyBytes_FromStringAndSize(buf, buf_len);
+		}
+		else if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
 			ret= PyC_UnicodeFromByteAndSize(buf, buf_len);
 		}
 		else {
 			ret= PyUnicode_FromStringAndSize(buf, buf_len);
 		}
 #else // USE_STRING_COERCE
-		ret= PyUnicode_FromStringAndSize(buf, buf_len);
+		if (subtype == PROP_BYTESTRING) {
+			ret= PyBytes_FromStringAndSize(buf, buf_len);
+		}
+		else {
+			ret= PyUnicode_FromStringAndSize(buf, buf_len);
+		}
 #endif // USE_STRING_COERCE
 		if (buf_fixed != buf) {
 			MEM_freeN((void *)buf);
@@ -1450,7 +1459,7 @@ static PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
 static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
 {
 	/* XXX hard limits should be checked here */
-	int type= RNA_property_type(prop);
+	const int type= RNA_property_type(prop);
 
 
 	if (RNA_property_array_check(prop)) {
@@ -1534,53 +1543,91 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		}
 		case PROP_STRING:
 		{
+			const int subtype= RNA_property_subtype(prop);
 			const char *param;
-#ifdef USE_STRING_COERCE
-			PyObject *value_coerce= NULL;
-			int subtype= RNA_property_subtype(prop);
-			if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-				/* TODO, get size */
-				param= PyC_UnicodeAsByte(value, &value_coerce);
-			}
-			else {
-				param= _PyUnicode_AsString(value);
-#ifdef WITH_INTERNATIONAL
-				if (subtype == PROP_TRANSLATE) {
-					param= IFACE_(param);
-				}
-#endif // WITH_INTERNATIONAL
 
-			}
-#else // USE_STRING_COERCE
-			param= _PyUnicode_AsString(value);
-#endif // USE_STRING_COERCE
+			if (subtype == PROP_BYTESTRING) {
 
-			if (param==NULL) {
-				if (PyUnicode_Check(value)) {
-					/* there was an error assigning a string type,
-					 * rather than setting a new error, prefix the existing one
-					 */
-					PyC_Err_Format_Prefix(PyExc_TypeError,
-					                      "%.200s %.200s.%.200s error assigning string",
-										  error_prefix, RNA_struct_identifier(ptr->type),
-										  RNA_property_identifier(prop));
+				/* Byte String */
+
+				param= PyBytes_AsString(value);
+
+				if (param==NULL) {
+					if (PyBytes_Check(value)) {
+						/* there was an error assigning a string type,
+						 * rather than setting a new error, prefix the existing one
+						 */
+						PyC_Err_Format_Prefix(PyExc_TypeError,
+						                      "%.200s %.200s.%.200s error assigning bytes",
+						                      error_prefix, RNA_struct_identifier(ptr->type),
+						                      RNA_property_identifier(prop));
+					}
+					else {
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s %.200s.%.200s expected a bytes type, not %.200s",
+						             error_prefix, RNA_struct_identifier(ptr->type),
+						             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					}
+
+					return -1;
 				}
 				else {
-					PyErr_Format(PyExc_TypeError,
-								 "%.200s %.200s.%.200s expected a string type, not %.200s",
-								 error_prefix, RNA_struct_identifier(ptr->type),
-								 RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					/* same as unicode */
+					if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+					else        RNA_property_string_set(ptr, prop, param);
 				}
-
-				return -1;
 			}
 			else {
-				if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
-				else        RNA_property_string_set(ptr, prop, param);
-			}
+
+				/* Unicode String */
+
 #ifdef USE_STRING_COERCE
-			Py_XDECREF(value_coerce);
+				PyObject *value_coerce= NULL;
+				if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+					/* TODO, get size */
+					param= PyC_UnicodeAsByte(value, &value_coerce);
+				}
+				else {
+					param= _PyUnicode_AsString(value);
+#ifdef WITH_INTERNATIONAL
+					if (subtype == PROP_TRANSLATE) {
+						param= IFACE_(param);
+					}
+#endif // WITH_INTERNATIONAL
+
+				}
+#else // USE_STRING_COERCE
+				param= _PyUnicode_AsString(value);
 #endif // USE_STRING_COERCE
+
+				if (param==NULL) {
+					if (PyUnicode_Check(value)) {
+						/* there was an error assigning a string type,
+						 * rather than setting a new error, prefix the existing one
+						 */
+						PyC_Err_Format_Prefix(PyExc_TypeError,
+						                      "%.200s %.200s.%.200s error assigning string",
+						                      error_prefix, RNA_struct_identifier(ptr->type),
+						                      RNA_property_identifier(prop));
+					}
+					else {
+						PyErr_Format(PyExc_TypeError,
+						             "%.200s %.200s.%.200s expected a string type, not %.200s",
+						             error_prefix, RNA_struct_identifier(ptr->type),
+						             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+					}
+
+					return -1;
+				}
+				else {
+					/* same as bytes */
+					if (data)   *((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+					else        RNA_property_string_set(ptr, prop, param);
+				}
+#ifdef USE_STRING_COERCE
+				Py_XDECREF(value_coerce);
+#endif // USE_STRING_COERCE
+			}
 			break;
 		}
 		case PROP_ENUM:
@@ -2050,6 +2097,84 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
 }
 /* static PyObject *pyrna_prop_array_subscript_str(BPy_PropertyRNA *self, char *keyname) */
 
+/* special case: bpy.data.objects["some_id_name", "//some_lib_name.blend"]
+ * also for:     bpy.data.objects.get(("some_id_name", "//some_lib_name.blend"), fallback)  */
+static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *self, PyObject *key, const char *err_prefix, const short err_not_found)
+{
+	char *keyname;
+
+	/* first validate the args, all we know is that they are a tuple */
+	if (PyTuple_GET_SIZE(key) != 2) {
+		PyErr_Format(PyExc_KeyError,
+		             "%s: tuple key must be a pair, not size %d",
+		             err_prefix, PyTuple_GET_SIZE(key));
+		return NULL;
+	}
+	else if (self->ptr.type != &RNA_BlendData) {
+		PyErr_Format(PyExc_KeyError,
+		             "%s: is only valid for bpy.data collections, not %.200s",
+		             err_prefix, RNA_struct_identifier(self->ptr.type));
+		return NULL;
+	}
+	else if ((keyname= _PyUnicode_AsString(PyTuple_GET_ITEM(key, 0))) == NULL) {
+		PyErr_Format(PyExc_KeyError,
+		             "%s: id must be a string, not %.200s",
+		             err_prefix, Py_TYPE(PyTuple_GET_ITEM(key, 0))->tp_name);
+		return NULL;
+	}
+	else {
+		PyObject *keylib= PyTuple_GET_ITEM(key, 1);
+		Library *lib;
+		PyObject *ret= NULL;
+
+		if (keylib == Py_None) {
+			lib= NULL;
+		}
+		else if (PyUnicode_Check(keylib)) {
+			Main *bmain= self->ptr.data;
+			const char *keylib_str= _PyUnicode_AsString(keylib);
+			lib= BLI_findstring(&bmain->library, keylib_str, offsetof(Library, name));
+			if (lib == NULL) {
+				if (err_not_found) {
+					PyErr_Format(PyExc_KeyError,
+								 "%s: lib name '%.240s' "
+								 "does not reference a valid library",
+								 err_prefix, keylib_str);
+				}
+
+				return NULL;
+			}
+		}
+		else {
+			PyErr_Format(PyExc_KeyError,
+			             "%s: lib must be a sting or None, not %.200s",
+			             err_prefix, Py_TYPE(keylib)->tp_name);
+			return NULL;
+		}
+
+		/* lib is either a valid poniter or NULL,
+		 * either way can do direct comparison with id.lib */
+
+		RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+			ID *id= itemptr.data; /* always an ID */
+			if (id->lib == lib && (strncmp(keyname, id->name+2, sizeof(id->name)-2) == 0)) {
+				ret= pyrna_struct_CreatePyObject(&itemptr);
+				break;
+			}
+		}
+		RNA_PROP_END;
+
+		/* we may want to fail silently as with collection.get() */
+		if ((ret == NULL) && err_not_found) {
+			/* only runs for getitem access so use fixed string */
+			PyErr_SetString(PyExc_KeyError,
+			                "bpy_prop_collection[key, lib]: not found");
+		}
+
+		return ret;
+	}
+}
+
 static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py_ssize_t start, Py_ssize_t stop)
 {
 	CollectionPropertyIterator rna_macro_iter;
@@ -2219,6 +2344,10 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 				return pyrna_prop_collection_subscript_slice(self, start, stop);
 			}
 		}
+	}
+	else if (PyTuple_Check(key)) {
+		/* special case, for ID datablocks we */
+		return pyrna_prop_collection_subscript_str_lib_pair(self, key, "bpy_prop_collection[id, lib]", TRUE);
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
@@ -2736,7 +2865,7 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
 		return NULL;
 	}
 
-	return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
+	return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
 }
 
 static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObject *value)
@@ -2751,7 +2880,7 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, key)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (group==NULL) {
 		PyErr_SetString(PyExc_TypeError, "bpy_struct[key]= val: id properties not supported for this type");
@@ -3440,7 +3569,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __setattr__ must be a string");
@@ -3600,7 +3729,7 @@ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pynam
 	if (rna_disallow_writes && rna_id_write_error(&self->ptr, pyname)) {
 		return -1;
 	}
-#endif // USE_STRING_COERCE
+#endif // USE_PEDANTIC_WRITE
 
 	if (name == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_prop: __setattr__ must be a string");
@@ -3846,7 +3975,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 		idprop= IDP_GetPropertyFromGroup(group, key);
 
 		if (idprop) {
-			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
+			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
 		}
 	}
 
@@ -3869,6 +3998,7 @@ static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 	return PyLong_FromVoidPtr(self->ptr.data);
 }
 
+/* TODO, get (string, lib) pair */
 PyDoc_STRVAR(pyrna_prop_collection_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
@@ -3885,16 +4015,31 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
 {
 	PointerRNA newptr;
 
-	const char *key;
+	PyObject *key_ob;
 	PyObject* def= Py_None;
 
 	PYRNA_PROP_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
+	if (!PyArg_ParseTuple(args, "O|O:get", &key_ob, &def))
 		return NULL;
 
-	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, key, &newptr))
-		return pyrna_struct_CreatePyObject(&newptr);
+	if (PyUnicode_Check(key_ob)) {
+		const char *key= _PyUnicode_AsString(key_ob);
+
+		if (RNA_property_collection_lookup_string(&self->ptr, self->prop, key, &newptr))
+			return pyrna_struct_CreatePyObject(&newptr);
+	}
+	else if (PyTuple_Check(key_ob)) {
+		PyObject *ret= pyrna_prop_collection_subscript_str_lib_pair(self, key_ob, "bpy_prop_collection.get((id, lib))", FALSE);
+		if (ret) {
+			return ret;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_KeyError,
+		             "bpy_prop_collection.get(key, ...): key must be a string or tuple, not %.200s",
+		             Py_TYPE(key_ob)->tp_name);
+	}
 
 	return Py_INCREF(def), def;
 }
@@ -4365,8 +4510,8 @@ static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UN
 static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
-	int type= RNA_property_type(prop);
-	int flag= RNA_property_flag(prop);
+	const int type= RNA_property_type(prop);
+	const int flag= RNA_property_flag(prop);
 
 	if (RNA_property_array_check(prop)) {
 		int a, len;
@@ -4442,7 +4587,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 		{
 			char *data_ch;
 			PyObject *value_coerce= NULL;
-			int subtype= RNA_property_subtype(prop);
+			const int subtype= RNA_property_subtype(prop);
 
 			if (flag & PROP_THICK_WRAP)
 				data_ch= (char *)data;
@@ -4450,14 +4595,22 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				data_ch= *(char **)data;
 
 #ifdef USE_STRING_COERCE
-			if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+			if (subtype == PROP_BYTESTRING) {
+				ret= PyBytes_FromString(data_ch);
+			}
+			else if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
 				ret= PyC_UnicodeFromByte(data_ch);
 			}
 			else {
 				ret= PyUnicode_FromString(data_ch);
 			}
 #else
-			ret= PyUnicode_FromString(data_ch);
+			if (subtype == PROP_BYTESTRING) {
+				ret= PyBytes_FromString(buf);
+			}
+			else {
+				ret= PyUnicode_FromString(data_ch);
+			}
 #endif
 
 #ifdef USE_STRING_COERCE

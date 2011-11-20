@@ -143,19 +143,16 @@ static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemp
 	node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
-void register_node_type_cmp_alphaover(ListBase *lb)
+void register_node_type_cmp_alphaover(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_ALPHAOVER, "AlphaOver", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_ALPHAOVER, "AlphaOver", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_alphaover_in, cmp_node_alphaover_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_init(&ntype, node_alphaover_init);
 	node_type_storage(&ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_alphaover);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

@@ -47,6 +47,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -1031,21 +1032,17 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 				rv3d->view = RV3D_VIEW_USER;
 		
 				if (U.flag & USER_TRACKBALL) {
-					const int invert_roll = U.ndof_flag & NDOF_ROLL_INVERT_AXIS;
-					const int invert_tilt = U.ndof_flag & NDOF_TILT_INVERT_AXIS;
-					const int invert_rot = U.ndof_flag & NDOF_ROTATE_INVERT_AXIS;
-
 					float rot[4];
 					float axis[3];
 					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
 
-					if (invert_roll)
+					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
 						axis[2] = -axis[2];
 
-					if (invert_tilt)
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						axis[0] = -axis[0];
 
-					if (invert_rot)
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
 
 					// transform rotation axis from view to world coordinates
@@ -1061,8 +1058,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 				} else {
 					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-					const int invert = U.ndof_flag & NDOF_ORBIT_INVERT_AXES;
-
 					float angle, rot[4];
 					float xvec[3] = {1,0,0};
 		
@@ -1071,7 +1066,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		
 					/* Perform the up/down rotation */
 					angle = rot_sensitivity * dt * ndof->rvec[0];
-					if (invert)
+					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
 						angle = -angle;
 					rot[0] = cos(angle);
 					mul_v3_v3fl(rot+1, xvec, sin(angle));
@@ -1079,7 +1074,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		
 					/* Perform the orbital rotation */
 					angle = rot_sensitivity * dt * ndof->rvec[1];
-					if (invert)
+					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						angle = -angle;
 		
 					// update the onscreen doo-dad
@@ -1164,23 +1159,19 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 			const float vertical_sensitivity = 0.4f;
 			const float lateral_sensitivity = 0.6f;
 
-			const int invert_panx = U.ndof_flag & NDOF_PANX_INVERT_AXIS;
-			const int invert_pany = U.ndof_flag & NDOF_PANY_INVERT_AXIS;
-			const int invert_panz = U.ndof_flag & NDOF_PANZ_INVERT_AXIS;
-
 			float pan_vec[3];
 
-			if (invert_panx)
+			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
 				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
 			else
 				pan_vec[0] = lateral_sensitivity * ndof->tvec[0];
 
-			if (invert_panz)
+			if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS)
 				pan_vec[1] = -vertical_sensitivity * ndof->tvec[1];
 			else
 				pan_vec[1] = vertical_sensitivity * ndof->tvec[1];
 
-			if (invert_pany)
+			if (U.ndof_flag & NDOF_PANY_INVERT_AXIS)
 				pan_vec[2] = -forward_sensitivity * ndof->tvec[2];
 			else
 				pan_vec[2] = forward_sensitivity * ndof->tvec[2];
@@ -2275,7 +2266,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
 
-	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
+	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
 
 	/* 4px is just a little room from the edge of the area */
 	xfac= (float)ar->winx / (float)(size[0] + 4);
@@ -2543,7 +2534,7 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	float size[2];
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
-	view3d_viewborder_size_get(scene, v3d->camera, ar, size);
+	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
 
 	rv3d->camzoom= BKE_screen_view3d_zoom_from_fac((float)im_width/size[0]);
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
@@ -2954,7 +2945,7 @@ static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 
-	return ED_view3D_background_image_add(v3d);
+	return ED_view3D_background_image_new(v3d);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3024,16 +3015,13 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 /* ***** remove image operator ******* */
 static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
-	View3D *vd = CTX_wm_view3d(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	int index = RNA_int_get(op->ptr, "index");
-	BGpic *bgpic_rem= BLI_findlink(&vd->bgpicbase, index);
+	BGpic *bgpic_rem= BLI_findlink(&v3d->bgpicbase, index);
 
 	if(bgpic_rem) {
-		BLI_remlink(&vd->bgpicbase, bgpic_rem);
-		if(bgpic_rem->ima) 	id_us_min(&bgpic_rem->ima->id);
-		if(bgpic_rem->clip) id_us_min(&bgpic_rem->clip->id);
-		MEM_freeN(bgpic_rem);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
+		ED_view3D_background_image_remove(v3d, bgpic_rem);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -3526,8 +3514,12 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 {
 	ED_view3d_from_m4(ob->obmat, ofs, quat, dist);
 
-	if (lens) {
-		ED_view3d_ob_clip_range_get(ob, lens, NULL, NULL);
+	if(lens) {
+		CameraParams params;
+
+		camera_params_init(&params);
+		camera_params_from_object(&params, ob);
+		*lens= params.lens;
 	}
 }
 
@@ -3539,7 +3531,7 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 	object_apply_mat4(ob, mat, TRUE, TRUE);
 }
 
-BGpic *ED_view3D_background_image_add(View3D *v3d)
+BGpic *ED_view3D_background_image_new(View3D *v3d)
 {
 	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
 
@@ -3548,8 +3540,22 @@ BGpic *ED_view3D_background_image_add(View3D *v3d)
 	bgpic->iuser.fie_ima= 2;
 	bgpic->iuser.ok= 1;
 	bgpic->view= 0; /* 0 for all */
+	bgpic->flag |= V3D_BGPIC_EXPANDED;
 
 	BLI_addtail(&v3d->bgpicbase, bgpic);
 
 	return bgpic;
+}
+
+void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic)
+{
+	BLI_remlink(&v3d->bgpicbase, bgpic);
+
+	if(bgpic->ima)
+		id_us_min(&bgpic->ima->id);
+
+	if(bgpic->clip)
+		id_us_min(&bgpic->clip->id);
+
+	MEM_freeN(bgpic);
 }

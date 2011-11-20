@@ -106,7 +106,7 @@ def operator_path_is_undo(context, data_path):
     # luckily we don't do this!
     #
     # When we cant find the data owner assume no undo is needed.
-    data_path_head, data_path_sep, data_path_tail = data_path.rpartition(".")
+    data_path_head = data_path.rpartition(".")[0]
 
     if not data_path_head:
         return False

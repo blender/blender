@@ -597,7 +597,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 {
 	if(*properties==NULL) {
 		IDPropertyTemplate val = {0};
-		*properties= IDP_New(IDP_GROUP, val, "wmOpItemProp");
+		*properties= IDP_New(IDP_GROUP, &val, "wmOpItemProp");
 	}
 
 	if(*ptr==NULL) {
@@ -1362,7 +1362,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 				
 				/* check for hotkey */
 				if(len < 256-6) {
-					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, &name[len+1], 256-len-1))
+					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE, &name[len+1], 256-len-1))
 						name[len]= '|';
 				}
 				

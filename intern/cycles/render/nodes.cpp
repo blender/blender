@@ -1003,11 +1003,12 @@ void VelvetBsdfNode::compile(OSLCompiler& compiler)
 DiffuseBsdfNode::DiffuseBsdfNode()
 {
 	closure = CLOSURE_BSDF_DIFFUSE_ID;
+	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
 }
 
 void DiffuseBsdfNode::compile(SVMCompiler& compiler)
 {
-	BsdfNode::compile(compiler, NULL, NULL);
+	BsdfNode::compile(compiler, input("Roughness"), NULL);
 }
 
 void DiffuseBsdfNode::compile(OSLCompiler& compiler)

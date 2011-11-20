@@ -69,7 +69,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 	if(fluidmd)
 	{
 		FluidsimSettings *fss = MEM_callocN(sizeof(FluidsimSettings), "fluidsimsettings");
-		
+
 		fluidmd->fss = fss;
 		
 		if(!fss)
@@ -102,9 +102,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		// fluid/inflow settings
 		// fss->iniVel --> automatically set to 0
 
-		/*  elubie: changed this to default to the same dir as the render output
-		to prevent saving to C:\ on Windows */
-		BLI_strncpy(fss->surfdataPath, BLI_temporary_dir(), FILE_MAX);
+		modifier_path_init(fss->surfdataPath, sizeof(fss->surfdataPath), "fluid_cache");
 
 		// first init of bounding box
 		// no bounding box needed
@@ -445,11 +443,11 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	gzclose(gzf);
 }
 
-static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
-	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	char targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
 	MFace *mface;
@@ -462,27 +460,22 @@ static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData
 		displaymode = fss->renderDisplayMode;
 	}
 
-	BLI_strncpy(targetDir, fss->surfdataPath, sizeof(targetDir));
-
-	// use preview or final mesh?
-	if(displaymode==1)
-	{
-		// just display original object
+	switch (displaymode) {
+	case 1:
+		/* just display original object */
 		return NULL;
-	}
-	else if(displaymode==2)
-	{
-		strcat(targetDir,"fluidsurface_preview_####");
-	}
-	else
-	{ // 3
-		strcat(targetDir,"fluidsurface_final_####");
+	case 2:
+		/* use preview mesh */
+		BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_PREVIEW_OBJ_FNAME);
+		break;
+	default: /* 3 */
+		/* 3. use final mesh */
+		BLI_join_dirfile(targetFile, sizeof(targetFile), fss->surfdataPath, OB_FLUIDSIM_SURF_FINAL_OBJ_FNAME);
+		break;
 	}
 
-	BLI_path_abs(targetDir, G.main->name);
-	BLI_path_frame(targetDir, curFrame, 0); // fixed #frame-no
-
-	BLI_snprintf(targetFile, sizeof(targetFile), "%s.bobj.gz", targetDir);
+	BLI_path_abs(targetFile, modifier_path_relbase(ob));
+	BLI_path_frame(targetFile, curFrame, 0); // fixed #frame-no
 
 	dm = fluidsim_read_obj(targetFile);
 
@@ -538,7 +531,7 @@ static DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData
 #endif // WITH_MOD_FLUID
 
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
-						Object *UNUSED(ob),
+						Object *ob,
 						DerivedMesh *dm,
 						int useRenderParams, int UNUSED(isFinalCalc))
 {
@@ -571,7 +564,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	
 	/* try to read from cache */
 	/* if the frame is there, fine, otherwise don't do anything */
-	if((result = fluidsim_read_cache(dm, fluidmd, framenr, useRenderParams)))
+	if((result = fluidsim_read_cache(ob, dm, fluidmd, framenr, useRenderParams)))
 		return result;
 	
 	return dm;

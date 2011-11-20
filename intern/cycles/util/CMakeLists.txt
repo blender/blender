@@ -11,7 +11,7 @@ set(SRC
 	util_dynlib.cpp
 	util_md5.cpp
 	util_memarena.cpp
-	util_opencl.c
+	util_opencl.cpp
 	util_path.cpp
 	util_string.cpp
 	util_system.cpp

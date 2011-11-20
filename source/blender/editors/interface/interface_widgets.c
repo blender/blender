@@ -810,6 +810,11 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 }
 
 
+static int ui_but_draw_menu_icon(uiBut *but)
+{
+	return (but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP);
+}
+
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
@@ -888,8 +893,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 		else
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
-	
-	if((but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP)) {
+
+	if (ui_but_draw_menu_icon(but)) {
 		xs= rect->xmax-17;
 		ys= (rect->ymin+rect->ymax- height)/2;
 		
@@ -1139,7 +1144,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	/* part text right aligned */
 	if(cpoin) {
 		fstyle->align= UI_STYLE_TEXT_RIGHT;
-		rect->xmax-=5;
+		rect->xmax -= ui_but_draw_menu_icon(but) ? UI_DPI_ICON_SIZE : 5;
 		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}
@@ -1612,7 +1617,7 @@ static void widget_state_option_menu(uiWidgetType *wt, int state)
 	if(state & UI_SELECT)
 		UI_GetThemeColor4ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
 	else {
-		bTheme *btheme= U.themes.first; /* XXX */
+		bTheme *btheme= UI_GetTheme(); /* XXX */
 
 		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
 	}
@@ -2755,7 +2760,7 @@ static void widget_disabled(rcti *rect)
 
 static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	static uiWidgetType wt;
 	
 	/* defaults */
@@ -2940,7 +2945,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 /* conversion from old to new buttons, so still messy */
 void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	ThemeUI *tui= &btheme->tui;
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;

@@ -2009,7 +2009,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
-	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 0);
+	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, FALSE, FALSE);
 }
 
 void CustomData_bmesh_free_block(CustomData *data, void **block)

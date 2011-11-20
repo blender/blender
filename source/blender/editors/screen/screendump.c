@@ -219,6 +219,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 /* *************** screenshot movie job ************************* */
 
 typedef struct ScreenshotJob {
+	Main *bmain;
 	Scene *scene;
 	unsigned int *dumprect;
 	int x, y, dumpsx, dumpsy;
@@ -297,7 +298,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, cfra, rd.imtype, rd.scemode & R_EXTENSION, TRUE);
+				BKE_makepicstring(name, rd.pic, sj->bmain->name, cfra, rd.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
 				ok= BKE_write_ibuf(ibuf, name, rd.imtype, rd.subimtype, rd.quality);
@@ -355,6 +356,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 		sj->dumpsx= curarea->totrct.xmax - sj->x;
 		sj->dumpsy= curarea->totrct.ymax - sj->y;
 	}
+	sj->bmain= CTX_data_main(C);
 	sj->scene= CTX_data_scene(C);
 
 	BKE_reports_init(&sj->reports, RPT_PRINT);

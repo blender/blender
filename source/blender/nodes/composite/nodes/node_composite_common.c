@@ -119,6 +119,9 @@ static void *group_initexec(bNode *node)
 	bNodeSocket *sock;
 	bNodeStack *ns;
 	
+	if (!ngroup)
+		return NULL;
+	
 	/* initialize the internal node tree execution */
 	exec = ntreeCompositBeginExecTree(ngroup, 0);
 	
@@ -137,7 +140,8 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec *gexec= (bNodeTreeExec*)nodedata;
 	
-	ntreeCompositEndExecTree(gexec, 0);
+	if (gexec)
+		ntreeCompositEndExecTree(gexec, 0);
 }
 
 /* Copy inputs to the internal stack.
@@ -191,6 +195,9 @@ static void group_execute(void *data, int thread, struct bNode *node, void *node
 {
 	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
 	
+	if (!exec)
+		return;
+	
 	/* XXX same behavior as trunk: all nodes inside group are executed.
 	 * it's stupid, but just makes it work. compo redesign will do this better.
 	 */
@@ -206,11 +213,11 @@ static void group_execute(void *data, int thread, struct bNode *node, void *node
 	group_move_outputs(node, out, exec->stack);
 }
 
-void register_node_type_cmp_group(ListBase *lb)
+void register_node_type_cmp_group(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
+	node_type_base(ttype, &ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -221,7 +228,7 @@ void register_node_type_cmp_group(ListBase *lb)
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, group_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 
@@ -290,11 +297,11 @@ static void forloop_execute(void *data, int thread, struct bNode *node, void *no
 	group_move_outputs(node, out, exec->stack);
 }
 
-void register_node_type_cmp_forloop(ListBase *lb)
+void register_node_type_cmp_forloop(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_FORLOOP, "For", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, NODE_FORLOOP, "For", NODE_CLASS_GROUP, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -306,7 +313,7 @@ void register_node_type_cmp_forloop(ListBase *lb)
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, forloop_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 #endif
 
@@ -351,11 +358,11 @@ static void whileloop_execute(void *data, int thread, struct bNode *node, void *
 	group_move_outputs(node, out, exec->stack);
 }
 
-void register_node_type_cmp_whileloop(ListBase *lb)
+void register_node_type_cmp_whileloop(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_WHILELOOP, "While", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, NODE_WHILELOOP, "While", NODE_CLASS_GROUP, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -367,6 +374,6 @@ void register_node_type_cmp_whileloop(ListBase *lb)
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, whileloop_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 #endif

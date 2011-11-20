@@ -16,17 +16,20 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 bl_info = {
     "name": "Cycles Render Engine",
     "author": "",
-    "version": (0,0),
-    "blender": (2, 5, 6),
-    "api": 34462,
+    "version": (0, 0),
+    "blender": (2, 6, 0),
+    "api": 41670,
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration.",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Dev:2.6/Source/Render/Cycles",
     "tracker_url": "",
+    "support": 'OFFICIAL',
     "category": "Render"}
 
 import bpy
@@ -37,6 +40,7 @@ from cycles import xml
 from cycles import engine
 from cycles import presets
 
+
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
     bl_label = "Cycles"
@@ -45,7 +49,7 @@ class CyclesRender(bpy.types.RenderEngine):
     def __init__(self):
         engine.init()
         self.session = None
-    
+
     def __del__(self):
         engine.free(self)
 
@@ -63,7 +67,7 @@ class CyclesRender(bpy.types.RenderEngine):
     #
     # def preview_render(self):
     #    pass
-    
+
     # viewport render
     def view_update(self, context):
         if not self.session:
@@ -74,6 +78,7 @@ class CyclesRender(bpy.types.RenderEngine):
     def view_draw(self, context):
         engine.draw(self, context.region, context.space_data, context.region_data)
 
+
 def register():
     properties.register()
     ui.register()
@@ -81,10 +86,10 @@ def register():
     presets.register()
     bpy.utils.register_module(__name__)
 
+
 def unregister():
     xml.unregister()
     ui.unregister()
     properties.unregister()
     presets.unregister()
     bpy.utils.unregister_module(__name__)
-

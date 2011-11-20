@@ -86,7 +86,7 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 	if(data->totlayer){
 		/*alloc memory*/
 		data->layers = MEM_callocN(sizeof(BME_CustomDataLayer)*data->totlayer, "BMesh Custom Data Layers");
-		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc, 0);
+		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc, FALSE, FALSE);
 		/*initialize layer data*/
 		for(i=0; i < BME_CD_NUMTYPES; i++){
 			if(init->layout[i]){

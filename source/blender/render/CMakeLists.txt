@@ -75,6 +75,7 @@ set(SRC
 	intern/source/sss.c
 	intern/source/strand.c
 	intern/source/sunsky.c
+	intern/source/texture_ocean.c
 	intern/source/volume_precache.c
 	intern/source/volumetric.c
 	intern/source/voxeldata.c
@@ -105,6 +106,7 @@ set(SRC
 	intern/include/strand.h
 	intern/include/sunsky.h
 	intern/include/texture.h
+	intern/include/texture_ocean.h
 	intern/include/volume_precache.h
 	intern/include/volumetric.h
 	intern/include/voxeldata.h

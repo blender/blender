@@ -131,44 +131,29 @@ void compbuf_set_node(CompBuf *cbuf, bNode *node)
 }
 
 /* used for disabling node  (similar code in node_draw.c for disable line and node_edit for untangling nodes) */
-void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
+void node_compo_pass_on(void *UNUSED(data), int UNUSED(thread), struct bNode *node, void *UNUSED(nodedata),
+                        struct bNodeStack **in, struct bNodeStack **out)
 {
-	CompBuf *valbuf= NULL, *colbuf= NULL, *vecbuf= NULL;
-	bNodeSocket *sock;
-	int a;
-	
-	/* connect the first value buffer in with first value out */
-	/* connect the first RGBA buffer in with first RGBA out */
-	
-	/* test the inputs */
-	for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
-		if(nsin[a]->data) {
-			CompBuf *cbuf= nsin[a]->data;
-			if(cbuf->type==1 && valbuf==NULL) valbuf= cbuf;
-			if(cbuf->type==3 && vecbuf==NULL) vecbuf= cbuf;
-			if(cbuf->type==4 && colbuf==NULL) colbuf= cbuf;
+	ListBase links;
+	LinkInOutsMuteNode *lnk;
+	int i;
+
+	if(node->typeinfo->mutelinksfunc == NULL)
+		return;
+
+	/* Get default muting links (as bNodeStack pointers). */
+	links = node->typeinfo->mutelinksfunc(NULL, node, in, out, NULL, NULL);
+
+	for(lnk = links.first; lnk; lnk = lnk->next) {
+		for(i = 0; i < lnk->num_outs; i++) {
+			if(((bNodeStack*)(lnk->in))->data)
+				(((bNodeStack*)(lnk->outs))+i)->data = pass_on_compbuf((CompBuf*)((bNodeStack*)(lnk->in))->data);
 		}
+		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
+		if(i > 1)
+			MEM_freeN(lnk->outs);
 	}
-	
-	/* outputs */
-	if(valbuf || colbuf || vecbuf) {
-		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-			if(nsout[a]->hasoutput) {
-				if(sock->type==SOCK_FLOAT && valbuf) {
-					nsout[a]->data= pass_on_compbuf(valbuf);
-					valbuf= NULL;
-				}
-				if(sock->type==SOCK_VECTOR && vecbuf) {
-					nsout[a]->data= pass_on_compbuf(vecbuf);
-					vecbuf= NULL;
-				}
-				if(sock->type==SOCK_RGBA && colbuf) {
-					nsout[a]->data= pass_on_compbuf(colbuf);
-					colbuf= NULL;
-				}
-			}
-		}
-	}
+	BLI_freelistN(&links);
 }
 
 

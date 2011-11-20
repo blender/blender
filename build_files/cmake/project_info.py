@@ -44,7 +44,14 @@ __all__ = (
     "project_name_get"
 )
 
+
 import sys
+if not sys.version.startswith("3"):
+    print("\nPython3.x needed, found %s.\nAborting!\n" %
+          sys.version.partition(" ")[0])
+    sys.exit(1)
+
+
 import os
 from os.path import join, dirname, normpath, abspath, splitext, exists
 
@@ -142,10 +149,11 @@ def cmake_advanced_info():
 
     from xml.dom.minidom import parse
     tree = parse(join(CMAKE_DIR, ".cproject"))
-    '''
-    f = open(".cproject_pretty", 'w')
-    f.write(tree.toprettyxml(indent="    ", newl=""))
-    '''
+
+    # to check on nicer xml
+    # f = open(".cproject_pretty", 'w')
+    # f.write(tree.toprettyxml(indent="    ", newl=""))
+
     ELEMENT_NODE = tree.ELEMENT_NODE
 
     cproject, = tree.getElementsByTagName("cproject")
@@ -186,7 +194,7 @@ def cmake_advanced_info():
 
 
 def cmake_cache_var(var):
-    cache_file = open(join(CMAKE_DIR, "CMakeCache.txt"))
+    cache_file = open(join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8')
     lines = [l_strip for l in cache_file for l_strip in (l.strip(),) if l_strip if not l_strip.startswith("//") if not l_strip.startswith("#")]
     cache_file.close()
 
@@ -224,7 +232,9 @@ def project_name_get(path, fallback="Blender", prefix="Blender_"):
 
     import subprocess
     info = subprocess.Popen(["svn", "info", path],
-                            stdout=subprocess.PIPE).communicate()[0].decode()
+                            stdout=subprocess.PIPE).communicate()[0]
+    # string version, we only want the URL
+    info = info.decode(encoding="utf-8", errors="ignore")
 
     for l in info.split("\n"):
         l = l.strip()

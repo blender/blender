@@ -52,7 +52,7 @@ def get_version():
             else:
                 ver_display = "%s%s" % (ver_base, ver_char)  # assume release
 
-            return ver_base, ver_display
+            return ver_base, ver_display, ver_cycle
 
     raise Exception("%s: missing version string" % fname)
 
@@ -80,7 +80,7 @@ def checkEndian():
 
 
 # This is used in creating the local config directories
-VERSION, VERSION_DISPLAY = get_version()
+VERSION, VERSION_DISPLAY, VERSION_RELEASE_CYCLE = get_version()
 REVISION = get_revision()
 ENDIAN = checkEndian()
 
@@ -152,6 +152,7 @@ def validate_arguments(args, bc):
             'WITH_BF_FLUID',
             'WITH_BF_DECIMATE',
             'WITH_BF_BOOLEAN',
+            'WITH_BF_OCEANSIM',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
             'BUILDBOT_BRANCH',
@@ -259,6 +260,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_FLUID', 'Build with Fluid simulation (Elbeem)', True)),
         (BoolVariable('WITH_BF_DECIMATE', 'Build with decimate modifier', True)),
         (BoolVariable('WITH_BF_BOOLEAN', 'Build with boolean modifier', True)),
+        (BoolVariable('WITH_BF_OCEANSIM', 'Build with ocean simulation', False)),
         ('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
         (BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
         ('BF_OPENAL', 'Base path for OpenAL', ''),

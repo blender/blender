@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
+#include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
@@ -362,7 +363,6 @@ static void stats_update(Scene *scene)
 
 static void stats_string(Scene *scene)
 {
-	extern char versionstr[]; /* from blender.c */
 	SceneStats *stats= scene->stats;
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 	uintptr_t mem_in_use, mmap_in_use;

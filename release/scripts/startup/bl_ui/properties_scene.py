@@ -195,14 +195,13 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        scene = context.scene
-        rd = scene.render
+        rd = context.scene.render
         self.layout.prop(rd, "use_simplify", text="")
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-        rd = scene.render
+
+        rd = context.scene.render
 
         layout.active = rd.use_simplify
 

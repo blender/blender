@@ -55,6 +55,8 @@
 #include "sss.h"
 #include "texture.h"
 
+#include "shading.h" /* own include */
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */

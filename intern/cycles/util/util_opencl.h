@@ -10,6 +10,8 @@
 #ifndef __UTIL_OPENCL_H__
 #define __UTIL_OPENCL_H__
 
+CCL_NAMESPACE_BEGIN
+
 //! This file contains a copy of the contents of CL.H and CL_PLATFORM.H from the 
 //! official OpenCL spec. The purpose of this code is to load the OpenCL dynamic
 //! library at run-time and thus allow the executable to function on many
@@ -55,15 +57,6 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 ******************************************************************************/
-
-#ifdef __APPLE__
-/* Contains #defines for AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER below */
-#include <AvailabilityMacros.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifndef CLCC_GENERATE_DOCUMENTATION
 
@@ -1312,9 +1305,7 @@ CLEW_FUN_EXPORT     PFNCLGETEXTENSIONFUNCTIONADDRESS    __clewGetExtensionFuncti
 int clLibraryInit(void);
 const char *clErrorString(cl_int error);
 
-#ifdef __cplusplus
-}
-#endif
+CCL_NAMESPACE_END
 
 #endif /*  __UTIL_OPENCL_H__ */
 

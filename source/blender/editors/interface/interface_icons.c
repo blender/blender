@@ -506,7 +506,7 @@ static void init_brush_icons(void)
 
 static void init_internal_icons(void)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	ImBuf *bbuf= NULL;
 	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
@@ -950,6 +950,7 @@ static int get_draw_size(enum eIconSizes size)
 
 static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, float *rgb, enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
 {
+	bTheme *btheme= UI_GetTheme();
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
@@ -957,6 +958,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
+	alpha *= btheme->tui.icon_alpha;
 	
 	if (icon==NULL) {
 		if (G.f & G_DEBUG)

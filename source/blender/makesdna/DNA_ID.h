@@ -80,6 +80,13 @@ typedef struct IDProperty {
 #define IDP_IDPARRAY	9
 #define IDP_NUMTYPES	10
 
+/*->subtype */
+
+/* IDP_STRING */
+#define IDP_STRING_SUB_UTF8  0 /* default */
+#define IDP_STRING_SUB_BYTE  1 /* arbitrary byte array, _not_ null terminated */
+
+
 /* add any future new id property types here.*/
 
 /* watch it: Sequence has identical beginning. */

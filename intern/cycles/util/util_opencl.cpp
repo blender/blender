@@ -7,6 +7,8 @@
 //  Extracted from the CLCC project - http://clcc.sourceforge.net/
 //////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
+
 #include "util_opencl.h"
 
 #ifndef CLCC_GENERATE_DOCUMENTATION
@@ -36,7 +38,7 @@
     //#define CLCC_DYNLIB_IMPORT      implementation_defined
 #endif
 
-#include <stdlib.h>
+CCL_NAMESPACE_BEGIN
 
 //! \brief module handle
 static CLCC_DYNLIB_HANDLE module = NULL;
@@ -314,4 +316,6 @@ const char *clErrorString(cl_int error)
 
     return strings[-error];
 }
+
+CCL_NAMESPACE_END
 

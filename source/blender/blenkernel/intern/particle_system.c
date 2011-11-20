@@ -2679,7 +2679,7 @@ static float nr_signed_distance_to_plane(float *p, float radius, ParticleCollisi
 	}
 
 	if(pce->inv_nor == 1) {
-		mul_v3_fl(nor, -1.f);
+		negate_v3(nor);
 		d = -d;
 	}
 
@@ -2799,7 +2799,7 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 				normalize_v3(nor);
 
 				if(pce->inv_nor == 1)
-					mul_v3_fl(nor, -1.f);
+					negate_v3(nor);
 
 				madd_v3_v3v3fl(co, pce->x0, nor, col->radius);
 				madd_v3_v3fl(co, e1, pce->uv[0]);
@@ -3935,9 +3935,10 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 //				return;
 
 			// ok, start loading
-			BLI_snprintf(filename, sizeof(filename), "%sfluidsurface_particles_####.gz", fss->surfdataPath);
-			
-			BLI_path_abs(filename, G.main->name);
+			BLI_join_dirfile(filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
+
+			BLI_path_abs(filename, modifier_path_relbase(sim->ob));
+
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 
 			gzf = gzopen(filename, "rb");

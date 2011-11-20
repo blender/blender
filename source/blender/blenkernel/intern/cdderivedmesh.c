@@ -945,7 +945,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			}
 			if(setDrawOptions == NULL) {
 				/* just draw the entire face array */
-				glDrawArrays(GL_TRIANGLES, 0, (tottri-1) * 3);
+				glDrawArrays(GL_TRIANGLES, 0, (tottri) * 3);
 			}
 			else {
 				/* we need to check if the next material changes */

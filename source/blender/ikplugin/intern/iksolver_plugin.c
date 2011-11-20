@@ -62,8 +62,8 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 	PoseTarget *target;
 	bConstraint *con;
 	bKinematicConstraint *data;
-	int a, segcount= 0, size, newsize, *oldparent, parent;
-	
+	int a, t, segcount= 0, size, newsize, *oldparent, parent;
+
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
@@ -114,7 +114,7 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 	if(tree==NULL) {
 		/* make new tree */
 		tree= MEM_callocN(sizeof(PoseTree), "posetree");
-	
+
 		tree->type= CONSTRAINT_TYPE_KINEMATIC;
 		
 		tree->iterations= data->iterations;
@@ -138,13 +138,27 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 
 		/* skip common pose channels and add remaining*/
 		size= MIN2(segcount, tree->totchannel);
-		for(a=0; a<size && tree->pchan[a]==chanlist[segcount-a-1]; a++);
-		parent= a-1;
+		a = t = 0;
+		while (a<size && t<tree->totchannel) {
+			// locate first matching channel
+			for (;t<tree->totchannel && tree->pchan[t]!=chanlist[segcount-a-1];t++);
+			if (t>=tree->totchannel)
+				break;
+			for(; a<size && t<tree->totchannel && tree->pchan[t]==chanlist[segcount-a-1]; a++, t++);
+		}
 
 		segcount= segcount-a;
 		target->tip= tree->totchannel + segcount - 1;
 
 		if (segcount > 0) {
+			for(parent = a - 1; parent < tree->totchannel; parent++)
+				if(tree->pchan[parent] == chanlist[segcount-1]->parent)
+					break;
+			
+			/* shouldn't happen, but could with dependency cycles */
+			if(parent == tree->totchannel)
+				parent = a - 1;
+
 			/* resize array */
 			newsize= tree->totchannel + segcount;
 			oldchan= tree->pchan;

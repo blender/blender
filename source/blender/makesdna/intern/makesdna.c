@@ -64,7 +64,7 @@
 
 /* Included the path relative from /source/blender/ here, so we can move     */
 /* headers around with more freedom.                                         */
-const char *includefiles[] = {
+static const char *includefiles[] = {
 
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
@@ -226,7 +226,7 @@ void printStructLenghts(void);
 
 /* ************************* MAKEN DNA ********************** */
 
-int add_type(const char *str, int len)
+static int add_type(const char *str, int len)
 {
 	int nr;
 	char *cp;
@@ -401,7 +401,7 @@ static int add_name(const char *str)
 	return nr_names-1;
 }
 
-short *add_struct(int namecode)
+static short *add_struct(int namecode)
 {
 	int len;
 	short *sp;
@@ -524,7 +524,7 @@ static void *read_file_data(char *filename, int *len_r)
 	return data;
 }
 
-int convert_include(char *filename)
+static int convert_include(char *filename)
 {
 	/* read include file, skip structs with a '#' before it.
 	   store all data in temporal arrays.
@@ -661,7 +661,7 @@ int convert_include(char *filename)
 	return 0;
 }
 
-int arraysize(char *astr, int len)
+static int arraysize(char *astr, int len)
 {
 	int a, mul=1;
 	char str[100], *cp=NULL;

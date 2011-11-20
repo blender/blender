@@ -20,13 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/IDProp.h
+/** \file blender/python/generic/idprop_py_api.h
  *  \ingroup pygen
  */
 
 
-#ifndef IDPROP_H
-#define IDPROP_H
+#ifndef PY_IDPROP_API_H
+#define PY_IDPROP_API_H
 
 struct ID;
 struct IDProperty;
@@ -53,14 +53,13 @@ typedef struct BPy_IDGroup_Iter {
 	int mode;
 } BPy_IDGroup_Iter;
 
-PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
 PyObject *BPy_Wrap_GetKeys(struct IDProperty *prop);
 PyObject *BPy_Wrap_GetValues(struct ID *id, struct IDProperty *prop);
 PyObject *BPy_Wrap_GetItems(struct ID *id, struct IDProperty *prop);
 int BPy_Wrap_SetMapItem(struct IDProperty *prop, PyObject *key, PyObject *val);
 
 
-PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop );
+PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
 const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDProperty *group, PyObject *ob);
 
 void IDProp_Init_Types(void);
@@ -68,4 +67,4 @@ void IDProp_Init_Types(void);
 #define IDPROP_ITER_KEYS	0
 #define IDPROP_ITER_ITEMS	1
 
-#endif /* IDPROP_H */
+#endif /* PY_IDPROP_API_H */

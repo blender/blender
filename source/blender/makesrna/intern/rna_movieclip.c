@@ -87,19 +87,19 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 	/* build proxy sized */
 	prop= RNA_def_property(srna, "build_25", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_25);
-	RNA_def_property_ui_text(prop, "25%", "Build 25% proxy resolution");
+	RNA_def_property_ui_text(prop, "25%", "Build proxy resolution 25% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_50", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_50);
-	RNA_def_property_ui_text(prop, "50%", "Build 50% proxy resolution");
+	RNA_def_property_ui_text(prop, "50%", "Build proxy resolution 50% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_75", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_75);
-	RNA_def_property_ui_text(prop, "75%", "Build 75% proxy resolution");
+	RNA_def_property_ui_text(prop, "75%", "Build proxy resolution 75% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_100", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flag", IMB_PROXY_100);
-	RNA_def_property_ui_text(prop, "100%", "Build 100% proxy resolution");
+	RNA_def_property_ui_text(prop, "100%", "Build proxy resolution 100% of the original footage dimension");
 
 	prop= RNA_def_property(srna, "build_undistorted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "build_flag", MCLIP_PROXY_BUILD_UNDISTORT);
@@ -121,7 +121,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 	/* quality of proxied image */
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
-	RNA_def_property_ui_text(prop, "Quality", "JPEG Quality of proxies to build");
+	RNA_def_property_ui_text(prop, "Quality", "JPEG quality of proxy images");
 	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
 
 	prop= RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
@@ -169,7 +169,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	/* render undistorted */
 	prop= RNA_def_property(srna, "use_render_undistorted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "render_flag", MCLIP_PROXY_RENDER_UNDISTORT);
-	RNA_def_property_ui_text(prop, "Render Undistorted", "Draw preview using undistorted proxy");
+	RNA_def_property_ui_text(prop, "Render Undistorted", "Render preview using undistorted proxy");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
@@ -198,7 +198,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "File Path", "Filename of the text file");
+	RNA_def_property_ui_text(prop, "File Path", "Filename of the movie or sequence file");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_MovieClip_reload_update");
 
 	prop= RNA_def_property(srna, "tracking", PROP_POINTER, PROP_NONE);
@@ -234,7 +234,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	/* custom proxy directory */
 	prop= RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MCLIP_USE_PROXY_CUSTOM_DIR);
-	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
+	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Create proxy images in a custom directory (default is movie location)");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_MovieClip_reload_update");
 
 	/* grease pencil */

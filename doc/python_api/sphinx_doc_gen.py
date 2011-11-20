@@ -597,6 +597,7 @@ def pycontext2sphinx(BASEPATH):
         "active_base": ("ObjectBase", False),
         "active_bone": ("Bone", False),
         "active_object": ("Object", False),
+        "active_operator": ("Operator", False),
         "active_pose_bone": ("PoseBone", False),
         "armature": ("Armature", False),
         "bone": ("Bone", False),
@@ -605,6 +606,7 @@ def pycontext2sphinx(BASEPATH):
         "cloth": ("ClothModifier", False),
         "collision": ("CollisionModifier", False),
         "curve": ("Curve", False),
+        "dynamic_paint": ("DynamicPaintModifier", False),
         "edit_bone": ("EditBone", False),
         "edit_image": ("Image", False),
         "edit_object": ("Object", False),
@@ -643,6 +645,7 @@ def pycontext2sphinx(BASEPATH):
         "speaker": ("Speaker", False),
         "texture": ("Texture", False),
         "texture_slot": ("MaterialTextureSlot", False),
+        "texture_user": ("ID", False),
         "vertex_paint_object": ("Object", False),
         "visible_bases": ("ObjectBase", True),
         "visible_bones": ("Object", True),
@@ -663,7 +666,7 @@ def pycontext2sphinx(BASEPATH):
         char_array = c_char_p_p.from_address(attr)
         i = 0
         while char_array[i] is not None:
-            member = ctypes.string_at(char_array[i]).decode()
+            member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
             fw(".. data:: %s\n\n" % member)
             member_type, is_seq = type_map[member]
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))

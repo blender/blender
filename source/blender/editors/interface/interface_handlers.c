@@ -271,7 +271,7 @@ int ui_is_but_utf8(uiBut *but)
 {
 	if (but->rnaprop) {
 		const int subtype= RNA_property_subtype(but->rnaprop);
-		return !(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME));
+		return !(ELEM4(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING));
 	}
 	else {
 		return !(but->flag & UI_BUT_NO_UTF8);
@@ -4357,7 +4357,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
 		/* complex code to change name of button */
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
 			char *butstr_orig;
 
 			// XXX but->str changed... should not, remove the hotkey from it

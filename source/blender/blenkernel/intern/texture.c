@@ -60,6 +60,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_ocean.h"
 
 #include "BKE_library.h"
 #include "BKE_image.h"
@@ -70,6 +71,7 @@
 #include "BKE_node.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -227,7 +229,7 @@ void default_tex_mapping(TexMapping *texmap)
 
 void init_tex_mapping(TexMapping *texmap)
 {
-	float eul[3], smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
+	float smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
 
 	if(texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
 	   is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
@@ -250,10 +252,8 @@ void init_tex_mapping(TexMapping *texmap)
 		size_to_mat3(smat, texmap->size);
 		
 		/* rotation */
-		eul[0]= DEG2RADF(texmap->rot[0]);
-		eul[1]= DEG2RADF(texmap->rot[1]);
-		eul[2]= DEG2RADF(texmap->rot[2]);
-		eul_to_mat3( rmat,eul);
+		/* TexMapping rotation are now in radians. */
+		eul_to_mat3(rmat, texmap->rot);
 		
 		/* compose it all */
 		mul_m3_m3m3(mat, rmat, smat);
@@ -546,6 +546,7 @@ void free_texture(Tex *tex)
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	if(tex->vd) BKE_free_voxeldata(tex->vd);
+	if(tex->ot) BKE_free_oceantex(tex->ot);
 	BKE_free_animdata((struct ID *)tex);
 	
 	BKE_previewimg_free(&tex->preview);
@@ -628,6 +629,11 @@ void default_tex(Tex *tex)
 		tex->vd->interp_type=TEX_VD_LINEAR;
 		tex->vd->file_format=TEX_VD_SMOKE;
 	}
+	
+	if (tex->ot) {
+		tex->ot->output = TEX_OCN_DISPLACEMENT;
+		tex->ot->object = NULL;
+	}
 	pit = tex->plugin;
 	if (pit) {
 		varstr= pit->varstr;
@@ -661,6 +667,10 @@ void tex_set_type(Tex *tex, int type)
 		case TEX_ENVMAP:
 			if (tex->env == NULL)
 				tex->env = BKE_add_envmap();
+			break;
+		case TEX_OCEAN:
+			if (tex->ot == NULL)
+				tex->ot = BKE_add_oceantex();
 			break;
 	}
 	
@@ -826,6 +836,7 @@ Tex *copy_texture(Tex *tex)
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
+	if(texn->ot) texn->ot= BKE_copy_oceantex(texn->ot);
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if(tex->nodetree) {
@@ -863,6 +874,9 @@ Tex *localize_texture(Tex *tex)
 		texn->vd= MEM_dupallocN(texn->vd);
 		if(texn->vd->dataset)
 			texn->vd->dataset= MEM_dupallocN(texn->vd->dataset);
+	}
+	if(texn->ot) {
+		texn->ot= BKE_copy_oceantex(tex->ot);
 	}
 	
 	texn->preview = NULL;
@@ -1039,7 +1053,7 @@ void autotexname(Tex *tex)
 	Main *bmain= G.main;
 	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
-		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "", "", "", ""};
+		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "Ocean", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	
@@ -1469,6 +1483,7 @@ void BKE_free_pointdensity(PointDensity *pd)
 	MEM_freeN(pd);
 }
 
+/* ------------------------------------------------------------------------- */
 
 void BKE_free_voxeldatadata(struct VoxelData *vd)
 {
@@ -1511,6 +1526,31 @@ struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
 	vdn->dataset = NULL;
 
 	return vdn;
+}
+
+/* ------------------------------------------------------------------------- */
+
+struct OceanTex *BKE_add_oceantex(void)
+{
+	OceanTex *ot;
+	
+	ot= MEM_callocN(sizeof(struct OceanTex), "ocean texture");
+	ot->output = TEX_OCN_DISPLACEMENT;
+	ot->object = NULL;
+	
+	return ot;
+}
+
+struct OceanTex *BKE_copy_oceantex(struct OceanTex *ot)
+{
+	OceanTex *otn= MEM_dupallocN(ot);
+	
+	return otn;
+}
+
+void BKE_free_oceantex(struct OceanTex *ot)
+{
+	MEM_freeN(ot);
 }
 
 

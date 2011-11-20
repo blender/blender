@@ -73,6 +73,7 @@
 #include "render_intern.h"
 
 typedef struct OGLRender {
+	Main *bmain;
 	Render *re;
 	Scene *scene;
 
@@ -147,7 +148,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			rctf viewplane;
 			float clipsta, clipend;
 
-			int is_ortho= ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+			int is_ortho= ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend);
 			if(is_ortho) orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
 			else  perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 		}
@@ -223,7 +224,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 				IMB_color_to_bw(ibuf);
 			}
 
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
 			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality); /* no need to stamp here */
 			if(ok)	printf("OpenGL Render written to '%s'\n", name);
 			else	printf("OpenGL Render failed to write '%s'\n", name);
@@ -292,6 +293,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->ofs= ofs;
 	oglrender->sizex= sizex;
 	oglrender->sizey= sizey;
+	oglrender->bmain= CTX_data_main(C);
 	oglrender->scene= scene;
 
 	oglrender->write_still= is_write_still && !is_animation;
@@ -462,7 +464,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 
 			if(ok==0) {

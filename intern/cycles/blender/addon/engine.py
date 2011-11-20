@@ -16,7 +16,10 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 import bpy
+
 
 def init():
     import bcycles
@@ -27,7 +30,8 @@ def init():
 
     bcycles.init(path, user_path)
 
-def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
+
+def create(engine, data, scene, region=0, v3d=0, rv3d=0):
     import bcycles
 
     data = data.as_pointer()
@@ -41,20 +45,29 @@ def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
 
     engine.session = bcycles.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
 
+
 def free(engine):
-    if "session" in dir(engine):
+    if hasattr(engine, "session"):
         if engine.session:
             import bcycles
             bcycles.free(engine.session)
         del engine.session
 
+
 def render(engine):
     import bcycles
-    bcycles.render(engine.session)
+    if "session" in dir(engine):
+        bcycles.render(engine.session)
+
 
 def update(engine, data, scene):
     import bcycles
-    bcycles.sync(engine.session)
+    if scene.render.use_border:
+        engine.report({'ERROR'}, "Border rendering not supported yet")
+        free(engine)
+    else:
+        bcycles.sync(engine.session)
+
 
 def draw(engine, region, v3d, rv3d):
     import bcycles
@@ -64,11 +77,12 @@ def draw(engine, region, v3d, rv3d):
     # draw render image
     bcycles.draw(engine.session, v3d, rv3d)
 
+
 def available_devices():
     import bcycles
     return bcycles.available_devices()
 
+
 def with_osl():
     import bcycles
     return bcycles.with_osl()
-

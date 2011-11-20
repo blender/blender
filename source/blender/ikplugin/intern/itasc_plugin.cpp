@@ -326,11 +326,19 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 				break;
 			for(; a<size && t<tree->totchannel && tree->pchan[t]==chanlist[segcount-a-1]; a++, t++);
 		}
-		parent= a-1;
+
 		segcount= segcount-a;
 		target->tip= tree->totchannel + segcount - 1;
 
 		if (segcount > 0) {
+			for(parent = a - 1; parent < tree->totchannel; parent++)
+				if(tree->pchan[parent] == chanlist[segcount-1]->parent)
+					break;
+			
+			/* shouldn't happen, but could with dependency cycles */
+			if(parent == tree->totchannel)
+				parent = a - 1;
+
 			/* resize array */
 			newsize= tree->totchannel + segcount;
 			oldchan= tree->pchan;

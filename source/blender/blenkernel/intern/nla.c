@@ -400,7 +400,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 	
 	/* scaling */
 	if (IS_EQF(strip->scale, 0.0f)) strip->scale= 1.0f;
-	scale = (float)fabs(strip->scale); /* scale must be positive - we've got a special flag for reversing */
+	scale = fabsf(strip->scale); /* scale must be positive - we've got a special flag for reversing */
 	
 	/* length of referenced action */
 	actlength = strip->actend - strip->actstart;
@@ -1087,7 +1087,7 @@ void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
 short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 {
 	const float stripLen= (strip) ? strip->end - strip->start : 0.0f;
-	const float boundsLen= (float)fabs(max - min);
+	const float boundsLen= fabsf(max - min);
 	
 	/* sanity checks */
 	if ((strip == NULL) || IS_EQF(stripLen, 0.0f) || IS_EQF(boundsLen, 0.0f))

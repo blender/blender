@@ -1643,15 +1643,22 @@ struct bNodeTemplate nodeMakeTemplate(struct bNode *node)
 	}
 }
 
-void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void node_type_base(bNodeTreeType *ttype, bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	memset(ntype, 0, sizeof(bNodeType));
-	
+
 	ntype->type = type;
 	BLI_strncpy(ntype->name, name, sizeof(ntype->name));
 	ntype->nclass = nclass;
 	ntype->flag = flag;
-	
+
+	/* Default muting stuff. */
+	if(ttype) {
+		ntype->mutefunc      = ttype->mutefunc;
+		ntype->mutelinksfunc = ttype->mutelinksfunc;
+		ntype->gpumutefunc   = ttype->gpumutefunc;
+	}
+
 	/* default size values */
 	ntype->width = 140;
 	ntype->minwidth = 100;
@@ -1746,6 +1753,16 @@ void node_type_exec_new(struct bNodeType *ntype,
 	ntype->newexecfunc = newexecfunc;
 }
 
+void node_type_mute(struct bNodeType *ntype,
+                    void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata,
+                                     struct bNodeStack **, struct bNodeStack **),
+                    ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **, struct bNodeStack **,
+                                              struct GPUNodeStack *, struct GPUNodeStack *))
+{
+	ntype->mutefunc = mutefunc;
+	ntype->mutelinksfunc = mutelinksfunc;
+}
+
 void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out))
 {
 	ntype->gpufunc = gpufunc;
@@ -1754,6 +1771,12 @@ void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *m
 void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out))
 {
 	ntype->gpuextfunc = gpuextfunc;
+}
+
+void node_type_gpu_mute(struct bNodeType *ntype, int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *,
+                                                                    struct GPUNodeStack *, struct GPUNodeStack *))
+{
+	ntype->gpumutefunc = gpumutefunc;
 }
 
 void node_type_compatibility(struct bNodeType *ntype, short compatibility)
@@ -1772,211 +1795,212 @@ static bNodeType *is_nodetype_registered(ListBase *typelist, int type)
 	return NULL;
 }
 
-void nodeRegisterType(ListBase *typelist, bNodeType *ntype) 
+void nodeRegisterType(bNodeTreeType *ttype, bNodeType *ntype) 
 {
+	ListBase *typelist = &(ttype->node_types);
 	bNodeType *found= is_nodetype_registered(typelist, ntype->type);
 	
 	if(found==NULL)
 		BLI_addtail(typelist, ntype);
 }
 
-static void registerCompositNodes(ListBase *ntypelist)
+static void registerCompositNodes(bNodeTreeType *ttype)
 {
-	register_node_type_frame(ntypelist);
+	register_node_type_frame(ttype);
 	
-	register_node_type_cmp_group(ntypelist);
-//	register_node_type_cmp_forloop(ntypelist);
-//	register_node_type_cmp_whileloop(ntypelist);
+	register_node_type_cmp_group(ttype);
+//	register_node_type_cmp_forloop(ttype);
+//	register_node_type_cmp_whileloop(ttype);
 	
-	register_node_type_cmp_rlayers(ntypelist);
-	register_node_type_cmp_image(ntypelist);
-	register_node_type_cmp_texture(ntypelist);
-	register_node_type_cmp_value(ntypelist);
-	register_node_type_cmp_rgb(ntypelist);
-	register_node_type_cmp_curve_time(ntypelist);
-	register_node_type_cmp_movieclip(ntypelist);
+	register_node_type_cmp_rlayers(ttype);
+	register_node_type_cmp_image(ttype);
+	register_node_type_cmp_texture(ttype);
+	register_node_type_cmp_value(ttype);
+	register_node_type_cmp_rgb(ttype);
+	register_node_type_cmp_curve_time(ttype);
+	register_node_type_cmp_movieclip(ttype);
 	
-	register_node_type_cmp_composite(ntypelist);
-	register_node_type_cmp_viewer(ntypelist);
-	register_node_type_cmp_splitviewer(ntypelist);
-	register_node_type_cmp_output_file(ntypelist);
-	register_node_type_cmp_view_levels(ntypelist);
+	register_node_type_cmp_composite(ttype);
+	register_node_type_cmp_viewer(ttype);
+	register_node_type_cmp_splitviewer(ttype);
+	register_node_type_cmp_output_file(ttype);
+	register_node_type_cmp_view_levels(ttype);
 	
-	register_node_type_cmp_curve_rgb(ntypelist);
-	register_node_type_cmp_mix_rgb(ntypelist);
-	register_node_type_cmp_hue_sat(ntypelist);
-	register_node_type_cmp_brightcontrast(ntypelist);
-	register_node_type_cmp_gamma(ntypelist);
-	register_node_type_cmp_invert(ntypelist);
-	register_node_type_cmp_alphaover(ntypelist);
-	register_node_type_cmp_zcombine(ntypelist);
-	register_node_type_cmp_colorbalance(ntypelist);
-	register_node_type_cmp_huecorrect(ntypelist);
+	register_node_type_cmp_curve_rgb(ttype);
+	register_node_type_cmp_mix_rgb(ttype);
+	register_node_type_cmp_hue_sat(ttype);
+	register_node_type_cmp_brightcontrast(ttype);
+	register_node_type_cmp_gamma(ttype);
+	register_node_type_cmp_invert(ttype);
+	register_node_type_cmp_alphaover(ttype);
+	register_node_type_cmp_zcombine(ttype);
+	register_node_type_cmp_colorbalance(ttype);
+	register_node_type_cmp_huecorrect(ttype);
 	
-	register_node_type_cmp_normal(ntypelist);
-	register_node_type_cmp_curve_vec(ntypelist);
-	register_node_type_cmp_map_value(ntypelist);
-	register_node_type_cmp_normalize(ntypelist);
+	register_node_type_cmp_normal(ttype);
+	register_node_type_cmp_curve_vec(ttype);
+	register_node_type_cmp_map_value(ttype);
+	register_node_type_cmp_normalize(ttype);
 	
-	register_node_type_cmp_filter(ntypelist);
-	register_node_type_cmp_blur(ntypelist);
-	register_node_type_cmp_dblur(ntypelist);
-	register_node_type_cmp_bilateralblur(ntypelist);
-	register_node_type_cmp_vecblur(ntypelist);
-	register_node_type_cmp_dilateerode(ntypelist);
-	register_node_type_cmp_defocus(ntypelist);
+	register_node_type_cmp_filter(ttype);
+	register_node_type_cmp_blur(ttype);
+	register_node_type_cmp_dblur(ttype);
+	register_node_type_cmp_bilateralblur(ttype);
+	register_node_type_cmp_vecblur(ttype);
+	register_node_type_cmp_dilateerode(ttype);
+	register_node_type_cmp_defocus(ttype);
 	
-	register_node_type_cmp_valtorgb(ntypelist);
-	register_node_type_cmp_rgbtobw(ntypelist);
-	register_node_type_cmp_setalpha(ntypelist);
-	register_node_type_cmp_idmask(ntypelist);
-	register_node_type_cmp_math(ntypelist);
-	register_node_type_cmp_seprgba(ntypelist);
-	register_node_type_cmp_combrgba(ntypelist);
-	register_node_type_cmp_sephsva(ntypelist);
-	register_node_type_cmp_combhsva(ntypelist);
-	register_node_type_cmp_sepyuva(ntypelist);
-	register_node_type_cmp_combyuva(ntypelist);
-	register_node_type_cmp_sepycca(ntypelist);
-	register_node_type_cmp_combycca(ntypelist);
-	register_node_type_cmp_premulkey(ntypelist);
+	register_node_type_cmp_valtorgb(ttype);
+	register_node_type_cmp_rgbtobw(ttype);
+	register_node_type_cmp_setalpha(ttype);
+	register_node_type_cmp_idmask(ttype);
+	register_node_type_cmp_math(ttype);
+	register_node_type_cmp_seprgba(ttype);
+	register_node_type_cmp_combrgba(ttype);
+	register_node_type_cmp_sephsva(ttype);
+	register_node_type_cmp_combhsva(ttype);
+	register_node_type_cmp_sepyuva(ttype);
+	register_node_type_cmp_combyuva(ttype);
+	register_node_type_cmp_sepycca(ttype);
+	register_node_type_cmp_combycca(ttype);
+	register_node_type_cmp_premulkey(ttype);
 	
-	register_node_type_cmp_diff_matte(ntypelist);
-	register_node_type_cmp_distance_matte(ntypelist);
-	register_node_type_cmp_chroma_matte(ntypelist);
-	register_node_type_cmp_color_matte(ntypelist);
-	register_node_type_cmp_channel_matte(ntypelist);
-	register_node_type_cmp_color_spill(ntypelist);
-	register_node_type_cmp_luma_matte(ntypelist);
+	register_node_type_cmp_diff_matte(ttype);
+	register_node_type_cmp_distance_matte(ttype);
+	register_node_type_cmp_chroma_matte(ttype);
+	register_node_type_cmp_color_matte(ttype);
+	register_node_type_cmp_channel_matte(ttype);
+	register_node_type_cmp_color_spill(ttype);
+	register_node_type_cmp_luma_matte(ttype);
 	
-	register_node_type_cmp_translate(ntypelist);
-	register_node_type_cmp_rotate(ntypelist);
-	register_node_type_cmp_scale(ntypelist);
-	register_node_type_cmp_flip(ntypelist);
-	register_node_type_cmp_crop(ntypelist);
-	register_node_type_cmp_displace(ntypelist);
-	register_node_type_cmp_mapuv(ntypelist);
-	register_node_type_cmp_glare(ntypelist);
-	register_node_type_cmp_tonemap(ntypelist);
-	register_node_type_cmp_lensdist(ntypelist);
-	register_node_type_cmp_transform(ntypelist);
-	register_node_type_cmp_stabilize2d(ntypelist);
-	register_node_type_cmp_moviedistortion(ntypelist);
+	register_node_type_cmp_translate(ttype);
+	register_node_type_cmp_rotate(ttype);
+	register_node_type_cmp_scale(ttype);
+	register_node_type_cmp_flip(ttype);
+	register_node_type_cmp_crop(ttype);
+	register_node_type_cmp_displace(ttype);
+	register_node_type_cmp_mapuv(ttype);
+	register_node_type_cmp_glare(ttype);
+	register_node_type_cmp_tonemap(ttype);
+	register_node_type_cmp_lensdist(ttype);
+	register_node_type_cmp_transform(ttype);
+	register_node_type_cmp_stabilize2d(ttype);
+	register_node_type_cmp_moviedistortion(ttype);
 }
 
-static void registerShaderNodes(ListBase *ntypelist) 
+static void registerShaderNodes(bNodeTreeType *ttype) 
 {
-	register_node_type_frame(ntypelist);
+	register_node_type_frame(ttype);
 	
-	register_node_type_sh_group(ntypelist);
-	//register_node_type_sh_forloop(ntypelist);
-	//register_node_type_sh_whileloop(ntypelist);
+	register_node_type_sh_group(ttype);
+	//register_node_type_sh_forloop(ttype);
+	//register_node_type_sh_whileloop(ttype);
 
-	register_node_type_sh_output(ntypelist);
-	register_node_type_sh_material(ntypelist);
-	register_node_type_sh_camera(ntypelist);
-	register_node_type_sh_value(ntypelist);
-	register_node_type_sh_rgb(ntypelist);
-	register_node_type_sh_mix_rgb(ntypelist);
-	register_node_type_sh_valtorgb(ntypelist);
-	register_node_type_sh_rgbtobw(ntypelist);
-	register_node_type_sh_texture(ntypelist);
-	register_node_type_sh_normal(ntypelist);
-	register_node_type_sh_geom(ntypelist);
-	register_node_type_sh_mapping(ntypelist);
-	register_node_type_sh_curve_vec(ntypelist);
-	register_node_type_sh_curve_rgb(ntypelist);
-	register_node_type_sh_math(ntypelist);
-	register_node_type_sh_vect_math(ntypelist);
-	register_node_type_sh_squeeze(ntypelist);
-	//register_node_type_sh_dynamic(ntypelist);
-	register_node_type_sh_material_ext(ntypelist);
-	register_node_type_sh_invert(ntypelist);
-	register_node_type_sh_seprgb(ntypelist);
-	register_node_type_sh_combrgb(ntypelist);
-	register_node_type_sh_hue_sat(ntypelist);
+	register_node_type_sh_output(ttype);
+	register_node_type_sh_material(ttype);
+	register_node_type_sh_camera(ttype);
+	register_node_type_sh_value(ttype);
+	register_node_type_sh_rgb(ttype);
+	register_node_type_sh_mix_rgb(ttype);
+	register_node_type_sh_valtorgb(ttype);
+	register_node_type_sh_rgbtobw(ttype);
+	register_node_type_sh_texture(ttype);
+	register_node_type_sh_normal(ttype);
+	register_node_type_sh_geom(ttype);
+	register_node_type_sh_mapping(ttype);
+	register_node_type_sh_curve_vec(ttype);
+	register_node_type_sh_curve_rgb(ttype);
+	register_node_type_sh_math(ttype);
+	register_node_type_sh_vect_math(ttype);
+	register_node_type_sh_squeeze(ttype);
+	//register_node_type_sh_dynamic(ttype);
+	register_node_type_sh_material_ext(ttype);
+	register_node_type_sh_invert(ttype);
+	register_node_type_sh_seprgb(ttype);
+	register_node_type_sh_combrgb(ttype);
+	register_node_type_sh_hue_sat(ttype);
 
-	register_node_type_sh_attribute(ntypelist);
-	register_node_type_sh_geometry(ntypelist);
-	register_node_type_sh_light_path(ntypelist);
-	register_node_type_sh_fresnel(ntypelist);
-	register_node_type_sh_layer_weight(ntypelist);
-	register_node_type_sh_tex_coord(ntypelist);
+	register_node_type_sh_attribute(ttype);
+	register_node_type_sh_geometry(ttype);
+	register_node_type_sh_light_path(ttype);
+	register_node_type_sh_fresnel(ttype);
+	register_node_type_sh_layer_weight(ttype);
+	register_node_type_sh_tex_coord(ttype);
 
-	register_node_type_sh_background(ntypelist);
-	register_node_type_sh_bsdf_diffuse(ntypelist);
-	register_node_type_sh_bsdf_glossy(ntypelist);
-	register_node_type_sh_bsdf_glass(ntypelist);
-	register_node_type_sh_bsdf_translucent(ntypelist);
-	register_node_type_sh_bsdf_transparent(ntypelist);
-	register_node_type_sh_bsdf_velvet(ntypelist);
-	register_node_type_sh_emission(ntypelist);
-	register_node_type_sh_holdout(ntypelist);
-	//register_node_type_sh_volume_transparent(ntypelist);
-	//register_node_type_sh_volume_isotropic(ntypelist);
-	register_node_type_sh_mix_shader(ntypelist);
-	register_node_type_sh_add_shader(ntypelist);
+	register_node_type_sh_background(ttype);
+	register_node_type_sh_bsdf_diffuse(ttype);
+	register_node_type_sh_bsdf_glossy(ttype);
+	register_node_type_sh_bsdf_glass(ttype);
+	register_node_type_sh_bsdf_translucent(ttype);
+	register_node_type_sh_bsdf_transparent(ttype);
+	register_node_type_sh_bsdf_velvet(ttype);
+	register_node_type_sh_emission(ttype);
+	register_node_type_sh_holdout(ttype);
+	//register_node_type_sh_volume_transparent(ttype);
+	//register_node_type_sh_volume_isotropic(ttype);
+	register_node_type_sh_mix_shader(ttype);
+	register_node_type_sh_add_shader(ttype);
 
-	register_node_type_sh_output_lamp(ntypelist);
-	register_node_type_sh_output_material(ntypelist);
-	register_node_type_sh_output_world(ntypelist);
+	register_node_type_sh_output_lamp(ttype);
+	register_node_type_sh_output_material(ttype);
+	register_node_type_sh_output_world(ttype);
 
-	register_node_type_sh_tex_image(ntypelist);
-	register_node_type_sh_tex_environment(ntypelist);
-	register_node_type_sh_tex_sky(ntypelist);
-	register_node_type_sh_tex_noise(ntypelist);
-	register_node_type_sh_tex_wave(ntypelist);
-	register_node_type_sh_tex_voronoi(ntypelist);
-	register_node_type_sh_tex_musgrave(ntypelist);
-	register_node_type_sh_tex_gradient(ntypelist);
-	register_node_type_sh_tex_magic(ntypelist);
+	register_node_type_sh_tex_image(ttype);
+	register_node_type_sh_tex_environment(ttype);
+	register_node_type_sh_tex_sky(ttype);
+	register_node_type_sh_tex_noise(ttype);
+	register_node_type_sh_tex_wave(ttype);
+	register_node_type_sh_tex_voronoi(ttype);
+	register_node_type_sh_tex_musgrave(ttype);
+	register_node_type_sh_tex_gradient(ttype);
+	register_node_type_sh_tex_magic(ttype);
 }
 
-static void registerTextureNodes(ListBase *ntypelist)
+static void registerTextureNodes(bNodeTreeType *ttype)
 {
-	register_node_type_frame(ntypelist);
+	register_node_type_frame(ttype);
 	
-	register_node_type_tex_group(ntypelist);
-//	register_node_type_tex_forloop(ntypelist);
-//	register_node_type_tex_whileloop(ntypelist);
+	register_node_type_tex_group(ttype);
+//	register_node_type_tex_forloop(ttype);
+//	register_node_type_tex_whileloop(ttype);
 	
-	register_node_type_tex_math(ntypelist);
-	register_node_type_tex_mix_rgb(ntypelist);
-	register_node_type_tex_valtorgb(ntypelist);
-	register_node_type_tex_rgbtobw(ntypelist);
-	register_node_type_tex_valtonor(ntypelist);
-	register_node_type_tex_curve_rgb(ntypelist);
-	register_node_type_tex_curve_time(ntypelist);
-	register_node_type_tex_invert(ntypelist);
-	register_node_type_tex_hue_sat(ntypelist);
-	register_node_type_tex_coord(ntypelist);
-	register_node_type_tex_distance(ntypelist);
-	register_node_type_tex_compose(ntypelist);
-	register_node_type_tex_decompose(ntypelist);
+	register_node_type_tex_math(ttype);
+	register_node_type_tex_mix_rgb(ttype);
+	register_node_type_tex_valtorgb(ttype);
+	register_node_type_tex_rgbtobw(ttype);
+	register_node_type_tex_valtonor(ttype);
+	register_node_type_tex_curve_rgb(ttype);
+	register_node_type_tex_curve_time(ttype);
+	register_node_type_tex_invert(ttype);
+	register_node_type_tex_hue_sat(ttype);
+	register_node_type_tex_coord(ttype);
+	register_node_type_tex_distance(ttype);
+	register_node_type_tex_compose(ttype);
+	register_node_type_tex_decompose(ttype);
 	
-	register_node_type_tex_output(ntypelist);
-	register_node_type_tex_viewer(ntypelist);
+	register_node_type_tex_output(ttype);
+	register_node_type_tex_viewer(ttype);
 	
-	register_node_type_tex_checker(ntypelist);
-	register_node_type_tex_texture(ntypelist);
-	register_node_type_tex_bricks(ntypelist);
-	register_node_type_tex_image(ntypelist);
+	register_node_type_tex_checker(ttype);
+	register_node_type_tex_texture(ttype);
+	register_node_type_tex_bricks(ttype);
+	register_node_type_tex_image(ttype);
 	
-	register_node_type_tex_rotate(ntypelist);
-	register_node_type_tex_translate(ntypelist);
-	register_node_type_tex_scale(ntypelist);
-	register_node_type_tex_at(ntypelist);
+	register_node_type_tex_rotate(ttype);
+	register_node_type_tex_translate(ttype);
+	register_node_type_tex_scale(ttype);
+	register_node_type_tex_at(ttype);
 	
-	register_node_type_tex_proc_voronoi(ntypelist);
-	register_node_type_tex_proc_blend(ntypelist);
-	register_node_type_tex_proc_magic(ntypelist);
-	register_node_type_tex_proc_marble(ntypelist);
-	register_node_type_tex_proc_clouds(ntypelist);
-	register_node_type_tex_proc_wood(ntypelist);
-	register_node_type_tex_proc_musgrave(ntypelist);
-	register_node_type_tex_proc_noise(ntypelist);
-	register_node_type_tex_proc_stucci(ntypelist);
-	register_node_type_tex_proc_distnoise(ntypelist);
+	register_node_type_tex_proc_voronoi(ttype);
+	register_node_type_tex_proc_blend(ttype);
+	register_node_type_tex_proc_magic(ttype);
+	register_node_type_tex_proc_marble(ttype);
+	register_node_type_tex_proc_clouds(ttype);
+	register_node_type_tex_proc_wood(ttype);
+	register_node_type_tex_proc_musgrave(ttype);
+	register_node_type_tex_proc_noise(ttype);
+	register_node_type_tex_proc_stucci(ttype);
+	register_node_type_tex_proc_distnoise(ttype);
 }
 
 static void free_dynamic_typeinfo(bNodeType *ntype)
@@ -2010,9 +2034,9 @@ static void free_typeinfos(ListBase *list)
 
 void init_nodesystem(void) 
 {
-	registerCompositNodes(&ntreeGetType(NTREE_COMPOSIT)->node_types);
-	registerShaderNodes(&ntreeGetType(NTREE_SHADER)->node_types);
-	registerTextureNodes(&ntreeGetType(NTREE_TEXTURE)->node_types);
+	registerCompositNodes(ntreeGetType(NTREE_COMPOSIT));
+	registerShaderNodes(ntreeGetType(NTREE_SHADER));
+	registerTextureNodes(ntreeGetType(NTREE_TEXTURE));
 }
 
 void free_nodesystem(void) 

@@ -222,15 +222,14 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 
 }
 
-void register_node_type_cmp_zcombine(ListBase *lb)
+void register_node_type_cmp_zcombine(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_zcombine_in, cmp_node_zcombine_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_exec(&ntype, node_composit_exec_zcombine);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

@@ -45,7 +45,7 @@ typedef struct BsdfMicrofacetGGXClosure {
 
 __device void bsdf_microfacet_ggx_setup(ShaderData *sd, ShaderClosure *sc, float ag, float eta, bool refractive)
 {
-	float m_ag = clamp(ag, 1e-5f, 1.0f);
+	float m_ag = clamp(ag, 1e-4f, 1.0f);
 	float m_eta = eta;
 
 	sc->data0 = m_ag;
@@ -270,7 +270,7 @@ typedef struct BsdfMicrofacetBeckmannClosure {
 
 __device void bsdf_microfacet_beckmann_setup(ShaderData *sd, ShaderClosure *sc, float ab, float eta, bool refractive)
 {
-	float m_ab = clamp(ab, 1e-5f, 1.0f);
+	float m_ab = clamp(ab, 1e-4f, 1.0f);
 	float m_eta = eta;
 
 	sc->data0 = m_ab;

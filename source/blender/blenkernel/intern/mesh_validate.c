@@ -331,7 +331,7 @@ static int mesh_validate_customdata(CustomData *data, short do_verbose, const sh
 
 #undef PRINT
 
-int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata, CustomData *fdata, short do_verbose, const short do_fixes)
+static int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata, CustomData *fdata, short do_verbose, const short do_fixes)
 {
 	int vfixed= 0, efixed= 0, ffixed= 0;
 

@@ -276,7 +276,13 @@ void ntreeExecNodes(bNodeTreeExec *exec, void *callerdata, int thread)
 		node = nodeexec->node;
 		if(node->need_exec) {
 			node_get_stack(node, exec->stack, nsin, nsout);
-			if(node->typeinfo->execfunc)
+			/* Handle muted nodes...
+			 * If the mute func is not set, assume the node should never be muted,
+			 * and hence execute it!
+			 */
+			if((node->flag & NODE_MUTED) && node->typeinfo->mutefunc)
+				node->typeinfo->mutefunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
+			else if(node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
 				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
@@ -298,7 +304,13 @@ void ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
 		node = nodeexec->node;
 		if(node->need_exec) {
 			node_get_stack(node, nts->stack, nsin, nsout);
-			if(node->typeinfo->execfunc)
+			/* Handle muted nodes...
+			 * If the mute func is not set, assume the node should never be muted,
+			 * and hence execute it!
+			 */
+			if((node->flag & NODE_MUTED) && node->typeinfo->mutefunc)
+				node->typeinfo->mutefunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
+			else if(node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
 				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);

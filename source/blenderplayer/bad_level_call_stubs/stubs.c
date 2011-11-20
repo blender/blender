@@ -264,7 +264,8 @@ void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist){}
-struct BGpic *ED_view3D_background_image_add(struct View3D *v3d){return (struct BGpic *) NULL;}
+struct BGpic *ED_view3D_background_image_new(struct View3D *v3d){return (struct BGpic *) NULL;}
+void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic){}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
@@ -354,7 +355,7 @@ void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, char *name, int icon){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}
 char *uiLayoutIntrospect(struct uiLayout *layout){return (char *)NULL;}
-void UI_reinit_font() {}
+void UI_reinit_font(void) {}
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text){}
@@ -457,7 +458,7 @@ void BPY_text_free_code(struct Text *text) {}
 void BPY_id_release(struct Text *text) {}
 int BPY_context_member_get(struct Context *C, const char *member, struct bContextDataResult *result) { return 0; }
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
-float BPY_driver_exec(struct ChannelDriver *driver) {return 0.0f;} /* might need this one! */
+float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime) {return 0.0f;} /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;

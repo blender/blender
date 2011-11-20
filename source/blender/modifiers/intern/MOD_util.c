@@ -260,6 +260,7 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(Collision);
 	INIT_TYPE(Boolean);
 	INIT_TYPE(MeshDeform);
+	INIT_TYPE(Ocean);
 	INIT_TYPE(ParticleSystem);
 	INIT_TYPE(ParticleInstance);
 	INIT_TYPE(Explode);

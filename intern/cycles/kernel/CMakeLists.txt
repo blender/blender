@@ -8,6 +8,7 @@ set(INC
 
 set(SRC
 	kernel.cpp
+	kernel_optimized.cpp
 	kernel.cl
 	kernel.cu
 )
@@ -42,6 +43,7 @@ set(SRC_SVM_HEADERS
 	svm/bsdf.h
 	svm/bsdf_ashikhmin_velvet.h
 	svm/bsdf_diffuse.h
+	svm/bsdf_oren_nayar.h
 	svm/bsdf_microfacet.h
 	svm/bsdf_reflection.h
 	svm/bsdf_refraction.h
@@ -122,11 +124,15 @@ include_directories(${INC})
 
 add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_SVM_HEADERS})
 
+if(WITH_CYCLES_OPTIMIZED_KERNEL)
+	SET_SOURCE_FILES_PROPERTIES(kernel_optimized.cpp PROPERTIES COMPILE_FLAGS ${CYCLES_OPTIMIZED_KERNEL_FLAGS})
+endif()
+
 if(WITH_CYCLES_CUDA)
 	add_dependencies(cycles_kernel cycles_kernel_cuda)
 endif()
 
-# OPENCL kernel
+# OpenCL kernel
 
 #set(KERNEL_PREPROCESSED ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
 #add_custom_command(
@@ -141,3 +147,4 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cu" ${CYCLES_INSTALL_PATH}/k
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
+

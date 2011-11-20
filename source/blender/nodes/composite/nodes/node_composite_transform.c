@@ -127,16 +127,14 @@ static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeS
 	}
 }
 
-void register_node_type_cmp_transform(ListBase *lb)
+void register_node_type_cmp_transform(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_transform_in, cmp_node_transform_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_exec(&ntype, node_composit_exec_transform);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

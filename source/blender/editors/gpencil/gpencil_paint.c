@@ -105,9 +105,9 @@ typedef struct tGPsdata {
 	short flags;		/* flags that can get set during runtime */
 
 	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
-						   to region space */
+						 * to region space */
 
-	float custom_color[3];	/* custom color for  */
+	float custom_color[4]; /* custom color for (?) */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -1258,7 +1258,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 
 			/* for camera view set the subrect */
 			if (rv3d->persp == RV3D_CAMOB) {
-				ED_view3d_calc_camera_border(p->scene, p->ar, v3d, rv3d, &p->subrect_data, -1); /* negative shift */
+				ED_view3d_calc_camera_border(p->scene, p->ar, v3d, rv3d, &p->subrect_data, TRUE); /* no shift */
 				p->subrect= &p->subrect_data;
 			}
 		}

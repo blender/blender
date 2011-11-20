@@ -47,7 +47,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 {
 	if ((dist != 0.f) || (spin != 0.f) || (zoom != 0.f)) {
 		void (*getpix)(CompBuf*, float, float, float*) = wrap ? qd_getPixelLerpWrap : qd_getPixelLerp;
-		const float a= angle * (float)M_PI / 180.f;
+		const float a= angle;
 		const float itsc= 1.f / powf(2.f, (float)iterations);
 		float D;
 		float center_x_pix, center_y_pix;
@@ -65,7 +65,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		tx=  itsc * D * cosf(a);
 		ty= -itsc * D * sinf(a);
 		sc=  itsc * zoom;
-		rot= itsc * spin * (float)M_PI / 180.f;
+		rot= itsc * spin;
 
 		/* blur the image */
 		for(i= 0; i < iterations; ++i) {
@@ -130,17 +130,16 @@ static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode* node, bNod
 	ndbd->center_y= 0.5;
 }
 
-void register_node_type_cmp_dblur(ListBase *lb)
+void register_node_type_cmp_dblur(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_DBLUR, "Directional Blur", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_DBLUR, "Directional Blur", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_dblur_in, cmp_node_dblur_out);
 	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_dblur);
 	node_type_storage(&ntype, "NodeDBlurData", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_dblur);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

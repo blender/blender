@@ -38,8 +38,13 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 
 void kernel_cpu_path_trace(KernelGlobals *kg, float4 *buffer, unsigned int *rng_state, int sample, int x, int y);
 void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffer, int sample, int resolution, int x, int y);
-
 void kernel_cpu_displace(KernelGlobals *kg, uint4 *input, float3 *offset, int i);
+
+#ifdef WITH_OPTIMIZED_KERNEL
+void kernel_cpu_optimized_path_trace(KernelGlobals *kg, float4 *buffer, unsigned int *rng_state, int sample, int x, int y);
+void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffer, int sample, int resolution, int x, int y);
+void kernel_cpu_optimized_displace(KernelGlobals *kg, uint4 *input, float3 *offset, int i);
+#endif
 
 CCL_NAMESPACE_END
 

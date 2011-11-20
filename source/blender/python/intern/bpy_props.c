@@ -74,6 +74,7 @@ static EnumPropertyItem property_subtype_string_items[]= {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
+	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
 	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
@@ -425,6 +426,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -503,6 +505,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -568,6 +571,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -648,6 +652,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -723,6 +728,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -811,6 +817,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -873,6 +880,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -1204,6 +1212,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -1301,6 +1310,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		bpy_prop_callback_assign(prop, update_cb);
 		RNA_def_property_duplicate_pointers(srna, prop);
@@ -1355,6 +1365,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+			if (opts & PROP_SKIP_SAVE) RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 		}
 		RNA_def_property_duplicate_pointers(srna, prop);
 	}

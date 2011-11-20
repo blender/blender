@@ -60,7 +60,8 @@ float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2]);
 float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2]);
 
-float dist_to_plane_v3(const float p[2], const float plane_co[3], const float plane_no[2]);
+float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3]);
+float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3]);
 float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
@@ -92,14 +93,17 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
  * */
 
 int isect_line_line_v3(const float v1[3], const float v2[3],
-	const float v3[3], const float v4[3], float i1[3], float i2[3]);
+                       const float v3[3], const float v4[3],
+                       float i1[3], float i2[3]);
 int isect_line_line_strict_v3(const float v1[3], const float v2[3],
-	const float v3[3], const float v4[3], float vi[3], float *lambda);
+                              const float v3[3], const float v4[3],
+                              float vi[3], float *r_lambda);
 
 /*if clip is nonzero, will only return true if lambda is >= 0.0
   (i.e. intersection point is along positive d)*/
-int isect_ray_plane_v3(float p1[3], float d[3], float v0[3], 
-					   float v1[3], float v2[3], float *lambda, int clip);
+int isect_ray_plane_v3(const float p1[3], const float d[3],
+                       const float v0[3], const float v1[3], const float v2[3],
+                       float *r_lambda, const int clip);
 
 /**
  * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
@@ -113,15 +117,30 @@ int isect_ray_plane_v3(float p1[3], float d[3], float v0[3],
 int isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
                         const float plane_co[3], const float plane_no[3], const short no_flip);
 
+/**
+ * Intersect two planes, return a point on the intersection and a vector
+ * that runs on the direction of the intersection.
+ * Return error code is the same as 'isect_line_line_v3'.
+ * @param r_isect_co The resulting intersection point.
+ * @param r_isect_no The resulting vector of the intersection.
+ * @param plane_a_co The point on the first plane.
+ * @param plane_a_no The normal of the first plane.
+ * @param plane_b_co The point on the second plane.
+ * @param plane_b_no The normal of the second plane.
+ */
+void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
+                          const float plane_a_co[3], const float plane_a_no[3],
+                          const float plane_b_co[3], const float plane_b_no[3]);
+
 /* line/ray triangle */
 int isect_line_tri_v3(const float p1[3], const float p2[3],
-	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2]);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2]);
 int isect_ray_tri_v3(const float p1[3], const float d[3],
-	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2]);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2]);
 int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
-	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2], const float threshold);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float threshold);
 int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
-	const float v0[3], const float v1[3], const float v2[3], float *lambda, float uv[2], const float epsilon);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float epsilon);
 
 /* point in polygon */
 int isect_point_quad_v2(const float p[2], const float a[2], const float b[2], const float c[2], const float d[2]);
@@ -131,16 +150,16 @@ int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y
 int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
 
 void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2[2], const float v3[2],
-	const float pt[2], float *uv);
+                            const float pt[2], float r_uv[2]);
 void isect_point_face_uv_v2(const int isquad, const float v0[2], const float v1[2], const float v2[2],
-	const float v3[2], const float pt[2], float *uv);
+                            const float v3[2], const float pt[2], float r_uv[2]);
 
 /* other */
 int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
-	const float v0[3], const float v1[3], const float v2[3], float *lambda, float ipoint[3]);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float ipoint[3]);
 
 int isect_axial_line_tri_v3(const int axis, const float co1[3], const float co2[3],
-	const float v0[3], const float v1[3], const float v2[3], float *lambda);
+	const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
 
 int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
 
@@ -167,7 +186,7 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2],
 	const float co[2], float w[3]);
 
-void resolve_tri_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
+void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
 void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);
 
 /***************************** View & Projection *****************************/

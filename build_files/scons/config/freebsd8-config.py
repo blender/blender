@@ -84,6 +84,7 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
 WITH_BF_PLAYER = True
+WITH_BF_OCEANSIM = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -174,8 +175,8 @@ CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFIL
 CPPFLAGS = []
 CXXFLAGS = []
 if WITH_BF_FFMPEG:
-  # libavutil needs UINT64_C()
-  CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
+    # libavutil needs UINT64_C()
+    CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
 REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']

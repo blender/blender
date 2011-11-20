@@ -134,7 +134,7 @@ Render R;
 
 /* ********* alloc and free ******** */
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, const char *name_override);
+static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override);
 
 static volatile int g_break= 0;
 static int thread_break(void *UNUSED(arg))
@@ -3040,10 +3040,10 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 			}
 			else {
 				char name[FILE_MAX];
-				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-	
+				BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+
 				/* reports only used for Movie */
-				do_write_image_or_movie(re, scene, NULL, name);
+				do_write_image_or_movie(re, bmain, scene, NULL, name);
 			}
 		}
 
@@ -3063,7 +3063,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
 	re->result_ok= 1;
 }
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, const char *name_override)
+static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
 	RenderResult rres;
@@ -3091,7 +3091,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, c
 		if(name_override)
 			BLI_strncpy(name, name_override, sizeof(name));
 		else
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
@@ -3194,7 +3194,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
-					if(!do_write_image_or_movie(re, scene, mh, NULL))
+					if(!do_write_image_or_movie(re, bmain, scene, mh, NULL))
 						G.afbreek= 1;
 				}
 
@@ -3236,7 +3236,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			/* Touch/NoOverwrite options are only valid for image's */
 			if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+					BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 
 				if(scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
@@ -3258,7 +3258,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			
 			if(re->test_break(re->tbh) == 0) {
 				if(!G.afbreek)
-					if(!do_write_image_or_movie(re, scene, mh, NULL))
+					if(!do_write_image_or_movie(re, bmain, scene, mh, NULL))
 						G.afbreek= 1;
 			}
 			else

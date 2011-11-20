@@ -94,15 +94,14 @@ static void node_composit_exec_brightcontrast(void *UNUSED(data), bNode *node, b
 	}
 }
 
-void register_node_type_cmp_brightcontrast(ListBase *lb)
+void register_node_type_cmp_brightcontrast(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_brightcontrast_in, cmp_node_brightcontrast_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_exec(&ntype, node_composit_exec_brightcontrast);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

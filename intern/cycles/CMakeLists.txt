@@ -9,31 +9,18 @@ include(cmake/external_libs.cmake)
 # Build Flags
 
 if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-	set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3")
-endif()
+	set(WITH_CYCLES_OPTIMIZED_KERNEL ON)
 
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_OPTIM_FLAGS}")
-	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
-endif()
-
-if(WIN32)
-	if(MSVC)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /Ot /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /EHsc /fp:fast")
-		set(RTTI_DISABLE_FLAGS "/GR- -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+	if(WIN32 AND MSVC)
+		set(CYCLES_OPTIMIZED_KERNEL_FLAGS "/Ox /Ot /arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /EHsc /fp:fast")
 	elseif(CMAKE_COMPILER_IS_GNUCC)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_OPTIM_FLAGS}")
-		set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+		set(CYCLES_OPTIMIZED_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -DGOGOGO")
 	endif()
 endif()
 
-if(UNIX AND NOT APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_OPTIM_FLAGS}")
-	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
-endif()
-
-# not needed yet, is for open shading language
-set(RTTI_DISABLE_FLAGS "")
+# for OSL, not needed yet
+# set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+# set(RTTI_DISABLE_FLAGS "/GR- -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 
 # Definitions and Includes
 
@@ -41,6 +28,10 @@ add_definitions(${BOOST_DEFINITIONS} ${OPENIMAGEIO_DEFINITIONS})
 
 add_definitions(-DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {)
 add_definitions(-DCCL_NAMESPACE_END=})
+
+if(WITH_CYCLES_OPTIMIZED_KERNEL)
+	add_definitions(-DWITH_OPTIMIZED_KERNEL)
+endif()
 
 if(WITH_CYCLES_NETWORK)
   add_definitions(-DWITH_NETWORK)
@@ -70,6 +61,7 @@ include_directories(
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)
+	add_definitions(-DBLENDER_PLUGIN)
 	add_subdirectory(blender)
 endif(WITH_CYCLES_BLENDER)
 

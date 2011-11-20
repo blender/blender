@@ -182,18 +182,16 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode* nod
 	n->gain[0] = n->gain[1] = n->gain[2] = 1.0f;
 }
 
-void register_node_type_cmp_colorbalance(ListBase *lb)
+void register_node_type_cmp_colorbalance(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_colorbalance_in, cmp_node_colorbalance_out);
 	node_type_size(&ntype, 400, 200, 400);
 	node_type_init(&ntype, node_composit_init_colorbalance);
 	node_type_storage(&ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_colorbalance);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

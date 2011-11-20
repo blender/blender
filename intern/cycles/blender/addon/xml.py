@@ -16,6 +16,8 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+# <pep8 compliant>
+
 # XML exporter for generating test files, not intended for end users
 
 import os
@@ -24,12 +26,14 @@ from bpy_extras.io_utils import ExportHelper
 import xml.etree.ElementTree as etree
 import xml.dom.minidom as dom
 
+
 def strip(root):
     root.text = None
     root.tail = None
 
     for elem in root:
         strip(elem)
+
 
 def write(node, fname):
     strip(node)
@@ -39,6 +43,7 @@ def write(node, fname):
 
     f = open(fname, "w")
     f.write(s)
+
 
 class ExportCyclesXML(bpy.types.Operator, ExportHelper):
     ''''''
@@ -82,18 +87,19 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
             verts += " "
 
         node = etree.Element('mesh', attrib={'nverts': nverts, 'verts': verts, 'P': P})
-        
+
         # write to file
         write(node, filepath)
 
         return {'FINISHED'}
 
+
 def register():
     pass
+
 
 def unregister():
     pass
 
 if __name__ == "__main__":
     register()
-

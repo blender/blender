@@ -79,6 +79,7 @@
 #include "rendercore.h"
 #include "shading.h"
 #include "texture.h"
+#include "texture_ocean.h"
 
 #include "renderdatabase.h" /* needed for UV */
 
@@ -1264,7 +1265,9 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_VOXELDATA:
 		retval= voxeldatatex(tex, texvec, texres);  
 		break;
-
+	case TEX_OCEAN:
+		retval= ocean_texture(tex, texvec, texres);  
+		break;
 	}
 
 	if (tex->flag & TEX_COLORBAND) {
@@ -2193,6 +2196,12 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				use_ntap_bump = 0;
 				use_compat_bump = 1;
 			}
+			
+			/* case ocean */
+			if(tex->type == TEX_OCEAN) {
+				use_ntap_bump = 0;
+				use_compat_bump = 0;
+			}
 
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO) {
@@ -2998,7 +3007,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co, fact, stencilTin=1.0;
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
-	int tex_nr, rgb= 0, ok;
+	int tex_nr, rgb= 0;
 	
 	if (R.r.scemode & R_NO_TEX) return;
 	/* todo: add flag to test if there's a tex */
@@ -3162,18 +3171,21 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 					texture_rgb_blend(hor, tcol, hor, texres.tin, mtex->colfac, mtex->blendtype);
 				}
 				if(mtex->mapto & (WOMAP_ZENUP+WOMAP_ZENDOWN)) {
-					ok= 0;
+					float zenfac = 0.0f;
+
 					if(R.wrld.skytype & WO_SKYREAL) {
 						if((skyflag & WO_ZENUP)) {
-							if(mtex->mapto & WOMAP_ZENUP) ok= 1;
+							if(mtex->mapto & WOMAP_ZENUP) zenfac= mtex->zenupfac;
 						}
-						else if(mtex->mapto & WOMAP_ZENDOWN) ok= 1;
+						else if(mtex->mapto & WOMAP_ZENDOWN) zenfac= mtex->zendownfac;
 					}
-					else ok= 1;
+					else {
+						if(mtex->mapto & WOMAP_ZENUP) zenfac= mtex->zenupfac;
+						else if(mtex->mapto & WOMAP_ZENDOWN) zenfac= mtex->zendownfac;
+					}
 					
-					if(ok) {
-						texture_rgb_blend(zen, tcol, zen, texres.tin, mtex->colfac, mtex->blendtype);
-					}
+					if(zenfac != 0.0f)
+						texture_rgb_blend(zen, tcol, zen, texres.tin, zenfac, mtex->blendtype);
 				}
 			}
 			if(mtex->mapto & WOMAP_BLEND) {

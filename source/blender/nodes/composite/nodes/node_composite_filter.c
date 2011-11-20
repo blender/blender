@@ -220,18 +220,15 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 }
 
 
-void register_node_type_cmp_filter(ListBase *lb)
+void register_node_type_cmp_filter(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_filter_in, cmp_node_filter_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_label(&ntype, node_filter_label);
 	node_type_exec(&ntype, node_composit_exec_filter);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

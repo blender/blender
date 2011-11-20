@@ -142,6 +142,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_external_pack);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
+	WM_operatortype_append(OBJECT_OT_ocean_bake);
 	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
@@ -337,7 +338,10 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "global", TRUE);
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "global", TRUE);
+
 	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);

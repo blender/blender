@@ -94,6 +94,7 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
+WITH_BF_OCEANSIM = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -196,7 +197,8 @@ BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib'
 BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
-WITH_BF_OIIO = True 
+WITH_BF_OIIO = True
+WITH_BF_STATICOIIO = False
 BF_OIIO = LIBDIR + '/oiio'
 if not os.path.exists(LCGDIR + '/oiio'):
     WITH_BF_OIIO = False
@@ -206,6 +208,7 @@ BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = BF_OIIO + '/lib'
 
 WITH_BF_BOOST = True
+WITH_BF_STATICBOOST = False
 BF_BOOST = LIBDIR + '/boost'
 if not os.path.exists(LCGDIR + '/boost'):
     WITH_BF_BOOST = False
@@ -224,6 +227,7 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
 #SpaceNavigator and friends
 WITH_BF_3DMOUSE = True
+WITH_BF_STATIC3DMOUSE = False
 BF_3DMOUSE = '/usr'
 BF_3DMOUSE_INC = '${BF_3DMOUSE}/include'
 BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib'
@@ -243,8 +247,8 @@ CPPFLAGS = []
 # g++ 4.6, only needed for bullet
 CXXFLAGS += ['-fpermissive']
 if WITH_BF_FFMPEG:
-  # libavutil needs UINT64_C()
-  CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
+    # libavutil needs UINT64_C()
+    CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
 REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']

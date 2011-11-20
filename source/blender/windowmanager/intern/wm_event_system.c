@@ -636,7 +636,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	}
 	else {
 		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+		op->properties= IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 	}
 	RNA_pointer_create(&wm->id, ot->srna, op->properties, op->ptr);
 

@@ -78,6 +78,54 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 
 /* ******************* execute and parse ************ */
 
+/* Used for muted nodes, just copy the vec data from input to output… */
+void node_shader_pass_on(void *UNUSED(data), int UNUSED(thread), struct bNode *node, void *UNUSED(nodedata),
+                         struct bNodeStack **in, struct bNodeStack **out)
+{
+	ListBase links;
+	LinkInOutsMuteNode *lnk;
+	int i;
+
+	if(node->typeinfo->mutelinksfunc == NULL)
+		return;
+
+	/* Get default muting links (as bNodeStack pointers). */
+	links = node->typeinfo->mutelinksfunc(NULL, node, in, out, NULL, NULL);
+
+	for(lnk = links.first; lnk; lnk = lnk->next) {
+		for(i = 0; i < lnk->num_outs; i++) {
+			copy_v4_v4((((bNodeStack*)(lnk->outs))+i)->vec, ((bNodeStack*)(lnk->in))->vec);
+		}
+		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
+		if(i > 1)
+			MEM_freeN(lnk->outs);
+	}
+	BLI_freelistN(&links);
+}
+
+int gpu_shader_pass_on(struct GPUMaterial *mat, struct bNode *node, void *UNUSED(nodedata),
+                       struct GPUNodeStack *in, struct GPUNodeStack *out)
+{
+	ListBase links;
+	LinkInOutsMuteNode *lnk;
+
+	if(node->typeinfo->mutelinksfunc == NULL)
+		return 0;
+
+	/* Get default muting links (as GPUNodeStack pointers). */
+	links = node->typeinfo->mutelinksfunc(NULL, node, NULL, NULL, in, out);
+
+	for(lnk = links.first; lnk; lnk = lnk->next) {
+		GPU_stack_link_mute(mat, "copy_raw", lnk);
+		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
+		if(lnk->num_outs > 1)
+			MEM_freeN(lnk->outs);
+	}
+
+	BLI_freelistN(&links);
+	return 1;
+}
+
 /* go over all used Geometry and Texture nodes, and return a texco flag */
 /* no group inside needed, this function is called for groups too */
 void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mode)
@@ -214,7 +262,11 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 	
 	gs->name = "";
 	gs->hasinput= ns->hasinput && ns->data;
-	gs->hasoutput= ns->hasoutput && ns->data;
+	/* XXX Commented out the ns->data check here, as it seems it’s not alwas set,
+	 *     even though there *is* a valid connection/output... But that might need
+	 *     further investigation.
+	 */
+	gs->hasoutput= ns->hasoutput /*&& ns->data*/;
 	gs->sockettype= ns->sockettype;
 }
 
@@ -293,7 +345,14 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 			doit = 1;
 
 		if (doit) {
-			if(node->typeinfo->gpufunc) {
+			if((node->flag & NODE_MUTED) && node->typeinfo->gpumutefunc) {
+				node_get_stack(node, stack, nsin, nsout);
+				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
+				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
+				if(node->typeinfo->gpumutefunc(mat, node, nodeexec->data, gpuin, gpuout))
+					data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
+			}
+			else if(node->typeinfo->gpufunc) {
 				node_get_stack(node, stack, nsin, nsout);
 				gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
 				gpu_stack_from_data_list(gpuout, &node->outputs, nsout);

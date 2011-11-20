@@ -439,7 +439,7 @@ static int prefsize(int argc, const char **argv, void *UNUSED(data))
 	int stax, stay, sizx, sizy;
 
 	if (argc < 5) {
-		printf ("-p requires four arguments\n");
+		fprintf (stderr, "-p requires four arguments\n");
 		exit(1);
 	}
 
@@ -517,7 +517,7 @@ static int no_audio(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(da
 static int set_audio(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc < 1) {
-		printf("-setaudio require one argument\n");
+		fprintf(stderr, "-setaudio require one argument\n");
 		exit(1);
 	}
 
@@ -978,6 +978,10 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 
 			DAG_on_visible_update(CTX_data_main(C), TRUE);
+		}
+		else {
+			/* failed to load file, stop processing arguments */
+			return -1;
 		}
 
 		/* WM_read_file() runs normally but since we're in background mode do here */

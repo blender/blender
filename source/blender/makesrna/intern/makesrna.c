@@ -524,7 +524,11 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
@@ -739,7 +743,11 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				const PropertySubType subtype= prop->subtype;
-				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+				const char *string_copy_func= (subtype==PROP_FILEPATH ||
+				                               subtype==PROP_DIRPATH  ||
+				                               subtype==PROP_FILENAME ||
+				                               subtype==PROP_BYTESTRING) ?
+				            "BLI_strncpy" : "BLI_strncpy_utf8";
 
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
@@ -1426,21 +1434,21 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		case PROP_BOOLEAN: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline bool %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<int, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_INT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline int %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<int, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_FLOAT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tinline float %s(void);", rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tinline Array<float, %u> %s(void);", prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
@@ -1501,21 +1509,21 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
 		case PROP_BOOLEAN: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tBOOLEAN_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tBOOLEAN_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_INT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tINT_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tINT_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_FLOAT: {
 			if(!prop->arraydimension)
 				fprintf(f, "\tFLOAT_PROPERTY(%s, %s)", srna->identifier, rna_safe_id(prop->identifier));
-			else
+			else if(prop->totarraylength)
 				fprintf(f, "\tFLOAT_ARRAY_PROPERTY(%s, %u, %s)", srna->identifier, prop->totarraylength, rna_safe_id(prop->identifier));
 			break;
 		}
@@ -1701,6 +1709,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			first= 0;
 		}
 
+		if(func->flag & FUNC_USE_MAIN) {
+			if(!first) fprintf(f, ", ");
+			first= 0;
+			fprintf(f, "CTX_data_main(C)"); /* may have direct access later */
+		}
+
 		if(func->flag & FUNC_USE_CONTEXT) {
 			if(!first) fprintf(f, ", ");
 			first= 0;
@@ -1816,6 +1830,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_FILEPATH: return "PROP_FILEPATH";
 		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
+		case PROP_BYTESTRING: return "PROP_BYTESTRING";
 		case PROP_TRANSLATE: return "PROP_TRANSLATE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
@@ -1996,6 +2011,12 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;
+	}
+
+	if(func->flag & FUNC_USE_MAIN) {
+		if(!first) fprintf(f, ", ");
+		first= 0;
+		fprintf(f, "Main *bmain");
 	}
 
 	if(func->flag & FUNC_USE_CONTEXT) {
@@ -2473,7 +2494,7 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_space.c", NULL, RNA_def_space},
 	{"rna_speaker.c", NULL, RNA_def_speaker},
 	{"rna_test.c", NULL, RNA_def_test},
-	{"rna_text.c", NULL, RNA_def_text},
+	{"rna_text.c", "rna_text_api.c", RNA_def_text},
 	{"rna_timeline.c", NULL, RNA_def_timeline_marker},
 	{"rna_sound.c", NULL, RNA_def_sound},
 	{"rna_ui.c", "rna_ui_api.c", RNA_def_ui},
