@@ -52,7 +52,7 @@ void	BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *re
 int		BKE_alphatest_ibuf(struct ImBuf *ibuf);
 int		BKE_write_ibuf_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality);
 int		BKE_write_ibuf(struct ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality);
-void	BKE_makepicstring(char *string, const char *base, int frame, int imtype, const short use_ext, const short use_frames);
+void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, int imtype, const short use_ext, const short use_frames);
 int		BKE_add_image_extension(char *string, int imtype);
 int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);

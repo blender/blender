@@ -3935,9 +3935,10 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 //				return;
 
 			// ok, start loading
-			BLI_snprintf(filename, sizeof(filename), "%sfluidsurface_particles_####.gz", fss->surfdataPath);
-			
-			BLI_path_abs(filename, G.main->name);
+			BLI_join_dirfile(filename, sizeof(filename), fss->surfdataPath, OB_FLUIDSIM_SURF_PARTICLES_FNAME);
+
+			BLI_path_abs(filename, modifier_path_relbase(sim->ob));
+
 			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 
 			gzf = gzopen(filename, "rb");

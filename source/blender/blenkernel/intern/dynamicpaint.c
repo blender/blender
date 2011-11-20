@@ -976,8 +976,8 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20f;
 
-	BLI_snprintf(surface->image_output_path, sizeof(surface->image_output_path), "%sdynamicpaint", U.textudir);
-	BLI_cleanup_dir(NULL, surface->image_output_path);
+	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "dynamicpaint");
+
 	dynamicPaintSurface_setUniqueName(surface, "Surface");
 
 	surface->effector_weights = BKE_add_effector_weights(NULL);
