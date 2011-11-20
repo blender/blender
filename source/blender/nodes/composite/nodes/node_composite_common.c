@@ -119,6 +119,9 @@ static void *group_initexec(bNode *node)
 	bNodeSocket *sock;
 	bNodeStack *ns;
 	
+	if (!ngroup)
+		return NULL;
+	
 	/* initialize the internal node tree execution */
 	exec = ntreeCompositBeginExecTree(ngroup, 0);
 	
@@ -137,7 +140,8 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec *gexec= (bNodeTreeExec*)nodedata;
 	
-	ntreeCompositEndExecTree(gexec, 0);
+	if (gexec)
+		ntreeCompositEndExecTree(gexec, 0);
 }
 
 /* Copy inputs to the internal stack.
@@ -190,6 +194,9 @@ static void group_free_internal(bNodeTreeExec *gexec)
 static void group_execute(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out)
 {
 	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	
+	if (!exec)
+		return;
 	
 	/* XXX same behavior as trunk: all nodes inside group are executed.
 	 * it's stupid, but just makes it work. compo redesign will do this better.
