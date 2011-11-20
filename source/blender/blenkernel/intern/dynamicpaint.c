@@ -1475,11 +1475,12 @@ int dynamicPaint_resetSurface(DynamicPaintSurface *surface)
 }
 
 /* make sure allocated surface size matches current requirements */
-static void dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
+static int dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
 {
 	if (!surface->data || ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
-		dynamicPaint_resetSurface(surface);
+		return dynamicPaint_resetSurface(surface);
 	}
+	return 1;
 }
 
 
@@ -1614,6 +1615,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						/* paint layer */
 						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name);
+						/* if output layer is lost from a constructive modifier, re-add it */
+						if (!col && dynamicPaint_outputLayerExists(surface, ob, 0))
+							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name);
+						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
@@ -1634,6 +1639,10 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 						/* wet layer */
 						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name2);
+						/* if output layer is lost from a constructive modifier, re-add it */
+						if (!col && dynamicPaint_outputLayerExists(surface, ob, 1))
+							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name2);
+						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
@@ -1792,7 +1801,7 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
 
 			/* make sure surface is valid */
-			dynamicPaint_checkSurfaceData(surface);
+			if (!dynamicPaint_checkSurfaceData(surface)) continue;
 
 			/* limit frame range */
 			CLAMP(current_frame, surface->start_frame, surface->end_frame);
@@ -3396,7 +3405,8 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							velocity_val = len_v3(velocity);
 
 							/* if brush has smudge enabled store brush velocity */
-							if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+							if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
+								brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 								copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 								mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 								bData->brush_velocity[index*4+3] = velocity_val;
@@ -3690,7 +3700,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						velocity_val = len_v3(velocity);
 
 						/* store brush velocity for smudge */
-						if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
+							brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 							copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 							mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 							bData->brush_velocity[index*4+3] = velocity_val;
@@ -3788,7 +3799,8 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 				velocity_val = len_v3(velocity);
 
 				/* store brush velocity for smudge */
-				if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+				if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && 
+					brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
 					copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 					mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 					bData->brush_velocity[index*4+3] = velocity_val;
@@ -4802,7 +4814,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					BrushMaterials bMats = {0};
 
 					/* calculate brush speed vectors if required */
-					if (brush->flags & MOD_DPAINT_DO_SMUDGE) {
+					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {
 						bData->brush_velocity = MEM_callocN(sData->total_points*sizeof(float)*4, "Dynamic Paint brush velocity");
 						/* init adjacency data if not already */
 						if (!sData->adj_data)
@@ -4852,7 +4864,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 
 					/* process special brush effects, like smudge */
 					if (bData->brush_velocity) {
-						if (brush->flags & MOD_DPAINT_DO_SMUDGE)
+						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE)
 							dynamicPaint_doSmudge(surface, brush, timescale);
 						MEM_freeN(bData->brush_velocity);
 						bData->brush_velocity = NULL;
