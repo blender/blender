@@ -41,6 +41,8 @@
 
 #include "NOD_socket.h"
 
+#include "GPU_material.h" /* For Shader muting GPU code... */
+
 struct bNodeTree;
 struct bNode;
 
@@ -58,6 +60,15 @@ const char *node_blend_label(struct bNode *node);
 const char *node_math_label(struct bNode *node);
 const char *node_vect_math_label(struct bNode *node);
 const char *node_filter_label(struct bNode *node);
+
+typedef struct LinkInOutsMuteNode
+{
+	struct LinkInOutsMuteNode *next, *prev;
+	void *in, *outs;
+	unsigned int num_outs; /* If > 1, outs is an array of pointers that need to be freed too! */
+} LinkInOutsMuteNode;
+ListBase node_mute_get_links(struct bNodeTree *ntree, struct bNode *node, struct bNodeStack **nsin,
+                             struct bNodeStack **nsout, struct GPUNodeStack *gnsin, struct GPUNodeStack *gnsout);
 
 #endif
 

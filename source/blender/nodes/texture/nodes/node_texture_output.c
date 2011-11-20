@@ -168,5 +168,8 @@ void register_node_type_tex_output(bNodeTreeType *ttype)
 	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
 	node_type_exec(&ntype, exec);
 	
+	/* Do not allow muting output. */
+	node_type_mute(&ntype, NULL, NULL);
+	
 	nodeRegisterType(ttype, &ntype);
 }

@@ -73,6 +73,8 @@
 #include "NOD_composite.h"
 #include "NOD_shader.h"
 
+#include "intern/node_util.h"
+
 #include "node_intern.h"
 
 /* width of socket columns in group display */
@@ -418,38 +420,41 @@ static int node_get_colorid(bNode *node)
 	return TH_NODE;
 }
 
-/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
+/* note: in cmp_util.c is similar code, for node_compo_pass_on()
+ *       the same goes for shader and texture nodes. */
 /* note: in node_edit.c is similar code, for untangle node */
 static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
-	static int types[]= { SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA };
+	ListBase links;
+	LinkInOutsMuteNode *lnk;
 	bNodeLink link= {NULL};
 	int i;
-	
-	/* connect the first input of each type with first output of the same type */
-	
+
+	if(node->typeinfo->mutelinksfunc == NULL)
+		return;
+
+	/* Get default muting links (as bNodeSocket pointers). */
+	links = node->typeinfo->mutelinksfunc(snode->edittree, node, NULL, NULL, NULL, NULL);
+
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
-	
+	glEnable(GL_LINE_SMOOTH);
+
 	link.fromnode = link.tonode = node;
-	for (i=0; i < 3; ++i) {
-		/* find input socket */
-		for (link.fromsock=node->inputs.first; link.fromsock; link.fromsock=link.fromsock->next)
-			if (link.fromsock->type==types[i] && nodeCountSocketLinks(snode->edittree, link.fromsock))
-				break;
-		if (link.fromsock) {
-			for (link.tosock=node->outputs.first; link.tosock; link.tosock=link.tosock->next)
-				if (link.tosock->type==types[i] && nodeCountSocketLinks(snode->edittree, link.tosock))
-					break;
-			
-			if (link.tosock) {
-				node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
-			}
+	for(lnk = links.first; lnk; lnk = lnk->next) {
+		for(i = 0; i < lnk->num_outs; i++) {
+			link.fromsock = (bNodeSocket*)(lnk->in);
+			link.tosock   = (bNodeSocket*)(lnk->outs)+i;
+			node_draw_link_bezier(v2d, snode, &link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 		}
+		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
+		if(i > 1)
+			MEM_freeN(lnk->outs);
 	}
-	
+
 	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
+
+	BLI_freelistN(&links);
 }
 
 /* this might have some more generic use */

@@ -1643,15 +1643,22 @@ struct bNodeTemplate nodeMakeTemplate(struct bNode *node)
 	}
 }
 
-void node_type_base(bNodeTreeType *UNUSED(ttype), bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void node_type_base(bNodeTreeType *ttype, bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
 	memset(ntype, 0, sizeof(bNodeType));
-	
+
 	ntype->type = type;
 	BLI_strncpy(ntype->name, name, sizeof(ntype->name));
 	ntype->nclass = nclass;
 	ntype->flag = flag;
-	
+
+	/* Default muting stuff. */
+	if(ttype) {
+		ntype->mutefunc      = ttype->mutefunc;
+		ntype->mutelinksfunc = ttype->mutelinksfunc;
+		ntype->gpumutefunc   = ttype->gpumutefunc;
+	}
+
 	/* default size values */
 	ntype->width = 140;
 	ntype->minwidth = 100;
@@ -1746,6 +1753,16 @@ void node_type_exec_new(struct bNodeType *ntype,
 	ntype->newexecfunc = newexecfunc;
 }
 
+void node_type_mute(struct bNodeType *ntype,
+                    void (*mutefunc)(void *data, int thread, struct bNode *, void *nodedata,
+                                     struct bNodeStack **, struct bNodeStack **),
+                    ListBase (*mutelinksfunc)(struct bNodeTree *, struct bNode *, struct bNodeStack **, struct bNodeStack **,
+                                              struct GPUNodeStack *, struct GPUNodeStack *))
+{
+	ntype->mutefunc = mutefunc;
+	ntype->mutelinksfunc = mutelinksfunc;
+}
+
 void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out))
 {
 	ntype->gpufunc = gpufunc;
@@ -1754,6 +1771,12 @@ void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *m
 void node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node, void *nodedata, struct GPUNodeStack *in, struct GPUNodeStack *out))
 {
 	ntype->gpuextfunc = gpuextfunc;
+}
+
+void node_type_gpu_mute(struct bNodeType *ntype, int (*gpumutefunc)(struct GPUMaterial *, struct bNode *, void *,
+                                                                    struct GPUNodeStack *, struct GPUNodeStack *))
+{
+	ntype->gpumutefunc = gpumutefunc;
 }
 
 void node_type_compatibility(struct bNodeType *ntype, short compatibility)
