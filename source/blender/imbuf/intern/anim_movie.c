@@ -658,10 +658,6 @@ static void ffmpeg_postprocess(struct anim * anim)
 		          dst2,
 		          dstStride2);
 		
-		/* workaround: sws_scale bug
-		   sets alpha = 0 and compensate
-		   for altivec-bugs and flipy... */
-		
 		bottom = (unsigned char*) ibuf->rect;
 		top = bottom + ibuf->x * (ibuf->y-1) * 4;
 		
@@ -672,17 +668,17 @@ static void ffmpeg_postprocess(struct anim * anim)
 			unsigned char tmp[4];
 			unsigned int * tmp_l =
 				(unsigned int*) tmp;
-			tmp[3] = 0xff;
 			
 			for (x = 0; x < w; x++) {
 				tmp[0] = bottom[0];
 				tmp[1] = bottom[1];
 				tmp[2] = bottom[2];
+				tmp[3] = bottom[3];
 				
 				bottom[0] = top[0];
 				bottom[1] = top[1];
 				bottom[2] = top[2];
-				bottom[3] = 0xff;
+				bottom[3] = top[3];
 				
 				*(unsigned int*) top = *tmp_l;
 				
@@ -698,7 +694,6 @@ static void ffmpeg_postprocess(struct anim * anim)
 		uint8_t* dst2[4]  = { dst[0] + (anim->y - 1)*dstStride[0],
 				      0, 0, 0 };
 		int i;
-		unsigned char* r;
 		
 		sws_scale(anim->img_convert_ctx,
 		          (const uint8_t * const *)input->data,
@@ -707,17 +702,6 @@ static void ffmpeg_postprocess(struct anim * anim)
 		          anim->pCodecCtx->height,
 		          dst2,
 		          dstStride2);
-		
-		r = (unsigned char*) ibuf->rect;
-		
-		/* workaround sws_scale bug: older version of 
-		   sws_scale set alpha = 0... */
-		if (r[3] == 0) {
-			for (i = 0; i < ibuf->x * ibuf->y; i++) {
-				r[3] = 0xff;
-				r += 4;
-			}
-		}
 	}
 
 	if (filter_y) {
