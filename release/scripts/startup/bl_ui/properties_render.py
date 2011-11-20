@@ -180,7 +180,8 @@ class RENDER_MT_lineset_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("scene.freestyle_lineset_copy", icon='ZOOMIN')
+        layout.operator("scene.freestyle_lineset_copy", icon='COPYDOWN')
+        layout.operator("scene.freestyle_lineset_paste", icon='PASTEDOWN')
 
 
 class RENDER_PT_freestyle(RenderButtonsPanel, Panel):

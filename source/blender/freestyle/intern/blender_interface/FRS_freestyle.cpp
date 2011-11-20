@@ -40,6 +40,10 @@ extern "C" {
 	static Controller *controller = NULL;
 	static AppView *view = NULL;
 
+	// line set buffer for copy & paste
+	static FreestyleLineSet lineset_buffer;
+	static bool lineset_copied = false;
+
 	// camera information
 	float freestyle_viewpoint[3];
 	float freestyle_mv[4][4];
@@ -66,6 +70,7 @@ extern "C" {
 		controller->setView(view);
 		controller->Clear();
 		freestyle_scene = NULL;
+		lineset_copied = false;
 			
 		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
 			
@@ -542,6 +547,11 @@ extern "C" {
 		BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
 	}
 
+	static void unique_lineset_name(FreestyleConfig *config, FreestyleLineSet *lineset)
+	{
+		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name), sizeof(lineset->name));
+	}
+
 	FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
 	{
 		int lineset_index = BLI_countlist(&config->linesets);
@@ -557,12 +567,13 @@ extern "C" {
 		lineset->qi_start = 0;
 		lineset->qi_end = 100;
 		lineset->edge_types = FREESTYLE_FE_SILHOUETTE | FREESTYLE_FE_BORDER | FREESTYLE_FE_CREASE;
+		lineset->exclude_edge_types = 0;
 		lineset->group = NULL;
 		if (lineset_index > 0)
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);
 		else
 			strcpy(lineset->name, "LineSet");
-		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name), sizeof(lineset->name));
+		unique_lineset_name(config, lineset);
 
 		return lineset;
 	}
@@ -572,20 +583,49 @@ extern "C" {
 		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
 
 		if (lineset) {
-			FreestyleLineSet *new_lineset = FRS_add_lineset(config);
-			new_lineset->linestyle = lineset->linestyle;
-			new_lineset->linestyle->id.us++;
-			new_lineset->flags = lineset->flags;
-			new_lineset->selection = lineset->selection;
-			new_lineset->qi = lineset->qi;
-			new_lineset->qi_start = lineset->qi_start;
-			new_lineset->qi_end = lineset->qi_end;
-			new_lineset->edge_types = lineset->edge_types;
+			lineset_buffer.linestyle = lineset->linestyle;
+			lineset_buffer.flags = lineset->flags;
+			lineset_buffer.selection = lineset->selection;
+			lineset_buffer.qi = lineset->qi;
+			lineset_buffer.qi_start = lineset->qi_start;
+			lineset_buffer.qi_end = lineset->qi_end;
+			lineset_buffer.edge_types = lineset->edge_types;
+			lineset_buffer.exclude_edge_types = lineset->exclude_edge_types;
+			lineset_buffer.group = lineset->group;
+			strcpy(lineset_buffer.name, lineset->name);
+			lineset_copied = true;
+		}
+	}
+
+	void FRS_paste_active_lineset(FreestyleConfig *config)
+	{
+		if (!lineset_copied)
+			return;
+
+		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+
+		if (lineset) {
+			lineset->linestyle->id.us--;
+			lineset->linestyle = lineset_buffer.linestyle;
+			lineset->linestyle->id.us++;
+			lineset->flags = lineset_buffer.flags;
+			lineset->selection = lineset_buffer.selection;
+			lineset->qi = lineset_buffer.qi;
+			lineset->qi_start = lineset_buffer.qi_start;
+			lineset->qi_end = lineset_buffer.qi_end;
+			lineset->edge_types = lineset_buffer.edge_types;
+			lineset->exclude_edge_types = lineset_buffer.exclude_edge_types;
 			if (lineset->group) {
-				new_lineset->group = lineset->group;
-				new_lineset->group->id.us++;
+				lineset->group->id.us--;
+				lineset->group = NULL;
 			}
-			new_lineset->flags |= FREESTYLE_LINESET_CURRENT;
+			if (lineset_buffer.group) {
+				lineset->group = lineset_buffer.group;
+				lineset->group->id.us++;
+			}
+			strcpy(lineset->name, lineset_buffer.name);
+			unique_lineset_name(config, lineset);
+			lineset->flags |= FREESTYLE_LINESET_CURRENT;
 		}
 	}
 

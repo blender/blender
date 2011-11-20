@@ -718,7 +718,7 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Line Set";
 	ot->idname= "SCENE_OT_freestyle_lineset_copy";
-	ot->description="Create a copy of the active line set";
+	ot->description="Copy the active line set to a buffer";
 	
 	/* api callbacks */
 	ot->exec= freestyle_lineset_copy_exec;
@@ -727,6 +727,34 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+static int freestyle_lineset_paste_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+
+	FRS_paste_active_lineset(&srl->freestyleConfig);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_lineset_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Line Set";
+	ot->idname= "SCENE_OT_freestyle_lineset_paste";
+	ot->description="Paste the buffer content to the active line set";
+	
+	/* api callbacks */
+	ot->exec= freestyle_lineset_paste_exec;
+	ot->poll= freestyle_active_lineset_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);

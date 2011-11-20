@@ -67,6 +67,7 @@ extern "C" {
 	
 	FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config);
 	void FRS_copy_active_lineset(FreestyleConfig *config);
+	void FRS_paste_active_lineset(FreestyleConfig *config);
 	void FRS_delete_active_lineset(FreestyleConfig *config);
 	void FRS_move_active_lineset_up(FreestyleConfig *config);
 	void FRS_move_active_lineset_down(FreestyleConfig *config);
