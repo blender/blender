@@ -173,6 +173,7 @@ struct anim {
 	AVCodecContext *pCodecCtx;
 	AVCodec *pCodec;
 	AVFrame *pFrame;
+	int pFrameComplete;
 	AVFrame *pFrameRGB;
 	AVFrame *pFrameDeinterlaced;
 	struct SwsContext *img_convert_ctx;
@@ -181,7 +182,6 @@ struct anim {
 	struct ImBuf * last_frame;
 	int64_t last_pts;
 	int64_t next_pts;
-	int64_t next_undecoded_pts;
 	AVPacket next_packet;
 #endif
 
