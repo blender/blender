@@ -180,11 +180,11 @@ static int gpu_group_execute(GPUMaterial *mat, bNode *node, void *nodedata, GPUN
 	return 1;
 }
 
-void register_node_type_sh_group(ListBase *lb)
+void register_node_type_sh_group(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
+	node_type_base(ttype, &ntype, NODE_GROUP, "Group", NODE_CLASS_GROUP, NODE_OPTIONS|NODE_CONST_OUTPUT);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -196,7 +196,7 @@ void register_node_type_sh_group(ListBase *lb)
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, group_execute);
 	node_type_gpu_ext(&ntype, gpu_group_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 
@@ -242,11 +242,11 @@ static void forloop_execute(void *data, int thread, struct bNode *node, void *no
 	ntreeReleaseThreadStack(nts);
 }
 
-void register_node_type_sh_forloop(ListBase *lb)
+void register_node_type_sh_forloop(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_FORLOOP, "For", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, NODE_FORLOOP, "For", NODE_CLASS_GROUP, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -258,7 +258,7 @@ void register_node_type_sh_forloop(ListBase *lb)
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, forloop_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 #endif
 
@@ -304,11 +304,11 @@ static void whileloop_execute(void *data, int thread, struct bNode *node, void *
 	ntreeReleaseThreadStack(nts);
 }
 
-void register_node_type_sh_whileloop(ListBase *lb)
+void register_node_type_sh_whileloop(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, NODE_WHILELOOP, "While", NODE_CLASS_GROUP, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, NODE_WHILELOOP, "While", NODE_CLASS_GROUP, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, NULL);
 	node_type_size(&ntype, 120, 60, 200);
 	node_type_label(&ntype, node_group_label);
@@ -320,6 +320,6 @@ void register_node_type_sh_whileloop(ListBase *lb)
 	node_type_group_edit(&ntype, node_group_edit_get, node_group_edit_set, node_group_edit_clear);
 	node_type_exec_new(&ntype, group_initexec, group_freeexec, whileloop_execute);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 #endif

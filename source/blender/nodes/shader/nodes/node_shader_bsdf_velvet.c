@@ -46,11 +46,11 @@ static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *UNUSED(node), GP
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_velvet(ListBase *lb)
+void register_node_type_sh_bsdf_velvet(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_BSDF_VELVET, "Velvet BSDF", NODE_CLASS_SHADER, 0);
+	node_type_base(ttype, &ntype, SH_NODE_BSDF_VELVET, "Velvet BSDF", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bsdf_velvet_in, sh_node_bsdf_velvet_out);
 	node_type_size(&ntype, 150, 60, 200);
@@ -59,6 +59,5 @@ void register_node_type_sh_bsdf_velvet(ListBase *lb)
 	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_velvet);
 
-	nodeRegisterType(lb, &ntype);
-};
-
+	nodeRegisterType(ttype, &ntype);
+}

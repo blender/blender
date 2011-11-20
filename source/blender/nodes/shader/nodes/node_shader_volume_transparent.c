@@ -46,11 +46,11 @@ static int node_shader_gpu_volume_transparent(GPUMaterial *UNUSED(mat), bNode *U
 }
 
 /* node type definition */
-void register_node_type_sh_volume_transparent(ListBase *lb)
+void register_node_type_sh_volume_transparent(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_VOLUME_TRANSPARENT, "Transparent Volume", NODE_CLASS_SHADER, 0);
+	node_type_base(ttype, &ntype, SH_NODE_VOLUME_TRANSPARENT, "Transparent Volume", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_volume_transparent_in, sh_node_volume_transparent_out);
 	node_type_size(&ntype, 150, 60, 200);
@@ -59,6 +59,5 @@ void register_node_type_sh_volume_transparent(ListBase *lb)
 	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_volume_transparent);
 
-	nodeRegisterType(lb, &ntype);
-};
-
+	nodeRegisterType(ttype, &ntype);
+}

@@ -62,11 +62,11 @@ static int gpu_shader_squeeze(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStac
 	return GPU_stack_link(mat, "squeeze", in, out);
 }
 
-void register_node_type_sh_squeeze(ListBase *lb)
+void register_node_type_sh_squeeze(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_squeeze_in, sh_node_squeeze_out);
 	node_type_size(&ntype, 120, 110, 160);
@@ -74,7 +74,5 @@ void register_node_type_sh_squeeze(ListBase *lb)
 	node_type_exec(&ntype, node_shader_exec_squeeze);
 	node_type_gpu(&ntype, gpu_shader_squeeze);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

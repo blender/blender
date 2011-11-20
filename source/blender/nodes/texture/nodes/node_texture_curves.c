@@ -66,18 +66,18 @@ static void time_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUS
 	node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_tex_curve_time(ListBase *lb)
+void register_node_type_tex_curve_time(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_CURVE_TIME, "Time", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, TEX_NODE_CURVE_TIME, "Time", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, time_outputs);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, time_init);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, time_exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 /* **************** CURVE RGB  ******************** */
@@ -110,17 +110,16 @@ static void rgb_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSE
 	node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_tex_curve_rgb(ListBase *lb)
+void register_node_type_tex_curve_rgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, TEX_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, rgb_inputs, rgb_outputs);
 	node_type_size(&ntype, 200, 140, 320);
 	node_type_init(&ntype, rgb_init);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 	node_type_exec(&ntype, rgb_exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

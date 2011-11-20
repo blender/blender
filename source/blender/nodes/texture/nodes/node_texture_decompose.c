@@ -78,14 +78,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[3], &valuefn_a, data);
 }
 
-void register_node_type_tex_decompose(ListBase *lb)
+void register_node_type_tex_decompose(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_DECOMPOSE, "Decompose RGBA", NODE_CLASS_OP_COLOR, 0);
+	node_type_base(ttype, &ntype, TEX_NODE_DECOMPOSE, "Decompose RGBA", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }

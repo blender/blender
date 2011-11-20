@@ -148,16 +148,16 @@ static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-void register_node_type_cmp_sepycca(ListBase *lb)
+void register_node_type_cmp_sepycca(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_sepycca_in, cmp_node_sepycca_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_composit_exec_sepycca);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 
@@ -295,17 +295,14 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 	}	
 }
 
-void register_node_type_cmp_combycca(ListBase *lb)
+void register_node_type_cmp_combycca(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combycca_in, cmp_node_combycca_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_composit_exec_combycca);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

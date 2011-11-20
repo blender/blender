@@ -157,16 +157,16 @@ static void copy(bNode *orig, bNode *new)
 	assign_index(new);
 }
 
-void register_node_type_tex_output(ListBase *lb)
+void register_node_type_tex_output(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
+	node_type_base(ttype, &ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, inputs, NULL);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
 	node_type_exec(&ntype, exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }

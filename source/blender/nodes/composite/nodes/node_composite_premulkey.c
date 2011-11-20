@@ -61,16 +61,14 @@ static void node_composit_exec_premulkey(void *UNUSED(data), bNode *node, bNodeS
 	}
 }
 
-void register_node_type_cmp_premulkey(ListBase *lb)
+void register_node_type_cmp_premulkey(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_premulkey_in, cmp_node_premulkey_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_exec(&ntype, node_composit_exec_premulkey);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

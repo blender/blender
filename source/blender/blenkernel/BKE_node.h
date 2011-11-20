@@ -325,7 +325,7 @@ struct bNode	*nodeAddNode(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeRegisterType(struct ListBase *typelist, struct bNodeType *ntype) ;
+void			nodeRegisterType(struct bNodeTreeType *ttype, struct bNodeType *ntype) ;
 void			nodeMakeDynamicType(struct bNode *node);
 int				nodeDynamicUnlinkText(struct ID *txtid);
 
@@ -368,7 +368,8 @@ struct bNodeTree *nodeGroupEditSet(struct bNode *node, int edit);
 void			nodeGroupEditClear(struct bNode *node);
 
 /* Init a new node type struct with default values and callbacks */
-void			node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void			node_type_base(struct bNodeTreeType *ttype, struct bNodeType *ntype, int type,
+                               const char *name, short nclass, short flag);
 void			node_type_socket_templates(struct bNodeType *ntype, struct bNodeSocketTemplate *inputs, struct bNodeSocketTemplate *outputs);
 void			node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth);
 void			node_type_init(struct bNodeType *ntype, void (*initfunc)(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp));
@@ -421,7 +422,7 @@ struct bNode	*node_group_make_from_selected(struct bNodeTree *ntree);
 int				node_group_ungroup(struct bNodeTree *ntree, struct bNode *gnode);
 
 /* in node_common.c */
-void register_node_type_frame(ListBase *lb);
+void register_node_type_frame(struct bNodeTreeType *ttype);
 
 /* ************** SHADER NODES *************** */
 
