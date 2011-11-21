@@ -597,6 +597,8 @@ static void wm_keymap_diff_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *
 	/* create diff keymap */
 	diffmap= wm_keymap_new(km->idname, km->spaceid, km->regionid);
 	diffmap->flag |= KEYMAP_DIFF;
+	if(defaultmap->flag & KEYMAP_MODAL)
+		diffmap->flag |= KEYMAP_MODAL;
 	wm_keymap_diff(diffmap, defaultmap, km, origmap, addonmap);
 
 	/* add to list if not empty */
