@@ -658,7 +658,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 /********************** environment map operators *********************/
 
-static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *path, int imtype)
+static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *path, const char imtype)
 {
 	float layout[12];
 	if ( RNA_struct_find_property(op->ptr, "layout") )
@@ -680,7 +680,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 	Scene *scene = CTX_data_scene(C);
 	//int imtype = RNA_enum_get(op->ptr, "file_type");
-	int imtype = scene->r.im_format.imtype;
+	char imtype = scene->r.im_format.imtype;
 	char path[FILE_MAX];
 	
 	RNA_string_get(op->ptr, "filepath", path);

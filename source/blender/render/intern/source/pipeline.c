@@ -3343,7 +3343,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 
 const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
 
-int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, int imtype, float layout[12])
+int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, const char imtype, float layout[12])
 {
 	ImageFormatData imf;
 	ImBuf *ibuf=NULL;

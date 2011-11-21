@@ -67,7 +67,7 @@ static void filepath_avi(char *string, RenderData *rd);
 
 #include "BKE_writeframeserver.h"
 
-bMovieHandle *BKE_get_movie_handle(int imtype)
+bMovieHandle *BKE_get_movie_handle(const char imtype)
 {
 	static bMovieHandle mh;
 	

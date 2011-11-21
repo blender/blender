@@ -556,13 +556,13 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 	if (ima) {
 		ImBuf *ibuf;
 		
-		BLI_strncpy(ima->name, name, FILE_MAX);
+		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* dont do this, this writes in ain invalid filepath! */
 		ima->gen_x= width;
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 		
-		ibuf= add_ibuf_size(width, height, name, depth, floatbuf, uvtestgrid, color);
+		ibuf= add_ibuf_size(width, height, ima->name, depth, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -800,7 +800,7 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 /* *********** READ AND WRITE ************** */
 
-int BKE_imtype_to_ftype(int imtype)
+int BKE_imtype_to_ftype(const char imtype)
 {
 	if(imtype==R_TARGA)
 		return TGA;
@@ -840,10 +840,10 @@ int BKE_imtype_to_ftype(int imtype)
 		return JPG|90;
 }
 
-int BKE_ftype_to_imtype(int ftype)
+char BKE_ftype_to_imtype(const int ftype)
 {
 	if(ftype==0)
-		return TGA;
+		return R_TARGA;
 	else if(ftype == IMAGIC) 
 		return R_IRIS;
 #ifdef WITH_HDR
@@ -883,7 +883,7 @@ int BKE_ftype_to_imtype(int ftype)
 }
 
 
-int BKE_imtype_is_movie(int imtype)
+int BKE_imtype_is_movie(const char imtype)
 {
 	switch(imtype) {
 	case R_AVIRAW:
@@ -900,7 +900,7 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-int BKE_imtype_is_alpha_ok(int imtype)
+int BKE_imtype_is_alpha_ok(const char imtype)
 {
 	switch(imtype) {
 	case R_TARGA:
@@ -918,7 +918,7 @@ int BKE_imtype_is_alpha_ok(int imtype)
 	return 0;
 }
 
-int BKE_imtype_is_zbuf_ok(int imtype)
+int BKE_imtype_is_zbuf_ok(const char imtype)
 {
 	switch(imtype) {
 	case R_IRIZ:
@@ -928,7 +928,7 @@ int BKE_imtype_is_zbuf_ok(int imtype)
 	return 0;
 }
 
-int BKE_imtype_is_compression_ok(int imtype)
+int BKE_imtype_is_compression_ok(const char imtype)
 {
 	switch(imtype) {
 	case R_PNG:
@@ -937,7 +937,7 @@ int BKE_imtype_is_compression_ok(int imtype)
 	return 0;
 }
 
-int BKE_imtype_is_quality_ok(int imtype)
+int BKE_imtype_is_quality_ok(const char imtype)
 {
 	switch(imtype) {
 	case R_JPEG90:
@@ -947,7 +947,7 @@ int BKE_imtype_is_quality_ok(int imtype)
 	return 0;
 }
 
-int BKE_imtype_is_depth_ok(int imtype)
+char BKE_imtype_is_depth_ok(const char imtype)
 {
 	switch (imtype) {
 	case R_RADHDR:
@@ -970,7 +970,7 @@ int BKE_imtype_is_depth_ok(int imtype)
 	}
 }
 
-int BKE_add_image_extension(char *string, int imtype)
+int BKE_add_image_extension(char *string, const char imtype)
 {
 	const char *extension= NULL;
 	
@@ -1557,7 +1557,7 @@ int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const
 }
 
 
-void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, int imtype, const short use_ext, const short use_frames)
+void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames)
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */

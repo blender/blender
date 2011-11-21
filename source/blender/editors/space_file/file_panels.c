@@ -177,7 +177,7 @@ static void file_panel_operator_header(const bContext *C, Panel *pa)
 	BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
 }
 
-static int file_panel_check_prop(PropertyRNA *prop)
+static int file_panel_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	const char *prop_id= RNA_property_identifier(prop);
 	return !(	strcmp(prop_id, "filepath") == 0 ||
