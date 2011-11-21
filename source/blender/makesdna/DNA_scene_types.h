@@ -209,13 +209,68 @@ typedef struct SceneRenderLayer {
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
+/* generic image format settings,
+ * no video codec info however */
+typedef struct ImageFormatData {
+	char imtype;   /* R_PNG, R_... */
+	               /* note, video types should only ever be set from this
+	                * structure when used from RenderData */
+	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
+	                * not a flag, only set 1 at a time */
+
+	char planes  ; /* - R_PLANESBW, R_PLANES24, R_PLANES32 */
+	char flag;     /* generic options for all image types, alpha zbuffer */
+
+	char quality;  /* (0 - 100), eg: jpeg quality */
+	char compress; /* (0 - 100), eg: png compression */
+
+
+	/* --- format specific --- */
+
+	/* OpenEXR */
+	char  exr_codec;
+
+	/* Cineon */
+	char  cineon_flag;
+	short cineon_white, cineon_black;
+	float cineon_gamma;
+
+	/* Jpeg2000 */
+	char  jp2_flag;
+
+	char pad[7];
+
+} ImageFormatData;
+
+/* ImageFormatData.flag */
+#define R_IMF_FLAG_ZBUF         (1<<0)   /* was R_OPENEXR_ZBUF */
+#define R_IMF_FLAG_PREVIEW_JPG  (1<<1)   /* was R_PREVIEW_JPG */
+
+/* ImageFormatData.jp2_flag */
+#define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
+#define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+
+/* ImageFormatData.cineon_flag */
+#define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
+
+/* return values from BKE_imtype_is_depth_ok, note this is depts per channel */
+#define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
+#define R_IMF_CHAN_DEPTH_8  (1<<1) /* 8bits  (default) */
+#define R_IMF_CHAN_DEPTH_12 (1<<2) /* 12bits (uncommon, jp2 supports) */
+#define R_IMF_CHAN_DEPTH_16 (1<<3) /* 16bits (tiff, halff float exr) */
+#define R_IMF_CHAN_DEPTH_24 (1<<4) /* 24bits (unused) */
+#define R_IMF_CHAN_DEPTH_32 (1<<5) /* 32bits (full float exr) */
+
+
 typedef struct RenderData {
+	struct ImageFormatData im_format;
 	
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
 	struct QuicktimeCodecSettings qtcodecsettings;
 	struct FFMpegCodecData ffcodecdata;
-	
+
 	int cfra, sfra, efra;	/* frames as in 'images' */
 	float subframe;			/* subframe offset from cfra, in 0.0-1.0 */
 	int psfra, pefra;		/* start+end frames of preview range */
@@ -256,8 +311,8 @@ typedef struct RenderData {
 	 * The number of part to use in the y direction
 	 */
 	short yparts;
-        
-	short planes, imtype, subimtype, quality;
+
+	short planes, imtype, subimtype, quality;                   /*deprecated!*/
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
@@ -370,11 +425,11 @@ typedef struct RenderData {
 	float simplify_aosss;
 
 	/* cineon */
-	short cineonwhite, cineonblack;
-	float cineongamma;
+	short cineonwhite, cineonblack;                              /*deprecated*/
+	float cineongamma;                                           /*deprecated*/
 	
 	/* jpeg2000 */
-	short jp2_preset, jp2_depth;
+	short jp2_preset, jp2_depth;                                 /*deprecated*/
 	int rpad3;
 
 	/* Dome variables */ //  XXX deprecated since 2.5
@@ -1027,17 +1082,17 @@ typedef struct Scene {
 #define R_THEORA       	33
 
 /* subimtype, flag options for imtype */
-#define R_OPENEXR_HALF	1
-#define R_OPENEXR_ZBUF	2
-#define R_PREVIEW_JPG	4
-#define R_CINEON_LOG 	8
-#define R_TIFF_16BIT	16
+#define R_OPENEXR_HALF    1                                      /*deprecated*/
+#define R_OPENEXR_ZBUF    2                                      /*deprecated*/
+#define R_PREVIEW_JPG    4                                       /*deprecated*/
+#define R_CINEON_LOG     8                                       /*deprecated*/
+#define R_TIFF_16BIT    16                                       /*deprecated*/
 
-#define R_JPEG2K_12BIT	32 /* Jpeg2000 */
-#define R_JPEG2K_16BIT	64
-#define R_JPEG2K_YCC	128 /* when disabled use RGB */
-#define R_JPEG2K_CINE_PRESET	256
-#define R_JPEG2K_CINE_48FPS		512
+#define R_JPEG2K_12BIT    32 /* Jpeg2000 */                      /*deprecated*/
+#define R_JPEG2K_16BIT    64                                     /*deprecated*/
+#define R_JPEG2K_YCC    128 /* when disabled use RGB */          /*deprecated*/
+#define R_JPEG2K_CINE_PRESET    256                              /*deprecated*/
+#define R_JPEG2K_CINE_48FPS        512                           /*deprecated*/
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */

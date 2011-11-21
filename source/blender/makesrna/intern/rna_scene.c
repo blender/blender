@@ -102,8 +102,17 @@ EnumPropertyItem snap_element_items[] = {
 	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem image_type_items[] = {
-	{0, "", 0, "Image", NULL},
+
+/* note on duplicate block, perhaps we should use some trick to avoid
+ * the duplicate, but with the inline defines it becomes very tricky
+ * this awaits someone who has very good preprocessor-fu.
+ * for now just make sure they stay in sync - campbell */
+
+EnumPropertyItem image_only_type_items[] = {
+
+
+    /* --- duplicate block warning (see below) --- */
+#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
 #ifdef WITH_DDS
 	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
@@ -131,6 +140,47 @@ EnumPropertyItem image_type_items[] = {
 #ifdef WITH_TIFF
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
 #endif
+    /* --- end duplicate block (see below) --- */
+
+
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem image_type_items[] = {
+	{0, "", 0, "Image", NULL},
+
+
+    /* --- duplicate block warning (see above) --- */
+#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
+	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+#ifdef WITH_DDS
+	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+#endif
+	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+#ifdef WITH_OPENJPEG
+	{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
+#endif
+	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
+	{0, "", 0, " ", NULL},
+#ifdef WITH_CINEON
+	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
+	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+#endif
+#ifdef WITH_OPENEXR
+	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
+#endif
+#ifdef WITH_HDR
+	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
+#endif
+#ifdef WITH_TIFF
+	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+#endif
+    /* --- end duplicate block (see above) --- */
+
+
 	{0, "", 0, "Movie", NULL},
 #ifdef _WIN32
 	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"}, // XXX Missing codec menu
@@ -161,6 +211,15 @@ EnumPropertyItem image_color_mode_items[] ={
 	{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
 	{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 	{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem image_color_depth_items[] = {
+	/* 1 (monochrome) not used */
+	{R_IMF_CHAN_DEPTH_8,   "8", 0, "8",  "8 bit color channels"},
+	{R_IMF_CHAN_DEPTH_12, "12", 0, "12", "12 bit color channels"},
+	{R_IMF_CHAN_DEPTH_16, "16", 0, "16", "16 bit color channels"},
+	/* 24 not used */
+	{R_IMF_CHAN_DEPTH_32, "32", 0, "32", "32 bit color channels"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -529,7 +588,7 @@ static int rna_RenderSettings_threads_get(PointerRNA *ptr)
 static int rna_RenderSettings_is_movie_fomat_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
-	return BKE_imtype_is_movie(rd->imtype);
+	return BKE_imtype_is_movie(rd->im_format.imtype);
 }
 
 static int rna_RenderSettings_save_buffers_get(PointerRNA *ptr)
@@ -548,17 +607,139 @@ static int rna_RenderSettings_full_sample_get(PointerRNA *ptr)
 	return (rd->scemode & R_FULL_SAMPLE) && !(rd->mode & R_BORDER);
 }
 
-static void rna_RenderSettings_file_format_set(PointerRNA *ptr, int value)
+static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
-	RenderData *rd= (RenderData*)ptr->data;
+	ImageFormatData *imf= (ImageFormatData *)ptr->data;
+	ID *id= ptr->id.data;
 
-	rd->imtype= value;
+	imf->imtype= value;
+
+	/* ensure depth and color settings match */
+	if (!BKE_imtype_is_alpha_ok(imf->imtype)) {
+		imf->planes= R_PLANES24;
+	}
+
+	/* ensure usable depth */
+	{
+		const int depth_ok= BKE_imtype_is_depth_ok(imf->imtype);
+		if ((imf->depth & depth_ok) == 0) {
+			/* set first available depth */
+			char depth_ls[]= {R_IMF_CHAN_DEPTH_32,
+			                  R_IMF_CHAN_DEPTH_24,
+			                  R_IMF_CHAN_DEPTH_16,
+			                  R_IMF_CHAN_DEPTH_12,
+			                  R_IMF_CHAN_DEPTH_8,
+			                  R_IMF_CHAN_DEPTH_1,
+			                  0};
+			int i;
+
+			for (i= 0; depth_ls[i]; i++) {
+				if (depth_ok & depth_ls[i]) {
+					imf->depth= depth_ls[i];
+					break;
+				}
+			}
+		}
+	}
+
+	if (id && GS(id->name) == ID_SCE) {
+		Scene *scene= ptr->id.data;
+		RenderData *rd= &scene->r;
 #ifdef WITH_FFMPEG
-	ffmpeg_verify_image_type(rd);
+		ffmpeg_verify_image_type(rd);
 #endif
 #ifdef WITH_QUICKTIME
-	quicktime_verify_image_type(rd);
+		quicktime_verify_image_type(rd);
 #endif
+		(void)rd;
+	}
+}
+
+static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContext *C, PointerRNA *ptr,
+                                                                   PropertyRNA *UNUSED(prop), int *free)
+{
+	ID *id= ptr->id.data;
+	if (id && GS(id->name) == ID_SCE) {
+		return image_type_items;
+	}
+	else {
+		return image_only_type_items;
+	}
+}
+
+static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, PointerRNA *ptr,
+                                                                  PropertyRNA *UNUSED(prop), int *free)
+{
+	ImageFormatData *imf= (ImageFormatData *)ptr->data;
+
+	if ((imf == NULL) || BKE_imtype_is_alpha_ok(imf->imtype)) {
+		return image_color_mode_items;
+	}
+	else {
+		static EnumPropertyItem color_mode_items[] ={
+			{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
+			{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
+			{0, NULL, 0, NULL, NULL}};
+		return color_mode_items;
+	}
+}
+
+static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, PointerRNA *ptr,
+                                                                  PropertyRNA *UNUSED(prop), int *free)
+{
+	ImageFormatData *imf= (ImageFormatData *)ptr->data;
+
+	if (imf == NULL) {
+		return image_color_depth_items;
+	}
+	else {
+		const int depth_ok= BKE_imtype_is_depth_ok(imf->imtype);
+		const int is_float= ELEM3(imf->imtype, R_RADHDR, R_OPENEXR, R_MULTILAYER);
+
+		EnumPropertyItem *item_8bit=  &image_color_depth_items[0];
+		EnumPropertyItem *item_12bit= &image_color_depth_items[1];
+		EnumPropertyItem *item_16bit= &image_color_depth_items[2];
+		EnumPropertyItem *item_32bit= &image_color_depth_items[3];
+
+		int totitem= 0;
+		EnumPropertyItem *item= NULL;
+		EnumPropertyItem tmp = {0, "", 0, "", ""};
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_8) {
+			RNA_enum_item_add(&item, &totitem, item_8bit);
+		}
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_12) {
+			RNA_enum_item_add(&item, &totitem, item_12bit);
+		}
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_16) {
+			if (is_float) {
+				tmp= *item_16bit;
+				tmp.name= "Float (Half)";
+				RNA_enum_item_add(&item, &totitem, &tmp);
+			}
+			else {
+				RNA_enum_item_add(&item, &totitem, item_16bit);
+			}
+		}
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_32) {
+			if (is_float) {
+				tmp= *item_32bit;
+				tmp.name= "Float (Full)";
+				RNA_enum_item_add(&item, &totitem, &tmp);
+			}
+			else {
+				RNA_enum_item_add(&item, &totitem, item_32bit);
+			}
+		}
+
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+
+		return item;
+	}
 }
 
 static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
@@ -566,7 +747,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 	RenderData *rd= (RenderData*)ptr->data;
 	char ext[8];
 	ext[0]= '\0';
-	BKE_add_image_extension(ext, rd->imtype);
+	BKE_add_image_extension(ext, rd->im_format.imtype);
 	return strlen(ext);
 }
 
@@ -574,45 +755,8 @@ static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	str[0]= '\0';
-	BKE_add_image_extension(str, rd->imtype);
+	BKE_add_image_extension(str, rd->im_format.imtype);
 }
-
-void rna_RenderSettings_jpeg2k_preset_update(RenderData *rd)
-{
-	rd->subimtype &= ~(R_JPEG2K_12BIT|R_JPEG2K_16BIT | R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS);
-	
-	switch(rd->jp2_depth) {
-	case 8:		break;
-	case 12:	rd->subimtype |= R_JPEG2K_12BIT; break;
-	case 16:	rd->subimtype |= R_JPEG2K_16BIT; break;
-	}
-	
-	switch(rd->jp2_preset) {
-	case 1: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
-	case 2: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
-	case 3: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
-	case 4: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
-	case 5: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
-	case 6: rd->subimtype |= R_JPEG2K_CINE_PRESET;						break;
-	case 7: rd->subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;	break;
-	}
-}
-
-#ifdef WITH_OPENJPEG
-static void rna_RenderSettings_jpeg2k_preset_set(PointerRNA *ptr, int value)
-{
-	RenderData *rd= (RenderData*)ptr->data;
-	rd->jp2_preset= value;
-	rna_RenderSettings_jpeg2k_preset_update(rd);
-}
-
-static void rna_RenderSettings_jpeg2k_depth_set(PointerRNA *ptr, int value)
-{
-	RenderData *rd= (RenderData*)ptr->data;
-	rd->jp2_depth= value;
-	rna_RenderSettings_jpeg2k_preset_update(rd);
-}
-#endif
 
 #ifdef WITH_QUICKTIME
 static int rna_RenderSettings_qtcodecsettings_codecType_get(PointerRNA *ptr)
@@ -2246,6 +2390,135 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
+/* use for render output and image save operator */
+
+static void rna_def_scene_image_format_data(BlenderRNA *brna)
+{
+#ifdef WITH_OPENEXR
+	static EnumPropertyItem exr_codec_items[] = {
+		{0, "NONE", 0, "None", ""},
+		{1, "PXR24", 0, "Pxr24 (lossy)", ""},
+		{2, "ZIP", 0, "ZIP (lossless)", ""},
+		{3, "PIZ", 0, "PIZ (lossless)", ""},
+		{4, "RLE", 0, "RLE (lossless)", ""},
+		{0, NULL, 0, NULL, NULL}};
+#endif
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ImageFormatSettings", NULL);
+	RNA_def_struct_sdna(srna, "ImageFormatData");
+	RNA_def_struct_nested(brna, srna, "Scene");
+	// RNA_def_struct_path_func(srna, "rna_RenderSettings_path"); // no need for the path, its not animated!
+	RNA_def_struct_ui_text(srna, "Image Format", "Settings for image formats");
+
+	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "imtype");
+	RNA_def_property_enum_items(prop, image_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ImageFormatSettings_file_format_set", "rna_ImageFormatSettings_file_format_itemf");
+	RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
+	RNA_def_property_enum_items(prop, image_color_mode_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_color_mode_itemf");
+	RNA_def_property_ui_text(prop, "Color Mode",
+	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
+	                         "and RGBA for saving red, green, blue and alpha channels");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "color_depth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "depth");
+	RNA_def_property_enum_items(prop, image_color_depth_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageFormatSettings_color_depth_itemf");
+	RNA_def_property_ui_text(prop, "Color Depth", "Bit depth per channel");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* was 'file_quality' */
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "quality");
+	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
+	RNA_def_property_ui_text(prop, "Quality", "Quality for image formats that support lossy compression");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* was shared with file_quality */
+	prop= RNA_def_property(srna, "compression", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "compress");
+	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
+	RNA_def_property_ui_text(prop, "Compression", "Compression level for formats that support lossless compression");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* flag */
+	prop= RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_IMF_FLAG_ZBUF);
+	RNA_def_property_ui_text(prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)Save the z-depth per pixel (32 bit unsigned int z-buffer)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_IMF_FLAG_PREVIEW_JPG);
+	RNA_def_property_ui_text(prop, "Preview", "When rendering animations, save JPG preview images in same directory");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* format spesific */
+
+#ifdef WITH_OPENEXR
+	/* OpenEXR */
+
+	prop= RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "exr_codec");
+	RNA_def_property_enum_items(prop, exr_codec_items);
+	RNA_def_property_ui_text(prop, "Codec", "Codec settings for OpenEXR");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+#endif
+
+
+#ifdef WITH_OPENJPEG
+	/* Jpeg 2000 */
+	prop= RNA_def_property(srna, "use_jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_YCC);
+	RNA_def_property_ui_text(prop, "YCC", "Save luminance-chrominance-chrominance channels instead of RGB colors");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_jpeg2k_cinema_preset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_CINE_PRESET);
+	RNA_def_property_ui_text(prop, "Cinema", "Use Openjpeg Cinema Preset");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_jpeg2k_cinema_48", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_CINE_PRESET);
+	RNA_def_property_ui_text(prop, "Cinema (48)", "Use Openjpeg Cinema Preset (48fps)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+
+	/* Cineon and DPX */
+
+	prop= RNA_def_property(srna, "use_cineon_log", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "cineon_flag", R_CINEON_LOG);
+	RNA_def_property_ui_text(prop, "Log", "Convert to logarithmic color space");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "cineon_black", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "cineon_black");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "B", "Log conversion reference blackpoint");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "cineon_white", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "cineon_white");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "W", "Log conversion reference whitepoint");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "cineon_gamma", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cineon_gamma");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+}
+
 static void rna_def_scene_render_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2336,35 +2609,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
-		
-#ifdef WITH_OPENEXR	
-	static EnumPropertyItem exr_codec_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{1, "PXR24", 0, "Pxr24 (lossy)", ""},
-		{2, "ZIP", 0, "ZIP (lossless)", ""},
-		{3, "PIZ", 0, "PIZ (lossless)", ""},
-		{4, "RLE", 0, "RLE (lossless)", ""},
-		{0, NULL, 0, NULL, NULL}};
-#endif
-
-#ifdef WITH_OPENJPEG
-	static EnumPropertyItem jp2_preset_items[] = {
-		{0, "NO_PRESET", 0, "No Preset", ""},
-		{1, "CINE_24FPS", 0, "Cinema 24fps 2048x1080", ""},
-		{2, "CINE_48FPS", 0, "Cinema 48fps 2048x1080", ""},
-		{3, "CINE_24FPS_4K", 0, "Cinema 24fps 4096x2160", ""},
-		{4, "CINE_SCOPE_24FPS", 0, "Cine-Scope 24fps 2048x858", ""},
-		{5, "CINE_SCOPE_48FPS", 0, "Cine-Scope 48fps 2048x858", ""},
-		{6, "CINE_FLAT_24FPS", 0, "Cine-Flat 24fps 1998x1080", ""},
-		{7, "CINE_FLAT_48FPS", 0, "Cine-Flat 48fps 1998x1080", ""},
-		{0, NULL, 0, NULL, NULL}};
-		
-	static EnumPropertyItem jp2_depth_items[] = {
-		{8, "8", 0, "8", "8 bit color channels"},
-		{12, "12", 0, "12", "12 bit color channels"},
-		{16, "16", 0, "16", "16 bit color channels"},
-		{0, NULL, 0, NULL, NULL}};
-#endif
 	
 #ifdef	WITH_QUICKTIME
 	static EnumPropertyItem quicktime_codec_type_items[] = {
@@ -2460,7 +2704,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_path_func(srna, "rna_RenderSettings_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock");
-	
+
+#if 0 /* moved */
+
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
 	RNA_def_property_enum_items(prop, image_color_mode_items);
@@ -2468,6 +2714,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
 	                         "and RGBA for saving red, green, blue and alpha channels");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+#endif
+
+	/* Render Data */
+	prop= RNA_def_property(srna, "image_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "im_format");
+	RNA_def_property_struct_type(prop, "ImageFormatSettings");
+	RNA_def_property_ui_text(prop, "Image Format", "");
 
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
@@ -2513,90 +2768,23 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
 	/* JPEG and AVI JPEG */
-	
+
+#if 0 /* moved */
+
 	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
 	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies, compression for PNG's");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	/* Tiff */
-	
-	prop= RNA_def_property(srna, "use_tiff_16bit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_TIFF_16BIT);
-	RNA_def_property_ui_text(prop, "16 Bit", "Save TIFF with 16 bits per channel");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	/* Cineon and DPX */
-	
-	prop= RNA_def_property(srna, "use_cineon_log", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_CINEON_LOG);
-	RNA_def_property_ui_text(prop, "Log", "Convert to logarithmic color space");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "cineon_black", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "cineonblack");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "B", "Log conversion reference blackpoint");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "cineon_white", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "cineonwhite");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "W", "Log conversion reference whitepoint");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "cineon_gamma", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "cineongamma");
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
-#ifdef WITH_OPENEXR	
-	/* OpenEXR */
-
-	prop= RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "quality");
-	RNA_def_property_enum_items(prop, exr_codec_items);
-	RNA_def_property_ui_text(prop, "Codec", "Codec settings for OpenEXR");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "use_exr_half", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_HALF);
-	RNA_def_property_ui_text(prop, "Half", "Use 16 bit floats instead of 32 bit floats per channel");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "exr_zbuf", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_ZBUF);
-	RNA_def_property_ui_text(prop, "Zbuf", "Save the z-depth per pixel (32 bit unsigned int z-buffer)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "exr_preview", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_PREVIEW_JPG);
-	RNA_def_property_ui_text(prop, "Preview", "When rendering animations, save JPG preview images in same directory");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 #endif
 
-#ifdef WITH_OPENJPEG
-	/* Jpeg 2000 */
-
-	prop= RNA_def_property(srna, "jpeg2k_preset", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "jp2_preset");
-	RNA_def_property_enum_items(prop, jp2_preset_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_jpeg2k_preset_set", NULL);
-	RNA_def_property_ui_text(prop, "Preset", "Use a DCI Standard preset for saving jpeg2000");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	/* Tiff */
 	
-	prop= RNA_def_property(srna, "jpeg2k_depth", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "jp2_depth");
-	RNA_def_property_enum_items(prop, jp2_depth_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_jpeg2k_depth_set", NULL);
-	RNA_def_property_ui_text(prop, "Depth", "Bit depth per channel");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_JPEG2K_YCC);
-	RNA_def_property_ui_text(prop, "YCC", "Save luminance-chrominance-chrominance channels instead of RGB colors");
+#if 0 /* replaced, use generic */
+	prop= def_property(srna, "use_tiff_16bit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_TIFF_16BIT);
+	RNA_def_property_ui_text(prop, "16 Bit", "Save TIFF with 16 bits per channel");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 #endif
 
@@ -3021,13 +3209,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Extensions",
 	                         "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+#if 0 /* moved */
 	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "imtype");
 	RNA_def_property_enum_items(prop, image_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_file_format_set", NULL);
 	RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
 
 	prop= RNA_def_property(srna, "file_extension", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_SceneRender_file_ext_get", "rna_SceneRender_file_ext_length", NULL);
@@ -3808,6 +3998,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);
+	rna_def_scene_image_format_data(brna);
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);

@@ -680,7 +680,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 	Scene *scene = CTX_data_scene(C);
 	//int imtype = RNA_enum_get(op->ptr, "file_type");
-	int imtype = scene->r.imtype;
+	int imtype = scene->r.im_format.imtype;
 	char path[FILE_MAX];
 	
 	RNA_string_get(op->ptr, "filepath", path);
@@ -707,7 +707,7 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return envmap_save_exec(C, op);
 
-	//RNA_enum_set(op->ptr, "file_type", scene->r.imtype);
+	//RNA_enum_set(op->ptr, "file_type", scene->r.im_format.imtype);
 	RNA_string_set(op->ptr, "filepath", G.main->name);
 	WM_event_add_fileselect(C, op);
 	

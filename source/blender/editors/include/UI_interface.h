@@ -748,6 +748,7 @@ void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
+void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);

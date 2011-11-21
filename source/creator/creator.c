@@ -582,40 +582,47 @@ static int set_image_type(int argc, const char **argv, void *data)
 		const char *imtype = argv[1];
 		Scene *scene= CTX_data_scene(C);
 		if (scene) {
-			if      (!strcmp(imtype,"TGA")) scene->r.imtype = R_TARGA;
-			else if (!strcmp(imtype,"IRIS")) scene->r.imtype = R_IRIS;
+			char imtype_new;
+
+			if      (!strcmp(imtype,"TGA")) imtype_new = R_TARGA;
+			else if (!strcmp(imtype,"IRIS")) imtype_new = R_IRIS;
 #ifdef WITH_DDS
-			else if (!strcmp(imtype,"DDS")) scene->r.imtype = R_DDS;
+			else if (!strcmp(imtype,"DDS")) imtype_new = R_DDS;
 #endif
-			else if (!strcmp(imtype,"JPEG")) scene->r.imtype = R_JPEG90;
-			else if (!strcmp(imtype,"IRIZ")) scene->r.imtype = R_IRIZ;
-			else if (!strcmp(imtype,"RAWTGA")) scene->r.imtype = R_RAWTGA;
-			else if (!strcmp(imtype,"AVIRAW")) scene->r.imtype = R_AVIRAW;
-			else if (!strcmp(imtype,"AVIJPEG")) scene->r.imtype = R_AVIJPEG;
-			else if (!strcmp(imtype,"PNG")) scene->r.imtype = R_PNG;
-			else if (!strcmp(imtype,"AVICODEC")) scene->r.imtype = R_AVICODEC;
-			else if (!strcmp(imtype,"QUICKTIME")) scene->r.imtype = R_QUICKTIME;
-			else if (!strcmp(imtype,"BMP")) scene->r.imtype = R_BMP;
+			else if (!strcmp(imtype,"JPEG")) imtype_new = R_JPEG90;
+			else if (!strcmp(imtype,"IRIZ")) imtype_new = R_IRIZ;
+			else if (!strcmp(imtype,"RAWTGA")) imtype_new = R_RAWTGA;
+			else if (!strcmp(imtype,"AVIRAW")) imtype_new = R_AVIRAW;
+			else if (!strcmp(imtype,"AVIJPEG")) imtype_new = R_AVIJPEG;
+			else if (!strcmp(imtype,"PNG")) imtype_new = R_PNG;
+			else if (!strcmp(imtype,"AVICODEC")) imtype_new = R_AVICODEC;
+			else if (!strcmp(imtype,"QUICKTIME")) imtype_new = R_QUICKTIME;
+			else if (!strcmp(imtype,"BMP")) imtype_new = R_BMP;
 #ifdef WITH_HDR
-			else if (!strcmp(imtype,"HDR")) scene->r.imtype = R_RADHDR;
+			else if (!strcmp(imtype,"HDR")) imtype_new = R_RADHDR;
 #endif
 #ifdef WITH_TIFF
-			else if (!strcmp(imtype,"TIFF")) scene->r.imtype = R_TIFF;
+			else if (!strcmp(imtype,"TIFF")) imtype_new = R_TIFF;
 #endif
 #ifdef WITH_OPENEXR
-			else if (!strcmp(imtype,"EXR")) scene->r.imtype = R_OPENEXR;
-			else if (!strcmp(imtype,"MULTILAYER")) scene->r.imtype = R_MULTILAYER;
+			else if (!strcmp(imtype,"EXR")) imtype_new = R_OPENEXR;
+			else if (!strcmp(imtype,"MULTILAYER")) imtype_new = R_MULTILAYER;
 #endif
-			else if (!strcmp(imtype,"MPEG")) scene->r.imtype = R_FFMPEG;
-			else if (!strcmp(imtype,"FRAMESERVER")) scene->r.imtype = R_FRAMESERVER;
+			else if (!strcmp(imtype,"MPEG")) imtype_new = R_FFMPEG;
+			else if (!strcmp(imtype,"FRAMESERVER")) imtype_new = R_FRAMESERVER;
 #ifdef WITH_CINEON
-			else if (!strcmp(imtype,"CINEON")) scene->r.imtype = R_CINEON;
-			else if (!strcmp(imtype,"DPX")) scene->r.imtype = R_DPX;
+			else if (!strcmp(imtype,"CINEON")) imtype_new = R_CINEON;
+			else if (!strcmp(imtype,"DPX")) imtype_new = R_DPX;
 #endif
 #ifdef WITH_OPENJPEG
-			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
+			else if (!strcmp(imtype,"JP2")) imtype_new = R_JP2;
 #endif
-			else printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
+			else {
+				printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
+				imtype_new= imtype_new;
+			}
+
+			scene->r.im_format.imtype= imtype_new;
 		}
 		else {
 			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");

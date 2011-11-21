@@ -1185,6 +1185,8 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 	 * before use - campbell */
 	OceanResult ocr;
 
+	ImageFormatData imf= {0};
+
 	int f, i=0, x, y, cancel=0;
 	float progress;
 
@@ -1200,6 +1202,13 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 	else                 prev_foam = NULL;
 
 	BLI_srand(0);
+
+	/* setup image format */
+	imf.imtype= R_OPENEXR;
+	imf.depth=  R_IMF_CHAN_DEPTH_16;
+	imf.exr_codec= 2; /* ZIP */
+
+
 
 	for (f=och->start, i=0; f<=och->end; f++, i++) {
 
@@ -1292,18 +1301,18 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 		/* write the images */
 		cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
-		if(0 == BKE_write_ibuf(ibuf_disp, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
+		if(0 == BKE_write_ibuf(ibuf_disp, string, &imf))  // 2 == ZIP exr codec
 			printf("Cannot save Displacement File Output to %s\n", string);
 
 		if (o->_do_jacobian) {
 			cache_filename(string, och->bakepath, och->relbase,  f, CACHE_TYPE_FOAM);
-			if(0 == BKE_write_ibuf(ibuf_foam, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
+			if(0 == BKE_write_ibuf(ibuf_foam, string, &imf))  // 2 == ZIP exr codec
 				printf("Cannot save Foam File Output to %s\n", string);
 		}
 
 		if (o->_do_normals) {
 			cache_filename(string, och->bakepath,  och->relbase, f, CACHE_TYPE_NORMAL);
-			if(0 == BKE_write_ibuf(ibuf_normal, string, R_OPENEXR, R_OPENEXR_HALF, 2))  // 2 == ZIP exr codec
+			if(0 == BKE_write_ibuf(ibuf_normal, string, &imf))  // 2 == ZIP exr codec
 				printf("Cannot save Normal File Output to %s\n", string);
 		}
 

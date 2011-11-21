@@ -235,7 +235,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
-	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
+	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
@@ -516,7 +516,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
+	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}	

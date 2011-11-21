@@ -43,6 +43,7 @@ struct Tex;
 struct anim;
 struct Scene;
 struct Object;
+struct ImageFormatData;
 
 /* call from library */
 void	free_image(struct Image *me);
@@ -50,13 +51,19 @@ void	free_image(struct Image *me);
 void	BKE_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
 void	BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
 int		BKE_alphatest_ibuf(struct ImBuf *ibuf);
-int		BKE_write_ibuf_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality);
-int		BKE_write_ibuf(struct ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality);
+int		BKE_write_ibuf_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
+int		BKE_write_ibuf(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, int imtype, const short use_ext, const short use_frames);
 int		BKE_add_image_extension(char *string, int imtype);
 int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);
+
 int		BKE_imtype_is_movie(int imtype);
+int		BKE_imtype_is_alpha_ok(int imtype);
+int		BKE_imtype_is_zbuf_ok(int imtype);
+int		BKE_imtype_is_compression_ok(int imtype);
+int		BKE_imtype_is_quality_ok(int imtype);
+int		BKE_imtype_is_depth_ok(int imtype);
 
 struct anim *openanim(const char *name, int flags, int streamindex);
 

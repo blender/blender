@@ -900,6 +900,76 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
+int BKE_imtype_is_alpha_ok(int imtype)
+{
+	switch(imtype) {
+	case R_TARGA:
+	case R_IRIS:
+	case R_PNG:
+	case R_BMP:
+	case R_RADHDR:
+	case R_TIFF:
+	case R_OPENEXR:
+	case R_MULTILAYER:
+	case R_DDS:
+	case R_JP2:
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_is_zbuf_ok(int imtype)
+{
+	switch(imtype) {
+	case R_IRIZ:
+	case R_OPENEXR: /* but not R_MULTILAYER */
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_is_compression_ok(int imtype)
+{
+	switch(imtype) {
+	case R_PNG:
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_is_quality_ok(int imtype)
+{
+	switch(imtype) {
+	case R_JPEG90:
+	case R_JP2:
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_is_depth_ok(int imtype)
+{
+	switch (imtype) {
+	case R_RADHDR:
+		return R_IMF_CHAN_DEPTH_32;
+	case R_TIFF:
+		return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_16;
+	case R_OPENEXR:
+		return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
+	case R_MULTILAYER:
+		return R_IMF_CHAN_DEPTH_32;
+	/* eeh, cineone does some strange 10bits per channel */
+	case R_DPX:
+	case R_CINEON:
+		return R_IMF_CHAN_DEPTH_12;
+	case R_JP2:
+		return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
+	/* most formats are 8bit only */
+	default:
+		return R_IMF_CHAN_DEPTH_8;
+	}
+}
+
 int BKE_add_image_extension(char *string, int imtype)
 {
 	const char *extension= NULL;
@@ -1371,10 +1441,13 @@ int BKE_alphatest_ibuf(ImBuf *ibuf)
 	return FALSE;
 }
 
-int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 {
+	char imtype= imf->imtype;
+	char compress= imf->compress;
+	char quality= imf->quality;
+
 	int ok;
-	(void)subimtype; /* quies unused warnings */
 
 	if(imtype == -1) {
 		/* use whatever existing image type is set by 'ibuf' */
@@ -1391,7 +1464,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int
 		ibuf->ftype= PNG;
 
 		if(imtype==R_PNG)
-			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+			ibuf->ftype |= compress;
 
 	}
 #ifdef WITH_DDS
@@ -1406,18 +1479,18 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int
 	else if (imtype==R_TIFF) {
 		ibuf->ftype= TIF;
 
-		if(subimtype & R_TIFF_16BIT)
+		if(imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->ftype |= TIF_16BIT;
 	}
 #endif
 #ifdef WITH_OPENEXR
 	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER) {
 		ibuf->ftype= OPENEXR;
-		if(subimtype & R_OPENEXR_HALF)
+		if(imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->ftype |= OPENEXR_HALF;
 		ibuf->ftype |= (quality & OPENEXR_COMPRESS);
 		
-		if(!(subimtype & R_OPENEXR_ZBUF))
+		if(!(imf->flag & R_IMF_FLAG_ZBUF))
 			ibuf->zbuf_float = NULL;	/* signal for exr saving */
 		
 	}
@@ -1441,19 +1514,19 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JP2|quality;
 		
-		if (subimtype & R_JPEG2K_16BIT) {
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
 			ibuf->ftype |= JP2_16BIT;
-		} else if (subimtype & R_JPEG2K_12BIT) {
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
 			ibuf->ftype |= JP2_12BIT;
 		}
 		
-		if (subimtype & R_JPEG2K_YCC) {
+		if (imf->jp2_flag & R_IMF_JP2_FLAG_YCC) {
 			ibuf->ftype |= JP2_YCC;
 		}
-		
-		if (subimtype & R_JPEG2K_CINE_PRESET) {
+
+		if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_PRESET) {
 			ibuf->ftype |= JP2_CINE;
-			if (subimtype & R_JPEG2K_CINE_48FPS)
+			if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_48)
 				ibuf->ftype |= JP2_CINE_48FPS;
 		}
 	}
@@ -1475,12 +1548,12 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int
 	return(ok);
 }
 
-int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
 {
 	if(scene && scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, camera, ibuf);
 
-	return BKE_write_ibuf(ibuf, name, imtype, subimtype, quality);
+	return BKE_write_ibuf(ibuf, name, imf);
 }
 
 

@@ -255,6 +255,7 @@ extern StructRNA RNA_HookModifier;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IKParam;
 extern StructRNA RNA_Image;
+extern StructRNA RNA_ImageFormatSettings;
 extern StructRNA RNA_ImagePaint;
 extern StructRNA RNA_ImageSequence;
 extern StructRNA RNA_ImageTexture;

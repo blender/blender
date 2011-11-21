@@ -452,21 +452,22 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         layout = self.layout
 
         rd = context.scene.render
-        file_format = rd.file_format
+        image_settings = rd.image_settings
+        file_format = rd.image_settings.file_format
 
         layout.prop(rd, "filepath", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "file_format", text="")
-        col.row().prop(rd, "color_mode", text="Color", expand=True)
+        col.template_image_settings(rd.image_settings)
 
         col = split.column()
         col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
+        """
         if file_format in {'AVI_JPEG', 'JPEG'}:
             layout.prop(rd, "file_quality", slider=True)
 
@@ -511,7 +512,9 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         elif file_format == 'TIFF':
             layout.prop(rd, "use_tiff_16bit")
 
-        elif file_format == 'QUICKTIME_CARBON':
+        elif  """
+
+        if file_format == 'QUICKTIME_CARBON':
             layout.operator("scene.render_data_set_quicktime_codec")
 
         elif file_format == 'QUICKTIME_QTKIT':
@@ -552,7 +555,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return rd.file_format in {'FFMPEG', 'XVID', 'H264', 'THEORA'}
+        return rd.image_settings.file_format in {'FFMPEG', 'XVID', 'H264', 'THEORA'}
 
     def draw(self, context):
         layout = self.layout

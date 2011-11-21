@@ -1688,30 +1688,6 @@ static void def_cmp_output_file(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem type_items[] = {
-		{R_TARGA,   "TARGA",        0, "Targa",        ""},
-		{R_RAWTGA,  "RAW_TARGA",    0, "Targa Raw",    ""},
-		{R_PNG,     "PNG",          0, "PNG",          ""},
-#ifdef WITH_DDS
-		{R_DDS,     "DDS",          0, "DirectDraw Surface", ""},
-#endif
-		{R_BMP,     "BMP",          0, "BMP",          ""},
-		{R_JPEG90,  "JPEG",         0, "JPEG",         ""},
-		{R_IRIS,    "IRIS",         0, "IRIS",         ""},
-		{R_RADHDR,  "RADIANCE_HDR", 0, "Radiance HDR", ""},
-		{R_CINEON,  "CINEON",       0, "Cineon",       ""},
-		{R_DPX,     "DPX",          0, "DPX",          ""},
-		{R_OPENEXR, "OPENEXR",      0, "OpenEXR",      ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem openexr_codec_items[] = {
-		{0, "NONE",  0, "None",           ""},
-		{1, "PXR24", 0, "Pxr24 (lossy)",  ""},
-		{2, "ZIP",   0, "ZIP (lossless)", ""},
-		{3, "PIZ",   0, "PIZ (lossless)", ""},
-		{4, "RLE",   0, "RLE (lossless)", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
 	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
 	
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
@@ -1719,28 +1695,11 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "File Path", "Output path for the image, same functionality as render output");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	prop = RNA_def_property(srna, "image_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "imtype");
-	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Image Type", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "use_exr_half", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_OPENEXR_HALF);
-	RNA_def_property_ui_text(prop, "Half", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "exr_codec", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "codec");
-	RNA_def_property_enum_items(prop, openexr_codec_items);
-	RNA_def_property_ui_text(prop, "Codec", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "quality");
-	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Quality", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	prop= RNA_def_property(srna, "image_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "im_format");
+	RNA_def_property_struct_type(prop, "ImageFormatSettings");
+	RNA_def_property_ui_text(prop, "Image Format", "");
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");

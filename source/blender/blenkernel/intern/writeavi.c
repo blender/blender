@@ -154,7 +154,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	x = rectx;
 	y = recty;
 
-	quality= rd->quality;
+	quality= rd->im_format.quality;
 	framerate= (double) rd->frs_sec / (double) rd->frs_sec_base;
 	
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
@@ -162,7 +162,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	/* RPW 11-21-2002 
 	if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
 	*/
-	if (rd->imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
+	if (rd->im_format.imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {
@@ -233,7 +233,7 @@ static void end_avi(void)
 /* similar to BKE_makepicstring() */
 void BKE_makeanimstring(char *string, RenderData *rd)
 {
-	bMovieHandle *mh= BKE_get_movie_handle(rd->imtype);
+	bMovieHandle *mh= BKE_get_movie_handle(rd->im_format.imtype);
 	if(mh->get_movie_path)
 		mh->get_movie_path(string, rd);
 	else

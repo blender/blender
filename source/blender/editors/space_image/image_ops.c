@@ -967,8 +967,8 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		simopts->planes= ibuf->depth;
 
 		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-			simopts->imtype= scene->r.imtype;
-			simopts->planes= scene->r.planes;
+			simopts->imtype= scene->r.im_format.imtype;
+			simopts->planes= scene->r.im_format.planes;
 		}
 		else if (ima->source == IMA_SRC_GENERATED) {
 			simopts->imtype= R_PNG;
@@ -976,7 +976,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		else {
 			simopts->imtype= BKE_ftype_to_imtype(ibuf->ftype);
 		}
-		simopts->subimtype= scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
+		//simopts->subimtype= scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 		simopts->quality= ibuf->ftype & 0xff;
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
@@ -990,7 +990,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* some formats dont use quality so fallback to scenes quality */
 		if (simopts->quality == 0) {
-			simopts->quality= scene->r.quality;
+			simopts->quality= scene->r.im_format.quality;
 		}
 
 		/* check for empty path */
@@ -1017,7 +1017,8 @@ static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op
 #if 0
 	if (RNA_property_is_set(op->ptr, "subimtype")) simopts->subimtype= RNA_enum_get(op->ptr, "subimtype"); // XXX
 #else
-	simopts->subimtype= evil_scene->r.subimtype;
+//	simopts->subimtype= evil_scene->r.subimtype;
+	(void)evil_scene;
 #endif
 
 	if (RNA_property_is_set(op->ptr, "file_quality")) simopts->quality= RNA_int_get(op->ptr, "file_quality");
@@ -1086,8 +1087,18 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 			BKE_image_release_renderresult(scene, ima);
 		}
-		else if (BKE_write_ibuf(ibuf, simopts->filepath, simopts->imtype, simopts->subimtype, simopts->quality)) {
-			ok= TRUE;
+		else {
+			ImageFormatData imf= {0};
+
+			/* todo, make operator use template, this works for now */
+			imf.imtype= simopts->imtype;
+			imf.quality= simopts->quality;
+			imf.compress= simopts->quality;
+			imf.depth= R_IMF_CHAN_DEPTH_8;
+
+			if (BKE_write_ibuf(ibuf, simopts->filepath, &imf)) {
+				ok= TRUE;
+			}
 		}
 
 		if (ok)	{
@@ -1191,6 +1202,22 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	return OPERATOR_RUNNING_MODAL;
 }
 
+#if 0
+static void image_save_as_draw(bContext *C, wmOperator *op)
+{
+	ImageFormatData *imf= op->customdata;
+	PointerRNA ptr;
+
+	/* image template */
+	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &ptr);
+	uiTemplateImageSettings(layout, &ptr);
+
+	/* main draw call */
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	uiDefAutoButsRNA(layout, &ptr, NULL, '\0');
+}
+#endif
+
 void IMAGE_OT_save_as(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1203,6 +1230,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->exec= image_save_as_exec;
 	ot->check= image_save_as_check;
 	ot->invoke= image_save_as_invoke;
+	// ot->ui= image_save_as_draw;
 	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
