@@ -859,12 +859,11 @@ static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 {
 	ImBuf *ibuf;
 	int framenr_old= context->user.framenr;
+	MovieClipUser user= context->user;
 
-	context->user.framenr= framenr;
+	user.framenr= framenr;
 
 	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
-
-	context->user.framenr= framenr_old;
 
 	return ibuf;
 }
