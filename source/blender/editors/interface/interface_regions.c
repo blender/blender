@@ -385,7 +385,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 			for(i=0; i<totitem; i++) {
 				if(item[i].identifier[0] && item[i].value == value) {
-					if(item[i].description[0]) {
+					if(item[i].description && item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
 						data->color[data->totline]= 0xDDDDDD;
 						data->totline++;
