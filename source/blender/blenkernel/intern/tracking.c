@@ -858,7 +858,6 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 {
 	ImBuf *ibuf;
-	int framenr_old= context->user.framenr;
 	MovieClipUser user= context->user;
 
 	user.framenr= framenr;
