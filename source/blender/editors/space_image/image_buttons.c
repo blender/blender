@@ -649,12 +649,14 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateImage: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateImage: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
