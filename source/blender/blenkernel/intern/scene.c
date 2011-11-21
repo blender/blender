@@ -348,7 +348,7 @@ Scene *add_scene(const char *name)
 	sce->r.filtertype= R_FILTER_MITCH;
 	sce->r.size= 50;
 
-	sce->r.im_format.planes= R_PLANES24;
+	sce->r.im_format.planes= R_IMF_PLANES_RGB;
 	sce->r.im_format.imtype= R_PNG;
 	sce->r.im_format.quality= 90;
 

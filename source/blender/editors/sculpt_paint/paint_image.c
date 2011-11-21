@@ -4333,7 +4333,7 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	/* note: allocImbuf returns zero'd memory, so regions outside image will
 	   have zero alpha, and hence not be blended onto the image */
 	int w=ibufb->x, h=ibufb->y, destx=0, desty=0, srcx=pos[0], srcy=pos[1];
-	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->depth, ibufb->flags);
+	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
 
 	IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
 	IMB_rectblend(clonebuf, ibuf, destx, desty, srcx, srcy, w, h,

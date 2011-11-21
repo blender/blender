@@ -571,8 +571,8 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 	cinfo->image_height = ibuf->y;
 
 	cinfo->in_color_space = JCS_RGB;
-	if (ibuf->depth == 8) cinfo->in_color_space = JCS_GRAYSCALE;
-	if (ibuf->depth == 32) cinfo->in_color_space = JCS_UNKNOWN;
+	if (ibuf->planes == 8) cinfo->in_color_space = JCS_GRAYSCALE;
+	if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
 	
 	switch(cinfo->in_color_space){
 	case JCS_RGB:

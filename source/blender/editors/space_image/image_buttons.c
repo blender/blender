@@ -122,13 +122,13 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 			if(ibuf->channels!=4) {
 				ofs+= sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
 			}
-			else if(ibuf->depth==32)
+			else if(ibuf->planes == R_IMF_PLANES_RGBA)
 				ofs+= sprintf(str+ofs, " RGBA float");
 			else
 				ofs+= sprintf(str+ofs, " RGB float");
 		}
 		else {
-			if(ibuf->depth==32)
+			if(ibuf->planes == R_IMF_PLANES_RGBA)
 				ofs+= sprintf(str+ofs, " RGBA byte");
 			else
 				ofs+= sprintf(str+ofs, " RGB byte");

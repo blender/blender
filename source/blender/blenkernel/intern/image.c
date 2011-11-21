@@ -601,7 +601,7 @@ void BKE_image_memorypack(Image *ima)
 	}
 	
 	ibuf->ftype= PNG;
-	ibuf->depth= 32;
+	ibuf->planes= R_IMF_PLANES_RGBA;
 	
 	IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_mem);
 	if(ibuf->encodedbuffer==NULL) {
@@ -1535,7 +1535,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		/* R_JPEG90, etc. default we save jpegs */
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JPG|quality;
-		if(ibuf->depth==32) ibuf->depth= 24;	/* unsupported feature only confuses other s/w */
+		if(ibuf->planes==32) ibuf->planes= 24;	/* unsupported feature only confuses other s/w */
 	}
 	
 	BLI_make_existing_file(name);
@@ -2487,13 +2487,13 @@ int BKE_image_has_alpha(struct Image *image)
 {
 	ImBuf *ibuf;
 	void *lock;
-	int depth;
+	int planes;
 	
 	ibuf= BKE_image_acquire_ibuf(image, NULL, &lock);
-	depth = (ibuf?ibuf->depth:0);
+	planes = (ibuf?ibuf->planes:0);
 	BKE_image_release_ibuf(image, lock);
 
-	if (depth == 32)
+	if (planes == 32)
 		return 1;
 	else
 		return 0;

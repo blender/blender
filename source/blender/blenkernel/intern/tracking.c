@@ -2022,7 +2022,7 @@ static ImBuf* stabilize_alloc_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 		}
 	}
 	else {
-		cacheibuf= IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->depth, flags);
+		cacheibuf= IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->planes, flags);
 		cacheibuf->profile= srcibuf->profile;
 	}
 

@@ -218,7 +218,7 @@ typedef struct ImageFormatData {
 	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
 	                * not a flag, only set 1 at a time */
 
-	char planes  ; /* - R_PLANESBW, R_PLANES24, R_PLANES32 */
+	char planes  ; /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
 	char flag;     /* generic options for all image types, alpha zbuffer */
 
 	char quality;  /* (0 - 100), eg: jpeg quality */
@@ -262,6 +262,10 @@ typedef struct ImageFormatData {
 #define R_IMF_CHAN_DEPTH_24 (1<<4) /* 24bits (unused) */
 #define R_IMF_CHAN_DEPTH_32 (1<<5) /* 32bits (full float exr) */
 
+/* ImageFormatData.planes */
+#define R_IMF_PLANES_RGB   24
+#define R_IMF_PLANES_RGBA  32
+#define R_IMF_PLANES_BW    8
 
 typedef struct RenderData {
 	struct ImageFormatData im_format;
@@ -1043,11 +1047,6 @@ typedef struct Scene {
 #define R_ADDSKY		0
 #define R_ALPHAPREMUL	1
 #define R_ALPHAKEY		2
-
-/* planes */
-#define R_PLANES24		24
-#define R_PLANES32		32
-#define R_PLANESBW		8
 
 /* color_mgt_flag */
 #define R_COLOR_MANAGEMENT	1

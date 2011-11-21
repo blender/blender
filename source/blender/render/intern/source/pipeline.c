@@ -3039,7 +3039,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 			/* color -> greyscale */
 			/* editing directly would alter the render view */
-			if(scene->r.im_format.planes == R_PLANESBW) {
+			if(scene->r.im_format.planes == R_IMF_PLANES_BW) {
 				ImBuf *ibuf_bw= IMB_dupImBuf(ibuf);
 				IMB_color_to_bw(ibuf_bw);
 				IMB_freeImBuf(ibuf);
@@ -3061,7 +3061,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				if(BLI_testextensie(name, ".exr")) 
 					name[strlen(name)-4]= 0;
 				BKE_add_image_extension(name, R_JPEG90);
-				ibuf->depth= 24; 
+				ibuf->planes= 24;
 				BKE_write_ibuf_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
 			}

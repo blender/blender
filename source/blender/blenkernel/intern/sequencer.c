@@ -1327,8 +1327,8 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	ibuf->ftype= JPG | quality;
 
 	/* unsupported feature only confuses other s/w */
-	if(ibuf->depth==32)
-		ibuf->depth= 24;
+	if(ibuf->planes==32)
+		ibuf->planes= 24;
 
 	BLI_make_existing_file(name);
 	
@@ -1729,7 +1729,7 @@ static ImBuf * input_preprocess(
 	}
 
 	if(seq->flag & SEQ_MAKE_PREMUL) {
-		if(ibuf->depth == 32 && ibuf->zbuf == NULL) {
+		if(ibuf->planes == 32 && ibuf->zbuf == NULL) {
 			IMB_premultiply_alpha(ibuf);
 		}
 	}

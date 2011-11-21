@@ -619,7 +619,7 @@ static int set_image_type(int argc, const char **argv, void *data)
 #endif
 			else {
 				printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
-				imtype_new= imtype_new;
+				imtype_new= scene->r.im_format.imtype;
 			}
 
 			scene->r.im_format.imtype= imtype_new;

@@ -208,9 +208,9 @@ EnumPropertyItem image_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_color_mode_items[] ={
-	{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
-	{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
-	{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+	{R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
+	{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
+	{R_IMF_PLANES_RGBA, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_color_depth_items[] = {
@@ -616,7 +616,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 
 	/* ensure depth and color settings match */
 	if (!BKE_imtype_is_alpha_ok(imf->imtype)) {
-		imf->planes= R_PLANES24;
+		imf->planes= R_IMF_PLANES_RGB;
 	}
 
 	/* ensure usable depth */
@@ -677,8 +677,8 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 	}
 	else {
 		static EnumPropertyItem color_mode_items[] ={
-			{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
-			{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
+			{R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
+			{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 			{0, NULL, 0, NULL, NULL}};
 		return color_mode_items;
 	}

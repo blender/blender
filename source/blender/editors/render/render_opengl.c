@@ -440,7 +440,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if(ibuf) {
 		/* color -> greyscale */
 		/* editing directly would alter the render view */
-		if(scene->r.im_format.planes == R_PLANESBW) {
+		if(scene->r.im_format.planes == R_IMF_PLANES_BW) {
 			ImBuf *ibuf_bw= IMB_dupImBuf(ibuf);
 			IMB_color_to_bw(ibuf_bw);
 			// IMB_freeImBuf(ibuf); /* owned by the image */

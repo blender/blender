@@ -949,7 +949,7 @@ typedef struct {
 
 static void save_image_options_defaults(SaveImageOptions *simopts)
 {
-	simopts->planes= R_PLANES24;
+	simopts->planes= R_IMF_PLANES_RGB;
 	simopts->imtype= R_PNG;
 	simopts->subimtype= 0;
 	simopts->quality= 90;
@@ -964,7 +964,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 	if(ibuf) {
 		Image *ima= sima->image;
 
-		simopts->planes= ibuf->depth;
+		simopts->planes= ibuf->planes;
 
 		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
 			simopts->imtype= scene->r.im_format.imtype;
@@ -984,8 +984,8 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		/* sanitize all settings */
 
 		/* unlikely but just incase */
-		if (ELEM3(simopts->planes, R_PLANESBW, R_PLANES24, R_PLANES32) == 0) {
-			simopts->planes= R_PLANES32;
+		if (ELEM3(simopts->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
+			simopts->planes= R_IMF_PLANES_RGBA;
 		}
 
 		/* some formats dont use quality so fallback to scenes quality */
@@ -1060,18 +1060,18 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 		if(ima->type == IMA_TYPE_R_RESULT) {
 			/* enforce user setting for RGB or RGBA, but skip BW */
-			if(simopts->planes==R_PLANES32) {
-				ibuf->depth= 32;
+			if(simopts->planes==R_IMF_PLANES_RGBA) {
+				ibuf->planes= R_IMF_PLANES_RGBA;
 			}
-			else if(simopts->planes==R_PLANES24) {
-				ibuf->depth= 24;
+			else if(simopts->planes==R_IMF_PLANES_RGB) {
+				ibuf->planes= R_IMF_PLANES_RGB;
 			}
 		}
 		else {
 			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
 			if(ibuf->userflags & IB_BITMAPDIRTY) { /* it has been painted onto */
 				/* checks each pixel, not ideal */
-				ibuf->depth= BKE_alphatest_ibuf(ibuf) ? 32 : 24;
+				ibuf->planes= BKE_alphatest_ibuf(ibuf) ? 32 : 24;
 			}
 		}
 		
@@ -1240,7 +1240,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* format options */
 	RNA_def_enum(ot->srna, "file_format", image_file_type_items, R_PNG, "File Type", "File type to save image as");
-	RNA_def_enum(ot->srna, "color_mode", image_color_mode_items, R_PLANES24, "Channels", "Image channels to save");
+	RNA_def_enum(ot->srna, "color_mode", image_color_mode_items, R_IMF_PLANES_RGB, "Channels", "Image channels to save");
 	prop= RNA_def_int(ot->srna, "file_quality", 90, 0, 100, "Quality", "", 0, 100);
 	RNA_def_property_subtype(prop, PROP_PERCENTAGE);
 

@@ -258,20 +258,20 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	Image *im= (Image*)ptr->data;
 	ImBuf *ibuf;
 	void *lock;
-	int depth;
+	int planes;
 	
 	ibuf= BKE_image_acquire_ibuf(im, NULL, &lock);
 
 	if(!ibuf)
-		depth= 0;
+		planes= 0;
 	else if(ibuf->rect_float)
-		depth= ibuf->depth * 4;
+		planes= ibuf->planes * 4;
 	else
-		depth= ibuf->depth;
+		planes= ibuf->planes;
 
 	BKE_image_release_ibuf(im, lock);
 
-	return depth;
+	return planes;
 }
 
 static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
