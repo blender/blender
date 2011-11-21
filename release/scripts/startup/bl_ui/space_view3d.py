@@ -2203,7 +2203,7 @@ class VIEW3D_PT_view3d_motion_tracking(Panel):
 
         col = layout.column()
         col.active = view.show_reconstruction
-        col.prop(view, "show_tracks_name")
+        col.prop(view, "show_bundle_names")
         col.prop(view, "show_camera_path")
         col.label(text="Tracks:")
         col.prop(view, "tracks_draw_type", text="")

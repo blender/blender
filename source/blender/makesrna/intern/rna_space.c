@@ -1612,9 +1612,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed camera path");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_bundle_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Track Names", "Show names for tracks objects");
+	RNA_def_property_ui_text(prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
@@ -2915,7 +2915,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 	/* show bundles */
 	prop= RNA_def_property(srna, "show_bundles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of bundles into footage");
+	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of 3D markers into footage");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_BUNDLES);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 

@@ -77,11 +77,11 @@ class CLIP_OT_track_to_empty(Operator):
         return {'FINISHED'}
 
 
-class CLIP_OT_tracks_to_mesh(Operator):
-    """Create vertex cloud using coordinates of tracks"""
+class CLIP_OT_bundles_to_mesh(Operator):
+    """Create vertex cloud using coordinates of reconstructed tracks"""
 
-    bl_idname = "clip.tracks_to_mesh"
-    bl_label = "Tracks to Mesh"
+    bl_idname = "clip.bundles_to_mesh"
+    bl_label = "3D Markers to Mesh"
     bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod

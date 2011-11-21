@@ -210,7 +210,7 @@ class CLIP_PT_tools_geometry(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.tracks_to_mesh")
+        layout.operator("clip.bundles_to_mesh")
         layout.operator("clip.track_to_empty")
 
 
@@ -402,15 +402,15 @@ class CLIP_PT_display(Panel):
         col.prop(sc, "show_marker_search", text="Search")
         col.prop(sc, "show_pyramid_levels", text="Pyramid")
 
-        col.prop(sc, "show_track_path", text="Track Path")
+        col.prop(sc, "show_track_path", text="Path")
         row = col.row()
         row.active = sc.show_track_path
         row.prop(sc, "path_length", text="Length")
 
         col.prop(sc, "show_disabled", "Disabled Tracks")
-        col.prop(sc, "show_bundles", text="Bundles")
+        col.prop(sc, "show_bundles", text="3D Markers")
 
-        col.prop(sc, "show_names", text="Track Names and Status")
+        col.prop(sc, "show_names", text="Names and Status")
         col.prop(sc, "show_tiny_markers", text="Compact Markers")
 
         col.prop(sc, "show_grease_pencil", text="Grease Pencil")
