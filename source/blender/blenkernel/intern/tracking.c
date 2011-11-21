@@ -862,7 +862,7 @@ static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 
 	user.framenr= framenr;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, 0);
 
 	return ibuf;
 }
