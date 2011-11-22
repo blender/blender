@@ -385,8 +385,12 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		if (PyBytes_Check(py_str)) {
 			return PyBytes_AS_STRING(py_str);
 		}
+		else if ((*coerce= PyUnicode_EncodeFSDefault(py_str))) {
+			return PyBytes_AS_STRING(*coerce);
+		}
 		else {
-			return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
+			/* leave error raised from EncodeFS */
+			return NULL;
 		}
 	}
 }
