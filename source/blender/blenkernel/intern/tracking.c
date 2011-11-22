@@ -1328,6 +1328,8 @@ typedef struct ReconstructProgressData {
 	short *stop;
 	short *do_update;
 	float *progress;
+	char *stats_message;
+	int message_size;
 } ReconstructProgressData;
 
 #if WITH_LIBMV
@@ -1616,20 +1618,7 @@ void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 	MEM_freeN(context);
 }
 
-#if 0
-
-/* TODO: this two callbacks are supposed to be used to make solving more
-         interactive with the interface, so approximated progress would be
-         displayed and it's also can be nice to have option to break solving
-         (would fit other jobs design in blender)
-
-         customdata is used to pass some context data to libmv which can be used
-         later for set progress came form libmv to job
-
-         keir, it's not necessary that progress is linear and it's not necessary
-         that breaking happens immediately */
-
-static void solve_reconstruction_update_cb(void *customdata, float progress)
+static void solve_reconstruction_update_cb(void *customdata, double progress, const char *message)
 {
 	ReconstructProgressData *progressdata= customdata;
 
@@ -1637,8 +1626,15 @@ static void solve_reconstruction_update_cb(void *customdata, float progress)
 		*progressdata->progress= progress;
 		*progressdata->do_update= 1;
 	}
+
+	if(progress) {
+		BLI_snprintf(progressdata->stats_message, progressdata->message_size, "%s | %d%%", message, (int)(progress*100));
+	} else {
+		BLI_strncpy(progressdata->stats_message, message, progressdata->message_size);
+	}
 }
 
+#if 0
 static int solve_reconstruction_testbreak_cb(void *customdata)
 {
 	ReconstructProgressData *progressdata= customdata;
@@ -1650,7 +1646,8 @@ static int solve_reconstruction_testbreak_cb(void *customdata)
 }
 #endif
 
-void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *stop, short *do_update, float *progress)
+void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *stop,
+			short *do_update, float *progress, char *stats_message, int message_size)
 {
 #ifdef WITH_LIBMV
 	float error;
@@ -1660,13 +1657,16 @@ void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *
 	progressdata.stop= stop;
 	progressdata.do_update= do_update;
 	progressdata.progress= progress;
+	progressdata.stats_message= stats_message;
+	progressdata.message_size= message_size;
 
 	context->reconstruction = libmv_solveReconstruction(context->tracks,
 		context->keyframe1, context->keyframe2,
 		context->refine_flags,
 		context->focal_length,
 		context->principal_point[0], context->principal_point[1],
-		context->k1, context->k2, context->k3);
+		context->k1, context->k2, context->k3,
+		solve_reconstruction_update_cb, &progressdata);
 
 	error= libmv_reprojectionError(context->reconstruction);
 

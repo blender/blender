@@ -1511,13 +1511,13 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 /********************** solve camera operator *********************/
 
 typedef struct {
-	MovieClip *clip;
 	Scene *scene;
+	MovieClip *clip;
+	MovieClipUser user;
 
 	ReportList *reports;
 
-	MovieClipUser user;
-
+	char stats_message[256];
 	struct MovieReconstructContext *context;
 } SolveCameraJob;
 
@@ -1544,14 +1544,25 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->context= BKE_tracking_reconstruction_context_new(tracking,
 			settings->keyframe1, settings->keyframe2, width, height);
 
+	tracking->stats= MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
+
 	return 1;
+}
+
+static void solve_camera_updatejob(void *scv)
+{
+	SolveCameraJob *scj= (SolveCameraJob *)scv;
+	MovieTracking *tracking= &scj->clip->tracking;
+
+	BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
 }
 
 static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
 {
 	SolveCameraJob *scj= (SolveCameraJob *)scv;
 
-	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress);
+	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress,
+			scj->stats_message, sizeof(scj->stats_message));
 }
 
 static void solve_camera_freejob(void *scv)
@@ -1597,6 +1608,9 @@ static void solve_camera_freejob(void *scv)
 		WM_main_add_notifier(NC_OBJECT, camera);
 	}
 
+	MEM_freeN(tracking->stats);
+	tracking->stats= NULL;
+
 	DAG_id_tag_update(&clip->id, 0);
 
 	WM_main_add_notifier(NC_MOVIECLIP|NA_EVALUATED, clip);
@@ -1637,6 +1651,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
 	wmJob *steve;
 	char error_msg[256]= "\0";
 
@@ -1650,6 +1665,8 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		return OPERATOR_CANCELLED;
 	}
 
+	BLI_strncpy(tracking->stats->message, "Preparing solve", sizeof(tracking->stats->message));
+
 	/* hide reconstruction statistics from previous solve */
 	clip->tracking.reconstruction.flag&= ~TRACKING_RECONSTRUCTED;
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
@@ -1658,7 +1675,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, scj, solve_camera_freejob);
 	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
-	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, NULL, NULL);
+	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 
 	G.afbreek= 0;
 

@@ -26,6 +26,8 @@
 
 namespace libmv {
 
+typedef void (*progress_update_callback) (void *customdata, double progress, const char *message);
+
 /*!
     Estimate camera poses and scene 3D coordinates for all frames and tracks.
 
@@ -46,7 +48,9 @@ namespace libmv {
     \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
 void EuclideanCompleteReconstruction(const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction);
+                                     EuclideanReconstruction *reconstruction,
+                                     progress_update_callback update_callback,
+                                     void *update_customdata);
 
 /*!
     Estimate camera matrices and homogeneous 3D coordinates for all frames and

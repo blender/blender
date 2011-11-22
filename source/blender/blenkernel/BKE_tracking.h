@@ -97,7 +97,7 @@ struct MovieReconstructContext* BKE_tracking_reconstruction_context_new(struct M
 			int keyframe1, int keyframe2, int width, int height);
 void BKE_tracking_reconstruction_context_free(struct MovieReconstructContext *context);
 void BKE_tracking_solve_reconstruction(struct MovieReconstructContext *context,
-			short *stop, short *do_update, float *progress);
+			short *stop, short *do_update, float *progress, char *stats_message, int message_size);
 int BKE_tracking_finish_reconstruction(struct MovieReconstructContext *context, struct MovieTracking *tracking);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);

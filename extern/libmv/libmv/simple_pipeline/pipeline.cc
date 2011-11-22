@@ -21,6 +21,7 @@
 #include <cstdio>
 
 #include "libmv/logging/logging.h"
+#include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/intersect.h"
 #include "libmv/simple_pipeline/resect.h"
@@ -120,11 +121,14 @@ struct ProjectivePipelineRoutines {
 template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
     const Tracks &tracks,
-    typename PipelineRoutines::Reconstruction *reconstruction) {
+    typename PipelineRoutines::Reconstruction *reconstruction,
+    progress_update_callback update_callback,
+    void *update_customdata) {
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
   int num_intersects = -1;
+  int tot_resects = 0;
   LG << "Max track: " << max_track;
   LG << "Max image: " << max_image;
   LG << "Number of markers: " << tracks.NumMarkers();
@@ -180,6 +184,9 @@ void InternalCompleteReconstruction(
       if (reconstructed_markers.size() >= 5) {
         if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, false)) {
           num_resects++;
+          tot_resects++;
+          if(update_callback)
+            update_callback(update_customdata, (float)tot_resects/(max_image), "Completing solution");
           LG << "Ran Resect() for image " << image;
         } else {
           LG << "Failed Resect() for image " << image;
@@ -211,6 +218,8 @@ void InternalCompleteReconstruction(
       if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
         num_resects++;
         LG << "Ran Resect() for image " << image;
+        if(update_callback)
+          update_callback(update_customdata, (float)tot_resects/(max_image), "Completing solution");
       } else {
         LG << "Failed Resect() for image " << image;
       }
@@ -289,15 +298,20 @@ double ProjectiveReprojectionError(
 }
 
 void EuclideanCompleteReconstruction(const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction) {
+                                     EuclideanReconstruction *reconstruction,
+                                     progress_update_callback update_callback,
+                                     void *update_customdata) {
   InternalCompleteReconstruction<EuclideanPipelineRoutines>(tracks,
-                                                            reconstruction);
+                                                            reconstruction,
+                                                            update_callback,
+                                                            update_customdata);
 }
 
 void ProjectiveCompleteReconstruction(const Tracks &tracks,
                                       ProjectiveReconstruction *reconstruction) {
   InternalCompleteReconstruction<ProjectivePipelineRoutines>(tracks,
-                                                             reconstruction);
+                                                             reconstruction,
+                                                             NULL, NULL);
 }
 
 void InvertIntrinsicsForTracks(const Tracks &raw_tracks,

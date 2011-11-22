@@ -191,27 +191,38 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 {
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
 	char str[256]= {0};
+	int block= 0;
 
-	if(sc->flag&SC_LOCK_SELECTION)
-		strcpy(str, "Locked");
+	if(tracking->stats) {
+		BLI_strncpy(str, tracking->stats->message, sizeof(str));
+		block= 1;
+	} else {
+		if(sc->flag&SC_LOCK_SELECTION)
+			strcpy(str, "Locked");
+	}
 
 	if(str[0]) {
 		uiStyle *style= UI_GetStyle();
-		int fontsize, fontwidth;
 		int fontid= style->widget.uifont_id;
+		int fontwidth;
 
-		BLF_size(fontid, 11.0f, U.dpi);
-		fontsize= BLF_height(fontid, str);
-		fontwidth= BLF_width(fontid, str);
+		BLF_size(fontid, 11.0f, 72);
+
+		if(block)
+			fontwidth= ar->winx;
+		else
+			fontwidth= BLF_width(fontid, str);
 
 		glEnable(GL_BLEND);
 
 		glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
-		glRecti(0, ar->winy-fontsize-9, fontwidth+12, ar->winy);
+		glRecti(0, ar->winy-17, fontwidth+12, ar->winy);
 
 		glColor3f(1.0f, 1.0f, 1.0f);
-		BLF_position(fontid, 6.0f, ar->winy-fontsize-5.0f, 0.0f);
+		BLF_position(fontid, 6.0f, ar->winy-13.0f, 0.0f);
 		BLF_draw(fontid, str, strlen(str));
 
 		glDisable(GL_BLEND);

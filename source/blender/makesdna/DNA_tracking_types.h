@@ -165,6 +165,11 @@ typedef struct MovieTrackingReconstruction {
 	struct MovieReconstructedCamera *cameras;	/* reconstructed cameras */
 } MovieTrackingReconstruction;
 
+typedef struct MovieTrackingStats {
+	float progress;
+	char message[256];
+} MovieTrackingStats;
+
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	char pad2[4];
@@ -174,6 +179,8 @@ typedef struct MovieTracking {
 	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
 	MovieTrackingTrack *act_track;		/* active track */
+
+	MovieTrackingStats *stats;		/* statistics displaying in clip editor */
 } MovieTracking;
 
 /* MovieTrackingCamera->units */
