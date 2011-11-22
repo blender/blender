@@ -477,7 +477,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_dry_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DRY_LOG);
-	RNA_def_property_ui_text(prop, "Slow", "Use logarithmic drying (makes high values to fade faster than low values)");
+	RNA_def_property_ui_text(prop, "Slow", "Use logarithmic drying (makes high values to dry faster than low values)");
 
 	prop= RNA_def_property(srna, "use_dissolve_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DISSOLVE_LOG);
@@ -551,20 +551,20 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	/* output for primary surface data */
 	prop= RNA_def_property(srna, "output_name_a", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "output_name");
-	RNA_def_property_ui_text(prop, "Output name", "");
+	RNA_def_property_ui_text(prop, "Output Name", "Name used to save output from this surface");
 
 	prop= RNA_def_property(srna, "use_output_a", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT1);
-	RNA_def_property_ui_text(prop, "Save layer", "Output name");
+	RNA_def_property_ui_text(prop, "Use Output", "Save this output layer");
 
 	/* output for secondary sufrace data */
 	prop= RNA_def_property(srna, "output_name_b", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "output_name2");
-	RNA_def_property_ui_text(prop, "Output name", "Output name");
+	RNA_def_property_ui_text(prop, "Output Name", "Name used to save output from this surface");
 
 	prop= RNA_def_property(srna, "use_output_b", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT2);
-	RNA_def_property_ui_text(prop, "Save layer", "");
+	RNA_def_property_ui_text(prop, "Use Output", "Save this output layer");
 
 	prop= RNA_def_property(srna, "preview_id", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
