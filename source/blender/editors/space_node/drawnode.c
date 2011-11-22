@@ -471,6 +471,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		float locx, locy;
 		rctf *rect= &gnode->totr;
 		float node_group_frame= U.dpi*NODE_GROUP_FRAME/72;
+		float group_header= 26*U.dpi/72;
 		int counter;
 		int dy;
 		
@@ -594,6 +595,15 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 				gsock = gsock->next;
 			}
 		}
+		
+		/* Set the block bounds to clip mouse events from underlying nodes.
+		 * Add margin for header and input/output columns.
+		 */
+		uiExplicitBoundsBlock(gnode->block,
+							  rect->xmin - node_group_frame,
+							  rect->ymin,
+							  rect->xmax + node_group_frame,
+							  rect->ymax + group_header);
 	}
 }
 
