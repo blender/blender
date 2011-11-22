@@ -5063,6 +5063,14 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 			if(ui_but_contains_pt(but, mx, my))
 				butover= but;
 		}
+
+		/* CLIP_EVENTS prevents the event from reaching other blocks */
+		if (block->flag & UI_BLOCK_CLIP_EVENTS) {
+			/* check if mouse is inside block */
+			if(block->minx <= mx && block->maxx >= mx &&
+			   block->miny <= my && block->maxy >= my)
+				break;
+		}
 	}
 
 	return butover;

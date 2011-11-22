@@ -115,6 +115,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_OUT_1			1024
 #define UI_BLOCK_NO_FLIP		2048
 #define UI_BLOCK_POPUP_MEMORY	4096
+#define UI_BLOCK_CLIP_EVENTS	8192	/* stop handling mouse events */
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
@@ -364,6 +365,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
 void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
 void uiCenteredBoundsBlock(uiBlock *block, int addval);
+void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int maxy);
 
 int		uiBlocksGetYMin		(struct ListBase *lb);
 

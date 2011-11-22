@@ -25,7 +25,6 @@
 
 #include "kernel_film.h"
 #include "kernel_path.h"
-//#include "kernel_displace.h"
 
 __kernel void kernel_ocl_path_trace(
 	__constant KernelData *data,
