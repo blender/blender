@@ -262,6 +262,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("uv.project_from_view")
         layout.operator("uv.project_from_view", text="Project from View (Bounds)").scale_to_bounds = True
 

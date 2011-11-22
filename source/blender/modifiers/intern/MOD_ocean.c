@@ -404,7 +404,8 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	if (omd->cached == TRUE) {
 		if (!omd->oceancache) init_cache_data(ob, omd);
 		BKE_simulate_ocean_cache(omd->oceancache, md->scene->r.cfra);
-	} else {
+	}
+	else {
 		simulate_ocean_modifier(omd);
 	}
 
@@ -441,43 +442,26 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 		mf = dm->getFaceArray(dm);
 
 		for (i = 0; i < num_faces; i++, mf++) {
-			for (j=0; j<4; j++) {
-
-				if (j == 3 && !mf->v4) continue;
-
-				switch(j) {
-					case 0:
-						u = ocean_co(omd, mv[mf->v1].co[0]);
-						v = ocean_co(omd, mv[mf->v1].co[1]);
-						break;
-					case 1:
-						u = ocean_co(omd, mv[mf->v2].co[0]);
-						v = ocean_co(omd, mv[mf->v2].co[1]);
-						break;
-					case 2:
-						u = ocean_co(omd, mv[mf->v3].co[0]);
-						v = ocean_co(omd, mv[mf->v3].co[1]);
-						break;
-					case 3:
-						u = ocean_co(omd, mv[mf->v4].co[0]);
-						v = ocean_co(omd, mv[mf->v4].co[1]);
-
-						break;
-				}
+			j= mf->v4 ? 3 : 2;
+			do {
+				const float *co= mv[*(&mf->v1 + j)].co;
+				u = ocean_co(omd, co[0]);
+				v = ocean_co(omd, co[1]);
 
 				if (omd->oceancache && omd->cached==TRUE) {
 					BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 					foam = ocr.foam;
 					CLAMP(foam, 0.0f, 1.0f);
-				} else {
+				}
+				else {
 					BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
 					foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
 				}
 
-				cf = (char)(foam*255);
+				cf = (char)(foam * 255);
 				mc[i*4 + j].r = mc[i*4 + j].g = mc[i*4 + j].b = cf;
 				mc[i*4 + j].a = 255;
-			}
+			} while (j--);
 		}
 	}
 

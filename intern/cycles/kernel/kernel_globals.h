@@ -77,8 +77,7 @@ typedef struct KernelGlobals {
 	__constant KernelData *data;
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name; \
-	int name##_width;
+	__global type *name;
 #include "kernel_textures.h"
 } KernelGlobals;
 

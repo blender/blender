@@ -257,8 +257,8 @@ void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 
 	if(!scene_use_new_shading_nodes(scene)) {
 		if(ct) {
-			MEM_freeN(ct);
 			BLI_freelistN(&ct->users);
+			MEM_freeN(ct);
 			sbuts->texuser= NULL;
 		}
 		
