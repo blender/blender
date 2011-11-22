@@ -122,7 +122,10 @@ public:
 		CUresult result = stmt; \
 		\
 		if(result != CUDA_SUCCESS) { \
-			fprintf(stderr, "CUDA error: %s in %s\n", cuda_error_string(result), #stmt); \
+			string message = string_printf("CUDA error: %s in %s", cuda_error_string(result), #stmt); \
+			if(error_msg == "") \
+				error_msg = message; \
+			fprintf(stderr, "%s\n", message.c_str()); \
 			cuda_abort(); \
 		} \
 	}
@@ -132,8 +135,18 @@ public:
 		if(result == CUDA_SUCCESS)
 			return false;
 
-		fprintf(stderr, "CUDA error: %s\n", cuda_error_string(result));
+		string message = string_printf("CUDA error: %s", cuda_error_string(result));
+		if(error_msg == "")
+			error_msg = message;
+		fprintf(stderr, "%s\n", message.c_str());
 		return true;
+	}
+
+	void cuda_error(const string& message)
+	{
+		if(error_msg == "")
+			error_msg = message;
+		fprintf(stderr, "%s\n", message.c_str());
 	}
 
 	void cuda_push_context()
@@ -224,14 +237,14 @@ public:
 			return cubin;
 
 #ifdef WITH_CUDA_BINARIES
-		fprintf(stderr, "CUDA binary kernel for this graphics card not found.\n");
+		cuda_error("CUDA binary kernel for this graphics card not found.");
 		return "";
 #else
 		/* if not, find CUDA compiler */
 		string nvcc = cuCompilerPath();
 
 		if(nvcc == "") {
-			fprintf(stderr, "CUDA nvcc compiler not found. Install CUDA toolkit in default location.\n");
+			cuda_error("CUDA nvcc compiler not found. Install CUDA toolkit in default location.");
 			return "";
 		}
 
@@ -251,13 +264,13 @@ public:
 			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
 
 		if(system(command.c_str()) == -1) {
-			fprintf(stderr, "Failed to execute compilation command.\n");
+			cuda_error("Failed to execute compilation command, see console for details.");
 			return "";
 		}
 
 		/* verify if compilation succeeded */
 		if(!path_exists(cubin)) {
-			fprintf(stderr, "CUDA kernel compilation failed.\n");
+			cuda_error("CUDA kernel compilation failed, see console for details.");
 			return "";
 		}
 
@@ -284,7 +297,7 @@ public:
 
 		CUresult result = cuModuleLoad(&cuModule, cubin.c_str());
 		if(cuda_error(result))
-			fprintf(stderr, "Failed loading CUDA kernel %s.\n", cubin.c_str());
+			cuda_error(string_printf("Failed loading CUDA kernel %s.", cubin.c_str()));
 
 		cuda_pop_context();
 
