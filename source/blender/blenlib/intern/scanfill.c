@@ -550,7 +550,7 @@ static int scanfill(PolyFill *pf, short mat_nr)
 				}
 				else {
 					eed->v2->f= 255;
-					eed->v2->tmp.v = eed->v1->tmp.v;
+					eed->v2->tmp.v = eed->v1;
 				}
 			}
 		}
@@ -582,18 +582,21 @@ static int scanfill(PolyFill *pf, short mat_nr)
 		nexted= eed->next;
 		eed->f= 0;
 		BLI_remlink(&filledgebase,eed);
-/* commented all of this out, this I have no idea for what it is for, probably from ancient past */
-/* it does crash blender, since it uses mixed original and new vertices (ton) */
-//		if(eed->v1->f==255) {
-//			v1= eed->v1;
-//			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
-//				eed->v1 = eed->v1->tmp.v;
-//		}
-//		if(eed->v2->f==255) {
-//			v2= eed->v2;
-//			while((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
-//				eed->v2 = eed->v2->tmp.v;
-//		}
+		/* This code is for handling zero-length edges that get
+		   collapsed in step 0. It was removed for some time to
+		   fix trunk bug #4544, so if that comes back, this code
+		   may need some work, or there will have to be a better
+		   fix to #4544. */
+		if(eed->v1->f==255) {
+			v1= eed->v1;
+			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
+				eed->v1 = eed->v1->tmp.v;
+		}
+		if(eed->v2->f==255) {
+			v2= eed->v2;
+			while((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
+				eed->v2 = eed->v2->tmp.v;
+		}
 		if(eed->v1!=eed->v2) addedgetoscanlist(eed,verts);
 
 		eed= nexted;
