@@ -209,8 +209,13 @@ typedef struct SceneRenderLayer {
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
-/* generic image format settings,
- * no video codec info however */
+/* Generic image format settings,
+ * this is used for NodeImageFile and IMAGE_OT_save_as operator too.
+ *
+ * note: its a bit strange that even though this is an image format struct
+ *  the imtype can still be used to select video formats.
+ *  RNA ensures these enum's are only selectable for render output.
+ */
 typedef struct ImageFormatData {
 	char imtype;   /* R_IMF_IMTYPE_PNG, R_... */
 	               /* note, video types should only ever be set from this

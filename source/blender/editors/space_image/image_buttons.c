@@ -855,16 +855,16 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "compression", 0, NULL, ICON_NONE);
 	}
 
+	if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
+		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
+	}
+
 	if (BKE_imtype_supports_zbuf(imf->imtype)) {
 		uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	}
 
-	if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
-
-		if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
-			uiItemR(col, imfptr, "use_preview", 0, NULL, ICON_NONE);
-		}
+	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
+		uiItemR(col, imfptr, "use_preview", 0, NULL, ICON_NONE);
 	}
 
 	if (imf->imtype == R_IMF_IMTYPE_JP2) {

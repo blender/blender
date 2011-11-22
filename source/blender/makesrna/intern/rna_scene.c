@@ -2390,7 +2390,10 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
-/* use for render output and image save operator */
+/* use for render output and image save operator,
+ * note: there are some cases where the members act differently when this is
+ * used from a scene, video formats can only be selected for render output
+ * for example, this is checked by seeing if the ptr->id.data is a Scene id */
 
 static void rna_def_scene_image_format_data(BlenderRNA *brna)
 {

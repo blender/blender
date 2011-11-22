@@ -127,7 +127,7 @@ static void initData(ModifierData *md)
 	omd->repeat_x = 1;
 	omd->repeat_y = 1;
 
-	modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "ocean_cache");
+	modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "cache_ocean");
 
 	omd->cached = 0;
 	omd->bakestart = 1;

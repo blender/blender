@@ -976,7 +976,7 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20f;
 
-	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "dynamicpaint");
+	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
 	dynamicPaintSurface_setUniqueName(surface, "Surface");
 
