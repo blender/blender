@@ -1001,7 +1001,6 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 }
@@ -1637,10 +1636,9 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C)
 	NodeImageFile *nif= node->storage;
 	PointerRNA imfptr;
 
-	uiLayout *col, *row;
+	uiLayout *row;
 
-	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "filepath", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "filepath", 0, "", ICON_NONE);
 
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &nif->im_format, &imfptr);
 	uiTemplateImageSettings(layout, &imfptr);

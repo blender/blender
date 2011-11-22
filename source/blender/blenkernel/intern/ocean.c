@@ -1208,8 +1208,6 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 	imf.depth=  R_IMF_CHAN_DEPTH_16;
 	imf.exr_codec= R_IMF_EXR_CODEC_ZIP; /* ZIP */
 
-
-
 	for (f=och->start, i=0; f<=och->end; f++, i++) {
 
 		/* create a new imbuf to store image for this frame */
@@ -1301,18 +1299,18 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 
 		/* write the images */
 		cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
-		if(0 == BKE_write_ibuf(ibuf_disp, string, &imf))  // 2 == ZIP exr codec
+		if(0 == BKE_write_ibuf(ibuf_disp, string, &imf))
 			printf("Cannot save Displacement File Output to %s\n", string);
 
 		if (o->_do_jacobian) {
 			cache_filename(string, och->bakepath, och->relbase,  f, CACHE_TYPE_FOAM);
-			if(0 == BKE_write_ibuf(ibuf_foam, string, &imf))  // 2 == ZIP exr codec
+			if(0 == BKE_write_ibuf(ibuf_foam, string, &imf))
 				printf("Cannot save Foam File Output to %s\n", string);
 		}
 
 		if (o->_do_normals) {
 			cache_filename(string, och->bakepath,  och->relbase, f, CACHE_TYPE_NORMAL);
-			if(0 == BKE_write_ibuf(ibuf_normal, string, &imf))  // 2 == ZIP exr codec
+			if(0 == BKE_write_ibuf(ibuf_normal, string, &imf))
 				printf("Cannot save Normal File Output to %s\n", string);
 		}
 

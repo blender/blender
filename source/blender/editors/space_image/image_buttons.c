@@ -488,38 +488,6 @@ static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v)
 }
 
 #if 0
-static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v) 
-{
-	if(ima_v) {
-		Image *ima= ima_v;
-		if(ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE) {
-			if (ima->packedfile) {
-				if (G.fileflags & G_AUTOPACK) {
-					if (okee("Disable AutoPack ?")) {
-						G.fileflags &= ~G_AUTOPACK;
-					}
-				}
-				
-				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(NULL, ima, PF_ASK); /* XXX report errors */
-					ED_undo_push(C, "Unpack image");
-				}
-			} 
-			else {
-				ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
-				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
-					// XXX error("Can't pack painted image. Save image or use Repack as PNG");
-				} else {
-					ima->packedfile = newPackedFile(NULL, ima->name); /* XXX report errors */
-					ED_undo_push(C, "Pack image");
-				}
-			}
-		}
-	}
-}
-#endif
-
-#if 0
 static void image_freecache_cb(bContext *C, void *ima_v, void *unused) 
 {
 	Scene *scene= CTX_data_scene(C);
@@ -675,8 +643,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 	if(!compact)
 		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
-
-	// XXX missing: reload, pack
 
 	if(ima) {
 		uiBlockSetNFunc(block, rna_update_cb, MEM_dupallocN(cb), NULL);
