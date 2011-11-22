@@ -260,12 +260,9 @@ public:
 		return true;
 	}
 
-	bool build_kernel(const string& kernel_path)
+	string kernel_build_options()
 	{
-		string build_options = "";
-
-		build_options += "-I " + kernel_path + ""; /* todo: escape path */
-		build_options += " -cl-fast-relaxed-math ";
+		string build_options = " -cl-fast-relaxed-math ";
 		
 		/* Full Shading only on NVIDIA cards at the moment */
 		char vendor[256];
@@ -273,14 +270,19 @@ public:
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(vendor), &vendor, NULL);
 		string name = vendor;
 		
-		if (name == "NVIDIA CUDA") {
-			build_options += "-D __SVM__ ";
-			build_options += "-D __EMISSION__ ";
-			build_options += "-D __TEXTURES__ ";
-			build_options += "-D __HOLDOUT__ ";
-			build_options += "-D __MULTI_CLOSURE__ ";
-		}
+		if(name == "NVIDIA CUDA")
+			build_options += "-D__KERNEL_SHADING__ -D__MULTI_CLOSURE__ ";
 
+		return build_options;
+	}
+
+	bool build_kernel(const string& kernel_path)
+	{
+		string build_options = "";
+
+		build_options += "-I " + kernel_path + ""; /* todo: escape path, but it doesn't get parsed correct? */
+		build_options += kernel_build_options();
+	
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
 		if(ciErr != CL_SUCCESS) {
@@ -343,6 +345,9 @@ public:
 		md5.append((uint8_t*)version, strlen(version));
 		md5.append((uint8_t*)name, strlen(name));
 		md5.append((uint8_t*)driver, strlen(driver));
+
+		string options = kernel_build_options();
+		md5.append((uint8_t*)options.c_str(), options.size());
 
 		return md5.get_hex();
 	}
@@ -563,23 +568,19 @@ public:
 	cl_int set_kernel_arg_mem(cl_kernel kernel, int *narg, const char *name)
 	{
 		cl_mem ptr;
-		cl_int size, err = 0;
+		cl_int err = 0;
 
 		if(mem_map.find(name) != mem_map.end()) {
 			device_memory *mem = mem_map[name];
 		
 			ptr = CL_MEM_PTR(mem->device_pointer);
-			size = mem->data_width;
 		}
 		else {
 			/* work around NULL not working, even though the spec says otherwise */
 			ptr = CL_MEM_PTR(null_mem);
-			size = 1;
 		}
 		
 		err |= clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void*)&ptr);
-		opencl_assert(err);
-		err |= clSetKernelArg(kernel, (*narg)++, sizeof(size), (void*)&size);
 		opencl_assert(err);
 
 		return err;

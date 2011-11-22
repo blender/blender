@@ -55,7 +55,7 @@ typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
 /* Macros to handle different memory storage on different devices */
 
 #define kernel_tex_fetch(t, index) tex1Dfetch(t, index)
-#define kernel_tex_interp(t, x) tex1D(t, x)
+#define kernel_tex_interp(t, x, size) tex1D(t, x)
 #define kernel_tex_image_interp(t, x, y) tex2D(t, x, y)
 
 #define kernel_data __data

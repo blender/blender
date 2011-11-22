@@ -226,7 +226,7 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	Ng = triangle_normal_MT(kg, prim, &shader);
 
 	/* force smooth shading for displacement */
-	sd->shader |= SHADER_SMOOTH_NORMAL;
+	shader |= SHADER_SMOOTH_NORMAL;
 
 	/* watch out: no instance transform currently */
 
