@@ -1919,11 +1919,10 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	object_apply_mat4(parent, newmat, 0, 0);
 
 	/* make camera have positive z-coordinate */
-	mul_v3_m4v3(vec[0], mat, camera->loc);
-	if(camera->loc[2]<0) {
+	if(parent->loc[2]<0) {
 		invert_m4(rot);
 		mul_m4_m4m4(newmat, mat, rot);
-		object_apply_mat4(camera, newmat, 0, 0);
+		object_apply_mat4(parent, newmat, 0, 0);
 	}
 
 	where_is_object(scene, parent);
@@ -2252,7 +2251,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
 	int placement= RNA_enum_get(op->ptr, "placement");
 	int margin= RNA_int_get(op->ptr, "margin");
-	int min_trackness= RNA_int_get(op->ptr, "min_trackness");
+	int min_trackability= RNA_int_get(op->ptr, "min_trackability");
 	int min_distance= RNA_int_get(op->ptr, "min_distance");
 	int place_outside_layer= 0;
 	bGPDlayer *layer= NULL;
@@ -2271,7 +2270,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_tracking_detect_fast(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, min_distance, layer, place_outside_layer);
+	BKE_tracking_detect_fast(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackability, min_distance, layer, place_outside_layer);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2304,7 +2303,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "placement", placement_items, 0, "Placement", "Placement for detected features");
 	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
-	RNA_def_int(ot->srna, "min_trackness", 16, 0, INT_MAX, "Trackness", "Minimum score to add a corner", 0, 300);
+	RNA_def_int(ot->srna, "min_trackability", 16, 0, INT_MAX, "Trackability", "Minimum trackability score to add a corner", 0, 300);
 	RNA_def_int(ot->srna, "min_distance", 120, 0, INT_MAX, "Distance", "Minimal distance accepted between two corners", 0, 300);
 }
 

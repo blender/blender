@@ -22,6 +22,12 @@
 
 # <pep8 compliant>
 
+import sys
+if not sys.version.startswith("3"):
+    print("\nPython3.x needed, found %s.\nAborting!\n" %
+          sys.version.partition(" ")[0])
+    sys.exit(1)
+
 from cmake_consistency_check_config import IGNORE, UTF8_CHECK, SOURCE_DIR
 
 import os

@@ -42,45 +42,45 @@ extern bNodeTreeType ntreeType_Texture;
 
 /* ****************** types array for all texture nodes ****************** */
 
-void register_node_type_tex_group(ListBase *lb);
-void register_node_type_tex_forloop(ListBase *lb);
-void register_node_type_tex_whileloop(ListBase *lb);
+void register_node_type_tex_group(struct bNodeTreeType *ttype);
+void register_node_type_tex_forloop(struct bNodeTreeType *ttype);
+void register_node_type_tex_whileloop(struct bNodeTreeType *ttype);
 
-void register_node_type_tex_math(ListBase *lb);
-void register_node_type_tex_mix_rgb(ListBase *lb);
-void register_node_type_tex_valtorgb(ListBase *lb);
-void register_node_type_tex_valtonor(ListBase *lb);
-void register_node_type_tex_rgbtobw(ListBase *lb);
-void register_node_type_tex_output(ListBase *lb);
-void register_node_type_tex_viewer(ListBase *lb);
-void register_node_type_tex_checker(ListBase *lb);
-void register_node_type_tex_texture(ListBase *lb);
-void register_node_type_tex_bricks(ListBase *lb);
-void register_node_type_tex_image(ListBase *lb);
-void register_node_type_tex_curve_rgb(ListBase *lb);
-void register_node_type_tex_curve_time(ListBase *lb);
-void register_node_type_tex_invert(ListBase *lb);
-void register_node_type_tex_hue_sat(ListBase *lb);
-void register_node_type_tex_coord(ListBase *lb);
-void register_node_type_tex_distance(ListBase *lb);
+void register_node_type_tex_math(struct bNodeTreeType *ttype);
+void register_node_type_tex_mix_rgb(struct bNodeTreeType *ttype);
+void register_node_type_tex_valtorgb(struct bNodeTreeType *ttype);
+void register_node_type_tex_valtonor(struct bNodeTreeType *ttype);
+void register_node_type_tex_rgbtobw(struct bNodeTreeType *ttype);
+void register_node_type_tex_output(struct bNodeTreeType *ttype);
+void register_node_type_tex_viewer(struct bNodeTreeType *ttype);
+void register_node_type_tex_checker(struct bNodeTreeType *ttype);
+void register_node_type_tex_texture(struct bNodeTreeType *ttype);
+void register_node_type_tex_bricks(struct bNodeTreeType *ttype);
+void register_node_type_tex_image(struct bNodeTreeType *ttype);
+void register_node_type_tex_curve_rgb(struct bNodeTreeType *ttype);
+void register_node_type_tex_curve_time(struct bNodeTreeType *ttype);
+void register_node_type_tex_invert(struct bNodeTreeType *ttype);
+void register_node_type_tex_hue_sat(struct bNodeTreeType *ttype);
+void register_node_type_tex_coord(struct bNodeTreeType *ttype);
+void register_node_type_tex_distance(struct bNodeTreeType *ttype);
 
-void register_node_type_tex_rotate(ListBase *lb);
-void register_node_type_tex_translate(ListBase *lb);
-void register_node_type_tex_scale(ListBase *lb);
-void register_node_type_tex_at(ListBase *lb);
+void register_node_type_tex_rotate(struct bNodeTreeType *ttype);
+void register_node_type_tex_translate(struct bNodeTreeType *ttype);
+void register_node_type_tex_scale(struct bNodeTreeType *ttype);
+void register_node_type_tex_at(struct bNodeTreeType *ttype);
 
-void register_node_type_tex_compose(ListBase *lb);
-void register_node_type_tex_decompose(ListBase *lb);
+void register_node_type_tex_compose(struct bNodeTreeType *ttype);
+void register_node_type_tex_decompose(struct bNodeTreeType *ttype);
 
-void register_node_type_tex_proc_voronoi(ListBase *lb);
-void register_node_type_tex_proc_blend(ListBase *lb);
-void register_node_type_tex_proc_magic(ListBase *lb);
-void register_node_type_tex_proc_marble(ListBase *lb);
-void register_node_type_tex_proc_clouds(ListBase *lb);
-void register_node_type_tex_proc_wood(ListBase *lb);
-void register_node_type_tex_proc_musgrave(ListBase *lb);
-void register_node_type_tex_proc_noise(ListBase *lb);
-void register_node_type_tex_proc_stucci(ListBase *lb);
-void register_node_type_tex_proc_distnoise(ListBase *lb);
+void register_node_type_tex_proc_voronoi(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_blend(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_magic(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_marble(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_clouds(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_wood(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_musgrave(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_noise(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_stucci(struct bNodeTreeType *ttype);
+void register_node_type_tex_proc_distnoise(struct bNodeTreeType *ttype);
 
 #endif

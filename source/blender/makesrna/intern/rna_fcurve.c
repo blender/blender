@@ -637,7 +637,7 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierGenerator", "FModifier");
-	RNA_def_struct_ui_text(srna, "Generator F-Curve Modifier", "Deterministically generates values for the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Generator F-Modifier", "Deterministically generate values for the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Generator", "data");
 	
 	/* define common props */
@@ -659,7 +659,7 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 		// XXX this has a special validation func
 	prop= RNA_def_property(srna, "poly_order", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Polynomial Order",
-	                         "The highest power of 'x' for this polynomial. (number of coefficients - 1)");
+	                         "The highest power of 'x' for this polynomial (number of coefficients - 1)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	/* coefficients array */
@@ -689,7 +689,7 @@ static void rna_def_fmodifier_function_generator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierFunctionGenerator", "FModifier");
-	RNA_def_struct_ui_text(srna, "Built-In Function F-Modifier", "Generates values using a Built-In Function");
+	RNA_def_struct_ui_text(srna, "Built-In Function F-Modifier", "Generate values using a Built-In Function");
 	RNA_def_struct_sdna_from(srna, "FMod_FunctionGenerator", "data");
 	
 	/* coefficients */
@@ -765,7 +765,7 @@ static void rna_def_fmodifier_envelope(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierEnvelope", "FModifier");
-	RNA_def_struct_ui_text(srna, "Envelope F-Modifier", "Scales the values of the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Envelope F-Modifier", "Scale the values of the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Envelope", "data");
 	
 	/* Collections */
@@ -802,13 +802,13 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 		{FCM_EXTRAPOLATE_NONE, "NONE", 0, "No Cycles", "Don't do anything"},
 		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", 0, "Repeat Motion", "Repeat keyframe range as-is"},
 		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", 0, "Repeat with Offset",
-		                                "Repeat keyframe range, but with offset based on gradient between values"},
+		                                "Repeat keyframe range, but with offset based on gradient between start and end values"},
 		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", 0, "Repeat Mirrored",
 		                         "Alternate between forward and reverse playback of keyframe range"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierCycles", "FModifier");
-	RNA_def_struct_ui_text(srna, "Cycles F-Modifier", "Repeats the values of the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Cycles F-Modifier", "Repeat the values of the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Cycles", "data");
 	
 	/* before */
@@ -820,7 +820,7 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "cycles_before", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "before_cycles");
-	RNA_def_property_ui_text(prop, "Before Cycles", "Maximum number of cycles to allow before first keyframe. (0 = infinite)");
+	RNA_def_property_ui_text(prop, "Before Cycles", "Maximum number of cycles to allow before first keyframe (0 = infinite)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	/* after */
@@ -832,7 +832,7 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "cycles_after", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "after_cycles");
-	RNA_def_property_ui_text(prop, "After Cycles", "Maximum number of cycles to allow after last keyframe. (0 = infinite)");
+	RNA_def_property_ui_text(prop, "After Cycles", "Maximum number of cycles to allow after last keyframe (0 = infinite)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 }
 
@@ -844,7 +844,7 @@ static void rna_def_fmodifier_python(BlenderRNA *brna)
 	//PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierPython", "FModifier");
-	RNA_def_struct_ui_text(srna, "Python F-Modifier", "Performs user-defined operation on the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Python F-Modifier", "Perform user-defined operation on the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Python", "data");
 }
 
@@ -856,7 +856,7 @@ static void rna_def_fmodifier_limits(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "FModifierLimits", "FModifier");
-	RNA_def_struct_ui_text(srna, "Limits F-Modifier", "Limits the time/value ranges of the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Limit F-Modifier", "Limit the time/value ranges of the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Limits", "data");
 	
 	prop= RNA_def_property(srna, "use_min_x", PROP_BOOLEAN, PROP_NONE);
@@ -919,7 +919,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "FModifierNoise", "FModifier");
-	RNA_def_struct_ui_text(srna, "Noise F-Modifier", "Gives randomness to the modified F-Curve");
+	RNA_def_struct_ui_text(srna, "Noise F-Modifier", "Give randomness to the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Noise", "data");
 	
 	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);

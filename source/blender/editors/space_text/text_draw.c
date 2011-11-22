@@ -1179,7 +1179,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 
 static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
 	unsigned char col[4];
 	float rad;

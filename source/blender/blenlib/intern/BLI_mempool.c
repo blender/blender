@@ -66,7 +66,7 @@ typedef struct BLI_mempool_chunk {
 	void *data;
 } BLI_mempool_chunk;
 
-typedef struct BLI_mempool {
+struct BLI_mempool {
 	struct ListBase chunks;
 	int esize, csize, pchunk;        /* size of elements and chunks in bytes
 	                                  * and number of elements per chunk*/
@@ -76,7 +76,7 @@ typedef struct BLI_mempool {
 	BLI_freenode *free;	             /* free element list. Interleaved into chunk datas.*/
 	int totalloc, totused;           /* total number of elements allocated in total,
 	                                  * and currently in use*/
-} BLI_mempool;
+};
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
 

@@ -60,6 +60,11 @@
 #include "BKE_key.h"
 #include "BKE_multires.h"
 
+/* may move these, only for modifier_path_relbase */
+#include "BKE_global.h" /* ugh, G.main->name only */
+#include "BKE_main.h"
+/* end */
+
 #include "MOD_modifiertypes.h"
 
 ModifierTypeInfo *modifierType_getInfo(ModifierType type)
@@ -572,4 +577,37 @@ void test_object_modifiers(Object *ob)
 			multiresModifier_set_levels_from_disps(mmd, ob);
 		}
 	}
+}
+
+/* where should this go?, it doesnt fit well anywhere :S - campbell */
+
+/* elubie: changed this to default to the same dir as the render output
+ * to prevent saving to C:\ on Windows */
+
+/* campbell: logic behind this...
+ *
+ * - if the ID is from a library, return library path
+ * - else if the file has been saved return the blend file path.
+ * - else if the file isn't saved and the ID isnt from a library, return the temp dir.
+ */
+const char *modifier_path_relbase(Object *ob)
+{
+	if (G.relbase_valid || ob->id.lib) {
+		return ID_BLEND_PATH(G.main, &ob->id);
+	}
+	else {
+		/* last resort, better then using "" which resolves to the current
+		 * working directory */
+		return BLI_temporary_dir();
+	}
+}
+
+/* initializes the path with either */
+void modifier_path_init(char *path, int path_maxlen, const char *name)
+{
+	/* elubie: changed this to default to the same dir as the render output
+	 * to prevent saving to C:\ on Windows */
+	BLI_join_dirfile(path, path_maxlen,
+	                 G.relbase_valid ? "//" : BLI_temporary_dir(),
+	                 name);
 }

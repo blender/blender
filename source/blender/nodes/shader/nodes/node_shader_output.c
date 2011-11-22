@@ -78,18 +78,20 @@ static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 	return 1;
 }
 
-void register_node_type_sh_output(ListBase *lb)
+void register_node_type_sh_output(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_base(ttype, &ntype, SH_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_output_in, NULL);
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_exec(&ntype, node_shader_exec_output);
 	node_type_gpu(&ntype, gpu_shader_output);
 
-	nodeRegisterType(lb, &ntype);
+	/* Do not allow muting output node. */
+	node_type_mute(&ntype, NULL, NULL);
+	node_type_gpu_mute(&ntype, NULL);
+
+	nodeRegisterType(ttype, &ntype);
 }
-
-

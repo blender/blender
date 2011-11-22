@@ -77,11 +77,11 @@ class CLIP_OT_track_to_empty(Operator):
         return {'FINISHED'}
 
 
-class CLIP_OT_tracks_to_mesh(Operator):
-    """Create vertex cloud using coordinates of tracks"""
+class CLIP_OT_bundles_to_mesh(Operator):
+    """Create vertex cloud using coordinates of reconstructed tracks"""
 
-    bl_idname = "clip.tracks_to_mesh"
-    bl_label = "Tracks to Mesh"
+    bl_idname = "clip.bundles_to_mesh"
+    bl_label = "3D Markers to Mesh"
     bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod
@@ -116,7 +116,7 @@ class CLIP_OT_delete_proxy(Operator):
 
     bl_idname = "clip.delete_proxy"
     bl_label = "Delete Proxy"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {'REGISTER'}
 
     @classmethod
     def poll(cls, context):
@@ -191,7 +191,7 @@ class CLIP_OT_set_viewport_background(Operator):
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = {'REGISTER'}
 
     @classmethod
     def poll(cls, context):
@@ -211,7 +211,7 @@ class CLIP_OT_set_viewport_background(Operator):
                 break
 
         if not bgpic:
-            bgpic = space_v3d.background_images.add()
+            bgpic = space_v3d.background_images.new()
 
         bgpic.source = 'MOVIE'
         bgpic.clip = clip
@@ -259,14 +259,10 @@ object's movement caused by this constraint"""
                 con = x
 
         if not con:
-            return
+            self.report({'ERROR'},
+                "Motion Tracking constraint to be converted not found")
 
-        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
-            mat = ob.matrix_world.copy()
-            ob.constraints.remove(con)
-            ob.matrix_world = mat
-
-            return
+            return {'CANCELLED'}
 
         # Get clip used for parenting
         if con.use_active_clip:
@@ -275,7 +271,17 @@ object's movement caused by this constraint"""
             clip = con.clip
 
         if not clip:
-            return
+            self.report({'ERROR'},
+                "Movie clip to use tracking data from isn't set")
+
+            return {'CANCELLED'}
+
+        if con.type == 'FOLLOW_TRACK' and con.use_3d_position:
+            mat = ob.matrix_world.copy()
+            ob.constraints.remove(con)
+            ob.matrix_world = mat
+
+            return {'FINISHED'}
 
         # Find start and end frames
         for track in clip.tracking.tracks:

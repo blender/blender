@@ -99,16 +99,16 @@ static void node_composit_exec_sephsva(void *UNUSED(data), bNode *node, bNodeSta
 	}
 }
 
-void register_node_type_cmp_sephsva(ListBase *lb)
+void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
+	node_type_base(ttype, &ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_composit_exec_sephsva);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 
@@ -169,17 +169,14 @@ static void node_composit_exec_combhsva(void *UNUSED(data), bNode *node, bNodeSt
 	}
 }
 
-void register_node_type_cmp_combhsva(ListBase *lb)
+void register_node_type_cmp_combhsva(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_composit_exec_combhsva);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

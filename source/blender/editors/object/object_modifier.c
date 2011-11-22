@@ -1526,9 +1526,10 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		return OPERATOR_FINISHED;
 	}
-	
-	och = BKE_init_ocean_cache(omd->cachepath, omd->bakestart, omd->bakeend, omd->wave_scale, 
-							   omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
+
+	och = BKE_init_ocean_cache(omd->cachepath, modifier_path_relbase(ob),
+	                           omd->bakestart, omd->bakeend, omd->wave_scale,
+	                           omd->chop_amount, omd->foam_coverage, omd->foam_fade, omd->resolution);
 	
 	och->time = MEM_mallocN(och->duration*sizeof(float), "foam bake time");
 	

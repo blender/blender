@@ -56,6 +56,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			 * scrubbing through the timeline when the compositor updates */
 			return;
 		} else {
+			Main *bmain= G.main; /* TODO, have this passed along */
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 			char string[256];
@@ -69,14 +70,14 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			if(in[1]->data) {
 				CompBuf *zbuf= in[1]->data;
 				if(zbuf->type==CB_VAL && zbuf->x==cbuf->x && zbuf->y==cbuf->y) {
-					nif->subimtype|= R_OPENEXR_ZBUF;
+					nif->im_format.flag |= R_IMF_FLAG_ZBUF;
 					ibuf->zbuf_float= zbuf->rect;
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION), TRUE);
+			BKE_makepicstring(string, nif->name, bmain->name, rd->cfra, nif->im_format.imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
-			if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
+			if(0 == BKE_write_ibuf(ibuf, string, &nif->im_format))
 				printf("Cannot save Node File Output to %s\n", string);
 			else
 				printf("Saved: %s\n", string);
@@ -99,27 +100,25 @@ static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node
 
 	if(scene) {
 		BLI_strncpy(nif->name, scene->r.pic, sizeof(nif->name));
-		nif->imtype= scene->r.imtype;
-		nif->subimtype= scene->r.subimtype;
-		nif->quality= scene->r.quality;
+		nif->im_format= scene->r.im_format;
+		if (BKE_imtype_is_movie(nif->im_format.imtype)) {
+			nif->im_format.imtype= R_IMF_IMTYPE_OPENEXR;
+		}
 		nif->sfra= scene->r.sfra;
 		nif->efra= scene->r.efra;
 	}
 }
 
-void register_node_type_cmp_output_file(ListBase *lb)
+void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_output_file_in, NULL);
 	node_type_size(&ntype, 140, 80, 300);
 	node_type_init(&ntype, node_composit_init_output_file);
 	node_type_storage(&ntype, "NodeImageFile", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_output_file);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

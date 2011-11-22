@@ -115,12 +115,12 @@ __device_inline double min(double a, double b)
 
 __device_inline float min4(float a, float b, float c, float d)
 {
-	return min(min(min(a, b), c), d);
+	return min(min(a, b), min(c, d));
 }
 
 __device_inline float max4(float a, float b, float c, float d)
 {
-	return max(max(max(a, b), c), d);
+	return max(max(a, b), max(c, d));
 }
 
 #ifndef __KERNEL_OPENCL__

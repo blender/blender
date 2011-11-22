@@ -43,7 +43,7 @@ from cycles import presets
 
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
-    bl_label = "Cycles"
+    bl_label = "Cycles Render"
     bl_use_shading_nodes = True
 
     def __init__(self):

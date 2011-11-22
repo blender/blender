@@ -122,13 +122,13 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 			if(ibuf->channels!=4) {
 				ofs+= sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
 			}
-			else if(ibuf->depth==32)
+			else if(ibuf->planes == R_IMF_PLANES_RGBA)
 				ofs+= sprintf(str+ofs, " RGBA float");
 			else
 				ofs+= sprintf(str+ofs, " RGB float");
 		}
 		else {
-			if(ibuf->depth==32)
+			if(ibuf->planes == R_IMF_PLANES_RGBA)
 				ofs+= sprintf(str+ofs, " RGBA byte");
 			else
 				ofs+= sprintf(str+ofs, " RGB byte");
@@ -649,12 +649,14 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateImage: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateImage: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -813,6 +815,74 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	}
 
 	MEM_freeN(cb);
+}
+
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
+{
+	ImageFormatData *imf= imfptr->data;
+	ID *id= imfptr->id.data;
+	const int depth_ok= BKE_imtype_valid_depths(imf->imtype);
+	/* some settings depend on this being a scene thats rendered */
+	const short is_render_out= (id && GS(id->name) == ID_SCE);
+
+	uiLayout *col, *row;
+
+	col= uiLayoutColumn(layout, 0);
+
+	uiItemR(col, imfptr, "file_format", 0, "", ICON_NONE);
+
+	row= uiLayoutRow(col, 0);
+	uiItemR(row, imfptr, "color_mode", UI_ITEM_R_EXPAND, "Color", ICON_NONE);
+
+	/* only display depth setting if multiple depths can be used */
+	if((ELEM6(depth_ok,
+	          R_IMF_CHAN_DEPTH_1,
+	          R_IMF_CHAN_DEPTH_8,
+	          R_IMF_CHAN_DEPTH_12,
+	          R_IMF_CHAN_DEPTH_16,
+	          R_IMF_CHAN_DEPTH_24,
+	          R_IMF_CHAN_DEPTH_32)) == 0)
+	{
+		row= uiLayoutRow(col, 0);
+		uiItemR(row, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
+
+	if (BKE_imtype_supports_quality(imf->imtype)) {
+		uiItemR(col, imfptr, "quality", 0, NULL, ICON_NONE);
+	}
+
+	if (BKE_imtype_supports_compress(imf->imtype)) {
+		uiItemR(col, imfptr, "compression", 0, NULL, ICON_NONE);
+	}
+
+	if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
+		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
+	}
+
+	if (BKE_imtype_supports_zbuf(imf->imtype)) {
+		uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
+	}
+
+	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
+		uiItemR(col, imfptr, "use_preview", 0, NULL, ICON_NONE);
+	}
+
+	if (imf->imtype == R_IMF_IMTYPE_JP2) {
+		uiItemR(col, imfptr, "use_jpeg2k_ycc", 0, NULL, ICON_NONE);
+		uiItemR(col, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
+		uiItemR(col, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);
+	}
+
+	if (imf->imtype == R_IMF_IMTYPE_CINEON) {
+#if 1
+		uiItemL(col, "FIXME: hard coded Non-Linear, Gamma:1.0", ICON_NONE);
+#else
+		uiItemR(col, imfptr, "use_cineon_log", 0, NULL, ICON_NONE);
+		uiItemR(col, imfptr, "cineon_black", 0, NULL, ICON_NONE);
+		uiItemR(col, imfptr, "cineon_white", 0, NULL, ICON_NONE);
+		uiItemR(col, imfptr, "cineon_gamma", 0, NULL, ICON_NONE);
+#endif
+	}
 }
 
 void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)

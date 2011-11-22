@@ -56,18 +56,18 @@ static int gpu_shader_seprgb(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack
 	return GPU_stack_link(mat, "separate_rgb", in, out);
 }
 
-void register_node_type_sh_seprgb(ListBase *lb)
+void register_node_type_sh_seprgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTOR, 0);
+	node_type_base(ttype, &ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTOR, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_seprgb_in, sh_node_seprgb_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_shader_exec_seprgb);
 	node_type_gpu(&ntype, gpu_shader_seprgb);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 
@@ -96,17 +96,16 @@ static int gpu_shader_combrgb(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStac
 	return GPU_stack_link(mat, "combine_rgb", in, out);
 }
 
-void register_node_type_sh_combrgb(ListBase *lb)
+void register_node_type_sh_combrgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_combrgb_in, sh_node_combrgb_out);
 	node_type_size(&ntype, 80, 40, 140);
 	node_type_exec(&ntype, node_shader_exec_combrgb);
 	node_type_gpu(&ntype, gpu_shader_combrgb);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

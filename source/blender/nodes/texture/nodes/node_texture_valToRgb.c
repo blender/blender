@@ -62,18 +62,18 @@ static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *
 	node->storage = add_colorband(1);
 }
 
-void register_node_type_tex_valtorgb(ListBase *lb)
+void register_node_type_tex_valtorgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, valtorgb_init);
 	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, valtorgb_exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 /* **************** RGBTOBW ******************** */
@@ -100,15 +100,14 @@ static void rgbtobw_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **
 	tex_output(node, in, out[0], &rgbtobw_valuefn, data);
 }
 
-void register_node_type_tex_rgbtobw(ListBase *lb)
+void register_node_type_tex_rgbtobw(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
+	node_type_base(ttype, &ntype, TEX_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, rgbtobw_in, rgbtobw_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_exec(&ntype, rgbtobw_exec);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-

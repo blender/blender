@@ -52,7 +52,7 @@ def get_version():
             else:
                 ver_display = "%s%s" % (ver_base, ver_char)  # assume release
 
-            return ver_base, ver_display
+            return ver_base, ver_display, ver_cycle
 
     raise Exception("%s: missing version string" % fname)
 
@@ -80,7 +80,7 @@ def checkEndian():
 
 
 # This is used in creating the local config directories
-VERSION, VERSION_DISPLAY = get_version()
+VERSION, VERSION_DISPLAY, VERSION_RELEASE_CYCLE = get_version()
 REVISION = get_revision()
 ENDIAN = checkEndian()
 

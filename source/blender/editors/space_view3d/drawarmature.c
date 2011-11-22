@@ -115,7 +115,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 	 * color set (based on the theme colors for 3d-view) is used. 
 	 */
 	if (color_index > 0) {
-		bTheme *btheme= U.themes.first;
+		bTheme *btheme= UI_GetTheme();
 		bcolor= &btheme->tarm[(color_index - 1)];
 	}
 	else if (color_index == -1) {

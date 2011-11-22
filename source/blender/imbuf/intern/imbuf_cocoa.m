@@ -228,7 +228,7 @@ short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags)
 	/* check for a valid number of bytes per pixel.  Like the PNG writer,
 	 * the TIFF writer supports 1, 3 or 4 bytes per pixel, corresponding
 	 * to gray, RGB, RGBA respectively. */
-	samplesperpixel = (uint16_t)((ibuf->depth + 7) >> 3);
+	samplesperpixel = (uint16_t)((ibuf->planes + 7) >> 3);
 	switch (samplesperpixel) {
 		case 4: /*RGBA type*/
 			hasAlpha = YES;

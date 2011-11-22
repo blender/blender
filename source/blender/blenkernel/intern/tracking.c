@@ -231,9 +231,12 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 
 void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
-	MovieTrackingMarker *old_marker= BKE_tracking_get_marker(track, marker->framenr);
+	MovieTrackingMarker *old_marker= NULL;
 
-	if(old_marker && old_marker->framenr==marker->framenr) {
+	if(track->markersnr)
+		old_marker= BKE_tracking_exact_marker(track, marker->framenr);
+
+	if(old_marker) {
 		*old_marker= *marker;
 	} else {
 		int a= track->markersnr;
@@ -324,7 +327,7 @@ MovieTrackingMarker *BKE_tracking_ensure_marker(MovieTrackingTrack *track, int f
 {
 	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
 
-	if(marker && marker->framenr!=framenr) {
+	if(marker->framenr!=framenr) {
 		MovieTrackingMarker marker_new;
 
 		marker_new= *marker;
@@ -341,7 +344,7 @@ MovieTrackingMarker *BKE_tracking_exact_marker(MovieTrackingTrack *track, int fr
 {
 	MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
 
-	if(marker && marker->framenr!=framenr)
+	if(marker->framenr!=framenr)
 		return NULL;
 
 	return marker;
@@ -440,7 +443,6 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
 	int a= 0, b= 0;
-	/* int tot= dst_track->markersnr+src_track->markersnr; */ /* UNUSED */
 	int count= 0;
 
 	while(a<src_track->markersnr || b<dst_track->markersnr) {
@@ -858,13 +860,11 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 {
 	ImBuf *ibuf;
-	int framenr_old= context->user.framenr;
+	MovieClipUser user= context->user;
 
-	context->user.framenr= framenr;
+	user.framenr= framenr;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
-
-	context->user.framenr= framenr_old;
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, 0);
 
 	return ibuf;
 }
@@ -1050,9 +1050,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	for(a= 0; a<context->num_tracks; a++) {
 		TrackContext *track_context= &context->track_context[a];
 		MovieTrackingTrack *track= track_context->track;
-		MovieTrackingMarker *marker= BKE_tracking_get_marker(track, curfra);
+		MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, curfra);
 
-		if(marker && (marker->flag&MARKER_DISABLED)==0 && marker->framenr==curfra) {
+		if(marker && (marker->flag&MARKER_DISABLED)==0) {
 #ifdef WITH_LIBMV
 			int width, height, origin[2], tracked= 0, need_readjust= 0;
 			float pos[2], margin[2];
@@ -1285,8 +1285,10 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 	MovieTrackingTrack *track;
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
-	float origin[3]= {0.0f, 0.0f, 0.0f};
 	int ok= 1;
+	float imat[4][4];
+
+	unit_m4(imat);
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -1354,12 +1356,13 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 					mat[i][j]= matd[i][j];
 
 			if(!origin_set) {
-				copy_v3_v3(origin, mat[3]);
+				copy_m4_m4(imat, mat);
+				invert_m4(imat);
 				origin_set= 1;
 			}
 
 			if(origin_set)
-				sub_v3_v3(mat[3], origin);
+				mul_m4_m4m4(mat, mat, imat);
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr= a;
@@ -1380,7 +1383,7 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 		track= tracking->tracks.first;
 		while(track) {
 			if(track->flag&TRACK_HAS_BUNDLE)
-				sub_v3_v3(track->bundle_pos, origin);
+				mul_v3_m4v3(track->bundle_pos, imat, track->bundle_pos);
 
 			track= track->next;
 		}
@@ -1918,10 +1921,8 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking, int width,
 		while(track) {
 			if(track->flag&TRACK_USE_2D_STAB ||
 			   ((stab->flag&TRACKING_STABILIZE_ROTATION) && track==stab->rot_track)) {
-				if(track->markersnr) {
-					sfra= MIN2(sfra, track->markers[0].framenr);
-					efra= MAX2(efra, track->markers[track->markersnr-1].framenr);
-				}
+				sfra= MIN2(sfra, track->markers[0].framenr);
+				efra= MAX2(efra, track->markers[track->markersnr-1].framenr);
 			}
 
 			track= track->next;
@@ -2021,7 +2022,7 @@ static ImBuf* stabilize_alloc_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 		}
 	}
 	else {
-		cacheibuf= IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->depth, flags);
+		cacheibuf= IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->planes, flags);
 		cacheibuf->profile= srcibuf->profile;
 	}
 

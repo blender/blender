@@ -48,7 +48,8 @@ typedef struct OceanCache {
 	struct ImBuf **ibufs_foam;
 	struct ImBuf **ibufs_norm;
 	
-	char *bakepath;
+	const char *bakepath;
+	const char *relbase;
 	
 	/* precalculated for time range */
 	float *time;
@@ -92,8 +93,9 @@ void BKE_ocean_eval_ij(struct Ocean * oc, struct OceanResult *ocr, int i, int j)
 
 
 /* ocean cache handling */
-struct OceanCache *BKE_init_ocean_cache(char *bakepath, int start, int end, float wave_scale, 
-						  float chop_amount, float foam_coverage, float foam_fade, int resolution);
+struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbase,
+                                        int start, int end, float wave_scale,
+                                        float chop_amount, float foam_coverage, float foam_fade, int resolution);
 void BKE_simulate_ocean_cache(struct OceanCache *och, int frame);
 	
 void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(void *, float progress, int *cancel), void *update_cb_data);

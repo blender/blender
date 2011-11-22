@@ -163,28 +163,46 @@ static const size_t utf8_skip_data[256] = {
     3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1
 };
 
+#define BLI_STR_UTF8_CPY(dst, src, maxncpy)                                   \
+	{                                                                         \
+		size_t utf8_size;                                                     \
+		while(*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {  \
+			maxncpy -= utf8_size;                                             \
+			switch(utf8_size) {                                               \
+				case 6: *dst ++ = *src ++;                                    \
+				case 5: *dst ++ = *src ++;                                    \
+				case 4: *dst ++ = *src ++;                                    \
+				case 3: *dst ++ = *src ++;                                    \
+				case 2: *dst ++ = *src ++;                                    \
+				case 1: *dst ++ = *src ++;                                    \
+			}                                                                 \
+		}                                                                     \
+		*dst= '\0';                                                           \
+	}
+
 char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 {
 	char *dst_r= dst;
-	size_t utf8_size;
 
 	/* note: currently we dont attempt to deal with invalid utf8 chars */
+	BLI_STR_UTF8_CPY(dst, src, maxncpy)
 
-	while(*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {
-		maxncpy -= utf8_size;
-		switch(utf8_size) {
-			case 6: *dst ++ = *src ++;
-			case 5: *dst ++ = *src ++;
-			case 4: *dst ++ = *src ++;
-			case 3: *dst ++ = *src ++;
-			case 2: *dst ++ = *src ++;
-			case 1: *dst ++ = *src ++;
-		}
-	}
-	*dst= '\0';
 	return dst_r;
 }
 
+char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
+{
+	while (*dst && maxncpy > 0) {
+		dst++;
+		maxncpy--;
+	}
+
+	BLI_STR_UTF8_CPY(dst, src, maxncpy)
+
+	return dst;
+}
+
+#undef BLI_STR_UTF8_CPY
 
 /* --------------------------------------------------------------------------*/
 /* wchar_t / utf8 functions  */

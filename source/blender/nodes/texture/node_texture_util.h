@@ -119,4 +119,6 @@ void tex_do_preview(bNode *node, float *coord, float *col);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 
+void node_tex_pass_on(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out);
+
 #endif

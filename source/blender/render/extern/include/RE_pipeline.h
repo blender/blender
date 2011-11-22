@@ -188,6 +188,7 @@ void RE_SetDispRect (struct Render *re, rcti *disprect);
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetCamera(struct Render *re, struct Object *camera);
+void RE_SetEnvmapCamera(struct Render *re, struct Object *cam_ob, float viewscale, float clipsta, float clipend);
 void RE_SetWindow (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetPixelSize(struct Render *re, float pixsize);
@@ -226,7 +227,7 @@ int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const cha
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 extern const float default_envmap_layout[];
-int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]);
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]);
 
 /* do a full sample buffer compo */
 void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);

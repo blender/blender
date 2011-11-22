@@ -261,7 +261,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
-		cam_fdist = dof_camera(camob);
+		cam_fdist = object_camera_dof_distance(camob);
 		if (cam_fdist==0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
 		cam_invfdist = 1.f/cam_fdist;
 	}
@@ -875,19 +875,16 @@ static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bN
 	node->storage = nbd;
 }
 
-void register_node_type_cmp_defocus(ListBase *lb)
+void register_node_type_cmp_defocus(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_DEFOCUS, "Defocus", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_defocus_in, cmp_node_defocus_out);
 	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_defocus);
 	node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_defocus);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

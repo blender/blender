@@ -24,7 +24,7 @@
 namespace libmv {
 
 struct Offset {
-  signed char ix, iy;
+  short ix, iy;
   unsigned char fx,fy;
 };
 
@@ -201,20 +201,14 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, doub
       warp_y = warp_y*aspy + 0.5 * overscan * h;
       int ix = int(warp_x), iy = int(warp_y);
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
-      if(fx == 256) { fx=0; ix++; }
-      if(fy == 256) { fy=0; iy++; }
       // Use nearest border pixel
       if( ix < 0 ) { ix = 0, fx = 0; }
       if( iy < 0 ) { iy = 0, fy = 0; }
       if( ix >= width-2 ) ix = width-2;
       if( iy >= height-2 ) iy = height-2;
-      if ( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 ) {
-        Offset offset = { ix-x, iy-y, fx, fy };
-        grid->offset[y*width+x] = offset;
-      } else {
-        Offset offset = { 0, 0, 0, 0 };
-        grid->offset[y*width+x] = offset;
-      }
+
+      Offset offset = { ix-x, iy-y, fx, fy };
+      grid->offset[y*width+x] = offset;
     }
   }
 }

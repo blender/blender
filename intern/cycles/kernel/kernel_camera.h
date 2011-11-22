@@ -127,8 +127,8 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v, float lens_u, float lens_v, Ray *ray)
 {
 	/* pixel filter */
-	float raster_x = x + kernel_tex_interp(__filter_table, filter_u);
-	float raster_y = y + kernel_tex_interp(__filter_table, filter_v);
+	float raster_x = x + kernel_tex_interp(__filter_table, filter_u, FILTER_TABLE_SIZE);
+	float raster_y = y + kernel_tex_interp(__filter_table, filter_v, FILTER_TABLE_SIZE);
 
 	/* motion blur */
 	//ray->time = lerp(time_t, kernel_data.cam.shutter_open, kernel_data.cam.shutter_close);

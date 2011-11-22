@@ -1617,7 +1617,7 @@ static void widget_state_option_menu(uiWidgetType *wt, int state)
 	if(state & UI_SELECT)
 		UI_GetThemeColor4ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
 	else {
-		bTheme *btheme= U.themes.first; /* XXX */
+		bTheme *btheme= UI_GetTheme(); /* XXX */
 
 		copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
 	}
@@ -2760,7 +2760,7 @@ static void widget_disabled(rcti *rect)
 
 static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	static uiWidgetType wt;
 	
 	/* defaults */
@@ -2945,7 +2945,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 /* conversion from old to new buttons, so still messy */
 void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
-	bTheme *btheme= U.themes.first;
+	bTheme *btheme= UI_GetTheme();
 	ThemeUI *tui= &btheme->tui;
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;

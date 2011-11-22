@@ -200,20 +200,20 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 	size = ibuf->x * ibuf->y;
 	rect = (uchar *) ibuf->rect;
 
-	if (ibuf->depth <= 8) {
+	if (ibuf->planes <= 8) {
 		while(size > 0){
 			if (putc(*rect, file) == EOF) return (0);
 			size--;
 			rect += 4;
 		}
-	} else if (ibuf->depth <= 16) {
+	} else if (ibuf->planes <= 16) {
 		while(size > 0){
 			putc(rect[0], file);
 			if (putc(rect[1], file) == EOF) return (0);
 			size--;
 			rect += 4;
 		}
-	} else if (ibuf->depth <= 24) {
+	} else if (ibuf->planes <= 24) {
 		while(size > 0){
 			putc(rect[2], file);
 			putc(rect[1], file);
@@ -221,7 +221,7 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 			size--;
 			rect += 4;
 		}
-	} else if (ibuf->depth <= 32) {
+	} else if (ibuf->planes <= 32) {
 		while(size > 0){
 			putc(rect[2], file);
 			putc(rect[1], file);
@@ -244,8 +244,8 @@ int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 	
 	(void)flags; /* unused */
 
-	buf[16] = (ibuf->depth + 0x7 ) & ~0x7;
-	if (ibuf->depth > 8 ){
+	buf[16] = (ibuf->planes + 0x7 ) & ~0x7;
+	if (ibuf->planes > 8 ){
 		buf[2] = 10;
 	} else{
 		buf[2] = 11;
@@ -265,7 +265,7 @@ int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 
 	/* Don't forget to indicate that your 32 bit
 	 * targa uses 8 bits for the alpha channel! */
-	if (ibuf->depth==32) {
+	if (ibuf->planes==32) {
 		buf[17] |= 0x08;
 	}
 	fildes = fopen(name,"wb");
@@ -279,7 +279,7 @@ int imb_savetarga(struct ImBuf * ibuf, const char *name, int flags)
 	if (ibuf->ftype == RAWTGA) {
 		ok = dumptarga(ibuf, fildes);
 	} else {		
-		switch((ibuf->depth + 7) >> 3){
+		switch((ibuf->planes + 7) >> 3){
 		case 1:
 			ok = makebody_tga(ibuf, fildes, tga_out1);
 			break;
@@ -582,7 +582,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 		
 		size = 0;
 		for (col = maxcol - 1; col > 0; col >>= 1) size++;
-		ibuf->depth = size;
+		ibuf->planes = size;
 
 		if (tga.mapbits != 32) {	/* set alpha bits  */
 			cmap[0] &= BIG_LONG(0x00ffffffl);
@@ -643,7 +643,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 			cp[3] += cp[3] >> 5;
 			cp[0] = 0xff;
 		}
-		ibuf->depth = 24;
+		ibuf->planes = 24;
 	}
 	
 	if (tga.imgtyp == 3 || tga.imgtyp == 11){

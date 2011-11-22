@@ -556,13 +556,13 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 	if (ima) {
 		ImBuf *ibuf;
 		
-		BLI_strncpy(ima->name, name, FILE_MAX);
+		/* BLI_strncpy(ima->name, name, FILE_MAX); */ /* dont do this, this writes in ain invalid filepath! */
 		ima->gen_x= width;
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 		
-		ibuf= add_ibuf_size(width, height, name, depth, floatbuf, uvtestgrid, color);
+		ibuf= add_ibuf_size(width, height, ima->name, depth, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -601,7 +601,7 @@ void BKE_image_memorypack(Image *ima)
 	}
 	
 	ibuf->ftype= PNG;
-	ibuf->depth= 32;
+	ibuf->planes= R_IMF_PLANES_RGBA;
 	
 	IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_mem);
 	if(ibuf->encodedbuffer==NULL) {
@@ -800,175 +800,246 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 /* *********** READ AND WRITE ************** */
 
-int BKE_imtype_to_ftype(int imtype)
+int BKE_imtype_to_ftype(const char imtype)
 {
-	if(imtype==R_TARGA)
+	if(imtype==R_IMF_IMTYPE_TARGA)
 		return TGA;
-	else if(imtype==R_RAWTGA)
+	else if(imtype==R_IMF_IMTYPE_RAWTGA)
 		return RAWTGA;
-	else if(imtype== R_IRIS) 
+	else if(imtype== R_IMF_IMTYPE_IRIS) 
 		return IMAGIC;
 #ifdef WITH_HDR
-	else if (imtype==R_RADHDR)
+	else if (imtype==R_IMF_IMTYPE_RADHDR)
 		return RADHDR;
 #endif
-	else if (imtype==R_PNG)
+	else if (imtype==R_IMF_IMTYPE_PNG)
 		return PNG;
 #ifdef WITH_DDS
-	else if (imtype==R_DDS)
+	else if (imtype==R_IMF_IMTYPE_DDS)
 		return DDS;
 #endif
-	else if (imtype==R_BMP)
+	else if (imtype==R_IMF_IMTYPE_BMP)
 		return BMP;
 #ifdef WITH_TIFF
-	else if (imtype==R_TIFF)
+	else if (imtype==R_IMF_IMTYPE_TIFF)
 		return TIF;
 #endif
-	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER)
+	else if (imtype==R_IMF_IMTYPE_OPENEXR || imtype==R_IMF_IMTYPE_MULTILAYER)
 		return OPENEXR;
 #ifdef WITH_CINEON
-	else if (imtype==R_CINEON)
+	else if (imtype==R_IMF_IMTYPE_CINEON)
 		return CINEON;
-	else if (imtype==R_DPX)
+	else if (imtype==R_IMF_IMTYPE_DPX)
 		return DPX;
 #endif
 #ifdef WITH_OPENJPEG
-	else if(imtype==R_JP2)
+	else if(imtype==R_IMF_IMTYPE_JP2)
 		return JP2;
 #endif
 	else
 		return JPG|90;
 }
 
-int BKE_ftype_to_imtype(int ftype)
+char BKE_ftype_to_imtype(const int ftype)
 {
 	if(ftype==0)
-		return TGA;
+		return R_IMF_IMTYPE_TARGA;
 	else if(ftype == IMAGIC) 
-		return R_IRIS;
+		return R_IMF_IMTYPE_IRIS;
 #ifdef WITH_HDR
 	else if (ftype & RADHDR)
-		return R_RADHDR;
+		return R_IMF_IMTYPE_RADHDR;
 #endif
 	else if (ftype & PNG)
-		return R_PNG;
+		return R_IMF_IMTYPE_PNG;
 #ifdef WITH_DDS
 	else if (ftype & DDS)
-		return R_DDS;
+		return R_IMF_IMTYPE_DDS;
 #endif
 	else if (ftype & BMP)
-		return R_BMP;
+		return R_IMF_IMTYPE_BMP;
 #ifdef WITH_TIFF
 	else if (ftype & TIF)
-		return R_TIFF;
+		return R_IMF_IMTYPE_TIFF;
 #endif
 	else if (ftype & OPENEXR)
-		return R_OPENEXR;
+		return R_IMF_IMTYPE_OPENEXR;
 #ifdef WITH_CINEON
 	else if (ftype & CINEON)
-		return R_CINEON;
+		return R_IMF_IMTYPE_CINEON;
 	else if (ftype & DPX)
-		return R_DPX;
+		return R_IMF_IMTYPE_DPX;
 #endif
 	else if (ftype & TGA)
-		return R_TARGA;
+		return R_IMF_IMTYPE_TARGA;
 	else if(ftype & RAWTGA)
-		return R_RAWTGA;
+		return R_IMF_IMTYPE_RAWTGA;
 #ifdef WITH_OPENJPEG
 	else if(ftype & JP2)
-		return R_JP2;
+		return R_IMF_IMTYPE_JP2;
 #endif
 	else
-		return R_JPEG90;
+		return R_IMF_IMTYPE_JPEG90;
 }
 
 
-int BKE_imtype_is_movie(int imtype)
+int BKE_imtype_is_movie(const char imtype)
 {
 	switch(imtype) {
-	case R_AVIRAW:
-	case R_AVIJPEG:
-	case R_AVICODEC:
-	case R_QUICKTIME:
-	case R_FFMPEG:
-	case R_H264:
-	case R_THEORA:
-	case R_XVID:
-	case R_FRAMESERVER:
+	case R_IMF_IMTYPE_AVIRAW:
+	case R_IMF_IMTYPE_AVIJPEG:
+	case R_IMF_IMTYPE_AVICODEC:
+	case R_IMF_IMTYPE_QUICKTIME:
+	case R_IMF_IMTYPE_FFMPEG:
+	case R_IMF_IMTYPE_H264:
+	case R_IMF_IMTYPE_THEORA:
+	case R_IMF_IMTYPE_XVID:
+	case R_IMF_IMTYPE_FRAMESERVER:
 			return 1;
 	}
 	return 0;
 }
 
-int BKE_add_image_extension(char *string, int imtype)
+int BKE_imtype_supports_alpha(const char imtype)
+{
+	switch(imtype) {
+	case R_IMF_IMTYPE_TARGA:
+	case R_IMF_IMTYPE_IRIS:
+	case R_IMF_IMTYPE_PNG:
+	/* case R_IMF_IMTYPE_BMP: */ /* read but not write */
+	case R_IMF_IMTYPE_RADHDR:
+	case R_IMF_IMTYPE_TIFF:
+	case R_IMF_IMTYPE_OPENEXR:
+	case R_IMF_IMTYPE_MULTILAYER:
+	case R_IMF_IMTYPE_DDS:
+	case R_IMF_IMTYPE_JP2:
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_supports_zbuf(const char imtype)
+{
+	switch(imtype) {
+	case R_IMF_IMTYPE_IRIZ:
+	case R_IMF_IMTYPE_OPENEXR: /* but not R_IMF_IMTYPE_MULTILAYER */
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_supports_compress(const char imtype)
+{
+	switch(imtype) {
+	case R_IMF_IMTYPE_PNG:
+			return 1;
+	}
+	return 0;
+}
+
+int BKE_imtype_supports_quality(const char imtype)
+{
+	switch(imtype) {
+	case R_IMF_IMTYPE_JPEG90:
+	case R_IMF_IMTYPE_JP2:
+	case R_IMF_IMTYPE_AVIJPEG:
+			return 1;
+	}
+	return 0;
+}
+
+char BKE_imtype_valid_depths(const char imtype)
+{
+	switch (imtype) {
+	case R_IMF_IMTYPE_RADHDR:
+		return R_IMF_CHAN_DEPTH_32;
+	case R_IMF_IMTYPE_TIFF:
+		return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_16;
+	case R_IMF_IMTYPE_OPENEXR:
+		return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
+	case R_IMF_IMTYPE_MULTILAYER:
+		return R_IMF_CHAN_DEPTH_32;
+	/* eeh, cineone does some strange 10bits per channel */
+	case R_IMF_IMTYPE_DPX:
+	case R_IMF_IMTYPE_CINEON:
+		return R_IMF_CHAN_DEPTH_12;
+	case R_IMF_IMTYPE_JP2:
+		return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
+	/* most formats are 8bit only */
+	default:
+		return R_IMF_CHAN_DEPTH_8;
+	}
+}
+
+int BKE_add_image_extension(char *string, const char imtype)
 {
 	const char *extension= NULL;
 	
-	if(imtype== R_IRIS) {
+	if(imtype== R_IMF_IMTYPE_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
-	else if(imtype==R_IRIZ) {
+	else if(imtype==R_IMF_IMTYPE_IRIZ) {
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
 #ifdef WITH_HDR
-	else if(imtype==R_RADHDR) {
+	else if(imtype==R_IMF_IMTYPE_RADHDR) {
 		if(!BLI_testextensie(string, ".hdr"))
 			extension= ".hdr";
 	}
 #endif
-	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
+	else if (ELEM5(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
 	}
 #ifdef WITH_DDS
-	else if(imtype==R_DDS) {
+	else if(imtype==R_IMF_IMTYPE_DDS) {
 		if(!BLI_testextensie(string, ".dds"))
 			extension= ".dds";
 	}
 #endif
-	else if(imtype==R_RAWTGA) {
+	else if(imtype==R_IMF_IMTYPE_RAWTGA) {
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
 	}
-	else if(imtype==R_BMP) {
+	else if(imtype==R_IMF_IMTYPE_BMP) {
 		if(!BLI_testextensie(string, ".bmp"))
 			extension= ".bmp";
 	}
 #ifdef WITH_TIFF
-	else if(imtype==R_TIFF) {
+	else if(imtype==R_IMF_IMTYPE_TIFF) {
 		if(!BLI_testextensie(string, ".tif") && 
 			!BLI_testextensie(string, ".tiff")) extension= ".tif";
 	}
 #endif
 #ifdef WITH_OPENEXR
-	else if( ELEM(imtype, R_OPENEXR, R_MULTILAYER)) {
+	else if( ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
 		if(!BLI_testextensie(string, ".exr"))
 			extension= ".exr";
 	}
 #endif
 #ifdef WITH_CINEON
-	else if(imtype==R_CINEON){
+	else if(imtype==R_IMF_IMTYPE_CINEON){
 		if (!BLI_testextensie(string, ".cin"))
 			extension= ".cin";
 	}
-	else if(imtype==R_DPX){
+	else if(imtype==R_IMF_IMTYPE_DPX){
 		if (!BLI_testextensie(string, ".dpx"))
 			extension= ".dpx";
 	}
 #endif
-	else if(imtype==R_TARGA) {
+	else if(imtype==R_IMF_IMTYPE_TARGA) {
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
 	}
 #ifdef WITH_OPENJPEG
-	else if(imtype==R_JP2) {
+	else if(imtype==R_IMF_IMTYPE_JP2) {
 		if(!BLI_testextensie(string, ".jp2"))
 			extension= ".jp2";
 	}
 #endif
-	else { //   R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_QUICKTIME etc
+	else { //   R_IMF_IMTYPE_AVICODEC, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
 		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
 	}
@@ -1371,98 +1442,101 @@ int BKE_alphatest_ibuf(ImBuf *ibuf)
 	return FALSE;
 }
 
-int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 {
+	char imtype= imf->imtype;
+	char compress= imf->compress;
+	char quality= imf->quality;
+
 	int ok;
-	(void)subimtype; /* quies unused warnings */
 
 	if(imtype == -1) {
 		/* use whatever existing image type is set by 'ibuf' */
 	}
-	else if(imtype== R_IRIS) {
+	else if(imtype== R_IMF_IMTYPE_IRIS) {
 		ibuf->ftype= IMAGIC;
 	}
 #ifdef WITH_HDR
-	else if (imtype==R_RADHDR) {
+	else if (imtype==R_IMF_IMTYPE_RADHDR) {
 		ibuf->ftype= RADHDR;
 	}
 #endif
-	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
+	else if (ELEM5(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
 		ibuf->ftype= PNG;
 
-		if(imtype==R_PNG)
-			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+		if(imtype==R_IMF_IMTYPE_PNG)
+			ibuf->ftype |= compress;
 
 	}
 #ifdef WITH_DDS
-	else if (imtype==R_DDS) {
+	else if (imtype==R_IMF_IMTYPE_DDS) {
 		ibuf->ftype= DDS;
 	}
 #endif
-	else if (imtype==R_BMP) {
+	else if (imtype==R_IMF_IMTYPE_BMP) {
 		ibuf->ftype= BMP;
 	}
 #ifdef WITH_TIFF
-	else if (imtype==R_TIFF) {
+	else if (imtype==R_IMF_IMTYPE_TIFF) {
 		ibuf->ftype= TIF;
 
-		if(subimtype & R_TIFF_16BIT)
+		if(imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->ftype |= TIF_16BIT;
 	}
 #endif
 #ifdef WITH_OPENEXR
-	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER) {
+	else if (imtype==R_IMF_IMTYPE_OPENEXR || imtype==R_IMF_IMTYPE_MULTILAYER) {
 		ibuf->ftype= OPENEXR;
-		if(subimtype & R_OPENEXR_HALF)
+		if(imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->ftype |= OPENEXR_HALF;
 		ibuf->ftype |= (quality & OPENEXR_COMPRESS);
 		
-		if(!(subimtype & R_OPENEXR_ZBUF))
+		if(!(imf->flag & R_IMF_FLAG_ZBUF))
 			ibuf->zbuf_float = NULL;	/* signal for exr saving */
 		
 	}
 #endif
 #ifdef WITH_CINEON
-	else if (imtype==R_CINEON) {
+	else if (imtype==R_IMF_IMTYPE_CINEON) {
 		ibuf->ftype = CINEON;
 	}
-	else if (imtype==R_DPX) {
+	else if (imtype==R_IMF_IMTYPE_DPX) {
 		ibuf->ftype = DPX;
 	}
 #endif
-	else if (imtype==R_TARGA) {
+	else if (imtype==R_IMF_IMTYPE_TARGA) {
 		ibuf->ftype= TGA;
 	}
-	else if(imtype==R_RAWTGA) {
+	else if(imtype==R_IMF_IMTYPE_RAWTGA) {
 		ibuf->ftype= RAWTGA;
 	}
 #ifdef WITH_OPENJPEG
-	else if(imtype==R_JP2) {
+	else if(imtype==R_IMF_IMTYPE_JP2) {
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JP2|quality;
 		
-		if (subimtype & R_JPEG2K_16BIT) {
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
 			ibuf->ftype |= JP2_16BIT;
-		} else if (subimtype & R_JPEG2K_12BIT) {
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
 			ibuf->ftype |= JP2_12BIT;
 		}
 		
-		if (subimtype & R_JPEG2K_YCC) {
+		if (imf->jp2_flag & R_IMF_JP2_FLAG_YCC) {
 			ibuf->ftype |= JP2_YCC;
 		}
-		
-		if (subimtype & R_JPEG2K_CINE_PRESET) {
+
+		if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_PRESET) {
 			ibuf->ftype |= JP2_CINE;
-			if (subimtype & R_JPEG2K_CINE_48FPS)
+			if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_48)
 				ibuf->ftype |= JP2_CINE_48FPS;
 		}
 	}
 #endif
 	else {
-		/* R_JPEG90, etc. default we save jpegs */
+		/* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JPG|quality;
-		if(ibuf->depth==32) ibuf->depth= 24;	/* unsupported feature only confuses other s/w */
+		if(ibuf->planes==32) ibuf->planes= 24;	/* unsupported feature only confuses other s/w */
 	}
 	
 	BLI_make_existing_file(name);
@@ -1475,20 +1549,20 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, int imtype, int subimtype, int
 	return(ok);
 }
 
-int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
 {
 	if(scene && scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, camera, ibuf);
 
-	return BKE_write_ibuf(ibuf, name, imtype, subimtype, quality);
+	return BKE_write_ibuf(ibuf, name, imf);
 }
 
 
-void BKE_makepicstring(char *string, const char *base, int frame, int imtype, const short use_ext, const short use_frames)
+void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames)
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	BLI_path_abs(string, G.main->name);
+	BLI_path_abs(string, relbase);
 
 	if(use_frames)
 		BLI_path_frame(string, frame, 4);
@@ -2414,13 +2488,13 @@ int BKE_image_has_alpha(struct Image *image)
 {
 	ImBuf *ibuf;
 	void *lock;
-	int depth;
+	int planes;
 	
 	ibuf= BKE_image_acquire_ibuf(image, NULL, &lock);
-	depth = (ibuf?ibuf->depth:0);
+	planes = (ibuf?ibuf->planes:0);
 	BKE_image_release_ibuf(image, lock);
 
-	if (depth == 32)
+	if (planes == 32)
 		return 1;
 	else
 		return 0;

@@ -100,7 +100,7 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_interp(t, x) kernel_tex_interp_(kg->t, kg->t##_width, x)
+#define kernel_tex_interp(t, x, size) kernel_tex_interp_(kg->t, size, x)
 #define kernel_tex_fetch(t, index) kg->t[index]
 
 /* define NULL */

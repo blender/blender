@@ -820,8 +820,8 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_vdeformer[] = {
-		{ARM_VDEF_BLENDER, "BLENDER", 0, "Blender", "Uses Blender's armature vertex deformation"},
-		{ARM_VDEF_BGE_CPU, "BGE_CPU", 0, "BGE", "Uses vertex deformation code optimized for the BGE"},
+		{ARM_VDEF_BLENDER, "BLENDER", 0, "Blender", "Use Blender's armature vertex deformation"},
+		{ARM_VDEF_BGE_CPU, "BGE_CPU", 0, "BGE", "Use vertex deformation code optimized for the BGE"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
 		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame",
@@ -831,7 +831,7 @@ static void rna_def_armature(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_pose_position_items[]= {
 		{0, "POSE", 0, "Pose Position", "Show armature in posed state"},
-		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state. No posing possible"},
+		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state (no posing possible)"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");

@@ -162,17 +162,14 @@ static void node_composit_exec_mapuv(void *UNUSED(data), bNode *node, bNodeStack
 	}
 }
 
-void register_node_type_cmp_mapuv(ListBase *lb)
+void register_node_type_cmp_mapuv(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_mapuv_in, cmp_node_mapuv_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_exec(&ntype, node_composit_exec_mapuv);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

@@ -891,13 +891,24 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 	bgpic->blend = 1.0f - value;
 }
 
-static BGpic *rna_BackgroundImage_add(View3D *v3d)
+static BGpic *rna_BackgroundImage_new(View3D *v3d)
 {
-	BGpic *bgpic= ED_view3D_background_image_add(v3d);;
+	BGpic *bgpic= ED_view3D_background_image_new(v3d);
 
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return bgpic;
+}
+
+static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, BGpic *bgpic)
+{
+	if (BLI_findindex(&v3d->bgpicbase, bgpic) == -1) {
+		BKE_report(reports, RPT_ERROR, "BackgroundImage can't be removed");
+	}
+	else {
+		ED_view3D_background_image_remove(v3d, bgpic);
+		WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	}
 }
 
 /* Space Node Editor */
@@ -1307,11 +1318,16 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "Background Images", "Collection of background images");
 
-	func= RNA_def_function(srna, "add", "rna_BackgroundImage_add");
+	func= RNA_def_function(srna, "new", "rna_BackgroundImage_new");
 	RNA_def_function_ui_description(func, "Add new background image");
-
 	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_BackgroundImage_remove");
+	RNA_def_function_ui_description(func, "Remove background image");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)
@@ -1596,9 +1612,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed camera path");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_bundle_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Track Names", "Show names for tracks objects");
+	RNA_def_property_ui_text(prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
@@ -2899,7 +2915,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 	/* show bundles */
 	prop= RNA_def_property(srna, "show_bundles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of bundles into footage");
+	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of 3D markers into footage");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_BUNDLES);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 

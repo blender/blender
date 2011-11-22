@@ -1039,7 +1039,7 @@ static void clear_images(MTFace *mtface, int totface)
 		if((ima->id.flag&LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
-			IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
+			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 			ima->id.flag|= LIB_DOIT;
 		}
 	}

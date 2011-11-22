@@ -148,7 +148,7 @@ void IMB_filtery(struct ImBuf *ibuf)
 
 	for (;x>0;x--){
 		if (point) {
-			if (ibuf->depth > 24) filtcolum(point,y,skip);
+			if (ibuf->planes > 24) filtcolum(point,y,skip);
 			point++;
 			filtcolum(point,y,skip);
 			point++;
@@ -158,7 +158,7 @@ void IMB_filtery(struct ImBuf *ibuf)
 			point++;
 		}
 		if (pointf) {
-			if (ibuf->depth > 24) filtcolumf(pointf,y,skip);
+			if (ibuf->planes > 24) filtcolumf(pointf,y,skip);
 			pointf++;
 			filtcolumf(pointf,y,skip);
 			pointf++;
@@ -186,7 +186,7 @@ void imb_filterx(struct ImBuf *ibuf)
 
 	for (;y>0;y--){
 		if (point) {
-			if (ibuf->depth > 24) filtrow(point,x);
+			if (ibuf->planes > 24) filtrow(point,x);
 			point++;
 			filtrow(point,x);
 			point++;
@@ -196,7 +196,7 @@ void imb_filterx(struct ImBuf *ibuf)
 			point+=skip;
 		}
 		if (pointf) {
-			if (ibuf->depth > 24) filtrowf(pointf,x);
+			if (ibuf->planes > 24) filtrowf(pointf,x);
 			pointf++;
 			filtrowf(pointf,x);
 			pointf++;
@@ -529,12 +529,12 @@ ImBuf *IMB_getmipmap(ImBuf *ibuf, int level)
 	return (level == 0)? ibuf: ibuf->mipmap[level-1];
 }
 
-void IMB_premultiply_rect(unsigned int *rect, int depth, int w, int h)
+void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h)
 {
 	char *cp;
 	int x, y, val;
 
-	if(depth == 24) {	/* put alpha at 255 */
+	if(planes == 24) {	/* put alpha at 255 */
 		cp= (char *)(rect);
 
 		for(y=0; y<h; y++)
@@ -555,12 +555,12 @@ void IMB_premultiply_rect(unsigned int *rect, int depth, int w, int h)
 	}
 }
 
-void IMB_premultiply_rect_float(float *rect_float, int depth, int w, int h)
+void IMB_premultiply_rect_float(float *rect_float, char planes, int w, int h)
 {
 	float val, *cp;
 	int x, y;
 
-	if(depth==24) {	/* put alpha at 1.0 */
+	if(planes==24) {	/* put alpha at 1.0 */
 		cp= rect_float;
 
 		for(y=0; y<h; y++)
@@ -587,9 +587,9 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
 		return;
 
 	if(ibuf->rect)
-		IMB_premultiply_rect(ibuf->rect, ibuf->depth, ibuf->x, ibuf->y);
+		IMB_premultiply_rect(ibuf->rect, ibuf->planes, ibuf->x, ibuf->y);
 
 	if(ibuf->rect_float)
-		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->depth, ibuf->x, ibuf->y);
+		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->planes, ibuf->x, ibuf->y);
 }
 

@@ -34,6 +34,7 @@ import bcolors
 bc = bcolors.bcolors()
 import btools
 VERSION = btools.VERSION
+VERSION_RELEASE_CYCLE = btools.VERSION_RELEASE_CYCLE
 
 Split = SCons.Util.Split
 Action = SCons.Action.Action
@@ -257,9 +258,9 @@ def setup_syslibs(lenv):
         if lenv['WITH_BF_OGG']:
             syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_JACK']:
-            syslibs += Split(lenv['BF_JACK_LIB'])
+        syslibs += Split(lenv['BF_JACK_LIB'])
     if lenv['WITH_BF_SNDFILE'] and not lenv['WITH_BF_STATICSNDFILE']:
-            syslibs += Split(lenv['BF_SNDFILE_LIB'])
+        syslibs += Split(lenv['BF_SNDFILE_LIB'])
     if lenv['WITH_BF_FFTW3'] and not lenv['WITH_BF_STATICFFTW3']:
         syslibs += Split(lenv['BF_FFTW3_LIB'])
     if lenv['WITH_BF_SDL']:
@@ -584,6 +585,10 @@ def AppIt(target=None, source=None, env=None):
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
+        if VERSION_RELEASE_CYCLE == "release":
+            cmd = 'rm -rf %s/%s.app/Contents/MacOS/%s/scripts/addons_contrib'%(installdir,binary,VERSION)
+            commands.getoutput(cmd)
+
         if env['WITH_BF_CYCLES']:
             croot = '%s/intern/cycles' % (bldroot)
             cinstalldir = '%s/%s.app/Contents/MacOS/%s/scripts/addons/cycles' % (installdir,binary,VERSION)
@@ -759,17 +764,17 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.Append(CPPPATH=includes)
             lenv.Append(CPPDEFINES=defines)
             if lenv['BF_DEBUG'] or (libname in quickdebug):
-                    lenv.Append(CFLAGS = lenv['BF_DEBUG_CFLAGS'])
-                    lenv.Append(CCFLAGS = lenv['BF_DEBUG_CCFLAGS'])
-                    lenv.Append(CXXFLAGS = lenv['BF_DEBUG_CXXFLAGS'])
+                lenv.Append(CFLAGS = lenv['BF_DEBUG_CFLAGS'])
+                lenv.Append(CCFLAGS = lenv['BF_DEBUG_CCFLAGS'])
+                lenv.Append(CXXFLAGS = lenv['BF_DEBUG_CXXFLAGS'])
             else:
-                    lenv.Append(CFLAGS = lenv['REL_CFLAGS'])
-                    lenv.Append(CCFLAGS = lenv['REL_CCFLAGS'])
-                    lenv.Append(CXXFLAGS = lenv['REL_CXXFLAGS'])
+                lenv.Append(CFLAGS = lenv['REL_CFLAGS'])
+                lenv.Append(CCFLAGS = lenv['REL_CCFLAGS'])
+                lenv.Append(CXXFLAGS = lenv['REL_CXXFLAGS'])
             if lenv['BF_PROFILE']:
-                    lenv.Append(CFLAGS = lenv['BF_PROFILE_CFLAGS'])
-                    lenv.Append(CCFLAGS = lenv['BF_PROFILE_CCFLAGS'])
-                    lenv.Append(CXXFLAGS = lenv['BF_PROFILE_CXXFLAGS'])
+                lenv.Append(CFLAGS = lenv['BF_PROFILE_CFLAGS'])
+                lenv.Append(CCFLAGS = lenv['BF_PROFILE_CCFLAGS'])
+                lenv.Append(CXXFLAGS = lenv['BF_PROFILE_CXXFLAGS'])
             if compileflags:
                 lenv.Replace(CFLAGS = compileflags)
             if cc_compileflags:
@@ -829,7 +834,7 @@ class BlenderEnvironment(SConsEnvironment):
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             if lenv['CXX'].endswith('CC'):
-                 lenv.Replace(LINK = '$CXX')
+                lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
@@ -841,8 +846,8 @@ class BlenderEnvironment(SConsEnvironment):
         lenv.Append(LIBPATH=libpath)
         lenv.Append(LIBS=libs)
         if lenv['WITH_BF_QUICKTIME']:
-             lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
-             lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
+            lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
+            lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
         prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
         if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc') and lenv['BF_BSC']:
             f = lenv.File(progname + '.bsc', builddir)

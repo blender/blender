@@ -58,18 +58,15 @@ static void node_composit_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack *
 	copy_v4_v4(out[0]->vec, col);
 }
 
-void register_node_type_cmp_rgb(ListBase *lb)
+void register_node_type_cmp_rgb(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rgb_out);
 	node_type_init(&ntype, node_composit_init_rgb);
 	node_type_size(&ntype, 140, 80, 140);
 	node_type_exec(&ntype, node_composit_exec_rgb);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-

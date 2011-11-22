@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import os
 
@@ -37,6 +37,7 @@ import os
 # should be directly after the licence header, ~20 in most cases
 PEP8_SEEK_COMMENT = 40
 SKIP_PREFIX = "./tools", "./config", "./scons", "./extern"
+FORCE_PEP8_ALL = False
 
 
 def file_list_py(path):
@@ -75,7 +76,7 @@ def main():
         if [None for prefix in SKIP_PREFIX if f.startswith(prefix)]:
             continue
 
-        pep8_type = is_pep8(f)
+        pep8_type = FORCE_PEP8_ALL or is_pep8(f)
 
         if pep8_type:
             # so we can batch them for each tool.
@@ -112,7 +113,27 @@ def main():
     print("\n\n\n# running pylint...")
     for f, pep8_type in files:
         # let pep8 complain about line length
-        os.system("pylint --reports=n --max-line-length=1000 '%s'" % f)
+        os.system("pylint "
+                  "--disable="
+                  "C0111,"  # missing docstring
+                  "C0103,"  # invalid name
+                  "W0613,"  # unused argument, may add this back
+                            # but happens a lot for 'context' for eg.
+                  "W0232,"  # class has no __init__, Operator/Panel/Menu etc
+                  "W0142,"  # Used * or ** magic
+                            # even needed in some cases
+                  "R0903,"  # bake_action] Too many statements (68/50)
+                  "R0911,"  # Too many return statements
+                  "R0912,"  # Too many branches
+                  "R0913,"  # Too many arguments
+                  "R0914,"  # Too many local variables
+                  "R0915,"  # bake_action] Too many statements (68/50)
+                  " "
+                  "--include-ids=y "
+                  "--output-format=parseable "
+                  "--reports=n "
+                  "--max-line-length=1000"
+                  " '%s'" % f)
 
 if __name__ == "__main__":
     main()

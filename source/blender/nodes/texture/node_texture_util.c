@@ -143,6 +143,98 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexC
 	dg->type = out->sockettype;
 }
 
+/* Used for muted nodes, just pass the TexDelegate data from input to output…
+ * XXX That *%!?¿§ callback TextureDelegate system is a nightmare here!
+ *     So I have to use an ugly hack (checking inputs twice!)… Yuk!
+ *     I’d be very happy if someone can imagine a better solution
+ *     (without changing the whole stuff).
+ * WARNING: These are only suitable for default muting behavior. If you want a custom
+ *          one for your texnode, you must not use them!
+ */
+static void passonvalfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+{
+	bNodeSocket *sock;
+	int i;
+
+	/* test the inputs */
+	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
+		if(sock->link && sock->type==SOCK_FLOAT && in) {
+			out[0] = tex_input_value(in[i], p, thread);
+			break;
+		}
+	}
+}
+
+static void passonvecfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+{
+	bNodeSocket *sock;
+	int i;
+
+	/* test the inputs */
+	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
+		if(sock->link && sock->type==SOCK_VECTOR && in) {
+			tex_input_vec(out, in[i], p, thread);
+			break;
+		}
+	}
+}
+
+static void passoncolfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+{
+	bNodeSocket *sock;
+	int i;
+
+	/* test the inputs */
+	for(i=0, sock = node->inputs.first; sock; sock = sock->next, i++) {
+		if(sock->link && sock->type==SOCK_RGBA && in) {
+			tex_input_rgba(out, in[i], p, thread);
+			break;
+		}
+	}
+}
+
+void node_tex_pass_on(void *data, int UNUSED(thread), struct bNode *node, void *UNUSED(nodedata),
+                      struct bNodeStack **in, struct bNodeStack **out)
+{
+	ListBase links;
+	LinkInOutsMuteNode *lnk;
+	int i;
+
+	if(node->typeinfo->mutelinksfunc == NULL)
+		return;
+
+	/* Get default muting links (as bNodeStack pointers). */
+	links = node->typeinfo->mutelinksfunc(NULL, node, in, out, NULL, NULL);
+
+	for(lnk = links.first; lnk; lnk = lnk->next) {
+		/* XXX This breaks the generality of the system.
+		 *     Again, unfortunately, I see no other way to do due to tex nodes behavior...
+		 */
+		void (*passonfn)(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread);
+		switch(((bNodeStack*)(lnk->in))->sockettype) {
+		case SOCK_FLOAT:
+			passonfn = passonvalfn;
+			break;
+		case SOCK_VECTOR:
+			passonfn = passonvecfn;
+			break;
+		case SOCK_RGBA:
+			passonfn = passoncolfn;
+			break;
+		default:
+			passonfn = NULL;
+		}
+		for(i = 0; i < lnk->num_outs; i++) {
+			if(((bNodeStack*)(lnk->in))->data && passonfn)
+				tex_output(node, in, ((bNodeStack*)(lnk->outs))+i, passonfn, data);
+		}
+		/* If num_outs > 1, lnk->outs was an allocated table of pointers... */
+		if(i > 1)
+			MEM_freeN(lnk->outs);
+	}
+	BLI_freelistN(&links);
+}
+
 void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 {
 	bNode *node;

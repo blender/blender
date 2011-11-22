@@ -300,6 +300,7 @@ typedef struct ProjPaintState {
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;			/* mask out pixels based on their normals */
+	short do_new_shading_nodes;     /* cache scene_use_new_shading_nodes value */
 	float normal_angle;				/* what angle to mask at*/
 	float normal_angle_inner;
 	float normal_angle_range;		/* difference between normal_angle and normal_angle_inner, for easy access */
@@ -518,17 +519,16 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 	return ima;
 }
 
-static Image *project_paint_face_image(const ProjPaintState *ps, int face_index)
+static Image *project_paint_face_image(const ProjPaintState *ps, MTFace *dm_mtface, int face_index)
 {
 	Image *ima;
 
-	if(scene_use_new_shading_nodes(ps->scene)) {
+	if(ps->do_new_shading_nodes) { /* cached scene_use_new_shading_nodes result */
 		MFace *mf = ps->dm_mface+face_index;
 		ED_object_get_active_image(ps->ob, mf->mat_nr, &ima, NULL, NULL);
 	}
 	else {
-		MTFace *tf = ps->dm_mtface+face_index;
-		ima = tf->tpage;
+		ima = dm_mtface[face_index].tpage;
 	}
 
 	return ima;
@@ -725,7 +725,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		interp_v2_v2v2v2(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
 
-	ima = project_paint_face_image(ps, face_index);
+	ima = project_paint_face_image(ps, ps->dm_mtface, face_index);
 	ibuf = ima->ibufs.first; /* we must have got the imbuf before getting here */
 	if (!ibuf) return 0;
 	
@@ -1091,8 +1091,8 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 			
 			/* Only need to check if 'i2_fidx' is valid because we know i1_fidx is the same vert on both faces */
 			if (i2_fidx != -1) {
-				Image *tpage = project_paint_face_image(ps, face_index);
-				Image *orig_tpage = project_paint_face_image(ps, orig_face);
+				Image *tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
+				Image *orig_tpage = project_paint_face_image(ps, ps->dm_mtface, orig_face);
 
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				tf = ps->dm_mtface + face_index;
@@ -1349,7 +1349,7 @@ static float project_paint_uvpixel_mask(
 	if (ps->do_layer_stencil) {
 		/* another UV layers image is masking this one's */
 		ImBuf *ibuf_other;
-		Image *other_tpage = project_paint_face_image(ps, face_index);
+		Image *other_tpage = project_paint_face_image(ps, ps->dm_mtface_stencil, face_index);
 		const MTFace *tf_other = ps->dm_mtface_stencil + face_index;
 		
 		if (other_tpage && (ibuf_other = BKE_image_get_ibuf(other_tpage, NULL))) {
@@ -1506,7 +1506,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	if (ps->tool==PAINT_TOOL_CLONE) {
 		if (ps->dm_mtface_clone) {
 			ImBuf *ibuf_other;
-			Image *other_tpage = project_paint_face_image(ps, face_index);
+			Image *other_tpage = project_paint_face_image(ps, ps->dm_mtface_clone, face_index);
 			const MTFace *tf_other = ps->dm_mtface_clone + face_index;
 			
 			if (other_tpage && (ibuf_other = BKE_image_get_ibuf(other_tpage, NULL))) {
@@ -2746,7 +2746,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 			face_index = GET_INT_FROM_POINTER(node->link);
 				
 			/* Image context switching */
-			tpage = project_paint_face_image(ps, face_index);
+			tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
 			if (tpage_last != tpage) {
 				tpage_last = tpage;
 
@@ -3057,25 +3057,24 @@ static void project_paint_begin(ProjPaintState *ps)
 				invert_m4_m4(viewinv, viewmat);
 			}
 			else if (ps->source==PROJ_SRC_IMAGE_CAM) {
-				Object *camera= ps->scene->camera;
-
-				/* dont actually use these */
-				float _viewdx, _viewdy, _ycor, _lens=0.0f, _sensor_x=DEFAULT_SENSOR_WIDTH, _sensor_y= DEFAULT_SENSOR_HEIGHT;
-				short _sensor_fit= CAMERA_SENSOR_FIT_AUTO;
-				rctf _viewplane;
+				Object *cam_ob= ps->scene->camera;
+				CameraParams params;
 
 				/* viewmat & viewinv */
-				copy_m4_m4(viewinv, ps->scene->camera->obmat);
+				copy_m4_m4(viewinv, cam_ob->obmat);
 				normalize_m4(viewinv);
 				invert_m4_m4(viewmat, viewinv);
 
-				/* camera winmat */
-				object_camera_mode(&ps->scene->r, camera);
-				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
-						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
-						&_lens, &_sensor_x, &_sensor_y, &_sensor_fit, &_ycor, &_viewdx, &_viewdy);
+				/* window matrix, clipping and ortho */
+				camera_params_init(&params);
+				camera_params_from_object(&params, cam_ob);
+				camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
+				camera_params_compute_matrix(&params);
 
-				ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
+				copy_m4_m4(winmat, params.winmat);
+				ps->clipsta= params.clipsta;
+				ps->clipend= params.clipend;
+				ps->is_ortho= params.is_ortho;
 			}
 
 			/* same as view3d_get_object_project_mat */
@@ -3250,7 +3249,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 #endif
 		
-		tpage = project_paint_face_image(ps, face_index);
+		tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
 
 		if (tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK)==0 || mf->flag & ME_FACE_SEL)) {
 			
@@ -4334,7 +4333,7 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	/* note: allocImbuf returns zero'd memory, so regions outside image will
 	   have zero alpha, and hence not be blended onto the image */
 	int w=ibufb->x, h=ibufb->y, destx=0, desty=0, srcx=pos[0], srcy=pos[1];
-	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->depth, ibufb->flags);
+	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
 
 	IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
 	IMB_rectblend(clonebuf, ibuf, destx, desty, srcx, srcy, w, h,
@@ -4715,6 +4714,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 	ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
 	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;
+	ps->do_new_shading_nodes = scene_use_new_shading_nodes(scene); /* only cache the value */
 
 	if (ps->tool == PAINT_TOOL_CLONE)
 		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);

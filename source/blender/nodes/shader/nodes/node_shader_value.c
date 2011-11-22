@@ -66,11 +66,11 @@ static int gpu_shader_value(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPU
 	return GPU_stack_link(mat, "set_value", in, out, vec);
 }
 
-void register_node_type_sh_value(ListBase *lb)
+void register_node_type_sh_value(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_value_out);
 	node_type_init(&ntype, node_shader_init_value);
@@ -78,7 +78,5 @@ void register_node_type_sh_value(ListBase *lb)
 	node_type_exec(&ntype, node_shader_exec_value);
 	node_type_gpu(&ntype, gpu_shader_value);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

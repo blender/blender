@@ -78,7 +78,7 @@ static const char *locales[] = {
 	"finnish", "fi_FI",
 	"swedish", "sv_SE",
 	"french", "fr_FR",
-	"spanish", "es_ES",
+	"spanish", "es",
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
 	"ptb", "pt_BR",

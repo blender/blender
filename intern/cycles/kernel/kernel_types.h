@@ -25,9 +25,30 @@
 
 CCL_NAMESPACE_BEGIN
 
-#define OBJECT_SIZE 16
-#define LIGHT_SIZE	4
+/* constants */
+#define OBJECT_SIZE 		16
+#define LIGHT_SIZE			4
+#define FILTER_TABLE_SIZE	256
 
+/* device capabilities */
+#ifdef __KERNEL_CPU__
+#define __KERNEL_SHADING__
+#define __KERNEL_ADV_SHADING__
+#endif
+
+#ifdef __KERNEL_CUDA__
+#define __KERNEL_SHADING__
+#if __CUDA_ARCH__ >= 200
+#define __KERNEL_ADV_SHADING__
+#endif
+#endif
+
+#ifdef __KERNEL_OPENCL__
+//#define __KERNEL_SHADING__
+//#define __KERNEL_ADV_SHADING__
+#endif
+
+/* kernel features */
 #define __SOBOL__
 #define __INSTANCING__
 #define __DPDU__
@@ -39,27 +60,20 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
 
-#ifndef __KERNEL_OPENCL__
+#ifdef __KERNEL_SHADING__
 #define __SVM__
 #define __EMISSION__
 #define __TEXTURES__
 #define __HOLDOUT__
+#endif
+
+#ifdef __KERNEL_ADV_SHADING__
+#define __MULTI_CLOSURE__
+#define __TRANSPARENT_SHADOWS__
+#endif
+
 //#define __MULTI_LIGHT__
-#endif
-
-#ifdef __KERNEL_CPU__
-#define __MULTI_CLOSURE__
-#define __TRANSPARENT_SHADOWS__
 //#define __OSL__
-#endif
-
-#ifdef __KERNEL_CUDA__
-#if __CUDA_ARCH__ >= 200
-#define __MULTI_CLOSURE__
-#define __TRANSPARENT_SHADOWS__
-#endif
-#endif
-
 //#define __SOBOL_FULL_SCREEN__
 //#define __MODIFY_TP__
 //#define __QBVH__
