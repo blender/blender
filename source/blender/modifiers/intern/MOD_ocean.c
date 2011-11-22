@@ -78,10 +78,10 @@ static void init_ocean_modifier(struct OceanModifierData *omd)
 
 	BKE_free_ocean_data(omd->ocean);
 	BKE_init_ocean(omd->ocean, omd->resolution*omd->resolution, omd->resolution*omd->resolution, omd->spatial_size, omd->spatial_size,
-				   omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
-				   omd->depth, omd->time,
-				   do_heightfield, do_chop, do_normals, do_jacobian,
-				   omd->seed);
+	               omd->wind_velocity, omd->smallest_wave, 1.0, omd->wave_direction, omd->damp, omd->wave_alignment,
+	               omd->depth, omd->time,
+	               do_heightfield, do_chop, do_normals, do_jacobian,
+	               omd->seed);
 }
 
 static void simulate_ocean_modifier(struct OceanModifierData *omd)
@@ -90,7 +90,7 @@ static void simulate_ocean_modifier(struct OceanModifierData *omd)
 
 	BKE_simulate_ocean(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount);
 }
-#endif // WITH_OCEANSIM
+#endif /* WITH_OCEANSIM */
 
 
 
@@ -261,13 +261,7 @@ static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, floa
 #endif
 
 #ifdef WITH_OCEANSIM
-MINLINE float ocean_co(OceanModifierData *omd, float v)
-{
-	//float scale = 1.0 / (omd->size * omd->spatial_size);
-	//*v = (*v * scale) + 0.5;
 
-	return (v / (omd->size * omd->spatial_size)) + 0.5f;
-}
 
 #define OMP_MIN_RES	18
 static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
@@ -378,10 +372,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	DerivedMesh *dm=NULL;
 	OceanResult ocr;
 
-	MVert *mv;
-	MFace *mf;
-
-	int cdlayer;
+	MVert *mverts, *mv;
 
 	int i, j;
 
@@ -389,6 +380,14 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	int num_faces;
 
 	int cfra;
+
+	/* use cached & inverted value for speed
+	 * expanded this would read...
+	 *
+	 * (axis / (omd->size * omd->spatial_size)) + 0.5f) */
+#define OCEAN_CO(_size_co_inv, _v) ((_v * _size_co_inv) + 0.5f)
+
+	const float size_co_inv= 1.0f / (omd->size * omd->spatial_size);
 
 	/* update modifier */
 	if (omd->refresh & MOD_OCEAN_REFRESH_ADD)
@@ -422,72 +421,71 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	num_verts = dm->getNumVerts(dm);
 	num_faces = dm->getNumFaces(dm);
 
+	mverts = dm->getVertArray(dm);
+
 	/* add vcols before displacement - allows lookup based on position */
 
 	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-		MCol *mc;
-		float foam;
-		char cf;
+		int cdlayer= CustomData_number_of_layers(&dm->faceData, CD_MCOL);
 
-		float u=0.0, v=0.0;
+		if(cdlayer < MAX_MCOL) {
+			MFace *mfaces= dm->getFaceArray(dm);
+			MFace *mf;
 
-		cdlayer= CustomData_number_of_layers(&dm->faceData, CD_MCOL);
-		if(cdlayer >= MAX_MCOL)
-			return dm;
+			MCol *mcols, *mc;
+			float foam;
 
-		CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
+			CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
 
-		mc = dm->getFaceDataArray(dm, CD_MCOL);
-		mv = dm->getVertArray(dm);
-		mf = dm->getFaceArray(dm);
+			mcols = dm->getFaceDataArray(dm, CD_MCOL);
 
-		for (i = 0; i < num_faces; i++, mf++) {
-			j= mf->v4 ? 3 : 2;
-			do {
-				const float *co= mv[*(&mf->v1 + j)].co;
-				u = ocean_co(omd, co[0]);
-				v = ocean_co(omd, co[1]);
+			for (i = 0, mf= mfaces; i < num_faces; i++, mf++) {
+				j= mf->v4 ? 3 : 2;
+				do {
+					const float *co= mverts[*(&mf->v1 + j)].co;
+					const float u = OCEAN_CO(size_co_inv, co[0]);
+					const float v = OCEAN_CO(size_co_inv, co[1]);
 
-				if (omd->oceancache && omd->cached==TRUE) {
-					BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
-					foam = ocr.foam;
-					CLAMP(foam, 0.0f, 1.0f);
-				}
-				else {
-					BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
-					foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
-				}
+					if (omd->oceancache && omd->cached==TRUE) {
+						BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
+						foam = ocr.foam;
+						CLAMP(foam, 0.0f, 1.0f);
+					}
+					else {
+						BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
+						foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
+					}
 
-				cf = (char)(foam * 255);
-				mc[i*4 + j].r = mc[i*4 + j].g = mc[i*4 + j].b = cf;
-				mc[i*4 + j].a = 255;
-			} while (j--);
+					mc= &mcols[i*4 + j];
+					mc->r = mc->g = mc->b = (char)(foam * 255);
+					/* mc->a = 255; */ /* no need to set */
+				} while (j--);
+			}
 		}
 	}
 
 
 	/* displace the geometry */
 
-	mv = dm->getVertArray(dm);
-
 	//#pragma omp parallel for private(i, ocr) if (omd->resolution > OMP_MIN_RES)
-	for (i=0; i< num_verts; i++) {
-		const float u = ocean_co(omd, mv[i].co[0]);
-		const float v = ocean_co(omd, mv[i].co[1]);
+	for (i=0, mv= mverts; i< num_verts; i++, mv++) {
+		const float u = OCEAN_CO(size_co_inv, mv->co[0]);
+		const float v = OCEAN_CO(size_co_inv, mv->co[1]);
 
 		if (omd->oceancache && omd->cached==TRUE)
 			BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
 		else
 			BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
 
-		mv[i].co[2] += ocr.disp[1];
+		mv->co[2] += ocr.disp[1];
 
 		if (omd->chop_amount > 0.0f) {
-			mv[i].co[0] += ocr.disp[0];
-			mv[i].co[1] += ocr.disp[2];
+			mv->co[0] += ocr.disp[0];
+			mv->co[1] += ocr.disp[2];
 		}
 	}
 
+	#undef OCEAN_CO
 
 	return dm;
 }
