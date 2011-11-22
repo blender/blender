@@ -339,23 +339,25 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	if(cdlayer < MAX_MTFACE) {
 		MTFace *tfaces= CustomData_add_layer(&result->faceData, CD_MTFACE, CD_CALLOC, NULL, num_faces);
 
-		ix = 1.0 / rx;
-		iy = 1.0 / ry;
-		#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
-		for (y=0; y < res_y; y++) {
-			for (x=0; x < res_x; x++) {
-				const int i = y*res_x + x;
-				tfaces[i].uv[0][0] = x * ix;
-				tfaces[i].uv[0][1] = y * iy;
+		if (tfaces) { /* unlikely to fail */
+			ix = 1.0 / rx;
+			iy = 1.0 / ry;
+			#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
+			for (y=0; y < res_y; y++) {
+				for (x=0; x < res_x; x++) {
+					const int i = y*res_x + x;
+					tfaces[i].uv[0][0] = x * ix;
+					tfaces[i].uv[0][1] = y * iy;
 
-				tfaces[i].uv[1][0] = (x+1) * ix;
-				tfaces[i].uv[1][1] = y * iy;
+					tfaces[i].uv[1][0] = (x+1) * ix;
+					tfaces[i].uv[1][1] = y * iy;
 
-				tfaces[i].uv[2][0] = (x+1) * ix;
-				tfaces[i].uv[2][1] = (y+1) * iy;
+					tfaces[i].uv[2][0] = (x+1) * ix;
+					tfaces[i].uv[2][1] = (y+1) * iy;
 
-				tfaces[i].uv[3][0] = x * ix;
-				tfaces[i].uv[3][1] = (y+1) * iy;
+					tfaces[i].uv[3][0] = x * ix;
+					tfaces[i].uv[3][1] = (y+1) * iy;
+				}
 			}
 		}
 	}
@@ -429,35 +431,37 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 		int cdlayer= CustomData_number_of_layers(&dm->faceData, CD_MCOL);
 
 		if(cdlayer < MAX_MCOL) {
-			MFace *mfaces= dm->getFaceArray(dm);
-			MFace *mf;
+			MCol *mcols= CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
 
-			MCol *mcols, *mc;
-			float foam;
+			if (mcols) { /* unlikely to fail */
+				MCol *mc;
+				MFace *mfaces= dm->getFaceArray(dm);
+				MFace *mf;
 
-			mcols = CustomData_add_layer_named(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, num_faces, omd->foamlayername);
+				float foam;
 
-			for (i = 0, mf= mfaces; i < num_faces; i++, mf++) {
-				j= mf->v4 ? 3 : 2;
-				do {
-					const float *co= mverts[*(&mf->v1 + j)].co;
-					const float u = OCEAN_CO(size_co_inv, co[0]);
-					const float v = OCEAN_CO(size_co_inv, co[1]);
+				for (i = 0, mf= mfaces; i < num_faces; i++, mf++) {
+					j= mf->v4 ? 3 : 2;
+					do {
+						const float *co= mverts[*(&mf->v1 + j)].co;
+						const float u = OCEAN_CO(size_co_inv, co[0]);
+						const float v = OCEAN_CO(size_co_inv, co[1]);
 
-					if (omd->oceancache && omd->cached==TRUE) {
-						BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
-						foam = ocr.foam;
-						CLAMP(foam, 0.0f, 1.0f);
-					}
-					else {
-						BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
-						foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
-					}
+						if (omd->oceancache && omd->cached==TRUE) {
+							BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra, u, v);
+							foam = ocr.foam;
+							CLAMP(foam, 0.0f, 1.0f);
+						}
+						else {
+							BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
+							foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
+						}
 
-					mc= &mcols[i*4 + j];
-					mc->r = mc->g = mc->b = (char)(foam * 255);
-					/* mc->a = 255; */ /* no need to set */
-				} while (j--);
+						mc= &mcols[i*4 + j];
+						mc->r = mc->g = mc->b = (char)(foam * 255);
+						/* mc->a = 255; */ /* no need to set */
+					} while (j--);
+				}
 			}
 		}
 	}
