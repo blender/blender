@@ -2496,7 +2496,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	BLI_edgehash_free(eh, NULL);
 }
 
-
+/* warning, this uses existing edges but CDDM_calc_edges() doesn't */
 void CDDM_calc_edges_poly(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
