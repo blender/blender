@@ -7364,10 +7364,10 @@ void do_versions_image_settings_2_60(Scene *sce)
 	imf->depth= R_IMF_CHAN_DEPTH_8;
 
 	/* openexr */
-	imf->exr_codec = rd->quality & 7; /* strange but true! 0-4 are valid values */
+	imf->exr_codec = rd->quality & 7; /* strange but true! 0-4 are valid values, OPENEXR_COMPRESS */
 
 	switch (imf->imtype) {
-	case R_OPENEXR:
+	case R_IMF_IMTYPE_OPENEXR:
 		imf->depth=  (rd->subimtype & R_OPENEXR_HALF) ? R_IMF_CHAN_DEPTH_16 : R_IMF_CHAN_DEPTH_32;
 		if (rd->subimtype & R_PREVIEW_JPG) {
 			imf->flag |= R_IMF_FLAG_PREVIEW_JPG;
@@ -7376,12 +7376,12 @@ void do_versions_image_settings_2_60(Scene *sce)
 			imf->flag |= R_IMF_FLAG_ZBUF;
 		}
 		break;
-	case R_TIFF:
+	case R_IMF_IMTYPE_TIFF:
 		if (rd->subimtype & R_TIFF_16BIT) {
 			imf->depth= R_IMF_CHAN_DEPTH_16;
 		}
 		break;
-	case R_JP2:
+	case R_IMF_IMTYPE_JP2:
 		if (rd->subimtype & R_JPEG2K_16BIT) {
 			imf->depth= R_IMF_CHAN_DEPTH_16;
 		}
@@ -7399,8 +7399,8 @@ void do_versions_image_settings_2_60(Scene *sce)
 			imf->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
 		}
 		break;
-	case R_CINEON:
-	case R_DPX:
+	case R_IMF_IMTYPE_CINEON:
+	case R_IMF_IMTYPE_DPX:
 		if (rd->subimtype & R_CINEON_LOG) {
 			imf->cineon_flag |= R_IMF_CINEON_FLAG_LOG;
 		}

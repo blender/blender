@@ -80,14 +80,14 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 	
 	/* do the platform specific handles */
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-	if (imtype == R_AVICODEC) {		
+	if (imtype == R_IMF_IMTYPE_AVICODEC) {		
 		//XXX mh.start_movie= start_avi_codec;
 		//XXX mh.append_movie= append_avi_codec;
 		//XXX mh.end_movie= end_avi_codec;
 	}
 #endif
 #ifdef WITH_QUICKTIME
-	if (imtype == R_QUICKTIME) {
+	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
 		mh.start_movie= start_qt;
 		mh.append_movie= append_qt;
 		mh.end_movie= end_qt;
@@ -95,7 +95,7 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 	}
 #endif
 #ifdef WITH_FFMPEG
-	if (ELEM4(imtype, R_FFMPEG, R_H264, R_XVID, R_THEORA)) {
+	if (ELEM4(imtype, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_XVID, R_IMF_IMTYPE_THEORA)) {
 		mh.start_movie = start_ffmpeg;
 		mh.append_movie = append_ffmpeg;
 		mh.end_movie = end_ffmpeg;
@@ -103,7 +103,7 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 	}
 #endif
 #ifdef WITH_FRAMESERVER
-	if (imtype == R_FRAMESERVER) {
+	if (imtype == R_IMF_IMTYPE_FRAMESERVER) {
 		mh.start_movie = start_frameserver;
 		mh.append_movie = append_frameserver;
 		mh.end_movie = end_frameserver;
@@ -162,7 +162,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	/* RPW 11-21-2002 
 	if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
 	*/
-	if (rd->im_format.imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
+	if (rd->im_format.imtype != R_IMF_IMTYPE_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {

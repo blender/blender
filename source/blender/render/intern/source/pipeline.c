@@ -3008,7 +3008,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		else
 			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 		
-		if(re->r.im_format.imtype==R_MULTILAYER) {
+		if(re->r.im_format.imtype==R_IMF_IMTYPE_MULTILAYER) {
 			if(re->result) {
 				RE_WriteRenderResult(re->reports, re->result, name, scene->r.im_format.compress);
 				printf("Saved: %s", name);
@@ -3054,13 +3054,13 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			else printf("Saved: %s", name);
 			
 			/* optional preview images for exr */
-			if(ok && scene->r.im_format.imtype==R_OPENEXR && (scene->r.im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
+			if(ok && scene->r.im_format.imtype==R_IMF_IMTYPE_OPENEXR && (scene->r.im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
 				ImageFormatData imf= scene->r.im_format;
-				imf.imtype= R_JPEG90;
+				imf.imtype= R_IMF_IMTYPE_JPEG90;
 
 				if(BLI_testextensie(name, ".exr")) 
 					name[strlen(name)-4]= 0;
-				BKE_add_image_extension(name, R_JPEG90);
+				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes= 24;
 				BKE_write_ibuf_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);

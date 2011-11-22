@@ -102,7 +102,7 @@ static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node
 		BLI_strncpy(nif->name, scene->r.pic, sizeof(nif->name));
 		nif->im_format= scene->r.im_format;
 		if (BKE_imtype_is_movie(nif->im_format.imtype)) {
-			nif->im_format.imtype= R_OPENEXR;
+			nif->im_format.imtype= R_IMF_IMTYPE_OPENEXR;
 		}
 		nif->sfra= scene->r.sfra;
 		nif->efra= scene->r.efra;

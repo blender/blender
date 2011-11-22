@@ -349,7 +349,7 @@ Scene *add_scene(const char *name)
 	sce->r.size= 50;
 
 	sce->r.im_format.planes= R_IMF_PLANES_RGB;
-	sce->r.im_format.imtype= R_PNG;
+	sce->r.im_format.imtype= R_IMF_IMTYPE_PNG;
 	sce->r.im_format.quality= 90;
 
 	sce->r.displaymode= R_OUTPUT_AREA;

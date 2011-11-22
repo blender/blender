@@ -1018,7 +1018,7 @@ static void cache_filename(char *string, const char *path, const char *relbase, 
 
 	BLI_join_dirfile(cachepath, sizeof(cachepath), path, fname);
 
-	BKE_makepicstring(string, cachepath, relbase, frame, R_OPENEXR, 1, TRUE);
+	BKE_makepicstring(string, cachepath, relbase, frame, R_IMF_IMTYPE_OPENEXR, 1, TRUE);
 }
 
 void BKE_free_ocean_cache(struct OceanCache *och)
@@ -1204,9 +1204,9 @@ void BKE_bake_ocean(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 	BLI_srand(0);
 
 	/* setup image format */
-	imf.imtype= R_OPENEXR;
+	imf.imtype= R_IMF_IMTYPE_OPENEXR;
 	imf.depth=  R_IMF_CHAN_DEPTH_16;
-	imf.exr_codec= 2; /* ZIP */
+	imf.exr_codec= R_IMF_EXR_CODEC_ZIP; /* ZIP */
 
 
 

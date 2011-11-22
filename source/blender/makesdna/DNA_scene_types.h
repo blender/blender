@@ -212,7 +212,7 @@ typedef struct SceneRenderLayer {
 /* generic image format settings,
  * no video codec info however */
 typedef struct ImageFormatData {
-	char imtype;   /* R_PNG, R_... */
+	char imtype;   /* R_IMF_IMTYPE_PNG, R_... */
 	               /* note, video types should only ever be set from this
 	                * structure when used from RenderData */
 	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
@@ -242,17 +242,39 @@ typedef struct ImageFormatData {
 
 } ImageFormatData;
 
+
+/* ImageFormatData.imtype */
+#define R_IMF_IMTYPE_TARGA           0
+#define R_IMF_IMTYPE_IRIS            1
+/* #define R_HAMX                    2 */ /* hamx is nomore */
+/* #define R_FTYPE                   3 */ /* ftype is nomore */
+#define R_IMF_IMTYPE_JPEG90          4
+/* #define R_MOVIE                   5 */ /* movie is nomore */
+#define R_IMF_IMTYPE_IRIZ            7
+#define R_IMF_IMTYPE_RAWTGA         14
+#define R_IMF_IMTYPE_AVIRAW         15
+#define R_IMF_IMTYPE_AVIJPEG        16
+#define R_IMF_IMTYPE_PNG            17
+#define R_IMF_IMTYPE_AVICODEC       18
+#define R_IMF_IMTYPE_QUICKTIME      19
+#define R_IMF_IMTYPE_BMP            20
+#define R_IMF_IMTYPE_RADHDR         21
+#define R_IMF_IMTYPE_TIFF           22
+#define R_IMF_IMTYPE_OPENEXR        23
+#define R_IMF_IMTYPE_FFMPEG         24
+#define R_IMF_IMTYPE_FRAMESERVER    25
+#define R_IMF_IMTYPE_CINEON         26
+#define R_IMF_IMTYPE_DPX            27
+#define R_IMF_IMTYPE_MULTILAYER     28
+#define R_IMF_IMTYPE_DDS            29
+#define R_IMF_IMTYPE_JP2            30
+#define R_IMF_IMTYPE_H264           31
+#define R_IMF_IMTYPE_XVID           32
+#define R_IMF_IMTYPE_THEORA         33
+
 /* ImageFormatData.flag */
 #define R_IMF_FLAG_ZBUF         (1<<0)   /* was R_OPENEXR_ZBUF */
 #define R_IMF_FLAG_PREVIEW_JPG  (1<<1)   /* was R_PREVIEW_JPG */
-
-/* ImageFormatData.jp2_flag */
-#define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
-#define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
-#define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
-
-/* ImageFormatData.cineon_flag */
-#define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
 
 /* return values from BKE_imtype_valid_depths, note this is depts per channel */
 #define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
@@ -266,6 +288,21 @@ typedef struct ImageFormatData {
 #define R_IMF_PLANES_RGB   24
 #define R_IMF_PLANES_RGBA  32
 #define R_IMF_PLANES_BW    8
+
+/* ImageFormatData.exr_codec */
+#define R_IMF_EXR_CODEC_NONE  0
+#define R_IMF_EXR_CODEC_PXR24 1
+#define R_IMF_EXR_CODEC_ZIP   2
+#define R_IMF_EXR_CODEC_PIZ   3
+#define R_IMF_EXR_CODEC_RLE   4
+
+/* ImageFormatData.jp2_flag */
+#define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
+#define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+
+/* ImageFormatData.cineon_flag */
+#define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
 
 typedef struct RenderData {
 	struct ImageFormatData im_format;
@@ -1050,35 +1087,6 @@ typedef struct Scene {
 
 /* color_mgt_flag */
 #define R_COLOR_MANAGEMENT	1
-
-/* imtype */
-#define R_TARGA		0
-#define R_IRIS		1
-/* #define R_HAMX		2 */ /* hamx is nomore */
-/* #define R_FTYPE		3 */ /* ftype is nomore */
-#define R_JPEG90	4
-/*#define R_MOVIE		5*/ /* movie is nomore */
-#define R_IRIZ		7
-#define R_RAWTGA	14
-#define R_AVIRAW	15
-#define R_AVIJPEG	16
-#define R_PNG		17
-#define R_AVICODEC	18
-#define R_QUICKTIME 19
-#define R_BMP		20
-#define R_RADHDR	21
-#define R_TIFF		22
-#define R_OPENEXR	23
-#define R_FFMPEG        24
-#define R_FRAMESERVER   25
-#define R_CINEON		26
-#define R_DPX			27
-#define R_MULTILAYER	28
-#define R_DDS			29
-#define R_JP2			30
-#define R_H264        	31
-#define R_XVID        	32
-#define R_THEORA       	33
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF    1                                      /*deprecated*/

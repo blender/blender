@@ -918,7 +918,7 @@ static void save_image_options_defaults(SaveImageOptions *simopts)
 {
 	memset(&simopts->im_format, 0, sizeof(simopts->im_format));
 	simopts->im_format.planes= R_IMF_PLANES_RGB;
-	simopts->im_format.imtype= R_PNG;
+	simopts->im_format.imtype= R_IMF_IMTYPE_PNG;
 	simopts->im_format.quality= 90;
 	simopts->im_format.compress= 90;
 	simopts->filepath[0]= '\0';
@@ -962,7 +962,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			is_depth_set= TRUE;
 		}
 		else if (ima->source == IMA_SRC_GENERATED) {
-			simopts->im_format.imtype= R_PNG;
+			simopts->im_format.imtype= R_IMF_IMTYPE_PNG;
 		}
 		else {
 			simopts->im_format.imtype= BKE_ftype_to_imtype(ibuf->ftype);
@@ -1062,7 +1062,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 		
-		if(simopts->im_format.imtype==R_MULTILAYER) {
+		if(simopts->im_format.imtype==R_IMF_IMTYPE_MULTILAYER) {
 			Scene *scene= CTX_data_scene(C);
 			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {

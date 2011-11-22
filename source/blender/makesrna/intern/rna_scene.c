@@ -113,32 +113,32 @@ EnumPropertyItem image_only_type_items[] = {
 
     /* --- duplicate block warning (see below) --- */
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
 #ifdef WITH_DDS
-	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #endif
-	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
 #ifdef WITH_OPENJPEG
-	{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
+	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
 #endif
-	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
+	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
 	{0, "", 0, " ", NULL},
 #ifdef WITH_CINEON
-	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
+	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
 #endif
 #ifdef WITH_OPENEXR
-	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
+	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
 #endif
 #ifdef WITH_HDR
-	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
+	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
 #endif
 #ifdef WITH_TIFF
-	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
 #endif
     /* --- end duplicate block (see below) --- */
 
@@ -151,59 +151,59 @@ EnumPropertyItem image_type_items[] = {
 
     /* --- duplicate block warning (see above) --- */
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
 #ifdef WITH_DDS
-	{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #endif
-	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
 #ifdef WITH_OPENJPEG
-	{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
+	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
 #endif
-	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
+	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
 	{0, "", 0, " ", NULL},
 #ifdef WITH_CINEON
-	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
+	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
 #endif
 #ifdef WITH_OPENEXR
-	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
+	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
 #endif
 #ifdef WITH_HDR
-	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
+	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
 #endif
 #ifdef WITH_TIFF
-	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
 #endif
     /* --- end duplicate block (see above) --- */
 
 
 	{0, "", 0, "Movie", NULL},
 #ifdef _WIN32
-	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"}, // XXX Missing codec menu
+	{R_IMF_IMTYPE_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", "Output video in AVI format"}, // XXX Missing codec menu
 #endif
-	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", "Output video in AVI JPEG format"},
-	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
+	{R_IMF_IMTYPE_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", "Output video in AVI JPEG format"},
+	{R_IMF_IMTYPE_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
 #ifdef WITH_FRAMESERVER
-	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", "Output image to a frameserver"},
+	{R_IMF_IMTYPE_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", "Output image to a frameserver"},
 #endif
 #ifdef WITH_FFMPEG
-	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", "Output video in H.264 format"},
-	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", "Output video in MPEG format"},
-	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", "Output video in Ogg format"},
+	{R_IMF_IMTYPE_H264, "H264", ICON_FILE_MOVIE, "H.264", "Output video in H.264 format"},
+	{R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", "Output video in MPEG format"},
+	{R_IMF_IMTYPE_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", "Output video in Ogg format"},
 #endif
 #ifdef WITH_QUICKTIME
 #	ifdef USE_QTKIT
-	{R_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", "Output video in Quicktime format"},
+	{R_IMF_IMTYPE_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", "Output video in Quicktime format"},
 #	else
-	{R_QUICKTIME, "QUICKTIME_CARBON", ICON_FILE_MOVIE, "QuickTime", "Output video in Quicktime format"},
+	{R_IMF_IMTYPE_QUICKTIME, "QUICKTIME_CARBON", ICON_FILE_MOVIE, "QuickTime", "Output video in Quicktime format"},
 #	endif
 #endif
 #ifdef WITH_FFMPEG
-	{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", "Output video in Xvid format"},
+	{R_IMF_IMTYPE_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", "Output video in Xvid format"},
 #endif
 	{0, NULL, 0, NULL, NULL}};
 
@@ -694,7 +694,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 	}
 	else {
 		const int depth_ok= BKE_imtype_valid_depths(imf->imtype);
-		const int is_float= ELEM3(imf->imtype, R_RADHDR, R_OPENEXR, R_MULTILAYER);
+		const int is_float= ELEM3(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
 		EnumPropertyItem *item_8bit=  &image_color_depth_items[0];
 		EnumPropertyItem *item_12bit= &image_color_depth_items[1];
@@ -2396,11 +2396,11 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 {
 #ifdef WITH_OPENEXR
 	static EnumPropertyItem exr_codec_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{1, "PXR24", 0, "Pxr24 (lossy)", ""},
-		{2, "ZIP", 0, "ZIP (lossless)", ""},
-		{3, "PIZ", 0, "PIZ (lossless)", ""},
-		{4, "RLE", 0, "RLE (lossless)", ""},
+		{R_IMF_EXR_CODEC_NONE, "NONE", 0, "None", ""},
+		{R_IMF_EXR_CODEC_PXR24, "PXR24", 0, "Pxr24 (lossy)", ""},
+		{R_IMF_EXR_CODEC_ZIP, "ZIP", 0, "ZIP (lossless)", ""},
+		{R_IMF_EXR_CODEC_PIZ, "PIZ", 0, "PIZ (lossless)", ""},
+		{R_IMF_EXR_CODEC_RLE, "RLE", 0, "RLE (lossless)", ""},
 		{0, NULL, 0, NULL, NULL}};
 #endif
 

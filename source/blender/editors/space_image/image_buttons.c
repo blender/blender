@@ -859,21 +859,21 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	}
 
-	if (ELEM(imf->imtype, R_OPENEXR, R_MULTILAYER)) {
+	if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
 		uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
 
-		if (is_render_out && (imf->imtype == R_OPENEXR)) {
+		if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
 			uiItemR(col, imfptr, "use_preview", 0, NULL, ICON_NONE);
 		}
 	}
 
-	if (imf->imtype == R_JP2) {
+	if (imf->imtype == R_IMF_IMTYPE_JP2) {
 		uiItemR(col, imfptr, "use_jpeg2k_ycc", 0, NULL, ICON_NONE);
 		uiItemR(col, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
 		uiItemR(col, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);
 	}
 
-	if (imf->imtype == R_CINEON) {
+	if (imf->imtype == R_IMF_IMTYPE_CINEON) {
 #if 1
 		uiItemL(col, "FIXME: hard coded Non-Linear, Gamma:1.0", ICON_NONE);
 #else
