@@ -254,7 +254,7 @@ typedef struct ImageFormatData {
 /* ImageFormatData.cineon_flag */
 #define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
 
-/* return values from BKE_imtype_is_depth_ok, note this is depts per channel */
+/* return values from BKE_imtype_valid_depths, note this is depts per channel */
 #define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
 #define R_IMF_CHAN_DEPTH_8  (1<<1) /* 8bits  (default) */
 #define R_IMF_CHAN_DEPTH_12 (1<<2) /* 12bits (uncommon, jp2 supports) */

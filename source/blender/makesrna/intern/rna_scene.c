@@ -615,13 +615,13 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 	imf->imtype= value;
 
 	/* ensure depth and color settings match */
-	if (!BKE_imtype_is_alpha_ok(imf->imtype)) {
+	if (!BKE_imtype_supports_alpha(imf->imtype)) {
 		imf->planes= R_IMF_PLANES_RGB;
 	}
 
 	/* ensure usable depth */
 	{
-		const int depth_ok= BKE_imtype_is_depth_ok(imf->imtype);
+		const int depth_ok= BKE_imtype_valid_depths(imf->imtype);
 		if ((imf->depth & depth_ok) == 0) {
 			/* set first available depth */
 			char depth_ls[]= {R_IMF_CHAN_DEPTH_32,
@@ -672,7 +672,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 {
 	ImageFormatData *imf= (ImageFormatData *)ptr->data;
 
-	if ((imf == NULL) || BKE_imtype_is_alpha_ok(imf->imtype)) {
+	if ((imf == NULL) || BKE_imtype_supports_alpha(imf->imtype)) {
 		return image_color_mode_items;
 	}
 	else {
@@ -693,7 +693,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 		return image_color_depth_items;
 	}
 	else {
-		const int depth_ok= BKE_imtype_is_depth_ok(imf->imtype);
+		const int depth_ok= BKE_imtype_valid_depths(imf->imtype);
 		const int is_float= ELEM3(imf->imtype, R_RADHDR, R_OPENEXR, R_MULTILAYER);
 
 		EnumPropertyItem *item_8bit=  &image_color_depth_items[0];

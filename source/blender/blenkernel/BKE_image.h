@@ -59,11 +59,11 @@ char	BKE_ftype_to_imtype(const int ftype);
 int		BKE_imtype_to_ftype(char imtype);
 
 int		BKE_imtype_is_movie(const char imtype);
-int		BKE_imtype_is_alpha_ok(const char imtype);
-int		BKE_imtype_is_zbuf_ok(const char imtype);
-int		BKE_imtype_is_compression_ok(const char imtype);
-int		BKE_imtype_is_quality_ok(const char imtype);
-char	BKE_imtype_is_depth_ok(const char imtype);
+int		BKE_imtype_supports_alpha(const char imtype);
+int		BKE_imtype_supports_zbuf(const char imtype);
+int		BKE_imtype_supports_compress(const char imtype);
+int		BKE_imtype_supports_quality(const char imtype);
+char	BKE_imtype_valid_depths(const char imtype);
 
 struct anim *openanim(const char *name, int flags, int streamindex);
 

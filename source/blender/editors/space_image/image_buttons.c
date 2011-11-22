@@ -821,7 +821,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	ImageFormatData *imf= imfptr->data;
 	ID *id= imfptr->id.data;
-	const int depth_ok= BKE_imtype_is_depth_ok(imf->imtype);
+	const int depth_ok= BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
 	const short is_render_out= (id && GS(id->name) == ID_SCE);
 
@@ -847,15 +847,15 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(row, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
-	if (BKE_imtype_is_quality_ok(imf->imtype)) {
+	if (BKE_imtype_supports_quality(imf->imtype)) {
 		uiItemR(col, imfptr, "quality", 0, NULL, ICON_NONE);
 	}
 
-	if (BKE_imtype_is_compression_ok(imf->imtype)) {
+	if (BKE_imtype_supports_compress(imf->imtype)) {
 		uiItemR(col, imfptr, "compression", 0, NULL, ICON_NONE);
 	}
 
-	if (BKE_imtype_is_zbuf_ok(imf->imtype)) {
+	if (BKE_imtype_supports_zbuf(imf->imtype)) {
 		uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	}
 

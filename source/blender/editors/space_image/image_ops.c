@@ -926,7 +926,7 @@ static void save_image_options_defaults(SaveImageOptions *simopts)
 
 static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 {
-	const char depth_ok= BKE_imtype_is_depth_ok(imtype);
+	const char depth_ok= BKE_imtype_valid_depths(imtype);
 
 	if (ibuf->rect_float) {
 		if (depth_ok & R_IMF_CHAN_DEPTH_32) return R_IMF_CHAN_DEPTH_32;

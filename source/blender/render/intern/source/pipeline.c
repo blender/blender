@@ -3030,7 +3030,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				/* sequence editor can generate 8bpc render buffers */
 				if (ibuf->rect) {
 					ibuf->profile = IB_PROFILE_SRGB;
-					if (BKE_imtype_is_depth_ok(scene->r.im_format.imtype) & (R_IMF_CHAN_DEPTH_12|R_IMF_CHAN_DEPTH_16|R_IMF_CHAN_DEPTH_24|R_IMF_CHAN_DEPTH_32))
+					if (BKE_imtype_valid_depths(scene->r.im_format.imtype) & (R_IMF_CHAN_DEPTH_12|R_IMF_CHAN_DEPTH_16|R_IMF_CHAN_DEPTH_24|R_IMF_CHAN_DEPTH_32))
 						IMB_float_from_rect(ibuf);
 				} else {				
 					ibuf->profile = IB_PROFILE_LINEAR_RGB;
