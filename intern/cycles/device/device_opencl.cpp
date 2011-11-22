@@ -278,10 +278,7 @@ public:
 
 	bool build_kernel(const string& kernel_path)
 	{
-		string build_options = "";
-
-		build_options += "-I " + kernel_path + ""; /* todo: escape path, but it doesn't get parsed correct? */
-		build_options += kernel_build_options();
+		string build_options = kernel_build_options();
 	
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
@@ -312,6 +309,8 @@ public:
 		   kernel caches do not seem to recognize changes in included files.
 		   so we force recompile on changes by adding the md5 hash of all files */
 		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
+		source = path_source_replace_includes(source, kernel_path);
+
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
 
