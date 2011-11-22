@@ -1473,7 +1473,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 
 static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	/* no running blender, remove handler and pass through */
+	/* no running tracking, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
 		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 
@@ -1510,59 +1510,181 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 /********************** solve camera operator *********************/
 
-static int solve_camera_exec(bContext *C, wmOperator *op)
+typedef struct {
+	MovieClip *clip;
+	Scene *scene;
+
+	ReportList *reports;
+
+	MovieClipUser user;
+
+	struct MovieReconstructContext *context;
+} SolveCameraJob;
+
+static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op, char *error_msg, int max_error)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
 	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingSettings *settings= &clip->tracking.settings;
 	int width, height;
-	float error;
-	char error_msg[255];
 
-	if(!BKE_tracking_can_solve(tracking, error_msg, sizeof(error_msg))) {
-		BKE_report(op->reports, RPT_ERROR, error_msg);
-
-		return OPERATOR_CANCELLED;
-	}
+	if(!BKE_tracking_can_reconstruct(tracking, error_msg, max_error))
+		return 0;
 
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-	error= BKE_tracking_solve_reconstruction(tracking, width, height);
+	scj->clip= clip;
+	scj->scene= scene;
+	scj->reports= op->reports;
+	scj->user= sc->user;
 
-	if(error<0)
-		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
+	scj->context= BKE_tracking_reconstruction_context_new(tracking,
+			settings->keyframe1, settings->keyframe2, width, height);
+
+	return 1;
+}
+
+static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
+{
+	SolveCameraJob *scj= (SolveCameraJob *)scv;
+
+	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress);
+}
+
+static void solve_camera_freejob(void *scv)
+{
+	SolveCameraJob *scj= (SolveCameraJob *)scv;
+	MovieTracking *tracking= &scj->clip->tracking;
+	Scene *scene= scj->scene;
+	MovieClip *clip= scj->clip;
+	int solved;
+
+	if(!scj->context) {
+		/* job weren't fully initialized due to some error */
+		MEM_freeN(scj);
+		return;
+	}
+
+	solved= BKE_tracking_finish_reconstruction(scj->context, tracking);
+
+	if(!solved)
+		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
-		BKE_reportf(op->reports, RPT_INFO, "Average reprojection error %.3f", error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average reprojection error %.3f", tracking->reconstruction.error);
 
+	/* set currently solved clip as active for scene */
 	if(scene->clip)
 		id_us_min(&clip->id);
 
 	scene->clip= clip;
 	id_us_plus(&clip->id);
 
+	/* set blender camera focal length so result would look fine there */
 	if(!scene->camera)
 		scene->camera= scene_find_camera(scene);
 
 	if(scene->camera) {
-		/* set blender camera focal length so result would look fine there */
 		Camera *camera= (Camera*)scene->camera->data;
+		int width, height;
+
+		BKE_movieclip_get_size(clip, &scj->user, &width, &height);
 
 		BKE_tracking_camera_to_blender(tracking, scene, camera, width, height);
 
-		WM_event_add_notifier(C, NC_OBJECT, camera);
+		WM_main_add_notifier(NC_OBJECT, camera);
 	}
 
 	DAG_id_tag_update(&clip->id, 0);
 
-	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_main_add_notifier(NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, NULL);
 
 	/* update active clip displayed in scene buttons */
-	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_main_add_notifier(NC_SCENE, scene);
+
+	BKE_tracking_reconstruction_context_free(scj->context);
+	MEM_freeN(scj);
+}
+
+static int solve_camera_exec(bContext *C, wmOperator *op)
+{
+	SolveCameraJob *scj;
+	char error_msg[256]= "\0";
+
+	scj= MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+	if(!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
+		if(error_msg[0])
+			BKE_report(op->reports, RPT_ERROR, error_msg);
+
+		solve_camera_freejob(scj);
+
+		return OPERATOR_CANCELLED;
+	}
+
+	solve_camera_startjob(scj, NULL, NULL, NULL);
+
+	solve_camera_freejob(scj);
 
 	return OPERATOR_FINISHED;
+}
+
+static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	SolveCameraJob *scj;
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	wmJob *steve;
+	char error_msg[256]= "\0";
+
+	scj= MEM_callocN(sizeof(SolveCameraJob), "SolveCameraJob data");
+	if(!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
+		if(error_msg[0])
+			BKE_report(op->reports, RPT_ERROR, error_msg);
+
+		solve_camera_freejob(scj);
+
+		return OPERATOR_CANCELLED;
+	}
+
+	/* hide reconstruction statistics from previous solve */
+	clip->tracking.reconstruction.flag&= ~TRACKING_RECONSTRUCTED;
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+
+	/* setup job */
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
+	WM_jobs_customdata(steve, scj, solve_camera_freejob);
+	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
+	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, NULL, NULL);
+
+	G.afbreek= 0;
+
+	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_cursor_wait(0);
+
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	/* no running solver, remove handler and pass through */
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+
+	/* running tracking */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+	}
+
+	return OPERATOR_PASS_THROUGH;
 }
 
 void CLIP_OT_solve_camera(wmOperatorType *ot)
@@ -1574,6 +1696,8 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= solve_camera_exec;
+	ot->invoke= solve_camera_invoke;
+	ot->modal= solve_camera_modal;
 	ot->poll= ED_space_clip_poll;
 
 	/* flags */

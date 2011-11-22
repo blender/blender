@@ -1250,7 +1250,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					#pragma omp critical
 					{
 						/* check if there's no keyframe/tracked markers before tracking marker.
-						    if so -- create disabled marker before currently tracking "segment" */
+						   if so -- create disabled marker before currently tracking "segment" */
 						put_disabled_marker(track, marker, 1, 0);
 					}
 				}
@@ -1302,6 +1302,34 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	return ok;
 }
 
+/*********************** camera solving *************************/
+
+typedef struct MovieReconstructContext {
+#ifdef WITH_LIBMV
+	struct libmv_Tracks *tracks;
+	int keyframe1, keyframe2;
+	short refine_flags;
+
+	struct libmv_Reconstruction *reconstruction;
+#endif
+
+	float focal_length;
+	float principal_point[2];
+	float k1, k2, k3;
+
+	float reprojection_error;
+
+	TracksMap *tracks_map;
+
+	int sfra, efra;
+} MovieReconstructContext;
+
+typedef struct ReconstructProgressData {
+	short *stop;
+	short *do_update;
+	float *progress;
+} ReconstructProgressData;
+
 #if WITH_LIBMV
 static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int width, int height)
 {
@@ -1328,8 +1356,9 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 	return tracks;
 }
 
-static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static void retrieve_libmv_reconstruct_intrinscis(MovieReconstructContext *context, MovieTracking *tracking)
 {
+	struct libmv_Reconstruction *libmv_reconstruction= context->reconstruction;
 	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
 
 	float aspy= 1.0f/tracking->camera.pixel_aspect;
@@ -1349,14 +1378,14 @@ static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struc
 	tracking->camera.k2= k2;
 }
 
-static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static int retrieve_libmv_reconstruct_tracks(MovieReconstructContext *context, MovieTracking *tracking)
 {
-	int tracknr= 0;
-	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
-	MovieTrackingTrack *track;
+	struct libmv_Reconstruction *libmv_reconstruction= context->reconstruction;
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
-	int ok= 1;
+	MovieTrackingTrack *track;
+	int ok= 1, tracknr= 0, a, origin_set= 0;
+	int sfra= context->sfra, efra= context->efra;
 	float imat[4][4];
 
 	unit_m4(imat);
@@ -1377,30 +1406,6 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 			ok= 0;
 
 			printf("No bundle for track #%d '%s'\n", tracknr, track->name);
-		}
-
-		if(track->markersnr) {
-			int first= 0, last= track->markersnr;
-			MovieTrackingMarker *first_marker= &track->markers[0];
-			MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
-
-			/* find first not-disabled marker */
-			while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
-				first++;
-				first_marker++;
-			}
-
-			/* find last not-disabled marker */
-			while(last>=0 && last_marker->flag&MARKER_DISABLED) {
-				last--;
-				last_marker--;
-			}
-
-			if(first<track->markersnr-1)
-				sfra= MIN2(sfra, first_marker->framenr);
-
-			if(last>=0)
-				efra= MAX2(efra, last_marker->framenr);
 		}
 
 		track= track->next;
@@ -1465,12 +1470,14 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 	return ok;
 }
 
-static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static int retrieve_libmv_reconstruct(MovieReconstructContext *context, MovieTracking *tracking)
 {
-	/* take the intrinscis back from libmv */
-	retrieve_libmv_reconstruct_intrinscis(tracking, libmv_reconstruction);
+	tracks_map_merge(context->tracks_map, tracking);
 
-	return retrieve_libmv_reconstruct_tracks(tracking, libmv_reconstruction);
+	/* take the intrinscis back from libmv */
+	retrieve_libmv_reconstruct_intrinscis(context, tracking);
+
+	return retrieve_libmv_reconstruct_tracks(context, tracking);
 }
 
 static int get_refine_intrinsics_flags(MovieTracking *tracking)
@@ -1512,7 +1519,7 @@ static int count_tracks_on_both_keyframes(MovieTracking *tracking)
 }
 #endif
 
-int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_size)
+int BKE_tracking_can_reconstruct(MovieTracking *tracking, char *error_msg, int error_size)
 {
 #if WITH_LIBMV
 	if(count_tracks_on_both_keyframes(tracking)<8) {
@@ -1523,46 +1530,166 @@ int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_s
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
-	(void)tracking;
+	(void) tracking;
 
 	return 0;
 #endif
 }
 
-float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
+MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *tracking,
+			int keyframe1, int keyframe2, int width, int height)
 {
-#if WITH_LIBMV
-	{
-		MovieTrackingCamera *camera= &tracking->camera;
-		float aspy= 1.0f/tracking->camera.pixel_aspect;
-		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
-		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
-		        tracking->settings.keyframe1, tracking->settings.keyframe2,
-		        get_refine_intrinsics_flags(tracking),
-		        camera->focal,
-		        camera->principal[0], camera->principal[1]*aspy,
-		        camera->k1, camera->k2, camera->k3);
-		float error= libmv_reprojectionError(reconstruction);
+	MovieReconstructContext *context= MEM_callocN(sizeof(MovieReconstructContext), "MovieReconstructContext data");
+	MovieTrackingCamera *camera= &tracking->camera;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
+	int num_tracks= BLI_countlist(&tracking->tracks);
+	int sfra= INT_MAX, efra= INT_MIN;
+	MovieTrackingTrack *track;
 
-		tracking->reconstruction.error= error;
+	context->tracks_map= tracks_map_new(num_tracks, 0);
+	track= tracking->tracks.first;
+	while(track) {
+		int first= 0, last= track->markersnr;
+		MovieTrackingMarker *first_marker= &track->markers[0];
+		MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
 
-		if(!retrieve_libmv_reconstruct(tracking, reconstruction))
-			error= -1.0f;
+		/* find first not-disabled marker */
+		while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+			first++;
+			first_marker++;
+		}
 
-		libmv_destroyReconstruction(reconstruction);
-		libmv_tracksDestroy(tracks);
+		/* find last not-disabled marker */
+		while(last>=0 && last_marker->flag&MARKER_DISABLED) {
+			last--;
+			last_marker--;
+		}
 
-		tracking->reconstruction.flag|= TRACKING_RECONSTRUCTED;
+		if(first<track->markersnr-1)
+			sfra= MIN2(sfra, first_marker->framenr);
 
-		return error;
+		if(last>=0)
+			efra= MAX2(efra, last_marker->framenr);
+
+		tracks_map_insert(context->tracks_map, track, NULL);
+
+		track= track->next;
 	}
-#else
-	(void)tracking;
-	(void)width;
-	(void)height;
 
-	return -1.0f;
+	context->sfra= sfra;
+	context->efra= efra;
+
+#ifdef WITH_LIBMV
+	context->tracks= create_libmv_tracks(tracking, width, height*aspy);
+	context->keyframe1= keyframe1;
+	context->keyframe2= keyframe2;
+	context->refine_flags= get_refine_intrinsics_flags(tracking);
+#else
+	(void) width;
+	(void) height;
+	(void) keyframe1;
+	(void) keyframe2;
 #endif
+
+	context->focal_length= camera->focal;
+	context->principal_point[0]= camera->principal[0];
+	context->principal_point[1]= camera->principal[1]*aspy;
+
+	context->k1= camera->k1;
+	context->k2= camera->k2;
+	context->k2= camera->k2;
+
+	return context;
+}
+
+void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
+{
+#ifdef WITH_LIBMV
+	if(context->reconstruction)
+			libmv_destroyReconstruction(context->reconstruction);
+
+	libmv_tracksDestroy(context->tracks);
+#endif
+
+	tracks_map_free(context->tracks_map, NULL);
+
+	MEM_freeN(context);
+}
+
+#if 0
+
+/* TODO: this two callbacks are supposed to be used to make solving more
+         interactive with the interface, so approximated progress would be
+         displayed and it's also can be nice to have option to break solving
+         (would fit other jobs design in blender)
+
+         customdata is used to pass some context data to libmv which can be used
+         later for set progress came form libmv to job
+
+         keir, it's not necessary that progress is linear and it's not necessary
+         that breaking happens immediately */
+
+static void solve_reconstruction_update_cb(void *customdata, float progress)
+{
+	ReconstructProgressData *progressdata= customdata;
+
+	if(progressdata->progress) {
+		*progressdata->progress= progress;
+		*progressdata->do_update= 1;
+	}
+}
+
+static int solve_reconstruction_testbreak_cb(void *customdata)
+{
+	ReconstructProgressData *progressdata= customdata;
+
+	if(progressdata->stop && *progressdata->stop)
+		return 1;
+
+	return G.afbreek;
+}
+#endif
+
+void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *stop, short *do_update, float *progress)
+{
+#ifdef WITH_LIBMV
+	float error;
+
+	ReconstructProgressData progressdata;
+
+	progressdata.stop= stop;
+	progressdata.do_update= do_update;
+	progressdata.progress= progress;
+
+	context->reconstruction = libmv_solveReconstruction(context->tracks,
+		context->keyframe1, context->keyframe2,
+		context->refine_flags,
+		context->focal_length,
+		context->principal_point[0], context->principal_point[1],
+		context->k1, context->k2, context->k3);
+
+	error= libmv_reprojectionError(context->reconstruction);
+
+	context->reprojection_error= error;
+#else
+	(void) context;
+	(void) stop;
+	(void) do_update;
+	(void) progress;
+#endif
+}
+
+int BKE_tracking_finish_reconstruction(MovieReconstructContext *context, MovieTracking *tracking)
+{
+	tracking->reconstruction.error= context->reprojection_error;
+	tracking->reconstruction.flag|= TRACKING_RECONSTRUCTED;
+
+#ifdef WITH_LIBMV
+	if(!retrieve_libmv_reconstruct(context, tracking))
+		return 0;
+#endif
+
+	return 1;
 }
 
 void BKE_track_unique_name(MovieTracking *tracking, MovieTrackingTrack *track)
