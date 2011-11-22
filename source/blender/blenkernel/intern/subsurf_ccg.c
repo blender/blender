@@ -1485,7 +1485,7 @@ static void ccgDM_drawLooseEdges(DerivedMesh *dm) {
 	int i, j, edgeSize = ccgSubSurf_getEdgeSize(ss);
 
 	for (j=0; j< totedge; j++) {
-		CCGEdge *e = ccgdm->edgeMap[j].edge;
+		CCGEdge *e = cgdm->edgeMap[j].edge;
 		DMGridData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
 		if (!ccgSubSurf_getEdgeNumFaces(e)) {
@@ -1920,7 +1920,7 @@ static void cgdm_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), unsi
 	glBegin(GL_QUADS);
 	totface = ccgSubSurf_getNumFaces(ss);
 	for(i = 0; i < totface; i++) {
-		CCGFace *f = ccgdm->faceMap[i].face;
+		CCGFace *f = cgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 
 		for (S=0; S<numVerts; S++) {

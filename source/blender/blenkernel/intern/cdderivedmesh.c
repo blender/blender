@@ -1750,7 +1750,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	return dm;
 }
 
-static DerivedMesh *disabled__CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
+static DerivedMesh *UNUSED_FUNCTION(CDDM_from_editmesh)(EditMesh *em, Mesh *UNUSED(me))
 {
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
 	                           BLI_countlist(&em->edges),
