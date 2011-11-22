@@ -74,7 +74,7 @@ typedef struct ImBuf {
 							 * but this is problematic with texture math in imagetexture.c
 							 * avoid problems and use int. - campbell */
 
-	unsigned char depth;	/* Active amount of bits/bitplanes */
+	unsigned char planes;	/* Active amount of bits/bitplanes */
 	int channels;			/* amount of channels in rect_float (0 = 4 channel default) */
 
 	/* flags */

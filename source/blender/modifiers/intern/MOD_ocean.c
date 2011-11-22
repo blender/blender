@@ -127,7 +127,7 @@ static void initData(ModifierData *md)
 	omd->repeat_x = 1;
 	omd->repeat_y = 1;
 
-	modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "ocean_cache");
+	modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "cache_ocean");
 
 	omd->cached = 0;
 	omd->bakestart = 1;
@@ -277,6 +277,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	MVert *mv;
 	MFace *mf;
 	MTFace *tf;
+	int *origindex;
 
 	int cdlayer;
 
@@ -305,6 +306,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 
 	mv = CDDM_get_verts(result);
 	mf = CDDM_get_faces(result);
+	origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
 
 	/* create vertices */
 	#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
@@ -329,6 +331,9 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 			mf[fi].v4 = vi + res_x+1;
 
 			mf[fi].flag |= ME_SMOOTH;
+
+			/* generated geometry does not map to original faces */
+			origindex[fi] = ORIGINDEX_NONE;
 		}
 	}
 

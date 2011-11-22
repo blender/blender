@@ -149,21 +149,18 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode* node
 	node->custom1= 50;	/* default 50% split */
 }
 
-void register_node_type_cmp_splitviewer(ListBase *lb)
+void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_SPLITVIEWER, "SplitViewer", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_SPLITVIEWER, "SplitViewer", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_splitviewer_in, NULL);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_splitviewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, node_composit_exec_splitviewer);
+	/* Do not allow muting this node. */
+	node_type_mute(&ntype, NULL, NULL);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-
-
-
-

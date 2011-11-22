@@ -117,7 +117,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	if(flags & IB_mem)
 		name= "<memory>";
 
-	bytesperpixel = (ibuf->depth + 7) >> 3;
+	bytesperpixel = (ibuf->planes + 7) >> 3;
 	if ((bytesperpixel > 4) || (bytesperpixel == 2)) {
 		printf("imb_savepng: Cunsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
 		return (0);

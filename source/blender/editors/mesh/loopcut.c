@@ -72,6 +72,7 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_numinput.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -98,6 +99,7 @@ typedef struct tringselOpData {
 	Object *ob;
 	BMEditMesh *em;
 	BMEdge *eed;
+	NumInput num;
 
 	int extend;
 	int do_cut;
@@ -368,6 +370,11 @@ static int ringsel_init (bContext *C, wmOperator *op, int do_cut)
 	lcd->em= ((Mesh *)lcd->ob->data)->edit_btmesh;
 	lcd->extend = do_cut ? 0 : RNA_boolean_get(op->ptr, "extend");
 	lcd->do_cut = do_cut;
+	
+	initNumInput(&lcd->num);
+	lcd->num.idx_max = 0;
+	lcd->num.flag |= NUM_NO_NEGATIVE | NUM_NO_FRACTION;
+	
 	em_setup_viewcontext(C, &lcd->vc);
 
 	ED_region_tag_redraw(lcd->ar);
@@ -455,6 +462,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case PADPLUSKEY:
 		case PAGEUPKEY:
 		case WHEELUPMOUSE:  /* change number of cuts */
 			if (event->val == KM_RELEASE)
@@ -466,6 +474,7 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
+		case PADMINUS:
 		case PAGEDOWNKEY:
 		case WHEELDOWNMOUSE:  /* change number of cuts */
 			if (event->val == KM_RELEASE)
@@ -493,6 +502,23 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		}			
+	}
+	
+	/* using the keyboard to input the number of cuts */
+	if (event->val==KM_PRESS) {
+		float value;
+		
+		if (handleNumInput(&lcd->num, event))
+		{
+			applyNumInput(&lcd->num, &value);
+			
+			cuts= CLAMPIS(value, 1, 32);
+			
+			RNA_int_set(op->ptr,"number_cuts",cuts);
+			ringsel_find_edge(lcd, cuts);
+			
+			ED_region_tag_redraw(lcd->ar);
+		}
 	}
 	
 	/* keep going until the user confirms */

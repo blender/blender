@@ -976,7 +976,7 @@ struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->wave_timescale = 1.0f;
 	surface->wave_spring = 0.20f;
 
-	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "dynamicpaint");
+	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
 	dynamicPaintSurface_setUniqueName(surface, "Surface");
 
@@ -2527,13 +2527,13 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char* filenam
 	PaintSurfaceData *sData = surface->data;
 	ImgSeqFormatData *f_data = (ImgSeqFormatData*)sData->format_data;
 	/* OpenEXR or PNG	*/
-	int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? R_OPENEXR : R_PNG;
+	int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? R_IMF_IMTYPE_OPENEXR : R_IMF_IMTYPE_PNG;
 	char output_file[FILE_MAX];
 
 	if (!sData || !sData->type_data) {setError(surface->canvas, "Image save failed: Invalid surface.");return;}
 	/* if selected format is openexr, but current build doesnt support one */
 	#ifndef WITH_OPENEXR
-	if (format == R_OPENEXR) format = R_PNG;
+	if (format == R_IMF_IMTYPE_OPENEXR) format = R_IMF_IMTYPE_PNG;
 	#endif
 	BLI_strncpy(output_file, filename, sizeof(output_file));
 	BKE_add_image_extension(output_file, format);
@@ -2622,7 +2622,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char* filenam
 	/* Set output format, png in case exr isnt supported */
 	ibuf->ftype= PNG|95;
 #ifdef WITH_OPENEXR
-	if (format == R_OPENEXR) {	/* OpenEXR 32-bit float */
+	if (format == R_IMF_IMTYPE_OPENEXR) {	/* OpenEXR 32-bit float */
 		ibuf->ftype = OPENEXR | OPENEXR_COMPRESS;
 	}
 #endif

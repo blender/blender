@@ -56,14 +56,17 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 	}
 }
 
-void register_node_type_tex_viewer(ListBase *lb)
+void register_node_type_tex_viewer(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_base(ttype, &ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, exec);
 	
-	nodeRegisterType(lb, &ntype);
+	/* Do not allow muting viewer node. */
+	node_type_mute(&ntype, NULL, NULL);
+	
+	nodeRegisterType(ttype, &ntype);
 }

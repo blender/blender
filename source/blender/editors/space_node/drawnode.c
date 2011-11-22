@@ -1633,24 +1633,18 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	bNode *node= ptr->data;
+	NodeImageFile *nif= node->storage;
+	PointerRNA imfptr;
+
 	uiLayout *col, *row;
 
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "filepath", 0, "", ICON_NONE);
-	uiItemR(col, ptr, "image_type", 0, "", ICON_NONE);
-	
-	row= uiLayoutRow(layout, 0);
-	if (RNA_enum_get(ptr, "image_type")== R_OPENEXR) {
-		uiItemR(row, ptr, "use_exr_half", 0, NULL, ICON_NONE);
-		uiItemR(row, ptr, "exr_codec", 0, "", ICON_NONE);
-	}
-	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Quality", ICON_NONE);
-	}
-	else if (RNA_enum_get(ptr, "image_type")== R_PNG) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Compression", ICON_NONE);
-	}
-	
+
+	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &nif->im_format, &imfptr);
+	uiTemplateImageSettings(layout, &imfptr);
+
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "frame_start", 0, "Start", ICON_NONE);
 	uiItemR(row, ptr, "frame_end", 0, "End", ICON_NONE);

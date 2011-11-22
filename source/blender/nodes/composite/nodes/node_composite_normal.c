@@ -91,17 +91,15 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(nt
 	nor[2] = 1.0f;
 }
 
-void register_node_type_cmp_normal(ListBase *lb)
+void register_node_type_cmp_normal(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
 	node_type_init(&ntype, init);
 	node_type_size(&ntype, 100, 60, 200);
 	node_type_exec(&ntype, node_composit_exec_normal);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

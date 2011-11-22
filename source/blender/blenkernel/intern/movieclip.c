@@ -913,8 +913,8 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	scaleibuf->ftype= JPG | quality;
 
 	/* unsupported feature only confuses other s/w */
-	if(scaleibuf->depth==32)
-		scaleibuf->depth= 24;
+	if(scaleibuf->planes==32)
+		scaleibuf->planes= 24;
 
 	BLI_lock_thread(LOCK_MOVIECLIP);
 

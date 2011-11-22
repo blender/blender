@@ -146,16 +146,14 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 	}
 }
 
-void register_node_type_cmp_dilateerode(ListBase *lb)
+void register_node_type_cmp_dilateerode(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, CMP_NODE_DILATEERODE, "Dilate/Erode", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_DILATEERODE, "Dilate/Erode", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_dilateerode_in, cmp_node_dilateerode_out);
 	node_type_size(&ntype, 130, 100, 320);
 	node_type_exec(&ntype, node_composit_exec_dilateerode);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
-
-

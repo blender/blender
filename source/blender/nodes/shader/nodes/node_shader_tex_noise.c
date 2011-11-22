@@ -63,11 +63,11 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat, bNode *node, GPUNodeStack
 }
 
 /* node type definition */
-void register_node_type_sh_tex_noise(ListBase *lb)
+void register_node_type_sh_tex_noise(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
+	node_type_base(ttype, &ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_noise_in, sh_node_tex_noise_out);
 	node_type_size(&ntype, 150, 60, 200);
@@ -76,6 +76,5 @@ void register_node_type_sh_tex_noise(ListBase *lb)
 	node_type_exec(&ntype, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_tex_noise);
 
-	nodeRegisterType(lb, &ntype);
-};
-
+	nodeRegisterType(ttype, &ntype);
+}

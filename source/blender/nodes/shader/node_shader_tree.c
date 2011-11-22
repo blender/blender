@@ -134,7 +134,11 @@ bNodeTreeType ntreeType_Shader = {
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
 	/* update */			update,
-	/* update_node */		NULL
+	/* update_node */		NULL,
+	/* validate_link */		NULL,
+	/* mute node */			node_shader_pass_on,
+	/* mute links node */	node_mute_get_links,
+	/* gpu mute node */		gpu_shader_pass_on
 };
 
 /* GPU material from shader nodes */

@@ -153,7 +153,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 
 	/* GameFloatProperty */
 	srna= RNA_def_struct(brna, "GameFloatProperty", "GameProperty");
-	RNA_def_struct_ui_text(srna, "Game Float Property", "Game engine user defined floating pointer number property");
+	RNA_def_struct_ui_text(srna, "Game Float Property", "Game engine user defined floating point number property");
 	RNA_def_struct_sdna(srna, "bProperty");
 
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);

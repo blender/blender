@@ -973,15 +973,15 @@ bNodeTemplate node_whileloop_template(bNode *node)
 
 /**** FRAME ****/
 
-void register_node_type_frame(ListBase *lb)
+void register_node_type_frame(bNodeTreeType *ttype)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
 	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
 
-	node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND);
+	node_type_base(ttype, ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND);
 	node_type_size(ntype, 150, 100, 0);
 	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	
 	ntype->needs_free = 1;
-	nodeRegisterType(lb, ntype);
+	nodeRegisterType(ttype, ntype);
 }

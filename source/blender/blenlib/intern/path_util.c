@@ -45,6 +45,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_utildefines.h"
@@ -221,16 +222,25 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 	}
 
 	if(unique_check(arg, name)) {
+		char	numstr[16];
 		char	tempname[UNIQUE_NAME_MAX];
 		char	left[UNIQUE_NAME_MAX];
 		int		number;
 		int		len= BLI_split_name_num(left, &number, name, delim);
 		do {
-			int newlen= BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, ++number);
-			if(newlen >= name_len) {
-				len -= ((newlen + 1) - name_len);
-				if(len < 0) len= number= 0;
-				left[len]= '\0';
+			int numlen= BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number);
+
+			/* highly unlikely the string only has enough room for the number
+			 * but support anyway */
+			if ((len == 0) || (numlen >= name_len)) {
+				/* number is know not to be utf-8 */
+				BLI_strncpy(tempname, numstr, name_len);
+			}
+			else {
+				char *tempname_buf;
+				tempname[0]= '\0';
+				tempname_buf =BLI_strncat_utf8(tempname, left, name_len - numlen);
+				memcpy(tempname_buf, numstr, numlen + 1);
 			}
 		} while(unique_check(arg, tempname));
 

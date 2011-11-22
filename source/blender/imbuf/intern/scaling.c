@@ -67,7 +67,7 @@ struct ImBuf *IMB_half_x(struct ImBuf *ibuf1)
 	
 	if (ibuf1->x <= 1) return(IMB_dupImBuf(ibuf1));
 	
-	ibuf2 = IMB_allocImBuf((ibuf1->x)/2, ibuf1->y, ibuf1->depth, ibuf1->flags);
+	ibuf2 = IMB_allocImBuf((ibuf1->x)/2, ibuf1->y, ibuf1->planes, ibuf1->flags);
 	if (ibuf2==NULL) return (NULL);
 
 	_p1 = (uchar *) ibuf1->rect;
@@ -128,7 +128,7 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 	
-	ibuf2 = IMB_allocImBuf(2 * ibuf1->x , ibuf1->y , ibuf1->depth, ibuf1->flags);
+	ibuf2 = IMB_allocImBuf(2 * ibuf1->x , ibuf1->y , ibuf1->planes, ibuf1->flags);
 	if (ibuf2==NULL) return (NULL);
 
 	p1 = (int *) ibuf1->rect;
@@ -187,7 +187,7 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 
-	ibuf2 = IMB_allocImBuf(ibuf1->x , (ibuf1->y) / 2 , ibuf1->depth, ibuf1->flags);
+	ibuf2 = IMB_allocImBuf(ibuf1->x , (ibuf1->y) / 2 , ibuf1->planes, ibuf1->flags);
 	if (ibuf2==NULL) return (NULL);
 
 	_p1 = (uchar *) ibuf1->rect;
@@ -255,7 +255,7 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 	do_rect= (ibuf1->rect != NULL);
 	do_float= (ibuf1->rect_float != NULL);
 
-	ibuf2 = IMB_allocImBuf(ibuf1->x , 2 * ibuf1->y , ibuf1->depth, ibuf1->flags);
+	ibuf2 = IMB_allocImBuf(ibuf1->x , 2 * ibuf1->y , ibuf1->planes, ibuf1->flags);
 	if (ibuf2==NULL) return (NULL);
 
 	p1 = (int *) ibuf1->rect;
@@ -353,7 +353,7 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
 	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
 	
-	ibuf2=IMB_allocImBuf((ibuf1->x)/2, (ibuf1->y)/2, ibuf1->depth, ibuf1->flags);
+	ibuf2=IMB_allocImBuf((ibuf1->x)/2, (ibuf1->y)/2, ibuf1->planes, ibuf1->flags);
 	if (ibuf2==NULL) return (NULL);
 	
 	imb_onehalf_no_alloc(ibuf2, ibuf1);

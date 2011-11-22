@@ -124,16 +124,16 @@ static void storage_copy(bNode *orig_node, bNode *new_node)
 		new_node->storage= BKE_tracking_distortion_copy(orig_node->storage);
 }
 
-void register_node_type_cmp_moviedistortion(ListBase *lb)
+void register_node_type_cmp_moviedistortion(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_moviedistortion_in, cmp_node_moviedistortion_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_label(&ntype, label);
 	node_type_exec(&ntype, exec);
 	node_type_storage(&ntype, NULL, storage_free, storage_copy);
 
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }

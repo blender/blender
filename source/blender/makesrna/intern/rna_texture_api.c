@@ -49,7 +49,7 @@ void save_envmap(struct EnvMap *env, bContext *C, ReportList *reports, const cha
 		scene = CTX_data_scene(C);
 	}
 
-	RE_WriteEnvmapResult(reports, scene, env, filepath, scene->r.imtype, layout);
+	RE_WriteEnvmapResult(reports, scene, env, filepath, scene->r.im_format.imtype, layout);
 }
 
 void clear_envmap(struct EnvMap *env, bContext *C)

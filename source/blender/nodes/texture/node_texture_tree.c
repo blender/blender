@@ -111,7 +111,11 @@ bNodeTreeType ntreeType_Texture = {
 	/* local_sync */		local_sync,
 	/* local_merge */		NULL,
 	/* update */			NULL,
-	/* update_node */		NULL
+	/* update_node */		NULL,
+	/* validate_link */		NULL,
+	/* mute node */			node_tex_pass_on,
+	/* mute links node */	node_mute_get_links,
+	/* gpu mute node */		NULL
 };
 
 int ntreeTexTagAnimated(bNodeTree *ntree)

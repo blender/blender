@@ -296,18 +296,18 @@ static void init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(nt
 
 /* Node type definitions */
 #define TexDef(TEXTYPE, outputs, name, Name) \
-void register_node_type_tex_proc_##name(ListBase *lb) \
+void register_node_type_tex_proc_##name(bNodeTreeType *ttype) \
 { \
 	static bNodeType ntype; \
 	\
-	node_type_base(&ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW|NODE_OPTIONS); \
+	node_type_base(ttype, &ntype, TEX_NODE_PROC+TEXTYPE, Name, NODE_CLASS_TEXTURE, NODE_PREVIEW|NODE_OPTIONS); \
 	node_type_socket_templates(&ntype, name##_inputs, outputs); \
 	node_type_size(&ntype, 140, 80, 140); \
 	node_type_init(&ntype, init); \
 	node_type_storage(&ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
 	node_type_exec(&ntype, name##_exec); \
 	\
-	nodeRegisterType(lb, &ntype); \
+	nodeRegisterType(ttype, &ntype); \
 }
 	
 #define C outputs_color_only

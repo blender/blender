@@ -1504,7 +1504,8 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 			return dp;
 		}
 		else {
-			fprintf(stderr, "%s: \"%s.%s\" not found.\n", __func__, structname, propname);
+			fprintf(stderr, "%s: \"%s.%s\" (identifier \"%s\") not found.\n",
+			        __func__, structname, propname, prop->identifier);
 			DefRNA.error= 1;
 			return NULL;
 		}

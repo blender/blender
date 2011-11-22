@@ -208,7 +208,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		header.channels().insert ("R", Channel (HALF));
 		header.channels().insert ("G", Channel (HALF));
 		header.channels().insert ("B", Channel (HALF));
-		if (ibuf->depth==32 && channels >= 4)
+		if (ibuf->planes==32 && channels >= 4)
 			header.channels().insert ("A", Channel (HALF));
 		if (write_zbuf)		// z we do as float always
 			header.channels().insert ("Z", Channel (FLOAT));
@@ -226,7 +226,7 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		frameBuffer.insert ("R", Slice (HALF,  (char *) &pixels[0].r, xstride, ystride));	
 		frameBuffer.insert ("G", Slice (HALF,  (char *) &pixels[0].g, xstride, ystride));
 		frameBuffer.insert ("B", Slice (HALF,  (char *) &pixels[0].b, xstride, ystride));
-		if (ibuf->depth==32 && channels >= 4)
+		if (ibuf->planes==32 && channels >= 4)
 			frameBuffer.insert ("A", Slice (HALF, (char *) &pixels[0].a, xstride, ystride));
 		if (write_zbuf)
 			frameBuffer.insert ("Z", Slice (FLOAT, (char *)(ibuf->zbuf_float + (height-1)*width),
@@ -335,7 +335,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		header.channels().insert ("R", Channel (FLOAT));
 		header.channels().insert ("G", Channel (FLOAT));
 		header.channels().insert ("B", Channel (FLOAT));
-		if (ibuf->depth==32 && channels >= 4)
+		if (ibuf->planes==32 && channels >= 4)
 			header.channels().insert ("A", Channel (FLOAT));
 		if (write_zbuf)
 			header.channels().insert ("Z", Channel (FLOAT));
@@ -355,7 +355,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
 		frameBuffer.insert ("B", Slice (FLOAT,  (char *)rect[2], xstride, ystride));
-		if (ibuf->depth==32 && channels >= 4)
+		if (ibuf->planes==32 && channels >= 4)
 			frameBuffer.insert ("A", Slice (FLOAT,  (char *)rect[3], xstride, ystride));
 		if (write_zbuf)
 			frameBuffer.insert ("Z", Slice (FLOAT, (char *) (ibuf->zbuf_float + (height-1)*width),

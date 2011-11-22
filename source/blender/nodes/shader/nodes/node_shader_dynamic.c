@@ -761,32 +761,30 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 #endif
 }
 
-void register_node_type_sh_dynamic(ListBase *lb)
+void register_node_type_sh_dynamic(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, NODE_DYNAMIC, "Dynamic", NODE_CLASS_OP_DYNAMIC, NODE_OPTIONS, NULL, NULL);
+	node_type_base(ttype, &ntype, NODE_DYNAMIC, "Dynamic", NODE_CLASS_OP_DYNAMIC, NODE_OPTIONS, NULL, NULL);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	node_type_size(&ntype, 150, 60, 300);
 	node_type_init(&ntype, node_dynamic_init_cb);
 	node_type_storage(&ntype, "NodeScriptDict", node_dynamic_free_storage_cb, node_dynamic_copy_cb);
 	node_type_exec(&ntype, node_dynamic_exec_cb);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 #else
 
-void register_node_type_sh_dynamic(ListBase *lb)
+void register_node_type_sh_dynamic(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(&ntype, NODE_DYNAMIC, "Dynamic", NODE_CLASS_OP_DYNAMIC, 0);
+	node_type_base(ttype, &ntype, NODE_DYNAMIC, "Dynamic", NODE_CLASS_OP_DYNAMIC, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING);
 	
-	nodeRegisterType(lb, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
 
 #endif
-
-

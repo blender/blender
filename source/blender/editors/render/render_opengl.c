@@ -220,12 +220,12 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			char name[FILE_MAX];
 			int ok;
 
-			if(scene->r.planes == 8) {
+			if(scene->r.im_format.planes == R_IMF_CHAN_DEPTH_8) {
 				IMB_color_to_bw(ibuf);
 			}
 
-			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality); /* no need to stamp here */
+			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+			ok= BKE_write_ibuf(ibuf, name, &scene->r.im_format); /* no need to stamp here */
 			if(ok)	printf("OpenGL Render written to '%s'\n", name);
 			else	printf("OpenGL Render failed to write '%s'\n", name);
 		}
@@ -263,7 +263,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
+	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return 0;
 	}
@@ -332,7 +332,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	Scene *scene= oglrender->scene;
 
 	if(oglrender->mh) {
-		if(BKE_imtype_is_movie(scene->r.imtype))
+		if(BKE_imtype_is_movie(scene->r.im_format.imtype))
 			oglrender->mh->end_movie();
 	}
 
@@ -371,8 +371,8 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	scene= oglrender->scene;
 
 	oglrender->reports= op->reports;
-	oglrender->mh= BKE_get_movie_handle(scene->r.imtype);
-	if(BKE_imtype_is_movie(scene->r.imtype)) {
+	oglrender->mh= BKE_get_movie_handle(scene->r.im_format.imtype);
+	if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		if(!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
 			screen_opengl_render_end(C, oglrender);
 			return 0;
@@ -440,7 +440,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if(ibuf) {
 		/* color -> greyscale */
 		/* editing directly would alter the render view */
-		if(scene->r.planes == 8) {
+		if(scene->r.im_format.planes == R_IMF_PLANES_BW) {
 			ImBuf *ibuf_bw= IMB_dupImBuf(ibuf);
 			IMB_color_to_bw(ibuf_bw);
 			// IMB_freeImBuf(ibuf); /* owned by the image */
@@ -449,14 +449,14 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		else {
 			/* this is lightweight & doesnt re-alloc the buffers, only do this
 			 * to save the correct bit depth since the image is always RGBA */
-			ImBuf *ibuf_cpy= IMB_allocImBuf(ibuf->x, ibuf->y, scene->r.planes, 0);
+			ImBuf *ibuf_cpy= IMB_allocImBuf(ibuf->x, ibuf->y, scene->r.im_format.planes, 0);
 			ibuf_cpy->rect= ibuf->rect;
 			ibuf_cpy->rect_float= ibuf->rect_float;
 			ibuf_cpy->zbuf_float= ibuf->zbuf_float;
 			ibuf= ibuf_cpy;
 		}
 
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
+		if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if(ok) {
 				printf("Append frame %d", scene->r.cfra);
@@ -464,8 +464,8 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
-			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 
 			if(ok==0) {
 				printf("Write error: cannot save %s\n", name);

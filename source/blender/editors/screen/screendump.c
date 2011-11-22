@@ -161,12 +161,12 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 			/* BKE_add_image_extension() checks for if extension was already set */
 			if(scene->r.scemode & R_EXTENSION)
 				if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
-					BKE_add_image_extension(path, scene->r.imtype);
+					BKE_add_image_extension(path, scene->r.im_format.imtype);
 
 			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
 			ibuf->rect= scd->dumprect;
 
-			BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			BKE_write_ibuf(ibuf, path, &scene->r.im_format);
 
 			IMB_freeImBuf(ibuf);
 		}
@@ -261,14 +261,14 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 {
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;
-	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.imtype);
+	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.im_format.imtype);
 	int cfra= 1;
 	
 	/* we need this as local variables for renderdata */
 	rd.frs_sec= U.scrcastfps;
 	rd.frs_sec_base= 1.0f;
 	
-	if(BKE_imtype_is_movie(rd.imtype)) {
+	if(BKE_imtype_is_movie(rd.im_format.imtype)) {
 		if(!mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy, &sj->reports)) {
 			printf("screencast job stopped\n");
 			return;
@@ -294,14 +294,14 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 					break;
 			}
 			else {
-				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.planes, 0);
+				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.im_format.planes, 0);
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, sj->bmain->name, cfra, rd.imtype, rd.scemode & R_EXTENSION, TRUE);
+				BKE_makepicstring(name, rd.pic, sj->bmain->name, cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
-				ok= BKE_write_ibuf(ibuf, name, rd.imtype, rd.subimtype, rd.quality);
+				ok= BKE_write_ibuf(ibuf, name, &rd.im_format);
 				
 				if(ok==0) {
 					printf("Write error: cannot save %s\n", name);

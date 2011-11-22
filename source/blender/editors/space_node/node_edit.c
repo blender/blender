@@ -3283,7 +3283,8 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_preview_kill_jobs(C);
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & SELECT) {
+		/* Only allow muting of nodes having a mute func! */
+		if((node->flag & SELECT) && node->typeinfo->mutefunc) {
 			/* Be able to mute in-/output nodes as well.  - DingTo
 			if(node->inputs.first && node->outputs.first) { */
 				node->flag ^= NODE_MUTED;
