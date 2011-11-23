@@ -665,7 +665,7 @@ short BMFlags_To_MEFlags(void *element)
   type must be either BM_VERT, BM_EDGE,
   or BM_FACE.
 */
-char MEFlags_To_BMFlags(const char hflag, const char htype)
+char MEFlags_To_BMFlags(const short hflag, const char htype)
 {
 	char f= 0;
 

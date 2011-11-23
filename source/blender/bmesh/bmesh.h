@@ -307,7 +307,7 @@ short BMFlags_To_MEFlags(void *element);
   and represents the type of the element
   parameter (the three defines map to
   MVert, MEdge, and MPoly, respectively).*/
-char MEFlags_To_BMFlags(const char hflag, const char htype);
+char MEFlags_To_BMFlags(const short hflag, const char htype);
 
 /*convert MLoop*** in a bmface to mtface and mcol in
   an MFace*/
