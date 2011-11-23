@@ -103,83 +103,87 @@ EnumPropertyItem snap_element_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-/* note on duplicate block, perhaps we should use some trick to avoid
- * the duplicate, but with the inline defines it becomes very tricky
- * this awaits someone who has very good preprocessor-fu.
- * for now just make sure they stay in sync - campbell */
+/* workaround for duplice enums,
+ * have each enum line as a defne then conditionally set it or not
+ */
+
+#define R_IMF_ENUM_BMP      {R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+#define R_IMF_ENUM_IRIS     {R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+#define R_IMF_ENUM_PNG      {R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+#define R_IMF_ENUM_JPEG     {R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+#define R_IMF_ENUM_TAGA     {R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+#define R_IMF_ENUM_TAGA_RAW {R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
+
+
+#ifdef WITH_DDS
+#  define R_IMF_ENUM_DDS {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+#else
+#  define R_IMF_ENUM_DDS
+#endif
+
+#ifdef WITH_OPENJPEG
+#  define R_IMF_ENUM_JPEG2K {R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
+#else
+#  define R_IMF_ENUM_JPEG2K
+#endif
+
+#ifdef WITH_CINEON
+#  define R_IMF_ENUM_CINEON {R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
+#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+#else
+#  define R_IMF_ENUM_CINEON
+#  define R_IMF_ENUM_DPX
+#endif
+
+#ifdef WITH_OPENEXR
+#  define R_IMF_ENUM_EXR_MULTI  {R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+#  define R_IMF_ENUM_EXR        {R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
+#else
+#  define R_IMF_ENUM_EXR_MULTI
+#  define R_IMF_ENUM_EXR
+#endif
+
+#ifdef WITH_HDR
+#  define R_IMF_ENUM_HDR  {R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
+#else
+#  define R_IMF_ENUM_HDR
+#endif
+
+#ifdef WITH_TIFF
+#  define R_IMF_ENUM_TIFF {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+#else
+#  define R_IMF_ENUM_TIFF
+#endif
+
+
+#define IMAGE_TYPE_ITEMS_IMAGE_ONLY                                           \
+	R_IMF_ENUM_BMP                                                            \
+	R_IMF_ENUM_DDS                                                            \
+	R_IMF_ENUM_IRIS                                                           \
+	R_IMF_ENUM_PNG                                                            \
+	R_IMF_ENUM_JPEG                                                           \
+	R_IMF_ENUM_JPEG2K                                                         \
+	R_IMF_ENUM_TAGA                                                           \
+	R_IMF_ENUM_TAGA_RAW                                                       \
+	{0, "", 0, " ", NULL},                                                    \
+	R_IMF_ENUM_CINEON                                                         \
+	R_IMF_ENUM_DPX                                                            \
+	R_IMF_ENUM_EXR_MULTI                                                      \
+	R_IMF_ENUM_EXR                                                            \
+	R_IMF_ENUM_HDR                                                            \
+	R_IMF_ENUM_TIFF                                                           \
+
 
 EnumPropertyItem image_only_type_items[] = {
 
+	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-    /* --- duplicate block warning (see below) --- */
-#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
-#ifdef WITH_DDS
-	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#endif
-	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
-#ifdef WITH_OPENJPEG
-	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
-#endif
-	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
-	{0, "", 0, " ", NULL},
-#ifdef WITH_CINEON
-	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
-#endif
-#ifdef WITH_OPENEXR
-	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
-#endif
-#ifdef WITH_HDR
-	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
-#endif
-#ifdef WITH_TIFF
-	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#endif
-    /* --- end duplicate block (see below) --- */
-
-
-	{0, NULL, 0, NULL, NULL}};
+    {0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 
-
-    /* --- duplicate block warning (see above) --- */
-#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
-#ifdef WITH_DDS
-	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#endif
-	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
-#ifdef WITH_OPENJPEG
-	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
-#endif
-	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
-	{0, "", 0, " ", NULL},
-#ifdef WITH_CINEON
-	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
-#endif
-#ifdef WITH_OPENEXR
-	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
-#endif
-#ifdef WITH_HDR
-	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
-#endif
-#ifdef WITH_TIFF
-	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#endif
-    /* --- end duplicate block (see above) --- */
-
+	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
 	{0, "", 0, "Movie", NULL},
 #ifdef _WIN32
