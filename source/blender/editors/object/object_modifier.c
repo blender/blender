@@ -259,13 +259,13 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	return 1;
 }
 
-int ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
+void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 {
 	ModifierData *md =ob->modifiers.first;
 	int sort_depsgraph = 0;
 
 	if(!md)
-		return 0;
+		return;
 
 	while(md) {
 		ModifierData *next_md;
@@ -282,8 +282,6 @@ int ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 	/* sorting has to be done after the update so that dynamic systems can react properly */
 	if(sort_depsgraph)
 		DAG_scene_sort(bmain, scene);
-
-	return 1;
 }
 
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
