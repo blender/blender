@@ -144,7 +144,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		}
 	}
 
-	/* create uv layer attributes */
+	/* create uv map attributes */
 	{
 		BL::Mesh::uv_textures_iterator l;
 

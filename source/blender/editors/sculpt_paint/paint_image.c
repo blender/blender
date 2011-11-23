@@ -263,7 +263,7 @@ typedef struct ProjPaintState {
 	MVert 		   *dm_mvert;
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
-	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
+	MTFace 		   *dm_mtface_clone;	/* other UV map, use for cloning between layers */
 	MTFace 		   *dm_mtface_stencil;
 	
 	/* projection painting only */
@@ -1347,7 +1347,7 @@ static float project_paint_uvpixel_mask(
 	
 	/* Image Mask */
 	if (ps->do_layer_stencil) {
-		/* another UV layers image is masking this one's */
+		/* another UV maps image is masking this one's */
 		ImBuf *ibuf_other;
 		Image *other_tpage = project_paint_face_image(ps, ps->dm_mtface_stencil, face_index);
 		const MTFace *tf_other = ps->dm_mtface_stencil + face_index;

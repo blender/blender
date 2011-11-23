@@ -265,7 +265,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
-    bl_label = "UV Texture"
+    bl_label = "UV Maps"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):

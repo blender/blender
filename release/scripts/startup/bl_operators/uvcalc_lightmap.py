@@ -566,8 +566,8 @@ class LightMapPack(Operator):
             default=True,
             )
     PREF_NEW_UVLAYER = BoolProperty(
-            name="New UV Layer",
-            description="Create a new UV layer for every mesh packed",
+            name="New UV Map",
+            description="Create a new UV map for every mesh packed",
             default=False,
             )
     PREF_APPLY_IMAGE = BoolProperty(

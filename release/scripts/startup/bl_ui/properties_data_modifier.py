@@ -692,7 +692,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "image", text="")
 
         col = split.column()
-        col.label(text="UV Layer:")
+        col.label(text="UV Map:")
         col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
         split = layout.split()

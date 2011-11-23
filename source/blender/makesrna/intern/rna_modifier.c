@@ -805,7 +805,7 @@ static void rna_def_modifier_generic_map_info(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MappingInfo_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1233,7 +1233,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WaveModifier_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1604,7 +1604,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_UVProjectModifier_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2001,7 +2001,7 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "particle_uv", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
 	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Particle UV", "UV Layer to change with particle age");
+	RNA_def_property_ui_text(prop, "Particle UV", "UV map to change with particle age");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -2620,7 +2620,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "mask_tex_uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "mask_tex_uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_mask_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
