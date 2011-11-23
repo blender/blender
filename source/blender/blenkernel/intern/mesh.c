@@ -2388,8 +2388,14 @@ int mesh_recalcTesselation(CustomData *fdata,
 	totface = k;
 	
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
+
+	/* CD_POLYINDEX will contain an array of indices from tessfaces to the polygons
+	   they are directly tesselated from */
 	CustomData_add_layer(fdata, CD_POLYINDEX, CD_ASSIGN, polyIndex, totface);
 	if (origIndex) {
+		/* If polys had a CD_ORIGINDEX layer, then the tesselated faces will get this
+		   layer as well, pointing to polys from the original mesh (not the polys
+		   that just got tesselated) */
 		CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, origIndex, totface);
 	}
 
