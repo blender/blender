@@ -1194,6 +1194,10 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 	marker->frame= 1;
 	BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
 	BLI_addtail(&scene->markers, marker);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+
 	return marker;
 }
 
@@ -1206,6 +1210,17 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *m
 
 	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+}
+
+static void rna_TimeLine_clear(Scene *scene)
+{
+	BLI_freelistN(&scene->markers);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
 }
 
 static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, const char name[])
@@ -3605,6 +3620,9 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_TimeLine_clear");
+	RNA_def_function_ui_description(func, "Remove all timeline markers");
 }
 
 /* scene.keying_sets */

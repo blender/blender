@@ -1156,6 +1156,16 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, b
 	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, object);
 }
 
+static void rna_Object_constraints_clear(Object *object)
+{
+	free_constraints(&object->constraints);
+
+	ED_object_constraint_update(object);
+	ED_object_constraint_set_active(object, NULL);
+
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, object);
+}
+
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
 	return ED_object_modifier_add(reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
@@ -1164,6 +1174,15 @@ static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, Report
 static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, ModifierData *md)
 {
 	ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md);
+
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER|NA_REMOVED, object);
+}
+
+static void rna_Object_modifier_clear(Object *object, bContext *C)
+{
+	ED_object_modifier_clear(CTX_data_main(C), CTX_data_scene(C), object);
+
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER|NA_REMOVED, object);
 }
 
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
@@ -1191,6 +1210,13 @@ static bDeformGroup *rna_Object_vgroup_new(Object *ob, const char *name)
 static void rna_Object_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
 	ED_vgroup_delete(ob, defgroup);
+
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+}
+
+static void rna_Object_vgroup_clear(Object *ob)
+{
+	ED_vgroup_clear(ob);
 
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
@@ -1636,6 +1662,9 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	/* constraint to remove */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_Object_constraints_clear");
+	RNA_def_function_ui_description(func, "Remove all constraint from this object");
 }
 
 /* object.modifiers */
@@ -1684,6 +1713,11 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	/* target to remove*/
 	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	/* clear all modifiers */
+	func= RNA_def_function(srna, "clear", "rna_Object_modifier_clear");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Remove all modifiers from the object");
 }
 
 /* object.particle_systems */
@@ -1758,6 +1792,9 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Delete vertex group from object");
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
+	RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 
 
