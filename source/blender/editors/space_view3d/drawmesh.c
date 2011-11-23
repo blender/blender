@@ -153,7 +153,7 @@ static int draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
-	MFace *mface = &me->mface[index];
+	MPoly *mface = &me->mpoly[index];
 	if(!(mface->flag&ME_HIDE) && !(mface->flag&ME_FACE_SEL))
 		return 2; /* Don't set color */
 	else
@@ -561,8 +561,8 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->mat && me->mface) {
-		Material *ma= me->mat[me->mface[index].mat_nr];
+	if (me->mat && me->mpoly) {
+		Material *ma= me->mat[me->mpoly[index].mat_nr];
 		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
 			return 0;
 		}
@@ -684,7 +684,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material, NULL);
 		else
-			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, me);
+			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, me);
 	}
 	else {
 		if(GPU_buffer_legacy(dm)) {
@@ -804,7 +804,7 @@ static int tex_mat_set_face_mesh_cb(void *userData, int index)
 	/* faceselect mode face hiding */
 	TexMatCallback *data= (TexMatCallback*)userData;
 	Mesh *me = (Mesh*)data->me;
-	MFace *mface = &me->mface[index];
+	MPoly *mface = &me->mpoly[index];
 
 	return !(mface->flag & ME_HIDE);
 }
