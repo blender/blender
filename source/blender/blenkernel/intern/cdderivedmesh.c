@@ -686,7 +686,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MCol *realcol = dm->getTessFaceDataArray(dm, CD_TEXTURE_MCOL);
 	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
-	int i, j, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+	int i, j, orig, *index = DM_get_tessface_data_layer(dm, CD_POLYINDEX);
 	int startFace = 0, lastFlag = 0xdeadbeef;
 	MCol *mcol = dm->getTessFaceDataArray(dm, CD_WEIGHT_MCOL);
 	if(!mcol)
@@ -878,7 +878,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	MFace *mf = cddm->mface;
 	MCol *mc;
 	float *nors= DM_get_tessface_data_layer(dm, CD_NORMAL);
-	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_POLYINDEX);
 
 	mc = DM_get_tessface_data_layer(dm, CD_ID_MCOL);
 	if(!mc)
@@ -1105,7 +1105,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	int a, b, dodraw, matnr, new_matnr;
-	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	int orig, *index = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
@@ -1401,7 +1401,7 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	MFace *mf = cddm->mface;
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	int a, matnr, new_matnr;
-	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	int orig, *index = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
