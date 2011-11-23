@@ -2646,10 +2646,8 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	MFace *mf;
 	MEdge *me;
-	MLoop *ml;
-	MPoly *mp;
 	EdgeHash *eh = BLI_edgehash_new();
-	int i, l, totloop, *polyindex;
+	int i, totloop;
 	
 	/*ensure we have all the edges we need*/
 	CDDM_calc_edges(dm);
@@ -2672,47 +2670,51 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	cddm->dm.numLoopData = totloop;
 	cddm->dm.numPolyData = cddm->dm.numFaceData;
 
-	if (!totloop) return;
+	if (totloop) {
+		MLoop *ml;
+		MPoly *mp;
+		int l, *polyindex;
 
-	cddm->mloop = MEM_callocN(sizeof(MLoop)*totloop, "cddm->mloop in CDDM_tessfaces_to_faces");
-	cddm->mpoly = MEM_callocN(sizeof(MPoly)*cddm->dm.numFaceData, "cddm->mpoly in CDDM_tessfaces_to_faces");
-	
-	CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, totloop);
-	CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, cddm->dm.numPolyData);
-	CustomData_merge(&cddm->dm.faceData, &cddm->dm.polyData, 
-		CD_MASK_ORIGINDEX, CD_DUPLICATE, cddm->dm.numFaceData);
+		cddm->mloop = MEM_callocN(sizeof(MLoop)*totloop, "cddm->mloop in CDDM_tessfaces_to_faces");
+		cddm->mpoly = MEM_callocN(sizeof(MPoly)*cddm->dm.numFaceData, "cddm->mpoly in CDDM_tessfaces_to_faces");
 
-	polyindex = CustomData_get_layer(&cddm->dm.faceData, CD_POLYINDEX);
+		CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, totloop);
+		CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, cddm->dm.numPolyData);
+		CustomData_merge(&cddm->dm.faceData, &cddm->dm.polyData,
+			CD_MASK_ORIGINDEX, CD_DUPLICATE, cddm->dm.numFaceData);
 
-	mf = cddm->mface;
-	mp = cddm->mpoly;
-	ml = cddm->mloop;
-	l = 0;
-	for (i=0; i<cddm->dm.numFaceData; i++, mf++, mp++) {
-		mp->flag = mf->flag;
-		mp->loopstart = l;
-		mp->mat_nr = mf->mat_nr;
-		mp->totloop = mf->v4 ? 4 : 3;
-		
-		ml->v = mf->v1;
-		ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2));
-		ml++, l++;
+		polyindex = CustomData_get_layer(&cddm->dm.faceData, CD_POLYINDEX);
 
-		ml->v = mf->v2;
-		ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v2, mf->v3));
-		ml++, l++;
+		mf = cddm->mface;
+		mp = cddm->mpoly;
+		ml = cddm->mloop;
+		l = 0;
+		for (i=0; i<cddm->dm.numFaceData; i++, mf++, mp++) {
+			mp->flag = mf->flag;
+			mp->loopstart = l;
+			mp->mat_nr = mf->mat_nr;
+			mp->totloop = mf->v4 ? 4 : 3;
 
-		ml->v = mf->v3;
-		ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v3, mf->v4?mf->v4:mf->v1));
-		ml++, l++;
-
-		if (mf->v4) {
-			ml->v = mf->v4;
-			ml->e =	GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v4, mf->v1));
+			ml->v = mf->v1;
+			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2));
 			ml++, l++;
-		}
 
-		*polyindex = i;
+			ml->v = mf->v2;
+			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v2, mf->v3));
+			ml++, l++;
+
+			ml->v = mf->v3;
+			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v3, mf->v4?mf->v4:mf->v1));
+			ml++, l++;
+
+			if (mf->v4) {
+				ml->v = mf->v4;
+				ml->e =	GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v4, mf->v1));
+				ml++, l++;
+			}
+
+			*polyindex = i;
+		}
 	}
 
 	BLI_edgehash_free(eh, NULL);
