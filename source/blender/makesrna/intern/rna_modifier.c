@@ -2571,10 +2571,10 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
-		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Local", ""},
-		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
-		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", ""},
-		{MOD_DISP_MAP_UV, "UV", 0, "UV", ""},
+		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Local", "Use local generated coordinates"},
+		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", "Use global coordinates"},
+		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", "Use local generated coordinates of another object"},
+		{MOD_DISP_MAP_UV, "UV", 0, "UV", "Use coordinates from an UV layer"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem weightvg_mask_tex_used_items[] = {
@@ -2592,7 +2592,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "mask_constant", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Influence", "Global influence of current modifications on vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2635,14 +2635,15 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 {
 	static EnumPropertyItem weightvg_edit_falloff_type_items[] = {
-		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
+		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", "Null action"},
 		{MOD_WVG_MAPPING_CURVE, "CURVE", ICON_RNDCURVE, "Custom Curve", ""},
 		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 		{MOD_WVG_MAPPING_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
 		{MOD_WVG_MAPPING_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
 		{MOD_WVG_MAPPING_SPHERE, "ICON_SPHERECURVE", ICON_SPHERECURVE, "Sphere", ""},
 		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
-		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE, "Median Step", ""}, /* Would need a better icon... */
+		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE /* Would need a better icon... */, "Median Step",
+		                       "Map all values below 0.5 to 0.0, and all others to 1.0"},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
@@ -2679,7 +2680,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "default_weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0f);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Default Weight", "Default weight a vertex will have if "
 	                                                 "it is not in the vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2692,7 +2693,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "add_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "add_threshold");
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Add Threshold", "Lower bound for a vertex's weight "
 	                                                "to be added to the vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2700,7 +2701,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "remove_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rem_threshold");
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex's weight "
 	                                                "to be removed from the vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2712,21 +2713,21 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 {
 	static EnumPropertyItem weightvg_mix_modes_items[] = {
-		{MOD_WVG_MIX_SET, "SET", 0, "Replace weights", ""},
-		{MOD_WVG_MIX_ADD, "ADD", 0, "Add to weights", ""},
-		{MOD_WVG_MIX_SUB, "SUB", 0, "Subtract from weights", ""},
-		{MOD_WVG_MIX_MUL, "MUL", 0, "Multiply weights", ""},
-		{MOD_WVG_MIX_DIV, "DIV", 0, "Divide weights", ""},
-		{MOD_WVG_MIX_DIF, "DIF", 0, "Difference", ""},
-		{MOD_WVG_MIX_AVG, "AVG", 0, "Average", ""},
+		{MOD_WVG_MIX_SET, "SET", 0, "Replace", "Replace VGroup A's weights by VGroup b's ones"},
+		{MOD_WVG_MIX_ADD, "ADD", 0, "Add", "Add VGroup B's weights to VGroup A's ones"},
+		{MOD_WVG_MIX_SUB, "SUB", 0, "Subtract", "Subtract VGroup B's weights from VGroup A's ones"},
+		{MOD_WVG_MIX_MUL, "MUL", 0, "Multiply", "Multiply VGroup A's weights by VGroup B's ones"},
+		{MOD_WVG_MIX_DIV, "DIV", 0, "Divide", "Divide VGroup A's weights by VGroup B's ones"},
+		{MOD_WVG_MIX_DIF, "DIF", 0, "Difference", "Difference between VGroup A's and VGroup B's weigths"},
+		{MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weigths"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem weightvg_mix_set_items[] = {
-		{MOD_WVG_SET_ALL,   "ALL",   0, "All vertices", ""},
-		{MOD_WVG_SET_A,     "A",   0, "Vertices from group A", ""},
-		{MOD_WVG_SET_B,     "B",   0, "Vertices from group B", ""},
-		{MOD_WVG_SET_OR,    "OR", 0, "Vertices from one group", ""},
-		{MOD_WVG_SET_AND,   "AND", 0, "Vertices from both groups", ""},
+		{MOD_WVG_SET_ALL,   "ALL",   0, "All", "Affect all vertices (might add some to VGroup A)"},
+		{MOD_WVG_SET_A,     "A",   0, "VGroup A", "Affect vertices in VGroup A"},
+		{MOD_WVG_SET_B,     "B",   0, "VGroup B", "Affect vertices in VGroup B (might add some to VGroup A)"},
+		{MOD_WVG_SET_OR,    "OR", 0, "VGroup A or B", "Affect vertices in at least one of both VGroups (might add some to VGroup A)"},
+		{MOD_WVG_SET_AND,   "AND", 0, "VGroup A and B", "Affect vertices in both groups"},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
@@ -2752,14 +2753,14 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "default_weight_a", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0f);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Default Weight A", "Default weight a vertex will have if "
 	                                                 "it is not in the first vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "default_weight_b", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0f);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Default Weight B", "Default weight a vertex will have if "
 	                                                   "it is not in the second vgroup");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2796,14 +2797,15 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem weightvg_proximity_falloff_type_items[] = {
-		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
+		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", "Null action"},
 		/* No curve mapping here! */
 		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 		{MOD_WVG_MAPPING_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
 		{MOD_WVG_MAPPING_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
 		{MOD_WVG_MAPPING_SPHERE, "ICON_SPHERECURVE", ICON_SPHERECURVE, "Sphere", ""},
 		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
-		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE, "Median Step", ""}, /* Would need a better icon... */
+		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE /* Would need a better icon... */, "Median Step",
+		                       "Map all values below 0.5 to 0.0, and all others to 1.0"},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
