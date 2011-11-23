@@ -95,8 +95,8 @@ static void gp_ui_dellayer_cb (bContext *C, void *gpd, void *gpl)
 static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, const short is_v3d)
 {
 	uiLayout *box=NULL, *split=NULL;
-	uiLayout *col=NULL, *subcol=NULL;
-	uiLayout *row=NULL, *subrow=NULL;
+	uiLayout *col=NULL;
+	uiLayout *row=NULL, *sub=NULL;
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA ptr;
@@ -120,17 +120,17 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* left-align ............................... */
-	subrow= uiLayoutRow(row, 0);
+	sub= uiLayoutRow(row, 0);
 	
 	/* active */
-	block= uiLayoutGetBlock(subrow);
+	block= uiLayoutGetBlock(sub);
 	icon= (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
 	but= uiDefIconBut(block, BUT, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Set active layer");
 	uiButSetFunc(but, gp_ui_activelayer_cb, gpd, gpl);
 
 	/* locked */
 	icon= (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-	uiItemR(subrow, &ptr, "lock", 0, "", icon);
+	uiItemR(sub, &ptr, "lock", 0, "", icon);
 	
 	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
@@ -138,7 +138,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 		
 		/* visibility button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-			uiItemR(subrow, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_ON); 
+			uiItemR(sub, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_ON); 
 			
 		
 		/* name */
@@ -146,14 +146,14 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 			sprintf(name, "%s (Hidden)", gpl->info);
 		else
 			sprintf(name, "%s (Locked)", gpl->info);
-		uiItemL(subrow, name, ICON_NONE);
+		uiItemL(sub, name, ICON_NONE);
 			
 		/* delete button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED)) {
 			/* right-align ............................... */
-			subrow= uiLayoutRow(row, 1);
-			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
-			block= uiLayoutGetBlock(subrow); // XXX... err...
+			sub= uiLayoutRow(row, 1);
+			uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
+			block= uiLayoutGetBlock(sub); // XXX... err...
 			
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
 			uiButSetFunc(but, gp_ui_dellayer_cb, gpd, gpl);
@@ -163,24 +163,24 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 	else {
 		/* draw rest of header -------------------------------- */
 		/* visibility button */
-		uiItemR(subrow, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_OFF); 
+		uiItemR(sub, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_OFF); 
 		
 		/* frame locking */
 		// TODO: this needs its own icons...
 		icon= (gpl->flag & GP_LAYER_FRAMELOCK) ? ICON_RENDER_STILL : ICON_RENDER_ANIMATION;
-		uiItemR(subrow, &ptr, "lock_frame", 0, "", icon); 
+		uiItemR(sub, &ptr, "lock_frame", 0, "", icon); 
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* name */
-		uiItemR(subrow, &ptr, "info", 0, "", ICON_NONE);
+		uiItemR(sub, &ptr, "info", 0, "", ICON_NONE);
 		
 		/* delete 'button' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 			/* right-align ............................... */
-			subrow= uiLayoutRow(row, 1);
-			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
-			block= uiLayoutGetBlock(subrow); // XXX... err...
+			sub= uiLayoutRow(row, 1);
+			uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
+			block= uiLayoutGetBlock(sub); // XXX... err...
 			
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
 			uiButSetFunc(but, gp_ui_dellayer_cb, gpd, gpl);
@@ -196,32 +196,29 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 		col= uiLayoutColumn(split, 0);
 		
 		/* color */
-		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, &ptr, "color", 0, "", ICON_NONE);
-			uiItemR(subcol, &ptr, "alpha", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+		sub= uiLayoutColumn(col, 1);
+			uiItemR(sub, &ptr, "color", 0, "", ICON_NONE);
+			uiItemR(sub, &ptr, "alpha", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 			
 		/* stroke thickness */
-		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, &ptr, "line_width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+		uiItemR(col, &ptr, "line_width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		
 		/* debugging options */
 		if (G.f & G_DEBUG) {
-			subcol= uiLayoutColumn(col, 1);
-				uiItemR(subcol, &ptr, "show_points", 0, NULL, ICON_NONE);
+			uiItemR(col, &ptr, "show_points", 0, NULL, ICON_NONE);
 		}
 		
 		/* right column ................... */
 		col= uiLayoutColumn(split, 0);
 		
 		/* onion-skinning */
-		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, &ptr, "use_onion_skinning", 0, "Onion Skinning", ICON_NONE);
-			uiItemR(subcol, &ptr, "ghost_range_max", 0, "Frames", ICON_NONE); // XXX shorter name here? i.e. GStep
+		sub= uiLayoutColumn(col, 1);
+			uiItemR(sub, &ptr, "use_onion_skinning", 0, "Onion Skinning", ICON_NONE);
+			uiItemR(sub, &ptr, "ghost_range_max", 0, "Frames", ICON_NONE); // XXX shorter name here? i.e. GStep
 		
 		/* 3d-view specific drawing options */
 		if (is_v3d) {
-			subcol= uiLayoutColumn(col, 0);
-				uiItemR(subcol, &ptr, "show_x_ray", 0, "X-Ray", ICON_NONE);
+			uiItemR(col, &ptr, "show_x_ray", 0, "X-Ray", ICON_NONE);
 		}
 		
 	}

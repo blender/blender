@@ -136,7 +136,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA spaceptr, sceneptr;
-	uiLayout *col, *subcol, *row;
+	uiLayout *col, *sub, *row;
 	
 	/* get RNA pointers for use when creating the UI elements */
 	RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -146,16 +146,16 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	col= uiLayoutColumn(pa->layout, 0);
 		uiItemR(col, &spaceptr, "show_cursor", 0, NULL, ICON_NONE);
 		
-		subcol= uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemO(subcol, "Cursor from Selection", ICON_NONE, "GRAPH_OT_frame_jump");
+		sub= uiLayoutColumn(col, 1);
+		uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor")); 
+			uiItemO(sub, "Cursor from Selection", ICON_NONE, "GRAPH_OT_frame_jump");
 		
-		subcol= uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			row= uiLayoutSplit(subcol, 0.7, 1);
+		sub= uiLayoutColumn(col, 1);
+		uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor")); 
+			row= uiLayoutSplit(sub, 0.7, 1);
 				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", ICON_NONE);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_CFRA);
-			row= uiLayoutSplit(subcol, 0.7, 1);
+			row= uiLayoutSplit(sub, 0.7, 1);
 				uiItemR(row, &spaceptr, "cursor_position_y", 0, "Cursor Y", ICON_NONE);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_VALUE);
 }
@@ -168,7 +168,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	FCurve *fcu;
 	PointerRNA fcu_ptr;
 	uiLayout *layout = pa->layout;
-	uiLayout *col, *row, *subrow;
+	uiLayout *col, *row, *sub;
 	uiBlock *block;
 	char name[256];
 	int icon = 0;
@@ -201,9 +201,9 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		row= uiLayoutRow(col, 1);
 			uiItemR(row, &fcu_ptr, "color_mode", 0, "", ICON_NONE);
 			
-			subrow= uiLayoutRow(row, 1);
-				uiLayoutSetEnabled(subrow, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
-				uiItemR(subrow, &fcu_ptr, "color", 0, "", ICON_NONE);
+			sub= uiLayoutRow(row, 1);
+				uiLayoutSetEnabled(sub, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
+				uiItemR(sub, &fcu_ptr, "color", 0, "", ICON_NONE);
 	
 	MEM_freeN(ale);
 }
@@ -562,7 +562,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	DriverTarget *dtar= &dvar->targets[0];
 	Object *ob = (Object *)dtar->id;
 	PointerRNA dtar_ptr;
-	uiLayout *col, *subcol;
+	uiLayout *col, *sub;
 	
 	/* initialise RNA pointer to the target */
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
@@ -578,9 +578,9 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		subcol= uiLayoutColumn(layout, 1);
-			uiItemR(subcol, &dtar_ptr, "transform_type", 0, NULL, ICON_NONE);
-			uiItemR(subcol, &dtar_ptr, "transform_space", 0, "Space", ICON_NONE);
+		sub= uiLayoutColumn(layout, 1);
+			uiItemR(sub, &dtar_ptr, "transform_type", 0, NULL, ICON_NONE);
+			uiItemR(sub, &dtar_ptr, "transform_space", 0, "Space", ICON_NONE);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

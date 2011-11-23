@@ -569,7 +569,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* draw settings for stepped interpolation modifier */
 static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
 {
-	uiLayout *col, *subcol;
+	uiLayout *col, *sub;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
@@ -584,17 +584,17 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 	col= uiLayoutColumn(layout, 1);
 		uiItemR(col, &ptr, "use_frame_start", 0, NULL, ICON_NONE);
 		
-		subcol = uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_frame_start"));
-			uiItemR(subcol, &ptr, "frame_start", 0, NULL, ICON_NONE);
+		sub = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_frame_start"));
+			uiItemR(sub, &ptr, "frame_start", 0, NULL, ICON_NONE);
 			
 	/* block 3: end range settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemR(col, &ptr, "use_frame_end", 0, NULL, ICON_NONE);
 		
-		subcol = uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_frame_end"));
-			uiItemR(subcol, &ptr, "frame_end", 0, NULL, ICON_NONE);
+		sub = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_frame_end"));
+			uiItemR(sub, &ptr, "frame_end", 0, NULL, ICON_NONE);
 }
 
 /* --------------- */
@@ -602,7 +602,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-	uiLayout *box, *row, *subrow, *col;
+	uiLayout *box, *row, *sub, *col;
 	uiBlock *block;
 	uiBut *but;
 	short width= 314;
@@ -620,30 +620,30 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		block= uiLayoutGetBlock(row); // err...
 		
 		/* left-align -------------------------------------------- */
-		subrow= uiLayoutRow(row, 1);
-		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
+		sub= uiLayoutRow(row, 1);
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* expand */
-		uiItemR(subrow, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(sub, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		
 		/* checkbox for 'active' status (for now) */
-		uiItemR(subrow, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(sub, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		
 		/* name */
 		if (fmi)
-			uiItemL(subrow, fmi->name, ICON_NONE);
+			uiItemL(sub, fmi->name, ICON_NONE);
 		else
-			uiItemL(subrow, "<Unknown Modifier>", ICON_NONE);
+			uiItemL(sub, "<Unknown Modifier>", ICON_NONE);
 		
 		/* right-align ------------------------------------------- */
-		subrow= uiLayoutRow(row, 1);
-		uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
+		sub= uiLayoutRow(row, 1);
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 		
 		
 		/* 'mute' button */
-		uiItemR(subrow, &ptr, "mute", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(sub, &ptr, "mute", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
