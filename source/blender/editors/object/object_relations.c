@@ -61,6 +61,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
@@ -131,6 +132,10 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
 
 		em= me->edit_btmesh;
+
+		/* derivedMesh might be needed for solving parenting,
+		   so re-create it here */
+		makeDerivedMesh(scene, obedit, em, CD_MASK_BAREMESH, 0);
 
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(eve, BM_SELECT)) {

@@ -188,6 +188,10 @@ static int nodes_use_tex(bNodeTree *ntree, Tex *tex)
 			if(node->id == (ID*)tex) {
 				return 1;
 			}
+			else if(GS(node->id->name) == ID_MA) {
+				if(mtex_use_tex(((Material*)node->id)->mtex, MAX_MTEX, tex))
+					return 1;
+			}
 			else if(node->type==NODE_GROUP) {
 				if(nodes_use_tex((bNodeTree *)node->id, tex))
 					return 1;
@@ -198,14 +202,46 @@ static int nodes_use_tex(bNodeTree *ntree, Tex *tex)
 	return 0;
 }
 
-static void material_changed(Main *UNUSED(bmain), Material *ma)
+static int nodes_use_material(bNodeTree *ntree, Material *ma)
 {
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node= node->next) {
+		if(node->id) {
+			if(node->id == (ID*)ma) {
+				return 1;
+			}
+			else if(node->type==NODE_GROUP) {
+				if(nodes_use_material((bNodeTree *)node->id, ma))
+					return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static void material_changed(Main *bmain, Material *ma)
+{
+	Material *parent;
+
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&ma->id));
 
 	/* glsl */
 	if(ma->gpumaterial.first)
 		GPU_material_free(ma);
+
+	/* find node materials using this */
+	for(parent=bmain->mat.first; parent; parent=parent->id.next) {
+		if(parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma));
+		else continue;
+
+		BKE_icon_changed(BKE_icon_getid(&parent->id));
+
+		if(parent->gpumaterial.first)
+			GPU_material_free(parent);
+	}
 }
 
 static void texture_changed(Main *bmain, Tex *tex)

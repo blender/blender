@@ -203,6 +203,10 @@ void Session::run_gpu()
 		if(!no_tiles) {
 			/* update scene */
 			update_scene();
+
+			if(device->error_message() != "")
+				progress.set_cancel(device->error_message());
+
 			if(progress.get_cancel())
 				break;
 		}
@@ -221,6 +225,9 @@ void Session::run_gpu()
 				path_trace(tile);
 
 				device->task_wait();
+
+				if(device->error_message() != "")
+					progress.set_cancel(device->error_message());
 
 				if(progress.get_cancel())
 					break;
@@ -242,6 +249,9 @@ void Session::run_gpu()
 					gpu_need_tonemap_cond.wait(buffers_lock);
 				}
 			}
+
+			if(device->error_message() != "")
+				progress.set_cancel(device->error_message());
 
 			if(progress.get_cancel())
 				break;
@@ -345,6 +355,10 @@ void Session::run_cpu()
 
 			/* update scene */
 			update_scene();
+
+			if(device->error_message() != "")
+				progress.set_cancel(device->error_message());
+
 			if(progress.get_cancel())
 				break;
 
@@ -360,6 +374,9 @@ void Session::run_cpu()
 
 			if(!params.background)
 				need_tonemap = true;
+
+			if(device->error_message() != "")
+				progress.set_cancel(device->error_message());
 		}
 
 		device->task_wait();
@@ -379,6 +396,9 @@ void Session::run_cpu()
 				   want to show the result of an incomplete sample*/
 				tonemap();
 			}
+
+			if(device->error_message() != "")
+				progress.set_cancel(device->error_message());
 		}
 
 		progress.set_update();
@@ -391,7 +411,11 @@ void Session::run()
 	progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
 	if(!device->load_kernels()) {
-		progress.set_status("Failed loading render kernel, see console for errors");
+		string message = device->error_message();
+		if(message == "")
+			message = "Failed loading render kernel, see console for errors";
+
+		progress.set_status("Error", message);
 		progress.set_update();
 		return;
 	}
@@ -409,7 +433,7 @@ void Session::run()
 
 	/* progress update */
 	if(progress.get_cancel())
-		progress.set_status(progress.get_cancel_message());
+		progress.set_status("Cancel", progress.get_cancel_message());
 	else
 		progress.set_update();
 }

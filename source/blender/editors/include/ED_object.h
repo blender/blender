@@ -142,6 +142,7 @@ enum {
 
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+void ED_object_modifier_clear(struct Main *bmain, struct Scene *scene, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);

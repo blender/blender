@@ -997,8 +997,8 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 /* macro which inserts the function name */
 #ifdef __GNUC__
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
-#else /* MSVC doesnt support variable length args in macros */
-#  define RNA_warning _RNA_warning
+#else
+#  define RNA_warning(format, args, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
 #endif
 
 void _RNA_warning(const char *format, ...)

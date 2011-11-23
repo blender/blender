@@ -296,5 +296,6 @@ int ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d);
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic);
+void ED_view3D_background_image_clear(struct View3D *v3d);
 
 #endif /* ED_VIEW3D_H */

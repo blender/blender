@@ -466,6 +466,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 		if (use_trgt_verts || use_trgt_edges || use_trgt_faces) {
 			DerivedMesh *target_dm = obr->derivedFinal;
+			short free_target_dm = FALSE;
 			if (!target_dm) {
 				if (ELEM3(obr->type, OB_CURVE, OB_SURF, OB_FONT))
 					target_dm = CDDM_from_curve(obr);
@@ -476,6 +477,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					else
 						target_dm = CDDM_from_mesh(me, obr);
 				}
+				free_target_dm = TRUE;
 			}
 
 			/* We must check that we do have a valid target_dm! */
@@ -495,6 +497,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					if(dists_f)
 						new_w[i] = minf(dists_f[i], new_w[i]);
 				}
+				if(free_target_dm) target_dm->release(target_dm);
 				if(dists_v) MEM_freeN(dists_v);
 				if(dists_e) MEM_freeN(dists_e);
 				if(dists_f) MEM_freeN(dists_f);
