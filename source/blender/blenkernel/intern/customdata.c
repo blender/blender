@@ -1818,7 +1818,9 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 			dest_offset = dest_index * typeInfo->size;
 			
 			if (!src_data || !dest_data) {
-				printf("eek! null data in CustomData_copy_data!\n");
+				printf("%s: warning null data for %s type (%p --> %p), skipping\n",
+				       __func__, layerType_getName(source->layers[src_i].type),
+				       (void *)src_data, (void *)dest_data);
 				continue;
 			}
 			

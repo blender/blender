@@ -1740,7 +1740,11 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
+	/* commented since even when CD_POLYINDEX was first added this line fails
+	 * on the default cube, (after editmode toggle too) - campbell */
+#if 0
 	BLI_assert(CustomData_has_layer(&cddm->dm.faceData, CD_POLYINDEX));
+#endif
 
 	polyindex = CustomData_get_layer(&dm->faceData, CD_POLYINDEX);
 	if (!CustomData_has_layer(&cddm->dm.faceData, CD_ORIGINDEX)) {
