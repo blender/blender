@@ -493,14 +493,16 @@ BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, const char *slotna
 	return NULL;
 }
 
-BM_INLINE void BMO_SetIndex(BMesh *bm, BMHeader *element, int index)
+BM_INLINE void BMO_SetIndex(BMesh *bm, const void *element, int index)
 {
-	element->flags[bm->stackdepth-1].index = index;
+	BMHeader *header = (BMHeader *)element;
+	header->flags[bm->stackdepth-1].index = index;
 }
 
-BM_INLINE int BMO_GetIndex(BMesh *bm, BMHeader *element)
+BM_INLINE int BMO_GetIndex(BMesh *bm, void *element)
 {
-	return element->flags[bm->stackdepth-1].index;
+	BMHeader *header = (BMHeader *)element;
+	return header->flags[bm->stackdepth-1].index;
 }
 
 #ifdef __cplusplus

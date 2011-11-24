@@ -102,8 +102,8 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		if (l->e != l2->e) {
 			/*set up data for figuring out the two sides of
 			  the splits*/
-			BMO_SetIndex(bm, &l2->e->head, BMO_GetIndex(bm, &l->e->head));
-			et = etags + BMO_GetIndex(bm, &l->e->head);
+			BMO_SetIndex(bm, l2->e, BMO_GetIndex(bm, l->e));
+			et = etags + BMO_GetIndex(bm, l->e);
 			
 			if (!et->newe1) {
 				et->newe1 = l2->e;
@@ -147,7 +147,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			if (!BMO_TestFlag(bm, e, EDGE_SEAM))
 				continue;
 
-			et = etags + BMO_GetIndex(bm, &e->head);
+			et = etags + BMO_GetIndex(bm, e);
 			if (!et->tag && e->l) {
 				break;
 			}
@@ -164,7 +164,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 			v = i ? l->next->v : l->v;
 
 			while (1) {
-				et = etags + BMO_GetIndex(bm, &l->e->head);
+				et = etags + BMO_GetIndex(bm, l->e);
 				if (et->newe1 == l->e) {
 					if (et->newe1) {
 						BMO_SetFlag(bm, et->newe1, EDGE_RET1);
@@ -248,7 +248,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
 	
 	BM_ITER_INDEX(e, &iter, bm, BM_EDGES_OF_MESH, NULL, i) {
-		BMO_SetIndex(bm, &e->head, i);
+		BMO_SetIndex(bm, e, i);
 	}
 
 #ifdef ETV
@@ -281,7 +281,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
 
-					et = etags + BMO_GetIndex(bm, &l->e->head);
+					et = etags + BMO_GetIndex(bm, l->e);
 					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
 					}
@@ -336,7 +336,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 
 					if (l3 == NULL || (BMO_TestFlag(bm, l3->e, EDGE_SEAM) && l3->e != l->e)) {
-						et = etags + BMO_GetIndex(bm, &l2->e->head);
+						et = etags + BMO_GetIndex(bm, l2->e);
 						if (ETV(et, v, l2) == NULL) {
 							v2 = BM_Make_Vert(bm, v->co, v);
 							
@@ -350,7 +350,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 								l3 = l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
-								et = etags + BMO_GetIndex(bm, &l3->e->head);
+								et = etags + BMO_GetIndex(bm, l3->e);
 							} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 						}
 						else {
