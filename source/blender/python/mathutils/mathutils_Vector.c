@@ -95,7 +95,7 @@ PyDoc_STRVAR(Vector_zero_doc,
 );
 static PyObject *Vector_zero(VectorObject *self)
 {
-	fill_vn(self->vec, self->size, 0.0f);
+	fill_vn_fl(self->vec, self->size, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;
@@ -116,19 +116,10 @@ PyDoc_STRVAR(Vector_normalize_doc,
 );
 static PyObject *Vector_normalize(VectorObject *self)
 {
-	int i;
-	float norm = 0.0f;
-
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for (i = 0; i < self->size; i++) {
-		norm += self->vec[i] * self->vec[i];
-	}
-	norm = (float) sqrt(norm);
-	for (i = 0; i < self->size; i++) {
-		self->vec[i] /= norm;
-	}
+	normalize_vn(self->vec, self->size);
 
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
@@ -571,8 +562,6 @@ PyDoc_STRVAR(Vector_dot_doc,
 static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 {
 	float tvec[MAX_DIMENSIONS];
-	double dot = 0.0;
-	int x;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -580,11 +569,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 	if (mathutils_array_parse(tvec, self->size, self->size, value, "Vector.dot(other), invalid 'other' arg") == -1)
 		return NULL;
 
-	for (x = 0; x < self->size; x++) {
-		dot += (double)(self->vec[x] * tvec[x]);
-	}
-
-	return PyFloat_FromDouble(dot);
+	return PyFloat_FromDouble(dot_vn_vn(self->vec, tvec, self->size));
 }
 
 PyDoc_STRVAR(Vector_angle_doc,
@@ -1145,9 +1130,6 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2) {
-		int i;
-		double dot = 0.0f;
-
 		if (vec1->size != vec2->size) {
 			PyErr_SetString(PyExc_ValueError,
 			                "Vector multiplication: "
@@ -1156,10 +1138,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 		}
 
 		/*dot product*/
-		for (i = 0; i < vec1->size; i++) {
-			dot += (double)(vec1->vec[i] * vec2->vec[i]);
-		}
-		return PyFloat_FromDouble(dot);
+		return PyFloat_FromDouble(dot_vn_vn(vec1->vec, vec2->vec, vec1->size));
 	}
 	else if (vec1) {
 		if (MatrixObject_Check(v2)) {
@@ -1644,7 +1623,6 @@ static PyObject *Vector_getLength(VectorObject *self, void *UNUSED(closure))
 static int Vector_setLength(VectorObject *self, PyObject *value)
 {
 	double dot = 0.0f, param;
-	int i;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
@@ -1661,13 +1639,11 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 		return -1;
 	}
 	if (param == 0.0) {
-		fill_vn(self->vec, self->size, 0.0f);
+		fill_vn_fl(self->vec, self->size, 0.0f);
 		return 0;
 	}
 
-	for (i = 0; i < self->size; i++) {
-		dot += (double)(self->vec[i] * self->vec[i]);
-	}
+	dot= dot_vn_vn(self->vec, self->vec, self->size);
 
 	if (!dot) /* cant sqrt zero */
 		return 0;
@@ -1679,9 +1655,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 
 	dot= dot/param;
 
-	for (i = 0; i < self->size; i++) {
-		self->vec[i]= self->vec[i] / (float)dot;
-	}
+	mul_vn_fl(self->vec, self->size, 1.0/dot);
 
 	(void)BaseMath_WriteCallback(self); /* checked already */
 
@@ -1691,16 +1665,10 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 /* vector.length_squared */
 static PyObject *Vector_getLengthSquared(VectorObject *self, void *UNUSED(closure))
 {
-	double dot = 0.0f;
-	int i;
-
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for (i = 0; i < self->size; i++) {
-		dot += (double)(self->vec[i] * self->vec[i]);
-	}
-	return PyFloat_FromDouble(dot);
+	return PyFloat_FromDouble(dot_vn_vn(self->vec, self->vec, self->size));
 }
 
 /* Get a new Vector according to the provided swizzle. This function has little
@@ -2432,7 +2400,7 @@ PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObje
 				memcpy(self->vec, vec, size * sizeof(float));
 			}
 			else { /* new empty */
-				fill_vn(self->vec, size, 0.0f);
+				fill_vn_fl(self->vec, size, 0.0f);
 				if (size == 4) { /* do the homogenous thing */
 					self->vec[3] = 1.0f;
 				}

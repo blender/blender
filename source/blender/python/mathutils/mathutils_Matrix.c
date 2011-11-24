@@ -1223,7 +1223,7 @@ PyDoc_STRVAR(Matrix_zero_doc,
 );
 static PyObject *Matrix_zero(MatrixObject *self)
 {
-	fill_vn(self->contigPtr, self->row_size * self->col_size, 0.0f);
+	fill_vn_fl(self->contigPtr, self->row_size * self->col_size, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;
