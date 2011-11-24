@@ -11,13 +11,13 @@ from bge import texture
 
 def createTexture(cont):
     """Create a new Dynamic Texture"""
-    object = cont.owner
+    obj = cont.owner
 
     # get the reference pointer (ID) of the internal texture
-    ID = texture.materialID(object, 'IMoriginal.png')
+    ID = texture.materialID(obj, 'IMoriginal.png')
 
     # create a texture object
-    object_texture = texture.Texture(object, ID)
+    object_texture = texture.Texture(obj, ID)
 
     # create a new source with an external image
     url = logic.expandPath("//newtexture.jpg")

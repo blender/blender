@@ -241,7 +241,7 @@ static PyObject *Euler_rotate(EulerObject * self, PyObject *value)
 		return NULL;
 
 	eulO_to_mat3(self_rmat, self->eul, self->order);
-	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+	mul_m3_m3m3(rmat, other_rmat, self_rmat);
 
 	mat3_to_compatible_eulO(self->eul, self->eul, self->order, rmat);
 

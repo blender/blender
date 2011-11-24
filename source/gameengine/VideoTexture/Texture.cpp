@@ -329,7 +329,17 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 					// get texture size
 					short * orgSize = self->m_source->m_image->getSize();
 					// calc scaled sizes
-					short size[] = {ImageBase::calcSize(orgSize[0]), ImageBase::calcSize(orgSize[1])};
+					short size[2];
+					if (GLEW_ARB_texture_non_power_of_two)
+					{
+						size[0] = orgSize[0];
+						size[1] = orgSize[1];
+					}
+					else
+					{
+						size[0] = ImageBase::calcSize(orgSize[0]);
+						size[1] = ImageBase::calcSize(orgSize[1]);
+					}
 					// scale texture if needed
 					if (size[0] != orgSize[0] || size[1] != orgSize[1])
 					{

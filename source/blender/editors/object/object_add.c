@@ -1374,6 +1374,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				makeDispListCurveTypes(scene, newob, 0);
 
 			newob->type= OB_CURVE;
+			cu->type= OB_CURVE;
 
 			if(cu->vfont) {
 				cu->vfont->id.us--;

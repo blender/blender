@@ -933,14 +933,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	if(snode->nodetree) {
 		bNode *node;
 		
-		/* init ui blocks for opened node group trees first 
-		 * so they're in the correct depth stack order */
+		node_uiblocks_init(C, snode->nodetree);
+		
+		/* uiBlocks must be initialized in drawing order for correct event clipping.
+		 * Node group internal blocks added after the main group block.
+		 */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
 			if(node->flag & NODE_GROUP_EDIT)
 				node_uiblocks_init(C, (bNodeTree *)node->id);
 		}
-		
-		node_uiblocks_init(C, snode->nodetree);
 		
 		node_update_nodetree(C, snode->nodetree, 0.0f, 0.0f);
 		node_draw_nodetree(C, ar, snode, snode->nodetree);

@@ -1072,6 +1072,15 @@ static void wm_operator_ui_popup_cancel(void *userData)
 	MEM_freeN(data);
 }
 
+static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
+{
+	wmOpPopUp *data= arg;
+	wmOperator *op= data->op;
+
+	if(op && retval > 0)
+		WM_operator_call(C, op);
+}
+
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 {
 	wmOpPopUp *data= MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
@@ -1079,7 +1088,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 	data->width= width;
 	data->height= height;
 	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
-	uiPupBlockEx(C, wm_operator_ui_create, wm_operator_ui_popup_cancel, data);
+	uiPupBlockEx(C, wm_operator_ui_create, NULL, wm_operator_ui_popup_cancel, data);
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1110,7 +1119,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int h
 	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
-	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_cancel, data);
+	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data);
 
 	return OPERATOR_RUNNING_MODAL;
 }

@@ -1483,6 +1483,8 @@ int BKE_alphatest_ibuf(ImBuf *ibuf)
 	return FALSE;
 }
 
+/* note: imf->planes is ignored here, its assumed the image channels
+ * are already set */
 int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 {
 	char imtype= imf->imtype;
@@ -1577,7 +1579,6 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		/* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JPG|quality;
-		if(ibuf->planes==32) ibuf->planes= 24;	/* unsupported feature only confuses other s/w */
 	}
 	
 	BLI_make_existing_file(name);
@@ -1588,6 +1589,29 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	}
 	
 	return(ok);
+}
+
+/* same as BKE_write_ibuf_as but crappy workaround not to perminantly modify
+ * _some_, values in the imbuf */
+int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
+                      const short save_copy)
+{
+	ImBuf ibuf_back= *ibuf;
+	int ok;
+
+	/* all data is rgba anyway,
+	 * this just controls how to save for some formats */
+	ibuf->planes= imf->planes;
+
+	ok= BKE_write_ibuf(ibuf, name, imf);
+
+	if (save_copy) {
+		/* note that we are not restoring _all_ settings */
+		ibuf->planes= ibuf_back.planes;
+		ibuf->ftype=  ibuf_back.ftype;
+	}
+
+	return ok;
 }
 
 int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
