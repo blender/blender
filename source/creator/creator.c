@@ -77,6 +77,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
+#include "BKE_image.h"
 
 #include "IMB_imbuf.h"	// for IMB_init
 
@@ -300,7 +301,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
 	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
 	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
-	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
+	printf ("  $BLENDER_USER_DAT`AFILES   Directory for user data files (icons, translations, ..).\n");
 	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
 	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
@@ -582,47 +583,14 @@ static int set_image_type(int argc, const char **argv, void *data)
 		const char *imtype = argv[1];
 		Scene *scene= CTX_data_scene(C);
 		if (scene) {
-			char imtype_new;
+			const char imtype_new= BKE_imtype_from_arg(imtype);
 
-			if      (!strcmp(imtype,"TGA")) imtype_new = R_IMF_IMTYPE_TARGA;
-			else if (!strcmp(imtype,"IRIS")) imtype_new = R_IMF_IMTYPE_IRIS;
-#ifdef WITH_DDS
-			else if (!strcmp(imtype,"DDS")) imtype_new = R_IMF_IMTYPE_DDS;
-#endif
-			else if (!strcmp(imtype,"JPEG")) imtype_new = R_IMF_IMTYPE_JPEG90;
-			else if (!strcmp(imtype,"IRIZ")) imtype_new = R_IMF_IMTYPE_IRIZ;
-			else if (!strcmp(imtype,"RAWTGA")) imtype_new = R_IMF_IMTYPE_RAWTGA;
-			else if (!strcmp(imtype,"AVIRAW")) imtype_new = R_IMF_IMTYPE_AVIRAW;
-			else if (!strcmp(imtype,"AVIJPEG")) imtype_new = R_IMF_IMTYPE_AVIJPEG;
-			else if (!strcmp(imtype,"PNG")) imtype_new = R_IMF_IMTYPE_PNG;
-			else if (!strcmp(imtype,"AVICODEC")) imtype_new = R_IMF_IMTYPE_AVICODEC;
-			else if (!strcmp(imtype,"QUICKTIME")) imtype_new = R_IMF_IMTYPE_QUICKTIME;
-			else if (!strcmp(imtype,"BMP")) imtype_new = R_IMF_IMTYPE_BMP;
-#ifdef WITH_HDR
-			else if (!strcmp(imtype,"HDR")) imtype_new = R_IMF_IMTYPE_RADHDR;
-#endif
-#ifdef WITH_TIFF
-			else if (!strcmp(imtype,"TIFF")) imtype_new = R_IMF_IMTYPE_TIFF;
-#endif
-#ifdef WITH_OPENEXR
-			else if (!strcmp(imtype,"EXR")) imtype_new = R_IMF_IMTYPE_OPENEXR;
-			else if (!strcmp(imtype,"MULTILAYER")) imtype_new = R_IMF_IMTYPE_MULTILAYER;
-#endif
-			else if (!strcmp(imtype,"MPEG")) imtype_new = R_IMF_IMTYPE_FFMPEG;
-			else if (!strcmp(imtype,"FRAMESERVER")) imtype_new = R_IMF_IMTYPE_FRAMESERVER;
-#ifdef WITH_CINEON
-			else if (!strcmp(imtype,"CINEON")) imtype_new = R_IMF_IMTYPE_CINEON;
-			else if (!strcmp(imtype,"DPX")) imtype_new = R_IMF_IMTYPE_DPX;
-#endif
-#ifdef WITH_OPENJPEG
-			else if (!strcmp(imtype,"JP2")) imtype_new = R_IMF_IMTYPE_JP2;
-#endif
-			else {
+			if (imtype_new == R_IMF_IMTYPE_INVALID) {
 				printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
-				imtype_new= scene->r.im_format.imtype;
 			}
-
-			scene->r.im_format.imtype= imtype_new;
+			else {
+				scene->r.im_format.imtype= imtype_new;
+			}
 		}
 		else {
 			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
