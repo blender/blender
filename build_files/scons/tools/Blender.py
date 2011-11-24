@@ -319,19 +319,10 @@ def creator(env):
     incs = ['#/intern/guardedalloc', '#/source/blender/blenlib', '#/source/blender/blenkernel', '#/source/blender/editors/include', '#/source/blender/blenloader', '#/source/blender/imbuf', '#/source/blender/renderconverter', '#/source/blender/render/extern/include', '#/source/blender/windowmanager', '#/source/blender/makesdna', '#/source/blender/makesrna', '#/source/gameengine/BlenderRoutines', '#/extern/glew/include', '#/source/blender/gpu', env['BF_OPENGL_INC']]
 
     defs = []
-    if env['WITH_BF_QUICKTIME']:
-        incs.append(env['BF_QUICKTIME_INC'])
-        defs.append('WITH_QUICKTIME')
 
     if env['WITH_BF_BINRELOC']:
         incs.append('#/extern/binreloc/include')
         defs.append('WITH_BINRELOC')
-
-    if env['WITH_BF_OPENEXR']:
-        defs.append('WITH_OPENEXR')
-
-    if env['WITH_BF_TIFF']:
-        defs.append('WITH_TIFF')
 
     if env['WITH_BF_SDL']:
         defs.append('WITH_SDL')

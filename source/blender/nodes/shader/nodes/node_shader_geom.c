@@ -61,7 +61,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 		int i;
 
 		if(ngeo->uvname[0]) {
-			/* find uv layer by name */
+			/* find uv map by name */
 			for(i = 0; i < shi->totuv; i++) {
 				if(strcmp(shi->uv[i].name, ngeo->uvname)==0) {
 					suv= &shi->uv[i];

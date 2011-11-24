@@ -640,6 +640,7 @@ class CLIP_PT_tools_clip(Panel):
         layout = self.layout
 
         layout.operator("clip.set_viewport_background")
+        layout.operator("clip.setup_tracking_scene")
 
 
 class CLIP_MT_view(Menu):

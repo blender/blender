@@ -392,7 +392,37 @@ void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 
 /***************************** Array Functions *******************************/
 
-void range_vni(int *array_tar, const int size, const int start)
+double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int size)
+{
+	double d= 0.0f;
+	const float *array_pt_a= array_src_a + (size-1);
+	const float *array_pt_b= array_src_b + (size-1);
+	int i= size;
+	while(i--) { d += *(array_pt_a--) * *(array_pt_b--); }
+	return d;
+}
+
+float normalize_vn_vn(float *array_tar, const float *array_src, const int size)
+{
+	double d= dot_vn_vn(array_tar, array_src, size);
+	float d_sqrt;
+	if (d > 1.0e-35) {
+		d_sqrt= (float)sqrt(d);
+		mul_vn_vn_fl(array_tar, array_src, size, 1.0f/d_sqrt);
+	}
+	else {
+		fill_vn_fl(array_tar, size, 0.0f);
+		d_sqrt= 0.0f;
+	}
+	return d_sqrt;
+}
+
+float normalize_vn(float *array_tar, const int size)
+{
+	return normalize_vn_vn(array_tar, array_tar, size);
+}
+
+void range_vn_i(int *array_tar, const int size, const int start)
 {
 	int *array_pt= array_tar + (size-1);
 	int j= start + (size-1);
@@ -464,14 +494,14 @@ void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	while(i--) { *(tar--) = *(src_a--) - *(src_b--); }
 }
 
-void fill_vni(int *array_tar, const int size, const int val)
+void fill_vn_i(int *array_tar, const int size, const int val)
 {
 	int *tar= array_tar + (size-1);
 	int i= size;
 	while(i--) { *(tar--) = val; }
 }
 
-void fill_vn(float *array_tar, const int size, const float val)
+void fill_vn_fl(float *array_tar, const int size, const float val)
 {
 	float *tar= array_tar + (size-1);
 	int i= size;

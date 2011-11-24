@@ -1840,7 +1840,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMIter viter;
 	int i, start;
 	
-	fill_vn(dists, em->bm->totvert, FLT_MAX);
+	fill_vn_fl(dists, em->bm->totvert, FLT_MAX);
 
 	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 

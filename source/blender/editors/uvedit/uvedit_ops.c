@@ -174,7 +174,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	else {
 		/* old shading system, assign image to selected faces */
 		
-		/* ensure we have a uv layer */
+		/* ensure we have a uv map */
 		if(!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 			BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 			BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);

@@ -242,7 +242,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
         # image format outputs
         if surface.surface_format == 'IMAGE':
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
-            layout.prop_search(surface, "uv_layer", ob.data, "uv_textures", text="UV layer:")
+            layout.prop_search(surface, "uv_layer", ob.data, "uv_textures", text="UV Map:")
             layout.separator()
 
             layout.prop(surface, "image_output_path", text="")
@@ -300,7 +300,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
 
         elif surface.init_color_type == 'TEXTURE':
             layout.prop(surface, "init_texture")
-            layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Layer:")
+            layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Map:")
 
         elif surface.init_color_type == 'VERTEX_COLOR':
             layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")

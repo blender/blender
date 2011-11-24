@@ -619,11 +619,11 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_ALL_VECTOR_SUBTYPES:
 			if (len>=2 && len <= 4) {
 				if (is_thick) {
-					ret= newVectorObject(NULL, len, Py_NEW, NULL);
+					ret= Vector_CreatePyObject(NULL, len, Py_NEW, NULL);
 					RNA_property_float_get_array(ptr, prop, ((VectorObject *)ret)->vec);
 				}
 				else {
-					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_VEC);
+					PyObject *vec_cb= Vector_CreatePyObject_cb(ret, len, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_VEC);
 					Py_DECREF(ret); /* the vector owns now */
 					ret= vec_cb; /* return the vector instead */
 				}
@@ -632,22 +632,22 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_MATRIX:
 			if (len==16) {
 				if (is_thick) {
-					ret= newMatrixObject(NULL, 4, 4, Py_NEW, NULL);
+					ret= Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, NULL);
 					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
 				}
 				else {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
+					PyObject *mat_cb= Matrix_CreatePyObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= mat_cb; /* return the matrix instead */
 				}
 			}
 			else if (len==9) {
 				if (is_thick) {
-					ret= newMatrixObject(NULL, 3, 3, Py_NEW, NULL);
+					ret= Matrix_CreatePyObject(NULL, 3, 3, Py_NEW, NULL);
 					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
 				}
 				else {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
+					PyObject *mat_cb= Matrix_CreatePyObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= mat_cb; /* return the matrix instead */
 				}
@@ -661,23 +661,23 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 					PropertyRNA *prop_eul_order= NULL;
 					short order= pyrna_rotation_euler_order_get(ptr, &prop_eul_order, EULER_ORDER_XYZ);
 
-					ret= newEulerObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
+					ret= Euler_CreatePyObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
 					/* order will be updated from callback on use */
-					PyObject *eul_cb= newEulerObject_cb(ret, EULER_ORDER_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+					PyObject *eul_cb= Euler_CreatePyObject_cb(ret, EULER_ORDER_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the euler owns now */
 					ret= eul_cb; /* return the euler instead */
 				}
 			}
 			else if (len==4) {
 				if (is_thick) {
-					ret= newQuaternionObject(NULL, Py_NEW, NULL);
+					ret= Quaternion_CreatePyObject(NULL, Py_NEW, NULL);
 					RNA_property_float_get_array(ptr, prop, ((QuaternionObject *)ret)->quat);
 				}
 				else {
-					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
+					PyObject *quat_cb= Quaternion_CreatePyObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
 					Py_DECREF(ret); /* the quat owns now */
 					ret= quat_cb; /* return the quat instead */
 				}
@@ -687,11 +687,11 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_COLOR_GAMMA:
 			if (len==3) { /* color */
 				if (is_thick) {
-					ret= newColorObject(NULL, Py_NEW, NULL); // TODO, get order from RNA
+					ret= Color_CreatePyObject(NULL, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((ColorObject *)ret)->col);
 				}
 				else {
-					PyObject *col_cb= newColorObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_COLOR);
+					PyObject *col_cb= Color_CreatePyObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_COLOR);
 					Py_DECREF(ret); /* the color owns now */
 					ret= col_cb; /* return the color instead */
 				}
@@ -4543,15 +4543,15 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			switch(RNA_property_subtype(prop)) {
 #ifdef USE_MATHUTILS
 				case PROP_ALL_VECTOR_SUBTYPES:
-					ret= newVectorObject(data, len, Py_NEW, NULL);
+					ret= Vector_CreatePyObject(data, len, Py_NEW, NULL);
 					break;
 				case PROP_MATRIX:
 					if (len==16) {
-						ret= newMatrixObject(data, 4, 4, Py_NEW, NULL);
+						ret= Matrix_CreatePyObject(data, 4, 4, Py_NEW, NULL);
 						break;
 					}
 					else if (len==9) {
-						ret= newMatrixObject(data, 3, 3, Py_NEW, NULL);
+						ret= Matrix_CreatePyObject(data, 3, 3, Py_NEW, NULL);
 						break;
 					}
 					/* pass through */

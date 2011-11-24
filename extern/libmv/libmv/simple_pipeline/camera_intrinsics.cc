@@ -201,6 +201,8 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height, doub
       warp_y = warp_y*aspy + 0.5 * overscan * h;
       int ix = int(warp_x), iy = int(warp_y);
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
+      if(fx == 256) { fx=0; ix++; }
+      if(fy == 256) { fy=0; iy++; }
       // Use nearest border pixel
       if( ix < 0 ) { ix = 0, fx = 0; }
       if( iy < 0 ) { iy = 0, fy = 0; }

@@ -831,7 +831,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 """
             elif tex.texture_coords == 'UV':
                 split = layout.split(percentage=0.3)
-                split.label(text="Layer:")
+                split.label(text="Map:")
                 ob = context.object
                 if ob and ob.type == 'MESH':
                     split.prop_search(tex, "uv_layer", ob.data, "uv_textures", text="")

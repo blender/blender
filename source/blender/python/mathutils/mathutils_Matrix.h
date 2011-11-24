@@ -51,8 +51,8 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 /*prototypes*/
-PyObject *newMatrixObject(float *mat, const unsigned short row_size, const unsigned short col_size, int type, PyTypeObject *base_type);
-PyObject *newMatrixObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
+PyObject *Matrix_CreatePyObject(float *mat, const unsigned short row_size, const unsigned short col_size, int type, PyTypeObject *base_type);
+PyObject *Matrix_CreatePyObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
 
 extern int mathutils_matrix_vector_cb_index;
 extern struct Mathutils_Callback mathutils_matrix_vector_cb;

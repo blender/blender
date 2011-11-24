@@ -278,7 +278,7 @@ layer that contains the vertex attribute.
 
 .. data:: CD_MTFACE
 
-    Vertex attribute is a UV layer. Data type is vector of 2 float.
+    Vertex attribute is a UV Map. Data type is vector of 2 float.
 
     There can be more than one attribute of that type, they are differenciated by name.
     In blender, you can retrieve the attribute data with:
@@ -495,10 +495,10 @@ Functions
         for uniform in shader['uniforms']:
             if uniform['type'] == gpu.GPU_DYNAMIC_SAMPLER_2DIMAGE:
                 print("uniform {0} is using image {1}".format(uniform['varname'], uniform['image'].filepath))
-        # scan the attribute list and find the UV layer used in the shader
+        # scan the attribute list and find the UV Map used in the shader
         for attribute in shader['attributes']:
             if attribute['type'] == gpu.CD_MTFACE:
-                print("attribute {0} is using UV layer {1}".format(attribute['varname'], attribute['name']))
+                print("attribute {0} is using UV Map {1}".format(attribute['varname'], attribute['name']))
 
 *****
 Notes

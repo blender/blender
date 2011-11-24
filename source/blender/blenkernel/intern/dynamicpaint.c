@@ -1307,7 +1307,7 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 
 		if (!tex) return;
 
-		/* get uv layer */
+		/* get uv map */
 		CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, surface->init_layername, uvname);
 		tface = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 		if (!tface) return;
@@ -2094,7 +2094,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	numOfFaces = dm->getNumFaces(dm);
 	mface = dm->getTessFaceArray(dm);
 
-	/* get uv layer */
+	/* get uv map */
 	CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, surface->uvlayer_name, uvname);
 	tface = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 

@@ -417,7 +417,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 	me->totface = mesh->getFacesCount() + new_tris;
 	me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
 	
-	// allocate UV layers
+	// allocate UV Maps
 	unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
 
 	for (i = 0; i < totuvset; i++) {
@@ -433,7 +433,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 		//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 	}
 
-	// activate the first uv layer
+	// activate the first uv map
 	if (totuvset) me->mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
 
 	UVDataWrapper uvs(mesh->getUVCoords());

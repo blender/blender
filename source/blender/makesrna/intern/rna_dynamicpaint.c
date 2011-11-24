@@ -412,7 +412,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DynamicPaint_uvlayer_set");
 	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);

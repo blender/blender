@@ -1194,7 +1194,7 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 		memcpy(values, bb->vec, sizeof(bb->vec));
 	}
 	else {
-		fill_vn(values, sizeof(bb->vec)/sizeof(float), 0.0f);
+		fill_vn_fl(values, sizeof(bb->vec)/sizeof(float), 0.0f);
 	}
 
 }

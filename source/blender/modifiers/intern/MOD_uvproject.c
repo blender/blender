@@ -170,7 +170,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 	if(num_projectors == 0) return dm;
 
-	/* make sure there are UV layers available */
+	/* make sure there are UV Maps available */
 
 	if(!CustomData_has_layer(&dm->faceData, CD_MTFACE)) return dm;
 
@@ -259,7 +259,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
-	/* make sure we are not modifying the original UV layer */
+	/* make sure we are not modifying the original UV map */
 	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
 			CD_MTFACE, uvname);
 

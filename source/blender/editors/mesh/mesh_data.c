@@ -513,8 +513,8 @@ static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add UV Texture";
-	ot->description= "Add UV texture layer";
+	ot->name= "Add UV Map";
+	ot->description= "Add UV Map";
 	ot->idname= "MESH_OT_uv_texture_add";
 
 	
@@ -601,8 +601,8 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_drop_named_image(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign Image to UV Texture";
-	ot->description= "Assigns Image to active UV layer, or creates a UV layer";
+	ot->name= "Assign Image to UV Map";
+	ot->description= "Assigns Image to active UV Map, or creates a UV Map";
 	ot->idname= "MESH_OT_drop_named_image";
 
 	
@@ -634,8 +634,8 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove UV Texture";
-	ot->description= "Remove UV texture layer";
+	ot->name= "Remove UV Map";
+	ot->description= "Remove UV Map";
 	ot->idname= "MESH_OT_uv_texture_remove";
 
 	

@@ -1187,7 +1187,7 @@ static void def_sh_geometry(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
-	RNA_def_property_ui_text(prop, "UV Layer", "");
+	RNA_def_property_ui_text(prop, "UV Map", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "color_layer", PROP_STRING, PROP_NONE);

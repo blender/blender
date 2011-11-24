@@ -45,7 +45,7 @@ typedef struct {
 } VectorObject;
 
 /*prototypes*/
-PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type);
-PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
+PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTypeObject *base_type);
+PyObject *Vector_CreatePyObject_cb(PyObject *user, int size, int callback_type, int subtype);
 
 #endif				/* MATHUTILS_VECTOR_H */

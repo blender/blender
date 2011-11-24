@@ -791,14 +791,15 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	/* some settings depend on this being a scene thats rendered */
 	const short is_render_out= (id && GS(id->name) == ID_SCE);
 
-	uiLayout *col, *row;
+	uiLayout *col, *row, *split, *sub;
 
 	col= uiLayoutColumn(layout, 0);
 
-	uiItemR(col, imfptr, "file_format", 0, "", ICON_NONE);
+	split= uiLayoutSplit(col, 0.5f, 0);
 	
-	row= uiLayoutRow(col, 0);
-	uiItemR(row, imfptr, "color_mode", UI_ITEM_R_EXPAND, "Color", ICON_NONE);
+	uiItemR(split, imfptr, "file_format", 0, "", ICON_NONE);
+	sub= uiLayoutRow(split, 0);
+	uiItemR(sub, imfptr, "color_mode", UI_ITEM_R_EXPAND, "Color", ICON_NONE);
 
 	/* only display depth setting if multiple depths can be used */
 	if((ELEM6(depth_ok,
