@@ -413,6 +413,21 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	return vertMap;
 }
 
+BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
+{
+	/* this is a cheap way to set the edge draw, its not precise and will
+	 * pick the first 2 faces an edge uses */
+
+
+	if ( /* (med->flag & ME_EDGEDRAW) && */ /* assume to be true */
+	     (e->l && (e->l != e->l->radial_next)) &&
+	     (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.995f))
+	{
+		med->flag &= ~ME_EDGEDRAW;
+	}
+}
+
+
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
@@ -531,6 +546,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 		/*copy over customdata*/
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
+
+		bmesh_quick_edgedraw_flag(med, e);
 
 		i++;
 		med++;
@@ -660,21 +677,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {
 			mloop->e = BM_GetIndex(l->e);
 			mloop->v = BM_GetIndex(l->v);
-
-
-#if 1
-			/* this is a cheap way to set the edge draw, just so happens
-			 * at this part of the code the info is available, feel free to
-			 * move this block of code elsewhere */
-
-			if ( (l != l->radial_next) &&
-			     (medge[mloop->e].flag & ME_EDGEDRAW) &&
-			     (dot_v3v3(f->no, l->radial_next->f->no) > 0.995f))
-			{
-				medge[mloop->e].flag &= ~ME_EDGEDRAW;
-			}
-#endif
-
 
 			/*copy over customdata*/
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
