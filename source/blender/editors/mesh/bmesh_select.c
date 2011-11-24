@@ -1727,6 +1727,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ViewContext vc;
+	BMesh *bm;
 	BMWalker walker;
 	BMEditMesh *em;
 	BMVert *eve;
@@ -1741,9 +1742,11 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	em_setup_viewcontext(C, &vc);
 	em = vc.em;
 
-	if(vc.em->bm->totedge==0)
+	if(em->bm->totedge==0)
 		return OPERATOR_CANCELLED;
 	
+	bm= em->bm;
+
 	vc.mval[0]= event->mval[0];
 	vc.mval[1]= event->mval[1];
 	
@@ -1761,23 +1764,44 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (efa) {
-		eed = bm_firstfaceloop(efa)->e;
-	} else if (!eed) {
-		if (!eve || !eve->e)
-			return OPERATOR_CANCELLED;
-		
-		eed = eve->e;
-	}
+	if (em->selectmode == SCE_SELECT_FACE) {
+		BMIter iter;
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0,0,0,0, BMW_NIL_LAY);
-	e = BMW_Begin(&walker, eed->v1);
-	for (; e; e=BMW_Step(&walker)) {
-			BM_Select(em->bm, e->v1, sel);
-			BM_Select(em->bm, e->v2, sel);
+		if (efa == NULL)
+			return OPERATOR_CANCELLED;
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
+			else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+		}
+
+		/* walk */
+		BMW_Init(&walker, bm, BMW_ISLAND,  0,BM_SELECT,0,0,  BMW_NIL_LAY);
+		e = BMW_Begin(&walker, efa);
+		for (; efa; efa=BMW_Step(&walker)) {
+			BM_Select(bm, efa, sel);
+		}
+		BMW_End(&walker);
 	}
-	BMW_End(&walker);
-	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+	else {
+		if (efa) {
+			eed = bm_firstfaceloop(efa)->e;
+		} else if (!eed) {
+			if (!eve || !eve->e)
+				return OPERATOR_CANCELLED;
+
+			eed = eve->e;
+		}
+
+		BMW_Init(&walker, bm, BMW_SHELL, 0,0,0,0, BMW_NIL_LAY);
+		e = BMW_Begin(&walker, eed->v1);
+		for (; e; e=BMW_Step(&walker)) {
+				BM_Select(bm, e->v1, sel);
+				BM_Select(bm, e->v2, sel);
+		}
+		BMW_End(&walker);
+		EDBM_select_flush(em, SCE_SELECT_VERTEX);
+	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -1806,34 +1830,64 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	BLI_array_declare(verts);
-	BMVert **verts = NULL;
+	BMesh *bm= em->bm;
 	BMIter iter;
 	BMVert *v;
 	BMEdge *e;
 	BMWalker walker;
-	int i, tot;
 
-	tot = 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_SELECT) && !BM_TestHFlag(v, BM_HIDDEN)) {
-			BLI_array_growone(verts);
-			verts[tot++] = v;
-		}
-	}
+	if (em->selectmode == SCE_SELECT_FACE) {
+		BMFace *efa;
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0,0,0,0, BMW_NIL_LAY);
-	for (i=0; i<tot; i++) {
-		e = BMW_Begin(&walker, verts[i]);
-		for (; e; e=BMW_Step(&walker)) {
-			BM_Select(em->bm, e->v1, 1);
-			BM_Select(em->bm, e->v2, 1);
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_TestHFlag(efa, BM_SELECT) && !BM_TestHFlag(efa, BM_HIDDEN)) {
+				BM_SetHFlag(efa, BM_TMP_TAG);
+			}
+			else {
+				BM_ClearHFlag(efa, BM_TMP_TAG);
+			}
 		}
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(e, BM_SEAM)) BMO_SetFlag(bm, e, BM_SELECT);
+			else                           BMO_ClearFlag(bm, e, BM_SELECT); /* is this needed ? */
+		}
+
+		BMW_Init(&walker, bm, BMW_ISLAND,  0,BM_SELECT,0,0,  BMW_NIL_LAY);
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_TestHFlag(efa, BM_TMP_TAG)) {
+				e = BMW_Begin(&walker, efa);
+				for (; efa; efa=BMW_Step(&walker)) {
+					BM_Select(bm, efa, TRUE);
+				}
+			}
+		}
+		BMW_End(&walker);
 	}
-	BMW_End(&walker);
+	else  {
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(v, BM_SELECT) && !BM_TestHFlag(v, BM_HIDDEN)) {
+				BM_SetHFlag(v, BM_TMP_TAG);
+			}
+			else {
+				BM_ClearHFlag(v, BM_TMP_TAG);
+			}
+		}
+
+		BMW_Init(&walker, em->bm, BMW_SHELL, 0,0,0,0, BMW_NIL_LAY);
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(v, BM_TMP_TAG)) {
+				e = BMW_Begin(&walker, v);
+				for (; e; e=BMW_Step(&walker)) {
+					BM_Select(em->bm, e->v1, 1);
+					BM_Select(em->bm, e->v2, 1);
+				}
+			}
+		}
+		BMW_End(&walker);
+	}
 	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
-	BLI_array_free(verts);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
 	return OPERATOR_FINISHED;	

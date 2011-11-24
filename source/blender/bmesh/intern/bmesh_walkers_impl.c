@@ -366,6 +366,11 @@ static void *islandWalker_step(BMWalker *walker)
 
 	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
 	for (; l; l=BMIter_Step(&liter)) {
+		/* could skip loop here too, but dont add unless we need it */
+		if (walker->mask_edge && !BMO_TestFlag(walker->bm, l->e, walker->mask_edge)) {
+			continue;
+		}
+
 		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
 		for (; f; f=BMIter_Step(&iter)) {
 			if (walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
@@ -830,7 +835,7 @@ static BMWalker island_walker_type = {
 	islandWalker_yield,
 	sizeof(islandWalker),
 	BMW_BREADTH_FIRST,
-	BM_FACE, /* valid restrict masks */
+	BM_EDGE | BM_FACE, /* valid restrict masks */
 };
 
 static BMWalker loop_walker_type = {
