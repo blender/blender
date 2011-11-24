@@ -84,12 +84,12 @@ if builder.find('scons') != -1:
         sys.exit(retcode)
 
 # clean release directory if it already exists
-dir = 'release'
+release_dir = 'release'
 
-if os.path.exists(dir):
-    for f in os.listdir(dir):
-        if os.path.isfile(os.path.join(dir, f)):
-            os.remove(os.path.join(dir, f))
+if os.path.exists(release_dir):
+    for f in os.listdir(release_dir):
+        if os.path.isfile(os.path.join(release_dir, f)):
+            os.remove(os.path.join(release_dir, f))
 
 # create release package
 try:
@@ -99,16 +99,16 @@ except Exception, ex:
     sys.exit(1)
 
 # find release directory, must exist this time
-if not os.path.exists(dir):
-    sys.stderr.write("Failed to find release directory.\n")
+if not os.path.exists(release_dir):
+    sys.stderr.write("Failed to find release directory %r.\n" % release_dir)
     sys.exit(1)
 
 # find release package
 file = None
 filepath = None
 
-for f in os.listdir(dir):
-    rf = os.path.join(dir, f)
+for f in os.listdir(release_dir):
+    rf = os.path.join(release_dir, f)
     if os.path.isfile(rf) and f.startswith('blender'):
         file = f
         filepath = rf

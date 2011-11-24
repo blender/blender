@@ -1041,7 +1041,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 	}
 
 	matrix_as_3x3(self_rmat, self);
-	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+	mul_m3_m3m3(rmat, other_rmat, self_rmat);
 
 	copy_m3_m3((float (*)[3])(self->contigPtr), rmat);
 

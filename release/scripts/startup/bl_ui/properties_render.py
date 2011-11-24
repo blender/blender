@@ -456,7 +456,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         file_format = rd.image_settings.file_format
 
         layout.prop(rd, "filepath", text="")
-        
+
         flow = layout.column_flow()
         flow.prop(rd, "use_overwrite")
         flow.prop(rd, "use_placeholder")

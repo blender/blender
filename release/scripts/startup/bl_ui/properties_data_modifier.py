@@ -454,15 +454,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
 
         layout.prop(md, "use_normals")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.prop(md, "use_foam")
         sub = col.row()
         sub.active = md.use_foam
         sub.prop(md, "foam_coverage", text="Coverage")
-        
+
         col = split.column()
         col.active = md.use_foam
         col.label("Foam Data Layer Name:")

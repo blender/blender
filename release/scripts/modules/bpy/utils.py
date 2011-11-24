@@ -263,7 +263,7 @@ def user_script_path():
         return None
 
 
-def script_paths(subdir=None, user_pref=True, all=False):
+def script_paths(subdir=None, user_pref=True, check_all=False):
     """
     Returns a list of valid script paths.
 
@@ -271,9 +271,9 @@ def script_paths(subdir=None, user_pref=True, all=False):
     :type subdir: string
     :arg user_pref: Include the user preference script path.
     :type user_pref: bool
-    :arg all: Include local, user and system paths rather just the paths
+    :arg check_all: Include local, user and system paths rather just the paths
        blender uses.
-    :type all: bool
+    :type check_all: bool
     :return: script paths.
     :rtype: list
     """
@@ -286,7 +286,7 @@ def script_paths(subdir=None, user_pref=True, all=False):
     else:
         user_script_path = None
 
-    if all:
+    if check_all:
         # all possible paths
         base_paths = tuple(_os.path.join(resource_path(res), "scripts")
                            for res in ('LOCAL', 'USER', 'SYSTEM'))
@@ -343,7 +343,7 @@ def preset_paths(subdir):
     :rtype: list
     """
     dirs = []
-    for path in script_paths("presets", all=True):
+    for path in script_paths("presets", check_all=True):
         directory = _os.path.join(path, subdir)
         if not directory.startswith(path):
             raise Exception("invalid subdir given %r" % subdir)
@@ -432,9 +432,9 @@ def keyconfig_set(filepath):
     keyconfigs_old = keyconfigs[:]
 
     try:
-        file = open(filepath)
-        exec(compile(file.read(), filepath, 'exec'), {"__file__": filepath})
-        file.close()
+        keyfile = open(filepath)
+        exec(compile(keyfile.read(), filepath, 'exec'), {"__file__": filepath})
+        keyfile.close()
     except:
         import traceback
         traceback.print_exc()

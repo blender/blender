@@ -122,12 +122,13 @@ def main():
                   "W0232,"  # class has no __init__, Operator/Panel/Menu etc
                   "W0142,"  # Used * or ** magic
                             # even needed in some cases
-                  "R0903,"  # bake_action] Too many statements (68/50)
+                  "R0902,"  # Too many instance attributes
+                  "R0903,"  # Too many statements
                   "R0911,"  # Too many return statements
                   "R0912,"  # Too many branches
                   "R0913,"  # Too many arguments
                   "R0914,"  # Too many local variables
-                  "R0915,"  # bake_action] Too many statements (68/50)
+                  "R0915,"  # Too many statements
                   " "
                   "--include-ids=y "
                   "--output-format=parseable "

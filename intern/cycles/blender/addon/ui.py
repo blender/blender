@@ -349,7 +349,7 @@ def find_node(material, nodetype):
         ntree = material.node_tree
 
         for node in ntree.nodes:
-            if hasattr(node, 'type') and node.type == nodetype:
+            if getattr(node, "type", None) == nodetype:
                 return node
 
     return None
@@ -363,14 +363,14 @@ def find_node_input(node, name):
     return None
 
 
-def panel_node_draw(layout, id, output_type, input_name):
-    if not id.node_tree:
-        layout.prop(id, "use_nodes", icon='NODETREE')
+def panel_node_draw(layout, id_data, output_type, input_name):
+    if not id_data.node_tree:
+        layout.prop(id_data, "use_nodes", icon='NODETREE')
         return False
 
-    ntree = id.node_tree
+    ntree = id_data.node_tree
 
-    node = find_node(id, output_type)
+    node = find_node(id_data, output_type)
     if not node:
         layout.label(text="No output node.")
     else:

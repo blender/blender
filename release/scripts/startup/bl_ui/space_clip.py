@@ -475,7 +475,7 @@ class CLIP_PT_stabilization(Panel):
 
     def draw_header(self, context):
         stab = context.space_data.clip.tracking.stabilization
-        
+
         self.layout.prop(stab, "use_2d_stabilization", text="")
 
     def draw(self, context):

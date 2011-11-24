@@ -312,7 +312,7 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 
 	length= normalize_qt_qt(tquat, self->quat);
 	quat_to_mat3(self_rmat, tquat);
-	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+	mul_m3_m3m3(rmat, other_rmat, self_rmat);
 
 	mat3_to_quat(self->quat, rmat);
 	mul_qt_fl(self->quat, length); /* maintain length after rotating */

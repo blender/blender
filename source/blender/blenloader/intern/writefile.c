@@ -1666,7 +1666,8 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 				writestruct(wd, DATA, structname, datasize, layer->data);
 			}
 			else
-				printf("error: this CustomDataLayer must not be written to file\n");
+				printf("%s error: layer '%s':%d - can't be written to file\n",
+				       __func__, structname, layer->type);
 		}
 	}
 
