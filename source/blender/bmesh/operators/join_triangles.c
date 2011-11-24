@@ -65,7 +65,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	if(n1[0] == n2[0] && n1[1] == n2[1] && n1[2] == n2[2]) angle2 = 0.0f;
 	else angle2 = angle_v3v3(n1, n2);
 
-	measure += angle1 + angle2;
+	measure += (angle1 + angle2) * 0.5f;
 	if(measure > limit) return measure;
 
 	/*Second test: Colinearity*/
