@@ -420,7 +420,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	MLoop *mloop;
 	MPoly *mpoly;
 	MVert *mvert, *oldverts;
-	MEdge *medge;
+	MEdge *med, *medge;
 	MFace *mface;
 	BMVert *v, *eve;
 	BMEdge *e;
@@ -514,17 +514,18 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	}
 	bm->elem_index_dirty &= ~BM_VERT;
 
+	med= medge;
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 		
-		medge->v1 = BM_GetIndex(e->v1);
-		medge->v2 = BM_GetIndex(e->v2);
-		medge->crease = crease ? (char)((*crease)*255) : 0;
-		medge->bweight = bweight ? (char)((*bweight)*255) : 0;
+		med->v1 = BM_GetIndex(e->v1);
+		med->v2 = BM_GetIndex(e->v2);
+		med->crease = crease ? (char)((*crease)*255) : 0;
+		med->bweight = bweight ? (char)((*bweight)*255) : 0;
 		
-		medge->flag = BMFlags_To_MEFlags(e);
+		med->flag = BMFlags_To_MEFlags(e);
 		
 		BM_SetIndex(e, i); /* set_inline */
 
@@ -532,7 +533,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
 
 		i++;
-		medge++;
+		med++;
 		BM_CHECK_ELEMENT(bm, e);
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
@@ -659,6 +660,21 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {
 			mloop->e = BM_GetIndex(l->e);
 			mloop->v = BM_GetIndex(l->v);
+
+
+#if 1
+			/* this is a cheap way to set the edge draw, just so happens
+			 * at this part of the code the info is available, feel free to
+			 * move this block of code elsewhere */
+
+			if ( (l != l->radial_next) &&
+			     (medge[mloop->e].flag & ME_EDGEDRAW) &&
+			     (dot_v3v3(f->no, l->radial_next->f->no) > 0.995f))
+			{
+				medge[mloop->e].flag &= ~ME_EDGEDRAW;
+			}
+#endif
+
 
 			/*copy over customdata*/
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
