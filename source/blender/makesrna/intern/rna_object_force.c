@@ -214,21 +214,16 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Object *ob = ptr->id.data;
 	PointCache *cache= ptr->data;
-	PTCacheID *pid;
-	ListBase pidlist;
+	ListBase lb;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	while(cache->prev)
+		cache= cache->prev;
 
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache == cache) {
-			rna_iterator_listbase_begin(iter, pid->ptcaches, NULL);
-			break;
-		}
-	}
+	lb.first= cache;
+	lb.last= NULL; /* not used by listbase_begin */
 
-	BLI_freelistN(&pidlist);
+	rna_iterator_listbase_begin(iter, &lb, NULL);
 }
 static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, int *max)
 {
@@ -308,8 +303,7 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
 	
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache == cache) {
-			if(ELEM3(pid->type, PTCACHE_TYPE_CLOTH, PTCACHE_TYPE_SMOKE_DOMAIN, PTCACHE_TYPE_SMOKE_HIGHRES))
-				*max= 1;
+			*max= pid->max_step;
 			break;
 		}
 	}

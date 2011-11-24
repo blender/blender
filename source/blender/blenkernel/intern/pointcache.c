@@ -770,6 +770,9 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->info_types= 0;
 
 	pid->stack_index = pid->cache->index;
+
+	pid->default_step = 10;
+	pid->max_step = 20;
 }
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
 {
@@ -820,6 +823,9 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 		pid->data_types|= (1<<BPHYS_DATA_ROTATION);
 
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
+
+	pid->default_step = 10;
+	pid->max_step = 20;
 }
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *clmd)
 {
@@ -850,6 +856,9 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY) | (1<<BPHYS_DATA_XCONST);
 	pid->info_types= 0;
+
+	pid->default_step = 1;
+	pid->max_step = 1;
 }
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
 {
@@ -890,6 +899,9 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 		pid->data_types |= (1<<BPHYS_DATA_SMOKE_LOW);
 	if(sds->wt)
 		pid->data_types |= (1<<BPHYS_DATA_SMOKE_HIGH);
+
+	pid->default_step = 1;
+	pid->max_step = 1;
 }
 
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSurface *surface)
@@ -923,6 +935,9 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSu
 	pid->info_types= 0;
 
 	pid->stack_index = pid->cache->index;
+
+	pid->default_step = 1;
+	pid->max_step = 1;
 }
 
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
