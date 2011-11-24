@@ -2301,14 +2301,16 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 	/* zero */
 	for (i=0; i<numEffectedV; i++) {
 		CCGVert *v = effectedV[i];
-		VertDataZero(VERT_getCo(v, lvl));
+		if(v->numFaces)
+			VertDataZero(VERT_getCo(v, lvl));
 	}
 
 	for (i=0; i<numEffectedE; i++) {
 		CCGEdge *e = effectedE[i];
 
-		for (x=0; x<edgeSize; x++)
-			VertDataZero(EDGE_getCo(e, lvl, x));
+		if(e->numFaces)
+			for (x=0; x<edgeSize; x++)
+				VertDataZero(EDGE_getCo(e, lvl, x));
 	}
 
 	/* add */
@@ -2349,7 +2351,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 	/* average */
 	for (i=0; i<numEffectedV; i++) {
 		CCGVert *v = effectedV[i];
-		VertDataMulN(VERT_getCo(v, lvl), 1.0f/v->numFaces);
+		if(v->numFaces)
+			VertDataMulN(VERT_getCo(v, lvl), 1.0f/v->numFaces);
 	}
 
 	for (i=0; i<numEffectedE; i++) {
@@ -2358,8 +2361,9 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 		VertDataCopy(EDGE_getCo(e, lvl, 0), VERT_getCo(e->v0, lvl));
 		VertDataCopy(EDGE_getCo(e, lvl, edgeSize-1), VERT_getCo(e->v1, lvl));
 
-		for (x=1; x<edgeSize-1; x++)
-			VertDataMulN(EDGE_getCo(e, lvl, x), 1.0f/e->numFaces);
+		if(e->numFaces)
+			for (x=1; x<edgeSize-1; x++)
+				VertDataMulN(EDGE_getCo(e, lvl, x), 1.0f/e->numFaces);
 	}
 
 	/* copy */
