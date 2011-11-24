@@ -885,7 +885,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMHeader *h;
 	BMWalker walker;
 
-	BMW_Init(&walker, bm, walkercode, 0, 0);
+	BMW_Init(&walker, bm, walkercode, 0, BMW_NIL_LAY);
 	h = BMW_Begin(&walker, start);
 	for (; h; h=BMW_Step(&walker)) {
 		if (!select)
@@ -1770,7 +1770,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 		eed = eve->e;
 	}
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0, 0);
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0, BMW_NIL_LAY);
 	e = BMW_Begin(&walker, eed->v1);
 	for (; e; e=BMW_Step(&walker)) {
 			BM_Select(em->bm, e->v1, sel);
@@ -1822,7 +1822,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0, 0);
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0, BMW_NIL_LAY);
 	for (i=0; i<tot; i++) {
 		e = BMW_Begin(&walker, verts[i]);
 		for (; e; e=BMW_Step(&walker)) {
@@ -1978,7 +1978,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	}
 
 	/* Walk over selected elements starting at active */
-	BMW_Init(&walker, bm, walktype, BM_SELECT, 0);
+	BMW_Init(&walker, bm, walktype, BM_SELECT, BMW_NIL_LAY);
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);
 	for (h = BMW_Begin(&walker, h_act); h != NULL; h = BMW_Step(&walker)) {
 		/* Deselect elements that aren't at "nth" depth from active */

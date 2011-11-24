@@ -19,19 +19,19 @@ typedef struct BMWalker {
 	void *(*yield)(struct BMWalker *walker);
 	int structsize;
 	BMWOrder order;
-	int flag;
+	int layer;
 
 	BMesh *bm;
 	BLI_mempool *worklist;
 	ListBase states;
-	int restrictflag;
+	short restrictflag;
 	GHash *visithash;
 	int depth;
 } BMWalker;
 
 /*initialize a walker.  searchmask restricts some (not all) walkers to
   elements with a specific tool flag set.  flags is specific to each walker.*/
-void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask, int flags);
+void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, short searchmask, int layer);
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
@@ -90,5 +90,8 @@ enum {
 	BMW_CUSTOM,
 	BMW_MAXWALKERS
 };
+
+/* use with BMW_Init, so as not to confuse with restrict flags */
+#define BMW_NIL_LAY  0
 
 #endif

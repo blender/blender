@@ -761,7 +761,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 
 	l = lwalk->l;
 	nl = l->next;
-	type = walker->bm->ldata.layers[walker->flag].type;
+	type = walker->bm->ldata.layers[walker->layer].type;
 
 	BMW_removestate(walker);
 	
@@ -773,8 +773,8 @@ static void *uvedgeWalker_step(BMWalker *walker)
 	for (i=0; i<2; i++) {
 		cl = i ? nl : l;
 		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {
-			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
-			             cl->head.data, walker->flag);
+			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
+			                                  cl->head.data, walker->layer);
 			
 			rlen = BM_Edge_FaceCount(l2->e);
 			for (j=0; j<rlen; j++) {
@@ -788,7 +788,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 				
 				l3 = l2->v != cl->v ? l2->next : l2;
 				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
-				                                  l3->head.data, walker->flag);
+				                                  l3->head.data, walker->layer);
 
 				if (!CustomData_data_equals(type, d1, d2))
 					continue;

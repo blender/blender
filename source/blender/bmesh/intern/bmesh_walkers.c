@@ -83,18 +83,18 @@ void *BMW_Begin(BMWalker *walker, void *start)
  *
 */
 
-void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
+void BMW_Init(BMWalker *walker, BMesh *bm, int type, short searchmask, int layer)
 {
 	memset(walker, 0, sizeof(BMWalker));
 
-	walker->flag = flag;
+	walker->layer = layer;
 	walker->bm = bm;
 	walker->restrictflag = searchmask;
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
 	
 	if (type >= BMW_MAXWALKERS || type < 0) {
 		bmesh_error();
-		fprintf(stderr, "Invalid walker type in BMW_Init; type: %d, searchmask: %d, flag: %d\n", type, searchmask, flag);
+		fprintf(stderr, "Invalid walker type in BMW_Init; type: %d, searchmask: %d, flag: %d\n", type, searchmask, layer);
 	}
 	
 	if (type != BMW_CUSTOM) {

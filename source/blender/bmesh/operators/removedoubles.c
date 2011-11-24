@@ -347,7 +347,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(bm, &weldop, "weldverts");
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);	
-	BMW_Init(&walker, bm, BMW_SHELL, EDGE_MARK, 0);
+	BMW_Init(&walker, bm, BMW_SHELL, EDGE_MARK, BMW_NIL_LAY);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, e, EDGE_MARK))

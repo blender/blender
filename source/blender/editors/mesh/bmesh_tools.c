@@ -1725,7 +1725,7 @@ static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	BMW_Init(&walker, em->bm, BMW_UVISLAND, 0);
+	BMW_Init(&walker, em->bm, BMW_UVISLAND, BMW_NIL_LAY);
 
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
@@ -3330,7 +3330,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 		/*Walk from the single vertex, selecting everything connected
 		  to it*/
-		BMW_Init(&walker, bm, BMW_SHELL, 0, 0);
+		BMW_Init(&walker, bm, BMW_SHELL, 0, BMW_NIL_LAY);
 		e = BMW_Begin(&walker, v_seed);
 		for (; e; e=BMW_Step(&walker)) {
 			BM_Select(bm, e->v1, 1);
