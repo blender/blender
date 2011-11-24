@@ -2788,27 +2788,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
-	
-	/* JPEG and AVI JPEG */
-
-#if 0 /* moved */
-
-	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "quality");
-	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
-	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies, compression for PNG's");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#endif
-
-	/* Tiff */
-	
-#if 0 /* replaced, use generic */
-	prop= def_property(srna, "use_tiff_16bit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_TIFF_16BIT);
-	RNA_def_property_ui_text(prop, "16 Bit", "Save TIFF with 16 bits per channel");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-#endif
 
 #ifdef WITH_QUICKTIME
 	/* QuickTime */
