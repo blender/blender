@@ -676,7 +676,7 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 	MTFace *mtface;
 	MFace *f;
 
-	if(!(mtface = DM_get_face_data_layer(dm, CD_MTFACE)))
+	if(!(mtface = DM_get_tessface_data_layer(dm, CD_MTFACE)))
 		return;
 	f = dm->getTessFaceArray(dm);
 		
@@ -780,7 +780,7 @@ static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(in
 
 static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))
 {
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
+	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i, j=0;
 
 	if(!tf)
@@ -819,13 +819,13 @@ static MCol *gpu_buffer_color_type(DerivedMesh *dm)
 	int type;
 
 	type = CD_ID_MCOL;
-	c = DM_get_face_data_layer(dm, type);
+	c = DM_get_tessface_data_layer(dm, type);
 	if(!c) {
 		type = CD_WEIGHT_MCOL;
-		c = DM_get_face_data_layer(dm, type);
+		c = DM_get_tessface_data_layer(dm, type);
 		if(!c) {
 			type = CD_MCOL;
-			c = DM_get_face_data_layer(dm, type);
+			c = DM_get_tessface_data_layer(dm, type);
 		}
 	}
 
@@ -919,7 +919,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 			return NULL;
 	}
 	else if(type == GPU_BUFFER_UV) {
-		if(!DM_get_face_data_layer(dm, CD_MTFACE))
+		if(!DM_get_tessface_data_layer(dm, CD_MTFACE))
 			return NULL;
 	}
 
