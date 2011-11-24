@@ -83,18 +83,28 @@ void *BMW_Begin(BMWalker *walker, void *start)
  *
 */
 
-void BMW_Init(BMWalker *walker, BMesh *bm, int type, short searchmask, int layer)
+void BMW_Init(BMWalker *walker, BMesh *bm, int type,
+              short mask_vert, short mask_edge, short mask_loop, short mask_face,
+              int layer)
 {
 	memset(walker, 0, sizeof(BMWalker));
 
 	walker->layer = layer;
 	walker->bm = bm;
-	walker->restrictflag = searchmask;
+
+	walker->mask_vert = mask_vert;
+	walker->mask_edge = mask_edge;
+	walker->mask_loop = mask_loop;
+	walker->mask_face = mask_face;
+
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
 	
 	if (type >= BMW_MAXWALKERS || type < 0) {
 		bmesh_error();
-		fprintf(stderr, "Invalid walker type in BMW_Init; type: %d, searchmask: %d, flag: %d\n", type, searchmask, layer);
+		fprintf(stderr,
+		        "Invalid walker type in BMW_Init; type: %d, "
+		        "searchmask: (v:%d,e:%d,l:%d,f:%d), flag: %d\n",
+		        type, mask_vert, mask_edge, mask_loop, mask_face, layer);
 	}
 	
 	if (type != BMW_CUSTOM) {
@@ -103,6 +113,15 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, short searchmask, int layer
 		walker->step = bm_walker_types[type]->step;
 		walker->structsize = bm_walker_types[type]->structsize;
 		walker->order = bm_walker_types[type]->order;
+		walker->valid_mask = bm_walker_types[type]->valid_mask;
+
+		/* safety checks */
+		/* if this raises an error either the caller is wrong or
+		 * 'bm_walker_types' needs updating */
+		BLI_assert(mask_vert==0 || (walker->valid_mask & BM_VERT));
+		BLI_assert(mask_edge==0 || (walker->valid_mask & BM_EDGE));
+		BLI_assert(mask_loop==0 || (walker->valid_mask & BM_LOOP));
+		BLI_assert(mask_face==0 || (walker->valid_mask & BM_FACE));
 	}
 	
 	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, TRUE, FALSE);

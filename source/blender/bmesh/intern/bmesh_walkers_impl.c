@@ -61,7 +61,7 @@ static void shellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 		return;
 	}
 
-	if (walker->restrictflag && !BMO_TestFlag(walker->bm, e, walker->restrictflag)) {
+	if (walker->mask_edge && !BMO_TestFlag(walker->bm, e, walker->mask_edge)) {
 		return;
 	}
 
@@ -188,7 +188,7 @@ static void connectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 		/* already visited */
 		return;
 	}
-	if (walker->restrictflag && !BMO_TestFlag(walker->bm, v, walker->restrictflag)) {
+	if (walker->mask_vert && !BMO_TestFlag(walker->bm, v, walker->mask_vert)) {
 		/* not flagged for walk */
 		return;
 	}
@@ -296,7 +296,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 			l = bmesh_radial_nextloop(l);
 			f = l->f;
 			e = l->e;
-			if(walker->restrictflag && !BMO_TestFlag(walker->bm, f, walker->restrictflag)){
+			if(walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)){
 				l = l->radial_next;
 				break;
 			}
@@ -337,7 +337,7 @@ static void islandWalker_begin(BMWalker *walker, void *data)
 {
 	islandWalker *iwalk = NULL;
 
-	if (walker->restrictflag && !BMO_TestFlag(walker->bm, data, walker->restrictflag)) {
+	if (walker->mask_face && !BMO_TestFlag(walker->bm, data, walker->mask_face)) {
 		return;
 	}
 
@@ -368,7 +368,7 @@ static void *islandWalker_step(BMWalker *walker)
 	for (; l; l=BMIter_Step(&liter)) {
 		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
 		for (; f; f=BMIter_Step(&iter)) {
-			if (walker->restrictflag && !BMO_TestFlag(walker->bm, f, walker->restrictflag)) {
+			if (walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
 				continue;
 			}
 			if (BLI_ghash_haskey(walker->visithash, f)) continue;
@@ -765,7 +765,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 
 	BMW_removestate(walker);
 	
-	if (walker->restrictflag && !BMO_TestFlag(walker->bm, l->e, walker->restrictflag))
+	if (walker->mask_edge && !BMO_TestFlag(walker->bm, l->e, walker->mask_edge))
 		return l;
 
 	/*go over loops around l->v and nl->v and see which ones share l and nl's 
@@ -780,7 +780,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 			for (j=0; j<rlen; j++) {
 				if (BLI_ghash_haskey(walker->visithash, l2))
 					continue;
-				if (walker->restrictflag && !(BMO_TestFlag(walker->bm, l2->e, walker->restrictflag)))
+				if (walker->mask_edge && !(BMO_TestFlag(walker->bm, l2->e, walker->mask_edge)))
 				{
 					if (l2->v != cl->v)
 						continue;
@@ -812,6 +812,7 @@ static BMWalker shell_walker_type = {
 	shellWalker_yield,
 	sizeof(shellWalker),
 	BMW_BREADTH_FIRST,
+	BM_EDGE, /* valid restrict masks */
 };
 
 static BMWalker islandbound_walker_type = {
@@ -820,6 +821,7 @@ static BMWalker islandbound_walker_type = {
 	islandboundWalker_yield,
 	sizeof(islandboundWalker),
 	BMW_DEPTH_FIRST,
+	BM_FACE, /* valid restrict masks */
 };
 
 static BMWalker island_walker_type = {
@@ -828,6 +830,7 @@ static BMWalker island_walker_type = {
 	islandWalker_yield,
 	sizeof(islandWalker),
 	BMW_BREADTH_FIRST,
+	BM_FACE, /* valid restrict masks */
 };
 
 static BMWalker loop_walker_type = {
@@ -836,6 +839,7 @@ static BMWalker loop_walker_type = {
 	loopWalker_yield,
 	sizeof(loopWalker),
 	BMW_DEPTH_FIRST,
+	0, /* valid restrict masks */ /* could add flags here but so far none are used */
 };
 
 static BMWalker faceloop_walker_type = {
@@ -844,6 +848,7 @@ static BMWalker faceloop_walker_type = {
 	faceloopWalker_yield,
 	sizeof(faceloopWalker),
 	BMW_DEPTH_FIRST,
+	0, /* valid restrict masks */ /* could add flags here but so far none are used */
 };
 
 static BMWalker edgering_walker_type = {
@@ -852,6 +857,7 @@ static BMWalker edgering_walker_type = {
 	edgeringWalker_yield,
 	sizeof(edgeringWalker),
 	BMW_DEPTH_FIRST,
+	0, /* valid restrict masks */ /* could add flags here but so far none are used */
 };
 
 static BMWalker loopdata_region_walker_type = {
@@ -860,6 +866,7 @@ static BMWalker loopdata_region_walker_type = {
 	uvedgeWalker_yield,
 	sizeof(uvedgeWalker),
 	BMW_DEPTH_FIRST,
+	BM_EDGE, /* valid restrict masks */
 };
 
 static BMWalker connected_vertex_walker_type = {
@@ -868,17 +875,18 @@ static BMWalker connected_vertex_walker_type = {
 	connectedVertexWalker_yield,
 	sizeof(connectedVertexWalker),
 	BMW_BREADTH_FIRST,
+	BM_VERT, /* valid restrict masks */
 };
 
 BMWalker *bm_walker_types[] = {
-	&shell_walker_type,
-	&loop_walker_type,
-	&faceloop_walker_type,
-	&edgering_walker_type,
-	&loopdata_region_walker_type,
-	&islandbound_walker_type,
-	&island_walker_type,
-	&connected_vertex_walker_type,
+	&shell_walker_type,              /* BMW_SHELL */
+	&loop_walker_type,               /* BMW_LOOP */
+	&faceloop_walker_type,           /* BMW_FACELOOP */
+	&edgering_walker_type,           /* BMW_EDGERING */
+	&loopdata_region_walker_type,    /* BMW_LOOPDATA_ISLAND */
+	&islandbound_walker_type,        /* BMW_ISLANDBOUND */
+	&island_walker_type,             /* BMW_ISLAND */
+	&connected_vertex_walker_type,   /* BMW_CONNECTED_VERTEX */
 };
 
 int bm_totwalkers = sizeof(bm_walker_types) / sizeof(*bm_walker_types);

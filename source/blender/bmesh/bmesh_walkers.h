@@ -19,19 +19,29 @@ typedef struct BMWalker {
 	void *(*yield)(struct BMWalker *walker);
 	int structsize;
 	BMWOrder order;
+	int valid_mask;
+
+	/* runtime */
 	int layer;
 
 	BMesh *bm;
 	BLI_mempool *worklist;
 	ListBase states;
-	short restrictflag;
+
+	short mask_vert;
+	short mask_edge;
+	short mask_loop;
+	short mask_face;
+
 	GHash *visithash;
 	int depth;
 } BMWalker;
 
 /*initialize a walker.  searchmask restricts some (not all) walkers to
   elements with a specific tool flag set.  flags is specific to each walker.*/
-void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, short searchmask, int layer);
+void BMW_Init(struct BMWalker *walker, BMesh *bm, int type,
+              short mask_vert, short mask_edge, short mask_loop, short mask_face,
+              int layer);
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
@@ -86,6 +96,8 @@ enum {
 	BMW_ISLAND,
 	/*walk from a vertex to all connected vertices.*/
 	BMW_CONNECTED_VERTEX,
+	/* end of array index enum vals */
+
 	/*do not intitialze function pointers and struct size in BMW_Init*/
 	BMW_CUSTOM,
 	BMW_MAXWALKERS

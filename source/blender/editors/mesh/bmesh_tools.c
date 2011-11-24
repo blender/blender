@@ -3330,7 +3330,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 		/*Walk from the single vertex, selecting everything connected
 		  to it*/
-		BMW_Init(&walker, bm, BMW_SHELL, 0, BMW_NIL_LAY);
+		BMW_Init(&walker, bm, BMW_SHELL,  0,0,0,0,  BMW_NIL_LAY);
 		e = BMW_Begin(&walker, v_seed);
 		for (; e; e=BMW_Step(&walker)) {
 			BM_Select(bm, e->v1, 1);

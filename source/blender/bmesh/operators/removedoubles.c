@@ -347,7 +347,7 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(bm, &weldop, "weldverts");
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);	
-	BMW_Init(&walker, bm, BMW_SHELL, EDGE_MARK, BMW_NIL_LAY);
+	BMW_Init(&walker, bm, BMW_SHELL,  0,EDGE_MARK,0,0,  BMW_NIL_LAY);
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, e, EDGE_MARK))
@@ -402,7 +402,7 @@ static void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	BMO_Clear_Flag_All(bm, op, BM_ALL, 65535);
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	BMW_Init(&walker, bm, BMW_LOOPDATA_ISLAND, EDGE_MARK, layer);
+	BMW_Init(&walker, bm, BMW_LOOPDATA_ISLAND, 0,EDGE_MARK,0,0, layer);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
