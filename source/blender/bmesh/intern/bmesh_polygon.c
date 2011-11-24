@@ -85,17 +85,14 @@ static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
  * computing newell normal.
  *
 */
-#define FEQ(f1, f2) (ABS((double)(f1)-(double)(f2)) < 0.1)
 
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
 	float u[3], v[3], w[3];/*, *w, v1[3], v2[3];*/
-	float n[3]/*, l, v1[3], v2[3] */;
+	float n[3]= {0.0f, 0.0f, 0.0f} /*, l, v1[3], v2[3] */;
 	/* double l2; */
 	int i /*, s=0 */;
-
-	zero_v3(n);
 
 	/*this fixes some weird numerical error*/
 	add_v3_fl(verts[0], 0.0001f);
@@ -388,16 +385,8 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
 	float projverts[200][3];
 	float (*proj)[3] = f->len < 200 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
-	BMIter iter;
-	BMLoop *l;
-	int i=0;
 
 	if (f->len < 3) return;
-	
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		copy_v3_v3(proj[i], l->v->co);
-		i += 1;
-	}
 
 	bmesh_update_face_normal(bm, f, proj);
 
@@ -474,7 +463,6 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		int i = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			copy_v3_v3(projectverts[i], l->v->co);
-			l = l->next;
 			i += 1;
 		}
 
