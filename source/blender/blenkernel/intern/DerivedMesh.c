@@ -386,7 +386,9 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 			}
 			
 			if (!kb) {
-				printf("error in DM_to_mesh: could not find active shapekey! eek!!\n");
+				printf("%s: error - could not find active shapekey %d!\n",
+				       __func__, ob->shapenr-1);
+
 				i = INT_MAX;
 			}
 		} else {

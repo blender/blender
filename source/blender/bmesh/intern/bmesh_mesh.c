@@ -305,7 +305,7 @@ void BM_Compute_Normals(BMesh *bm)
 			   adjust the dot product if one but not both loops 
 			   actually runs from from e->v2 to e->v1 */
 			if ((l->prev->e->v1 == l->prev->v) ^ (l->e->v1 == l->v)) {
-				dotprod *= -1.0f;
+				dotprod= -dotprod;
 			}
 
 			fac = saacos(-dotprod);
@@ -321,8 +321,7 @@ void BM_Compute_Normals(BMesh *bm)
 			continue;
 
 		if (normalize_v3(v->no) == 0.0f) {
-			copy_v3_v3(v->no, v->co);
-			normalize_v3(v->no);
+			normalize_v3_v3(v->no, v->co);
 		}
 	}
 	
@@ -395,7 +394,7 @@ static void bmesh_set_mdisps_space(BMesh *bm, int from, int to)
 				MDisps *lmd = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MDISPS);
 				
 				if (!lmd->disps) {
-					printf("eck!\n");
+					printf("%s: warning - 'lmd->disps' == NULL\n", __func__);
 				}
 				
 				if (lmd->disps && lmd->totdisp == mdisps->totdisp) {

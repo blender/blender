@@ -512,7 +512,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 void BM_flip_normal(BMesh *bm, BMFace *f)
 {	
 	bmesh_loop_reverse(bm, f);
-	mul_v3_fl(f->no, -1.0f);
+	negate_v3(f->no);
 }
 
 /* detects if two line segments cross each other (intersects).

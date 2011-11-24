@@ -227,7 +227,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			if (v && !e3) {			
 				if (c==0) {
 					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1)-1]) {
-						printf("eck!\n");
+						printf("%s: internal state waning *TODO DESCRIPTION!*\n", __func__);
 					}
 					BLI_array_append(vv1, v);
 				} else {

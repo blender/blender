@@ -430,7 +430,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), 0);
 		if (!f) {
-			printf("eek!!\n");
+			printf("%s: could not make face!\n", __func__);
 			continue;
 		}
 			
