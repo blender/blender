@@ -48,7 +48,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
-PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *Color_CreatePyObject( float *col, int type, PyTypeObject *base_type);
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif /* MATHUTILS_COLOR_H */

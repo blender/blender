@@ -418,7 +418,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 							return NULL;
 						}
 #ifdef USE_MATHUTILS
-						return newVectorObject(val, attrdef->m_imax, Py_NEW, NULL);
+						return Vector_CreatePyObject(val, attrdef->m_imax, Py_NEW, NULL);
 #else
 						PyObject* resultlist = PyList_New(attrdef->m_imax);
 						for (unsigned int i=0; i<attrdef->m_imax; i++)
@@ -435,7 +435,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 						return NULL;
 					}
 #ifdef USE_MATHUTILS
-					return newMatrixObject(val, attrdef->m_imin, attrdef->m_imax, Py_WRAP, NULL);
+					return Matrix_CreatePyObject(val, attrdef->m_imin, attrdef->m_imax, Py_WRAP, NULL);
 #else
 					PyObject* collist = PyList_New(attrdef->m_imin);
 					for (unsigned int i=0; i<attrdef->m_imin; i++)
@@ -457,7 +457,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				MT_Vector3 *val = reinterpret_cast<MT_Vector3*>(ptr);
 #ifdef USE_MATHUTILS
 				float fval[3]= {(*val)[0], (*val)[1], (*val)[2]};
-				return newVectorObject(fval, 3, Py_NEW, NULL);
+				return Vector_CreatePyObject(fval, 3, Py_NEW, NULL);
 #else
 				PyObject* resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)
