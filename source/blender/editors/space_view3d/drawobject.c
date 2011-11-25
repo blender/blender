@@ -112,6 +112,12 @@
 	((ELEM(vd->drawtype, OB_TEXTURE, OB_MATERIAL) && dt>OB_SOLID) ||          \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
+typedef enum eWireDrawMode {
+	OBDRAW_WIRE_OFF= 0,
+	OBDRAW_WIRE_ON= 1,
+	OBDRAW_WIRE_ON_DEPTH= 2
+} eWireDrawMode;
+
 static void draw_bounding_volume(Scene *scene, Object *ob, char type);
 
 static void drawcube_size(float size);
@@ -1093,7 +1099,12 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	/* cone can't be drawn for duplicated lamps, because duplilist would be freed to */
 	/* the moment of view3d_draw_transp() call */
 	const short is_view= (rv3d->persp==RV3D_CAMOB && v3d->camera == base->object);
-	const short drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && (la->type == LA_SPOT) && (la->mode & LA_SHOW_CONE) && !(base->flag & OB_FROMDUPLI) && !is_view);
+	const short drawcone= ((dt > OB_WIRE) &&
+	                       !(G.f & G_PICKSEL) &&
+	                       (la->type == LA_SPOT) &&
+	                       (la->mode & LA_SHOW_CONE) &&
+	                       !(base->flag & OB_FROMDUPLI) &&
+	                       !is_view);
 
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
@@ -2912,7 +2923,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
-	int draw_wire = 0;
+	eWireDrawMode draw_wire= OBDRAW_WIRE_OFF;
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
@@ -2935,9 +2946,13 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 		}
 	}
-	
-	if (ob->dtx&OB_DRAWWIRE) {
-		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
+
+	/* Unwanted combination */
+	if (draw_flags & DRAW_FACE_SELECT) {
+		draw_wire= OBDRAW_WIRE_OFF;
+	}
+	else if (ob->dtx & OB_DRAWWIRE) {
+		draw_wire= OBDRAW_WIRE_ON_DEPTH; /* draw wire after solid using zoffset and depth buffer adjusment */
 	}
 	
 	/* totvert = dm->getNumVerts(dm); */ /*UNUSED*/
@@ -2946,9 +2961,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-
-		// Unwanted combination.
-	if (draw_flags & DRAW_FACE_SELECT) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2960,12 +2972,17 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glPointSize(1.0);
 	}
 	else if(dt==OB_WIRE || totface==0) {
-		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
+		draw_wire= OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
-				CHECK_OB_DRAWTEXTURE(v3d, dt))
+	else if ( (draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	          CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) && !draw_wire) {
+		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
+		     ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) &&
+		     (base->flag & SELECT) &&
+		     !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
+		     (draw_wire == OBDRAW_WIRE_OFF))
+		{
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -3017,7 +3034,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			GPU_disable_material();
 			
 			/* since we already draw wire as wp guide, dont draw over the top */
-			draw_wire= 0;
+			draw_wire= OBDRAW_WIRE_OFF;
 		}
 		else if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW) {
 			/* for object selection draws no shade */
@@ -3026,8 +3043,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 			else {
 				/* draw outline */
-				if((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+				if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
+				     ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) &&
+				     (base->flag & SELECT) &&
+				     (draw_wire == OBDRAW_WIRE_OFF) &&
+				     (ob->sculpt == NULL))
+				{
 					draw_mesh_object_outline(v3d, ob, dm);
+				}
 
 				/* materials arent compatible with vertex colors */
 				GPU_end_object_materials();
@@ -3054,8 +3077,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		else {
 			Paint *p;
 
-			if((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+			if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
+			     ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) &&
+			     (base->flag & SELECT) &&
+			     (draw_wire == OBDRAW_WIRE_OFF) &&
+			     (ob->sculpt == NULL))
+			{
 				draw_mesh_object_outline(v3d, ob, dm);
+			}
 
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
 
@@ -3149,7 +3178,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 		}
 	}
-	if (draw_wire) {
+	if (draw_wire != OBDRAW_WIRE_OFF) {
 
 		/* When using wireframe object traw in particle edit mode
 		 * the mesh gets in the way of seeing the particles, fade the wire color
@@ -3172,7 +3201,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		 * if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
 		 * otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
 		 */
-		if (dt!=OB_WIRE && draw_wire==2) {
+		if (dt!=OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
@@ -3180,7 +3209,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
 			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag & ME_ALLEDGES);
 
-		if (dt!=OB_WIRE && draw_wire==2) {
+		if (dt!=OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			glDepthMask(1);
 			bglPolygonOffset(rv3d->dist, 0.0);
 		}
@@ -3235,15 +3264,11 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if(dt>OB_WIRE) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, glsl);
 
-			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
-					(check_alpha)? &do_alpha_pass: NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 
-		// transp in editmode makes the fancy draw over go bad
-		if (!do_alpha_pass)
-			draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
 
 		GPU_end_object_materials();
 

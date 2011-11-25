@@ -46,6 +46,8 @@ void path_create_directories(const string& path);
 bool path_write_binary(const string& path, const vector<uint8_t>& binary);
 bool path_read_binary(const string& path, vector<uint8_t>& binary);
 
+string path_source_replace_includes(const string& source, const string& path);
+
 CCL_NAMESPACE_END
 
 #endif

@@ -2603,7 +2603,7 @@ void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 	uiPupBlockO(C, func, arg, NULL, 0);
 }
 
-void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_func, void *arg)
+void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg)
 {
 	wmWindow *window= CTX_wm_window(C);
 	uiPopupBlockHandle *handle;
@@ -2613,7 +2613,7 @@ void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_
 	handle->retvalue= 1;
 
 	handle->popup_arg= arg;
-	// handle->popup_func= operator_cb;
+	handle->popup_func= popup_func;
 	handle->cancel_func= cancel_func;
 	// handle->opcontext= opcontext;
 	

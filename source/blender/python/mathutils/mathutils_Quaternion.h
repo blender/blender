@@ -48,7 +48,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
-PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *Quaternion_CreatePyObject( float *quat, int type, PyTypeObject *base_type);
+PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif /* MATHUTILS_QUAT_H */

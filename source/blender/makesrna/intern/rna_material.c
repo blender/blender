@@ -443,7 +443,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer to use for mapping with UV texture coordinates");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map to use for mapping with UV texture coordinates");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "use_from_dupli", PROP_BOOLEAN, PROP_NONE);
@@ -1604,7 +1604,7 @@ static void rna_def_material_strand(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "strand_uvname");
-	RNA_def_property_ui_text(prop, "UV Layer", "Name of UV layer to override");
+	RNA_def_property_ui_text(prop, "UV Map", "Name of UV map to override");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -1841,13 +1841,13 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_face_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FACETEXTURE);
 	RNA_def_property_ui_text(prop, "Face Textures",
-	                         "Replace the object's base color with color from face assigned image textures");
+	                         "Replace the object's base color with color from UV map image textures");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_face_texture_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FACETEXTURE_ALPHA);
 	RNA_def_property_ui_text(prop, "Face Textures Alpha",
-	                         "Replace the object's base alpha value with alpha from face assigned image textures");
+	                         "Replace the object's base alpha value with alpha from UV map image textures");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_cast_shadows_only", PROP_BOOLEAN, PROP_NONE);

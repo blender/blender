@@ -186,7 +186,9 @@ typedef struct Curve {
 	float size[3];
 	float rot[3];
 
-	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
+	short type;	/* creation-time type of curve datablock */
+
+	short texflag; /* keep a short because of give_obdata_texspace() */
 	short drawflag, twist_mode;
 	float twist_smooth, smallcaps_scale;
 

@@ -896,7 +896,7 @@ static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
 
 /* ******************** Unwrap operator **************** */
 
-/* assumes UV layer is checked, doesn't run update funcs */
+/* assumes UV Map is checked, doesn't run update funcs */
 void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);

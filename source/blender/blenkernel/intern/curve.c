@@ -169,6 +169,7 @@ Curve *add_curve(const char *name, int type)
 	cu->texflag= CU_AUTOSPACE;
 	cu->smallcaps_scale= 0.75f;
 	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
+	cu->type= type;
 	
 	cu->bb= unit_boundbox();
 	
@@ -303,16 +304,23 @@ ListBase *curve_editnurbs(Curve *cu)
 short curve_type(Curve *cu)
 {
 	Nurb *nu;
+	int type= cu->type;
+
 	if(cu->vfont) {
 		return OB_FONT;
 	}
-	for (nu= cu->nurb.first; nu; nu= nu->next) {
-		if(nu->pntsv>1) {
-			return OB_SURF;
+
+	if(!cu->type) {
+		type= OB_CURVE;
+
+		for (nu= cu->nurb.first; nu; nu= nu->next) {
+			if(nu->pntsv>1) {
+				type= OB_SURF;
+			}
 		}
 	}
-	
-	return OB_CURVE;
+
+	return type;
 }
 
 void update_curve_dimension(Curve *cu)

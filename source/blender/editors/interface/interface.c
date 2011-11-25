@@ -434,6 +434,15 @@ void uiCenteredBoundsBlock(uiBlock *block, int addval)
 	block->dobounds= UI_BLOCK_BOUNDS_POPUP_CENTER;
 }
 
+void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int maxy)
+{
+	block->minx = minx;
+	block->miny = miny;
+	block->maxx = maxx;
+	block->maxy = maxy;
+	block->dobounds = 0;
+}
+
 /* ************** LINK LINE DRAWING  ************* */
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */

@@ -127,6 +127,9 @@ typedef struct PTCacheID {
 	unsigned int stack_index;
 	unsigned int flag;
 
+	unsigned int default_step;
+	unsigned int max_step;
+
 	/* flags defined in DNA_object_force.h */
 	unsigned int data_types, info_types;
 

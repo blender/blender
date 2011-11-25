@@ -171,7 +171,9 @@ def modules(module_cache):
                     mod = None
 
             if mod is None:
-                mod = fake_module(mod_name, mod_path, force_support=force_support)
+                mod = fake_module(mod_name,
+                                  mod_path,
+                                  force_support=force_support)
                 if mod:
                     module_cache[mod_name] = mod
 

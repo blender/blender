@@ -157,10 +157,9 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	return new_md;
 }
 
-int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
+static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgraph)
 {
 	ModifierData *obmd;
-	int sort_depsgraph = 0;
 
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
@@ -168,11 +167,9 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	for(obmd=ob->modifiers.first; obmd; obmd=obmd->next)
 		if(obmd==md)
 			break;
-	
-	if(!obmd) {
-		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
+
+	if(!obmd)
 		return 0;
-	}
 
 	/* special cases */
 	if(md->type == eModifierType_ParticleSystem) {
@@ -193,13 +190,13 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 		if(ob->pd)
 			ob->pd->deflect= 0;
 
-		sort_depsgraph = 1;
+		*sort_depsgraph = 1;
 	}
 	else if(md->type == eModifierType_Surface) {
 		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
-		sort_depsgraph = 1;
+		*sort_depsgraph = 1;
 	}
 	else if(md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
@@ -238,6 +235,21 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
+	return 1;
+}
+
+int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
+{
+	int sort_depsgraph = 0;
+	int ok;
+
+	ok= object_modifier_remove(ob, md, &sort_depsgraph);
+
+	if(!ok) {
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
+		return 0;
+	}
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	/* sorting has to be done after the update so that dynamic systems can react properly */
@@ -245,6 +257,31 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 		DAG_scene_sort(bmain, scene);
 
 	return 1;
+}
+
+void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
+{
+	ModifierData *md =ob->modifiers.first;
+	int sort_depsgraph = 0;
+
+	if(!md)
+		return;
+
+	while(md) {
+		ModifierData *next_md;
+
+		next_md= md->next;
+
+		object_modifier_remove(ob, md, &sort_depsgraph);
+
+		md= next_md;
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+	/* sorting has to be done after the update so that dynamic systems can react properly */
+	if(sort_depsgraph)
+		DAG_scene_sort(bmain, scene);
 }
 
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)

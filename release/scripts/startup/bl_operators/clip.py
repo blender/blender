@@ -19,9 +19,45 @@
 # <pep8 compliant>
 import bpy
 import os
-import shutil
 from bpy.types import Operator
-from bpy_extras.io_utils import unpack_list
+
+from mathutils import Vector, Matrix
+
+
+def CLIP_spacees_walk(context, all_screens, tarea, tspace, callback, *args):
+    screens = bpy.data.screens if all_screens else [context.screen]
+
+    for screen in screens:
+        for area in screen.areas:
+            if area.type == tarea:
+                for space in area.spaces:
+                    if space.type == tspace:
+                        callback(space, *args)
+
+
+def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
+    def set_background(space_v3d, clip, user):
+        bgpic = None
+
+        for x in space_v3d.background_images:
+            if x.source == 'MOVIE':
+                bgpic = x
+                break
+
+        if not bgpic:
+            bgpic = space_v3d.background_images.new()
+
+        bgpic.source = 'MOVIE'
+        bgpic.clip = clip
+        bgpic.clip_user.proxy_render_size = user.proxy_render_size
+        bgpic.clip_user.use_render_undistorted = True
+        bgpic.use_camera_clip = False
+        bgpic.view_axis = 'CAMERA'
+
+        space_v3d.show_background_images = True
+
+    CLIP_spacees_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
+                      set_background, clip, clip_user)
 
 
 def CLIP_track_view_selected(sc, track):
@@ -51,8 +87,8 @@ class CLIP_OT_track_to_empty(Operator):
 
         ob = bpy.data.objects.new(name=track.name, object_data=None)
         ob.select = True
-        bpy.context.scene.objects.link(ob)
-        bpy.context.scene.objects.active = ob
+        context.scene.objects.link(ob)
+        context.scene.objects.active = ob
 
         for con in ob.constraints:
             if con.type == 'FOLLOW_TRACK':
@@ -90,6 +126,8 @@ class CLIP_OT_bundles_to_mesh(Operator):
         return (sc.type == 'CLIP_EDITOR') and sc.clip
 
     def execute(self, context):
+        from bpy_extras.io_utils import unpack_list
+
         sc = context.space_data
         clip = sc.clip
 
@@ -106,7 +144,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
         ob = bpy.data.objects.new(name="Tracks", object_data=mesh)
 
-        bpy.context.scene.objects.link(ob)
+        context.scene.objects.link(ob)
 
         return {'FINISHED'}
 
@@ -133,6 +171,8 @@ class CLIP_OT_delete_proxy(Operator):
         return wm.invoke_confirm(self, event)
 
     def _rmproxy(self, abspath):
+        import shutil
+
         if not os.path.exists(abspath):
             return
 
@@ -202,35 +242,9 @@ class CLIP_OT_set_viewport_background(Operator):
 
         return sc.clip
 
-    def _set_background(self, space_v3d, clip, user):
-        bgpic = None
-
-        for x in space_v3d.background_images:
-            if x.source == 'MOVIE':
-                bgpic = x
-                break
-
-        if not bgpic:
-            bgpic = space_v3d.background_images.new()
-
-        bgpic.source = 'MOVIE'
-        bgpic.clip = clip
-        bgpic.clip_user.proxy_render_size = user.proxy_render_size
-        bgpic.clip_user.use_render_undistorted = user.use_render_undistorted
-        bgpic.use_camera_clip = False
-        bgpic.view_axis = 'CAMERA'
-
-        space_v3d.show_background_images = True
-
     def execute(self, context):
         sc = context.space_data
-        clip = sc.clip
-
-        for area in context.window.screen.areas:
-            if area.type == 'VIEW_3D':
-                for space in area.spaces:
-                    if space.type == 'VIEW_3D':
-                        self._set_background(space, clip, sc.clip_user)
+        CLIP_set_viewport_background(context, False, sc.clip, sc.clip_user)
 
         return {'FINISHED'}
 
@@ -330,5 +344,434 @@ object's movement caused by this constraint"""
         for ob in scene.objects:
             if ob.select:
                 self._bake_object(scene, ob)
+
+        return {'FINISHED'}
+
+
+class CLIP_OT_setup_tracking_scene(Operator):
+    """Prepare scene for compositing 3D objects into this footage"""
+
+    bl_idname = "clip.setup_tracking_scene"
+    bl_label = "Setup Tracking Scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        if sc.type != 'CLIP_EDITOR':
+            return False
+
+        clip = sc.clip
+
+        return clip and clip.tracking.reconstruction.is_valid
+
+    @staticmethod
+    def _setupScene(context):
+        scene = context.scene
+        scene.active_clip = context.space_data.clip
+
+    @staticmethod
+    def _setupWorld(context):
+        scene = context.scene
+        world = scene.world
+
+        if not world:
+            world = bpy.data.worlds.new(name="World")
+            scene.world = world
+
+        world.light_settings.use_ambient_occlusion = True
+        world.light_settings.ao_blend_type = 'MULTIPLY'
+
+        world.light_settings.use_environment_light = True
+        world.light_settings.environment_energy = 0.1
+
+        world.light_settings.distance = 1.0
+        world.light_settings.sample_method = 'ADAPTIVE_QMC'
+        world.light_settings.samples = 7
+        world.light_settings.threshold = 0.005
+
+    @staticmethod
+    def _findOrCreateCamera(context):
+        scene = context.scene
+
+        if scene.camera:
+            return scene.camera
+
+        cam = bpy.data.cameras.new(name="Camera")
+        camob = bpy.data.objects.new(name="Camera", object_data=cam)
+        scene.objects.link(camob)
+
+        scene.camera = camob
+
+        camob.matrix_local = (Matrix.Translation((7.481, -6.508, 5.344)) *
+            Matrix.Rotation(0.815, 4, 'Z') *
+            Matrix.Rotation(0.011, 4, 'Y') *
+            Matrix.Rotation(1.109, 4, 'X'))
+
+        return camob
+
+    @staticmethod
+    def _setupCamera(context):
+        camob = CLIP_OT_setup_tracking_scene._findOrCreateCamera(context)
+
+        # Remove all constraints to be sure motion is fine
+        camob.constraints.clear()
+
+        # Append camera solver constraint
+        con = camob.constraints.new(type='CAMERA_SOLVER')
+        con.use_active_clip = True
+        con.influence = 1.0
+
+    @staticmethod
+    def _setupViewport(context):
+        sc = context.space_data
+        CLIP_set_viewport_background(context, True, sc.clip, sc.clip_user)
+
+    @staticmethod
+    def _setupRenderLayers(context):
+        scene = context.scene
+        rlayers = scene.render.layers
+
+        if not scene.render.layers.get("Foreground"):
+            if len(rlayers) == 1:
+                fg = rlayers[0]
+                fg.name = 'Foreground'
+            else:
+                fg = scene.render.layers.new('Foreground')
+
+            fg.use_sky = False
+            fg.layers = [True] + [False] * 19
+            fg.layers_zmask = [False] * 10 + [True] + [False] * 9
+            fg.use_pass_vector = True
+
+        if not scene.render.layers.get("Background"):
+            bg = scene.render.layers.new('Background')
+            bg.use_pass_shadow = True
+            bg.use_pass_ambient_occlusion = True
+            bg.layers = [False] * 10 + [True] + [False] * 9
+
+    @staticmethod
+    def _findNode(tree, type):
+        for node in tree.nodes:
+            if node.type == type:
+                return node
+
+        return None
+
+    @staticmethod
+    def _findOrCreateNode(tree, type):
+        node = CLIP_OT_setup_tracking_scene._findNode(tree, type)
+
+        if not node:
+            node = tree.nodes.new(type=type)
+
+        return node
+
+    @staticmethod
+    def _needSetupNodes(context):
+        scene = context.scene
+        tree = scene.node_tree
+
+        if not tree:
+            # No compositor node tree found, time to create it!
+            return True
+
+        for node in tree.nodes:
+            if node.type in {'MOVIECLIP', 'MOVIEDISTORTION'}:
+                return False
+
+        return True
+
+    @staticmethod
+    def _offsetNodes(tree):
+        for a in tree.nodes:
+            for b in tree.nodes:
+                if a != b and a.location == b.location:
+                    b.location += Vector((40.0, 20.0))
+
+    def _setupNodes(self, context):
+        if not self._needSetupNodes(context):
+            # compositor nodes were already setup or even changes already
+            # do nothing to prevent nodes damage
+            return
+
+        # Enable backdrop for all compositor spaces
+        def setup_space(space):
+            space.show_backdrop = True
+
+        CLIP_spacees_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
+                          setup_space)
+
+        sc = context.space_data
+        scene = context.scene
+        scene.use_nodes = True
+        tree = scene.node_tree
+        clip = sc.clip
+
+        need_stabilization = False
+
+        # create nodes
+        rlayer_fg = self._findOrCreateNode(tree, 'R_LAYERS')
+        rlayer_bg = tree.nodes.new(type='R_LAYERS')
+        composite = self._findOrCreateNode(tree, 'COMPOSITE')
+
+        movieclip = tree.nodes.new(type='MOVIECLIP')
+        distortion = tree.nodes.new(type='MOVIEDISTORTION')
+
+        if need_stabilization:
+            stabilize = tree.nodes.new(type='STABILIZE2D')
+
+        scale = tree.nodes.new(type='SCALE')
+        invert = tree.nodes.new(type='INVERT')
+        add_ao = tree.nodes.new(type='MIX_RGB')
+        add_shadow = tree.nodes.new(type='MIX_RGB')
+        mul_shadow = tree.nodes.new(type='MIX_RGB')
+        mul_image = tree.nodes.new(type='MIX_RGB')
+        vector_blur = tree.nodes.new(type='VECBLUR')
+        alphaover = tree.nodes.new(type='ALPHAOVER')
+        viewer = tree.nodes.new(type='VIEWER')
+
+        # setup nodes
+        movieclip.clip = clip
+
+        distortion.clip = clip
+        distortion.distortion_type = 'UNDISTORT'
+
+        if need_stabilization:
+            stabilize.clip = clip
+
+        scale.space = 'RENDER_SIZE'
+
+        rlayer_bg.scene = scene
+        rlayer_bg.layer = "Background"
+
+        rlayer_fg.scene = scene
+        rlayer_fg.layer = "Foreground"
+
+        add_ao.blend_type = 'ADD'
+        add_shadow.blend_type = 'ADD'
+
+        mul_shadow.blend_type = 'MULTIPLY'
+        mul_shadow.inputs['Fac'].default_value = 0.8
+
+        mul_image.blend_type = 'MULTIPLY'
+        mul_image.inputs['Fac'].default_value = 0.8
+
+        vector_blur.factor = 0.75
+
+        # create links
+        tree.links.new(movieclip.outputs['Image'], distortion.inputs['Image'])
+
+        if need_stabilization:
+            tree.links.new(distortion.outputs['Image'],
+                stabilize.inputs['Image'])
+            tree.links.new(stabilize.outputs['Image'], scale.inputs['Image'])
+        else:
+            tree.links.new(distortion.outputs['Image'], scale.inputs['Image'])
+
+        tree.links.new(rlayer_bg.outputs['Alpha'], invert.inputs['Color'])
+
+        tree.links.new(invert.outputs['Color'], add_shadow.inputs[1])
+        tree.links.new(rlayer_bg.outputs['Shadow'], add_shadow.inputs[2])
+
+        tree.links.new(invert.outputs['Color'], add_ao.inputs[1])
+        tree.links.new(rlayer_bg.outputs['AO'], add_ao.inputs[2])
+
+        tree.links.new(add_ao.outputs['Image'], mul_shadow.inputs[1])
+        tree.links.new(add_shadow.outputs['Image'], mul_shadow.inputs[2])
+
+        tree.links.new(scale.outputs['Image'], mul_image.inputs[1])
+        tree.links.new(mul_shadow.outputs['Image'], mul_image.inputs[2])
+
+        tree.links.new(rlayer_fg.outputs['Image'], vector_blur.inputs['Image'])
+        tree.links.new(rlayer_fg.outputs['Z'], vector_blur.inputs['Z'])
+        tree.links.new(rlayer_fg.outputs['Speed'], vector_blur.inputs['Speed'])
+
+        tree.links.new(mul_image.outputs['Image'], alphaover.inputs[1])
+        tree.links.new(vector_blur.outputs['Image'], alphaover.inputs[2])
+
+        tree.links.new(alphaover.outputs['Image'], composite.inputs['Image'])
+        tree.links.new(alphaover.outputs['Image'], viewer.inputs['Image'])
+
+        # place nodes
+        movieclip.location = Vector((-300.0, 350.0))
+
+        distortion.location = movieclip.location
+        distortion.location += Vector((200.0, 0.0))
+
+        if need_stabilization:
+            stabilize.location = distortion.location
+            stabilize.location += Vector((200.0, 0.0))
+
+            scale.location = stabilize.location
+            scale.location += Vector((200.0, 0.0))
+        else:
+            scale.location = distortion.location
+            scale.location += Vector((200.0, 0.0))
+
+        rlayer_bg.location = movieclip.location
+        rlayer_bg.location -= Vector((0.0, 350.0))
+
+        invert.location = rlayer_bg.location
+        invert.location += Vector((250.0, 50.0))
+
+        add_ao.location = invert.location
+        add_ao.location[0] += 200
+        add_ao.location[1] = rlayer_bg.location[1]
+
+        add_shadow.location = add_ao.location
+        add_shadow.location -= Vector((0.0, 250.0))
+
+        mul_shadow.location = add_ao.location
+        mul_shadow.location += Vector((200.0, -50.0))
+
+        mul_image.location = mul_shadow.location
+        mul_image.location += Vector((300.0, 200.0))
+
+        rlayer_fg.location = rlayer_bg.location
+        rlayer_fg.location -= Vector((0.0, 500.0))
+
+        vector_blur.location[0] = mul_image.location[0]
+        vector_blur.location[1] = rlayer_fg.location[1]
+
+        alphaover.location[0] = vector_blur.location[0] + 350
+        alphaover.location[1] = \
+            (vector_blur.location[1] + mul_image.location[1]) / 2
+
+        composite.location = alphaover.location
+        composite.location += Vector((200.0, -100.0))
+
+        viewer.location = composite.location
+        composite.location += Vector((0.0, 200.0))
+
+        # ensure no nodes were creates on position of existing node
+        self._offsetNodes(tree)
+
+    @staticmethod
+    def _createMesh(scene, name, vertices, faces):
+        from bpy_extras.io_utils import unpack_list, unpack_face_list
+
+        mesh = bpy.data.meshes.new(name=name)
+
+        mesh.vertices.add(len(vertices))
+        mesh.vertices.foreach_set("co", unpack_list(vertices))
+
+        mesh.faces.add(len(faces))
+        mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
+
+        mesh.update(calc_edges=True)
+
+        ob = bpy.data.objects.new(name=name, object_data=mesh)
+
+        scene.objects.link(ob)
+
+        return ob
+
+    @staticmethod
+    def _getPlaneVertices(half_size, z):
+
+        return [(-half_size, -half_size, z),
+                (-half_size, half_size, z),
+                (half_size, half_size, z),
+                (half_size, -half_size, z)]
+
+    def _createGround(self, scene):
+        vertices = self._getPlaneVertices(4.0, 0.0)
+        faces = [(0, 1, 2, 3)]
+
+        ob = self._createMesh(scene, "Ground", vertices, faces)
+        ob["is_ground"] = True
+
+        return ob
+
+    @staticmethod
+    def _findGround(context):
+        scene = context.scene
+
+        for ob in scene.objects:
+            if ob.type == 'MESH' and "is_ground" in ob:
+                return ob
+
+        return None
+
+    @staticmethod
+    def _mergeLayers(layers_a, layers_b):
+
+        return [(layers_a[i] | layers_b[i]) for i in range(len(layers_a))]
+
+    @staticmethod
+    def _createLamp(scene):
+        lamp = bpy.data.lamps.new(name="Lamp", type='POINT')
+        lampob = bpy.data.objects.new(name="Lamp", object_data=lamp)
+        scene.objects.link(lampob)
+
+        lampob.matrix_local = Matrix.Translation((4.076, 1.005, 5.904))
+
+        lamp.distance = 30
+        lamp.shadow_method = 'RAY_SHADOW'
+
+        return lampob
+
+    def _createSampleObject(self, scene):
+        vertices = self._getPlaneVertices(1.0, -1.0) + \
+            self._getPlaneVertices(1.0, 1.0)
+        faces = ((0, 1, 2, 3),
+                 (4, 7, 6, 5),
+                 (0, 4, 5, 1),
+                 (1, 5, 6, 2),
+                 (2, 6, 7, 3),
+                 (3, 7, 4, 0))
+
+        return self._createMesh(scene, "Cube", vertices, faces)
+
+    def _setupObjects(self, context):
+        scene = context.scene
+
+        fg = scene.render.layers.get("Foreground")
+        bg = scene.render.layers.get("Background")
+
+        all_layers = self._mergeLayers(fg.layers, bg.layers)
+
+        # enshure all lamps are active on foreground and background
+        has_lamp = False
+        has_mesh = False
+        for ob in scene.objects:
+            if ob.type == 'LAMP':
+                ob.layers = all_layers
+                has_lamp = True
+            elif ob.type == 'MESH' and "is_ground" not in ob:
+                has_mesh = True
+
+        # create sample lamp if there's no lamps in the scene
+        if not has_lamp:
+            lamp = self._createLamp(scene)
+            lamp.layers = all_layers
+
+        # create sample object if there's no meshes in the scene
+        if not has_mesh:
+            ob = self._createSampleObject(scene)
+            ob.layers = fg.layers
+
+        # create ground object if needed
+        ground = self._findGround(context)
+        if not ground:
+            ground = self._createGround(scene)
+            ground.layers = bg.layers
+        else:
+            # make sure ground is available on Background layer
+            ground.layers = self._mergeLayers(ground.layers, bg.layers)
+
+        # layers with background and foreground should be rendered
+        scene.layers = self._mergeLayers(scene.layers, all_layers)
+
+    def execute(self, context):
+        self._setupScene(context)
+        self._setupWorld(context)
+        self._setupCamera(context)
+        self._setupViewport(context)
+        self._setupRenderLayers(context)
+        self._setupNodes(context)
+        self._setupObjects(context)
 
         return {'FINISHED'}

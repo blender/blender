@@ -475,7 +475,7 @@ class CLIP_PT_stabilization(Panel):
 
     def draw_header(self, context):
         stab = context.space_data.clip.tracking.stabilization
-        
+
         self.layout.prop(stab, "use_2d_stabilization", text="")
 
     def draw(self, context):
@@ -640,6 +640,7 @@ class CLIP_PT_tools_clip(Panel):
         layout = self.layout
 
         layout.operator("clip.set_viewport_background")
+        layout.operator("clip.setup_tracking_scene")
 
 
 class CLIP_MT_view(Menu):

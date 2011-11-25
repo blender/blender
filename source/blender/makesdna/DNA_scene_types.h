@@ -277,6 +277,8 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_XVID           32
 #define R_IMF_IMTYPE_THEORA         33
 
+#define R_IMF_IMTYPE_INVALID        255
+
 /* ImageFormatData.flag */
 #define R_IMF_FLAG_ZBUF         (1<<0)   /* was R_OPENEXR_ZBUF */
 #define R_IMF_FLAG_PREVIEW_JPG  (1<<1)   /* was R_PREVIEW_JPG */

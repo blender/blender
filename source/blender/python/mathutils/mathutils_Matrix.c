@@ -125,7 +125,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	switch(PyTuple_GET_SIZE(args)) {
 		case 0:
-			return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, type);
+			return (PyObject *) Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, type);
 		case 1:
 		{
 			PyObject *arg= PyTuple_GET_ITEM(args, 0);
@@ -140,7 +140,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 				if (col_size >= 2 && col_size <= 4) {
 					/* sane row & col size, new matrix and assign as slice  */
-					PyObject *matrix= newMatrixObject(NULL, row_size, col_size, Py_NEW, type);
+					PyObject *matrix= Matrix_CreatePyObject(NULL, row_size, col_size, Py_NEW, type);
 					if (Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
 						return matrix;
 					}
@@ -284,7 +284,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
 
@@ -308,7 +308,7 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 	/* create a identity matrix and add translation */
 	unit_m4((float(*)[4]) mat);
 	copy_v3_v3(mat + 12, tvec); /* 12, 13, 14 */
-	return newMatrixObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
 }
 //----------------------------------mathutils.Matrix.Scale() -------------
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
@@ -395,7 +395,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 //----------------------------------mathutils.Matrix.OrthoProjection() ---
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
@@ -512,7 +512,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
 PyDoc_STRVAR(C_Matrix_Shear_doc,
@@ -613,7 +613,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		matrix_3x3_as_4x4(mat);
 	}
 	//pass to matrix creation
-	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self)
@@ -673,7 +673,7 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
 		mat4_to_quat(quat, (float (*)[4])self->contigPtr);
 	}
 
-	return newQuaternionObject(quat, Py_NEW, NULL);
+	return Quaternion_CreatePyObject(quat, Py_NEW, NULL);
 }
 
 /*---------------------------matrix.toEuler() --------------------*/
@@ -747,7 +747,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 		else			mat3_to_eulO(eul, order, mat);
 	}
 
-	return newEulerObject(eul, order, Py_NEW, NULL);
+	return Euler_CreatePyObject(eul, order, Py_NEW, NULL);
 }
 
 PyDoc_STRVAR(Matrix_resize_4x4_doc,
@@ -827,12 +827,12 @@ static PyObject *Matrix_to_4x4(MatrixObject *self)
 		return NULL;
 
 	if (self->col_size==4 && self->row_size==4) {
-		return (PyObject *)newMatrixObject(self->contigPtr, 4, 4, Py_NEW, Py_TYPE(self));
+		return (PyObject *)Matrix_CreatePyObject(self->contigPtr, 4, 4, Py_NEW, Py_TYPE(self));
 	}
 	else if (self->col_size==3 && self->row_size==3) {
 		float mat[4][4];
 		copy_m4_m3(mat, (float (*)[3])self->contigPtr);
-		return (PyObject *)newMatrixObject((float *)mat, 4, 4, Py_NEW, Py_TYPE(self));
+		return (PyObject *)Matrix_CreatePyObject((float *)mat, 4, 4, Py_NEW, Py_TYPE(self));
 	}
 	/* TODO, 2x2 matrix */
 
@@ -865,7 +865,7 @@ static PyObject *Matrix_to_3x3(MatrixObject *self)
 
 	matrix_as_3x3(mat, self);
 
-	return newMatrixObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
+	return Matrix_CreatePyObject((float *)mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Matrix_to_translation_doc,
@@ -888,7 +888,7 @@ static PyObject *Matrix_to_translation(MatrixObject *self)
 		return NULL;
 	}
 
-	return newVectorObject(self->matrix[3], 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(self->matrix[3], 3, Py_NEW, NULL);
 }
 
 PyDoc_STRVAR(Matrix_to_scale_doc,
@@ -923,7 +923,7 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
 	/* compatible mat4_to_loc_rot_size */
 	mat3_to_rot_size(rot, size, mat);
 
-	return newVectorObject(size, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(size, 3, Py_NEW, NULL);
 }
 
 /*---------------------------matrix.invert() ---------------------*/
@@ -1041,7 +1041,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 	}
 
 	matrix_as_3x3(self_rmat, self);
-	mul_m3_m3m3(rmat, self_rmat, other_rmat);
+	mul_m3_m3m3(rmat, other_rmat, self_rmat);
 
 	copy_m3_m3((float (*)[3])(self->contigPtr), rmat);
 
@@ -1080,9 +1080,9 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 	mat3_to_quat(quat, rot);
 
 	ret= PyTuple_New(3);
-	PyTuple_SET_ITEM(ret, 0, newVectorObject(loc, 3, Py_NEW, NULL));
-	PyTuple_SET_ITEM(ret, 1, newQuaternionObject(quat, Py_NEW, NULL));
-	PyTuple_SET_ITEM(ret, 2, newVectorObject(size, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(loc, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 1, Quaternion_CreatePyObject(quat, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 2, Vector_CreatePyObject(size, 3, Py_NEW, NULL));
 
 	return ret;
 }
@@ -1133,7 +1133,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 		return NULL;
 	}
 
-	return (PyObject*)newMatrixObject(mat, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
+	return (PyObject*)Matrix_CreatePyObject(mat, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
 }
 
 /*---------------------------matrix.determinant() ----------------*/
@@ -1223,7 +1223,7 @@ PyDoc_STRVAR(Matrix_zero_doc,
 );
 static PyObject *Matrix_zero(MatrixObject *self)
 {
-	fill_vn(self->contigPtr, self->row_size * self->col_size, 0.0f);
+	fill_vn_fl(self->contigPtr, self->row_size * self->col_size, 0.0f);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return NULL;
@@ -1286,7 +1286,7 @@ static PyObject *Matrix_copy(MatrixObject *self)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return (PyObject*)newMatrixObject((float (*))self->contigPtr, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
+	return (PyObject*)Matrix_CreatePyObject((float (*))self->contigPtr, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
 }
 
 /*----------------------------print object (internal)-------------*/
@@ -1383,7 +1383,7 @@ static PyObject *Matrix_item(MatrixObject *self, int i)
 		                "array index out of range");
 		return NULL;
 	}
-	return newVectorObject_cb((PyObject *)self, self->col_size, mathutils_matrix_vector_cb_index, i);
+	return Vector_CreatePyObject_cb((PyObject *)self, self->col_size, mathutils_matrix_vector_cb_index, i);
 }
 /*----------------------------object[]-------------------------
   sequence accessor (set) */
@@ -1428,7 +1428,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 	tuple= PyTuple_New(end - begin);
 	for (count= begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin,
-				newVectorObject_cb((PyObject *)self, self->col_size, mathutils_matrix_vector_cb_index, count));
+				Vector_CreatePyObject_cb((PyObject *)self, self->col_size, mathutils_matrix_vector_cb_index, count));
 
 	}
 
@@ -1514,7 +1514,7 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 
 	add_vn_vnvn(mat, mat1->contigPtr, mat2->contigPtr, mat1->row_size * mat1->col_size);
 
-	return newMatrixObject(mat, mat1->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
+	return Matrix_CreatePyObject(mat, mat1->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj - obj------------------------------
   subtraction*/
@@ -1547,7 +1547,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 
 	sub_vn_vnvn(mat, mat1->contigPtr, mat2->contigPtr, mat1->row_size * mat1->col_size);
 
-	return newMatrixObject(mat, mat1->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
+	return Matrix_CreatePyObject(mat, mat1->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj * obj------------------------------
   mulplication*/
@@ -1555,7 +1555,7 @@ static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 {
 	float tmat[16];
 	mul_vn_vn_fl(tmat, mat->contigPtr, mat->row_size * mat->col_size, scalar);
-	return newMatrixObject(tmat, mat->row_size, mat->col_size, Py_NEW, Py_TYPE(mat));
+	return Matrix_CreatePyObject(tmat, mat->row_size, mat->col_size, Py_NEW, Py_TYPE(mat));
 }
 
 static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
@@ -1594,7 +1594,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 			}
 		}
 
-		return newMatrixObject(mat, mat2->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
+		return Matrix_CreatePyObject(mat, mat2->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
 	}
 	else if (mat2) {
 		/*FLOAT/INT * MATRIX */
@@ -1613,7 +1613,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 				return NULL;
 			}
 
-			return newVectorObject(tvec, vec2->size, Py_NEW, Py_TYPE(m2));
+			return Vector_CreatePyObject(tvec, vec2->size, Py_NEW, Py_TYPE(m2));
 		}
 		/*FLOAT/INT * MATRIX */
 		else if (((scalar= PyFloat_AsDouble(m2)) == -1.0f && PyErr_Occurred())==0) {
@@ -1940,7 +1940,7 @@ PyTypeObject matrix_Type = {
 	NULL								/*tp_del*/
 };
 
-/*------------------------newMatrixObject (internal)-------------
+/*------------------------Matrix_CreatePyObject (internal)-------------
 creates a new matrix object
 self->matrix     self->contiguous_ptr (reference to data.xxx)
 	   [0]------------->[0]
@@ -1956,7 +1956,7 @@ self->matrix[1][1] = self->contigPtr[4] */
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
+PyObject *Matrix_CreatePyObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
 {
 	MatrixObject *self;
 	int x, row, col;
@@ -2022,9 +2022,9 @@ PyObject *newMatrixObject(float *mat, const unsigned short rowSize, const unsign
 	return (PyObject *) self;
 }
 
-PyObject *newMatrixObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb_type, int cb_subtype)
+PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb_type, int cb_subtype)
 {
-	MatrixObject *self= (MatrixObject *)newMatrixObject(NULL, rowSize, colSize, Py_NEW, NULL);
+	MatrixObject *self= (MatrixObject *)Matrix_CreatePyObject(NULL, rowSize, colSize, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;

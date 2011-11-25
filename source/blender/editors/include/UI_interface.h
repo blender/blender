@@ -115,12 +115,14 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_OUT_1			1024
 #define UI_BLOCK_NO_FLIP		2048
 #define UI_BLOCK_POPUP_MEMORY	4096
+#define UI_BLOCK_CLIP_EVENTS	8192	/* stop handling mouse events */
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
 #define UI_RETURN_OK        2       /* choice made */
 #define UI_RETURN_OUT       4       /* left the menu */
 #define UI_RETURN_UPDATE    8       /* update the button that opened */
+#define UI_RETURN_POPUP_OK  16      /* popup is ok to be handled */
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
@@ -277,6 +279,30 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 #define UI_SCROLL_NO_OUTLINE	4
 void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
+/* Callbacks
+ *
+ * uiBlockSetHandleFunc/ButmFunc are for handling events through a callback.
+ * HandleFunc gets the retval passed on, and ButmFunc gets a2. The latter is
+ * mostly for compatibility with older code.
+ *
+ * uiButSetCompleteFunc is for tab completion.
+ *
+ * uiButSearchFunc is for name buttons, showing a popup with matches
+ *
+ * uiBlockSetFunc and uiButSetFunc are callbacks run when a button is used,
+ * in case events, operators or RNA are not sufficient to handle the button.
+ *
+ * uiButSetNFunc will free the argument with MEM_freeN. */
+
+typedef struct uiSearchItems uiSearchItems;
+
+typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
+typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
+typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
+typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
+typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
+
 /* Menu Callbacks */
 
 typedef void (*uiMenuCreateFunc)(struct bContext *C, struct uiLayout *layout, void *arg1);
@@ -312,7 +338,7 @@ typedef void (*uiBlockCancelFunc)(void *arg1);
 
 void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
-void uiPupBlockEx(struct bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_func, void *arg);
+void uiPupBlockEx(struct bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg);
 /* void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext); */ /* UNUSED */
 
 void uiPupBlockClose(struct bContext *C, uiBlock *block);
@@ -364,6 +390,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
 void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
 void uiCenteredBoundsBlock(uiBlock *block, int addval);
+void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int maxy);
 
 int		uiBlocksGetYMin		(struct ListBase *lb);
 
@@ -527,30 +554,6 @@ void uiSetButLink(struct uiBut *but,  void **poin,  void ***ppoin,  short *tot, 
 void uiComposeLinks(uiBlock *block);
 uiBut *uiFindInlink(uiBlock *block, void *poin);
 
-/* Callbacks
- *
- * uiBlockSetHandleFunc/ButmFunc are for handling events through a callback.
- * HandleFunc gets the retval passed on, and ButmFunc gets a2. The latter is
- * mostly for compatibility with older code.
- *
- * uiButSetCompleteFunc is for tab completion.
- *
- * uiButSearchFunc is for name buttons, showing a popup with matches
- *
- * uiBlockSetFunc and uiButSetFunc are callbacks run when a button is used,
- * in case events, operators or RNA are not sufficient to handle the button.
- *
- * uiButSetNFunc will free the argument with MEM_freeN. */
-
-typedef struct uiSearchItems uiSearchItems;
-
-typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
-typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
-typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
-typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
-typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
-typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
-		
 		/* use inside searchfunc to add items */
 int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */

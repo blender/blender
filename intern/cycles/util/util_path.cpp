@@ -162,5 +162,46 @@ bool path_read_binary(const string& path, vector<uint8_t>& binary)
 	return true;
 }
 
+static bool path_read_text(const string& path, string& text)
+{
+	vector<uint8_t> binary;
+
+	if(!path_exists(path) || !path_read_binary(path, binary))
+		return false;
+	
+	const char *str = (const char*)&binary[0];
+	size_t size = binary.size();
+	text = string(str, size);
+
+	return true;
+}
+
+string path_source_replace_includes(const string& source_, const string& path)
+{
+	/* our own little c preprocessor that replaces #includes with the file
+	   contents, to work around issue of opencl drivers not supporting
+	   include paths with spaces in them */
+	string source = source_;
+	const string include = "#include \"";
+	size_t n, pos = 0;
+
+	while((n = source.find(include, pos)) != string::npos) {
+		size_t n_start = n + include.size();
+		size_t n_end = source.find("\"", n_start);
+		string filename = source.substr(n_start, n_end - n_start);
+
+		string text, filepath = path_join(path, filename);
+
+		if(path_read_text(filepath, text)) {
+			text = path_source_replace_includes(text, path_dirname(filepath));
+			source.replace(n, n_end + 1 - n, "\n" + text + "\n");
+		}
+		else
+			pos = n_end;
+	}
+
+	return source;
+}
+
 CCL_NAMESPACE_END
 

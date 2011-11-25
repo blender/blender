@@ -138,6 +138,23 @@ void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup)
 		vgroup_delete_object_mode(ob, dg);
 }
 
+void ED_vgroup_clear(Object *ob)
+{
+	bDeformGroup *dg= (bDeformGroup *)ob->defbase.first;
+	int edit_mode= ED_vgroup_object_is_edit_mode(ob);
+
+	while (dg) {
+		bDeformGroup *next_dg= dg->next;
+
+		if(edit_mode)
+			vgroup_delete_edit_mode(ob, dg);
+		else
+			vgroup_delete_object_mode(ob, dg);
+
+		dg= next_dg;
+	}
+}
+
 int ED_vgroup_data_create(ID *id)
 {
 	/* create deform verts */

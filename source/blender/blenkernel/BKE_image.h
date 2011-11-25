@@ -53,17 +53,20 @@ void	BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *re
 int		BKE_alphatest_ibuf(struct ImBuf *ibuf);
 int		BKE_write_ibuf_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int		BKE_write_ibuf(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
+int     BKE_write_ibuf_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const short is_copy);
 void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, char imtype, const short use_ext, const short use_frames);
 int		BKE_add_image_extension(char *string, const char imtype);
 char	BKE_ftype_to_imtype(const int ftype);
 int		BKE_imtype_to_ftype(char imtype);
 
 int		BKE_imtype_is_movie(const char imtype);
-int		BKE_imtype_supports_alpha(const char imtype);
 int		BKE_imtype_supports_zbuf(const char imtype);
 int		BKE_imtype_supports_compress(const char imtype);
 int		BKE_imtype_supports_quality(const char imtype);
+char    BKE_imtype_valid_channels(const char imtype);
 char	BKE_imtype_valid_depths(const char imtype);
+
+char    BKE_imtype_from_arg(const char *arg);
 
 struct anim *openanim(const char *name, int flags, int streamindex);
 
@@ -111,6 +114,10 @@ struct RenderResult;
 #define IMA_SIGNAL_SRC_CHANGE		5
 	/* image-user gets a new image, check settings */
 #define IMA_SIGNAL_USER_NEW_IMAGE	6
+
+#define IMA_CHAN_FLAG_BW    1
+#define IMA_CHAN_FLAG_RGB   2
+#define IMA_CHAN_FLAG_ALPHA 4
 
 /* depending Image type, and (optional) ImageUser setting it returns ibuf */
 /* always call to make signals work */

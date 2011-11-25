@@ -6480,8 +6480,8 @@ static void customdata_version_242(Mesh *me)
 
 		if (layer->type == CD_MTFACE) {
 			if (layer->name[0] == 0) {
-				if (mtfacen == 0) strcpy(layer->name, "UVTex");
-				else sprintf(layer->name, "UVTex.%.3d", mtfacen);
+				if (mtfacen == 0) strcpy(layer->name, "UVMap");
+				else sprintf(layer->name, "UVMap.%.3d", mtfacen);
 			}
 			mtfacen++;
 		}

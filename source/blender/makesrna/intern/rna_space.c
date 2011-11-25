@@ -911,6 +911,12 @@ static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, BGpic *
 	}
 }
 
+static void rna_BackgroundImage_clear(View3D *v3d)
+{
+	ED_view3D_background_image_clear(v3d);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
+}
+
 /* Space Node Editor */
 
 static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
@@ -1328,6 +1334,9 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_BackgroundImage_clear");
+	RNA_def_function_ui_description(func, "Remove all background images");
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)

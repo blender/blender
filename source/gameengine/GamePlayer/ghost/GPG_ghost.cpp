@@ -406,6 +406,7 @@ int main(int argc, char** argv)
 	
 	initglobals();
 
+	U.gameflags |= USER_DISABLE_VBO;
 	// We load our own G.main, so free the one that initglobals() gives us
 	free_main(G.main);
 	G.main = NULL;

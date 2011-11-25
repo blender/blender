@@ -457,15 +457,12 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         layout.prop(rd, "filepath", text="")
 
-        split = layout.split()
+        flow = layout.column_flow()
+        flow.prop(rd, "use_overwrite")
+        flow.prop(rd, "use_placeholder")
+        flow.prop(rd, "use_file_extension")
 
-        col = split.column()
-        col.template_image_settings(rd.image_settings)
-
-        col = split.column()
-        col.prop(rd, "use_file_extension")
-        col.prop(rd, "use_overwrite")
-        col.prop(rd, "use_placeholder")
+        layout.template_image_settings(rd.image_settings)
 
         if file_format == 'QUICKTIME_CARBON':
             layout.operator("scene.render_data_set_quicktime_codec")

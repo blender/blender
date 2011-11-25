@@ -109,17 +109,30 @@ public:
 	bool opencl_error(cl_int err)
 	{
 		if(err != CL_SUCCESS) {
-			fprintf(stderr, "OpenCL error (%d): %s\n", err, opencl_error_string(err));
+			string message = string_printf("OpenCL error (%d): %s", err, opencl_error_string(err));
+			if(error_msg == "")
+				error_msg = message;
+			fprintf(stderr, "%s\n", message.c_str());
 			return true;
 		}
 
 		return false;
 	}
 
+	void opencl_error(const string& message)
+	{
+		if(error_msg == "")
+			error_msg = message;
+		fprintf(stderr, "%s\n", message.c_str());
+	}
+
 	void opencl_assert(cl_int err)
 	{
 		if(err != CL_SUCCESS) {
-			fprintf(stderr, "OpenCL error (%d): %s\n", err, opencl_error_string(err));
+			string message = string_printf("OpenCL error (%d): %s", err, opencl_error_string(err));
+			if(error_msg == "")
+				error_msg = message;
+			fprintf(stderr, "%s\n", message.c_str());
 #ifndef NDEBUG
 			abort();
 #endif
@@ -147,7 +160,7 @@ public:
 			return;
 
 		if(num_platforms == 0) {
-			fprintf(stderr, "OpenCL: no platforms found.\n");
+			opencl_error("OpenCL: no platforms found.");
 			return;
 		}
 
@@ -183,24 +196,24 @@ public:
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
 
 		if(sscanf(version, "OpenCL %d.%d", &major, &minor) < 2) {
-			fprintf(stderr, "OpenCL: failed to parse platform version string (%s).", version);
+			opencl_error(string_printf("OpenCL: failed to parse platform version string (%s).", version));
 			return false;
 		}
 
 		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
-			fprintf(stderr, "OpenCL: platform version 1.1 or later required, found %d.%d\n", major, minor);
+			opencl_error(string_printf("OpenCL: platform version 1.1 or later required, found %d.%d", major, minor));
 			return false;
 		}
 
 		clGetDeviceInfo(cdDevice, CL_DEVICE_OPENCL_C_VERSION, sizeof(version), &version, NULL);
 
 		if(sscanf(version, "OpenCL C %d.%d", &major, &minor) < 2) {
-			fprintf(stderr, "OpenCL: failed to parse OpenCL C version string (%s).", version);
+			opencl_error(string_printf("OpenCL: failed to parse OpenCL C version string (%s).", version));
 			return false;
 		}
 
 		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
-			fprintf(stderr, "OpenCL: C version 1.1 or later required, found %d.%d\n", major, minor);
+			opencl_error(string_printf("OpenCL: C version 1.1 or later required, found %d.%d", major, minor));
 			return false;
 		}
 
@@ -216,7 +229,7 @@ public:
 		vector<uint8_t> binary;
 
 		if(!path_read_binary(clbin, binary)) {
-			fprintf(stderr, "OpenCL failed to read cached binary %s.\n", clbin.c_str());
+			opencl_error(string_printf("OpenCL failed to read cached binary %s.", clbin.c_str()));
 			return false;
 		}
 
@@ -229,7 +242,7 @@ public:
 			&size, &bytes, &status, &ciErr);
 
 		if(opencl_error(status) || opencl_error(ciErr)) {
-			fprintf(stderr, "OpenCL failed create program from cached binary %s.\n", clbin.c_str());
+			opencl_error(string_printf("OpenCL failed create program from cached binary %s.", clbin.c_str()));
 			return false;
 		}
 
@@ -253,7 +266,7 @@ public:
 		clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, sizeof(uint8_t*), &bytes, NULL);
 
 		if(!path_write_binary(clbin, binary)) {
-			fprintf(stderr, "OpenCL failed to write cached binary %s.\n", clbin.c_str());
+			opencl_error(string_printf("OpenCL failed to write cached binary %s.", clbin.c_str()));
 			return false;
 		}
 
@@ -278,10 +291,7 @@ public:
 
 	bool build_kernel(const string& kernel_path)
 	{
-		string build_options = "";
-
-		build_options += "-I " + kernel_path + ""; /* todo: escape path, but it doesn't get parsed correct? */
-		build_options += kernel_build_options();
+		string build_options = kernel_build_options();
 	
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
@@ -296,7 +306,8 @@ public:
 			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 
 			build_log[ret_val_size] = '\0';
-			fprintf(stderr, "OpenCL build failed:\n %s\n", build_log);
+			opencl_error("OpenCL build failed: errors in console");
+			fprintf(stderr, "%s\n", build_log);
 
 			delete[] build_log;
 
@@ -312,6 +323,8 @@ public:
 		   kernel caches do not seem to recognize changes in included files.
 		   so we force recompile on changes by adding the md5 hash of all files */
 		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
+		source = path_source_replace_includes(source, kernel_path);
+
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
 

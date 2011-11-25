@@ -103,83 +103,87 @@ EnumPropertyItem snap_element_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 
-/* note on duplicate block, perhaps we should use some trick to avoid
- * the duplicate, but with the inline defines it becomes very tricky
- * this awaits someone who has very good preprocessor-fu.
- * for now just make sure they stay in sync - campbell */
+/* workaround for duplice enums,
+ * have each enum line as a defne then conditionally set it or not
+ */
+
+#define R_IMF_ENUM_BMP      {R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
+#define R_IMF_ENUM_IRIS     {R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+#define R_IMF_ENUM_PNG      {R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
+#define R_IMF_ENUM_JPEG     {R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
+#define R_IMF_ENUM_TAGA     {R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
+#define R_IMF_ENUM_TAGA_RAW {R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
+
+
+#ifdef WITH_DDS
+#  define R_IMF_ENUM_DDS {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
+#else
+#  define R_IMF_ENUM_DDS
+#endif
+
+#ifdef WITH_OPENJPEG
+#  define R_IMF_ENUM_JPEG2K {R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
+#else
+#  define R_IMF_ENUM_JPEG2K
+#endif
+
+#ifdef WITH_CINEON
+#  define R_IMF_ENUM_CINEON {R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
+#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+#else
+#  define R_IMF_ENUM_CINEON
+#  define R_IMF_ENUM_DPX
+#endif
+
+#ifdef WITH_OPENEXR
+#  define R_IMF_ENUM_EXR_MULTI  {R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+#  define R_IMF_ENUM_EXR        {R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
+#else
+#  define R_IMF_ENUM_EXR_MULTI
+#  define R_IMF_ENUM_EXR
+#endif
+
+#ifdef WITH_HDR
+#  define R_IMF_ENUM_HDR  {R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
+#else
+#  define R_IMF_ENUM_HDR
+#endif
+
+#ifdef WITH_TIFF
+#  define R_IMF_ENUM_TIFF {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
+#else
+#  define R_IMF_ENUM_TIFF
+#endif
+
+
+#define IMAGE_TYPE_ITEMS_IMAGE_ONLY                                           \
+	R_IMF_ENUM_BMP                                                            \
+	R_IMF_ENUM_DDS                                                            \
+	R_IMF_ENUM_IRIS                                                           \
+	R_IMF_ENUM_PNG                                                            \
+	R_IMF_ENUM_JPEG                                                           \
+	R_IMF_ENUM_JPEG2K                                                         \
+	R_IMF_ENUM_TAGA                                                           \
+	R_IMF_ENUM_TAGA_RAW                                                       \
+	{0, "", 0, " ", NULL},                                                    \
+	R_IMF_ENUM_CINEON                                                         \
+	R_IMF_ENUM_DPX                                                            \
+	R_IMF_ENUM_EXR_MULTI                                                      \
+	R_IMF_ENUM_EXR                                                            \
+	R_IMF_ENUM_HDR                                                            \
+	R_IMF_ENUM_TIFF                                                           \
+
 
 EnumPropertyItem image_only_type_items[] = {
 
+	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-    /* --- duplicate block warning (see below) --- */
-#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
-#ifdef WITH_DDS
-	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#endif
-	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
-#ifdef WITH_OPENJPEG
-	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
-#endif
-	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
-	{0, "", 0, " ", NULL},
-#ifdef WITH_CINEON
-	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
-#endif
-#ifdef WITH_OPENEXR
-	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
-#endif
-#ifdef WITH_HDR
-	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
-#endif
-#ifdef WITH_TIFF
-	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#endif
-    /* --- end duplicate block (see below) --- */
-
-
-	{0, NULL, 0, NULL, NULL}};
+    {0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 
-
-    /* --- duplicate block warning (see above) --- */
-#define IMAGE_TYPE_ITEMS_IMAGE_ONLY
-	{R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
-#ifdef WITH_DDS
-	{R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#endif
-	{R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
-	{R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
-	{R_IMF_IMTYPE_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", "Output image in JPEG format"},
-#ifdef WITH_OPENJPEG
-	{R_IMF_IMTYPE_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", "Output image in JPEG 2000 format"},
-#endif
-	{R_IMF_IMTYPE_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", "Output image in Targa format"},
-	{R_IMF_IMTYPE_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", "Output image in uncompressed Targa format"},
-	{0, "", 0, " ", NULL},
-#ifdef WITH_CINEON
-	{R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", "Output image in Cineon format"},
-	{R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
-#endif
-#ifdef WITH_OPENEXR
-	{R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
-	{R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
-#endif
-#ifdef WITH_HDR
-	{R_IMF_IMTYPE_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", "Output image in Radiance HDR format"},
-#endif
-#ifdef WITH_TIFF
-	{R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#endif
-    /* --- end duplicate block (see above) --- */
-
+	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
 	{0, "", 0, "Movie", NULL},
 #ifdef _WIN32
@@ -212,6 +216,10 @@ EnumPropertyItem image_color_mode_items[] ={
 	{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 	{R_IMF_PLANES_RGBA, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 	{0, NULL, 0, NULL, NULL}};
+
+#define IMAGE_COLOR_MODE_BW   image_color_mode_items[0]
+#define IMAGE_COLOR_MODE_RGB  image_color_mode_items[1]
+#define IMAGE_COLOR_MODE_RGBA image_color_mode_items[2]
 
 EnumPropertyItem image_color_depth_items[] = {
 	/* 1 (monochrome) not used */
@@ -611,11 +619,16 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
 	ImageFormatData *imf= (ImageFormatData *)ptr->data;
 	ID *id= ptr->id.data;
+	const char is_render= (id && GS(id->name) == ID_SCE);
+	/* see note below on why this is */
+	const char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
 
 	imf->imtype= value;
 
 	/* ensure depth and color settings match */
-	if (!BKE_imtype_supports_alpha(imf->imtype)) {
+	if ( ((imf->planes == R_IMF_PLANES_BW) &&   !(chan_flag & IMA_CHAN_FLAG_BW)) ||
+	     ((imf->planes == R_IMF_PLANES_RGBA) && !(chan_flag & IMA_CHAN_FLAG_ALPHA)))
+	{
 		imf->planes= R_IMF_PLANES_RGB;
 	}
 
@@ -671,16 +684,30 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
                                                                   PropertyRNA *UNUSED(prop), int *free)
 {
 	ImageFormatData *imf= (ImageFormatData *)ptr->data;
+	ID *id= ptr->id.data;
+	const char is_render= (id && GS(id->name) == ID_SCE);
 
-	if ((imf == NULL) || BKE_imtype_supports_alpha(imf->imtype)) {
+	/* note, we need to act differently for render
+	 * where 'BW' will force greyscale even if the output format writes
+	 * as RGBA, this is age old blender convention and not sure how useful
+	 * it really is but keep it for now - campbell */
+	const char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
+
+	if (chan_flag == (IMA_CHAN_FLAG_BW|IMA_CHAN_FLAG_RGB|IMA_CHAN_FLAG_ALPHA)) {
 		return image_color_mode_items;
 	}
 	else {
-		static EnumPropertyItem color_mode_items[] ={
-			{R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
-			{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
-			{0, NULL, 0, NULL, NULL}};
-		return color_mode_items;
+		int totitem= 0;
+		EnumPropertyItem *item= NULL;
+
+		if (chan_flag & IMA_CHAN_FLAG_BW)    RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_BW);
+		if (chan_flag & IMA_CHAN_FLAG_RGB)   RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGB);
+		if (chan_flag & IMA_CHAN_FLAG_ALPHA) RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGBA);
+
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+
+		return item;
 	}
 }
 
@@ -1194,6 +1221,10 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 	marker->frame= 1;
 	BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
 	BLI_addtail(&scene->markers, marker);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+
 	return marker;
 }
 
@@ -1206,6 +1237,17 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *m
 
 	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+}
+
+static void rna_TimeLine_clear(Scene *scene)
+{
+	BLI_freelistN(&scene->markers);
+
+	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
 }
 
 static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, const char name[])
@@ -2708,18 +2750,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_RenderSettings_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock");
 
-#if 0 /* moved */
-
-	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
-	RNA_def_property_enum_items(prop, image_color_mode_items);
-	RNA_def_property_ui_text(prop, "Color Mode",
-	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
-	                         "and RGBA for saving red, green, blue and alpha channels");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#endif
-
 	/* Render Data */
 	prop= RNA_def_property(srna, "image_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -2769,27 +2799,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
-	
-	/* JPEG and AVI JPEG */
-
-#if 0 /* moved */
-
-	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "quality");
-	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
-	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies, compression for PNG's");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#endif
-
-	/* Tiff */
-	
-#if 0 /* replaced, use generic */
-	prop= def_property(srna, "use_tiff_16bit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "subimtype", R_TIFF_16BIT);
-	RNA_def_property_ui_text(prop, "16 Bit", "Save TIFF with 16 bits per channel");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-#endif
 
 #ifdef WITH_QUICKTIME
 	/* QuickTime */
@@ -3605,6 +3614,9 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_TimeLine_clear");
+	RNA_def_function_ui_description(func, "Remove all timeline markers");
 }
 
 /* scene.keying_sets */

@@ -1287,7 +1287,7 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
-	RNA_def_property_ui_text(prop, "UV Layer", "UV layer to use for mapping with UV texture coordinates");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map to use for mapping with UV texture coordinates");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "mapping_x", PROP_ENUM, PROP_NONE);
@@ -2717,17 +2717,17 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "billboard_normal_uv", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[0]");
 	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Normal UV", "UV Layer to control billboard normals");
+	RNA_def_property_ui_text(prop, "Billboard Normal UV", "UV map to control billboard normals");
 
 	prop= RNA_def_property(srna, "billboard_time_index_uv", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[1]");
 	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Time Index UV", "UV Layer to control billboard time index (X-Y)");
+	RNA_def_property_ui_text(prop, "Billboard Time Index UV", "UV map to control billboard time index (X-Y)");
 
 	prop= RNA_def_property(srna, "billboard_split_uv", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "bb_uvname[2]");
 	RNA_def_property_string_maxlength(prop, 32);
-	RNA_def_property_ui_text(prop, "Billboard Split UV", "UV Layer to control billboard splitting");
+	RNA_def_property_ui_text(prop, "Billboard Split UV", "UV map to control billboard splitting");
 
 	/* vertex groups */
 

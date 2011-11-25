@@ -1765,7 +1765,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 		return NULL;
 	}
 	
-	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 	
 	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 
@@ -1774,7 +1774,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 		return NULL;
 	}
 	
-	strncpy((char*)temp_buff, [textPasted cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
+	strncpy((char*)temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
 	
 	temp_buff[pastedTextSize] = '\0';
 	
@@ -1806,7 +1806,7 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 	[pasteBoard declareTypes:supportedTypes owner:nil];
 	
-	textToCopy = [NSString stringWithCString:buffer encoding:NSISOLatin1StringEncoding];
+	textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
 	
 	[pasteBoard setString:textToCopy forType:NSStringPboardType];
 	

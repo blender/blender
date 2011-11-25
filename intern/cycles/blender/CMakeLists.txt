@@ -6,7 +6,7 @@ set(INC
 	../kernel/svm
 	../util
 	../subd
-	../../../intern/guardedalloc
+	../../guardedalloc
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
 	../../../source/blender/blenloader

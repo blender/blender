@@ -197,28 +197,16 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 	bNode *node;
 	char str[32];
 	
-	/* add node uiBlocks in reverse order - prevents events going to overlapping nodes */
+	/* add node uiBlocks in drawing order - prevents events going to overlapping nodes */
 	
-	/* process selected nodes first so they're at the start of the uiblocks list */
-	for(node= ntree->nodes.last; node; node= node->prev) {
-		
-		if (node->flag & NODE_SELECT) {
+	for(node= ntree->nodes.first; node; node=node->next) {
 			/* ui block */
 			sprintf(str, "node buttons %p", (void *)node);
 			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
 			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
-		}
-	}
-	
-	/* then the rest */
-	for(node= ntree->nodes.last; node; node= node->prev) {
-		
-		if (!(node->flag & (NODE_GROUP_EDIT|NODE_SELECT))) {
-			/* ui block */
-			sprintf(str, "node buttons %p", (void *)node);
-			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
-			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
-		}
+			
+			/* this cancels events for background nodes */
+			uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
 	}
 }
 
@@ -339,6 +327,15 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmax= locx + node->width;
 	node->totr.ymax= locy;
 	node->totr.ymin= MIN2(dy, locy-2*NODE_DY);
+	
+	/* Set the block bounds to clip mouse events from underlying nodes.
+	 * Add a margin for sockets on each side.
+	 */
+	uiExplicitBoundsBlock(node->block,
+						  node->totr.xmin - NODE_SOCKSIZE,
+						  node->totr.ymin,
+						  node->totr.xmax + NODE_SOCKSIZE,
+						  node->totr.ymax);
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
@@ -391,6 +388,15 @@ static void node_update_hidden(bNode *node)
 			rad+= drad;
 		}
 	}
+
+	/* Set the block bounds to clip mouse events from underlying nodes.
+	 * Add a margin for sockets on each side.
+	 */
+	uiExplicitBoundsBlock(node->block,
+						  node->totr.xmin - NODE_SOCKSIZE,
+						  node->totr.ymin,
+						  node->totr.xmax + NODE_SOCKSIZE,
+						  node->totr.ymax);
 }
 
 void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node)
@@ -927,14 +933,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	if(snode->nodetree) {
 		bNode *node;
 		
-		/* init ui blocks for opened node group trees first 
-		 * so they're in the correct depth stack order */
+		node_uiblocks_init(C, snode->nodetree);
+		
+		/* uiBlocks must be initialized in drawing order for correct event clipping.
+		 * Node group internal blocks added after the main group block.
+		 */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
 			if(node->flag & NODE_GROUP_EDIT)
 				node_uiblocks_init(C, (bNodeTree *)node->id);
 		}
-		
-		node_uiblocks_init(C, snode->nodetree);
 		
 		node_update_nodetree(C, snode->nodetree, 0.0f, 0.0f);
 		node_draw_nodetree(C, ar, snode, snode->nodetree);

@@ -3547,7 +3547,7 @@ BGpic *ED_view3D_background_image_new(View3D *v3d)
 	return bgpic;
 }
 
-void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic)
+void ED_view3D_background_image_remove(View3D *v3d, BGpic *bgpic)
 {
 	BLI_remlink(&v3d->bgpicbase, bgpic);
 
@@ -3558,4 +3558,17 @@ void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic)
 		id_us_min(&bgpic->clip->id);
 
 	MEM_freeN(bgpic);
+}
+
+void ED_view3D_background_image_clear(View3D *v3d)
+{
+	BGpic *bgpic= v3d->bgpicbase.first;
+
+	while(bgpic) {
+		BGpic *next_bgpic= bgpic->next;
+
+		ED_view3D_background_image_remove(v3d, bgpic);
+
+		bgpic= next_bgpic;
+	}
 }
