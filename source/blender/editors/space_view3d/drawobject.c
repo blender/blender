@@ -3264,15 +3264,11 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if(dt>OB_WIRE) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, glsl);
 
-			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
-					(check_alpha)? &do_alpha_pass: NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 
-		// transp in editmode makes the fancy draw over go bad
-		if (!do_alpha_pass)
-			draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
 
 		GPU_end_object_materials();
 
