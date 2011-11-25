@@ -547,9 +547,10 @@ void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
 FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
 {
 	FreestyleLineStyle *linestyle = FRS_new_linestyle(name, bmain);
-	linestyle->id.us--;
+	id_us_min(&linestyle->id);
 	return linestyle;
 }
+
 void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
 {
 	if(ID_REAL_USERS(linestyle) <= 0)
