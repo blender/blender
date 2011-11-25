@@ -19,7 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import (EnumProperty,
+from bpy.props import (BoolProperty,
+                       EnumProperty,
                        FloatProperty,
                        IntProperty,
                        PointerProperty)
