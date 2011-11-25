@@ -385,7 +385,8 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
 	LG << "number of markers for init: " << keyframe_markers.size();
 
-	progress_update_callback(callback_customdata, 0, "Initial reconstruction");
+	if(progress_update_callback)
+		progress_update_callback(callback_customdata, 0, "Initial reconstruction");
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, reconstruction);
@@ -408,11 +409,11 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K2;
 		}
 
-		progress_update_callback(callback_customdata, 0, "Refining solution");
+		progress_update_callback(callback_customdata, 1.0, "Refining solution");
 		libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags, reconstruction, intrinsics);
 	}
 
-	progress_update_callback(callback_customdata, 0, "Finishing solution");
+	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
 	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
 

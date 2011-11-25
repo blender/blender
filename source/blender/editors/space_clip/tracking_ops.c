@@ -1518,6 +1518,8 @@ typedef struct {
 	ReportList *reports;
 
 	char stats_message[256];
+	float *stats_progress;
+
 	struct MovieReconstructContext *context;
 } SolveCameraJob;
 
@@ -1555,11 +1557,16 @@ static void solve_camera_updatejob(void *scv)
 	MovieTracking *tracking= &scj->clip->tracking;
 
 	BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
+
+	if(scj->stats_progress)
+		tracking->stats->progress= *scj->stats_progress;
 }
 
 static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
 {
 	SolveCameraJob *scj= (SolveCameraJob *)scv;
+
+	scj->stats_progress= progress;
 
 	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress,
 			scj->stats_message, sizeof(scj->stats_message));
@@ -1665,7 +1672,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		return OPERATOR_CANCELLED;
 	}
 
-	BLI_strncpy(tracking->stats->message, "Preparing solve", sizeof(tracking->stats->message));
+	BLI_strncpy(tracking->stats->message, "Solving camera | Preparing solve", sizeof(tracking->stats->message));
 
 	/* hide reconstruction statistics from previous solve */
 	clip->tracking.reconstruction.flag&= ~TRACKING_RECONSTRUCTED;
@@ -1674,7 +1681,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Solve Camera", WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, scj, solve_camera_freejob);
-	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|NA_EVALUATED, 0);
+	WM_jobs_timer(steve, 0.1, NC_MOVIECLIP|NA_EVALUATED, 0);
 	WM_jobs_callbacks(steve, solve_camera_startjob, NULL, solve_camera_updatejob, NULL);
 
 	G.afbreek= 0;
