@@ -833,7 +833,7 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	lineset->linestyle->id.us--;
-	lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
+	lineset->linestyle = FRS_copy_linestyle(lineset->linestyle);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
