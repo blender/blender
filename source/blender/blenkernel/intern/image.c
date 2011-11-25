@@ -900,24 +900,6 @@ int BKE_imtype_is_movie(const char imtype)
 	return 0;
 }
 
-int BKE_imtype_supports_alpha(const char imtype)
-{
-	switch(imtype) {
-	case R_IMF_IMTYPE_TARGA:
-	case R_IMF_IMTYPE_IRIS:
-	case R_IMF_IMTYPE_PNG:
-	/* case R_IMF_IMTYPE_BMP: */ /* read but not write */
-	case R_IMF_IMTYPE_RADHDR:
-	case R_IMF_IMTYPE_TIFF:
-	case R_IMF_IMTYPE_OPENEXR:
-	case R_IMF_IMTYPE_MULTILAYER:
-	case R_IMF_IMTYPE_DDS:
-	case R_IMF_IMTYPE_JP2:
-			return 1;
-	}
-	return 0;
-}
-
 int BKE_imtype_supports_zbuf(const char imtype)
 {
 	switch(imtype) {
@@ -946,6 +928,39 @@ int BKE_imtype_supports_quality(const char imtype)
 			return 1;
 	}
 	return 0;
+}
+
+char BKE_imtype_valid_channels(const char imtype)
+{
+	char chan_flag= IMA_CHAN_FLAG_RGB; /* assume all support rgb */
+
+	/* alpha */
+	switch(imtype) {
+	case R_IMF_IMTYPE_TARGA:
+	case R_IMF_IMTYPE_IRIS:
+	case R_IMF_IMTYPE_PNG:
+	/* case R_IMF_IMTYPE_BMP: */ /* read but not write */
+	case R_IMF_IMTYPE_RADHDR:
+	case R_IMF_IMTYPE_TIFF:
+	case R_IMF_IMTYPE_OPENEXR:
+	case R_IMF_IMTYPE_MULTILAYER:
+	case R_IMF_IMTYPE_DDS:
+	case R_IMF_IMTYPE_JP2:
+			chan_flag |= IMA_CHAN_FLAG_ALPHA;
+	}
+
+	/* bw */
+	switch(imtype) {
+	case R_IMF_IMTYPE_PNG:
+	case R_IMF_IMTYPE_JPEG90:
+	case R_IMF_IMTYPE_TARGA:
+	case R_IMF_IMTYPE_RAWTGA:
+	case R_IMF_IMTYPE_TIFF:
+	case R_IMF_IMTYPE_IRIS:
+			chan_flag |= IMA_CHAN_FLAG_BW;
+	}
+
+	return chan_flag;
 }
 
 char BKE_imtype_valid_depths(const char imtype)
