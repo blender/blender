@@ -79,6 +79,9 @@ int BM_Face_Sharededges(struct BMFace *f1, struct BMFace *f2);
 /*returns number of faces e1 and e2 share.*/
 int BM_Edge_Share_Faces(struct BMEdge *e1, struct BMEdge *e2);
 
+/*edge verts in winding order from face*/
+void BM_Edge_OrderedVerts(struct BMEdge *edge, struct BMVert **r_v1, struct BMVert **r_v2);
+
 /*checks if a face is valid in the data structure*/
 int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err);
 

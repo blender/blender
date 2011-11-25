@@ -840,6 +840,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	int use_restrict = BMO_Get_Int(op, "use_restrict");
 	int i, j, group = 0;
+	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 
 	if (!bm->totvert || !bm->totedge)
 		return;
@@ -913,6 +914,8 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		if (!path)
 			continue;
 		
+		winding[0]= winding[1]= 0;
+
 		BLI_array_empty(edges);
 		BLI_array_empty(verts);
 		i = 0;
@@ -926,6 +929,16 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			if (!e)
 				break;
 			
+			/* check on the winding */
+			if (e->l) {
+				BMVert *test_v1, *test_v2;
+				/* we want to use the reverse winding to the existing order */
+				BM_Edge_OrderedVerts(edge, &test_v2, &test_v1);
+
+				/* edges vote on which winding wins out */
+				winding[(test_v1 == node->v)]++;
+			}
+
 			edata[BM_GetIndex(e)].ftag++;
 			BLI_array_growone(edges);
 			edges[i++] = e;
@@ -948,7 +961,24 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			continue;
 		
 		if (i) {
-			f = BM_Make_Ngon(bm, edge->v1, edge->v2, edges, i, 1);
+			BMVert *v1, *v2;
+
+			/* to define the winding order must select first edge,
+			 * otherwise we could leave this as-is */
+			edge= edges[0];
+
+			/* if these are even it doesnt really matter what to do,
+			 * with consistent geometry one will be zero, the choice is clear */
+			if (winding[0] > winding[1]) {
+				v1= verts[0];
+				v2= verts[1];
+			}
+			else {
+				v1= verts[1];
+				v2= verts[0];
+			}
+
+			f = BM_Make_Ngon(bm, v1, v2, edges, i, 1);
 			if (f && !BMO_TestFlag(bm, f, ELE_ORIG)) {
 				BMO_SetFlag(bm, f, FACE_NEW);
 			}

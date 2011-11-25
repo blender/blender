@@ -443,7 +443,34 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 	return 0;
 }
 
+/**
+ *
+ *           BMESH EDGE ORDERED VERTS
+ *
+ *	Returns the verts of an edge as used in a face
+ *  if used in a face at all, otherwise just assign as used in the edge.
+ *
+ *  Useful to get a determanistic winding order when calling
+ *  BM_Make_Ngon() on an arbitrary array of verts,
+ *  though be sure to pick an edge which has a face.
+ *
+*/
 
+void BM_Edge_OrderedVerts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
+{
+	if ( (edge->l == NULL) ||
+	     ( ((edge->l->prev->v == edge->v1) && (edge->l->v == edge->v2)) ||
+	       ((edge->l->v == edge->v1) && (edge->l->next->v == edge->v2)) )
+	     )
+	{
+		*r_v1= edge->v1;
+		*r_v2= edge->v2;
+	}
+	else {
+		*r_v1= edge->v2;
+		*r_v2= edge->v1;
+	}
+}
 
 /**
  *			BMESH FACE ANGLE
