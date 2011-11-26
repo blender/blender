@@ -512,7 +512,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float y1, float y2, const unsigned char background_col[3])
 {
 	rctf rect;
-	char str[32 + FILE_MAXDIR+FILE_MAXFILE];
+	char str[32 + FILE_MAX];
 	const char *name= seq->name+2;
 	char col[4];
 

@@ -72,8 +72,8 @@ struct anim_index_builder;
 
 typedef struct anim_index_builder {
 	FILE * fp;
-	char name[FILE_MAXDIR + FILE_MAXFILE];
-	char temp_name[FILE_MAXDIR + FILE_MAXFILE];
+	char name[FILE_MAX];
+	char temp_name[FILE_MAX];
 
 	void * private_data;
 

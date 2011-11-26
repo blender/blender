@@ -270,12 +270,12 @@ static void get_filename(int argc, char **argv, char *filename)
 
 	if (argc > 1) {
 		if (BLI_exists(argv[argc-1])) {
-			BLI_strncpy(filename, argv[argc-1], FILE_MAXDIR + FILE_MAXFILE);
+			BLI_strncpy(filename, argv[argc-1], FILE_MAX);
 		}
 		if (::strncmp(argv[argc-1], "-psn_", 5)==0) {
 			static char firstfilebuf[512];
 			if (GHOST_HACK_getFirstFile(firstfilebuf)) {
-				BLI_strncpy(filename, firstfilebuf, FILE_MAXDIR + FILE_MAXFILE);
+				BLI_strncpy(filename, firstfilebuf, FILE_MAX);
 			}
 		}                        
 	}
@@ -289,7 +289,7 @@ static void get_filename(int argc, char **argv, char *filename)
 		//::printf("looking for file: %s\n", filename);
 		
 		if (BLI_exists(gamefile))
-			BLI_strncpy(filename, gamefile, FILE_MAXDIR + FILE_MAXFILE);
+			BLI_strncpy(filename, gamefile, FILE_MAX);
 
 		delete [] gamefile;
 	}
@@ -298,7 +298,7 @@ static void get_filename(int argc, char **argv, char *filename)
 	filename[0] = '\0';
 
 	if(argc > 1)
-		BLI_strncpy(filename, argv[argc-1], FILE_MAXDIR + FILE_MAXFILE);
+		BLI_strncpy(filename, argv[argc-1], FILE_MAX);
 #endif // !_APPLE
 }
 
@@ -737,8 +737,8 @@ int main(int argc, char** argv)
 				STR_String exitstring = "";
 				GPG_Application app(system);
 				bool firstTimeRunning = true;
-				char filename[FILE_MAXDIR + FILE_MAXFILE];
-				char pathname[FILE_MAXDIR + FILE_MAXFILE];
+				char filename[FILE_MAX];
+				char pathname[FILE_MAX];
 				char *titlename;
 
 				get_filename(argc_py_clamped, argv, filename);

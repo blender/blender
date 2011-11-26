@@ -457,7 +457,7 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	struct proxy_output_ctx * rv = MEM_callocN(
 		sizeof(struct proxy_output_ctx), "alloc_proxy_output");
 	
-	char fname[FILE_MAXDIR+FILE_MAXFILE];
+	char fname[FILE_MAX];
 
 	// JPEG requires this
 	width = round_up(width, 8);
@@ -626,8 +626,8 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx * ctx,
 				     int rollback)
 {
 	int i;
-	char fname[FILE_MAXDIR+FILE_MAXFILE];
-	char fname_tmp[FILE_MAXDIR+FILE_MAXFILE];
+	char fname[FILE_MAX];
+	char fname_tmp[FILE_MAX];
 
 	if (!ctx) {
 		return;
@@ -782,7 +782,7 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 
 	for (i = 0; i < num_indexers; i++) {
 		if (tcs_in_use & tc_types[i]) {
-			char fname[FILE_MAXDIR+FILE_MAXFILE];
+			char fname[FILE_MAX];
 
 			get_tc_filename(anim, tc_types[i], fname);
 
@@ -941,8 +941,8 @@ static void index_rebuild_fallback(struct anim * anim,
 	int cnt = IMB_anim_get_duration(anim, IMB_TC_NONE);
 	int i, pos;
 	AviMovie * proxy_ctx[IMB_PROXY_MAX_SLOT];
-	char fname[FILE_MAXDIR+FILE_MAXFILE];
-	char fname_tmp[FILE_MAXDIR+FILE_MAXFILE];
+	char fname[FILE_MAX];
+	char fname_tmp[FILE_MAX];
 	
 	memset(proxy_ctx, 0, sizeof(proxy_ctx));
 
@@ -957,7 +957,7 @@ static void index_rebuild_fallback(struct anim * anim,
 
 	for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
 		if (proxy_sizes_in_use & proxy_sizes[i]) {
-			char fname[FILE_MAXDIR+FILE_MAXFILE];
+			char fname[FILE_MAX];
 
 			get_proxy_filename(anim, proxy_sizes[i], fname, TRUE);
 			BLI_make_existing_file(fname);
@@ -1086,7 +1086,7 @@ void IMB_anim_set_index_dir(struct anim * anim, const char * dir)
 struct anim * IMB_anim_open_proxy(
 	struct anim * anim, IMB_Proxy_Size preview_size)
 {
-	char fname[FILE_MAXDIR+FILE_MAXFILE];
+	char fname[FILE_MAX];
 	int i = IMB_proxy_size_to_array_index(preview_size);
 
 	if (anim->proxy_anim[i]) {
@@ -1109,7 +1109,7 @@ struct anim * IMB_anim_open_proxy(
 struct anim_index * IMB_anim_open_index(
 	struct anim * anim, IMB_Timecode_Type tc)
 {
-	char fname[FILE_MAXDIR+FILE_MAXFILE];
+	char fname[FILE_MAX];
 	int i = IMB_timecode_to_array_index(tc);
 
 	if (anim->curr_idx[i]) {

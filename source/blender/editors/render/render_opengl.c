@@ -392,7 +392,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Scene *scene= oglrender->scene;
 	ImBuf *ibuf;
 	void *lock;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	int ok= 0;
 	const short  view_context= (oglrender->v3d != NULL);
 	Object *camera= NULL;
