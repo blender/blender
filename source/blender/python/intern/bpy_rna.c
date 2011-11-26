@@ -6376,10 +6376,14 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	if ((order= PyDict_GetItem(class_dict, bpy_intern_str_order)) && PyList_CheckExact(order)) {
 		for (pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);
-			item= PyDict_GetItem(class_dict, key);
-			ret= deferred_register_prop(srna, key, item);
-			if (ret != 0)
-				break;
+			/* however unlikely its possible
+			 * fails in py 3.3 beta with __qualname__ */
+			if ((item= PyDict_GetItem(class_dict, key))) {
+				ret= deferred_register_prop(srna, key, item);
+				if (ret != 0) {
+					break;
+				}
+			}
 		}
 	}
 	else {
