@@ -129,7 +129,7 @@ void BLF_dir_free(char **dirs, int count)
 char *blf_dir_search(const char *file)
 {
 	DirBLF *dir;
-	char full_path[FILE_MAXDIR+FILE_MAXFILE];
+	char full_path[FILE_MAX];
 	char *s= NULL;
 
 	for(dir=global_font_dir.first; dir; dir= dir->next) {

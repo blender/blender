@@ -426,8 +426,8 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 void BLI_path_rel(char *file, const char *relfile)
 {
 	char * lslash;
-	char temp[FILE_MAXDIR+FILE_MAXFILE];
-	char res[FILE_MAXDIR+FILE_MAXFILE];
+	char temp[FILE_MAX];
+	char res[FILE_MAX];
 	
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
@@ -445,9 +445,9 @@ void BLI_path_rel(char *file, const char *relfile)
 		if (relfile[0] != '\\' && relfile[0] != '/') {
 			ptemp++;
 		}
-		BLI_strncpy(ptemp, relfile, FILE_MAXDIR + FILE_MAXFILE-3);
+		BLI_strncpy(ptemp, relfile, FILE_MAX-3);
 	} else {
-		BLI_strncpy(temp, relfile, FILE_MAXDIR + FILE_MAXFILE);
+		BLI_strncpy(temp, relfile, FILE_MAX);
 	}
 
 	if (BLI_strnlen(file, 3) > 2) {
@@ -539,7 +539,7 @@ int BLI_has_parent(char *path)
 int BLI_parent_dir(char *path)
 {
 	static char parent_dir[]= {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
-	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
+	char tmp[FILE_MAX+4];
 	BLI_strncpy(tmp, path, sizeof(tmp)-4);
 	BLI_add_slash(tmp);
 	strcat(tmp, parent_dir);
@@ -744,7 +744,7 @@ int BLI_path_cwd(char *path)
 #endif
 	
 	if (wasrelative==1) {
-		char cwd[FILE_MAXDIR + FILE_MAXFILE]= "";
+		char cwd[FILE_MAX]= "";
 		BLI_current_working_dir(cwd, sizeof(cwd)); /* incase the full path to the blend isnt used */
 		
 		if (cwd[0] == '\0') {
@@ -757,8 +757,8 @@ int BLI_path_cwd(char *path)
 			* blend file which isnt a feature we want to use in this case since were dealing
 			* with a path from the command line, rather than from inside Blender */
 			
-			char origpath[FILE_MAXDIR + FILE_MAXFILE];
-			BLI_strncpy(origpath, path, FILE_MAXDIR + FILE_MAXFILE);
+			char origpath[FILE_MAX];
+			BLI_strncpy(origpath, path, FILE_MAX);
 			
 			BLI_make_file_string(NULL, path, cwd, origpath); 
 		}
@@ -1256,7 +1256,7 @@ void BLI_make_exist(char *dir)
 
 void BLI_make_existing_file(const char *name)
 {
-	char di[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
+	char di[FILE_MAX], fi[FILE_MAXFILE];
 
 	BLI_strncpy(di, name, sizeof(di));
 	BLI_splitdirstring(di, fi);
@@ -1705,8 +1705,8 @@ static int add_win32_extension(char *name)
 	type = BLI_exists(name);
 	if ((type == 0) || S_ISDIR(type)) {
 #ifdef _WIN32
-		char filename[FILE_MAXDIR+FILE_MAXFILE];
-		char ext[FILE_MAXDIR+FILE_MAXFILE];
+		char filename[FILE_MAX];
+		char ext[FILE_MAX];
 		const char *extensions = getenv("PATHEXT");
 		if (extensions) {
 			char *temp;
@@ -1752,7 +1752,7 @@ static int add_win32_extension(char *name)
 */
 static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
-	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	char filename[FILE_MAX];
 	const char *path = NULL, *temp;
 
 #ifdef _WIN32

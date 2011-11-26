@@ -85,7 +85,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		}
 		else {
 			copy_v4_v4(out, col1);
-			ramp_blend(MA_RAMP_BLEND, out, out+1, out+2, texres.tin, col2);
+			ramp_blend(MA_RAMP_BLEND, out, texres.tin, col2);
 		}
 	}
 }

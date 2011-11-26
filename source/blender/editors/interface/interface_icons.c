@@ -509,7 +509,7 @@ static void init_internal_icons(void)
 	bTheme *btheme= UI_GetTheme();
 	ImBuf *bbuf= NULL;
 	int x, y, icontype;
-	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
+	char iconfilestr[FILE_MAX];
 	
 	if ((btheme!=NULL) && btheme->tui.iconfile[0]) {
 		char *icondir= BLI_get_folder(BLENDER_DATAFILES, "icons");

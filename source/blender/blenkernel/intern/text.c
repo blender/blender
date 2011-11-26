@@ -237,12 +237,12 @@ int reopen_text(Text *text)
 	int i, llen, len;
 	unsigned char *buffer;
 	TextLine *tmp;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	struct stat st;
 
 	if (!text || !text->name) return 0;
 	
-	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(str, text->name, FILE_MAX);
 	BLI_path_abs(str, G.main->name);
 	
 	fp= fopen(str, "r");
@@ -334,10 +334,10 @@ Text *add_text(const char *file, const char *relpath)
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	struct stat st;
 
-	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(str, file, FILE_MAX);
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_path_abs(str, relpath);
 	

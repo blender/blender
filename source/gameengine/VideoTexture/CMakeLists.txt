@@ -51,6 +51,8 @@ set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )
 
+add_definitions(-DGLEW_STATIC)
+
 set(SRC
 	Exception.cpp
 	FilterBase.cpp

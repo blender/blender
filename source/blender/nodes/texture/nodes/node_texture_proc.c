@@ -79,7 +79,7 @@ static void do_proc(float *result, TexParams *p, float *col1, float *col2, char 
 	}
 	else {
 		copy_v4_v4(result, col1);
-		ramp_blend(MA_RAMP_BLEND, result, result+1, result+2, texres.tin, col2);
+		ramp_blend(MA_RAMP_BLEND, result, texres.tin, col2);
 	}
 }
 

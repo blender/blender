@@ -426,7 +426,10 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
 
 int bpy_lib_init(PyObject *mod_par)
 {
-	static PyMethodDef load_meth= {"load", (PyCFunction)bpy_lib_load, METH_STATIC|METH_VARARGS|METH_KEYWORDS, bpy_lib_load_doc};
+	static PyMethodDef load_meth= {"load", (PyCFunction)bpy_lib_load,
+	                               METH_STATIC|METH_VARARGS|METH_KEYWORDS,
+	                               bpy_lib_load_doc};
+
 	PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
 
 	/* some compilers dont like accessing this directly, delay assignment */

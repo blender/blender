@@ -203,10 +203,14 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 	return PyUnicode_DecodeFSDefault(path);
 }
 
-static PyMethodDef meth_bpy_script_paths= {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
-static PyMethodDef meth_bpy_blend_paths= {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
-static PyMethodDef meth_bpy_user_resource= {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
-static PyMethodDef meth_bpy_resource_path= {"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS|METH_KEYWORDS, bpy_resource_path_doc};
+static PyMethodDef meth_bpy_script_paths=
+	{"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
+static PyMethodDef meth_bpy_blend_paths=
+	{"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
+static PyMethodDef meth_bpy_user_resource=
+	{"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
+static PyMethodDef meth_bpy_resource_path=
+	{"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS|METH_KEYWORDS, bpy_resource_path_doc};
 
 
 static PyObject *bpy_import_test(const char *modname)
@@ -257,16 +261,21 @@ void BPy_init_modules(void)
 	/* run first, initializes rna types */
 	BPY_rna_init();
 
-	PyModule_AddObject(mod, "types", BPY_rna_types()); /* needs to be first so bpy_types can run */
-	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
+	/* needs to be first so bpy_types can run */
+	PyModule_AddObject(mod, "types", BPY_rna_types());
 
-	bpy_lib_init(mod); /* adds '_bpy._library_load', must be called before 'bpy_types' which uses it */
+	/* metaclass for idprop types, bpy_types.py needs access */
+	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type);
+
+	/* needs to be first so bpy_types can run */
+	bpy_lib_init(mod);
 
 	bpy_import_test("bpy_types");
 	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");
-	PyModule_AddObject(mod, "props", BPY_rna_props());
-	PyModule_AddObject(mod, "ops", BPY_operator_module()); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject(mod, "props", BPY_rna_props());	
+	 /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject(mod, "ops", BPY_operator_module());
 	PyModule_AddObject(mod, "app", BPY_app_struct());
 
 	/* bpy context */

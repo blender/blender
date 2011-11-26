@@ -1033,7 +1033,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 */
 
 #define MAX_PTCACHE_PATH FILE_MAX
-#define MAX_PTCACHE_FILE ((FILE_MAXDIR+FILE_MAXFILE)*2)
+#define MAX_PTCACHE_FILE ((FILE_MAX)*2)
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
@@ -1127,7 +1127,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 {
 	PTCacheFile *pf;
 	FILE *fp = NULL;
-	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
+	char filename[(FILE_MAX)*2];
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow writing for linked objects */

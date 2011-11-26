@@ -702,7 +702,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale Influence", "Influence of stabilization algorithm on footage scale");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
- 	/* use_stabilize_rotation */
+	/* use_stabilize_rotation */
 	prop= RNA_def_property(srna, "use_stabilize_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_STABILIZE_ROTATION);
 	RNA_def_property_ui_text(prop, "Stabilize Rotation", "Stabilize horizon line on the shot");

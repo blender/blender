@@ -258,9 +258,9 @@ static void draw_filled_lasso(wmGesture *gt)
 		glColor4f(1.0, 1.0, 1.0, 0.05);
 		glBegin(GL_TRIANGLES);
 		for (efa = fillfacebase.first; efa; efa=efa->next) {
-			glVertex2f(efa->v1->co[0], efa->v1->co[1]);
-			glVertex2f(efa->v2->co[0], efa->v2->co[1]);
-			glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+			glVertex2fv(efa->v1->co);
+			glVertex2fv(efa->v2->co);
+			glVertex2fv(efa->v3->co);
 		}
 		glEnd();
 		glDisable(GL_BLEND);

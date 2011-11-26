@@ -1180,129 +1180,129 @@ int object_remove_material_slot(Object *ob)
 
 /* r g b = current value, col = new value, fac==0 is no change */
 /* if g==NULL, it only does r channel */
-void ramp_blend(int type, float *r, float *g, float *b, float fac, const float col[3])
+void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 {
 	float tmp, facm= 1.0f-fac;
 	
 	switch (type) {
 		case MA_RAMP_BLEND:
-			*r = facm*(*r) + fac*col[0];
-			if(g) {
-				*g = facm*(*g) + fac*col[1];
-				*b = facm*(*b) + fac*col[2];
+			r_col[0] = facm*(r_col[0]) + fac*col[0];
+			if(r_col[1]) {
+				r_col[1] = facm*(r_col[1]) + fac*col[1];
+				r_col[2] = facm*(r_col[2]) + fac*col[2];
 			}
 				break;
 		case MA_RAMP_ADD:
-			*r += fac*col[0];
-			if(g) {
-				*g += fac*col[1];
-				*b += fac*col[2];
+			r_col[0] += fac*col[0];
+			if(r_col[1]) {
+				r_col[1] += fac*col[1];
+				r_col[2] += fac*col[2];
 			}
 				break;
 		case MA_RAMP_MULT:
-			*r *= (facm + fac*col[0]);
-			if(g) {
-				*g *= (facm + fac*col[1]);
-				*b *= (facm + fac*col[2]);
+			r_col[0] *= (facm + fac*col[0]);
+			if(r_col[1]) {
+				r_col[1] *= (facm + fac*col[1]);
+				r_col[2] *= (facm + fac*col[2]);
 			}
 				break;
 		case MA_RAMP_SCREEN:
-			*r = 1.0f - (facm + fac*(1.0f - col[0])) * (1.0f - *r);
-			if(g) {
-				*g = 1.0f - (facm + fac*(1.0f - col[1])) * (1.0f - *g);
-				*b = 1.0f - (facm + fac*(1.0f - col[2])) * (1.0f - *b);
+			r_col[0] = 1.0f - (facm + fac*(1.0f - col[0])) * (1.0f - r_col[0]);
+			if(r_col[1]) {
+				r_col[1] = 1.0f - (facm + fac*(1.0f - col[1])) * (1.0f - r_col[1]);
+				r_col[2] = 1.0f - (facm + fac*(1.0f - col[2])) * (1.0f - r_col[2]);
 			}
 				break;
 		case MA_RAMP_OVERLAY:
-			if(*r < 0.5f)
-				*r *= (facm + 2.0f*fac*col[0]);
+			if(r_col[0] < 0.5f)
+				r_col[0] *= (facm + 2.0f*fac*col[0]);
 			else
-				*r = 1.0f - (facm + 2.0f*fac*(1.0f - col[0])) * (1.0f - *r);
-			if(g) {
-				if(*g < 0.5f)
-					*g *= (facm + 2.0f*fac*col[1]);
+				r_col[0] = 1.0f - (facm + 2.0f*fac*(1.0f - col[0])) * (1.0f - r_col[0]);
+			if(r_col[1]) {
+				if(r_col[1] < 0.5f)
+					r_col[1] *= (facm + 2.0f*fac*col[1]);
 				else
-					*g = 1.0f - (facm + 2.0f*fac*(1.0f - col[1])) * (1.0f - *g);
-				if(*b < 0.5f)
-					*b *= (facm + 2.0f*fac*col[2]);
+					r_col[1] = 1.0f - (facm + 2.0f*fac*(1.0f - col[1])) * (1.0f - r_col[1]);
+				if(r_col[2] < 0.5f)
+					r_col[2] *= (facm + 2.0f*fac*col[2]);
 				else
-					*b = 1.0f - (facm + 2.0f*fac*(1.0f - col[2])) * (1.0f - *b);
+					r_col[2] = 1.0f - (facm + 2.0f*fac*(1.0f - col[2])) * (1.0f - r_col[2]);
 			}
 				break;
 		case MA_RAMP_SUB:
-			*r -= fac*col[0];
-			if(g) {
-				*g -= fac*col[1];
-				*b -= fac*col[2];
+			r_col[0] -= fac*col[0];
+			if(r_col[1]) {
+				r_col[1] -= fac*col[1];
+				r_col[2] -= fac*col[2];
 			}
 				break;
 		case MA_RAMP_DIV:
 			if(col[0]!=0.0f)
-				*r = facm*(*r) + fac*(*r)/col[0];
-			if(g) {
+				r_col[0] = facm*(r_col[0]) + fac*(r_col[0])/col[0];
+			if(r_col[1]) {
 				if(col[1]!=0.0f)
-					*g = facm*(*g) + fac*(*g)/col[1];
+					r_col[1] = facm*(r_col[1]) + fac*(r_col[1])/col[1];
 				if(col[2]!=0.0f)
-					*b = facm*(*b) + fac*(*b)/col[2];
+					r_col[2] = facm*(r_col[2]) + fac*(r_col[2])/col[2];
 			}
 				break;
 		case MA_RAMP_DIFF:
-			*r = facm*(*r) + fac*fabsf(*r-col[0]);
-			if(g) {
-				*g = facm*(*g) + fac*fabsf(*g-col[1]);
-				*b = facm*(*b) + fac*fabsf(*b-col[2]);
+			r_col[0] = facm*(r_col[0]) + fac*fabsf(r_col[0]-col[0]);
+			if(r_col[1]) {
+				r_col[1] = facm*(r_col[1]) + fac*fabsf(r_col[1]-col[1]);
+				r_col[2] = facm*(r_col[2]) + fac*fabsf(r_col[2]-col[2]);
 			}
 				break;
 		case MA_RAMP_DARK:
 			tmp=col[0]+((1-col[0])*facm); 
-			if(tmp < *r) *r= tmp; 
-			if(g) { 
+			if(tmp < r_col[0]) r_col[0]= tmp;
+			if(r_col[1]) {
 				tmp=col[1]+((1-col[1])*facm); 
-				if(tmp < *g) *g= tmp; 
+				if(tmp < r_col[1]) r_col[1]= tmp;
 				tmp=col[2]+((1-col[2])*facm); 
-				if(tmp < *b) *b= tmp; 
+				if(tmp < r_col[2]) r_col[2]= tmp;
 			} 
 				break; 
 		case MA_RAMP_LIGHT:
 			tmp= fac*col[0];
-			if(tmp > *r) *r= tmp; 
-				if(g) {
+			if(tmp > r_col[0]) r_col[0]= tmp;
+				if(r_col[1]) {
 					tmp= fac*col[1];
-					if(tmp > *g) *g= tmp; 
+					if(tmp > r_col[1]) r_col[1]= tmp;
 					tmp= fac*col[2];
-					if(tmp > *b) *b= tmp; 
+					if(tmp > r_col[2]) r_col[2]= tmp;
 				}
 					break;	
 		case MA_RAMP_DODGE:			
 			
 				
-			if(*r !=0.0f){
+			if(r_col[0] !=0.0f){
 				tmp = 1.0f - fac*col[0];
 				if(tmp <= 0.0f)
-					*r = 1.0f;
-				else if ((tmp = (*r) / tmp)> 1.0f)
-					*r = 1.0f;
+					r_col[0] = 1.0f;
+				else if ((tmp = (r_col[0]) / tmp)> 1.0f)
+					r_col[0] = 1.0f;
 				else 
-					*r = tmp;
+					r_col[0] = tmp;
 			}
-			if(g) {
-				if(*g !=0.0f){
+			if(r_col[1]) {
+				if(r_col[1] !=0.0f){
 					tmp = 1.0f - fac*col[1];
 					if(tmp <= 0.0f )
-						*g = 1.0f;
-					else if ((tmp = (*g) / tmp) > 1.0f )
-						*g = 1.0f;
+						r_col[1] = 1.0f;
+					else if ((tmp = (r_col[1]) / tmp) > 1.0f )
+						r_col[1] = 1.0f;
 					else
-						*g = tmp;
+						r_col[1] = tmp;
 				}
-				if(*b !=0.0f){
+				if(r_col[2] !=0.0f){
 					tmp = 1.0f - fac*col[2];
 					if(tmp <= 0.0f)
-						*b = 1.0f;
-					else if ((tmp = (*b) / tmp) > 1.0f )
-						*b = 1.0f;
+						r_col[2] = 1.0f;
+					else if ((tmp = (r_col[2]) / tmp) > 1.0f )
+						r_col[2] = 1.0f;
 					else
-						*b = tmp;
+						r_col[2] = tmp;
 				}
 
 			}
@@ -1312,114 +1312,114 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, const float c
 			tmp = facm + fac*col[0];
 			
 			if(tmp <= 0.0f)
-				*r = 0.0f;
-			else if (( tmp = (1.0f - (1.0f - (*r)) / tmp )) < 0.0f)
-					*r = 0.0f;
+				r_col[0] = 0.0f;
+			else if (( tmp = (1.0f - (1.0f - (r_col[0])) / tmp )) < 0.0f)
+					r_col[0] = 0.0f;
 			else if (tmp > 1.0f)
-				*r=1.0f;
+				r_col[0]=1.0f;
 			else 
-				*r = tmp; 
+				r_col[0] = tmp;
 
-			if(g) {
+			if(r_col[1]) {
 				tmp = facm + fac*col[1];
 				if(tmp <= 0.0f)
-					*g = 0.0f;
-				else if (( tmp = (1.0f - (1.0f - (*g)) / tmp )) < 0.0f )
-						*g = 0.0f;
+					r_col[1] = 0.0f;
+				else if (( tmp = (1.0f - (1.0f - (r_col[1])) / tmp )) < 0.0f )
+						r_col[1] = 0.0f;
 				else if(tmp >1.0f)
-					*g=1.0f;
+					r_col[1]=1.0f;
 				else
-					*g = tmp;
+					r_col[1] = tmp;
 
 					tmp = facm + fac*col[2];
 					if(tmp <= 0.0f)
-					*b = 0.0f;
-				else if (( tmp = (1.0f - (1.0f - (*b)) / tmp )) < 0.0f  )
-						*b = 0.0f;
+					r_col[2] = 0.0f;
+				else if (( tmp = (1.0f - (1.0f - (r_col[2])) / tmp )) < 0.0f  )
+						r_col[2] = 0.0f;
 				else if(tmp >1.0f)
-					*b= 1.0f;
+					r_col[2]= 1.0f;
 				else
-					*b = tmp;
+					r_col[2] = tmp;
 			}
 				break;
 		case MA_RAMP_HUE:		
-			if(g){
+			if(r_col[1]){
 				float rH,rS,rV;
 				float colH,colS,colV; 
 				float tmpr,tmpg,tmpb;
 				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
 				if(colS!=0 ){
-					rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+					rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
 					hsv_to_rgb( colH , rS, rV, &tmpr, &tmpg, &tmpb);
-					*r = facm*(*r) + fac*tmpr;  
-					*g = facm*(*g) + fac*tmpg; 
-					*b = facm*(*b) + fac*tmpb;
+					r_col[0] = facm*(r_col[0]) + fac*tmpr;
+					r_col[1] = facm*(r_col[1]) + fac*tmpg;
+					r_col[2] = facm*(r_col[2]) + fac*tmpb;
 				}
 			}
 				break;
 		case MA_RAMP_SAT:		
-			if(g){
+			if(r_col[1]){
 				float rH,rS,rV;
 				float colH,colS,colV;
-				rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+				rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
 				if(rS!=0){
 					rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-					hsv_to_rgb( rH, (facm*rS +fac*colS), rV, r, g, b);
+					hsv_to_rgb( rH, (facm*rS +fac*colS), rV, r_col+0, r_col+1, r_col+2);
 				}
 			}
 				break;
 		case MA_RAMP_VAL:		
-			if(g){
+			if(r_col[1]){
 				float rH,rS,rV;
 				float colH,colS,colV;
-				rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+				rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
 				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-				hsv_to_rgb( rH, rS, (facm*rV +fac*colV), r, g, b);
+				hsv_to_rgb( rH, rS, (facm*rV +fac*colV), r_col+0, r_col+1, r_col+2);
 			}
 				break;
 		case MA_RAMP_COLOR:		
-			if(g){
+			if(r_col[1]){
 				float rH,rS,rV;
 				float colH,colS,colV;
 				float tmpr,tmpg,tmpb;
 				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
 				if(colS!=0){
-					rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+					rgb_to_hsv(r_col[0],r_col[1],r_col[2],&rH,&rS,&rV);
 					hsv_to_rgb( colH, colS, rV, &tmpr, &tmpg, &tmpb);
-					*r = facm*(*r) + fac*tmpr;
-					*g = facm*(*g) + fac*tmpg;
-					*b = facm*(*b) + fac*tmpb;
+					r_col[0] = facm*(r_col[0]) + fac*tmpr;
+					r_col[1] = facm*(r_col[1]) + fac*tmpg;
+					r_col[2] = facm*(r_col[2]) + fac*tmpb;
 				}
 			}
 				break;
 		case MA_RAMP_SOFT: 
-			if (g){ 
+			if (r_col[1]){
 				float scr, scg, scb; 
 
 				/* first calculate non-fac based Screen mix */ 
-				scr = 1.0f - (1.0f - col[0]) * (1.0f - *r); 
-				scg = 1.0f - (1.0f - col[1]) * (1.0f - *g); 
-				scb = 1.0f - (1.0f - col[2]) * (1.0f - *b); 
+				scr = 1.0f - (1.0f - col[0]) * (1.0f - r_col[0]);
+				scg = 1.0f - (1.0f - col[1]) * (1.0f - r_col[1]);
+				scb = 1.0f - (1.0f - col[2]) * (1.0f - r_col[2]);
 
-				*r = facm*(*r) + fac*(((1.0f - *r) * col[0] * (*r)) + (*r * scr)); 
-				*g = facm*(*g) + fac*(((1.0f - *g) * col[1] * (*g)) + (*g * scg)); 
-				*b = facm*(*b) + fac*(((1.0f - *b) * col[2] * (*b)) + (*b * scb)); 
+				r_col[0] = facm*(r_col[0]) + fac*(((1.0f - r_col[0]) * col[0] * (r_col[0])) + (r_col[0] * scr));
+				r_col[1] = facm*(r_col[1]) + fac*(((1.0f - r_col[1]) * col[1] * (r_col[1])) + (r_col[1] * scg));
+				r_col[2] = facm*(r_col[2]) + fac*(((1.0f - r_col[2]) * col[2] * (r_col[2])) + (r_col[2] * scb));
 			} 
 				break; 
 		case MA_RAMP_LINEAR: 
 			if (col[0] > 0.5f)  
-				*r = *r + fac*(2.0f*(col[0]-0.5f)); 
+				r_col[0] = r_col[0] + fac*(2.0f*(col[0]-0.5f));
 			else  
-				*r = *r + fac*(2.0f*(col[0]) - 1.0f); 
-			if (g){ 
+				r_col[0] = r_col[0] + fac*(2.0f*(col[0]) - 1.0f);
+			if (r_col[1]){
 				if (col[1] > 0.5f)  
-					*g = *g + fac*(2.0f*(col[1]-0.5f)); 
+					r_col[1] = r_col[1] + fac*(2.0f*(col[1]-0.5f));
 				else  
-					*g = *g + fac*(2.0f*(col[1]) -1.0f); 
+					r_col[1] = r_col[1] + fac*(2.0f*(col[1]) -1.0f);
 				if (col[2] > 0.5f)  
-					*b = *b + fac*(2.0f*(col[2]-0.5f)); 
+					r_col[2] = r_col[2] + fac*(2.0f*(col[2]-0.5f));
 				else  
-					*b = *b + fac*(2.0f*(col[2]) - 1.0f); 
+					r_col[2] = r_col[2] + fac*(2.0f*(col[2]) - 1.0f);
 			} 
 				break; 
 	}	

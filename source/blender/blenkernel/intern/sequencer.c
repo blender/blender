@@ -652,7 +652,7 @@ void calc_sequence(Scene *scene, Sequence *seq)
 /* note: caller should run calc_sequence(scene, seq) after */
 void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 {
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	int prev_startdisp=0, prev_enddisp=0;
 	/* note: dont rename the strip, will break animation curves */
 
@@ -1156,7 +1156,7 @@ static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
 
 static void seq_open_anim_file(Sequence * seq)
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	StripProxy * proxy;
 
 	if(seq->anim != NULL) {
@@ -2057,7 +2057,7 @@ static ImBuf * seq_render_scene_strip_impl(
 static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfra)
 {
 	ImBuf * ibuf = NULL;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	int use_preprocess = input_have_to_preprocess(context, seq, cfra);
 	float nr = give_stripelem_index(seq, cfra);
 	/* all effects are handled similarly with the exception of speed effect */

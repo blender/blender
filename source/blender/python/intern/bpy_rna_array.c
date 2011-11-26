@@ -176,7 +176,8 @@ static int count_items(PyObject *seq, int dim)
 }
 
 /* Modifies property array length if needed and PROP_DYNAMIC flag is set. */
-static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, int lvalue_dim, int *totitem, const char *error_prefix)
+static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop,
+                                 int lvalue_dim, int *totitem, const char *error_prefix)
 {
 	int dimsize[MAX_ARRAY_DIMENSION];
 	int tot, totdim, len;
@@ -249,7 +250,9 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 	return 0;
 }
 
-static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, int lvalue_dim, ItemTypeCheckFunc check_item_type, const char *item_type_str, int *totitem, const char *error_prefix)
+static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop,
+                          int lvalue_dim, ItemTypeCheckFunc check_item_type, const char *item_type_str, int *totitem,
+                          const char *error_prefix)
 {
 	int dimsize[MAX_ARRAY_DIMENSION];
 	int totdim= RNA_property_array_dimension(ptr, prop, dimsize);
@@ -262,7 +265,9 @@ static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop, 
 	return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
 }
 
-static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, char *data, unsigned int item_size, int *index, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
+static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *prop,
+                               char *data, unsigned int item_size, int *index,
+                               ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
 {
 	if (!data) {
 		char value[sizeof(int)];
@@ -279,7 +284,9 @@ static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *pro
 	return data;
 }
 
-static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int dim, char *data, unsigned int item_size, int *index, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
+static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop,
+                         int dim, char *data, unsigned int item_size, int *index,
+                         ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
 {
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
 	const Py_ssize_t seq_size= PySequence_Size(seq);
@@ -320,7 +327,9 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int 
 	return data;
 }
 
-static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *param_data, ItemTypeCheckFunc check_item_type, const char *item_type_str, int item_size, ItemConvertFunc convert_item, RNA_SetArrayFunc rna_set_array, const char *error_prefix)
+static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop,
+                       char *param_data, ItemTypeCheckFunc check_item_type, const char *item_type_str, int item_size,
+                       ItemConvertFunc convert_item, RNA_SetArrayFunc rna_set_array, const char *error_prefix)
 {
 	/*int totdim, dim_size[MAX_ARRAY_DIMENSION];*/
 	int totitem;
@@ -372,7 +381,10 @@ static int py_to_array(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, char *
 	return 0;
 }
 
-static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, int lvalue_dim, int arrayoffset, int index, ItemTypeCheckFunc check_item_type, const char *item_type_str, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index, const char *error_prefix)
+static int py_to_array_index(PyObject *py, PointerRNA *ptr, PropertyRNA *prop,
+                             int lvalue_dim, int arrayoffset, int index,
+                             ItemTypeCheckFunc check_item_type, const char *item_type_str,
+                             ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index, const char *error_prefix)
 {
 	int totdim, dimsize[MAX_ARRAY_DIMENSION];
 	int totitem, i;
@@ -465,18 +477,22 @@ static void bool_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, void *
 	RNA_property_boolean_set_index(ptr, prop, index, *(int*)value);
 }
 
-int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix)
+int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data,
+                      PyObject *py, const char *error_prefix)
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
 	case PROP_FLOAT:
-		ret= py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float), py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
+		ret= py_to_array(py, ptr, prop, param_data, py_float_check, "float", sizeof(float),
+		                 py_to_float, (RNA_SetArrayFunc)RNA_property_float_set_array, error_prefix);
 		break;
 	case PROP_INT:
-		ret= py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int), py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
+		ret= py_to_array(py, ptr, prop, param_data, py_int_check, "int", sizeof(int),
+		                 py_to_int, (RNA_SetArrayFunc)RNA_property_int_set_array, error_prefix);
 		break;
 	case PROP_BOOLEAN:
-		ret= py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int), py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
+		ret= py_to_array(py, ptr, prop, param_data, py_bool_check, "boolean", sizeof(int),
+		                 py_to_bool, (RNA_SetArrayFunc)RNA_property_boolean_set_array, error_prefix);
 		break;
 	default:
 		PyErr_SetString(PyExc_TypeError, "not an array type");
@@ -486,18 +502,22 @@ int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyOb
 	return ret;
 }
 
-int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix)
+int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index,
+                            PyObject *py, const char *error_prefix)
 {
 	int ret;
 	switch (RNA_property_type(prop)) {
 	case PROP_FLOAT:
-		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index, py_float_check, "float", py_to_float, float_set_index, error_prefix);
+		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+		                       py_float_check, "float", py_to_float, float_set_index, error_prefix);
 		break;
 	case PROP_INT:
-		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index, py_int_check, "int", py_to_int, int_set_index, error_prefix);
+		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+		                       py_int_check, "int", py_to_int, int_set_index, error_prefix);
 		break;
 	case PROP_BOOLEAN:
-		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index, py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
+		ret= py_to_array_index(py, ptr, prop, arraydim, arrayoffset, index,
+		                       py_bool_check, "boolean", py_to_bool, bool_set_index, error_prefix);
 		break;
 	default:
 		PyErr_SetString(PyExc_TypeError, "not an array type");

@@ -60,7 +60,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPK_MUTED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Mute", "Mutes the speaker");
+	RNA_def_property_ui_text(prop, "Mute", "Mute the speaker");
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
 	/* This shouldn't be changed actually, hiding it!
@@ -124,7 +124,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Outer Cone Angle",
-	                         "Outer angle of the cone in degrees, outside this cone the volume is "
+	                         "Angle of the outer cone, in degrees, outside this cone the volume is "
 	                         "the outer cone volume, between inner and outer cone the volume is interpolated");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_outer_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
@@ -134,7 +134,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Inner Cone Angle",
-	                         "Inner angle of the cone in degrees, inside the cone the volume is 100 %");
+	                         "Angle of the inner cone, in degrees, inside the cone the volume is 100 %");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_inner_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 

@@ -2190,7 +2190,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* render */
 	prop= RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");
-	RNA_def_property_ui_text(prop, "Pass Index", "Index # for the IndexOB render pass");
+	RNA_def_property_ui_text(prop, "Pass Index", "Index number for the IndexOB render pass");
 	RNA_def_property_update(prop, NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
@@ -2251,13 +2251,13 @@ static void rna_def_object(BlenderRNA *brna)
 	// XXX: evil old crap
 	prop= RNA_def_property(srna, "use_slow_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
-	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship (Beware: this isn't renderfarm safe and may be invalid after jumping around the timeline)");
+	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship (beware: this isn't renderfarm safe and may be invalid after jumping around the timeline)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_internal_update");
 	
 	prop= RNA_def_property(srna, "slow_parent_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Slow Parent Offset", "Amount of delay in the parent relationship");
+	RNA_def_property_ui_text(prop, "Slow Parent Offset", "Delay in the parent relationship");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 	
 	/* duplicates */

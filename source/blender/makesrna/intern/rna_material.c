@@ -39,18 +39,18 @@
 #include "WM_types.h"
 
 static EnumPropertyItem prop_texture_coordinates_items[] = {
-{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
-{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
-{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates"},
-{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object"},
+{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
+{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
+{TEXCO_UV, "UV", 0, "UV", "Use UV coordinates for texture coordinates"},
+{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
 {TEXCO_STRAND, "STRAND", 0, "Strand / Particle",
-               "Uses normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
-{TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates"},
-{TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates"},
-{TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates"},
-{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates"},
-{TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh"},
-{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates"},
+               "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
+{TEXCO_STICKY, "STICKY", 0, "Sticky", "Use mesh's sticky coordinates for the texture coordinates"},
+{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
+{TEXCO_NORM, "NORMAL", 0, "Normal", "Use normal vector as texture coordinates"},
+{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Use reflection vector as texture coordinates"},
+{TEXCO_STRESS, "STRESS", 0, "Stress", "Use the difference of edge lengths compared to original coordinates of the mesh"},
+{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Use the optional tangent vector as texture coordinates"},
 {0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem ramp_blend_items[] = {
@@ -460,62 +460,62 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_map_color_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COL);
-	RNA_def_property_ui_text(prop, "Diffuse Color", "Causes the texture to affect basic color of the material");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "The texture affects basic color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_NORM);
-	RNA_def_property_ui_text(prop, "Normal", "Causes the texture to affect the rendered normal");
+	RNA_def_property_ui_text(prop, "Normal", "The texture affects the rendered normal");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_color_spec", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COLSPEC);
-	RNA_def_property_ui_text(prop, "Specular Color", "Causes the texture to affect the specularity color");
+	RNA_def_property_ui_text(prop, "Specular Color", "The texture affects the specularity color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_mirror", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COLMIR);
-	RNA_def_property_ui_text(prop, "Mirror", "Causes the texture to affect the mirror color");
+	RNA_def_property_ui_text(prop, "Mirror", "The texture affects the mirror color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REF);
-	RNA_def_property_ui_text(prop, "Diffuse", "Causes the texture to affect the value of the materials diffuse reflectivity");
+	RNA_def_property_ui_text(prop, "Diffuse", "The texture to affects the value of the materials diffuse reflectivity");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_SPEC);
-	RNA_def_property_ui_text(prop, "Specular", "Causes the texture to affect the value of specular reflectivity");
+	RNA_def_property_ui_text(prop, "Specular", "The texture to affects the value of specular reflectivity");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_ambient", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_AMB);
-	RNA_def_property_ui_text(prop, "Ambient", "Causes the texture to affect the value of ambient");
+	RNA_def_property_ui_text(prop, "Ambient", "The texture affects the value of ambient");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_hardness", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_HAR);
-	RNA_def_property_ui_text(prop, "Hardness", "Causes the texture to affect the hardness value");
+	RNA_def_property_ui_text(prop, "Hardness", "The texture affects the hardness value");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_raymir", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_RAYMIRR);
-	RNA_def_property_ui_text(prop, "Ray-Mirror", "Causes the texture to affect the ray-mirror value");
+	RNA_def_property_ui_text(prop, "Ray-Mirror", "The texture affects the ray-mirror value");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_ALPHA);
-	RNA_def_property_ui_text(prop, "Alpha", "Causes the texture to affect the alpha value");
+	RNA_def_property_ui_text(prop, "Alpha", "The texture affects the alpha value");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_emit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_EMIT);
-	RNA_def_property_ui_text(prop, "Emit", "Causes the texture to affect the emit value");
+	RNA_def_property_ui_text(prop, "Emit", "The texture affects the emit value");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_translucency", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_TRANSLU);
-	RNA_def_property_ui_text(prop, "Translucency", "Causes the texture to affect the translucency value");
+	RNA_def_property_ui_text(prop, "Translucency", "The texture affects the translucency value");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_displacement", PROP_BOOLEAN, PROP_NONE);
@@ -644,38 +644,38 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	/* volume material */
 	prop= RNA_def_property(srna, "use_map_color_emission", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_EMISSION_COL);
-	RNA_def_property_ui_text(prop, "Emission Color", "Causes the texture to affect the color of emission");
+	RNA_def_property_ui_text(prop, "Emission Color", "The texture affects the color of emission");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_color_reflection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REFLECTION_COL);
-	RNA_def_property_ui_text(prop, "Reflection Color", "Causes the texture to affect the color of scattered light");
+	RNA_def_property_ui_text(prop, "Reflection Color", "The texture affects the color of scattered light");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_color_transmission", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_TRANSMISSION_COL);
 	RNA_def_property_ui_text(prop, "Transmission Color",
-	                         "Causes the texture to affect the result color after other light has been scattered/absorbed");
+	                         "The texture affects the result color after other light has been scattered/absorbed");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "use_map_density", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_DENSITY);
-	RNA_def_property_ui_text(prop, "Density", "Causes the texture to affect the volume's density");
+	RNA_def_property_ui_text(prop, "Density", "The texture affects the volume's density");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_emission", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_EMISSION);
-	RNA_def_property_ui_text(prop, "Emission", "Causes the texture to affect the volume's emission");
+	RNA_def_property_ui_text(prop, "Emission", "The texture affects the volume's emission");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_scatter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_SCATTERING);
-	RNA_def_property_ui_text(prop, "Scattering", "Causes the texture to affect the volume's scattering");
+	RNA_def_property_ui_text(prop, "Scattering", "The texture affects the volume's scattering");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_reflect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REFLECTION);
-	RNA_def_property_ui_text(prop, "Reflection", "Causes the texture to affect the reflected light's brightness");
+	RNA_def_property_ui_text(prop, "Reflection", "The texture affects the reflected light's brightness");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "emission_color_factor", PROP_FLOAT, PROP_NONE);
@@ -876,13 +876,13 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_col");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "Determines how the ramp maps on the surface");
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "How the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "specular_ramp_input", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampin_spec");
 	RNA_def_property_enum_items(prop, prop_ramp_input_items);
-	RNA_def_property_ui_text(prop, "Specular Ramp Input", "Determines how the ramp maps on the surface");
+	RNA_def_property_ui_text(prop, "Specular Ramp Input", "How the ramp maps on the surface");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_factor", PROP_FLOAT, PROP_FACTOR);
@@ -1549,7 +1549,7 @@ static void rna_def_material_strand(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_tangent_shading", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TANGENT_STR);
-	RNA_def_property_ui_text(prop, "Tangent Shading", "Uses direction of strands as normal for tangent-shading");
+	RNA_def_property_ui_text(prop, "Tangent Shading", "Use direction of strands as normal for tangent-shading");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	/* this flag is only set when rendering, not to be edited manually */
@@ -1670,12 +1670,12 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	/* Render Preview Types */
 	static EnumPropertyItem preview_type_items[] = {
-		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Preview type: Flat XY plane"},
-		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Preview type: Sphere"},
-		{MA_CUBE, "CUBE", ICON_MATCUBE, "Flat", "Preview type: Cube"},
-		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Flat", "Preview type: Monkey"},
-		{MA_HAIR, "HAIR", ICON_HAIR, "Flat", "Preview type: Hair strands"},
-		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "Flat", "Preview type: Large sphere with sky"},
+		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Flat XY plane"},
+		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Sphere"},
+		{MA_CUBE, "CUBE", ICON_MATCUBE, "Cube", "Cube"},
+		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Monkey"},
+		{MA_HAIR, "HAIR", ICON_HAIR, "Hair", "Hair strands"},
+		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "World Sphere", "Large sphere with sky"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadows_only_items[] = {
@@ -1752,7 +1752,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "shadow_buffer_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lbias");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Factor to multiply shadow buffer bias with (0 is ignore.)");
+	RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Factor to multiply shadow buffer bias with (0 is ignore)");
 
 	prop= RNA_def_property(srna, "shadow_cast_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
@@ -1770,7 +1770,7 @@ void RNA_def_material(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");
-	RNA_def_property_ui_text(prop, "Pass Index", "Index # for the IndexMA render pass");
+	RNA_def_property_ui_text(prop, "Pass Index", "Index number for the IndexMA render pass");
 	RNA_def_property_update(prop, NC_OBJECT, NULL);
 
 	/* flags */
