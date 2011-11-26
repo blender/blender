@@ -2936,7 +2936,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	/* flag */
 	prop= RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_IMF_FLAG_ZBUF);
-	RNA_def_property_ui_text(prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)Save the z-depth per pixel (32 bit unsigned int z-buffer)");
+	RNA_def_property_ui_text(prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);

@@ -123,7 +123,7 @@ void RNA_def_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this groups is instanced as a dupli");
+	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this group is instanced as a dupli");
 
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
