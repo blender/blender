@@ -2564,11 +2564,12 @@ void object_handle_update(Scene *scene, Object *ob)
 
 #else				/* ensure CD_MASK_BAREMESH for now */
 					BMEditMesh *em = (ob == scene->obedit)? ((Mesh*)ob->data)->edit_btmesh : NULL;
+					unsigned int data_mask= scene->customdata_mask | ob->customdata_mask | CD_MASK_BAREMESH;
 					if(em) {
-						makeDerivedMesh(scene, ob, em,  scene->customdata_mask | CD_MASK_BAREMESH, 0); /* was CD_MASK_BAREMESH */
+						makeDerivedMesh(scene, ob, em,  data_mask, 0); /* was CD_MASK_BAREMESH */
 					}
 					else {
-						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask | CD_MASK_BAREMESH, 0);
+						makeDerivedMesh(scene, ob, NULL, data_mask, 0);
 					}
 #endif
 
