@@ -107,7 +107,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 	if (totpoints == 1) {		
 		/* draw point */
 		glBegin(GL_POINTS);
-			glVertex2f(points->x, points->y);
+			glVertex2iv(&points->x);
 		glEnd();
 	}
 	else if (sflag & GP_STROKE_ERASER) {
@@ -132,18 +132,15 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 				glBegin(GL_LINE_STRIP);
 				
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
-				if (i != 0) {
-					pt--;
-					glVertex2f(pt->x, pt->y);
-					pt++;
-				}
+				if (i != 0) glVertex2iv(&(pt - 1)->x);
+
 				/* now the point we want... */
-				glVertex2f(pt->x, pt->y);
+				glVertex2iv(&pt->x);
 				
 				oldpressure = pt->pressure;
 			}
 			else
-				glVertex2f(pt->x, pt->y);
+				glVertex2iv(&pt->x);
 		}
 		glEnd();
 
@@ -162,7 +159,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short dfl
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
 		glBegin(GL_POINTS);
-			glVertex3f(points->x, points->y, points->z);
+			glVertex3fv(&points->x);
 		glEnd();
 	}
 	else {
@@ -228,18 +225,16 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 			glBegin(GL_LINE_STRIP);
 			
 			/* need to roll-back one point to ensure that there are no gaps in the stroke */
-			if (i != 0) {
-				pt--;
-				glVertex3f(pt->x, pt->y, pt->z);
-				pt++;
-			}
+			if (i != 0) glVertex3fv(&(pt - 1)->x);
+
 			/* now the point we want... */
-			glVertex3f(pt->x, pt->y, pt->z);
+			glVertex3fv(&pt->x);
 			
 			oldpressure = pt->pressure;
 		}
-		else
-			glVertex3f(pt->x, pt->y, pt->z);
+		else {
+			glVertex3fv(&pt->x);
+		}
 	}
 	glEnd();
 	
@@ -247,7 +242,7 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 	if (debug) {
 		glBegin(GL_POINTS);
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++)
-			glVertex3f(pt->x, pt->y, pt->z);
+			glVertex3fv(&pt->x);
 		glEnd();
 	}
 }
@@ -461,7 +456,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s
 		glBegin(GL_POINTS);
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
 			if (sflag & GP_STROKE_2DSPACE) {
-				glVertex2f(pt->x, pt->y);
+				glVertex2fv(&pt->x);
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
 				const float x= (float)((pt->x * winx) + offsx);

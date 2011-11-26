@@ -1579,7 +1579,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 			glBegin(GL_LINE_STRIP);
 				for(a= 0; a<reconstruction->camnr; a++, camera++) {
-					glVertex3f(camera->mat[3][0], camera->mat[3][1], camera->mat[3][2]);
+					glVertex3fv(camera->mat[3]);
 				}
 			glEnd();
 
