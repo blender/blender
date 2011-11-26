@@ -587,7 +587,7 @@ void shadeSunView(float col_r[3], const float view[3])
 			xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &sun_collector[0], &sun_collector[1], &sun_collector[2], 
 					   lar->sunsky->sky_colorspace);
 			
-			ramp_blend(lar->sunsky->skyblendtype, col_r, col_r+1, col_r+2, lar->sunsky->skyblendfac, sun_collector);
+			ramp_blend(lar->sunsky->skyblendtype, col_r, lar->sunsky->skyblendfac, sun_collector);
 		}
 	}
 }

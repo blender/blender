@@ -1817,7 +1817,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 		float col[3];
 		MDeformWeight *mdw= defvert_find_index (lt->dvert+index, use_wcol-1);
 		
-		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
+		weight_to_rgb(col, mdw?mdw->weight:0.0f);
 		glColor3fv(col);
 
 	}
@@ -3721,19 +3721,15 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 	float vec[3], vec2[3];
 	float *vd = NULL;
 	float *cd = NULL;
-	float ma_r=0.0f;
-	float ma_g=0.0f;
-	float ma_b=0.0f;
+	float ma_col[3]= {0.0f, 0.0f, 0.0f};
 
 	/* null only for PART_DRAW_CIRC */
 	if(pdd) {
 		vd = pdd->vd;
 		cd = pdd->cd;
 
-		if(pdd->ma_r) {
-			ma_r = *pdd->ma_r;
-			ma_g = *pdd->ma_g;
-			ma_b = *pdd->ma_b;
+		if(pdd->ma_col) {
+			copy_v3_v3(ma_col, pdd->ma_col);
 		}
 	}
 
@@ -3744,9 +3740,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 				copy_v3_v3(vd,state->co); pdd->vd+=3;
 			}
 			if(cd) {
-				cd[0]=ma_r;
-				cd[1]=ma_g;
-				cd[2]=ma_b;
+				copy_v3_v3(cd, pdd->ma_col);
 				pdd->cd+=3;
 			}
 			break;
@@ -3772,9 +3766,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			}
 			else {
 				if(cd) {
-					cd[0]=cd[3]=cd[6]=cd[9]=cd[12]=cd[15]=ma_r;
-					cd[1]=cd[4]=cd[7]=cd[10]=cd[13]=cd[16]=ma_g;
-					cd[2]=cd[5]=cd[8]=cd[11]=cd[14]=cd[17]=ma_b;
+					cd[0]=cd[3]=cd[6]=cd[ 9]=cd[12]=cd[15]= ma_col[0];
+					cd[1]=cd[4]=cd[7]=cd[10]=cd[13]=cd[16]= ma_col[1];
+					cd[2]=cd[5]=cd[8]=cd[11]=cd[14]=cd[17]= ma_col[2];
 					pdd->cd+=18;
 				}
 				sub_v3_v3v3(vec2, state->co, vec);
@@ -3819,9 +3813,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			madd_v3_v3v3fl(pdd->vd, state->co, vec, -draw_line[0]); pdd->vd+=3;
 			madd_v3_v3v3fl(pdd->vd, state->co, vec,  draw_line[1]); pdd->vd+=3;
 			if(cd) {
-				cd[0]=cd[3]=ma_r;
-				cd[1]=cd[4]=ma_g;
-				cd[2]=cd[5]=ma_b;
+				cd[0]=cd[3]= ma_col[0];
+				cd[1]=cd[4]= ma_col[1];
+				cd[2]=cd[5]= ma_col[2];
 				pdd->cd+=6;
 			}
 			break;
@@ -3835,9 +3829,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		{
 			float xvec[3], yvec[3], zvec[3], bb_center[3];
 			if(cd) {
-				cd[0]=cd[3]=cd[6]=cd[9]=ma_r;
-				cd[1]=cd[4]=cd[7]=cd[10]=ma_g;
-				cd[2]=cd[5]=cd[8]=cd[11]=ma_b;
+				cd[0]=cd[3]=cd[6]=cd[ 9]= ma_col[0];
+				cd[1]=cd[4]=cd[7]=cd[10]= ma_col[1];
+				cd[2]=cd[5]=cd[8]=cd[11]= ma_col[2];
 				pdd->cd+=12;
 			}
 
@@ -3892,7 +3886,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime, pa_health, intensity;
 	float cfra;
-	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
+	float ma_col[3]= {0.0f, 0.0f, 0.0f};
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0, need_v=0;
 	GLint polygonmode[2];
@@ -3956,10 +3950,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if((ma) && (part->draw_col == PART_DRAW_COL_MAT)) {
 		rgb_float_to_byte(&(ma->r), tcol);
-
-		ma_r = ma->r;
-		ma_g = ma->g;
-		ma_b = ma->b;
+		copy_v3_v3(ma_col, &ma->r);
 	}
 
 	glColor3ubv(tcol);
@@ -4125,9 +4116,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if(pdd) {
-		pdd->ma_r = &ma_r;
-		pdd->ma_g = &ma_g;
-		pdd->ma_b = &ma_b;
+		pdd->ma_col= ma_col;
 	}
 
 	psys->lattice= psys_get_lattice(&sim);
@@ -4169,7 +4158,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							intensity= 1.0f; /* should never happen */
 					}
 					CLAMP(intensity, 0.f, 1.f);
-					weight_to_rgb(intensity, &ma_r, &ma_g, &ma_b);
+					weight_to_rgb(ma_col, intensity);
 				}
 			}
 			else{
@@ -4430,7 +4419,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		}
 
 		/* restore from select */
-		glColor3f(ma_r,ma_g,ma_b);
+		glColor3fv(ma_col);
 		glPointSize(part->draw_size ? part->draw_size : 2.0);
 		glLineWidth(1.0);
 
@@ -4495,7 +4484,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(pdd) {
 		/* drop references to stack memory */
-		pdd->ma_r= pdd->ma_g= pdd->ma_b= NULL;
+		pdd->ma_col= NULL;
 	}
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {

@@ -1681,7 +1681,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 									for (; j<((mface[i].v4)?4:3); j++) {
 										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
 
-										weight_to_rgb(weight[index], temp_color, temp_color+1, temp_color+2);
+										weight_to_rgb(temp_color, weight[index]);
 										col[i*4+j].r = FTOCHAR(temp_color[2]);
 										col[i*4+j].g = FTOCHAR(temp_color[1]);
 										col[i*4+j].b = FTOCHAR(temp_color[0]);

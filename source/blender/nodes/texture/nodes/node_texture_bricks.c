@@ -110,7 +110,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		copy_v4_v4( out, mortar );
 	} else {
 		copy_v4_v4( out, bricks1 );
-		ramp_blend( MA_RAMP_BLEND, out, out+1, out+2, tint, bricks2 );
+		ramp_blend( MA_RAMP_BLEND, out, tint, bricks2 );
 	}
 }
 
