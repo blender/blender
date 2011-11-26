@@ -235,7 +235,8 @@ def enable(module_name, default_set=True):
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
-    if mod:
+    # chances of the file _not_ existing are low, but it could be removed
+    if mod and os.path.exists(mod.__file__):
         mod.__addon_enabled__ = False
         mtime_orig = getattr(mod, "__time__", 0)
         mtime_new = os.path.getmtime(mod.__file__)
@@ -252,6 +253,7 @@ def enable(module_name, default_set=True):
 
     # Split registering up into 3 steps so we can undo
     # if it fails par way through.
+
     # 1) try import
     try:
         mod = __import__(module_name)
