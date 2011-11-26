@@ -159,6 +159,10 @@ static PyObject *make_app_info(void)
 
 /* a few getsets because it makes sense for them to be in bpy.app even though
  * they are not static */
+
+PyDoc_STRVAR(bpy_app_debug_doc,
+"Boolean, set when blender is running in debug mode (started with --debug)"
+);
 static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
 	return PyBool_FromLong(G.f & G_DEBUG);
@@ -179,6 +183,9 @@ static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *UNUS
 	return 0;
 }
 
+PyDoc_STRVAR(bpy_app_debug_value_doc,
+"Int, number which can be set to non-zero values for testing purposes"
+);
 static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
 	return PyLong_FromSsize_t(G.rt);
@@ -198,11 +205,17 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 	return 0;
 }
 
+PyDoc_STRVAR(bpy_app_tempdir_doc,
+"String, the temp directory used by blender (read-only)"
+);
 static PyObject *bpy_app_tempdir_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
 	return PyC_UnicodeFromByte(BLI_temporary_dir());
 }
 
+PyDoc_STRVAR(bpy_app_driver_dict_doc,
+"Dictionary for drivers namespace, editable in-place, reset on file load (read-only)"
+);
 static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
 	if (bpy_pydriver_Dict == NULL)
@@ -217,10 +230,10 @@ static PyObject *bpy_app_driver_dict_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 
 static PyGetSetDef bpy_app_getsets[]= {
-	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)"Boolean, set when blender is running in debug mode (started with -d)", NULL},
-	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)"Int, number which can be set to non-zero values for testing purposes.", NULL},
-	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)"String, the temp directory used by blender (read-only)", NULL},
-	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)"Dictionary for drivers namespace, editable in-place, reset on file load (read-only)", NULL},
+	{(char *)"debug", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, NULL},
+	{(char *)"debug_value", bpy_app_debug_value_get, bpy_app_debug_value_set, (char *)bpy_app_debug_value_doc, NULL},
+	{(char *)"tempdir", bpy_app_tempdir_get, NULL, (char *)bpy_app_tempdir_doc, NULL},
+	{(char *)"driver_namespace", bpy_app_driver_dict_get, NULL, (char *)bpy_app_driver_dict_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -253,4 +266,3 @@ PyObject *BPY_app_struct(void)
 
 	return ret;
 }
-
