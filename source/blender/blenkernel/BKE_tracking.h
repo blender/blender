@@ -45,6 +45,7 @@ struct Camera;
 struct Object;
 struct Scene;
 
+void BKE_tracking_init_settings(struct MovieTracking *tracking);
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 

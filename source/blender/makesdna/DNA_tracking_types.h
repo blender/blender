@@ -107,16 +107,25 @@ typedef struct MovieTrackingTrack {
 	float minimum_correlation;			/* minimal correlation which is still treated as successful tracking */
 
 	/* ** KLT tracker settings ** */
-	int pyramid_levels;		/* number of pyramid levels to use for KLT tracking */
-	char pad5[4];
+	short pyramid_levels;		/* number of pyramid levels to use for KLT tracking */
+	char pad5[6];
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
+	/* ** default tracker settings */
+	short default_tracker;				/* tracking algorithm used by default */
+	short default_pyramid_levels;		/* number of pyramid levels to use for KLT tracking */
+	float default_minimum_correlation;	/* minimal correlation which is still treated as successful tracking */
+	short default_pattern_size;			/* size of pattern area for new tracks */
+	short default_search_size;			/* size of search area for new tracks */
+
 	/* ** common tracker settings ** */
 	short speed;			/* speed of tracking */
 	short frames_limit;		/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	short margin;			/* margin from frame boundaries */
-	char pad[2];
+
+	short pad;
+	int flag;
 
 	int adjframes;			/* re-adjust every N frames */
 
@@ -125,8 +134,7 @@ typedef struct MovieTrackingSettings {
 
 	/* ** which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics;
-
-	char pad2[6];
+	short pad2;
 
 	/* ** tool settings ** */
 
@@ -172,8 +180,6 @@ typedef struct MovieTrackingStats {
 
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
-	char pad2[4];
-
 	MovieTrackingCamera camera;		/* camera intrinsics */
 	ListBase tracks;				/* all tracks */
 	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
@@ -203,6 +209,9 @@ enum {
 #define TRACK_LOCKED		(1<<6)
 #define TRACK_CUSTOMCOLOR	(1<<7)
 #define TRACK_USE_2D_STAB	(1<<8)
+
+/* MovieTrackingSettings->flag */
+#define TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED	(1<<0)
 
 /* MovieTrackingSettings->tracker */
 #define TRACKER_KLT		0

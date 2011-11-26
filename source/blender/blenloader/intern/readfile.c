@@ -12607,9 +12607,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 	{
 		Scene *sce;
+		MovieClip *clip;
+
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->r.im_format.depth == 0) {
 				do_versions_image_settings_2_60(sce);
+			}
+		}
+
+		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+			MovieTrackingSettings *settings= &clip->tracking.settings;
+
+			if(settings->default_pyramid_levels==0) {
+				settings->default_tracker= TRACKER_KLT;
+				settings->default_pyramid_levels= 2;
+				settings->default_minimum_correlation= 0.75;
+				settings->default_pattern_size= 11;
+				settings->default_search_size= 51;
 			}
 		}
 	}
