@@ -113,6 +113,12 @@ RenderEngineType *RE_engines_find(const char *idname)
 	return type;
 }
 
+int RE_engine_is_external(Render *re)
+{
+	RenderEngineType *type= RE_engines_find(re->r.engine);
+	return (type && type->render);
+}
+
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)

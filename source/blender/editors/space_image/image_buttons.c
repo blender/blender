@@ -383,6 +383,10 @@ static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 		a+= sprintf(str+a, "|Composite %%x0");
 		nr= 1;
 	}
+	else if(rr->rect32) {
+		a+= sprintf(str+a, "|Sequence %%x0");
+		nr= 1;
+	}
 	for(rl= rr->layers.first; rl; rl= rl->next, nr++) {
 		a+= sprintf(str+a, "|%s %%x%d", rl->name, nr);
 	}
@@ -443,7 +447,10 @@ static void image_multi_inclay_cb(bContext *C, void *rr_v, void *iuser_v)
 {
 	RenderResult *rr= rr_v;
 	ImageUser *iuser= iuser_v;
-	int tot= BLI_countlist(&rr->layers) + (rr->rectf?1:0);  /* fake compo result layer */
+	int tot= BLI_countlist(&rr->layers);
+
+	if(rr->rectf || rr->rect32)
+		tot++; /* fake compo/sequencer layer */
 
 	if(iuser->layer<tot-1) {
 		iuser->layer++;
@@ -468,7 +475,11 @@ static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v)
 	RenderLayer *rl= BLI_findlink(&rr->layers, iuser->layer);
 
 	if(rl) {
-		int tot= BLI_countlist(&rl->passes) + (rl->rectf?1:0);	/* builtin render result has no combined pass in list */
+		int tot= BLI_countlist(&rl->passes);
+
+		if(rr->rectf || rr->rect32)
+			tot++; /* fake compo/sequencer layer */
+
 		if(iuser->pass<tot-1) {
 			iuser->pass++;
 			BKE_image_multilayer_index(rr, iuser); 
@@ -509,7 +520,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
 	RenderLayer *rl= NULL;
-	int wmenu1, wmenu2, wmenu3;
+	int wmenu1, wmenu2, wmenu3, layer;
 	char *strp;
 
 	uiLayoutRow(layout, 1);
@@ -532,8 +543,12 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, UI_UNIT_Y, &iuser->layer, 0,0,0,0, "Select Layer");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
+
+		layer = iuser->layer;
+		if(rr->rectf || rr->rect32)
+			layer--; /* fake compo/sequencer layer */
 		
-		rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
+		rl= BLI_findlink(&rr->layers, layer); /* return NULL is meant to be */
 		strp= pass_menu(rl, &iuser->pass);
 		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, UI_UNIT_Y, &iuser->pass, 0,0,0,0, "Select Pass");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
