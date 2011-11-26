@@ -612,7 +612,7 @@ int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct 
 int sculpt_get_deform_matrices(struct Scene *scene, struct Object *ob,
 								float (**deformmats)[3][3], float (**deformcos)[3]);
 
-void weight_to_rgb(float input, float *fr, float *fg, float *fb);
+void weight_to_rgb(float r_rgb[3], const float weight);
 
 /* convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */

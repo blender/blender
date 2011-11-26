@@ -103,7 +103,7 @@ static void rna_Image_save(Image *image, ReportList *reports)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	if(ibuf) {
-		char filename[FILE_MAXDIR + FILE_MAXFILE];
+		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
 		BLI_path_abs(filename, G.main->name);
 

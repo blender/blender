@@ -1139,7 +1139,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "step_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numstep");
 	RNA_def_property_range(prop, 1.f, 50.f);
-	RNA_def_property_ui_text(prop, "Num steps", "Divides the frame interval into this many steps");
+	RNA_def_property_ui_text(prop, "Num steps", "Divide the frame interval into this many steps");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -1152,7 +1152,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_itasc_reiteration_items);
 	RNA_def_property_ui_text(prop, "Reiteration",
-	                         "Defines if the solver is allowed to reiterate (converges until "
+	                         "Defines if the solver is allowed to reiterate (converge until "
 	                         "precision is met) on none, first or all frames");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
@@ -1178,19 +1178,19 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "feedback");
 	RNA_def_property_range(prop, 0.0f,100.0f);
 	RNA_def_property_ui_text(prop, "Feedback",
-	                         "Feedback coefficient for error correction. Average response time=1/feedback. Default=20");
+	                         "Feedback coefficient for error correction, average response time is 1/feedback (default=20)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxvel");
 	RNA_def_property_range(prop, 0.0f,100.0f);
-	RNA_def_property_ui_text(prop, "Max Velocity", "Maximum joint velocity in rad/s. Default=50");
+	RNA_def_property_ui_text(prop, "Max Velocity", "Maximum joint velocity in rad/s (default=50)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "solver", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "solver");
 	RNA_def_property_enum_items(prop, prop_solver_items);
-	RNA_def_property_ui_text(prop, "Solver", "Solving method selection: Automatic damping or manual damping");
+	RNA_def_property_ui_text(prop, "Solver", "Solving method selection: automatic damping or manual damping");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update_rebuild");
 
 	prop= RNA_def_property(srna, "damping_max", PROP_FLOAT, PROP_NONE);

@@ -447,7 +447,7 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
-	char targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	char targetFile[FILE_MAX];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
 	MFace *mface;

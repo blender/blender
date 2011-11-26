@@ -611,13 +611,13 @@ static void rna_def_key(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", KEY_RELATIVE);
-	RNA_def_property_ui_text(prop, "Relative", "Makes shape keys relative");
+	RNA_def_property_ui_text(prop, "Relative", "Make shape keys relative");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "slurph", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "slurph");
 	RNA_def_property_range(prop, -500, 500);
-	RNA_def_property_ui_text(prop, "Slurph", "Creates a delay in amount of frames in applying keypositions, first vertex goes first");
+	RNA_def_property_ui_text(prop, "Slurph", "Create a delay (in frames) in applying keypositions, first vertex goes first");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 }
 

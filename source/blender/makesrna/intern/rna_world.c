@@ -139,12 +139,12 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem texco_items[] = {
-		{TEXCO_VIEW, "VIEW", 0, "View", "Uses view vector for the texture coordinates"},
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates (interior mist)"},
-		{TEXCO_ANGMAP, "ANGMAP", 0, "AngMap", "Uses 360 degree angular coordinates, e.g. for spherical light probes"},
+		{TEXCO_VIEW, "VIEW", 0, "View", "Use view vector for the texture coordinates"},
+		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates (interior mist)"},
+		{TEXCO_ANGMAP, "ANGMAP", 0, "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"},
 		{TEXCO_H_SPHEREMAP, "SPHERE", 0, "Sphere", "For 360 degree panorama sky, spherical mapped, only top half"},
 		{TEXCO_H_TUBEMAP, "TUBE", 0, "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
+		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldTextureSlot", "TextureSlot");
@@ -381,9 +381,9 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem falloff_items[] = {
-		{0, "QUADRATIC", 0, "Quadratic", "Mist uses quadratic progression"},
-		{1, "LINEAR", 0, "Linear", "Mist uses linear progression"},
-		{2, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Mist uses inverse quadratic progression"},
+		{0, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
+		{1, "LINEAR", 0, "Linear", "Use linear progression"},
+		{2, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldMistSettings", NULL);

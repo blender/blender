@@ -893,7 +893,7 @@ static int run_python(int argc, const char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 		/* Make the path absolute because its needed for relative linked blends to be found */
-		char filename[FILE_MAXDIR + FILE_MAXFILE];
+		char filename[FILE_MAX];
 		BLI_strncpy(filename, argv[1], sizeof(filename));
 		BLI_path_cwd(filename);
 
@@ -954,7 +954,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	bContext *C = data;
 
 	/* Make the path absolute because its needed for relative linked blends to be found */
-	char filename[FILE_MAXDIR + FILE_MAXFILE];
+	char filename[FILE_MAX];
 	BLI_strncpy(filename, argv[0], sizeof(filename));
 	BLI_path_cwd(filename);
 

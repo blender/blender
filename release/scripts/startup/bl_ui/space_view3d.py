@@ -1763,7 +1763,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
         edit_object = context.edit_object
 
         if edit_object.type == 'CURVE':
-            layout.operator("transform.transform", text="Tilt").mode = 'TILT'
+            layout.operator("transform.tilt")
             layout.operator("curve.tilt_clear")
             layout.operator("curve.separate")
 

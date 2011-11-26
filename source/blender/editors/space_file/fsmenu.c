@@ -326,13 +326,13 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		for (i=1; err!=nsvErr; i++)
 		{
 			FSRef dir;
-			unsigned char path[FILE_MAXDIR+FILE_MAXFILE];
+			unsigned char path[FILE_MAX];
 			
 			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, NULL, kFSVolInfoNone, NULL, NULL, &dir);
 			if (err != noErr)
 				continue;
 			
-			FSRefMakePath(&dir, path, FILE_MAXDIR+FILE_MAXFILE);
+			FSRefMakePath(&dir, path, FILE_MAX);
 			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net"))
 			{ /* /net and /home are meaningless on OSX, home folders are stored in /Users */
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
@@ -414,7 +414,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			FSRef dir;
 			FSVolumeRefNum volRefNum;
 			struct GetVolParmsInfoBuffer volParmsBuffer;
-			unsigned char path[FILE_MAXDIR+FILE_MAXFILE];
+			unsigned char path[FILE_MAX];
 			
 			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, &volRefNum, kFSVolInfoNone, NULL, NULL, &dir);
 			if (err != noErr)
@@ -425,7 +425,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 				continue;
 			
 			
-			FSRefMakePath(&dir, path, FILE_MAXDIR+FILE_MAXFILE);
+			FSRefMakePath(&dir, path, FILE_MAX);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
 		}
 		

@@ -263,7 +263,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						else
 							areadiff = 1.0f-(area/uvarea);
 						
-						weight_to_rgb(areadiff, col, col+1, col+2);
+						weight_to_rgb(col, areadiff);
 						glColor3fv(col);
 						
 						glBegin(GL_POLYGON);
@@ -343,19 +343,19 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						 * 1.0-powf((1.0-a), 2) */
 						
 						a = fabsf(uvang1-ang1)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[0]);
 						a = fabsf(uvang2-ang2)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[1]);
 						a = fabsf(uvang3-ang3)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[2]);
 						a = fabsf(uvang4-ang4)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[3]);
 						
@@ -398,15 +398,15 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						
 						glBegin(GL_TRIANGLES);
 						a = fabsf(uvang1-ang1)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[0]);
 						a = fabsf(uvang2-ang2)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[1]);
 						a = fabsf(uvang3-ang3)/(float)M_PI;
-						weight_to_rgb(1.0f-powf((1.0f-a), 2.0f), col, col+1, col+2);
+						weight_to_rgb(col, 1.0f-powf((1.0f-a), 2.0f));
 						glColor3fv(col);
 						glVertex2fv(tf->uv[2]);
 					}

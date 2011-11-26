@@ -452,7 +452,7 @@ int blender_test_break(void)
 #define MAXUNDONAME	64
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	char name[MAXUNDONAME];
 	MemFile memfile;
 	uintptr_t undosize;
@@ -537,7 +537,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	/* disk save version */
 	if(UNDO_DISK) {
 		static int counter= 0;
-		char filepath[FILE_MAXDIR+FILE_MAXFILE];
+		char filepath[FILE_MAX];
 		char numstr[32];
 		int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on undo */
 

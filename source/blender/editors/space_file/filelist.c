@@ -852,7 +852,7 @@ static void filelist_read_library(struct FileList* filelist)
 		file = filelist->filelist;
 		for(num=0; num<filelist->numfiles; num++, file++) {
 			if(BLO_has_bfile_extension(file->relname)) {
-				char name[FILE_MAXDIR+FILE_MAXFILE];
+				char name[FILE_MAX];
 			
 				BLI_strncpy(name, filelist->dir, sizeof(name));
 				strcat(name, file->relname);
@@ -988,7 +988,7 @@ void filelist_from_library(struct FileList* filelist)
 	LinkNode *l, *names, *previews;
 	struct ImBuf* ima;
 	int ok, i, nprevs, nnames, idcode;
-	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	char filename[FILE_MAX];
 	char dir[FILE_MAX], group[GROUP_MAX];	
 	
 	/* name test */
@@ -1179,7 +1179,7 @@ void filelist_from_main(struct FileList *filelist)
 					if(id->lib==NULL)
 						files->relname= BLI_strdup(id->name+2);
 					else {
-						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
+						files->relname= MEM_mallocN(FILE_MAX+32, "filename for lib");
 						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
 					}
 					files->type |= S_IFREG;

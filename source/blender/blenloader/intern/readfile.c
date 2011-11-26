@@ -502,7 +502,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 {
 	Main *m;
 	Library *lib;
-	char name1[FILE_MAXDIR+FILE_MAXFILE];
+	char name1[FILE_MAX];
 	
 	BLI_strncpy(name1, filepath, sizeof(name1));
 	cleanup_path(relabase, name1);

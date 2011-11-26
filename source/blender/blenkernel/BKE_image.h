@@ -60,10 +60,10 @@ char	BKE_ftype_to_imtype(const int ftype);
 int		BKE_imtype_to_ftype(char imtype);
 
 int		BKE_imtype_is_movie(const char imtype);
-int		BKE_imtype_supports_alpha(const char imtype);
 int		BKE_imtype_supports_zbuf(const char imtype);
 int		BKE_imtype_supports_compress(const char imtype);
 int		BKE_imtype_supports_quality(const char imtype);
+char    BKE_imtype_valid_channels(const char imtype);
 char	BKE_imtype_valid_depths(const char imtype);
 
 char    BKE_imtype_from_arg(const char *arg);
@@ -114,6 +114,10 @@ struct RenderResult;
 #define IMA_SIGNAL_SRC_CHANGE		5
 	/* image-user gets a new image, check settings */
 #define IMA_SIGNAL_USER_NEW_IMAGE	6
+
+#define IMA_CHAN_FLAG_BW    1
+#define IMA_CHAN_FLAG_RGB   2
+#define IMA_CHAN_FLAG_ALPHA 4
 
 /* depending Image type, and (optional) ImageUser setting it returns ibuf */
 /* always call to make signals work */

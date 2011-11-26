@@ -3172,13 +3172,13 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 				float t2;
 
 				if(k==0) {
-					weight_to_rgb(pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
+					weight_to_rgb(ca->col, pind.hkey[1]->weight);
 				} else {
 					float w1[3], w2[3];
 					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
 
-					weight_to_rgb(pind.hkey[0]->weight, w1, w1+1, w1+2);
-					weight_to_rgb(pind.hkey[1]->weight, w2, w2+1, w2+2);
+					weight_to_rgb(w1, pind.hkey[0]->weight);
+					weight_to_rgb(w2, pind.hkey[1]->weight);
 
 					interp_v3_v3v3(ca->col, w1, w2, keytime);
 				}

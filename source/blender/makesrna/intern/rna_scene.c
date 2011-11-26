@@ -219,6 +219,10 @@ EnumPropertyItem image_color_mode_items[] ={
 	{R_IMF_PLANES_RGBA, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 	{0, NULL, 0, NULL, NULL}};
 
+#define IMAGE_COLOR_MODE_BW   image_color_mode_items[0]
+#define IMAGE_COLOR_MODE_RGB  image_color_mode_items[1]
+#define IMAGE_COLOR_MODE_RGBA image_color_mode_items[2]
+
 EnumPropertyItem image_color_depth_items[] = {
 	/* 1 (monochrome) not used */
 	{R_IMF_CHAN_DEPTH_8,   "8", 0, "8",  "8 bit color channels"},
@@ -617,11 +621,16 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
 	ImageFormatData *imf= (ImageFormatData *)ptr->data;
 	ID *id= ptr->id.data;
+	const char is_render= (id && GS(id->name) == ID_SCE);
+	/* see note below on why this is */
+	const char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
 
 	imf->imtype= value;
 
 	/* ensure depth and color settings match */
-	if (!BKE_imtype_supports_alpha(imf->imtype)) {
+	if ( ((imf->planes == R_IMF_PLANES_BW) &&   !(chan_flag & IMA_CHAN_FLAG_BW)) ||
+	     ((imf->planes == R_IMF_PLANES_RGBA) && !(chan_flag & IMA_CHAN_FLAG_ALPHA)))
+	{
 		imf->planes= R_IMF_PLANES_RGB;
 	}
 
@@ -677,16 +686,30 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
                                                                   PropertyRNA *UNUSED(prop), int *free)
 {
 	ImageFormatData *imf= (ImageFormatData *)ptr->data;
+	ID *id= ptr->id.data;
+	const char is_render= (id && GS(id->name) == ID_SCE);
 
-	if ((imf == NULL) || BKE_imtype_supports_alpha(imf->imtype)) {
+	/* note, we need to act differently for render
+	 * where 'BW' will force greyscale even if the output format writes
+	 * as RGBA, this is age old blender convention and not sure how useful
+	 * it really is but keep it for now - campbell */
+	const char chan_flag= BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
+
+	if (chan_flag == (IMA_CHAN_FLAG_BW|IMA_CHAN_FLAG_RGB|IMA_CHAN_FLAG_ALPHA)) {
 		return image_color_mode_items;
 	}
 	else {
-		static EnumPropertyItem color_mode_items[] ={
-			{R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
-			{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
-			{0, NULL, 0, NULL, NULL}};
-		return color_mode_items;
+		int totitem= 0;
+		EnumPropertyItem *item= NULL;
+
+		if (chan_flag & IMA_CHAN_FLAG_BW)    RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_BW);
+		if (chan_flag & IMA_CHAN_FLAG_RGB)   RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGB);
+		if (chan_flag & IMA_CHAN_FLAG_ALPHA) RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGBA);
+
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+
+		return item;
 	}
 }
 
@@ -2477,7 +2500,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	/* flag */
 	prop= RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", R_IMF_FLAG_ZBUF);
-	RNA_def_property_ui_text(prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)Save the z-depth per pixel (32 bit unsigned int z-buffer)");
+	RNA_def_property_ui_text(prop, "Z Buffer", "Save the z-depth per pixel (32 bit unsigned int z-buffer)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
@@ -2728,18 +2751,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_path_func(srna, "rna_RenderSettings_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock");
-
-#if 0 /* moved */
-
-	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
-	RNA_def_property_enum_items(prop, image_color_mode_items);
-	RNA_def_property_ui_text(prop, "Color Mode",
-	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
-	                         "and RGBA for saving red, green, blue and alpha channels");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#endif
 
 	/* Render Data */
 	prop= RNA_def_property(srna, "image_settings", PROP_POINTER, PROP_NONE);

@@ -1639,7 +1639,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_dynamic_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ROT_DYN);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Dynamic", "Sets rotation to dynamic/constant");
+	RNA_def_property_ui_text(prop, "Dynamic", "Set rotation to dynamic/constant");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "use_multiply_size_mass", PROP_BOOLEAN, PROP_NONE);
@@ -1898,7 +1898,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "omat");
 	RNA_def_property_range(prop, 1, 32767);
-	RNA_def_property_ui_text(prop, "Material", "Specify material used for the particles");
+	RNA_def_property_ui_text(prop, "Material", "Material used for the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 
@@ -1912,7 +1912,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, integrator_type_items);
-	RNA_def_property_ui_text(prop, "Integration", "Algorithm used to calculate physics. Fastest to most stable/accurate: Midpoint, Euler, Verlet, RK4 (Old)");
+	RNA_def_property_ui_text(prop, "Integration",
+	                         "Algorithm used to calculate physics, from the fastest to the "
+	                         "most stable/accurate: Midpoint, Euler, Verlet, RK4 (Old)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);
@@ -1941,7 +1943,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "bb_uv_split");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
-	RNA_def_property_ui_text(prop, "UV Split", "Amount of rows/columns to split UV coordinates for billboards");
+	RNA_def_property_ui_text(prop, "UV Split", "Number of rows/columns to split UV coordinates for billboards");
 
 	prop= RNA_def_property(srna, "billboard_animation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bb_anim");
@@ -2030,7 +2032,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_start_set", NULL);
-	RNA_def_property_ui_text(prop, "Start", "Frame # to start emitting particles");
+	RNA_def_property_ui_text(prop, "Start", "Frame number to start emitting particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
@@ -2039,12 +2041,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_end_set", NULL);
-	RNA_def_property_ui_text(prop, "End", "Frame # to stop emitting particles");
+	RNA_def_property_ui_text(prop, "End", "Frame number to stop emitting particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Lifetime", "Specify the life span of the particles");
+	RNA_def_property_ui_text(prop, "Lifetime", "Life span of the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "lifetime_random", PROP_FLOAT, PROP_NONE);
@@ -2104,7 +2106,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* each cached frame takes around 0.5 Gb of memory / disk space depending on cache mode. */
 	RNA_def_property_range(prop, 0, 10000000);
 	RNA_def_property_ui_range(prop, 0, 100000, 1, 0);
-	RNA_def_property_ui_text(prop, "Amount", "Total number of particles");
+	RNA_def_property_ui_text(prop, "Number", "Total number of particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "userjit", PROP_INT, PROP_UNSIGNED);//TODO: can we get a better name for userjit?
@@ -2132,7 +2134,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* in theory PROP_ANIMATABLE perhaps should be cleared, but animating this can give some interesting results! */
 	RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will bel SLOW, but who knows */
 	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
-	RNA_def_property_ui_text(prop, "Effector Amount", "How many particles are effectors (0 is all particles)");
+	RNA_def_property_ui_text(prop, "Effector Number", "How many particles are effectors (0 is all particles)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* initial velocity factors */
@@ -2180,7 +2182,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reactor_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "reactfac");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Reactor", "Let the vector away from the target particles location give the particle a starting speed");
+	RNA_def_property_ui_text(prop, "Reactor", "Let the vector away from the target particle's location give the particle a starting speed");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "object_align_factor", PROP_FLOAT, PROP_VELOCITY);
@@ -2227,7 +2229,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.01, 100, 1, 3);
-	RNA_def_property_ui_text(prop, "Mass", "Specify the mass of the particles");
+	RNA_def_property_ui_text(prop, "Mass", "Mass of the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "particle_size", PROP_FLOAT, PROP_NONE);
@@ -2248,20 +2250,20 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "drag_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dragfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Drag", "Specify the amount of air-drag");
+	RNA_def_property_ui_text(prop, "Drag", "Amount of air-drag");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "brownian_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "brownfac");
 	RNA_def_property_range(prop, 0.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0, 20, 1, 3);
-	RNA_def_property_ui_text(prop, "Brownian", "Specify the amount of Brownian motion");
+	RNA_def_property_ui_text(prop, "Brownian", "Amount of Brownian motion");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dampfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Damp", "Specify the amount of damping");
+	RNA_def_property_ui_text(prop, "Damp", "Amount of damping");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* random length */
@@ -2276,14 +2278,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "child_nbr");//optional if prop names are the same
 	RNA_def_property_range(prop, 0, 100000);
 	RNA_def_property_ui_range(prop, 0, 1000, 1, 0);
-	RNA_def_property_ui_text(prop, "Children Per Parent", "Amount of children/parent");
+	RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children/parent");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop= RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
 	RNA_def_property_range(prop, 0, 100000);
 	RNA_def_property_ui_range(prop, 0, 10000, 1, 0);
-	RNA_def_property_ui_text(prop, "Rendered Children", "Amount of children/parent for rendering");
+	RNA_def_property_ui_text(prop, "Rendered Children", "Number of children/parent for rendering");
 
 	prop= RNA_def_property(srna, "virtual_parents", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "parents");
@@ -2341,7 +2343,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "kink_amplitude_clump", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_amp_clump");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Amplitude Clump", "How much clump effects kink amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude Clump", "How much clump affects kink amplitude");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop= RNA_def_property(srna, "kink_frequency", PROP_FLOAT, PROP_NONE);

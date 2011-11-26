@@ -55,8 +55,9 @@
 #define FALSE 0
 
 /* for keyframes and drivers */
-static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
-                                        const char **path_full, int *index)
+static int pyrna_struct_anim_args_parse(
+        PointerRNA *ptr, const char *error_prefix, const char *path,
+        const char **path_full, int *index)
 {
 	const int is_idbase= RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
@@ -146,8 +147,9 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 }
 
 /* internal use for insert and delete */
-static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-                                       const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
+static int pyrna_struct_keyframe_parse(
+        PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
+        const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
 {
 	static const char *kwlist[]= {"data_path", "index", "frame", "group", NULL};
 	const char *path;

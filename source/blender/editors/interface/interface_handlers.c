@@ -6097,7 +6097,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:
 					if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP))
-						if(BLI_countlist(&block->saferct) > 0)
+						if(block->saferct.first)
 							menu->menuretval= UI_RETURN_OUT;
 
 					retval= WM_UI_HANDLER_BREAK;

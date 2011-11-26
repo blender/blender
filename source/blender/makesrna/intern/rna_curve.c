@@ -849,7 +849,7 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "use_stretch", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_STRETCH);
-	RNA_def_property_ui_text(prop, "Stretch", "Option for curve-deform: makes deformed child to stretch along entire path");
+	RNA_def_property_ui_text(prop, "Stretch", "Option for curve-deform: make deformed child to stretch along entire path");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "use_deform_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -973,12 +973,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* strings */
 	prop= RNA_def_property(srna, "family", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
-	RNA_def_property_ui_text(prop, "Object Font", "Use Blender Objects as font characters. Give font objects a common name followed by the character it represents, eg. familya, familyb etc, and turn on Verts Duplication");
+	RNA_def_property_ui_text(prop, "Object Font", "Use Blender Objects as font characters (give font objects a common name followed by the character they represent, eg. familya, familyb, etc, and turn on Verts Duplication)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "str");
-	RNA_def_property_ui_text(prop, "Body Text", "contents of this text object");
+	RNA_def_property_ui_text(prop, "Body Text", "Content of this text object");
 	RNA_def_property_string_funcs(prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
@@ -1239,7 +1239,7 @@ static void rna_def_curve(BlenderRNA *brna)
 			{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem curve_axis_items[]= {
-		{0, "2D", 0, "2D", "Clamp the Z axis of of the curve"},
+		{0, "2D", 0, "2D", "Clamp the Z axis of the curve"},
 		{CU_3D, "3D", 0, "3D", "Allow editing on the Z axis of this curve, also allows tilt and curve radius to be used"},
 		{0, NULL, 0, NULL, NULL}};
 			
@@ -1324,18 +1324,18 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 0, 64, 1, 0);
-	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property");
+	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering (zero skips this property)");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
 	RNA_def_property_ui_range(prop, 0, 64, 1, 0);
 	RNA_def_property_range(prop, 0, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property");
+	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering (zero skips this property)");
 	
 	
 	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ctime");
-	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at. Position is evaluated by dividing by the 'Path Length' value");
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at (position is evaluated by dividing by the 'Path Length' value)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* pointers */
@@ -1392,7 +1392,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	/* texture space */
 	prop= RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", CU_AUTOSPACE);
-	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjust active object's texture space automatically when transforming object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Curve_texspace_set");
 
 	prop= RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);

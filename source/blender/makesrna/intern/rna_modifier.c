@@ -787,10 +787,10 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 static void rna_def_modifier_generic_map_info(StructRNA *srna)
 {
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Map", "Uses the local coordinate system for the texture coordinates"},
-		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", "Uses the global coordinate system for the texture coordinates"},
-		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", "Uses the linked object's local coordinate system for the texture coordinates"},
-		{MOD_DISP_MAP_UV, "UV", 0, "UV", "Uses UV coordinates for the texture coordinates"},
+		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Map", "Use the local coordinate system for the texture coordinates"},
+		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", "Use the global coordinate system for the texture coordinates"},
+		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", "Use the linked object's local coordinate system for the texture coordinates"},
+		{MOD_DISP_MAP_UV, "UV", 0, "UV", "Use UV coordinates for the texture coordinates"},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
@@ -1290,12 +1290,12 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_bone_envelopes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_ENVELOPE);
-	RNA_def_property_ui_text(prop, "Use Bone Envelopes", "Binds Bone envelope  to armature modifier");
+	RNA_def_property_ui_text(prop, "Use Bone Envelopes", "Bind Bone envelopes to armature modifier");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_vertex_groups", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_VGROUP);
-	RNA_def_property_ui_text(prop, "Use Vertex Groups", "Binds vertex group to armature modifier");
+	RNA_def_property_ui_text(prop, "Use Vertex Groups", "Bind vertex groups to armature modifier");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
@@ -1387,9 +1387,9 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_operation_items[] = {
-		{eBooleanModifierOp_Intersect, "INTERSECT", 0, "Intersect", "Keeps the part of the mesh that intersects with the other selected object"},
-		{eBooleanModifierOp_Union, "UNION", 0, "Union", "Combines two meshes in an additive way"},
-		{eBooleanModifierOp_Difference, "DIFFERENCE", 0, "Difference", "Combines two meshes in a subtractive way"},
+		{eBooleanModifierOp_Intersect, "INTERSECT", 0, "Intersect", "Keep the part of the mesh that intersects with the other selected object"},
+		{eBooleanModifierOp_Union, "UNION", 0, "Union", "Combine two meshes in an additive way"},
+		{eBooleanModifierOp_Difference, "DIFFERENCE", 0, "Difference", "Combine two meshes in a subtractive way"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BooleanModifier", "Modifier");
@@ -1498,7 +1498,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "offset_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "offset_ob");
-	RNA_def_property_ui_text(prop, "Object Offset", "Uses the location and rotation of another object to determine the distance and rotational change between arrayed items");
+	RNA_def_property_ui_text(prop, "Object Offset", "Use the location and rotation of another object to determine the distance and rotational change between arrayed items");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 	
@@ -1556,11 +1556,11 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_direction_items[] = {
-		{MOD_DISP_DIR_X, "X", 0, "X", "Uses the texture's intensity value to displace in the X direction"},
-		{MOD_DISP_DIR_Y, "Y", 0, "Y", "Uses the texture's intensity value to displace in the Y direction"},
-		{MOD_DISP_DIR_Z, "Z", 0, "Z", "Uses the texture's intensity value to displace in the Z direction"},
-		{MOD_DISP_DIR_NOR, "NORMAL", 0, "Normal", "Uses the texture's intensity value to displace in the normal direction"},
-		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ", "Uses the texture's RGB values to displace the mesh in the XYZ direction"},
+		{MOD_DISP_DIR_X, "X", 0, "X", "Use the texture's intensity value to displace in the X direction"},
+		{MOD_DISP_DIR_Y, "Y", 0, "Y", "Use the texture's intensity value to displace in the Y direction"},
+		{MOD_DISP_DIR_Z, "Z", 0, "Z", "Use the texture's intensity value to displace in the Z direction"},
+		{MOD_DISP_DIR_NOR, "NORMAL", 0, "Normal", "Use the texture's intensity value to displace in the normal direction"},
+		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ", "Use the texture's RGB values to displace the mesh in the XYZ direction"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "DisplaceModifier", "Modifier");

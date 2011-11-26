@@ -59,7 +59,7 @@ typedef struct FileData {
 	gzFile gzfiledes;
 
 	// now only in use for library appending
-	char relabase[FILE_MAXDIR+FILE_MAXFILE];
+	char relabase[FILE_MAX];
 	
 	// variables needed for reading from stream
 	char headerdone;

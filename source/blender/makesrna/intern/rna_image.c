@@ -462,7 +462,7 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "field_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_field_order_items);
-	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields. Select which lines are displayed first");
+	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields (select which lines are displayed first)");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 	
 	/* booleans */

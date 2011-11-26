@@ -19,9 +19,7 @@
 # <pep8 compliant>
 import bpy
 import os
-import shutil
 from bpy.types import Operator
-from bpy_extras.io_utils import unpack_list, unpack_face_list
 
 from mathutils import Vector, Matrix
 
@@ -128,6 +126,8 @@ class CLIP_OT_bundles_to_mesh(Operator):
         return (sc.type == 'CLIP_EDITOR') and sc.clip
 
     def execute(self, context):
+        from bpy_extras.io_utils import unpack_list
+
         sc = context.space_data
         clip = sc.clip
 
@@ -171,6 +171,8 @@ class CLIP_OT_delete_proxy(Operator):
         return wm.invoke_confirm(self, event)
 
     def _rmproxy(self, abspath):
+        import shutil
+
         if not os.path.exists(abspath):
             return
 
@@ -648,6 +650,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _createMesh(scene, name, vertices, faces):
+        from bpy_extras.io_utils import unpack_list, unpack_face_list
+
         mesh = bpy.data.meshes.new(name=name)
 
         mesh.vertices.add(len(vertices))
