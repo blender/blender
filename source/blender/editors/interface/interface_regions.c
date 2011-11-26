@@ -385,7 +385,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 			for(i=0; i<totitem; i++) {
 				if(item[i].identifier[0] && item[i].value == value) {
-					if(item[i].description[0]) {
+					if(item[i].description && item[i].description[0]) {
 						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
 						data->color[data->totline]= 0xDDDDDD;
 						data->totline++;
@@ -2603,7 +2603,7 @@ void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
 	uiPupBlockO(C, func, arg, NULL, 0);
 }
 
-void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_func, void *arg)
+void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg)
 {
 	wmWindow *window= CTX_wm_window(C);
 	uiPopupBlockHandle *handle;
@@ -2613,7 +2613,7 @@ void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockCancelFunc cancel_
 	handle->retvalue= 1;
 
 	handle->popup_arg= arg;
-	// handle->popup_func= operator_cb;
+	handle->popup_func= popup_func;
 	handle->cancel_func= cancel_func;
 	// handle->opcontext= opcontext;
 	

@@ -818,7 +818,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 4: CD_MFACE */
 	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 5: CD_MTFACE */
-	{sizeof(MTFace), "MTFace", 1, "UVTex", layerCopy_tface, NULL,
+	{sizeof(MTFace), "MTFace", 1, "UVMap", layerCopy_tface, NULL,
 	 layerInterp_tface, layerSwap_tface, layerDefault_tface},
 	/* 6: CD_MCOL */
 	/* 4 MCol structs per face */
@@ -838,7 +838,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 12: CD_PROP_STR */
 	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
 	/* 13: CD_ORIGSPACE */
-	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
+	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVMap", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 	/* 14: CD_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},

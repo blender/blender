@@ -97,11 +97,7 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	float c1loz = nz.z * idir.z - ood.z;
 	float c1hiz = nz.w * idir.z - ood.z;
 
-	float c0min_x = min(c0lox, c0hix);
-	float c0min_y = min(c0loy, c0hiy);
-	float c0min_z = min(c0loz, c0hiz);
-
-	float c0min = max4(c0min_x, c0min_y, c0min_z, 0.0f);
+	float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
 	float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
 	float c1lox = n1xy.x * idir.x - ood.x;
 	float c1hix = n1xy.y * idir.x - ood.x;

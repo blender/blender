@@ -19,7 +19,11 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import *
+from bpy.props import (BoolProperty,
+                       EnumProperty,
+                       FloatProperty,
+                       IntProperty,
+                       PointerProperty)
 
 import math
 

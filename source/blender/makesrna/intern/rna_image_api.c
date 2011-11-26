@@ -82,14 +82,14 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		}
 		else {
 			/* temp swap out the color */
-			const unsigned char imb_depth_back= ibuf->depth;
+			const unsigned char imb_planes_back= ibuf->planes;
 			const float dither_back= ibuf->dither; 
-			ibuf->depth= scene->r.planes;
+			ibuf->planes= scene->r.im_format.planes;
 			ibuf->dither= scene->r.dither_intensity;
-			if (!BKE_write_ibuf(ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
+			if (!BKE_write_ibuf(ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
-			ibuf->depth= imb_depth_back;
+			ibuf->planes= imb_planes_back;
 			ibuf->dither= dither_back;
 		}
 
@@ -103,7 +103,7 @@ static void rna_Image_save(Image *image, ReportList *reports)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	if(ibuf) {
-		char filename[FILE_MAXDIR + FILE_MAXFILE];
+		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
 		BLI_path_abs(filename, G.main->name);
 

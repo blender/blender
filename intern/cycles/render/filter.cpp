@@ -21,6 +21,8 @@
 #include "filter.h"
 #include "scene.h"
 
+#include "kernel_types.h"
+
 #include "util_algorithm.h"
 #include "util_debug.h"
 #include "util_math.h"
@@ -51,7 +53,7 @@ static float filter_func_gaussian(float v, float width)
 
 static vector<float> filter_table(FilterType type, float width)
 {
-	const int filter_table_size = 256;
+	const int filter_table_size = FILTER_TABLE_SIZE-1;
 	vector<float> filter_table_cdf(filter_table_size+1);
 	vector<float> filter_table(filter_table_size+1);
 	float (*filter_func)(float, float) = NULL;

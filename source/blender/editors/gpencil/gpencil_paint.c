@@ -331,8 +331,7 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 			pt= (tGPspoint *)(gpd->sbuffer);
 			
 			/* store settings */
-			pt->x= mval[0];
-			pt->y= mval[1];
+			copy_v2_v2_int(&pt->x, mval);
 			pt->pressure= pressure;
 			
 			/* increment buffer size */
@@ -345,8 +344,7 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 			pt= ((tGPspoint *)(gpd->sbuffer) + 1);
 			
 			/* store settings */
-			pt->x= mval[0];
-			pt->y= mval[1];
+			copy_v2_v2_int(&pt->x, mval);
 			pt->pressure= pressure;
 			
 			/* if this is just the second point we've added, increment the buffer size
@@ -369,8 +367,7 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 		pt= ((tGPspoint *)(gpd->sbuffer) + gpd->sbuffer_size);
 		
 		/* store settings */
-		pt->x= mval[0];
-		pt->y= mval[1];
+		copy_v2_v2_int(&pt->x, mval);
 		pt->pressure= pressure;
 		
 		/* increment counters */
@@ -387,8 +384,7 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 		pt= (tGPspoint *)(gpd->sbuffer);
 
 		/* store settings */
-		pt->x= mval[0];
-		pt->y= mval[1];
+		copy_v2_v2_int(&pt->x, mval);
 		pt->pressure= pressure;
 
 		/* if there's stroke for this poly line session add (or replace last) point
@@ -475,9 +471,8 @@ static void gp_stroke_smooth (tGPsdata *p)
 	/* second pass: apply smoothed coordinates */
 	for (i=0, spc=smoothArray; i < gpd->sbuffer_size; i++, spc++) {
 		tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
-		
-		pc->x = spc->x;
-		pc->y = spc->y;
+
+		copy_v2_v2_int(&pc->x, &spc->x);
 	}
 	
 	/* free temp array */
@@ -653,7 +648,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			depth_arr= MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
 
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
-				mval[0]= ptc->x; mval[1]= ptc->y;
+				copy_v2_v2_int(mval, &ptc->x);
 
 				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0) &&
 					(i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr+i) == 0))

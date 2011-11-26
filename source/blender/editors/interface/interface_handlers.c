@@ -5063,6 +5063,14 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 			if(ui_but_contains_pt(but, mx, my))
 				butover= but;
 		}
+
+		/* CLIP_EVENTS prevents the event from reaching other blocks */
+		if (block->flag & UI_BLOCK_CLIP_EVENTS) {
+			/* check if mouse is inside block */
+			if(block->minx <= mx && block->maxx >= mx &&
+			   block->miny <= my && block->maxy >= my)
+				break;
+		}
 	}
 
 	return butover;
@@ -5853,14 +5861,14 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 	menu= data->menu;
 
 	/* copy over return values from the closing menu */
-	if(menu->menuretval == UI_RETURN_OK || menu->menuretval == UI_RETURN_UPDATE) {
+	if((menu->menuretval & UI_RETURN_OK) || (menu->menuretval & UI_RETURN_UPDATE)) {
 		if(but->type == COL)
 			copy_v3_v3(data->vec, menu->retvec);
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 			data->value= menu->retvalue;
 	}
 
-	if(menu->menuretval == UI_RETURN_UPDATE) {
+	if(menu->menuretval & UI_RETURN_UPDATE) {
 		if(data->interactive) ui_apply_button(C, but->block, but, data, 1);
 		else ui_check_but(but);
 
@@ -5868,13 +5876,13 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 	}
 	
 	/* now change button state or exit, which will close the submenu */
-	if(ELEM(menu->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
+	if((menu->menuretval & UI_RETURN_OK) || (menu->menuretval & UI_RETURN_CANCEL)) {
 		if(menu->menuretval != UI_RETURN_OK)
 			data->cancel= 1;
 
 		button_activate_exit(C, data, but, 1, 0);
 	}
-	else if(menu->menuretval == UI_RETURN_OUT) {
+	else if(menu->menuretval & UI_RETURN_OUT) {
 		if(event->type==MOUSEMOVE && ui_mouse_inside_button(data->region, but, event->x, event->y)) {
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
@@ -6089,7 +6097,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				/* closing sublevels of pulldowns */
 				case LEFTARROWKEY:
 					if(event->val==KM_PRESS && (block->flag & UI_BLOCK_LOOP))
-						if(BLI_countlist(&block->saferct) > 0)
+						if(block->saferct.first)
 							menu->menuretval= UI_RETURN_OUT;
 
 					retval= WM_UI_HANDLER_BREAK;
@@ -6322,7 +6330,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				/* enter will always close this block, we let the event
 				 * get handled by the button if it is activated, otherwise we cancel */
 				if(!ui_but_find_activated(ar))
-					menu->menuretval= UI_RETURN_CANCEL;
+					menu->menuretval= UI_RETURN_CANCEL | UI_RETURN_POPUP_OK;
 			}
 			else {
 				ui_mouse_motion_towards_check(block, menu, mx, my);
@@ -6362,7 +6370,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 	 * buttons inside this region. disabled inside check .. not sure
 	 * anymore why it was there? but it meant enter didn't work
 	 * for example when mouse was not over submenu */
-	if((/*inside &&*/ (!menu->menuretval || menu->menuretval == UI_RETURN_UPDATE) && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	if((/*inside &&*/ (!menu->menuretval || (menu->menuretval & UI_RETURN_UPDATE)) && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
 		if(but) {
@@ -6411,14 +6419,14 @@ static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlo
 	if(submenu->menuretval) {
 		/* first decide if we want to close our own menu cascading, if
 		 * so pass on the sub menu return value to our own menu handle */
-		if(ELEM(submenu->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
+		if((submenu->menuretval & UI_RETURN_OK) || (submenu->menuretval & UI_RETURN_CANCEL)) {
 			if(!(block->flag & UI_BLOCK_KEEP_OPEN)) {
 				menu->menuretval= submenu->menuretval;
 				menu->butretval= data->retval;
 			}
 		}
 
-		update= (submenu->menuretval == UI_RETURN_UPDATE);
+		update= (submenu->menuretval & UI_RETURN_UPDATE);
 
 		/* now let activated button in this menu exit, which
 		 * will actually close the submenu too */
@@ -6591,7 +6599,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		ui_popup_block_free(C, menu);
 		UI_remove_popup_handlers(&CTX_wm_window(C)->modalhandlers, menu);
 
-		if(temp.menuretval == UI_RETURN_OK) {
+		if((temp.menuretval & UI_RETURN_OK) || (temp.menuretval & UI_RETURN_POPUP_OK)) {
 			if(temp.popup_func)
 				temp.popup_func(C, temp.popup_arg, temp.retvalue);
 			if(temp.optype)

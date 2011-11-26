@@ -70,14 +70,14 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			if(in[1]->data) {
 				CompBuf *zbuf= in[1]->data;
 				if(zbuf->type==CB_VAL && zbuf->x==cbuf->x && zbuf->y==cbuf->y) {
-					nif->subimtype|= R_OPENEXR_ZBUF;
+					nif->im_format.flag |= R_IMF_FLAG_ZBUF;
 					ibuf->zbuf_float= zbuf->rect;
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, bmain->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION), TRUE);
+			BKE_makepicstring(string, nif->name, bmain->name, rd->cfra, nif->im_format.imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
-			if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
+			if(0 == BKE_write_ibuf(ibuf, string, &nif->im_format))
 				printf("Cannot save Node File Output to %s\n", string);
 			else
 				printf("Saved: %s\n", string);
@@ -100,9 +100,10 @@ static void node_composit_init_output_file(bNodeTree *UNUSED(ntree), bNode* node
 
 	if(scene) {
 		BLI_strncpy(nif->name, scene->r.pic, sizeof(nif->name));
-		nif->imtype= scene->r.imtype;
-		nif->subimtype= scene->r.subimtype;
-		nif->quality= scene->r.quality;
+		nif->im_format= scene->r.im_format;
+		if (BKE_imtype_is_movie(nif->im_format.imtype)) {
+			nif->im_format.imtype= R_IMF_IMTYPE_OPENEXR;
+		}
 		nif->sfra= scene->r.sfra;
 		nif->efra= scene->r.efra;
 	}

@@ -47,13 +47,13 @@
 #define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
 
- /* FILE_MAXDIR + FILE_MAXFILE */
+ /* FILE_MAX */
 
 int BLI_getInstallationDir( char * str ) {
 	char dir[FILE_MAXDIR];
 	int a;
 	
-	GetModuleFileName(NULL,str,FILE_MAXDIR+FILE_MAXFILE);
+	GetModuleFileName(NULL,str,FILE_MAX);
 	BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
 	a = strlen(dir);
 	if(dir[a-1] == '\\') dir[a-1]=0;

@@ -214,13 +214,116 @@ typedef struct SceneRenderLayer {
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
+/* Generic image format settings,
+ * this is used for NodeImageFile and IMAGE_OT_save_as operator too.
+ *
+ * note: its a bit strange that even though this is an image format struct
+ *  the imtype can still be used to select video formats.
+ *  RNA ensures these enum's are only selectable for render output.
+ */
+typedef struct ImageFormatData {
+	char imtype;   /* R_IMF_IMTYPE_PNG, R_... */
+	               /* note, video types should only ever be set from this
+	                * structure when used from RenderData */
+	char depth;    /* bits per channel, R_IMF_CHAN_DEPTH_8 -> 32,
+	                * not a flag, only set 1 at a time */
+
+	char planes  ; /* - R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA */
+	char flag;     /* generic options for all image types, alpha zbuffer */
+
+	char quality;  /* (0 - 100), eg: jpeg quality */
+	char compress; /* (0 - 100), eg: png compression */
+
+
+	/* --- format specific --- */
+
+	/* OpenEXR */
+	char  exr_codec;
+
+	/* Cineon */
+	char  cineon_flag;
+	short cineon_white, cineon_black;
+	float cineon_gamma;
+
+	/* Jpeg2000 */
+	char  jp2_flag;
+
+	char pad[7];
+
+} ImageFormatData;
+
+
+/* ImageFormatData.imtype */
+#define R_IMF_IMTYPE_TARGA           0
+#define R_IMF_IMTYPE_IRIS            1
+/* #define R_HAMX                    2 */ /* hamx is nomore */
+/* #define R_FTYPE                   3 */ /* ftype is nomore */
+#define R_IMF_IMTYPE_JPEG90          4
+/* #define R_MOVIE                   5 */ /* movie is nomore */
+#define R_IMF_IMTYPE_IRIZ            7
+#define R_IMF_IMTYPE_RAWTGA         14
+#define R_IMF_IMTYPE_AVIRAW         15
+#define R_IMF_IMTYPE_AVIJPEG        16
+#define R_IMF_IMTYPE_PNG            17
+#define R_IMF_IMTYPE_AVICODEC       18
+#define R_IMF_IMTYPE_QUICKTIME      19
+#define R_IMF_IMTYPE_BMP            20
+#define R_IMF_IMTYPE_RADHDR         21
+#define R_IMF_IMTYPE_TIFF           22
+#define R_IMF_IMTYPE_OPENEXR        23
+#define R_IMF_IMTYPE_FFMPEG         24
+#define R_IMF_IMTYPE_FRAMESERVER    25
+#define R_IMF_IMTYPE_CINEON         26
+#define R_IMF_IMTYPE_DPX            27
+#define R_IMF_IMTYPE_MULTILAYER     28
+#define R_IMF_IMTYPE_DDS            29
+#define R_IMF_IMTYPE_JP2            30
+#define R_IMF_IMTYPE_H264           31
+#define R_IMF_IMTYPE_XVID           32
+#define R_IMF_IMTYPE_THEORA         33
+
+#define R_IMF_IMTYPE_INVALID        255
+
+/* ImageFormatData.flag */
+#define R_IMF_FLAG_ZBUF         (1<<0)   /* was R_OPENEXR_ZBUF */
+#define R_IMF_FLAG_PREVIEW_JPG  (1<<1)   /* was R_PREVIEW_JPG */
+
+/* return values from BKE_imtype_valid_depths, note this is depts per channel */
+#define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
+#define R_IMF_CHAN_DEPTH_8  (1<<1) /* 8bits  (default) */
+#define R_IMF_CHAN_DEPTH_12 (1<<2) /* 12bits (uncommon, jp2 supports) */
+#define R_IMF_CHAN_DEPTH_16 (1<<3) /* 16bits (tiff, halff float exr) */
+#define R_IMF_CHAN_DEPTH_24 (1<<4) /* 24bits (unused) */
+#define R_IMF_CHAN_DEPTH_32 (1<<5) /* 32bits (full float exr) */
+
+/* ImageFormatData.planes */
+#define R_IMF_PLANES_RGB   24
+#define R_IMF_PLANES_RGBA  32
+#define R_IMF_PLANES_BW    8
+
+/* ImageFormatData.exr_codec */
+#define R_IMF_EXR_CODEC_NONE  0
+#define R_IMF_EXR_CODEC_PXR24 1
+#define R_IMF_EXR_CODEC_ZIP   2
+#define R_IMF_EXR_CODEC_PIZ   3
+#define R_IMF_EXR_CODEC_RLE   4
+
+/* ImageFormatData.jp2_flag */
+#define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
+#define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+
+/* ImageFormatData.cineon_flag */
+#define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
+
 typedef struct RenderData {
+	struct ImageFormatData im_format;
 	
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
 	struct QuicktimeCodecSettings qtcodecsettings;
 	struct FFMpegCodecData ffcodecdata;
-	
+
 	int cfra, sfra, efra;	/* frames as in 'images' */
 	float subframe;			/* subframe offset from cfra, in 0.0-1.0 */
 	int psfra, pefra;		/* start+end frames of preview range */
@@ -261,8 +364,8 @@ typedef struct RenderData {
 	 * The number of part to use in the y direction
 	 */
 	short yparts;
-        
-	short planes, imtype, subimtype, quality;
+
+	short planes, imtype, subimtype, quality;                   /*deprecated!*/
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
@@ -375,11 +478,11 @@ typedef struct RenderData {
 	float simplify_aosss;
 
 	/* cineon */
-	short cineonwhite, cineonblack;
-	float cineongamma;
+	short cineonwhite, cineonblack;                              /*deprecated*/
+	float cineongamma;                                           /*deprecated*/
 	
 	/* jpeg2000 */
-	short jp2_preset, jp2_depth;
+	short jp2_preset, jp2_depth;                                 /*deprecated*/
 	int rpad3;
 
 	/* Dome variables */ //  XXX deprecated since 2.5
@@ -995,55 +1098,21 @@ typedef struct Scene {
 #define R_ALPHAPREMUL	1
 #define R_ALPHAKEY		2
 
-/* planes */
-#define R_PLANES24		24
-#define R_PLANES32		32
-#define R_PLANESBW		8
-
 /* color_mgt_flag */
 #define R_COLOR_MANAGEMENT	1
 
-/* imtype */
-#define R_TARGA		0
-#define R_IRIS		1
-/* #define R_HAMX		2 */ /* hamx is nomore */
-/* #define R_FTYPE		3 */ /* ftype is nomore */
-#define R_JPEG90	4
-/*#define R_MOVIE		5*/ /* movie is nomore */
-#define R_IRIZ		7
-#define R_RAWTGA	14
-#define R_AVIRAW	15
-#define R_AVIJPEG	16
-#define R_PNG		17
-#define R_AVICODEC	18
-#define R_QUICKTIME 19
-#define R_BMP		20
-#define R_RADHDR	21
-#define R_TIFF		22
-#define R_OPENEXR	23
-#define R_FFMPEG        24
-#define R_FRAMESERVER   25
-#define R_CINEON		26
-#define R_DPX			27
-#define R_MULTILAYER	28
-#define R_DDS			29
-#define R_JP2			30
-#define R_H264        	31
-#define R_XVID        	32
-#define R_THEORA       	33
-
 /* subimtype, flag options for imtype */
-#define R_OPENEXR_HALF	1
-#define R_OPENEXR_ZBUF	2
-#define R_PREVIEW_JPG	4
-#define R_CINEON_LOG 	8
-#define R_TIFF_16BIT	16
+#define R_OPENEXR_HALF    1                                      /*deprecated*/
+#define R_OPENEXR_ZBUF    2                                      /*deprecated*/
+#define R_PREVIEW_JPG    4                                       /*deprecated*/
+#define R_CINEON_LOG     8                                       /*deprecated*/
+#define R_TIFF_16BIT    16                                       /*deprecated*/
 
-#define R_JPEG2K_12BIT	32 /* Jpeg2000 */
-#define R_JPEG2K_16BIT	64
-#define R_JPEG2K_YCC	128 /* when disabled use RGB */
-#define R_JPEG2K_CINE_PRESET	256
-#define R_JPEG2K_CINE_48FPS		512
+#define R_JPEG2K_12BIT    32 /* Jpeg2000 */                      /*deprecated*/
+#define R_JPEG2K_16BIT    64                                     /*deprecated*/
+#define R_JPEG2K_YCC    128 /* when disabled use RGB */          /*deprecated*/
+#define R_JPEG2K_CINE_PRESET    256                              /*deprecated*/
+#define R_JPEG2K_CINE_48FPS        512                           /*deprecated*/
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */

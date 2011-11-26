@@ -377,37 +377,6 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 	glDisable( GL_LINE_SMOOTH );
 }
 
-/* plain fake antialiased unfilled round rectangle */
-#if 0 /* UNUSED 2.5 */
-static void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
-{
-	float color[4], alpha;
-	float raddiff;
-	int i, passes=4;
-	
-	/* get the color and divide up the alpha */
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	alpha = 1; //color[3];
-	color[3]= 0.5*alpha/(float)passes;
-	glColor4fv(color);
-	
-	/* set the 'jitter amount' */
-	raddiff = (1/(float)passes) * asp;
-	
-	glEnable( GL_BLEND );
-	
-	/* draw lots of lines on top of each other */
-	for (i=passes; i>=(-passes); i--) {
-		uiDrawBox(GL_LINE_LOOP, minx, miny, maxx, maxy, rad+(i*raddiff));
-	}
-	
-	glDisable( GL_BLEND );
-	
-	color[3] = alpha;
-	glColor4fv(color);
-}
-#endif
-
 /* (old, used in outliner) plain antialiased filled box */
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 {

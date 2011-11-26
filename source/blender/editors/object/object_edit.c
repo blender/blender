@@ -2056,10 +2056,8 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		
 		if(prop) {
 			CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
-				if (ob != ob_iter) {
-					if (ob->data != ob_iter->data)
-						set_ob_property(ob_iter, prop);
-				}
+				if (ob != ob_iter)
+					set_ob_property(ob_iter, prop);
 			} CTX_DATA_END;
 		}
 	}
@@ -2067,17 +2065,13 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 	else {
 		CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 			if (ob != ob_iter) {
-				if (ob->data != ob_iter->data){
-					if (type == COPY_PROPERTIES_REPLACE)
-						copy_properties( &ob_iter->prop, &ob->prop );
+				if (type == COPY_PROPERTIES_REPLACE)
+					copy_properties(&ob_iter->prop, &ob->prop);
 
-					/* merge - the default when calling with no argument */
-					else {
-						for(prop = ob->prop.first; prop; prop= prop->next ) {
-							set_ob_property(ob_iter, prop);
-						}
-					}
-				}
+				/* merge - the default when calling with no argument */
+				else
+					for(prop = ob->prop.first; prop; prop= prop->next)
+						set_ob_property(ob_iter, prop);
 			}
 		}
 		CTX_DATA_END;

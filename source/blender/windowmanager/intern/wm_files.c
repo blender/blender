@@ -464,7 +464,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory)
 {
 	ListBase wmbase;
-	char tstr[FILE_MAXDIR+FILE_MAXFILE];
+	char tstr[FILE_MAX];
 	int success= 0;
 	
 	free_ttfont(); /* still weird... what does it here? */
@@ -597,7 +597,7 @@ void WM_read_history(void)
 static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	char *user_config_dir;
 	FILE *fp;
 	int i;
@@ -810,7 +810,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= CTX_wm_window(C);
-	char filepath[FILE_MAXDIR+FILE_MAXFILE];
+	char filepath[FILE_MAX];
 	int fileflags;
 
 	/* check current window and close it if temp */
@@ -922,7 +922,7 @@ void wm_autosave_delete(void)
 	wm_autosave_location(filename);
 
 	if(BLI_exists(filename)) {
-		char str[FILE_MAXDIR+FILE_MAXFILE];
+		char str[FILE_MAX];
 		BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
 
 		/* if global undo; remove tempsave, otherwise rename */

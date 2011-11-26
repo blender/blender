@@ -22,6 +22,9 @@ defs.append('WITH_OPENCL')
 defs.append('WITH_MULTI')
 defs.append('WITH_CUDA')
 
+if env['WITH_BF_CYCLES_BINARIES']:
+    defs.append('WITH_CUDA_BINARIES')
+
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())

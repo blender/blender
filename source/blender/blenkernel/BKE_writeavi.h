@@ -50,7 +50,7 @@ typedef struct bMovieHandle {
 	void (*get_movie_path)(char *string, struct RenderData *rd); /* optional */
 } bMovieHandle;
 
-bMovieHandle *BKE_get_movie_handle(int imtype);
+bMovieHandle *BKE_get_movie_handle(const char imtype);
 void BKE_makeanimstring(char *string, struct RenderData *rd);
 
 #ifdef __cplusplus

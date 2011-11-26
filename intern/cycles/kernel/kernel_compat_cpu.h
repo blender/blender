@@ -55,8 +55,10 @@ template<typename T> struct texture  {
 		return ((__m128i*)data)[index];
 	}*/
 
-	float interp(float x)
+	float interp(float x, int size)
 	{
+		kernel_assert(size == width);
+
 		x = clamp(x, 0.0f, 1.0f)*width;
 
 		int index = min((int)x, width-1);
@@ -151,7 +153,7 @@ typedef texture_image<uchar4> texture_image_uchar4;
 #define kernel_tex_fetch(tex, index) (kg->tex.fetch(index))
 #define kernel_tex_fetch_m128(tex, index) (kg->tex.fetch_m128(index))
 #define kernel_tex_fetch_m128i(tex, index) (kg->tex.fetch_m128i(index))
-#define kernel_tex_interp(tex, t) (kg->tex.interp(t))
+#define kernel_tex_interp(tex, t, size) (kg->tex.interp(t, size))
 #define kernel_tex_image_interp(tex, x, y) (kg->tex.interp(x, y))
 
 #define kernel_data (kg->__data)

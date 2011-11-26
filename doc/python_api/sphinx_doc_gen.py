@@ -111,6 +111,12 @@ INFO_DOCS = (
     ("info_gotcha.rst", "Gotcha's: some of the problems you may come up against when writing scripts"),
     )
 
+# only support for properties atm.
+RNA_BLACKLIST = {
+    # messes up PDF!, really a bug but for now just workaround.
+    "UserPreferencesSystem": {"language", },
+    }
+
 
 # -----------------------------------------------------------------------------
 # configure compile time options
@@ -765,22 +771,23 @@ def pyrna2sphinx(BASEPATH):
         fw = file.write
 
         base_id = getattr(struct.base, "identifier", "")
+        struct_id = struct.identifier
 
         if _BPY_STRUCT_FAKE:
             if not base_id:
                 base_id = _BPY_STRUCT_FAKE
 
         if base_id:
-            title = "%s(%s)" % (struct.identifier, base_id)
+            title = "%s(%s)" % (struct_id, base_id)
         else:
-            title = struct.identifier
+            title = struct_id
 
         write_title(fw, title, "=")
 
         fw(".. module:: bpy.types\n\n")
 
         # docs first?, ok
-        write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
+        write_example_ref("", fw, "bpy.types.%s" % struct_id)
 
         base_ids = [base.identifier for base in struct.get_bases()]
 
@@ -809,9 +816,9 @@ def pyrna2sphinx(BASEPATH):
                 base_id = _BPY_STRUCT_FAKE
 
         if base_id:
-            fw(".. class:: %s(%s)\n\n" % (struct.identifier, base_id))
+            fw(".. class:: %s(%s)\n\n" % (struct_id, base_id))
         else:
-            fw(".. class:: %s\n\n" % struct.identifier)
+            fw(".. class:: %s\n\n" % struct_id)
 
         fw("   %s\n\n" % struct.description)
 
@@ -819,7 +826,15 @@ def pyrna2sphinx(BASEPATH):
         sorted_struct_properties = struct.properties[:]
         sorted_struct_properties.sort(key=lambda prop: prop.identifier)
 
+        # support blacklisting props
+        struct_blacklist = RNA_BLACKLIST.get(struct_id, ())
+
         for prop in sorted_struct_properties:
+
+            # support blacklisting props
+            if prop.identifier in struct_blacklist:
+                continue
+
             type_descr = prop.get_type_description(class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
             # readonly properties use "data" directive, variables properties use "attribute" directive
             if 'readonly' in type_descr:
@@ -868,7 +883,7 @@ def pyrna2sphinx(BASEPATH):
                         descr = prop.name
                     fw("         `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
 
-            write_example_ref("      ", fw, "bpy.types." + struct.identifier + "." + func.identifier)
+            write_example_ref("      ", fw, "bpy.types." + struct_id + "." + func.identifier)
 
             fw("\n")
 
@@ -884,7 +899,7 @@ def pyrna2sphinx(BASEPATH):
         py_func = None
 
         for identifier, py_func in py_funcs:
-            py_c_func2sphinx("   ", fw, "bpy.types", struct.identifier, identifier, py_func, is_class=True)
+            py_c_func2sphinx("   ", fw, "bpy.types", struct_id, identifier, py_func, is_class=True)
 
         lines = []
 
@@ -963,7 +978,7 @@ def pyrna2sphinx(BASEPATH):
             fw("\n")
 
         # docs last?, disable for now
-        # write_example_ref("", fw, "bpy.types.%s" % struct.identifier)
+        # write_example_ref("", fw, "bpy.types.%s" % struct_id)
         file.close()
 
     if "bpy.types" not in EXCLUDE_MODULES:

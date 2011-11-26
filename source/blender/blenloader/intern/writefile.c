@@ -1667,7 +1667,8 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 				writestruct(wd, DATA, structname, datasize, layer->data);
 			}
 			else
-				printf("error: this CustomDataLayer must not be written to file\n");
+				printf("%s error: layer '%s':%d - can't be written to file\n",
+				       __func__, structname, layer->type);
 		}
 	}
 
@@ -2903,7 +2904,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 /* return: success(0), failure(1) */
 static int do_history(const char *name, ReportList *reports)
 {
-	char tempname1[FILE_MAXDIR+FILE_MAXFILE], tempname2[FILE_MAXDIR+FILE_MAXFILE];
+	char tempname1[FILE_MAX], tempname2[FILE_MAX];
 	int hisnr= U.versions;
 	
 	if(U.versions==0) return 0;
@@ -2937,8 +2938,8 @@ static int do_history(const char *name, ReportList *reports)
 /* return: success (1) */
 int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, int *thumb)
 {
-	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
-	char tempname[FILE_MAXDIR+FILE_MAXFILE+1];
+	char userfilename[FILE_MAX];
+	char tempname[FILE_MAX+1];
 	int file, err, write_user_block;
 
 	/* open temporary file, so we preserve the original in case we crash */
@@ -2952,8 +2953,8 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	/* remapping of relative paths to new file location */
 	if(write_flags & G_FILE_RELATIVE_REMAP) {
-		char dir1[FILE_MAXDIR+FILE_MAXFILE];
-		char dir2[FILE_MAXDIR+FILE_MAXFILE];
+		char dir1[FILE_MAX];
+		char dir2[FILE_MAX];
 		BLI_split_dir_part(filepath, dir1, sizeof(dir1));
 		BLI_split_dir_part(mainvar->name, dir2, sizeof(dir2));
 
@@ -3004,7 +3005,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	if(write_flags & G_FILE_COMPRESS) {
 		/* compressed files have the same ending as regular files... only from 2.4!!! */
-		char gzname[FILE_MAXDIR+FILE_MAXFILE+4];
+		char gzname[FILE_MAX+4];
 		int ret;
 
 		/* first write compressed to separate @.gz */

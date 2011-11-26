@@ -689,7 +689,7 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 
 void quicktime_verify_image_type(RenderData *rd)
 {
-	if (rd->imtype == R_QUICKTIME) {
+	if (rd->imtype == R_IMF_IMTYPE_QUICKTIME) {
 		if ((rd->qtcodecsettings.codecType== 0) ||
 			(rd->qtcodecsettings.codecSpatialQuality <0) ||
 			(rd->qtcodecsettings.codecSpatialQuality > 100)) {

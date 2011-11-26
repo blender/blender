@@ -323,7 +323,7 @@ short imb_addrectImBuf(ImBuf *ibuf)
 	if((ibuf->rect = MEM_mapallocN(size, "imb_addrectImBuf"))) {
 		ibuf->mall |= IB_rect;
 		ibuf->flags |= IB_rect;
-		if(ibuf->depth > 32) return (addzbufImBuf(ibuf));
+		if(ibuf->planes > 32) return (addzbufImBuf(ibuf));
 		else return TRUE;
 	}
 
@@ -341,7 +341,7 @@ short imb_addtilesImBuf(ImBuf *ibuf)
 	return (ibuf->tiles != NULL);
 }
 
-ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar d, unsigned int flags)
+ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int flags)
 {
 	ImBuf *ibuf;
 
@@ -350,7 +350,7 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar d, unsigned int flag
 	if(ibuf) {
 		ibuf->x= x;
 		ibuf->y= y;
-		ibuf->depth= d;
+		ibuf->planes= planes;
 		ibuf->ftype= TGA;
 		ibuf->channels= 4;	/* float option, is set to other values when buffers get assigned */
 		ibuf->ppm[0]= ibuf->ppm[1]= 150.0 / 0.0254; /* 150dpi -> pixels-per-meter */
@@ -402,7 +402,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	y = ibuf1->y;
 	if(ibuf1->flags & IB_fields) y *= 2;
 	
-	ibuf2 = IMB_allocImBuf(x, y, ibuf1->depth, flags);
+	ibuf2 = IMB_allocImBuf(x, y, ibuf1->planes, flags);
 	if(ibuf2 == NULL) return NULL;
 
 	if(flags & IB_rect)

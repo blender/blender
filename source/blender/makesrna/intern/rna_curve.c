@@ -588,6 +588,19 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 
 	freeNurb(nu);
 	/* invalidate pointer!, no can do */
+
+	DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
+}
+
+static void rna_Curve_spline_clear(Curve *cu)
+{
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+
+	freeNurblist(nurbs);
+
+	DAG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
 static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
@@ -1199,6 +1212,9 @@ static void rna_def_curve_splines(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_Curve_spline_clear");
+	RNA_def_function_ui_description(func, "Remove all spline from a curve");
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");

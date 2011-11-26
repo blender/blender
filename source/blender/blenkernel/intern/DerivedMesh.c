@@ -1777,31 +1777,29 @@ static void add_orco_dm(Object *ob, EditMesh *em, DerivedMesh *dm, DerivedMesh *
  * happens on enter/exit wpaint.
  */
 
-void weight_to_rgb(float input, float *fr, float *fg, float *fb)
+void weight_to_rgb(float r_rgb[3], const float weight)
 {
-	float blend;
-	
-	blend= ((input/2.0f)+0.5f);
-	
-	if (input<=0.25f){	// blue->cyan
-		*fr= 0.0f;
-		*fg= blend*input*4.0f;
-		*fb= blend;
+	const float blend= ((weight/2.0f)+0.5f);
+
+	if (weight<=0.25f){	// blue->cyan
+		r_rgb[0]= 0.0f;
+		r_rgb[1]= blend*weight*4.0f;
+		r_rgb[2]= blend;
 	}
-	else if (input<=0.50f){	// cyan->green
-		*fr= 0.0f;
-		*fg= blend;
-		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
+	else if (weight<=0.50f){	// cyan->green
+		r_rgb[0]= 0.0f;
+		r_rgb[1]= blend;
+		r_rgb[2]= blend*(1.0f-((weight-0.25f)*4.0f));
 	}
-	else if (input <= 0.75f){	// green->yellow
-		*fr= blend * ((input-0.50f)*4.0f);
-		*fg= blend;
-		*fb= 0.0f;
+	else if (weight <= 0.75f){	// green->yellow
+		r_rgb[0]= blend * ((weight-0.50f)*4.0f);
+		r_rgb[1]= blend;
+		r_rgb[2]= 0.0f;
 	}
-	else if (input <= 1.0f){ // yellow->red
-		*fr= blend;
-		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
-		*fb= 0.0f;
+	else if (weight <= 1.0f){ // yellow->red
+		r_rgb[0]= blend;
+		r_rgb[1]= blend * (1.0f-((weight-0.75f)*4.0f));
+		r_rgb[2]= 0.0f;
 	}
 }
 
@@ -1866,7 +1864,7 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	if(coba)
 		do_colorband(coba, input, colf);
 	else
-		weight_to_rgb(input, colf, colf+1, colf+2);
+		weight_to_rgb(colf, input);
 	
 	col[3] = (unsigned char)(colf[0] * 255.0f);
 	col[2] = (unsigned char)(colf[1] * 255.0f);
@@ -2131,9 +2129,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-					range_vni(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
-					range_vni(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
-					range_vni(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numFaceData, 0);
+					range_vn_i(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
+					range_vn_i(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
+					range_vn_i(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numFaceData, 0);
 				}
 			}
 

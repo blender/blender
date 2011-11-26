@@ -1795,6 +1795,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 				dm->getVertCo(dm, 0, vec);
 			}
 		}
+		else fprintf(stderr, "%s: DerivedMesh is needed to solve parenting, object position can be wrong now\n", __func__);
 
 		if(em)
 			BKE_mesh_end_editmesh(me, em);

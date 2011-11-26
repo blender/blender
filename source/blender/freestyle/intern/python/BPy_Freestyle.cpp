@@ -128,10 +128,10 @@ static PyObject *Freestyle_blendRamp( PyObject *self, PyObject *args )
 	a[0] = v1->x(); b[0] = v2->x();
 	a[1] = v1->y(); b[1] = v2->y();
 	a[2] = v1->z(); b[2] = v2->z();
-	ramp_blend(type, &a[0], &a[1], &a[2], fac, b);
+	ramp_blend(type, a, fac, b);
 	delete v1;
 	delete v2;
-	return newVectorObject( a, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject( a, 3, Py_NEW, NULL);
 
 error:
 	if (v1) delete v1;
@@ -170,7 +170,7 @@ static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
 		PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
 		return NULL;
 	}
-	return newVectorObject( out, 4, Py_NEW, NULL);
+	return Vector_CreatePyObject( out, 4, Py_NEW, NULL);
 }
 
 #include "DNA_color_types.h"

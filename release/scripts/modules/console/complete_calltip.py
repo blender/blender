@@ -72,7 +72,7 @@ def reduce_spaces(text):
     return RE_SPACE.sub(' ', text)
 
 
-def get_doc(object):
+def get_doc(obj):
     """Get the doc string or comments for an object.
 
     :param object: object
@@ -82,7 +82,7 @@ def get_doc(object):
     >>> get_doc(abs)
     'abs(number) -> number\\n\\nReturn the absolute value of the argument.'
     """
-    result = inspect.getdoc(object) or inspect.getcomments(object)
+    result = inspect.getdoc(obj) or inspect.getcomments(obj)
     return result and RE_EMPTY_LINE.sub('', result.rstrip()) or ''
 
 

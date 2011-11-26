@@ -449,9 +449,9 @@ static void txt_write_file(Text *text, ReportList *reports)
 	FILE *fp;
 	TextLine *tmp;
 	struct stat st;
-	char filepath[FILE_MAXDIR+FILE_MAXFILE];
+	char filepath[FILE_MAX];
 	
-	BLI_strncpy(filepath, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(filepath, text->name, FILE_MAX);
 	BLI_path_abs(filepath, G.main->name);
 	
 	fp= fopen(filepath, "w");
@@ -3053,12 +3053,12 @@ int text_file_modified(Text *text)
 {
 	struct stat st;
 	int result;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
+	char file[FILE_MAX];
 
 	if(!text || !text->name)
 		return 0;
 
-	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(file, text->name, FILE_MAX);
 	BLI_path_abs(file, G.main->name);
 
 	if(!BLI_exists(file))
@@ -3082,11 +3082,11 @@ static void text_ignore_modified(Text *text)
 {
 	struct stat st;
 	int result;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
+	char file[FILE_MAX];
 
 	if(!text || !text->name) return;
 
-	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(file, text->name, FILE_MAX);
 	BLI_path_abs(file, G.main->name);
 
 	if(!BLI_exists(file)) return;

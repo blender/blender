@@ -321,7 +321,9 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache == cache) {
-			*(pid->cache_ptr) = BKE_ptcache_add(pid->ptcaches);
+			PointCache *cache = BKE_ptcache_add(pid->ptcaches);
+			cache->step = pid->default_step;
+			*(pid->cache_ptr) = cache;
 			break;
 		}
 	}

@@ -434,6 +434,15 @@ void uiCenteredBoundsBlock(uiBlock *block, int addval)
 	block->dobounds= UI_BLOCK_BOUNDS_POPUP_CENTER;
 }
 
+void uiExplicitBoundsBlock(uiBlock *block, int minx, int miny, int maxx, int maxy)
+{
+	block->minx = minx;
+	block->miny = miny;
+	block->maxx = maxx;
+	block->maxy = maxy;
+	block->dobounds = 0;
+}
+
 /* ************** LINK LINE DRAWING  ************* */
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
@@ -1018,7 +1027,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
- 	if(multisample_enabled)
+	if(multisample_enabled)
 		glEnable(GL_MULTISAMPLE_ARB);
 	
 	ui_draw_links(block);
@@ -1028,25 +1037,25 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 static void ui_is_but_sel(uiBut *but, double *value)
 {
-	short push=0, true=1;
+	short is_push=0, is_true=1;
 
-	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) true= 0;
+	if(ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) is_true= 0;
 
 	if( but->bit ) {
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value)
 		lvalue= (int)*value;
-		if( BTST(lvalue, (but->bitnr)) ) push= true;
-		else push= !true;
+		if( BTST(lvalue, (but->bitnr)) ) is_push= is_true;
+		else is_push= !is_true;
 	}
 	else {
 		switch(but->type) {
 		case BUT:
-			push= 2;
+			is_push= 2;
 			break;
 		case HOTKEYEVT:
 		case KEYEVT:
-			push= 2;
+			is_push= 2;
 			break;
 		case TOGBUT:
 		case TOG:
@@ -1056,36 +1065,36 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		case ICONTOG:
 		case OPTION:
 			UI_GET_BUT_VALUE_INIT(but, *value)
-			if(*value != (double)but->hardmin) push= 1;
+			if(*value != (double)but->hardmin) is_push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
 		case OPTIONN:
 			UI_GET_BUT_VALUE_INIT(but, *value)
-			if(*value==0.0) push= 1;
+			if(*value==0.0) is_push= 1;
 			break;
 		case ROW:
 		case LISTROW:
 			UI_GET_BUT_VALUE_INIT(but, *value)
 			/* support for rna enum buts */
 			if(but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
-				if((int)*value & (int)but->hardmax) push= 1;
+				if((int)*value & (int)but->hardmax) is_push= 1;
 			}
 			else {
-				if(*value == (double)but->hardmax) push= 1;
+				if(*value == (double)but->hardmax) is_push= 1;
 			}
 			break;
 		case COL:
-			push= 2;
+			is_push= 2;
 			break;
 		default:
-			push= 2;
+			is_push= 2;
 			break;
 		}
 	}
 	
-	if(push==2);
-	else if(push==1) but->flag |= UI_SELECT;
+	if(is_push==2);
+	else if(is_push==1) but->flag |= UI_SELECT;
 	else but->flag &= ~UI_SELECT;
 }
 

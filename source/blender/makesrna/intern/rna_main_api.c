@@ -1348,7 +1348,7 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_texts_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new text to the main database from a file");
-	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock");
+	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "text", "Text", "", "New text datablock");
@@ -1534,7 +1534,7 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_movieclip_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new movie clip to the main database from a file");
-	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock");
+	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock");

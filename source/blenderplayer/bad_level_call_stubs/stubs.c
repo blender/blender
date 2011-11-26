@@ -157,7 +157,7 @@ double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, c
 struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
-int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]) { return 0; }
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) { return 0; }
 
 /* rna */
 float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}
@@ -266,6 +266,7 @@ void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
 void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist){}
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d){return (struct BGpic *) NULL;}
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic){}
+void ED_view3D_background_image_clear(struct View3D *v3d){}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
@@ -273,6 +274,7 @@ void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
 void ED_base_object_select(struct Base *base, short mode){}
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md){return 0;}
 int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type){return 0;}
+void ED_object_modifier_clear(struct Scene *scene, struct Object *ob){}
 void ED_object_enter_editmode(struct bContext *C, int flag){}
 void ED_object_exit_editmode(struct bContext *C, int flag){}
 int uiLayoutGetActive(struct uiLayout *layout){return 0;}
@@ -306,6 +308,7 @@ void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,
 void ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum){}
 void ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum){}
 void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup){}
+void ED_vgroup_clear(struct Object *ob){}
 void ED_vgroup_object_is_edit_mode(struct Object *ob){}
 
 void ED_sequencer_update_view(struct bContext *C, int view){}
@@ -391,6 +394,7 @@ void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact){}
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname){}
 void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact){}
+void uiTemplateImageSettings(struct uiLayout *layout, struct PointerRNA *imfptr){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

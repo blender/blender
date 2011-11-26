@@ -25,7 +25,6 @@
 
 #include "kernel_film.h"
 #include "kernel_path.h"
-//#include "kernel_displace.h"
 
 __kernel void kernel_ocl_path_trace(
 	__constant KernelData *data,
@@ -33,8 +32,7 @@ __kernel void kernel_ocl_path_trace(
 	__global uint *rng_state,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name, \
-	int name##_width,
+	__global type *name,
 #include "kernel_textures.h"
 
 	int sample,
@@ -45,8 +43,7 @@ __kernel void kernel_ocl_path_trace(
 	kg->data = data;
 
 #define KERNEL_TEX(type, ttype, name) \
-	kg->name = name; \
-	kg->name##_width = name##_width;
+	kg->name = name;
 #include "kernel_textures.h"
 
 	int x = sx + get_global_id(0);
@@ -62,8 +59,7 @@ __kernel void kernel_ocl_tonemap(
 	__global float4 *buffer,
 
 #define KERNEL_TEX(type, ttype, name) \
-	__global type *name, \
-	int name##_width,
+	__global type *name,
 #include "kernel_textures.h"
 
 	int sample, int resolution,
@@ -74,8 +70,7 @@ __kernel void kernel_ocl_tonemap(
 	kg->data = data;
 
 #define KERNEL_TEX(type, ttype, name) \
-	kg->name = name; \
-	kg->name##_width = name##_width;
+	kg->name = name;
 #include "kernel_textures.h"
 
 	int x = sx + get_global_id(0);

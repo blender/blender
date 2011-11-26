@@ -58,21 +58,21 @@ PyObject * Vector_from_Vec2f( Vec2f& vec ) {
 	float vec_data[2]; // because vec->_coord is protected
 
 	vec_data[0] = vec.x();		vec_data[1] = vec.y();
-	return newVectorObject( vec_data, 2, Py_NEW, NULL);
+	return Vector_CreatePyObject( vec_data, 2, Py_NEW, NULL);
 }
 
 PyObject * Vector_from_Vec3f( Vec3f& vec ) {
 	float vec_data[3]; // because vec->_coord is protected
 	
 	vec_data[0] = vec.x();		vec_data[1] = vec.y(); 		vec_data[2] = vec.z(); 
-	return newVectorObject( vec_data, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject( vec_data, 3, Py_NEW, NULL);
 }
 
 PyObject * Vector_from_Vec3r( Vec3r& vec ) {
 	float vec_data[3]; // because vec->_coord is protected
 	
 	vec_data[0] = vec.x();		vec_data[1] = vec.y(); 		vec_data[2] = vec.z(); 
-	return newVectorObject( vec_data, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject( vec_data, 3, Py_NEW, NULL);
 }
 
 PyObject * BPy_Id_from_Id( Id& id ) {

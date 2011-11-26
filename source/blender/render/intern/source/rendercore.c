@@ -2458,7 +2458,7 @@ static int get_next_bake_face(BakeShade *bs)
 							imb_freerectImBuf(ibuf);
 						/* clear image */
 						if(R.r.bake_flag & R_BAKE_CLEAR)
-							IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
+							IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 					
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
@@ -2566,7 +2566,7 @@ static void *do_bake_thread(void *bs_v)
 void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 {
 	/* must check before filtering */
-	const short is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
+	const short is_new_alpha= (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_alphatest_ibuf(ibuf);
 
 	/* Margin */
 	if(filter) {
@@ -2575,10 +2575,10 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 
 	/* if the bake results in new alpha then change the image setting */
 	if(is_new_alpha) {
-		ibuf->depth= 32;
+		ibuf->planes= R_IMF_PLANES_RGBA;
 	}
 	else {
-		if(filter && ibuf->depth != 32) {
+		if(filter && ibuf->planes != R_IMF_PLANES_RGBA) {
 			/* clear alpha added by filtering */
 			IMB_rectfill_alpha(ibuf, 1.0f);
 		}

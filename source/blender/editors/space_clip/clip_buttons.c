@@ -90,12 +90,14 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateMovieClip: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateMovieClip: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -136,12 +138,14 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateTrack: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateTrack: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -327,12 +331,14 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateMarker: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	if(RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateMarker: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 

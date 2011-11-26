@@ -144,6 +144,7 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 		case ACT_ACTION_PLAY:
 			// Clamp
 			m_localtime = m_endframe;
+			((KX_GameObject*)GetParent())->StopAction(m_layer);
 			break;
 		case ACT_ACTION_LOOP_END:
 			// Put the time back to the beginning
@@ -237,14 +238,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		RemoveAllEvents();
 	}
 
+	// "Active" actions need to keep updating their current frame
 	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
-	{
 		m_localtime = obj->GetActionFrame(m_layer);
-		ResetStartTime(curtime);
-	}
 
 	if (m_flag & ACT_FLAG_ATTEMPT_PLAY)
 		SetLocalTime(curtime);
+	else
+		ResetStartTime(curtime);
 
 	// Handle a frame property if it's defined
 	if ((m_flag & ACT_FLAG_ACTIVE) && m_framepropname[0] != 0)
@@ -299,6 +300,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	else if ((m_flag & ACT_FLAG_ACTIVE) && bNegativeEvent)
 	{	
 		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
+		m_localtime = obj->GetActionFrame(m_layer);
 		bAction *curr_action = obj->GetCurrentAction(m_layer);
 		if (curr_action && curr_action != m_action)
 		{

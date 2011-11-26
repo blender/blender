@@ -168,7 +168,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 {
 	PackedFile *pf = NULL;
 	int file, filelen;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	void *data;
 	
 	/* render result has no filename and can be ignored
@@ -245,7 +245,7 @@ void packAll(Main *bmain, ReportList *reports)
 
 static char *find_new_name(char *name)
 {
-	char tempname[FILE_MAXDIR + FILE_MAXFILE];
+	char tempname[FILE_MAX];
 	char *newname;
 	size_t len;
 	
@@ -268,8 +268,8 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 {
 	int file, number, remove_tmp = FALSE;
 	int ret_value = RET_OK;
-	char name[FILE_MAXDIR + FILE_MAXFILE];
-	char tempname[FILE_MAXDIR + FILE_MAXFILE];
+	char name[FILE_MAX];
+	char tempname[FILE_MAX];
 /*  	void *data; */
 	
 	if (guimode) {} //XXX  waitcursor(1);
@@ -337,7 +337,7 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	struct stat st;
 	int ret_val, i, len, file;
 	char buf[4096];
-	char name[FILE_MAXDIR + FILE_MAXFILE];
+	char name[FILE_MAX];
 	
 	BLI_strncpy(name, filename, sizeof(name));
 	BLI_path_abs(name, G.main->name);
@@ -394,8 +394,8 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 	char *newname = NULL;
 	const char *temp = NULL;
 	
-	// char newabs[FILE_MAXDIR + FILE_MAXFILE];
-	// char newlocal[FILE_MAXDIR + FILE_MAXFILE];
+	// char newabs[FILE_MAX];
+	// char newlocal[FILE_MAX];
 	
 	if (pf != NULL) {
 		switch (how) {
@@ -445,7 +445,7 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 
 int unpackVFont(ReportList *reports, VFont *vfont, int how)
 {
-	char localname[FILE_MAXDIR + FILE_MAXFILE], fi[FILE_MAXFILE];
+	char localname[FILE_MAX], fi[FILE_MAXFILE];
 	char *newname;
 	int ret_value = RET_ERROR;
 	

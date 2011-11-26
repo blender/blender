@@ -471,6 +471,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		float locx, locy;
 		rctf *rect= &gnode->totr;
 		float node_group_frame= U.dpi*NODE_GROUP_FRAME/72;
+		float group_header= 26*U.dpi/72;
 		int counter;
 		int dy;
 		
@@ -594,6 +595,15 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 				gsock = gsock->next;
 			}
 		}
+		
+		/* Set the block bounds to clip mouse events from underlying nodes.
+		 * Add margin for header and input/output columns.
+		 */
+		uiExplicitBoundsBlock(gnode->block,
+							  rect->xmin - node_group_frame,
+							  rect->ymin,
+							  rect->xmax + node_group_frame,
+							  rect->ymax + group_header);
 	}
 }
 
@@ -1001,7 +1011,6 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	//uiItemR(layout, ptr, "image", 0, "", ICON_NONE);
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 }
@@ -1633,24 +1642,17 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiLayout *col, *row;
+	bNode *node= ptr->data;
+	NodeImageFile *nif= node->storage;
+	PointerRNA imfptr;
 
-	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "filepath", 0, "", ICON_NONE);
-	uiItemR(col, ptr, "image_type", 0, "", ICON_NONE);
-	
-	row= uiLayoutRow(layout, 0);
-	if (RNA_enum_get(ptr, "image_type")== R_OPENEXR) {
-		uiItemR(row, ptr, "use_exr_half", 0, NULL, ICON_NONE);
-		uiItemR(row, ptr, "exr_codec", 0, "", ICON_NONE);
-	}
-	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Quality", ICON_NONE);
-	}
-	else if (RNA_enum_get(ptr, "image_type")== R_PNG) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Compression", ICON_NONE);
-	}
-	
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "filepath", 0, "", ICON_NONE);
+
+	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &nif->im_format, &imfptr);
+	uiTemplateImageSettings(layout, &imfptr);
+
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "frame_start", 0, "Start", ICON_NONE);
 	uiItemR(row, ptr, "frame_end", 0, "End", ICON_NONE);

@@ -262,6 +262,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("uv.project_from_view")
         layout.operator("uv.project_from_view", text="Project from View (Bounds)").scale_to_bounds = True
 
@@ -1767,7 +1768,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
         edit_object = context.edit_object
 
         if edit_object.type == 'CURVE':
-            layout.operator("transform.transform", text="Tilt").mode = 'TILT'
+            layout.operator("transform.tilt")
             layout.operator("curve.tilt_clear")
             layout.operator("curve.separate")
 
@@ -2213,7 +2214,7 @@ class VIEW3D_PT_view3d_motion_tracking(Panel):
 
         col = layout.column()
         col.active = view.show_reconstruction
-        col.prop(view, "show_tracks_name")
+        col.prop(view, "show_bundle_names")
         col.prop(view, "show_camera_path")
         col.label(text="Tracks:")
         col.prop(view, "tracks_draw_type", text="")

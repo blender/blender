@@ -397,6 +397,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
+	func= RNA_def_function(srna, "template_image_settings", "uiTemplateImageSettings");
+	RNA_def_function_ui_description(func, "User interface for setting image format options");
+	parm= RNA_def_pointer(func, "image_settings", "ImageFormatSettings", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+
 	func= RNA_def_function(srna, "template_movieclip", "uiTemplateMovieClip");
 	RNA_def_function_ui_description(func, "Item(s). User interface for selecting movie clips and their source paths");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

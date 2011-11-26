@@ -911,6 +911,12 @@ static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, BGpic *
 	}
 }
 
+static void rna_BackgroundImage_clear(View3D *v3d)
+{
+	ED_view3D_background_image_clear(v3d);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, v3d);
+}
+
 /* Space Node Editor */
 
 static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
@@ -1328,6 +1334,9 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "clear", "rna_BackgroundImage_clear");
+	RNA_def_function_ui_description(func, "Remove all background images");
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)
@@ -1612,9 +1621,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Camera Path", "Show reconstructed camera path");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "show_tracks_name", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_bundle_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
-	RNA_def_property_ui_text(prop, "Show Track Names", "Show names for tracks objects");
+	RNA_def_property_ui_text(prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	/* region */
@@ -2915,7 +2924,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 	/* show bundles */
 	prop= RNA_def_property(srna, "show_bundles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of bundles into footage");
+	RNA_def_property_ui_text(prop, "Show Bundles", "Show projection of 3D markers into footage");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_BUNDLES);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 

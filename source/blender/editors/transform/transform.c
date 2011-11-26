@@ -4740,7 +4740,7 @@ static int createSlideVerts(TransInfo *t)
 				}
 				look = look->next;
 			}
-		} /* end uv layer loop */
+		} /* end uv map loop */
 	} /* end uvlay_tot */
 
 	sld->uvhash = uvarray;

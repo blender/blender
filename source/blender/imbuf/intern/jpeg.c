@@ -571,9 +571,13 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 	cinfo->image_height = ibuf->y;
 
 	cinfo->in_color_space = JCS_RGB;
-	if (ibuf->depth == 8) cinfo->in_color_space = JCS_GRAYSCALE;
-	if (ibuf->depth == 32) cinfo->in_color_space = JCS_UNKNOWN;
-	
+	if (ibuf->planes == 8) cinfo->in_color_space = JCS_GRAYSCALE;
+#if 0
+	/* just write RGBA as RGB,
+	 * unsupported feature only confuses other s/w */
+
+	if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
+#endif
 	switch(cinfo->in_color_space){
 	case JCS_RGB:
 		cinfo->input_components = 3;

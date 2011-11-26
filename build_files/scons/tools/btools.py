@@ -544,6 +544,7 @@ def read_opts(env, cfg, args):
 
     localopts.AddVariables(
         (BoolVariable('WITH_BF_CYCLES', 'Build with the Cycles engine', True)),
+        (BoolVariable('WITH_BF_CYCLES_BINARIES', 'Build with precompiled CUDA binaries', False)),
 
         (BoolVariable('WITH_BF_OIIO', 'Build with OpenImageIO', False)),
         (BoolVariable('WITH_BF_STATICOIIO', 'Staticly link to OpenImageIO', False)),

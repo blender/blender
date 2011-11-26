@@ -363,7 +363,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			IMB_metadata_change_field(img, "Thumb::Image::Height", cheight);
 		}
 		img->ftype = PNG;
-		img->depth = 32;		
+		img->planes = 32;
 		if (IMB_saveiff(img, temp, IB_rect | IB_metadata)) {
 #ifndef WIN32
 			chmod(temp, S_IRUSR | S_IWUSR);

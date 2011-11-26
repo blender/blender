@@ -1484,32 +1484,32 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 	case MTEX_BLEND_HUE:
 		fact*= facg;
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_HUE, in, in+1, in+2, fact, tex);
+		ramp_blend(MA_RAMP_HUE, in, fact, tex);
 		break;
 	case MTEX_BLEND_SAT:
 		fact*= facg;
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_SAT, in, in+1, in+2, fact, tex);
+		ramp_blend(MA_RAMP_SAT, in, fact, tex);
 		break;
 	case MTEX_BLEND_VAL:
 		fact*= facg;
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_VAL, in, in+1, in+2, fact, tex);
+		ramp_blend(MA_RAMP_VAL, in, fact, tex);
 		break;
 	case MTEX_BLEND_COLOR:
 		fact*= facg;
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
+		ramp_blend(MA_RAMP_COLOR, in, fact, tex);
 		break;
 	case MTEX_SOFT_LIGHT: 
 		fact*= facg; 
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
+		ramp_blend(MA_RAMP_SOFT, in, fact, tex);
 		break; 
 	case MTEX_LIN_LIGHT: 
 		fact*= facg; 
 		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
+		ramp_blend(MA_RAMP_LINEAR, in, fact, tex);
 		break; 
 	}
 }
@@ -3684,7 +3684,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 			int i, layers = CustomData_number_of_layers(&orcoDm->faceData, CD_MTFACE);
 			int layer_index = CustomData_get_layer_index(&orcoDm->faceData, CD_MTFACE);
 
-			/* for every uv layer set coords and name */
+			/* for every uv map set coords and name */
 			for (i=0; i<layers; i++) {
 				if(layer_index >= 0) {
 					float *uv1, *uv2, *uv3;
@@ -3708,7 +3708,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 					shi.uv[i].uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
 				}
 			}
-			/* active uv layer */
+			/* active uv map */
 			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData,CD_MTFACE) - layer_index;
 			shi.totuv = layers;
 		}

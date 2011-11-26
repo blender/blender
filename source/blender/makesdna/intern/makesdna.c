@@ -150,9 +150,9 @@ static char **types, *typedata;		/* at address types[a] is string a */
 static short *typelens;				/* at typelens[a] is de length of type a */
 static short *alphalens;			/* contains sizes as they are calculated on the DEC Alpha (64 bits), infact any 64bit system */
 static short **structs, *structdata;/* at sp= structs[a] is the first address of a struct definition
-								       sp[0] is type number
-							    	   sp[1] is amount of elements
-							    	   sp[2] sp[3] is typenr,  namenr (etc) */
+                                       sp[0] is type number
+                                       sp[1] is amount of elements
+                                       sp[2] sp[3] is typenr,  namenr (etc) */
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:

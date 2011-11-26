@@ -146,7 +146,10 @@ def modules(module_cache):
     for path in path_list:
 
         # force all contrib addons to be 'TESTING'
-        force_support = 'TESTING' if path.endswith("addons_contrib") else None
+        if path.endswith("addons_contrib") or path.endswith("addons_extern"):
+            force_support = 'TESTING'
+        else:
+            force_support = None
 
         for mod_name, mod_path in _bpy.path.module_names(path):
             modules_stale -= {mod_name}
@@ -168,7 +171,9 @@ def modules(module_cache):
                     mod = None
 
             if mod is None:
-                mod = fake_module(mod_name, mod_path, force_support=force_support)
+                mod = fake_module(mod_name,
+                                  mod_path,
+                                  force_support=force_support)
                 if mod:
                     module_cache[mod_name] = mod
 

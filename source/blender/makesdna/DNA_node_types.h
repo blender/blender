@@ -36,6 +36,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_texture_types.h"
+#include "DNA_scene_types.h"
 
 struct ID;
 struct ListBase;
@@ -345,7 +346,7 @@ typedef struct NodeHueSat {
 
 typedef struct NodeImageFile {
 	char name[256];
-	short imtype, subimtype, quality, codec;
+	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;
 
