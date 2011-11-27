@@ -1057,7 +1057,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	iterv2->flag= 1;
 
 	if(extend) {
-		if(uvedit_uv_selected(em, scene, hit->l) && uvedit_uv_selected(em, scene, hit->l))
+		if(uvedit_uv_selected(em, scene, hit->l))
 			select= 0;
 		else
 			select= 1;
