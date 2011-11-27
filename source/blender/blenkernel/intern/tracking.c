@@ -1356,7 +1356,6 @@ typedef struct ReconstructProgressData {
 	short *stop;
 	short *do_update;
 	float *progress;
-	float stats_progress;
 	char *stats_message;
 	int message_size;
 } ReconstructProgressData;
@@ -1656,8 +1655,8 @@ static void solve_reconstruction_update_cb(void *customdata, double progress, co
 		*progressdata->do_update= 1;
 	}
 
-	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);
-	progressdata->stats_progress= progress;
+	BLI_snprintf(progressdata->stats_message, progressdata->message_size,
+			"Solving camera | %s", message);
 }
 
 #if 0

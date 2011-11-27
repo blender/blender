@@ -1518,7 +1518,6 @@ typedef struct {
 	ReportList *reports;
 
 	char stats_message[256];
-	float *stats_progress;
 
 	struct MovieReconstructContext *context;
 } SolveCameraJob;
@@ -1557,16 +1556,11 @@ static void solve_camera_updatejob(void *scv)
 	MovieTracking *tracking= &scj->clip->tracking;
 
 	BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
-
-	if(scj->stats_progress)
-		tracking->stats->progress= *scj->stats_progress;
 }
 
 static void solve_camera_startjob(void *scv, short *stop, short *do_update, float *progress)
 {
 	SolveCameraJob *scj= (SolveCameraJob *)scv;
-
-	scj->stats_progress= progress;
 
 	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress,
 			scj->stats_message, sizeof(scj->stats_message));

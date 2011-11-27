@@ -21,12 +21,11 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_PIPELINE_H_
 #define LIBMV_SIMPLE_PIPELINE_PIPELINE_H_
 
+#include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 
 namespace libmv {
-
-typedef void (*progress_update_callback) (void *customdata, double progress, const char *message);
 
 /*!
     Estimate camera poses and scene 3D coordinates for all frames and tracks.
@@ -49,8 +48,7 @@ typedef void (*progress_update_callback) (void *customdata, double progress, con
 */
 void EuclideanCompleteReconstruction(const Tracks &tracks,
                                      EuclideanReconstruction *reconstruction,
-                                     progress_update_callback update_callback,
-                                     void *update_customdata);
+                                     ProgressUpdateCallback *update_callback = NULL);
 
 /*!
     Estimate camera matrices and homogeneous 3D coordinates for all frames and

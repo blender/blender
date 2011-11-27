@@ -174,7 +174,6 @@ typedef struct MovieTrackingReconstruction {
 } MovieTrackingReconstruction;
 
 typedef struct MovieTrackingStats {
-	float progress;
 	char message[256];
 } MovieTrackingStats;
 

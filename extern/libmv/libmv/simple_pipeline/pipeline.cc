@@ -118,18 +118,19 @@ struct ProjectivePipelineRoutines {
 
 }  // namespace
 
-static void CompleteReconstructionLogProress(progress_update_callback update_callback,
-    void *update_customdata,
+static void CompleteReconstructionLogProress(ProgressUpdateCallback *update_callback,
     double progress,
-    const char *step)
+    const char *step = NULL)
 {
   if(update_callback) {
     char message[256];
+
     if(step)
       snprintf(message, sizeof(message), "Completing solution %d%% | %s", (int)(progress*100), step);
     else
       snprintf(message, sizeof(message), "Completing solution %d%%", (int)(progress*100));
-    update_callback(update_customdata, progress, message);
+
+    update_callback->invoke(progress, message);
   }
 }
 
@@ -137,8 +138,7 @@ template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
     const Tracks &tracks,
     typename PipelineRoutines::Reconstruction *reconstruction,
-    progress_update_callback update_callback,
-    void *update_customdata) {
+    ProgressUpdateCallback *update_callback = NULL) {
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
@@ -167,16 +167,15 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for track " << track;
       if (reconstructed_markers.size() >= 2) {
-        CompleteReconstructionLogProress(update_callback, update_customdata,
-                                         (double)tot_resects/(max_image),
-                                         NULL);
+        CompleteReconstructionLogProress(update_callback,
+                                         (double)tot_resects/(max_image));
         PipelineRoutines::Intersect(reconstructed_markers, reconstruction);
         num_intersects++;
         LG << "Ran Intersect() for track " << track;
       }
     }
     if (num_intersects) {
-      CompleteReconstructionLogProress(update_callback, update_customdata,
+      CompleteReconstructionLogProress(update_callback,
                                        (double)tot_resects/(max_image),
                                        "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
@@ -203,9 +202,8 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
-        CompleteReconstructionLogProress(update_callback, update_customdata,
-                                         (double)tot_resects/(max_image),
-                                         NULL);
+        CompleteReconstructionLogProress(update_callback,
+                                         (double)tot_resects/(max_image));
         if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, false)) {
           num_resects++;
           tot_resects++;
@@ -216,7 +214,7 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_resects) {
-      CompleteReconstructionLogProress(update_callback, update_customdata,
+      CompleteReconstructionLogProress(update_callback,
                                        (double)tot_resects/(max_image),
                                        "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
@@ -240,9 +238,8 @@ void InternalCompleteReconstruction(
       }
     }
     if (reconstructed_markers.size() >= 5) {
-      CompleteReconstructionLogProress(update_callback, update_customdata,
-                                       (double)tot_resects/(max_image),
-                                       NULL);
+      CompleteReconstructionLogProress(update_callback,
+                                       (double)tot_resects/(max_image));
       if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
         num_resects++;
         LG << "Ran Resect() for image " << image;
@@ -252,7 +249,7 @@ void InternalCompleteReconstruction(
     }
   }
   if (num_resects) {
-    CompleteReconstructionLogProress(update_callback, update_customdata,
+    CompleteReconstructionLogProress(update_callback,
                                      (double)tot_resects/(max_image),
                                      "Bundling...");
     PipelineRoutines::Bundle(tracks, reconstruction);
@@ -329,19 +326,16 @@ double ProjectiveReprojectionError(
 
 void EuclideanCompleteReconstruction(const Tracks &tracks,
                                      EuclideanReconstruction *reconstruction,
-                                     progress_update_callback update_callback,
-                                     void *update_customdata) {
+                                     ProgressUpdateCallback *update_callback) {
   InternalCompleteReconstruction<EuclideanPipelineRoutines>(tracks,
                                                             reconstruction,
-                                                            update_callback,
-                                                            update_customdata);
+                                                            update_callback);
 }
 
 void ProjectiveCompleteReconstruction(const Tracks &tracks,
                                       ProjectiveReconstruction *reconstruction) {
   InternalCompleteReconstruction<ProjectivePipelineRoutines>(tracks,
-                                                             reconstruction,
-                                                             NULL, NULL);
+                                                             reconstruction);
 }
 
 void InvertIntrinsicsForTracks(const Tracks &raw_tracks,
