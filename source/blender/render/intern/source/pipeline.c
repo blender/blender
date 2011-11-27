@@ -2849,6 +2849,11 @@ static void validate_render_settings(Render *re)
 		if(re->r.osa==0)
 			re->r.scemode &= ~R_FULL_SAMPLE;
 	} else re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
+
+	if(RE_engine_is_external(re)) {
+		/* not supported yet */
+		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
+	}
 }
 
 static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init))

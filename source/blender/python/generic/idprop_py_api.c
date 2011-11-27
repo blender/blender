@@ -151,9 +151,9 @@ PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)
 	case IDP_GROUP:
 		return idprop_py_from_idp_group(id, prop, parent);
 	case IDP_ARRAY:
-		return idprop_py_from_idp_idparray(id, prop);
+		return idprop_py_from_idp_array(id, prop);
 	case IDP_IDPARRAY: /* this could be better a internal type */
-		idprop_py_from_idp_array(id, prop);
+		return idprop_py_from_idp_idparray(id, prop);
 	default:
 		Py_RETURN_NONE;
 	}
