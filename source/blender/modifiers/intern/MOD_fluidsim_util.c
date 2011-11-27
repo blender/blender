@@ -572,6 +572,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	/* unused */
 	(void)fluidmd;
 	(void)scene;
+	(void)ob;
 	(void)dm;
 	(void)useRenderParams;
 	return NULL;
