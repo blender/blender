@@ -241,18 +241,19 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 	}
 }
 
-void *BLI_mempool_findelem(BLI_mempool *pool, const int index)
+void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 {
-	if ((index >= 0) && (index < pool->totused)) {
-		BLI_mempool_chunk *mpchunk;
-		int i= 0;
-
-		for (mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
-			if (index < i + pool->pchunk) {
-				return ((char *)mpchunk->data) + (pool->esize * (index - i));
-			}
-			i += pool->pchunk;
-		}
+	if (!pool->allow_iter) {
+		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
+		return NULL;
+	}
+	else if ((index >= 0) && (index < pool->totused)) {
+		/* we could have some faster mem chunk stepping code inline */
+		BLI_mempool_iter iter;
+		void *elem;
+		BLI_mempool_iternew(pool, &iter);
+		for (elem= BLI_mempool_iterstep(&iter); index-- != 0; elem= BLI_mempool_iterstep(&iter)) { };
+		return elem;
 	}
 
 	return NULL;
