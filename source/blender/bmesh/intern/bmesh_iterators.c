@@ -3,7 +3,9 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
-
+/*
+ * note, we have BM_Vert_AtIndex/BM_Edge_AtIndex/BM_Face_AtIndex for arrays
+ */
 void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
 {
 	BMIter iter;

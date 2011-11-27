@@ -334,6 +334,10 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag);
 
 void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b);
 
+BMVert *BM_Vert_AtIndex(BMesh *bm, const int index);
+BMEdge *BM_Edge_AtIndex(BMesh *bm, const int index);
+BMFace *BM_Face_AtIndex(BMesh *bm, const int index);
+
 /*start/stop edit*/
 void bmesh_begin_edit(struct BMesh *bm, int flag);
 void bmesh_end_edit(struct BMesh *bm, int flag);

@@ -587,3 +587,18 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 #endif
 #endif
 }
+
+BMVert *BM_Vert_AtIndex(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->vpool, index);
+}
+
+BMEdge *BM_Edge_AtIndex(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->epool, index);
+}
+
+BMFace *BM_Face_AtIndex(BMesh *bm, const int index)
+{
+	return BLI_mempool_findelem(bm->fpool, index);
+}

@@ -556,7 +556,7 @@ static float get_vert_def_nr(Object *ob, int def_nr, int vertnum)
 		me= ob->data;
 
 		if(me->edit_btmesh) {
-			eve= BMIter_AtIndex(me->edit_btmesh->bm, BM_VERTS_OF_MESH, NULL, vertnum);
+			eve= BM_Vert_AtIndex(me->edit_btmesh->bm, vertnum);
 			if(!eve) {
 				return 0.0f;
 			}

@@ -366,7 +366,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
 	BMEditMesh *em= (BMEditMesh *)handle;
-	BMVert *eve = BMIter_AtIndex(em->bm, BM_VERTS_OF_MESH, NULL, index-1);
+	BMVert *eve = BM_Vert_AtIndex(em->bm, index-1);
 
 	if(eve && BM_TestHFlag(eve, BM_SELECT)) return 0;
 	return 1; 
@@ -390,7 +390,7 @@ BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict
 		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance, strict, vc->em, findnearestvert__backbufIndextest); 
 		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_wireoffs, 0xFFFFFF, &distance, 0, NULL, NULL); 
 		
-		eve = BMIter_AtIndex(vc->em->bm, BM_VERTS_OF_MESH, NULL, index-1);
+		eve = BM_Vert_AtIndex(vc->em->bm, index-1);
 		
 		if(eve && distance < *dist) {
 			*dist = distance;
@@ -405,7 +405,7 @@ BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict
 		static int lastSelectedIndex=0;
 		static BMVert *lastSelected=NULL;
 		
-		if (lastSelected && BMIter_AtIndex(vc->em->bm, BM_VERTS_OF_MESH, NULL, lastSelectedIndex)!=lastSelected) {
+		if (lastSelected && BM_Vert_AtIndex(vc->em->bm, lastSelectedIndex) != lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}
@@ -499,7 +499,7 @@ BMEdge *EDBM_findnearestedge(ViewContext *vc, int *dist)
 		view3d_validate_backbuf(vc);
 		
 		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance,0, NULL, NULL);
-		eed = BMIter_AtIndex(vc->em->bm, BM_EDGES_OF_MESH, NULL, index-1);
+		eed = BM_Edge_AtIndex(vc->em->bm, index-1);
 		
 		if (eed && distance<*dist) {
 			*dist = distance;
@@ -569,7 +569,7 @@ BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 		view3d_validate_backbuf(vc);
 
 		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
-		efa = BMIter_AtIndex(vc->em->bm, BM_FACES_OF_MESH, NULL, index-1);
+		efa = BM_Face_AtIndex(vc->em->bm, index-1);
 		
 		if (efa) {
 			struct { short mval[2]; int dist; BMFace *toFace; } data;
@@ -594,7 +594,7 @@ BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 		static int lastSelectedIndex=0;
 		static BMFace *lastSelected=NULL;
 
-		if (lastSelected && BMIter_AtIndex(vc->em->bm, BM_FACES_OF_MESH, NULL, lastSelectedIndex)!=lastSelected) {
+		if (lastSelected && BM_Face_AtIndex(vc->em->bm, lastSelectedIndex) != lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}
