@@ -741,7 +741,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 				d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
 
 			/* distance to search boundbox */
-			if(sc->flag&SC_SHOW_MARKER_SEARCH)
+			if(sc->flag&SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
 				d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */

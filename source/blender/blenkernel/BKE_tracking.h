@@ -58,7 +58,6 @@ struct MovieTrackingMarker *BKE_tracking_exact_marker(struct MovieTrackingTrack 
 int BKE_tracking_has_marker(struct MovieTrackingTrack *track, int framenr);
 
 void BKE_tracking_free_track(struct MovieTrackingTrack *track);
-struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *track);
 
 void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
 

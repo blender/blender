@@ -746,13 +746,18 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
-static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop_parent, int *free)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
 
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
+
+	/* incompatible default attributes */
+	if ((prop_parent->flag & PROP_ENUM_FLAG) != (prop->flag & PROP_ENUM_FLAG)) {
+		return NULL;
+	}
 
 	if(		(eprop->itemf == NULL) ||
 			(eprop->itemf == rna_EnumProperty_default_itemf) ||
