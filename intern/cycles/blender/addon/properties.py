@@ -27,7 +27,7 @@ from bpy.props import (BoolProperty,
 
 import math
 
-from cycles import enums
+from . import enums
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
