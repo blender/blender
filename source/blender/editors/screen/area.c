@@ -262,12 +262,12 @@ static void region_draw_azone_tab_plus(AZone *az)
 			break;
 	}
 
-	glColor4f(0.05f, 0.05f, 0.05f, 0.5f);
+	glColor4f(0.05f, 0.05f, 0.05f, 0.4f);
 	uiRoundBox((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f);
 
 	glEnable(GL_BLEND);
 
-	glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+	glColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
 
 	glDisable(GL_BLEND);
@@ -711,8 +711,8 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	}
 }
 
-#define AZONEPAD_TAB_PLUSW	16
-#define AZONEPAD_TAB_PLUSH	16
+#define AZONEPAD_TAB_PLUSW	14
+#define AZONEPAD_TAB_PLUSH	14
 
 /* region already made zero sized, in shape of edge */
 static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
@@ -739,9 +739,9 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 			az->y2= ar->winrct.ymin;
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
-			az->x1= ar->winrct.xmin + 1 - AZONEPAD_TAB_PLUSH;
+			az->x1= ar->winrct.xmin - AZONEPAD_TAB_PLUSH;
 			az->y1= ar->winrct.ymax - 2.5*AZONEPAD_TAB_PLUSW;
-			az->x2= ar->winrct.xmin + 1;
+			az->x2= ar->winrct.xmin;
 			az->y2= ar->winrct.ymax - 1.5*AZONEPAD_TAB_PLUSW;
 			break;
 		case AE_RIGHT_TO_TOPLEFT:

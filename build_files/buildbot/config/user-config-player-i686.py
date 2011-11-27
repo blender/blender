@@ -52,6 +52,8 @@ WITH_BF_PNG = True
 BF_PNG_LIB = 'libpng'
 BF_PNG_LIBPATH = '/home/sources/staticlibs/lib32'
 
+WITH_BF_STATICLIBSAMPLERATE = True
+
 WITH_BF_ZLIB = True
 WITH_BF_STATICZLIB = True
 BF_ZLIB_LIB_STATIC = '${BF_ZLIB}/lib/libz.a'
@@ -93,5 +95,5 @@ WITH_BF_OCEANSIM = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
+REL_CCFLAGS = ['-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib32']

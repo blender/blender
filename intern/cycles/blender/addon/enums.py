@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-from cycles import engine
+from . import engine
 
 
 def get_gpu_device():

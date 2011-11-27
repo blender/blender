@@ -494,7 +494,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
 	headrect= *rect;
-	headrect.ymin= headrect.ymax - 2.0f/block->aspect;
+	headrect.ymin= headrect.ymax;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	{
@@ -508,7 +508,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			/* draw with background color */
 			glEnable(GL_BLEND);
 			glColor4ubv((unsigned char*)btheme->tui.panel.header);
-			glRectf(minx, headrect.ymin, maxx, y);
+			glRectf(minx, headrect.ymin+1, maxx, y);
 
 			fdrawline(minx, y, maxx, y);
 			fdrawline(minx, y, maxx, y);
