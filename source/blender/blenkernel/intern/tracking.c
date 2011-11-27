@@ -360,18 +360,6 @@ void BKE_tracking_free_track(MovieTrackingTrack *track)
 	if(track->markers) MEM_freeN(track->markers);
 }
 
-MovieTrackingTrack *BKE_tracking_copy_track(MovieTrackingTrack *track)
-{
-	MovieTrackingTrack *new_track= MEM_dupallocN(track);
-
-	new_track->next= new_track->prev= NULL;
-
-	if(new_track->markers)
-		new_track->markers= MEM_dupallocN(new_track->markers);
-
-	return new_track;
-}
-
 static void put_disabled_marker(MovieTrackingTrack *track, MovieTrackingMarker *ref_marker, int before, int overwrite)
 {
 	MovieTrackingMarker marker_new;
@@ -528,11 +516,173 @@ void BKE_tracking_free(MovieTracking *tracking)
 		BKE_tracking_distortion_destroy(tracking->camera.intrinsics);
 }
 
+/*********************** tracks map *************************/
+
+typedef struct TracksMap {
+	int num_tracks;
+	int customdata_size;
+
+	char *customdata;
+	MovieTrackingTrack *tracks;
+
+	GHash *hash;
+
+	int ptr;
+} TracksMap;
+
+static TracksMap *tracks_map_new(int num_tracks, int customdata_size)
+{
+	TracksMap *map= MEM_callocN(sizeof(TracksMap), "TrackingsMap");
+
+	map->num_tracks= num_tracks;
+	map->customdata_size= customdata_size;
+
+	map->tracks= MEM_callocN(sizeof(MovieTrackingTrack)*num_tracks, "TrackingsMap tracks");
+
+	if(customdata_size)
+		map->customdata= MEM_callocN(customdata_size*num_tracks, "TracksMap customdata");
+
+	map->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "TracksMap hash");
+
+	return map;
+}
+
+static int tracks_map_size(TracksMap *map)
+{
+	return map->num_tracks;
+}
+
+static void tracks_map_get(TracksMap *map, int index, MovieTrackingTrack **track, void **customdata)
+{
+	*track= &map->tracks[index];
+
+	if(map->customdata)
+		*customdata= &map->customdata[index*map->customdata_size];
+}
+
+static void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track, void *customdata)
+{
+	MovieTrackingTrack new_track= *track;
+
+	new_track.markers= MEM_dupallocN(new_track.markers);
+
+	map->tracks[map->ptr]= new_track;
+
+	if(customdata)
+		memcpy(&map->customdata[map->ptr*map->customdata_size], customdata, map->customdata_size);
+
+	BLI_ghash_insert(map->hash, &map->tracks[map->ptr], track);
+
+	map->ptr++;
+}
+
+static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
+{
+	MovieTrackingTrack *track;
+	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
+	ListBase *old_tracks= &tracking->tracks;
+	int a;
+
+	/* duplicate currently operating tracks to temporary list.
+	   this is needed to keep names in unique state and it's faster to change names
+	   of currently operating tracks (if needed) */
+	for(a= 0; a<map->num_tracks; a++) {
+		int replace_sel= 0;
+		MovieTrackingTrack *new_track, *old;
+
+		track= &map->tracks[a];
+
+		/* find original of operating track in list of previously displayed tracks */
+		old= BLI_ghash_lookup(map->hash, track);
+		if(old) {
+			MovieTrackingTrack *cur= old_tracks->first;
+
+			while(cur) {
+				if(cur==old)
+					break;
+
+				cur= cur->next;
+			}
+
+			/* original track was found, re-use flags and remove this track */
+			if(cur) {
+				if(cur==tracking->act_track)
+					replace_sel= 1;
+
+				track->flag= cur->flag;
+				track->pat_flag= cur->pat_flag;
+				track->search_flag= cur->search_flag;
+
+				BKE_tracking_free_track(cur);
+				BLI_freelinkN(old_tracks, cur);
+			}
+		}
+
+		new_track= MEM_callocN(sizeof(MovieTrackingTrack), "tracksMapMerge new_track");
+		*new_track= *track;
+		new_track->markers= MEM_dupallocN(new_track->markers);
+
+		BLI_ghash_remove(map->hash, track, NULL, NULL); /* XXX: are we actually need this */
+		BLI_ghash_insert(map->hash, track, new_track);
+
+		if(replace_sel)		/* update current selection in clip */
+			tracking->act_track= new_track;
+
+		BLI_addtail(&tracks, new_track);
+	}
+
+	/* move all tracks, which aren't operating */
+	track= old_tracks->first;
+	while(track) {
+		MovieTrackingTrack *next= track->next;
+
+		track->next= track->prev= NULL;
+		BLI_addtail(&new_tracks, track);
+
+		track= next;
+	}
+
+	/* now move all tracks which are currently operating and keep their names unique */
+	track= tracks.first;
+	while(track) {
+		MovieTrackingTrack *next= track->next;
+
+		BLI_remlink(&tracks, track);
+
+		track->next= track->prev= NULL;
+		BLI_addtail(&new_tracks, track);
+
+		BLI_uniquename(&new_tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
+
+		track= next;
+	}
+
+	tracking->tracks= new_tracks;
+}
+
+static void tracks_map_free(TracksMap *map, void (*customdata_free) (void *customdata))
+{
+	int i= 0;
+
+	BLI_ghash_free(map->hash, NULL, NULL);
+
+	for(i= 0; i<map->num_tracks; i++) {
+		if(map->customdata && customdata_free)
+			customdata_free(&map->customdata[i*map->customdata_size]);
+
+		BKE_tracking_free_track(&map->tracks[i]);
+	}
+
+	if(map->customdata)
+		MEM_freeN(map->customdata);
+
+	MEM_freeN(map->tracks);
+	MEM_freeN(map);
+}
+
 /*********************** tracking *************************/
 
 typedef struct TrackContext {
-	MovieTrackingTrack *track;
-
 #ifdef WITH_LIBMV
 	float keyframed_pos[2];
 
@@ -544,6 +694,8 @@ typedef struct TrackContext {
 	int patsize;			/* size of pattern (currently only 16x16 due to libmv side) */
 	unsigned char *pattern;	/* keyframed pattern */
 	unsigned char *warped;	/* warped version of reference */
+#else
+	int pad;
 #endif
 } TrackContext;
 
@@ -553,11 +705,8 @@ typedef struct MovieTrackingContext {
 
 	int first_time, frames;
 
-	TrackContext *track_context;
-	int num_tracks;
-
-	GHash *hash;
 	MovieTrackingSettings settings;
+	TracksMap *tracks_map;
 
 	short backwards, disable_failed;
 	int sync_frame;
@@ -569,12 +718,11 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingSettings *settings= &tracking->settings;
 	MovieTrackingTrack *track;
-	TrackContext *track_context;
+	int num_tracks= 0;
 
 	context->settings= *settings;
 	context->backwards= backwards;
 	context->disable_failed= disable_failed;
-	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
 	context->sync_frame= user->framenr;
 	context->first_time= 1;
 
@@ -585,33 +733,33 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 			if((marker->flag&MARKER_DISABLED)==0)
-				context->num_tracks++;
+				num_tracks++;
 		}
 
 		track= track->next;
 	}
 
-	if(context->num_tracks) {
+	if(num_tracks) {
 		int width, height;
+
+		context->tracks_map= tracks_map_new(num_tracks, sizeof(TrackContext));
 
 		BKE_movieclip_get_size(clip, user, &width, &height);
 
 		/* create tracking data */
-		context->track_context= MEM_callocN(sizeof(TrackContext)*context->num_tracks, "tracking track_context");
-
-		track_context= context->track_context;
 		track= tracking->tracks.first;
 		while(track) {
 			if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
 				MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 				if((marker->flag&MARKER_DISABLED)==0) {
-					MovieTrackingTrack *new_track= BKE_tracking_copy_track(track);
+					TrackContext track_context;
 
-					track_context->track= new_track;
+					memset(&track_context, 0, sizeof(TrackContext));
+
 #ifdef WITH_LIBMV
 					{
-						if(track_context->track->tracker==TRACKER_KLT) {
+						if(track->tracker==TRACKER_KLT) {
 							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
@@ -627,22 +775,20 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							/* try to accomodate the user's choice of pyramid level in a way
 							 * that doesn't cause the coarsest pyramid pattern to be larger
 							 * than the search size */
-							int level= MIN2(track_context->track->pyramid_levels, max_pyramid_levels);
+							int level= MIN2(track->pyramid_levels, max_pyramid_levels);
 
 							wndx= (int)((track->pat_max[0]-track->pat_min[0])*width)/2;
 							wndy= (int)((track->pat_max[1]-track->pat_min[1])*height)/2;
 
-							track_context->region_tracker= libmv_regionTrackerNew(100, level, MAX2(wndx, wndy));
+							track_context.region_tracker= libmv_regionTrackerNew(100, level, MAX2(wndx, wndy));
 						}
-						else if(track_context->track->tracker==TRACKER_SAD) {
+						else if(track->tracker==TRACKER_SAD) {
 							/* nothing to initialize */
 						}
 					}
 #endif
 
-					BLI_ghash_insert(context->hash, new_track, track);
-
-					track_context++;
+					tracks_map_insert(context->tracks_map, track, &track_context);
 				}
 			}
 
@@ -656,35 +802,30 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	return context;
 }
 
-void BKE_tracking_context_free(MovieTrackingContext *context)
+static void track_context_free(void *customdata)
 {
-	int a;
-	TrackContext *track_context;
-
-	for(a= 0, track_context= context->track_context; a<context->num_tracks; a++, track_context++) {
-		BKE_tracking_free_track(context->track_context[a].track);
+	TrackContext *track_context= (TrackContext *)customdata;
 
 #if WITH_LIBMV
-		if(track_context->region_tracker)
-			libmv_regionTrackerDestroy(track_context->region_tracker);
+	if(track_context->region_tracker)
+		libmv_regionTrackerDestroy(track_context->region_tracker);
 
-		if(track_context->patch)
-			MEM_freeN(track_context->patch);
+	if(track_context->patch)
+		MEM_freeN(track_context->patch);
 
-		if(track_context->pattern)
-			MEM_freeN(track_context->pattern);
+	if(track_context->pattern)
+		MEM_freeN(track_context->pattern);
 
-		if(track_context->warped)
-			MEM_freeN(track_context->warped);
+	if(track_context->warped)
+		MEM_freeN(track_context->warped);
+#else
+		(void) track_context;
 #endif
+}
 
-		MEM_freeN(track_context->track);
-	}
-
-	if(context->track_context)
-		MEM_freeN(context->track_context);
-
-	BLI_ghash_free(context->hash, NULL, NULL);
+void BKE_tracking_context_free(MovieTrackingContext *context)
+{
+	tracks_map_free(context->tracks_map, track_context_free);
 
 	MEM_freeN(context);
 }
@@ -937,86 +1078,10 @@ static void get_warped(TrackContext *track_context, int x, int y, int width, uns
 
 void BKE_tracking_sync(MovieTrackingContext *context)
 {
-	TrackContext *track_context;
 	MovieTracking *tracking= &context->clip->tracking;
-	MovieTrackingTrack *track;
-	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
-	ListBase *old_tracks= &context->clip->tracking.tracks;
-	int a, newframe;
+	int newframe;
 
-	/* duplicate currently tracking tracks to temporary list.
-	   this is needed to keep names in unique state and it's faster to change names
-	   of currently tracking tracks (if needed) */
-	for(a= 0, track_context= context->track_context; a<context->num_tracks; a++, track_context++) {
-		int replace_sel= 0;
-		MovieTrackingTrack *new_track, *old;
-
-		track= track_context->track;
-
-		/* find original of tracking track in list of previously displayed tracks */
-		old= BLI_ghash_lookup(context->hash, track);
-		if(old) {
-			MovieTrackingTrack *cur= old_tracks->first;
-
-			while(cur) {
-				if(cur==old)
-					break;
-
-				cur= cur->next;
-			}
-
-			/* original track was found, re-use flags and remove this track */
-			if(cur) {
-				if(cur==tracking->act_track)
-					replace_sel= 1;
-
-				track->flag= cur->flag;
-				track->pat_flag= cur->pat_flag;
-				track->search_flag= cur->search_flag;
-
-				BKE_tracking_free_track(cur);
-				BLI_freelinkN(old_tracks, cur);
-			}
-		}
-
-		new_track= BKE_tracking_copy_track(track);
-
-		BLI_ghash_remove(context->hash, track, NULL, NULL); /* XXX: are we actually need this */
-		BLI_ghash_insert(context->hash, track, new_track);
-
-		if(replace_sel)		/* update current selection in clip */
-			tracking->act_track= new_track;
-
-		BLI_addtail(&tracks, new_track);
-	}
-
-	/* move all tracks, which aren't tracking */
-	track= old_tracks->first;
-	while(track) {
-		MovieTrackingTrack *next= track->next;
-
-		track->next= track->prev= NULL;
-		BLI_addtail(&new_tracks, track);
-
-		track= next;
-	}
-
-	/* now move all tracks which are currently tracking and keep their names unique */
-	track= tracks.first;
-	while(track) {
-		MovieTrackingTrack *next= track->next;
-
-		BLI_remlink(&tracks, track);
-
-		track->next= track->prev= NULL;
-		BLI_addtail(&new_tracks, track);
-
-		BLI_uniquename(&new_tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
-
-		track= next;
-	}
-
-	context->clip->tracking.tracks= new_tracks;
+	tracks_map_merge(context->tracks_map, tracking);
 
 	if(context->backwards) newframe= context->user.framenr+1;
 	else newframe= context->user.framenr-1;
@@ -1033,10 +1098,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 {
 	ImBuf *ibuf_new;
 	int curfra= context->user.framenr;
-	int a, ok= 0;
+	int a, ok= 0, map_size;
+
+	map_size= tracks_map_size(context->tracks_map);
 
 	/* nothing to track, avoid unneeded frames reading to save time and memory */
-	if(!context->num_tracks)
+	if(!map_size)
 		return 0;
 
 	if(context->backwards) context->user.framenr--;
@@ -1046,11 +1113,15 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!ibuf_new)
 		return 0;
 
-	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
-	for(a= 0; a<context->num_tracks; a++) {
-		TrackContext *track_context= &context->track_context[a];
-		MovieTrackingTrack *track= track_context->track;
-		MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, curfra);
+    #pragma omp parallel for private(a) shared(ibuf_new, ok) if(map_size>1)
+	for(a= 0; a<map_size; a++) {
+		TrackContext *track_context;
+		MovieTrackingTrack *track;
+		MovieTrackingMarker *marker;
+
+		tracks_map_get(context->tracks_map, a, &track, (void**)&track_context);
+
+		marker= BKE_tracking_exact_marker(track, curfra);
 
 		if(marker && (marker->flag&MARKER_DISABLED)==0) {
 #ifdef WITH_LIBMV
@@ -1079,7 +1150,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			   marker->pos[1]<margin[1] || marker->pos[1]>1.0f-margin[1]) {
 				onbound= 1;
 			}
-			else if(track_context->track->tracker==TRACKER_KLT) {
+			else if(track->tracker==TRACKER_KLT) {
 				float *patch_new;
 
 				if(need_readjust) {
@@ -1107,7 +1178,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				MEM_freeN(patch_new);
 			}
-			else if(track_context->track->tracker==TRACKER_SAD) {
+			else if(track->tracker==TRACKER_SAD) {
 				unsigned char *image_new;
 				float correlation;
 				float warp[3][2]={{0}};
@@ -1165,7 +1236,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				x2= warp[2][0];
 				y2= warp[2][1];
 
-				tracked= track_context->track->minimum_correlation < correlation;
+				tracked= track->minimum_correlation < correlation;
 
 				if(tracked)
 					get_warped(track_context, x2, y2, width, image_new);
