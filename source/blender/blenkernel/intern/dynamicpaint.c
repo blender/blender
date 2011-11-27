@@ -1693,7 +1693,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						}
 
 						/* apply weights into a vertex group, if doesnt exists add a new layer */
-						if (defgrp_index >= 0 && !dvert && strlen(surface->output_name)>0)
+						if (defgrp_index >= 0 && !dvert && (surface->output_name[0] != '\0'))
 							dvert = CustomData_add_layer_named(&result->vertData, CD_MDEFORMVERT, CD_CALLOC,
 																NULL, sData->total_points, surface->output_name);
 						if (defgrp_index >= 0 && dvert) {
@@ -2282,10 +2282,10 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 							tPoint->quad = (isInside == 2) ? 1 : 0;		/* quad or tri part*/
 
 							/* save vertex indexes	*/
-							tPoint->v1 = (isInside == 2) ? mface[i].v1 : mface[i].v1;
+							tPoint->v1 = mface[i].v1; /* (isInside == 2) ? mface[i].v1 : mface[i].v1; */ /* same! */
 							tPoint->v2 = (isInside == 2) ? mface[i].v3 : mface[i].v2;
 							tPoint->v3 = (isInside == 2) ? mface[i].v4 : mface[i].v3;
-							
+
 							sample = 5;	/* make sure we exit sample loop as well */
 							break;
 						}
