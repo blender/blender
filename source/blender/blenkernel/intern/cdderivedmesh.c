@@ -2054,7 +2054,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 	polyindex = dm->getTessFaceDataArray(dm, CD_POLYINDEX);
 	index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-	for(i = 0; i < dm->numFaceData; i++, index++) {
+	for(i = 0; i < dm->numFaceData; i++, index++, polyindex++) {
 		MFace *mf = &mface[i];
 		BMLoop **l = em->looptris[i];
 		efa = l[0]->f;
