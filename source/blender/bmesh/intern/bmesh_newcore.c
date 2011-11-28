@@ -1453,7 +1453,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	if(bmesh_radial_find_face(f2loop->prev->e,f1)) return NULL;
 	
 	/*validate only one shared edge*/
-	shared = BM_Face_Sharededges(f1,f2);
+	shared = BM_Face_Share_Edges(f1,f2);
 	if(shared > 1) return NULL;
 
 	/*validate no internal joins*/

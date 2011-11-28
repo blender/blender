@@ -399,8 +399,9 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 		BM_ITER(e2, &iter2, bm, BM_EDGES_OF_VERT, v2) {
 			float angle;
 			
-			if (e1->v1 == e2->v1 || e1->v2 == e2->v2 || e1->v1 == e2->v2 || e1->v2 == e2->v1)
+			if (BM_Edge_Share_Vert(e1, e2)) {
 				continue;
+			}
 
 			sub_v3_v3v3(vec1, BM_OtherEdgeVert(e1, v1)->co, v1->co);
 			sub_v3_v3v3(vec2, BM_OtherEdgeVert(e2, v2)->co, v2->co);

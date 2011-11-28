@@ -403,7 +403,7 @@ int BM_Boundary_Edge(BMEdge *e)
  *	Integer
  */
 
-int BM_Face_Sharededges(BMFace *f1, BMFace *f2)
+int BM_Face_Share_Edges(BMFace *f1, BMFace *f2)
 {
 	BMLoop *l;
 	int count = 0;
@@ -441,6 +441,22 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 		}while(l != e1->l);
 	}
 	return 0;
+}
+
+/**
+ *
+ *           BMESH EDGE SHARE A VERTEX
+ *
+ *	Tests to see if e1 shares a vertex with e2
+ *
+*/
+
+int BM_Edge_Share_Vert(struct BMEdge *e1, struct BMEdge *e2)
+{
+	return (e1->v1 == e2->v1 ||
+	        e1->v1 == e2->v2 ||
+	        e1->v2 == e2->v1 ||
+	        e1->v2 == e2->v2);
 }
 
 /**

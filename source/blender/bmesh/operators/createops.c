@@ -1092,10 +1092,8 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		count++;
 	}
 
-#define EDGECON(e1, e2) (e1->v1 == e2->v1 || e1->v2 == e2->v2 || e1->v1 == e2->v2)
-
-	if (edges1 && BLI_array_count(edges1) > 2 && EDGECON(edges1[0], edges1[BLI_array_count(edges1)-1])) {
-		if (edges2 && BLI_array_count(edges2) > 2 && EDGECON(edges2[0], edges2[BLI_array_count(edges2)-1])) {
+	if (edges1 && BLI_array_count(edges1) > 2 && BM_Edge_Share_Vert(edges1[0], edges1[BLI_array_count(edges1)-1])) {
+		if (edges2 && BLI_array_count(edges2) > 2 && BM_Edge_Share_Vert(edges2[0], edges2[BLI_array_count(edges2)-1])) {
 			BLI_array_free(edges1);
 			BLI_array_free(edges2);
 			return;
@@ -1105,7 +1103,7 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (edges2 && BLI_array_count(edges2) > 2 && EDGECON(edges2[0], edges2[BLI_array_count(edges2)-1])) {
+	if (edges2 && BLI_array_count(edges2) > 2 && BM_Edge_Share_Vert(edges2[0], edges2[BLI_array_count(edges2)-1])) {
 		edges2 = NULL;
 	}
 
@@ -1175,8 +1173,6 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
-
-#undef EDGECON
 }
 
 /*this is essentially new fkey*/
