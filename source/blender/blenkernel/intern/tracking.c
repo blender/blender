@@ -82,7 +82,6 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->settings.default_pattern_size= 11;
 	tracking->settings.default_search_size= 51;
 	tracking->settings.default_pyramid_levels= 2;
-	tracking->settings.frames_limit= 0;
 	tracking->settings.keyframe1= 1;
 	tracking->settings.keyframe2= 30;
 	tracking->settings.dist= 1;
@@ -229,12 +228,12 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 	strcpy(track->name, "Track");
 
-	/* default to KLT tracker */
-	track->tracker = settings->default_tracker;
-	track->pyramid_levels = settings->default_pyramid_levels;
-
-	/* set SAD defaults even though it's not selected by default */
+	track->tracker= settings->default_tracker;
+	track->pyramid_levels= settings->default_pyramid_levels;
 	track->minimum_correlation= settings->default_minimum_correlation;
+	track->margin= settings->default_margin;
+	track->pattern_match= settings->default_pattern_match;
+	track->frames_limit= settings->default_frames_limit;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -1078,7 +1077,7 @@ static ImBuf *get_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack 
 {
 	ImBuf *ibuf= NULL;
 
-	if(context->settings.adjframes == 0) {
+	if(track->pattern_match == TRACK_MATCH_KEYFRAME) {
 		ibuf= get_keyframed_ibuf(context, track, marker, marker_keyed);
 	} else {
 		ibuf= get_frame_ibuf(context, curfra);
@@ -1161,8 +1160,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			int onbound= 0, coords_correct= 0;
 			int nextfra;
 
-			if(!context->settings.adjframes) need_readjust= context->first_time;
-			else need_readjust= context->frames%context->settings.adjframes == 0;
+			if(track->pattern_match==TRACK_MATCH_KEYFRAME)
+				need_readjust= context->first_time;
+			else
+				need_readjust= 1;
 
 			if(context->backwards) nextfra= curfra-1;
 			else nextfra= curfra+1;
@@ -1170,8 +1171,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			/* margin from frame boundaries */
 			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
 
-			margin[0]= MAX2(margin[0], (float)context->settings.margin / ibuf_new->x);
-			margin[1]= MAX2(margin[1], (float)context->settings.margin / ibuf_new->y);
+			margin[0]= MAX2(margin[0], (float)track->margin / ibuf_new->x);
+			margin[1]= MAX2(margin[1], (float)track->margin / ibuf_new->y);
 
 			/* do not track markers which are too close to boundary */
 			if(marker->pos[0]<margin[0] || marker->pos[0]>1.0f-margin[0] ||

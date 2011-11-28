@@ -271,6 +271,11 @@ static EnumPropertyItem tracker_items[] = {
 	{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker which can be used when MLT tracker fails"},
 	{0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem pattern_match_items[] = {
+	{TRACK_MATCH_KEYFRAME, "KEYFRAME", 0, "Keyframe", "Track pattern from keyframe to next frame"},
+	{TRACK_MATCH_PREVFRAME, "PREV_FRAME", 0, "Previous frame", "Track pattern from current frame to next frame"},
+	{0, NULL, 0, NULL, NULL}};
+
 static int rna_matrix_dimsize_4x4[]= {4, 4};
 
 static void rna_def_trackingSettings(BlenderRNA *brna)
@@ -318,27 +323,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, speed_items);
 	RNA_def_property_ui_text(prop, "Speed", "Limit speed of tracking to make visual feedback easier (this does not affect the tracking quality)");
-
-	/* limit frames */
-	prop= RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
-	RNA_def_property_range(prop, 0, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this amount of frames are tracked");
-
-	/* adjust frames */
-	prop= RNA_def_property(srna, "frames_adjust", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "adjframes");
-	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Adjust Frames", "Automatically re-adjust marker position using position on each N frames. 0 means only keyframed position is used");
-
-	/* margin */
-	prop= RNA_def_property(srna, "margin", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "margin");
-	RNA_def_property_range(prop, 0, 300);
-	RNA_def_property_ui_text(prop, "Margin", "Distance from image boudary at which marker stops tracking");
 
 	/* keyframe_a */
 	prop= RNA_def_property(srna, "keyframe_a", PROP_INT, PROP_NONE);
@@ -389,12 +373,32 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Action", "Cleanup action to execute");
 
 	/* ** default tracker settings ** */
-
 	prop= RNA_def_property(srna, "show_default_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED);
 	RNA_def_property_ui_text(prop, "Show Expanded", "Show the expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+
+	/* limit frames */
+	prop= RNA_def_property(srna, "default_frames_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "default_frames_limit");
+	RNA_def_property_range(prop, 0, SHRT_MAX);
+	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this amount of frames are tracked");
+
+	/* pattern match */
+	prop= RNA_def_property(srna, "default_pattern_match", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "default_pattern_match");
+	RNA_def_property_enum_items(prop, pattern_match_items);
+	RNA_def_property_ui_text(prop, "Pattern Match", "Track pattern from given frame when tracking marker to next frame");
+
+	/* margin */
+	prop= RNA_def_property(srna, "default_margin", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "default_margin");
+	RNA_def_property_range(prop, 0, 300);
+	RNA_def_property_ui_text(prop, "Margin", "Default distance from image boudary at which marker stops tracking");
 
 	/* tracking algorithm */
 	prop= RNA_def_property(srna, "default_tracker", PROP_ENUM, PROP_NONE);
@@ -402,7 +406,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, tracker_items);
 	RNA_def_property_update(prop, 0, "rna_tracking_defaultSettings_levelsUpdate");
-	RNA_def_property_ui_text(prop, "Tracker", "Tracking algorithm to use");
+	RNA_def_property_ui_text(prop, "Tracker", "Default tracking algorithm to use");
 
 	/* pyramid level for pyramid klt tracking */
 	prop= RNA_def_property(srna, "default_pyramid_levels", PROP_INT, PROP_NONE);
@@ -597,6 +601,27 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "search_max");
 	RNA_def_property_ui_text(prop, "Search Max", "Right-bottom corner of search area in normalized coordinates relative to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerSearch_update");
+
+	/* limit frames */
+	prop= RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
+	RNA_def_property_range(prop, 0, SHRT_MAX);
+	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this amount of frames are tracked");
+
+	/* pattern match */
+	prop= RNA_def_property(srna, "pattern_match", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "pattern_match");
+	RNA_def_property_enum_items(prop, pattern_match_items);
+	RNA_def_property_ui_text(prop, "Pattern Match", "Track pattern from given frame when tracking marker to next frame");
+
+	/* margin */
+	prop= RNA_def_property(srna, "margin", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "margin");
+	RNA_def_property_range(prop, 0, 300);
+	RNA_def_property_ui_text(prop, "Margin", "Distance from image boudary at which marker stops tracking");
 
 	/* tracking algorithm */
 	prop= RNA_def_property(srna, "tracker", PROP_ENUM, PROP_NONE);

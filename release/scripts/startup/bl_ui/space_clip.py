@@ -132,6 +132,15 @@ class CLIP_PT_tools_marker(Panel):
             else:
                 col.prop(settings, "default_correlation_min")
 
+            col.separator()
+
+            col2 = col.column(align=True)
+            col2.prop(settings, "default_frames_limit")
+            col2.prop(settings, "default_margin")
+
+            col.label(text="Match:")
+            col.prop(settings, "default_pattern_match", text="")
+
 
 class CLIP_PT_tools_tracking(Panel):
     bl_space_type = 'CLIP_EDITOR'
@@ -492,12 +501,11 @@ class CLIP_PT_track_settings(Panel):
                 col.prop(active, "correlation_min")
 
             col.separator()
-            col.label(text="Global Settings:")
+            col.prop(active, "frames_limit")
+            col.prop(active, "margin")
+            col.prop(active, "pattern_match", text="Match")
 
         col.prop(settings, "speed")
-        col.prop(settings, "frames_adjust")
-        col.prop(settings, "frames_limit")
-        col.prop(settings, "margin")
 
 
 class CLIP_PT_stabilization(Panel):
@@ -906,8 +914,8 @@ class CLIP_MT_track_color_presets(Menu):
 
 
 class CLIP_MT_tracking_settings_presets(Menu):
-    """Predefined track color"""
-    bl_label = "Tracking Settings"
+    """Predefined tracking settings"""
+    bl_label = "Tracking Presets"
     preset_subdir = "tracking_settings"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset

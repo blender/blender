@@ -376,6 +376,9 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
         "settings.default_correlation_min",
         "settings.default_pattern_size",
         "settings.default_search_size",
+        "settings.default_frames_limit",
+        "settings.default_pattern_match",
+        "settings.default_margin"
     ]
 
     preset_subdir = "tracking_settings"
