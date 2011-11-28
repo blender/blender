@@ -105,7 +105,7 @@ class CLIP_PT_tools_marker(Panel):
         box = layout.box()
         row = box.row(align=True)
         row.prop(settings, "show_default_expanded", text="", emboss=False)
-        row.label(text="Default Settings")
+        row.label(text="Tracking Settings")
 
         if settings.show_default_expanded:
             col = box.column()
