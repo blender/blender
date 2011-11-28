@@ -105,6 +105,10 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
+endif()
+
 if(WITH_PYTHON)
 	list(APPEND INC
 		../python
