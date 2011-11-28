@@ -67,9 +67,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMesh *bm;
 	BMEditMesh *em;
 	DerivedMesh *cddm;
-	BMIter iter, liter;
-	BMFace *f;
-	BMLoop *l;
+	BMIter iter;
 	BMEdge *e;
 	/* int allocsize[] = {512, 512, 2048, 512}; */ /* UNUSED */
 	float threshold = cos((emd->split_angle + 0.00001) * M_PI / 180.0);
@@ -85,16 +83,14 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	BMO_push(bm, NULL);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				float edge_angle_cos;
-				
-				if (l->radial_next == l)
-					continue;
-				
-				edge_angle_cos = dot_v3v3(f->no, l->radial_next->f->no);
-				if (edge_angle_cos < threshold) {
-					BMO_SetFlag(bm, l->e, EDGE_MARK);
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			/* check for 1 edge having 2 face users */
+			BMLoop *l1, *l2;
+			if ( (l1= e->l) &&
+			     (l2= e->l->radial_next) != l1)
+			{
+				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
+					BMO_SetFlag(bm, e, EDGE_MARK);
 				}
 			}
 		}
