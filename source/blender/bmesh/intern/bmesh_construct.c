@@ -575,6 +575,8 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
 		if (!f2)
 			continue;
+		/* use totface incase adding some faces fails */
+		BM_SetIndex(f2, (bm->totface-1)); /* set_inline */
 
 		ftable[i] = f2;
 
