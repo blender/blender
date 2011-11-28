@@ -1126,14 +1126,14 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	int noslot=0;
 
 	/*we muck around in here, so dup it*/
-	fmt = ofmt = strdup(fmt);
+	fmt = ofmt = BLI_strdup(fmt);
 	
 	/*find operator name*/
 	i = strcspn(fmt, " \t");
 
 	opname = fmt;
 	if (!opname[i]) noslot = 1;
-	opname[i] = 0;
+	opname[i] = '\0';
 
 	fmt += i + (noslot ? 0 : 1);
 	
@@ -1141,8 +1141,11 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		if (!strcmp(opname, opdefines[i]->name)) break;
 	}
 
-	if (i == bmesh_total_ops) return 0;
-	
+	if (i == bmesh_total_ops) {
+		MEM_freeN(ofmt);
+		return 0;
+	}
+
 	BMO_Init_Op(bm, op, opname);
 	def = opdefines[i];
 	
@@ -1272,7 +1275,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 		fmt++;
 	}
 
-	free(ofmt);
+	MEM_freeN(ofmt);
 	return 1;
 error:
 	BMO_Finish_Op(bm, op);
