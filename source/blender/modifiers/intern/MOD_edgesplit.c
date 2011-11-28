@@ -36,29 +36,24 @@
 /* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
  * or edge angle (can be used to achieve autosmoothing) */
 
-#include "DNA_meshdata_types.h"
-
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
-#include "BLI_memarena.h"
-#include "BLI_edgehash.h"
 #include "BLI_math.h"
-#include "BLI_array.h"
-#include "BLI_smallhash.h"
-#include "BLI_linklist.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_particle.h"
 #include "BKE_tessmesh.h"
 #include "BKE_mesh.h"
+
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
 /* EdgeSplit */
 /* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
  * or edge angle (can be used to achieve autosmoothing)
-*/
+ *
+ * note: this code is very close to MOD_bevel.c
+ */
 
 #define EDGE_MARK	1
 
