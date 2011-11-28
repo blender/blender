@@ -75,6 +75,12 @@ typedef struct ViewDepths {
 	char damaged;
 } ViewDepths;
 
+/* enum for passing to foreach functions to test RV3D_CLIPPING */
+typedef enum eV3DClipTest {
+	V3D_CLIP_TEST_OFF =            0, /* clipping is off */
+	V3D_CLIP_TEST_RV3D_CLIPPING =  1, /* clip single points */
+	V3D_CLIP_TEST_REGION =         2  /* use for edges to check if both verts are in the view, but not RV3D_CLIPPING */
+} eV3DClipTest;
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
@@ -214,8 +220,8 @@ void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struc
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);

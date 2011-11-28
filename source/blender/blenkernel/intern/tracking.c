@@ -1702,6 +1702,8 @@ void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *
 	(void) stop;
 	(void) do_update;
 	(void) progress;
+	(void) stats_message;
+	(void) message_size;
 #endif
 }
 
