@@ -1221,10 +1221,11 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 	return tot;
 }
 
-static void track_init_markers(SpaceClip *sc, MovieClip *clip)
+static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit_r)
 {
 	MovieTrackingTrack *track;
 	int framenr= sc->user.framenr, hidden= 0;
+	int frames_limit= 0;
 
 	if((sc->flag&SC_SHOW_MARKER_PATTERN)==0) hidden|= TRACK_AREA_PAT;
 	if((sc->flag&SC_SHOW_MARKER_SEARCH)==0) hidden|= TRACK_AREA_SEARCH;
@@ -1235,12 +1236,22 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip)
 			BKE_tracking_track_flag(track, hidden, SELECT, 1);
 
 		if(TRACK_SELECTED(track)) {
-			if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0)
+			if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 				BKE_tracking_ensure_marker(track, framenr);
+
+				if(track->frames_limit) {
+					if(frames_limit==0)
+						frames_limit= track->frames_limit;
+					else
+						frames_limit= MIN2(frames_limit, track->frames_limit);
+				}
+			}
 		}
 
 		track= track->next;
 	}
+
+	*frames_limit_r= frames_limit;
 }
 
 static int track_markers_check_direction(int backwards, int curfra, int efra)
@@ -1261,6 +1272,9 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
 	MovieTrackingSettings *settings= &clip->tracking.settings;
+	int frames_limit;
+
+	track_init_markers(sc, clip, &frames_limit);
 
 	tmj->sfra= sc->user.framenr;
 	tmj->clip= clip;
@@ -1270,9 +1284,9 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 	else tmj->efra= EFRA;
 
 	/* limit frames to be tracked by user setting */
-	if(settings->frames_limit) {
-		if(backwards) tmj->efra= MAX2(tmj->efra, tmj->sfra-settings->frames_limit);
-		else tmj->efra= MIN2(tmj->efra, tmj->sfra+settings->frames_limit);
+	if(frames_limit) {
+		if(backwards) tmj->efra= MAX2(tmj->efra, tmj->sfra-frames_limit);
+		else tmj->efra= MIN2(tmj->efra, tmj->sfra+frames_limit);
 	}
 
 	if(settings->speed!=TRACKING_SPEED_FASTEST) {
@@ -1282,8 +1296,6 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 		else if(settings->speed==TRACKING_SPEED_QUARTER) tmj->delay*= 4;
 		else if(settings->speed==TRACKING_SPEED_DOUBLE) tmj->delay/= 2;
 	}
-
-	track_init_markers(sc, clip);
 
 	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1);
 
@@ -1376,24 +1388,24 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	int sfra= framenr, efra;
 	int backwards= RNA_boolean_get(op->ptr, "backwards");
 	int sequence= RNA_boolean_get(op->ptr, "sequence");
-	MovieTrackingSettings *settings= &clip->tracking.settings;
+	int frames_limit;
 
 	if(track_count_markers(sc, clip)==0)
 		return OPERATOR_CANCELLED;
+
+	track_init_markers(sc, clip, &frames_limit);
 
 	if(backwards) efra= SFRA;
 	else efra= EFRA;
 
 	/* limit frames to be tracked by user setting */
-	if(settings->frames_limit) {
-		if(backwards) efra= MAX2(efra, sfra-settings->frames_limit);
-		else efra= MIN2(efra, sfra+settings->frames_limit);
+	if(frames_limit) {
+		if(backwards) efra= MAX2(efra, sfra-frames_limit);
+		else efra= MIN2(efra, sfra+frames_limit);
 	}
 
 	if(!track_markers_check_direction(backwards, framenr, efra))
 		return OPERATOR_CANCELLED;
-
-	track_init_markers(sc, clip);
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
 	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence);

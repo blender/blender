@@ -70,14 +70,37 @@ typedef struct MovieDistortion {
 
 /*********************** common functions *************************/
 
+void BKE_tracking_init_settings(MovieTracking *tracking)
+{
+	tracking->camera.sensor_width= 35.0f;
+	tracking->camera.pixel_aspect= 1.0f;
+	tracking->camera.units= CAMERA_UNITS_MM;
+
+	tracking->settings.default_tracker= TRACKER_KLT;
+	tracking->settings.default_pyramid_levels= 2;
+	tracking->settings.default_minimum_correlation= 0.75;
+	tracking->settings.default_pattern_size= 11;
+	tracking->settings.default_search_size= 51;
+	tracking->settings.default_pyramid_levels= 2;
+	tracking->settings.keyframe1= 1;
+	tracking->settings.keyframe2= 30;
+	tracking->settings.dist= 1;
+
+	tracking->stabilization.scaleinf= 1.0f;
+	tracking->stabilization.locinf= 1.0f;
+	tracking->stabilization.rotinf= 1.0f;
+	tracking->stabilization.maxscale= 2.0f;
+}
+
 void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 {
 	int a;
 	float pat_min[2];
 	float pat_max[2];
 	float max_pyramid_level_factor = 1.0;
+
 	if (track->tracker == TRACKER_KLT) {
-		max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
+		max_pyramid_level_factor= 1 << (track->pyramid_levels - 1);
 	}
 
 	/* sort */
@@ -146,7 +169,7 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 		{
-			float search_ratio = 2.3f * max_pyramid_level_factor;
+			float search_ratio= 2.3f * max_pyramid_level_factor;
 
 			/* resize the search area to something sensible based
 			 * on the number of pyramid levels */
@@ -190,25 +213,27 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 {
 	MovieTrackingTrack *track;
 	MovieTrackingMarker marker;
+	MovieTrackingSettings *settings= &tracking->settings;
 
-	/* pick reasonable defaults */
-	float pat[2]= {5.5f, 5.5f}, search[2]= {25.5f, 25.5f}; /* TODO: move to default setting? */
+	float half_pattern= (float)settings->default_pattern_size/2.0f;
+	float half_search= (float)settings->default_search_size/2.0f;
+	float pat[2], search[2];
 
-	pat[0] /= (float)width;
-	pat[1] /= (float)height;
+	pat[0]= half_pattern/(float)width;
+	pat[1]= half_pattern/(float)height;
 
-	search[0] /= (float)width;
-	search[1] /= (float)height;
+	search[0]= half_search/(float)width;
+	search[1]= half_search/(float)height;
 
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 	strcpy(track->name, "Track");
 
-	/* default to KLT tracker */
-	track->tracker = TRACKER_KLT;
-	track->pyramid_levels = 2;
-
-	/* set SAD defaults even though it's not selected by default */
-	track->minimum_correlation= 0.75f;
+	track->tracker= settings->default_tracker;
+	track->pyramid_levels= settings->default_pyramid_levels;
+	track->minimum_correlation= settings->default_minimum_correlation;
+	track->margin= settings->default_margin;
+	track->pattern_match= settings->default_pattern_match;
+	track->frames_limit= settings->default_frames_limit;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -222,6 +247,8 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 	negate_v2_v2(track->search_min, search);
 
 	BKE_tracking_insert_marker(track, &marker);
+
+	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 
 	BLI_addtail(&tracking->tracks, track);
 	BKE_track_unique_name(tracking, track);
@@ -1050,7 +1077,7 @@ static ImBuf *get_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack 
 {
 	ImBuf *ibuf= NULL;
 
-	if(context->settings.adjframes == 0) {
+	if(track->pattern_match == TRACK_MATCH_KEYFRAME) {
 		ibuf= get_keyframed_ibuf(context, track, marker, marker_keyed);
 	} else {
 		ibuf= get_frame_ibuf(context, curfra);
@@ -1133,8 +1160,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			int onbound= 0, coords_correct= 0;
 			int nextfra;
 
-			if(!context->settings.adjframes) need_readjust= context->first_time;
-			else need_readjust= context->frames%context->settings.adjframes == 0;
+			if(track->pattern_match==TRACK_MATCH_KEYFRAME)
+				need_readjust= context->first_time;
+			else
+				need_readjust= 1;
 
 			if(context->backwards) nextfra= curfra-1;
 			else nextfra= curfra+1;
@@ -1142,8 +1171,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			/* margin from frame boundaries */
 			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
 
-			margin[0]= MAX2(margin[0], (float)context->settings.margin / ibuf_new->x);
-			margin[1]= MAX2(margin[1], (float)context->settings.margin / ibuf_new->y);
+			margin[0]= MAX2(margin[0], (float)track->margin / ibuf_new->x);
+			margin[1]= MAX2(margin[1], (float)track->margin / ibuf_new->y);
 
 			/* do not track markers which are too close to boundary */
 			if(marker->pos[0]<margin[0] || marker->pos[0]>1.0f-margin[0] ||

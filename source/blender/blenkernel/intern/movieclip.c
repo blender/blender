@@ -369,19 +369,7 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->aspx= clip->aspy= 1.0f;
 
-	clip->tracking.camera.sensor_width= 35.0f;
-	clip->tracking.camera.pixel_aspect= 1.0f;
-	clip->tracking.camera.units= CAMERA_UNITS_MM;
-
-	clip->tracking.settings.frames_limit= 0;
-	clip->tracking.settings.keyframe1= 1;
-	clip->tracking.settings.keyframe2= 30;
-	clip->tracking.settings.dist= 1;
-
-	clip->tracking.stabilization.scaleinf= 1.0f;
-	clip->tracking.stabilization.locinf= 1.0f;
-	clip->tracking.stabilization.rotinf= 1.0f;
-	clip->tracking.stabilization.maxscale= 2.0f;
+	BKE_tracking_init_settings(&clip->tracking);
 
 	clip->proxy.build_size_flag= IMB_PROXY_25;
 	clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;

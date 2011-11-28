@@ -92,12 +92,54 @@ class CLIP_PT_tools_marker(Panel):
         return clip and sc.mode == 'TRACKING'
 
     def draw(self, context):
+        sc = context.space_data
+        clip = sc.clip
+        settings = clip.tracking.settings
         layout = self.layout
 
         col = layout.column(align=True)
         col.operator("clip.add_marker_move")
         col.operator("clip.detect_features")
         col.operator("clip.delete_track")
+
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(settings, "show_default_expanded", text="", emboss=False)
+        row.label(text="Default Settings")
+
+        if settings.show_default_expanded:
+            col = box.column()
+            row = col.row(align=True)
+            label = bpy.types.CLIP_MT_tracking_settings_presets.bl_label
+            row.menu('CLIP_MT_tracking_settings_presets', text=label)
+            row.operator("clip.tracking_settings_preset_add",
+                         text="", icon='ZOOMIN')
+            props = row.operator("clip.track_color_preset_add",
+                                 text="", icon='ZOOMOUT')
+            props.remove_active = True
+
+            col.separator()
+
+            col2 = col.column(align=True)
+            col2.prop(settings, "default_pattern_size")
+            col2.prop(settings, "default_search_size")
+
+            col.label(text="Tracker:")
+            col.prop(settings, "default_tracker", text="")
+
+            if settings.default_tracker == 'KLT':
+                col.prop(settings, "default_pyramid_levels")
+            else:
+                col.prop(settings, "default_correlation_min")
+
+            col.separator()
+
+            col2 = col.column(align=True)
+            col2.prop(settings, "default_frames_limit")
+            col2.prop(settings, "default_margin")
+
+            col.label(text="Match:")
+            col.prop(settings, "default_pattern_match", text="")
 
 
 class CLIP_PT_tools_tracking(Panel):
@@ -447,18 +489,23 @@ class CLIP_PT_track_settings(Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
+        col = layout.column()
+
         active = clip.tracking.tracks.active
         if active:
-            layout.prop(active, "tracker")
-            if active.tracker == 'KLT':
-                layout.prop(active, "pyramid_levels")
-            elif active.tracker == 'SAD':
-                layout.prop(active, "correlation_min")
+            col.prop(active, "tracker")
 
-        layout.prop(settings, "frames_adjust")
-        layout.prop(settings, "speed")
-        layout.prop(settings, "frames_limit")
-        layout.prop(settings, "margin")
+            if active.tracker == 'KLT':
+                col.prop(active, "pyramid_levels")
+            elif active.tracker == 'SAD':
+                col.prop(active, "correlation_min")
+
+            col.separator()
+            col.prop(active, "frames_limit")
+            col.prop(active, "margin")
+            col.prop(active, "pattern_match", text="Match")
+
+        col.prop(settings, "speed")
 
 
 class CLIP_PT_stabilization(Panel):
@@ -862,6 +909,14 @@ class CLIP_MT_track_color_presets(Menu):
     """Predefined track color"""
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
+
+
+class CLIP_MT_tracking_settings_presets(Menu):
+    """Predefined tracking settings"""
+    bl_label = "Tracking Presets"
+    preset_subdir = "tracking_settings"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
