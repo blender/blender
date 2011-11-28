@@ -1139,8 +1139,10 @@ void bmesh_edgenet_prepare(BMesh *bm, BMOperator *op)
 			else v4 = edges2[i]->v1;
 		}
 
-		if (len_v3v3(v1->co, v3->co) + len_v3v3(v2->co, v4->co) >
-		    len_v3v3(v1->co, v4->co) + len_v3v3(v2->co, v3->co)) {
+		/* avoid sqrt for comparison */
+		if (len_squared_v3v3(v1->co, v3->co) + len_squared_v3v3(v2->co, v4->co) >
+		    len_squared_v3v3(v1->co, v4->co) + len_squared_v3v3(v2->co, v3->co))
+		{
 			BMVert *v;
 			v = v3;
 			v3 = v4;

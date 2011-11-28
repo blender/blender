@@ -296,9 +296,10 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 			/* If v1 is a better match for v4 than v3, AND v2 is a better match
 			   for v3 than v4, the loops are in opposite directions, so reverse
-			   the order of reads from vv1 */
-			if (len_v3v3(v1->co, v3->co) > len_v3v3(v1->co, v4->co) &&
-				len_v3v3(v2->co, v4->co) > len_v3v3(v2->co, v3->co)) {
+			   the order of reads from vv1. We can avoid sqrt for comparison */
+			if (len_squared_v3v3(v1->co, v3->co) > len_squared_v3v3(v1->co, v4->co) &&
+				len_squared_v3v3(v2->co, v4->co) > len_squared_v3v3(v2->co, v3->co))
+			{
 				dir1 = -1;
 				starti = CLAMP_INDEX(-1, lenv1);
 			}
@@ -333,7 +334,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			previ = CLAMP_INDEX(starti - 1, lenv1);
 			nexti = CLAMP_INDEX(starti + 1, lenv1);
 
-			if (len_v3v3(vv1[nexti]->co, vv2[1]->co) > len_v3v3(vv1[previ]->co, vv2[1]->co)) {
+			/* avoid sqrt for comparison */
+			if (len_squared_v3v3(vv1[nexti]->co, vv2[1]->co) > len_squared_v3v3(vv1[previ]->co, vv2[1]->co)) {
 				/* reverse direction for reading vv1 (1 is forward, -1 is backward) */
 				dir1 = -1;
 			}

@@ -746,11 +746,14 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	glEnable(GL_DEPTH_TEST);
 }
 
-static int kfe_vert_in_edge(KnifeEdge *e, KnifeVert *v) {
+/* do we need to keep these functions? - campbell */
+
+static int UNUSED_FUNCTION(kfe_vert_in_edge)(KnifeEdge *e, KnifeVert *v)
+{
 	return e->v1 == v || e->v2 == v;
 }
 
-static int point_on_line(float p[3], float v1[3], float v2[3])
+static int UNUSED_FUNCTION(point_on_line)(float p[3], float v1[3], float v2[3])
 {
 	float d = dist_to_line_segment_v3(p, v1, v2);
 	if (d < 0.01) {
@@ -775,16 +778,17 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	BLI_array_declare(edges);
 	BVHTreeOverlap *results, *result;
 	BMLoop **ls;
-	float cos[9], uv[3], lambda, depsilon;
+	float cos[9], uv[3], lambda;
 	unsigned int tot=0;
 	int i, j;
+
+	/* for comparing distances, error of intersection depends on triangle scale */
+	const float depsilon_squared= 50 * FLT_EPSILON * maxf(maxf(len_squared_v3v3(v1, v2), len_squared_v3v3(v1, v3)), len_squared_v3v3(v2, v3));
+	/* const float depsilon= sqrtf(depsilon_squared); */ /* UNUSED */
 	
 	copy_v3_v3(cos, v1);
 	copy_v3_v3(cos+3, v2);
 	copy_v3_v3(cos+6, v3);
-	
-	/* for comparing distances, error of intersection depends on triangle scale */
-	depsilon = 50*FLT_EPSILON*MAX3(len_v3v3(v1, v2), len_v3v3(v1, v3), len_v3v3(v2, v3));
 
 	BLI_bvhtree_insert(tree2, 0, cos, 3);
 	BLI_bvhtree_balance(tree2);
@@ -813,13 +817,16 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 					
 					interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 					
-					if (kcd->curvert && len_v3v3(kcd->curvert->cageco, p) < depsilon)
+					if (kcd->curvert && len_squared_v3v3(kcd->curvert->cageco, p) < depsilon_squared)
 						continue;
-					if (kcd->prevvert && len_v3v3(kcd->prevvert->cageco, p) < depsilon)
+					if (kcd->prevvert && len_squared_v3v3(kcd->prevvert->cageco, p) < depsilon_squared)
 						continue;
-					if (len_v3v3(kcd->prevcage, p) < depsilon || len_v3v3(kcd->vertcage, p) < depsilon)
+					if ( len_squared_v3v3(kcd->prevcage, p) < depsilon_squared ||
+					     len_squared_v3v3(kcd->vertcage, p) < depsilon_squared)
+					{
 						continue;
-					
+					}
+
 					/*check if this point is visible in the viewport*/
 					knife_project_v3(kcd, p, sp);
 					view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
@@ -841,8 +848,11 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 					if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
 						BMEdgeHit hit;
 						
-						if (len_v3v3(p, kcd->vertco) < depsilon || len_v3v3(p, kcd->prevco) < depsilon)
+						if ( len_squared_v3v3(p, kcd->vertco) < depsilon_squared ||
+						     len_squared_v3v3(p, kcd->prevco) < depsilon_squared)
+						{
 							continue;
+						}
 						
 						hit.kfe = kfe;
 						hit.v = NULL;
