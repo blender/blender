@@ -1,8 +1,4 @@
-/**
- * bmesh_construct.c    August 2008
- *
- *	BM construction functions.
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +24,12 @@
  * Contributor(s): Geoffrey Bantle.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_construct.c
+ *  \ingroup bmesh
+ *
+ * BM construction functions.
  */
 
 #include "MEM_guardedalloc.h"

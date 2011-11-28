@@ -1,6 +1,4 @@
 /*
- *	Low level routines for manipulating the BM structure.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +26,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/intern/bmesh_structure.c
+ *  \ingroup bmesh
+ *
+ * Low level routines for manipulating the BM structure.
+ */
+
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,6 +46,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
+
 /**
  *	MISC utility functions.
  *

@@ -1,18 +1,10 @@
-/**
- * bmesh_structure.h    jan 2007
- *
- * The lowest level of functionality for manipulating bmesh structures.
- * None of these functions should ever be exported to the rest of Blender.
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.	
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
@@ -33,13 +25,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/bmesh/intern/bmesh_structure.h
+ *  \ingroup bmesh
+ *
+ * The lowest level of functionality for manipulating bmesh structures.
+ * None of these functions should ever be exported to the rest of Blender.
+ *
+ * in the vast majority of cases thes should not be used directly.
+ * if absolutely necassary, see function defitions in code for
+ * descriptive comments.  but seriously, don't use this stuff.
+ */
+
 #ifndef BM_STRUCTURE_H
 #define BM_STRUCTURE_H
 
-/*low-level, base bmesh API.  in the vast majority of cases thes should not be
-  used directly.  if absolutely necassary, see function defitions in code for
-  descriptive comments.  but seriously, don't use this stuff.
-*/
 struct ListBase;
 
 void remove_loop_radial_link(BMLoop *l);

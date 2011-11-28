@@ -1,3 +1,40 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_polygon.c
+ *  \ingroup bmesh
+ *
+ * This file contains code for dealing
+ * with polygons (normal/area calculation,
+ * tesselation, etc)
+ *
+ * BMESH_TODO:
+ *  - Add in Tesselator frontend that creates
+ *    BMTriangles from copied faces
+ *
+ *  - Add in Function that checks for and flags
+ *    degenerate faces.
+ */
+
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -13,22 +50,6 @@
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-
-/*
- *
- * BME POLYGON.C
- *
- * This file contains code for dealing
- * with polygons (normal/area calculation,
- * tesselation, ect)
- *
- * BMESH_TODO:
- *   -Add in Tesselator frontend that creates
- *     BMTriangles from copied faces
- *  -Add in Function that checks for and flags
- *   degenerate faces.
- *
-*/
 
 /*
  * TEST EDGE SIDE and POINT IN TRIANGLE

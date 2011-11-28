@@ -1,36 +1,63 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_opdefines.c
+ *  \ingroup bmesh
+ *
+ * BMesh operator definitions.
+ *
+ * This file defines (and documents) all bmesh operators (bmops).
+ *
+ * Do not rename any operator or slot names! otherwise you must go
+ * through the code and find all references to them!
+ *
+ * A word on slot names:
+ *
+ * For geometry input slots, the following are valid names:
+ * - verts
+ * - edges
+ * - faces
+ * - edgefacein
+ * - vertfacein
+ * - vertedgein
+ * - vertfacein
+ * - geom
+ *
+ * The basic rules are, for single-type geometry slots, use the plural of the
+ * type name (e.g. edges).  for double-type slots, use the two type names plus
+ * "in" (e.g. edgefacein).  for three-type slots, use geom.
+ *
+ * for output slots, for single-type geometry slots, use the type name plus "out",
+ * (e.g. vertout), for double-type slots, use the two type names plus "out",
+ * (e.g. vertfaceout), for three-type slots, use geom.  note that you can also
+ * use more esohteric names (e.g. skirtout) so long as the comment next to the
+ * slot definition tells you what types of elements are in it.
+ *
+ */
+
 #include "bmesh.h"
 #include "bmesh_private.h"
 #include <stdio.h>
 
-/*
-This file defines (and documents) all bmesh operators (bmops).
-
-Do not rename any operator or slot names! otherwise you must go 
-through the code and find all references to them!
-
-A word on slot names:
-
-For geometry input slots, the following are valid names:
-* verts
-* edges
-* faces
-* edgefacein
-* vertfacein
-* vertedgein
-* vertfacein
-* geom
-
-The basic rules are, for single-type geometry slots, use the plural of the
-type name (e.g. edges).  for double-type slots, use the two type names plus
-"in" (e.g. edgefacein).  for three-type slots, use geom.
-
-for output slots, for single-type geometry slots, use the type name plus "out",
-(e.g. vertout), for double-type slots, use the two type names plus "out",
-(e.g. vertfaceout), for three-type slots, use geom.  note that you can also
-use more esohteric names (e.g. skirtout) so long as the comment next to the
-slot definition tells you what types of elements are in it.
-
-*/
 
 /*
 ok, I'm going to write a little docgen script. so all

@@ -1,3 +1,36 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_queries.c
+ *  \ingroup bmesh
+ *
+ * This file contains functions for answering common
+ * Topological and geometric queries about a mesh, such
+ * as, "What is the angle between these two faces?" or,
+ * "How many faces are incident upon this vertex?" Tool
+ * authors should use the functions in this file instead
+ * of inspecting the mesh structure directly.
+ */
+
 #include <string.h>
 
 #include "bmesh.h"
@@ -10,18 +43,6 @@
 #include "BLI_utildefines.h"
 
 #define BM_OVERLAP (1<<13)
-
-/*
- * BM_QUERIES.C
- *
- * This file contains functions for answering common
- * Topological and geometric queries about a mesh, such
- * as, "What is the angle between these two faces?" or,
- * "How many faces are incident upon this vertex?" Tool
- * authors should use the functions in this file instead
- * of inspecting the mesh structure directly.
- *
-*/
 
 /*
  * BMESH COUNT ELEMENT

@@ -84,6 +84,7 @@ set(SRC
 	intern/bmesh_newcore.c
 	intern/bmesh_interp.c
 	intern/bmesh_iterators.c
+	intern/bmesh_iterators_inline.c
 	intern/bmesh_marking.c
 	intern/bmesh_mesh.c
 	intern/bmesh_mods.c

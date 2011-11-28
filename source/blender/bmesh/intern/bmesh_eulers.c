@@ -2,9 +2,6 @@
 
 #if 0
 /*
- *	BM Euler construction API.
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +27,12 @@
  * Contributor(s): Geoffrey Bantle.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_eulers.c
+ *  \ingroup bmesh
+ *
+ * BM Euler construction API.
  */
 
 #include "MEM_guardedalloc.h"

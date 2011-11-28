@@ -20,14 +20,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_filters.c
+/** \file blender/bmesh/intern/bmesh_iterators_inline.c
  *  \ingroup bmesh
  *
- * BM Filter API. Not used yet.
+ * TODO
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef BM_ITERATORS_INLINE_C
+#define BM_ITERATORS_INLINE_C
 
-#include "bmesh.h"
-#include "bmesh_private.h"
+
+
+#endif

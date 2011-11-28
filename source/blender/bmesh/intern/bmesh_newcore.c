@@ -1,3 +1,31 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/bmesh/intern/bmesh_newcore.c
+ *  \ingroup bmesh
+ *
+ * TODO
+ */
+
 #include <limits.h>
 
 #include "BLI_math_vector.h"
@@ -34,7 +62,7 @@
 
 #endif
 
-BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
+BMVert *BM_Make_Vert(BMesh *bm, const float co[3], const struct BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
@@ -231,7 +259,7 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 	return f2;
 }
 
-BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nodouble)
+BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble)
 {
 	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
