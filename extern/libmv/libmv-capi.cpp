@@ -31,6 +31,8 @@
 #include "libmv-capi.h"
 
 #include "glog/logging.h"
+#include "libmv/logging/logging.h"
+
 #include "Math/v3d_optimization.h"
 
 #include "libmv/tracking/esm_region_tracker.h"
@@ -41,6 +43,7 @@
 
 #include "libmv/tracking/sad.h"
 
+#include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
@@ -339,6 +342,26 @@ void libmv_tracksDestroy(libmv_Tracks *libmv_tracks)
 
 /* ************ Reconstruction solver ************ */
 
+class ReconstructUpdateCallback : public libmv::ProgressUpdateCallback {
+public:
+	ReconstructUpdateCallback(reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata)
+	{
+		progress_update_callback_ = progress_update_callback;
+		callback_customdata_ = callback_customdata;
+	}
+
+	void invoke(double progress, const char *message)
+	{
+		if(progress_update_callback_) {
+			progress_update_callback_(callback_customdata_, progress, message);
+		}
+	}
+protected:
+	reconstruct_progress_update_cb progress_update_callback_;
+	void *callback_customdata_;
+};
+
 int libmv_refineParametersAreValid(int parameters) {
 	return (parameters == (LIBMV_REFINE_FOCAL_LENGTH))         ||
 	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
@@ -356,13 +379,17 @@ int libmv_refineParametersAreValid(int parameters) {
 
 
 libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
-		int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3)
+			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
 {
 	/* Invert the camera intrinsics. */
 	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
 	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
 	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
 	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+
+	ReconstructUpdateCallback update_callback =
+		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
 
 	intrinsics->SetFocalLength(focal_length, focal_length);
 	intrinsics->SetPrincipalPoint(principal_x, principal_y);
@@ -377,15 +404,16 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 
 	libmv::Tracks normalized_tracks(markers);
 
-	// printf("frames to init from: %d, %d\n", keyframe1, keyframe2);
+	LG << "frames to init from: " << keyframe1 << " " << keyframe2;
 	libmv::vector<libmv::Marker> keyframe_markers =
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
-	// printf("number of markers for init: %d\n", keyframe_markers.size());
+	LG << "number of markers for init: " << keyframe_markers.size();
+
+	update_callback.invoke(0, "Initial reconstruction");
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, reconstruction);
-
-	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
+	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction, &update_callback);
 
 	if (refine_intrinsics) {
 		/* only a few combinations are supported but trust the caller */
@@ -402,9 +430,13 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 		if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K2) {
 			libmv_refine_flags |= libmv::BUNDLE_RADIAL_K2;
 		}
-		libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags, reconstruction, intrinsics);
+
+		progress_update_callback(callback_customdata, 1.0, "Refining solution");
+		libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags,
+			reconstruction, intrinsics);
 	}
 
+	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
 	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
 

@@ -152,7 +152,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *adr, int local)
+static void view3d_project_short_clip(ARegion *ar, const float vec[3], short adr[2], int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -187,7 +187,7 @@ static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *ad
 }
 
 /* only use while object drawing */
-static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *adr)
+static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -215,7 +215,7 @@ static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *
 }
 
 /* same as view3d_project_short_clip but use persmat instead of persmatob for projection */
-static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short *adr, int local)
+static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short adr[2], int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -1903,13 +1903,14 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
  * use the object matrix in the useual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	struct { void (*func)(void *userData, BMVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, BMVert *eve, int x, int y, int index);
+	         void *userData; ViewContext vc; eV3DClipTest clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	BMVert *eve = EDBM_get_vert_for_index(data->vc.em, index);
 
 	if (!BM_TestHFlag(eve, BM_HIDDEN)) {
 		short s[2]= {IS_CLIPPED, 0};
 
-		if (data->clipVerts) {
+		if (data->clipVerts != V3D_CLIP_TEST_OFF) {
 			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
 			float co2[2];
@@ -1922,9 +1923,10 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 	}
 }
 
-void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BMVert *eve, int x, int y, int index), void *userData, int clipVerts)
+void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BMVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, BMVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, BMVert *eve, int x, int y, int index);
+	         void *userData; ViewContext vc; eV3DClipTest clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
@@ -1933,7 +1935,7 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BMVert
 	data.clipVerts = clipVerts;
 
 	EDBM_init_index_arrays(vc->em, 1, 0, 0);
-	if(clipVerts)
+	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
@@ -1968,18 +1970,28 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();
 }
+static int is_co_in_region(ARegion *ar, const short co[2])
+{
+	return ( (co[0] != IS_CLIPPED) && /* may be the only initialized value, check first */
+	         (co[0] >= 0)          &&
+	         (co[0] <  ar->winx)   &&
+	         (co[1] >= 0)          &&
+	         (co[1] <  ar->winy));
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index);
+	         void *userData; ViewContext vc; eV3DClipTest clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(data->vc.em, index);
 
 	if (!BM_TestHFlag(eed, BM_HIDDEN)) {
 		short s[2][2];
 
-		if (data->clipVerts==1) {
+		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
 			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
 			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
-		} else {
+		}
+		else {
 			float v1_co[3], v2_co[3];
 
 			mul_v3_m4v3(v1_co, data->vc.obedit->obmat, v0co);
@@ -1988,10 +2000,12 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 			project_short_noclip(data->vc.ar, v1_co, s[0]);
 			project_short_noclip(data->vc.ar, v2_co, s[1]);
 
-			if (data->clipVerts==2) {
-				if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy))
-					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<data->vc.ar->winx && s[1][1]<data->vc.ar->winy)) 
-						return;
+			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
+				if ( !is_co_in_region(data->vc.ar, s[0]) &&
+				     !is_co_in_region(data->vc.ar, s[1]))
+				{
+					return;
+				}
 			}
 		}
 
@@ -1999,9 +2013,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	}
 }
 
-void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
+void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index);
+	         void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
@@ -2010,7 +2025,7 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, BMEdge
 	data.clipVerts = clipVerts;
 
 	EDBM_init_index_arrays(vc->em, 0, 1, 0);
-	if(clipVerts)
+	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
@@ -5876,9 +5891,8 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 	}
 	else if(type==OB_BOUND_CONE) {
 		float radius = size[0] > size[1] ? size[0] : size[1];
-		glTranslatef(cent[0], cent[2]-size[2], cent[1]);
-		glScalef(radius, 2.0f * size[2], radius);
-		glRotatef(-90., 1.0, 0.0, 0.0);
+		glTranslatef(cent[0], cent[1], cent[2]-size[2]);
+		glScalef(radius, radius, 2.0f * size[2]);
 		gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 	}
 	glPopMatrix();

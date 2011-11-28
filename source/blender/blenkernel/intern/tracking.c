@@ -70,14 +70,37 @@ typedef struct MovieDistortion {
 
 /*********************** common functions *************************/
 
+void BKE_tracking_init_settings(MovieTracking *tracking)
+{
+	tracking->camera.sensor_width= 35.0f;
+	tracking->camera.pixel_aspect= 1.0f;
+	tracking->camera.units= CAMERA_UNITS_MM;
+
+	tracking->settings.default_tracker= TRACKER_KLT;
+	tracking->settings.default_pyramid_levels= 2;
+	tracking->settings.default_minimum_correlation= 0.75;
+	tracking->settings.default_pattern_size= 11;
+	tracking->settings.default_search_size= 51;
+	tracking->settings.default_pyramid_levels= 2;
+	tracking->settings.keyframe1= 1;
+	tracking->settings.keyframe2= 30;
+	tracking->settings.dist= 1;
+
+	tracking->stabilization.scaleinf= 1.0f;
+	tracking->stabilization.locinf= 1.0f;
+	tracking->stabilization.rotinf= 1.0f;
+	tracking->stabilization.maxscale= 2.0f;
+}
+
 void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 {
 	int a;
 	float pat_min[2];
 	float pat_max[2];
 	float max_pyramid_level_factor = 1.0;
+
 	if (track->tracker == TRACKER_KLT) {
-		max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
+		max_pyramid_level_factor= 1 << (track->pyramid_levels - 1);
 	}
 
 	/* sort */
@@ -146,7 +169,7 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 		{
-			float search_ratio = 2.3f * max_pyramid_level_factor;
+			float search_ratio= 2.3f * max_pyramid_level_factor;
 
 			/* resize the search area to something sensible based
 			 * on the number of pyramid levels */
@@ -190,25 +213,27 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 {
 	MovieTrackingTrack *track;
 	MovieTrackingMarker marker;
+	MovieTrackingSettings *settings= &tracking->settings;
 
-	/* pick reasonable defaults */
-	float pat[2]= {5.5f, 5.5f}, search[2]= {25.5f, 25.5f}; /* TODO: move to default setting? */
+	float half_pattern= (float)settings->default_pattern_size/2.0f;
+	float half_search= (float)settings->default_search_size/2.0f;
+	float pat[2], search[2];
 
-	pat[0] /= (float)width;
-	pat[1] /= (float)height;
+	pat[0]= half_pattern/(float)width;
+	pat[1]= half_pattern/(float)height;
 
-	search[0] /= (float)width;
-	search[1] /= (float)height;
+	search[0]= half_search/(float)width;
+	search[1]= half_search/(float)height;
 
 	track= MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 	strcpy(track->name, "Track");
 
-	/* default to KLT tracker */
-	track->tracker = TRACKER_KLT;
-	track->pyramid_levels = 2;
-
-	/* set SAD defaults even though it's not selected by default */
-	track->minimum_correlation= 0.75f;
+	track->tracker= settings->default_tracker;
+	track->pyramid_levels= settings->default_pyramid_levels;
+	track->minimum_correlation= settings->default_minimum_correlation;
+	track->margin= settings->default_margin;
+	track->pattern_match= settings->default_pattern_match;
+	track->frames_limit= settings->default_frames_limit;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0]= x;
@@ -222,6 +247,8 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 	negate_v2_v2(track->search_min, search);
 
 	BKE_tracking_insert_marker(track, &marker);
+
+	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 
 	BLI_addtail(&tracking->tracks, track);
 	BKE_track_unique_name(tracking, track);
@@ -1050,7 +1077,7 @@ static ImBuf *get_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack 
 {
 	ImBuf *ibuf= NULL;
 
-	if(context->settings.adjframes == 0) {
+	if(track->pattern_match == TRACK_MATCH_KEYFRAME) {
 		ibuf= get_keyframed_ibuf(context, track, marker, marker_keyed);
 	} else {
 		ibuf= get_frame_ibuf(context, curfra);
@@ -1133,8 +1160,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			int onbound= 0, coords_correct= 0;
 			int nextfra;
 
-			if(!context->settings.adjframes) need_readjust= context->first_time;
-			else need_readjust= context->frames%context->settings.adjframes == 0;
+			if(track->pattern_match==TRACK_MATCH_KEYFRAME)
+				need_readjust= context->first_time;
+			else
+				need_readjust= 1;
 
 			if(context->backwards) nextfra= curfra-1;
 			else nextfra= curfra+1;
@@ -1142,8 +1171,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			/* margin from frame boundaries */
 			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
 
-			margin[0]= MAX2(margin[0], (float)context->settings.margin / ibuf_new->x);
-			margin[1]= MAX2(margin[1], (float)context->settings.margin / ibuf_new->y);
+			margin[0]= MAX2(margin[0], (float)track->margin / ibuf_new->x);
+			margin[1]= MAX2(margin[1], (float)track->margin / ibuf_new->y);
 
 			/* do not track markers which are too close to boundary */
 			if(marker->pos[0]<margin[0] || marker->pos[0]>1.0f-margin[0] ||
@@ -1250,7 +1279,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					#pragma omp critical
 					{
 						/* check if there's no keyframe/tracked markers before tracking marker.
-						    if so -- create disabled marker before currently tracking "segment" */
+						   if so -- create disabled marker before currently tracking "segment" */
 						put_disabled_marker(track, marker, 1, 0);
 					}
 				}
@@ -1302,6 +1331,36 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	return ok;
 }
 
+/*********************** camera solving *************************/
+
+typedef struct MovieReconstructContext {
+#ifdef WITH_LIBMV
+	struct libmv_Tracks *tracks;
+	int keyframe1, keyframe2;
+	short refine_flags;
+
+	struct libmv_Reconstruction *reconstruction;
+#endif
+
+	float focal_length;
+	float principal_point[2];
+	float k1, k2, k3;
+
+	float reprojection_error;
+
+	TracksMap *tracks_map;
+
+	int sfra, efra;
+} MovieReconstructContext;
+
+typedef struct ReconstructProgressData {
+	short *stop;
+	short *do_update;
+	float *progress;
+	char *stats_message;
+	int message_size;
+} ReconstructProgressData;
+
 #if WITH_LIBMV
 static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int width, int height)
 {
@@ -1328,8 +1387,9 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 	return tracks;
 }
 
-static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static void retrieve_libmv_reconstruct_intrinscis(MovieReconstructContext *context, MovieTracking *tracking)
 {
+	struct libmv_Reconstruction *libmv_reconstruction= context->reconstruction;
 	struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_ReconstructionExtractIntrinsics(libmv_reconstruction);
 
 	float aspy= 1.0f/tracking->camera.pixel_aspect;
@@ -1349,14 +1409,14 @@ static void retrieve_libmv_reconstruct_intrinscis(MovieTracking *tracking, struc
 	tracking->camera.k2= k2;
 }
 
-static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static int retrieve_libmv_reconstruct_tracks(MovieReconstructContext *context, MovieTracking *tracking)
 {
-	int tracknr= 0;
-	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
-	MovieTrackingTrack *track;
+	struct libmv_Reconstruction *libmv_reconstruction= context->reconstruction;
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
-	int ok= 1;
+	MovieTrackingTrack *track;
+	int ok= 1, tracknr= 0, a, origin_set= 0;
+	int sfra= context->sfra, efra= context->efra;
 	float imat[4][4];
 
 	unit_m4(imat);
@@ -1377,30 +1437,6 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 			ok= 0;
 
 			printf("No bundle for track #%d '%s'\n", tracknr, track->name);
-		}
-
-		if(track->markersnr) {
-			int first= 0, last= track->markersnr;
-			MovieTrackingMarker *first_marker= &track->markers[0];
-			MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
-
-			/* find first not-disabled marker */
-			while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
-				first++;
-				first_marker++;
-			}
-
-			/* find last not-disabled marker */
-			while(last>=0 && last_marker->flag&MARKER_DISABLED) {
-				last--;
-				last_marker--;
-			}
-
-			if(first<track->markersnr-1)
-				sfra= MIN2(sfra, first_marker->framenr);
-
-			if(last>=0)
-				efra= MAX2(efra, last_marker->framenr);
 		}
 
 		track= track->next;
@@ -1465,12 +1501,14 @@ static int retrieve_libmv_reconstruct_tracks(MovieTracking *tracking, struct lib
 	return ok;
 }
 
-static int retrieve_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
+static int retrieve_libmv_reconstruct(MovieReconstructContext *context, MovieTracking *tracking)
 {
-	/* take the intrinscis back from libmv */
-	retrieve_libmv_reconstruct_intrinscis(tracking, libmv_reconstruction);
+	tracks_map_merge(context->tracks_map, tracking);
 
-	return retrieve_libmv_reconstruct_tracks(tracking, libmv_reconstruction);
+	/* take the intrinscis back from libmv */
+	retrieve_libmv_reconstruct_intrinscis(context, tracking);
+
+	return retrieve_libmv_reconstruct_tracks(context, tracking);
 }
 
 static int get_refine_intrinsics_flags(MovieTracking *tracking)
@@ -1512,7 +1550,7 @@ static int count_tracks_on_both_keyframes(MovieTracking *tracking)
 }
 #endif
 
-int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_size)
+int BKE_tracking_can_reconstruct(MovieTracking *tracking, char *error_msg, int error_size)
 {
 #if WITH_LIBMV
 	if(count_tracks_on_both_keyframes(tracking)<8) {
@@ -1523,46 +1561,163 @@ int BKE_tracking_can_solve(MovieTracking *tracking, char *error_msg, int error_s
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
-	(void)tracking;
+	(void) tracking;
 
 	return 0;
 #endif
 }
 
-float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
+MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *tracking,
+			int keyframe1, int keyframe2, int width, int height)
 {
-#if WITH_LIBMV
-	{
-		MovieTrackingCamera *camera= &tracking->camera;
-		float aspy= 1.0f/tracking->camera.pixel_aspect;
-		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
-		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
-		        tracking->settings.keyframe1, tracking->settings.keyframe2,
-		        get_refine_intrinsics_flags(tracking),
-		        camera->focal,
-		        camera->principal[0], camera->principal[1]*aspy,
-		        camera->k1, camera->k2, camera->k3);
-		float error= libmv_reprojectionError(reconstruction);
+	MovieReconstructContext *context= MEM_callocN(sizeof(MovieReconstructContext), "MovieReconstructContext data");
+	MovieTrackingCamera *camera= &tracking->camera;
+	float aspy= 1.0f/tracking->camera.pixel_aspect;
+	int num_tracks= BLI_countlist(&tracking->tracks);
+	int sfra= INT_MAX, efra= INT_MIN;
+	MovieTrackingTrack *track;
 
-		tracking->reconstruction.error= error;
+	context->tracks_map= tracks_map_new(num_tracks, 0);
+	track= tracking->tracks.first;
+	while(track) {
+		int first= 0, last= track->markersnr;
+		MovieTrackingMarker *first_marker= &track->markers[0];
+		MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
 
-		if(!retrieve_libmv_reconstruct(tracking, reconstruction))
-			error= -1.0f;
+		/* find first not-disabled marker */
+		while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+			first++;
+			first_marker++;
+		}
 
-		libmv_destroyReconstruction(reconstruction);
-		libmv_tracksDestroy(tracks);
+		/* find last not-disabled marker */
+		while(last>=0 && last_marker->flag&MARKER_DISABLED) {
+			last--;
+			last_marker--;
+		}
 
-		tracking->reconstruction.flag|= TRACKING_RECONSTRUCTED;
+		if(first<track->markersnr-1)
+			sfra= MIN2(sfra, first_marker->framenr);
 
-		return error;
+		if(last>=0)
+			efra= MAX2(efra, last_marker->framenr);
+
+		tracks_map_insert(context->tracks_map, track, NULL);
+
+		track= track->next;
 	}
-#else
-	(void)tracking;
-	(void)width;
-	(void)height;
 
-	return -1.0f;
+	context->sfra= sfra;
+	context->efra= efra;
+
+#ifdef WITH_LIBMV
+	context->tracks= create_libmv_tracks(tracking, width, height*aspy);
+	context->keyframe1= keyframe1;
+	context->keyframe2= keyframe2;
+	context->refine_flags= get_refine_intrinsics_flags(tracking);
+#else
+	(void) width;
+	(void) height;
+	(void) keyframe1;
+	(void) keyframe2;
 #endif
+
+	context->focal_length= camera->focal;
+	context->principal_point[0]= camera->principal[0];
+	context->principal_point[1]= camera->principal[1]*aspy;
+
+	context->k1= camera->k1;
+	context->k2= camera->k2;
+	context->k2= camera->k2;
+
+	return context;
+}
+
+void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
+{
+#ifdef WITH_LIBMV
+	if(context->reconstruction)
+			libmv_destroyReconstruction(context->reconstruction);
+
+	libmv_tracksDestroy(context->tracks);
+#endif
+
+	tracks_map_free(context->tracks_map, NULL);
+
+	MEM_freeN(context);
+}
+
+static void solve_reconstruction_update_cb(void *customdata, double progress, const char *message)
+{
+	ReconstructProgressData *progressdata= customdata;
+
+	if(progressdata->progress) {
+		*progressdata->progress= progress;
+		*progressdata->do_update= 1;
+	}
+
+	BLI_snprintf(progressdata->stats_message, progressdata->message_size,
+			"Solving camera | %s", message);
+}
+
+#if 0
+static int solve_reconstruction_testbreak_cb(void *customdata)
+{
+	ReconstructProgressData *progressdata= customdata;
+
+	if(progressdata->stop && *progressdata->stop)
+		return 1;
+
+	return G.afbreek;
+}
+#endif
+
+void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *stop,
+			short *do_update, float *progress, char *stats_message, int message_size)
+{
+#ifdef WITH_LIBMV
+	float error;
+
+	ReconstructProgressData progressdata;
+
+	progressdata.stop= stop;
+	progressdata.do_update= do_update;
+	progressdata.progress= progress;
+	progressdata.stats_message= stats_message;
+	progressdata.message_size= message_size;
+
+	context->reconstruction = libmv_solveReconstruction(context->tracks,
+		context->keyframe1, context->keyframe2,
+		context->refine_flags,
+		context->focal_length,
+		context->principal_point[0], context->principal_point[1],
+		context->k1, context->k2, context->k3,
+		solve_reconstruction_update_cb, &progressdata);
+
+	error= libmv_reprojectionError(context->reconstruction);
+
+	context->reprojection_error= error;
+#else
+	(void) context;
+	(void) stop;
+	(void) do_update;
+	(void) progress;
+	(void) stats_message;
+	(void) message_size;
+#endif
+}
+
+int BKE_tracking_finish_reconstruction(MovieReconstructContext *context, MovieTracking *tracking)
+{
+	tracking->reconstruction.error= context->reprojection_error;
+	tracking->reconstruction.flag|= TRACKING_RECONSTRUCTED;
+
+#ifdef WITH_LIBMV
+	if(!retrieve_libmv_reconstruct(context, tracking))
+		return 0;
+#endif
+
+	return 1;
 }
 
 void BKE_track_unique_name(MovieTracking *tracking, MovieTrackingTrack *track)

@@ -528,7 +528,7 @@ void xsortvert_flag(int flag)
 	for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
 		if(eve->f & flag)
 			sortblock[i].v1 = eve;
-	mesh_foreachScreenVert(xsortvert_flag__doSetX, sortblock, 0);
+	mesh_foreachScreenVert(xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 	
 		/* make temporal listbase */

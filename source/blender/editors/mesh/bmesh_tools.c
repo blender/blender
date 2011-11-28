@@ -4054,7 +4054,7 @@ static void xsortvert_flag(bContext *UNUSED(C), int UNUSED(flag))
 	}
 	
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, 0);
+	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
 
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 

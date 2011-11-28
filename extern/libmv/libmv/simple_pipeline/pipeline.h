@@ -21,6 +21,7 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_PIPELINE_H_
 #define LIBMV_SIMPLE_PIPELINE_PIPELINE_H_
 
+#include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 
@@ -46,7 +47,8 @@ namespace libmv {
     \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
 void EuclideanCompleteReconstruction(const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction);
+                                     EuclideanReconstruction *reconstruction,
+                                     ProgressUpdateCallback *update_callback = NULL);
 
 /*!
     Estimate camera matrices and homogeneous 3D coordinates for all frames and
