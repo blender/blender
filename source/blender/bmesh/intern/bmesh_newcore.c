@@ -21,11 +21,29 @@
 #include "bmesh_iterators.h"
 #include "bmesh_private.h"
 
+/* use so valgrinds memcheck alerts us when undefined index is used.
+ * TESTING ONLY! */
+// #define USE_DEBUG_INDEX_MEMCHECK
+
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+#define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
+	{                                                      \
+		int undef_idx;                                     \
+		BM_SetIndex(ele, undef_idx); /* set_ok_invalid */  \
+	}                                                      \
+
+#endif
+
 BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+	DEBUG_MEMCHECK_INDEX_INVALIDATE(v)
+#else
 	BM_SetIndex(v, -1); /* set_ok_invalid */
+#endif
+
 	bm->elem_index_dirty |= BM_VERT; /* may add to middle of the pool */
 
 	bm->totvert++;
@@ -82,7 +100,12 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 	
 	e = BLI_mempool_calloc(bm->epool);
 
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+	DEBUG_MEMCHECK_INDEX_INVALIDATE(e)
+#else
 	BM_SetIndex(e, -1); /* set_ok_invalid */
+#endif
+
 	bm->elem_index_dirty |= BM_EDGE; /* may add to middle of the pool */
 
 	bm->totedge++;
@@ -232,7 +255,12 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nod
 	
 	f = BLI_mempool_calloc(bm->fpool);
 
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
+#else
 	BM_SetIndex(f, -1); /* set_ok_invalid */
+#endif
+
 	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
 
 	bm->totface++;
@@ -928,7 +956,12 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 	f->head.htype = BM_FACE;
 	BLI_addtail(&f->loops, lst);
 
+#ifdef USE_DEBUG_INDEX_MEMCHECK
+	DEBUG_MEMCHECK_INDEX_INVALIDATE(f)
+#else
 	BM_SetIndex(f, -1); /* set_ok_invalid */
+#endif
+
 	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
 
 	bm->totface++;

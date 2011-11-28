@@ -490,37 +490,53 @@ void BM_ElemIndex_Ensure(BMesh *bm, const char hflag)
 	BMIter iter;
 	BMHeader *ele;
 
-	/* TODO, mark arrays as dirty, only calculate if needed!,
-	 * uncomment bm->elem_index_dirty checks */
+#ifdef DEBUG
+	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
+#endif
 
-	if ((hflag & BM_VERT) /* && (bm->elem_index_dirty & BM_VERT) */) {
-		int index= 0;
-		BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			BM_SetIndex(ele, index); /* set_ok */
-			index++;
+	if (hflag & BM_VERT) {
+		if (bm->elem_index_dirty & BM_VERT) {
+			int index= 0;
+			BM_ITER(ele, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+				BM_SetIndex(ele, index); /* set_ok */
+				index++;
+			}
+			bm->elem_index_dirty &= ~BM_VERT;
+			BLI_assert(index == bm->totvert);
 		}
-		bm->elem_index_dirty &= ~BM_VERT;
-		BLI_assert(index == bm->totvert);
+		else {
+			// printf("%s: skipping vert index calc!\n", __func__);
+		}
 	}
 
-	if ((hflag & BM_EDGE) /* && (bm->elem_index_dirty & BM_EDGE) */) {
-		int index= 0;
-		BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			BM_SetIndex(ele, index); /* set_ok */
-			index++;
+	if (hflag & BM_EDGE) {
+		if (bm->elem_index_dirty & BM_EDGE) {
+			int index= 0;
+			BM_ITER(ele, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+				BM_SetIndex(ele, index); /* set_ok */
+				index++;
+			}
+			bm->elem_index_dirty &= ~BM_EDGE;
+			BLI_assert(index == bm->totedge);
 		}
-		bm->elem_index_dirty &= ~BM_EDGE;
-		BLI_assert(index == bm->totedge);
+		else {
+			// printf("%s: skipping edge index calc!\n", __func__);
+		}
 	}
 
-	if ((hflag & BM_FACE) /* && (bm->elem_index_dirty & BM_FACES) */) {
-		int index= 0;
-		BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			BM_SetIndex(ele, index); /* set_ok */
-			index++;
+	if (hflag & BM_FACE) {
+		if (bm->elem_index_dirty & BM_FACE) {
+			int index= 0;
+			BM_ITER(ele, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				BM_SetIndex(ele, index); /* set_ok */
+				index++;
+			}
+			bm->elem_index_dirty &= ~BM_FACE;
+			BLI_assert(index == bm->totface);
 		}
-		bm->elem_index_dirty &= ~BM_FACE;
-		BLI_assert(index == bm->totface);
+		else {
+			// printf("%s: skipping face index calc!\n", __func__);
+		}
 	}
 }
 
@@ -553,10 +569,12 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 		int err_idx= 0;
 
 		BM_ITER(ele, &iter, bm, types[i], NULL) {
-			if (BM_GetIndex(ele) != index) {
-				err_val= BM_GetIndex(ele);
-				err_idx= index;
-				is_error= TRUE;
+			if (!is_dirty) {
+				if (BM_GetIndex(ele) != index) {
+					err_val= BM_GetIndex(ele);
+					err_idx= index;
+					is_error= TRUE;
+				}
 			}
 
 			BM_SetIndex(ele, index); /* set_ok */
@@ -590,6 +608,8 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 	}
 #endif
 #endif
+	(void) is_any_error; /* shut up the compiler */
+
 }
 
 BMVert *BM_Vert_AtIndex(BMesh *bm, const int index)
