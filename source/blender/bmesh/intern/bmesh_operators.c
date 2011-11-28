@@ -820,6 +820,7 @@ static void alloc_flag_layer(BMesh *bm)
 
 	BMIter iter;
 	BLI_mempool *oldpool = bm->toolflagpool; 		/*old flag pool*/
+	BLI_mempool *newpool;
 	void *oldflags;
 
 	/* store memcpy size for reuse */
@@ -828,24 +829,24 @@ static void alloc_flag_layer(BMesh *bm)
 	bm->totflags++;
 
 	/*allocate new flag pool*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
+	bm->toolflagpool= newpool= BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
 	
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
-	for(ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
 		oldflags = ele->flags;
-		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
 		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
 		oldflags = ele->flags;
-		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
 		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
 		oldflags = ele->flags;
-		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		ele->flags = BLI_mempool_calloc(newpool);
 		memcpy(ele->flags, oldflags, old_totflags_size);
 		BM_SetIndex(ele, i); /* set_inline */
 	}
@@ -857,37 +858,45 @@ static void alloc_flag_layer(BMesh *bm)
 
 static void free_flag_layer(BMesh *bm)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
+	BMHeader *ele;
+	/* set the index values since we are looping over all data anyway,
+	 * may save time later on */
+	int i;
 
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
+	BMIter iter;
 	BLI_mempool *oldpool = bm->toolflagpool;
+	BLI_mempool *newpool;
 	void *oldflags;
 	
+	/* store memcpy size for reuse */
+	const size_t new_totflags_size= ((bm->totflags-1) * sizeof(BMFlagLayer));
+
 	/*de-increment the totflags first...*/
 	bm->totflags--;
 	/*allocate new flag pool*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, TRUE, FALSE);
+	bm->toolflagpool= newpool= BLI_mempool_create(new_totflags_size, 512, 512, TRUE, FALSE);
 	
 	/*now go through and memcpy all the flags*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
-		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);  /*correct?*/
+	for (ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(newpool);
+		memcpy(ele->flags, oldflags, new_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
-		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
+	for (ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(newpool);
+		memcpy(ele->flags, oldflags, new_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
-		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
+	for (ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++) {
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(newpool);
+		memcpy(ele->flags, oldflags, new_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
+
+	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
 
 	BLI_mempool_destroy(oldpool);
 }
