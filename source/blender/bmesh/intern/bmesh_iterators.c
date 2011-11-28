@@ -24,6 +24,8 @@
  *  \ingroup bmesh
  *
  * Functions to abstract looping over bmesh data structures.
+ *
+ * See: bmesh_iterators_inlin.c too, some functions are here for speed reasons.
  */
 
 #include <string.h>
@@ -55,18 +57,6 @@ void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
 }
 
 /*
- *	BMESH ITERATOR STEP
- *
- *  Calls an iterators step fucntion to return
- *  the next element.
-*/
-
-void *BMIter_Step(BMIter *iter)
-{
-	return iter->step(iter);
-}
-
-/*
  * INIT ITERATOR
  *
  * Clears the internal state of an iterator
@@ -95,41 +85,44 @@ static void init_iterator(BMIter *iter)
  * When the end of a sequence is
  * reached, next should always equal NULL
  *
-*/
+ * The 'bmiter__' prefix is used because these are used in
+ * bmesh_iterators_inine.c but should otherwise be seen as
+ * private.
+ */
 
 /*
  * VERT OF MESH CALLBACKS
  *
 */
 
-static void vert_of_mesh_begin(BMIter *iter)
+void bmiter__vert_of_mesh_begin(BMIter *iter)
 {
 	BLI_mempool_iternew(iter->bm->vpool, &iter->pooliter);
 }
 
-static void *vert_of_mesh_step(BMIter *iter)
+void  *bmiter__vert_of_mesh_step(BMIter *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
 
 }
 
-static void edge_of_mesh_begin(BMIter *iter)
+void  bmiter__edge_of_mesh_begin(BMIter *iter)
 {
 	BLI_mempool_iternew(iter->bm->epool, &iter->pooliter);
 }
 
-static void *edge_of_mesh_step(BMIter *iter)
+void  *bmiter__edge_of_mesh_step(BMIter *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
 
 }
 
-static void face_of_mesh_begin(BMIter *iter)
+void  bmiter__face_of_mesh_begin(BMIter *iter)
 {
 	BLI_mempool_iternew(iter->bm->fpool, &iter->pooliter);
 }
 
-static void *face_of_mesh_step(BMIter *iter)
+void  *bmiter__face_of_mesh_step(BMIter *iter)
 {
 	return BLI_mempool_iterstep(&iter->pooliter);
 
@@ -140,7 +133,7 @@ static void *face_of_mesh_step(BMIter *iter)
  *
 */
 
-static void edge_of_vert_begin(BMIter *iter)
+void  bmiter__edge_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	if(iter->vdata->e){
@@ -149,7 +142,7 @@ static void edge_of_vert_begin(BMIter *iter)
 	}
 }
 
-static void *edge_of_vert_step(BMIter *iter)
+void  *bmiter__edge_of_vert_step(BMIter *iter)
 {
 	BMEdge *current = iter->nextedge;
 
@@ -166,7 +159,7 @@ static void *edge_of_vert_step(BMIter *iter)
  *
 */
 
-static void face_of_vert_begin(BMIter *iter)
+void  bmiter__face_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->count = 0;
@@ -179,7 +172,7 @@ static void face_of_vert_begin(BMIter *iter)
 		iter->nextloop = iter->firstloop;
 	}
 }
-static void *face_of_vert_step(BMIter *iter)
+void  *bmiter__face_of_vert_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -206,7 +199,7 @@ static void *face_of_vert_step(BMIter *iter)
  *
 */
 
-static void loop_of_vert_begin(BMIter *iter)
+void  bmiter__loop_of_vert_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->count = 0;
@@ -219,7 +212,7 @@ static void loop_of_vert_begin(BMIter *iter)
 		iter->nextloop = iter->firstloop;
 	}
 }
-static void *loop_of_vert_step(BMIter *iter)
+void  *bmiter__loop_of_vert_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -241,7 +234,7 @@ static void *loop_of_vert_step(BMIter *iter)
 }
 
 
-static void loops_of_edge_begin(BMIter *iter)
+void  bmiter__loops_of_edge_begin(BMIter *iter)
 {
 	BMLoop *l;
 
@@ -253,7 +246,7 @@ static void loops_of_edge_begin(BMIter *iter)
 	iter->firstloop = iter->nextloop = l;
 }
 
-static void *loops_of_edge_step(BMIter *iter)
+void  *bmiter__loops_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -267,7 +260,7 @@ static void *loops_of_edge_step(BMIter *iter)
 	return NULL;
 }
 
-static void loops_of_loop_begin(BMIter *iter)
+void  bmiter__loops_of_loop_begin(BMIter *iter)
 {
 	BMLoop *l;
 
@@ -283,7 +276,7 @@ static void loops_of_loop_begin(BMIter *iter)
 		iter->nextloop = NULL;
 }
 
-static void *loops_of_loop_step(BMIter *iter)
+void  *bmiter__loops_of_loop_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 	
@@ -299,7 +292,7 @@ static void *loops_of_loop_step(BMIter *iter)
  *
 */
 
-static void face_of_edge_begin(BMIter *iter)
+void  bmiter__face_of_edge_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	
@@ -309,7 +302,7 @@ static void face_of_edge_begin(BMIter *iter)
 	}
 }
 
-static void *face_of_edge_step(BMIter *iter)
+void  *bmiter__face_of_edge_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -325,13 +318,13 @@ static void *face_of_edge_step(BMIter *iter)
  *
 */
 
-static void vert_of_face_begin(BMIter *iter)
+void  bmiter__vert_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->firstloop = iter->nextloop = ((BMLoopList*)iter->pdata->loops.first)->first;
 }
 
-static void *vert_of_face_step(BMIter *iter)
+void  *bmiter__vert_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -347,13 +340,13 @@ static void *vert_of_face_step(BMIter *iter)
  *
 */
 
-static void edge_of_face_begin(BMIter *iter)
+void  bmiter__edge_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->firstloop = iter->nextloop = ((BMLoopList*)iter->pdata->loops.first)->first;
 }
 
-static void *edge_of_face_step(BMIter *iter)
+void  *bmiter__edge_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -369,13 +362,13 @@ static void *edge_of_face_step(BMIter *iter)
  *
 */
 
-static void loop_of_face_begin(BMIter *iter)
+void  bmiter__loop_of_face_begin(BMIter *iter)
 {
 	init_iterator(iter);
 	iter->firstloop = iter->nextloop = bm_firstfaceloop(iter->pdata);
 }
 
-static void *loop_of_face_step(BMIter *iter)
+void  *bmiter__loop_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
@@ -383,112 +376,4 @@ static void *loop_of_face_step(BMIter *iter)
 	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
 	return current;
-}
-
-/*
- * BMESH ITERATOR INIT
- *
- * Takes a bmesh iterator structure and fills
- * it with the appropriate function pointers based
- * upon its type and then calls BMeshIter_step()
- * to return the first element of the iterator.
- *
-*/
-void *BMIter_New(BMIter *iter, BMesh *bm, const char htype, void *data)
-{
-	/* int argtype; */
-	iter->htype = htype;
-	iter->bm = bm;
-
-	switch(htype){
-		case BM_VERTS_OF_MESH:
-			iter->begin = vert_of_mesh_begin;
-			iter->step = vert_of_mesh_step;
-			break;
-		case BM_EDGES_OF_MESH:
-			iter->begin = edge_of_mesh_begin;
-			iter->step = edge_of_mesh_step;
-			break;
-		case BM_FACES_OF_MESH:
-			iter->begin = face_of_mesh_begin;
-			iter->step = face_of_mesh_step;
-			break;
-		case BM_EDGES_OF_VERT:
-			if (!data)
-				return NULL;
-
-			iter->begin = edge_of_vert_begin;
-			iter->step = edge_of_vert_step;
-			iter->vdata = data;
-			break;
-		case BM_FACES_OF_VERT:
-			if (!data)
-				return NULL;
-
-			iter->begin = face_of_vert_begin;
-			iter->step = face_of_vert_step;
-			iter->vdata = data;
-			break;
-		case BM_LOOPS_OF_VERT:
-			if (!data)
-				return NULL;
-
-			iter->begin = loop_of_vert_begin;
-			iter->step = loop_of_vert_step;
-			iter->vdata = data;
-			break;
-		case BM_FACES_OF_EDGE:
-			if (!data)
-				return NULL;
-
-			iter->begin = face_of_edge_begin;
-			iter->step = face_of_edge_step;
-			iter->edata = data;
-			break;
-		case BM_VERTS_OF_FACE:
-			if (!data)
-				return NULL;
-
-			iter->begin = vert_of_face_begin;
-			iter->step = vert_of_face_step;
-			iter->pdata = data;
-			break;
-		case BM_EDGES_OF_FACE:
-			if (!data)
-				return NULL;
-
-			iter->begin = edge_of_face_begin;
-			iter->step = edge_of_face_step;
-			iter->pdata = data;
-			break;
-		case BM_LOOPS_OF_FACE:
-			if (!data)
-				return NULL;
-
-			iter->begin = loop_of_face_begin;
-			iter->step = loop_of_face_step;
-			iter->pdata = data;
-			break;
-		case BM_LOOPS_OF_LOOP:
-			if (!data)
-				return NULL;
-
-			iter->begin = loops_of_loop_begin;
-			iter->step = loops_of_loop_step;
-			iter->ldata = data;
-			break;
-		case BM_LOOPS_OF_EDGE:
-			if (!data)
-				return NULL;
-
-			iter->begin = loops_of_edge_begin;
-			iter->step = loops_of_edge_step;
-			iter->edata = data;
-			break;
-		default:
-			break;
-	}
-
-	iter->begin(iter);
-	return BMIter_Step(iter);
 }

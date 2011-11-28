@@ -75,8 +75,34 @@ typedef struct BMIter {
 	int htype, count;
 }BMIter;
 
-void *BMIter_New(struct BMIter *iter, struct BMesh *bm, const char htype, void *data);
-void *BMIter_Step(struct BMIter *iter);
 void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index);
+
+/* private for bmesh_iterators_inline.c */
+void  bmiter__vert_of_mesh_begin(struct BMIter *iter);
+void *bmiter__vert_of_mesh_step(struct BMIter *iter);
+void  bmiter__edge_of_mesh_begin(struct BMIter *iter);
+void *bmiter__edge_of_mesh_step(struct BMIter *iter);
+void  bmiter__face_of_mesh_begin(struct BMIter *iter);
+void *bmiter__face_of_mesh_step(struct BMIter *iter);
+void  bmiter__edge_of_vert_begin(struct BMIter *iter);
+void *bmiter__edge_of_vert_step(struct BMIter *iter);
+void  bmiter__face_of_vert_begin(struct BMIter *iter);
+void *bmiter__face_of_vert_step(struct BMIter *iter);
+void  bmiter__loop_of_vert_begin(struct BMIter *iter);
+void *bmiter__loop_of_vert_step(struct BMIter *iter);
+void  bmiter__loops_of_edge_begin(struct BMIter *iter);
+void *bmiter__loops_of_edge_step(struct BMIter *iter);
+void  bmiter__loops_of_loop_begin(struct BMIter *iter);
+void *bmiter__loops_of_loop_step(struct BMIter *iter);
+void  bmiter__face_of_edge_begin(struct BMIter *iter);
+void *bmiter__face_of_edge_step(struct BMIter *iter);
+void  bmiter__vert_of_face_begin(struct BMIter *iter);
+void *bmiter__vert_of_face_step(struct BMIter *iter);
+void  bmiter__edge_of_face_begin(struct BMIter *iter);
+void *bmiter__edge_of_face_step(struct BMIter *iter);
+void  bmiter__loop_of_face_begin(struct BMIter *iter);
+void *bmiter__loop_of_face_step(struct BMIter *iter);
+
+#include "intern/bmesh_iterators_inline.c"
 
 #endif
