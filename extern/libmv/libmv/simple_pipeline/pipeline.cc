@@ -21,6 +21,7 @@
 #include <cstdio>
 
 #include "libmv/logging/logging.h"
+#include "libmv/simple_pipeline/pipeline.h"
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/intersect.h"
 #include "libmv/simple_pipeline/resect.h"
@@ -117,14 +118,32 @@ struct ProjectivePipelineRoutines {
 
 }  // namespace
 
+static void CompleteReconstructionLogProress(ProgressUpdateCallback *update_callback,
+    double progress,
+    const char *step = NULL)
+{
+  if(update_callback) {
+    char message[256];
+
+    if(step)
+      snprintf(message, sizeof(message), "Completing solution %d%% | %s", (int)(progress*100), step);
+    else
+      snprintf(message, sizeof(message), "Completing solution %d%%", (int)(progress*100));
+
+    update_callback->invoke(progress, message);
+  }
+}
+
 template<typename PipelineRoutines>
 void InternalCompleteReconstruction(
     const Tracks &tracks,
-    typename PipelineRoutines::Reconstruction *reconstruction) {
+    typename PipelineRoutines::Reconstruction *reconstruction,
+    ProgressUpdateCallback *update_callback = NULL) {
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
   int num_intersects = -1;
+  int tot_resects = 0;
   LG << "Max track: " << max_track;
   LG << "Max image: " << max_image;
   LG << "Number of markers: " << tracks.NumMarkers();
@@ -148,12 +167,17 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for track " << track;
       if (reconstructed_markers.size() >= 2) {
+        CompleteReconstructionLogProress(update_callback,
+                                         (double)tot_resects/(max_image));
         PipelineRoutines::Intersect(reconstructed_markers, reconstruction);
         num_intersects++;
         LG << "Ran Intersect() for track " << track;
       }
     }
     if (num_intersects) {
+      CompleteReconstructionLogProress(update_callback,
+                                       (double)tot_resects/(max_image),
+                                       "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
       LG << "Ran Bundle() after intersections.";
     }
@@ -178,8 +202,11 @@ void InternalCompleteReconstruction(
       LG << "Got " << reconstructed_markers.size()
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
+        CompleteReconstructionLogProress(update_callback,
+                                         (double)tot_resects/(max_image));
         if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, false)) {
           num_resects++;
+          tot_resects++;
           LG << "Ran Resect() for image " << image;
         } else {
           LG << "Failed Resect() for image " << image;
@@ -187,6 +214,9 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_resects) {
+      CompleteReconstructionLogProress(update_callback,
+                                       (double)tot_resects/(max_image),
+                                       "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
@@ -208,6 +238,8 @@ void InternalCompleteReconstruction(
       }
     }
     if (reconstructed_markers.size() >= 5) {
+      CompleteReconstructionLogProress(update_callback,
+                                       (double)tot_resects/(max_image));
       if (PipelineRoutines::Resect(reconstructed_markers, reconstruction, true)) {
         num_resects++;
         LG << "Ran Resect() for image " << image;
@@ -217,6 +249,9 @@ void InternalCompleteReconstruction(
     }
   }
   if (num_resects) {
+    CompleteReconstructionLogProress(update_callback,
+                                     (double)tot_resects/(max_image),
+                                     "Bundling...");
     PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }
@@ -244,7 +279,7 @@ double InternalReprojectionError(const Tracks &image_tracks,
         PipelineRoutines::ProjectMarker(*point, *camera, intrinsics);
     double ex = reprojected_marker.x - markers[i].x;
     double ey = reprojected_marker.y - markers[i].y;
-
+#if 0
     const int N = 100;
     char line[N];
     snprintf(line, N,
@@ -262,6 +297,7 @@ double InternalReprojectionError(const Tracks &image_tracks,
            ex,
            ey,
            sqrt(ex*ex + ey*ey));
+#endif
     total_error += sqrt(ex*ex + ey*ey);
   }
   LG << "Skipped " << num_skipped << " markers.";
@@ -289,9 +325,11 @@ double ProjectiveReprojectionError(
 }
 
 void EuclideanCompleteReconstruction(const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction) {
+                                     EuclideanReconstruction *reconstruction,
+                                     ProgressUpdateCallback *update_callback) {
   InternalCompleteReconstruction<EuclideanPipelineRoutines>(tracks,
-                                                            reconstruction);
+                                                            reconstruction,
+                                                            update_callback);
 }
 
 void ProjectiveCompleteReconstruction(const Tracks &tracks,

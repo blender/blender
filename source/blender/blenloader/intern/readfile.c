@@ -5966,6 +5966,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	clip->anim= NULL;
 	clip->tracking_context= NULL;
+	clip->tracking.stats= NULL;
 
 	clip->tracking.stabilization.ok= 0;
 	clip->tracking.stabilization.scaleibuf= NULL;

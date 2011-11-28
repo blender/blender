@@ -64,10 +64,14 @@ void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 #define LIBMV_REFINE_PRINCIPAL_POINT	(1<<1)
 #define LIBMV_REFINE_RADIAL_DISTORTION_K1 (1<<2)
 #define LIBMV_REFINE_RADIAL_DISTORTION_K2 (1<<4)
+
+typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);
+
 int libmv_refineParametersAreValid(int parameters);
 
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
+			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
 double libmv_reporojectionErrorForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track);
 double libmv_reporojectionErrorForImage(struct libmv_Reconstruction *libmv_reconstruction, int image);

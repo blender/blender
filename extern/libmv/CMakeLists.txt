@@ -39,6 +39,7 @@ set(SRC
 	libmv-capi.cpp
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
+	libmv/simple_pipeline/callbacks.cc
 	libmv/simple_pipeline/reconstruction.cc
 	libmv/simple_pipeline/resect.cc
 	libmv/simple_pipeline/intersect.cc
@@ -83,6 +84,7 @@ set(SRC
 	libmv/numeric/poly.h
 	libmv/numeric/function_derivative.h
 	libmv/numeric/numeric.h
+	libmv/simple_pipeline/callbacks.h
 	libmv/simple_pipeline/resect.h
 	libmv/simple_pipeline/reconstruction.h
 	libmv/simple_pipeline/camera_intrinsics.h
