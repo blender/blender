@@ -2450,7 +2450,7 @@ int mesh_recalcTesselation(CustomData *fdata,
  *
 */
 static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart, 
-				  MVert *mvert, float *normal)
+                                  MVert *mvert, float normal[3])
 {
 
 	MVert *v1, *v2, *v3;
@@ -2512,32 +2512,66 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 }
 
 void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
-                           MVert *mvarray, float *no)
+                           MVert *mvarray, float no[3])
 {
-	if(mpoly->totloop > 4) {
+	if (mpoly->totloop > 4) {
 		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, no);
 	}
-	else if(mpoly->totloop == 3){
-		MVert *v1, *v2, *v3;
-
-		v1 = mvarray + (loopstart++)->v;
-		v2 = mvarray + (loopstart++)->v;
-		v3 = mvarray + loopstart->v;
-		normal_tri_v3( no,v1->co, v2->co, v3->co);
+	else if (mpoly->totloop == 3){
+		normal_tri_v3(no,
+		              mvarray[loopstart[0].v].co,
+		              mvarray[loopstart[1].v].co,
+		              mvarray[loopstart[2].v].co
+		              );
 	}
-	else if(mpoly->totloop == 4){
-		MVert *v1, *v2, *v3, *v4;
-
-		v1 = mvarray + (loopstart++)->v;
-		v2 = mvarray + (loopstart++)->v;
-		v3 = mvarray + (loopstart++)->v;
-		v4 = mvarray + loopstart->v;
-		normal_quad_v3( no,v1->co, v2->co, v3->co, v4->co);
+	else if (mpoly->totloop == 4) {
+		normal_quad_v3(no,
+		               mvarray[loopstart[0].v].co,
+		               mvarray[loopstart[1].v].co,
+		               mvarray[loopstart[2].v].co,
+		               mvarray[loopstart[3].v].co
+		               );
 	}
-	else{ /*horrible, two sided face!*/
+	else { /* horrible, two sided face! */
 		no[0] = 0.0;
 		no[1] = 0.0;
 		no[2] = 1.0;
+	}
+}
+
+static void mesh_calc_ngon_center(MPoly *mpoly, MLoop *loopstart,
+                                  MVert *mvert, float cent[3])
+{
+	const float fac= 1.0f / (float)mpoly->totloop;
+	int i;
+
+	zero_v3(cent);
+
+	for (i = 0; i < mpoly->totloop; i++) {
+		madd_v3_v3fl(cent, mvert[(loopstart++)->v].co, fac);
+	}
+}
+
+void mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
+                           MVert *mvarray, float cent[3])
+{
+	if (mpoly->totloop == 3) {
+		cent_tri_v3(cent,
+		            mvarray[loopstart[0].v].co,
+		            mvarray[loopstart[1].v].co,
+		            mvarray[loopstart[2].v].co
+		            );
+	}
+	else if (mpoly->totloop == 4) {
+		cent_quad_v3(cent,
+		             mvarray[loopstart[0].v].co,
+		             mvarray[loopstart[1].v].co,
+		             mvarray[loopstart[2].v].co,
+		             mvarray[loopstart[3].v].co
+		             );
+	}
+	else {
+		mesh_calc_ngon_center(mpoly, loopstart, mvarray, cent);
 	}
 }
 

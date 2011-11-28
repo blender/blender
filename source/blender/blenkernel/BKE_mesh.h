@@ -79,7 +79,10 @@ int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata,
 
 /*calculates a face normal.*/
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
-                           struct MVert *mvarray, float *no);
+                           struct MVert *mvarray, float no[3]);
+
+void mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
+                           struct MVert *mvarray, float cent[3]);
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
