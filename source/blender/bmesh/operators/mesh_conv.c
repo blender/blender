@@ -421,7 +421,7 @@ BM_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 
 	if ( /* (med->flag & ME_EDGEDRAW) && */ /* assume to be true */
 	     (e->l && (e->l != e->l->radial_next)) &&
-	     (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.995f))
+	     (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.998f))
 	{
 		med->flag &= ~ME_EDGEDRAW;
 	}
