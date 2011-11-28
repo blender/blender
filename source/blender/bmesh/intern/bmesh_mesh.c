@@ -570,10 +570,14 @@ void BM_ElemIndex_Validate(BMesh *bm, const char *location, const char *func, co
 			        location, func, type_names[i], err_idx, err_val, msg_a, msg_b);
 		}
 		else if ((is_error == FALSE) && (is_dirty == TRUE)) {
+
+#if 0		/* mostly annoying */
+
 			/* dirty may have been incorrectly set */
 			fprintf(stderr,
 			        "Invalid Dirty: at %s, %s (%s), dirty flag was set but all index values are correct, '%s', '%s'\n",
 			        location, func, type_names[i], msg_a, msg_b);
+#endif
 		}
 	}
 

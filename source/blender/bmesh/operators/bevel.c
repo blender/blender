@@ -270,7 +270,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				/*create tags for all loops in l->f*/
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
 					BLI_array_growone(tags);
-					BM_SetIndex(l2, BLI_array_count(tags)-1); /* set_ok (loop) */
+					BM_SetIndex(l2, BLI_array_count(tags)-1); /* set_loop */
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
 						BLI_array_growone(etags);
@@ -287,7 +287,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	bm->elem_index_dirty |= BM_VERT;
+	bm->elem_index_dirty |= BM_EDGE;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMIter eiter;

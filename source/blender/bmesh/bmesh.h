@@ -175,6 +175,11 @@ BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b);
  *
  * - 'set_ok'      -- this is valid use since the part of the code is low level.
  *
+ * - 'set_ok_invalid'  -- set to -1 on purpose since this should not be
+ *                    used without a full array re-index, do this on
+ *                    adding new vert/edge/faces since they may be added at
+ *                    the end of the array.
+ *
  * - 'set_loop'    -- currently loop index values are not used used much so
  *                    assume each case they are dirty.
  * - campbell */

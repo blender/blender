@@ -25,7 +25,8 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
-	BM_SetIndex(v, bm->totvert); /* set_ok */
+	BM_SetIndex(v, -1); /* set_ok_invalid */
+	bm->elem_index_dirty |= BM_VERT; /* may add to middle of the pool */
 
 	bm->totvert++;
 
@@ -81,7 +82,8 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 	
 	e = BLI_mempool_calloc(bm->epool);
 
-	BM_SetIndex(e, bm->totedge); /* set_ok */
+	BM_SetIndex(e, -1); /* set_ok_invalid */
+	bm->elem_index_dirty |= BM_EDGE; /* may add to middle of the pool */
 
 	bm->totedge++;
 
@@ -230,7 +232,8 @@ BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len, int nod
 	
 	f = BLI_mempool_calloc(bm->fpool);
 
-	BM_SetIndex(f, bm->totface); /* set_ok */
+	BM_SetIndex(f, -1); /* set_ok_invalid */
+	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
 
 	bm->totface++;
 
@@ -925,7 +928,8 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example))
 	f->head.htype = BM_FACE;
 	BLI_addtail(&f->loops, lst);
 
-	BM_SetIndex(f, bm->totface); /* set_ok */
+	BM_SetIndex(f, -1); /* set_ok_invalid */
+	bm->elem_index_dirty |= BM_FACE; /* may add to middle of the pool */
 
 	bm->totface++;
 

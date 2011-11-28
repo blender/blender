@@ -128,8 +128,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 	for (i=0, mvert = me->mvert; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, keyco&&set_key ? keyco[i] : mvert->co, NULL);
-		normal_short_to_float_v3(v->no, mvert->no);
-
+		BM_SetIndex(v, i); /* set_ok */
 		vt[i] = v;
 
 		/*transfer flags*/
@@ -137,6 +136,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 		/*this is necassary for selection counts to work properly*/
 		if (BM_TestHFlag(v, BM_SELECT)) BM_Select_Vert(bm, v, 1);
+
+		normal_short_to_float_v3(v->no, mvert->no);
 
 		BM_SetCDf(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
@@ -160,6 +161,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	bm->elem_index_dirty &= ~BM_VERT; /* added in order, clear dirty flag */
+
 	if (!me->totedge) {
 		MEM_freeN(vt);
 		return;
@@ -170,20 +173,23 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	medge = me->medge;
 	for (i=0; i<me->totedge; i++, medge++) {
 		e = BM_Make_Edge(bm, vt[medge->v1], vt[medge->v2], NULL, 0);
+		BM_SetIndex(e, i); /* set_ok */
 		et[i] = e;
-		
-		/*Copy Custom Data*/
-		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
-		
-		BM_SetCDf(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
-		BM_SetCDf(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
 
 		/*transfer flags*/
 		e->head.hflag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
 
 		/*this is necassary for selection counts to work properly*/
 		if (BM_TestHFlag(e, BM_SELECT)) BM_Select(bm, e, 1);
+		
+		/*Copy Custom Data*/
+		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
+		
+		BM_SetCDf(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
+		BM_SetCDf(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
 	}
+
+	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
 	
 	if (!me->totpoly) {
 		MEM_freeN(vt);
@@ -224,10 +230,14 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop, 0);
 
 		if (!f) {
-			printf("Warning! Bad face in mesh"
-			       " \"%s\" at index %d!\n", me->id.name+2, i);
+			printf("%s: Warning! Bad face in mesh"
+			       " \"%s\" at index %d!, skipping\n",
+			       __func__, me->id.name+2, i);
 			continue;
 		}
+
+		/* dont use 'i' since we may have skipped the face */
+		BM_SetIndex(f, bm->totface-1); /* set_ok */
 
 		/*transfer flags*/
 		f->head.hflag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
@@ -247,6 +257,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
+
+	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
 
 	{
 		BMIter fiter;
