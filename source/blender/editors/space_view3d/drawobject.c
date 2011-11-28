@@ -5793,9 +5793,8 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 	}
 	else if(type==OB_BOUND_CONE) {
 		float radius = size[0] > size[1] ? size[0] : size[1];
-		glTranslatef(cent[0], cent[2]-size[2], cent[1]);
-		glScalef(radius, 2.0f * size[2], radius);
-		glRotatef(-90., 1.0, 0.0, 0.0);
+		glTranslatef(cent[0], cent[1], cent[2]-size[2]);
+		glScalef(radius, radius, 2.0f * size[2]);
 		gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 	}
 	glPopMatrix();
