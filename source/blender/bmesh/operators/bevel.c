@@ -202,7 +202,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l;
 			
 			if (!BMO_TestFlag(bm, e, EDGE_OLD)) {
-				BM_SetIndex(e, BLI_array_count(etags));
+				BM_SetIndex(e, BLI_array_count(etags)); /* set_dirty! */
 				BLI_array_growone(etags);
 				
 				BMO_SetFlag(bm, e, EDGE_OLD);
@@ -216,11 +216,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 			
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
-					BM_SetIndex(l2, BLI_array_count(tags));
+					BM_SetIndex(l2, BLI_array_count(tags)); /* set_dirty! */
 					BLI_array_growone(tags);
 
 					if (!BMO_TestFlag(bm, l2->e, EDGE_OLD)) {
-						BM_SetIndex(l2->e, BLI_array_count(etags));
+						BM_SetIndex(l2->e, BLI_array_count(etags)); /* set_dirty! */
 						BLI_array_growone(etags);
 						
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
@@ -231,7 +231,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BLI_array_append(faces, l->f);
 			}
 		} else {
-			BM_SetIndex(e, -1);
+			BM_SetIndex(e, -1); /* set_dirty! */
 		}
 	}
 #endif
@@ -252,7 +252,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
 			BLI_array_growone(etags);
-			BM_SetIndex(e, BLI_array_count(etags)-1);
+			BM_SetIndex(e, BLI_array_count(etags)-1); /* set_dirty! */
 			BLI_smallhash_insert(&hash, (intptr_t)e, NULL);
 			BMO_SetFlag(bm, e, EDGE_OLD);
 		}
@@ -270,11 +270,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				/*create tags for all loops in l->f*/
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
 					BLI_array_growone(tags);
-					BM_SetIndex(l2, BLI_array_count(tags)-1);
+					BM_SetIndex(l2, BLI_array_count(tags)-1); /* set_ok (loop) */
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
 						BLI_array_growone(etags);
-						BM_SetIndex(l2->e, BLI_array_count(etags)-1);
+						BM_SetIndex(l2->e, BLI_array_count(etags)-1); /* set_dirty! */
 						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);						
 						BMO_SetFlag(bm, l2->e, EDGE_OLD);
 					}
@@ -286,6 +286,8 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
+
+	bm->elem_index_dirty |= BM_VERT;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMIter eiter;

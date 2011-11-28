@@ -1,6 +1,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
@@ -111,6 +112,10 @@ void BMO_Init_Op(BMesh *bm, BMOperator *op, const char *opname)
 #else
 	(void)bm;
 #endif
+
+	if (opcode == -1) {
+		opcode= 0; /* error!, already printed, have a better way to handle this? */
+	}
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
@@ -808,15 +813,17 @@ void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, const char *slotname,
  */
 static void alloc_flag_layer(BMesh *bm)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMFace *f;
+	BMHeader *ele;
+	/* set the index values since we are looping over all data anyway,
+	 * may save time later on */
+	int i;
 
-	BMIter verts;
-	BMIter edges;
-	BMIter faces;
+	BMIter iter;
 	BLI_mempool *oldpool = bm->toolflagpool; 		/*old flag pool*/
 	void *oldflags;
+
+	/* store memcpy size for reuse */
+	const size_t old_totflags_size= (bm->totflags * sizeof(BMFlagLayer));
 	
 	bm->totflags++;
 
@@ -824,21 +831,26 @@ static void alloc_flag_layer(BMesh *bm)
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, FALSE, FALSE);
 	
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
-		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
+	for(ele = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		memcpy(ele->flags, oldflags, old_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
-		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
+	for(ele = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		memcpy(ele->flags, oldflags, old_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
-		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
+	for(ele = BMIter_New(&iter, bm, BM_FACES_OF_MESH, bm), i = 0; ele; ele = BMIter_Step(&iter), i++){
+		oldflags = ele->flags;
+		ele->flags = BLI_mempool_calloc(bm->toolflagpool);
+		memcpy(ele->flags, oldflags, old_totflags_size);
+		BM_SetIndex(ele, i); /* set_inline */
 	}
+
+	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
 
 	BLI_mempool_destroy(oldpool);
 }
@@ -1085,7 +1097,7 @@ static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
 	int i;
 
 	for (i=0; def->slottypes[i].type; i++) {
-		if (!strcmp(name, def->slottypes[i].name)) return i;
+		if (!strncmp(name, def->slottypes[i].name, MAX_SLOTNAME)) return i;
 	}
 
 	return -1;
@@ -1106,15 +1118,11 @@ static int bmesh_opname_to_opcode(const char *opname)
 	int i;
 
 	for (i=0; i<bmesh_total_ops; i++) {
-		if (!strcmp(opname, opdefines[i]->name)) break;
-	}
-	
-	if (i == bmesh_total_ops) {
-		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
-		return 0;
+		if (!strcmp(opname, opdefines[i]->name)) return i;
 	}
 
-	return i;
+	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
+	return -1;
 }
 
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
@@ -1137,11 +1145,9 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 	fmt += i + (noslot ? 0 : 1);
 	
-	for (i=0; i<bmesh_total_ops; i++) {
-		if (!strcmp(opname, opdefines[i]->name)) break;
-	}
+	i= bmesh_opname_to_opcode(opname);
 
-	if (i == bmesh_total_ops) {
+	if (i == -1) {
 		MEM_freeN(ofmt);
 		return 0;
 	}
@@ -1172,7 +1178,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 			if (bmesh_name_to_slotcode_check(def, fmt) < 0) goto error;
 			
-			strcpy(slotname, fmt);
+			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			
 			state = 0;
 			fmt += i;
