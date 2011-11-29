@@ -347,6 +347,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 {
 	PyObject *submodule;
 	PyObject *item;
+	PyObject *sys_modules= PyThreadState_GET()->interp->modules;
 
 	if (PyType_Ready(&vector_Type) < 0)
 		return NULL;
@@ -373,7 +374,12 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "mathutils.geometry", item);
+	PyDict_SetItemString(sys_modules, "mathutils.geometry", item);
+	Py_INCREF(item);
+
+	/* Noise submodule */
+	PyModule_AddObject(submodule, "noise",		(item=PyInit_mathutils_noise()));
+	PyDict_SetItemString(sys_modules, "mathutils.noise", item);
 	Py_INCREF(item);
 
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);

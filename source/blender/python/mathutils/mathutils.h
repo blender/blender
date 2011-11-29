@@ -52,12 +52,16 @@ typedef struct {
 	BASE_MATH_MEMBERS(data)
 } BaseMathObject;
 
+/* types */
 #include "mathutils_Vector.h"
 #include "mathutils_Matrix.h"
 #include "mathutils_Quaternion.h"
 #include "mathutils_Euler.h"
 #include "mathutils_Color.h"
+
+/* utility submodules */
 #include "mathutils_geometry.h"
+#include "mathutils_noise.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
