@@ -126,9 +126,9 @@ EnumPropertyItem prop_noise_type_items[] = {
 
 #if 0
 EnumPropertyItem prop_wave_items[] = {
-	{SHD_WAVE_SINE, "SINE", 0, "Sine", "Uses a sine wave to produce bands"},
-	{SHD_WAVE_SAW, "SAW", 0, "Saw", "Uses a saw wave to produce bands"},
-	{SHD_WAVE_TRI, "TRI", 0, "Tri", "Uses a triangle wave to produce bands"},
+	{SHD_WAVE_SINE, "SINE", 0, "Sine", "Use a sine wave to produce bands"},
+	{SHD_WAVE_SAW, "SAW", 0, "Saw", "Use a saw wave to produce bands"},
+	{SHD_WAVE_TRI, "TRI", 0, "Tri", "Use a triangle wave to produce bands"},
 	{0, NULL, 0, NULL, NULL}};
 #endif
 
@@ -1292,13 +1292,13 @@ static void def_sh_tex_image(StructRNA *srna)
 static void def_sh_tex_gradient(StructRNA *srna)
 {
 	static EnumPropertyItem prop_gradient_type[] = {
-		{SHD_BLEND_LINEAR, "LINEAR", 0, "Linear", "Creates a linear progression"},
-		{SHD_BLEND_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Creates a quadratic progression"},
-		{SHD_BLEND_EASING, "EASING", 0, "Easing", "Creates a progression easing from one step to the next"},
-		{SHD_BLEND_DIAGONAL, "DIAGONAL", 0, "Diagonal", "Creates a diagonal progression"},
-		{SHD_BLEND_SPHERICAL, "SPHERICAL", 0, "Spherical", "Creates a spherical progression"},
-		{SHD_BLEND_QUADRATIC_SPHERE, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
-		{SHD_BLEND_RADIAL, "RADIAL", 0, "Radial", "Creates a radial progression"},
+		{SHD_BLEND_LINEAR, "LINEAR", 0, "Linear", "Create a linear progression"},
+		{SHD_BLEND_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Create a quadratic progression"},
+		{SHD_BLEND_EASING, "EASING", 0, "Easing", "Create a progression easing from one step to the next"},
+		{SHD_BLEND_DIAGONAL, "DIAGONAL", 0, "Diagonal", "Create a diagonal progression"},
+		{SHD_BLEND_SPHERICAL, "SPHERICAL", 0, "Spherical", "Create a spherical progression"},
+		{SHD_BLEND_QUADRATIC_SPHERE, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Create a quadratic progression in the shape of a sphere"},
+		{SHD_BLEND_RADIAL, "RADIAL", 0, "Radial", "Create a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
@@ -1308,7 +1308,7 @@ static void def_sh_tex_gradient(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "gradient_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_gradient_type);
-	RNA_def_property_ui_text(prop, "Gradient Type", "Sets the style of the color blending");
+	RNA_def_property_ui_text(prop, "Gradient Type", "Style of the color blending");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -1376,8 +1376,8 @@ static void def_sh_tex_voronoi(StructRNA *srna)
 static void def_sh_tex_wave(StructRNA *srna)
 {
 	static EnumPropertyItem prop_wave_type_items[] = {
-	{SHD_WAVE_BANDS, "BANDS", 0, "Bands", "Uses standard wave texture in bands"},
-	{SHD_WAVE_RINGS, "RINGS", 0, "Rings", "Uses wave texture in rings"},
+	{SHD_WAVE_BANDS, "BANDS", 0, "Bands", "Use standard wave texture in bands"},
+	{SHD_WAVE_RINGS, "RINGS", 0, "Rings", "Use wave texture in rings"},
 	{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;
@@ -1521,12 +1521,12 @@ static void def_cmp_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_bokeh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bokeh", 1);
-	RNA_def_property_ui_text(prop, "Bokeh", "Uses circular filter (slower)");
+	RNA_def_property_ui_text(prop, "Bokeh", "Use circular filter (slower)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gamma", 1);
-	RNA_def_property_ui_text(prop, "Gamma", "Applies filter on gamma corrected values");
+	RNA_def_property_ui_text(prop, "Gamma", "Apply filter on gamma corrected values");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 }
@@ -1602,7 +1602,7 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	prop = RNA_def_property(srna, "speed_min", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "minspeed");
 	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "Min Speed", "Minimum speed for a pixel to be blurred; used to separate background from foreground");
+	RNA_def_property_ui_text(prop, "Min Speed", "Minimum speed for a pixel to be blurred (used to separate background from foreground)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 		
 	prop = RNA_def_property(srna, "speed_max", PROP_INT, PROP_NONE);
@@ -1614,7 +1614,7 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Blur Factor", "Scaling factor for motion vectors; actually 'shutter speed' in frames");
+	RNA_def_property_ui_text(prop, "Blur Factor", "Scaling factor for motion vectors (actually, 'shutter speed', in frames)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_curved", PROP_BOOLEAN, PROP_NONE);
@@ -2037,7 +2037,7 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "channel");
 	RNA_def_property_enum_items(prop, prop_tri_channel_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
-	RNA_def_property_ui_text(prop, "Limit Channel", "Limit by this channels value");
+	RNA_def_property_ui_text(prop, "Limit Channel", "Limit by this channel's value");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
@@ -2141,7 +2141,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "rotation");
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(90.0f));
-	RNA_def_property_ui_text(prop, "Angle", "Bokeh shape rotation offset in degrees");
+	RNA_def_property_ui_text(prop, "Angle", "Bokeh shape rotation offset");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
@@ -2187,7 +2187,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	prop = RNA_def_property(srna, "z_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Z-Scale", "Scales the Z input when not using a z-buffer, controls maximum blur designated by the color white or input value 1");
+	RNA_def_property_ui_text(prop, "Z-Scale", "Scale the Z input when not using a z-buffer, controls maximum blur designated by the color white or input value 1");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -2522,12 +2522,12 @@ static void def_cmp_lensdist(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_projector", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proj", 1);
-	RNA_def_property_ui_text(prop, "Projector", "Enable/disable projector mode. Effect is applied in horizontal direction only");
+	RNA_def_property_ui_text(prop, "Projector", "Enable/disable projector mode (the effect is applied in horizontal direction only)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "jit", 1);
-	RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering; faster, but also noisier");
+	RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering (faster, but also noisier)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "use_fit", PROP_BOOLEAN, PROP_NONE);
@@ -2622,7 +2622,7 @@ static void def_cmp_zcombine(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
-	RNA_def_property_ui_text(prop, "Use Alpha", "Takes Alpha channel into account when doing the Z operation");
+	RNA_def_property_ui_text(prop, "Use Alpha", "Take Alpha channel into account when doing the Z operation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
