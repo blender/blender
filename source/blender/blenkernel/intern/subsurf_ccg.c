@@ -223,7 +223,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	MLoop *mloop = dm->getLoopArray(dm);
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumPolys(dm);
 	int i, j, seam;
 	UvMapVert *v;
 	UvVertMap *vmap;
@@ -2502,7 +2502,7 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
 	return DM_get_edge_data_layer(dm, type);
 }
 
-static void *ccgDM_get_face_data_layer(DerivedMesh *dm, int type)
+static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 {
 	if(type == CD_ORIGINDEX) {
 		/* create origindex on demand to save memory */
@@ -2813,7 +2813,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getNumVerts = cgdm_getNumVerts;
 	ccgdm->dm.getNumEdges = cgdm_getNumEdges;
 	ccgdm->dm.getNumTessFaces = cgdm_getNumTessFaces;
-	ccgdm->dm.getNumFaces = cgdm_getNumTessFaces;
+	/* reuse of cgdm_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
+	ccgdm->dm.getNumPolys = cgdm_getNumTessFaces;
 
 	ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
@@ -2830,7 +2831,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.copyPolyArray = ccgDM_copyFinalPolyArray;
 	ccgdm->dm.getVertDataArray = ccgDM_get_vert_data_layer;
 	ccgdm->dm.getEdgeDataArray = ccgDM_get_edge_data_layer;
-	ccgdm->dm.getTessFaceDataArray = ccgDM_get_face_data_layer;
+	ccgdm->dm.getTessFaceDataArray = ccgDM_get_tessface_data_layer;
 	ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
 	ccgdm->dm.getGridSize = ccgDM_getGridSize;
 	ccgdm->dm.getGridData = ccgDM_getGridData;

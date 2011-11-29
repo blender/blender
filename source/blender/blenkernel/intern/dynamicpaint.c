@@ -1668,7 +1668,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							/* Save preview results to weight layer, to be
 							*   able to share same drawing methods */
 							MFace *mface = result->getTessFaceArray(result);
-							int numOfFaces = result->getNumFaces(result);
+							int numOfFaces = result->getNumPolys(result);
 							int i;
 							MCol *col = result->getTessFaceDataArray(result, CD_WEIGHT_MCOL);
 							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
@@ -2091,7 +2091,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	if (!dm) return setError(canvas, "Canvas mesh not updated.");
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) return setError(canvas, "Can't bake non-\"image sequence\" formats.");
 
-	numOfFaces = dm->getNumFaces(dm);
+	numOfFaces = dm->getNumPolys(dm);
 	mface = dm->getTessFaceArray(dm);
 
 	/* get uv map */

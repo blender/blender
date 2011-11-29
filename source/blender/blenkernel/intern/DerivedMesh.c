@@ -149,7 +149,7 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
 
 	if (!mpoly) {
 		mpoly = CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_CALLOC, NULL,
-			dm->getNumFaces(dm));
+			dm->getNumPolys(dm));
 		CustomData_set_layer_flag(&dm->polyData, CD_MPOLY, CD_FLAG_TEMPORARY);
 		dm->copyPolyArray(dm, mpoly);
 	}
@@ -250,7 +250,7 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getEdgeDataLayout = dm_getEdgeCData;
 	dm->getTessFaceDataLayout = dm_getFaceCData;
 	dm->getLoopDataLayout = dm_getLoopCData;
-	dm->getFaceDataLayout = dm_getPolyCData;
+	dm->getPolyDataLayout = dm_getPolyCData;
 
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
@@ -365,7 +365,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
-	totpoly = tmp.totpoly = dm->getNumFaces(dm);
+	totpoly = tmp.totpoly = dm->getNumPolys(dm);
 	totloop = tmp.totloop = dm->numLoopData;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
@@ -2410,7 +2410,7 @@ static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
 static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 {
 	DerivedMesh *result;
-	int maxFaces = dm->getNumFaces(dm);
+	int maxFaces = dm->getNumPolys(dm);
 	int *recastData;
 	int vertsPerPoly=0, nverts=0, ndtris=0, npolys=0;
 	float* verts=NULL;

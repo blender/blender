@@ -101,7 +101,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	const int maxVerts= dm->getNumVerts(dm);
 	const int maxEdges= dm->getNumEdges(dm);
-	const int maxFaces= dm->getNumFaces(dm);
+	const int maxFaces= dm->getNumPolys(dm);
 	
 	if (!CDDM_Check(dm)) {
 		result = CDDM_copy(dm, 0);
@@ -118,7 +118,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	frac = (BKE_curframe(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
 
-	numFaces = dm->getNumFaces(dm) * frac;
+	numFaces = dm->getNumPolys(dm) * frac;
 	numEdges = dm->getNumEdges(dm) * frac;
 
 	/* if there's at least one face, build based on faces */

@@ -1037,7 +1037,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
 	}
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumPolys(dm);
 	mpoly= dm->getPolyArray(dm);
 	mloop= dm->getLoopArray(dm);
 	mvert= dm->getVertArray(dm);

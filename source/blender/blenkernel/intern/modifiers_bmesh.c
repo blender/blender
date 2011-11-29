@@ -138,7 +138,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumPolys(dm);
 
 	vtable = MEM_callocN(sizeof(void**)*totvert, "vert table in BMDM_Copy");
 	etable = MEM_callocN(sizeof(void**)*totedge, "edge table in BMDM_Copy");

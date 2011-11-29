@@ -71,7 +71,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 	numVerts = dm->getNumVerts(dm);
 	numEdges = dm->getNumEdges(dm);
-	numFaces = dm->getNumFaces(dm);
+	numFaces = dm->getNumPolys(dm);
 	mpoly = CDDM_get_polys(dm);
 	mvert = dm->getVertArray(dm);
 	mloop = CDDM_get_loops(dm);
@@ -208,7 +208,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	MPoly *mp, *mpoly, *orig_mpoly;
 	const int numVerts = dm->getNumVerts(dm);
 	const int numEdges = dm->getNumEdges(dm);
-	const int numFaces = dm->getNumFaces(dm);
+	const int numFaces = dm->getNumPolys(dm);
 	int numLoops=0, newLoops=0, newFaces=0, newEdges=0;
 	int j;
 	

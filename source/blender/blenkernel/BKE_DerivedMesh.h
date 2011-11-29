@@ -141,7 +141,7 @@ struct DerivedMesh {
 	int (*getNumVerts)(DerivedMesh *dm);
 	int (*getNumEdges)(DerivedMesh *dm);
 	int (*getNumTessFaces)(DerivedMesh *dm);
-	int (*getNumFaces) (DerivedMesh *dm);
+	int (*getNumPolys)(DerivedMesh *dm);
 
 	/* copy a single vert/edge/tesselated face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
@@ -203,7 +203,7 @@ struct DerivedMesh {
 	CustomData *(*getEdgeDataLayout)(DerivedMesh *dm);
 	CustomData *(*getTessFaceDataLayout)(DerivedMesh *dm);
 	CustomData *(*getLoopDataLayout)(DerivedMesh *dm);
-	CustomData *(*getFaceDataLayout)(DerivedMesh *dm);
+	CustomData *(*getPolyDataLayout)(DerivedMesh *dm);
 	
 	/*copies all customdata for an element source into dst at index dest*/
 	void (*copyFromVertCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);

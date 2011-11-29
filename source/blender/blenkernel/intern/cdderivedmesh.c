@@ -112,7 +112,7 @@ static int cdDM_getNumTessFaces(DerivedMesh *dm)
 	return dm->numFaceData;
 }
 
-static int cdDM_getNumFaces(DerivedMesh *dm)
+static int cdDM_getNumPolys(DerivedMesh *dm)
 {
 	return dm->numPolyData;
 }
@@ -129,7 +129,7 @@ static void cdDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	*edge_r = cddm->medge[index];
 }
 
-static void cdDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
+static void cdDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	*face_r = cddm->mface[index];
@@ -147,7 +147,7 @@ static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	memcpy(edge_r, cddm->medge, sizeof(*edge_r) * dm->numEdgeData);
 }
 
-static void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void cdDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	memcpy(face_r, cddm->mface, sizeof(*face_r) * dm->numFaceData);
@@ -1631,16 +1631,24 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getNumVerts = cdDM_getNumVerts;
 	dm->getNumEdges = cdDM_getNumEdges;
 	dm->getNumTessFaces = cdDM_getNumTessFaces;
-	dm->getNumFaces = cdDM_getNumFaces;
+	dm->getNumPolys = cdDM_getNumPolys;
 
 	dm->getVert = cdDM_getVert;
 	dm->getEdge = cdDM_getEdge;
-	dm->getTessFace = cdDM_getFace;
+	dm->getTessFace = cdDM_getTessFace;
+
 	dm->copyVertArray = cdDM_copyVertArray;
 	dm->copyEdgeArray = cdDM_copyEdgeArray;
-	dm->copyTessFaceArray = cdDM_copyFaceArray;
+	dm->copyTessFaceArray = cdDM_copyTessFaceArray;
 	dm->copyLoopArray = cdDM_copyLoopArray;
 	dm->copyPolyArray = cdDM_copyPolyArray;
+
+	dm->getVertData = DM_get_vert_data;
+	dm->getEdgeData = DM_get_edge_data;
+	dm->getTessFaceData = DM_get_tessface_data;
+	dm->getVertDataArray = DM_get_vert_data_layer;
+	dm->getEdgeDataArray = DM_get_edge_data_layer;
+	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->calcNormals = CDDM_calc_normals;
 	dm->recalcTesselation = CDDM_recalc_tesselation;

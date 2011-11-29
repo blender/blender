@@ -103,7 +103,7 @@ void paintface_flush_flags(Object *ob)
 
 	if ((index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX))) {
 		polys = dm->getPolyArray(dm);
-		totpoly = dm->getNumFaces(dm);
+		totpoly = dm->getNumPolys(dm);
 
 		/* loop over final derived polys */
 		for (i= 0; i<totpoly; i++) {

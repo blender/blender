@@ -1276,7 +1276,7 @@ static int bmDM_getNumTessFaces(DerivedMesh *dm)
 	return bmdm->tc->tottri;
 }
 
-static int bmDM_getNumFaces(DerivedMesh *dm)
+static int bmDM_getNumPolys(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	
@@ -1415,7 +1415,7 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	}
 }
 
-static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void bmDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
@@ -1482,7 +1482,7 @@ static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 	}
 }
 
-static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
+static void *bmDM_getTessFaceDataArray(DerivedMesh *dm, int type)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;
@@ -1592,7 +1592,7 @@ static CustomData *bmDm_getLoopDataLayout(DerivedMesh *dm)
 	return &bmdm->tc->bm->ldata;
 }
 
-static CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
+static CustomData *bmDm_getPolyDataLayout(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
 
@@ -1620,23 +1620,23 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	bmdm->dm.getEdgeDataLayout = bmDm_getEdgeDataLayout;
 	bmdm->dm.getTessFaceDataLayout = bmDm_getTessFaceDataLayout;
 	bmdm->dm.getLoopDataLayout = bmDm_getLoopDataLayout;
-	bmdm->dm.getFaceDataLayout = bmDm_getFaceDataLayout;
+	bmdm->dm.getPolyDataLayout = bmDm_getPolyDataLayout;
 
 	bmdm->dm.getNumVerts = bmDM_getNumVerts;
 	bmdm->dm.getNumEdges = bmDM_getNumEdges;
 	bmdm->dm.getNumTessFaces = bmDM_getNumTessFaces;
-	bmdm->dm.getNumFaces = bmDM_getNumFaces;
+	bmdm->dm.getNumPolys = bmDM_getNumPolys;
 
 	bmdm->dm.getVert = bmDM_getVert;
 	bmdm->dm.getEdge = bmDM_getEdge;
 	bmdm->dm.getTessFace = bmDM_getTessFace;
 	bmdm->dm.copyVertArray = bmDM_copyVertArray;
 	bmdm->dm.copyEdgeArray = bmDM_copyEdgeArray;
-	bmdm->dm.copyTessFaceArray = bmDM_copyFaceArray;
+	bmdm->dm.copyTessFaceArray = bmDM_copyTessFaceArray;
 	bmdm->dm.copyLoopArray = bmDM_copyLoopArray;
 	bmdm->dm.copyPolyArray = bmDM_copyPolyArray;
 
-	bmdm->dm.getTessFaceDataArray = bmDM_getFaceDataArray;
+	bmdm->dm.getTessFaceDataArray = bmDM_getTessFaceDataArray;
 
 	bmdm->dm.calcNormals = bmDM_calcNormals;
 	bmdm->dm.recalcTesselation = bmDM_recalcTesselation;

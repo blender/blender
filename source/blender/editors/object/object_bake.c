@@ -367,7 +367,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image* ima, MPassKnownData
 	DerivedMesh *dm= bkr->lores_dm;
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	const int lvl= bkr->lvl;
-	const int tot_face= dm->getNumFaces(dm);
+	const int tot_face= dm->getNumTessFaces(dm);
 	MVert *mvert= dm->getVertArray(dm);
 	MFace *mface= dm->getTessFaceArray(dm);
 	MTFace *mtface= dm->getTessFaceDataArray(dm, CD_MTFACE);
@@ -817,7 +817,7 @@ static void count_images(MultiresBakeRender *bkr)
 	bkr->image.first= bkr->image.last= NULL;
 	bkr->tot_image= 0;
 
-	totface= dm->getNumFaces(dm);
+	totface= dm->getNumTessFaces(dm);
 
 	for(a= 0; a<totface; a++)
 		mtface[a].tpage->id.flag&= ~LIB_DOIT;
@@ -1134,7 +1134,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 			DerivedMesh *dm= data->lores_dm;
 			MTFace *mtface= CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
-			clear_images(mtface, dm->getNumFaces(dm));
+			clear_images(mtface, dm->getNumTessFaces(dm));
 		}
 	}
 

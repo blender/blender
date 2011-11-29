@@ -79,7 +79,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		if(dm) {
 			totvert = dm->getNumVerts(dm);
 			totedge = dm->getNumEdges(dm);
-			totface = dm->getNumFaces(dm);
+			totface = dm->getNumPolys(dm);
 
 			stats->totvert += totvert*totob;
 			stats->totedge += totedge*totob;

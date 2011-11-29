@@ -94,14 +94,14 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 {
 	DerivedMesh *result = NULL;
 
-	if(derivedData->getNumFaces(derivedData) == 0 || dm->getNumFaces(dm) == 0) {
+	if(derivedData->getNumPolys(derivedData) == 0 || dm->getNumPolys(dm) == 0) {
 		switch(operation) {
 			case eBooleanModifierOp_Intersect:
 				result = CDDM_new(0, 0, 0, 0, 0);
 				break;
 
 			case eBooleanModifierOp_Union:
-				if(derivedData->getNumFaces(derivedData)) result = derivedData;
+				if(derivedData->getNumPolys(derivedData)) result = derivedData;
 				else result = CDDM_copy(dm, FALSE);
 
 				break;
