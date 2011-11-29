@@ -814,7 +814,7 @@ class CLIP_MT_reconstruction(Menu):
         layout.separator()
 
         layout.operator("clip.track_to_empty")
-        layout.operator("clip.tracks_to_mesh")
+        layout.operator("clip.bundles_to_mesh")
 
 
 class CLIP_MT_track_visibility(Menu):

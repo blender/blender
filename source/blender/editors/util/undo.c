@@ -125,6 +125,12 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 
+	/* undo during jobs are running can easily lead to freeing data using by jobs,
+	    or they can just lead to freezing job in some other cases */
+	if(WM_jobs_has_running(CTX_wm_manager(C))) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* grease pencil can be can be used in plenty of spaces, so check it first */
 	if(ED_gpencil_session_active()) {
 		return ED_undo_gpencil_step(C, step, undoname);

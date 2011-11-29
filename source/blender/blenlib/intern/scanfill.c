@@ -706,7 +706,7 @@ static int scanfill(PolyFill *pf, short mat_nr)
 					ed1->v1->h--; 
 					ed1->v2->h--;
 					/* ed2 can be removed when it's a boundary edge */
-					if(ed2->f==0 && twoconnected || ed2->f==FILLBOUNDARY) {
+					if((ed2->f == 0 && twoconnected) || (ed2->f == FILLBOUNDARY)) {
 						BLI_remlink((ListBase *)&(sc->first),ed2);
 						BLI_addtail(&filledgebase,ed2);
 						ed2->v2->f= 0;
