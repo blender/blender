@@ -2594,11 +2594,9 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 	else {
 		int i;
-		float area, polynorm_local[3], (*vertexcos)[3] = NULL;
+		float area, polynorm_local[3], (*vertexcos)[3];
 		float *no= polynormal ? polynormal : polynorm_local;
-		BLI_array_staticdeclare(vertexcos, BM_NGON_STACK_SIZE);
-
-		BLI_array_growitems(vertexcos, mpoly->totloop);
+		BLI_array_fixedstack_declare(vertexcos, BM_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
 		for (i = 0; i < mpoly->totloop; i++) {
@@ -2613,7 +2611,7 @@ float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		/* finally calculate the area */
 		area = area_poly_v3(mpoly->totloop, vertexcos, no);
 
-		BLI_array_free(vertexcos);
+		BLI_array_fixedstack_free(vertexcos);
 
 		return area;
 	}

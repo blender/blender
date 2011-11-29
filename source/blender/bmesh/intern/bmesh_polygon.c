@@ -225,13 +225,11 @@ float BM_face_area(BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
-	float (*verts)[3], stackv[BM_NGON_STACK_SIZE][3];
+	float (*verts)[3];
 	float area, center[3];
 	int i;
 
-	if (f->len <= BM_NGON_STACK_SIZE)
-		verts = stackv;
-	else verts = MEM_callocN(sizeof(float)*f->len*3, "bm_face_area tmp");
+	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
 
 	i = 0;
 	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_FACE, f) {
@@ -241,8 +239,7 @@ float BM_face_area(BMFace *f)
 
 	compute_poly_center(center, &area, verts, f->len);
 
-	if (f->len > BM_NGON_STACK_SIZE)
-		MEM_freeN(verts);
+	BLI_array_fixedstack_free(verts);
 
 	return area;
 }
@@ -418,14 +415,15 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
-	float projverts[BM_NGON_STACK_SIZE][3];
-	float (*proj)[3] = f->len < BM_NGON_STACK_SIZE ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
+	if (f->len >= 3) {
+		float (*proj)[3];
 
-	if (f->len < 3) return;
+		BLI_array_fixedstack_declare(proj, BM_NGON_STACK_SIZE, f->len, __func__);
 
-	bmesh_update_face_normal(bm, f, proj);
+		bmesh_update_face_normal(bm, f, proj);
 
-	if (projverts != proj) MEM_freeN(proj);
+		BLI_array_fixedstack_free(proj);
+	}
 }
 
 void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
@@ -868,15 +866,13 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	BMLoop *l;
 	float v1[3], v2[3], v3[3]/*, v4[3]*/, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
-	float projectverts[BM_NGON_STACK_SIZE][3];
-	float edgevertsstack[BM_NGON_STACK_SIZE * 2][3];
-	float (*projverts)[3] = projectverts;
-	float (*edgeverts)[3] = edgevertsstack;
+	float (*projverts)[3];
+	float (*edgeverts)[3];
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a=0, clen;
 
-	if (f->len > BM_NGON_STACK_SIZE) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
-	if (len > (BM_NGON_STACK_SIZE * 2)) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
+	BLI_array_fixedstack_declare(projverts, BM_NGON_STACK_SIZE, f->len,         "projvertsb");
+	BLI_array_fixedstack_declare(edgeverts, BM_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
 	
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
@@ -989,7 +985,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			}
 		}
 	}
-	
-	if (projverts != projectverts) MEM_freeN(projverts);
-	if (edgeverts != edgevertsstack) MEM_freeN(edgeverts);
+
+	BLI_array_fixedstack_free(projverts);
+	BLI_array_fixedstack_free(edgeverts);
 }

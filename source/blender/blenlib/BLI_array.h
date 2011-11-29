@@ -171,3 +171,19 @@ behaviour, though it may not be the best in practice.
 	(void)_##arr##_count,                                                     \
 	(void)_##arr##_tmp,                                                       \
 	(void)_##arr##_static
+
+
+/* not part of the 'API' but handy funcs,
+ * same purpose as BLI_array_staticdeclare()
+ * but use when the max size is known ahead of time */
+#define BLI_array_fixedstack_declare(arr, maxstatic, realsize, allocstr)      \
+	char _##arr##_static[maxstatic*sizeof(*arr)];                             \
+	const int _##arr##_is_static= ((void *)_##arr##_static) != (              \
+	    arr= (realsize <= maxstatic) ?                                        \
+	        (void *)_##arr##_static :                                         \
+	        MEM_mallocN(sizeof(*arr)*realsize, allocstr)                      \
+	    )                                                                     \
+
+#define BLI_array_fixedstack_free(arr)                                        \
+	if (_##arr##_is_static) MEM_freeN(arr)                                    \
+
