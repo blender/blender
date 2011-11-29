@@ -12690,6 +12690,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Scene *sce;
 		MovieClip *clip;
+		bScreen *sc;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->r.im_format.depth == 0) {
@@ -12706,6 +12707,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				settings->default_minimum_correlation= 0.75;
 				settings->default_pattern_size= 11;
 				settings->default_search_size= 51;
+			}
+		}
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						v3d->flag2&= ~V3D_RENDER_SHADOW;
+					}
+				}
 			}
 		}
 	}

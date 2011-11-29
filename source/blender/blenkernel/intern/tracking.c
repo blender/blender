@@ -718,7 +718,7 @@ typedef struct TrackContext {
 	float *patch;			/* keyframed patch */
 
 	/* ** SAD tracker ** */
-	int patsize;			/* size of pattern (currently only 16x16 due to libmv side) */
+	int pattern_size;		/* size of pattern */
 	unsigned char *pattern;	/* keyframed pattern */
 	unsigned char *warped;	/* warped version of reference */
 #else
@@ -786,12 +786,16 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 #ifdef WITH_LIBMV
 					{
+						float patx, paty;
+						patx= (int)((track->pat_max[0]-track->pat_min[0])*width);
+						paty= (int)((track->pat_max[1]-track->pat_min[1])*height);
+
 						if(track->tracker==TRACKER_KLT) {
 							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
 							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
-							int wndx, wndy;
+							int wndx= (int)patx/2, wndy= (int)paty/2;
 
 							/* compute the maximum pyramid size */
 							float search_to_pattern_ratio= MIN2(search_size_x,  search_size_y)
@@ -804,13 +808,10 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							 * than the search size */
 							int level= MIN2(track->pyramid_levels, max_pyramid_levels);
 
-							wndx= (int)((track->pat_max[0]-track->pat_min[0])*width)/2;
-							wndy= (int)((track->pat_max[1]-track->pat_min[1])*height)/2;
-
 							track_context.region_tracker= libmv_regionTrackerNew(100, level, MAX2(wndx, wndy));
 						}
 						else if(track->tracker==TRACKER_SAD) {
-							/* nothing to initialize */
+							track_context.pattern_size= MAX2(patx, paty);
 						}
 					}
 #endif
@@ -1093,10 +1094,10 @@ static void get_warped(TrackContext *track_context, int x, int y, int width, uns
 {
 	int i, j;
 
-	for(i=0; i<track_context->patsize; i++) {
-		for(j=0; j<track_context->patsize; j++) {
-			track_context->warped[i*track_context->patsize+j]=
-					image[(y+i-track_context->patsize/2)*width+x+j-track_context->patsize/2];
+	for(i=0; i<track_context->pattern_size; i++) {
+		for(j=0; j<track_context->pattern_size; j++) {
+			track_context->warped[i*track_context->pattern_size+j]=
+					image[(y+i-track_context->pattern_size/2)*width+x+j-track_context->pattern_size/2];
 		}
 	}
 }
@@ -1226,13 +1227,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					warp[2][0]= pos[0];
 					warp[2][1]= pos[1];
 
-					/* pattern size is hardcoded to 16x16px in libmv */
-					track_context->patsize= 16;
+					if(!track_context->pattern) {
+						int square= track_context->pattern_size*track_context->pattern_size;
+						track_context->pattern= MEM_callocN(sizeof(unsigned char)*square, "trackking pattern");
+					}
 
-					if(!track_context->pattern)
-						track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking pattern");
-
-					libmv_SADSamplePattern(image, width, warp, track_context->pattern);
+					libmv_SADSamplePattern(image, width, warp, track_context->pattern, track_context->pattern_size);
 
 					MEM_freeN(image);
 					IMB_freeImBuf(ibuf);
@@ -1245,8 +1245,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 					ibuf= get_frame_ibuf(context, curfra);
 
-					if(track_context->warped==NULL)
-						track_context->warped= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking warped");
+					if(track_context->warped==NULL) {
+						int square= track_context->pattern_size*track_context->pattern_size;
+						track_context->warped= MEM_callocN(sizeof(unsigned char)*square, "trackking warped");
+					}
 
 					image_old= get_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
 					get_warped(track_context, pos[0], pos[1], width, image_old);
@@ -1260,7 +1262,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				warp[2][0]= pos[0];
 				warp[2][1]= pos[1];
 
-				correlation= libmv_SADTrackerTrack(track_context->pattern, track_context->warped, image_new, width, width, height, warp);
+				correlation= libmv_SADTrackerTrack(track_context->pattern, track_context->warped,
+							track_context->pattern_size, image_new, width, width, height, warp);
 
 				x2= warp[2][0];
 				y2= warp[2][1];

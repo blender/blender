@@ -120,9 +120,9 @@ class CLIP_PT_tools_marker(Panel):
 
             col.separator()
 
-            col2 = col.column(align=True)
-            col2.prop(settings, "default_pattern_size")
-            col2.prop(settings, "default_search_size")
+            sub = col.column(align=True)
+            sub.prop(settings, "default_pattern_size")
+            sub.prop(settings, "default_search_size")
 
             col.label(text="Tracker:")
             col.prop(settings, "default_tracker", text="")
@@ -134,9 +134,9 @@ class CLIP_PT_tools_marker(Panel):
 
             col.separator()
 
-            col2 = col.column(align=True)
-            col2.prop(settings, "default_frames_limit")
-            col2.prop(settings, "default_margin")
+            sub = col.column(align=True)
+            sub.prop(settings, "default_frames_limit")
+            sub.prop(settings, "default_margin")
 
             col.label(text="Match:")
             col.prop(settings, "default_pattern_match", text="")

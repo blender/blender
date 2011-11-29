@@ -330,7 +330,9 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
 
 	DAG_id_type_tag(bmain, ID_OB);
 	DAG_scene_sort(bmain, scene);
-	ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data) {
+		ED_render_id_flush_update(bmain, ob->data);
+	}
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
@@ -1817,7 +1819,9 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	set_sca_new_poins_ob(ob);
 
 	DAG_scene_sort(bmain, scene);
-	ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data) {
+		ED_render_id_flush_update(bmain, ob->data);
+	}
 
 	return basen;
 }

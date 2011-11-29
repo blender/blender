@@ -1017,7 +1017,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	MLoop *mloop;
 	MVert *mvert;
 	float pmat[4][4], imat[3][3], (*orco)[3] = NULL, w;
-	int lay, oblay, totface, totloop, a;
+	int lay, oblay, totface, a;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
@@ -1031,29 +1031,16 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	em = me->edit_btmesh;
 
 	if(em) {
-		int totvert;
 		dm= editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
-		
-		totface= dm->getNumFaces(dm);
-		mpoly= MEM_mallocN(sizeof(MPoly)*totface, "mface temp");
-		dm->copyPolyArray(dm, mpoly);
-
-		totloop= dm->numLoopData; /* BMESH_TODO, we should have an api function for this! */
-		mloop= MEM_mallocN(sizeof(MLoop)*totloop, "mloop temp");
-		dm->copyLoopArray(dm, mloop);
-
-		totvert= dm->getNumVerts(dm);
-		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
-		dm->copyVertArray(dm, mvert);
 	}
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
-
-		totface= dm->getNumFaces(dm);
-		mpoly= dm->getPolyArray(dm);
-		mloop= dm->getLoopArray(dm);
-		mvert= dm->getVertArray(dm);
 	}
+
+	totface= dm->getNumFaces(dm);
+	mpoly= dm->getPolyArray(dm);
+	mloop= dm->getLoopArray(dm);
+	mvert= dm->getVertArray(dm);
 
 	if(G.rendering) {
 
@@ -1198,12 +1185,6 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		}
 		if (sce)	base= base->next;	/* scene loop */
 		else		go= go->next;		/* group loop */
-	}
-	
-	if(em) {
-		MEM_freeN(mpoly);
-		MEM_freeN(mloop);
-		MEM_freeN(mvert);
 	}
 
 	if(orco)
