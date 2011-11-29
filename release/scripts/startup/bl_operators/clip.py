@@ -531,7 +531,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
         vector_blur = tree.nodes.new(type='VECBLUR')
         alphaover = tree.nodes.new(type='ALPHAOVER')
         viewer = tree.nodes.new(type='VIEWER')
-        zcomb = tree.nodes.new(type='ZCOMBINE')
 
         # setup nodes
         movieclip.clip = clip
@@ -561,8 +560,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         vector_blur.factor = 0.75
 
-        zcomb.use_alpha = True
-
         # create links
         tree.links.new(movieclip.outputs['Image'], distortion.inputs['Image'])
 
@@ -591,14 +588,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         tree.links.new(rlayer_fg.outputs['Z'], vector_blur.inputs['Z'])
         tree.links.new(rlayer_fg.outputs['Speed'], vector_blur.inputs['Speed'])
 
-        tree.links.new(vector_blur.outputs['Image'], zcomb.inputs[0])
-        tree.links.new(rlayer_fg.outputs['Z'], zcomb.inputs[1])
-
-        tree.links.new(mul_image.outputs['Image'], zcomb.inputs[2])
-        tree.links.new(rlayer_bg.outputs['Z'], zcomb.inputs[3])
-
         tree.links.new(mul_image.outputs['Image'], alphaover.inputs[1])
-        tree.links.new(zcomb.outputs['Image'], alphaover.inputs[2])
+        tree.links.new(vector_blur.outputs['Image'], alphaover.inputs[2])
 
         tree.links.new(alphaover.outputs['Image'], composite.inputs['Image'])
         tree.links.new(alphaover.outputs['Image'], viewer.inputs['Image'])
@@ -641,16 +632,12 @@ class CLIP_OT_setup_tracking_scene(Operator):
         rlayer_fg.location = rlayer_bg.location
         rlayer_fg.location -= Vector((0.0, 500.0))
 
-        vector_blur.location[0] = mul_image.location[0] - 200
+        vector_blur.location[0] = mul_image.location[0]
         vector_blur.location[1] = rlayer_fg.location[1]
 
-        alphaover.location[0] = vector_blur.location[0] + 700
+        alphaover.location[0] = vector_blur.location[0] + 350
         alphaover.location[1] = \
             (vector_blur.location[1] + mul_image.location[1]) / 2
-
-        zcomb.location[0] = vector_blur.location[0] + 450
-        zcomb.location[1] = \
-            (vector_blur.location[1] + mul_image.location[1]) / 3 * 2
 
         composite.location = alphaover.location
         composite.location += Vector((200.0, -100.0))
