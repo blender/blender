@@ -1911,26 +1911,21 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
- static void get_face_center(float *centout, BMesh *bm, BMVert *eve)
+ static void get_face_center(float cent_r[3], BMesh *bm, BMVert *eve)
 
 {
 	BMFace *efa;
-	BMLoop *l;
 	BMIter iter;
-	float cent[3] = {0.0, 0.0, 0.0};
 
 	efa = BMIter_New(&iter, bm, BM_FACES_OF_VERT, eve);
 	if (efa) {
-		l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, efa);
-		for ( ; l; l=BMIter_Step(&iter)) {
-			VECADD(cent, cent, l->v->co);
-		}
-
-		mul_v3_fl(cent, 1.0f / (float)efa->len);
+		BM_Compute_Face_CenterMean(bm, efa, cent_r);
+	}
+	else {
+		zero_v3(cent_r);
 	}
 
-	if (cent[0] == 0.0f && cent[1] == 0.0f && cent[2] == 0.0f) cent[2] = 1.0f;
-	copy_v3_v3(centout, cent);
+	if (is_zero_v3(cent_r)) cent_r[2] = 1.0f;
 }
 
 #define VertsToTransData(t, td, em, eve, bweight) \

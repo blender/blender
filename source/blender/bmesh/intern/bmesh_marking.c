@@ -450,7 +450,7 @@ void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese)
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
-		BM_Compute_Face_Center(bm, efa, center);
+		BM_Compute_Face_CenterBounds(bm, efa, center);
 	}
 }
 

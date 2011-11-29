@@ -202,8 +202,8 @@ BMFace *BM_Copy_Face(BMesh *bm, BMFace *f, int copyedges, int copyverts)
 {
 	BMEdge **edges = NULL;
 	BMVert **verts = NULL;
-	BLI_array_staticdeclare(edges, 256);
-	BLI_array_staticdeclare(verts, 256);
+	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMLoop *l, *l2;
 	BMFace *f2;
 	int i;
@@ -457,7 +457,7 @@ static void bmesh_kill_loop(BMesh *bm, BMLoop *l)
 void BM_Kill_Face_Edges(BMesh *bm, BMFace *f)
 {
 	BMEdge **edges = NULL;
-	BLI_array_staticdeclare(edges, 256);
+	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
 	BMLoop *l;
 	int i;
 	
@@ -477,7 +477,7 @@ void BM_Kill_Face_Edges(BMesh *bm, BMFace *f)
 void BM_Kill_Face_Verts(BMesh *bm, BMFace *f)
 {
 	BMVert**verts = NULL;
-	BLI_array_staticdeclare(verts, 256);
+	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMLoop *l;
 	int i;
 	
@@ -623,7 +623,7 @@ static int bmesh_loop_reverse_loop(BMesh *bm, BMFace *f, BMLoopList *lst)
 	BMLoop *l = lst->first, *curloop, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
 	MDisps *md;
-	BLI_array_staticdeclare(edar, 64);
+	BLI_array_staticdeclare(edar, BM_NGON_STACK_SIZE);
 	int i, j, edok, len = 0, do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 
 	len = bmesh_loop_length(l);
@@ -818,9 +818,9 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	BMEdge **edges = NULL;
 	BMEdge **deledges = NULL;
 	BMVert **delverts = NULL;
-	BLI_array_staticdeclare(edges, 64);
-	BLI_array_staticdeclare(deledges, 64);
-	BLI_array_staticdeclare(delverts, 64);
+	BLI_array_staticdeclare(edges,    BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(deledges, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(delverts, BM_NGON_STACK_SIZE);
 	BMVert *v1=NULL, *v2=NULL;
 	ListBase holes = {NULL, NULL};
 	const char *err = NULL;
@@ -1147,7 +1147,8 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  *
 */
 
-BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
+BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
+{
 	BMLoop *nextl;
 	BMEdge *ne;
 	BMVert *nv, *ov;
@@ -1340,7 +1341,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	BMLoop *killoop, *l;
 	int len,radlen=0, halt = 0, i, valence1, valence2,edok;
 	BMLoop **loops = NULL;
-	BLI_array_staticdeclare(loops, 256);
+	BLI_array_staticdeclare(loops, BM_NGON_STACK_SIZE);
 
 	if(bmesh_vert_in_edge(ke,kv) == 0) return 0;
 	len = bmesh_disk_count(kv);

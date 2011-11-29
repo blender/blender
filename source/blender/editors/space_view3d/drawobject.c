@@ -2734,7 +2734,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 			BMIter liter;
 			BMLoop *loop;
 
-			BM_Compute_Face_Center(em->bm, efa, vmid);
+			BM_Compute_Face_CenterBounds(em->bm, efa, vmid);
 
 			for(loop = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
 			    loop; loop = BMIter_Step(&liter)) {

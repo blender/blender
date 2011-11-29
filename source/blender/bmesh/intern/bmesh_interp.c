@@ -188,9 +188,9 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BMLoop *l1, *l2;
 	void **blocks=NULL;
 	float (*cos)[3]=NULL, *w=NULL;
-	BLI_array_staticdeclare(cos, 64);
-	BLI_array_staticdeclare(w, 64);
-	BLI_array_staticdeclare(blocks, 64);
+	BLI_array_staticdeclare(cos,     BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(w,       BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(blocks,  BM_NGON_STACK_SIZE);
 	
 	BM_Copy_Attributes(bm, bm, source, target);
 	
@@ -698,10 +698,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	void **blocks=NULL;
 	void **vblocks=NULL;
 	float (*cos)[3]=NULL, co[3], *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_staticdeclare(cos, 64);
-	BLI_array_staticdeclare(w, 64);
-	BLI_array_staticdeclare(blocks, 64);
-	BLI_array_staticdeclare(vblocks, 64);
+	BLI_array_staticdeclare(cos,      BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(w,        BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(blocks,   BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(vblocks,  BM_NGON_STACK_SIZE);
 	int i, xn, yn, zn, ax, ay;
 	
 	BM_Copy_Attributes(bm, bm, source, target->f);
@@ -775,9 +775,9 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	BMLoop *l;
 	void **blocks=NULL;
 	float (*cos)[3]=NULL, *w=NULL, cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_staticdeclare(cos, 64);
-	BLI_array_staticdeclare(w, 64);
-	BLI_array_staticdeclare(blocks, 64);
+	BLI_array_staticdeclare(cos,     BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(w,       BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(blocks,  BM_NGON_STACK_SIZE);
 	int i;
 	
 	l = bm_firstfaceloop(source);

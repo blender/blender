@@ -500,10 +500,10 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 
 	/* array for passing verts to angle_poly_v3 */
 	float **verts = NULL;
-	BLI_array_staticdeclare(verts, 16);
+	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	/* array for receiving angles from angle_poly_v3 */
 	float *angles = NULL;
-	BLI_array_staticdeclare(angles, 16);
+	BLI_array_staticdeclare(angles, BM_NGON_STACK_SIZE);
 
 	BM_ElemIndex_Ensure(bm, BM_VERT);
 

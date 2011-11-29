@@ -434,7 +434,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		float *vert_angles= MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum= vert_angles + numVerts;
 		float *face_angles = NULL;
-		BLI_array_staticdeclare(face_angles, 16);
+		BLI_array_staticdeclare(face_angles, 16); /* BM_NGON_STACK_SIZE */
 		int j, vidx;
 
 		face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);

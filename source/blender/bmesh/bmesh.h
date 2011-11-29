@@ -284,7 +284,9 @@ float BM_GetCDf(struct CustomData *cd, void *element, int type);
 void BM_SetCDf(struct CustomData *cd, void *element, int type, float val);
 
 /*computes the centroid of a face, using the center of the bounding box*/
-int BM_Compute_Face_Center ( BMesh *bm, BMFace *f, float center[3] );
+void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float center[3]);
+/*computes the centroid of a face, using the mean average*/
+void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float center[3]);
 
 void BM_SelectMode_Flush ( BMesh *bm );
 
@@ -346,6 +348,11 @@ void bmesh_end_edit(struct BMesh *bm, int flag);
 
 
 #define bm_firstfaceloop(p) ((BMLoopList*)(p->loops.first))->first
+
+/* size to use for static arrays when dealing with NGons,
+ * alloc after this limit is reached.
+ * this value is rather arbitrary */
+#define BM_NGON_STACK_SIZE 32
 
 /*include the rest of the API*/
 #include "bmesh_filters.h"

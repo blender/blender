@@ -225,11 +225,11 @@ float BM_face_area(BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
-	float (*verts)[3], stackv[100][3];
+	float (*verts)[3], stackv[BM_NGON_STACK_SIZE][3];
 	float area, center[3];
 	int i;
 
-	if (f->len <= 100) 
+	if (f->len <= BM_NGON_STACK_SIZE)
 		verts = stackv;
 	else verts = MEM_callocN(sizeof(float)*f->len*3, "bm_face_area tmp");
 
@@ -241,7 +241,7 @@ float BM_face_area(BMFace *f)
 
 	compute_poly_center(center, &area, verts, f->len);
 
-	if (f->len > 100)
+	if (f->len > BM_NGON_STACK_SIZE)
 		MEM_freeN(verts);
 
 	return area;
@@ -250,7 +250,7 @@ float BM_face_area(BMFace *f)
 computes center of face in 3d.  uses center of bounding box.
 */
 
-int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
+void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float r_cent[3])
 {
 	BMIter iter;
 	BMLoop *l;
@@ -263,9 +263,23 @@ int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
 		DO_MINMAX(l->v->co, min, max);
 	}
 
-	mid_v3_v3v3(center, min, max);
-	
-	return 0;
+	mid_v3_v3v3(r_cent, min, max);
+}
+
+void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
+{
+	BMIter iter;
+	BMLoop *l;
+	int i;
+
+	zero_v3(r_cent);
+
+	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (i=0; l; l=BMIter_Step(&iter), i++) {
+		add_v3_v3(r_cent, l->v->co);
+	}
+
+	mul_v3_fl(r_cent, 1.0f / (float)f->len);
 }
 
 /*
@@ -404,8 +418,8 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
-	float projverts[200][3];
-	float (*proj)[3] = f->len < 200 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
+	float projverts[BM_NGON_STACK_SIZE][3];
+	float (*proj)[3] = f->len < BM_NGON_STACK_SIZE ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
 
 	if (f->len < 3) return;
 
@@ -854,15 +868,15 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	BMLoop *l;
 	float v1[3], v2[3], v3[3]/*, v4[3]*/, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-234324.0f, -234324.0f, 0.0f};
-	float projectverts[100][3];
-	float edgevertsstack[200][3];
+	float projectverts[BM_NGON_STACK_SIZE][3];
+	float edgevertsstack[BM_NGON_STACK_SIZE * 2][3];
 	float (*projverts)[3] = projectverts;
 	float (*edgeverts)[3] = edgevertsstack;
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a=0, clen;
 
-	if (f->len > 100) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
-	if (len > 100) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
+	if (f->len > BM_NGON_STACK_SIZE) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
+	if (len > (BM_NGON_STACK_SIZE * 2)) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
 	
 	i = 0;
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);

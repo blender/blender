@@ -280,7 +280,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 		if (!startf) startf = f;
 
-		BM_Compute_Face_Center(bm, f, cent);
+		BM_Compute_Face_CenterBounds(bm, f, cent);
 
 		cent[0] = cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
 		if (cent[0] > maxx) {
@@ -291,7 +291,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	if (!startf) return;
 
-	BM_Compute_Face_Center(bm, startf, cent);
+	BM_Compute_Face_CenterBounds(bm, startf, cent);
 
 	/*make sure the starting face has the correct winding*/
 	if (dot_v3v3(cent, startf->no) < 0.0f) {

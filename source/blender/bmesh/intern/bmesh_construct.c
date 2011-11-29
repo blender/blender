@@ -257,13 +257,12 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f)
  * BM_Make_Face should be considered over this function as it
  * avoids some unnecessary work.
 */
-#define VERT_BUF_SIZE 100
 BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
 	BMEdge **edges2 = NULL;
-	BLI_array_staticdeclare(edges2, VERT_BUF_SIZE);
+	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
 	BMVert **verts = NULL, *v;
-	BLI_array_staticdeclare(verts, VERT_BUF_SIZE);
+	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *ev1, *ev2;

@@ -136,7 +136,8 @@ for (i=0; i<lvl; i++, df /= 4.0f) {
 #endif
 /*connects face with smallest len, which I think should always be correct for
   edge subdivision*/
-static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
+static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf)
+{
 	BMIter iter, iter2;
 	BMVert *v;
 	BMLoop *nl;
@@ -164,7 +165,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 }
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const subdparams *params, float perc,
-		     BMVert *vsta, BMVert *vend)
+                     BMVert *vsta, BMVert *vend)
 {
 	float tvec[3], prev_co[3], fac;
 	float *co=NULL;
