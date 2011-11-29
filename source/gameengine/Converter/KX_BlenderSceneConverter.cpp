@@ -765,7 +765,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			Object* blenderObject = gameObj->GetBlenderObject();
-			if (blenderObject && blenderObject->parent==NULL && gameObj->GetPhysicsController() != NULL)
+			if (blenderObject && blenderObject->parent==NULL && gameObj->IsDynamic())
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 
