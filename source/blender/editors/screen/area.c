@@ -1596,7 +1596,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			if(pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					triangle, UI_UNIT_Y+style->panelspace, UI_UNIT_Y, 1, style);
+					triangle, UI_UNIT_Y+style->panelspace+2, UI_UNIT_Y, 1, style);
 
 				pt->draw_header(C, panel);
 
