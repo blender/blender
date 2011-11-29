@@ -348,8 +348,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DM_copy_loop_data(dm, result, 0, 0, numLoops);
 	DM_copy_loop_data(dm, result, 0, numLoops, numLoops);
 
-	DM_copy_face_data(dm, result, 0, 0, numFaces);
-	DM_copy_face_data(dm, result, 0, numFaces, numFaces);
+	DM_copy_poly_data(dm, result, 0, 0, numFaces);
+	DM_copy_poly_data(dm, result, 0, numFaces, numFaces);
 	
 	/*flip normals*/
 	mp = mpoly + numFaces;
@@ -567,7 +567,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* faces */
 		edge_origIndex = origindex;
-		origindex = DM_get_face_data_layer(result, CD_ORIGINDEX);
+		origindex = DM_get_poly_data_layer(result, CD_ORIGINDEX);
 		
 		mp = mpoly + (numFaces * 2);
 		ml = mloop + (numLoops * 2);
@@ -589,7 +589,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			ed= medge + eidx;
 
 			/* copy most of the face settings */
-			DM_copy_face_data(dm, result, fidx, (numFaces * 2) + i, 1);
+			DM_copy_poly_data(dm, result, fidx, (numFaces * 2) + i, 1);
 			mp->loopstart = j+numLoops*2;
 			mp->flag = mpoly[fidx].flag;
 			mp->totloop = 4;

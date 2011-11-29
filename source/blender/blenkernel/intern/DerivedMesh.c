@@ -254,7 +254,7 @@ void DM_init_funcs(DerivedMesh *dm)
 
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
-	dm->getTessFaceData = DM_get_face_data;
+	dm->getTessFaceData = DM_get_tessface_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
@@ -496,7 +496,7 @@ void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 	CustomData_add_layer(&dm->loopData, type, alloctype, layer, dm->numLoopData);
 }
 
-void DM_add_face_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+void DM_add_poly_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->polyData, type, alloctype, layer, dm->numPolyData);
 }
@@ -511,7 +511,7 @@ void *DM_get_edge_data(DerivedMesh *dm, int index, int type)
 	return CustomData_get(&dm->edgeData, index, type);
 }
 
-void *DM_get_face_data(DerivedMesh *dm, int index, int type)
+void *DM_get_tessface_data(DerivedMesh *dm, int index, int type)
 {
 	return CustomData_get(&dm->faceData, index, type);
 }
@@ -540,7 +540,7 @@ void *DM_get_tessface_data_layer(DerivedMesh *dm, int type)
 	return CustomData_get_layer(&dm->faceData, type);
 }
 
-void *DM_get_face_data_layer(DerivedMesh *dm, int type)
+void *DM_get_poly_data_layer(DerivedMesh *dm, int type)
 {
 	return CustomData_get_layer(&dm->polyData, type);
 }
@@ -555,7 +555,7 @@ void DM_set_edge_data(DerivedMesh *dm, int index, int type, void *data)
 	CustomData_set(&dm->edgeData, index, type, data);
 }
 
-void DM_set_face_data(DerivedMesh *dm, int index, int type, void *data)
+void DM_set_tessface_data(DerivedMesh *dm, int index, int type, void *data)
 {
 	CustomData_set(&dm->faceData, index, type, data);
 }
@@ -588,7 +588,7 @@ void DM_copy_loop_data(DerivedMesh *source, DerivedMesh *dest,
 	                     source_index, dest_index, count);
 }
 
-void DM_copy_face_data(DerivedMesh *source, DerivedMesh *dest,
+void DM_copy_poly_data(DerivedMesh *source, DerivedMesh *dest,
                        int source_index, int dest_index, int count)
 {
 	CustomData_copy_data(&source->polyData, &dest->polyData,
@@ -615,7 +615,7 @@ void DM_free_loop_data(struct DerivedMesh *dm, int index, int count)
 	CustomData_free_elem(&dm->loopData, index, count);
 }
 
-void DM_free_face_data(struct DerivedMesh *dm, int index, int count)
+void DM_free_poly_data(struct DerivedMesh *dm, int index, int count)
 {
 	CustomData_free_elem(&dm->polyData, index, count);
 }
@@ -659,7 +659,7 @@ void DM_interp_loop_data(DerivedMesh *source, DerivedMesh *dest,
 	                  weights, NULL, count, dest_index);
 }
 
-void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
+void DM_interp_poly_data(DerivedMesh *source, DerivedMesh *dest,
                          int *src_indices,
                          float *weights, int count, int dest_index)
 {
@@ -1306,11 +1306,11 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					/* calc */
 					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
-					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+					DM_add_poly_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
 					range_vn_i(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
 					range_vn_i(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
-					range_vn_i(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0);
+					range_vn_i(DM_get_poly_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0);
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))

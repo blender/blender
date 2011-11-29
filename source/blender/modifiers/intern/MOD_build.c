@@ -264,7 +264,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		
 		source = mpolys + faceMap[i];
 		dest = mpolyd + i;
-		DM_copy_face_data(dm, result, faceMap[i], i, 1);
+		DM_copy_poly_data(dm, result, faceMap[i], i, 1);
 		
 		*dest = *source;
 		dest->loopstart = k;

@@ -562,7 +562,7 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	}
 
 	mp = mpoly;
-	index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	index = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
 	for (i=0; i<dm->numPolyData; i++, mp++) {
 		CCGFace *f=NULL;
 
@@ -2828,9 +2828,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
 	ccgdm->dm.copyLoopArray = ccgDM_copyFinalLoopArray;
 	ccgdm->dm.copyPolyArray = ccgDM_copyFinalPolyArray;
-	ccgdm->dm.getVertData = DM_get_vert_data;
-	ccgdm->dm.getEdgeData = DM_get_edge_data;
-	ccgdm->dm.getTessFaceData = DM_get_face_data;
 	ccgdm->dm.getVertDataArray = ccgDM_get_vert_data_layer;
 	ccgdm->dm.getEdgeDataArray = ccgDM_get_edge_data_layer;
 	ccgdm->dm.getTessFaceDataArray = ccgDM_get_face_data_layer;
@@ -2846,9 +2843,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
 	ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
 	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
-	ccgdm->dm.getVertData = DM_get_vert_data;
-	ccgdm->dm.getEdgeData = DM_get_edge_data;
-	ccgdm->dm.getTessFaceData = DM_get_face_data;
 
 	ccgdm->dm.calcNormals = ccgDM_calcNormals;
 	ccgdm->dm.recalcTesselation = ccgDM_recalcTesselection;
@@ -2938,7 +2932,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	/*edgeOrigIndex = DM_get_edge_data_layer(&cgdm->dm, CD_ORIGINDEX);*/
 	faceOrigIndex = DM_get_tessface_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
-	polyOrigIndex = DM_get_face_data_layer(&ccgdm->dm, CD_ORIGINDEX);
+	polyOrigIndex = DM_get_poly_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
 #if 0
 	/* this is not in trunk, can gives problems because colors initialize

@@ -1641,12 +1641,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->copyTessFaceArray = cdDM_copyFaceArray;
 	dm->copyLoopArray = cdDM_copyLoopArray;
 	dm->copyPolyArray = cdDM_copyPolyArray;
-	dm->getVertData = DM_get_vert_data;
-	dm->getEdgeData = DM_get_edge_data;
-	dm->getTessFaceData = DM_get_face_data;
-	dm->getVertDataArray = DM_get_vert_data_layer;
-	dm->getEdgeDataArray = DM_get_edge_data_layer;
-	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->calcNormals = CDDM_calc_normals;
 	dm->recalcTesselation = CDDM_recalc_tesselation;

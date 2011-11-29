@@ -3039,7 +3039,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 			/* if canvas is ready to preview vertex colors */
 			if (pmd->canvas && pmd->canvas->flags & MOD_DPAINT_PREVIEW_READY &&
-				DM_get_face_data_layer(dm, CD_WEIGHT_MCOL)) {
+				DM_get_poly_data_layer(dm, CD_WEIGHT_MCOL)) {
 				draw_flags |= DRAW_DYNAMIC_PAINT_PREVIEW;
 			}
 		}

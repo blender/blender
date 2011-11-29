@@ -447,7 +447,7 @@ void DM_add_tessface_layer(struct DerivedMesh *dm, int type, int alloctype,
                            void *layer);
 void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype,
                        void *layer);
-void DM_add_face_layer(struct DerivedMesh *dm, int type, int alloctype,
+void DM_add_poly_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
 
 /* custom data access functions
@@ -457,7 +457,7 @@ void DM_add_face_layer(struct DerivedMesh *dm, int type, int alloctype,
  */
 void *DM_get_vert_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_edge_data(struct DerivedMesh *dm, int index, int type);
-void *DM_get_face_data(struct DerivedMesh *dm, int index, int type);
+void *DM_get_tessface_data(struct DerivedMesh *dm, int index, int type);
 
 /* custom data layer access functions
  * return pointer to first data layer which matches type (a flat array)
@@ -467,7 +467,7 @@ void *DM_get_face_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_tessface_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_face_data_layer(struct DerivedMesh *dm, int type);
+void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
 
 /* custom data setting functions
  * copy supplied data into first layer of type using layer's copy function
@@ -475,7 +475,7 @@ void *DM_get_face_data_layer(struct DerivedMesh *dm, int type);
  */
 void DM_set_vert_data(struct DerivedMesh *dm, int index, int type, void *data);
 void DM_set_edge_data(struct DerivedMesh *dm, int index, int type, void *data);
-void DM_set_face_data(struct DerivedMesh *dm, int index, int type, void *data);
+void DM_set_tessface_data(struct DerivedMesh *dm, int index, int type, void *data);
 
 /* custom data copy functions
  * copy count elements from source_index in source to dest_index in dest
@@ -489,7 +489,7 @@ void DM_copy_tessface_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
 void DM_copy_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
-void DM_copy_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+void DM_copy_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 					   int source_index, int dest_index, int count);
 
 /* custom data free functions
@@ -500,7 +500,7 @@ void DM_free_vert_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_edge_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_tessface_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_loop_data(struct DerivedMesh *dm, int index, int count);
-void DM_free_face_data(struct DerivedMesh *dm, int index, int count);
+void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 
 /*sets up mpolys for a DM based on face iterators in source*/
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
@@ -545,7 +545,7 @@ void DM_interp_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                          int *src_indices,
                          float *weights, int count, int dest_index);
 
-void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
+void DM_interp_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                          int *src_indices,
                          float *weights, int count, int dest_index);
 

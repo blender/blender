@@ -430,7 +430,7 @@ static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 }
 static void add_tface_color_layer(DerivedMesh *dm)
 {
-	MTFace *tface = DM_get_face_data_layer(dm, CD_MTFACE);
+	MTFace *tface = DM_get_poly_data_layer(dm, CD_MTFACE);
 	MFace *mface = dm->getTessFaceArray(dm);
 	MCol *finalCol;
 	int i,j;

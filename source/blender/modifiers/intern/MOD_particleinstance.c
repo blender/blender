@@ -291,7 +291,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		}
 
 		inMF = orig_mface + i%totface;
-		DM_copy_face_data(dm, result, i%totface, i, 1);
+		DM_copy_poly_data(dm, result, i%totface, i, 1);
 		*mf = *inMF;
 
 		mf->v1+=(i/totface)*totvert;
