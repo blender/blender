@@ -1273,12 +1273,12 @@ static float redistribute_change(MDeformVert *ndv, char *change_status, int chan
 	/* left overs */
 	return totchange;
 }
-
+static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_change);
 /* observe the changes made to the weights of groups.
  * make sure all locked groups on the vertex have the same deformation
  * by moving the changes made to groups onto other unlocked groups */
-static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
-                          const char *lock_flags, const char *vgroup_validmap, char do_auto_normalize)
+static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, char *defbase_sel,
+                          const char *lock_flags, const char *vgroup_validmap, char do_auto_normalize, char do_multipaint)
 {
 	float totchange = 0.0f;
 	float totchange_allowed = 0.0f;
@@ -1291,11 +1291,11 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 	MDeformWeight *odw;
 	MDeformWeight *ndw2;
 	MDeformWeight *odw2;
-	int designatedw = -1;
-	int designatedw_changed = FALSE;
+
+	float changed_sum = 0.0f;
+
 	float storedw;
 	char *change_status;
-	char new_weight_has_zero = FALSE;
 
 	if(!lock_flags || !has_locked_group(ndv, lock_flags)) {
 		return;
@@ -1322,14 +1322,9 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 		}
 		else if(ndw->weight != odw->weight) { /* changed groups are handled here */
 			totchange += ndw->weight - odw->weight;
+			changed_sum += ndw->weight;
 			change_status[i] = 2; /* was altered already */
 			total_changed++;
-			if(ndw->weight == 0) {
-				new_weight_has_zero = TRUE;
-			}
-			else if(designatedw == -1){
-				designatedw = i;
-			}
 		} /* unchanged, unlocked bone groups are handled here */
 		else if (vgroup_validmap[i]){
 			totchange_allowed += ndw->weight;
@@ -1369,30 +1364,12 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, totchange_allowed, total_valid, do_auto_normalize);
 			left_over += totchange_allowed;
 			if(left_over) {
-				/* more than one nonzero weights were changed with the same ratio, so keep them changed that way! */
-				if(total_changed > 1 && !new_weight_has_zero && designatedw >= 0) {
-					/* this dw is special, it is used as a base to determine how to change the others */
-					ndw = defvert_find_index(ndv, designatedw);
-					odw = defvert_find_index(odv, designatedw);
-					storedw = ndw->weight;
-					for(i = 0; i < ndv->totweight; i++) {
-						if(ndv->dw[i].def_nr == designatedw) {
-							continue;
-						}
-						ndw2 = &ndv->dw[i];
-						if(change_status[ndw2->def_nr] == 2) {
-							odw2 = &odv->dw[i];
-							
-							if(!designatedw_changed) {
-								ndw->weight = (-left_over + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
-								designatedw_changed = TRUE;
-							}
-							ndw2->weight = ndw->weight * ndw2->weight / storedw;
-						}
-					}
-				}
-				/* a weight was changed to zero, only one weight was changed,
-				 * or designatedw is still -1 put weight back as evenly as possible */
+				/* more than one nonzero weights were changed with the same ratio with multipaint, so keep them changed that way! */
+				if(total_changed > 1 && do_multipaint) {
+					float undo_change = get_mp_change(ndv, defbase_sel, left_over);
+					multipaint_selection(ndv, undo_change, defbase_sel, defbase_tot);
+				}	
+				/* or designatedw is still -1 put weight back as evenly as possible */
 				else {
 					redistribute_change(ndv, change_status, 2, -2, left_over, total_changed, do_auto_normalize);
 				}
@@ -1513,7 +1490,7 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	}
 	clamp_weights(dv);
 
-	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->lock_flags, wpi->vgroup_validmap, wpi->do_auto_normalize);
+	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags, wpi->vgroup_validmap, wpi->do_auto_normalize, wpi->do_multipaint);
 
 	do_weight_paint_auto_normalize_all_groups(dv, wpi->vgroup_validmap, wpi->do_auto_normalize);
 
