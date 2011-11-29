@@ -11967,7 +11967,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
 	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 3)) {
 		Object *ob;
 
@@ -11984,8 +11983,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}		
 	}
 
-	/* put compatibility code here until next subversion bump */
-	
 	if (main->versionfile < 256) {
 		bScreen *sc;
 		ScrArea *sa;
@@ -12604,16 +12601,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 6))
 	{
 		Scene *sce;
 		MovieClip *clip;
 		bScreen *sc;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
-			if (sce->r.im_format.depth == 0) {
-				do_versions_image_settings_2_60(sce);
-			}
+			do_versions_image_settings_2_60(sce);
 		}
 
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
@@ -12640,6 +12635,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			Object *ob;
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				/* convert delta addition into delta scale */
+				int i;
+				for (i= 0; i < 3; i++) {
+					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
+					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
+					{
+						ob->dsize[i]= 1.0f;
+					}
+					else {
+						ob->size[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+					}
+				}
+			}
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
+		/* nothing! */
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

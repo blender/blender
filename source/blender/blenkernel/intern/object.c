@@ -774,6 +774,7 @@ Object *add_only_object(int type, const char *name)
 	ob->col[3]= 1.0;
 	
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+	ob->dsize[0]= ob->dsize[1]= ob->dsize[2]= 1.0;
 	
 	/* objects should default to having Euler XYZ rotations, 
 	 * but rotations default to quaternions 
@@ -1441,7 +1442,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	add_v3_v3v3(vec, ob->size, ob->dsize);
+	mul_v3_v3v3(vec, ob->size, ob->dsize);
 	size_to_mat3( mat,vec);
 }
 
@@ -1603,7 +1604,11 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 	}
 	
 	sub_v3_v3(ob->loc, ob->dloc);
-	sub_v3_v3(ob->size, ob->dsize);
+
+	if (ob->dsize[0] != 0.0f) ob->size[0] /= ob->dsize[0];
+	if (ob->dsize[1] != 0.0f) ob->size[1] /= ob->dsize[1];
+	if (ob->dsize[2] != 0.0f) ob->size[2] /= ob->dsize[2];
+
 	/* object_mat3_to_rot handles delta rotations */
 }
 
