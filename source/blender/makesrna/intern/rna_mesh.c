@@ -220,30 +220,8 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 {
 	Mesh *me = (Mesh*)ptr->id.data;
 	MPoly *mp = (MPoly*)ptr->data;
-	MVert *mv;
-	MLoop *ml;
-	int i, j;
-	float area, polynorm[3], (*vertexcos)[3] = NULL;
-	BLI_array_staticdeclare(vertexcos, 10);
 
-	BLI_array_growitems(vertexcos, mp->totloop);
-
-	/* pack vertex cos into an array for area_poly_v3 */
-	for (i = mp->loopstart, j = 0; j < mp->totloop; i++, j++) {
-		ml = &me->mloop[i];
-		mv = &me->mvert[ml->v];
-		copy_v3_v3(vertexcos[j], mv->co);
-	}
-
-	/* need normal for area_poly_v3 as well */
-	rna_MeshPolygon_normal_get(ptr, polynorm);
-
-	/* finally calculate the area */
-	area = area_poly_v3(mp->totloop, vertexcos, polynorm);
-
-	BLI_array_free(vertexcos);
-
-	return area;
+	return mesh_calc_poly_area(mp, me->mloop+mp->loopstart, me->mvert, NULL);
 }
 
 static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)

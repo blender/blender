@@ -2542,13 +2542,13 @@ void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 static void mesh_calc_ngon_center(MPoly *mpoly, MLoop *loopstart,
                                   MVert *mvert, float cent[3])
 {
-	const float fac= 1.0f / (float)mpoly->totloop;
+	const float w= 1.0f / (float)mpoly->totloop;
 	int i;
 
 	zero_v3(cent);
 
 	for (i = 0; i < mpoly->totloop; i++) {
-		madd_v3_v3fl(cent, mvert[(loopstart++)->v].co, fac);
+		madd_v3_v3fl(cent, mvert[(loopstart++)->v].co, w);
 	}
 }
 
@@ -2572,6 +2572,50 @@ void mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
 	}
 	else {
 		mesh_calc_ngon_center(mpoly, loopstart, mvarray, cent);
+	}
+}
+
+/* note, passing polynormal is only a speedup so we can skip calculating it */
+float mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
+                          MVert *mvarray, float polynormal[3])
+{
+	if (mpoly->totloop == 3) {
+		return area_tri_v3(mvarray[loopstart[0].v].co,
+		                   mvarray[loopstart[1].v].co,
+		                   mvarray[loopstart[2].v].co
+		                   );
+	}
+	else if (mpoly->totloop == 4) {
+		return area_quad_v3(mvarray[loopstart[0].v].co,
+		                    mvarray[loopstart[1].v].co,
+		                    mvarray[loopstart[2].v].co,
+		                    mvarray[loopstart[3].v].co
+		                    );
+	}
+	else {
+		int i;
+		float area, polynorm_local[3], (*vertexcos)[3] = NULL;
+		float *no= polynormal ? polynormal : polynorm_local;
+		BLI_array_staticdeclare(vertexcos, 10);
+
+		BLI_array_growitems(vertexcos, mpoly->totloop);
+
+		/* pack vertex cos into an array for area_poly_v3 */
+		for (i = 0; i < mpoly->totloop; i++) {
+			copy_v3_v3(vertexcos[i], mvarray[(loopstart++)->v].co);
+		}
+
+		/* need normal for area_poly_v3 as well */
+		if (polynormal == NULL) {
+			mesh_calc_poly_normal(mpoly, loopstart, mvarray, no);
+		}
+
+		/* finally calculate the area */
+		area = area_poly_v3(mpoly->totloop, vertexcos, no);
+
+		BLI_array_free(vertexcos);
+
+		return area;
 	}
 }
 

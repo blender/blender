@@ -1012,11 +1012,12 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	DupliObject *dob;
 	DerivedMesh *dm;
 	Mesh *me= par->data;
-	MTFace *mtface;
-	MFace *mface;
+	MLoopUV *mloopuv;
+	MPoly *mpoly, *mp;
+	MLoop *mloop;
 	MVert *mvert;
 	float pmat[4][4], imat[3][3], (*orco)[3] = NULL, w;
-	int lay, oblay, totface, a;
+	int lay, oblay, totface, totloop, a;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
@@ -1033,18 +1034,24 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		int totvert;
 		dm= editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 		
-		totface= dm->getNumTessFaces(dm);
-		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
-		dm->copyTessFaceArray(dm, mface);
+		totface= dm->getNumFaces(dm);
+		mpoly= MEM_mallocN(sizeof(MPoly)*totface, "mface temp");
+		dm->copyPolyArray(dm, mpoly);
+
+		totloop= dm->numLoopData; /* BMESH_TODO, we should have an api function for this! */
+		mloop= MEM_mallocN(sizeof(MLoop)*totloop, "mloop temp");
+		dm->copyLoopArray(dm, mloop);
+
 		totvert= dm->getNumVerts(dm);
 		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
 		dm->copyVertArray(dm, mvert);
 	}
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
-		
-		totface= dm->getNumTessFaces(dm);
-		mface= dm->getTessFaceArray(dm);
+
+		totface= dm->getNumFaces(dm);
+		mpoly= dm->getPolyArray(dm);
+		mloop= dm->getLoopArray(dm);
 		mvert= dm->getVertArray(dm);
 	}
 
@@ -1052,11 +1059,11 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 
 		orco= (float(*)[3])get_mesh_orco_verts(par);
 		transform_mesh_orco_verts(me, orco, me->totvert, 0);
-		mtface= me->mtface;
+		mloopuv= me->mloopuv;
 	}
 	else {
 		orco= NULL;
-		mtface= NULL;
+		mloopuv= NULL;
 	}
 	
 	/* having to loop on scene OR group objects is NOT FUN */
@@ -1100,22 +1107,36 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					for(a=0; a<totface; a++) {
-						int mv1 = mface[a].v1;
-						int mv2 = mface[a].v2;
-						int mv3 = mface[a].v3;
-						int mv4 = mface[a].v4;
-						float *v1= mvert[mv1].co;
-						float *v2= mvert[mv2].co;
-						float *v3= mvert[mv3].co;
-						float *v4= (mv4)? mvert[mv4].co: NULL;
+					for(a=0, mp= mpoly; a<totface; a++, mp++) {
+						int mv1;
+						int mv2;
+						int mv3;
+						/* int mv4; */ /* UNUSED */
+						float *v1;
+						float *v2;
+						float *v3;
+						/* float *v4; */ /* UNUSED */
 						float cent[3], quat[4], mat[3][3], mat3[3][3], tmat[4][4], obmat[4][4];
+						MLoop *loopstart= mloop + mp->loopstart;
+
+						if (mp->totloop < 3) {
+							/* highly unlikely but to be safe */
+							continue;
+						}
+						else {
+							v1= mvert[(mv1= loopstart[0].v)].co;
+							v2= mvert[(mv2= loopstart[1].v)].co;
+							v3= mvert[(mv3= loopstart[2].v)].co;
+							/*
+							if (mp->totloop > 3) {
+								v4= mvert[(mv4= loopstart[3].v)].co;
+							}
+							*/
+						}
 
 						/* translation */
-						if(v4)
-							cent_quad_v3(cent, v1, v2, v3, v4);
-						else
-							cent_tri_v3(cent, v1, v2, v3);
+						mesh_calc_poly_center(mp, loopstart, mvert, cent);
+
 						mul_m4_v3(pmat, cent);
 						
 						sub_v3_v3v3(cent, cent, pmat[3]);
@@ -1131,7 +1152,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						/* scale */
 						if(par->transflag & OB_DUPLIFACES_SCALE) {
-							float size= v4? area_quad_v3(v1, v2, v3, v4): area_tri_v3(v1, v2, v3);
+							float size= mesh_calc_poly_area(mp, loopstart, mvert, NULL);
 							size= sqrtf(size) * par->dupfacesca;
 							mul_m3_fl(mat, size);
 						}
@@ -1144,27 +1165,19 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						dob= new_dupli_object(lb, ob, obmat, par->lay, a, OB_DUPLIFACES, animated);
 						if(G.rendering) {
-							w= (mv4)? 0.25f: 1.0f/3.0f;
+							w= 1.0f / (float)mp->totloop;
 
 							if(orco) {
-								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv1], w);
-								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv2], w);
-								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv3], w);
-								if(mv4)
-									madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv4], w);
+								int j;
+								for (j = 0; j < mpoly->totloop; j++) {
+									madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
+								}
 							}
 
-							if(mtface) {
-								dob->uv[0] += w*mtface[a].uv[0][0];
-								dob->uv[1] += w*mtface[a].uv[0][1];
-								dob->uv[0] += w*mtface[a].uv[1][0];
-								dob->uv[1] += w*mtface[a].uv[1][1];
-								dob->uv[0] += w*mtface[a].uv[2][0];
-								dob->uv[1] += w*mtface[a].uv[2][1];
-
-								if(mv4) {
-									dob->uv[0] += w*mtface[a].uv[3][0];
-									dob->uv[1] += w*mtface[a].uv[3][1];
+							if(mloopuv) {
+								int j;
+								for (j = 0; j < mpoly->totloop; j++) {
+									madd_v2_v2fl(dob->orco, mloopuv[loopstart[j].v].uv, w);
 								}
 							}
 						}
@@ -1188,7 +1201,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	}
 	
 	if(em) {
-		MEM_freeN(mface);
+		MEM_freeN(mpoly);
+		MEM_freeN(mloop);
 		MEM_freeN(mvert);
 	}
 

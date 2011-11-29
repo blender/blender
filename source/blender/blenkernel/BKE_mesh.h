@@ -84,6 +84,9 @@ void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart,
 void mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
                            struct MVert *mvarray, float cent[3]);
 
+float mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
+                          struct MVert *mvarray, float polynormal[3]);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
