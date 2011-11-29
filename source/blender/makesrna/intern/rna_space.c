@@ -2617,6 +2617,12 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_operator", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "op");
 	RNA_def_property_ui_text(prop, "Active Operator", "");
+
+	/* keep this for compatibility with existing presets,
+	   not exposed in c++ api because of keyword conflict */
+	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "op");
+	RNA_def_property_ui_text(prop, "Active Operator", "");
 }
 
 static void rna_def_space_info(BlenderRNA *brna)
