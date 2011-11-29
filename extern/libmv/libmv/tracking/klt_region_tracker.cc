@@ -63,7 +63,7 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   }
 }
 
-bool RegionIsInBounds(const FloatImage &image1,
+static bool RegionIsInBounds(const FloatImage &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
