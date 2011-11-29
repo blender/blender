@@ -636,6 +636,13 @@ static void *init_normal_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 	return (void*)normal_data;
 }
 
+static void free_normal_data(void *bake_data)
+{
+	MNormalBakeData *normal_data= (MNormalBakeData*)bake_data;
+
+	MEM_freeN(normal_data);
+}
+
 static void apply_heights_data(void *bake_data)
 {
 	MHeightBakeData *height_data= (MHeightBakeData*)bake_data;
@@ -849,7 +856,7 @@ static void bake_images(MultiresBakeRender *bkr)
 
 			switch(bkr->mode) {
 				case RE_BAKE_NORMALS:
-					do_multires_bake(bkr, ima, apply_tangmat_callback, init_normal_data, NULL, NULL);
+					do_multires_bake(bkr, ima, apply_tangmat_callback, init_normal_data, NULL, free_normal_data);
 					break;
 				case RE_BAKE_DISPLACEMENT:
 					do_multires_bake(bkr, ima, apply_heights_callback, init_heights_data,
