@@ -2595,6 +2595,10 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 			glEnd();
 		}
 		
+		/* XXX using GL_LINES for shaded node lines is a workaround
+		 * for Intel hardware, this breaks with GL_LINE_STRIP and
+		 * changing color in begin/end blocks.
+		 */
 		glLineWidth(1.5f);
 		if(do_shaded) {
 			glBegin(GL_LINES);
@@ -2673,14 +2677,31 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int
 	UI_ThemeColor(th_col1);
 	glLineWidth(1.5f);
 	
-	glBegin(GL_LINE_STRIP);
-	for (i=0; i < LINK_RESOL; ++i) {
-		float t= (float)i/(float)(LINK_RESOL-1);
-		if(do_shaded)
+	/* XXX using GL_LINES for shaded node lines is a workaround
+	 * for Intel hardware, this breaks with GL_LINE_STRIP and
+	 * changing color in begin/end blocks.
+	 */
+	if(do_shaded) {
+		glBegin(GL_LINES);
+		for (i=0; i < LINK_RESOL-1; ++i) {
+			float t= (float)i/(float)(LINK_RESOL-1);
 			UI_ThemeColorBlend(th_col1, th_col2, t);
-		glVertex2f((1.0f-t)*coord_array[0][0]+t*coord_array[1][0], (1.0f-t)*coord_array[0][1]+t*coord_array[1][1]);
+			glVertex2f((1.0f-t)*coord_array[0][0]+t*coord_array[1][0], (1.0f-t)*coord_array[0][1]+t*coord_array[1][1]);
+			
+			t= (float)(i+1)/(float)(LINK_RESOL-1);
+			UI_ThemeColorBlend(th_col1, th_col2, t);
+			glVertex2f((1.0f-t)*coord_array[0][0]+t*coord_array[1][0], (1.0f-t)*coord_array[0][1]+t*coord_array[1][1]);
+		}
+		glEnd();
 	}
-	glEnd();
+	else {
+		glBegin(GL_LINE_STRIP);
+		for (i=0; i < LINK_RESOL; ++i) {
+			float t= (float)i/(float)(LINK_RESOL-1);
+			glVertex2f((1.0f-t)*coord_array[0][0]+t*coord_array[1][0], (1.0f-t)*coord_array[0][1]+t*coord_array[1][1]);
+		}
+		glEnd();
+	}
 	
 	glDisable(GL_LINE_SMOOTH);
 	
