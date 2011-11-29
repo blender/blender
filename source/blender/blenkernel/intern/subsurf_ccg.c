@@ -2446,6 +2446,12 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 		int *origindex;
 		int a, index, totnone, totorig;
 
+		/* Avoid re-creation if the layer exists already */
+		origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+		if (origindex) {
+			return origindex;
+		}
+
 		DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex= DM_get_vert_data_layer(dm, CD_ORIGINDEX);
 
@@ -2476,6 +2482,12 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
 		int *origindex;
 		int a, i, index, totnone, totorig, totedge;
 		int edgeSize= ccgSubSurf_getEdgeSize(ss);
+
+		/* Avoid re-creation if the layer exists already */
+		origindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
+		if (origindex) {
+			return origindex;
+		}
 
 		DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex= DM_get_edge_data_layer(dm, CD_ORIGINDEX);
@@ -2512,6 +2524,12 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 		int a, i, index, totface;
 		int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
 
+		/* Avoid re-creation if the layer exists already */
+		origindex = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+		if (origindex) {
+			return origindex;
+		}
+
 		DM_add_tessface_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex= DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
@@ -2530,6 +2548,36 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 	}
 
 	return DM_get_tessface_data_layer(dm, type);
+}
+
+static void *ccgDM_get_vert_data(DerivedMesh *dm, int index, int type)
+{
+	if (type == CD_ORIGINDEX) {
+		/* ensure creation of CD_ORIGINDEX layer */
+		ccgDM_get_vert_data_layer(dm, type);
+	}
+
+	return DM_get_vert_data(dm, index, type);
+}
+
+static void *ccgDM_get_edge_data(DerivedMesh *dm, int index, int type)
+{
+	if (type == CD_ORIGINDEX) {
+		/* ensure creation of CD_ORIGINDEX layer */
+		ccgDM_get_edge_data_layer(dm, type);
+	}
+
+	return DM_get_edge_data(dm, index, type);
+}
+
+static void *ccgDM_get_tessface_data(DerivedMesh *dm, int index, int type)
+{
+	if (type == CD_ORIGINDEX) {
+		/* ensure creation of CD_ORIGINDEX layer */
+		ccgDM_get_tessface_data_layer(dm, type);
+	}
+
+	return DM_get_tessface_data(dm, index, type);
 }
 
 static int ccgDM_getNumGrids(DerivedMesh *dm)
@@ -2829,6 +2877,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
 	ccgdm->dm.copyLoopArray = ccgDM_copyFinalLoopArray;
 	ccgdm->dm.copyPolyArray = ccgDM_copyFinalPolyArray;
+
+	ccgdm->dm.getVertData = ccgDM_get_vert_data;
+	ccgdm->dm.getEdgeData = ccgDM_get_edge_data;
+	ccgdm->dm.getTessFaceData = ccgDM_get_tessface_data;
 	ccgdm->dm.getVertDataArray = ccgDM_get_vert_data_layer;
 	ccgdm->dm.getEdgeDataArray = ccgDM_get_edge_data_layer;
 	ccgdm->dm.getTessFaceDataArray = ccgDM_get_tessface_data_layer;
