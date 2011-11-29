@@ -589,10 +589,10 @@ PyDoc_STRVAR(Vector_angle_doc,
 );
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
-	const int size= self->size;
+	const int size= MIN2(self->size, 3); /* 4D angle makes no sense */
 	float tvec[MAX_DIMENSIONS];
 	PyObject *value;
-	double dot = 0.0f, test_v1 = 0.0f, test_v2 = 0.0f;
+	double dot= 0.0f, dot_self= 0.0f, dot_other= 0.0f;
 	int x;
 	PyObject *fallback= NULL;
 
@@ -602,14 +602,18 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if (mathutils_array_parse(tvec, size, size, value, "Vector.angle(other), invalid 'other' arg") == -1)
+	/* don't use clamped size, rule of thumb is vector sizes must match,
+	 * even though n this case 'w' is ignored */
+	if (mathutils_array_parse(tvec, self->size, self->size, value, "Vector.angle(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	for (x = 0; x < size; x++) {
-		test_v1 += (double)(self->vec[x] * self->vec[x]);
-		test_v2 += (double)(tvec[x] * tvec[x]);
+		dot_self  += (double)self->vec[x] * (double)self->vec[x];
+		dot_other += (double)tvec[x]      * (double)tvec[x];
+		dot       += (double)self->vec[x] * (double)tvec[x];
 	}
-	if (!test_v1 || !test_v2) {
+
+	if (!dot_self || !dot_other) {
 		/* avoid exception */
 		if (fallback) {
 			Py_INCREF(fallback);
@@ -623,13 +627,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 		}
 	}
 
-	//dot product
-	for (x = 0; x < self->size; x++) {
-		dot += (double)(self->vec[x] * tvec[x]);
-	}
-	dot /= (sqrt(test_v1) * sqrt(test_v2));
-
-	return PyFloat_FromDouble(saacos(dot));
+	return PyFloat_FromDouble(saacos(dot / (sqrt(dot_self) * sqrt(dot_other))));
 }
 
 PyDoc_STRVAR(Vector_rotation_difference_doc,
@@ -1755,7 +1753,10 @@ static int Vector_setSwizzle(VectorObject *self, PyObject *value, void *closure)
 
 		size_from= axis_from;
 	}
-	else if (PyErr_Clear(), (size_from=mathutils_array_parse(vec_assign, 2, 4, value, "mathutils.Vector.**** = swizzle assignment")) == -1) {
+	else if ( (PyErr_Clear()), /* run but ignore the result */
+	          (size_from=mathutils_array_parse(vec_assign, 2, 4, value,
+	                                           "mathutils.Vector.**** = swizzle assignment")) == -1)
+	{
 		return -1;
 	}
 
