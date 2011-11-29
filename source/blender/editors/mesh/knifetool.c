@@ -1547,7 +1547,10 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 			
 			if (eve->xs > 1 && lasteve->xs > 1) {
-				BLI_addfilledge(lasteve, eve);
+				EditEdge *eed;
+				eed = BLI_addfilledge(lasteve, eve);
+				if (entry->kfe->oe)
+					eed->f = FILLBOUNDARY;  /* mark as original boundary edge */
 				
 				BMO_ClearFlag(bm, entry->kfe->e->v1, DEL);
 				BMO_ClearFlag(bm, entry->kfe->e->v2, DEL);

@@ -580,7 +580,6 @@ static int scanfill(PolyFill *pf, short mat_nr)
 	eed= filledgebase.first;
 	while(eed) {
 		nexted= eed->next;
-		eed->f= 0;
 		BLI_remlink(&filledgebase,eed);
 		/* This code is for handling zero-length edges that get
 		   collapsed in step 0. It was removed for some time to
@@ -706,8 +705,8 @@ static int scanfill(PolyFill *pf, short mat_nr)
 					ed1->v2->f= 0;
 					ed1->v1->h--; 
 					ed1->v2->h--;
-					/* ed2 can be removed when it's an old one */
-					if(ed2->f==0 && twoconnected) {
+					/* ed2 can be removed when it's a boundary edge */
+					if(ed2->f==0 && twoconnected || ed2->f==FILLBOUNDARY) {
 						BLI_remlink((ListBase *)&(sc->first),ed2);
 						BLI_addtail(&filledgebase,ed2);
 						ed2->v2->f= 0;
@@ -725,19 +724,20 @@ static int scanfill(PolyFill *pf, short mat_nr)
 					/* printf("add new edge %x %x\n",v1,v3); */
 					sc1= addedgetoscanlist(ed3, verts);
 					
-					if(sc1) {	/* ed3 already exists: remove */
+					if(sc1) {	/* ed3 already exists: remove if a boundary */
 						/* printf("Edge exists\n"); */
 						ed3->v1->h--; 
 						ed3->v2->h--;
 
-						if(twoconnected) ed3= sc1->first;
-						else ed3= 0;
+						ed3= sc1->first;
 						while(ed3) {
 							if( (ed3->v1==v1 && ed3->v2==v3) || (ed3->v1==v3 && ed3->v2==v1) ) {
-								BLI_remlink((ListBase *)&(sc1->first),ed3);
-								BLI_addtail(&filledgebase,ed3);
-								ed3->v1->h--; 
-								ed3->v2->h--;
+								if (twoconnected || ed3->f==FILLBOUNDARY) {
+									BLI_remlink((ListBase *)&(sc1->first),ed3);
+									BLI_addtail(&filledgebase,ed3);
+									ed3->v1->h--; 
+									ed3->v2->h--;
+								}
 								break;
 							}
 							ed3= ed3->next;
@@ -838,7 +838,7 @@ int BLI_edgefill(short mat_nr)
 	/* including resetting of flags */
 	eed= filledgebase.first;
 	while(eed) {
-		eed->f= eed->f1= eed->h= 0;
+		eed->f1= eed->h= 0;
 		eed->v1->f= 1;
 		eed->v2->f= 1;
 
@@ -998,7 +998,7 @@ int BLI_edgefill(short mat_nr)
 	- eve->h      :amount of edges connected to vertex
 	- eve->tmp.v  :store! original vertex number
 
-	- eed->f  :
+	- eed->f      :1= boundary edge (optionally set by caller)
 	- eed->f1 :poly number
 	*/
 
