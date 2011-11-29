@@ -2300,6 +2300,12 @@ class VIEW3D_PT_background_image(Panel):
                 row.prop(bg.clip, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
+
+            if bg.show_background_image:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_ON')
+
             row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
 
             box.prop(bg, "view_axis", text="Axis")

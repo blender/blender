@@ -1311,6 +1311,11 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_CAMERACLIP);
 	RNA_def_property_ui_text(prop, "Camera Clip", "Use movie clip from active scene camera");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "show_background_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_BGPIC_DISABLED);
+	RNA_def_property_ui_text(prop, "Show Background Image", "Show this image as background");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)

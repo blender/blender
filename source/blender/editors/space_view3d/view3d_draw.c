@@ -1506,6 +1506,10 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
 			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
 		) {
+			/* disable individual images */
+			if((bgpic->flag&V3D_BGPIC_DISABLED))
+				continue;
+
 			freeibuf= NULL;
 			if(bgpic->source==V3D_BGPIC_IMAGE) {
 				ima= bgpic->ima;
