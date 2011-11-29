@@ -1150,7 +1150,7 @@ static char *gen_lock_flags(Object* ob, int defbase_tot)
 		lock_flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
 		is_locked |= lock_flags[i];
 	}
-	if(is_locked){
+	if (is_locked) {
 		return lock_flags;
 	}
 
@@ -1289,12 +1289,9 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 	unsigned int i;
 	MDeformWeight *ndw;
 	MDeformWeight *odw;
-	MDeformWeight *ndw2;
-	MDeformWeight *odw2;
 
 	float changed_sum = 0.0f;
 
-	float storedw;
 	char *change_status;
 
 	if(!lock_flags || !has_locked_group(ndv, lock_flags)) {
@@ -1308,7 +1305,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 		odw = defvert_find_index(odv, i);
 		/* the weights are zero, so we can assume a lot */
 		if(!ndw || !odw) {
-			if (!lock_flags[i] && vgroup_validmap[i]){
+			if (!lock_flags[i] && vgroup_validmap[i]) {
 				defvert_verify_index(odv, i);
 				defvert_verify_index(ndv, i);
 				total_valid++;
@@ -1326,7 +1323,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 			change_status[i] = 2; /* was altered already */
 			total_changed++;
 		} /* unchanged, unlocked bone groups are handled here */
-		else if (vgroup_validmap[i]){
+		else if (vgroup_validmap[i]) {
 			totchange_allowed += ndw->weight;
 			total_valid++;
 			change_status[i] = 1; /* can be altered while redistributing */
