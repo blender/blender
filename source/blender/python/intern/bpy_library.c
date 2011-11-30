@@ -265,8 +265,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 
 	/* create a dummy */
 	self_from= PyObject_New(BPy_Library, &bpy_lib_Type);
-	BLI_strncpy(self_from->relpath, self->relpath, sizeof(BPy_Library));
-	BLI_strncpy(self_from->abspath, self->abspath, sizeof(BPy_Library));
+	BLI_strncpy(self_from->relpath, self->relpath, sizeof(self_from->relpath));
+	BLI_strncpy(self_from->abspath, self->abspath, sizeof(self_from->abspath));
 
 	self_from->blo_handle= NULL;
 	self_from->flag= 0;
@@ -396,6 +396,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 		return NULL;
 	}
 	else {
+		Library *lib= mainl->curlib; /* newly added lib, assign before append end */
 		BLO_library_append_end(NULL, mainl, &(self->blo_handle), 0, self->flag);
 		BLO_blendhandle_close(self->blo_handle);
 		self->blo_handle= NULL;
@@ -406,9 +407,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
 			/* append, rather than linking */
 			if ((self->flag & FILE_LINK)==0) {
-				Library *lib= BLI_findstring(&G.main->library, self->abspath, offsetof(Library, name));
-				if (lib)  BKE_library_make_local(bmain, lib, 1);
-				else      BLI_assert(!"cant find name of just added library!");
+				BKE_library_make_local(bmain, lib, 1);
 			}
 		}
 
