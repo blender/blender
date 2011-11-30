@@ -120,6 +120,7 @@ void clear_workob(Object *workob)
 	memset(workob, 0, sizeof(Object));
 	
 	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->dsize[0]= workob->dsize[1]= workob->dsize[2]= 1.0f;
 	workob->rotmode= ROT_MODE_EUL;
 }
 

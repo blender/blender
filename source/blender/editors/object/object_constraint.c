@@ -766,7 +766,7 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		where_is_pose(scene, ob);
 	}
 	else if (ob) {
-		Object workob = {{NULL}};
+		Object workob;
 		
 		/* use what_does_parent to find inverse - just like for normal parenting */
 		what_does_parent(scene, ob, &workob);
