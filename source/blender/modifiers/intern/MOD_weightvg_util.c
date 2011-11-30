@@ -32,6 +32,7 @@
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_cellalloc.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
 #include "DNA_mesh_types.h"
@@ -229,10 +230,10 @@ static void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float we
 	 * groups have already been checked, so this has to remain low level. */
 	MDeformWeight *newdw;
 
-	newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "defvert_add_to group, new deformWeight");
+	newdw = BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "defvert_add_to group, new deformWeight");
 	if(dv->dw) {
 		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-		MEM_freeN(dv->dw);
+		BLI_cellalloc_free(dv->dw);
 	}
 	dv->dw = newdw;
 	dv->dw[dv->totweight].weight = weight;

@@ -46,6 +46,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_cellalloc.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1546,7 +1547,7 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	MDeformVert *dv= &me->dvert[index];
 	MDeformVert dv_test= {NULL};
 
-	dv_test.dw= MEM_dupallocN(dv->dw);
+	dv_test.dw= BLI_cellalloc_dupalloc(dv->dw);
 	dv_test.flag = dv->flag;
 	dv_test.totweight = dv->totweight;
 	/* do not multi-paint if a locked group is selected or the active group is locked
@@ -1574,19 +1575,19 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 		if(tdw->weight != oldw) {
 			if(neww > oldw) {
 				if(tdw->weight <= oldw) {
-					MEM_freeN(dv_test.dw);
+					BLI_cellalloc_free(dv_test.dw);
 					return TRUE;
 				}
 			}
 			else {
 				if(tdw->weight >= oldw) {
-					MEM_freeN(dv_test.dw);
+					BLI_cellalloc_free(dv_test.dw);
 					return TRUE;
 				}
 			}
 		}
 	}
-	MEM_freeN(dv_test.dw);
+	BLI_cellalloc_free(dv_test.dw);
 	return FALSE;
 }
 
@@ -1677,7 +1678,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		
 		/* setup multi-paint */
 		if(wpi->defbase_tot_sel > 1 && wpi->do_multipaint) {
-			dv_copy.dw= MEM_dupallocN(dv->dw);
+			dv_copy.dw= BLI_cellalloc_dupalloc(dv->dw);
 			dv_copy.flag = dv->flag;
 			dv_copy.totweight = dv->totweight;
 			tdw = dw;
@@ -1731,7 +1732,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			oldChange = 0;
 		}
 		if(dv_copy.dw) {
-			MEM_freeN(dv_copy.dw);
+			BLI_cellalloc_free(dv_copy.dw);
 		}
 #if 0
 		/* dv may have been altered greatly */
