@@ -1234,7 +1234,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	static EnumPropertyItem bgpic_source_items[] = {
 		{V3D_BGPIC_IMAGE, "IMAGE", 0, "Image", ""},
-		{V3D_BGPIC_MOVIE, "MOVIE", 0, "Movie", ""},
+		{V3D_BGPIC_MOVIE, "MOVIE_CLIP", 0, "Movie Clip", ""},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
