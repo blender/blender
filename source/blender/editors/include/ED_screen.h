@@ -65,6 +65,7 @@ void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
 void	ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
 void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
+void	ED_region_info_draw(struct ARegion *ar, const char *text, int block, float alpha);
 
 /* spaces */
 void	ED_spacetypes_init(void);
