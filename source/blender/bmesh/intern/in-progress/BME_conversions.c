@@ -304,10 +304,10 @@ BMMesh *derivedmesh_to_bmesh(DerivedMesh *dm)
 
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
-	totface = dm->getNumFaces(dm);
+	totface = dm->getNumTessFaces(dm);
 	mvert = dm->getVertArray(dm);
 	medge = dm->getEdgeArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 
 	vert_array = MEM_mallocN(sizeof(BMVert *)* totvert,"derivedmesh to bmesh vertex pointer array");
 

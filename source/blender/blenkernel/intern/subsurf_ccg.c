@@ -673,6 +673,12 @@ static int cgdm_getNumTessFaces(DerivedMesh *dm) {
 
 	return ccgSubSurf_getNumFinalFaces(cgdm->ss);
 }
+static int cgdm_getNumLoops(DerivedMesh *dm) {
+	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
+
+	/* All subsurf faces are quads */
+	return 4 * ccgSubSurf_getNumFinalFaces(cgdm->ss);
+}
 
 static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 {
@@ -901,7 +907,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	char *faceFlags = cgdm->faceFlags;
 
 	memset(mf, 0, sizeof(*mf));
-	if (faceNum >= cgdm->dm.numFaceData)
+	if (faceNum >= cgdm->dm.numTessFaceData)
 		return;
 
 	i = cgdm->reverseFaceMap[faceNum];
@@ -1526,7 +1532,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	ccgdm_pbvh_update(ccgdm);
 
 	if(ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
-		if(dm->numFaceData) {
+		if(dm->numTessFaceData) {
 			/* should be per face */
 			if(!setMaterial(faceFlags[1]+1, NULL))
 				return;
@@ -2123,7 +2129,7 @@ static void cgdm_drawUVEdges(DerivedMesh *dm)
 	
 	if (tf) {
 		glBegin(GL_LINES);
-		for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
+		for(i = 0; i < dm->numTessFaceData; i++, mf++, tf++) {
 			if(!(mf->flag&ME_HIDE)) {
 				glVertex2fv(tf->uv[0]);
 				glVertex2fv(tf->uv[1]);
@@ -2861,6 +2867,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getNumVerts = cgdm_getNumVerts;
 	ccgdm->dm.getNumEdges = cgdm_getNumEdges;
 	ccgdm->dm.getNumTessFaces = cgdm_getNumTessFaces;
+	ccgdm->dm.getNumLoops = cgdm_getNumLoops;
 	/* reuse of cgdm_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
 	ccgdm->dm.getNumPolys = cgdm_getNumTessFaces;
 
@@ -3218,7 +3225,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	ccgdm->dm.numVertData = vertNum;
 	ccgdm->dm.numEdgeData = edgeNum;
-	ccgdm->dm.numFaceData = faceNum;
+	ccgdm->dm.numTessFaceData = faceNum;
 	ccgdm->dm.numLoopData = loopindex2;
 	ccgdm->dm.numPolyData = faceNum;
 

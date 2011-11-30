@@ -122,7 +122,7 @@ typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
 	CustomData vertData, edgeData, faceData, loopData, polyData;
-	int numVertData, numEdgeData, numFaceData, numLoopData, numPolyData;
+	int numVertData, numEdgeData, numTessFaceData, numLoopData, numPolyData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache bvhCache;
@@ -141,6 +141,7 @@ struct DerivedMesh {
 	int (*getNumVerts)(DerivedMesh *dm);
 	int (*getNumEdges)(DerivedMesh *dm);
 	int (*getNumTessFaces)(DerivedMesh *dm);
+	int (*getNumLoops)(DerivedMesh *dm);
 	int (*getNumPolys)(DerivedMesh *dm);
 
 	/* copy a single vert/edge/tesselated face from the derived mesh into

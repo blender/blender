@@ -115,7 +115,7 @@ static MEdge *dm_getEdgeArray(DerivedMesh *dm)
 	return medge;
 }
 
-static MFace *dm_getFaceArray(DerivedMesh *dm)
+static MFace *dm_getTessFaceArray(DerivedMesh *dm)
 {
 	MFace *mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
@@ -189,7 +189,7 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 
 static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 {
-	MLoop *tmp = MEM_callocN(sizeof(*tmp) * dm->numLoopData,
+	MLoop *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumLoops(dm),
 							 "dm_dupLoopArray tmp");
 
 	if(tmp) dm->copyLoopArray(dm, tmp);
@@ -199,7 +199,7 @@ static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 
 static MPoly *dm_dupPolyArray(DerivedMesh *dm)
 {
-	MPoly *tmp = MEM_callocN(sizeof(*tmp) * dm->numFaceData,
+	MPoly *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumPolys(dm),
 							 "dm_dupPolyArray tmp");
 
 	if(tmp) dm->copyPolyArray(dm, tmp);
@@ -217,7 +217,7 @@ static CustomData *dm_getEdgeCData(DerivedMesh *dm)
 	return &dm->edgeData;
 }
 
-static CustomData *dm_getFaceCData(DerivedMesh *dm)
+static CustomData *dm_getTessFaceCData(DerivedMesh *dm)
 {
 	return &dm->faceData;
 }
@@ -237,7 +237,7 @@ void DM_init_funcs(DerivedMesh *dm)
 	/* default function implementations */
 	dm->getVertArray = dm_getVertArray;
 	dm->getEdgeArray = dm_getEdgeArray;
-	dm->getTessFaceArray = dm_getFaceArray;
+	dm->getTessFaceArray = dm_getTessFaceArray;
 	dm->getLoopArray = dm_getLoopArray;
 	dm->getPolyArray = dm_getPolyArray;
 	dm->dupVertArray = dm_dupVertArray;
@@ -248,7 +248,7 @@ void DM_init_funcs(DerivedMesh *dm)
 
 	dm->getVertDataLayout = dm_getVertCData;
 	dm->getEdgeDataLayout = dm_getEdgeCData;
-	dm->getTessFaceDataLayout = dm_getFaceCData;
+	dm->getTessFaceDataLayout = dm_getTessFaceCData;
 	dm->getLoopDataLayout = dm_getLoopCData;
 	dm->getPolyDataLayout = dm_getPolyCData;
 
@@ -263,14 +263,14 @@ void DM_init_funcs(DerivedMesh *dm)
 }
 
 void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
-	     int numFaces, int numLoops, int numPoly)
+	     int numTessFaces, int numLoops, int numPolys)
 {
 	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
-	dm->numFaceData = numFaces;
+	dm->numTessFaceData = numTessFaces;
 	dm->numLoopData = numLoops;
-	dm->numPolyData = numPoly;
+	dm->numPolyData = numPolys;
 
 	DM_init_funcs(dm);
 	
@@ -278,15 +278,15 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
-                      int numVerts, int numEdges, int numFaces,
-		      int numLoops, int numPolys)
+                      int numVerts, int numEdges, int numTessFaces,
+                      int numLoops, int numPolys)
 {
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
 					CD_CALLOC, numVerts);
 	CustomData_copy(&source->edgeData, &dm->edgeData, CD_MASK_DERIVEDMESH,
 					CD_CALLOC, numEdges);
 	CustomData_copy(&source->faceData, &dm->faceData, CD_MASK_DERIVEDMESH,
-					CD_CALLOC, numFaces);
+					CD_CALLOC, numTessFaces);
 	CustomData_copy(&source->loopData, &dm->loopData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numLoops);
 	CustomData_copy(&source->polyData, &dm->polyData, CD_MASK_DERIVEDMESH,
@@ -295,7 +295,7 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type
 	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
-	dm->numFaceData = numFaces;
+	dm->numTessFaceData = numTessFaces;
 	dm->numLoopData = numLoops;
 	dm->numPolyData = numPolys;
 
@@ -311,7 +311,7 @@ int DM_release(DerivedMesh *dm)
 		GPU_drawobject_free( dm );
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
-		CustomData_free(&dm->faceData, dm->numFaceData);
+		CustomData_free(&dm->faceData, dm->numTessFaceData);
 		CustomData_free(&dm->loopData, dm->numLoopData);
 		CustomData_free(&dm->polyData, dm->numPolyData);
 
@@ -320,7 +320,7 @@ int DM_release(DerivedMesh *dm)
 	else {
 		CustomData_free_temporary(&dm->vertData, dm->numVertData);
 		CustomData_free_temporary(&dm->edgeData, dm->numEdgeData);
-		CustomData_free_temporary(&dm->faceData, dm->numFaceData);
+		CustomData_free_temporary(&dm->faceData, dm->numTessFaceData);
 		CustomData_free_temporary(&dm->loopData, dm->numLoopData);
 		CustomData_free_temporary(&dm->polyData, dm->numPolyData);
 
@@ -488,7 +488,7 @@ void DM_add_edge_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 
 void DM_add_tessface_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
-	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numFaceData);
+	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numTessFaceData);
 }
 
 void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
@@ -1979,7 +1979,7 @@ typedef struct
 	MVert * mvert;		// vertices & normals
 	float (*orco)[3];
 	float (*tangent)[4];	// destination
-	int numFaces;
+	int numTessFaces;
 
 } SGLSLMeshToTangent;
 
@@ -1989,7 +1989,7 @@ typedef struct
 static int GetNumFaces(const SMikkTSpaceContext * pContext)
 {
 	SGLSLMeshToTangent * pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
-	return pMesh->numFaces;
+	return pMesh->numTessFaces;
 }
 
 static int GetNumVertsOfFace(const SMikkTSpaceContext * pContext, const int face_num)
@@ -2116,7 +2116,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		mesh2tangent.mvert = mvert;
 		mesh2tangent.orco = orco;
 		mesh2tangent.tangent = tangent;
-		mesh2tangent.numFaces = totface;
+		mesh2tangent.numTessFaces = totface;
 
 		sContext.m_pUserData = &mesh2tangent;
 		sContext.m_pInterface = &sInterface;
@@ -2242,7 +2242,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
 			} /*else {
 				int player;
-				CustomData *pdata = dm->getFaceDataLayout(dm);
+				CustomData *pdata = dm->getPolyDataLayout(dm);
 				
 				if(gattribs->layer[b].name[0])
 					player = CustomData_get_named_layer_index(pdata, CD_MTEXPOLY,
@@ -2362,7 +2362,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 		DEBUG_VBO( "Using legacy code. drawNavMeshColored\n" );
 		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);
-		for(a = 0; a < dm->numFaceData; a++, mface++) {
+		for(a = 0; a < dm->numTessFaceData; a++, mface++) {
 			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
 			int pi = polygonIdx[a];
 			if (pi <= 0) {

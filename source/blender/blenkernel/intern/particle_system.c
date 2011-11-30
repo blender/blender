@@ -1271,7 +1271,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 				COMPARE_ORIG_INDEX= dm->getVertDataArray(dm, CD_ORIGINDEX);
 		}
 		else {
-			if(dm->numFaceData)
+			if(dm->numTessFaceData)
 				COMPARE_ORIG_INDEX= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 

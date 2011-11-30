@@ -120,7 +120,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		BLI_array_append(origv, ov ? ov[i] : i);
 	}
 	
-	for (i=0; i<dm->numFaceData; i++, mf++, of++) {
+	for (i=0; i<dm->numTessFaceData; i++, mf++, of++) {
 		int x, y, x2;
 		float fac;
 		

@@ -1276,6 +1276,13 @@ static int bmDM_getNumTessFaces(DerivedMesh *dm)
 	return bmdm->tc->tottri;
 }
 
+static int bmDM_getNumLoops(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	
+	return bmdm->tc->bm->totloop;
+}
+
 static int bmDM_getNumPolys(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
@@ -1625,6 +1632,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 	bmdm->dm.getNumVerts = bmDM_getNumVerts;
 	bmdm->dm.getNumEdges = bmDM_getNumEdges;
 	bmdm->dm.getNumTessFaces = bmDM_getNumTessFaces;
+	bmdm->dm.getNumLoops = bmDM_getNumLoops;
 	bmdm->dm.getNumPolys = bmDM_getNumPolys;
 
 	bmdm->dm.getVert = bmDM_getVert;

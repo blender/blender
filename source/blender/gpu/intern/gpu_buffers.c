@@ -783,7 +783,7 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 	if(!tf)
 		return;
 
-	for(i = 0; i < dm->numFaceData; i++, tf++) {
+	for(i = 0; i < dm->numTessFaceData; i++, tf++) {
 		MFace mf;
 		dm->getTessFace(dm,i,&mf);
 

@@ -445,7 +445,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	cfra -= omd->bakestart;	// shift to 0 based
 
 	num_verts = dm->getNumVerts(dm);
-	num_faces = dm->getNumFaces(dm);
+	num_faces = dm->getNumPolys(dm);
 
 	mverts = dm->getVertArray(dm);
 	mloops = dm->getLoopArray(dm);

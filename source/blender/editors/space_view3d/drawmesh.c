@@ -501,7 +501,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		}
 	}
-	CustomData_add_layer( &dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numFaceData );
+	CustomData_add_layer( &dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData );
 }
 
 static int draw_tface_mapped__set_draw(void *userData, int index)

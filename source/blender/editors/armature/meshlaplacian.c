@@ -1883,7 +1883,7 @@ static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifie
 	LaplacianSystem *sys;
 	MFace *mface= dm->getTessFaceArray(dm), *mf;
 	int totvert= dm->getNumVerts(dm);
-	int totface= dm->getNumFaces(dm);
+	int totface= dm->getNumTessFaces(dm);
 	float solution, weight;
 	int a, tottri, j, thrownerror = 0;
 
