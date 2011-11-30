@@ -473,12 +473,11 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 
 int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *name)
 {
-	CustomData *data= (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
 	CustomDataLayer *cdl;
 	int index;
 
-	index= CustomData_get_named_layer_index(data, CD_MCOL, name);
-	cdl= (index == -1)? NULL: &data->layers[index];
+	index= CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name);
+	cdl= (index == -1)? NULL: &me->ldata.layers[index];
 
 	if(!cdl)
 		return 0;

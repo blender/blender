@@ -1544,11 +1544,11 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 					/* vertex color paint */
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 
-						MFace *mface = result->getTessFaceArray(result);
-						int numOfFaces = result->getNumTessFaces(result);
 						int i;
 						PaintPoint* pPoint = (PaintPoint*)sData->type_data;
-						MCol *col;
+						MLoopCol *col = NULL;
+						MLoop *mloop = CDDM_get_loops(result);
+						int totloop = result->numLoopData;
 
 						/* paint is stored on dry and wet layers, so mix final color first */
 						float *fcolor = MEM_callocN(sizeof(float)*sData->total_points*4, "Temp paint color");
@@ -1560,27 +1560,31 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						}
 
 						/* viewport preview */
-						if (surface->flags & MOD_DPAINT_PREVIEW) {
-							/* Save preview results to weight layer, to be
+						if (0 && surface->flags & MOD_DPAINT_PREVIEW) {
+							MPoly *mp = CDDM_get_polys(result);
+							int totpoly = result->numPolyData;
+
+							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							col = result->getTessFaceDataArray(result, CD_WEIGHT_MCOL);
-							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
+							col = CustomData_get_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL);
+							if (!col) col = CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
 
 							if (col) {
 								#pragma omp parallel for schedule(static)
-								for (i=0; i<numOfFaces; i++) {
+								for (i=0; i<totpoly; i++) {
 									int j=0;
-									Material *material = give_current_material(ob, mface[i].mat_nr+1);
+									Material *material = give_current_material(ob, mp[i].mat_nr+1);
 
-									for (; j<((mface[i].v4)?4:3); j++) {
-										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+									for (; j<mp[i].totloop; j++) {
+										int l_index = mp[i].loopstart + j;
+										int v_index = mloop[l_index].v;
 
 										if (surface->preview_id == MOD_DPAINT_SURFACE_PREV_PAINT) {
 											float c[3];
-											index *= 4;
+											v_index *= 4;
 
 											/* Apply material color as base vertex color for preview */
-											col[i*4+j].a = 255;
+											col[l_index].a = 255;
 											if (material) {
 												c[0] = material->r;
 												c[1] = material->g;
@@ -1592,17 +1596,17 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 												c[2] = 0.65f;
 											}
 											/* mix surface color */
-											interp_v3_v3v3(c, c, &fcolor[index], fcolor[index+3]);
+											interp_v3_v3v3(c, c, &fcolor[v_index], fcolor[v_index+3]);
 
-											col[i*4+j].r = FTOCHAR(c[2]);
-											col[i*4+j].g = FTOCHAR(c[1]);
-											col[i*4+j].b = FTOCHAR(c[0]);
+											col[l_index].r = FTOCHAR(c[2]);
+											col[l_index].g = FTOCHAR(c[1]);
+											col[l_index].b = FTOCHAR(c[0]);
 										}
 										else {
-											col[i*4+j].a = 255;
-											col[i*4+j].r = FTOCHAR(pPoint[index].wetness);
-											col[i*4+j].g = FTOCHAR(pPoint[index].wetness);
-											col[i*4+j].b = FTOCHAR(pPoint[index].wetness);
+											col[l_index].a = 255;
+											col[l_index].r = FTOCHAR(pPoint[v_index].wetness);
+											col[l_index].g = FTOCHAR(pPoint[v_index].wetness);
+											col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
 										}
 									}
 								}
@@ -1614,79 +1618,69 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						/* save layer data to output layer */
 
 						/* paint layer */
-						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name);
+						col = CustomData_get_layer_named(&result->loopData, CD_MLOOPCOL, surface->output_name);
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!col && dynamicPaint_outputLayerExists(surface, ob, 0))
-							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name);
+							col = CustomData_add_layer_named(&result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name);
 						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
-							for (i=0; i<numOfFaces; i++) {
-								int j=0;
-								for (; j<((mface[i].v4)?4:3); j++) {
-									int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
-									index *= 4;
-
-									col[i*4+j].a = FTOCHAR(fcolor[index+3]);
-									col[i*4+j].r = FTOCHAR(fcolor[index+2]);
-									col[i*4+j].g = FTOCHAR(fcolor[index+1]);
-									col[i*4+j].b = FTOCHAR(fcolor[index]);
-								}
+							for (i=0; i<totloop; i++) {
+								int index = mloop[i].v*4;
+								col[i].a = FTOCHAR(fcolor[index+3]);
+								col[i].r = FTOCHAR(fcolor[index+2]);
+								col[i].g = FTOCHAR(fcolor[index+1]);
+								col[i].b = FTOCHAR(fcolor[index]);
 							}
 						}
 						
 						MEM_freeN(fcolor);
 
 						/* wet layer */
-						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name2);
+						col = CustomData_get_layer_named(&result->loopData, CD_MLOOPCOL, surface->output_name2);
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!col && dynamicPaint_outputLayerExists(surface, ob, 1))
-							col = CustomData_add_layer_named(&result->faceData, CD_MCOL, CD_CALLOC, NULL, numOfFaces, surface->output_name2);
+							col = CustomData_add_layer_named(&result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
 						/* apply color */
 						if (col) {
 							#pragma omp parallel for schedule(static)
-							for (i=0; i<numOfFaces; i++) {
-								int j=0;
-
-								for (; j<((mface[i].v4)?4:3); j++) {
-									int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
-									col[i*4+j].a = 255;
-									col[i*4+j].r = FTOCHAR(pPoint[index].wetness);
-									col[i*4+j].g = FTOCHAR(pPoint[index].wetness);
-									col[i*4+j].b = FTOCHAR(pPoint[index].wetness);
-								}
+							for (i=0; i<totloop; i++) {
+								int index = mloop[i].v;
+								col[i].a = 255;
+								col[i].r = FTOCHAR(pPoint[index].wetness);
+								col[i].g = FTOCHAR(pPoint[index].wetness);
+								col[i].b = FTOCHAR(pPoint[index].wetness);
 							}
 						}
 					}
 					/* vertex group paint */
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+						MLoop *mloop = CDDM_get_loops(result);
+						int totloop = result->numLoopData;
+
 						int defgrp_index = defgroup_name_index(ob, surface->output_name);
 						MDeformVert *dvert = result->getVertDataArray(result, CD_MDEFORMVERT);
 						float *weight = (float*)sData->type_data;
+
 						/* viewport preview */
-						if (surface->flags & MOD_DPAINT_PREVIEW) {
-							/* Save preview results to weight layer, to be
+						if (0 && surface->flags & MOD_DPAINT_PREVIEW) {
+							/* Save preview results to weight layer to be
 							*   able to share same drawing methods */
-							MFace *mface = result->getTessFaceArray(result);
-							int numOfFaces = result->getNumPolys(result);
 							int i;
-							MCol *col = result->getTessFaceDataArray(result, CD_WEIGHT_MCOL);
-							if (!col) col = CustomData_add_layer(&result->faceData, CD_WEIGHT_MCOL, CD_CALLOC, NULL, numOfFaces);
+							MLoopCol *col = CustomData_get_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL);
+							if (!col) col = CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_CALLOC, NULL, totloop);
 
 							if (col) {
+								printf("doint weight preview\n");
 								#pragma omp parallel for schedule(static)
-								for (i=0; i<numOfFaces; i++) {
+								for (i=0; i<totloop; i++) {
 									float temp_color[3];
-									int j=0;
-									for (; j<((mface[i].v4)?4:3); j++) {
-										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
+									weight_to_rgb(temp_color, weight[mloop[i].v]);
 
-										weight_to_rgb(temp_color, weight[index]);
-										col[i*4+j].r = FTOCHAR(temp_color[2]);
-										col[i*4+j].g = FTOCHAR(temp_color[1]);
-										col[i*4+j].b = FTOCHAR(temp_color[0]);
-										col[i*4+j].a = 255;
-									}
+									col[i].a = 255;
+									col[i].r = FTOCHAR(temp_color[2]);
+									col[i].g = FTOCHAR(temp_color[1]);
+									col[i].b = FTOCHAR(temp_color[0]);
 								}
 								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
 							}
