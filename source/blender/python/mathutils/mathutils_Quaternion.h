@@ -39,7 +39,7 @@ extern PyTypeObject quaternion_Type;
 #define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(quat)
+	BASE_MATH_MEMBERS(quat);
 } QuaternionObject;
 
 /*struct data contains a pointer to the actual data that the

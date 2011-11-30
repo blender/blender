@@ -1234,7 +1234,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	static EnumPropertyItem bgpic_source_items[] = {
 		{V3D_BGPIC_IMAGE, "IMAGE", 0, "Image", ""},
-		{V3D_BGPIC_MOVIE, "MOVIE", 0, "Movie", ""},
+		{V3D_BGPIC_MOVIE, "MOVIE_CLIP", 0, "Movie Clip", ""},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
@@ -1310,6 +1310,11 @@ static void rna_def_background_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_camera_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_CAMERACLIP);
 	RNA_def_property_ui_text(prop, "Camera Clip", "Use movie clip from active scene camera");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "show_background_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_BGPIC_DISABLED);
+	RNA_def_property_ui_text(prop, "Show Background Image", "Show this image as background");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
@@ -2610,6 +2615,12 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
 	
 	prop= RNA_def_property(srna, "active_operator", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "op");
+	RNA_def_property_ui_text(prop, "Active Operator", "");
+
+	/* keep this for compatibility with existing presets,
+	   not exposed in c++ api because of keyword conflict */
+	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "op");
 	RNA_def_property_ui_text(prop, "Active Operator", "");
 }

@@ -1596,7 +1596,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			if(pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					triangle, UI_UNIT_Y+style->panelspace, UI_UNIT_Y, 1, style);
+					triangle, UI_UNIT_Y+style->panelspace+2, UI_UNIT_Y, 1, style);
 
 				pt->draw_header(C, panel);
 
@@ -1775,4 +1775,39 @@ void ED_region_header_init(ARegion *ar)
 int ED_area_headersize(void)
 {
 	return UI_UNIT_Y+6;
+}
+
+void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
+{
+	const int header_height = 18;
+	uiStyle *style= UI_GetStyle();
+	int fontid= style->widget.uifont_id;
+	rcti rect;
+
+	BLF_size(fontid, 11.0f, 72);
+
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+
+	if(block) {
+		rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	}
+	else {
+		rect.xmax= rect.xmin + BLF_width(fontid, text) + 24;
+	}
+
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, alpha);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
+	BLF_draw(fontid, text, strlen(text));
 }

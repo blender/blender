@@ -190,17 +190,17 @@ void make_local_world(World *wrld)
 		id_clear_lib_data(bmain, &wrld->id);
 	}
 	else if(is_local && is_lib) {
-		World *wrldn= copy_world(wrld);
-		wrldn->id.us= 0;
+		World *wrld_new= copy_world(wrld);
+		wrld_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &wrldn->id);
+		BKE_id_lib_local_paths(bmain, wrld->id.lib, &wrld_new->id);
 
 		for(sce= bmain->scene.first; sce; sce= sce->id.next) {
 			if(sce->world == wrld) {
 				if(sce->id.lib==NULL) {
-					sce->world= wrldn;
-					wrldn->id.us++;
+					sce->world= wrld_new;
+					wrld_new->id.us++;
 					wrld->id.us--;
 				}
 			}

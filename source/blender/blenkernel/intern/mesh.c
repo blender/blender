@@ -655,15 +655,15 @@ void make_local_mesh(Mesh *me)
 		expand_local_mesh(me);
 	}
 	else if(local && lib) {
-		Mesh *men= copy_mesh(me);
-		men->id.us= 0;
+		Mesh *me_new= copy_mesh(me);
+		me_new->id.us= 0;
 
-		BKE_id_lib_local_paths(bmain, &men->id);
+		BKE_id_lib_local_paths(bmain, me->id.lib, &me_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(me == ob->data) {
 				if(ob->id.lib==NULL) {
-					set_mesh(ob, men);
+					set_mesh(ob, me_new);
 				}
 			}
 		}

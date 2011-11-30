@@ -758,7 +758,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, int animated)
 {
 	extern int enable_cu_speed;	/* object.c */
-	Object copyob = {{NULL}};
+	Object copyob;
 	int cfrao = scene->r.cfra;
 	int dupend = ob->dupend;
 	

@@ -364,12 +364,12 @@ void make_local_material(Material *ma)
 	}
 	/* Both user and local, so copy. */
 	else if(is_local && is_lib) {
-		Material *man= copy_material(ma);
+		Material *ma_new= copy_material(ma);
 
-		man->id.us= 0;
+		ma_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &man->id);
+		BKE_id_lib_local_paths(bmain, ma->id.lib, &ma_new->id);
 
 		/* do objects */
 		ob= bmain->object.first;
@@ -378,8 +378,8 @@ void make_local_material(Material *ma)
 				for(a=0; a<ob->totcol; a++) {
 					if(ob->mat[a]==ma) {
 						if(ob->id.lib==NULL) {
-							ob->mat[a]= man;
-							man->id.us++;
+							ob->mat[a]= ma_new;
+							ma_new->id.us++;
 							ma->id.us--;
 						}
 					}
@@ -394,8 +394,8 @@ void make_local_material(Material *ma)
 				for(a=0; a<me->totcol; a++) {
 					if(me->mat[a]==ma) {
 						if(me->id.lib==NULL) {
-							me->mat[a]= man;
-							man->id.us++;
+							me->mat[a]= ma_new;
+							ma_new->id.us++;
 							ma->id.us--;
 						}
 					}
@@ -410,8 +410,8 @@ void make_local_material(Material *ma)
 				for(a=0; a<cu->totcol; a++) {
 					if(cu->mat[a]==ma) {
 						if(cu->id.lib==NULL) {
-							cu->mat[a]= man;
-							man->id.us++;
+							cu->mat[a]= ma_new;
+							ma_new->id.us++;
 							ma->id.us--;
 						}
 					}
@@ -426,8 +426,8 @@ void make_local_material(Material *ma)
 				for(a=0; a<mb->totcol; a++) {
 					if(mb->mat[a]==ma) {
 						if(mb->id.lib==NULL) {
-							mb->mat[a]= man;
-							man->id.us++;
+							mb->mat[a]= ma_new;
+							ma_new->id.us++;
 							ma->id.us--;
 						}
 					}

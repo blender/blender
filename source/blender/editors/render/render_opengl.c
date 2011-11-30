@@ -123,17 +123,6 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 	rr= RE_AcquireResultRead(oglrender->re);
 	
-	/* note on color management:
-	 * looked into how best to deal with color management here and found heres how it should work.
-	 *
-	 * OpenGL materials etc are color corrected, so a float buffer from the graphics card is
-	 * color corrected, without running any conversion functions.
-	 * 
-	 * With color correction disabled blender expects the rr->rectf to be non-color managed so
-	 * just do a direct copy from the byte array to the rectf with no conversion too.
-	 * notice IMB_float_from_rect has the profile set so no conversion is done.
-	 */
-
 	if(view_context) {
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
@@ -208,13 +197,32 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 		BKE_stamp_buf(scene, camera, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
+	/* note on color management:
+	 *
+	 * OpenGL renders into sRGB colors, but render buffers are expected to be
+	 * linear if color management is enabled. So we convert to linear here, so
+	 * the conversion back to bytes using the color management flag can make it
+	 * sRGB again, and so that e.g. openexr saving also saves the correct linear
+	 * float buffer. */
+
+	if(oglrender->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		float *rctf = rr->rectf;
+		int i;
+
+		for (i = oglrender->sizex * oglrender->sizey; i > 0; i--, rctf+=4) {
+			rctf[0]= srgb_to_linearrgb(rctf[0]);
+			rctf[1]= srgb_to_linearrgb(rctf[1]);
+			rctf[2]= srgb_to_linearrgb(rctf[2]);
+		}
+	}
+
 	RE_ReleaseResult(oglrender->re);
 
 	/* update byte from float buffer */
 	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
 
 	if(ibuf) {
-		image_buffer_rect_update(NULL, rr, ibuf, NULL);
+		image_buffer_rect_update(scene, rr, ibuf, NULL);
 
 		if(oglrender->write_still) {
 			char name[FILE_MAX];
@@ -307,15 +315,18 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->scene->customdata_mask_modal= ED_view3d_datamask(oglrender->scene, oglrender->v3d);
 	}
 
+	/* create render */
+	oglrender->re= RE_NewRender(scene->id.name);
+
 	/* create image and image user */
 	oglrender->ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(oglrender->ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_backup_render(oglrender->scene, oglrender->ima);
 
 	oglrender->iuser.scene= scene;
 	oglrender->iuser.ok= 1;
 
-	/* create render and render result */
-	oglrender->re= RE_NewRender(scene->id.name);
+	/* create render result */
 	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 
 	rr= RE_AcquireResultWrite(oglrender->re);

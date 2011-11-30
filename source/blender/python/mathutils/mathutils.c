@@ -39,7 +39,9 @@
 PyDoc_STRVAR(M_Mathutils_doc,
 "This module provides access to matrices, eulers, quaternions and vectors."
 );
-static int mathutils_array_parse_fast(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
+static int mathutils_array_parse_fast(float *array,
+                                      int array_min, int array_max,
+                                      PyObject *value, const char *error_prefix)
 {
 	PyObject *value_fast= NULL;
 	PyObject *item;
@@ -72,7 +74,9 @@ static int mathutils_array_parse_fast(float *array, int array_min, int array_max
 	i= size;
 	do {
 		i--;
-		if (((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) && PyErr_Occurred()) {
+		if ( ((array[i]= PyFloat_AsDouble((item= PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) &&
+		     PyErr_Occurred())
+		{
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s: sequence index %d expected a number, "
 			             "found '%.200s' type, ",

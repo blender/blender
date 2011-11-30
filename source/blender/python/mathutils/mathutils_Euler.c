@@ -264,8 +264,11 @@ static PyObject *Euler_make_compatible(EulerObject * self, PyObject *value)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if (mathutils_array_parse(teul, EULER_SIZE, EULER_SIZE, value, "euler.make_compatible(other), invalid 'other' arg") == -1)
+	if (mathutils_array_parse(teul, EULER_SIZE, EULER_SIZE, value,
+	                          "euler.make_compatible(other), invalid 'other' arg") == -1)
+	{
 		return NULL;
+	}
 
 	compatible_eul(self->eul, teul);
 

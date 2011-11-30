@@ -48,7 +48,7 @@
 #include "BLI_cellalloc.h"
 
 
-void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
+void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
 
@@ -60,7 +60,7 @@ void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
 	}
 }
 
-bDeformGroup *defgroup_duplicate (bDeformGroup *ingroup)
+bDeformGroup *defgroup_duplicate(bDeformGroup *ingroup)
 {
 	bDeformGroup *outgroup;
 
@@ -68,7 +68,7 @@ bDeformGroup *defgroup_duplicate (bDeformGroup *ingroup)
 		return NULL;
 
 	outgroup=MEM_callocN(sizeof(bDeformGroup), "copy deformGroup");
-	
+
 	/* For now, just copy everything over. */
 	memcpy (outgroup, ingroup, sizeof(bDeformGroup));
 
@@ -78,59 +78,85 @@ bDeformGroup *defgroup_duplicate (bDeformGroup *ingroup)
 }
 
 /* copy & overwrite weights */
-void defvert_copy (MDeformVert *dvert_r, const MDeformVert *dvert)
+void defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
 {
-	if(dvert_r->totweight == dvert->totweight) {
-		if(dvert->totweight)
-			memcpy(dvert_r->dw, dvert->dw, dvert->totweight * sizeof(MDeformWeight));
+	if (dvert_dst->totweight == dvert_src->totweight) {
+		if (dvert_src->totweight)
+			memcpy(dvert_dst->dw, dvert_src->dw, dvert_src->totweight * sizeof(MDeformWeight));
 	}
 	else {
-		if(dvert_r->dw)
-			BLI_cellalloc_free(dvert_r->dw);
+		if (dvert_dst->dw)
+			BLI_cellalloc_free(dvert_dst->dw);
 
-		if(dvert->totweight)
-			dvert_r->dw= BLI_cellalloc_dupalloc(dvert->dw);
+		if (dvert_src->totweight)
+			dvert_dst->dw= BLI_cellalloc_dupalloc(dvert_src->dw);
 		else
-			dvert_r->dw= NULL;
+			dvert_dst->dw= NULL;
 
-		dvert_r->totweight = dvert->totweight;
+		dvert_dst->totweight = dvert_src->totweight;
+	}
+}
+
+/* copy an index from one dvert to another
+ * - do nothing if neither are set.
+ * - add destination weight if needed.
+ */
+void defvert_copy_index(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const int defgroup)
+{
+	MDeformWeight *dw_src, *dw_dst;
+
+	dw_src= defvert_find_index(dvert_src, defgroup);
+
+	if (dw_src) {
+		/* source is valid, verify destination */
+		dw_dst= defvert_verify_index(dvert_dst, defgroup);
+		dw_dst->weight= dw_src->weight;
+	}
+	else {
+		/* source was NULL, assign zero, could also remove */
+		dw_dst= defvert_find_index(dvert_dst, defgroup);
+
+		if (dw_dst) {
+			dw_dst->weight= 0.0f;
+		}
 	}
 }
 
 /* only sync over matching weights, don't add or remove groups
  * warning, loop within loop.
  */
-void defvert_sync (MDeformVert *dvert_r, const MDeformVert *dvert, int use_verify)
+void defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, int use_verify)
 {
-	if(dvert->totweight && dvert_r->totweight) {
+	if (dvert_src->totweight && dvert_dst->totweight) {
 		int i;
-		MDeformWeight *dw;
-		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
-			MDeformWeight *dw_r;
-			if(use_verify)	dw_r= defvert_verify_index(dvert_r, dw->def_nr);
-			else			dw_r= defvert_find_index(dvert_r, dw->def_nr);
+		MDeformWeight *dw_src;
+		for (i=0, dw_src=dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
+			MDeformWeight *dw_dst;
+			if (use_verify) dw_dst= defvert_verify_index(dvert_dst, dw_src->def_nr);
+			else            dw_dst= defvert_find_index(dvert_dst, dw_src->def_nr);
 
-			if(dw_r) {
-				dw_r->weight= dw->weight;
+			if (dw_dst) {
+				dw_dst->weight= dw_src->weight;
 			}
 		}
 	}
 }
 
 /* be sure all flip_map values are valid */
-void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const int *flip_map, const int flip_map_len, const int use_verify)
+void defvert_sync_mapped(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
+                         const int *flip_map, const int flip_map_len, const int use_verify)
 {
-	if (dvert->totweight && dvert_r->totweight) {
+	if (dvert_src->totweight && dvert_dst->totweight) {
 		int i;
-		MDeformWeight *dw;
-		for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
-			if (dw->def_nr < flip_map_len) {
-				MDeformWeight *dw_r;
-				if(use_verify)	dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
-				else			dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
+		MDeformWeight *dw_src;
+		for (i=0, dw_src=dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
+			if (dw_src->def_nr < flip_map_len) {
+				MDeformWeight *dw_dst;
+				if (use_verify) dw_dst= defvert_verify_index(dvert_dst, flip_map[dw_src->def_nr]);
+				else            dw_dst= defvert_find_index(dvert_dst, flip_map[dw_src->def_nr]);
 
-				if(dw_r) {
-					dw_r->weight= dw->weight;
+				if (dw_dst) {
+					dw_dst->weight= dw_src->weight;
 				}
 			}
 		}
@@ -138,18 +164,18 @@ void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, const 
 }
 
 /* be sure all flip_map values are valid */
-void defvert_remap (MDeformVert *dvert, int *map)
+void defvert_remap(MDeformVert *dvert, int *map)
 {
 	MDeformWeight *dw;
 	int i;
-	for(i=0, dw=dvert->dw; i<dvert->totweight; i++, dw++) {
+	for (i=0, dw=dvert->dw; i<dvert->totweight; i++, dw++) {
 		dw->def_nr= map[dw->def_nr];
 	}
 }
 
-void defvert_normalize (MDeformVert *dvert)
+void defvert_normalize(MDeformVert *dvert)
 {
-	if(dvert->totweight<=0) {
+	if (dvert->totweight<=0) {
 		/* nothing */
 	}
 	else if (dvert->totweight==1) {
@@ -159,30 +185,30 @@ void defvert_normalize (MDeformVert *dvert)
 		int i;
 		float tot= 0.0f;
 		MDeformWeight *dw;
-		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
+		for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
 			tot += dw->weight;
 
-		if(tot > 0.0f) {
-			for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
+		if (tot > 0.0f) {
+			for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
 				dw->weight /= tot;
 		}
 	}
 }
 
-void defvert_flip (MDeformVert *dvert, const int *flip_map, const int flip_map_len)
+void defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_len)
 {
 	MDeformWeight *dw;
 	int i;
 
-	for(dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++) {
-		if((dw->def_nr < flip_map_len) && (flip_map[dw->def_nr] >= 0)) {
+	for (dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++) {
+		if ((dw->def_nr < flip_map_len) && (flip_map[dw->def_nr] >= 0)) {
 			dw->def_nr= flip_map[dw->def_nr];
 		}
 	}
 }
 
 
-bDeformGroup *defgroup_find_name (Object *ob, const char *name)
+bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 {
 	/* return a pointer to the deform group with this name
 	 * or return NULL otherwise.
@@ -197,7 +223,7 @@ bDeformGroup *defgroup_find_name (Object *ob, const char *name)
 	return NULL;
 }
 
-int defgroup_name_index (Object *ob, const char *name)
+int defgroup_name_index(Object *ob, const char *name)
 {
 	/* Return the location of the named deform group within the list of
 	 * deform groups. This function is a combination of defgroup_find_index and
@@ -206,8 +232,8 @@ int defgroup_name_index (Object *ob, const char *name)
 	 */
 	bDeformGroup *curdef;
 	int def_nr;
-	
-	if(name && name[0] != '\0') {
+
+	if (name && name[0] != '\0') {
 		for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
 			if (!strcmp(curdef->name, name))
 				return def_nr;
@@ -217,7 +243,7 @@ int defgroup_name_index (Object *ob, const char *name)
 	return -1;
 }
 
-int defgroup_find_index (Object *ob, bDeformGroup *dg)
+int defgroup_find_index(Object *ob, bDeformGroup *dg)
 {
 	/* Fetch the location of this deform group
 	 * within the linked list of deform groups.
@@ -253,7 +279,7 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 	 * constant for this)
 	 */
 	if (eg == NULL) return -1;
-	
+
 	return def_nr;
 }
 
@@ -262,7 +288,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 {
 	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if(totdg==0) {
+	if (totdg==0) {
 		return NULL;
 	}
 	else {
@@ -275,16 +301,16 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 		}
 
 		for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
-			if(map[i] == -1) { /* may be calculated previously */
+			if (map[i] == -1) { /* may be calculated previously */
 
 				/* incase no valid value is found, use this */
-				if(use_default)
+				if (use_default)
 					map[i]= i;
 
 				flip_side_name(name, dg->name, FALSE);
-				if(strcmp(name, dg->name)) {
+				if (strcmp(name, dg->name)) {
 					flip_num= defgroup_name_index(ob, name);
-					if(flip_num >= 0) {
+					if (flip_num >= 0) {
 						map[i]= flip_num;
 						map[flip_num]= i; /* save an extra lookup */
 					}
@@ -300,7 +326,7 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, in
 {
 	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if(totdg==0) {
+	if (totdg==0) {
 		return NULL;
 	}
 	else {
@@ -316,10 +342,10 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, in
 		dg= BLI_findlink(&ob->defbase, defgroup);
 
 		flip_side_name(name, dg->name, FALSE);
-		if(strcmp(name, dg->name)) {
+		if (strcmp(name, dg->name)) {
 			flip_num= defgroup_name_index(ob, name);
 
-			if(flip_num >= 0) {
+			if (flip_num >= 0) {
 				map[defgroup]= flip_num;
 				map[flip_num]= defgroup;
 			}
@@ -334,11 +360,11 @@ int defgroup_flip_index(Object *ob, int index, int use_default)
 	bDeformGroup *dg= BLI_findlink(&ob->defbase, index);
 	int flip_index = -1;
 
-	if(dg) {
+	if (dg) {
 		char name[sizeof(dg->name)];
 		flip_side_name(name, dg->name, 0);
 
-		if(strcmp(name, dg->name))
+		if (strcmp(name, dg->name))
 			flip_index= defgroup_name_index(ob, name);
 	}
 
@@ -348,7 +374,7 @@ int defgroup_flip_index(Object *ob, int index, int use_default)
 static int defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
 {
 	bDeformGroup *curdef;
-	
+
 	for (curdef = ob->defbase.first; curdef; curdef=curdef->next) {
 		if (dg!=curdef) {
 			if (!strcmp(curdef->name, name)) {
@@ -366,7 +392,7 @@ static int defgroup_unique_check(void *arg, const char *name)
 	return defgroup_find_name_dupe(name, data->dg, data->ob);
 }
 
-void defgroup_unique_name (bDeformGroup *dg, Object *ob)
+void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 {
 	struct {Object *ob; void *dg;} data;
 	data.ob= ob;
@@ -378,7 +404,7 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions
  * note: dont use sizeof() for 'name' or 'from_name' */
-void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number)
+void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number)
 {
 	int     len;
 	char    prefix[MAX_VGROUP_NAME]=  "";   /* The part before the facing */
@@ -388,15 +414,15 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 	char    *index=NULL;
 
 	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
-	if(len<3) return; // we don't do names like .R or .L
+	if (len < 3) return; // we don't do names like .R or .L
 
 	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
 
 	/* We first check the case with a .### extension, let's find the last period */
-	if(isdigit(name[len-1])) {
+	if (isdigit(name[len-1])) {
 		index= strrchr(name, '.'); // last occurrence
 		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
-			if(strip_number==0)
+			if (strip_number==0)
 				BLI_strncpy(number, index, sizeof(number));
 			*index= 0;
 			len= BLI_strnlen(name, MAX_VGROUP_NAME);
@@ -408,7 +434,7 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 #define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
 
 	/* first case; separator . - _ with extensions r R l L  */
-	if( IS_SEPARATOR(name[len-2]) ) {
+	if (IS_SEPARATOR(name[len-2]) ) {
 		switch(name[len-1]) {
 			case 'l':
 				prefix[len-1]= 0;
@@ -429,7 +455,7 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 		}
 	}
 	/* case; beginning with r R l L , with separator after it */
-	else if( IS_SEPARATOR(name[1]) ) {
+	else if (IS_SEPARATOR(name[1]) ) {
 		switch(name[0]) {
 			case 'l':
 				strcpy(replace, "r");
@@ -453,14 +479,14 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 				break;
 		}
 	}
-	else if(len > 5) {
+	else if (len > 5) {
 		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
 		index = BLI_strcasestr(prefix, "right");
 		if (index==prefix || index==prefix+len-5) {
-			if(index[0]=='r')
+			if (index[0]=='r')
 				strcpy (replace, "left");
 			else {
-				if(index[1]=='I')
+				if (index[1]=='I')
 					strcpy (replace, "LEFT");
 				else
 					strcpy (replace, "Left");
@@ -471,10 +497,10 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 		else {
 			index = BLI_strcasestr(prefix, "left");
 			if (index==prefix || index==prefix+len-4) {
-				if(index[0]=='l')
+				if (index[0]=='l')
 					strcpy (replace, "right");
 				else {
-					if(index[1]=='E')
+					if (index[1]=='E')
 						strcpy (replace, "RIGHT");
 					else
 						strcpy (replace, "Right");
@@ -490,30 +516,32 @@ void flip_side_name (char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP
 	BLI_snprintf (name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
-float defvert_find_weight(const struct MDeformVert *dvert, const int group_num)
+float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
 {
-	MDeformWeight *dw= defvert_find_index(dvert, group_num);
+	MDeformWeight *dw= defvert_find_index(dvert, defgroup);
 	return dw ? dw->weight : 0.0f;
 }
 
-float defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
+float defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup)
 {
-	if(group_num == -1 || dvert == NULL)
+	if (defgroup == -1 || dvert == NULL)
 		return 1.0f;
 
-	return defvert_find_weight(dvert+index, group_num);
+	return defvert_find_weight(dvert+index, defgroup);
 }
 
 
 MDeformWeight *defvert_find_index(const MDeformVert *dvert, const int defgroup)
 {
-	if(dvert && defgroup >= 0) {
+	if (dvert && defgroup >= 0) {
 		MDeformWeight *dw = dvert->dw;
 		int i;
 
-		for(i=dvert->totweight; i>0; i--, dw++)
-			if(dw->def_nr == defgroup)
+		for (i=dvert->totweight; i>0; i--, dw++) {
+			if (dw->def_nr == defgroup) {
 				return dw;
+			}
+		}
 	}
 
 	return NULL;
@@ -521,30 +549,74 @@ MDeformWeight *defvert_find_index(const MDeformVert *dvert, const int defgroup)
 
 /* Ensures that mv has a deform weight entry for the specified defweight group */
 /* Note this function is mirrored in editmesh_tools.c, for use for editvertices */
-MDeformWeight *defvert_verify_index(MDeformVert *dv, const int defgroup)
+MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 {
-	MDeformWeight *newdw;
+	MDeformWeight *dw_new;
 
 	/* do this check always, this function is used to check for it */
-	if(!dv || defgroup < 0)
+	if (!dvert || defgroup < 0)
 		return NULL;
 
-	newdw= defvert_find_index(dv, defgroup);
-	if(newdw)
-		return newdw;
+	dw_new= defvert_find_index(dvert, defgroup);
+	if (dw_new)
+		return dw_new;
 
-	newdw= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
-	if(dv->dw) {
-		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-		BLI_cellalloc_free(dv->dw);
+	dw_new= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
+	if (dvert->dw) {
+		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
+		BLI_cellalloc_free(dvert->dw);
 	}
-	dv->dw= newdw;
-	newdw += dv->totweight;
-	newdw->weight= 0.0f;
-	newdw->def_nr= defgroup;
+	dvert->dw= dw_new;
+	dw_new += dvert->totweight;
+	dw_new->weight= 0.0f;
+	dw_new->def_nr= defgroup;
 	/* Group index */
 
-	dv->totweight++;
+	dvert->totweight++;
 
-	return newdw;
+	return dw_new;
+}
+
+/* Removes the given vertex from the vertex group, specified either by its defgrp_idx,
+ * or directly by its MDeformWeight pointer, if dw is not NULL.
+ * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
+void defvert_remove_index(MDeformVert *dvert, int defgroup, MDeformWeight *dw)
+{
+	MDeformWeight *dw_new;
+	int i;
+
+	/* Get index of removed MDeformWeight. */
+	if (dw == NULL) {
+		dw = dvert->dw;
+		for (i = dvert->totweight; i > 0; i--, dw++) {
+			if (dw->def_nr == defgroup)
+				break;
+		}
+		i--;
+	}
+	else {
+		i = dw - dvert->dw;
+		/* Security check! */
+		if(i < 0 || i >= dvert->totweight)
+			return;
+	}
+
+	dvert->totweight--;
+	/* If there are still other deform weights attached to this vert then remove
+	 * this deform weight, and reshuffle the others.
+	 */
+	if (dvert->totweight) {
+		dw_new = BLI_cellalloc_malloc(sizeof(MDeformWeight)*(dvert->totweight), __func__);
+		if (dvert->dw){
+			memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
+			memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
+			BLI_cellalloc_free(dvert->dw);
+		}
+		dvert->dw = dw_new;
+	}
+	else {
+		/* If there are no other deform weights left then just remove this one. */
+		BLI_cellalloc_free(dvert->dw);
+		dvert->dw = NULL;
+	}
 }
