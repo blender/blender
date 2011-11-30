@@ -561,7 +561,7 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	if (dw_new)
 		return dw_new;
 
-	dw_new= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
+	dw_new= BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
 	if (dvert->dw) {
 		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
 		BLI_cellalloc_free(dvert->dw);

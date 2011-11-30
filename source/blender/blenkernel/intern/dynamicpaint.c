@@ -1703,25 +1703,16 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 								MDeformWeight *def_weight = defvert_find_index(dv, defgrp_index);
 
 								/* skip if weight value is 0 and no existing weight is found */
-								if (!def_weight && !weight[i])
-									continue;
+								if ((def_weight != NULL) || (weight[i] != 0.0f)) {
 
-								/* if not found, add a weight for it */
-								if (!def_weight) {
-									MDeformWeight *newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), 
-														 "deformWeight");
-									if(dv->dw){
-										memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-										MEM_freeN(dv->dw);
+									/* if not found, add a weight for it */
+									if (def_weight == NULL) {
+										def_weight= defvert_verify_index(dv, defgrp_index);
 									}
-									dv->dw=newdw;
-									dv->dw[dv->totweight].def_nr=defgrp_index;
-									def_weight = &dv->dw[dv->totweight];
-									dv->totweight++;
-								}
 
-								/* set weight value */
-								def_weight->weight = weight[i];
+									/* set weight value */
+									def_weight->weight = weight[i];
+								}
 							}
 						}
 					}
@@ -1735,11 +1726,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						for (i=0; i<sData->total_points; i++) {
 							float normal[3];
 							normal_short_to_float_v3(normal, mvert[i].no);
-							normalize_v3(normal);
-
-							mvert[i].co[0] += normal[0]*wPoint[i].height;
-							mvert[i].co[1] += normal[1]*wPoint[i].height;
-							mvert[i].co[2] += normal[2]*wPoint[i].height;
+							madd_v3_v3fl(mvert[i].co, normal, wPoint[i].height);
 						}
 						CDDM_calc_normals(result);
 					}
