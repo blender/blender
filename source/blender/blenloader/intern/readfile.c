@@ -12427,34 +12427,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					sce->gm.recastData.detailsamplemaxerror = 1.0f;
 			}
 		}
-
-		{
-			/* flip normals */
-			Material *ma= main->mat.first;
-			while(ma) {
-				int a;
-				for(a= 0; a<MAX_MTEX; a++) {
-					MTex *mtex= ma->mtex[a];
-
-					if(mtex) {
-						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
-							if((mtex->mapto&MAP_DISPLACE)==0) {
-								if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
-									Tex *tex= newlibadr(fd, lib, mtex->tex);
-
-									if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
-										mtex->norfac= -mtex->norfac;
-										mtex->texflag|= MTEX_BUMP_FLIPPED;
-									}
-								}
-							}
-						}
-					}
-				}
-
-				ma= ma->id.next;
-			}
-		}
 	}
 
 	if (main->versionfile < 260){
