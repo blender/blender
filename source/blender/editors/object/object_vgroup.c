@@ -1576,13 +1576,21 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 		}
 	}
 	else {
-		/* dvert should always be the target */
+		/* dvert should always be the target, only swaps pointer */
 		if(sel_mirr) {
 			SWAP(MDeformVert *, dvert, dvert_mirr);
 		}
 
-		if(mirror_weights)
-			defvert_copy(dvert, dvert_mirr);
+		if(mirror_weights) {
+			if (all_vgroups) {
+				defvert_copy(dvert, dvert_mirr);
+			}
+			else {
+				defvert_copy_index(dvert, dvert_mirr, act_vgroup);
+			}
+		}
+
+		/* flip map already modified for 'all_vgroups' */
 		if(flip_vgroups) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 		}

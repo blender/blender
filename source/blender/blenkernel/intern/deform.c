@@ -94,6 +94,31 @@ void defvert_copy (MDeformVert *dvert_r, const MDeformVert *dvert)
 	}
 }
 
+/* copy an index from one dvert to another
+ * - do nothing if neither are set.
+ * - add destination weight if needed.
+ */
+void defvert_copy_index (MDeformVert *dv_dst, const MDeformVert *dv_src, const int defgroup)
+{
+	MDeformWeight *dw_src, *dw_dst;
+
+	dw_src= defvert_find_index(dv_src, defgroup);
+
+	if (dw_src) {
+		/* source is valid, verify destination */
+		dw_dst= defvert_verify_index(dv_dst, defgroup);
+		dw_dst->weight= dw_src->weight;
+	}
+	else {
+		/* source was NULL, assign zero, could also remove */
+		dw_dst= defvert_find_index(dv_dst, defgroup);
+
+		if (dw_dst) {
+			dw_dst->weight= 0.0f;
+		}
+	}
+}
+
 /* only sync over matching weights, don't add or remove groups
  * warning, loop within loop.
  */

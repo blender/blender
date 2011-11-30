@@ -57,6 +57,7 @@ float  defvert_find_weight(const struct MDeformVert *dvert, const int group_num)
 float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num);
 
 void defvert_copy(struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
+void defvert_copy_index(struct MDeformVert *dv_dst, const struct MDeformVert *dv_src, const int defgroup);
 void defvert_sync(struct MDeformVert *dvert_r, const struct MDeformVert *dvert, int use_verify);
 void defvert_sync_mapped(struct MDeformVert *dvert_r, const struct MDeformVert *dvert, const int *flip_map, const int flip_map_len, const int use_verify);
 void defvert_remap (struct MDeformVert *dvert, int *map);
