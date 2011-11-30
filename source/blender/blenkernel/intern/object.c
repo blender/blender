@@ -1233,12 +1233,12 @@ void make_local_object(Object *ob)
 			extern_local_object(ob);
 		}
 		else if(is_local && is_lib) {
-			Object *obn= copy_object(ob);
+			Object *ob_new= copy_object(ob);
 
-			obn->id.us= 0;
+			ob_new->id.us= 0;
 			
 			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, &obn->id);
+			BKE_id_lib_local_paths(bmain, ob->id.lib, &ob_new->id);
 
 			sce= bmain->scene.first;
 			while(sce) {
@@ -1246,8 +1246,8 @@ void make_local_object(Object *ob)
 					base= sce->base.first;
 					while(base) {
 						if(base->object==ob) {
-							base->object= obn;
-							obn->id.us++;
+							base->object= ob_new;
+							ob_new->id.us++;
 							ob->id.us--;
 						}
 						base= base->next;

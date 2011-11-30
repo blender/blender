@@ -973,20 +973,20 @@ void make_local_texture(Tex *tex)
 		extern_local_texture(tex);
 	}
 	else if(is_local && is_lib) {
-		Tex *texn= copy_texture(tex);
+		Tex *tex_new= copy_texture(tex);
 
-		texn->id.us= 0;
+		tex_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &texn->id);
+		BKE_id_lib_local_paths(bmain, tex->id.lib, &tex_new->id);
 		
 		ma= bmain->mat.first;
 		while(ma) {
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex==tex) {
 					if(ma->id.lib==NULL) {
-						ma->mtex[a]->tex= texn;
-						texn->id.us++;
+						ma->mtex[a]->tex= tex_new;
+						tex_new->id.us++;
 						tex->id.us--;
 					}
 				}
@@ -998,8 +998,8 @@ void make_local_texture(Tex *tex)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(la->mtex[a] && la->mtex[a]->tex==tex) {
 					if(la->id.lib==NULL) {
-						la->mtex[a]->tex= texn;
-						texn->id.us++;
+						la->mtex[a]->tex= tex_new;
+						tex_new->id.us++;
 						tex->id.us--;
 					}
 				}
@@ -1011,8 +1011,8 @@ void make_local_texture(Tex *tex)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a] && wrld->mtex[a]->tex==tex) {
 					if(wrld->id.lib==NULL) {
-						wrld->mtex[a]->tex= texn;
-						texn->id.us++;
+						wrld->mtex[a]->tex= tex_new;
+						tex_new->id.us++;
 						tex->id.us--;
 					}
 				}
@@ -1023,8 +1023,8 @@ void make_local_texture(Tex *tex)
 		while(br) {
 			if(br->mtex.tex==tex) {
 				if(br->id.lib==NULL) {
-					br->mtex.tex= texn;
-					texn->id.us++;
+					br->mtex.tex= tex_new;
+					tex_new->id.us++;
 					tex->id.us--;
 				}
 			}
@@ -1035,8 +1035,8 @@ void make_local_texture(Tex *tex)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(pa->mtex[a] && pa->mtex[a]->tex==tex) {
 					if(pa->id.lib==NULL) {
-						pa->mtex[a]->tex= texn;
-						texn->id.us++;
+						pa->mtex[a]->tex= tex_new;
+						tex_new->id.us++;
 						tex->id.us--;
 					}
 				}

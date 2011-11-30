@@ -184,19 +184,19 @@ void make_local_lamp(Lamp *la)
 		id_clear_lib_data(bmain, &la->id);
 	}
 	else if(is_local && is_lib) {
-		Lamp *lan= copy_lamp(la);
-		lan->id.us= 0;
+		Lamp *la_new= copy_lamp(la);
+		la_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &lan->id);
+		BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
 
 		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==la) {
 				
 				if(ob->id.lib==NULL) {
-					ob->data= lan;
-					lan->id.us++;
+					ob->data= la_new;
+					la_new->id.us++;
 					la->id.us--;
 				}
 			}

@@ -224,17 +224,17 @@ void make_local_brush(Brush *brush)
 		}
 	}
 	else if(is_local && is_lib) {
-		Brush *brushn= copy_brush(brush);
-		brushn->id.us= 1; /* only keep fake user */
-		brushn->id.flag |= LIB_FAKEUSER;
+		Brush *brush_new= copy_brush(brush);
+		brush_new->id.us= 1; /* only keep fake user */
+		brush_new->id.flag |= LIB_FAKEUSER;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &brush->id);
+		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
 		
 		for(scene= bmain->scene.first; scene; scene=scene->id.next) {
 			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 				if(scene->id.lib==NULL) {
-					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
+					paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
 				}
 			}
 		}
