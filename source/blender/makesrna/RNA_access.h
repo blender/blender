@@ -996,7 +996,7 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 #ifdef __GNUC__
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
 #else
-#  define RNA_warning(format, args, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
+#  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
 #endif
 
 void _RNA_warning(const char *format, ...)
