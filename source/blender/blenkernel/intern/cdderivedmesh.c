@@ -804,15 +804,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				flush= !flag || i == tottri - 1;
 
 				if(!flush && compareDrawOptions) {
-					int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
-
-					if(orig==ORIGINDEX_NONE || next_orig==ORIGINDEX_NONE) {
-						flush= 1;
-					} else {
-						/* also compare draw options and flush buffer if they're different
-						   need for face selection highlight in edit mode */
-						flush|= compareDrawOptions(userData, orig, next_orig) == 0;
-					}
+					/* also compare draw options and flush buffer if they're different
+					   need for face selection highlight in edit mode */
+					flush|= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 				}
 
 				if(flush) {
@@ -990,15 +984,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					flush|= mf[actualFace].mat_nr != mf[next_actualFace].mat_nr;
 
 					if(!flush && compareDrawOptions) {
-						int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
-
-						if(orig==ORIGINDEX_NONE || next_orig==ORIGINDEX_NONE) {
-							flush= 1;
-						} else {
-							/* also compare draw options and flush buffer if they're different
-							   need for face selection highlight in edit mode */
-							flush|= compareDrawOptions(userData, orig, next_orig) == 0;
-						}
+						flush|= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 					}
 
 					if(flush) {

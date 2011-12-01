@@ -2323,7 +2323,7 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
@@ -2343,10 +2343,17 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
-	EditFace *efa = EM_get_face_for_index(index);
-	EditFace *next_efa = EM_get_face_for_index(next_index);
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	int *orig_index= DM_get_face_data_layer(data->dm, CD_ORIGINDEX);
+	EditFace *efa;
+	EditFace *next_efa;
 	unsigned char *col, *next_col;
+
+	if(!orig_index)
+		return 0;
+
+	efa= EM_get_face_for_index(orig_index[index]);
+	next_efa= EM_get_face_for_index(orig_index[next_index]);
 
 	if(efa == next_efa)
 		return 1;
@@ -2366,7 +2373,8 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 /* also draws the active face */
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } data;
+	data.dm= dm;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;

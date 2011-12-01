@@ -631,14 +631,14 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 static int compareDrawOptions(void *userData, int cur_index, int next_index)
 {
-	Mesh *me= (Mesh*) userData;
-	MFace *mf= CustomData_get_layer(&me->fdata, CD_MFACE);
-	MTFace *tf= CustomData_get_layer(&me->fdata, CD_MTFACE);
+	DerivedMesh *dm= (DerivedMesh*) userData;
+	MFace *mf = DM_get_face_data_layer(dm, CD_MFACE);
+	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 
-	if(mf[cur_index].mat_nr != mf[next_index].mat_nr)
+	if(mf && mf[cur_index].mat_nr != mf[next_index].mat_nr)
 		return 0;
 
-	if(tf[cur_index].tpage != tf[next_index].tpage)
+	if(tf && tf[cur_index].tpage != tf[next_index].tpage)
 		return 0;
 
 	return 1;
@@ -683,7 +683,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
 
-			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, ob->data);
+			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, dm);
 		}
 	}
 
