@@ -647,6 +647,7 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 			   int (*drawParamsMapped)(void *userData, int index),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
 			   void *userData) 
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -771,24 +772,18 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		}
 
 		if( !GPU_buffer_legacy(dm) ) {
-			/* warning!, this logic is incorrect, see bug [#27175]
-			 * firstly, there are no checks for changes in context, such as texface image.
-			 * secondly, drawParams() sets the GL context, so checking if there is a change
-			 * from lastFlag is too late once glDrawArrays() runs, since drawing the arrays
-			 * will use the modified, OpenGL settings.
-			 * 
-			 * However its tricky to fix this without duplicating the internal logic
-			 * of drawParams(), perhaps we need an argument like...
-			 * drawParams(..., keep_gl_state_but_return_when_changed) ?.
-			 *
-			 * We could also just disable VBO's here, since texface may be deprecated - campbell.
-			 */
-			
+			int tottri = dm->drawObject->tot_triangle_point/3;
+			int next_actualFace= dm->drawObject->triangle_to_mface[0];
+
 			glShadeModel( GL_SMOOTH );
 			lastFlag = 0;
-			for(i = 0; i < dm->drawObject->tot_triangle_point/3; i++) {
-				int actualFace = dm->drawObject->triangle_to_mface[i];
+			for(i = 0; i < tottri; i++) {
+				int actualFace = next_actualFace;
 				int flag = 1;
+				int flush = 0;
+
+				if(i != tottri-1)
+					next_actualFace= dm->drawObject->triangle_to_mface[i+1];
 
 				if(drawParams) {
 					flag = drawParams(tf? &tf[actualFace]: NULL, (mcol != NULL), mf[actualFace].mat_nr);
@@ -804,27 +799,36 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 						if(drawParamsMapped)
 							flag = drawParamsMapped(userData, actualFace);
 				}
-				if( flag != lastFlag ) {
-					if( startFace < i ) {
-						if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-							if (lastFlag==1 && col)
-								GPU_color_switch(1);
-							else
-								GPU_color_switch(0);
-							glDrawArrays(GL_TRIANGLES,startFace*3,(i-startFace)*3);
-						}
+
+				/* flush buffer if current triangle isn't drawable or it's last triangle */
+				flush= !flag || i == tottri - 1;
+
+				if(!flush && compareDrawOptions) {
+					int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
+
+					if(orig==ORIGINDEX_NONE || next_orig==ORIGINDEX_NONE) {
+						flush= 1;
+					} else {
+						/* also compare draw options and flush buffer if they're different
+						   need for face selection highlight in edit mode */
+						flush|= compareDrawOptions(userData, orig, next_orig) == 0;
 					}
-					lastFlag = flag;
-					startFace = i;
 				}
-			}
-			if( startFace < dm->drawObject->tot_triangle_point/3 ) {
-				if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-					if (lastFlag==1 && col)
-						GPU_color_switch(1);
-					else
-						GPU_color_switch(0);
-					glDrawArrays(GL_TRIANGLES, startFace*3, dm->drawObject->tot_triangle_point - startFace*3);
+
+				if(flush) {
+					int first= startFace*3;
+					int count= (i-startFace+(flag ? 1 : 0))*3; /* Add one to the length if we're drawing at the end of the array */
+
+					if(count) {
+						if (col)
+							GPU_color_switch(1);
+						else
+							GPU_color_switch(0);
+
+						glDrawArrays(GL_TRIANGLES, first, count);
+					}
+
+					startFace = i + 1;
 				}
 			}
 		}
@@ -834,13 +838,19 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
+static void cdDM_drawFacesTex(DerivedMesh *dm,
+			   int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
-	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
-static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
+static void cdDM_drawMappedFaces(DerivedMesh *dm,
+			int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
+			int (*setMaterial)(int, void *attribs),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			void *userData, int useColors)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
@@ -1009,9 +1019,12 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	}
 }
 
-static void cdDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void cdDM_drawMappedFacesTex(DerivedMesh *dm,
+			   int (*setDrawOptions)(void *userData, int index),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
-	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
+	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
 static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert, int smoothnormal)
@@ -1058,7 +1071,10 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 	glVertex3fv(mvert[index].co);
 }
 
-static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData)
+static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
+			   int (*setMaterial)(int, void *attribs),
+			   int (*setDrawOptions)(void *userData, int index),
+			   void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	GPUVertexAttribs gattribs;
@@ -1348,7 +1364,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	glShadeModel(GL_FLAT);
 }
 
-static void cdDM_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
+static void cdDM_drawFacesGLSL(DerivedMesh *dm,int (*setMaterial)(int, void *attribs))
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }

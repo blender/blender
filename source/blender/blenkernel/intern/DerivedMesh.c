@@ -641,8 +641,11 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 
 /* note, material function is ignored for now. */
-static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int UNUSED(useColors), int (*setMaterial)(int, void *attribs),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
+static void emDM_drawMappedFaces(DerivedMesh *dm,
+			int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
+			int (*setMaterial)(int, void *attribs),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			void *userData, int UNUSED(useColors))
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
@@ -809,7 +812,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 			   int (*drawParamsMapped)(void *userData, int index),
-			   void *userData) 
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditMesh *em= emdm->em;
@@ -817,6 +821,8 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	float (*vertexNos)[3]= emdm->vertexNos;
 	EditFace *efa;
 	int i;
+
+	(void) compareDrawOptions;
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
@@ -974,19 +980,26 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
+static void emDM_drawFacesTex(DerivedMesh *dm,
+			   int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
-	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
-static void emDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void emDM_drawMappedFacesTex(DerivedMesh *dm,
+			   int (*setDrawOptions)(void *userData, int index),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
-	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
+	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
 static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			   int (*setMaterial)(int, void *attribs),
-			   int (*setDrawOptions)(void *userData, int index), void *userData) 
+			   int (*setDrawOptions)(void *userData, int index),
+			   void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditMesh *em= emdm->em;
@@ -3168,9 +3181,14 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	glEnable(GL_LIGHTING);
 }
 
-static void navmesh_DM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
+static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
+			int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			void *userData)
 {
 	(void) setDrawOptions;
+	(void) compareDrawOptions;
+	(void) userData;
 
 	navmesh_drawColored(dm);
 }
