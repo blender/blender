@@ -314,6 +314,8 @@ void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me){return 0;}
@@ -326,6 +328,8 @@ void ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertn
 void ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup){}
 void ED_vgroup_clear(struct Object *ob){}
 void ED_vgroup_object_is_edit_mode(struct Object *ob){}
+long mesh_mirrtopo_table(struct Object *ob, char mode){}
+intptr_t mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode){}
 
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
