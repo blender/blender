@@ -685,6 +685,8 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* *************** add-click-mesh (extrude) operator ************** */
