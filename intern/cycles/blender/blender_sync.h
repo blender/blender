@@ -100,6 +100,7 @@ private:
 
 	Scene *scene;
 	bool preview;
+	bool experimental;
 
 	struct RenderLayerInfo {
 		RenderLayerInfo()

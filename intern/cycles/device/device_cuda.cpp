@@ -237,7 +237,10 @@ public:
 			return cubin;
 
 #ifdef WITH_CUDA_BINARIES
-		cuda_error("CUDA binary kernel for this graphics card not found.");
+		if(major <= 1 && minor <= 2)
+			cuda_error(string_printf("CUDA device supported only with shader model 1.3 or up, found %d.%d.", major, minor));
+		else
+			cuda_error("CUDA binary kernel for this graphics card not found.");
 		return "";
 #else
 		/* if not, find CUDA compiler */

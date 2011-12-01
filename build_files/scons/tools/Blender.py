@@ -291,7 +291,7 @@ def setup_syslibs(lenv):
 
     syslibs += Split(lenv['BF_JPEG_LIB'])
     syslibs += Split(lenv['BF_PNG_LIB'])
-	
+
     syslibs += lenv['LLIBS']
 
     return syslibs
@@ -588,6 +588,8 @@ def AppIt(target=None, source=None, env=None):
             commands.getoutput(cmd)
             cmd = 'mkdir %s/kernel' % (cinstalldir)
             commands.getoutput(cmd)
+            cmd = 'mkdir %s/lib' % (cinstalldir)
+            commands.getoutput(cmd)
             cmd = 'cp -R %s/blender/addon/*.py %s/' % (croot, cinstalldir)
             commands.getoutput(cmd)
             cmd = 'cp -R %s/doc/license %s/license' % (croot, cinstalldir)
@@ -595,6 +597,8 @@ def AppIt(target=None, source=None, env=None):
             cmd = 'cp -R %s/kernel/*.h %s/kernel/*.cl %s/kernel/*.cu %s/kernel/' % (croot, croot, croot, cinstalldir)
             commands.getoutput(cmd)
             cmd = 'cp -R %s/kernel/svm %s/util/util_color.h %s/util/util_math.h %s/util/util_transform.h %s/util/util_types.h %s/kernel/' % (croot, croot, croot, croot, croot, cinstalldir)
+            commands.getoutput(cmd)
+            cmd = 'cp -R %s/../intern/cycles/kernel/*.cubin %s/lib/' % (builddir, cinstalldir)
             commands.getoutput(cmd)
 
     if env['WITH_OSX_STATICPYTHON']:

@@ -39,7 +39,6 @@ set(ADDON_FILES
 	addon/presets.py
 	addon/properties.py
 	addon/ui.py
-	addon/xml.py
 )
 
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}")

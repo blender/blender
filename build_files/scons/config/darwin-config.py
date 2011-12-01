@@ -283,7 +283,7 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT_LIB = 'expat'
 #BF_EXPAT_LIBPATH = '/usr/lib'
 
-#Cycles
+# Cycles
 WITH_BF_CYCLES = True
 
 WITH_BF_OIIO = True
@@ -297,6 +297,10 @@ BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = BF_BOOST + '/include'
 BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
 BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+
+WITH_BF_CYCLES_CUDA_BINARIES = False
+BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
 
 #Ray trace optimization
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':

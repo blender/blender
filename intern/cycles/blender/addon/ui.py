@@ -294,7 +294,12 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and (context.mesh or context.curve or context.meta_ball)
+        if CyclesButtonsPanel.poll(context):
+            if context.mesh or context.curve or context.meta_ball:
+                if context.scene.cycles.feature_set == 'EXPERIMENTAL':
+                    return True
+
+        return False
 
     def draw(self, context):
         layout = self.layout
@@ -706,17 +711,19 @@ def draw_device(self, context):
     if scene.render.engine == "CYCLES":
         cscene = scene.cycles
 
+        layout.prop(cscene, "feature_set")
+        experimental = cscene.feature_set == 'EXPERIMENTAL'
+
         available_devices = engine.available_devices()
         available_cuda = 'cuda' in available_devices
-        available_opencl = 'opencl' in available_devices
+        available_opencl = experimental and 'opencl' in available_devices
 
         if available_cuda or available_opencl:
             layout.prop(cscene, "device")
             if cscene.device == 'GPU' and available_cuda and available_opencl:
                 layout.prop(cscene, "gpu_type")
-        if cscene.device == 'CPU' and engine.with_osl():
+        if experimental and cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
-
 
 def draw_pause(self, context):
     layout = self.layout
