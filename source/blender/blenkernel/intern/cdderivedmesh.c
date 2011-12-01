@@ -2021,7 +2021,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 
 		normal_float_to_short_v3(mv->no, eve->no);
 
-		mv->flag = BMFlags_To_MEFlags(eve);
+		mv->flag = BM_Vert_Flag_To_MEFlag(eve);
 
 		if (has_vert_bweight)
 			mv->bweight = (unsigned char)(BM_GetCDf(&bm->vdata, eve, CD_BWEIGHT)*255.0f);
@@ -2047,7 +2047,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		if (has_edge_bweight)
 			med->bweight = (unsigned char)(BM_GetCDf(&bm->edata, eed, CD_BWEIGHT)*255.0f);
 		
-		med->flag = BMFlags_To_MEFlags(eed);
+		med->flag = BM_Edge_Flag_To_MEFlag(eed);
 
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
@@ -2068,7 +2068,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		mf->v3 = BM_GetIndex(l[2]->v);
 		mf->v4 = 0;
 		mf->mat_nr = efa->mat_nr;
-		mf->flag = BMFlags_To_MEFlags(efa);
+		mf->flag = BM_Face_Flag_To_MEFlag(efa);
 		
 		*index = add_orig ? BM_GetIndex(efa) : *(int*)CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_ORIGINDEX);
 		*polyindex = BM_GetIndex(efa);
@@ -2085,7 +2085,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		MPoly *mp = &mpoly[i];
 
 		mp->totloop = efa->len;
-		mp->flag = BMFlags_To_MEFlags(efa);
+		mp->flag = BM_Face_Flag_To_MEFlag(efa);
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
 		

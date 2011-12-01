@@ -132,7 +132,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		vt[i] = v;
 
 		/*transfer flags*/
-		v->head.hflag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
+		v->head.hflag = BM_Vert_Flag_From_MEFlag(mvert->flag);
 
 		/*this is necassary for selection counts to work properly*/
 		if (BM_TestHFlag(v, BM_SELECT)) BM_Select_Vert(bm, v, 1);
@@ -177,7 +177,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		et[i] = e;
 
 		/*transfer flags*/
-		e->head.hflag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
+		e->head.hflag = BM_Edge_Flag_From_MEFlag(medge->flag);
 
 		/*this is necassary for selection counts to work properly*/
 		if (BM_TestHFlag(e, BM_SELECT)) BM_Select(bm, e, 1);
@@ -240,7 +240,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		BM_SetIndex(f, bm->totface-1); /* set_ok */
 
 		/*transfer flags*/
-		f->head.hflag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
+		f->head.hflag = BM_Face_Flag_From_MEFlag(mpoly->flag);
 
 		/*this is necassary for selection counts to work properly*/
 		if (BM_TestHFlag(f, BM_SELECT)) BM_Select(bm, f, 1);
@@ -527,7 +527,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		copy_v3_v3(mvert->co, v->co);
 		normal_float_to_short_v3(mvert->no, v->no);
 		
-		mvert->flag = BMFlags_To_MEFlags(v);
+		mvert->flag = BM_Vert_Flag_To_MEFlag(v);
 
 		BM_SetIndex(v, i); /* set_inline */
 
@@ -552,7 +552,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		med->crease = crease ? (char)((*crease)*255) : 0;
 		med->bweight = bweight ? (char)((*bweight)*255) : 0;
 		
-		med->flag = BMFlags_To_MEFlags(e);
+		med->flag = BM_Edge_Flag_To_MEFlag(e);
 		
 		BM_SetIndex(e, i); /* set_inline */
 
@@ -655,7 +655,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 				}
 
 				mface->mat_nr = f->mat_nr;
-				mface->flag = BMFlags_To_MEFlags(f);
+				mface->flag = BM_Face_Flag_To_MEFlag(f);
 				
 				mface->v1 = BM_GetIndex(ls[0]->v);
 				mface->v2 = BM_GetIndex(ls[1]->v);
@@ -683,7 +683,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		mpoly->loopstart = j;
 		mpoly->totloop = f->len;
 		mpoly->mat_nr = f->mat_nr;
-		mpoly->flag = BMFlags_To_MEFlags(f);
+		mpoly->flag = BM_Face_Flag_To_MEFlag(f);
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {

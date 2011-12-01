@@ -1294,11 +1294,9 @@ static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 {
 	copy_v3_v3(vert_r->co, ev->co);
 
-	vert_r->no[0] = (short)(ev->no[0] * 32767.0f);
-	vert_r->no[1] = (short)(ev->no[1] * 32767.0f);
-	vert_r->no[2] = (short)(ev->no[2] * 32767.0f);
+	normal_float_to_short_v3(vert_r->no, ev->no);
 
-	vert_r->flag = BMFlags_To_MEFlags(ev);
+	vert_r->flag = BM_Vert_Flag_To_MEFlag(ev);
 
 	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
 		vert_r->bweight = (unsigned char) (BM_GetCDf(&bm->vdata, ev, CD_BWEIGHT)*255.0f);
@@ -1341,7 +1339,7 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 		edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, e, CD_CREASE)*255.0f);
 	}
 
-	edge_r->flag = BMFlags_To_MEFlags(e);
+	edge_r->flag = BM_Edge_Flag_To_MEFlag(e);
 	
 	edge_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v1));
 	edge_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v2));
@@ -1363,7 +1361,7 @@ static void bmDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 	ef = l[0]->f;
 
 	face_r->mat_nr = (unsigned char) ef->mat_nr;
-	face_r->flag = BMFlags_To_MEFlags(ef);
+	face_r->flag = BM_Face_Flag_To_MEFlag(ef);
 
 	face_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, l[0]->v));
 	face_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, l[1]->v));
@@ -1383,11 +1381,9 @@ static void bmDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 	for( ; ev; ev = BMIter_Step(&iter), ++vert_r) {
 		copy_v3_v3(vert_r->co, ev->co);
 
-		vert_r->no[0] = (short) (ev->no[0] * 32767.0);
-		vert_r->no[1] = (short) (ev->no[1] * 32767.0);
-		vert_r->no[2] = (short) (ev->no[2] * 32767.0);
+		normal_float_to_short_v3(vert_r->no, ev->no);
 
-		vert_r->flag = BMFlags_To_MEFlags(ev);
+		vert_r->flag = BM_Vert_Flag_To_MEFlag(ev);
 
 		if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
 			vert_r->bweight = (unsigned char) (BM_GetCDf(&bm->vdata, ev, CD_BWEIGHT)*255.0f);
@@ -1415,7 +1411,7 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_CREASE)*255.0f);
 		}
 
-		edge_r->flag = BMFlags_To_MEFlags(ee);
+		edge_r->flag = BM_Edge_Flag_To_MEFlag(ee);
 
 		edge_r->v1 = (int)BM_GetIndex(ee->v1);
 		edge_r->v2 = (int)BM_GetIndex(ee->v2);
@@ -1438,7 +1434,7 @@ static void bmDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 
 		face_r->mat_nr = (unsigned char) ef->mat_nr;
 
-		face_r->flag = BMFlags_To_MEFlags(ef);
+		face_r->flag = BM_Face_Flag_To_MEFlag(ef);
 
 		face_r->v1 = BM_GetIndex(l[0]->v);
 		face_r->v2 = BM_GetIndex(l[1]->v);
@@ -1479,7 +1475,7 @@ static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 
 	i = 0;
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		poly_r->flag = BMFlags_To_MEFlags(f);
+		poly_r->flag = BM_Face_Flag_To_MEFlag(f);
 		poly_r->loopstart = i;
 		poly_r->totloop = f->len;
 		poly_r->mat_nr = f->mat_nr;

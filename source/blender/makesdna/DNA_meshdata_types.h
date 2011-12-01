@@ -80,7 +80,7 @@ typedef struct MPoly {
 	/*offset into loop array and number of loops in the face*/
 	int loopstart, totloop;
 	short mat_nr;
-	short flag;
+	char flag, pad;
 } MPoly;
 
 /*the e here is because we want to move away from

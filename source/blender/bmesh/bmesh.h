@@ -303,6 +303,8 @@ BMesh *init_editmesh_to_bmesh ( struct EditMesh *em, struct BMOperator *op );
 /*converts a bmesh to an editmesh*/
 struct EditMesh *bmesh_to_editmesh ( BMesh *bm );
 
+/* unused, type spesific functions below */
+#if 0
 /*convert between bmesh and Mesh flags*/
 short BMFlags_To_MEFlags(void *element);
 
@@ -312,6 +314,17 @@ short BMFlags_To_MEFlags(void *element);
   parameter (the three defines map to
   MVert, MEdge, and MPoly, respectively).*/
 char MEFlags_To_BMFlags(const short hflag, const char htype);
+#endif
+
+/* flag conversion funcs */
+char BM_Face_Flag_From_MEFlag(const char  mflag);
+char BM_Edge_Flag_From_MEFlag(const short mflag);
+char BM_Vert_Flag_From_MEFlag(const char  mflag);
+/* reverse */
+char  BM_Face_Flag_To_MEFlag(BMFace *f);
+short BM_Edge_Flag_To_MEFlag(BMEdge *e);
+char  BM_Vert_Flag_To_MEFlag(BMVert *v);
+
 
 /*convert MLoop*** in a bmface to mtface and mcol in
   an MFace*/
