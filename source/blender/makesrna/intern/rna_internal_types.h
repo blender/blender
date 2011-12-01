@@ -185,7 +185,7 @@ struct PropertyRNA {
 
 /* Property Types */
 
-typedef struct BooleanPropertyRNA {
+typedef struct BoolPropertyRNA {
 	PropertyRNA property;
 
 	PropBooleanGetFunc get;
@@ -196,7 +196,7 @@ typedef struct BooleanPropertyRNA {
 
 	int defaultvalue;
 	const int *defaultarray;
-} BooleanPropertyRNA;
+} BoolPropertyRNA;
 
 typedef struct IntPropertyRNA {
 	PropertyRNA property;
