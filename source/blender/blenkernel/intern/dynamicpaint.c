@@ -3572,7 +3572,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 				float radius = 0.0f;
 				float strength = 0.0f;
 				float velocity_val = 0.0f;
-				int part_index;
+				int part_index= -1;
 
 				/*
 				*	With predefined radius, there is no variation between particles.
@@ -3644,10 +3644,12 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						part_index = nearest[n].index;
 
 						/* If inside solid range and no disp depth required, no need to seek further */
-						if (s_range < 0.0f)
-						if (surface->type != MOD_DPAINT_SURFACE_T_DISPLACE &&
-							surface->type != MOD_DPAINT_SURFACE_T_WAVE)
+						if ( (s_range < 0.0f) &&
+						     (surface->type != MOD_DPAINT_SURFACE_T_DISPLACE) &&
+						     (surface->type != MOD_DPAINT_SURFACE_T_WAVE))
+						{
 							break;
+						}
 					}
 
 					if (nearest) MEM_freeN(nearest);
@@ -3675,7 +3677,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					float depth = 0.0f;
 
 					/* apply velocity */
-					if (brush->flags & MOD_DPAINT_USES_VELOCITY) {
+					if ((brush->flags & MOD_DPAINT_USES_VELOCITY) && (part_index != -1)) {
 						float velocity[3];
 						ParticleData *pa = psys->particles + part_index;
 						mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
@@ -3687,8 +3689,9 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						velocity_val = len_v3(velocity);
 
 						/* store brush velocity for smudge */
-						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
-							brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+						if ( (surface->type == MOD_DPAINT_SURFACE_T_PAINT) &&
+						     (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity))
+						{
 							copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 							mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 							bData->brush_velocity[index*4+3] = velocity_val;
@@ -3696,12 +3699,11 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					}
 
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-						paintColor[0] = brush->r;
-						paintColor[1] = brush->g;
-						paintColor[2] = brush->b;
+						copy_v3_v3(paintColor, &brush->r);
 					}
-					else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-							 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
+					else if ( (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) ||
+					          (surface->type == MOD_DPAINT_SURFACE_T_WAVE))
+					{
 						 /* get displace depth	*/
 						disp_intersect = (1.0f - sqrtf(disp_intersect / radius)) * radius;
 						depth = (radius - disp_intersect) / bData->bNormal[index].normal_scale;
