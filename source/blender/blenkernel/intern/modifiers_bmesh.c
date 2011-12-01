@@ -190,7 +190,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 		if (!f)
 			continue;
 
-		f->head.hflag = BM_Vert_Flag_From_MEFlag(mp->flag);
+		f->head.hflag = BM_Face_Flag_From_MEFlag(mp->flag);
 		f->mat_nr = mp->mat_nr;
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
