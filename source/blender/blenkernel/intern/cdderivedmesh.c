@@ -1595,6 +1595,10 @@ void CDDM_recalc_tesselation(DerivedMesh *dm)
 	}
 
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+
+	/* Tesselation recreated faceData, and the active layer indices need to get re-propagated
+	   from loops and polys to faces */
+	CustomData_bmesh_update_active_layers(&dm->faceData, &dm->polyData, &dm->loopData);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)

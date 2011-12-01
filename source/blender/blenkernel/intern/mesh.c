@@ -340,37 +340,7 @@ static void mesh_update_linked_customdata(Mesh *me)
 
 	mesh_ensure_tesselation_customdata(me);
 
-	if (CustomData_has_layer(&me->pdata, CD_MTEXPOLY)) {
-		act = CustomData_get_active_layer(&me->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, act);
-		CustomData_set_layer_active(&me->fdata, CD_MTFACE, act);
-
-		act = CustomData_get_render_layer(&me->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_render(&me->ldata, CD_MLOOPUV, act);
-		CustomData_set_layer_render(&me->fdata, CD_MTFACE, act);
-
-		act = CustomData_get_clone_layer(&me->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_clone(&me->ldata, CD_MLOOPUV, act);
-		CustomData_set_layer_clone(&me->fdata, CD_MTFACE, act);
-
-		act = CustomData_get_stencil_layer(&me->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_stencil(&me->ldata, CD_MLOOPUV, act);
-		CustomData_set_layer_stencil(&me->fdata, CD_MTFACE, act);
-	}
-
-	if (CustomData_has_layer(&me->ldata, CD_MLOOPCOL)) {
-		act = CustomData_get_active_layer(&me->ldata, CD_MLOOPCOL);
-		CustomData_set_layer_active(&me->fdata, CD_MCOL, act);
-
-		act = CustomData_get_render_layer(&me->ldata, CD_MLOOPCOL);
-		CustomData_set_layer_render(&me->fdata, CD_MCOL, act);
-
-		act = CustomData_get_clone_layer(&me->ldata, CD_MLOOPCOL);
-		CustomData_set_layer_clone(&me->fdata, CD_MCOL, act);
-
-		act = CustomData_get_stencil_layer(&me->ldata, CD_MLOOPCOL);
-		CustomData_set_layer_stencil(&me->fdata, CD_MCOL, act);
-	}
+	CustomData_bmesh_update_active_layers(&me->fdata, &me->pdata, &me->ldata);
 }
 
 void mesh_update_customdata_pointers(Mesh *me)

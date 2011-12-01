@@ -2360,6 +2360,42 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 	}
 }
 
+void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+{
+	int act;
+
+	if (CustomData_has_layer(pdata, CD_MTEXPOLY)) {
+		act = CustomData_get_active_layer(pdata, CD_MTEXPOLY);
+		CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_active(fdata, CD_MTFACE, act);
+
+		act = CustomData_get_render_layer(pdata, CD_MTEXPOLY);
+		CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_render(fdata, CD_MTFACE, act);
+
+		act = CustomData_get_clone_layer(pdata, CD_MTEXPOLY);
+		CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_clone(fdata, CD_MTFACE, act);
+
+		act = CustomData_get_stencil_layer(pdata, CD_MTEXPOLY);
+		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
+	}
+
+	if (CustomData_has_layer(ldata, CD_MLOOPCOL)) {
+		act = CustomData_get_active_layer(ldata, CD_MLOOPCOL);
+		CustomData_set_layer_active(fdata, CD_MCOL, act);
+
+		act = CustomData_get_render_layer(ldata, CD_MLOOPCOL);
+		CustomData_set_layer_render(fdata, CD_MCOL, act);
+
+		act = CustomData_get_clone_layer(ldata, CD_MLOOPCOL);
+		CustomData_set_layer_clone(fdata, CD_MCOL, act);
+
+		act = CustomData_get_stencil_layer(ldata, CD_MLOOPCOL);
+		CustomData_set_layer_stencil(fdata, CD_MCOL, act);
+	}
+}
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize)
 {
