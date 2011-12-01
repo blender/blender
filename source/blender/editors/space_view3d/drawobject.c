@@ -2343,7 +2343,7 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } *data = userData;
 	int *orig_index= DM_get_face_data_layer(data->dm, CD_ORIGINDEX);
 	EditFace *efa;
 	EditFace *next_efa;
