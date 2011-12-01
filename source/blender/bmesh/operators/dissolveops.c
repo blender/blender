@@ -194,10 +194,21 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 	/* int i; */
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
-		if (BM_Edge_FaceCount(e) == 2) {
+		const int edge_face_count= BM_Edge_FaceCount(e);
+		if (edge_face_count == 2) {
+			/* join faces */
 			BM_Join_TwoFaces(bm, e->l->f,
 			                 e->l->radial_next->f,
 			                 e);
+		}
+		else if (edge_face_count < 2) {
+			/* join verts, assign because first join frees the edge */
+			BMVert *v1= e->v1, *v2= e->v2;
+
+			/*collapse the vert*/
+			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert(bm, v1->e, v1, 0.5f);
+			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert(bm, v2->e, v2, 0.5f);
+
 		}
 	}
 }
