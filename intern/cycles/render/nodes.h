@@ -315,6 +315,11 @@ public:
 	ustring attribute;
 };
 
+class CameraNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(CameraNode)
+};
+
 class FresnelNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(FresnelNode)

@@ -1804,6 +1804,33 @@ void AttributeNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_attribute");
 }
 
+/* Camera */
+
+CameraNode::CameraNode()
+: ShaderNode("camera")
+{
+	add_output("View Vector",  SHADER_SOCKET_VECTOR);
+	add_output("View Z Depth",  SHADER_SOCKET_FLOAT);
+	add_output("View Distance",  SHADER_SOCKET_FLOAT);
+}
+
+void CameraNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *vector_out = output("View Vector");
+	ShaderOutput *z_depth_out = output("View Z Depth");
+	ShaderOutput *distance_out = output("View Distance");
+
+	compiler.stack_assign(vector_out);
+	compiler.stack_assign(z_depth_out);
+	compiler.stack_assign(distance_out);
+	compiler.add_node(NODE_CAMERA, vector_out->stack_offset, z_depth_out->stack_offset, distance_out->stack_offset);
+}
+
+void CameraNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_camera");
+}
+
 /* Fresnel */
 
 FresnelNode::FresnelNode()

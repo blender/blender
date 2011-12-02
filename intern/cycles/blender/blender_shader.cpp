@@ -127,7 +127,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 
 	switch(b_node.type()) {
 		/* not supported */
-		case BL::ShaderNode::type_CAMERA: break;
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
@@ -153,6 +152,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			ValueNode *value = new ValueNode();
 			value->value = get_node_output_value(b_node, "Value");
 			node = value;
+			break;
+		}
+		case BL::ShaderNode::type_CAMERA: {
+			node = new CameraNode();
 			break;
 		}
 		case BL::ShaderNode::type_MIX_RGB: {
