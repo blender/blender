@@ -35,11 +35,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include <string.h>
 #include <math.h>
 
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
