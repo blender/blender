@@ -1,3 +1,5 @@
+#if 0
+
 /*
  *	Functions for changing the topology of a mesh.
  *
@@ -942,3 +944,5 @@ BMesh *BME_bevel(BMMesh *bm, float value, int res, int options, int defgrp_index
 	BME_free_transdata(td);
 	return bm;
 }
+
+#endif

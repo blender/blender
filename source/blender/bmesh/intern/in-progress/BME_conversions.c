@@ -1,3 +1,5 @@
+#if 0
+
 /**
  * BME_conversions.c    August 2008
  *
@@ -71,7 +73,8 @@
  *
 */
 
-static void DMcorners_to_loops(BMMesh *bm, CustomData *facedata, int index, BMFace *f, int numCol, int numTex){
+static void DMcorners_to_loops(BMMesh *bm, CustomData *facedata, int index, BMFace *f, int numCol, int numTex)
+{
 	int i, j;
 	BMLoop *l;
 	MTFace *texface;
@@ -127,7 +130,8 @@ static void DMcorners_to_loops(BMMesh *bm, CustomData *facedata, int index, BMFa
  *
 */
 
-static void loops_to_DMcorners(BMMesh *bm, CustomData *facedata, int index, BMFace *f,int numCol, int numTex){
+static void loops_to_DMcorners(BMMesh *bm, CustomData *facedata, int index, BMFace *f,int numCol, int numTex)
+{
 	int i, j;
 	BMLoop *l;
 	MTFace *texface;
@@ -476,3 +480,5 @@ DerivedMesh *bmesh_to_derivedmesh(BMMesh *bm, DerivedMesh *dm)
 	BLI_edgehash_free(edge_hash, NULL);
 	return result;
 }
+
+#endif

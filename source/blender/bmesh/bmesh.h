@@ -254,7 +254,7 @@ int BM_Dissolve_Vert ( BMesh *bm, BMVert *v );
   the face bounds.  Note that this uses a best-axis projection
   test, instead of projecting co directly into f's orientation
   space, so there might be accuracy issues.*/
-int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3]);
+int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3]);
 
 /*Interpolation*/
 

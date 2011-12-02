@@ -82,57 +82,57 @@ NOTE: beauty has been renamed to flag!
 */
 
 #if 0 //misc. code, maps a parametric coordinate to a fractal line
-float lastrnd[3], vec2[3] = {0.0f, 0.0f, 0.0f};
-int seed = BLI_rand();
-int d, i, j, dp, lvl, wid;
-float df;
+	float lastrnd[3], vec2[3] = {0.0f, 0.0f, 0.0f};
+	int seed = BLI_rand();
+	int d, i, j, dp, lvl, wid;
+	float df;
 
-BLI_srandom(seed);
+	BLI_srandom(seed);
 
-wid = (params->numcuts+2);
-dp = perc*wid;
-wid /= 2;
-d = lvl = 0;
-while (1) {
-	if (d > dp) {
-		d -= wid;
-	} else if (d < dp) {
-		d += wid;
-	} else {
-		break;
-	}
-	
-	
-	wid = MAX2((wid/2), 1);
-	lvl++;
-}
-
-zero_v3(vec1);
-df = 1.0f;
-for (i=0; i<lvl; i++, df /= 4.0f) {
-	int tot = (1<<i);
-	
-	lastrnd[0] = BLI_drand()-0.5f;
-	lastrnd[1] = BLI_drand()-0.5f;
-	lastrnd[2] = BLI_drand()-0.5f;
-	for (j=0; j<tot; j++) {
-		float a, b, rnd[3], rnd2[3];
-		
-		rnd[0] = BLI_drand()-0.5f;
-		rnd[1] = BLI_drand()-0.5f;
-		rnd[2] = BLI_drand()-0.5f;
-		
-		a = (float)j*(float)((float)params->numcuts/(float)tot);
-		b = (float)(j+1)*(float)((float)params->numcuts/(float)tot);
-		if (d >= a && d <= b) {
-			interp_v3_v3v3(rnd2, lastrnd, rnd, (((float)d)-a)/(b-a));
-			mul_v3_fl(rnd2, df);
-			add_v3_v3(vec1, rnd2);
+	wid = (params->numcuts+2);
+	dp = perc*wid;
+	wid /= 2;
+	d = lvl = 0;
+	while (1) {
+		if (d > dp) {
+			d -= wid;
+		} else if (d < dp) {
+			d += wid;
+		} else {
+			break;
 		}
-		
-		copy_v3_v3(lastrnd, rnd);
+
+
+		wid = MAX2((wid/2), 1);
+		lvl++;
 	}
-}
+
+	zero_v3(vec1);
+	df = 1.0f;
+	for (i=0; i<lvl; i++, df /= 4.0f) {
+		int tot = (1<<i);
+
+		lastrnd[0] = BLI_drand()-0.5f;
+		lastrnd[1] = BLI_drand()-0.5f;
+		lastrnd[2] = BLI_drand()-0.5f;
+		for (j=0; j<tot; j++) {
+			float a, b, rnd[3], rnd2[3];
+
+			rnd[0] = BLI_drand()-0.5f;
+			rnd[1] = BLI_drand()-0.5f;
+			rnd[2] = BLI_drand()-0.5f;
+
+			a = (float)j*(float)((float)params->numcuts/(float)tot);
+			b = (float)(j+1)*(float)((float)params->numcuts/(float)tot);
+			if (d >= a && d <= b) {
+				interp_v3_v3v3(rnd2, lastrnd, rnd, (((float)d)-a)/(b-a));
+				mul_v3_fl(rnd2, df);
+				add_v3_v3(vec1, rnd2);
+			}
+
+			copy_v3_v3(lastrnd, rnd);
+		}
+	}
 #endif
 /*connects face with smallest len, which I think should always be correct for
   edge subdivision*/

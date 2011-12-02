@@ -697,7 +697,8 @@ BMEdge *bmesh_disk_nextedge(BMEdge *e, BMVert *v)
  *  Returns -
  *	Pointer to bmesh_CycleNode.
  */
-BMNode *bmesh_disk_getpointer(BMEdge *e, BMVert *v){
+BMNode *bmesh_disk_getpointer(BMEdge *e, BMVert *v)
+{
 	/*returns pointer to the cycle node for the appropriate vertex in this disk*/
 	if(e->v1 == v) return &(e->d1);
 	else if (e->v2 == v) return &(e->d2);
@@ -849,7 +850,8 @@ int bmesh_disk_hasedge(BMVert *v, BMEdge *e)
 	return 0;
 }
 
-BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2){
+BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2)
+{
 	BMNode *diskbase;
 	BMEdge *curedge;
 	int i, len=0;
@@ -867,7 +869,8 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2){
 }
 
 /*end disk cycle routines*/
-BMLoop *bmesh_radial_nextloop(BMLoop *l){
+BMLoop *bmesh_radial_nextloop(BMLoop *l)
+{
 	return l->radial_next;
 }
 

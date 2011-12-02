@@ -1,3 +1,5 @@
+#if 0
+
 /*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -7203,3 +7205,5 @@ void mesh_mirror_colors(void)
 		BIF_undo_push("Mirror Color face");
 	}
 }
+
+#endif

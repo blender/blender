@@ -1,3 +1,5 @@
+#if
+
 /*
  * BME_WELD.C
  *
@@ -49,7 +51,8 @@ static int vergface(const void *v1, const void *v2)
 
 /*break this into two functions.... 'find doubles' and 'remove doubles'?*/
 
-static void BME_remove_doubles__splitface(BME_Mesh *bm,BMFace *f,GHash *vhash){
+static void BME_remove_doubles__splitface(BME_Mesh *bm,BMFace *f,GHash *vhash)
+{
 	BMVert *doub=NULL, *target=NULL;
 	BME_Loop *l;
 	BMFace *f2=NULL;
@@ -263,7 +266,8 @@ int BME_remove_doubles(BME_Mesh *bm, float limit)
 	return a;
 }
 
-static void BME_MeshWalk__collapsefunc(void *userData, BMEdge *applyedge){
+static void BME_MeshWalk__collapsefunc(void *userData, BMEdge *applyedge)
+{
 	int index;
 	GHash *collected = userData;
 	index = BLI_ghash_size(collected);
@@ -276,7 +280,8 @@ static void BME_MeshWalk__collapsefunc(void *userData, BMEdge *applyedge){
 	}
 }
 
-void BME_collapse_edges(BME_Mesh *bm){
+void BME_collapse_edges(BME_Mesh *bm)
+{
 
 	BMVert *v, *cvert;
 	GHash *collected;
@@ -331,3 +336,5 @@ void BME_collapse_edges(BME_Mesh *bm){
 	}
 	BME_selectmode_flush(bm);
 }
+
+#endif

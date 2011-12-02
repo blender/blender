@@ -131,7 +131,8 @@ BMVert *bmesh_mv(BMesh *bm, float *vec)
  *	A BMEdge pointer.
  */
 
-BMEdge *bmesh_me(BMesh *bm, BMVert *v1, BMVert *v2){
+BMEdge *bmesh_me(BMesh *bm, BMVert *v1, BMVert *v2)
+{
 	BMEdge *e=NULL;
 	BMNode *d1=NULL, *d2=NULL;
 	int valance1=0, valance2=0, edok;
@@ -461,7 +462,8 @@ int bmesh_kf(BMesh *bm, BMFace *bply)
  *
 */
 
-BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
+BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
+{
 	BMVert *nv, *ov;
 	BMNode *diskbase;
 	BMEdge *ne;
@@ -633,7 +635,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
  *	Returns -
  *  A BMFace pointer
  */
-BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **rl){
+BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **rl)
+{
 
 	BMFace *f2;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *curloop, *f1loop=NULL, *f2loop=NULL;

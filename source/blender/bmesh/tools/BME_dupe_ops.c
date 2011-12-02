@@ -1,3 +1,5 @@
+#if 0
+
 /*
  *  BME_DUPLICATE.C
  *
@@ -316,3 +318,5 @@ void splitop_exec(BMMesh *bm, BMOperator *op)
 	BMO_Finish_Op(&dupeop);
 	BMO_Finish_Op(&delop);
 }
+
+#endif

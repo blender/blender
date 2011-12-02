@@ -400,7 +400,8 @@ static void tag_wire_edges(EditMesh *em)
  *
 */
 
-BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
+BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op)
+{
 	BMVert *v;
 	EditVert *eve;
 	EditEdge *eed;

@@ -1,3 +1,5 @@
+#if 0
+
 /*
  *  BME_DUPLICATE.C
  *
@@ -305,3 +307,4 @@ void bmesh_split_mesh(BMMesh *bm, int flag)
 	bmesh_end_edit(bm);	
 }
 
+#endif

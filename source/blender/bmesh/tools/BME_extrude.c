@@ -1,3 +1,5 @@
+#if 0
+
 /**
  *          BMESH EXTRUDE TOOL
  *
@@ -216,3 +218,4 @@ void BME_extrude_mesh(BME_Mesh *bm, int type)
 	BME_selectmode_flush(bm);
 }
 
+#endif
