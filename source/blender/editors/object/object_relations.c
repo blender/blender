@@ -340,7 +340,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
 
-		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name);
+		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name+2);
 
 		rename_id(&newob->id, name);
 		
