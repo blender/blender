@@ -339,64 +339,33 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "noise_texture")) {
 			snode = new NoiseTextureNode();
 		}
-		else if(string_iequals(node.name(), "blend_texture")) {
-			BlendTextureNode *blend = new BlendTextureNode();
-			xml_read_enum(&blend->progression, BlendTextureNode::progression_enum, node, "progression");
-			xml_read_enum(&blend->axis, BlendTextureNode::axis_enum, node, "axis");
+		else if(string_iequals(node.name(), "gradient_texture")) {
+			GradientTextureNode *blend = new GradientTextureNode();
+			xml_read_enum(&blend->type, GradientTextureNode::type_enum, node, "type");
 			snode = blend;
-		}
-		else if(string_iequals(node.name(), "clouds_texture")) {
-			CloudsTextureNode *clouds = new CloudsTextureNode();
-			xml_read_bool(&clouds->hard, node, "hard");
-			xml_read_int(&clouds->depth, node, "depth");
-			xml_read_enum(&clouds->basis, CloudsTextureNode::basis_enum, node, "basis");
-			snode = clouds;
 		}
 		else if(string_iequals(node.name(), "voronoi_texture")) {
 			VoronoiTextureNode *voronoi = new VoronoiTextureNode();
-			xml_read_enum(&voronoi->distance_metric, VoronoiTextureNode::distance_metric_enum, node, "distance_metric");
 			xml_read_enum(&voronoi->coloring, VoronoiTextureNode::coloring_enum, node, "coloring");
 			snode = voronoi;
 		}
 		else if(string_iequals(node.name(), "musgrave_texture")) {
 			MusgraveTextureNode *musgrave = new MusgraveTextureNode();
 			xml_read_enum(&musgrave->type, MusgraveTextureNode::type_enum, node, "type");
-			xml_read_enum(&musgrave->basis, MusgraveTextureNode::basis_enum, node, "basis");
 			snode = musgrave;
-		}
-		else if(string_iequals(node.name(), "marble_texture")) {
-			MarbleTextureNode *marble = new MarbleTextureNode();
-			xml_read_enum(&marble->type, MarbleTextureNode::type_enum, node, "type");
-			xml_read_enum(&marble->wave, MarbleTextureNode::wave_enum, node, "wave");
-			xml_read_enum(&marble->basis, MarbleTextureNode::basis_enum, node, "basis");
-			xml_read_bool(&marble->hard, node, "hard");
-			xml_read_int(&marble->depth, node, "depth");
-			snode = marble;
 		}
 		else if(string_iequals(node.name(), "magic_texture")) {
 			MagicTextureNode *magic = new MagicTextureNode();
 			xml_read_int(&magic->depth, node, "depth");
 			snode = magic;
 		}
-		else if(string_iequals(node.name(), "stucci_texture")) {
-			StucciTextureNode *stucci = new StucciTextureNode();
-			xml_read_enum(&stucci->type, StucciTextureNode::type_enum, node, "type");
-			xml_read_enum(&stucci->basis, StucciTextureNode::basis_enum, node, "basis");
-			xml_read_bool(&stucci->hard, node, "hard");
-			snode = stucci;
-		}
-		else if(string_iequals(node.name(), "distorted_noise_texture")) {
-			DistortedNoiseTextureNode *dist = new DistortedNoiseTextureNode();
-			xml_read_enum(&dist->basis, DistortedNoiseTextureNode::basis_enum, node, "basis");
-			xml_read_enum(&dist->distortion_basis, DistortedNoiseTextureNode::basis_enum, node, "distortion_basis");
+		else if(string_iequals(node.name(), "noise_texture")) {
+			NoiseTextureNode *dist = new NoiseTextureNode();
 			snode = dist;
 		}
-		else if(string_iequals(node.name(), "wood_texture")) {
-			WoodTextureNode *wood = new WoodTextureNode();
-			xml_read_enum(&wood->type, WoodTextureNode::type_enum, node, "type");
-			xml_read_enum(&wood->wave, WoodTextureNode::wave_enum, node, "wave");
-			xml_read_enum(&wood->basis, WoodTextureNode::basis_enum, node, "basis");
-			xml_read_bool(&wood->hard, node, "hard");
+		else if(string_iequals(node.name(), "wave_texture")) {
+			WaveTextureNode *wood = new WaveTextureNode();
+			xml_read_enum(&wood->type, WaveTextureNode::type_enum, node, "type");
 			snode = wood;
 		}
 		else if(string_iequals(node.name(), "mapping")) {

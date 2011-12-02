@@ -46,13 +46,14 @@ if env['WITH_BF_RAYOPTIMIZATION']:
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         optim_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
     else:
-        optim_cxxflags.append('-ffast-math -msse -msse2 -msse3'.split())
+        optim_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mfpmath=sse'.split())
     
-    optim_defs = defs + ['WITH_OPTIMIZED_KERNEL']
+    defs.append('WITH_OPTIMIZED_KERNEL')
+    optim_defs = defs[:]
     optim_sources = [path.join('kernel', 'kernel_optimized.cpp')]
 
     cycles_optim = cycles.Clone()
-    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[0], compileflags=[None], cxx_compileflags=optim_cxxflags)
+    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[10], compileflags=[None], cxx_compileflags=optim_cxxflags)
 
 cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], compileflags=[None], cxx_compileflags=cxxflags)
 
