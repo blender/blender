@@ -108,7 +108,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_axis);
 	
 	WM_operatortype_append(MESH_OT_uvs_rotate);
+	WM_operatortype_append(MESH_OT_uvs_reverse);
 	WM_operatortype_append(MESH_OT_colors_rotate);
+	WM_operatortype_append(MESH_OT_colors_reverse);
 	
 	WM_operatortype_append(MESH_OT_fill);
 	WM_operatortype_append(MESH_OT_beautify_fill);

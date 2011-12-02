@@ -1684,9 +1684,9 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.separator()
 
         layout.operator_menu_enum("mesh.uvs_rotate", "direction")
-        layout.operator_menu_enum("mesh.uvs_mirror", "axis")
+        layout.operator("mesh.uvs_reverse")
         layout.operator_menu_enum("mesh.colors_rotate", "direction")
-        layout.operator_menu_enum("mesh.colors_mirror", "axis")
+        layout.operator("mesh.colors_reverse")
 
 
 class VIEW3D_MT_edit_mesh_normals(Menu):
