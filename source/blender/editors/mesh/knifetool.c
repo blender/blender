@@ -770,8 +770,18 @@ static int UNUSED_FUNCTION(point_on_line)(float p[3], float v1[3], float v2[3])
 	return 0;
 }
 
-static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float v1[3], 
-                              float v2[3], float v3[3], SmallHash *ehash, bglMats *mats, int *count)
+static float len_v3_tri_side_max(const float v1[3], const float v2[3], const float v3[3])
+{
+	const float s1= len_v3v3(v1, v2);
+	const float s2= len_v3v3(v2, v3);
+	const float s3= len_v3v3(v3, v1);
+
+	return MAX3(s1, s2, s3);
+}
+
+static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
+                                       const float v1[3],  const float v2[3], const float v3[3],
+                                       SmallHash *ehash, bglMats *mats, int *count)
 {
 	BVHTree *tree2 = BLI_bvhtree_new(3, FLT_EPSILON*4, 8, 8), *tree = BMBVH_BVHTree(bmtree);
 	BMEdgeHit *edges = NULL;
@@ -781,11 +791,12 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	float cos[9], uv[3], lambda;
 	unsigned int tot=0;
 	int i, j;
-
-	/* for comparing distances, error of intersection depends on triangle scale */
-	const float depsilon_squared= 50 * FLT_EPSILON * maxf(maxf(len_squared_v3v3(v1, v2), len_squared_v3v3(v1, v3)), len_squared_v3v3(v2, v3));
-	/* const float depsilon= sqrtf(depsilon_squared); */ /* UNUSED */
 	
+	/* for comparing distances, error of intersection depends on triangle scale.
+	 * need to scale down before squaring for accurate comparison */
+	const float depsilon= 50*FLT_EPSILON * len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon_squared = depsilon * depsilon;
+
 	copy_v3_v3(cos, v1);
 	copy_v3_v3(cos+3, v2);
 	copy_v3_v3(cos+6, v3);
