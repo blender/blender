@@ -564,6 +564,16 @@ typedef struct DMVertexAttribs {
 	int tottface, totmcol, tottang, totorco;
 } DMVertexAttribs;
 
+/* should be local, bmesh replaces this */
+typedef struct {
+	DerivedMesh dm;
+
+	struct EditMesh *em;
+	float (*vertexCos)[3];
+	float (*vertexNos)[3];
+	float (*faceNos)[3];
+} EditMeshDerivedMesh;
+
 void DM_vertex_attributes_from_gpu(DerivedMesh *dm,
 	struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
 
