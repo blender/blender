@@ -660,12 +660,26 @@ void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
 		EDBM_set_flag_all(em, BM_SELECT);
 }
 
-static int toggle_select_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int mesh_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	EDBM_toggle_select_all(em);
+	switch (action) {
+	case SEL_TOGGLE:
+		EDBM_toggle_select_all(em);
+		break;
+	case SEL_SELECT:
+		EDBM_set_flag_all(em, BM_SELECT);
+		break;
+	case SEL_DESELECT:
+		EDBM_clear_flag_all(em, BM_SELECT);
+		break;
+	case SEL_INVERT:
+		EDBM_select_swap(em);
+		break;
+	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 
@@ -680,7 +694,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	ot->description= "(de)select all vertices, edges or faces";
 	
 	/* api callbacks */
-	ot->exec= toggle_select_all_exec;
+	ot->exec= mesh_select_all_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
