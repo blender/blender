@@ -30,8 +30,14 @@ __device void svm_node_separate_rgb(ShaderData *sd, float *stack, uint icolor_of
 {
 	float3 color = stack_load_float3(stack, icolor_offset);
 
-	if (stack_valid(out_offset))
-		stack_store_float(stack, out_offset, color[color_index]); 
+	if (stack_valid(out_offset)) {
+		if (color_index == 0)
+			stack_store_float(stack, out_offset, color.x);
+		else if (color_index == 1)
+			stack_store_float(stack, out_offset, color.y);
+		else
+			stack_store_float(stack, out_offset, color.z);
+	}
 }
 
 CCL_NAMESPACE_END
