@@ -302,12 +302,22 @@ public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
 };
 
+class HSVNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(HSVNode)
+};
+
 class AttributeNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(AttributeNode)
 	void attributes(AttributeRequestSet *attributes);
 
 	ustring attribute;
+};
+
+class CameraNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(CameraNode)
 };
 
 class FresnelNode : public ShaderNode {

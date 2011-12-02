@@ -16,7 +16,7 @@ if(WIN32 AND MSVC)
 	set(CYCLES_OPTIMIZED_KERNEL_FLAGS "/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast -D_CRT_SECURE_NO_WARNINGS /EHsc")
 elseif(CMAKE_COMPILER_IS_GNUCC)
-	set(CYCLES_OPTIMIZED_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3")
+	set(CYCLES_OPTIMIZED_KERNEL_FLAGS "-ffast-math -msse -msse2 -msse3 -mfpmath=sse")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 

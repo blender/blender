@@ -702,7 +702,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	BLI_array_staticdeclare(w,        BM_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(blocks,   BM_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(vblocks,  BM_NGON_STACK_SIZE);
-	int i, xn, yn, zn, ax, ay;
+	int i, ax, ay;
 	
 	BM_Copy_Attributes(bm, bm, source, target->f);
 	
@@ -722,14 +722,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	} while (l != bm_firstfaceloop(source));
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
-	   the 2d projected coords are the same and faster to compute */
-	xn= fabsf(source->no[0]);
-	yn= fabsf(source->no[1]);
-	zn= fabsf(source->no[2]);
-	if (zn >= xn && zn >= yn)       { ax= 0; ay= 1; }
-	else if (yn >= xn && yn >= zn)  { ax= 0; ay= 2; }
-	else                            { ax= 1; ay= 2; }
-	
+	 * the 2d projected coords are the same and faster to compute */
+
+	axis_dominant_v3(&ax, &ay, source->no);
+
 	/* scale source face coordinates a bit, so points sitting directonly on an
 	   edge will work.*/
 	mul_v3_fl(cent, 1.0f/(float)source->len);

@@ -106,7 +106,7 @@ public:
 		data.resize(size/sizeof(T));
 
 		if(!fread(&data[0], size, 1, f)) {
-			fprintf(stderr, "Failed to read vector data from cache (%ld).\n", size);
+			fprintf(stderr, "Failed to read vector data from cache (%lu).\n", (unsigned long)size);
 			return;
 		}
 	}

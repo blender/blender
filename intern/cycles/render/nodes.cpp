@@ -1697,6 +1697,43 @@ void SeparateRGBNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_separate_rgb");
 }
 
+/* Separate RGB */
+HSVNode::HSVNode()
+: ShaderNode("hsv")
+{
+	add_input("Hue", SHADER_SOCKET_FLOAT);
+	add_input("Saturation", SHADER_SOCKET_FLOAT);
+	add_input("Value", SHADER_SOCKET_FLOAT);
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void HSVNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *hue_in = input("Hue");
+	ShaderInput *saturation_in = input("Saturation");
+	ShaderInput *value_in = input("Value");
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(hue_in);
+	compiler.stack_assign(saturation_in);
+	compiler.stack_assign(value_in);
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_HSV, color_in->stack_offset, fac_in->stack_offset, color_out->stack_offset);
+	compiler.add_node(NODE_HSV, hue_in->stack_offset, saturation_in->stack_offset, value_in->stack_offset);
+}
+
+void HSVNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_hsv");
+}
+
 /* Attribute */
 
 AttributeNode::AttributeNode()
@@ -1765,6 +1802,33 @@ void AttributeNode::compile(OSLCompiler& compiler)
 
 	compiler.parameter("name", attribute.c_str());
 	compiler.add(this, "node_attribute");
+}
+
+/* Camera */
+
+CameraNode::CameraNode()
+: ShaderNode("camera")
+{
+	add_output("View Vector",  SHADER_SOCKET_VECTOR);
+	add_output("View Z Depth",  SHADER_SOCKET_FLOAT);
+	add_output("View Distance",  SHADER_SOCKET_FLOAT);
+}
+
+void CameraNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *vector_out = output("View Vector");
+	ShaderOutput *z_depth_out = output("View Z Depth");
+	ShaderOutput *distance_out = output("View Distance");
+
+	compiler.stack_assign(vector_out);
+	compiler.stack_assign(z_depth_out);
+	compiler.stack_assign(distance_out);
+	compiler.add_node(NODE_CAMERA, vector_out->stack_offset, z_depth_out->stack_offset, distance_out->stack_offset);
+}
+
+void CameraNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_camera");
 }
 
 /* Fresnel */

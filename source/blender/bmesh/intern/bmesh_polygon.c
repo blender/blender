@@ -609,7 +609,7 @@ static int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 */
 int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 {
-	int xn, yn, zn, ax, ay;
+	int ax, ay;
 	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
 	BMLoop *l;
 	int crosses = 0;
@@ -619,18 +619,12 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, const float co[3])
 		BM_Face_UpdateNormal(bm, f);
 	
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
-	   the 2d projected coords are the same and faster to compute
-	   
-	   this probably isn't all that accurate, but it has the advantage of
-	   being fast (especially compared to projecting into the face orientation)
-	*/
-	xn= fabsf(f->no[0]);
-	yn= fabsf(f->no[1]);
-	zn= fabsf(f->no[2]);
-
-	if (zn >= xn && zn >= yn)       { ax= 0; ay= 1; }
-	else if (yn >= xn && yn >= zn)  { ax= 0; ay= 2; }
-	else                            { ax= 1; ay= 2; }
+	 * the 2d projected coords are the same and faster to compute
+	 *
+	 * this probably isn't all that accurate, but it has the advantage of
+	 * being fast (especially compared to projecting into the face orientation)
+	 */
+	axis_dominant_v3(&ax, &ay, f->no);
 
 	co2[0] = co[ax];
 	co2[1] = co[ay];

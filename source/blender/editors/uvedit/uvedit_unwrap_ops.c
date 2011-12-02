@@ -1345,7 +1345,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
-	float no[3], cube_size, *loc, dx, dy;
+	float cube_size, *loc, dx, dy;
 	int cox, coy;
 
 	/* add uvs if they don't exist yet */
@@ -1365,18 +1365,9 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 		/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 		if (!BM_TestHFlag(efa, BM_SELECT))
 			continue;
-		
-		VECCOPY(no, efa->no);
 
-		no[0]= fabs(no[0]);
-		no[1]= fabs(no[1]);
-		no[2]= fabs(no[2]);
-		
-		cox=0; coy= 1;
-		if(no[2]>=no[0] && no[2]>=no[1]);
-		else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
-		else { cox= 1; coy= 2; }
-		
+		axis_dominant_v3(&cox, &coy, efa->no);
+
 		dx = dy = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);

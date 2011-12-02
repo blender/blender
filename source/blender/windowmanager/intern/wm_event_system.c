@@ -2667,6 +2667,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			   key we don't want the key modifier */
 			if(event.keymodifier == event.type)
 				event.keymodifier= 0;
+			/* this case happened with an external numpad, it's not really clear
+			   why, but it's also impossible to map a key modifier to an unknwon
+			   key, so it shouldn't harm */
+			if(event.keymodifier == UNKNOWNKEY)
+				event.keymodifier= 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)

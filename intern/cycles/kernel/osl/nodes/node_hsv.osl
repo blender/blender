@@ -16,29 +16,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-CCL_NAMESPACE_BEGIN
+#include "stdosl.h"
+#include "node_color.h"
 
-__device void svm_node_combine_rgb(ShaderData *sd, float *stack, uint in_offset, uint color_index, uint out_offset)
+shader node_hsv(
+	float Hue = 0.5,
+	float Saturation = 1.0,
+	float Value = 1.0,
+	float Fac = 0.5,
+	color ColorIn = color(0.0, 0.0, 0.0),
+	output color ColorOut = color(0.0, 0.0, 0.0))
 {
-	float color = stack_load_float(stack, in_offset);
+	float t = clamp(Fac, 0.0, 1.0);
+	color Color = rgb_to_hsv(ColorIn);
 
-	if (stack_valid(out_offset))
-		stack_store_float(stack, out_offset+color_index, color);
+	Color[0] += Hue - 0.5;
+	Color[0] = fmod(Color[0], 1.0);
+	Color[1] *= Saturation;
+	Color[2] *= Value;
+
+	Color = hsv_to_rgb(Color);
+
+	ColorOut = mix(Color, ColorIn, t);
 }
-
-__device void svm_node_separate_rgb(ShaderData *sd, float *stack, uint icolor_offset, uint color_index, uint out_offset)
-{
-	float3 color = stack_load_float3(stack, icolor_offset);
-
-	if (stack_valid(out_offset)) {
-		if (color_index == 0)
-			stack_store_float(stack, out_offset, color.x);
-		else if (color_index == 1)
-			stack_store_float(stack, out_offset, color.y);
-		else
-			stack_store_float(stack, out_offset, color.z);
-	}
-}
-
-CCL_NAMESPACE_END
 

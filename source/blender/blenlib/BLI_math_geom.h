@@ -265,6 +265,8 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 float form_factor_hemi_poly(float p[3], float n[3],
 	float v1[3], float v2[3], float v3[3], float v4[3]);
 
+void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
+
 #ifdef __cplusplus
 }
 #endif

@@ -507,7 +507,7 @@ void filepath_qt(char *string, RenderData *rd) {
 	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
-		sprintf(txt, "%04d_%04d.mov", (rd->sfra) , (rd->efra) );
+		sprintf(txt, "%04d-%04d.mov", (rd->sfra) , (rd->efra) );
 		strcat(string, txt);
 	}
 }

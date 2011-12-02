@@ -18,26 +18,25 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void svm_node_combine_rgb(ShaderData *sd, float *stack, uint in_offset, uint color_index, uint out_offset)
+__device void svm_node_camera(KernelGlobals *kg, ShaderData *sd, float *stack, uint out_vector, uint out_zdepth, uint out_distance)
 {
-	float color = stack_load_float(stack, in_offset);
+	float distance;
+	float zdepth;
+	float3 vector;
 
-	if (stack_valid(out_offset))
-		stack_store_float(stack, out_offset+color_index, color);
-}
+	Transform tfm = kernel_data.cam.worldtocamera;
+	vector = transform(&tfm, sd->P);
+	zdepth = vector.z;
+	distance = len(vector);
 
-__device void svm_node_separate_rgb(ShaderData *sd, float *stack, uint icolor_offset, uint color_index, uint out_offset)
-{
-	float3 color = stack_load_float3(stack, icolor_offset);
+	if (stack_valid(out_vector))
+		stack_store_float3(stack, out_vector, normalize(vector));
 
-	if (stack_valid(out_offset)) {
-		if (color_index == 0)
-			stack_store_float(stack, out_offset, color.x);
-		else if (color_index == 1)
-			stack_store_float(stack, out_offset, color.y);
-		else
-			stack_store_float(stack, out_offset, color.z);
-	}
+	if (stack_valid(out_zdepth))
+		stack_store_float(stack, out_zdepth, zdepth);
+
+	if (stack_valid(out_distance))
+		stack_store_float(stack, out_distance, distance);
 }
 
 CCL_NAMESPACE_END

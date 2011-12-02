@@ -127,11 +127,9 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 
 	switch(b_node.type()) {
 		/* not supported */
-		case BL::ShaderNode::type_CAMERA: break;
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
-		case BL::ShaderNode::type_HUE_SAT: break;
 		case BL::ShaderNode::type_INVERT: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
@@ -156,6 +154,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = value;
 			break;
 		}
+		case BL::ShaderNode::type_CAMERA: {
+			node = new CameraNode();
+			break;
+		}
 		case BL::ShaderNode::type_MIX_RGB: {
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
@@ -169,6 +171,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 		case BL::ShaderNode::type_COMBRGB: {
 			node = new CombineRGBNode();
+			break;
+		}
+		case BL::ShaderNode::type_HUE_SAT: {
+			node = new HSVNode();
 			break;
 		}
 		case BL::ShaderNode::type_RGBTOBW: {

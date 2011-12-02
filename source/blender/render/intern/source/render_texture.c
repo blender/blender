@@ -3494,17 +3494,11 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
 {
 
-	float detsh, t00, t10, t01, t11, xn, yn, zn;
+	float detsh, t00, t10, t01, t11;
 	int axis1, axis2;
 
 	/* find most stable axis to project */
-	xn= fabs(normal[0]);
-	yn= fabs(normal[1]);
-	zn= fabs(normal[2]);
-
-	if(zn>=xn && zn>=yn) { axis1= 0; axis2= 1; }
-	else if(yn>=xn && yn>=zn) { axis1= 0; axis2= 2; }
-	else { axis1= 1; axis2= 2; }
+	axis_dominant_v3(&axis1, &axis2, normal);
 
 	/* compute u,v and derivatives */
 	t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];

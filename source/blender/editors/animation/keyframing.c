@@ -310,10 +310,17 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	beztr.vec[1][1]= y;
 	beztr.vec[2][0]= x+1.0f;
 	beztr.vec[2][1]= y;
-	beztr.ipo= U.ipo_new; /* use default interpolation mode here... */
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
 	beztr.h1= beztr.h2= U.keyhandles_new; /* use default handle type here */
 	//BEZKEYTYPE(&beztr)= scene->keytype; /* default keyframe type */
+
+	/* use default interpolation mode, with exceptions for int/discrete values */
+	beztr.ipo= U.ipo_new;
+
+	if(fcu->flag & FCURVE_DISCRETE_VALUES)
+		beztr.ipo = BEZT_IPO_CONST;
+	else if(beztr.ipo == BEZT_IPO_BEZ && (fcu->flag & FCURVE_INT_VALUES))
+		beztr.ipo = BEZT_IPO_LIN;
 	
 	/* add temp beztriple to keyframes */
 	a= insert_bezt_fcurve(fcu, &beztr, flag);

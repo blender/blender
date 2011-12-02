@@ -133,7 +133,8 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	float *cur, *prev;
 	int a, px=0, py=1;
 
-	/* first: find dominant axis: 0==X, 1==Y, 2==Z */
+	/* first: find dominant axis: 0==X, 1==Y, 2==Z
+	 * don't use 'axis_dominant_v3()' because we need max axis too */
 	x= fabsf(normal[0]);
 	y= fabsf(normal[1]);
 	z= fabsf(normal[2]);
@@ -1689,6 +1690,18 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 
 /****************************** Interpolation ********************************/
 
+/* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
+void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3])
+{
+	const float xn= fabsf(axis[0]);
+	const float yn= fabsf(axis[1]);
+	const float zn= fabsf(axis[2]);
+
+	if      (zn >= xn && zn >= yn) { *axis_a= 0; *axis_b= 1; }
+	else if (yn >= xn && yn >= zn) { *axis_a= 0; *axis_b= 2; }
+	else                           { *axis_a= 1; *axis_b= 2; }
+}
+
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
 {
 	return 0.5f*((v1[i]-v2[i])*(v2[j]-v3[j]) + (v1[j]-v2[j])*(v3[i]-v2[i]));
@@ -1696,17 +1709,10 @@ static float tri_signed_area(const float v1[3], const float v2[3], const float v
 
 static int barycentric_weights(const float v1[3], const float v2[3], const float v3[3], const float co[3], const float n[3], float w[3])
 {
-	float xn, yn, zn, a1, a2, a3, asum;
-	short i, j;
+	float a1, a2, a3, asum;
+	int i, j;
 
-	/* find best projection of face XY, XZ or YZ: barycentric weights of
-	   the 2d projected coords are the same and faster to compute */
-	xn= fabsf(n[0]);
-	yn= fabsf(n[1]);
-	zn= fabsf(n[2]);
-	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
-	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
-	else {i= 1; j= 2;} 
+	axis_dominant_v3(&i, &j, n);
 
 	a1= tri_signed_area(v2, v3, co, i, j);
 	a2= tri_signed_area(v3, v1, co, i, j);
