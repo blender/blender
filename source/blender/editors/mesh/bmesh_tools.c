@@ -2005,7 +2005,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CCW, "Direction", "Direction to rotate edge around");
 }
 
 void MESH_OT_colors_reverse(wmOperatorType *ot)
