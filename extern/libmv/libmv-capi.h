@@ -50,8 +50,8 @@ void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 
 /* SAD Tracker */
 void libmv_SADSamplePattern(unsigned char *image, int stride,
-			float warp[3][2], unsigned char *pattern);
-float libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *warped, unsigned char *image,
+			float warp[3][2], unsigned char *pattern, int pattern_size);
+float libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *warped, int pattern_size, unsigned char *image,
 			int stride, int width, int height, float warp[3][2]);
 
 /* Tracks */

@@ -233,7 +233,7 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 
 static int bpy_prop_callback_check(PyObject *py_func, int argcount)
 {
-	if (py_func) {
+	if (py_func && py_func != Py_None) {
 		if (!PyFunction_Check(py_func)) {
 			PyErr_Format(PyExc_TypeError,
 			             "update keyword: expected a function type, not a %.200s",

@@ -20,13 +20,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/generic/noise_py_api.h
- *  \ingroup pygen
+/** \file blender/python/mathutils/mathutils_noise.h
+ *  \ingroup mathutils
  */
 
-#ifndef NOISE_PY_API_H
-#define NOISE_PY_API_H
+#ifndef MATHUTILS_NOISE_H
+#define MATHUTILS_NOISE_H
 
-PyObject *BPyInit_noise(void);
+#include "mathutils.h"
 
-#endif // NOISE_PY_API_H
+PyMODINIT_FUNC PyInit_mathutils_noise(void);
+PyMODINIT_FUNC PyInit_mathutils_noise_types(void);
+PyMODINIT_FUNC PyInit_mathutils_noise_metrics(void);
+
+#endif // MATHUTILS_NOISE_H

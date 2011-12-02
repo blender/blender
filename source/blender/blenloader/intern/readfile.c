@@ -11967,7 +11967,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
 	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 3)) {
 		Object *ob;
 
@@ -11984,8 +11983,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}		
 	}
 
-	/* put compatibility code here until next subversion bump */
-	
 	if (main->versionfile < 256) {
 		bScreen *sc;
 		ScrArea *sa;
@@ -12430,34 +12427,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					sce->gm.recastData.detailsamplemaxerror = 1.0f;
 			}
 		}
-
-		{
-			/* flip normals */
-			Material *ma= main->mat.first;
-			while(ma) {
-				int a;
-				for(a= 0; a<MAX_MTEX; a++) {
-					MTex *mtex= ma->mtex[a];
-
-					if(mtex) {
-						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
-							if((mtex->mapto&MAP_DISPLACE)==0) {
-								if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
-									Tex *tex= newlibadr(fd, lib, mtex->tex);
-
-									if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
-										mtex->norfac= -mtex->norfac;
-										mtex->texflag|= MTEX_BUMP_FLIPPED;
-									}
-								}
-							}
-						}
-					}
-				}
-
-				ma= ma->id.next;
-			}
-		}
 	}
 
 	if (main->versionfile < 260){
@@ -12604,15 +12573,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 6))
 	{
 		Scene *sce;
 		MovieClip *clip;
+		bScreen *sc;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
-			if (sce->r.im_format.depth == 0) {
-				do_versions_image_settings_2_60(sce);
-			}
+			do_versions_image_settings_2_60(sce);
 		}
 
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
@@ -12626,6 +12594,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				settings->default_search_size= 51;
 			}
 		}
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						v3d->flag2&= ~V3D_RENDER_SHADOW;
+					}
+				}
+			}
+		}
+
+		{
+			Object *ob;
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				/* convert delta addition into delta scale */
+				int i;
+				for (i= 0; i < 3; i++) {
+					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
+					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
+					{
+						ob->dsize[i]= 1.0f;
+					}
+					else {
+						ob->size[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+					}
+				}
+			}
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
+		/* nothing! */
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

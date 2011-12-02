@@ -2296,10 +2296,16 @@ class VIEW3D_PT_background_image(Panel):
             row.prop(bg, "show_expanded", text="", emboss=False)
             if bg.source == 'IMAGE' and bg.image:
                 row.prop(bg.image, "name", text="", emboss=False)
-            elif bg.source == 'MOVIE' and bg.clip:
+            elif bg.source == 'MOVIE_CLIP' and bg.clip:
                 row.prop(bg.clip, "name", text="", emboss=False)
             else:
                 row.label(text="Not Set")
+
+            if bg.show_background_image:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_ON')
+
             row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
 
             box.prop(bg, "view_axis", text="Axis")
@@ -2316,7 +2322,7 @@ class VIEW3D_PT_background_image(Panel):
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
 
-                elif bg.source == 'MOVIE':
+                elif bg.source == 'MOVIE_CLIP':
                     box.prop(bg, 'use_camera_clip')
 
                     column = box.column()

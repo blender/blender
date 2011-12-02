@@ -158,17 +158,17 @@ void make_local_armature(bArmature *arm)
 		id_clear_lib_data(bmain, &arm->id);
 	}
 	else if(is_local && is_lib) {
-		bArmature *armn= copy_armature(arm);
-		armn->id.us= 0;
+		bArmature *arm_new= copy_armature(arm);
+		arm_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &armn->id);
+		BKE_id_lib_local_paths(bmain, arm->id.lib, &arm_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == arm) {
 				if(ob->id.lib==NULL) {
-					ob->data= armn;
-					armn->id.us++;
+					ob->data= arm_new;
+					arm_new->id.us++;
 					arm->id.us--;
 				}
 			}

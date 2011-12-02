@@ -413,7 +413,7 @@ static StructRNA *rna_Property_refine(PointerRNA *ptr)
 	rna_idproperty_check(&prop, ptr); /* XXX ptr? */
 
 	switch(prop->type) {
-		case PROP_BOOLEAN: return &RNA_BooleanProperty;
+		case PROP_BOOLEAN: return &RNA_BoolProperty;
 		case PROP_INT: return &RNA_IntProperty;
 		case PROP_FLOAT: return &RNA_FloatProperty;
 		case PROP_STRING: return &RNA_StringProperty;
@@ -578,7 +578,7 @@ static int rna_BoolProperty_default_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return ((BooleanPropertyRNA*)prop)->defaultvalue;
+	return ((BoolPropertyRNA*)prop)->defaultvalue;
 }
 
 static int rna_IntProperty_default_get(PointerRNA *ptr)
@@ -615,7 +615,7 @@ static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 static void rna_BoolProperty_default_array_get(PointerRNA *ptr, int *values)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	BooleanPropertyRNA *nprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *nprop= (BoolPropertyRNA*)prop;
 	rna_idproperty_check(&prop, ptr);
 
 	if(nprop->defaultarray) {
@@ -1355,8 +1355,8 @@ void RNA_def_rna(BlenderRNA *brna)
 	/* Property */
 	rna_def_property(brna);
 
-	/* BooleanProperty */
-	srna= RNA_def_struct(brna, "BooleanProperty", "Property");
+	/* BoolProperty */
+	srna= RNA_def_struct(brna, "BoolProperty", "Property");
 	RNA_def_struct_ui_text(srna, "Boolean Definition", "RNA boolean property definition");
 	rna_def_number_property(srna, PROP_BOOLEAN);
 

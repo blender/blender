@@ -218,8 +218,11 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.dot(other), invalid 'other' arg") == -1)
+	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value,
+	                          "Quaternion.dot(other), invalid 'other' arg") == -1)
+	{
 		return NULL;
+	}
 
 	return PyFloat_FromDouble(dot_qtqt(self->quat, tquat));
 }
@@ -241,8 +244,11 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.difference(other), invalid 'other' arg") == -1)
+	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value,
+	                          "Quaternion.difference(other), invalid 'other' arg") == -1)
+	{
 		return NULL;
+	}
 
 	rotation_between_quats_to_quat(quat, self->quat, tquat);
 
@@ -276,8 +282,11 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.slerp(other), invalid 'other' arg") == -1)
+	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value,
+	                          "Quaternion.slerp(other), invalid 'other' arg") == -1)
+	{
 		return NULL;
+	}
 
 	if (fac > 1.0f || fac < 0.0f) {
 		PyErr_SetString(PyExc_ValueError,
@@ -982,7 +991,7 @@ static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *UNUSED(clos
 
 	quat__axis_angle_sanitize(axis, NULL);
 
-	return (PyObject *) Vector_CreatePyObject(axis, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(axis, 3, Py_NEW, NULL);
 }
 
 static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *UNUSED(closure))
@@ -1054,7 +1063,7 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 	PyObject *ret_dummy= quat_func(ret);
 	if (ret_dummy) {
 		Py_DECREF(ret_dummy);
-		return (PyObject *)ret;
+		return ret;
 	}
 	else { /* error */
 		Py_DECREF(ret);

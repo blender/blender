@@ -33,6 +33,15 @@ CCL_NAMESPACE_BEGIN
 #define BVH_NODE_SIZE 4
 #define TRI_NODE_SIZE 3
 
+/* silly workaround for float extended precision that happens when compiling
+   without sse support on x86, it results in different results for float ops
+   that you would otherwise expect to compare correctly */
+#if !defined(__i386__) || defined(__SSE__)
+#define NO_EXTENDED_PRECISION
+#else
+#define NO_EXTENDED_PRECISION volatile
+#endif
+
 __device_inline float3 bvh_inverse_direction(float3 dir)
 {
 	/* avoid divide by zero (ooeps = exp2f(-80.0f)) */
@@ -94,17 +103,17 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	float c0hiy = n0xy.w * idir.y - ood.y;
 	float c0loz = nz.x * idir.z - ood.z;
 	float c0hiz = nz.y * idir.z - ood.z;
+	NO_EXTENDED_PRECISION float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
+	NO_EXTENDED_PRECISION float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
+
 	float c1loz = nz.z * idir.z - ood.z;
 	float c1hiz = nz.w * idir.z - ood.z;
-
-	float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
-	float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
 	float c1lox = n1xy.x * idir.x - ood.x;
 	float c1hix = n1xy.y * idir.x - ood.x;
 	float c1loy = n1xy.z * idir.y - ood.y;
 	float c1hiy = n1xy.w * idir.y - ood.y;
-	float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
-	float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
+	NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
+	NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
 	/* decide which nodes to traverse next */
 #ifdef __VISIBILITY_FLAG__

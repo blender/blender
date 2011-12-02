@@ -128,18 +128,15 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 	switch(b_node.type()) {
 		/* not supported */
 		case BL::ShaderNode::type_CAMERA: break;
-		case BL::ShaderNode::type_COMBRGB: break;
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
-		case BL::ShaderNode::type_HUE_SAT: break;
 		case BL::ShaderNode::type_INVERT: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
 		case BL::ShaderNode::type_NORMAL: break;
 		case BL::ShaderNode::type_OUTPUT: break;
 		case BL::ShaderNode::type_SCRIPT: break;
-		case BL::ShaderNode::type_SEPRGB: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
 		case BL::ShaderNode::type_TEXTURE: break;
 		case BL::ShaderNode::type_VALTORGB: break;
@@ -163,6 +160,18 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			MixNode *mix = new MixNode();
 			mix->type = MixNode::type_enum[b_mix_node.blend_type()];
 			node = mix;
+			break;
+		}
+		case BL::ShaderNode::type_SEPRGB: {
+			node = new SeparateRGBNode();
+			break;
+		}
+		case BL::ShaderNode::type_COMBRGB: {
+			node = new CombineRGBNode();
+			break;
+		}
+		case BL::ShaderNode::type_HUE_SAT: {
+			node = new HSVNode();
 			break;
 		}
 		case BL::ShaderNode::type_RGBTOBW: {

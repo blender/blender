@@ -354,7 +354,7 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # custom properties
     def doCustomProps(ksi, ks, bone):
 
-        prop_type_compat = {bpy.types.BooleanProperty,
+        prop_type_compat = {bpy.types.BoolProperty,
                             bpy.types.IntProperty,
                             bpy.types.FloatProperty}
 

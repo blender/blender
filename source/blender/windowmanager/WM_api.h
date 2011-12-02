@@ -316,6 +316,8 @@ void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
+int			WM_jobs_has_running(struct wmWindowManager *wm);
+
 			/* clipboard */
 char		*WM_clipboard_text_get(int selection);
 void		WM_clipboard_text_set(char *buf, int selection);

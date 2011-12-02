@@ -3643,20 +3643,20 @@ void make_local_particlesettings(ParticleSettings *part)
 		expand_local_particlesettings(part);
 	}
 	else if(is_local && is_lib) {
-		ParticleSettings *partn= psys_copy_settings(part);
+		ParticleSettings *part_new= psys_copy_settings(part);
 
-		partn->id.us= 0;
+		part_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &partn->id);
+		BKE_id_lib_local_paths(bmain, part->id.lib, &part_new->id);
 
 		/* do objects */
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			ParticleSystem *psys;
 			for(psys= ob->particlesystem.first; psys; psys=psys->next){
 				if(psys->part==part && ob->id.lib==0) {
-					psys->part= partn;
-					partn->id.us++;
+					psys->part= part_new;
+					part_new->id.us++;
 					part->id.us--;
 				}
 			}

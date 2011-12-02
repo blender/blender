@@ -88,7 +88,7 @@ SubdFace *SubdMesh::add_face(int *index, int num)
 	/* test non-manifold cases */
 	if(!can_add_face(index, num)) {
 		/* we could try to add face in opposite winding instead .. */
-		fprintf(stderr, "Warning: non manifold mesh, invalid face '%lu'.\n", faces.size());
+		fprintf(stderr, "Warning: non manifold mesh, invalid face '%lu'.\n", (unsigned long)faces.size());
 		return NULL;
 	}
 	

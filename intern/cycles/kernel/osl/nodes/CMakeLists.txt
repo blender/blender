@@ -21,6 +21,7 @@ set(SRC_OSL
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
+	node_hsv.osl
 	node_image_texture.osl
 	node_light_path.osl
 	node_magic_texture.osl
@@ -35,6 +36,7 @@ set(SRC_OSL
 	node_output_displacement.osl
 	node_output_surface.osl
 	node_output_volume.osl
+	node_sepcomb_rgb.osl
 	node_sky_texture.osl
 	node_stucci_texture.osl
 	node_texture_coordinate.osl

@@ -91,6 +91,7 @@ set(SRC
 	intern/displist.c
 	intern/dynamicpaint.c
 	intern/effect.c
+	intern/editderivedmesh.c
 	intern/fcurve.c
 	intern/fluidsim.c
 	intern/fmodifier.c

@@ -39,7 +39,7 @@ extern PyTypeObject color_Type;
 #define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(col)
+	BASE_MATH_MEMBERS(col);
 } ColorObject;
 
 /*struct data contains a pointer to the actual data that the

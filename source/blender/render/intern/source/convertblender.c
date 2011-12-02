@@ -4525,7 +4525,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset, int vectorlay)
+static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -4555,8 +4555,6 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			obr->flag |= R_INSTANCEABLE;
 			copy_m4_m4(obr->obmat, ob->obmat);
 		}
-		if(obr->lay & vectorlay)
-			obr->flag |= R_NEED_VECTORS;
 		init_render_object_data(re, obr, timeoffset);
 
 		/* only add instance for objects that have not been used for dupli */
@@ -4583,8 +4581,6 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 				obr->flag |= R_INSTANCEABLE;
 				copy_m4_m4(obr->obmat, ob->obmat);
 			}
-			if(obr->lay & vectorlay)
-				obr->flag |= R_NEED_VECTORS;
 			if(dob)
 				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
@@ -4604,7 +4600,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset, int vectorlay)
+static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4613,7 +4609,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if(render_object_type(ob->type))
-		add_render_object(re, ob, par, dob, timeoffset, vectorlay);
+		add_render_object(re, ob, par, dob, timeoffset);
 	else {
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 		invert_m4_m4(ob->imat, mat);
@@ -4811,7 +4807,7 @@ static int get_vector_renderlayers(Scene *sce)
 	return lay;
 }
 
-static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int vectorlay, int level)
+static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int level)
 {
 	GroupObject *go;
 	Object *ob;
@@ -4827,11 +4823,11 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI) {
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
 					if(ob->dup_group)
-						add_group_render_dupli_obs(re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, vectorlay, level+1);
+						add_group_render_dupli_obs(re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, level+1);
 				}
 			}
 		}
@@ -4887,7 +4883,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 			 * it still needs to create the ObjectRen containing the data */
 			if(ob->transflag & OB_RENDER_DUPLI) {
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
 			}
@@ -4979,7 +4975,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 						if(obi==NULL)
 							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
+							init_render_object(re, obd, ob, dob, timeoffset);
 						
 						if(dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
@@ -4987,17 +4983,17 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
+						init_render_object(re, obd, ob, dob, timeoffset);
 					
 					if(re->test_break(re->tbh)) break;
 				}
 				free_object_duplilist(lb);
 
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 			}
 			else if(allow_render_object(re, ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+				init_render_object(re, ob, NULL, 0, timeoffset);
 		}
 
 		if(re->test_break(re->tbh)) break;
@@ -5006,7 +5002,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
 	 * since they may not be part of the scene */
 	for(group= re->main->group.first; group; group=group->id.next)
-		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, renderlay, 0);
+		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, 0);
 
 	if(!re->test_break(re->tbh))
 		RE_makeRenderInstances(re);
@@ -5609,6 +5605,8 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 		RE_Database_FromScene(re, bmain, sce, lay, 1);
 	
 	if(!re->test_break(re->tbh)) {
+		int vectorlay= get_vector_renderlayers(re->scene);
+
 		for(step= 0; step<2; step++) {
 			
 			if(step)
@@ -5621,7 +5619,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 				int ok= 1;
 				FluidsimModifierData *fluidmd;
 
-				if(!(obi->obr->flag & R_NEED_VECTORS))
+				if(!(obi->lay & vectorlay))
 					continue;
 
 				obi->totvector= obi->obr->totvert;

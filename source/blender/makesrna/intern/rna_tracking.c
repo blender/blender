@@ -268,7 +268,7 @@ static MovieTrackingMarker *rna_trackingTrack_marker_find_frame(MovieTrackingTra
 
 static EnumPropertyItem tracker_items[] = {
 	{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi tracker which works with most of video clips, a bit slower than SAD"},
-	{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker which can be used when MLT tracker fails"},
+	{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker which can be used when KLT tracker fails"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem pattern_match_items[] = {
@@ -384,7 +384,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "default_frames_limit");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this amount of frames are tracked");
+	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this number of frames are tracked");
 
 	/* pattern match */
 	prop= RNA_def_property(srna, "default_pattern_match", PROP_ENUM, PROP_NONE);
@@ -432,7 +432,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "default_pattern_size");
 	RNA_def_property_range(prop, 5, 1000);
 	RNA_def_property_update(prop, 0, "rna_tracking_defaultSettings_patternUpdate");
-	RNA_def_property_ui_text(prop, "Pattern Size", "Size of pattern area for newly creating tracks");
+	RNA_def_property_ui_text(prop, "Pattern Size", "Size of pattern area for newly created tracks");
 
 	/* default search size */
 	prop= RNA_def_property(srna, "default_search_size", PROP_INT, PROP_NONE);
@@ -440,7 +440,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "default_search_size");
 	RNA_def_property_range(prop, 5, 1000);
 	RNA_def_property_update(prop, 0, "rna_tracking_defaultSettings_searchUpdate");
-	RNA_def_property_ui_text(prop, "Search Size", "Size of search area for newly creating tracks");
+	RNA_def_property_ui_text(prop, "Search Size", "Size of search area for newly created tracks");
 }
 
 static void rna_def_trackingCamera(BlenderRNA *brna)
@@ -607,7 +607,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frames_limit");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this amount of frames are tracked");
+	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this number of frames are tracked");
 
 	/* pattern match */
 	prop= RNA_def_property(srna, "pattern_match", PROP_ENUM, PROP_NONE);
@@ -794,7 +794,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "scale_max", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "maxscale");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Maximal Scale", "Limits the amount of automatic scaling");
+	RNA_def_property_ui_text(prop, "Maximal Scale", "Limit the amount of automatic scaling");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* influence_location */

@@ -40,24 +40,30 @@
 extern char BaseMathObject_Wrapped_doc[];
 extern char BaseMathObject_Owner_doc[];
 
-#define BASE_MATH_MEMBERS(_data) \
-	PyObject_VAR_HEAD \
-	float *_data;				/* array of data (alias), wrapped status depends on wrapped status */ \
-	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */ \
-	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */ \
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */ \
-	unsigned char wrapped;		/* wrapped data type? */ \
+#define BASE_MATH_MEMBERS(_data)                                                                                 \
+	PyObject_VAR_HEAD                                                                                            \
+	float *_data;               /* array of data (alias), wrapped status depends on wrapped status */            \
+	PyObject *cb_user;          /* if this vector references another object, otherwise NULL,                     \
+	                             * *Note* this owns its reference */                                             \
+	unsigned char cb_type;      /* which user funcs do we adhere to, RNA, GameObject, etc */                     \
+	unsigned char cb_subtype;   /* subtype: location, rotation...                                                \
+	                             * to avoid defining many new functions for every attribute of the same type */  \
+	unsigned char wrapped       /* wrapped data type? */                                                         \
 
 typedef struct {
-	BASE_MATH_MEMBERS(data)
+	BASE_MATH_MEMBERS(data);
 } BaseMathObject;
 
+/* types */
 #include "mathutils_Vector.h"
 #include "mathutils_Matrix.h"
 #include "mathutils_Quaternion.h"
 #include "mathutils_Euler.h"
 #include "mathutils_Color.h"
+
+/* utility submodules */
 #include "mathutils_geometry.h"
+#include "mathutils_noise.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
@@ -76,11 +82,11 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 typedef struct Mathutils_Callback Mathutils_Callback;
 
-typedef int (*BaseMathCheckFunc)(BaseMathObject *);							/* checks the user is still valid */
-typedef int (*BaseMathGetFunc)(BaseMathObject *, int);				/* gets the vector from the user */
-typedef int (*BaseMathSetFunc)(BaseMathObject *, int);				/* sets the users vector values once the vector is modified */
-typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);	/* same as above but only for an index */
-typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);	/* same as above but only for an index */
+typedef int (*BaseMathCheckFunc)(BaseMathObject *);               /* checks the user is still valid */
+typedef int (*BaseMathGetFunc)(BaseMathObject *, int);            /* gets the vector from the user */
+typedef int (*BaseMathSetFunc)(BaseMathObject *, int);            /* sets the users vector values once its modified */
+typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, int);  /* same as above but only for an index */
+typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, int);  /* same as above but only for an index */
 
 struct Mathutils_Callback {
 	BaseMathCheckFunc		check;
@@ -98,10 +104,14 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 /* since this is called so often avoid where possible */
-#define BaseMath_ReadCallback(_self) (((_self)->cb_user ?	_BaseMathObject_ReadCallback((BaseMathObject *)_self):0))
-#define BaseMath_WriteCallback(_self) (((_self)->cb_user ?_BaseMathObject_WriteCallback((BaseMathObject *)_self):0))
-#define BaseMath_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index):0))
-#define BaseMath_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index):0))
+#define BaseMath_ReadCallback(_self) \
+	(((_self)->cb_user ?	_BaseMathObject_ReadCallback((BaseMathObject *)_self):0))
+#define BaseMath_WriteCallback(_self) \
+	(((_self)->cb_user ?_BaseMathObject_WriteCallback((BaseMathObject *)_self):0))
+#define BaseMath_ReadIndexCallback(_self, _index) \
+	(((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index):0))
+#define BaseMath_WriteIndexCallback(_self, _index) \
+	(((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index):0))
 
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);

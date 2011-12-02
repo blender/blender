@@ -274,16 +274,16 @@ void make_local_curve(Curve *cu)
 		extern_local_curve(cu);
 	}
 	else if(is_local && is_lib) {
-		Curve *cun= copy_curve(cu);
-		cun->id.us= 0;
+		Curve *cu_new= copy_curve(cu);
+		cu_new->id.us= 0;
 
-		BKE_id_lib_local_paths(bmain, &cun->id);
+		BKE_id_lib_local_paths(bmain, cu->id.lib, &cu_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==cu) {
 				if(ob->id.lib==NULL) {
-					ob->data= cun;
-					cun->id.us++;
+					ob->data= cu_new;
+					cu_new->id.us++;
 					cu->id.us--;
 				}
 			}

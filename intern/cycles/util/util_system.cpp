@@ -142,15 +142,15 @@ bool system_cpu_support_optimized()
 	static bool caps_init = false;
 
 	if(!caps_init) {
-		int result[4], num, num_ex;
+		int result[4], num; //, num_ex;
 
 		memset(&caps, 0, sizeof(caps));
 
 		__cpuid(result, 0);
 		num = result[0];
 
-		__cpuid(result, 0x80000000);
-		num_ex = result[0];
+		/*__cpuid(result, 0x80000000);
+		num_ex = result[0];*/
 
 		if(num >= 1){
 			__cpuid(result, 0x00000001);

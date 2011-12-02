@@ -125,7 +125,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	switch(PyTuple_GET_SIZE(args)) {
 		case 0:
-			return (PyObject *) Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, type);
+			return Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, type);
 		case 1:
 		{
 			PyObject *arg= PyTuple_GET_ITEM(args, 0);
@@ -478,7 +478,9 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		int vec_size= (matSize == 2 ? 2 : 3);
 		float tvec[4];
 
-		if (mathutils_array_parse(tvec, vec_size, vec_size, axis, "Matrix.OrthoProjection(axis, size), invalid 'axis' arg") == -1) {
+		if (mathutils_array_parse(tvec, vec_size, vec_size, axis,
+		                          "Matrix.OrthoProjection(axis, size), invalid 'axis' arg") == -1)
+		{
 			return NULL;
 		}
 
@@ -827,12 +829,12 @@ static PyObject *Matrix_to_4x4(MatrixObject *self)
 		return NULL;
 
 	if (self->col_size==4 && self->row_size==4) {
-		return (PyObject *)Matrix_CreatePyObject(self->contigPtr, 4, 4, Py_NEW, Py_TYPE(self));
+		return Matrix_CreatePyObject(self->contigPtr, 4, 4, Py_NEW, Py_TYPE(self));
 	}
 	else if (self->col_size==3 && self->row_size==3) {
 		float mat[4][4];
 		copy_m4_m3(mat, (float (*)[3])self->contigPtr);
-		return (PyObject *)Matrix_CreatePyObject((float *)mat, 4, 4, Py_NEW, Py_TYPE(self));
+		return Matrix_CreatePyObject((float *)mat, 4, 4, Py_NEW, Py_TYPE(self));
 	}
 	/* TODO, 2x2 matrix */
 
@@ -1133,7 +1135,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 		return NULL;
 	}
 
-	return (PyObject*)Matrix_CreatePyObject(mat, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
+	return Matrix_CreatePyObject(mat, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
 }
 
 /*---------------------------matrix.determinant() ----------------*/
@@ -1286,7 +1288,7 @@ static PyObject *Matrix_copy(MatrixObject *self)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	return (PyObject*)Matrix_CreatePyObject((float (*))self->contigPtr, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
+	return Matrix_CreatePyObject((float (*))self->contigPtr, self->row_size, self->col_size, Py_NEW, Py_TYPE(self));
 }
 
 /*----------------------------print object (internal)-------------*/
@@ -1470,7 +1472,9 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 			/*parse each sub sequence*/
 			PyObject *item= PySequence_Fast_GET_ITEM(value_fast, i);
 
-			if (mathutils_array_parse(&mat[i * self->col_size], self->col_size, self->col_size, item, "matrix[begin:end] = value assignment") < 0) {
+			if (mathutils_array_parse(&mat[i * self->col_size], self->col_size, self->col_size, item,
+			                          "matrix[begin:end] = value assignment") < 0)
+			{
 				return -1;
 			}
 		}
@@ -1956,7 +1960,9 @@ self->matrix[1][1] = self->contigPtr[4] */
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Matrix_CreatePyObject(float *mat, const unsigned short rowSize, const unsigned short colSize, int type, PyTypeObject *base_type)
+PyObject *Matrix_CreatePyObject(float *mat,
+                                const unsigned short rowSize, const unsigned short colSize,
+                                int type, PyTypeObject *base_type)
 {
 	MatrixObject *self;
 	int x, row, col;

@@ -108,18 +108,18 @@ void make_local_camera(Camera *cam)
 		id_clear_lib_data(bmain, &cam->id);
 	}
 	else if(is_local && is_lib) {
-		Camera *camn= copy_camera(cam);
+		Camera *cam_new= copy_camera(cam);
 
-		camn->id.us= 0;
+		cam_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &camn->id);
+		BKE_id_lib_local_paths(bmain, cam->id.lib, &cam_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data == cam) {
 				if(ob->id.lib==NULL) {
-					ob->data= camn;
-					camn->id.us++;
+					ob->data= cam_new;
+					cam_new->id.us++;
 					cam->id.us--;
 				}
 			}

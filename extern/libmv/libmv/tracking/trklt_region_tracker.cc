@@ -81,7 +81,7 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
 }
 
-bool RegionIsInBounds(const FloatImage &image1,
+static bool RegionIsInBounds(const FloatImage &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.

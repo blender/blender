@@ -1693,7 +1693,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						}
 
 						/* apply weights into a vertex group, if doesnt exists add a new layer */
-						if (defgrp_index >= 0 && !dvert && strlen(surface->output_name)>0)
+						if (defgrp_index >= 0 && !dvert && (surface->output_name[0] != '\0'))
 							dvert = CustomData_add_layer_named(&result->vertData, CD_MDEFORMVERT, CD_CALLOC,
 																NULL, sData->total_points, surface->output_name);
 						if (defgrp_index >= 0 && dvert) {
@@ -1703,25 +1703,16 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 								MDeformWeight *def_weight = defvert_find_index(dv, defgrp_index);
 
 								/* skip if weight value is 0 and no existing weight is found */
-								if (!def_weight && !weight[i])
-									continue;
+								if ((def_weight != NULL) || (weight[i] != 0.0f)) {
 
-								/* if not found, add a weight for it */
-								if (!def_weight) {
-									MDeformWeight *newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), 
-														 "deformWeight");
-									if(dv->dw){
-										memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-										MEM_freeN(dv->dw);
+									/* if not found, add a weight for it */
+									if (def_weight == NULL) {
+										def_weight= defvert_verify_index(dv, defgrp_index);
 									}
-									dv->dw=newdw;
-									dv->dw[dv->totweight].def_nr=defgrp_index;
-									def_weight = &dv->dw[dv->totweight];
-									dv->totweight++;
-								}
 
-								/* set weight value */
-								def_weight->weight = weight[i];
+									/* set weight value */
+									def_weight->weight = weight[i];
+								}
 							}
 						}
 					}
@@ -1735,11 +1726,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 						for (i=0; i<sData->total_points; i++) {
 							float normal[3];
 							normal_short_to_float_v3(normal, mvert[i].no);
-							normalize_v3(normal);
-
-							mvert[i].co[0] += normal[0]*wPoint[i].height;
-							mvert[i].co[1] += normal[1]*wPoint[i].height;
-							mvert[i].co[2] += normal[2]*wPoint[i].height;
+							madd_v3_v3fl(mvert[i].co, normal, wPoint[i].height);
 						}
 						CDDM_calc_normals(result);
 					}
@@ -2282,10 +2269,10 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 							tPoint->quad = (isInside == 2) ? 1 : 0;		/* quad or tri part*/
 
 							/* save vertex indexes	*/
-							tPoint->v1 = (isInside == 2) ? mface[i].v1 : mface[i].v1;
+							tPoint->v1 = mface[i].v1; /* (isInside == 2) ? mface[i].v1 : mface[i].v1; */ /* same! */
 							tPoint->v2 = (isInside == 2) ? mface[i].v3 : mface[i].v2;
 							tPoint->v3 = (isInside == 2) ? mface[i].v4 : mface[i].v3;
-							
+
 							sample = 5;	/* make sure we exit sample loop as well */
 							break;
 						}
@@ -3585,7 +3572,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 				float radius = 0.0f;
 				float strength = 0.0f;
 				float velocity_val = 0.0f;
-				int part_index;
+				int part_index= -1;
 
 				/*
 				*	With predefined radius, there is no variation between particles.
@@ -3657,10 +3644,12 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						part_index = nearest[n].index;
 
 						/* If inside solid range and no disp depth required, no need to seek further */
-						if (s_range < 0.0f)
-						if (surface->type != MOD_DPAINT_SURFACE_T_DISPLACE &&
-							surface->type != MOD_DPAINT_SURFACE_T_WAVE)
+						if ( (s_range < 0.0f) &&
+						     (surface->type != MOD_DPAINT_SURFACE_T_DISPLACE) &&
+						     (surface->type != MOD_DPAINT_SURFACE_T_WAVE))
+						{
 							break;
+						}
 					}
 
 					if (nearest) MEM_freeN(nearest);
@@ -3688,7 +3677,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					float depth = 0.0f;
 
 					/* apply velocity */
-					if (brush->flags & MOD_DPAINT_USES_VELOCITY) {
+					if ((brush->flags & MOD_DPAINT_USES_VELOCITY) && (part_index != -1)) {
 						float velocity[3];
 						ParticleData *pa = psys->particles + part_index;
 						mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
@@ -3700,8 +3689,9 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 						velocity_val = len_v3(velocity);
 
 						/* store brush velocity for smudge */
-						if (surface->type == MOD_DPAINT_SURFACE_T_PAINT &&
-							brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
+						if ( (surface->type == MOD_DPAINT_SURFACE_T_PAINT) &&
+						     (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity))
+						{
 							copy_v3_v3(&bData->brush_velocity[index*4], velocity);
 							mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 							bData->brush_velocity[index*4+3] = velocity_val;
@@ -3709,12 +3699,11 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					}
 
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-						paintColor[0] = brush->r;
-						paintColor[1] = brush->g;
-						paintColor[2] = brush->b;
+						copy_v3_v3(paintColor, &brush->r);
 					}
-					else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-							 surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
+					else if ( (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) ||
+					          (surface->type == MOD_DPAINT_SURFACE_T_WAVE))
+					{
 						 /* get displace depth	*/
 						disp_intersect = (1.0f - sqrtf(disp_intersect / radius)) * radius;
 						depth = (radius - disp_intersect) / bData->bNormal[index].normal_scale;

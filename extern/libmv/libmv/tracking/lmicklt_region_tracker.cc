@@ -29,7 +29,7 @@
 namespace libmv {
 
 // TODO(keir): Reduce duplication between here and the other region trackers.
-bool RegionIsInBounds(const FloatImage &image1,
+static bool RegionIsInBounds(const FloatImage &image1,
                       double x, double y,
                       int half_window_size) {
   // Check the minimum coordinates.
@@ -54,7 +54,7 @@ bool RegionIsInBounds(const FloatImage &image1,
 
 // Sample a region centered at x,y in image with size extending by half_width
 // from x,y. Channels specifies the number of channels to sample from.
-void SamplePattern(const FloatImage &image,
+static void SamplePattern(const FloatImage &image,
                    double x, double y,
                    int half_width,
                    int channels,
@@ -71,7 +71,7 @@ void SamplePattern(const FloatImage &image,
 }
 
 // Estimate "reasonable" error by computing autocorrelation for a small shift.
-double EstimateReasonableError(const FloatImage &image,
+static double EstimateReasonableError(const FloatImage &image,
                                double x, double y,
                                int half_width) {
   double error = 0.0;

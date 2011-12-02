@@ -90,7 +90,6 @@ float BKE_curframe(struct Scene *scene);
 float BKE_frame_to_ctime(struct Scene *scene, const float frame);
 
 void scene_update_tagged(struct Main *bmain, struct Scene *sce);
-void scene_clear_tagged(struct Main *bmain, struct Scene *sce);
 
 void scene_update_for_newframe(struct Main *bmain, struct Scene *sce, unsigned int lay);
 

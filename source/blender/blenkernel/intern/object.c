@@ -120,6 +120,7 @@ void clear_workob(Object *workob)
 	memset(workob, 0, sizeof(Object));
 	
 	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
+	workob->dsize[0]= workob->dsize[1]= workob->dsize[2]= 1.0f;
 	workob->rotmode= ROT_MODE_EUL;
 }
 
@@ -774,6 +775,7 @@ Object *add_only_object(int type, const char *name)
 	ob->col[3]= 1.0;
 	
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+	ob->dsize[0]= ob->dsize[1]= ob->dsize[2]= 1.0;
 	
 	/* objects should default to having Euler XYZ rotations, 
 	 * but rotations default to quaternions 
@@ -1232,12 +1234,12 @@ void make_local_object(Object *ob)
 			extern_local_object(ob);
 		}
 		else if(is_local && is_lib) {
-			Object *obn= copy_object(ob);
+			Object *ob_new= copy_object(ob);
 
-			obn->id.us= 0;
+			ob_new->id.us= 0;
 			
 			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, &obn->id);
+			BKE_id_lib_local_paths(bmain, ob->id.lib, &ob_new->id);
 
 			sce= bmain->scene.first;
 			while(sce) {
@@ -1245,8 +1247,8 @@ void make_local_object(Object *ob)
 					base= sce->base.first;
 					while(base) {
 						if(base->object==ob) {
-							base->object= obn;
-							obn->id.us++;
+							base->object= ob_new;
+							ob_new->id.us++;
 							ob->id.us--;
 						}
 						base= base->next;
@@ -1441,7 +1443,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	add_v3_v3v3(vec, ob->size, ob->dsize);
+	mul_v3_v3v3(vec, ob->size, ob->dsize);
 	size_to_mat3( mat,vec);
 }
 
@@ -1603,7 +1605,11 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 	}
 	
 	sub_v3_v3(ob->loc, ob->dloc);
-	sub_v3_v3(ob->size, ob->dsize);
+
+	if (ob->dsize[0] != 0.0f) ob->size[0] /= ob->dsize[0];
+	if (ob->dsize[1] != 0.0f) ob->size[1] /= ob->dsize[1];
+	if (ob->dsize[2] != 0.0f) ob->size[2] /= ob->dsize[2];
+
 	/* object_mat3_to_rot handles delta rotations */
 }
 

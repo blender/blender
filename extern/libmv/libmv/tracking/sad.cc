@@ -25,6 +25,7 @@
 #include "libmv/tracking/sad.h"
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 namespace libmv {
 
@@ -78,15 +79,31 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
 
 #ifdef __SSE2__
 #include <emmintrin.h>
-static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {
+  static uint SAD(/*const*/ ubyte* pattern, /*const*/ ubyte* image, int stride, int size) {
+  uint sad = 0;
   __m128i a = _mm_setzero_si128();
+
   for(int i = 0; i < size; i++) {
-    for(int j = 0; j < size/16; j++) {
+    int j = 0;
+
+    for(j = 0; j < size/16; j++) {
+      if((i*size/16+j) % 32 == 0) {
+        sad += _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
+        a = _mm_setzero_si128();
+      }
+
       a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*size+j*16)),
                                           _mm_loadu_si128((__m128i*)(image+i*stride+j*16))));
     }
+
+    for(j = j*16; j < size; j++) {
+      sad += abs((int)pattern[i*size+j] - image[i*stride+j]);
+    }
   }
-  return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
+
+  sad += _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
+
+  return sad;
 }
 #else
 static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {

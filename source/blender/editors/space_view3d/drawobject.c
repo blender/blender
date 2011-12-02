@@ -149,7 +149,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *adr, int local)
+static void view3d_project_short_clip(ARegion *ar, const float vec[3], short adr[2], int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -184,7 +184,7 @@ static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *ad
 }
 
 /* only use while object drawing */
-static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *adr)
+static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -212,7 +212,7 @@ static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *
 }
 
 /* same as view3d_project_short_clip but use persmat instead of persmatob for projection */
-static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short *adr, int local)
+static void view3d_project_short_clip_persmat(ARegion *ar, float *vec, short adr[2], int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -1900,13 +1900,15 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
  * use the object matrix in the useual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index);
+		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } *data = userData;
+
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
 		short s[2]= {IS_CLIPPED, 0};
 
-		if (data->clipVerts) {
+		if (data->clipVerts != V3D_CLIP_TEST_OFF) {
 			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, co, s);
@@ -1917,9 +1919,11 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 	}
 }
 
-void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
+void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } data;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index);
+		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
+
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
@@ -1927,7 +1931,7 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	if(clipVerts)
+	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	EM_init_index_arrays(vc->em, 1, 0, 0);
@@ -1963,24 +1967,36 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();
 }
+static int is_co_in_region(ARegion *ar, const short co[2])
+{
+	return ( (co[0] != IS_CLIPPED) && /* may be the only initialized value, check first */
+	         (co[0] >= 0)          &&
+	         (co[0] <  ar->winx)   &&
+	         (co[1] >= 0)          &&
+	         (co[1] <  ar->winy));
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
+		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } *data = userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
 	if (eed->h==0) {
-		if (data->clipVerts==1) {
+		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
 			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
 			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
-		} else {
+		}
+		else {
 			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
 			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
 
-			if (data->clipVerts==2) {
-				if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy))
-					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<data->vc.ar->winx && s[1][1]<data->vc.ar->winy)) 
-						return;
+			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
+				if ( !is_co_in_region(data->vc.ar, s[0]) &&
+				     !is_co_in_region(data->vc.ar, s[1]))
+				{
+					return;
+				}
 			}
 		}
 
@@ -1988,9 +2004,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	}
 }
 
-void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
+void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } data;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
+		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
@@ -1998,7 +2015,7 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEd
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	if(clipVerts)
+	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
 	EM_init_index_arrays(vc->em, 0, 1, 0);
@@ -2306,7 +2323,7 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
@@ -2326,10 +2343,17 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
-	EditFace *efa = EM_get_face_for_index(index);
-	EditFace *next_efa = EM_get_face_for_index(next_index);
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } *data = userData;
+	int *orig_index= DM_get_face_data_layer(data->dm, CD_ORIGINDEX);
+	EditFace *efa;
+	EditFace *next_efa;
 	unsigned char *col, *next_col;
+
+	if(!orig_index)
+		return 0;
+
+	efa= EM_get_face_for_index(orig_index[index]);
+	next_efa= EM_get_face_for_index(orig_index[next_index]);
 
 	if(efa == next_efa)
 		return 1;
@@ -2349,13 +2373,14 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 /* also draws the active face */
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } data;
+	data.dm= dm;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
 
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
 
 static int draw_dm_creases__setDrawOptions(void *UNUSED(userData), int index)
@@ -2765,7 +2790,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 			
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0, GPU_enable_material, NULL);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_enable_material, NULL, NULL, 0);
 			
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -3015,7 +3040,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material, NULL);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mface, 1);
 		
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -3067,7 +3092,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, NULL, NULL, 1, GPU_enable_material, NULL);
+				dm->drawMappedFaces(dm, NULL, GPU_enable_material, NULL, NULL, 1);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -3139,7 +3164,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material, NULL);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me->mface, 1);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -3147,10 +3172,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
 				if(me->mcol)
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1, GPU_enable_material, NULL);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, NULL, 1);
 				else {
 					glColor3f(1.0f, 1.0f, 1.0f);
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0, GPU_enable_material, NULL);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, NULL, 0);
 				}
 			}
 		}
@@ -5793,9 +5818,8 @@ static void draw_bb_quadric(BoundBox *bb, char type)
 	}
 	else if(type==OB_BOUND_CONE) {
 		float radius = size[0] > size[1] ? size[0] : size[1];
-		glTranslatef(cent[0], cent[2]-size[2], cent[1]);
-		glScalef(radius, 2.0f * size[2], radius);
-		glRotatef(-90., 1.0, 0.0, 0.0);
+		glTranslatef(cent[0], cent[1], cent[2]-size[2]);
+		glScalef(radius, radius, 2.0f * size[2]);
 		gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 	}
 	glPopMatrix();
@@ -6843,7 +6867,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 	cpack(0);
 
 	if (facecol) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(intptr_t) 1, 0, GPU_enable_material, NULL);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, GPU_enable_material, NULL, (void*)(intptr_t) 1, 0);
 
 		if(check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -6854,7 +6878,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 		}
 
 	} else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0, GPU_enable_material, NULL);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, GPU_enable_material, NULL, (void*) 0, 0);
 	}
 }
 
@@ -6894,8 +6918,8 @@ static void bbs_mesh_solid(Scene *scene, Object *ob)
 	
 	glColor3ub(0, 0, 0);
 		
-	if((me->editflag & ME_EDIT_PAINT_MASK))	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material, NULL);
-	else									dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material, NULL);
+	if((me->editflag & ME_EDIT_PAINT_MASK))	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
+	else									dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, GPU_enable_material, NULL, me, 0);
 
 	dm->release(dm);
 }
@@ -6953,7 +6977,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 				glColor3ub(0, 0, 0);
 
-				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material, NULL);
+				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, 0);
 
 				
 				bbs_obmode_mesh_verts(ob, dm, 1);
@@ -7019,7 +7043,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 			GPU_end_object_materials();
 		}
 		else if(edm)
-			edm->drawMappedFaces(edm, NULL, NULL, 0, GPU_enable_material, NULL);
+			edm->drawMappedFaces(edm, NULL, GPU_enable_material, NULL, NULL, 0);
 		
 		glDisable(GL_LIGHTING);
 	}

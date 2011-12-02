@@ -307,10 +307,15 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	}
 }
 
-static void id_local_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
-		id_clear_lib_data(NULL, tselem->id);
+		/* if the ID type has no special local function,
+		 * just clear the lib */
+		if (id_make_local(tselem->id, FALSE) == FALSE) {
+			Main *bmain= CTX_data_main(C);
+			id_clear_lib_data(bmain, tselem->id);
+		}
 	}
 }
 

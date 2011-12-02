@@ -292,6 +292,21 @@ public:
 	static ShaderEnum type_enum;
 };
 
+class CombineRGBNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(CombineRGBNode)
+};
+
+class SeparateRGBNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(SeparateRGBNode)
+};
+
+class HSVNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(HSVNode)
+};
+
 class AttributeNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(AttributeNode)

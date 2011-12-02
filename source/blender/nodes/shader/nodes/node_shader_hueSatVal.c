@@ -85,7 +85,7 @@ void register_node_type_sh_hue_sat(bNodeTreeType *ttype)
 	static bNodeType ntype;
 
 	node_type_base(ttype, &ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_hue_sat_in, sh_node_hue_sat_out);
 	node_type_size(&ntype, 150, 80, 250);
 	node_type_exec(&ntype, node_shader_exec_hue_sat);

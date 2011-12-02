@@ -92,8 +92,8 @@ bAction *add_empty_action(const char name[])
 
 /* temp data for make_local_action */
 typedef struct tMakeLocalActionContext {
-	bAction *act;    /* original action */
-	bAction *actn;   /* new action */
+	bAction *act;       /* original action */
+	bAction *act_new;   /* new action */
 	
 	int is_lib;         /* some action users were libraries */
 	int is_local;       /* some action users were not libraries */
@@ -117,9 +117,9 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	
 	if (adt->action == mlac->act) {
 		if (id->lib == NULL) {
-			adt->action = mlac->actn;
+			adt->action = mlac->act_new;
 			
-			id_us_plus(&mlac->actn->id);
+			id_us_plus(&mlac->act_new->id);
 			id_us_min(&mlac->act->id);
 		}
 	}
@@ -146,10 +146,10 @@ void make_local_action(bAction *act)
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		mlac.actn= copy_action(act);
-		mlac.actn->id.us= 0;
+		mlac.act_new= copy_action(act);
+		mlac.act_new->id.us= 0;
 
-		BKE_id_lib_local_paths(bmain, &mlac.actn->id);
+		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
 
 		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
 	}

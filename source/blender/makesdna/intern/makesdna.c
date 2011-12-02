@@ -309,8 +309,9 @@ static int add_name(const char *str)
 			if (debugSDNA > 3) printf("seen %c ( %d) \n", str[j], str[j]);
 			j++;
 		}
-		if (debugSDNA > 3) printf("seen %c ( %d) \n", str[j], str[j]); 
-		if (debugSDNA > 3) printf("special after offset %d\n", j); 
+		if (debugSDNA > 3) printf("seen %c ( %d) \n"
+		                          "special after offset%d\n",
+		                          str[j], str[j], j);
 				
 		if (!isfuncptr) {
 			/* multidimensional array pointer case */

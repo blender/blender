@@ -1580,7 +1580,7 @@ void RNA_property_update_cache_free(void)
 
 int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -1596,7 +1596,7 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -1623,7 +1623,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -1671,7 +1671,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
@@ -1729,7 +1729,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 
 int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) == 0);
@@ -1739,7 +1739,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 
 void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int *values)
 {
-	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 	
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != 0);
@@ -4682,8 +4682,8 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 		if(!(parm->flag & PROP_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch(parm->type) {
 				case PROP_BOOLEAN:
-					if(parm->arraydimension) memcpy(data, ((BooleanPropertyRNA*)parm)->defaultarray, size);
-					else memcpy(data, &((BooleanPropertyRNA*)parm)->defaultvalue, size);
+					if(parm->arraydimension) memcpy(data, ((BoolPropertyRNA*)parm)->defaultarray, size);
+					else memcpy(data, &((BoolPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_INT:
 					if(parm->arraydimension) memcpy(data, ((IntPropertyRNA*)parm)->defaultarray, size);

@@ -1689,6 +1689,9 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	int i, x, y, winx, linecount= 0, lineno= 0;
 	int wraplinecount= 0, wrap_skip= 0;
 
+	if(st->lheight) st->viewlines= (int)ar->winy/st->lheight;
+	else st->viewlines= 0;
+
 	/* if no text, nothing to do */
 	if(!text)
 		return;
@@ -1698,9 +1701,6 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	/* make sure all the positional pointers exist */
 	if(!text->curl || !text->sell || !text->lines.first || !text->lines.last)
 		txt_clean_text(text);
-	
-	if(st->lheight) st->viewlines= (int)ar->winy/st->lheight;
-	else st->viewlines= 0;
 	
 	/* update rects for scroll */
 	calc_text_rcts(st, ar, &scroll, &back);	/* scroll will hold the entire bar size */
