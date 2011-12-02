@@ -437,8 +437,22 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 	
 	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
-	//bmesh_jekv(bm,ke,kv);
-	if (faces && BLI_array_count(faces) > 1) {
+	if (BM_Vert_EdgeCount(kv) == 2) {
+		/* in this case we want to keep all faces and not join them,
+		 * rather just get rid of the veretex - see bug [#28645] */
+		BMEdge *e2;
+		BMVert *tv2;
+
+		/* no need to check for null, we know the vert has 2 edes */
+		e2 = bmesh_disk_nextedge(ke, kv);
+		tv2 = BM_OtherEdgeVert(e2, kv);
+
+		/* only action, other calls here only get the edge to return */
+		bmesh_jekv(bm, ke, kv);
+
+		ne= BM_Edge_Exist(tv, tv2);
+	}
+	else if (faces && BLI_array_count(faces) > 1) {
 		BMFace *f2;
 		BMEdge *e2;
 		BMVert *tv2;
@@ -453,76 +467,6 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 				ne = nl->e;
 			}
 		}
-	} else if (faces && BLI_array_count(faces) == 1) {
-		BMLoop **loops = NULL;
-		BMVert **verts = NULL;
-		BMEdge **edges = NULL;
-		BMFace *f2;
-		BLI_array_staticdeclare(verts, 64);
-		BLI_array_staticdeclare(edges, 64);
-		BLI_array_staticdeclare(loops, 64);
-		int i;
-		
-		/*create new face excluding kv*/
-		f = *faces;
-		l = bm_firstfaceloop(f);
-		i = 0;
-		do {
-			if (l->v != kv) {
-				BLI_array_append(verts, l->v);
-
-				if (l->e != ke && !BM_Vert_In_Edge(l->e, kv)) {	
-					BLI_array_append(edges, l->e);
-				} else {
-					BMVert *v2;
-
-					/* Create a single edge to replace the two edges incident on kv */
-					
-					if (BM_Vert_In_Edge(l->next->e, kv))
-						v2 = BM_OtherEdgeVert(l->next->e, kv);
-					else
-						v2 = BM_OtherEdgeVert(l->prev->e, kv);
-
-					/* Only one new edge should be created */
-					BLI_assert(ne == NULL);
-
-					ne = BM_Make_Edge(bm, BM_OtherEdgeVert(l->e, kv), v2, l->e, 1);
-					BLI_array_append(edges, ne);
-				}
-
-				BLI_array_append(loops, l);
-				i++;
-			}
-			
-			l = l->next;
-		} while (l != bm_firstfaceloop(f));
-		
-		f2 = BM_Make_Face(bm, verts, edges, BLI_array_count(verts), 0);
-		l = bm_firstfaceloop(f2);
-		i = 0;
-		do {
-			BM_Copy_Attributes(bm, bm, loops[i], l);
-			BM_loop_interp_multires(bm, loops[i], l->f);
-			i++;
-			l = l->next;
-		} while (l != bm_firstfaceloop(f2));
-		
-		BM_Copy_Attributes(bm, bm, f, f2);
-		BM_Kill_Face(bm, f);
-		BM_Kill_Vert(bm, kv);
-	} else {
-		BMVert *tv2;
-		BMEdge *e2;
-
-		/*ok, no faces, means we have a wire edge*/
-		e2 = bmesh_disk_nextedge(ke, kv);
-		tv2 = BM_OtherEdgeVert(e2, kv);
-
-		ne = BM_Make_Edge(bm, tv, tv2, ke, 0);
-
-		BM_Kill_Edge(bm, ke);
-		BM_Kill_Edge(bm, e2);
-		BM_Kill_Vert(bm, kv);
 	}
 
 	BLI_array_free(faces);
