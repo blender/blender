@@ -446,6 +446,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "separate_rgb")) {
 			snode = new SeparateRGBNode();
 		}
+		else if(string_iequals(node.name(), "hsv")) {
+			snode = new HSVNode();
+		}
 		else if(string_iequals(node.name(), "attribute")) {
 			AttributeNode *attr = new AttributeNode();
 			xml_read_ustring(&attr->attribute, node, "attribute");

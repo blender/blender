@@ -60,6 +60,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_fresnel.h
 	svm/svm_geometry.h
 	svm/svm_gradient.h
+	svm/svm_hsv.h
 	svm/svm_image.h
 	svm/svm_light_path.h
 	svm/svm_magic.h

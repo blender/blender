@@ -81,7 +81,8 @@ typedef enum NodeType {
 	NODE_LAYER_WEIGHT = 4800,
 	NODE_CLOSURE_VOLUME = 4900,
 	NODE_SEPARATE_RGB = 5000,
-	NODE_COMBINE_RGB = 5100
+	NODE_COMBINE_RGB = 5100,
+	NODE_HSV = 5200
 } NodeType;
 
 typedef enum NodeAttributeType {

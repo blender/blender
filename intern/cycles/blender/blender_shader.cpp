@@ -131,7 +131,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
-		case BL::ShaderNode::type_HUE_SAT: break;
 		case BL::ShaderNode::type_INVERT: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
@@ -169,6 +168,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 		case BL::ShaderNode::type_COMBRGB: {
 			node = new CombineRGBNode();
+			break;
+		}
+		case BL::ShaderNode::type_HUE_SAT: {
+			node = new HSVNode();
 			break;
 		}
 		case BL::ShaderNode::type_RGBTOBW: {

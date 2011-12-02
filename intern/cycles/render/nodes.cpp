@@ -1697,6 +1697,43 @@ void SeparateRGBNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_separate_rgb");
 }
 
+/* Separate RGB */
+HSVNode::HSVNode()
+: ShaderNode("hsv")
+{
+	add_input("Hue", SHADER_SOCKET_FLOAT);
+	add_input("Saturation", SHADER_SOCKET_FLOAT);
+	add_input("Value", SHADER_SOCKET_FLOAT);
+	add_input("Fac", SHADER_SOCKET_FLOAT);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void HSVNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *hue_in = input("Hue");
+	ShaderInput *saturation_in = input("Saturation");
+	ShaderInput *value_in = input("Value");
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(hue_in);
+	compiler.stack_assign(saturation_in);
+	compiler.stack_assign(value_in);
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_HSV, color_in->stack_offset, fac_in->stack_offset, color_out->stack_offset);
+	compiler.add_node(NODE_HSV, hue_in->stack_offset, saturation_in->stack_offset, value_in->stack_offset);
+}
+
+void HSVNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_hsv");
+}
+
 /* Attribute */
 
 AttributeNode::AttributeNode()

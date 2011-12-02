@@ -302,6 +302,11 @@ public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
 };
 
+class HSVNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(HSVNode)
+};
+
 class AttributeNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(AttributeNode)

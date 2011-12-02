@@ -127,6 +127,7 @@ CCL_NAMESPACE_END
 #include "svm_displace.h"
 #include "svm_fresnel.h"
 #include "svm_geometry.h"
+#include "svm_hsv.h"
 #include "svm_image.h"
 #include "svm_light_path.h"
 #include "svm_magic.h"
@@ -260,6 +261,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_COMBINE_RGB:
 				svm_node_combine_rgb(sd, stack, node.y, node.z, node.w);
+				break;
+			case NODE_HSV:
+				svm_node_hsv(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
 			case NODE_ATTR:
 				svm_node_attr(kg, sd, stack, node);
