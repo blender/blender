@@ -1665,11 +1665,6 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.fgon_make")
-        layout.operator("mesh.fgon_clear")
-
-        layout.separator()
-
         layout.operator("mesh.quads_convert_to_tris")
         layout.operator("mesh.tris_convert_to_quads")
         layout.operator("mesh.edge_flip")
