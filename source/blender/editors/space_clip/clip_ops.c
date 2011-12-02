@@ -893,7 +893,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		BKE_tracking_distortion_destroy(distortion);
 }
 
-static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmJob * steve;
 	ProxyJob *pj;
@@ -932,7 +932,7 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 	ot->description= "Rebuild all selected proxies and timecode indeces in the background";
 
 	/* api callbacks */
-	ot->exec= sequencer_rebuild_proxy_exec;
+	ot->exec= clip_rebuild_proxy_exec;
 	ot->poll= ED_space_clip_poll;
 
 	/* flags */
