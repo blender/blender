@@ -1,0 +1,50 @@
+#!/usr/bin/python
+import sys
+import os
+
+def normpath(path):
+    return os.path.abspath(os.path.normpath(path))
+
+Import ('env')
+
+kernel_binaries = []
+
+if env['WITH_BF_CYCLES_CUDA_BINARIES']:
+    kernel = env.Clone()
+
+    # cuda info
+    nvcc = env['BF_CYCLES_CUDA_NVCC']
+    cuda_archs = env['BF_CYCLES_CUDA_BINARIES_ARCH']
+
+    # build directory
+    root_build_dir = normpath(env['BF_BUILDDIR'])
+    build_dir = os.path.join(root_build_dir, 'intern/cycles/kernel')
+
+    # source directories and files
+    source_dir = Dir('.').srcnode().path
+    kernel_file = os.path.join(source_dir, "kernel.cu")
+    util_dir = os.path.join(source_dir, "../util")
+    svm_dir = os.path.join(source_dir, "../svm")
+
+    # nvcc flags
+    nvcc_flags = "--cubin -use_fast_math --ptxas-options=\"-v\" --maxrregcount=24"
+    nvcc_flags += " --opencc-options -OPT:Olimit=0"
+    nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
+    nvcc_flags += " -I \"%s\" -I \"%s\"" % (util_dir, svm_dir)
+
+    # dependencies
+    dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h')
+
+    # add command for each cuda architecture
+    for arch in cuda_archs:
+        cubin_file = os.path.join(build_dir, "kernel_%s.cubin" % arch)
+
+        command = "\"%s\" -arch=%s %s \"%s\" -o \"%s\"" % (nvcc, arch, nvcc_flags, kernel_file, cubin_file)
+
+        kernel.Command(cubin_file, 'kernel.cu', command)
+        kernel.Depends(cubin_file, dependencies)
+
+        kernel_binaries.append(cubin_file)
+
+Return('kernel_binaries')
+

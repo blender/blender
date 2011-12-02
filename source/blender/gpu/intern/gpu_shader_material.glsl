@@ -2127,6 +2127,7 @@ void node_light_path(
 	out float is_shadow_ray,
 	out float is_diffuse_ray,
 	out float is_glossy_ray,
+	out float is_singular_ray,
 	out float is_reflection_ray,
 	out float is_transmission_ray)
 {
@@ -2134,6 +2135,7 @@ void node_light_path(
 	is_shadow_ray = 0.0;
 	is_diffuse_ray = 0.0;
 	is_glossy_ray = 0.0;
+	is_singular_ray = 0.0;
 	is_reflection_ray = 0.0;
 	is_transmission_ray = 0.0;
 }

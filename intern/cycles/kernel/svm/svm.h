@@ -134,6 +134,7 @@ CCL_NAMESPACE_END
 #include "svm_wave.h"
 #include "svm_math.h"
 #include "svm_mix.h"
+#include "svm_sepcomb_rgb.h"
 #include "svm_musgrave.h"
 #include "svm_sky.h"
 #include "svm_tex_coord.h"
@@ -253,6 +254,12 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_MIX:
 				svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_SEPARATE_RGB:
+				svm_node_separate_rgb(sd, stack, node.y, node.z, node.w);
+				break;
+			case NODE_COMBINE_RGB:
+				svm_node_combine_rgb(sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_ATTR:
 				svm_node_attr(kg, sd, stack, node);

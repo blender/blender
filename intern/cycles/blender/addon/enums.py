@@ -41,7 +41,12 @@ devices = (
 
 gpu_type = (
     ("CUDA", "CUDA", "NVidia only"),
-    ("OPENCL", "OpenCL (incomplete)", ""),
+    ("OPENCL", "OpenCL", ""),
+    )
+
+feature_set = (
+    ("SUPPORTED", "Supported", "Only use finished and supported features"),
+    ("EXPERIMENTAL", "Experimental", "Use experimental and incomplete features that might be broken or change in the future"),
     )
 
 shading_systems = (

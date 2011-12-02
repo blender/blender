@@ -613,9 +613,9 @@ static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 
 static void bmDM_drawMappedFaces(DerivedMesh *dm, 
 	int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), 
-	void *userData, int UNUSED(useColors),
 	int (*setMaterial)(int, void *attribs),
-	int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
+	int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+	void *userData, int UNUSED(useColors))
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMFace *efa;
@@ -795,7 +795,8 @@ static void bmdm_get_tri_tex(BMesh *bm, BMLoop **ls, MLoopUV *luv[3], MLoopCol *
 static void bmDM_drawFacesTex_common(DerivedMesh *dm,
                int (*drawParams)(MTFace *tface, int has_vcol, int matnr),
                int (*drawParamsMapped)(void *userData, int index),
-               void *userData) 
+               int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+               void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMEditMesh *em = bmdm->tc;
@@ -808,6 +809,8 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 	int i, has_vcol = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
 	int has_uv = CustomData_has_layer(&bm->pdata, CD_MTEXPOLY);
 	
+	(void) compareDrawOptions;
+
 	luv[0] = luv[1] = luv[2] = &dummyluv;
 	lcol[0] = lcol[1] = lcol[2] = &dummylcol;
 
@@ -987,19 +990,26 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void bmDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
+static void bmDM_drawFacesTex(DerivedMesh *dm,
+                              int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr),
+                              int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+                              void *userData)
 {
-	bmDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+	bmDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
-static void bmDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void bmDM_drawMappedFacesTex(DerivedMesh *dm,
+                                    int (*setDrawOptions)(void *userData, int index),
+                                    int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+                                    void *userData)
 {
-	bmDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
+	bmDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
 static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
-               int (*setMaterial)(int, void *attribs),
-               int (*setDrawOptions)(void *userData, int index), void *userData)
+                                     int (*setMaterial)(int, void *attribs),
+                                     int (*setDrawOptions)(void *userData, int index),
+                                     void *userData)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMesh *bm= bmdm->tc->bm;

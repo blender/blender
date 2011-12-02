@@ -281,7 +281,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(b_mesh) {
-		if(cmesh.data && RNA_boolean_get(&cmesh, "use_subdivision"))
+		if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
 			create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
 		else
 			create_mesh(scene, mesh, b_mesh, used_shaders);
@@ -294,7 +294,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	if(cmesh.data) {
 		int method = RNA_enum_get(&cmesh, "displacement_method");
 
-		if(method == 0)
+		if(method == 0 || !experimental)
 			mesh->displacement_method = Mesh::DISPLACE_BUMP;
 		else if(method == 1)
 			mesh->displacement_method = Mesh::DISPLACE_TRUE;

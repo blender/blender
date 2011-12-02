@@ -87,7 +87,7 @@ extern StructRNA RNA_BoidState;
 extern StructRNA RNA_Bone;
 extern StructRNA RNA_BoneGroup;
 extern StructRNA RNA_BooleanModifier;
-extern StructRNA RNA_BooleanProperty;
+extern StructRNA RNA_BoolProperty;
 extern StructRNA RNA_Brush;
 extern StructRNA RNA_BrushTextureSlot;
 extern StructRNA RNA_BuildModifier;

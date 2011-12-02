@@ -1629,6 +1629,74 @@ void MixNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix");
 }
 
+/* Combine RGB */
+CombineRGBNode::CombineRGBNode()
+: ShaderNode("combine_rgb")
+{
+	add_input("R", SHADER_SOCKET_FLOAT);
+	add_input("G", SHADER_SOCKET_FLOAT);
+	add_input("B", SHADER_SOCKET_FLOAT);
+	add_output("Image", SHADER_SOCKET_COLOR);
+}
+
+void CombineRGBNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *red_in = input("R");
+	ShaderInput *green_in = input("G");
+	ShaderInput *blue_in = input("B");
+	ShaderOutput *color_out = output("Image");
+
+	compiler.stack_assign(color_out);
+
+	compiler.stack_assign(red_in);
+	compiler.add_node(NODE_COMBINE_RGB, red_in->stack_offset, 0, color_out->stack_offset);
+
+	compiler.stack_assign(green_in);
+	compiler.add_node(NODE_COMBINE_RGB, green_in->stack_offset, 1, color_out->stack_offset);
+
+	compiler.stack_assign(blue_in);
+	compiler.add_node(NODE_COMBINE_RGB, blue_in->stack_offset, 2, color_out->stack_offset);
+}
+
+void CombineRGBNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_combine_rgb");
+}
+
+/* Separate RGB */
+SeparateRGBNode::SeparateRGBNode()
+: ShaderNode("separate_rgb")
+{
+	add_input("Image", SHADER_SOCKET_COLOR);
+	add_output("R", SHADER_SOCKET_FLOAT);
+	add_output("G", SHADER_SOCKET_FLOAT);
+	add_output("B", SHADER_SOCKET_FLOAT);
+}
+
+void SeparateRGBNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Image");
+	ShaderOutput *red_out = output("R");
+	ShaderOutput *green_out = output("G");
+	ShaderOutput *blue_out = output("B");
+
+	compiler.stack_assign(color_in);
+
+	compiler.stack_assign(red_out);
+	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 0, red_out->stack_offset);
+
+	compiler.stack_assign(green_out);
+	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 1, green_out->stack_offset);
+
+	compiler.stack_assign(blue_out);
+	compiler.add_node(NODE_SEPARATE_RGB, color_in->stack_offset, 2, blue_out->stack_offset);
+}
+
+void SeparateRGBNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_separate_rgb");
+}
+
 /* Attribute */
 
 AttributeNode::AttributeNode()

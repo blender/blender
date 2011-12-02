@@ -805,7 +805,6 @@ static int elem_strcmp(const char *name, const char *oname)
 		if(name[a]==0) break;
 		a++;
 	}
-	if(name[a] != oname[a]) return 1;
 	return 0;
 }
 

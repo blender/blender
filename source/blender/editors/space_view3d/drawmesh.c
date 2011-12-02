@@ -183,7 +183,7 @@ static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		/* dull unselected faces so as not to get in the way of seeing color */
 		glColor4ub(96, 96, 96, 64);
-		dm->drawMappedFacesTex(dm, draw_mesh_face_select__drawFaceOptsInv, (void*)me);
+		dm->drawMappedFacesTex(dm, draw_mesh_face_select__drawFaceOptsInv, NULL, (void*)me);
 		
 		glDisable(GL_BLEND);
 	}
@@ -531,7 +531,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	struct {BMEditMesh *em; short has_mcol; short has_mtface;} *data = userData;
+	struct {DerivedMesh *dm; BMEditMesh *em; short has_mcol; short has_mtface;} *data = userData;
 	BMEditMesh *em = data->em;
 	BMFace *efa= EDBM_get_face_for_index(em, index);
 
@@ -658,6 +658,36 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
+static int compareDrawOptions(void *userData, int cur_index, int next_index)
+{
+	DerivedMesh *dm= (DerivedMesh*) userData;
+	MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
+	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+
+	if(mf && mf[cur_index].mat_nr != mf[next_index].mat_nr)
+		return 0;
+
+	if(tf && tf[cur_index].tpage != tf[next_index].tpage)
+		return 0;
+
+	return 1;
+}
+
+static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
+{
+	struct {DerivedMesh *dm; EditMesh *em; short has_mcol; short has_mtface;} *data= userData;
+	MFace *mf = DM_get_tessface_data_layer(data->dm, CD_MFACE);
+	MTFace *tf = DM_get_tessface_data_layer(data->dm, CD_MTFACE);
+
+	if(mf && mf[cur_index].mat_nr != mf[next_index].mat_nr)
+		return 0;
+
+	if(tf && tf[cur_index].tpage != tf[next_index].tpage)
+		return 0;
+
+	return 1;
+}
+
 void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_flags)
 {
 	Mesh *me= ob->data;
@@ -672,32 +702,33 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if(ob->mode & OB_MODE_EDIT) {
-		struct {BMEditMesh *em; short has_mcol; short has_mtface;} data;
+		struct {DerivedMesh *dm; BMEditMesh *em; short has_mcol; short has_mtface;} data;
 
+		data.dm = dm;
 		data.em= me->edit_btmesh;
 		data.has_mcol= CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
 		data.has_mtface= CustomData_has_layer(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
 
-		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, &data);
+		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data);
 	}
 	else if(draw_flags & DRAW_FACE_SELECT) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material, NULL);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me, 1);
 		else
-			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, me);
+			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, NULL, me);
 	}
 	else {
 		if(GPU_buffer_legacy(dm)) {
 			if (draw_flags & DRAW_DYNAMIC_PAINT_PREVIEW)
-				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy);
+				dm->drawFacesTex(dm, draw_mcol__set_draw_legacy, NULL, NULL);
 			else 
-				dm->drawFacesTex(dm, draw_tface__set_draw_legacy);
+				dm->drawFacesTex(dm, draw_tface__set_draw_legacy, NULL, NULL);
 		}
 		else {
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
 
-			dm->drawFacesTex(dm, draw_tface__set_draw);
+			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, dm);
 		}
 	}
 
@@ -837,7 +868,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		int useColors= 1;
 
 		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions,
-			ob->data, useColors, GPU_enable_material, NULL);
+			GPU_enable_material, NULL, ob->data, useColors);
 	}
 	else {
 		Mesh *me= ob->data;

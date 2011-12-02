@@ -314,7 +314,11 @@ struct DerivedMesh {
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
 	                     int (*setDrawOptions)(struct MTFace *tface,
-	                     int has_vcol, int matnr));
+	                     int has_vcol, int matnr),
+						int (*compareDrawOptions)(void *userData,
+							 int cur_index,
+							 int next_index),
+						void *userData);
 
 	/* Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
@@ -339,9 +343,11 @@ struct DerivedMesh {
 	void (*drawMappedFaces)(DerivedMesh *dm,
 							int (*setDrawOptions)(void *userData, int index,
 												  int *drawSmooth_r),
-							void *userData, int useColors,
 							int (*setMaterial)(int, void *attribs),
-							int (*compareDrawOptions)(void *userData, int cur_index, int next_index));
+							int (*compareDrawOptions)(void *userData,
+							                          int cur_index,
+							                          int next_index),
+							void *userData, int useColors);
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
@@ -349,6 +355,9 @@ struct DerivedMesh {
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
 							   int (*setDrawOptions)(void *userData,
 													 int index),
+							   int (*compareDrawOptions)(void *userData,
+							                             int cur_index,
+							                             int next_index),
 							   void *userData);
 
 	/* Draw mapped faces with GLSL materials
@@ -358,7 +367,8 @@ struct DerivedMesh {
 	 */
 	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
 		int (*setMaterial)(int, void *attribs),
-		int (*setDrawOptions)(void *userData, int index), void *userData);
+		int (*setDrawOptions)(void *userData, int index),
+		void *userData);
 
 	/* Draw mapped edges as lines
 	 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge)

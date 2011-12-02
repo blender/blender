@@ -333,8 +333,6 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
   mloopcol and mcol) have the same relative active/render/clone/mask indices.*/
 static void mesh_update_linked_customdata(Mesh *me)
 {
-	int act;
-
 	if (me->edit_btmesh)
 		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
 

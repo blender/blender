@@ -1613,7 +1613,11 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 }
 
 	/* Only used by non-editmesh types */
-static void cgdm_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData) {
+static void cgdm_drawMappedFacesGLSL(DerivedMesh *dm,
+			int (*setMaterial)(int, void *attribs),
+			int (*setDrawOptions)(void *userData, int index),
+			void *userData)
+{
 	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = cgdm->ss;
 	GPUVertexAttribs gattribs;
@@ -1970,6 +1974,7 @@ static void cgdm_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), unsi
 static void cgdm_drawFacesTex_common(DerivedMesh *dm,
 	int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 	int (*drawParamsMapped)(void *userData, int index),
+	int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
 	void *userData) 
 {
 	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
@@ -1979,6 +1984,8 @@ static void cgdm_drawFacesTex_common(DerivedMesh *dm,
 	char *faceFlags = cgdm->faceFlags;
 	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
+
+	(void) compareDrawOptions;
 
 	ccgdm_pbvh_update(cgdm);
 
@@ -2110,14 +2117,20 @@ static void cgdm_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void cgdm_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
+static void cgdm_drawFacesTex(DerivedMesh *dm,
+			   int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr),
+			   int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			   void *userData)
 {
-	cgdm_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+	cgdm_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
-static void cgdm_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+static void cgdm_drawMappedFacesTex(DerivedMesh *dm,
+	int (*setDrawOptions)(void *userData, int index),
+	int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+	void *userData)
 {
-	cgdm_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
+	cgdm_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
 static void cgdm_drawUVEdges(DerivedMesh *dm)
@@ -2153,8 +2166,12 @@ static void cgdm_drawUVEdges(DerivedMesh *dm)
 	}
 }
 
-static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs),
-			int (*compareDrawOptions)(void *userData, int cur_index, int next_index)) {
+static void ccgDM_drawMappedFaces(DerivedMesh *dm,
+			int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
+			int (*setMaterial)(int, void *attribs),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index),
+			void *userData, int useColors)
+{
 	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = cgdm->ss;
 	MCol *mcol= NULL;

@@ -33,7 +33,7 @@ bl_info = {
     "category": "Render"}
 
 import bpy
-from . import ui, properties, xml, engine, presets
+from . import ui, properties, engine, presets
 
 
 class CyclesRender(bpy.types.RenderEngine):
@@ -77,13 +77,11 @@ class CyclesRender(bpy.types.RenderEngine):
 def register():
     properties.register()
     ui.register()
-    xml.register()
     presets.register()
     bpy.utils.register_module(__name__)
 
 
 def unregister():
-    xml.unregister()
     ui.unregister()
     properties.unregister()
     presets.unregister()
