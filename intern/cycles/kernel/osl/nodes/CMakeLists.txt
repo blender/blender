@@ -24,6 +24,7 @@ set(SRC_OSL
 	node_glossy_bsdf.osl
 	node_hsv.osl
 	node_image_texture.osl
+	node_invert.osl
 	node_light_path.osl
 	node_magic_texture.osl
 	node_mapping.osl

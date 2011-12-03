@@ -1566,6 +1566,34 @@ void MixClosureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix_closure");
 }
 
+/* Invert */
+
+InvertNode::InvertNode()
+: ShaderNode("invert")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color",  SHADER_SOCKET_COLOR);
+}
+
+void InvertNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_INVERT, fac_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+}
+
+void InvertNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_invert");
+}
+
 /* Mix */
 
 MixNode::MixNode()

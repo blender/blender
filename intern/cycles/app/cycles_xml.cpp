@@ -435,6 +435,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "add_closure")) {
 			snode = new AddClosureNode();
 		}
+		else if(string_iequals(node.name(), "invert")) {
+			snode = new InvertNode();
+		}
 		else if(string_iequals(node.name(), "mix")) {
 			MixNode *mix = new MixNode();
 			xml_read_enum(&mix->type, MixNode::type_enum, node, "type");
