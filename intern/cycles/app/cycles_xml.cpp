@@ -454,7 +454,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_ustring(&attr->attribute, node, "attribute");
 			snode = attr;
 		}
-		else if(string_ieuals(node.name(), "camera")) {
+		else if(string_iequals(node.name(), "camera")) {
 			snode = new CameraNode();
 		}
 		else if(string_iequals(node.name(), "fresnel")) {

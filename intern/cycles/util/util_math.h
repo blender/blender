@@ -63,7 +63,6 @@ CCL_NAMESPACE_BEGIN
 #if(!defined(FREE_WINDOWS))
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
-#define isnan(x) _isnan(x)
 #endif
 
 #endif
