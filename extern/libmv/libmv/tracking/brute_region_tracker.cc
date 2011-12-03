@@ -24,7 +24,14 @@
 #include <emmintrin.h>
 #endif
 
-#include <malloc.h> // For memalign.
+#ifndef __APPLE__
+// Needed for memalign on Linux and _aligned_alloc on Windows.
+#include <malloc.h>
+#else
+// Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
+// stdilb instead.
+#include <cstdlib>
+#endif
 
 #include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
@@ -38,7 +45,12 @@ namespace {
 void *aligned_malloc(int size, int alignment) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
-#else  // TODO(keir): Will this work on Mac OS X?
+#elif __APPLE__
+  // On Mac OS X, both the heap and the stack are guaranteed 16-byte aligned so
+  // they work natively with SSE types with no further work.
+  CHECK_EQ(alignment, 16);
+  return malloc(size);
+#else // This is for Linux.
   return memalign(alignment, size);
 #endif
 }
