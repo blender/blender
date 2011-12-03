@@ -857,14 +857,23 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "vc90-mt-s-1_47.lib")
-			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_47.lib")
+			if(MSVC10)
+				set(BOOST_POSTFIX "vc100-mt-s-1_47.lib")
+				set(BOOST_DEBUG_POSTFIX "vc100-mt-sgd-1_47.lib")
+			else()
+				set(BOOST_POSTFIX "vc90-mt-s-1_47.lib")
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_47.lib")					
+			endif()
 			set(BOOST_LIBRARIES
-				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
-				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
-				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
-			set(BOOST_LIBPATH ${BOOST}/lib)
+				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
+				optimized libboost_regex-${BOOST_POSTFIX} optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
+				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+				debug libboost_regex-${BOOST_DEBUG_POSTFIX} debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+			if(MSVC10)
+				set(BOOST_LIBPATH ${BOOST}/lib/vc_10)
+			else()
+				set(BOOST_LIBPATH ${BOOST}/lib)
+			endif()
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
