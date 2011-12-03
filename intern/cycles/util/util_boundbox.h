@@ -21,6 +21,7 @@
 
 #include <float.h>
 
+#include "util_math.h"
 #include "util_transform.h"
 #include "util_types.h"
 
@@ -71,7 +72,9 @@ public:
 
 	bool valid(void) const
 	{
-		return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z);
+		return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z) &&
+		       !(isnan(min.x) || isnan(min.y) || isnan(min.z)) &&
+		       !(isnan(max.x) || isnan(max.y) || isnan(max.z));
 	}
 
 	BoundBox transformed(const Transform *tfm)

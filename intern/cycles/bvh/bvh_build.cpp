@@ -59,16 +59,18 @@ void BVHBuild::add_reference_mesh(NodeSpec& root, Mesh *mesh, int i)
 		Mesh::Triangle t = mesh->triangles[j];
 		Reference ref;
 
-		ref.prim_index = j;
-		ref.prim_object = i;
-
 		for(int k = 0; k < 3; k++) {
 			float3 pt = mesh->verts[t.v[k]];
 			ref.bounds.grow(pt);
 		}
 
-		references.push_back(ref);
-		root.bounds.grow(ref.bounds);
+		if(ref.bounds.valid()) {
+			ref.prim_index = j;
+			ref.prim_object = i;
+
+			references.push_back(ref);
+			root.bounds.grow(ref.bounds);
+		}
 	}
 }
 
