@@ -135,7 +135,7 @@ static MLoop *dm_getLoopArray(DerivedMesh *dm)
 
 	if (!mloop) {
 		mloop = CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_CALLOC, NULL,
-			dm->numLoopData);
+			dm->getNumLoops(dm));
 		CustomData_set_layer_flag(&dm->loopData, CD_MLOOP, CD_FLAG_TEMPORARY);
 		dm->copyLoopArray(dm, mloop);
 	}
@@ -365,8 +365,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
+	totloop = tmp.totloop = dm->getNumLoops(dm);
 	totpoly = tmp.totpoly = dm->getNumPolys(dm);
-	totloop = tmp.totloop = dm->numLoopData;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
