@@ -1650,6 +1650,7 @@ void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 	MEM_freeN(context);
 }
 
+#ifdef WITH_LIBMV
 static void solve_reconstruction_update_cb(void *customdata, double progress, const char *message)
 {
 	ReconstructProgressData *progressdata= customdata;
@@ -1662,6 +1663,7 @@ static void solve_reconstruction_update_cb(void *customdata, double progress, co
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size,
 			"Solving camera | %s", message);
 }
+#endif
 
 #if 0
 static int solve_reconstruction_testbreak_cb(void *customdata)

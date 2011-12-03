@@ -2952,7 +2952,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
+	const short is_obact= (ob != NULL && ob == OBACT);
+	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
 		return;
@@ -2999,7 +3000,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire= OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
-	else if ( (draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if ( (draw_flags & DRAW_FACE_SELECT || (is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 	          CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
 		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
@@ -3027,7 +3028,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if(!(draw_flags & DRAW_FACE_SELECT)) {
 			if(base->flag & SELECT)
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			else
 				UI_ThemeColor(TH_WIRE);
 
@@ -3036,7 +3037,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
-		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if(is_obact && ob->mode & OB_MODE_WEIGHT_PAINT) {
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
@@ -3140,7 +3141,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDisable(GL_LIGHTING);
 
 			if(base->flag & SELECT) {
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			} else {
 				UI_ThemeColor(TH_WIRE);
 			}
@@ -3149,7 +3150,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_PAINT) {
-		if(ob==OBACT) {
+		if (is_obact) {
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
 				GPU_enable_material(0, NULL);
@@ -3184,12 +3185,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	/* set default draw color back for wire or for draw-extra later on */
 	if (dt!=OB_WIRE) {
 		if(base->flag & SELECT) {
-			if(ob==OBACT && ob->flag & OB_FROMGROUP) 
+			if (is_obact && ob->flag & OB_FROMGROUP)
 				UI_ThemeColor(TH_GROUP_ACTIVE);
 			else if(ob->flag & OB_FROMGROUP) 
 				UI_ThemeColorShade(TH_GROUP_ACTIVE, -16);
 			else if(flag!=DRAW_CONSTCOLOR)
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			else
 				glColor3ub(80,80,80);
 		} else {
@@ -3208,7 +3209,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* When using wireframe object traw in particle edit mode
 		 * the mesh gets in the way of seeing the particles, fade the wire color
 		 * with the background. */
-		if(ob==OBACT && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+		if(is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			float col_wire[4], col_bg[4], col[3];
 
 			UI_GetThemeColor3fv(TH_BACK, col_bg);
@@ -3240,7 +3241,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	if(paint_vertsel_test(ob)) {
+	if(is_obact && paint_vertsel_test(ob)) {
 		
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
@@ -6063,7 +6064,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 {
 	static int warning_recursive= 0;
 	ModifierData *md = NULL;
-	Object *ob;
+	Object *ob= base->object;
 	Curve *cu;
 	RegionView3D *rv3d= ar->regiondata;
 	float vec1[3], vec2[3];
@@ -6071,11 +6072,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
+	const short is_obact= (ob != NULL && ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	ob= base->object;
 
 	if (ob!=scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) 
@@ -6202,7 +6202,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob->mode & OB_MODE_EDIT);
@@ -6464,7 +6464,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			/* run this so that possible child particles get cached */
-			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 				PTCacheEdit *edit = PE_create_current(scene, ob);
 				if(edit && edit->psys == psys)
 					draw_update_ptcache_edit(scene, ob, edit);
@@ -6482,12 +6482,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw edit particles last so that they can draw over child particles */
-	if(		(warning_recursive==0) &&
-			(flag & DRAW_PICKING)==0 &&
-			(!scene->obedit)	
-	  ) {
+	if ( (warning_recursive==0) &&
+	     (flag & DRAW_PICKING)==0 &&
+	     (!scene->obedit))
+	{
 
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if(edit) {
 				glLoadMatrixf(rv3d->viewmat);
@@ -6679,7 +6679,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(v3d->flag2 & V3D_RENDER_OVERRIDE) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	if (!is_obact || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if(v3d->flag2 & V3D_RENDER_OVERRIDE) {
