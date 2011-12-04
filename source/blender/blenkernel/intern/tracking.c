@@ -127,17 +127,17 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 	}
 	else if(event==CLAMP_PAT_POS) {
 		float dim[2];
-		sub_v2_v2v2(dim, track->pat_max, pat_min);
+		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 
 		for(a= 0; a<2; a++) {
 			/* pattern shouldn't be moved outside of search */
 			if(pat_min[a] < track->search_min[a]) {
 				track->pat_min[a]= track->search_min[a] - (pat_min[a] - track->pat_min[a]);
-				track->pat_max[a]=  (pat_min[a] - track->pat_min[a])+dim[a];
+				track->pat_max[a]= track->pat_min[a] + dim[a];
 			}
 			if(track->pat_max[a] > track->search_max[a]) {
 				track->pat_max[a]= track->search_max[a] - (pat_max[a] - track->pat_max[a]);
-				track->pat_min[a]= track->pat_max[a]-dim[a] - (pat_min[a] - track->pat_min[a]);
+				track->pat_min[a]= track->pat_max[a] - dim[a];
 			}
 		}
 	}
@@ -790,7 +790,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 						patx= (int)((track->pat_max[0]-track->pat_min[0])*width);
 						paty= (int)((track->pat_max[1]-track->pat_min[1])*height);
 
-						if(track->tracker==TRACKER_KLT || track->tracker==TRACKER_HYBRID) {
+						if(ELEM(track->tracker, TRACKER_KLT, TRACKER_HYBRID)) {
 							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
@@ -1206,7 +1206,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			   marker->pos[1]<margin[1] || marker->pos[1]>1.0f-margin[1]) {
 				onbound= 1;
 			}
-			else if(track->tracker==TRACKER_KLT || track->tracker==TRACKER_HYBRID) {
+			else if(ELEM(track->tracker, TRACKER_KLT, TRACKER_HYBRID)) {
 				float *patch_new;
 
 				if(need_readjust) {

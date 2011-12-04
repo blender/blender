@@ -389,8 +389,7 @@ typedef struct RenderData {
 	 */
 	short raytrace_structure;
 
-	/* renderer (deprecated) */
-	short renderer  DNA_DEPRECATED;
+	short pad1;
 
 	/* octree resolution */
 	short ocres;
@@ -1035,10 +1034,6 @@ typedef struct Scene {
 #define R_FILTER_GAUSS	5
 #define R_FILTER_MITCH	6
 #define R_FILTER_FAST_GAUSS	7 /* note, this is only used for nodes at the moment */
-
-/* yafray: renderer flag (not only exclusive to yafray) */
-#define R_INTERN	0
-#define R_YAFRAY	1
 
 /* raytrace structure */
 #define R_RAYSTRUCTURE_AUTO				0

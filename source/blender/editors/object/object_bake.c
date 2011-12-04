@@ -1259,9 +1259,7 @@ static int test_bake_internal(bContext *C, ReportList *reports)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	if(scene->r.renderer!=R_INTERN) {
-		BKE_report(reports, RPT_ERROR, "Bake only supported for Internal Renderer");
-	} else if((scene->r.bake_flag & R_BAKE_TO_ACTIVE) && CTX_data_active_object(C)==NULL) {
+	if((scene->r.bake_flag & R_BAKE_TO_ACTIVE) && CTX_data_active_object(C)==NULL) {
 		BKE_report(reports, RPT_ERROR, "No active object");
 	}
 	else if(scene->r.bake_mode==RE_BAKE_AO && scene->world==NULL) {

@@ -1223,7 +1223,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 				uiDefButS(block, ROW, B_MATPRV, IFACE_("World"),  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
 			uiDefButS(block, ROW, B_MATPRV, IFACE_("Both"),  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_BOTH, 0, 0, "");
 			
-			/* Alpha buton for texture preview */
+			/* Alpha button for texture preview */
 			if(*pr_texture!=TEX_PR_OTHER) {
 				row = uiLayoutRow(layout, 0);
 				uiItemR(row, &texture_ptr, "use_preview_alpha", 0, NULL, ICON_NONE);

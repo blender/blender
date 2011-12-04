@@ -1,7 +1,4 @@
 /*
- * allocimbuf.c
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -47,8 +44,8 @@
 
 #include "imbuf.h"
 
-#include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
 {
