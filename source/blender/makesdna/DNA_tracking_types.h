@@ -211,6 +211,7 @@ enum {
 /* MovieTrackingTrack->tracker */
 #define TRACKER_KLT		0
 #define TRACKER_SAD		1
+#define TRACKER_HYBRID		2
 
 /* MovieTrackingTrack->adjframes */
 #define TRACK_MATCH_KEYFRAME		0
