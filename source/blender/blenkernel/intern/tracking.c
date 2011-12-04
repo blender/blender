@@ -128,17 +128,17 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 	}
 	else if(event==CLAMP_PAT_POS) {
 		float dim[2];
-		sub_v2_v2v2(dim, track->pat_max, pat_min);
+		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 
 		for(a= 0; a<2; a++) {
 			/* pattern shouldn't be moved outside of search */
 			if(pat_min[a] < track->search_min[a]) {
 				track->pat_min[a]= track->search_min[a] - (pat_min[a] - track->pat_min[a]);
-				track->pat_max[a]=  (pat_min[a] - track->pat_min[a])+dim[a];
+				track->pat_max[a]= track->pat_min[a] + dim[a];
 			}
 			if(track->pat_max[a] > track->search_max[a]) {
 				track->pat_max[a]= track->search_max[a] - (pat_max[a] - track->pat_max[a]);
-				track->pat_min[a]= track->pat_max[a]-dim[a] - (pat_min[a] - track->pat_min[a]);
+				track->pat_min[a]= track->pat_max[a] - dim[a];
 			}
 		}
 	}
