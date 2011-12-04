@@ -475,6 +475,13 @@ static int preprocess_include(char *maindata, int len)
 		if(comment);
 		else if( cp[0]==' ' && cp[1]==' ' );
 		else if( cp[-1]=='*' && cp[0]==' ' );	/* pointers with a space */
+
+		/* skip special keywords */
+		else if (strncmp("DNA_DEPRECATED", cp, 14)==0) {
+			/* single values are skipped already, so decrement 1 less */
+			a -= 13;
+			cp += 13;
+		}
 		else {
 			md[0]= cp[0];
 			md++;

@@ -128,7 +128,7 @@ void object_tfm_restore(struct Object *ob, void *obtfm_pt);
 
 typedef struct ObjectTfmProtectedChannels {
 	float loc[3],     dloc[3];
-	float size[3],    dsize[3];
+	float size[3],    dscale[3];
 	float rot[3],     drot[3];
 	float quat[4],    dquat[4];
 	float rotAxis[3], drotAxis[3];

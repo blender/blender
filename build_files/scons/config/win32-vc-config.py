@@ -165,6 +165,11 @@ BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_47 libboost_filesystem-vc90-mt-s-1_47 libboost_regex-vc90-mt-s-1_47 libboost_system-vc90-mt-s-1_47 libboost_thread-vc90-mt-s-1_47'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
+#CUDA
+WITH_BF_CYCLES_CUDA_BINARIES = False
+#BF_CYCLES_CUDA_NVCC = "" # Path to the nvidia compiler
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE']

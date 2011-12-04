@@ -31,6 +31,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
@@ -62,7 +63,7 @@ typedef struct Mesh {
 
 	struct BoundBox *bb;
 	
-	struct Ipo *ipo;		// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
 	
@@ -109,13 +110,13 @@ typedef struct Mesh {
 	short texflag, drawflag;
 	short smoothresh, flag;
 
-	short subdiv, subdivr;
-	char subsurftype;		/* only kept for backwards compat, not used anymore */
+	short subdiv  DNA_DEPRECATED, subdivr  DNA_DEPRECATED;
+	char subsurftype  DNA_DEPRECATED; /* only kept for backwards compat, not used anymore */
 	char editflag;
 
 	short totcol;
 
-	struct Multires *mr;		/* deprecated multiresolution modeling data, only keep for loading old files */
+	struct Multires *mr DNA_DEPRECATED; /* deprecated multiresolution modeling data, only keep for loading old files */
 	struct PartialVisibility *pv;
 } Mesh;
 

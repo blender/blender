@@ -2832,12 +2832,6 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		BKE_report(reports, RPT_ERROR, "All RenderLayers are disabled");
 		return 0;
 	}
-	
-	/* renderer */
-	if(!ELEM(scene->r.renderer, R_INTERN, R_YAFRAY)) {
-		BKE_report(reports, RPT_ERROR, "Unknown render engine set");
-		return 0;
-	}
 
 	return 1;
 }

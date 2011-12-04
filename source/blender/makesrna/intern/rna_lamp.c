@@ -172,9 +172,9 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
-		{TEXCO_VIEW, "VIEW", 0, "View", "Uses view coordinates for the texture coordinates"},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
+		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
+		{TEXCO_VIEW, "VIEW", 0, "View", "Use view coordinates for the texture coordinates"},
+		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LampTextureSlot", "TextureSlot");

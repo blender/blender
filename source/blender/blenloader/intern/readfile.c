@@ -48,6 +48,9 @@
 #include "BLI_winstuff.h"
 #endif
 
+/* allow readfile to use deprecated functionality */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_actuator_types.h"
@@ -108,7 +111,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
-#include "BKE_effect.h" /* give_parteff */
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
@@ -7163,6 +7166,40 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}		
 }
 
+/* deprecated, only keep this for readfile.c */
+static PartEff *do_version_give_parteff_245(Object *ob)
+{
+	PartEff *paf;
+
+	paf= ob->effect.first;
+	while(paf) {
+		if(paf->type==EFF_PARTICLE) return paf;
+		paf= paf->next;
+	}
+	return NULL;
+}
+static void do_version_free_effect_245(Effect *eff)
+{
+	PartEff *paf;
+
+	if(eff->type==EFF_PARTICLE) {
+		paf= (PartEff *)eff;
+		if(paf->keys) MEM_freeN(paf->keys);
+	}
+	MEM_freeN(eff);
+}
+static void do_version_free_effects_245(ListBase *lb)
+{
+	Effect *eff;
+
+	eff= lb->first;
+	while(eff) {
+		BLI_remlink(lb, eff);
+		do_version_free_effect_245(eff);
+		eff= lb->first;
+	}
+}
+
 static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 {
 	MTex *mtex;
@@ -7738,7 +7775,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob = main->object.first;
 		PartEff *paf;
 		while (ob) {
-			paf = give_parteff(ob);
+			paf = do_version_give_parteff_245(ob);
 			if (paf) {
 				if (paf->staticstep == 0) {
 					paf->staticstep= 5;
@@ -8754,11 +8791,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
-					else if(sl->spacetype==SPACE_TIME) {
-						SpaceTime *stime= (SpaceTime *)sl;
-						if(stime->redraws==0)
-							stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
-					}
 				}
 			}
 		}
@@ -8947,7 +8979,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 
-			paf = give_parteff(ob);
+			paf = do_version_give_parteff_245(ob);
 			if (paf) {
 				if(paf->disp == 0)
 					paf->disp = 100;
@@ -9955,7 +9987,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			/* convert old particles to new system */
-			if((paf = give_parteff(ob))) {
+			if((paf = do_version_give_parteff_245(ob))) {
 				ParticleSystem *psys;
 				ModifierData *md;
 				ParticleSystemModifierData *psmd;
@@ -10068,7 +10100,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						part->type = PART_FLUID;
 				}
 
-				free_effects(&ob->effect);
+				do_version_free_effects_245(&ob->effect);
 
 				printf("Old particle system converted to new system.\n");
 			}
@@ -10481,13 +10513,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->physubstep = 1;
 			wrld->maxphystep = 5;
 		}
-	}
-
-	if (main->versionfile < 249) {
-		Scene *sce;
-		for (sce= main->scene.first; sce; sce= sce->id.next)
-			sce->r.renderer= 0;
-		
 	}
 	
 	// correct introduce of seed for wind force
@@ -12699,10 +12724,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
 					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
 					{
-						ob->dsize[i]= 1.0f;
+						ob->dscale[i]= 1.0f;
 					}
 					else {
-						ob->size[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+						ob->dscale[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
 					}
 				}
 			}
@@ -13530,7 +13555,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->mat[a]);
 	}
 	
-	paf = give_parteff(ob);
+	paf = do_version_give_parteff_245(ob);
 	if (paf && paf->group) 
 		expand_doit(fd, mainvar, paf->group);
 

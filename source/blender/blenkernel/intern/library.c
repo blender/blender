@@ -1319,19 +1319,23 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 	
 	if(GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
-		bActionStrip *strip;
 		Mesh *me;
 
 		int a;
-	
+
+#if 0	/* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
 		// XXX old animation system! --------------------------------------
-		for (strip=ob->nlastrips.first; strip; strip=strip->next){
-			LIBTAG(strip->object); 
-			LIBTAG(strip->act);
-			LIBTAG(strip->ipo);
+		{
+			bActionStrip *strip;
+			for (strip=ob->nlastrips.first; strip; strip=strip->next){
+				LIBTAG(strip->object);
+				LIBTAG(strip->act);
+				LIBTAG(strip->ipo);
+			}
 		}
 		// XXX: new animation system needs something like this?
-	
+#endif
+
 		for(a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);
 		}

@@ -480,12 +480,12 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_map_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REF);
-	RNA_def_property_ui_text(prop, "Diffuse", "The texture to affects the value of the materials diffuse reflectivity");
+	RNA_def_property_ui_text(prop, "Diffuse", "The texture affects the value of diffuse reflectivity");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_SPEC);
-	RNA_def_property_ui_text(prop, "Specular", "The texture to affects the value of specular reflectivity");
+	RNA_def_property_ui_text(prop, "Specular", "The texture affects the value of specular reflectivity");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "use_map_ambient", PROP_BOOLEAN, PROP_NONE);

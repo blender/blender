@@ -154,43 +154,6 @@ typedef struct VeNoCo {
 
 /* ***************** PARTICLES ***************** */
 
-/* deprecated, only keep this for readfile.c */
-PartEff *give_parteff(Object *ob)
-{
-	PartEff *paf;
-	
-	paf= ob->effect.first;
-	while(paf) {
-		if(paf->type==EFF_PARTICLE) return paf;
-		paf= paf->next;
-	}
-	return NULL;
-}
-
-void free_effect(Effect *eff)
-{
-	PartEff *paf;
-	
-	if(eff->type==EFF_PARTICLE) {
-		paf= (PartEff *)eff;
-		if(paf->keys) MEM_freeN(paf->keys);
-	}
-	MEM_freeN(eff);	
-}
-
-
-void free_effects(ListBase *lb)
-{
-	Effect *eff;
-	
-	eff= lb->first;
-	while(eff) {
-		BLI_remlink(lb, eff);
-		free_effect(eff);
-		eff= lb->first;
-	}
-}
-
 /* -------------------------- Effectors ------------------ */
 void free_partdeflect(PartDeflect *pd)
 {

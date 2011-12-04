@@ -269,6 +269,7 @@ static MovieTrackingMarker *rna_trackingTrack_marker_find_frame(MovieTrackingTra
 static EnumPropertyItem tracker_items[] = {
 	{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi tracker which works with most of video clips, a bit slower than SAD"},
 	{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker which can be used when KLT tracker fails"},
+	{TRACKER_HYBRID, "Hybrid", 0, "Hybrid", "A hybrid tracker that uses SAD for rough tracking, KLT for refinement."},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem pattern_match_items[] = {

@@ -284,6 +284,11 @@ public:
 	SHADER_NODE_CLASS(MixClosureNode)
 };
 
+class InvertNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(InvertNode)
+};
+
 class MixNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixNode)

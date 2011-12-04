@@ -25,6 +25,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 
@@ -241,7 +242,7 @@ typedef struct ArrayModifierData {
 typedef struct MirrorModifierData {
 	ModifierData modifier;
 
-	short axis; /* deprecated, use flag instead */
+	short axis  DNA_DEPRECATED; /* deprecated, use flag instead */
 	short flag;
 	float tolerance;
 	struct Object *mirror_ob;

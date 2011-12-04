@@ -130,7 +130,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_CURVE_RGB: break;
 		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
-		case BL::ShaderNode::type_INVERT: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
 		case BL::ShaderNode::type_NORMAL: break;
@@ -156,6 +155,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 		case BL::ShaderNode::type_CAMERA: {
 			node = new CameraNode();
+			break;
+		}
+		case BL::ShaderNode::type_INVERT: {
+			node = new InvertNode();
 			break;
 		}
 		case BL::ShaderNode::type_MIX_RGB: {

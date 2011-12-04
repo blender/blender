@@ -31,6 +31,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
@@ -150,7 +151,7 @@ typedef struct Material {
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
-	struct Ipo *ipo;		// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Group *group;	/* light group */
 	struct PreviewImage * preview;
 

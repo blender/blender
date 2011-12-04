@@ -105,7 +105,6 @@ static SpaceLink *sequencer_new(const bContext *C)
 	
 	sseq= MEM_callocN(sizeof(SpaceSeq), "initsequencer");
 	sseq->spacetype= SPACE_SEQ;
-	sseq->zoom= 4;
 	sseq->chanshown = 0;
 	sseq->view = SEQ_VIEW_SEQUENCE;
 	sseq->mainb = SEQ_DRAW_IMG_IMBUF;

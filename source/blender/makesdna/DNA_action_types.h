@@ -582,7 +582,7 @@ typedef struct SpaceAction {
 
 	short blockhandler[8];
 
-	View2D v2d;					/* depricated, copied to region */
+	View2D v2d  DNA_DEPRECATED; /* copied to region */
 	
 	bAction		*action;		/* the currently active action */
 	bDopeSheet 	ads;			/* the currently active context (when not showing action) */

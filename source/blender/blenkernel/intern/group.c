@@ -108,23 +108,28 @@ void unlink_group(Group *group)
 	}
 	
 	for(ob= bmain->object.first; ob; ob= ob->id.next) {
-		bActionStrip *strip;
 		
 		if(ob->dup_group==group) {
 			ob->dup_group= NULL;
-		
-			/* duplicator strips use a group object, we remove it */
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				if(strip->object)
-					strip->object= NULL;
+#if 0		/* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
+			{
+				bActionStrip *strip;
+				/* duplicator strips use a group object, we remove it */
+				for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+					if(strip->object)
+						strip->object= NULL;
+				}
 			}
+#endif
 		}
 		
 		for(psys=ob->particlesystem.first; psys; psys=psys->next){
 			if(psys->part->dup_group==group)
 				psys->part->dup_group= NULL;
+#if 0		/* not used anymore, only keps for readfile.c, no need to account for this */
 			if(psys->part->eff_group==group)
 				psys->part->eff_group= NULL;
+#endif
 		}
 	}
 	
@@ -273,13 +278,14 @@ void group_tag_recalc(Group *group)
 	}
 }
 
-int group_is_animated(Object *parent, Group *group)
+int group_is_animated(Object *UNUSED(parent), Group *group)
 {
 	GroupObject *go;
-	
-	// XXX: old animsys depreceated...
+
+#if 0 /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
 	if(parent->nlastrips.first)
 		return 1;
+#endif
 
 	for(go= group->gobject.first; go; go= go->next)
 		if(go->ob && go->ob->proxy)
@@ -381,6 +387,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 	}
 }
 
+#if 0
 Object *group_get_member_with_action(Group *group, bAction *act)
 {
 	GroupObject *go;
@@ -432,3 +439,4 @@ void group_relink_nla_objects(Object *ob)
 	}
 }
 
+#endif

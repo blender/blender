@@ -479,16 +479,10 @@ void unlink_text(Main *bmain, Text *text)
 	bScreen *scr;
 	ScrArea *area;
 	SpaceLink *sl;
-	Scene *scene;
 	Object *ob;
 	bController *cont;
 	bConstraint *con;
 	short update;
-
-	/* dome */
-	for(scene=bmain->scene.first; scene; scene=scene->id.next)
-		if(scene->r.dometext == text)
-			scene->r.dometext = NULL;
 
 	for(ob=bmain->object.first; ob; ob=ob->id.next) {
 		/* game controllers */

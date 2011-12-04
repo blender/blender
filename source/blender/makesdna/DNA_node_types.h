@@ -91,7 +91,7 @@ typedef struct bNodeSocket {
 	
 	/* internal data to retrieve relations and groups */
 	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
-	int to_index;				/* XXX deprecated, only used for restoring old group node links */
+	int to_index  DNA_DEPRECATED;  /* XXX deprecated, only used for restoring old group node links */
 	struct bNodeSocket *groupsock;
 	
 	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */

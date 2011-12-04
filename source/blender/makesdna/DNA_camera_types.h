@@ -31,6 +31,8 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
+
 #include "DNA_ID.h"
 
 #ifdef __cplusplus
@@ -59,7 +61,7 @@ typedef struct Camera {
 			The name was not changed so that no other files need to be modified */
 	float YF_dofdist;
 
-	struct Ipo *ipo;			// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED; /* old animation system, deprecated for 2.5 */
 	
 	struct Object *dof_ob;
 

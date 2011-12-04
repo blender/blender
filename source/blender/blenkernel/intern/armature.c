@@ -2120,6 +2120,8 @@ void pchan_calc_mat(bPoseChannel *pchan)
 	pchan_to_mat4(pchan, pchan->chan_mat);
 }
 
+#if 0 /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
+
 /* NLA strip modifiers */
 static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseChannel *pchan)
 {
@@ -2242,6 +2244,8 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 	}
 }
 
+#endif
+
 /* calculate tail of posechannel */
 void where_is_pose_bone_tail(bPoseChannel *pchan)
 {
@@ -2351,9 +2355,12 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 	}
 	
 	if(do_extra) {
+
+#if 0	/* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
 		/* do NLA strip modifiers - i.e. curve follow */
 		do_strip_modifiers(scene, ob, bone, pchan);
-		
+#endif
+
 		/* Do constraints */
 		if (pchan->constraints.first) {
 			bConstraintOb *cob;

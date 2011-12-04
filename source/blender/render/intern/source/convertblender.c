@@ -1718,7 +1718,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			sd.adapt_angle = cosf(DEG2RADF((float)part->adapt_angle));
 		}
 
-		if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
+		if (part->draw & PART_DRAW_REN_STRAND) {
 			strandbuf= RE_addStrandBuffer(obr, (totpart+totchild)*(path_nbr+1));
 			strandbuf->ma= ma;
 			strandbuf->lay= ob->lay;
@@ -2391,7 +2391,7 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float im
 	/* Object Size with parenting */
 	obt=obr->ob;
 	while(obt){
-		mul_v3_v3v3(temp, obt->size, obt->dsize);
+		mul_v3_v3v3(temp, obt->size, obt->dscale);
 		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
 		obt=obt->parent;
 	}
@@ -3872,8 +3872,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			}
 		}
 	}
-	/* yafray: shadow flag should not be cleared, only used with internal renderer */
-	if (re->r.renderer==R_INTERN) {
+
+	/* old code checked for internal render (aka not yafray) */
+	{
 		/* to make sure we can check ray shadow easily in the render code */
 		if(lar->mode & LA_SHAD_RAY) {
 			if( (re->r.mode & R_RAYTRACE)==0)
@@ -5109,10 +5110,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 
 		/* SHADOW BUFFER */
 		threaded_makeshadowbufs(re);
-		
-		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
-		/* although radio mode could be useful at some point, later */
-		if (re->r.renderer==R_INTERN) {
+
+		/* old code checked for internal render (aka not yafray) */
+		{
 			/* raytree */
 			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {
@@ -5137,14 +5137,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		/* Occlusion */
 		if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
-				if(re->r.renderer==R_INTERN)
-					if(re->r.mode & R_SHADOW)
-						make_occ_tree(re);
+				if(re->r.mode & R_SHADOW)
+					make_occ_tree(re);
 
 		/* SSS */
 		if((re->r.mode & R_SSS) && !re->test_break(re->tbh))
-			if(re->r.renderer==R_INTERN)
-				make_sss_tree(re);
+			make_sss_tree(re);
 		
 		if(!re->test_break(re->tbh))
 			if(re->r.mode & R_RAYTRACE)

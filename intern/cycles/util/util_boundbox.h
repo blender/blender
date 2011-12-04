@@ -19,11 +19,14 @@
 #ifndef __UTIL_BOUNDBOX_H__
 #define __UTIL_BOUNDBOX_H__
 
+#include <math.h>
 #include <float.h>
 
 #include "util_math.h"
 #include "util_transform.h"
 #include "util_types.h"
+
+using namespace std;
 
 CCL_NAMESPACE_BEGIN
 

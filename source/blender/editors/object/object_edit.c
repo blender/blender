@@ -1143,7 +1143,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if(event==3) {  /* size */
 					copy_v3_v3(base->object->size, ob->size);
-					copy_v3_v3(base->object->dsize, ob->dsize);
+					copy_v3_v3(base->object->dscale, ob->dscale);
 				}
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;

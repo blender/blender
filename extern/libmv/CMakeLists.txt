@@ -53,6 +53,8 @@ set(SRC
 	libmv/image/array_nd.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/sad.cc
+	libmv/tracking/brute_region_tracker.cc
+	libmv/tracking/hybrid_region_tracker.cc
 	libmv/tracking/esm_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
 	libmv/tracking/klt_region_tracker.cc
@@ -100,6 +102,8 @@ set(SRC
 	libmv/image/sample.h
 	libmv/image/image.h
 	libmv/tracking/region_tracker.h
+	libmv/tracking/brute_region_tracker.h
+	libmv/tracking/hybrid_region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
 	libmv/tracking/sad.h
 	libmv/tracking/pyramid_region_tracker.h

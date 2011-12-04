@@ -133,7 +133,7 @@ typedef struct TransDataExtension {
 	// float drotAngle;	 /* Initial object drotAngle,    TODO: not yet implimented */
 	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implimented */
 	float dquat[4];		 /* Initial object dquat */
-	float dsize[3];		 /* Initial object dsize */
+	float dscale[3];     /* Initial object dscale */
 	float *rot;          /* Rotation of the data to transform (Faculative)                                 */
 	float  irot[3];      /* Initial rotation                                                               */
 	float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */

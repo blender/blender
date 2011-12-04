@@ -63,7 +63,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 	MirrorModifierData *tmmd = (MirrorModifierData*) target;
 
-	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
 	tmmd->mirror_ob = mmd->mirror_ob;
