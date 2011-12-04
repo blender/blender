@@ -440,9 +440,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		
-		if(me->pv) mesh_pmv_off(me);
 		ok= 1;
 		scene->obedit= ob;	// context sees this
 		

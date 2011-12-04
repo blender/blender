@@ -1475,14 +1475,18 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 {
 	ImBuf *scaleibuf;
 	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
+	const float scalex= 1.0f/zoomx;
+	const float scaley= 1.0f/zoomy;
+
 	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
 
 	for(y= 0; y<scaleibuf->y; y++) {
 		for (x= 0; x<scaleibuf->x; x++) {
 			int pixel= scaleibuf->x*y + x;
-			int orig_pixel= ibuf->x*(int)(((float)y)/zoomy) + (int)(((float)x)/zoomx);
+			int orig_pixel= ibuf->x*(int)(scaley*(float)y) + (int)(scalex*(float)x);
 			char *rrgb= (char*)scaleibuf->rect + pixel*4;
 			char *orig_rrgb= (char*)ibuf->rect + orig_pixel*4;
+
 			rrgb[0]= orig_rrgb[0];
 			rrgb[1]= orig_rrgb[1];
 			rrgb[2]= orig_rrgb[2];

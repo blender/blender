@@ -387,23 +387,11 @@ void unlink_mesh(Mesh *me)
 	if(me->texcomesh) me->texcomesh= NULL;
 }
 
-
 /* do not free mesh itself */
 void free_mesh(Mesh *me, int unlink)
 {
 	if (unlink)
 		unlink_mesh(me);
-
-	if(me->pv) {
-		if(me->pv->vert_map) MEM_freeN(me->pv->vert_map);
-		if(me->pv->edge_map) MEM_freeN(me->pv->edge_map);
-		if(me->pv->old_faces) MEM_freeN(me->pv->old_faces);
-		if(me->pv->old_edges) MEM_freeN(me->pv->old_edges);
-		me->totvert= me->pv->totvert;
-		me->totedge= me->pv->totedge;
-		me->totface= me->pv->totface;
-		MEM_freeN(me->pv);
-	}
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
@@ -520,7 +508,6 @@ Mesh *copy_mesh(Mesh *me)
 
 	men->mselect= NULL;
 	men->edit_btmesh= NULL;
-	men->pv= NULL; /* looks like this is no-longer supported but NULL just incase */
 
 	men->bb= MEM_dupallocN(men->bb);
 	
@@ -2106,72 +2093,6 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, c
 			node->index = i;
 			BLI_addtail(&(*map)[((unsigned int*)(&medge[i].v1))[j]], node);
 		}
-	}
-}
-
-/* Partial Mesh Visibility */
-PartialVisibility *mesh_pmv_copy(PartialVisibility *pmv)
-{
-	PartialVisibility *n= MEM_dupallocN(pmv);
-	n->vert_map= MEM_dupallocN(pmv->vert_map);
-	n->edge_map= MEM_dupallocN(pmv->edge_map);
-	n->old_edges= MEM_dupallocN(pmv->old_edges);
-	n->old_faces= MEM_dupallocN(pmv->old_faces);
-	return n;
-}
-
-void mesh_pmv_free(PartialVisibility *pv)
-{
-	MEM_freeN(pv->vert_map);
-	MEM_freeN(pv->edge_map);
-	MEM_freeN(pv->old_faces);
-	MEM_freeN(pv->old_edges);
-	MEM_freeN(pv);
-}
-
-void mesh_pmv_revert(Mesh *me)
-{
-	if(me->pv) {
-		unsigned i;
-		MVert *nve, *old_verts;
-		
-		/* Reorder vertices */
-		nve= me->mvert;
-		old_verts = MEM_mallocN(sizeof(MVert)*me->pv->totvert,"PMV revert verts");
-		for(i=0; i<me->pv->totvert; ++i)
-			old_verts[i]= nve[me->pv->vert_map[i]];
-
-		/* Restore verts, edges and faces */
-		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
-		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
-		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
-
-		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, old_verts, me->pv->totvert);
-		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->pv->old_edges, me->pv->totedge);
-		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->pv->old_faces, me->pv->totface);
-		mesh_update_customdata_pointers(me);
-
-		me->totvert= me->pv->totvert;
-		me->totedge= me->pv->totedge;
-		me->totface= me->pv->totface;
-
-		me->pv->old_edges= NULL;
-		me->pv->old_faces= NULL;
-
-		/* Free maps */
-		MEM_freeN(me->pv->edge_map);
-		me->pv->edge_map= NULL;
-		MEM_freeN(me->pv->vert_map);
-		me->pv->vert_map= NULL;
-	}
-}
-
-void mesh_pmv_off(Mesh *me)
-{
-	if(me->pv) {
-		mesh_pmv_revert(me);
-		MEM_freeN(me->pv);
-		me->pv= NULL;
 	}
 }
 

@@ -3798,22 +3798,13 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
 
-	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
-	mesh->pv= newdataadr(fd, mesh->pv);
-	if(mesh->pv) {
-		mesh->pv->vert_map= newdataadr(fd, mesh->pv->vert_map);
-		mesh->pv->edge_map= newdataadr(fd, mesh->pv->edge_map);
-		mesh->pv->old_faces= newdataadr(fd, mesh->pv->old_faces);
-		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
-	}
-
 	/* normally direct_link_dverts should be called in direct_link_customdata,
 	   but for backwards compat in do_versions to work we do it here */
-	direct_link_dverts(fd, mesh->pv ? mesh->pv->totvert : mesh->totvert, mesh->dvert);
+	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
 
-	direct_link_customdata(fd, &mesh->vdata, mesh->pv ? mesh->pv->totvert : mesh->totvert);
-	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
-	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
+	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
+	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
+	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
 	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
 	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
 	
@@ -3869,7 +3860,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		TFace *tf= mesh->tface;
 		unsigned int i;
 
-		for (i=0; i< (mesh->pv ? mesh->pv->totface : mesh->totface); i++, tf++) {
+		for (i=0; i< (mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
 			SWITCH_INT(tf->col[1]);
 			SWITCH_INT(tf->col[2]);

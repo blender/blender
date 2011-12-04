@@ -1691,30 +1691,11 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			if(mesh->pv) {
-				write_customdata(wd, &mesh->id, mesh->pv->totvert, &mesh->vdata, -1, 0);
-				write_customdata(wd, &mesh->id, mesh->pv->totedge, &mesh->edata,
-					CD_MEDGE, mesh->totedge);
-				/* BMESH_TODO: probably need to deal with polys here */
-				write_customdata(wd, &mesh->id, mesh->pv->totface, &mesh->fdata,
-					CD_MFACE, mesh->totface);
-			}
-			else {
-				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
-				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
-				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
-				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
-				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
-			}
-
-			/* PMV data */
-			if(mesh->pv) {
-				writestruct(wd, DATA, "PartialVisibility", 1, mesh->pv);
-				writedata(wd, DATA, sizeof(unsigned int)*mesh->pv->totvert, mesh->pv->vert_map);
-				writedata(wd, DATA, sizeof(int)*mesh->pv->totedge, mesh->pv->edge_map);
-				writestruct(wd, DATA, "MFace", mesh->pv->totface, mesh->pv->old_faces);
-				writestruct(wd, DATA, "MEdge", mesh->pv->totedge, mesh->pv->old_edges);
-			}
+			write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
+			write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
+			write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
+			write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
+			write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
 		}
 		mesh= mesh->id.next;
 	}

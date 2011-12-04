@@ -199,14 +199,6 @@ typedef struct Multires {
 
 /** End Multires **/
 
-typedef struct PartialVisibility {
-	unsigned int *vert_map; /* vert_map[Old Index]= New Index */
-	int *edge_map; /* edge_map[Old Index]= New Index, -1= hidden */
-	MFace *old_faces;
-	MEdge *old_edges;
-	unsigned int totface, totedge, totvert, pad;
-} PartialVisibility;
-
 typedef struct MRecast{
 	int		i;
 } MRecast;
