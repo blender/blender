@@ -1009,7 +1009,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	return pixels;
 }
 
-static unsigned char *get_ucharbuf(ImBuf *ibuf, int flags)
+static unsigned char *get_ucharbuf(ImBuf *ibuf)
 {
 	int x, y;
 	unsigned char *pixels, *cp;
@@ -1045,7 +1045,7 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 	*width_r= tmpibuf->x;
 	*height_r= tmpibuf->y;
 
-	pixels= get_ucharbuf(tmpibuf, track->flag);
+	pixels= get_ucharbuf(tmpibuf);
 
 	IMB_freeImBuf(tmpibuf);
 
@@ -2054,7 +2054,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
-	unsigned char *pixels= get_ucharbuf(ibuf, 0);
+	unsigned char *pixels= get_ucharbuf(ibuf);
 
 	features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
 
