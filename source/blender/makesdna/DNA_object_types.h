@@ -140,7 +140,9 @@ typedef struct Object {
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
-	float size[3], dsize[3];	/* scale and delta scale */
+	float size[3];              /* scale infact */
+	float dsize[3];             /* DEPRECATED, 2.60 and older only */
+	float dscale[3];            /* ack!, changing */
 	float rot[3], drot[3];		/* euler rotation */
 	float quat[4], dquat[4];	/* quaternion rotation */
 	float rotAxis[3], drotAxis[3];	/* axis angle rotation - axis part */
@@ -158,6 +160,8 @@ typedef struct Object {
 	
 	unsigned int lay;	/* copy of Base's layer in the scene */
 	
+	int pad6;
+
 	short flag;			/* copy of Base */
 	short colbits;		/* deprecated */
 	

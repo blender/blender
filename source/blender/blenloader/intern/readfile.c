@@ -12617,10 +12617,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
 					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
 					{
-						ob->dsize[i]= 1.0f;
+						ob->dscale[i]= 1.0f;
 					}
 					else {
-						ob->size[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+						ob->dscale[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
 					}
 				}
 			}

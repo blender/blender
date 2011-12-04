@@ -4314,7 +4314,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	td->ext->size = ob->size;
 	copy_v3_v3(td->ext->isize, ob->size);
-	copy_v3_v3(td->ext->dsize, ob->dsize);
+	copy_v3_v3(td->ext->dscale, ob->dscale);
 
 	copy_v3_v3(td->center, ob->obmat[3]);
 

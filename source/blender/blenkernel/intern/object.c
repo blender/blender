@@ -120,7 +120,7 @@ void clear_workob(Object *workob)
 	memset(workob, 0, sizeof(Object));
 	
 	workob->size[0]= workob->size[1]= workob->size[2]= 1.0f;
-	workob->dsize[0]= workob->dsize[1]= workob->dsize[2]= 1.0f;
+	workob->dscale[0]= workob->dscale[1]= workob->dscale[2]= 1.0f;
 	workob->rotmode= ROT_MODE_EUL;
 }
 
@@ -775,7 +775,7 @@ Object *add_only_object(int type, const char *name)
 	ob->col[3]= 1.0;
 	
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-	ob->dsize[0]= ob->dsize[1]= ob->dsize[2]= 1.0;
+	ob->dscale[0]= ob->dscale[1]= ob->dscale[2]= 1.0;
 	
 	/* objects should default to having Euler XYZ rotations, 
 	 * but rotations default to quaternions 
@@ -1443,7 +1443,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	mul_v3_v3v3(vec, ob->size, ob->dsize);
+	mul_v3_v3v3(vec, ob->size, ob->dscale);
 	size_to_mat3( mat,vec);
 }
 
@@ -1529,7 +1529,7 @@ void object_tfm_protected_backup(const Object *ob,
 	TFMCPY3D(loc);
 	TFMCPY3D(dloc);
 	TFMCPY3D(size);
-	TFMCPY3D(dsize);
+	TFMCPY3D(dscale);
 	TFMCPY3D(rot);
 	TFMCPY3D(drot);
 	TFMCPY4D(quat);
@@ -1559,7 +1559,7 @@ void object_tfm_protected_restore(Object *ob,
 
 		if (protectflag & (OB_LOCK_SCALEX<<i)) {
 			ob->size[i]=  obtfm->size[i];
-			ob->dsize[i]= obtfm->dsize[i];
+			ob->dscale[i]= obtfm->dscale[i];
 		}
 
 		if (protectflag & (OB_LOCK_ROTX<<i)) {
@@ -1606,9 +1606,9 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 	
 	sub_v3_v3(ob->loc, ob->dloc);
 
-	if (ob->dsize[0] != 0.0f) ob->size[0] /= ob->dsize[0];
-	if (ob->dsize[1] != 0.0f) ob->size[1] /= ob->dsize[1];
-	if (ob->dsize[2] != 0.0f) ob->size[2] /= ob->dsize[2];
+	if (ob->dscale[0] != 0.0f) ob->size[0] /= ob->dscale[0];
+	if (ob->dscale[1] != 0.0f) ob->size[1] /= ob->dscale[1];
+	if (ob->dscale[2] != 0.0f) ob->size[2] /= ob->dscale[2];
 
 	/* object_mat3_to_rot handles delta rotations */
 }
@@ -2417,7 +2417,7 @@ void BKE_scene_foreach_display_point(
 /* copied from DNA_object_types.h */
 typedef struct ObTfmBack {
 	float loc[3], dloc[3], orig[3];
-	float size[3], dsize[3];	/* scale and delta scale */
+	float size[3], dscale[3];	/* scale and delta scale */
 	float rot[3], drot[3];		/* euler rotation */
 	float quat[4], dquat[4];	/* quaternion rotation */
 	float rotAxis[3], drotAxis[3];	/* axis angle rotation - axis part */
@@ -2435,7 +2435,7 @@ void *object_tfm_backup(Object *ob)
 	copy_v3_v3(obtfm->dloc, ob->dloc);
 	copy_v3_v3(obtfm->orig, ob->orig);
 	copy_v3_v3(obtfm->size, ob->size);
-	copy_v3_v3(obtfm->dsize, ob->dsize);
+	copy_v3_v3(obtfm->dscale, ob->dscale);
 	copy_v3_v3(obtfm->rot, ob->rot);
 	copy_v3_v3(obtfm->drot, ob->drot);
 	copy_qt_qt(obtfm->quat, ob->quat);
@@ -2459,7 +2459,7 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 	copy_v3_v3(ob->dloc, obtfm->dloc);
 	copy_v3_v3(ob->orig, obtfm->orig);
 	copy_v3_v3(ob->size, obtfm->size);
-	copy_v3_v3(ob->dsize, obtfm->dsize);
+	copy_v3_v3(ob->dscale, obtfm->dscale);
 	copy_v3_v3(ob->rot, obtfm->rot);
 	copy_v3_v3(ob->drot, obtfm->drot);
 	copy_qt_qt(ob->quat, obtfm->quat);
