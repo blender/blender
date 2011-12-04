@@ -674,7 +674,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* preview_grayscale */
-	prop= RNA_def_property(srna, "preview_grayscale", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_grayscale_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_PREVIEW_GRAYSCALE);
 	RNA_def_property_ui_text(prop, "Grayscale", "Display what the tracking algorithm sees in the preview");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);

@@ -361,7 +361,7 @@ class CLIP_PT_track(Panel):
         row.separator()
 
         sub = row.row()
-        sub.prop(act_track, "preview_grayscale", text="B/W", toggle=True)
+        sub.prop(act_track, "use_grayscale_preview", text="B/W", toggle=True)
 
         layout.separator()
 

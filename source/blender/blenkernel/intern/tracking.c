@@ -949,7 +949,10 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 		origin[1]= y1-margin;
 	}
 
-	if (track->flag & TRACK_PREVIEW_GRAYSCALE) {
+	if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
+			(track->flag & TRACK_DISABLE_RED)       ||
+			(track->flag & TRACK_DISABLE_GREEN)     ||
+			(track->flag & TRACK_DISABLE_BLUE) ) {
 		disable_imbuf_channels(tmpibuf, track, 1 /* grayscale */);
 	}
 
