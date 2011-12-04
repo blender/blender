@@ -929,7 +929,7 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Rebuild Proxy and Timecode Indices";
 	ot->idname= "CLIP_OT_rebuild_proxy";
-	ot->description= "Rebuild all selected proxies and timecode indeces in the background";
+	ot->description= "Rebuild all selected proxies and timecode indices in the background";
 
 	/* api callbacks */
 	ot->exec= clip_rebuild_proxy_exec;
