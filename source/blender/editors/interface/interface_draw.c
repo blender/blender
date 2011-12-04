@@ -1471,33 +1471,12 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
-static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
-{
-	ImBuf *scaleibuf;
-	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
-	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
-
-	for(y= 0; y<scaleibuf->y; y++) {
-		for (x= 0; x<scaleibuf->x; x++) {
-			int pixel= scaleibuf->x*y + x;
-			int orig_pixel= ibuf->x*(int)(((float)y)/zoomy) + (int)(((float)x)/zoomx);
-			char *rrgb= (char*)scaleibuf->rect + pixel*4;
-			char *orig_rrgb= (char*)ibuf->rect + orig_pixel*4;
-			rrgb[0]= orig_rrgb[0];
-			rrgb[1]= orig_rrgb[1];
-			rrgb[2]= orig_rrgb[2];
-			rrgb[3]= orig_rrgb[3];
-		}
-	}
-
-	return scaleibuf;
-}
-
 void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	rctf rect;
 	int ok= 0;
 	GLint scissor[4];
+	int preview_width, preview_height;
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 
 	rect.xmin = (float)recti->xmin+1;
@@ -1505,12 +1484,20 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
 	rect.ymax = (float)recti->ymax-1;
 
+	preview_width = rect.xmax - rect.xmin;
+	preview_height = rect.ymax - rect.ymin;
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
 	/* need scissor test, preview image can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+	glScissor(ar->winrct.xmin + (rect.xmin-1),
+	          ar->winrct.ymin+(rect.ymin-1),
+	          (rect.xmax+1)-(rect.xmin-1),
+	          (rect.ymax+1)-(rect.ymin-1));
 
 	if(scopes->track_disabled) {
 		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
@@ -1520,30 +1507,66 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		ok= 1;
 	}
 	else if(scopes->track_preview) {
-		int a, off_x, off_y;
-		float zoomx, zoomy;
+		int a;
 		ImBuf *drawibuf;
+		GLuint preview_texture;
+		float pattern_width, pattern_height;
+
+		pattern_width = scopes->track_preview->x;
+		pattern_height = scopes->track_preview->y;
 
 		glPushMatrix();
 
 		/* draw content of pattern area */
-		glScissor(ar->winrct.xmin+rect.xmin, ar->winrct.ymin+rect.ymin, scissor[2], scissor[3]);
+		glScissor(ar->winrct.xmin + rect.xmin,
+		          ar->winrct.ymin + rect.ymin,
+		          scissor[2],
+		          scissor[3]);
 
-		zoomx= (rect.xmax-rect.xmin) / (scopes->track_preview->x-2.0f);
-		zoomy= (rect.ymax-rect.ymin) / (scopes->track_preview->y-2.0f);
+		/* make a texture from the pattern */
+		/* TODO(keir): add a switch for bilinear filtering or not. */
+		glGenTextures(1, &preview_texture);
+		glBindTexture(GL_TEXTURE_2D, preview_texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+		             scopes->track_preview->x,
+		             scopes->track_preview->y,
+		             0, GL_RGBA, GL_UNSIGNED_BYTE,
+		             scopes->track_preview->rect);
+		glEnable(GL_TEXTURE_2D);
 
-		off_x= ((int)scopes->track_pos[0]-scopes->track_pos[0]-0.5f)*zoomx;
-		off_y= ((int)scopes->track_pos[1]-scopes->track_pos[1]-0.5f)*zoomy;
+		/* reposition so the preview area goes from -0.5 to 0.5 on x and y. */
+		glTranslatef((rect.xmin + rect.xmax) / 2.0f,
+		             (rect.ymin + rect.ymax) / 2.0f, 0.0f);
+		glScalef(preview_width, preview_height, 1.0f);
 
-		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, zoomx, zoomy);
-		glaDrawPixelsSafe(off_x+rect.xmin, off_y+rect.ymin, rect.xmax-rect.xmin+1.f-off_x, rect.ymax-rect.ymin+1.f-off_y, drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+		/* this matrix is reused below to draw the crosshair */
+		glPushMatrix();
 
-		IMB_freeImBuf(drawibuf);
+		/* make scale match the pattern and apply the subpixel marker translation. */
+		glScalef(1.0f / pattern_width,
+		         1.0f / pattern_width, 1.0f);
+		glTranslatef(-scopes->track_pos[0],
+		             -scopes->track_pos[1], 0.f);
+		glScalef(pattern_width, pattern_height, 1.0f);
 
-		/* draw cross for pizel position */
-		glTranslatef(off_x+rect.xmin+scopes->track_pos[0]*zoomx, off_y+rect.ymin+scopes->track_pos[1]*zoomy, 0.f);
-		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin+rect.ymin, rect.xmax-rect.xmin, rect.ymax-rect.ymin);
+		/* draw the pattern over the preview area. */
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0f,0.0f); glVertex2f(0.0f, 0.0f);
+		glTexCoord2f(1.0f,0.0f); glVertex2f(1.0f, 0.0f);
+		glTexCoord2f(1.0f,1.0f); glVertex2f(1.0f, 1.0f);
+		glTexCoord2f(0.0f,1.0f); glVertex2f(0.0f, 1.0f);
+		glEnd();
 
+		glDeleteTextures(1, &preview_texture);
+		glPopMatrix();
+
+		/* draw the crosshair */
 		for(a= 0; a< 2; a++) {
 			if(a==1) {
 				glLineStipple(3, 0xaaaa);
@@ -1555,14 +1578,14 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			}
 
 			glBegin(GL_LINES);
-				glVertex2f(-10.0f, 0.0f);
-				glVertex2f(10.0f, 0.0f);
-				glVertex2f(0.0f, -10.0f);
-				glVertex2f(0.0f, 10.0f);
+				glVertex2f(-0.10f,  0.0f);
+				glVertex2f( 0.10f,  0.0f);
+				glVertex2f( 0.0f,  -0.10f);
+				glVertex2f( 0.0f,   0.10f);
 			glEnd();
 		}
-
 		glDisable(GL_LINE_STIPPLE);
+
 		glPopMatrix();
 
 		ok= 1;
@@ -1577,7 +1600,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	/* outline, scale gripper */
 	draw_scope_end(&rect, scissor);
 
-	glDisable(GL_BLEND);
+	glPopAttrib();
 }
 
 /* ****************************************************** */
