@@ -19,11 +19,14 @@
 #ifndef __UTIL_BOUNDBOX_H__
 #define __UTIL_BOUNDBOX_H__
 
+#include <math.h>
 #include <float.h>
-#include <cmath>
 
+#include "util_math.h"
 #include "util_transform.h"
 #include "util_types.h"
+
+using namespace std;
 
 CCL_NAMESPACE_BEGIN
 
@@ -73,8 +76,8 @@ public:
 	bool valid(void) const
 	{
 		return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z) &&
-		       !(std::isnan(min.x) || std::isnan(min.y) || std::isnan(min.z)) &&
-		       !(std::isnan(max.x) || std::isnan(max.y) || std::isnan(max.z));
+		       !(isnan(min.x) || isnan(min.y) || isnan(min.z)) &&
+		       !(isnan(max.x) || isnan(max.y) || isnan(max.z));
 	}
 
 	BoundBox transformed(const Transform *tfm)
