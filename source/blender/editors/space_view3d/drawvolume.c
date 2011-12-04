@@ -44,7 +44,6 @@
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function

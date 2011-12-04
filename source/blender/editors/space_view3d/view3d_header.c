@@ -481,16 +481,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	
 	/* mode */
 	if(ob) {
-		/*sanity point checkpoint, put here to avoid seeding
-		  this same code in 10 different other places.*/
-		if (!ob->mode)
-			ob->mode = OB_MODE_OBJECT;
-
 		v3d->modeselect = ob->mode;
-	} else {
+	}
+	else {
 		v3d->modeselect = OB_MODE_OBJECT;
 	}
-	
+
 	row= uiLayoutRow(layout, 1);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
 			  0,0,126 * dpi_fac, UI_UNIT_Y, &(v3d->modeselect), 0, 0, 0, 0, TIP_("Mode"));

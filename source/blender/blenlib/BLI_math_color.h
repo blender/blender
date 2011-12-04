@@ -86,12 +86,6 @@ void linearrgb_to_srgb_rgba_buf(float *col, int tot);
 void srgb_to_linearrgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
 void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
 	
-/* rgba buffer convenience functions */
-void srgb_to_linearrgb_rgba_buf(float *col, int tot);
-void linearrgb_to_srgb_rgba_buf(float *col, int tot);
-void srgb_to_linearrgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
-void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
-	
 /************************** Other *************************/
 
 int constrain_rgb(float *r, float *g, float *b);

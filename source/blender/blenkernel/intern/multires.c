@@ -132,9 +132,6 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, int use_fi
 
 static int multires_get_level(Object *ob, MultiresModifierData *mmd, int render)
 {
-	if (!ob || !mmd)
-		return 0;
-	
 	if(render)
 		return (mmd->modifier.scene)? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl): mmd->renderlvl;
 	else if(ob->mode == OB_MODE_SCULPT)

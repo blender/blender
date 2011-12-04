@@ -767,12 +767,10 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		   by a more flexible customdata system, but not simple */
 		if(!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if (clmd) {
-				KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
-	
-				if(kb->data)
-					return kb->data;
-			}
+			KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
+
+			if(kb->data)
+				return kb->data;
 		}
 
 		return NULL;
@@ -1170,7 +1168,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 */
 		if (deform_r) {
 			*deform_r = CDDM_from_mesh(me, ob);
-			
+			 
 			if (build_shapekey_layers)
 				add_shapekey_layers(dm, me, ob);
 			
@@ -2240,7 +2238,10 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].array = tfdata->layers[layer].data;
 				attribs->tface[a].emOffset = tfdata->layers[layer].offset;
 				attribs->tface[a].glIndex = gattribs->layer[b].glindex;
-			} /*else {
+				/* attribs->tface[a].glTexco = gattribs->layer[b].gltexco; */ /* BMESH_TODO, trunk has this but not bmesh, need to investigate whats going on here - campbell */
+			}
+			/* BMESH ONLY, may need to get this working?, otherwise remove */
+			/* else {
 				int player;
 				CustomData *pdata = dm->getPolyDataLayout(dm);
 				
@@ -2259,7 +2260,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
 					
 				}
-			}*/
+			}
+			*/
 		}
 		else if(gattribs->layer[b].type == CD_MCOL) {
 			/* vertex colors */

@@ -101,7 +101,7 @@ int ED_vgroup_object_is_edit_mode(Object *ob)
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
-	
+
 	if(!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
 	
@@ -632,8 +632,8 @@ static void vgroup_select_verts(Object *ob, int select)
 					if(dvert->dw[i].def_nr == (ob->actdef-1)){
 						if (!BM_TestHFlag(eve, BM_HIDDEN)) {
 							BM_Select(em->bm, eve, select);
-							break;
 						}
+						break;
 					}
 				}
 			}

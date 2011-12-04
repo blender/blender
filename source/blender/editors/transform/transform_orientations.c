@@ -903,14 +903,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			copy_v3_v3(normal, ob->obmat[2]);
 			copy_v3_v3(plane, ob->obmat[1]);
 		}
-		else {
-			normal[0] = 0.0f;
-			normal[1] = 0.0f;
-			normal[2] = 1.0f;
-			plane[0] = 1.0f;
-			plane[1] = 0.0f;
-			plane[2] = 0.0f;
-		}
 		result = ORIENTATION_NORMAL;
 	}
 	

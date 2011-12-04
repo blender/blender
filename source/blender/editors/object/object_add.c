@@ -244,7 +244,7 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	return op->type->exec(C, op);
 }
 
-int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, 
+int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 	float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -308,7 +308,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 
 /* for object add primitive operators */
 /* do not call undo push in this function (users of this function have to) */
-Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, 
+Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
 	int enter_editmode, unsigned int layer)
 {
 	Main *bmain= CTX_data_main(C);

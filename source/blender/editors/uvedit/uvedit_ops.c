@@ -1885,7 +1885,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else {
 		sync= 0;
 		selectmode= ts->uv_selectmode;
-		sticky= sima->sticky;
+		sticky= (sima)? sima->sticky: 1;
 	}
 
 	/* find nearest element */

@@ -704,7 +704,6 @@ static void recalcData_view3d(TransInfo *t)
 					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
 					nu= nu->next;
 				}
-
 			} 
 			else {
 				/* Normal updating */

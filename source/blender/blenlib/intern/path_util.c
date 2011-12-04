@@ -35,7 +35,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
@@ -318,7 +317,7 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
 
 void BLI_cleanup_path(const char *relabase, char *dir)
 {
-	ptrdiff_t a;
+	short a;
 	char *start, *eind;
 	if (relabase) {
 		BLI_path_abs(dir, relabase);

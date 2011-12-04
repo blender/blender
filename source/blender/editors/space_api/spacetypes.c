@@ -39,8 +39,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "bmesh.h"
-
 #include "UI_interface.h"
 #include "UI_view2d.h"
 

@@ -203,8 +203,6 @@ typedef struct StrokeCache {
 	float mouse[2];
 	float bstrength;
 	float tex_mouse[2];
-	
-	rctf prect;
 
 	/* The rest is temporary storage that isn't saved as a property */
 
@@ -256,15 +254,6 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	float bb_min[3], bb_max[3], pmat[4][4];
 	int i, j, k;
 
-/*	if (G.rt == 1) {
-		rect->xmin = ob->sculpt->cache->prect.xmin;
-		rect->xmax = ob->sculpt->cache->prect.xmax;
-		rect->ymin = ob->sculpt->cache->prect.ymin;
-		rect->ymax = ob->sculpt->cache->prect.ymax;
-
-		return rect->xmin < rect->xmax && rect->ymin < rect->ymax;;
-	}
-*/
 	ED_view3d_ob_project_mat_get(rv3d, ob, pmat);
 
 	if(!pbvh)
@@ -319,7 +308,6 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	PBVH *pbvh= ob->sculpt->pbvh;
 	BoundBox bb;
 	bglMats mats;
-	StrokeCache *cache = ob->sculpt->cache;
 	rcti rect;
 
 	memset(&bb, 0, sizeof(BoundBox));
@@ -348,13 +336,6 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	/* clear redraw flag from nodes */
 	if(pbvh)
 		BLI_pbvh_update(pbvh, PBVH_UpdateRedraw, NULL);
-
-	/*clear prect*/
-	cache->prect.xmin = FLT_MAX;
-	cache->prect.xmax = -FLT_MAX;
-	cache->prect.ymin = FLT_MAX;
-	cache->prect.ymax = -FLT_MAX;
-
 }
 
 /************************ Brush Testing *******************/
@@ -1399,7 +1380,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		proxy= BLI_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co;
 
 		sculpt_brush_test_init(ss, &test);
-		
+
 		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength*tex_strength(ss, brush, vd.co, test.dist,
@@ -2241,6 +2222,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;
+
 	float an[3];
 	float fc[3];
 	float offset = get_offset(sd, ss);
@@ -2876,11 +2858,6 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	int mode;
 
 	ss->cache = cache;
-	
-	cache->prect.xmin = FLT_MAX;
-	cache->prect.xmax = -FLT_MAX;
-	cache->prect.ymin = FLT_MAX;
-	cache->prect.ymax = -FLT_MAX;
 
 	/* Set scaling adjustment */
 	ss->cache->scale[0] = 1.0f / ob->size[0];
@@ -3498,7 +3475,6 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))
 
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
-		sculpt_flush_update(C);
 
 		sculpt_undo_push_end();
 

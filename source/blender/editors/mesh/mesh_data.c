@@ -129,12 +129,10 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
-
 		
 		/* set index */
 		CustomData_set_layer_active(data, type, actindex);
 	}
-
 	
 	if (rndlayerdata != layerdata) {
 		/* find index */
@@ -145,12 +143,10 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
-
 		
 		/* set index */
 		CustomData_set_layer_render(data, type, rndindex);
 	}
-
 	
 	if (clonelayerdata != layerdata) {
 		/* find index */
@@ -161,12 +157,10 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
-
 		
 		/* set index */
 		CustomData_set_layer_clone(data, type, cloneindex);
 	}
-
 	
 	if (stencillayerdata != layerdata) {
 		/* find index */
@@ -177,7 +171,6 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
-
 		
 		/* set index */
 		CustomData_set_layer_stencil(data, type, stencilindex);
@@ -316,18 +309,16 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		em= me->edit_btmesh;
 
 		layernum = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
-		if (layernum >= MAX_MTFACE) {
+		if (layernum >= MAX_MTFACE)
 			return 0;
-		}
 
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 		CustomData_set_layer_name(&em->bm->pdata, CD_MTEXPOLY, layernum, name);
 
 		/* copy data from active UV */
-		if (layernum) {
+		if (layernum)
 			copy_editface_active_customdata(em, CD_MTFACE, layernum);
-		}
 
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
@@ -343,9 +334,8 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 	}
 	else {
 		layernum = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
-		if (layernum >= MAX_MTFACE) {
+		if (layernum >= MAX_MTFACE)
 			return 0;
-		}
 
 		if (me->mtpoly) {
 			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
@@ -515,7 +505,6 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	ot->name= "Add UV Map";
 	ot->description= "Add UV Map";
 	ot->idname= "MESH_OT_uv_texture_add";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -536,19 +525,16 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Object *obedit;
 	int exitmode= 0;
 	char name[32];
-
 	
 	/* Check context */
 	if(base==NULL || base->object->type!=OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "Not an Object or Mesh");
 		return OPERATOR_CANCELLED;
 	}
-
 	
 	/* check input variables */
 	if(RNA_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
-
 		
 		RNA_string_get(op->ptr, "filepath", path);
 		ima= BKE_add_image_file(path);
@@ -557,13 +543,11 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
 	}
-
 	
 	if(!ima) {
 		BKE_report(op->reports, RPT_ERROR, "Not an Image");
 		return OPERATOR_CANCELLED;
 	}
-
 	
 	/* put mesh in editmode */
 
@@ -575,7 +559,6 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	if(me->edit_btmesh==NULL)
 		return OPERATOR_CANCELLED;
-
 	
 	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 
@@ -589,10 +572,8 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* dummie drop support; ensure view shows a result :) */
 	if(v3d)
 		v3d->flag2 |= V3D_SOLID_TEX;
-
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
 	
 	return OPERATOR_FINISHED;
 }
@@ -603,16 +584,13 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->name= "Assign Image to UV Map";
 	ot->description= "Assign Image to active UV Map, or create an UV Map";
 	ot->idname= "MESH_OT_drop_named_image";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
 	ot->invoke= drop_named_image_invoke;
-
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
-
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign");
@@ -636,7 +614,6 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 	ot->name= "Remove UV Map";
 	ot->description= "Remove UV Map";
 	ot->idname= "MESH_OT_uv_texture_remove";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -666,7 +643,6 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 	ot->name= "Add Vertex Color";
 	ot->description= "Add vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_add";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -693,7 +669,6 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 	ot->name= "Remove Vertex Color";
 	ot->description= "Remove vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_remove";
-
 	
 	/* api callbacks */
 	ot->exec= vertex_color_remove_exec;
@@ -729,7 +704,6 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 	ot->name= "Add Sticky";
 	ot->description= "Add sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_add";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -762,7 +736,6 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 	ot->name= "Remove Sticky";
 	ot->description= "Remove sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_remove";
-
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -889,8 +862,6 @@ static void mesh_add_edges(Mesh *mesh, int len)
 	mesh->totedge= totedge;
 }
 
-
-
 static void mesh_add_faces(Mesh *mesh, int len)
 {
 	CustomData fdata;
@@ -1011,7 +982,6 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 
 	mesh_add_edges(mesh, count);
 }
-
 
 void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 {

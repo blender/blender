@@ -408,7 +408,7 @@ typedef struct UserDef {
 	struct ColorBand coba_weight;	/* from texture.h */
 
 	float sculpt_paint_overlay_col[3];
-	int loopcut_finish_on_release;
+	int pad3;
 
 	char author[80];	/* author name for file formats supporting it */
 } UserDef;

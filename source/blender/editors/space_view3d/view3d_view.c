@@ -762,9 +762,9 @@ void ED_view3d_project_float(ARegion *ar, const float vec[3], float adr[2], floa
 {
 	float vec4[4];
 	
+	adr[0]= IS_CLIPPED;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
-	adr[0]= IS_CLIPPED;
 	
 	mul_m4_v4(mat, vec4);
 	

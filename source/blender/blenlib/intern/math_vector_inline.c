@@ -510,7 +510,7 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 	return d;
 }
 
-MINLINE double normalize_dv3(double n[3])
+MINLINE double normalize_v3_d(double n[3])
 {
 	double d= n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
 

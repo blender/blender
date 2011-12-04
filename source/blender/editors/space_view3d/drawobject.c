@@ -1951,10 +1951,10 @@ void mesh_foreachScreenVert(
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	EDBM_init_index_arrays(vc->em, 1, 0, 0);
 	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
+	EDBM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EDBM_free_index_arrays(vc->em);
 
@@ -2044,10 +2044,10 @@ void mesh_foreachScreenEdge(
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	EDBM_init_index_arrays(vc->em, 0, 1, 0);
 	if(clipVerts != V3D_CLIP_TEST_OFF)
 		ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
+	EDBM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EDBM_free_index_arrays(vc->em);
 
@@ -2084,10 +2084,10 @@ void mesh_foreachScreenFace(
 	data.func = func;
 	data.userData = userData;
 
-	EDBM_init_index_arrays(vc->em, 0, 0, 1);
 	//if(clipVerts)
 	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
+	EDBM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EDBM_free_index_arrays(vc->em);
 
@@ -2262,10 +2262,6 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_
 	data.sel = sel;
 	data.eve_act = eve_act;
 	data.em = em;
-	
-	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
-	bglEnd();
 
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
@@ -2526,7 +2522,7 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 /* EditMesh drawing routines*/
 
 static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, 
-				BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act)
+                                BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act)
 {
 	ToolSettings *ts= scene->toolsettings;
 	int sel;
@@ -2583,9 +2579,9 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d, 
-				Mesh *me, DerivedMesh *cageDM, short sel_only, 
-				BMEdge *eed_act)
+static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
+                                Mesh *me, DerivedMesh *cageDM, short sel_only,
+                                BMEdge *eed_act)
 {
 	ToolSettings *ts= scene->toolsettings;
 	int pass;
@@ -2643,8 +2639,8 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, 
-				  Object *ob, BMEditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
+                                  Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
@@ -6992,7 +6988,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, f
 
 /* two options, facecolors or black */
 static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
-			      Object *ob, DerivedMesh *dm, int facecol)
+                              Object *ob, DerivedMesh *dm, int facecol)
 {
 	void *ptrs[2] = {em, NULL}; //second one being null means to draw black
 	cpack(0);

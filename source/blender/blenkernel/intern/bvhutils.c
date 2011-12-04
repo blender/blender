@@ -652,7 +652,7 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 							copy_v3_v3(co[2], vert[ face[i].v3 ].co);
 							if(face[i].v4)
 								copy_v3_v3(co[3], vert[ face[i].v4 ].co);
-				
+					
 							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 						}
 					}

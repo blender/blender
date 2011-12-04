@@ -489,7 +489,6 @@ static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
 		return 0;
 	}
-
 	return view3d_ima_drop_poll(C, drag, event);
 }
 

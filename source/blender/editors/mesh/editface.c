@@ -67,7 +67,6 @@
 
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting) */
-
 void paintface_flush_flags(Object *ob)
 {
 	Mesh *me = get_mesh(ob);
@@ -78,9 +77,8 @@ void paintface_flush_flags(Object *ob)
 	int totface, totpoly;
 	int i;
 	
-	if (me==NULL || dm==NULL) {
+	if(me==NULL || dm==NULL)
 		return;
-	}
 
 	/*
 	 * Try to push updated mesh poly flags to three other data sets:

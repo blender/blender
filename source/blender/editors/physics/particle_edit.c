@@ -2623,7 +2623,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			}
 		}
 
-		if((point->flag & PEP_TAG) && mirrorfaces && mirrorfaces[pa->num*2] != -1)
+		if((point->flag & PEP_TAG) && mirrorfaces[pa->num*2] != -1)
 			newtotpart++;
 	}
 
@@ -2660,7 +2660,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 
 			if(point->flag & PEP_HIDE)
 				continue;
-			if(!(point->flag & PEP_TAG) || (mirrorfaces && mirrorfaces[pa->num*2] == -1))
+			if(!(point->flag & PEP_TAG) || mirrorfaces[pa->num*2] == -1)
 				continue;
 
 			/* duplicate */
@@ -2670,7 +2670,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			if(point->keys) newpoint->keys= MEM_dupallocN(point->keys);
 
 			/* rotate weights according to vertex index rotation */
-			rotation= mirrorfaces ? mirrorfaces[pa->num*2+1] : 0;
+			rotation= mirrorfaces[pa->num*2+1];
 			newpa->fuv[0]= pa->fuv[2];
 			newpa->fuv[1]= pa->fuv[1];
 			newpa->fuv[2]= pa->fuv[0];
@@ -2682,7 +2682,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 					SHIFT3(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2])
 
 			/* assign face inddex */
-					newpa->num= mirrorfaces ? mirrorfaces[pa->num*2] : 0;
+			newpa->num= mirrorfaces[pa->num*2];
 			newpa->num_dmcache= psys_particle_dm_face_lookup(ob,psmd->dm,newpa->num,newpa->fuv, NULL);
 
 			/* update edit key pointers */
@@ -2704,8 +2704,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		point->flag &= ~PEP_TAG;
 	}
 
-	if (mirrorfaces)
-		MEM_freeN(mirrorfaces);
+	MEM_freeN(mirrorfaces);
 }
 
 static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
