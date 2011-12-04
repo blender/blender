@@ -288,7 +288,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	}
 
 	bm->elem_index_dirty |= BM_EDGE;
-
+	
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		BMIter eiter;
 		
@@ -563,9 +563,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 		BMVert *vv, *vstart=NULL, *lastv=NULL;
 		SmallHash tmphash;
 		int rad, insorig=0, err=0;
-		
+
 		BLI_smallhash_init(&tmphash);
-		
+				
 		if (!BMO_TestFlag(bm, v, BEVEL_FLAG))
 			continue;
 		
@@ -579,6 +579,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			if (BM_Edge_FaceCount(e) < 2)
 				insorig = 1;
+			
+			if (BM_GetIndex(e) == -1)
+				continue;
 			
 			rad = 0;
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {

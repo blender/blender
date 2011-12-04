@@ -98,6 +98,7 @@ typedef struct BMLoop {
 	int _index; /*used for sorting during tesselation*/
 } BMLoop;
 
+/*eventually, this structure will be used for supporting holes in faces*/
 typedef struct BMLoopList {
 	struct BMLoopList *next, *prev;
 	struct BMLoop *first, *last;
