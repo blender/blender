@@ -1397,7 +1397,6 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->matbits= NULL;
 	if ((target->totcol) && (target->mat) && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 		int i;
-		ob->colbits = target->colbits;
 		
 		ob->actcol= target->actcol;
 		ob->totcol= target->totcol;

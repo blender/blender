@@ -394,10 +394,6 @@ Scene *add_scene(const char *name)
 	sce->r.simplify_shadowsamples= 16;
 	sce->r.simplify_aosss= 1.0f;
 
-	sce->r.cineonblack= 95;
-	sce->r.cineonwhite= 685;
-	sce->r.cineongamma= 1.7f;
-
 	sce->r.border.xmin= 0.0f;
 	sce->r.border.ymin= 0.0f;
 	sce->r.border.xmax= 1.0f;

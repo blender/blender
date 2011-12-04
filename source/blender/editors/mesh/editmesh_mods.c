@@ -4151,20 +4151,10 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 				for (eve= em->verts.first; eve; eve= eve->next) {
 					if(eve->f & SELECT) {
 
-						switch(mmd->axis){
-							case 0:
-								if (fabsf(eve->co[0]) < mmd->tolerance)
-									eve->f2 |= 1;
-								break;
-							case 1:
-								if (fabsf(eve->co[1]) < mmd->tolerance)
-									eve->f2 |= 2;
-								break;
-							case 2:
-								if (fabsf(eve->co[2]) < mmd->tolerance)
-									eve->f2 |= 4;
-								break;
-						}
+						if (mmd->flag & MOD_MIR_AXIS_X && fabsf(eve->co[0]) < mmd->tolerance) eve->f2 |= 1;
+						if (mmd->flag & MOD_MIR_AXIS_Y && fabsf(eve->co[1]) < mmd->tolerance) eve->f2 |= 2;
+						if (mmd->flag & MOD_MIR_AXIS_Z && fabsf(eve->co[2]) < mmd->tolerance) eve->f2 |= 4;
+
 					}
 				}
 			}
