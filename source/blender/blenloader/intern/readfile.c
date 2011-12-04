@@ -48,6 +48,9 @@
 #include "BLI_winstuff.h"
 #endif
 
+/* allow readfile to use deprecated functionality */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_actuator_types.h"

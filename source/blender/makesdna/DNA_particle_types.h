@@ -32,6 +32,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_boid_types.h"
 
@@ -225,10 +226,10 @@ typedef struct ParticleSettings {
 
 	struct Group *dup_group;
 	struct ListBase dupliweights;
-	struct Group *eff_group;		// deprecated
+	struct Group *eff_group  DNA_DEPRECATED;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
-	struct Ipo *ipo;				// xxx depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct PartDeflect *pd;
 	struct PartDeflect *pd2;
 } ParticleSettings;

@@ -32,6 +32,7 @@
  *  \brief Object is a sort of wrapper for general info.
  */
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_action_types.h" /* bAnimVizSettings */
@@ -110,10 +111,10 @@ typedef struct Object {
 	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
 	/* proxy_from is set in target back to the proxy. */
 	struct Object *proxy, *proxy_group, *proxy_from;
-	struct Ipo *ipo;		// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	/* struct Path *path; */
 	struct BoundBox *bb;
-	struct bAction *action;	 // XXX depreceated... old animation system
+	struct bAction *action  DNA_DEPRECATED;	 // XXX depreceated... old animation system
 	struct bAction *poselib;
 	struct bPose *pose;  /* pose data, armature objects only */
 	void *data;  /* pointer to objects data - an 'ID' or NULL */
@@ -123,8 +124,8 @@ typedef struct Object {
 	bAnimVizSettings avs;	/* settings for visualisation of object-transform animation */
 	bMotionPath *mpath;		/* motion path cache for this object */
 	
-	ListBase constraintChannels; // XXX depreceated... old animation system
-	ListBase effect;             // XXX depreceated... keep for readfile
+	ListBase constraintChannels  DNA_DEPRECATED; // XXX depreceated... old animation system
+	ListBase effect  DNA_DEPRECATED;             // XXX depreceated... keep for readfile
 	ListBase disp;      /* list of DispList, used by lattice, metaballs curve & surfaces */
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
@@ -141,7 +142,7 @@ typedef struct Object {
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
 	float size[3];              /* scale infact */
-	float dsize[3];             /* DEPRECATED, 2.60 and older only */
+	float dsize[3] DNA_DEPRECATED ; /* DEPRECATED, 2.60 and older only */
 	float dscale[3];            /* ack!, changing */
 	float rot[3], drot[3];		/* euler rotation */
 	float quat[4], dquat[4];	/* quaternion rotation */
@@ -163,7 +164,7 @@ typedef struct Object {
 	int pad6;
 
 	short flag;			/* copy of Base */
-	short colbits;		/* deprecated */
+	short colbits DNA_DEPRECATED;		/* deprecated */
 	
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
@@ -233,8 +234,8 @@ typedef struct Object {
 	float anisotropicFriction[3];
 
 	ListBase constraints;		/* object constraints */
-	ListBase nlastrips;			// XXX depreceated... old animation system
-	ListBase hooks;				// XXX depreceated... old animation system
+	ListBase nlastrips  DNA_DEPRECATED;			// XXX depreceated... old animation system
+	ListBase hooks  DNA_DEPRECATED;				// XXX depreceated... old animation system
 	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */

@@ -31,6 +31,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
@@ -62,10 +63,10 @@ typedef struct Key {
 	KeyBlock *refkey;
 	char elemstr[32];
 	int elemsize;
-	float curval;
+	float curval  DNA_DEPRECATED;
 	
 	ListBase block;
-	struct Ipo *ipo;		// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	
 	ID *from;
 
@@ -93,4 +94,3 @@ typedef struct Key {
 #define KEYBLOCK_LOCKED			(1<<2)
 
 #endif
-
