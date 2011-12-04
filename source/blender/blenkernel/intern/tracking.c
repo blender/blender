@@ -791,7 +791,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 						patx= (int)((track->pat_max[0]-track->pat_min[0])*width);
 						paty= (int)((track->pat_max[1]-track->pat_min[1])*height);
 
-						if(track->tracker==TRACKER_KLT || track->tracker==TRACKER_HYBRID) {
+						if(ELEM(track->tracker, TRACKER_KLT, TRACKER_HYBRID)) {
 							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
 							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
@@ -1184,7 +1184,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			   marker->pos[1]<margin[1] || marker->pos[1]>1.0f-margin[1]) {
 				onbound= 1;
 			}
-			else if(track->tracker==TRACKER_KLT || track->tracker==TRACKER_HYBRID) {
+			else if(ELEM(track->tracker, TRACKER_KLT, TRACKER_HYBRID)) {
 				float *patch_new;
 
 				if(need_readjust) {
