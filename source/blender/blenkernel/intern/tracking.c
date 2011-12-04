@@ -77,7 +77,6 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->camera.units= CAMERA_UNITS_MM;
 
 	tracking->settings.default_tracker= TRACKER_KLT;
-	tracking->settings.default_pyramid_levels= 2;
 	tracking->settings.default_minimum_correlation= 0.75;
 	tracking->settings.default_pattern_size= 11;
 	tracking->settings.default_search_size= 51;
@@ -810,9 +809,9 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							int level= MIN2(track->pyramid_levels, max_pyramid_levels);
 
 							if(track->tracker==TRACKER_KLT)
-								track_context.region_tracker= libmv_pyramidRegionTrackerNew(100, level, MAX2(wndx, wndy));
+								track_context.region_tracker= libmv_pyramidRegionTrackerNew(100, level, MAX2(wndx, wndy), track->minimum_correlation);
 							else
-								track_context.region_tracker= libmv_hybridRegionTrackerNew(100, MAX2(wndx, wndy));
+								track_context.region_tracker= libmv_hybridRegionTrackerNew(100, MAX2(wndx, wndy), track->minimum_correlation);
 						}
 						else if(track->tracker==TRACKER_SAD) {
 							track_context.pattern_size= MAX2(patx, paty);

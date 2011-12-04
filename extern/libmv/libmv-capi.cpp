@@ -111,12 +111,13 @@ void libmv_setLoggingVerbosity(int verbosity)
 
 /* ************ RegionTracker ************ */
 
-libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size)
+libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size, double minimum_correlation)
 {
 	libmv::EsmRegionTracker *esm_region_tracker = new libmv::EsmRegionTracker;
 	esm_region_tracker->half_window_size = half_window_size;
 	esm_region_tracker->max_iterations = max_iterations;
 	esm_region_tracker->min_determinant = 1e-4;
+	esm_region_tracker->minimum_correlation = minimum_correlation;
 
 	libmv::PyramidRegionTracker *pyramid_region_tracker =
 		new libmv::PyramidRegionTracker(esm_region_tracker, pyramid_level);
@@ -124,12 +125,13 @@ libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyram
 	return (libmv_RegionTracker *)pyramid_region_tracker;
 }
 
-libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size)
+libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size, double minimum_correlation)
 {
 	libmv::EsmRegionTracker *esm_region_tracker = new libmv::EsmRegionTracker;
 	esm_region_tracker->half_window_size = half_window_size;
 	esm_region_tracker->max_iterations = max_iterations;
 	esm_region_tracker->min_determinant = 1e-4;
+	esm_region_tracker->minimum_correlation = minimum_correlation;
 
 	libmv::BruteRegionTracker *brute_region_tracker = new libmv::BruteRegionTracker;
   brute_region_tracker->half_window_size = half_window_size;

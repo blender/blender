@@ -503,8 +503,7 @@ class CLIP_PT_track_settings(Panel):
 
             if active.tracker == 'KLT':
                 col.prop(active, "pyramid_levels")
-            elif active.tracker == 'SAD':
-                col.prop(active, "correlation_min")
+            col.prop(active, "correlation_min")
 
             col.separator()
             col.prop(active, "frames_limit")
