@@ -43,7 +43,8 @@
 #include <string.h>
 #include <stddef.h>
 
-#include "MEM_guardedalloc.h"
+/* since we have versioning code here */
+#define DNA_DEPRECATED_ALLOW
 
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
@@ -73,6 +74,7 @@
 #include "BKE_nla.h"
 #include "BKE_sequencer.h"
 
+#include "MEM_guardedalloc.h"
 
 /* *************************************************** */
 /* Old-Data Freeing Tools */

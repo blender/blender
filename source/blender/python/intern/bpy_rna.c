@@ -2107,9 +2107,18 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
 /* static PyObject *pyrna_prop_array_subscript_str(BPy_PropertyRNA *self, char *keyname) */
 
 /* special case: bpy.data.objects["some_id_name", "//some_lib_name.blend"]
- * also for:     bpy.data.objects.get(("some_id_name", "//some_lib_name.blend"), fallback)  */
-static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *self, PyObject *key,
-                                                              const char *err_prefix, const short err_not_found)
+ * also for:     bpy.data.objects.get(("some_id_name", "//some_lib_name.blend"), fallback)
+ *
+ * note:
+ * error codes since this is not to be called directly from python,
+ * this matches pythons __contains__ values capi.
+ * -1: exception set
+ *  0: not found
+ *  1: found */
+int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *self, PyObject *key,
+                                                     const char *err_prefix, const short err_not_found,
+                                                     PointerRNA *r_ptr
+                                                     )
 {
 	char *keyname;
 
@@ -2118,24 +2127,24 @@ static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *s
 		PyErr_Format(PyExc_KeyError,
 		             "%s: tuple key must be a pair, not size %d",
 		             err_prefix, PyTuple_GET_SIZE(key));
-		return NULL;
+		return -1;
 	}
 	else if (self->ptr.type != &RNA_BlendData) {
 		PyErr_Format(PyExc_KeyError,
 		             "%s: is only valid for bpy.data collections, not %.200s",
 		             err_prefix, RNA_struct_identifier(self->ptr.type));
-		return NULL;
+		return -1;
 	}
 	else if ((keyname= _PyUnicode_AsString(PyTuple_GET_ITEM(key, 0))) == NULL) {
 		PyErr_Format(PyExc_KeyError,
 		             "%s: id must be a string, not %.200s",
 		             err_prefix, Py_TYPE(PyTuple_GET_ITEM(key, 0))->tp_name);
-		return NULL;
+		return -1;
 	}
 	else {
 		PyObject *keylib= PyTuple_GET_ITEM(key, 1);
 		Library *lib;
-		PyObject *ret= NULL;
+		int found= FALSE;
 
 		if (keylib == Py_None) {
 			lib= NULL;
@@ -2150,16 +2159,19 @@ static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *s
 								 "%s: lib name '%.240s' "
 								 "does not reference a valid library",
 								 err_prefix, keylib_str);
+					return -1;
+				}
+				else {
+					return 0;
 				}
 
-				return NULL;
 			}
 		}
 		else {
 			PyErr_Format(PyExc_KeyError,
 			             "%s: lib must be a sting or None, not %.200s",
 			             err_prefix, Py_TYPE(keylib)->tp_name);
-			return NULL;
+			return -1;
 		}
 
 		/* lib is either a valid poniter or NULL,
@@ -2168,22 +2180,42 @@ static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *s
 		RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
 			ID *id= itemptr.data; /* always an ID */
 			if (id->lib == lib && (strncmp(keyname, id->name+2, sizeof(id->name)-2) == 0)) {
-				ret= pyrna_struct_CreatePyObject(&itemptr);
+				found= TRUE;
+				if (r_ptr) {
+					*r_ptr= itemptr;
+				}
 				break;
 			}
 		}
 		RNA_PROP_END;
 
 		/* we may want to fail silently as with collection.get() */
-		if ((ret == NULL) && err_not_found) {
+		if ((found == FALSE) && err_not_found) {
 			/* only runs for getitem access so use fixed string */
 			PyErr_SetString(PyExc_KeyError,
 			                "bpy_prop_collection[key, lib]: not found");
+			return -1;
 		}
-
-		return ret;
+		else {
+			return found; /* 1 / 0, no exception */
+		}
 	}
 }
+
+static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *self, PyObject *key,
+                                                              const char *err_prefix, const short err_not_found)
+{
+	PointerRNA ptr;
+	const int contains= pyrna_prop_collection_subscript_str_lib_pair_ptr(self, key, err_prefix, err_not_found, &ptr);
+
+	if (contains == 1) {
+		return pyrna_struct_CreatePyObject(&ptr);
+	}
+	else {
+		return NULL;
+	}
+}
+
 
 static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py_ssize_t start, Py_ssize_t stop)
 {
@@ -2771,22 +2803,30 @@ static int pyrna_prop_array_contains(BPy_PropertyRNA *self, PyObject *value)
 	return pyrna_array_contains_py(&self->ptr, self->prop, value);
 }
 
-static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *value)
+static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *key)
 {
 	PointerRNA newptr; /* not used, just so RNA_property_collection_lookup_string runs */
 
-	/* key in dict style check */
-	const char *keyname= _PyUnicode_AsString(value);
-
-	if (keyname==NULL) {
-		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.__contains__: expected a string");
-		return -1;
+	if (PyTuple_Check(key)) {
+		/* special case, for ID datablocks we */
+		return pyrna_prop_collection_subscript_str_lib_pair_ptr(self, key,
+		                                                        "(id, lib) in bpy_prop_collection", FALSE, NULL);
 	}
+	else {
 
-	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
-		return 1;
+		/* key in dict style check */
+		const char *keyname= _PyUnicode_AsString(key);
 
-	return 0;
+		if (keyname==NULL) {
+			PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.__contains__: expected a string or a typle of strings");
+			return -1;
+		}
+
+		if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr))
+			return 1;
+
+		return 0;
+	}
 }
 
 static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)

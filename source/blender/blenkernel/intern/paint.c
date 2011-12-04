@@ -90,15 +90,28 @@ void paint_brush_set(Paint *p, Brush *br)
 	}
 }
 
+/* are we in vertex paint or weight pain face select mode? */
 int paint_facesel_test(Object *ob)
 {
-	return (ob && ob->type==OB_MESH && ob->data && (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_MASK) && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
+	return ( (ob != NULL) &&
+	         (ob->type == OB_MESH) &&
+	         (ob->data != NULL) &&
+	         (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_MASK) &&
+	         (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
+	         );
 }
 
+/* are we in weight paint vertex select mode? */
 int paint_vertsel_test(Object *ob)
 {
-	return (ob && ob->type==OB_MESH && ob->data && (((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) && (ob->mode & OB_MODE_WEIGHT_PAINT));
+	return ( (ob != NULL) &&
+	         (ob->type == OB_MESH) &&
+	         (ob->data != NULL) &&
+	         (((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) &&
+	         (ob->mode & OB_MODE_WEIGHT_PAINT)
+	         );
 }
+
 void paint_init(Paint *p, const char col[3])
 {
 	Brush *brush;

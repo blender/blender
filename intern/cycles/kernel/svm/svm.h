@@ -126,9 +126,11 @@ CCL_NAMESPACE_END
 #include "svm_convert.h"
 #include "svm_displace.h"
 #include "svm_fresnel.h"
+#include "svm_camera.h"
 #include "svm_geometry.h"
 #include "svm_hsv.h"
 #include "svm_image.h"
+#include "svm_invert.h"
 #include "svm_light_path.h"
 #include "svm_magic.h"
 #include "svm_mapping.h"
@@ -232,6 +234,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_tex_magic(kg, sd, stack, node, &offset);
 				break;
 #endif
+			case NODE_CAMERA:
+				svm_node_camera(kg, sd, stack, node.y, node.z, node.w);
+				break;
 			case NODE_GEOMETRY:
 				svm_node_geometry(sd, stack, node.y, node.z);
 				break;
@@ -252,6 +257,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_VALUE_V:
 				svm_node_value_v(kg, sd, stack, node.y, &offset);
+				break;
+			case NODE_INVERT:
+				svm_node_invert(sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_MIX:
 				svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);

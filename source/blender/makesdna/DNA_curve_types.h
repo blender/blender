@@ -31,6 +31,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "DNA_ID.h"
@@ -174,7 +175,7 @@ typedef struct Curve {
 	EditNurb *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
-	struct Ipo *ipo;	// XXX depreceated... old animation system
+	struct Ipo *ipo    DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	Path *path;
 	struct Key *key;
 	struct Material **mat;

@@ -96,7 +96,7 @@ ListBase fillvertbase = {NULL, NULL};
 ListBase filledgebase = {NULL, NULL};
 ListBase fillfacebase = {NULL, NULL};
 
-static short cox, coy;
+static int cox, coy;
 
 /* ****  FUBCTIONS FOR QSORT *************************** */
 
@@ -825,19 +825,7 @@ int BLI_edgefill(short mat_nr)
 
 	if(len==0.0f) return 0;	/* no fill possible */
 
-	norm[0]= fabs(norm[0]);
-	norm[1]= fabs(norm[1]);
-	norm[2]= fabs(norm[2]);
-	
-	if(norm[2]>=norm[0] && norm[2]>=norm[1]) {
-		cox= 0; coy= 1;
-	}
-	else if(norm[1]>=norm[0] && norm[1]>=norm[2]) {
-		cox= 0; coy= 2;
-	}
-	else {
-		cox= 1; coy= 2;
-	}
+	axis_dominant_v3(&cox, &coy, norm);
 
 	/* STEP 1: COUNT POLYS */
 	eve= fillvertbase.first;

@@ -1566,6 +1566,34 @@ void MixClosureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix_closure");
 }
 
+/* Invert */
+
+InvertNode::InvertNode()
+: ShaderNode("invert")
+{
+	add_input("Fac", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Color",  SHADER_SOCKET_COLOR);
+}
+
+void InvertNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_INVERT, fac_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+}
+
+void InvertNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_invert");
+}
+
 /* Mix */
 
 MixNode::MixNode()
@@ -1802,6 +1830,33 @@ void AttributeNode::compile(OSLCompiler& compiler)
 
 	compiler.parameter("name", attribute.c_str());
 	compiler.add(this, "node_attribute");
+}
+
+/* Camera */
+
+CameraNode::CameraNode()
+: ShaderNode("camera")
+{
+	add_output("View Vector",  SHADER_SOCKET_VECTOR);
+	add_output("View Z Depth",  SHADER_SOCKET_FLOAT);
+	add_output("View Distance",  SHADER_SOCKET_FLOAT);
+}
+
+void CameraNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *vector_out = output("View Vector");
+	ShaderOutput *z_depth_out = output("View Z Depth");
+	ShaderOutput *distance_out = output("View Distance");
+
+	compiler.stack_assign(vector_out);
+	compiler.stack_assign(z_depth_out);
+	compiler.stack_assign(distance_out);
+	compiler.add_node(NODE_CAMERA, vector_out->stack_offset, z_depth_out->stack_offset, distance_out->stack_offset);
+}
+
+void CameraNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_camera");
 }
 
 /* Fresnel */

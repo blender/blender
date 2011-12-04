@@ -237,7 +237,6 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 		if(set) {
 			ob->actcol= te->index+1;
 			ob->matbits[te->index]= 1;	// make ob material active too
-			ob->colbits |= (1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1) 
@@ -249,7 +248,6 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 		if(set) {
 			ob->actcol= te->index+1;
 			ob->matbits[te->index]= 0;	// make obdata material active too
-			ob->colbits &= ~(1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1)

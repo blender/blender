@@ -54,6 +54,7 @@ set(SRC_SVM_HEADERS
 	svm/svm.h
 	svm/svm_attribute.h
 	svm/svm_bsdf.h
+	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h
 	svm/svm_displace.h
@@ -62,6 +63,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_gradient.h
 	svm/svm_hsv.h
 	svm/svm_image.h
+	svm/svm_invert.h
 	svm/svm_light_path.h
 	svm/svm_magic.h
 	svm/svm_mapping.h

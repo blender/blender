@@ -33,6 +33,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
@@ -66,7 +67,7 @@ typedef struct bConstraint {
 	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
 	int			pad;
 	
-	struct Ipo *ipo;		/* local influence ipo or driver */ // XXX depreceated for 2.5... old animation system hack
+	struct Ipo *ipo    DNA_DEPRECATED;		/* local influence ipo or driver */  /* old animation system, deprecated for 2.5 */
 	
 	/* below are readonly fields that are set at runtime by the solver for use in the GE (only IK atm) */
 	float       lin_error;		/* residual error on constraint expressed in blender unit*/

@@ -123,8 +123,10 @@ void unlink_group(Group *group)
 		for(psys=ob->particlesystem.first; psys; psys=psys->next){
 			if(psys->part->dup_group==group)
 				psys->part->dup_group= NULL;
+#if 0		/* not used anymore, only keps for readfile.c, no need to account for this */
 			if(psys->part->eff_group==group)
 				psys->part->eff_group= NULL;
+#endif
 		}
 	}
 	
@@ -381,6 +383,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 	}
 }
 
+#if 0
 Object *group_get_member_with_action(Group *group, bAction *act)
 {
 	GroupObject *go;
@@ -432,3 +435,4 @@ void group_relink_nla_objects(Object *ob)
 	}
 }
 
+#endif

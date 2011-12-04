@@ -462,7 +462,7 @@ void end_latt_deform(Object *ob)
 	   so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
-	float dmin[3], dmax[3], dsize, dloc[3];
+	float dmin[3], dmax[3], dscale, dloc[3];
 	float curvespace[4][4], objectspace[4][4], objectspace3[3][3];
 	int no_rot_axis;
 } CurveDeform;

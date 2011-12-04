@@ -106,9 +106,7 @@ void unlink_mesh(Mesh *me)
 	}
 
 	if(me->key) {
-		   me->key->id.us--;
-		if (me->key->id.us == 0 && me->key->ipo )
-			me->key->ipo->id.us--;
+		me->key->id.us--;
 	}
 	me->key= NULL;
 	

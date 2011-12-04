@@ -689,7 +689,8 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	const float size= ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
 	float verts[CIRCLE_RESOL][3];
 
-	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
+	/* using gldepthfunc guarantees that it does write z values,
+	 * but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
 	glEnable(GL_BLEND);
 	
@@ -750,10 +751,14 @@ void view3d_cached_text_draw_begin(void)
 	CachedTextLevel++;
 }
 
-void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4])
+void view3d_cached_text_draw_add(const float co[3],
+                                 const char *str,
+                                 short xoffs, short flag,
+                                 const unsigned char col[4])
 {
 	int alloc_len= strlen(str) + 1;
 	ListBase *strings= &CachedText[CachedTextLevel-1];
+	/* TODO, replace with more efficient malloc, perhaps memarena per draw? */
 	ViewCachedString *vos= MEM_callocN(sizeof(ViewCachedString) + alloc_len, "ViewCachedString");
 
 	BLI_addtail(strings, vos);
@@ -815,7 +820,9 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		else glDepthMask(0);
 		
 		for(vos= strings->first; vos; vos= vos->next) {
-#if 0       // too slow, reading opengl info while drawing is very bad, better to see if we can use the zbuffer while in pixel space - campbell
+			/* too slow, reading opengl info while drawing is very bad,
+			 * better to see if we can use the zbuffer while in pixel space - campbell */
+#if 0
 			if(v3d->zbuf && (vos->flag & V3D_CACHE_TEXT_ZBUF)) {
 				gluProject(vos->vec[0], vos->vec[1], vos->vec[2], mats.modelview, mats.projection, (GLint *)mats.viewport, &ux, &uy, &uz);
 				glReadPixels(ar->winrct.xmin+vos->mval[0]+vos->xoffs, ar->winrct.ymin+vos->mval[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
@@ -831,12 +838,14 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 					glColor3ubv(vos->col.ub);
 					col_pack_prev= vos->col.pack;
 				}
-				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
-				}
-				else {
-					BLF_draw_default((float)vos->sco[0]+vos->xoffs, (float)vos->sco[1], (depth_write)? 0.0f: 2.0f, str, vos->str_len);
-				}
+				((vos->flag & V3D_CACHE_TEXT_ASCII) ?
+				            BLF_draw_default_ascii :
+				            BLF_draw_default
+				            ) ( (float)vos->sco[0] + vos->xoffs,
+				                (float)vos->sco[1],
+				                (depth_write) ? 0.0f: 2.0f,
+				                str,
+				                vos->str_len);
 			}
 		}
 		
@@ -891,8 +900,12 @@ static void drawcube(void)
 static void drawcube_size(float size)
 {
 	glBegin(GL_LINE_STRIP);
-		glVertex3f(-size,-size,-size); glVertex3f(-size,-size,size);glVertex3f(-size,size,size); glVertex3f(-size,size,-size);
-		glVertex3f(-size,-size,-size); glVertex3f(size,-size,-size);glVertex3f(size,-size,size); glVertex3f(size,size,size);
+		glVertex3f(-size,-size,-size); glVertex3f(-size,-size,size);
+		glVertex3f(-size,size,size); glVertex3f(-size,size,-size);
+
+		glVertex3f(-size,-size,-size); glVertex3f(size,-size,-size);
+		glVertex3f(size,-size,size); glVertex3f(size,size,size);
+
 		glVertex3f(size,size,-size); glVertex3f(size,-size,-size);
 	glEnd();
 
@@ -1717,7 +1730,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 }
 
 /* flag similar to draw_object() */
-static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D *UNUSED(rv3d), Object *UNUSED(ob), int UNUSED(flag))
+static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D *UNUSED(rv3d),
+                        Object *UNUSED(ob), int UNUSED(flag))
 {
 	//Speaker *spk = ob->data;
 
@@ -1919,7 +1933,10 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 	}
 }
 
-void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts)
+void mesh_foreachScreenVert(
+        ViewContext *vc,
+        void (*func)(void *userData, EditVert *eve, int x, int y, int index),
+        void *userData, eV3DClipTest clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index);
 		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
@@ -2004,7 +2021,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	}
 }
 
-void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts)
+void mesh_foreachScreenEdge(
+        ViewContext *vc,
+        void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index),
+        void *userData, eV3DClipTest clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
 		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
@@ -2040,7 +2060,10 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	}
 }
 
-void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
+void mesh_foreachScreenFace(
+        ViewContext *vc,
+        void (*func)(void *userData, EditFace *efa, int x, int y, int index),
+        void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -2059,7 +2082,10 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 	dm->release(dm);
 }
 
-void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
+void nurbs_foreachScreenVert(
+        ViewContext *vc,
+        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
+        void *userData)
 {
 	Curve *cu= vc->obedit->data;
 	short s[2] = {IS_CLIPPED, 0};
@@ -2747,7 +2773,8 @@ static int draw_em_fancy__setGLSLFaceOpts(void *UNUSED(userData), int index)
 	return (efa->h==0);
 }
 
-static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
+static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+                          Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
 	EditFace *efa_act = EM_get_actFace(em, 0); /* annoying but active faces is stored differently */
@@ -2784,7 +2811,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			}
 		}
 		else {
-			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
+			/* 3 floats for position,
+			 * 3 for normal and times two because the faces may actually be quads instead of triangles */
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 			
 			glEnable(GL_LIGHTING);
@@ -2897,8 +2925,11 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_dm_vert_normals(scene, cageDM);
 		}
 
-		if(me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG) && !((v3d->flag2 & V3D_RENDER_OVERRIDE)))
+		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG)) &&
+		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
+		{
 			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+		}
 	}
 
 	if(dt>OB_WIRE) {
@@ -2952,7 +2983,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	int draw_flags = (ob==OBACT && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
+	const short is_obact= (ob != NULL && ob == OBACT);
+	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
 		return;
@@ -2999,7 +3031,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire= OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff  */
 	}
-	else if ( (draw_flags & DRAW_FACE_SELECT || (ob==OBACT && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
+	else if ( (draw_flags & DRAW_FACE_SELECT || (is_obact && ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 	          CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
 		if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
@@ -3027,7 +3059,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if(!(draw_flags & DRAW_FACE_SELECT)) {
 			if(base->flag & SELECT)
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			else
 				UI_ThemeColor(TH_WIRE);
 
@@ -3036,7 +3068,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
-		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if(is_obact && ob->mode & OB_MODE_WEIGHT_PAINT) {
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather than the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
@@ -3140,7 +3172,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDisable(GL_LIGHTING);
 
 			if(base->flag & SELECT) {
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			} else {
 				UI_ThemeColor(TH_WIRE);
 			}
@@ -3149,7 +3181,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_PAINT) {
-		if(ob==OBACT) {
+		if (is_obact) {
 			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
 				GPU_enable_material(0, NULL);
@@ -3184,12 +3216,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	/* set default draw color back for wire or for draw-extra later on */
 	if (dt!=OB_WIRE) {
 		if(base->flag & SELECT) {
-			if(ob==OBACT && ob->flag & OB_FROMGROUP) 
+			if (is_obact && ob->flag & OB_FROMGROUP)
 				UI_ThemeColor(TH_GROUP_ACTIVE);
 			else if(ob->flag & OB_FROMGROUP) 
 				UI_ThemeColorShade(TH_GROUP_ACTIVE, -16);
 			else if(flag!=DRAW_CONSTCOLOR)
-				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+				UI_ThemeColor(is_obact ? TH_ACTIVE : TH_SELECT);
 			else
 				glColor3ub(80,80,80);
 		} else {
@@ -3208,7 +3240,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* When using wireframe object traw in particle edit mode
 		 * the mesh gets in the way of seeing the particles, fade the wire color
 		 * with the background. */
-		if(ob==OBACT && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+		if(is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			float col_wire[4], col_bg[4], col[3];
 
 			UI_GetThemeColor3fv(TH_BACK, col_bg);
@@ -3240,7 +3272,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	if(paint_vertsel_test(ob)) {
+	if(is_obact && paint_vertsel_test(ob)) {
 		
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
@@ -3741,7 +3773,8 @@ static void draw_particle_arrays(int draw_as, int totpoint, int ob_dt, int selec
 			break;
 	}
 }
-static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize, float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
+static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize,
+                          float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
 	float *vd = NULL;
@@ -3896,7 +3929,8 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 /* 5. start filling the arrays				*/
 /* 6. draw the arrays						*/
 /* 7. clean up								*/
-static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, ParticleSystem *psys, int ob_dt)
+static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d,
+                                     Base *base, ParticleSystem *psys, int ob_dt)
 {
 	Object *ob=base->object;
 	ParticleEditSettings *pset = PE_settings(scene);
@@ -6063,7 +6097,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 {
 	static int warning_recursive= 0;
 	ModifierData *md = NULL;
-	Object *ob;
+	Object *ob= base->object;
 	Curve *cu;
 	RegionView3D *rv3d= ar->regiondata;
 	float vec1[3], vec2[3];
@@ -6071,11 +6105,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
+	const short is_obact= (ob != NULL && ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	ob= base->object;
 
 	if (ob!=scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) 
@@ -6202,7 +6235,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob->mode & OB_MODE_EDIT);
@@ -6398,9 +6431,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			break;
 		case OB_CAMERA:
-			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0 || (rv3d->persp==RV3D_CAMOB && v3d->camera==ob)) /* special exception for active camera */
-				drawcamera(scene, v3d, rv3d, base, flag);
+		if ( (v3d->flag2 & V3D_RENDER_OVERRIDE)==0 ||
+		     (rv3d->persp==RV3D_CAMOB && v3d->camera==ob)) /* special exception for active camera */
+		{
+			drawcamera(scene, v3d, rv3d, base, flag);
 			break;
+		}
 		case OB_SPEAKER:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
 				drawspeaker(scene, v3d, rv3d, ob, flag);
@@ -6464,7 +6500,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			/* run this so that possible child particles get cached */
-			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 				PTCacheEdit *edit = PE_create_current(scene, ob);
 				if(edit && edit->psys == psys)
 					draw_update_ptcache_edit(scene, ob, edit);
@@ -6482,12 +6518,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw edit particles last so that they can draw over child particles */
-	if(		(warning_recursive==0) &&
-			(flag & DRAW_PICKING)==0 &&
-			(!scene->obedit)	
-	  ) {
+	if ( (warning_recursive==0) &&
+	     (flag & DRAW_PICKING)==0 &&
+	     (!scene->obedit))
+	{
 
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if(edit) {
 				glLoadMatrixf(rv3d->viewmat);
@@ -6547,7 +6583,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 // #if 0
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 0);
-				draw_volume(ar, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
+				draw_volume(ar, smd->domain->tex,
+				            smd->domain->p0, smd->domain->p1,
+				            smd->domain->res, smd->domain->dx,
+				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 // #endif
 #if 0
@@ -6598,7 +6637,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			{
 				smd->domain->tex = NULL;
 				GPU_create_smoke(smd, 1);
-				draw_volume(ar, smd->domain->tex, smd->domain->p0, smd->domain->p1, smd->domain->res_wt, smd->domain->dx_wt, smd->domain->tex_shadow);
+				draw_volume(ar, smd->domain->tex,
+				            smd->domain->p0, smd->domain->p1,
+				            smd->domain->res_wt, smd->domain->dx_wt,
+				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}
 		}
@@ -6679,7 +6721,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(v3d->flag2 & V3D_RENDER_OVERRIDE) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	if (!is_obact || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if(v3d->flag2 & V3D_RENDER_OVERRIDE) {
@@ -6917,9 +6959,11 @@ static void bbs_mesh_solid(Scene *scene, Object *ob)
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
-		
-	if((me->editflag & ME_EDIT_PAINT_MASK))	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
-	else									dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, GPU_enable_material, NULL, me, 0);
+
+	if((me->editflag & ME_EDIT_PAINT_MASK))
+		dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
+	else
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, GPU_enable_material, NULL, me, 0);
 
 	dm->release(dm);
 }

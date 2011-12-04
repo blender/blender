@@ -32,6 +32,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* for reading old multires */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"

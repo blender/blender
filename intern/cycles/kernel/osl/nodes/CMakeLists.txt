@@ -7,6 +7,7 @@ set(SRC_OSL
 	node_background.osl
 	node_blend_texture.osl
 	node_bump.osl
+	node_camera.osl
 	node_clouds_texture.osl
 	node_convert_from_color.osl
 	node_convert_from_float.osl
@@ -23,6 +24,7 @@ set(SRC_OSL
 	node_glossy_bsdf.osl
 	node_hsv.osl
 	node_image_texture.osl
+	node_invert.osl
 	node_light_path.osl
 	node_magic_texture.osl
 	node_mapping.osl

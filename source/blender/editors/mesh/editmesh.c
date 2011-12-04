@@ -743,7 +743,8 @@ void make_editMesh(Scene *scene, Object *ob)
 	EditSelection *ese;
 	float *co, (*keyco)[3]= NULL;
 	int tot, a, eekadoodle= 0;
-	const short is_paint_sel= paint_facesel_test(ob);
+	const short is_paint_face_sel=                             paint_facesel_test(ob);
+	const short is_paint_vert_sel= is_paint_face_sel ? FALSE : paint_vertsel_test(ob);
 
 	if(me->edit_mesh==NULL)
 		me->edit_mesh= MEM_callocN(sizeof(EditMesh), "editmesh");
@@ -794,8 +795,8 @@ void make_editMesh(Scene *scene, Object *ob)
 		evlist[a]= eve;
 		
 		/* face select sets selection in next loop */
-		if(!is_paint_sel)
-			eve->f |= (mvert->flag & 1);
+		if(!is_paint_face_sel)
+			eve->f |= (mvert->flag & SELECT);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;
 		normal_short_to_float_v3(eve->no, mvert->no);
@@ -821,15 +822,25 @@ void make_editMesh(Scene *scene, Object *ob)
 			eed= addedgelist(em, evlist[medge->v1], evlist[medge->v2], NULL);
 			/* eed can be zero when v1 and v2 are identical, dxf import does this... */
 			if(eed) {
+				int is_sel;
+				if (is_paint_vert_sel) {
+					/* when from vertex select, flush flags to edges,
+					 * allow selection, code below handles editmode selection conversion */
+					is_sel= (eed->v1->f & SELECT) && (eed->v2->f & SELECT);
+				}
+				else {
+					is_sel= (medge->flag & SELECT);
+				}
+
 				eed->crease= ((float)medge->crease)/255.0f;
 				eed->bweight= ((float)medge->bweight)/255.0f;
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
 				if(medge->flag & ME_SHARP) eed->sharp = 1;
-				if(medge->flag & SELECT) eed->f |= SELECT;
 				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
 				if(medge->flag & ME_HIDE) eed->h |= 1;
-				if(em->selectmode==SCE_SELECT_EDGE) 
+				if(is_sel) eed->f |= SELECT;
+				if(em->selectmode==SCE_SELECT_EDGE)
 					EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
 				CustomData_to_em_block(&me->edata,&em->edata, a, &eed->data);
 			}
@@ -859,15 +870,30 @@ void make_editMesh(Scene *scene, Object *ob)
 				if(mface->flag & ME_HIDE) {
 					efa->h= 1;
 				} else {
+					int is_sel;
+
+					if (!is_paint_vert_sel) {
+						is_sel= (mface->flag & ME_FACE_SEL);
+					}
+					else {
+						/* when from vertex select, flush flags to edges,
+						 * allow selection, code below handles editmode selection conversion */
+						is_sel= ( (efa->v1->f & SELECT) &&
+						          (efa->v2->f & SELECT) &&
+						          (efa->v3->f & SELECT) &&
+						          (efa->v4 == NULL || efa->v4->f & SELECT)
+						          );
+					}
+
 					if (a==me->act_face) {
 						EM_set_actFace(em, efa);
 					}
 					
 					/* dont allow hidden and selected */
-					if(mface->flag & ME_FACE_SEL) {
+					if(is_sel) {
 						efa->f |= SELECT;
 						
-						if(is_paint_sel) {
+						if(is_paint_face_sel) {
 							EM_select_face(efa, 1); /* flush down */
 						}
 

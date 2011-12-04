@@ -497,7 +497,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		MEM_freeN(matar);
 	
 	ob->totcol= me->totcol= totcol;
-	ob->colbits= 0;
 
 	if (matmap) MEM_freeN(matmap);
 	

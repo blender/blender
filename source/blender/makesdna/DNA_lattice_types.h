@@ -31,6 +31,7 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 
 struct AnimData;
@@ -60,7 +61,7 @@ typedef struct Lattice {
 	
 	struct BPoint *def;
 	
-	struct Ipo *ipo;  /* XXX: depreceated... old animation system */
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	
 	struct MDeformVert *dvert;
