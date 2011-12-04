@@ -1480,7 +1480,13 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 
 	for(y= 0; y<scaleibuf->y; y++) {
 		for (x= 0; x<scaleibuf->x; x++) {
-			bilinear_interpolation(ibuf, scaleibuf, ((float)x)/zoomx, ((float)y)/zoomy, x, y);
+			float src_x= ((float)x)/zoomx;
+			float src_y= ((float)y)/zoomy;
+
+			CLAMP(src_x, 0, ibuf->x-1.0f);
+			CLAMP(src_y, 0, ibuf->y-1.0f);
+
+			bilinear_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
 		}
 	}
 
