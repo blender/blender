@@ -865,12 +865,12 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 /* zap channels from the imbuf that are disabled by the user. this can lead to
  * better tracks sometimes. however, instead of simply zeroing the channels
  * out, do a partial grayscale conversion so the display is better. */
-static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
+static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
 {
 	int x, y;
 	float scale;
 
-	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0 && !grayscale)
 		return;
 
 	/* If only some components are selected, it's important to rescale the result
@@ -888,15 +888,27 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 				float r = (track->flag&TRACK_DISABLE_RED)   ? 0.0f : rrgbf[0];
 				float g = (track->flag&TRACK_DISABLE_GREEN) ? 0.0f : rrgbf[1];
 				float b = (track->flag&TRACK_DISABLE_BLUE)  ? 0.0f : rrgbf[2];
-				float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
-				rrgbf[0] = rrgbf[1] = rrgbf[2] = gray;
+				if (grayscale) {
+					float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
+					rrgbf[0] = rrgbf[1] = rrgbf[2] = gray;
+				} else {
+					rrgbf[0] = r;
+					rrgbf[1] = g;
+					rrgbf[2] = b;
+				}
 			} else {
 				char *rrgb= (char*)ibuf->rect + pixel*4;
 				char r = (track->flag&TRACK_DISABLE_RED)   ? 0 : rrgb[0];
 				char g = (track->flag&TRACK_DISABLE_GREEN) ? 0 : rrgb[1];
 				char b = (track->flag&TRACK_DISABLE_BLUE)  ? 0 : rrgb[2];
-				float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
-				rrgb[0] = rrgb[1] = rrgb[2] = gray;
+				if (grayscale) {
+					float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
+					rrgb[0] = rrgb[1] = rrgb[2] = gray;
+				} else {
+					rrgb[0] = r;
+					rrgb[1] = g;
+					rrgb[2] = b;
+				}
 			}
 		}
 	}
@@ -938,7 +950,9 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 		origin[1]= y1-margin;
 	}
 
-	disable_imbuf_channels(tmpibuf, track);
+	if (track->flag & TRACK_PREVIEW_GRAYSCALE) {
+		disable_imbuf_channels(tmpibuf, track, 1 /* grayscale */);
+	}
 
 	return tmpibuf;
 }
@@ -967,7 +981,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
 	tmpibuf= BKE_tracking_get_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
-	disable_imbuf_channels(tmpibuf, track);
+	disable_imbuf_channels(tmpibuf, track, 0 /* don't grayscale */);
 
 	*width_r= width;
 	*height_r= height;
@@ -979,22 +993,11 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 
 			if(tmpibuf->rect_float) {
 				float *rrgbf= tmpibuf->rect_float + pixel*4;
-
-				if ((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
-					*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
-				else
-					/* disable_imbuf_channels already did the grayscale conversion */
-					*fp= *rrgbf;
+				*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
 			} else {
 				unsigned char *rrgb= (unsigned char*)tmpibuf->rect + pixel*4;
-
-				if ((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
-					*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
-				else
-					/* disable_imbuf_channels already did the grayscale conversion */
-					*fp= *rrgb / 255.0;
+				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
 			}
-
 			fp++;
 		}
 	}
@@ -1016,22 +1019,11 @@ static unsigned char *get_ucharbuf(ImBuf *ibuf, int flags)
 
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + pixel*4;
-
-				if ((flags&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
-					*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
-				else
-					/* disable_imbuf_channels already did the grayscale conversion */
-					*cp= FTOCHAR(*rrgbf);
+				*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
 			} else {
 				unsigned char *rrgb= (unsigned char*)ibuf->rect + pixel*4;
-
-				if ((flags&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
-					*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
-				else
-					/* disable_imbuf_channels already did the grayscale conversion */
-					*cp= *rrgb;
+				*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
 			}
-
 			cp++;
 		}
 	}
@@ -1046,7 +1038,7 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 	unsigned char *pixels;
 
 	tmpibuf= BKE_tracking_get_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
-	disable_imbuf_channels(tmpibuf, track);
+	disable_imbuf_channels(tmpibuf, track, 0 /* don't grayscale */);
 
 	*width_r= tmpibuf->x;
 	*height_r= tmpibuf->y;
