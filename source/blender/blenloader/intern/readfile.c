@@ -10403,13 +10403,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			wrld->maxphystep = 5;
 		}
 	}
-
-	if (main->versionfile < 249) {
-		Scene *sce;
-		for (sce= main->scene.first; sce; sce= sce->id.next)
-			sce->r.renderer= 0;
-		
-	}
 	
 	// correct introduce of seed for wind force
 	if (main->versionfile < 249 && main->subversionfile < 1) {
