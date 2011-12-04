@@ -1475,16 +1475,20 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 {
 	ImBuf *scaleibuf;
 	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
+	const float max_x= ibuf->x-1.0f;
+	const float max_y= ibuf->y-1.0f;
+	const float scalex= 1.0f/zoomx;
+	const float scaley= 1.0f/zoomy;
 
 	scaleibuf= IMB_allocImBuf(w, h, 32, IB_rect);
 
 	for(y= 0; y<scaleibuf->y; y++) {
 		for (x= 0; x<scaleibuf->x; x++) {
-			float src_x= ((float)x)/zoomx;
-			float src_y= ((float)y)/zoomy;
+			float src_x= scalex*x;
+			float src_y= scaley*y;
 
-			CLAMP(src_x, 0, ibuf->x-1.0f);
-			CLAMP(src_y, 0, ibuf->y-1.0f);
+			CLAMP(src_x, 0, max_x);
+			CLAMP(src_y, 0, max_y);
 
 			bilinear_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
 		}
