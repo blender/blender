@@ -248,7 +248,8 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 
 	BKE_tracking_insert_marker(track, &marker);
 
-	BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
+	if(track->tracker == TRACKER_KLT)
+		BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 
 	BLI_addtail(&tracking->tracks, track);
 	BKE_track_unique_name(tracking, track);
