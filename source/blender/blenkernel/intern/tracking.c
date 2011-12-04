@@ -766,12 +766,10 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 		track= track->next;
 	}
 
-	/* add a context even if there are no tracks, since this is needed if the user tries to track
-	 * on a frame where their tracker is disabled. */
-	context->tracks_map= tracks_map_new(num_tracks, sizeof(TrackContext));
-
 	if(num_tracks) {
 		int width, height;
+
+		context->tracks_map= tracks_map_new(num_tracks, sizeof(TrackContext));
 
 		BKE_movieclip_get_size(clip, user, &width, &height);
 
@@ -1163,7 +1161,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 	map_size= tracks_map_size(context->tracks_map);
 
-	/* nothing to track, avoid reading unneeded frames to save time and memory */
+	/* nothing to track, avoid unneeded frames reading to save time and memory */
 	if(!map_size)
 		return 0;
 
