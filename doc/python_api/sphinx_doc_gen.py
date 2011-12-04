@@ -87,6 +87,7 @@ else:
         "gpu",
         "mathutils",
         "mathutils.geometry",
+        "mathutils.noise",
     )
 
     FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
@@ -1190,6 +1191,8 @@ def rna2sphinx(BASEPATH):
         fw("   mathutils.rst\n\n")
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         fw("   mathutils.geometry.rst\n\n")
+    if "mathutils.noise" not in EXCLUDE_MODULES:
+        fw("   mathutils.noise.rst\n\n")
     if "bgl" not in EXCLUDE_MODULES:
         fw("   bgl.rst\n\n")
     if "blf" not in EXCLUDE_MODULES:
@@ -1328,6 +1331,10 @@ def rna2sphinx(BASEPATH):
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         import mathutils.geometry as module
         pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
+
+    if "mathutils.noise" not in EXCLUDE_MODULES:
+        import mathutils.noise as module
+        pymodule2sphinx(BASEPATH, "mathutils.noise", module, "Noise Utilities")
 
     if "blf" not in EXCLUDE_MODULES:
         import blf as module
