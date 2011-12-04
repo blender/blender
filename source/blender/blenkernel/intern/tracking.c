@@ -863,12 +863,22 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 	MEM_freeN(context);
 }
 
+/* zap channels from the imbuf that are disabled by the user. this can lead to
+ * better tracks sometimes. however, instead of simply zeroing the channels
+ * out, do a partial grayscale conversion so the display is better. */
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 {
 	int x, y;
+	float scale;
 
 	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
 		return;
+
+	/* If only some components are selected, it's important to rescale the result
+	 * appropriately so that e.g. if only blue is selected, it's not zeroed out. */
+	scale = ((track->flag&TRACK_DISABLE_RED  ) ? 0.0f : 0.2126f) +
+	        ((track->flag&TRACK_DISABLE_GREEN) ? 0.0f : 0.7152f) +
+	        ((track->flag&TRACK_DISABLE_BLUE)  ? 0.0f : 0.0722f);
 
 	for(y= 0; y<ibuf->y; y++) {
 		for (x= 0; x<ibuf->x; x++) {
@@ -876,16 +886,18 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + pixel*4;
-
-				if(track->flag&TRACK_DISABLE_RED)	rrgbf[0]= 0;
-				if(track->flag&TRACK_DISABLE_GREEN)	rrgbf[1]= 0;
-				if(track->flag&TRACK_DISABLE_BLUE)	rrgbf[2]= 0;
+				float r = (track->flag&TRACK_DISABLE_RED)   ? 0.0f : rrgbf[0];
+				float g = (track->flag&TRACK_DISABLE_GREEN) ? 0.0f : rrgbf[1];
+				float b = (track->flag&TRACK_DISABLE_BLUE)  ? 0.0f : rrgbf[2];
+				float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
+				rrgbf[0] = rrgbf[1] = rrgbf[2] = gray;
 			} else {
 				char *rrgb= (char*)ibuf->rect + pixel*4;
-
-				if(track->flag&TRACK_DISABLE_RED)	rrgb[0]= 0;
-				if(track->flag&TRACK_DISABLE_GREEN)	rrgb[1]= 0;
-				if(track->flag&TRACK_DISABLE_BLUE)	rrgb[2]= 0;
+				char r = (track->flag&TRACK_DISABLE_RED)   ? 0 : rrgb[0];
+				char g = (track->flag&TRACK_DISABLE_GREEN) ? 0 : rrgb[1];
+				char b = (track->flag&TRACK_DISABLE_BLUE)  ? 0 : rrgb[2];
+				float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
+				rrgb[0] = rrgb[1] = rrgb[2] = gray;
 			}
 		}
 	}
@@ -969,11 +981,19 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 			if(tmpibuf->rect_float) {
 				float *rrgbf= tmpibuf->rect_float + pixel*4;
 
-				*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
+				if ((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+					*fp= 0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2];
+				else
+					/* disable_imbuf_channels already did the grayscale conversion */
+					*fp= *rrgbf;
 			} else {
 				unsigned char *rrgb= (unsigned char*)tmpibuf->rect + pixel*4;
 
-				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
+				if ((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+					*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255.0f;
+				else
+					/* disable_imbuf_channels already did the grayscale conversion */
+					*fp= *rrgb / 255.0;
 			}
 
 			fp++;
@@ -985,7 +1005,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	return pixels;
 }
 
-static unsigned char *get_ucharbuf(ImBuf *ibuf)
+static unsigned char *get_ucharbuf(ImBuf *ibuf, int flags)
 {
 	int x, y;
 	unsigned char *pixels, *cp;
@@ -998,11 +1018,19 @@ static unsigned char *get_ucharbuf(ImBuf *ibuf)
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + pixel*4;
 
-				*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
+				if ((flags&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+					*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
+				else
+					/* disable_imbuf_channels already did the grayscale conversion */
+					*cp= FTOCHAR(*rrgbf);
 			} else {
 				unsigned char *rrgb= (unsigned char*)ibuf->rect + pixel*4;
 
-				*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
+				if ((flags&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0)
+					*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
+				else
+					/* disable_imbuf_channels already did the grayscale conversion */
+					*cp= *rrgb;
 			}
 
 			cp++;
@@ -1024,7 +1052,7 @@ static unsigned char *get_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track,
 	*width_r= tmpibuf->x;
 	*height_r= tmpibuf->y;
 
-	pixels= get_ucharbuf(tmpibuf);
+	pixels= get_ucharbuf(tmpibuf, track->flag);
 
 	IMB_freeImBuf(tmpibuf);
 
@@ -2031,7 +2059,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ImBuf *ibuf,
 {
 #ifdef WITH_LIBMV
 	struct libmv_Features *features;
-	unsigned char *pixels= get_ucharbuf(ibuf);
+	unsigned char *pixels= get_ucharbuf(ibuf, 0);
 
 	features= libmv_detectFeaturesFAST(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
 
