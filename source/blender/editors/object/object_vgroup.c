@@ -99,6 +99,7 @@ int ED_vgroup_object_is_edit_mode(Object *ob)
 bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
+
 	if(!ob || !OB_TYPE_SUPPORT_VGROUP(ob->type))
 		return NULL;
 	

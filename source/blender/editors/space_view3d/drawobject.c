@@ -2473,7 +2473,8 @@ static void draw_dm_bweights(Scene *scene, DerivedMesh *dm)
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, DerivedMesh *cageDM, EditVert *eve_act)
+static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
+                                DerivedMesh *cageDM, EditVert *eve_act)
 {
 	ToolSettings *ts= scene->toolsettings;
 	int sel;
@@ -2530,7 +2531,9 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, Deriv
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
+static void draw_em_fancy_edges(Scene *scene, View3D *v3d,
+                                Mesh *me, DerivedMesh *cageDM, short sel_only,
+                                EditEdge *eed_act)
 {
 	ToolSettings *ts= scene->toolsettings;
 	int pass;
@@ -2588,7 +2591,8 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, EditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
+                                  Object *ob, EditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	EditEdge *eed;
@@ -2799,11 +2803,11 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if(CHECK_OB_DRAWTEXTURE(v3d, dt)) {
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
 				glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-				
+
 				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
-				                             draw_em_fancy__setGLSLFaceOpts, NULL);
+				                             draw_em_fancy__setGLSLFaceOpts, em);
 				GPU_disable_material();
-				
+
 				glFrontFace(GL_CCW);
 			}
 			else {
@@ -2814,12 +2818,11 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			/* 3 floats for position,
 			 * 3 for normal and times two because the faces may actually be quads instead of triangles */
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
-			
+
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-			
 			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_enable_material, NULL, NULL, 0);
-			
+
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
 		}
@@ -2908,7 +2911,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if(me->drawflag & ME_DRAWBWEIGHTS) {
 			draw_dm_bweights(scene, cageDM);
 		}
-	
+
 		draw_em_fancy_edges(scene, v3d, me, cageDM, 0, eed_act);
 	}
 	if(em) {
@@ -6904,7 +6907,8 @@ static void bbs_mesh_solid__drawCenter(void *UNUSED(userData), int index, float 
 }
 
 /* two options, facecolors or black */
-static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int facecol)
+static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d,
+                              Object *ob, DerivedMesh *dm, int facecol)
 {
 	cpack(0);
 

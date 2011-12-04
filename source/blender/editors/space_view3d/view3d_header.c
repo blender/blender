@@ -283,16 +283,16 @@ static char *view3d_modeselect_pup(Scene *scene)
 	BLI_strncpy(str, title, sizeof(string));
 
 	str += modeselect_addmode(str, N_("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
-	
+
 	if(ob==NULL || ob->data==NULL) return string;
 	if(ob->id.lib) return string;
-	
+
 	if(!((ID *)ob->data)->lib) {
 		/* if active object is editable */
 		if ( ((ob->type == OB_MESH)
 			|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 			|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
-			
+
 			str += modeselect_addmode(str, N_("Edit Mode"), OB_MODE_EDIT, ICON_EDITMODE_HLT);
 		}
 		else if (ob->type == OB_ARMATURE) {
@@ -310,7 +310,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 			str += modeselect_addmode(str, N_("Weight Paint"), OB_MODE_WEIGHT_PAINT, ICON_WPAINT_HLT);
 		}
 	}
-		
+
 	/* if active object is an armature */
 	if (ob->type==OB_ARMATURE) {
 		str += modeselect_addmode(str, N_("Pose Mode"), OB_MODE_POSE, ICON_POSE_HLT);
@@ -485,10 +485,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* mode */
-	if(ob)
+	if(ob) {
 		v3d->modeselect = ob->mode;
-	else
+	}
+	else {
 		v3d->modeselect = OB_MODE_OBJECT;
+	}
 
 	row= uiLayoutRow(layout, 1);
 	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
