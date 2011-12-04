@@ -8709,11 +8709,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
-					else if(sl->spacetype==SPACE_TIME) {
-						SpaceTime *stime= (SpaceTime *)sl;
-						if(stime->redraws==0)
-							stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
-					}
 				}
 			}
 		}
