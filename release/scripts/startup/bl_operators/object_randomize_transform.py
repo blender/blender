@@ -22,7 +22,7 @@ import bpy
 from bpy.types import Operator
 
 
-def randomize_selected(seed, delta, loc, rot, scale, scale_even):
+def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
     import random
     from random import uniform
@@ -62,20 +62,16 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even):
             else:
                 org_sca_x, org_sca_y, org_sca_z = obj.scale
 
-            if scale_even:
-                sca_x = sca_y = sca_z = uniform(scale[0], - scale[0])
-                uniform(0.0, 0.0), uniform(0.0, 0.0)
-            else:
-                sca_x, sca_y, sca_z = rand_vec(scale)
+            sca_x, sca_y, sca_z = uniform(-scale[0]+2, scale[0]), uniform(-scale[1]+2, scale[1]), uniform(-scale[2]+2, scale[2])
 
             if scale_even:
-                aX = -(sca_x * org_sca_x) + org_sca_x
-                aY = -(sca_x * org_sca_y) + org_sca_y
-                aZ = -(sca_x * org_sca_z) + org_sca_z
+                aX = sca_x * org_sca_x
+                aY = sca_x * org_sca_y
+                aZ = sca_x * org_sca_z
             else:
-                aX = sca_x + org_sca_x
-                aY = sca_y + org_sca_y
-                aZ = sca_z + org_sca_z
+                aX = sca_x * org_sca_x
+                aY = sca_y * org_sca_y
+                aZ = sca_z * org_sca_z
 
             if delta:
                 obj.delta_scale = aX, aY, aZ
@@ -85,7 +81,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even):
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
 
-from bpy.props import IntProperty, BoolProperty, FloatVectorProperty
+from bpy.props import IntProperty, BoolProperty, FloatProperty, FloatVectorProperty
 
 
 class RandomizeLocRotSize(Operator):
@@ -98,7 +94,7 @@ class RandomizeLocRotSize(Operator):
             name="Random Seed",
             description="Seed value for the random generator",
             min=0,
-            max=1000,
+            max=10000,
             default=0,
             )
     use_delta = BoolProperty(
@@ -157,7 +153,7 @@ class RandomizeLocRotSize(Operator):
             description="Maximum scale randomization over each axis",
             min=-100.0,
             max=100.0,
-            default=(0.0, 0.0, 0.0),
+            default=(1.0, 1.0, 1.0),
             subtype='TRANSLATION',
             )
 
@@ -174,7 +170,8 @@ class RandomizeLocRotSize(Operator):
 
         scale_even = self.scale_even
         #scale_min = self.scale_min
+        scale_min = 0
 
-        randomize_selected(seed, delta, loc, rot, scale, scale_even)
+        randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min)
 
         return {'FINISHED'}

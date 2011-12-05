@@ -109,7 +109,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
-#include "BKE_effect.h" /* give_parteff */
+#include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
@@ -3718,22 +3718,13 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
 
-	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
-	mesh->pv= newdataadr(fd, mesh->pv);
-	if(mesh->pv) {
-		mesh->pv->vert_map= newdataadr(fd, mesh->pv->vert_map);
-		mesh->pv->edge_map= newdataadr(fd, mesh->pv->edge_map);
-		mesh->pv->old_faces= newdataadr(fd, mesh->pv->old_faces);
-		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
-	}
-
 	/* normally direct_link_dverts should be called in direct_link_customdata,
 	   but for backwards compat in do_versions to work we do it here */
-	direct_link_dverts(fd, mesh->pv ? mesh->pv->totvert : mesh->totvert, mesh->dvert);
+	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
 
-	direct_link_customdata(fd, &mesh->vdata, mesh->pv ? mesh->pv->totvert : mesh->totvert);
-	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
-	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
+	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
+	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
+	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;
@@ -3787,7 +3778,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		TFace *tf= mesh->tface;
 		unsigned int i;
 
-		for (i=0; i< (mesh->pv ? mesh->pv->totface : mesh->totface); i++, tf++) {
+		for (i=0; i< (mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
 			SWITCH_INT(tf->col[1]);
 			SWITCH_INT(tf->col[2]);
@@ -7084,6 +7075,40 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}		
 }
 
+/* deprecated, only keep this for readfile.c */
+static PartEff *do_version_give_parteff_245(Object *ob)
+{
+	PartEff *paf;
+
+	paf= ob->effect.first;
+	while(paf) {
+		if(paf->type==EFF_PARTICLE) return paf;
+		paf= paf->next;
+	}
+	return NULL;
+}
+static void do_version_free_effect_245(Effect *eff)
+{
+	PartEff *paf;
+
+	if(eff->type==EFF_PARTICLE) {
+		paf= (PartEff *)eff;
+		if(paf->keys) MEM_freeN(paf->keys);
+	}
+	MEM_freeN(eff);
+}
+static void do_version_free_effects_245(ListBase *lb)
+{
+	Effect *eff;
+
+	eff= lb->first;
+	while(eff) {
+		BLI_remlink(lb, eff);
+		do_version_free_effect_245(eff);
+		eff= lb->first;
+	}
+}
+
 static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 {
 	MTex *mtex;
@@ -7659,7 +7684,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob = main->object.first;
 		PartEff *paf;
 		while (ob) {
-			paf = give_parteff(ob);
+			paf = do_version_give_parteff_245(ob);
 			if (paf) {
 				if (paf->staticstep == 0) {
 					paf->staticstep= 5;
@@ -8675,11 +8700,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
-					else if(sl->spacetype==SPACE_TIME) {
-						SpaceTime *stime= (SpaceTime *)sl;
-						if(stime->redraws==0)
-							stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
-					}
 				}
 			}
 		}
@@ -8868,7 +8888,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 
-			paf = give_parteff(ob);
+			paf = do_version_give_parteff_245(ob);
 			if (paf) {
 				if(paf->disp == 0)
 					paf->disp = 100;
@@ -9876,7 +9896,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			/* convert old particles to new system */
-			if((paf = give_parteff(ob))) {
+			if((paf = do_version_give_parteff_245(ob))) {
 				ParticleSystem *psys;
 				ModifierData *md;
 				ParticleSystemModifierData *psmd;
@@ -9989,7 +10009,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						part->type = PART_FLUID;
 				}
 
-				free_effects(&ob->effect);
+				do_version_free_effects_245(&ob->effect);
 
 				printf("Old particle system converted to new system.\n");
 			}
@@ -12622,6 +12642,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	/* sigh, this dscale vs dsize version patching was not done right, fix for fix,
+	 * this intentionally checks an exact subversion, also note this was never in a release,
+	 * at some point this could be removed. */
+	else if (main->versionfile == 260 && main->subversionfile == 6)
+	{
+		Object *ob;
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			if (is_zero_v3(ob->dscale)) {
+				fill_vn_fl(ob->dscale, 3, 1.0f);
+			}
+		}
+	}
 
 	/* put compatibility code here until next subversion bump */
 	{
@@ -13444,7 +13476,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->mat[a]);
 	}
 	
-	paf = give_parteff(ob);
+	paf = do_version_give_parteff_245(ob);
 	if (paf && paf->group) 
 		expand_doit(fd, mainvar, paf->group);
 

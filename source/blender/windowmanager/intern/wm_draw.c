@@ -835,3 +835,16 @@ void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 	win->screen->do_draw= 1;
 }
 
+void WM_redraw_windows(bContext *C)
+{
+	wmWindow *win_prev= CTX_wm_window(C);
+	ScrArea *area_prev= CTX_wm_area(C);
+	ARegion *ar_prev= CTX_wm_region(C);
+
+	wm_draw_update(C);
+
+	CTX_wm_window_set(C, win_prev);
+	CTX_wm_area_set(C, area_prev);
+	CTX_wm_region_set(C, ar_prev);
+}
+

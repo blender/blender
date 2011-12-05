@@ -1552,7 +1552,7 @@ void calculateCenter(TransInfo *t)
 			if(t->obedit->type == OB_MESH) {
 				EditSelection ese;
 				EditMesh *em = BKE_mesh_get_editmesh(t->obedit->data);
-			
+
 				if (EM_get_actSelection(em, &ese)) {
 					EM_editselection_center(t->center, &ese);
 					calculateCenter2D(t);
@@ -1570,7 +1570,7 @@ void calculateCenter(TransInfo *t)
 				}
 			}
 		} /* END EDIT MODE ACTIVE ELEMENT */
-		
+
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0)
 		{

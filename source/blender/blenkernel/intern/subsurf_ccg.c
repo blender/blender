@@ -481,10 +481,10 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		fVerts[2] = SET_INT_IN_POINTER(mf->v3);
 		fVerts[3] = SET_INT_IN_POINTER(mf->v4);
 
-		// this is very bad, means mesh is internally consistent.
-		// it is not really possible to continue without modifying
-		// other parts of code significantly to handle missing faces.
-		// since this really shouldn't even be possible we just bail.
+		/* this is very bad, means mesh is internally inconsistent.
+		 * it is not really possible to continue without modifying
+		 * other parts of code significantly to handle missing faces.
+		 * since this really shouldn't even be possible we just bail.*/
 		if(ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), fVerts[3] ? 4 : 3,
 							   fVerts, &f) == eCCGError_InvalidValue) {
 			static int hasGivenError = 0;

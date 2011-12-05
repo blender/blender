@@ -580,7 +580,6 @@ static SpaceLink *time_new(const bContext *C)
 	stime= MEM_callocN(sizeof(SpaceTime), "inittime");
 
 	stime->spacetype= SPACE_TIME;
-	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN; // XXX: depreceated
 	stime->flag |= TIME_DRAWFRAMES;
 
 	/* header */

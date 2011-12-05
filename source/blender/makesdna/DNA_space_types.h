@@ -376,14 +376,11 @@ typedef struct SpaceTime {
 	float blockscale  DNA_DEPRECATED;
 	
 	View2D v2d  DNA_DEPRECATED; /* deprecated, copied to region */
-	
-	ListBase caches;
-	int cache_display, pad;
-	
-	int flag;
 
-	int redraws  DNA_DEPRECATED; /* redraws is deprecated... moved to screen */
-	
+	ListBase caches;
+
+	int cache_display;
+	int flag;
 } SpaceTime;
 
 typedef struct SpaceNode {
@@ -397,9 +394,8 @@ typedef struct SpaceNode {
 	View2D v2d  DNA_DEPRECATED; /* deprecated, copied to region */
 	
 	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
-	short flag, menunr;			/* menunr: browse id block in header */
+	short flag, pad1;			/* menunr: browse id block in header */
 	float aspect;
-	void *curfont;
 	
 	float xof, yof;		/* offset for drawing the backdrop */
 	float zoom, padf;	/* zoom for backdrop */
