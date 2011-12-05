@@ -5934,10 +5934,29 @@ static void lib_link_group(FileData *fd, Main *main)
 
 /* ***************** READ MOVIECLIP *************** */
 
+static void direct_link_movieReconstruction(FileData *fd, MovieTrackingReconstruction *reconstruction)
+{
+	reconstruction->cameras= newdataadr(fd, reconstruction->cameras);
+}
+
+static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
+{
+	MovieTrackingTrack *track;
+
+	link_list(fd, tracksbase);
+
+	track= tracksbase->first;
+	while(track) {
+		track->markers= newdataadr(fd, track->markers);
+
+		track= track->next;
+	}
+}
+
 static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 {
 	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *track;
+	MovieTrackingObject *object;
 
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
@@ -5945,16 +5964,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	if(fd->movieclipmap) clip->tracking.camera.intrinsics= newmclipadr(fd, clip->tracking.camera.intrinsics);
 	else clip->tracking.camera.intrinsics= NULL;
 
-	tracking->reconstruction.cameras= newdataadr(fd, tracking->reconstruction.cameras);
-
-	link_list(fd, &tracking->tracks);
-
-	track= tracking->tracks.first;
-	while(track) {
-		track->markers= newdataadr(fd, track->markers);
-
-		track= track->next;
-	}
+	direct_link_movieTracks(fd, &tracking->tracks);
+	direct_link_movieReconstruction(fd, &tracking->reconstruction);
 
 	clip->tracking.act_track= newdataadr(fd, clip->tracking.act_track);
 
@@ -5965,6 +5976,16 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->tracking.stabilization.ok= 0;
 	clip->tracking.stabilization.scaleibuf= NULL;
 	clip->tracking.stabilization.rot_track= newdataadr(fd, clip->tracking.stabilization.rot_track);
+
+	link_list(fd, &tracking->objects);
+
+	object= tracking->objects.first;
+	while(object) {
+		direct_link_movieTracks(fd, &object->tracks);
+		direct_link_movieReconstruction(fd, &object->reconstruction);
+
+		object= object->next;
+	}
 }
 
 static void lib_link_movieclip(FileData *fd, Main *main)
@@ -12657,7 +12678,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
-		/* nothing! */
+		MovieClip *clip;
+
+		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+			MovieTracking *tracking= &clip->tracking;
+
+			if(tracking->objects.first == NULL)
+				BKE_tracking_new_object(tracking, "Camera");
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

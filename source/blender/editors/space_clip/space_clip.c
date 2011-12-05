@@ -372,6 +372,10 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_graph_select);
 	WM_operatortype_append(CLIP_OT_graph_delete_curve);
 	WM_operatortype_append(CLIP_OT_graph_delete_knot);
+
+	/* object tracking */
+	WM_operatortype_append(CLIP_OT_tracking_object_new);
+	WM_operatortype_append(CLIP_OT_tracking_object_remove);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)

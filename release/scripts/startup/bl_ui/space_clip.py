@@ -70,7 +70,13 @@ class CLIP_HT_header(Header):
         row.template_ID(sc, "clip", open='clip.open')
 
         if clip:
-            r = clip.tracking.reconstruction
+            tracking = clip.tracking
+            active = tracking.objects.active
+
+            if active and not active.is_camera:
+                r = active.reconstruction
+            else:
+                r = tracking.reconstruction
 
             if r.is_valid:
                 layout.label(text="Average solve error: %.4f" %
@@ -314,6 +320,37 @@ class CLIP_PT_tools_grease_pencil(Panel):
 
         row = col.row()
         row.prop(context.tool_settings, "use_grease_pencil_sessions")
+
+
+class CLIP_PT_objects(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Objects"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = context.space_data.clip
+        tracking = clip.tracking
+
+        row = layout.row()
+        row.template_list(tracking, "objects", tracking, "active_object_index", rows=3)
+
+        sub = row.column(align=True)
+
+        sub.operator("clip.tracking_object_new", icon='ZOOMIN', text="")
+        sub.operator("clip.tracking_object_remove", icon='ZOOMOUT', text="")
+
+        active = tracking.objects.active
+        if active:
+            layout.prop(active, "name")
 
 
 class CLIP_PT_track(Panel):

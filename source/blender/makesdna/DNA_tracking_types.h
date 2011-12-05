@@ -172,6 +172,15 @@ typedef struct MovieTrackingReconstruction {
 	struct MovieReconstructedCamera *cameras;	/* reconstructed cameras */
 } MovieTrackingReconstruction;
 
+typedef struct MovieTrackingObject {
+	struct MovieTrackingObject *next, *prev;
+
+	char name[24];			/* Name of tracking object */
+	int flag, pad;
+	ListBase tracks;		/* list of tracks use to tracking this object */
+	MovieTrackingReconstruction reconstruction;	/* reconstruction data for this object */
+} MovieTrackingObject;
+
 typedef struct MovieTrackingStats {
 	char message[256];
 } MovieTrackingStats;
@@ -179,10 +188,13 @@ typedef struct MovieTrackingStats {
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	MovieTrackingCamera camera;		/* camera intrinsics */
-	ListBase tracks;				/* all tracks */
-	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
+	ListBase tracks;				/* list of tracks used for camera object */
+	MovieTrackingReconstruction reconstruction;	/* reconstruction data for camera object */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
 	MovieTrackingTrack *act_track;		/* active track */
+
+	ListBase objects;
+	int objectnr, tot_object;		/* index of active object and total number of objects */
 
 	MovieTrackingStats *stats;		/* statistics displaying in clip editor */
 } MovieTracking;
@@ -241,6 +253,9 @@ enum {
 
 /* MovieTrackingReconstruction->flag */
 #define TRACKING_RECONSTRUCTED	(1<<0)
+
+/* MovieTrackingObject->flag */
+#define TRACKING_OBJECT_CAMERA		(1<<0)
 
 #define TRACKING_CLEAN_SELECT			0
 #define TRACKING_CLEAN_DELETE_TRACK		1

@@ -412,6 +412,7 @@ typedef struct bFollowTrackConstraint {
 	struct MovieClip	*clip;
 	char	track[24];
 	int		flag, pad;
+	char		object[24];
 } bFollowTrackConstraint;
 
 /* Camera Solver constraints */
@@ -419,6 +420,13 @@ typedef struct bCameraSolverConstraint {
 	struct MovieClip	*clip;
 	int		flag, pad;
 } bCameraSolverConstraint;
+
+/* Camera Solver constraints */
+typedef struct bObjectSolverConstraint {
+	struct MovieClip	*clip;
+	int		flag, pad;
+	char		object[24];
+} bObjectSolverConstraint;
 
 /* ------------------------------------------ */
 
@@ -455,6 +463,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
 	CONSTRAINT_TYPE_FOLLOWTRACK,		/* Follow Track Constraint */
 	CONSTRAINT_TYPE_CAMERASOLVER,		/* Camera Solver Constraint */
+	CONSTRAINT_TYPE_OBJECTSOLVER,		/* Object Solver Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -761,6 +770,11 @@ typedef enum eFollowTrack_Flags {
 typedef enum eCameraSolver_Flags {
 	CAMERASOLVER_ACTIVECLIP	= (1<<0)
 } eCameraSolver_Flags;
+
+/* ObjectSolver Constraint -> flag */
+typedef enum eObjectSolver_Flags {
+	OBJECTSOLVER_ACTIVECLIP	= (1<<0)
+} eObjectSolver_Flags;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40

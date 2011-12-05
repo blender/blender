@@ -45,6 +45,7 @@
 EnumPropertyItem constraint_type_items[] ={
 	{0, "", 0, "Motion Tracking", ""},
 	{CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CONSTRAINT_DATA, "Camera Solver", ""},
+	{CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CONSTRAINT_DATA, "Object Solver", ""},
 	{CONSTRAINT_TYPE_FOLLOWTRACK, "FOLLOW_TRACK", ICON_CONSTRAINT_DATA, "Follow Track", ""},
 	{0, "", 0, "Transform", ""},
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", ""},
@@ -163,6 +164,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_FollowTrackConstraint;
 		case CONSTRAINT_TYPE_CAMERASOLVER:
 			return &RNA_CameraSolverConstraint;
+		case CONSTRAINT_TYPE_OBJECTSOLVER:
+			return &RNA_ObjectSolverConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -2066,6 +2069,12 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FOLLOWTRACK_USE_3D_POSITION);
 	RNA_def_property_ui_text(prop, "3D Position", "Use 3D position of track to parent to");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	/* object */
+	prop= RNA_def_property(srna, "object", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "object");
+	RNA_def_property_ui_text(prop, "Object", "Movie tracking object to follow");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 }
 
 static void rna_def_constraint_camera_solver(BlenderRNA *brna)
@@ -2074,7 +2083,7 @@ static void rna_def_constraint_camera_solver(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "CameraSolverConstraint", "Constraint");
-	RNA_def_struct_ui_text(srna, "Follow Track Constraint", "Lock motion to the reconstructed camera movement");
+	RNA_def_struct_ui_text(srna, "Camera Solver Constraint", "Lock motion to the reconstructed camera movement");
 	RNA_def_struct_sdna_from(srna, "bCameraSolverConstraint", "data");
 
 	/* movie clip */
@@ -2089,6 +2098,35 @@ static void rna_def_constraint_camera_solver(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAMERASOLVER_ACTIVECLIP);
 	RNA_def_property_ui_text(prop, "Active Clip", "Use active clip defined in scene");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
+static void rna_def_constraint_object_solver(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ObjectSolverConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Object Solver Constraint", "Lock motion to the reconstructed object movement");
+	RNA_def_struct_sdna_from(srna, "bObjectSolverConstraint", "data");
+
+	/* movie clip */
+	prop= RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clip");
+	RNA_def_property_ui_text(prop, "Movie Clip", "Movie Clip to get tracking data from");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	/* use default clip */
+	prop= RNA_def_property(srna, "use_active_clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAMERASOLVER_ACTIVECLIP);
+	RNA_def_property_ui_text(prop, "Active Clip", "Use active clip defined in scene");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	/* object */
+	prop= RNA_def_property(srna, "object", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "object");
+	RNA_def_property_ui_text(prop, "Object", "Movie tracking object to follow");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 }
 
 /* base struct for constraints */
@@ -2203,6 +2241,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_pivot(brna);
 	rna_def_constraint_follow_track(brna);
 	rna_def_constraint_camera_solver(brna);
+	rna_def_constraint_object_solver(brna);
 }
 
 #endif

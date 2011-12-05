@@ -763,6 +763,7 @@ class ConstraintButtonsPanel():
         if not con.use_active_clip:
             layout.prop(con, "clip")
 
+        layout.prop(con, "object")
         layout.prop(con, "track")
 
         layout.operator("clip.constraint_to_fcurve")
@@ -772,6 +773,16 @@ class ConstraintButtonsPanel():
 
         if not con.use_active_clip:
             layout.prop(con, "clip")
+
+        layout.operator("clip.constraint_to_fcurve")
+
+    def OBJECT_SOLVER(self, context, layout, con):
+        layout.prop(con, "use_active_clip")
+
+        if not con.use_active_clip:
+            layout.prop(con, "clip")
+
+        layout.prop(con, "object")
 
         layout.operator("clip.constraint_to_fcurve")
 

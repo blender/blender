@@ -96,6 +96,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	float x;
 	int *points, totseg, i, a;
 	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(&clip->tracking);
 
 	glEnable(GL_BLEND);
 
@@ -119,8 +120,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	}
 
 	/* track */
-	if(clip->tracking.act_track) {
-		MovieTrackingTrack *track= clip->tracking.act_track;
+	if(act_track) {
+		MovieTrackingTrack *track= act_track;
 
 		for(i= sfra, a= 0; i <= efra; i++) {
 			int framenr;
@@ -835,8 +836,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 {
 	float x, y;
 	MovieTracking* tracking= &clip->tracking;
-	MovieTrackingMarker *marker;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track, *act_track;
+	MovieTrackingMarker *marker;
 	int framenr= sc->user.framenr;
 	int undistort= sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 	float *marker_pos= NULL, *fp, *active_pos= NULL, cur_pos[2];
@@ -858,13 +860,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	glMultMatrixf(sc->stabmat);
 	glScalef(width, height, 0);
 
-	act_track= clip->tracking.act_track;
+	act_track= BKE_tracking_active_track(tracking);
 
 	if(sc->user.render_flag&MCLIP_PROXY_RENDER_UNDISTORT) {
 		int count= 0;
 
 		/* count */
-		track= tracking->tracks.first;
+		track= tracksbase->first;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0) {
 				marker= BKE_tracking_get_marker(track, framenr);
@@ -880,7 +882,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		if(count) {
 			marker_pos= MEM_callocN(2*sizeof(float)*count, "draw_tracking_tracks marker_pos");
 
-			track= tracking->tracks.first;
+			track= tracksbase->first;
 			fp= marker_pos;
 			while(track) {
 				if((track->flag&TRACK_HIDDEN)==0) {
@@ -902,7 +904,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	if(sc->flag&SC_SHOW_TRACK_PATH) {
-		track= tracking->tracks.first;
+		track= tracksbase->first;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0)
 				draw_track_path(sc, clip, track);
@@ -912,7 +914,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	/* markers outline and non-selected areas */
-	track= tracking->tracks.first;
+	track= tracksbase->first;
 	fp= marker_pos;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
@@ -936,7 +938,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	/* selected areas only, so selection wouldn't be overlapped by
 	   non-selected areas */
-	track= tracking->tracks.first;
+	track= tracksbase->first;
 	fp= marker_pos;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
@@ -974,15 +976,16 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	if(sc->flag&SC_SHOW_BUNDLES) {
+		MovieTrackingObject *object= BKE_tracking_active_object(tracking);
 		float pos[4], vec[4], mat[4][4], aspy;
 
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize(3.0f);
 
 		aspy= 1.0f/clip->tracking.camera.pixel_aspect;
-		BKE_tracking_projection_matrix(tracking, framenr, width, height, mat);
+		BKE_tracking_projection_matrix(tracking, object, framenr, width, height, mat);
 
-		track= tracking->tracks.first;
+		track= tracksbase->first;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0 && track->flag&TRACK_HAS_BUNDLE) {
 				marker= BKE_tracking_get_marker(track, framenr);
@@ -1027,7 +1030,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	if(sc->flag&SC_SHOW_NAMES) {
 		/* scaling should be cleared before drawing texts, otherwise font would also be scaled */
-		track= tracking->tracks.first;
+		track= tracksbase->first;
 		fp= marker_pos;
 		while(track) {
 			if((track->flag&TRACK_HIDDEN)==0) {
