@@ -12642,6 +12642,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	/* sigh, this dscale vs dsize version patching was not done right, fix for fix,
+	 * this intentionally checks an exact subversion, also note this was never in a release,
+	 * at some point this could be removed. */
+	else if (main->versionfile == 260 && main->subversionfile == 6)
+	{
+		Object *ob;
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			if (is_zero_v3(ob->dscale)) {
+				fill_vn_fl(ob->dscale, 3, 1.0f);
+			}
+		}
+	}
 
 	/* put compatibility code here until next subversion bump */
 	{
