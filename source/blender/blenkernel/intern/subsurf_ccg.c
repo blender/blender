@@ -164,8 +164,7 @@ static int getEdgeIndex(CCGSubSurf *ss, CCGEdge *e, int x, int edgeSize) {
 		return edgeBase + x-1;
 	}
 }
-
-BM_INLINE int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edgeSize, int gridSize) {
+static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edgeSize, int gridSize) {
 	int faceBase = *((int*) ccgSubSurf_getFaceUserData(ss, f));
 	int numVerts = ccgSubSurf_getFaceNumVerts(f);
 
@@ -798,8 +797,10 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 		int edgeSize = ccgSubSurf_getEdgeSize(ss);
 		int gridSideEdges;
 		int gridInternalEdges;
-				int lasti, previ;
 
+		/* code added in bmesh but works correctly without, commenting - campbell */
+#if 0
+				int lasti, previ;
 				i = lastface;
 				lasti = 0;
 				while (1) {
@@ -830,6 +831,9 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 				}
 
 				i = i > 0 ? i - 1 : i;
+#endif
+
+		i = 0;
 		while(i < lastface && edgeNum >= cgdm->faceMap[i + 1].startEdge)
 			++i;
 
@@ -3222,16 +3226,16 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	for(index = 0; index < totvert; ++index) {
 		CCGVert *v = ccgdm->vertMap[index].vert;
 		int mapIndex = ccgDM_getVertMapIndex(ccgdm->ss, v);
-		int vidx;
+		int vertIdx;
 
-		vidx = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
+		vertIdx = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
 
 		ccgdm->vertMap[index].startVert = vertNum;
 
 		/* set the vert base vert */
 		*((int*) ccgSubSurf_getVertUserData(ss, v)) = vertNum;
 
-		DM_copy_vert_data(dm, &ccgdm->dm, vidx, vertNum, 1);
+		DM_copy_vert_data(dm, &ccgdm->dm, vertIdx, vertNum, 1);
 
 		if (vertOrigIndex) {
 			*vertOrigIndex = mapIndex;

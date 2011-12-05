@@ -93,8 +93,7 @@ DerivedMesh *object_get_derived_final(Object *ob)
 	Mesh *me= ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 
-	if (em)
-	{
+	if(em) {
 		DerivedMesh *dm = em->derivedFinal;
 		return dm;
 	}

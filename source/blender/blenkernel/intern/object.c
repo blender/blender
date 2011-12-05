@@ -1765,6 +1765,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 
 		em = me->edit_btmesh;
 
+#if 0	/* this was bmesh only, better, evaluate why this was needed - campbell*/
 		if(em) {
 			BMVert *eve;
 			BMIter iter;
@@ -1773,11 +1774,12 @@ static void give_parvert(Object *par, int nr, float *vec)
 				int *keyindex = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 				
 				if(keyindex && *keyindex==nr) {
-					memcpy(vec, eve->co, sizeof(float)*3);
+					copy_v3_v3(vec, eve->co);
 					break;
 				}
 			}
 		}
+#endif
 
 		dm = (em)? em->derivedFinal: par->derivedFinal;
 			
