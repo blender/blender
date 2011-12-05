@@ -1109,6 +1109,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 
+	short do_re_tessellate;
+
 	if(mmd && !mmd->sculptlvl)
 		has_multires = 0;
 
@@ -1409,12 +1411,20 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		dm->release(dm);
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
+
+		/* BMESH_TODO, do_re_tesselate recalculates normals anyway, this seems redundant! - campbell */
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm, draw_flag);
+
+		do_re_tessellate= TRUE;
+
 	} else if(dm) {
 		finaldm = dm;
+
+		do_re_tessellate= TRUE;
+
 	} else {
 		int recalc_normals= 0;
 
@@ -1435,6 +1445,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm, draw_flag);
+
+		do_re_tessellate= FALSE;
 	}
 
 	/* add an orco layer if needed */
@@ -1457,13 +1469,23 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	}
 #endif /* WITH_GAMEENGINE */
 
-	/* Re-tesselation is necessary to push render data (uvs, textures, colors)
-	   from loops and polys onto the tessfaces. This may be currently be redundant
-	   in cases where the render mode doesn't use these inputs, but ideally
-	   eventually tesselation would happen on-demand, and this is one of the primary
-	   places it would be needed. */
-	finaldm->recalcTesselation(finaldm);
-	finaldm->calcNormals(finaldm);
+
+	/* need to check when this isnt needed.
+	 * - when the mesh has no modifiers (shouldnt be needed)
+	 * - deform only? (unside, can try skip) but need to double check
+	 * - rebuild mesh with constructive modifier (ofcourse)
+	 *
+	 * Need to watch this, it can cause issues, see bug [#29338]
+	 */
+	if (do_re_tessellate) {
+		/* Re-tesselation is necessary to push render data (uvs, textures, colors)
+		 * from loops and polys onto the tessfaces. This may be currently be redundant
+		 * in cases where the render mode doesn't use these inputs, but ideally
+		 * eventually tesselation would happen on-demand, and this is one of the primary
+		 * places it would be needed. */
+		finaldm->recalcTesselation(finaldm);
+		finaldm->calcNormals(finaldm);
+	}
 
 	*final_r = finaldm;
 
