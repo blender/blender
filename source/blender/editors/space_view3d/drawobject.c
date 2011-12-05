@@ -2986,7 +2986,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	const short is_obact= (ob != NULL && ob == OBACT);
+	const short is_obact= (ob == OBACT);
 	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
@@ -6108,7 +6108,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
-	const short is_obact= (ob != NULL && ob == OBACT);
+	const short is_obact= (ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

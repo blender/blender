@@ -725,6 +725,7 @@ def draw_device(self, context):
         if experimental and cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
 
+
 def draw_pause(self, context):
     layout = self.layout
     scene = context.scene
