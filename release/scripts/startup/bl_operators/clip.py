@@ -40,14 +40,14 @@ def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
         bgpic = None
 
         for x in space_v3d.background_images:
-            if x.source == 'MOVIE':
+            if x.source == 'MOVIE_CLIP':
                 bgpic = x
                 break
 
         if not bgpic:
             bgpic = space_v3d.background_images.new()
 
-        bgpic.source = 'MOVIE'
+        bgpic.source = 'MOVIE_CLIP'
         bgpic.clip = clip
         bgpic.clip_user.proxy_render_size = user.proxy_render_size
         bgpic.clip_user.use_render_undistorted = True

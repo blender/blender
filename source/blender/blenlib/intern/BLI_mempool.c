@@ -68,8 +68,9 @@ typedef struct BLI_mempool_chunk {
 
 struct BLI_mempool {
 	struct ListBase chunks;
-	int esize, csize, pchunk;        /* size of elements and chunks in bytes
-	                                  * and number of elements per chunk*/
+	int esize;         /* element size in bytes */
+	int csize;         /* chunk size in bytes */
+	int pchunk;        /* number of elements per chunk */
 	short use_sysmalloc, allow_iter;
 	/* keeps aligned to 16 bits */
 
@@ -238,6 +239,24 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		}
 		curnode->next = NULL; /*terminate the list*/
 	}
+}
+
+void *BLI_mempool_findelem(BLI_mempool *pool, int index)
+{
+	if (!pool->allow_iter) {
+		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
+		return NULL;
+	}
+	else if ((index >= 0) && (index < pool->totused)) {
+		/* we could have some faster mem chunk stepping code inline */
+		BLI_mempool_iter iter;
+		void *elem;
+		BLI_mempool_iternew(pool, &iter);
+		for (elem= BLI_mempool_iterstep(&iter); index-- != 0; elem= BLI_mempool_iterstep(&iter)) { };
+		return elem;
+	}
+
+	return NULL;
 }
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)

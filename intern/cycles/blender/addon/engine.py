@@ -56,7 +56,7 @@ def free(engine):
 
 def render(engine):
     import bcycles
-    if "session" in dir(engine):
+    if hasattr(engine, "session"):
         bcycles.render(engine.session)
 
 

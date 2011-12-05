@@ -16,81 +16,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "svm_hsv.h"
+
 CCL_NAMESPACE_BEGIN
-
-__device float3 rgb_to_hsv(float3 rgb)
-{
-	float cmax, cmin, h, s, v, cdelta;
-	float3 c;
-
-	cmax = fmaxf(rgb.x, fmaxf(rgb.y, rgb.z));
-	cmin = min(rgb.x, min(rgb.y, rgb.z));
-	cdelta = cmax - cmin;
-
-	v = cmax;
-
-	if(cmax != 0.0f) {
-		s = cdelta/cmax;
-	}
-	else {
-		s = 0.0f;
-		h = 0.0f;
-	}
-
-	if(s == 0.0f) {
-		h = 0.0f;
-	}
-	else {
-		float3 cmax3 = make_float3(cmax, cmax, cmax);
-		c = (cmax3 - rgb)/cdelta;
-
-		if(rgb.x == cmax) h = c.z - c.y;
-		else if(rgb.y == cmax) h = 2.0f + c.x -  c.z;
-		else h = 4.0f + c.y - c.x;
-
-		h /= 6.0f;
-
-		if(h < 0.0f)
-			h += 1.0f;
-	}
-
-	return make_float3(h, s, v);
-}
-
-__device float3 hsv_to_rgb(float3 hsv)
-{
-	float i, f, p, q, t, h, s, v;
-	float3 rgb;
-
-	h = hsv.x;
-	s = hsv.y;
-	v = hsv.z;
-
-	if(s==0.0f) {
-		rgb = make_float3(v, v, v);
-	}
-	else {
-		if(h==1.0f)
-			h = 0.0f;
-		
-		h *= 6.0f;
-		i = floor(h);
-		f = h - i;
-		rgb = make_float3(f, f, f);
-		p = v*(1.0f-s);
-		q = v*(1.0f-(s*f));
-		t = v*(1.0f-(s*(1.0f-f)));
-		
-		if(i == 0.0f) rgb = make_float3(v, t, p);
-		else if(i == 1.0f) rgb = make_float3(q, v, p);
-		else if(i == 2.0f) rgb = make_float3(p, v, t);
-		else if(i == 3.0f) rgb = make_float3(p, q, v);
-		else if(i == 4.0f) rgb = make_float3(t, p, v);
-		else rgb = make_float3(v, p, q);
-	}
-
-	return rgb;
-}
 
 __device float3 svm_lerp(const float3 a, const float3 b, float t)
 {

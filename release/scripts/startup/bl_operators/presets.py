@@ -360,6 +360,30 @@ class AddPresetTrackingTrackColor(AddPresetBase, Operator):
     preset_subdir = "tracking_track_color"
 
 
+class AddPresetTrackingSettings(AddPresetBase, Operator):
+    '''Add a motion tracking settings preset'''
+    bl_idname = "clip.tracking_settings_preset_add"
+    bl_label = "Add Tracking Settings Preset"
+    preset_menu = "CLIP_MT_tracking_settings_presets"
+
+    preset_defines = [
+        "settings = bpy.context.edit_movieclip.tracking.settings"
+    ]
+
+    preset_values = [
+        "settings.default_tracker",
+        "settings.default_pyramid_levels",
+        "settings.default_correlation_min",
+        "settings.default_pattern_size",
+        "settings.default_search_size",
+        "settings.default_frames_limit",
+        "settings.default_pattern_match",
+        "settings.default_margin"
+    ]
+
+    preset_subdir = "tracking_settings"
+
+
 class AddPresetKeyconfig(AddPresetBase, Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"

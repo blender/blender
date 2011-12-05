@@ -1506,6 +1506,10 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
 			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
 		) {
+			/* disable individual images */
+			if((bgpic->flag&V3D_BGPIC_DISABLED))
+				continue;
+
 			freeibuf= NULL;
 			if(bgpic->source==V3D_BGPIC_IMAGE) {
 				ima= bgpic->ima;
@@ -2643,28 +2647,10 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 
 static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
 {
-	rcti rect;
-	const int header_height = 18;
-
 	if(!rv3d->render_engine || !rv3d->render_engine->text)
 		return;
-	
-	/* background box */
-	rect= ar->winrct;
-	rect.xmin= 0;
-	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
-	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
-	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
-	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
-	glDisable(GL_BLEND);
-	
-	/* text */
-	UI_ThemeColor(TH_TEXT_HI);
-	UI_DrawString(12, rect.ymin + 5, rv3d->render_engine->text);
+	ED_region_info_draw(ar, rv3d->render_engine->text, 1, 0.25);
 }
 
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */

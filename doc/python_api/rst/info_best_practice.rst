@@ -39,7 +39,7 @@ As well as pep8 we have other conventions used for blender python scripts.
 
   .. code-block:: python
 
-     bpy.context.scene.render.file_format = 'PNG'
+     bpy.context.scene.render.image_settings.file_format = 'PNG'
      bpy.context.scene.render.filepath = "//render_out"
 
 * pep8 also defines that lines should not exceed 79 characters, we felt this is too restrictive so this is optional per script.
@@ -181,7 +181,7 @@ When removing many items in a large list this can provide a good speedup.
 Avoid Copying Lists
 ^^^^^^^^^^^^^^^^^^^
 
-When passing a list/dictionary to a function, it is faster to have the function modify the list rather then returning a new list so python dosn't have tp duplicate the list in memory.
+When passing a list/dictionary to a function, it is faster to have the function modify the list rather then returning a new list so python doesn't have to duplicate the list in memory.
 
 Functions that modify a list in-place are more efficient then functions that create new lists.
 

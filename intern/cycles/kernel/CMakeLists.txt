@@ -54,13 +54,16 @@ set(SRC_SVM_HEADERS
 	svm/svm.h
 	svm/svm_attribute.h
 	svm/svm_bsdf.h
+	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h
 	svm/svm_displace.h
 	svm/svm_fresnel.h
 	svm/svm_geometry.h
 	svm/svm_gradient.h
+	svm/svm_hsv.h
 	svm/svm_image.h
+	svm/svm_invert.h
 	svm/svm_light_path.h
 	svm/svm_magic.h
 	svm/svm_mapping.h
@@ -69,6 +72,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_musgrave.h
 	svm/svm_noise.h
 	svm/svm_noisetex.h
+	svm/svm_sepcomb_rgb.h
 	svm/svm_sky.h
 	svm/svm_tex_coord.h
 	svm/svm_texture.h

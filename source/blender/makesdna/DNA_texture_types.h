@@ -33,6 +33,7 @@
  *  \author nzc
  */
 
+#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h" /* ImageUser */
 
@@ -263,7 +264,7 @@ typedef struct Tex {
 	struct ImageUser iuser;
 	
 	struct bNodeTree *nodetree;
-	struct Ipo *ipo;				// XXX depreceated... old animation system
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Image *ima;
 	struct PluginTex *plugin;
 	struct ColorBand *coba;
@@ -492,7 +493,7 @@ typedef struct ColorMapping {
 #define MTEX_5TAP_BUMP		512
 #define MTEX_BUMP_OBJECTSPACE	1024
 #define MTEX_BUMP_TEXTURESPACE	2048
-#define MTEX_BUMP_FLIPPED		4096 /* temp flag for 2.59/2.60 */
+/* #define MTEX_BUMP_FLIPPED 	4096 */ /* UNUSED */
 
 /* blendtype */
 #define MTEX_BLEND		0

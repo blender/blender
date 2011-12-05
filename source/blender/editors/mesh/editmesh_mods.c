@@ -448,11 +448,11 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
+		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
 
 		if (data.dist>3) {
 			data.pass = 1;
-			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
+			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
 		}
 
 		*dist = data.dist;
@@ -540,7 +540,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 		data.closest = NULL;
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
+		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_CLIP_TEST_REGION);
 
 		*dist = data.dist;
 		return data.closest;
@@ -4222,20 +4222,10 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 				for (eve= em->verts.first; eve; eve= eve->next) {
 					if(eve->f & SELECT) {
 
-						switch(mmd->axis){
-							case 0:
-								if (fabsf(eve->co[0]) < mmd->tolerance)
-									eve->f2 |= 1;
-								break;
-							case 1:
-								if (fabsf(eve->co[1]) < mmd->tolerance)
-									eve->f2 |= 2;
-								break;
-							case 2:
-								if (fabsf(eve->co[2]) < mmd->tolerance)
-									eve->f2 |= 4;
-								break;
-						}
+						if (mmd->flag & MOD_MIR_AXIS_X && fabsf(eve->co[0]) < mmd->tolerance) eve->f2 |= 1;
+						if (mmd->flag & MOD_MIR_AXIS_Y && fabsf(eve->co[1]) < mmd->tolerance) eve->f2 |= 2;
+						if (mmd->flag & MOD_MIR_AXIS_Z && fabsf(eve->co[2]) < mmd->tolerance) eve->f2 |= 4;
+
 					}
 				}
 			}

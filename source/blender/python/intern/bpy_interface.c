@@ -71,7 +71,6 @@
 /* inittab initialization functions */
 #include "../generic/bgl.h"
 #include "../generic/blf_py_api.h"
-#include "../generic/noise_py_api.h"
 #include "../mathutils/mathutils.h"
 
 /* for internal use, when starting and ending python scripts */
@@ -134,9 +133,12 @@ void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 		fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
 	}
 	else if (py_call_level==0) {
-		// XXX - Calling classes currently wont store the context :\, cant set NULL because of this. but this is very flakey still.
-		//BPy_SetContext(NULL);
-		//bpy_import_main_set(NULL);
+		/* XXX - Calling classes currently wont store the context :\,
+		 * cant set NULL because of this. but this is very flakey still. */
+#if 0
+		BPy_SetContext(NULL);
+		bpy_import_main_set(NULL);
+#endif
 
 #ifdef TIME_PY_RUN
 		bpy_timer_run_tot += PIL_check_seconds_timer() - bpy_timer_run;
@@ -178,9 +180,9 @@ extern PyObject *AUD_initPython(void);
 extern PyObject *CYCLES_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {
-	{(char *)"noise", BPyInit_noise},
 	{(char *)"mathutils", PyInit_mathutils},
 //	{(char *)"mathutils.geometry", PyInit_mathutils_geometry},
+//	{(char *)"mathutils.noise", PyInit_mathutils_noise},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 #ifdef WITH_AUDASPACE
@@ -329,7 +331,8 @@ typedef struct {
 } PyModuleObject;
 #endif
 
-static int python_script_exec(bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const short do_jump)
+static int python_script_exec(bContext *C, const char *fn, struct Text *text,
+                              struct ReportList *reports, const short do_jump)
 {
 	PyObject *main_mod= NULL;
 	PyObject *py_dict= NULL, *py_result= NULL;
@@ -717,7 +720,10 @@ void bpy_module_delay_init(PyObject *bpy_proxy)
 {
 	const int argc= 1;
 	const char *argv[2];
-	PyObject *filename_obj= PyModule_GetFilenameObject(bpy_proxy); /* updating the module dict below will loose the reference to __file__ */
+
+	/* updating the module dict below will loose the reference to __file__ */
+	PyObject *filename_obj= PyModule_GetFilenameObject(bpy_proxy);
+
 	const char *filename_rel= _PyUnicode_AsString(filename_obj); /* can be relative */
 	char filename_abs[1024];
 

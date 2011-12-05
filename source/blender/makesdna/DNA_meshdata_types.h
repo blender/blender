@@ -174,14 +174,6 @@ typedef struct Multires {
 
 /** End Multires **/
 
-typedef struct PartialVisibility {
-	unsigned int *vert_map; /* vert_map[Old Index]= New Index */
-	int *edge_map; /* edge_map[Old Index]= New Index, -1= hidden */
-	MFace *old_faces;
-	MEdge *old_edges;
-	unsigned int totface, totedge, totvert, pad;
-} PartialVisibility;
-
 typedef struct MRecast{
 	int		i;
 } MRecast;
@@ -200,8 +192,8 @@ typedef struct MRecast{
 						/* reserve 16 for ME_HIDE */
 #define ME_EDGERENDER		(1<<5)
 #define ME_LOOSEEDGE		(1<<7)
-#define ME_SEAM_LAST		(1<<8)
-#define ME_SHARP			(1<<9)
+/* #define ME_SEAM_LAST		(1<<8) */ /* UNUSED */
+#define ME_SHARP			(1<<9)    /* only reason this flag remains a 'short' */
 #define ME_FREESTYLE_EDGE	(1<<10)
 
 /* puno = vertexnormal (mface) */

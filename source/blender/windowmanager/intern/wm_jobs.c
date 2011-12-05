@@ -505,3 +505,13 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 	}
 }
 
+int WM_jobs_has_running(wmWindowManager *wm)
+{
+	wmJob *steve;
+
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve->running)
+			return 1;
+
+	return 0;
+}

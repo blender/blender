@@ -285,7 +285,8 @@ void CustomData_validate_layer_name(const struct CustomData *data, int type, cha
 int CustomData_verify_versions(struct CustomData *data, int index);
 
 /*BMesh specific customdata stuff*/
-void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
+void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata,
+                             struct CustomData *ldata);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
 

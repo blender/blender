@@ -385,19 +385,19 @@ void make_local_image(struct Image *ima)
 		extern_local_image(ima);
 	}
 	else if(is_local && is_lib) {
-		Image *iman= copy_image(ima);
+		Image *ima_new= copy_image(ima);
 
-		iman->id.us= 0;
+		ima_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &iman->id);
+		BKE_id_lib_local_paths(bmain, ima->id.lib, &ima_new->id);
 
 		tex= bmain->tex.first;
 		while(tex) {
 			if(tex->id.lib==NULL) {
 				if(tex->ima==ima) {
-					tex->ima = iman;
-					iman->id.us++;
+					tex->ima = ima_new;
+					ima_new->id.us++;
 					ima->id.us--;
 				}
 			}
@@ -407,8 +407,8 @@ void make_local_image(struct Image *ima)
 		while(brush) {
 			if(brush->id.lib==NULL) {
 				if(brush->clone.image==ima) {
-					brush->clone.image = iman;
-					iman->id.us++;
+					brush->clone.image = ima_new;
+					ima_new->id.us++;
 					ima->id.us--;
 				}
 			}
@@ -429,11 +429,11 @@ void make_local_image(struct Image *ima)
 
 						for(a=0; a<me->totface; a++, tface++) {	
 							if(tface->tpage == ima) {
-								tface->tpage = iman;
-								if(iman->id.us == 0) {
+								tface->tpage = ima_new;
+								if(ima_new->id.us == 0) {
 									tface->tpage->id.us= 1;
 								}
-								id_lib_extern((ID*)iman);
+								id_lib_extern((ID*)ima_new);
 							}
 						}
 					}

@@ -188,15 +188,15 @@ static void object_clear_scale(Object *ob)
 {
 	/* clear scale factors which are not locked */
 	if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
-		ob->dsize[0]= 0.0f;
+		ob->dscale[0]= 1.0f;
 		ob->size[0]= 1.0f;
 	}
 	if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
-		ob->dsize[1]= 0.0f;
+		ob->dscale[1]= 1.0f;
 		ob->size[1]= 1.0f;
 	}
 	if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
-		ob->dsize[2]= 0.0f;
+		ob->dscale[2]= 1.0f;
 		ob->size[2]= 1.0f;
 	}
 }

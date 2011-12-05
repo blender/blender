@@ -685,9 +685,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			if(!mesh->transform_applied) {
 				string msg = "Updating Mesh BVH ";
 				if(mesh->name == "")
-					msg += string_printf("%ld/%ld", i+1, num_instance_bvh);
+					msg += string_printf("%lu/%lu", (unsigned long)(i+1), (unsigned long)num_instance_bvh);
 				else
-					msg += string_printf("%s %ld/%ld", mesh->name.c_str(), i+1, num_instance_bvh);
+					msg += string_printf("%s %lu/%lu", mesh->name.c_str(), (unsigned long)(i+1), (unsigned long)num_instance_bvh);
 				progress.set_status(msg, "Building BVH");
 
 				mesh->compute_bvh(&scene->params, progress);

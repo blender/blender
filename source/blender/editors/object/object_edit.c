@@ -439,9 +439,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		
-		if(me->pv) mesh_pmv_off(me);
 		ok= 1;
 		scene->obedit= ob;	// context sees this
 		
@@ -1142,7 +1139,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if(event==3) {  /* size */
 					copy_v3_v3(base->object->size, ob->size);
-					copy_v3_v3(base->object->dsize, ob->dsize);
+					copy_v3_v3(base->object->dscale, ob->dscale);
 				}
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;

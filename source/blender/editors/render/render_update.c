@@ -41,6 +41,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -65,13 +66,25 @@
 
 /***************************** Render Engines ********************************/
 
-void ED_render_engine_update_tagged(bContext *C, Main *bmain)
+void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 {
 	/* viewport rendering update on data changes, happens after depsgraph
 	 * updates if there was any change. context is set to the 3d view */
-	bScreen *sc, *prev_sc= CTX_wm_screen(C);
-	ScrArea *sa, *prev_sa= CTX_wm_area(C);
-	ARegion *ar, *prev_ar= CTX_wm_region(C);
+	bContext *C;
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
+
+	/* don't do this render engine update if we're updating the scene from
+	   other threads doing e.g. rendering or baking jobs */
+	if(!BLI_thread_is_main())
+		return;
+
+	C= CTX_create();
+	CTX_data_main_set(C, bmain);
+	CTX_data_scene_set(C, scene);
+
+	CTX_wm_manager_set(C, bmain->wm.first);
 
 	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
 		for(sa=sc->areabase.first; sa; sa=sa->next) {
@@ -88,7 +101,7 @@ void ED_render_engine_update_tagged(bContext *C, Main *bmain)
 				rv3d= ar->regiondata;
 				engine= rv3d->render_engine;
 
-				if(engine && (engine->flag & RE_ENGINE_DO_UPDATE)) {
+				if(engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
 					CTX_wm_screen_set(C, sc);
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
@@ -100,9 +113,7 @@ void ED_render_engine_update_tagged(bContext *C, Main *bmain)
 		}
 	}
 
-	CTX_wm_screen_set(C, prev_sc);
-	CTX_wm_area_set(C, prev_sa);
-	CTX_wm_region_set(C, prev_ar);
+	CTX_free(C);
 }
 
 void ED_render_engine_changed(Main *bmain)
@@ -129,32 +140,6 @@ void ED_render_engine_changed(Main *bmain)
 					RE_engine_free(rv3d->render_engine);
 					rv3d->render_engine= NULL;
 				}
-			}
-		}
-	}
-}
-
-static void tag_render_engines(Main *bmain)
-{
-	/* tag running render engines for update later on */
-	bScreen *sc;
-	ScrArea *sa;
-	ARegion *ar;
-
-	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
-		for(sa=sc->areabase.first; sa; sa=sa->next) {
-			if(sa->spacetype != SPACE_VIEW3D)
-				continue;
-
-			for(ar=sa->regionbase.first; ar; ar=ar->next) {
-				RegionView3D *rv3d;
-
-				if(ar->regiontype != RGN_TYPE_WINDOW)
-					continue;
-				
-				rv3d= ar->regiondata;
-				if(rv3d->render_engine)
-					rv3d->render_engine->flag |= RE_ENGINE_DO_UPDATE;
 			}
 		}
 	}
@@ -357,11 +342,6 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
-	if(!id) {
-		tag_render_engines(bmain);
-		return;
-	}
-
 	switch(GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material*)id);

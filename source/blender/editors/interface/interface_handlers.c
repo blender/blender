@@ -3795,6 +3795,8 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			}
 
 			if (sel == -1) {
+				int i;
+
 				/* if the click didn't select anything, check if it's clicked on the 
 				 * curve itself, and if so, add a point */
 				fx= ((float)mx - but->x1)/zoomx + offsx;
@@ -3804,8 +3806,10 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 
 				/* loop through the curve segment table and find what's near the mouse.
 				 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
-				for(a=0; a<=CM_TABLE; a++) {			
-					if ( ( fabs(fx - cmp[a].x) < (0.05) ) && ( fabs(fy - cmp[a].y) < (0.05) ) ) {
+				for(i=0; i<=CM_TABLE; i++) {
+					if ( (fabsf(fx - cmp[i].x) < 0.05f) &&
+					     (fabsf(fy - cmp[i].y) < 0.05f))
+					{
 					
 						curvemap_insert(cuma, fx, fy);
 						curvemapping_changed(cumap, 0);

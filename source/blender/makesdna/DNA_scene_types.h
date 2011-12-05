@@ -31,6 +31,8 @@
  *  \ingroup DNA
  */
 
+#include "DNA_defs.h"
+
 // XXX, temp feature - campbell
 #define DURIAN_CAMERA_SWITCH
 
@@ -336,11 +338,11 @@ typedef struct RenderData {
 	/** For UR edge rendering: give the edges this color */
 	float edgeR, edgeG, edgeB;
 	
-	short fullscreen, xplay, yplay, freqplay;	/* standalone player */  //  XXX deprecated since 2.5
-	short depth, attrib;			/* standalone player */  //  XXX deprecated since 2.5
+	short fullscreen  DNA_DEPRECATED, xplay  DNA_DEPRECATED, yplay  DNA_DEPRECATED, freqplay  DNA_DEPRECATED;	/* standalone player */  //  XXX deprecated since 2.5
+	short depth  DNA_DEPRECATED, attrib  DNA_DEPRECATED;			/* standalone player */  //  XXX deprecated since 2.5
 	int frame_step;		/* frames to jump during render/playback */
 
-	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
+	short stereomode  DNA_DEPRECATED;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
 
@@ -365,7 +367,7 @@ typedef struct RenderData {
 	 */
 	short yparts;
 
-	short planes, imtype, subimtype, quality;                   /*deprecated!*/
+	short planes  DNA_DEPRECATED, imtype  DNA_DEPRECATED, subimtype  DNA_DEPRECATED, quality  DNA_DEPRECATED; /*deprecated!*/
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
@@ -392,8 +394,7 @@ typedef struct RenderData {
 	 */
 	short raytrace_structure;
 
-	/* renderer (deprecated) */
-	short renderer;
+	short pad1;
 
 	/* octree resolution */
 	short ocres;
@@ -439,7 +440,7 @@ typedef struct RenderData {
 	/* color management settings - color profiles, gamma correction, etc */
 	int color_mgt_flag;
 	
-	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
+	/** post-production settings. deprecated, but here for upwards compat (initialized to 1) */
 	float postgamma, posthue, postsat;	 
 	
 	 /* Dither noise intensity */
@@ -478,19 +479,19 @@ typedef struct RenderData {
 	float simplify_aosss;
 
 	/* cineon */
-	short cineonwhite, cineonblack;                              /*deprecated*/
-	float cineongamma;                                           /*deprecated*/
+	short cineonwhite  DNA_DEPRECATED, cineonblack  DNA_DEPRECATED;  /*deprecated*/
+	float cineongamma  DNA_DEPRECATED;  /*deprecated*/
 	
 	/* jpeg2000 */
-	short jp2_preset, jp2_depth;                                 /*deprecated*/
+	short jp2_preset  DNA_DEPRECATED, jp2_depth  DNA_DEPRECATED;  /*deprecated*/
 	int rpad3;
 
 	/* Dome variables */ //  XXX deprecated since 2.5
-	short domeres, domemode;	//  XXX deprecated since 2.5
-	short domeangle, dometilt;	//  XXX deprecated since 2.5
-	float domeresbuf;	//  XXX deprecated since 2.5
-	float pad2;			//  XXX deprecated since 2.5
-	struct Text *dometext;	//  XXX deprecated since 2.5
+	short domeres  DNA_DEPRECATED, domemode  DNA_DEPRECATED;	//  XXX deprecated since 2.5
+	short domeangle  DNA_DEPRECATED, dometilt  DNA_DEPRECATED;	//  XXX deprecated since 2.5
+	float domeresbuf  DNA_DEPRECATED;	//  XXX deprecated since 2.5
+	float pad2;
+	struct Text *dometext  DNA_DEPRECATED;	//  XXX deprecated since 2.5
 
 	/* render engine */
 	char engine[32];
@@ -749,7 +750,7 @@ typedef struct VPaint {
 
 #define VP_NORMALS	8
 #define VP_SPRAY	16
-// #define VP_MIRROR_X	32 // depricated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
+// #define VP_MIRROR_X	32 // deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
 #define VP_ONLYVGROUP	128
 
 
@@ -961,7 +962,7 @@ typedef struct Scene {
 	ListBase keyingsets;			/* KeyingSets for the given frame */
 	
 	/* Game Settings */
-	struct GameFraming framing; // XXX  deprecated since 2.5
+	struct GameFraming framing  DNA_DEPRECATED; // XXX  deprecated since 2.5
 	struct GameData gm;
 
 	/* Units */
@@ -1039,10 +1040,6 @@ typedef struct Scene {
 #define R_FILTER_GAUSS	5
 #define R_FILTER_MITCH	6
 #define R_FILTER_FAST_GAUSS	7 /* note, this is only used for nodes at the moment */
-
-/* yafray: renderer flag (not only exclusive to yafray) */
-#define R_INTERN	0
-#define R_YAFRAY	1
 
 /* raytrace structure */
 #define R_RAYSTRUCTURE_AUTO				0

@@ -69,7 +69,6 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 static void rna_Scene_update_tagged(Scene *scene)
 {
 	scene_update_tagged(G.main, scene);
-	scene_clear_tagged(G.main, scene);
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)

@@ -2371,7 +2371,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.skip = RE_SKIP_VLR_NEIGHBOUR;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
-				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
+				if(!hit || len_squared_v3v3(shi->co, co) < len_squared_v3v3(shi->co, minco)) {
 					minisec= isec;
 					mindist= dist;
 					copy_v3_v3(minco, co);

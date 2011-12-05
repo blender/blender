@@ -244,7 +244,8 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	return op->type->exec(C, op);
 }
 
-int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
+int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
+	float *rot, int *enter_editmode, unsigned int *layer)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	int a, layer_values[20];
@@ -305,7 +306,8 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 
 /* for object add primitive operators */
 /* do not call undo push in this function (users of this function have to) */
-Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
+Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
+	int enter_editmode, unsigned int layer)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -326,7 +328,9 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 
 	DAG_id_type_tag(bmain, ID_OB);
 	DAG_scene_sort(bmain, scene);
-	ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data) {
+		ED_render_id_flush_update(bmain, ob->data);
+	}
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
@@ -1809,7 +1813,9 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	set_sca_new_poins_ob(ob);
 
 	DAG_scene_sort(bmain, scene);
-	ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data) {
+		ED_render_id_flush_update(bmain, ob->data);
+	}
 
 	return basen;
 }

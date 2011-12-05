@@ -48,6 +48,8 @@ WITH_BF_JPEG = True
 BF_JPEG_LIB = 'libjpeg'
 BF_JPEG_LIBPATH = '/home/sources/staticlibs/lib64'
 
+WITH_BF_STATICLIBSAMPLERATE = True
+
 WITH_BF_PNG = True
 BF_PNG_LIB = 'libpng'
 BF_PNG_LIBPATH = '/home/sources/staticlibs/lib64'
@@ -93,5 +95,5 @@ WITH_BF_OCEANSIM = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
+REL_CCFLAGS = ['-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib64']

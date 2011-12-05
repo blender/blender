@@ -34,6 +34,7 @@
 
 struct bGPDlayer;
 struct ImBuf;
+struct MovieReconstructContext;
 struct MovieTrackingTrack;
 struct MovieTrackingMarker;
 struct MovieTracking;
@@ -44,6 +45,7 @@ struct Camera;
 struct Object;
 struct Scene;
 
+void BKE_tracking_init_settings(struct MovieTracking *tracking);
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 
@@ -58,7 +60,6 @@ struct MovieTrackingMarker *BKE_tracking_exact_marker(struct MovieTrackingTrack 
 int BKE_tracking_has_marker(struct MovieTrackingTrack *track, int framenr);
 
 void BKE_tracking_free_track(struct MovieTrackingTrack *track);
-struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *track);
 
 void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
 
@@ -91,9 +92,14 @@ void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingCont
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
 /* Camera solving */
-int BKE_tracking_can_solve(struct MovieTracking *tracking, char *error_msg, int error_size);
+int BKE_tracking_can_reconstruct(struct MovieTracking *tracking, char *error_msg, int error_size);
 
-float BKE_tracking_solve_reconstruction(struct MovieTracking *tracking, int width, int height);
+struct MovieReconstructContext* BKE_tracking_reconstruction_context_new(struct MovieTracking *tracking,
+			int keyframe1, int keyframe2, int width, int height);
+void BKE_tracking_reconstruction_context_free(struct MovieReconstructContext *context);
+void BKE_tracking_solve_reconstruction(struct MovieReconstructContext *context,
+			short *stop, short *do_update, float *progress, char *stats_message, int message_size);
+int BKE_tracking_finish_reconstruction(struct MovieReconstructContext *context, struct MovieTracking *tracking);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
 void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking, int framenr, float mat[4][4]);

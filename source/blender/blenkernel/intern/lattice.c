@@ -271,17 +271,17 @@ void make_local_lattice(Lattice *lt)
 		id_clear_lib_data(bmain, &lt->id);
 	}
 	else if(is_local && is_lib) {
-		Lattice *ltn= copy_lattice(lt);
-		ltn->id.us= 0;
+		Lattice *lt_new= copy_lattice(lt);
+		lt_new->id.us= 0;
 
 		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, &ltn->id);
+		BKE_id_lib_local_paths(bmain, lt->id.lib, &lt_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
 			if(ob->data==lt) {
 				if(ob->id.lib==NULL) {
-					ob->data= ltn;
-					ltn->id.us++;
+					ob->data= lt_new;
+					lt_new->id.us++;
 					lt->id.us--;
 				}
 			}
@@ -462,7 +462,7 @@ void end_latt_deform(Object *ob)
 	   so we store in latmat transform from path coord inside object 
 	 */
 typedef struct {
-	float dmin[3], dmax[3], dsize, dloc[3];
+	float dmin[3], dmax[3], dscale, dloc[3];
 	float curvespace[4][4], objectspace[4][4], objectspace3[3][3];
 	int no_rot_axis;
 } CurveDeform;

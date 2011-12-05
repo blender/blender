@@ -62,7 +62,7 @@ void register_node_type_sh_camera(bNodeTreeType *ttype)
 	static bNodeType ntype;
 
 	node_type_base(ttype, &ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, NULL, sh_node_camera_out);
 	node_type_size(&ntype, 95, 95, 120);
 	node_type_storage(&ntype, "node_camera", NULL, NULL);

@@ -87,6 +87,7 @@ else:
         "gpu",
         "mathutils",
         "mathutils.geometry",
+        "mathutils.noise",
         "Freestyle",
     )
 
@@ -1198,6 +1199,8 @@ def rna2sphinx(BASEPATH):
         fw("   mathutils.rst\n\n")
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         fw("   mathutils.geometry.rst\n\n")
+    if "mathutils.noise" not in EXCLUDE_MODULES:
+        fw("   mathutils.noise.rst\n\n")
     if "Freestyle" not in EXCLUDE_MODULES:
         fw("   Freestyle.rst\n\n")
     if "bgl" not in EXCLUDE_MODULES:
@@ -1338,6 +1341,10 @@ def rna2sphinx(BASEPATH):
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         import mathutils.geometry as module
         pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
+
+    if "mathutils.noise" not in EXCLUDE_MODULES:
+        import mathutils.noise as module
+        pymodule2sphinx(BASEPATH, "mathutils.noise", module, "Noise Utilities")
 
     if "Freestyle" not in EXCLUDE_MODULES:
         import Freestyle as module

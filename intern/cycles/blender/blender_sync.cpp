@@ -47,7 +47,8 @@ BlenderSync::BlenderSync(BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene
   mesh_map(&scene_->meshes),
   light_map(&scene_->lights),
   world_map(NULL),
-  world_recalc(false)
+  world_recalc(false),
+  experimental(false)
 {
 	scene = scene_;
 	preview = preview_;
@@ -133,6 +134,8 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d)
 void BlenderSync::sync_integrator()
 {
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+
+	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
 
 	Integrator *integrator = scene->integrator;
 	Integrator previntegrator = *integrator;
@@ -253,6 +256,9 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
+	/* feature set */
+	bool experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
+
 	/* device type */
 	params.device_type = DEVICE_CPU;
 
@@ -262,7 +268,7 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 
 		if(device_type_available(types, dtype))
 			params.device_type = dtype;
-		else if(device_type_available(types, DEVICE_OPENCL))
+		else if(experimental && device_type_available(types, DEVICE_OPENCL))
 			params.device_type = DEVICE_OPENCL;
 		else if(device_type_available(types, DEVICE_CUDA))
 			params.device_type = DEVICE_CUDA;

@@ -56,6 +56,7 @@
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
@@ -548,6 +549,12 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			if(rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
+		}
+		break;
+	case ID_MC:
+		{
+			MovieClip *clip= (MovieClip *)id;
+			rewrite_path_fixed(clip->name, visit_cb, absbase, bpath_user_data);
 		}
 		break;
 	default:

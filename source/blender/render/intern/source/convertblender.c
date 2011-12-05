@@ -1719,7 +1719,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			sd.adapt_angle = cosf(DEG2RADF((float)part->adapt_angle));
 		}
 
-		if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
+		if (part->draw & PART_DRAW_REN_STRAND) {
 			strandbuf= RE_addStrandBuffer(obr, (totpart+totchild)*(path_nbr+1));
 			strandbuf->ma= ma;
 			strandbuf->lay= ob->lay;
@@ -2392,7 +2392,7 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float im
 	/* Object Size with parenting */
 	obt=obr->ob;
 	while(obt){
-		mul_v3_v3v3(temp, obt->size, obt->dsize);
+		mul_v3_v3v3(temp, obt->size, obt->dscale);
 		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
 		obt=obt->parent;
 	}
@@ -3916,8 +3916,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			}
 		}
 	}
-	/* yafray: shadow flag should not be cleared, only used with internal renderer */
-	if (re->r.renderer==R_INTERN) {
+
+	/* old code checked for internal render (aka not yafray) */
+	{
 		/* to make sure we can check ray shadow easily in the render code */
 		if(lar->mode & LA_SHAD_RAY) {
 			if( (re->r.mode & R_RAYTRACE)==0)
@@ -4586,7 +4587,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset, int vectorlay)
+static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -4616,8 +4617,6 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			obr->flag |= R_INSTANCEABLE;
 			copy_m4_m4(obr->obmat, ob->obmat);
 		}
-		if(obr->lay & vectorlay)
-			obr->flag |= R_NEED_VECTORS;
 		init_render_object_data(re, obr, timeoffset);
 
 		/* only add instance for objects that have not been used for dupli */
@@ -4644,8 +4643,6 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 				obr->flag |= R_INSTANCEABLE;
 				copy_m4_m4(obr->obmat, ob->obmat);
 			}
-			if(obr->lay & vectorlay)
-				obr->flag |= R_NEED_VECTORS;
 			if(dob)
 				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
@@ -4665,7 +4662,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset, int vectorlay)
+static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, int timeoffset)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4674,7 +4671,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if(render_object_type(ob->type))
-		add_render_object(re, ob, par, dob, timeoffset, vectorlay);
+		add_render_object(re, ob, par, dob, timeoffset);
 	else {
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 		invert_m4_m4(ob->imat, mat);
@@ -4872,7 +4869,7 @@ static int get_vector_renderlayers(Scene *sce)
 	return lay;
 }
 
-static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int vectorlay, int level)
+static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int level)
 {
 	GroupObject *go;
 	Object *ob;
@@ -4888,11 +4885,11 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI) {
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
 					if(ob->dup_group)
-						add_group_render_dupli_obs(re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, vectorlay, level+1);
+						add_group_render_dupli_obs(re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, level+1);
 				}
 			}
 		}
@@ -4948,7 +4945,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 			 * it still needs to create the ObjectRen containing the data */
 			if(ob->transflag & OB_RENDER_DUPLI) {
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
 			}
@@ -5040,7 +5037,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 						if(obi==NULL)
 							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
+							init_render_object(re, obd, ob, dob, timeoffset);
 						
 						if(dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
@@ -5048,17 +5045,17 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
+						init_render_object(re, obd, ob, dob, timeoffset);
 					
 					if(re->test_break(re->tbh)) break;
 				}
 				free_object_duplilist(lb);
 
 				if(allow_render_object(re, ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+					init_render_object(re, ob, NULL, 0, timeoffset);
 			}
 			else if(allow_render_object(re, ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
+				init_render_object(re, ob, NULL, 0, timeoffset);
 		}
 
 		if(re->test_break(re->tbh)) break;
@@ -5067,7 +5064,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
 	 * since they may not be part of the scene */
 	for(group= re->main->group.first; group; group=group->id.next)
-		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, renderlay, 0);
+		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, 0);
 
 	if(!re->test_break(re->tbh))
 		RE_makeRenderInstances(re);
@@ -5174,10 +5171,9 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 
 		/* SHADOW BUFFER */
 		threaded_makeshadowbufs(re);
-		
-		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
-		/* although radio mode could be useful at some point, later */
-		if (re->r.renderer==R_INTERN) {
+
+		/* old code checked for internal render (aka not yafray) */
+		{
 			/* raytree */
 			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {
@@ -5202,14 +5198,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 		/* Occlusion */
 		if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
-				if(re->r.renderer==R_INTERN)
-					if(re->r.mode & R_SHADOW)
-						make_occ_tree(re);
+				if(re->r.mode & R_SHADOW)
+					make_occ_tree(re);
 
 		/* SSS */
 		if((re->r.mode & R_SSS) && !re->test_break(re->tbh))
-			if(re->r.renderer==R_INTERN)
-				make_sss_tree(re);
+			make_sss_tree(re);
 		
 		if(!re->test_break(re->tbh))
 			if(re->r.mode & R_RAYTRACE)
@@ -5670,6 +5664,8 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 		RE_Database_FromScene(re, bmain, sce, lay, 1);
 	
 	if(!re->test_break(re->tbh)) {
+		int vectorlay= get_vector_renderlayers(re->scene);
+
 		for(step= 0; step<2; step++) {
 			
 			if(step)
@@ -5682,7 +5678,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 				int ok= 1;
 				FluidsimModifierData *fluidmd;
 
-				if(!(obi->obr->flag & R_NEED_VECTORS))
+				if(!(obi->lay & vectorlay))
 					continue;
 
 				obi->totvector= obi->obr->totvert;

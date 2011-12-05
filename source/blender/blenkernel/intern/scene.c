@@ -401,10 +401,6 @@ Scene *add_scene(const char *name)
 	sce->r.simplify_shadowsamples= 16;
 	sce->r.simplify_aosss= 1.0f;
 
-	sce->r.cineonblack= 95;
-	sce->r.cineonwhite= 685;
-	sce->r.cineongamma= 1.7f;
-
 	sce->r.border.xmin= 0.0f;
 	sce->r.border.ymin= 0.0f;
 	sce->r.border.xmax= 1.0f;
@@ -1035,15 +1031,11 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 	if (scene->physics_settings.quick_cache_step)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
-	/* notify editors about recalc */
-	DAG_ids_check_recalc(bmain);
-
-	/* keep this last */
+	/* notify editors and python about recalc */
 	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-}
+	DAG_ids_check_recalc(bmain, scene, FALSE);
 
-void scene_clear_tagged(Main *bmain, Scene *UNUSED(scene))
-{
+	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
 }
 
@@ -1088,10 +1080,13 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
 
-	/* keep this last */
+	/* notify editors and python about recalc */
 	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
+	DAG_ids_check_recalc(bmain, sce, TRUE);
+
+	/* clear recalc flags */
 	DAG_ids_clear_recalc(bmain);
 }
 

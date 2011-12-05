@@ -703,7 +703,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 			dflag |= GP_DRAWDATA_ONLYV2D|GP_DRAWDATA_IEDITHACK;
 		}
 			break;
-			
+#if 0	/* removed since 2.5x, needs to be added back */
 		case SPACE_SEQ: /* sequence */
 		{
 			SpaceSeq *sseq= (SpaceSeq *)sa->spacedata.first;
@@ -728,7 +728,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 			dflag |= GP_DRAWDATA_ONLYI2D;
 		}
 			break;
-			
+#endif
 		default: /* for spacetype not yet handled */
 			offsx= 0;
 			offsy= 0;

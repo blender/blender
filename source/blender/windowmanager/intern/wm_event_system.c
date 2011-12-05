@@ -321,10 +321,6 @@ void wm_event_do_notifiers(bContext *C)
 			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
 			scene_update_tagged(bmain, win->screen->scene);
-
-			ED_render_engine_update_tagged(C, bmain);
-
-			scene_clear_tagged(bmain, win->screen->scene);
 		}
 	}
 
@@ -2670,6 +2666,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			   modifier in win->eventstate, but for the press event of the same
 			   key we don't want the key modifier */
 			if(event.keymodifier == event.type)
+				event.keymodifier= 0;
+			/* this case happened with an external numpad, it's not really clear
+			   why, but it's also impossible to map a key modifier to an unknwon
+			   key, so it shouldn't harm */
+			if(event.keymodifier == UNKNOWNKEY)
 				event.keymodifier= 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */

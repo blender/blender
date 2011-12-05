@@ -191,31 +191,21 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 {
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
 	char str[256]= {0};
+	int block= 0;
 
-	if(sc->flag&SC_LOCK_SELECTION)
-		strcpy(str, "Locked");
-
-	if(str[0]) {
-		uiStyle *style= UI_GetStyle();
-		int fontsize, fontwidth;
-		int fontid= style->widget.uifont_id;
-
-		BLF_size(fontid, 11.0f, U.dpi);
-		fontsize= BLF_height(fontid, str);
-		fontwidth= BLF_width(fontid, str);
-
-		glEnable(GL_BLEND);
-
-		glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
-		glRecti(0, ar->winy-fontsize-9, fontwidth+12, ar->winy);
-
-		glColor3f(1.0f, 1.0f, 1.0f);
-		BLF_position(fontid, 6.0f, ar->winy-fontsize-5.0f, 0.0f);
-		BLF_draw(fontid, str, strlen(str));
-
-		glDisable(GL_BLEND);
+	if(tracking->stats) {
+		BLI_strncpy(str, tracking->stats->message, sizeof(str));
+		block= 1;
+	} else {
+		if(sc->flag&SC_LOCK_SELECTION)
+			strcpy(str, "Locked");
 	}
+
+	if(str[0])
+		ED_region_info_draw(ar, str, block, 0.6f);
 }
 
 static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,

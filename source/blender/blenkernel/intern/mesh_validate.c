@@ -38,6 +38,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
+#include "BLI_math_base.h"
 
 #include "BKE_DerivedMesh.h"
 
@@ -117,7 +118,7 @@ static int search_face_cmp(const void *v1, const void *v2)
 
 #define PRINT if(do_verbose) printf
 
-int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totvert, MEdge *medges, unsigned int totedge, MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes)
+int BKE_mesh_validate_arrays(Mesh *me, MVert *mverts, unsigned int totvert, MEdge *medges, unsigned int totedge, MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes)
 {
 #	define REMOVE_EDGE_TAG(_med) { _med->v2= _med->v1; do_edge_free= 1; }
 #	define REMOVE_FACE_TAG(_mf) { _mf->v3=0; do_face_free= 1; }
@@ -126,10 +127,12 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 	MEdge *med;
 	MFace *mf;
 	MFace *mf_prev;
+	MVert *mvert= mverts;
 	unsigned int i;
 
 	int do_face_free= FALSE;
 	int do_edge_free= FALSE;
+	int verts_fixed= FALSE;
 
 	int do_edge_recalc= FALSE;
 
@@ -147,6 +150,29 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 	if(totedge == 0 && totface != 0) {
 		PRINT("    locical error, %u faces and 0 edges\n", totface);
 		do_edge_recalc= TRUE;
+	}
+
+	for(i=1; i<totvert; i++, mvert++) {
+		int j;
+		int fix_normal= TRUE;
+
+		for(j=0; j<3; j++) {
+			if(isnan(mvert->co[j]) || !finite(mvert->co[j])) {
+				PRINT("    vertex %u: has invalid coordinate\n", i);
+				zero_v3(mvert->co);
+
+				verts_fixed= TRUE;
+			}
+
+			if(mvert->no[j]!=0)
+				fix_normal= FALSE;
+		}
+
+		if(fix_normal) {
+			PRINT("    vertex %u: has zero normal, assuming Z-up normal\n", i);
+			mvert->no[2]= SHRT_MAX;
+			verts_fixed= TRUE;
+		}
 	}
 
 	for(i=0, med= medges; i<totedge; i++, med++) {
@@ -300,7 +326,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 		}
 	}
 
-	return (do_face_free || do_edge_free || do_edge_recalc);
+	return (verts_fixed || do_face_free || do_edge_free || do_edge_recalc);
 }
 
 static int mesh_validate_customdata(CustomData *data, short do_verbose, const short do_fixes)

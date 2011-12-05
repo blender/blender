@@ -40,6 +40,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_defs.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

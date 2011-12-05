@@ -31,11 +31,6 @@
  * which fakes exposing operators as modules/functions using its own classes.
  */
 
-
-/* Note, this module is not to be used directly by the user.
- * Internally its exposed as '_bpy.ops', which provides functions for 'bpy.ops', a python package.
- * */
-
 #include <Python.h>
 
 #include "RNA_types.h"
@@ -78,7 +73,8 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 
 	int context= WM_OP_EXEC_DEFAULT;
 
-	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
+	/* XXX Todo, work out a better solution for passing on context,
+	 * could make a tuple from self and pack the name and Context into it... */
 	bContext *C= (bContext *)BPy_GetContext();
 	
 	if (C==NULL) {
@@ -152,7 +148,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	/* note that context is an int, python does the conversion in this case */
 	int context= WM_OP_EXEC_DEFAULT;
 
-	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
+	/* XXX Todo, work out a better solution for passing on context,
+	 * could make a tuple from self and pack the name and Context into it... */
 	bContext *C= (bContext *)BPy_GetContext();
 	
 	if (C==NULL) {

@@ -146,7 +146,10 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
 		PyErr_Print();
 
-		for (tb= (PyTracebackObject *)PySys_GetObject("last_traceback"); tb && (PyObject *)tb != Py_None; tb= tb->tb_next) {
+		for (tb= (PyTracebackObject *)PySys_GetObject("last_traceback");
+		     tb && (PyObject *)tb != Py_None;
+		     tb= tb->tb_next)
+		{
 			PyObject *coerce;
 			const char *tb_filepath= traceback_filepath(tb, &coerce);
 			const int match= strcmp(tb_filepath, filepath) != 0;

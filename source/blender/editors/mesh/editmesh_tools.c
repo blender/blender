@@ -547,7 +547,7 @@ static void xsortvert_flag(bContext *C, int flag)
 			sortblock[i].v1 = eve;
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, 0);
+	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
 
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
@@ -2666,20 +2666,11 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 			if(mmd->flag & MOD_MIR_CLIPPING) {
 				for (eve= em->verts.first; eve; eve= eve->next) {
 					eve->f2= 0;
-					switch(mmd->axis){
-						case 0:
-							if (fabsf(eve->co[0]) < mmd->tolerance)
-								eve->f2 |= 1;
-							break;
-						case 1:
-							if (fabsf(eve->co[1]) < mmd->tolerance)
-								eve->f2 |= 2;
-							break;
-						case 2:
-							if (fabsf(eve->co[2]) < mmd->tolerance)
-								eve->f2 |= 4;
-							break;
-					}
+
+					if (mmd->flag & MOD_MIR_AXIS_X && fabsf(eve->co[0]) < mmd->tolerance) eve->f2 |= 1;
+					if (mmd->flag & MOD_MIR_AXIS_Y && fabsf(eve->co[1]) < mmd->tolerance) eve->f2 |= 2;
+					if (mmd->flag & MOD_MIR_AXIS_Z && fabsf(eve->co[2]) < mmd->tolerance) eve->f2 |= 4;
+
 				}
 			}
 		}

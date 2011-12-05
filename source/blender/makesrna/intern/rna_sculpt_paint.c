@@ -304,7 +304,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_NORMALS);
-	RNA_def_property_ui_text(prop, "Normals", "Applies the vertex normal before painting");
+	RNA_def_property_ui_text(prop, "Normals", "Apply the vertex normal before painting");
 	
 	prop= RNA_def_property(srna, "use_spray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
@@ -348,7 +348,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
 	RNA_def_property_ui_text(prop, "Clone Map",
-	                         "Use another UV map as clone source, otherwise use 3D the cursor as the source");
+	                         "Use another UV map as clone source, otherwise use the 3D cursor as the source");
 	
 	/* integers */
 	

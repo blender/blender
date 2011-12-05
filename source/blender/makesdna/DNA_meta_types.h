@@ -70,7 +70,7 @@ typedef struct MetaBall {
 	ListBase elems;
 	ListBase disp;
 	ListBase *editelems;		/* not saved in files, note we use pointer for editmode check */
-	struct Ipo *ipo;			// XXX... depreceated (old animation system)
+	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 
 	/* material of the mother ball will define the material used of all others */
 	struct Material **mat; 

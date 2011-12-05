@@ -456,7 +456,6 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
 			return 0;
 		}
-		mesh_pmv_off(me);
 		
 		dm = mesh_create_derived_for_modifier(scene, ob, md);
 		if (!dm) {
@@ -505,8 +504,6 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
 			return 0;
 		}
-
-		mesh_pmv_off(me);
 
 		/* Multires: ensure that recent sculpting is applied */
 		if(md->type == eModifierType_Multires)

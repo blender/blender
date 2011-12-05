@@ -418,7 +418,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Assign Image to UV Map";
-	ot->description= "Assigns Image to active UV Map, or creates a UV Map";
+	ot->description= "Assign Image to active UV Map, or create an UV Map";
 	ot->idname= "MESH_OT_drop_named_image";
 	
 	/* api callbacks */

@@ -39,6 +39,7 @@ set(SRC
 	libmv-capi.cpp
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
+	libmv/simple_pipeline/callbacks.cc
 	libmv/simple_pipeline/reconstruction.cc
 	libmv/simple_pipeline/resect.cc
 	libmv/simple_pipeline/intersect.cc
@@ -52,6 +53,8 @@ set(SRC
 	libmv/image/array_nd.cc
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/sad.cc
+	libmv/tracking/brute_region_tracker.cc
+	libmv/tracking/hybrid_region_tracker.cc
 	libmv/tracking/esm_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
 	libmv/tracking/klt_region_tracker.cc
@@ -83,6 +86,7 @@ set(SRC
 	libmv/numeric/poly.h
 	libmv/numeric/function_derivative.h
 	libmv/numeric/numeric.h
+	libmv/simple_pipeline/callbacks.h
 	libmv/simple_pipeline/resect.h
 	libmv/simple_pipeline/reconstruction.h
 	libmv/simple_pipeline/camera_intrinsics.h
@@ -98,6 +102,8 @@ set(SRC
 	libmv/image/sample.h
 	libmv/image/image.h
 	libmv/tracking/region_tracker.h
+	libmv/tracking/brute_region_tracker.h
+	libmv/tracking/hybrid_region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
 	libmv/tracking/sad.h
 	libmv/tracking/pyramid_region_tracker.h
@@ -173,9 +179,9 @@ if(WIN32)
 
 	if(MSVC)
 		set(MSVC_OFLAGS O1 O2 Ox)
-		foreach(FLAG )
-			string(REPLACE "" "Od" CMAKE_CXX_FLAGS_RELEASE "")
-			string(REPLACE "" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "")
+		foreach(FLAG ${MSVC_OFLAGS})
+			string(REPLACE "${FLAG}" "Od" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+			string(REPLACE "${FLAG}" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 		endforeach()
 	endif()
 else(WIN32)

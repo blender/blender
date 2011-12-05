@@ -55,6 +55,7 @@ void *BLI_mempool_calloc(BLI_mempool *pool);
 void BLI_mempool_free(BLI_mempool *pool, void *addr);
 void BLI_mempool_destroy(BLI_mempool *pool);
 int BLI_mempool_count(BLI_mempool *pool);
+void *BLI_mempool_findelem(BLI_mempool *pool, int index);
 
 /** iteration stuff.  note: this may easy to produce bugs with **/
 /*private structure*/

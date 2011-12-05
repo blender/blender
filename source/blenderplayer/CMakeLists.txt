@@ -164,8 +164,6 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS extern_lzma)
 	endif()
 
-	list(APPEND BLENDER_SORTED_LIBS extern_colamd)
-
 	if(WITH_LIBMV)
 		list(APPEND BLENDER_SORTED_LIBS extern_libmv)
 	endif()

@@ -1233,18 +1233,18 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem texco_items[] = {
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
-		{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates"},
-		{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object"},
-		{TEXCO_STRAND, "STRAND", 0, "Strand / Particle", "Uses normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
+		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
+		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
+		{TEXCO_UV, "UV", 0, "UV", "Use UV coordinates for texture coordinates"},
+		{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
+		{TEXCO_STRAND, "STRAND", 0, "Strand / Particle", "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_mapping_items[] = {
-		{MTEX_FLAT, "FLAT", 0, "Flat", "Maps X and Y coordinates directly"},
-		{MTEX_CUBE, "CUBE", 0, "Cube", "Maps using the normal vector"},
-		{MTEX_TUBE, "TUBE", 0, "Tube", "Maps with Z as central axis"},
-		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Maps with Z as central axis"},
+		{MTEX_FLAT, "FLAT", 0, "Flat", "Map X and Y coordinates directly"},
+		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
+		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
+		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Map with Z as central axis"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem prop_x_mapping_items[] = {

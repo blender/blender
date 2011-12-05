@@ -219,6 +219,10 @@ BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 
 WITH_BF_CYCLES = WITH_BF_OIIO and WITH_BF_BOOST
 
+WITH_BF_CYCLES_CUDA_BINARIES = False
+BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
+
 WITH_BF_OPENMP = True
 
 #Ray trace optimization

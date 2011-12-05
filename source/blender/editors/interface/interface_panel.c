@@ -455,6 +455,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	hrect= *rect;
 	if(dir == 'h') {
 		hrect.xmin= rect->xmin+pnl_icons;
+		hrect.ymin += 2.0f/block->aspect;
 		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
 	}
 	else {
@@ -494,7 +495,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
 	headrect= *rect;
-	headrect.ymin= headrect.ymax - 2.0f/block->aspect;
+	headrect.ymin= headrect.ymax;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
 	{
@@ -508,7 +509,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			/* draw with background color */
 			glEnable(GL_BLEND);
 			glColor4ubv((unsigned char*)btheme->tui.panel.header);
-			glRectf(minx, headrect.ymin, maxx, y);
+			glRectf(minx, headrect.ymin+1, maxx, y);
 
 			fdrawline(minx, y, maxx, y);
 			fdrawline(minx, y, maxx, y);
@@ -519,9 +520,9 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			maxx -= 5.0f/block->aspect;
 			
 			glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-			fdrawline(minx, y+1, maxx, y+1);
-			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
 			fdrawline(minx, y, maxx, y);
+			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+			fdrawline(minx, y-1, maxx, y-1);
 			glDisable(GL_BLEND);
 		}
 

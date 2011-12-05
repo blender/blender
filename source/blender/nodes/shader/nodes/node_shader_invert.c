@@ -77,7 +77,7 @@ void register_node_type_sh_invert(bNodeTreeType *ttype)
 	static bNodeType ntype;
 
 	node_type_base(ttype, &ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_invert_in, sh_node_invert_out);
 	node_type_size(&ntype, 90, 80, 100);
 	node_type_exec(&ntype, node_shader_exec_invert);

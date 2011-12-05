@@ -1196,7 +1196,7 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 
 	switch(prop->type) {
 		case PROP_BOOLEAN: {
-			BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+			BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 
 			if(!prop->arraydimension) {
 				if(!bprop->get && !bprop->set && !dp->booleanbit)
@@ -1812,7 +1812,7 @@ static void rna_sort(BlenderRNA *brna)
 static const char *rna_property_structname(PropertyType type)
 {
 	switch(type) {
-		case PROP_BOOLEAN: return "BooleanPropertyRNA";
+		case PROP_BOOLEAN: return "BoolPropertyRNA";
 		case PROP_INT: return "IntPropertyRNA";
 		case PROP_FLOAT: return "FloatPropertyRNA";
 		case PROP_STRING: return "StringPropertyRNA";
@@ -2154,7 +2154,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				break;
 			}
 			case PROP_BOOLEAN: {
-				BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+				BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 				unsigned int i;
 
 				if(prop->arraydimension && prop->totarraylength) {
@@ -2243,7 +2243,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 
 	switch(prop->type) {
 			case PROP_BOOLEAN: {
-				BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+				BoolPropertyRNA *bprop= (BoolPropertyRNA*)prop;
 				fprintf(f, "\t%s, %s, %s, %s, %d, ", rna_function_string(bprop->get), rna_function_string(bprop->set), rna_function_string(bprop->getarray), rna_function_string(bprop->setarray), bprop->defaultvalue);
 				if(prop->arraydimension && prop->totarraylength) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
 				else fprintf(f, "NULL\n");

@@ -262,12 +262,12 @@ static void region_draw_azone_tab_plus(AZone *az)
 			break;
 	}
 
-	glColor4f(0.05f, 0.05f, 0.05f, 0.5f);
+	glColor4f(0.05f, 0.05f, 0.05f, 0.4f);
 	uiRoundBox((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f);
 
 	glEnable(GL_BLEND);
 
-	glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+	glColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
 
 	glDisable(GL_BLEND);
@@ -711,8 +711,8 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	}
 }
 
-#define AZONEPAD_TAB_PLUSW	16
-#define AZONEPAD_TAB_PLUSH	16
+#define AZONEPAD_TAB_PLUSW	14
+#define AZONEPAD_TAB_PLUSH	14
 
 /* region already made zero sized, in shape of edge */
 static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
@@ -739,9 +739,9 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 			az->y2= ar->winrct.ymin;
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
-			az->x1= ar->winrct.xmin + 1 - AZONEPAD_TAB_PLUSH;
+			az->x1= ar->winrct.xmin - AZONEPAD_TAB_PLUSH;
 			az->y1= ar->winrct.ymax - 2.5*AZONEPAD_TAB_PLUSW;
-			az->x2= ar->winrct.xmin + 1;
+			az->x2= ar->winrct.xmin;
 			az->y2= ar->winrct.ymax - 1.5*AZONEPAD_TAB_PLUSW;
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
@@ -1596,7 +1596,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			if(pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					triangle, UI_UNIT_Y+style->panelspace, UI_UNIT_Y, 1, style);
+					triangle, UI_UNIT_Y+style->panelspace+2, UI_UNIT_Y, 1, style);
 
 				pt->draw_header(C, panel);
 
@@ -1775,4 +1775,39 @@ void ED_region_header_init(ARegion *ar)
 int ED_area_headersize(void)
 {
 	return UI_UNIT_Y+6;
+}
+
+void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
+{
+	const int header_height = 18;
+	uiStyle *style= UI_GetStyle();
+	int fontid= style->widget.uifont_id;
+	rcti rect;
+
+	BLF_size(fontid, 11.0f, 72);
+
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+
+	if(block) {
+		rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	}
+	else {
+		rect.xmax= rect.xmin + BLF_width(fontid, text) + 24;
+	}
+
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, alpha);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
+	BLF_draw(fontid, text, strlen(text));
 }
