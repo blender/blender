@@ -605,7 +605,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			if (ed->v2 == mloop[mpoly[fidx].loopstart+k1].v) {
-				k2 = (k1 + mp->totloop - 1)%mp->totloop;
+				k2 = (k1 + mp->totloop + 1)%mp->totloop;
 				SWAP(int, k1, k2);
 			}
 			else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
