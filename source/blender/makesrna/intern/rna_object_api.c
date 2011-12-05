@@ -130,7 +130,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 	case OB_MBALL: {
 		/* metaballs don't have modifiers, so just convert to mesh */
-		Object *basis_ob = find_basis_mball( sce, ob );
+		Object *basis_ob = find_basis_mball(sce, ob);
 		/* todo, re-generatre for render-res */
 		/* metaball_polygonize(scene, ob) */
 
@@ -138,7 +138,15 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			return NULL; /* only do basis metaball */
 
 		tmpmesh = add_mesh("Mesh");
-		mball_to_mesh( &ob->disp, tmpmesh );
+			
+		if(render) {
+			ListBase disp = {NULL, NULL};
+			makeDispListMBall_forRender(sce, ob, &disp);
+			mball_to_mesh(&disp, tmpmesh);
+			freedisplist(&disp);
+		}
+		else
+			mball_to_mesh(&ob->disp, tmpmesh);
 		break;
 
 	}
