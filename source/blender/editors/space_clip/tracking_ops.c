@@ -2094,6 +2094,12 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 		mul_m4_m4m4(mat, obmat, mat);
 	}
 	else {
+		float lmat[4][4], ilmat[4][4], m[4][4];
+
+		unit_m4(lmat);
+		copy_v3_v3(lmat[3], obmat[3]);
+		invert_m4_m4(ilmat, lmat);
+
 		if(!flip) {
 			float rmat[3][3], tmat[4][4];
 
@@ -2104,7 +2110,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 			mul_m4_m4m4(mat, mat, tmat);
 		}
 
-		mul_m4_m4m4(mat, mat, obmat);
+		mul_serie_m4(mat, lmat, mat, ilmat, obmat, NULL, NULL, NULL, NULL);
 	}
 
 	object_apply_mat4(ob, mat, 0, 0);
