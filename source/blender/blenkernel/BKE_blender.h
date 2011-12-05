@@ -42,7 +42,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION			260
-#define BLENDER_SUBVERSION		6
+#define BLENDER_SUBVERSION		7
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
@@ -51,7 +51,7 @@ extern "C" {
 		/* can be left blank, otherwise a,b,c... etc with no quotes */
 #define BLENDER_VERSION_CHAR	a
 		/* alpha/beta/rc/release, docs use this */
-#define BLENDER_VERSION_CYCLE	beta
+#define BLENDER_VERSION_CYCLE	rc
 
 extern char versionstr[]; /* from blender.c */
 

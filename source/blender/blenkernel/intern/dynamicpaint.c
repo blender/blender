@@ -24,6 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_group_types.h" /*GroupObject*/
 #include "DNA_material_types.h"
@@ -39,6 +40,7 @@
 #include "BKE_bvhutils.h"	/* bvh tree	*/
 #include "BKE_blender.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
@@ -453,15 +455,35 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 static void subframe_updateObject(Scene *scene, Object *ob, int flags, float frame)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
+	bConstraint *con;
 
 	/* if other is dynamic paint canvas, dont update */
 	if (pmd && pmd->canvas)
 		return;
 
-	/* if object has parent, update it too */
-	if ((flags & UPDATE_PARENTS) && ob->parent) subframe_updateObject(scene, ob->parent, 0, frame);
-	if ((flags & UPDATE_PARENTS) && ob->track) subframe_updateObject(scene, ob->track, 0, frame);
+	/* if object has parents, update them too */
+	if (flags & UPDATE_PARENTS) {
+		if (ob->parent) subframe_updateObject(scene, ob->parent, 0, frame);
+		if (ob->track) subframe_updateObject(scene, ob->track, 0, frame);
 
+		/* also update constraint targets */
+		for (con = ob->constraints.first; con; con=con->next) {
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+
+			if (cti && cti->get_constraint_targets) {
+				bConstraintTarget *ct;
+				cti->get_constraint_targets(con, &targets);
+				for (ct= targets.first; ct; ct= ct->next) {
+					if (ct->tar)
+						subframe_updateObject(scene, ct->tar, 0, frame);
+				}
+				/* free temp targets */
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 0);
+			}
+		}
+	}
 	/* for curve following objects, parented curve has to be updated too */
 	if(ob->type==OB_CURVE) {
 		Curve *cu= ob->data;

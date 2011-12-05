@@ -331,6 +331,9 @@ void		WM_progress_clear(struct wmWindow *win);
 void		WM_console_toggle(struct bContext *C, short show);
 #endif
 
+			/* Draw (for screenshot) */
+void		WM_redraw_windows(struct bContext *C);
+
 /* debugging only, convenience function to write on crash */
 int write_crash_blend(void);
 
