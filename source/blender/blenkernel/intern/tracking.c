@@ -1604,10 +1604,13 @@ static int retrieve_libmv_reconstruct(MovieReconstructContext *context, MovieTra
 	return retrieve_libmv_reconstruct_tracks(context, tracking);
 }
 
-static int get_refine_intrinsics_flags(MovieTracking *tracking)
+static int get_refine_intrinsics_flags(MovieTracking *tracking, MovieTrackingObject *object)
 {
 	int refine= tracking->settings.refine_camera_intrinsics;
 	int flags= 0;
+
+	if((object->flag&TRACKING_OBJECT_CAMERA)==0)
+		return 0;
 
 	if(refine&REFINE_FOCAL_LENGTH)
 		flags|= LIBMV_REFINE_FOCAL_LENGTH;
@@ -1714,7 +1717,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 	context->tracks= create_libmv_tracks(tracksbase, width, height*aspy);
 	context->keyframe1= keyframe1;
 	context->keyframe2= keyframe2;
-	context->refine_flags= get_refine_intrinsics_flags(tracking);
+	context->refine_flags= get_refine_intrinsics_flags(tracking, object);
 #else
 	(void) width;
 	(void) height;

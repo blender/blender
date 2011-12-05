@@ -203,10 +203,18 @@ class CLIP_PT_tools_solve(Panel):
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
-        settings = clip.tracking.settings
+        tracking = clip.tracking
+        settings = tracking.settings
+        tracking_object = tracking.objects.active
 
         col = layout.column(align=True)
-        col.operator("clip.solve_camera", text="Camera Motion")
+
+        if tracking_object.is_camera:
+            solve_text = "Camera Motion"
+        else:
+            solve_text = "Object Motion"
+
+        col.operator("clip.solve_camera", text=solve_text)
         col.operator("clip.clear_solution")
 
         col = layout.column(align=True)
@@ -214,6 +222,7 @@ class CLIP_PT_tools_solve(Panel):
         col.prop(settings, "keyframe_b")
 
         col = layout.column(align=True)
+        col.active = tracking_object.is_camera
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
 
