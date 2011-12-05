@@ -85,7 +85,6 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
 from bpy.props import (IntProperty,
                        BoolProperty,
-                       FloatProperty,
                        FloatVectorProperty)
 
 

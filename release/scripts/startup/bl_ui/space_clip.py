@@ -156,7 +156,7 @@ class CLIP_PT_tools_tracking(Panel):
 
     def draw(self, context):
         layout = self.layout
-        clip = context.space_data.clip
+        # clip = context.space_data.clip  # UNUSED
 
         row = layout.row(align=True)
 
