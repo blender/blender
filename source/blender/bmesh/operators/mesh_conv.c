@@ -390,8 +390,12 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
 	BMVert **vertMap = NULL;
 	BMVert *eve;
-	 int i= 0;
+	int index;
+	int i= 0;
 	BMIter iter;
+
+	/* caller needs to ensure this */
+	BLI_assert(ototvert > 0);
 
 	vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
 	if(CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
@@ -399,8 +403,9 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
 			if(keyi) {
-				if (*keyi != ORIGINDEX_NONE)
-					vertMap[*keyi] = eve;
+				if (((index= *keyi) != ORIGINDEX_NONE) && (index < ototvert)) {
+					vertMap[index] = eve;
+				}
 			}
 			else {
 				if(i < ototvert) {
@@ -708,7 +713,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* patch hook indices and vertex parents */
-	{
+	if (ototvert > 0) {
 		Object *ob;
 		ModifierData *md;
 		BMVert **vertMap = NULL;
