@@ -114,7 +114,7 @@ class CLIP_PT_tools_marker(Panel):
             row.menu('CLIP_MT_tracking_settings_presets', text=label)
             row.operator("clip.tracking_settings_preset_add",
                          text="", icon='ZOOMIN')
-            props = row.operator("clip.track_color_preset_add",
+            props = row.operator("clip.tracking_settings_preset_add",
                                  text="", icon='ZOOMOUT')
             props.remove_active = True
 
@@ -156,7 +156,7 @@ class CLIP_PT_tools_tracking(Panel):
 
     def draw(self, context):
         layout = self.layout
-        clip = context.space_data.clip
+        # clip = context.space_data.clip  # UNUSED
 
         row = layout.row(align=True)
 

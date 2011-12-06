@@ -605,15 +605,11 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	iconofs= rct->xmax - 7.0f;
 	
 	if(node->typeinfo->flag & NODE_PREVIEW) {
-		int icon_id;
+		float alpha = (node->flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT))? 1.0f: 0.5f;
 		
-		if(node->flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT))
-			icon_id= ICON_MATERIAL;
-		else
-			icon_id= ICON_MATERIAL_DATA;
 		iconofs-=iconbutw;
-		uiDefIconBut(node->block, LABEL, B_REDR, icon_id, iconofs, rct->ymax-NODE_DY,
-					 iconbutw, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_MATERIAL, iconofs, rct->ymax-NODE_DY,
+					 iconbutw, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, alpha, "");
 	}
 	if(node->type == NODE_GROUP) {
 		
