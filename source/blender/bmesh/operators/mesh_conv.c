@@ -618,7 +618,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		CustomData_add_layer(&me->fdata, CD_NORMAL, CD_ASSIGN, facenors, me->totface);
 		CustomData_from_bmeshpoly(&me->fdata, &bm->pdata, &bm->ldata, totface);
 
-		mesh_update_customdata_pointers(me);
+		mesh_update_customdata_pointers(me, TRUE);
 		
 		i = 0;
 		BM_ITER_INDEX(f, &iter, bm, BM_FACES_OF_MESH, NULL, j) {
@@ -769,7 +769,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		if (vertMap) MEM_freeN(vertMap);
 	}
 
-	mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me, dotess);
 
 	{
 		BMEditSelection *selected;

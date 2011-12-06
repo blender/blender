@@ -113,7 +113,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 	else {
 		CustomData_free_layer_active(data, type, tot);
-		mesh_update_customdata_pointers(me);
+		mesh_update_customdata_pointers(me, TRUE);
 	}
 
 	if(!CustomData_has_layer(data, type) && (type == CD_MLOOPCOL && (ob->mode & OB_MODE_VERTEX_PAINT)))
@@ -354,7 +354,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum);
 		}
 
-		mesh_update_customdata_pointers(me);
+		mesh_update_customdata_pointers(me, TRUE);
 	}
 
 	ED_mesh_uv_loop_reset(C, me);
@@ -434,7 +434,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
 		}
 
-		mesh_update_customdata_pointers(me);
+		mesh_update_customdata_pointers(me, TRUE);
 	}
 
 	DAG_id_tag_update(&me->id, 0);
@@ -767,7 +767,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 		mesh->totloop,
 		mesh->totpoly);
 
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, TRUE);
 
 	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
 	/* add a normals layer for tesselated faces, a tessface normal will
@@ -809,7 +809,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->vdata, mesh->totvert);
 	mesh->vdata= vdata;
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, FALSE);
 
 	/* scan the input list and insert the new vertices */
 
@@ -852,7 +852,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->edata, mesh->totedge);
 	mesh->edata= edata;
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, FALSE); /* new edges dont change tessellation */
 
 	/* set default flags */
 	medge= &mesh->medge[mesh->totedge];
@@ -882,7 +882,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->fdata, mesh->totface);
 	mesh->fdata= fdata;
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, TRUE);
 
 	/* set default flags */
 	mface= &mesh->mface[mesh->totface];
@@ -911,7 +911,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->ldata, mesh->totloop);
 	mesh->ldata= ldata;
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, TRUE);
 
 	mesh->totloop= totloop;
 }
@@ -936,7 +936,7 @@ static void mesh_add_polys(Mesh *mesh, int len)
 
 	CustomData_free(&mesh->pdata, mesh->totpoly);
 	mesh->pdata= pdata;
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, TRUE);
 
 	/* set default flags */
 	mpoly= &mesh->mpoly[mesh->totpoly];

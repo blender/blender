@@ -3679,7 +3679,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				&me->fdata, &me->ldata, &me->pdata,
 				me->mvert, me->totface, me->totloop, me->totpoly);
 
-			mesh_update_customdata_pointers(me);
+			mesh_update_customdata_pointers(me, TRUE);
 
 			me->id.flag -= LIB_NEEDLINK;
 		}
@@ -6570,7 +6570,7 @@ static void customdata_version_242(Mesh *me)
 		}
 	}
 
-	mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me, TRUE);
 }
 
 /*only copy render texface layer from active*/

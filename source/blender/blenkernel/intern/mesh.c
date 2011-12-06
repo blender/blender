@@ -307,13 +307,14 @@ const char *mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
 
 static void mesh_ensure_tesselation_customdata(Mesh *me)
 {
-	int tottex, totcol;
+	const int tottex_original = CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY);
+	const int totcol_original = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
 
-	tottex = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-	totcol = CustomData_number_of_layers(&me->fdata, CD_MCOL);
-	
-	if (tottex != CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY) ||
-	    totcol != CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL))
+	const int tottex_tessface = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	const int totcol_tessface = CustomData_number_of_layers(&me->fdata, CD_MCOL);
+
+	if (tottex_tessface != tottex_original ||
+	    totcol_tessface != totcol_original )
 	{
 		CustomData_free(&me->fdata, me->totface);
 		
@@ -325,25 +326,38 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 		memset(&me->fdata, 0, sizeof(&me->fdata));
 
 		CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);
-		printf("Warning! Tesselation uvs or vcol data got out of sync, had to reset!\n");
+
+		/* note: this warning may be un-called for if we are inirializing the mesh for the
+		 * first time from bmesh, rather then giving a warning about this we could be smarter
+		 * and check if there was any data to begin with, for now just print the warning with
+		 * some info to help troubleshoot whats going on - campbell */
+		printf("%s: warning! Tesselation uvs or vcol data got out of sync, "
+		       "had to reset!\n    CD_MTFACE: %d != CD_MTEXPOLY: %d || CD_MCOL: %d != CD_MLOOPCOL: %d\n",
+		       __func__, tottex_tessface, tottex_original, totcol_tessface, totcol_original);
 	}
 }
 
-/*this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
-  mloopcol and mcol) have the same relative active/render/clone/mask indices.*/
-static void mesh_update_linked_customdata(Mesh *me)
+/* this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
+ * mloopcol and mcol) have the same relative active/render/clone/mask indices.
+ *
+ * note that for undo mesh data we want to skip 'ensure_tess_cd' call since
+ * we dont want to store memory for tessface when its only used for older
+ * versions of the mesh. - campbell*/
+static void mesh_update_linked_customdata(Mesh *me, const short do_ensure_tess_cd)
 {
 	if (me->edit_btmesh)
 		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
 
-	mesh_ensure_tesselation_customdata(me);
+	if (do_ensure_tess_cd) {
+		mesh_ensure_tesselation_customdata(me);
+	}
 
 	CustomData_bmesh_update_active_layers(&me->fdata, &me->pdata, &me->ldata);
 }
 
-void mesh_update_customdata_pointers(Mesh *me)
+void mesh_update_customdata_pointers(Mesh *me, const short do_ensure_tess_cd)
 {
-	mesh_update_linked_customdata(me);
+	mesh_update_linked_customdata(me, do_ensure_tess_cd);
 
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
 	me->dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
@@ -483,7 +497,7 @@ Mesh *copy_mesh(Mesh *me)
 	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
 	CustomData_copy(&me->ldata, &men->ldata, CD_MASK_MESH, CD_DUPLICATE, men->totloop);
 	CustomData_copy(&me->pdata, &men->pdata, CD_MASK_MESH, CD_DUPLICATE, men->totpoly);
-	mesh_update_customdata_pointers(men);
+	mesh_update_customdata_pointers(men, TRUE);
 
 	/* ensure indirect linked data becomes lib-extern */
 	for(i=0; i<me->fdata.totlayer; i++) {
@@ -1100,7 +1114,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			&me->fdata, &me->ldata, &me->pdata,
 			me->mvert, me->totface, me->totloop, me->totpoly);
 
-		mesh_update_customdata_pointers(me);
+		mesh_update_customdata_pointers(me, TRUE);
 	}
 }
 
@@ -1927,7 +1941,7 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 	/* note, we dont convert FGons at all, these are not even real ngons,
 	 * they have their own UV's, colors etc - its more an editing feature. */
 
-	mesh_update_customdata_pointers(mesh);
+	mesh_update_customdata_pointers(mesh, TRUE);
 
 	BLI_edgehash_free(eh, NULL);
 }

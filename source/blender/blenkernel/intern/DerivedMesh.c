@@ -424,11 +424,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 
 	/* yes, must be before _and_ after tesselate */
-	mesh_update_customdata_pointers(&tmp);
+	mesh_update_customdata_pointers(&tmp, TRUE);
 
 	tmp.totface = mesh_recalcTesselation(&tmp.fdata, &tmp.ldata, &tmp.pdata, tmp.mvert, tmp.totface, tmp.totloop, tmp.totpoly);
 
-	mesh_update_customdata_pointers(&tmp);
+	mesh_update_customdata_pointers(&tmp, TRUE);
 
 
 	CustomData_free(&me->vdata, me->totvert);

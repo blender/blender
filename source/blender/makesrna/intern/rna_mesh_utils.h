@@ -83,7 +83,7 @@
 		for(cdl=data->layers, a=0; a<data->totlayer; cdl++, a++) {			\
 			if(value.data == cdl) {														\
 				CustomData_set_layer_##active_type##_index(data, layer_type, a); \
-				mesh_update_customdata_pointers(me);								\
+				mesh_update_customdata_pointers(me, TRUE);								\
 				return;																		\
 			}																					\
 		}																						\
@@ -101,5 +101,5 @@
 		CustomData *data = rna_mesh_##customdata_type(ptr);					\
 																								\
 		CustomData_set_layer_##active_type(data, layer_type, value);		\
-		mesh_update_customdata_pointers(me);										\
+		mesh_update_customdata_pointers(me, TRUE);										\
 	}

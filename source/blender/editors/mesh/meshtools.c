@@ -522,7 +522,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	me->ldata= ldata;
 	me->pdata= pdata;
 
-	mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me, TRUE); /* BMESH_TODO, check if this arg can be failse, non urgent - campbell */
 	
 	/* old material array */
 	for(a=1; a<=ob->totcol; a++) {

@@ -91,7 +91,7 @@ void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me, int unlink);
 struct Mesh *add_mesh(const char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
-void mesh_update_customdata_pointers(struct Mesh *me);
+void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
