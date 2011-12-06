@@ -46,11 +46,12 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
         kernel.Depends(cubin_file, dependencies)
 
         kernel_binaries.append(cubin_file)
-
-        # trick to compile one kernel at a time to reduce memory usage
-        if last_cubin_file:
-            kernel.Depends(cubin_file, last_cubin_file)
-        last_cubin_file = cubin_file
+        
+        if not env['WITH_BF_CYCLES_CUDA_THREADED_COMPILE']:
+            # trick to compile one kernel at a time to reduce memory usage
+            if last_cubin_file:
+                kernel.Depends(cubin_file, last_cubin_file)
+            last_cubin_file = cubin_file
 
 Return('kernel_binaries')
 
