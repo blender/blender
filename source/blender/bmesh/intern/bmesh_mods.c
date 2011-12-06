@@ -673,7 +673,10 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 		return NULL;
 
 	f = BM_Join_TwoFaces(bm, e->l->f, e->l->radial_next->f, e);
-	
+
+	if (f == NULL)
+		return NULL;
+
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if (l->v == v1)
 			l1 = l;

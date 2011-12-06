@@ -118,11 +118,13 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				
 				if (fac1 > fac2) {
 					e = BM_Rotate_Edge(bm, e, 0);
-					BMO_SetFlag(bm, e, ELE_NEW);
-					
-					BMO_SetFlag(bm, e->l->f, FACE_MARK|ELE_NEW);
-					BMO_SetFlag(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
-					stop = 0;
+					if (e) {
+						BMO_SetFlag(bm, e, ELE_NEW);
+
+						BMO_SetFlag(bm, e->l->f, FACE_MARK|ELE_NEW);
+						BMO_SetFlag(bm, e->l->radial_next->f, FACE_MARK|ELE_NEW);
+						stop = 0;
+					}
 				}
 			}
 		}
