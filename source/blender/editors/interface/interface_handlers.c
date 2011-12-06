@@ -5241,9 +5241,10 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	data->state= state;
 
-	if(state != BUTTON_STATE_EXIT) {
+	if(!ELEM(state, BUTTON_STATE_EXIT, BUTTON_STATE_HIGHLIGHT)) {
 		/* When objects for eg. are removed, running ui_check_but()
-		 * can access the removed data - so disable update on exit */
+		 * can access the removed data - so disable update on exit
+		 * or highlight */
 		ui_check_but(but);
 	}
 

@@ -264,7 +264,12 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 
 	if(RNA_enum_get(&cscene, "device") != 0) {
 		vector<DeviceType> types = Device::available_types();
-		DeviceType dtype = (RNA_enum_get(&cscene, "gpu_type") == 0)? DEVICE_CUDA: DEVICE_OPENCL;
+		DeviceType dtype;
+		
+		if(!experimental || RNA_enum_get(&cscene, "gpu_type") == 0)
+			dtype = DEVICE_CUDA;
+		else
+			dtype = DEVICE_CUDA;
 
 		if(device_type_available(types, dtype))
 			params.device_type = dtype;

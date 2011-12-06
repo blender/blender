@@ -62,7 +62,9 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
             else:
                 org_sca_x, org_sca_y, org_sca_z = obj.scale
 
-            sca_x, sca_y, sca_z = uniform(-scale[0]+2, scale[0]), uniform(-scale[1]+2, scale[1]), uniform(-scale[2]+2, scale[2])
+            sca_x, sca_y, sca_z = (uniform(-scale[0] + 2.0, scale[0]),
+                                   uniform(-scale[1] + 2.0, scale[1]),
+                                   uniform(-scale[2] + 2.0, scale[2]))
 
             if scale_even:
                 aX = sca_x * org_sca_x
@@ -81,7 +83,9 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
 
-from bpy.props import IntProperty, BoolProperty, FloatProperty, FloatVectorProperty
+from bpy.props import (IntProperty,
+                       BoolProperty,
+                       FloatVectorProperty)
 
 
 class RandomizeLocRotSize(Operator):
