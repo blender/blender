@@ -185,17 +185,35 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 void dissolveedges_exec(BMesh *bm, BMOperator *op)
 {
-	/* BMOperator fop; */
-	BMOIter oiter;
-	/* BMIter iter; */
-	/* BMVert *v; */
-	BMEdge *e;
-	/* BMFace *f; */
-	/* int i; */
+	/* might want to make this an option or mode - campbell */
+#define DISSOLVE_EDGE_VERTS
 
-	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
+	/* BMOperator fop; */
+	BMOIter eiter;
+	BMEdge *e;
+
+#ifdef DISSOLVE_EDGE_VERTS
+	BMIter viter;
+	BMVert *v;
+#endif
+
+
+#ifdef DISSOLVE_EDGE_VERTS
+	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		BMO_ClearFlag(bm, v, VERT_MARK);
+	}
+#endif /* DISSOLVE_EDGE_VERTS */
+
+	BMO_ITER(e, &eiter, bm, op, "edges", BM_EDGE) {
 		const int edge_face_count= BM_Edge_FaceCount(e);
 		if (edge_face_count == 2) {
+
+#ifdef DISSOLVE_EDGE_VERTS
+			/* later check if these verts are between 2 edges and can dissolve */
+			BMO_SetFlag(bm, e->v1, VERT_MARK);
+			BMO_SetFlag(bm, e->v2, VERT_MARK);
+#endif /* DISSOLVE_EDGE_VERTS */
+
 			/* join faces */
 			BM_Join_TwoFaces(bm, e->l->f,
 			                 e->l->radial_next->f,
@@ -211,6 +229,17 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 		}
 	}
+
+#ifdef DISSOLVE_EDGE_VERTS
+	BM_ITER(v, &viter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			if (BM_Vert_EdgeCount(v) == 2) {
+				bmesh_jekv(bm, v->e, v);
+			}
+		}
+	}
+#endif /* DISSOLVE_EDGE_VERTS */
+
 }
 
 static int test_extra_verts(BMesh *bm, BMVert *v)
