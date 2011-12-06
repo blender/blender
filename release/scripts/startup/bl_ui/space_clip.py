@@ -474,7 +474,7 @@ class CLIP_PT_tracking_camera(Panel):
         col.operator("clip.set_center_principal", text="Center")
 
         col = layout.column(align=True)
-        col.label(text="Undistortion:")
+        col.label(text="Lens Distortion:")
         col.prop(clip.tracking.camera, "k1")
         col.prop(clip.tracking.camera, "k2")
         col.prop(clip.tracking.camera, "k3")
