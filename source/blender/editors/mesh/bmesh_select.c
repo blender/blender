@@ -1174,19 +1174,6 @@ static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val
 	}
 }
 
-static float bm_cdata_get_single_float(BMesh *UNUSED(bm), CustomData *cdata, void *element, int type)
-{
-	BMHeader *ele = element;
-	float *f;
-	
-	if (!CustomData_has_layer(cdata, type))
-		return 0.0f;
-	
-	f = CustomData_bmesh_get(cdata, ele->data, type);
-	
-	return *f;
-}
-
 static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
 {
 	switch (scene->toolsettings->edge_mode) {
@@ -1197,9 +1184,9 @@ static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
 	case EDGE_MODE_TAG_SHARP:
 		return BM_TestHFlag(e, BM_SHARP);
 	case EDGE_MODE_TAG_CREASE:	
-		return bm_cdata_get_single_float(em->bm, &em->bm->edata, e, CD_CREASE) ? 1 : 0;
+		return BM_GetCDf(&em->bm->edata, e, CD_CREASE) ? 1 : 0;
 	case EDGE_MODE_TAG_BEVEL:
-		return bm_cdata_get_single_float(em->bm, &em->bm->edata, e, CD_BWEIGHT) ? 1 : 0;
+		return BM_GetCDf(&em->bm->edata, e, CD_BWEIGHT) ? 1 : 0;
 	}
 	return 0;
 }

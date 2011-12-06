@@ -936,20 +936,12 @@ void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n)
 
 float BM_GetCDf(CustomData *cd, void *element, int type)
 {
-	if (CustomData_has_layer(cd, type)) {
-		float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
-		return *f;
-	}
-
-	return 0.0;
+	float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
+	return f ? *f : 0.0f;
 }
 
 void BM_SetCDf(CustomData *cd, void *element, int type, float val)
 {
-	if (CustomData_has_layer(cd, type)) {
-		float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
-		*f = val;
-	}
-
-	return;
+	float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
+	if (f) *f = val;
 }

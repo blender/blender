@@ -4492,10 +4492,8 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 		
 		df *= 2.0;
 	}
-	
-	for (i=0; i<BLI_array_count(w); i++) {
-		w[i] /= ftot;
-	}
+
+	mul_vn_fl(w, BLI_array_count(w), 1.0f / (float)ftot);
 
 	fac = factor;
 	for (i=0; i<BLI_array_count(w); i++) {
