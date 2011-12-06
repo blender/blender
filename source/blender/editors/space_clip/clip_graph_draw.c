@@ -236,6 +236,7 @@ static void draw_frame_curves(SpaceClip *sc)
 
 void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
+	MovieClip *clip= ED_space_clip(sc);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	short unitx= V2D_UNIT_FRAMESCALE, unity= V2D_UNIT_VALUES;
@@ -245,11 +246,13 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 
-	if(sc->flag&SC_SHOW_GRAPH_TRACKS)
-		draw_tracks_curves(v2d, sc);
+	if(clip) {
+		if(sc->flag&SC_SHOW_GRAPH_TRACKS)
+			draw_tracks_curves(v2d, sc);
 
-	if(sc->flag&SC_SHOW_GRAPH_FRAMES)
-		draw_frame_curves(sc);
+		if(sc->flag&SC_SHOW_GRAPH_FRAMES)
+			draw_frame_curves(sc);
+	}
 
 	/* current frame */
 	draw_graph_cfra(sc, ar, scene);
