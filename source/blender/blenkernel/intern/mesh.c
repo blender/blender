@@ -1668,69 +1668,111 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 					  me->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 
-void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys, 
-	int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3], MFace *mfaces, int numFaces, 
-	int *origIndexFace, float (*faceNors_r)[3])
+void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
+		int numLoops, int numPolys, float (*polyNors_r)[3], MFace *mfaces, int numFaces,
+		int *origIndexFace, float (*faceNors_r)[3])
+{
+	mesh_calc_normals_ex(mverts, numVerts, mloop, mpolys,
+	                  numLoops, numPolys, polyNors_r, mfaces, numFaces,
+	                  origIndexFace, faceNors_r, TRUE);
+}
+void mesh_calc_normals_ex(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
+		int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3], MFace *mfaces, int numFaces,
+		int *origIndexFace, float (*faceNors_r)[3],
+		const short only_face_normals)
 {
 	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
-	float (*tnorms)[3], (*edgevecbuf)[3];
-	float **vertcos = NULL, **vertnos = NULL;
-	BLI_array_declare(vertcos);
-	BLI_array_declare(vertnos);
-	int i, j, maxPolyVerts = 0;
+	int i, j;
 	MFace *mf;
 	MPoly *mp;
 	MLoop *ml;
+	int maxPolyVerts = 0;
 
 	if (numPolys == 0) {
 		return;
 	}
 
-	mp = mpolys;
-	for (i=0; i<numPolys; i++, mp++) {
-		maxPolyVerts = MAX2(mp->totloop, maxPolyVerts);
+	if (only_face_normals == FALSE) {
+		mp = mpolys;
+		for (i=0; i<numPolys; i++, mp++) {
+			maxPolyVerts = MAX2(mp->totloop, maxPolyVerts);
+		}
+
+		if (maxPolyVerts == 0) {
+			return;
+		}
 	}
 
-	if (maxPolyVerts == 0) {
+	/* if we are not calculating verts and no verts were passes thene we have nothign to do */
+	if ((only_face_normals == TRUE) && (polyNors_r == NULL) && (faceNors_r == NULL)) {
+		printf("%s: called with nothing to do\n", __func__);
 		return;
 	}
 
-	/*first go through and calculate normals for all the polys*/
-	edgevecbuf = MEM_callocN(sizeof(float)*3*maxPolyVerts, "edgevecbuf mesh.c");
-	tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms mesh.c");
-	if (!pnors) 
-		pnors = MEM_callocN(sizeof(float)*3*numPolys, "poly_nors mesh.c");
-	if (!fnors)
-		fnors = MEM_callocN(sizeof(float)*3*numFaces, "face nors mesh.c");
-	
-	mp = mpolys;
-	for (i=0; i<numPolys; i++, mp++) {
-		mesh_calc_poly_normal(mp, mloop+mp->loopstart, mverts, pnors[i]);
-		ml = mloop + mp->loopstart;
+	if (!pnors) pnors = MEM_callocN(sizeof(float) * 3 * numPolys, "poly_nors mesh.c");
+	/* if (!fnors) fnors = MEM_callocN(sizeof(float) * 3 * numFaces, "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
 
-		BLI_array_empty(vertcos);
-		BLI_array_empty(vertnos);
-		for (j=0; j<mp->totloop; j++) {
-			int vindex = ml[j].v;
-			BLI_array_append(vertcos, mverts[vindex].co);
-			BLI_array_append(vertnos, tnorms[vindex]);
+
+	if (only_face_normals == FALSE) {
+		/* vertex normals are optional, they require some extra calculations,
+		 * so make them optional */
+
+		float (*tnorms)[3], (*edgevecbuf)[3];
+		float **vertcos = NULL, **vertnos = NULL;
+		BLI_array_declare(vertcos);
+		BLI_array_declare(vertnos);
+
+
+		/*first go through and calculate normals for all the polys*/
+		edgevecbuf = MEM_callocN(sizeof(float)*3*maxPolyVerts, "edgevecbuf mesh.c");
+		tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms mesh.c");
+
+		mp = mpolys;
+		for (i=0; i<numPolys; i++, mp++) {
+			mesh_calc_poly_normal(mp, mloop+mp->loopstart, mverts, pnors[i]);
+			ml = mloop + mp->loopstart;
+
+			BLI_array_empty(vertcos);
+			BLI_array_empty(vertnos);
+			for (j=0; j<mp->totloop; j++) {
+				int vindex = ml[j].v;
+				BLI_array_append(vertcos, mverts[vindex].co);
+				BLI_array_append(vertnos, tnorms[vindex]);
+			}
+
+			accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
 		}
 
-		accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
-	}
-	
-	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
-	for(i=0; i<numVerts; i++) {
-		MVert *mv= &mverts[i];
-		float *no= tnorms[i];
-		
-		if(normalize_v3(no) == 0.0f)
-			normalize_v3_v3(no, mv->co);
+		BLI_array_free(vertcos);
+		BLI_array_free(vertnos);
+		MEM_freeN(edgevecbuf);
 
-		normal_float_to_short_v3(mv->no, no);
+		/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+		for(i=0; i<numVerts; i++) {
+			MVert *mv= &mverts[i];
+			float *no= tnorms[i];
+
+			if(normalize_v3(no) == 0.0f)
+				normalize_v3_v3(no, mv->co);
+
+			normal_float_to_short_v3(mv->no, no);
+		}
+
+		MEM_freeN(tnorms);
 	}
-	
-	if (origIndexFace && fnors==faceNors_r && numFaces) {
+	else {
+		/* only calc poly normals */
+		mp = mpolys;
+		for (i=0; i<numPolys; i++, mp++) {
+			mesh_calc_poly_normal(mp, mloop+mp->loopstart, mverts, pnors[i]);
+		}
+	}
+
+	if ( origIndexFace &&
+	     /* fnors==faceNors_r */ /* NO NEED TO ALLOC YET */
+	     fnors != NULL &&
+	     numFaces)
+	{
 		mf = mfaces;
 		for (i=0; i<numFaces; i++, mf++, origIndexFace++) {
 			if (*origIndexFace < numPolys) {
@@ -1742,15 +1784,9 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 		}
 	}
 
-	BLI_array_free(vertcos);
-	BLI_array_free(vertnos);
-	MEM_freeN(edgevecbuf);
-	MEM_freeN(tnorms);
-	if (fnors != faceNors_r)
-		MEM_freeN(fnors);
-	if (pnors != polyNors_r)
-		MEM_freeN(pnors);
-	
+	if (pnors != polyNors_r) MEM_freeN(pnors);
+	/* if (fnors != faceNors_r) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
+
 	fnors = pnors = NULL;
 	
 }

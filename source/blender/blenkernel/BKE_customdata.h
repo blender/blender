@@ -156,6 +156,7 @@ int CustomData_number_of_layers(const struct CustomData *data, int type);
 void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 												  int type, const char *name);
+int CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask

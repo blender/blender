@@ -2363,7 +2363,6 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 
 /* Add weighted face normal component into normals of the face vertices.
    Caller must pass pre-allocated vdiffs of nverts length. */
-#define VERT_BUF_SIZE 100
 void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 	float **vertcos, float vdiffs[][3], int nverts)
 {

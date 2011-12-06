@@ -136,8 +136,13 @@ void mesh_strip_loose_edges(struct Mesh *me);
 	 * and vertex normals are stored in actual mverts.
 	 */
 void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MLoop *mloop, 
-	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3], 
+	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
 	struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
+	/* extended version of 'mesh_calc_normals' with option not to calc vertex normals */
+void mesh_calc_normals_ex(struct MVert *mverts, int numVerts, struct MLoop *mloop,
+	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
+	struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
+	const short only_face_normals);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */

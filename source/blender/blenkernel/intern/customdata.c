@@ -1740,6 +1740,20 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	return layer->data;
 }
 
+int CustomData_is_referenced_layer(struct CustomData *data, int type)
+{
+	CustomDataLayer *layer;
+	int layer_index;
+
+	/* get the layer index of the first layer of type */
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return 0;
+
+	layer = &data->layers[layer_index];
+
+	return (layer->flag & CD_FLAG_NOFREE) != 0;
+}
+
 void CustomData_free_temporary(CustomData *data, int totelem)
 {
 	CustomDataLayer *layer;
