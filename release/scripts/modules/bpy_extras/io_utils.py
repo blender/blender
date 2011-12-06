@@ -269,8 +269,6 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
 
         return axis_forward, axis_up
 
-    change = False
-
     axis = getattr(operator, forward_attr), getattr(operator, up_attr)
     axis_new = validate(*axis)
 
