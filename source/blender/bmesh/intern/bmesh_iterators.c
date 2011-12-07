@@ -56,6 +56,37 @@ void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
 	return val;
 }
 
+
+/*
+ * ITERATOR AS ARRAY
+ *
+ * Sometimes its convenient to get the iterator as an array
+ * to avoid multiple calls to BMIter_AtIndex.
+ */
+
+int BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array, const int len)
+{
+	int i= 0;
+
+	/*sanity check*/
+	if (len > 0) {
+
+		BMIter iter;
+		void *val;
+
+		BM_ITER(val, &iter, bm, htype, data) {
+			array[i]= val;
+			i++;
+			if (i == len) {
+				return len;
+			}
+		}
+	}
+
+	return i;
+}
+
+
 /*
  * INIT ITERATOR
  *

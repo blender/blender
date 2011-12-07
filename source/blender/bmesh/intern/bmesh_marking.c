@@ -483,6 +483,8 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 	}
 }
 
+/* ref - editmesh_lib.cL:EM_editselection_plane() */
+
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
 also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
@@ -530,39 +532,51 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 		we cant make a crossvec from a vec thats the same as the vec
 		unlikely but possible, so make sure if the normal is (0,0,1)
 		that vec isnt the same or in the same direction even.*/
-		if (efa->no[0] < 0.5f)		vec[0]= 1.0f;
-		else if (efa->no[1] < 0.5f)	vec[1]= 1.0f;
-		else						vec[2]= 1.0f;
-		cross_v3_v3v3(plane, efa->no, vec);
-#if 0 //BMESH_TODO
-
-		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
-			float vecA[3], vecB[3];
-			sub_v3_v3v3(vecA, efa->v4->co, efa->v3->co);
-			sub_v3_v3v3(vecB, efa->v1->co, efa->v2->co);
-			add_v3_v3v3(plane, vecA, vecB);
-			
-			sub_v3_v3v3(vecA, efa->v1->co, efa->v4->co);
-			sub_v3_v3v3(vecB, efa->v2->co, efa->v3->co);
-			add_v3_v3v3(vec, vecA, vecB);						
-			/*use the biggest edge length*/
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				copy_v3_v3(plane, vec);
-		} else {
-			/*start with v1-2 */
-			sub_v3_v3v3(plane, efa->v1->co, efa->v2->co);
-			
-			/*test the edge between v2-3, use if longer */
-			sub_v3_v3v3(vec, efa->v2->co, efa->v3->co);
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				copy_v3_v3(plane, vec);
-			
-			/*test the edge between v1-3, use if longer */
-			sub_v3_v3v3(vec, efa->v3->co, efa->v1->co);
-			if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
-				copy_v3_v3(plane, vec);
+		if (efa->len < 3) {
+			/* crappy fallback method */
+			if      (efa->no[0] < 0.5f)	vec[0]= 1.0f;
+			else if (efa->no[1] < 0.5f)	vec[1]= 1.0f;
+			else                        vec[2]= 1.0f;
+			cross_v3_v3v3(plane, efa->no, vec);
 		}
-#endif
+		else {
+			BMVert *verts[4]= {NULL};
+
+			BMIter_AsArray(bm, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
+
+			if (efa->len == 4) {
+				float vecA[3], vecB[3];
+				sub_v3_v3v3(vecA, verts[3]->co, verts[2]->co);
+				sub_v3_v3v3(vecB, verts[0]->co, verts[1]->co);
+				add_v3_v3v3(plane, vecA, vecB);
+
+				sub_v3_v3v3(vecA, verts[0]->co, verts[3]->co);
+				sub_v3_v3v3(vecB, verts[1]->co, verts[2]->co);
+				add_v3_v3v3(vec, vecA, vecB);
+				/*use the biggest edge length*/
+				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec)) {
+					copy_v3_v3(plane, vec);
+				}
+			}
+			else {
+				/* BMESH_TODO (not urgent, use longest ngon edge for alignment) */
+
+				/*start with v1-2 */
+				sub_v3_v3v3(plane, verts[0]->co, verts[1]->co);
+
+				/*test the edge between v2-3, use if longer */
+				sub_v3_v3v3(vec, verts[1]->co, verts[2]->co);
+				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec))
+					copy_v3_v3(plane, vec);
+
+				/*test the edge between v1-3, use if longer */
+				sub_v3_v3v3(vec, verts[2]->co, verts[0]->co);
+				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec)) {
+					copy_v3_v3(plane, vec);
+				}
+			}
+
+		}
 	}
 	normalize_v3(plane);
 }

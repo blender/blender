@@ -76,6 +76,7 @@ typedef struct BMIter {
 }BMIter;
 
 void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index);
+int   BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array, const int len);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);
