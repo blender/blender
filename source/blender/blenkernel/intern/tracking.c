@@ -1282,7 +1282,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 
 			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
-			if(coords_correct && (tracked || !context->disable_failed)) {
+			if(coords_correct && !onbound && (tracked || !context->disable_failed)) {
 				if(context->first_time) {
 					#pragma omp critical
 					{
