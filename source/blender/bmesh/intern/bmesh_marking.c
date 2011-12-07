@@ -59,7 +59,7 @@ static void recount_totsels(BMesh *bm)
 {
 	BMIter iter;
 	BMHeader *ele;
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	int *tots[3];
 	int i;
 
@@ -70,7 +70,7 @@ static void recount_totsels(BMesh *bm)
 	tots[2] = &bm->totfacesel;
 
 	for (i=0; i<3; i++) {
-		ele = BMIter_New(&iter, bm, types[i], NULL);
+		ele = BMIter_New(&iter, bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(ele, BM_SELECT)) *tots[i] += 1;
 		}
@@ -637,7 +637,7 @@ void BM_validate_selections(BMesh *bm)
 
 void BM_clear_flag_all(BMesh *bm, const char hflag)
 {
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
 	int i;
@@ -646,7 +646,7 @@ void BM_clear_flag_all(BMesh *bm, const char hflag)
 		BM_clear_selection_history(bm);
 
 	for (i=0; i<3; i++) {		
-		ele = BMIter_New(&iter, bm, types[i], NULL);
+		ele = BMIter_New(&iter, bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (hflag & BM_SELECT) BM_Select(bm, ele, 0);
 			BM_ClearHFlag(ele, hflag);

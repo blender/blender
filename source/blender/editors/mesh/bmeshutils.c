@@ -121,7 +121,7 @@ void EDBM_stats_update(BMEditMesh *em)
 {
 	BMIter iter;
 	BMHeader *ele;
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	int *tots[3];
 	int i;
 
@@ -132,7 +132,7 @@ void EDBM_stats_update(BMEditMesh *em)
 	em->bm->totvertsel = em->bm->totedgesel = em->bm->totfacesel = 0;
 
 	for (i=0; i<3; i++) {
-		ele = BMIter_New(&iter, em->bm, types[i], NULL);
+		ele = BMIter_New(&iter, em->bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(ele, BM_SELECT)) {
 				(*tots[i])++;
@@ -509,13 +509,13 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 
 void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 {
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	const char itypes[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	BMIter iter;
 	BMHeader *ele;
 	int i;
 
 	for (i=0; i<3; i++) {
-		ele= BMIter_New(&iter, em->bm, types[i], NULL);
+		ele= BMIter_New(&iter, em->bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (hflag & BM_SELECT) {
 				BM_Select(em->bm, ele, 1);

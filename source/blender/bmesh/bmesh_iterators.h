@@ -47,12 +47,12 @@ a different face hole boundary*/
 #define BM_LOOPS_OF_LOOP		12
 #define BM_LOOPS_OF_EDGE		13
 
-#define BM_ITER(ele, iter, bm, type, data) \
-	ele = BMIter_New(iter, bm, type, data); \
+#define BM_ITER(ele, iter, bm, itype, data)                                   \
+	ele = BMIter_New(iter, bm, itype, data);                                  \
 	for ( ; ele; ele=BMIter_Step(iter))
 
-#define BM_ITER_INDEX(ele, iter, bm, type, data, indexvar) \
-	ele = BMIter_New(iter, bm, type, data); \
+#define BM_ITER_INDEX(ele, iter, bm, itype, data, indexvar)                   \
+	ele = BMIter_New(iter, bm, itype, data);                                  \
 	for (indexvar=0; ele; indexvar++, ele=BMIter_Step(iter))
 
 /*Iterator Structure*/
@@ -66,14 +66,15 @@ typedef struct BMIter {
 	struct BMesh *bm;
 	void (*begin)(struct BMIter *iter);
 	void *(*step)(struct BMIter *iter);
-	union{
-		void		*p;
-		int			i;
-		long		l;
-		float		f;
+	union {
+		void       *p;
+		int         i;
+		long        l;
+		float       f;
 	} filter;
-	int htype, count;
-}BMIter;
+	int count;
+	char itype;
+} BMIter;
 
 void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index);
 int   BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array, const int len);

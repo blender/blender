@@ -60,14 +60,14 @@ BM_INLINE void *BMIter_Step(BMIter *iter)
  * to return the first element of the iterator.
  *
 */
-BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char htype, void *data)
+BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */
-	iter->htype = htype;
+	iter->itype = itype;
 	iter->bm = bm;
 
 	/* inlining optimizes out this switch when called with the defined type */
-	switch(htype){
+	switch(itype){
 		case BM_VERTS_OF_MESH:
 			iter->begin = bmiter__vert_of_mesh_begin;
 			iter->step =  bmiter__vert_of_mesh_step;

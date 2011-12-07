@@ -36,7 +36,7 @@
 /*
  * note, we have BM_Vert_AtIndex/BM_Edge_AtIndex/BM_Face_AtIndex for arrays
  */
-void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
+void *BMIter_AtIndex(struct BMesh *bm, const char itype, void *data, int index)
 {
 	BMIter iter;
 	void *val;
@@ -45,7 +45,7 @@ void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
 	/*sanity check*/
 	if (index < 0) return NULL;
 
-	val=BMIter_New(&iter, bm, htype, data);
+	val=BMIter_New(&iter, bm, itype, data);
 
 	i = 0;
 	while (i < index) {
@@ -64,7 +64,7 @@ void *BMIter_AtIndex(struct BMesh *bm, const char htype, void *data, int index)
  * to avoid multiple calls to BMIter_AtIndex.
  */
 
-int BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array, const int len)
+int BMIter_AsArray(struct BMesh *bm, const char type, void *data, void **array, const int len)
 {
 	int i= 0;
 
@@ -74,7 +74,7 @@ int BMIter_AsArray(struct BMesh *bm, const char htype, void *data, void **array,
 		BMIter iter;
 		void *val;
 
-		BM_ITER(val, &iter, bm, htype, data) {
+		BM_ITER(val, &iter, bm, type, data) {
 			array[i]= val;
 			i++;
 			if (i == len) {
