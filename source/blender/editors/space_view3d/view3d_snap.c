@@ -641,16 +641,19 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
 								float curspn[3];
+								float inv_restmat[4][4];
 								
-								/* get location of cursor in bone-space */
-								armature_loc_pose_to_bone(pchan, cursp, curspn);
+								/* get location of cursor in *rest* bone-space */
+								copy_v3_v3(curspn, cursp);
+								invert_m4_m4(inv_restmat, pchan->bone->arm_mat);
+								mul_m4_v3(inv_restmat, curspn);
 								
 								/* copy new position */
-								if ((pchan->protectflag & OB_LOCK_LOCX)==0)	
+								if ((pchan->protectflag & OB_LOCK_LOCX)==0)
 									pchan->loc[0]= curspn[0];
-								if ((pchan->protectflag & OB_LOCK_LOCY)==0)	
+								if ((pchan->protectflag & OB_LOCK_LOCY)==0)
 									pchan->loc[1]= curspn[1];
-								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)	
+								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
 									pchan->loc[2]= curspn[2];
 
 								/* auto-keyframing */
