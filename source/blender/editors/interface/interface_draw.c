@@ -1490,7 +1490,7 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 			CLAMP(src_x, 0, max_x);
 			CLAMP(src_y, 0, max_y);
 
-			bilinear_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
+			bicubic_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
 		}
 	}
 
