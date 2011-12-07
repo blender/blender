@@ -150,8 +150,8 @@ BM_INLINE void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 		
 		eh->nbuckets= _ehash_hashsizes[++eh->cursize];
 		eh->buckets= MEM_mallocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets");
-		BMEMSET(eh->buckets, 0, eh->nbuckets*sizeof(*eh->buckets));
-		
+		memset(eh->buckets, 0, eh->nbuckets * sizeof(*eh->buckets));
+
 		for (i=0; i<nold; i++) {
 			for (e= old[i]; e;) {
 				EdgeEntry *n= e->next;

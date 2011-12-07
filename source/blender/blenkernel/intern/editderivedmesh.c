@@ -29,6 +29,10 @@
  *  \ingroup bke
  */
 
+#include <string.h>
+#include <limits.h>
+#include <math.h>
+
 #include "GL/glew.h"
 
 #include "BLI_utildefines.h"
@@ -54,10 +58,6 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-
-#include <string.h>
-#include <limits.h>
-#include <math.h>
 
 /* bmesh */
 #include "BKE_tessmesh.h"

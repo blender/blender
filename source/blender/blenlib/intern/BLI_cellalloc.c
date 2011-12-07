@@ -69,7 +69,7 @@ typedef struct MemHeader {
 
 //#define USE_GUARDEDALLOC
 
-void *BLI_cellalloc_malloc(long size, const char *tag)
+void *BLI_cellalloc_malloc(int size, const char *tag)
 {
 	MemHeader *memh;
 	int slot = size + sizeof(MemHeader);
@@ -112,11 +112,10 @@ void *BLI_cellalloc_malloc(long size, const char *tag)
 	return memh + 1;
 }
 
-void *BLI_cellalloc_calloc(long size, const char *tag)
+void *BLI_cellalloc_calloc(int size, const char *tag)
 {
 	void *mem = BLI_cellalloc_malloc(size, tag);
-	BMEMSET(mem, 0, size);
-
+	memset(mem, 0, size);
 	return mem;
 }
 

@@ -48,8 +48,8 @@
  - joeedh
 */
 
-void *BLI_cellalloc_malloc(long size, const char *tag);
-void *BLI_cellalloc_calloc(long size, const char *tag);
+void *BLI_cellalloc_malloc(int size, const char *tag);
+void *BLI_cellalloc_calloc(int size, const char *tag);
 void BLI_cellalloc_free(void *mem);
 void BLI_cellalloc_printleaks(void);
 int BLI_cellalloc_get_totblock(void);
