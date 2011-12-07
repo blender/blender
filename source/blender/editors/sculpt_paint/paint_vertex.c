@@ -1102,6 +1102,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	view3d_set_viewcontext(C, &vc);
 
 	vc.obact->actdef= type + 1;
+	BLI_assert(vc.obact->actdef >= 0);
 
 	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, vc.obact);
@@ -1959,10 +1960,13 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 
 				if(pchan) {
 					bDeformGroup *dg= defgroup_find_name(ob, pchan->name);
-					if(dg==NULL)
+					if(dg==NULL) {
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
-					else
+					}
+					else {
 						ob->actdef= 1 + defgroup_find_index(ob, dg);
+						BLI_assert(ob->actdef >= 0);
+					}
 				}
 			}
 		}
@@ -2034,7 +2038,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	wpi.defbase_tot=        wpd->defbase_tot;
 	wpi.defbase_sel=        MEM_mallocN(wpi.defbase_tot*sizeof(char), "wpi.defbase_sel");
 	wpi.defbase_tot_sel=    get_selected_defgroups(ob, wpi.defbase_sel, wpi.defbase_tot);
-	if(wpi.defbase_tot_sel == 0 && ob->actdef) wpi.defbase_tot_sel = 1;
+	if(wpi.defbase_tot_sel == 0 && ob->actdef > 0) wpi.defbase_tot_sel = 1;
 	wpi.defbase_tot_unsel=  wpi.defbase_tot - wpi.defbase_tot_sel;
 	wpi.vgroup_mirror=      wpd->vgroup_mirror;
 	wpi.lock_flags=         wpd->lock_flags;

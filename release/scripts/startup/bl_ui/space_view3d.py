@@ -255,7 +255,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("uv.cube_project")
         layout.operator("uv.cylinder_project")
         layout.operator("uv.sphere_project")

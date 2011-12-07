@@ -273,10 +273,30 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
 
     // If the step was accepted, then check for termination.
     if (d.squaredNorm() < min_update_squared_distance) {
-      if (new_error > reasonable_error) {
-        LG << "Update size shrank but reasonable error ("
-           << reasonable_error << ") not achieved; failing.";
-        return true; // XXX
+      // Compute the Pearson product-moment correlation coefficient to check
+      // for sanity.
+      // TODO(keir): Put this somewhere smarter.
+      double sX=0,sY=0,sXX=0,sYY=0,sXY=0;
+      for (int r = 0; r < width; ++r) {
+        for (int c = 0; c < width; ++c) {
+          double x = image_and_gradient1_sampled(r, c, 0);
+          double y = image_and_gradient2_sampled[new_image](r, c, 0);
+          sX += x;
+          sY += y;
+          sXX += x*x;
+          sYY += y*y;
+          sXY += x*y;
+        }
+      }
+      double N = width*width;
+      sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
+      double correlation = (sXY-sX*sY)/sqrt(double((sXX-sX*sX)*(sYY-sY*sY)));
+      LG << "Final correlation: " << correlation;
+
+      if (correlation < minimum_correlation) {
+        LG << "Correlation " << correlation << " greater than "
+           << minimum_correlation << "; bailing.";
+        return false;
       }
       LG << "Successful track in " << (i + 1) << " iterations.";
       return true;

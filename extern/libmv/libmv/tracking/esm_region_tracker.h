@@ -38,7 +38,8 @@ struct EsmRegionTracker : public RegionTracker {
         max_iterations(16),
         min_determinant(1e-6),
         min_update_squared_distance(1e-4),
-        sigma(0.9) {}
+        sigma(0.9),
+        minimum_correlation(0.78) {}
   
   virtual ~EsmRegionTracker() {}
 
@@ -54,6 +55,7 @@ struct EsmRegionTracker : public RegionTracker {
   double min_determinant;
   double min_update_squared_distance;
   double sigma;
+  double minimum_correlation;
 };
 
 }  // namespace libmv

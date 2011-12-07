@@ -129,8 +129,7 @@ class CLIP_PT_tools_marker(Panel):
 
             if settings.default_tracker == 'KLT':
                 col.prop(settings, "default_pyramid_levels")
-            elif settings.default_tracker == 'SAD':
-                col.prop(settings, "default_correlation_min")
+            col.prop(settings, "default_correlation_min")
 
             col.separator()
 
@@ -497,8 +496,7 @@ class CLIP_PT_track_settings(Panel):
 
             if active.tracker == 'KLT':
                 col.prop(active, "pyramid_levels")
-            elif active.tracker == 'SAD':
-                col.prop(active, "correlation_min")
+            col.prop(active, "correlation_min")
 
             col.separator()
             col.prop(active, "frames_limit")

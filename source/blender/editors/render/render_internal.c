@@ -378,8 +378,12 @@ static void render_progress_update(void *rjv, float progress)
 {
 	RenderJob *rj= rjv;
 	
-	if(rj->progress)
+	if(rj->progress && *rj->progress != progress) {
 		*rj->progress = progress;
+
+		/* make jobs timer to send notifier */
+		*(rj->do_update)= 1;
+	}
 }
 
 static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
