@@ -76,7 +76,7 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->camera.pixel_aspect= 1.0f;
 	tracking->camera.units= CAMERA_UNITS_MM;
 
-	tracking->settings.default_tracker= TRACKER_KLT;
+	tracking->settings.default_tracker= TRACKER_HYBRID;
 	tracking->settings.default_pyramid_levels= 2;
 	tracking->settings.default_minimum_correlation= 0.75;
 	tracking->settings.default_pattern_size= 11;
