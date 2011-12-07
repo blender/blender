@@ -91,9 +91,7 @@ static int tottrans= 0;
 /* copied from editobject.c, now uses (almost) proper depgraph */
 static void special_transvert_update(Object *obedit)
 {
-	
 	if(obedit) {
-		
 		DAG_id_tag_update(obedit->data, 0);
 		
 		if(obedit->type==OB_MESH) {
@@ -177,7 +175,7 @@ static void special_transvert_update(Object *obedit)
 					}
 				}
 			}
-			if(arm->flag & ARM_MIRROR_EDIT) 
+			if(arm->flag & ARM_MIRROR_EDIT)
 				transform_armature_mirror_update(obedit);
 		}
 		else if(obedit->type==OB_LATTICE) {
@@ -193,7 +191,7 @@ static void special_transvert_update(Object *obedit)
 /* mode flags: */
 #define TM_ALL_JOINTS		1 /* all joints (for bones only) */
 #define TM_SKIP_HANDLES		2 /* skip handles when control point is selected (for curves only) */
-static void make_trans_verts(Object *obedit, float *min, float *max, int mode)	
+static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -278,7 +276,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				if ((tipsel && rootsel) || (rootsel)) {
 					/* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
 					 * otherwise we get zero-length bones as tips will snap to the same
-					 * location as heads. 
+					 * location as heads.
 					 */
 					if (rootok) {
 						copy_v3_v3(tv->oldloc, ebo->head);
@@ -296,7 +294,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 						tv->flag= 1;
 						tv++;
 						tottrans++;
-					}					
+					}
 				}
 				else if (tipsel) {
 					copy_v3_v3(tv->oldloc, ebo->tail);
@@ -306,7 +304,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 					tv++;
 					tottrans++;
 				}
-			}			
+			}
 		}
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
@@ -465,7 +463,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	if(obedit) {
 		tottrans= 0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -474,7 +472,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-			
 			copy_v3_v3(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3(vec, obedit->obmat[3]);
@@ -491,7 +488,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;
-	
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
@@ -501,34 +497,42 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				
+				invert_m4_m4(ob->imat, ob->obmat);
+				
 				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
-							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
-								float vecN[3], nLoc[3]; 
+							if((pchan->bone->flag & BONE_CONNECTED)==0) {
+								float nLoc[3];
+								float inv_restmat[4][4];
 								
 								/* get nearest grid point to snap to */
 								copy_v3_v3(nLoc, pchan->pose_mat[3]);
+								/* We must operate in world space! */
+								mul_m4_v3(ob->obmat, nLoc);
 								vec[0]= gridf * (float)(floor(0.5f+ nLoc[0]/gridf));
 								vec[1]= gridf * (float)(floor(0.5f+ nLoc[1]/gridf));
 								vec[2]= gridf * (float)(floor(0.5f+ nLoc[2]/gridf));
+								/* Back in object space... */
+								mul_m4_v3(ob->imat, vec);
 								
-								/* get bone-space location of grid point */
-								armature_loc_pose_to_bone(pchan, vec, vecN);
+								/* get location of grid point in *rest* bone-space */
+								invert_m4_m4(inv_restmat, pchan->bone->arm_mat);
+								mul_m4_v3(inv_restmat, vec);
 								
 								/* adjust location */
-								if ((pchan->protectflag & OB_LOCK_LOCX)==0)	
-									pchan->loc[0]= vecN[0];
-								if ((pchan->protectflag & OB_LOCK_LOCY)==0)	
-									pchan->loc[0]= vecN[1];
-								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)	
-									pchan->loc[0]= vecN[2];
+								if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+									pchan->loc[0]= vec[0];
+								if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+									pchan->loc[1]= vec[1];
+								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+									pchan->loc[2]= vec[2];
 
 								/* auto-keyframing */
 								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 							}
-							/* if the bone has a parent and is connected to the parent, 
-							 * don't do anything - will break chain unless we do auto-ik. 
+							/* if the bone has a parent and is connected to the parent,
+							 * don't do anything - will break chain unless we do auto-ik.
 							 */
 						}
 					}
@@ -572,7 +576,6 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Selection to Grid";
 	ot->description= "Snap selected item(s) to nearest grid node";
@@ -603,7 +606,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 	if(obedit) {
 		tottrans= 0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], 0);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -621,7 +624,6 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;
-		
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
@@ -630,37 +632,34 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
-				float cursp[3];
 				
 				invert_m4_m4(ob->imat, ob->obmat);
-				copy_v3_v3(cursp, curs);
-				mul_m4_v3(ob->imat, cursp);
+				copy_v3_v3(vec, curs);
+				mul_m4_v3(ob->imat, vec);
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
-							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
-								float curspn[3];
+							if((pchan->bone->flag & BONE_CONNECTED)==0) {
 								float inv_restmat[4][4];
 								
 								/* get location of cursor in *rest* bone-space */
-								copy_v3_v3(curspn, cursp);
 								invert_m4_m4(inv_restmat, pchan->bone->arm_mat);
-								mul_m4_v3(inv_restmat, curspn);
+								mul_m4_v3(inv_restmat, vec);
 								
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX)==0)
-									pchan->loc[0]= curspn[0];
+									pchan->loc[0]= vec[0];
 								if ((pchan->protectflag & OB_LOCK_LOCY)==0)
-									pchan->loc[1]= curspn[1];
+									pchan->loc[1]= vec[1];
 								if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
-									pchan->loc[2]= curspn[2];
+									pchan->loc[2]= vec[2];
 
 								/* auto-keyframing */
 								ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 							}
-							/* if the bone has a parent and is connected to the parent, 
-							 * don't do anything - will break chain unless we do auto-ik. 
+							/* if the bone has a parent and is connected to the parent,
+							 * don't do anything - will break chain unless we do auto-ik.
 							 */
 						}
 					}
@@ -704,7 +703,6 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Selection to Cursor";
 	ot->description= "Snap selected item(s) to cursor";
@@ -741,7 +739,6 @@ static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Cursor to Grid";
 	ot->description= "Snap cursor to nearest grid node";
@@ -806,7 +803,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 	if(obedit) {
 		tottrans=0;
 		
-		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL)
 			make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS|TM_SKIP_HANDLES);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
@@ -884,10 +881,9 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Cursor to Selected";
-	ot->description= "Snap cursor to center of selected item(s)"; 
+	ot->description= "Snap cursor to center of selected item(s)";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
@@ -935,7 +931,6 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Cursor to Active";
 	ot->description= "Snap cursor to active item";
@@ -969,13 +964,12 @@ static int snap_curs_to_center(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Snap Cursor to Center";
 	ot->description= "Snap cursor to the Center";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_center";
 	
-	/* api callbacks */ 
+	/* api callbacks */
 	ot->exec= snap_curs_to_center;
 	ot->poll= ED_operator_view3d_active;
 	
@@ -993,7 +987,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	int a;
 
 	tottrans=0;
-	if ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
+	if ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE)
 		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
 	
 	if(tottrans==0) return 0;
@@ -1001,12 +995,12 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	copy_m3_m4(bmat, obedit->obmat);
 	
 	tv= transvmain;
-	for(a=0; a<tottrans; a++, tv++) {		
+	for(a=0; a<tottrans; a++, tv++) {
 		copy_v3_v3(vec, tv->loc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
-		DO_MINMAX(vec, min, max);		
+		DO_MINMAX(vec, min, max);
 	}
 	
 	MEM_freeN(transvmain);
