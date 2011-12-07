@@ -31,10 +31,6 @@
 
 #include "bmesh.h"
 
-#ifndef NULL
-#  define NULL (void *)0
-#endif
-
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 
@@ -161,4 +157,4 @@ BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data
 }
 
 
-#endif
+#endif /* BM_ITERATORS_INLINE_C */

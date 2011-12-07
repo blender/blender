@@ -169,7 +169,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	/*clean up extreneous 2-valence vertices*/
 	for (i=0; i<BLI_array_count(verts); i++) {
 		if (verts[i]->e)
-			BM_Collapse_Vert(bm, verts[i]->e, verts[i], 1.0);
+			BM_Collapse_Vert_Faces(bm, verts[i]->e, verts[i], 1.0);
 	}
 	
 	BLI_array_free(verts);
@@ -224,8 +224,8 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 			BMVert *v1= e->v1, *v2= e->v2;
 
 			/*collapse the vert*/
-			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert(bm, v1->e, v1, 0.5f);
-			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert(bm, v2->e, v2, 0.5f);
+			if (BM_Vert_EdgeCount(v1) == 2) BM_Collapse_Vert_Edges(bm, v1->e, v1);
+			if (BM_Vert_EdgeCount(v2) == 2) BM_Collapse_Vert_Edges(bm, v2->e, v2);
 
 		}
 	}
@@ -298,7 +298,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			if (BM_Vert_EdgeCount(v) == 2) {
 
 				/*collapse the vert*/
-				BM_Collapse_Vert(bm, v->e, v, 0.5f);
+				BM_Collapse_Vert_Edges(bm, v->e, v);
 				continue;
 			}
 

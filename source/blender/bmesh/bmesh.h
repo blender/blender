@@ -207,9 +207,13 @@ struct BMFace *BM_Split_Face ( struct BMesh *bm, struct BMFace *f,
                                            struct BMVert *v1, struct BMVert *v2,
                                            struct BMLoop **nl, struct BMEdge *example );
 
-/*dissolves a vert shared only by two edges*/
-BMEdge* BM_Collapse_Vert ( struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv,
-                        float fac );
+/* these 2 functions are very similar */
+BMEdge* BM_Collapse_Vert_Faces(struct BMesh *bm,
+                         struct BMEdge *ke, struct BMVert *kv,
+                         float fac);
+BMEdge* BM_Collapse_Vert_Edges(struct BMesh *bm,
+                         struct BMEdge *ke, struct BMVert *kv);
+
 
 /*splits an edge.  ne is set to the new edge created.*/
 struct BMVert *BM_Split_Edge ( struct BMesh *bm, struct BMVert *v,
@@ -369,12 +373,12 @@ void bmesh_end_edit(struct BMesh *bm, int flag);
 
 /*include the rest of the API*/
 #include "bmesh_filters.h"
-#include "bmesh_iterators.h"
 #include "bmesh_marking.h"
 #include "bmesh_operator_api.h"
 #include "bmesh_operators.h"
 #include "bmesh_error.h"
 #include "bmesh_queries.h"
+#include "bmesh_iterators.h"
 #include "bmesh_walkers.h"
 #include "intern/bmesh_inline.c"
 

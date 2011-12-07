@@ -138,7 +138,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		return 1;
 	} else if (keepedge == NULL && len == 2) {
 		/*collapse the vertex*/
-		e = BM_Collapse_Vert(bm, v->e, v, 1.0);
+		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0);
 
 		if (!e) {
 			return 0;
@@ -181,7 +181,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		}
 
 		/*collapse the vertex*/
-		e = BM_Collapse_Vert(bm, baseedge, v, 1.0);
+		e = BM_Collapse_Vert_Faces(bm, baseedge, v, 1.0);
 
 		if (!e) {
 			return 0;
@@ -384,7 +384,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 }
 
 /**
- *			bmesh_collapse_vert
+ *			BM_Collapse_Vert_Faces
  *
  *  Collapses a vertex that has only two manifold edges
  *  onto a vertex it shares an edge with. Fac defines
@@ -392,21 +392,27 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *
  *  Note that this is not a general edge collapse function.
  *
+ * Note this function is very close to 'BM_Collapse_Vert_Edges', both collapse
+ * a vertex and return a new edge. Except this takes a factor and merges
+ * custom data.
+ *
  *  BMESH_TODO:
  *    Insert error checking for KV valance.
  *
  *  Returns -
- *	Nothing
+ *	The New Edge
  */
- 
-BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
+
+BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 {
-	BMFace **faces = NULL, *f;
-	BLI_array_staticdeclare(faces, 8);
+	BMEdge *ne = NULL;
+	BMVert *tv = bmesh_edge_getothervert(ke, kv);
+
+
 	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
-	BMEdge *ne = NULL;
-	BMVert *tv = bmesh_edge_getothervert(ke,kv);
+	BMFace **faces = NULL, *f;
+	BLI_array_staticdeclare(faces, 8);
 	void *src[2];
 	float w[2];
 
@@ -416,7 +422,7 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 	w[0] = 1.0f - fac;
 	w[1] = fac;
 
-	if(ke->l){
+	if (ke->l) {
 		l = ke->l;
 		do{
 			if(l->v == tv && l->next->v == kv) {
@@ -427,35 +433,22 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 				src[1] = tvloop->head.data;
 				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->head.data);
 			}
-			l=l->radial_next;
-		}while(l!=ke->l);
+			l= l->radial_next;
+		} while (l != ke->l);
 	}
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
 		BLI_array_append(faces, f);
 	}
-	
-	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
-	if (BM_Vert_EdgeCount(kv) == 2) {
-		/* in this case we want to keep all faces and not join them,
-		 * rather just get rid of the veretex - see bug [#28645] */
-		BMEdge *e2;
-		BMVert *tv2;
-
-		/* no need to check for null, we know the vert has 2 edes */
-		e2 = bmesh_disk_nextedge(ke, kv);
-		tv2 = BM_OtherEdgeVert(e2, kv);
-
-		/* only action, other calls here only get the edge to return */
-		bmesh_jekv(bm, ke, kv);
-
-		ne= BM_Edge_Exist(tv, tv2);
-	}
-	else if (faces && BLI_array_count(faces) > 1) {
+	/* Collapse between 2+ faces */
+	if (faces && BLI_array_count(faces) > 1) {
 		BMFace *f2;
 		BMEdge *e2;
 		BMVert *tv2;
+
+		/* only call when making real changes */
+		BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
 		e2 = bmesh_disk_nextedge(ke, kv);
 		tv2 = BM_OtherEdgeVert(e2, kv);
@@ -468,10 +461,55 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 			}
 		}
 	}
+	/* else we cant do anything! */
 
 	BLI_array_free(faces);
+
 	return ne;
 }
+
+
+/**
+ *			BM_Collapse_Vert_Edges
+ *
+ * Collapses a vertex onto another vertex it shares an edge with. Fac defines
+ * the amount of interpolation for Custom Data.
+ *
+ * Note that this is not a general edge collapse function.
+ *
+ * Note this function is very close to 'BM_Collapse_Vert_Faces', both collapse
+ * a vertex and return a new edge. Except this doesn't merge customdata.
+ *
+ * Returns -
+ * The New Edge
+ */
+
+BMEdge* BM_Collapse_Vert_Edges(BMesh *bm, BMEdge *ke, BMVert *kv)
+{
+	BMEdge *ne = NULL;
+
+	/* Collapse between 2 edges */
+
+	/* in this case we want to keep all faces and not join them,
+	 * rather just get rid of the veretex - see bug [#28645] */
+	BMVert *tv  = bmesh_edge_getothervert(ke, kv);
+	if (tv) {
+		BMEdge *e2 = bmesh_disk_nextedge(ke, kv);
+		if (e2) {
+			BMVert *tv2 = BM_OtherEdgeVert(e2, kv);
+			if (tv2) {
+				/* only action, other calls here only get the edge to return */
+				bmesh_jekv(bm, ke, kv);
+
+				ne= BM_Edge_Exist(tv, tv2);
+			}
+		}
+	}
+
+	return ne;
+}
+
+#undef DO_V_INTERP
 
 /**
  *			BM_split_edge
