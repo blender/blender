@@ -60,6 +60,7 @@
 #include "BKE_texture.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
+#include "BKE_deform.h"
 
 #ifdef WITH_GAMEENGINE
 #include "BKE_navmesh_conversion.h"
@@ -625,40 +626,49 @@ void weight_to_rgb(float r_rgb[3], const float weight)
 		r_rgb[1]= blend * (1.0f-((weight-0.75f)*4.0f));
 		r_rgb[2]= 0.0f;
 	}
+	else {
+		/* exceptional value, unclamped or nan,
+		 * avoid uninitialized memory use */
+		r_rgb[0]= 1.0f;
+		r_rgb[1]= 0.0f;
+		r_rgb[2]= 1.0f;
+	}
 }
 
 /* draw_flag's for calc_weightpaint_vert_color */
 enum {
 	CALC_WP_MULTIPAINT= (1<<0),
-	CALC_WP_AUTO_NORMALIZE= (1<<1),
+	CALC_WP_AUTO_NORMALIZE= (1<<1)
 };
 
 static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
-	float colf[4], input = 0.0f;
-	int i;
-
+	float input = 0.0f;
 	
 	int make_black= FALSE;
 
 	if (me->dvert) {
+		MDeformVert *dvert= &me->dvert[vert];
+
 		if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
-			
 			int was_a_nonzero= FALSE;
-			for (i=0; i<me->dvert[vert].totweight; i++) {
+			int i;
+
+			MDeformWeight *dw= dvert->dw;
+			for (i = dvert->totweight; i > 0; i--, dw++) {
 				/* in multipaint, get the average if auto normalize is inactive
 				 * get the sum if it is active */
-				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
-					if(me->dvert[vert].dw[i].weight) {
-						input+= me->dvert[vert].dw[i].weight;
+				if (dg_flags[dw->def_nr]) {
+					if (dw->weight) {
+						input += dw->weight;
 						was_a_nonzero= TRUE;
 					}
 				}
 			}
 
 			/* make it black if the selected groups have no weight on a vertex */
-			if(was_a_nonzero == FALSE) {
+			if (was_a_nonzero == FALSE) {
 				make_black = TRUE;
 			}
 			else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
@@ -667,11 +677,7 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 		}
 		else {
 			/* default, non tricky behavior */
-			for (i=0; i<me->dvert[vert].totweight; i++) {
-				if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
-					input+=me->dvert[vert].dw[i].weight;
-				}
-			}
+			input= defvert_find_weight(dvert, ob->actdef-1);
 		}
 	}
 	
@@ -680,20 +686,23 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 		col[2] = 0;
 		col[1] = 0;
 		col[0] = 255;
-		return;
 	}
+	else {
+		float colf[4];
+		CLAMP(input, 0.0f, 1.0f);
 
-	CLAMP(input, 0.0f, 1.0f);	
+		colf[0]= colf[1]= colf[2]= -1;
 
-	if(coba)
-		do_colorband(coba, input, colf);
-	else
-		weight_to_rgb(colf, input);
-	
-	col[3] = (unsigned char)(colf[0] * 255.0f);
-	col[2] = (unsigned char)(colf[1] * 255.0f);
-	col[1] = (unsigned char)(colf[2] * 255.0f);
-	col[0] = 255;
+		if(coba)
+			do_colorband(coba, input, colf);
+		else
+			weight_to_rgb(colf, input);
+
+		col[3] = (unsigned char)(colf[0] * 255.0f);
+		col[2] = (unsigned char)(colf[1] * 255.0f);
+		col[1] = (unsigned char)(colf[2] * 255.0f);
+		col[0] = 255;
+	}
 }
 
 static ColorBand *stored_cb= NULL;
