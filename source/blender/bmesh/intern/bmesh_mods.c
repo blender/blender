@@ -230,7 +230,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 				}
 			};
 		}
-		BM_Collapse_Vert(bm, v->e, v, 1.0);
+		BM_Collapse_Vert_Faces(bm, v->e, v, 1.0);
 	}
 }
 #endif
