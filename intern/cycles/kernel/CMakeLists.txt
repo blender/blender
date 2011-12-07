@@ -129,7 +129,7 @@ include_directories(${INC})
 add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_SVM_HEADERS})
 
 if(WITH_CYCLES_OPTIMIZED_KERNEL)
-	SET_SOURCE_FILES_PROPERTIES(kernel_optimized.cpp PROPERTIES COMPILE_FLAGS ${CYCLES_OPTIMIZED_KERNEL_FLAGS})
+	set_source_files_properties(kernel_optimized.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_OPTIMIZED_KERNEL_FLAGS}")
 endif()
 
 if(WITH_CYCLES_CUDA)

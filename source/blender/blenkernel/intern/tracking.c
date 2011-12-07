@@ -1232,7 +1232,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 		if(marker && (marker->flag&MARKER_DISABLED)==0) {
 #ifdef WITH_LIBMV
 			int width, height, origin[2], tracked= 0, need_readjust= 0;
-			float pos[2], margin[2];
+			float pos[2], margin[2], dim[2];
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
@@ -1248,7 +1248,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			else nextfra= curfra+1;
 
 			/* margin from frame boundaries */
-			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
+			sub_v2_v2v2(dim, track->pat_max, track->pat_min);
+			margin[0]= margin[1]= MAX2(dim[0], dim[1]) / 2.0f;
 
 			margin[0]= MAX2(margin[0], (float)track->margin / ibuf_new->x);
 			margin[1]= MAX2(margin[1], (float)track->margin / ibuf_new->y);
@@ -1361,7 +1362,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					{
 						/* check if there's no keyframe/tracked markers before tracking marker.
 						   if so -- create disabled marker before currently tracking "segment" */
-						put_disabled_marker(track, marker, 1, 0);
+						put_disabled_marker(track, marker, !context->backwards, 0);
 					}
 				}
 
@@ -1385,7 +1386,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				/* make currently tracked segment be finished with disabled marker */
 				#pragma omp critical
 				{
-					put_disabled_marker(track, &marker_new, 0, 0);
+					put_disabled_marker(track, &marker_new, context->backwards, 0);
 				}
 			} else {
 				marker_new= *marker;

@@ -1608,21 +1608,37 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
                         sel, sel_mirr,                                        \
                         flip_map, flip_map_len,                               \
                         mirror_weights, flip_vgroups,                         \
-                        all_vgroups, act_vgroup                               \
+                        all_vgroups, def_nr                                   \
                         )
 
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
 	short sel, sel_mirr;
 	int	*flip_map, flip_map_len;
-	const int act_vgroup= ob->actdef > 0 ? ob->actdef-1 : 0;
+	const int def_nr= ob->actdef-1;
 
-	if(mirror_weights==0 && flip_vgroups==0)
+	if ( (mirror_weights==0 && flip_vgroups==0) ||
+	     (BLI_findlink(&ob->defbase, def_nr) == NULL) )
+	{
 		return;
+	}
 
-	flip_map= all_vgroups ?
-	            defgroup_flip_map(ob, &flip_map_len, FALSE) :
-	            defgroup_flip_map_single(ob, &flip_map_len, FALSE, act_vgroup);
+	if (flip_vgroups) {
+		flip_map= all_vgroups ?
+					defgroup_flip_map(ob, &flip_map_len, FALSE) :
+					defgroup_flip_map_single(ob, &flip_map_len, FALSE, def_nr);
+
+		BLI_assert(flip_map != NULL);
+
+		if (flip_map == NULL) {
+			/* something went wrong!, possibly no groups */
+			return;
+		}
+	}
+	else {
+		flip_map= NULL;
+		flip_map_len= 0;
+	}
 
 	/* only the active group */
 	if(ob->type == OB_MESH) {
@@ -1631,8 +1647,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 
 		if (em) {
 			if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
-				MEM_freeN(flip_map);
-				return;
+				goto cleanup;
 			}
 
 			EM_cache_x_mirror_vert(ob, em);
@@ -1654,7 +1669,6 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 					eve->tmp.v= eve_mirr->tmp.v= NULL;
 				}
 			}
-
 			BKE_mesh_end_editmesh(me, em);
 		}
 		else {
@@ -1664,8 +1678,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 			if (me->dvert == NULL) {
-				MEM_freeN(flip_map);
-				return;
+				goto cleanup;
 			}
 
 			if (!use_vert_sel) {
@@ -1712,8 +1725,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		if(lt->editlatt) lt= lt->editlatt->latt;
 
 		if(lt->pntsu == 1 || lt->dvert == NULL) {
-			MEM_freeN(flip_map);
-			return;
+			goto cleanup;
 		}
 
 		/* unlike editmesh we know that by only looping over the first hald of
@@ -1749,9 +1761,11 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 		}
 	}
 
-	MEM_freeN(flip_map);
+cleanup:
+	if (flip_map) MEM_freeN(flip_map);
 
 #undef VGROUP_MIRR_OP
+
 }
 
 static void vgroup_remap_update_users(Object *ob, int *map)
@@ -2733,6 +2747,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	int nr= RNA_enum_get(op->ptr, "group");
 
 	ob->actdef= nr+1;
+	BLI_assert(ob->actdef >= 0);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
@@ -2811,7 +2826,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	MDeformVert *dvert= NULL;
 	bDeformGroup *def;
 	int def_tot = BLI_countlist(&ob->defbase);
-	int *sort_map_update= MEM_mallocN(MAX_VGROUP_NAME * sizeof(int) * def_tot + 1, "sort vgroups"); /* needs a dummy index at the start*/
+	int *sort_map_update= MEM_mallocN(sizeof(int) * (def_tot + 1), "sort vgroups"); /* needs a dummy index at the start*/
 	int *sort_map= sort_map_update + 1;
 	char *name;
 	int i;
@@ -2820,6 +2835,8 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	for(def= ob->defbase.first, i=0; def; def=def->next, i++){
 		sort_map[i]= BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
 		name += MAX_VGROUP_NAME;
+
+		BLI_assert(sort_map[i] != -1);
 	}
 
 	if(ob->mode == OB_MODE_EDIT) {
@@ -2861,6 +2878,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	vgroup_remap_update_users(ob, sort_map_update);
 
 	ob->actdef= sort_map_update[ob->actdef];
+	BLI_assert(ob->actdef >= 0);
 	
 	MEM_freeN(sort_map_update);
 
