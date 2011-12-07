@@ -89,26 +89,27 @@ behaviour, though it may not be the best in practice.
 #define BLI_array_count(arr) _##arr##_count
 
 /* grow the array by one.  zeroes the new elements. */
-#define _BLI_array_growone(arr)  (                                            \
+#define _bli_array_growone(arr)  (                                            \
 	(BLI_array_totalsize(arr) > _##arr##_count) ?                             \
-		++_##arr##_count :  (                                                 \
-		(void) (_##arr##_tmp = MEM_callocN(                                   \
-		        sizeof(*arr)*(_##arr##_count*2+2),                            \
-		        #arr " " __FILE__ ":" STRINGIFY(__LINE__)                     \
-		        )                                                             \
-		        ),                                                            \
-		(void) (arr && memcpy(_##arr##_tmp,                                   \
-		                      arr,                                            \
-		                      sizeof(*arr) * _##arr##_count)                  \
-		        ),                                                            \
-		(void) (arr && ((void *)(arr) != (void*)_##arr##_static ?             \
-		        (MEM_freeN(arr), arr) :                                       \
-		        arr)                                                          \
-		        ),                                                            \
-		(void)(arr = _##arr##_tmp                                             \
-		       ),                                                             \
-		_##arr##_count++                                                      \
-	)                                                                         \
+	    ++_##arr##_count :                                                    \
+	    (                                                                     \
+	        (void) (_##arr##_tmp = MEM_callocN(                               \
+	                sizeof(*arr)*(_##arr##_count*2+2),                        \
+	                #arr " " __FILE__ ":" STRINGIFY(__LINE__)                 \
+	                )                                                         \
+	                ),                                                        \
+	        (void) (arr && memcpy(_##arr##_tmp,                               \
+	                              arr,                                        \
+	                              sizeof(*arr) * _##arr##_count)              \
+	                ),                                                        \
+	        (void) (arr && ((void *)(arr) != (void*)_##arr##_static ?         \
+	                (MEM_freeN(arr), arr) :                                   \
+	                arr)                                                      \
+	                ),                                                        \
+	        (void) (arr = _##arr##_tmp                                        \
+	                ),                                                        \
+	        _##arr##_count++                                                  \
+	    )                                                                     \
 )
 
 
@@ -116,7 +117,7 @@ behaviour, though it may not be the best in practice.
 #define BLI_array_growone(arr)  (                                             \
 	((void *)(arr)==NULL && (void *)(_##arr##_static) != NULL) ?              \
 		((arr=(void*)_##arr##_static), ++_##arr##_count) :                    \
-		_BLI_array_growone(arr)                                               \
+		_bli_array_growone(arr)                                               \
 )
 
 
@@ -137,7 +138,10 @@ behaviour, though it may not be the best in practice.
 /* grow an array by a specified number of items. */
 /* TODO, this could be done in a less crappy way by not looping - campbell */
 #define BLI_array_growitems(arr, num)                                         \
-	{                                                                         \
+	if ((BLI_array_totalsize(arr) - _##arr##_count) >= num) {                 \
+	    _##arr##_count += num;                                                \
+	}                                                                         \
+	else {                                                                    \
 		int _i;                                                               \
 		for (_i = 0; _i < (num); _i++) {                                      \
 			BLI_array_growone(arr);                                           \
