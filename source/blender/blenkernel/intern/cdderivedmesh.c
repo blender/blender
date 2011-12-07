@@ -2232,11 +2232,20 @@ void CDDM_calc_normals(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	float (*face_nors)[3] = NULL;
+
+	/* use this to skip calculating normals on original vert's, this may need to be changed */
+	const short only_face_normals = CustomData_is_referenced_layer(&dm->vertData, CD_MVERT);
 	
 	if(dm->numVertData == 0) return;
 
+	/* now we skip calculating vertex normals for referenced layer,
+	 * no need to duplicate verts.
+	 * WATCH THIS, bmesh only change!,
+	 * need to take care of the side effects here - campbell */
+#if 0
 	/* we don't want to overwrite any referenced layers */
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+#endif
 
 	if (dm->numTessFaceData == 0) {
 		/* No tesselation on this mesh yet, need to calculate one */
@@ -2251,9 +2260,10 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	face_nors = MEM_mallocN(sizeof(float)*3*dm->numTessFaceData, "face_nors");
 	
 	/* calculate face normals */
-	mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm), 
-					  dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData, 
-					  CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors);
+	mesh_calc_normals_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	                     dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
+	                     CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
+	                     only_face_normals);
 	
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
 		face_nors, dm->numTessFaceData);
