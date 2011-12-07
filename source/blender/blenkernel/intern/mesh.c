@@ -1686,21 +1686,9 @@ void mesh_calc_normals_ex(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpol
 	MFace *mf;
 	MPoly *mp;
 	MLoop *ml;
-	int maxPolyVerts = 0;
 
 	if (numPolys == 0) {
 		return;
-	}
-
-	if (only_face_normals == FALSE) {
-		mp = mpolys;
-		for (i=0; i<numPolys; i++, mp++) {
-			maxPolyVerts = MAX2(mp->totloop, maxPolyVerts);
-		}
-
-		if (maxPolyVerts == 0) {
-			return;
-		}
 	}
 
 	/* if we are not calculating verts and no verts were passes thene we have nothign to do */
@@ -1717,14 +1705,13 @@ void mesh_calc_normals_ex(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpol
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
 
-		float (*tnorms)[3], (*edgevecbuf)[3];
+		float (*tnorms)[3], (*edgevecbuf)[3]= NULL;
 		float **vertcos = NULL, **vertnos = NULL;
 		BLI_array_declare(vertcos);
 		BLI_array_declare(vertnos);
-
+		BLI_array_declare(edgevecbuf);
 
 		/*first go through and calculate normals for all the polys*/
-		edgevecbuf = MEM_callocN(sizeof(float)*3*maxPolyVerts, "edgevecbuf mesh.c");
 		tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms mesh.c");
 
 		mp = mpolys;
@@ -1740,12 +1727,15 @@ void mesh_calc_normals_ex(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpol
 				BLI_array_append(vertnos, tnorms[vindex]);
 			}
 
+			BLI_array_empty(edgevecbuf);
+			BLI_array_growitems(edgevecbuf, mp->totloop);
+
 			accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
 		}
 
 		BLI_array_free(vertcos);
 		BLI_array_free(vertnos);
-		MEM_freeN(edgevecbuf);
+		BLI_array_free(edgevecbuf);
 
 		/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 		for(i=0; i<numVerts; i++) {
