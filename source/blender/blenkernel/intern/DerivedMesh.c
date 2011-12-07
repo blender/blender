@@ -641,7 +641,9 @@ enum {
 	CALC_WP_AUTO_NORMALIZE= (1<<1)
 };
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
+static void calc_weightpaint_vert_color(
+        Object *ob, ColorBand *coba, int vert, unsigned char *col,
+        const char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
 	float input = 0.0f;
@@ -691,12 +693,8 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 		float colf[4];
 		CLAMP(input, 0.0f, 1.0f);
 
-		colf[0]= colf[1]= colf[2]= -1;
-
-		if(coba)
-			do_colorband(coba, input, colf);
-		else
-			weight_to_rgb(colf, input);
+		if(coba) do_colorband(coba, input, colf);
+		else     weight_to_rgb(colf, input);
 
 		col[3] = (unsigned char)(colf[0] * 255.0f);
 		col[2] = (unsigned char)(colf[1] * 255.0f);
