@@ -1317,7 +1317,7 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 		else if(settings->speed==TRACKING_SPEED_DOUBLE) tmj->delay/= 2;
 	}
 
-	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1);
+	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards);
 
 	clip->tracking_context= tmj->context;
 
@@ -1428,7 +1428,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
-	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
+	context= BKE_tracking_context_new(clip, &sc->user, backwards);
 
 	while(framenr != efra) {
 		if(!BKE_tracking_next(context))
