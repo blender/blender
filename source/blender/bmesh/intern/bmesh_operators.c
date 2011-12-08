@@ -1165,13 +1165,19 @@ static int bmesh_opname_to_opcode(const char *opname)
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 {
 	BMOpDefine *def;
-	char *opname, *ofmt, *fmt = (char*)_fmt;
+	char *opname, *ofmt, *fmt;
 	char slotname[64] = {0};
 	int i /*, n=strlen(fmt) */, stop /*, slotcode = -1 */, ret, type, state;
 	int noslot=0;
 
+
+	/* basic useful info to help find where bmop formatting strings fail */
+	int lineno= -1;
+#   define GOTO_ERROR { lineno= __LINE__; goto error; }
+
+
 	/*we muck around in here, so dup it*/
-	fmt = ofmt = BLI_strdup(fmt);
+	fmt = ofmt = BLI_strdup(_fmt);
 	
 	/*find operator name*/
 	i = strcspn(fmt, " \t");
@@ -1209,11 +1215,11 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 			  a little flexible, allowing "slot=%f", 
 			  "slot %f", "slot%f", and "slot\t%f". */
 			i = strcspn(fmt, "= \t%");
-			if (!fmt[i]) goto error;
+			if (!fmt[i]) GOTO_ERROR;
 
 			fmt[i] = 0;
 
-			if (bmesh_name_to_slotcode_check(def, fmt) < 0) goto error;
+			if (bmesh_name_to_slotcode_check(def, fmt) < 0) GOTO_ERROR;
 			
 			BLI_strncpy(slotname, fmt, sizeof(slotname));
 			
@@ -1234,7 +1240,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 
 				if (c == '3') size = 3;
 				else if (c == '4') size = 4;
-				else goto error;
+				else GOTO_ERROR;
 
 				BMO_Set_Mat(op, slotname, va_arg(vlist, void*), size);
 				state = 1;
@@ -1311,7 +1317,9 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 				state = 1;
 				break;
 			default:
-				printf("%s: unrecognized bmop format char: %c\n", __func__, *fmt);
+				fprintf(stderr,
+				        "%s: unrecognized bmop format char: %c, %d in '%s'\n",
+				        __func__, *fmt, (int)(fmt-ofmt), ofmt);
 				break;
 			}
 		}
@@ -1321,8 +1329,18 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, const char *_fmt, va_list vlist)
 	MEM_freeN(ofmt);
 	return 1;
 error:
+
+	/* non urgent todo - explain exactly what is failing */
+	fprintf(stderr,
+	        "%s: error parsing formatting string, %d in '%s'\n    see - %s:%d\n",
+	        __func__, (int)(fmt-ofmt), _fmt, __FILE__, lineno);
+	MEM_freeN(ofmt);
+
 	BMO_Finish_Op(bm, op);
 	return 0;
+
+#undef GOTO_ERROR
+
 }
 
 
