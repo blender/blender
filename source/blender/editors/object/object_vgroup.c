@@ -2199,7 +2199,10 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	ot->exec= vertex_group_remove_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* redo operator will fail in this case because vertex groups aren't stored
+	   in local edit mode stack and toggling "all" property will lead to
+	   all groups deleted without way to restore them (see [#29527], sergey) */
+	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
@@ -2231,7 +2234,10 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->exec= vertex_group_assign_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* redo operator will fail in this case because vertex group assignment
+	   isn't stored in local edit mode stack and toggling "new" property will
+	   lead to creating plenty of new veretx groups (see [#29527], sergey) */
+	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group");
@@ -2270,7 +2276,10 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->exec= vertex_group_remove_from_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* redo operator will fail in this case because vertex groups ssignment
+	   isn't stored in local edit mode stack and toggling "all" property will lead to
+	   removing vertices from all groups (see [#29527], sergey) */
+	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");

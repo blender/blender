@@ -69,7 +69,7 @@ void GPU_state_print(void);
  * - after drawing, the material must be disabled again */
 
 void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
-	struct Scene *scene, struct Object *ob, int glsl, int *do_alpha_pass);
+	struct Scene *scene, struct Object *ob, int glsl, int *do_alpha_after);
 void GPU_end_object_materials(void);
 
 int GPU_enable_material(int nr, void *attribs);

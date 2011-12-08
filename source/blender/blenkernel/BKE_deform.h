@@ -52,7 +52,8 @@ void				 defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
 
 struct MDeformWeight	*defvert_find_index(const struct MDeformVert *dv, const int defgroup);
 struct MDeformWeight	*defvert_verify_index(struct MDeformVert *dv, const int defgroup);
-void                     defvert_remove_index(struct MDeformVert *dvert, int defgroup, struct MDeformWeight *dw);
+void                     defvert_add_index_notest(struct MDeformVert *dv, int defgroup, const float weight);
+void                     defvert_remove_group(struct MDeformVert *dvert, struct MDeformWeight *dw);
 
 float  defvert_find_weight(const struct MDeformVert *dvert, const int defgroup);
 float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup);

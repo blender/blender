@@ -1279,11 +1279,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						}
 					}
 				}
-				if(!dodraw) {
-					continue;
-				}
 
-				if( numdata != 0 ) {
+				if(dodraw && numdata != 0 ) {
 					offset = 0;
 					if(attribs.totorco) {
 						copy_v3_v3((float *)&varray[elementsize*curface*3],(float *)attribs.orco.array[mface->v1]);
@@ -1325,7 +1322,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				}
 				curface++;
 				if(mface->v4) {
-					if( numdata != 0 ) {
+					if(dodraw && numdata != 0 ) {
 						offset = 0;
 						if(attribs.totorco) {
 							copy_v3_v3((float *)&varray[elementsize*curface*3],(float *)attribs.orco.array[mface->v3]);

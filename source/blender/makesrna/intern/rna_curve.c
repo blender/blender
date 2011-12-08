@@ -1286,21 +1286,21 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bevel Resolution", "Bevel resolution when depth is non-zero and no specific bevel object has been defined");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "width");
 	RNA_def_property_ui_range(prop, -1.0, 1.0, 0.1, 3);
 	RNA_def_property_float_funcs(prop, "rna_Curve_offset_get", "rna_Curve_offset_set", NULL);
 	RNA_def_property_ui_text(prop, "Offset", "Offset the curve to adjust the width of a text");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
 	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 3);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "ext2");
 	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object");

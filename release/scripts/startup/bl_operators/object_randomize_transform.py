@@ -20,13 +20,12 @@
 
 import bpy
 from bpy.types import Operator
-
+from mathutils import Vector
 
 def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
     import random
     from random import uniform
-    from mathutils import Vector
 
     random.seed(seed)
 
@@ -86,6 +85,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 from bpy.props import (IntProperty,
                        BoolProperty,
                        FloatVectorProperty)
+from math import pi
 
 
 class RandomizeLocRotSize(Operator):
@@ -129,10 +129,10 @@ class RandomizeLocRotSize(Operator):
     rot = FloatVectorProperty(
             name="Rotation",
             description="Maximun rotation over each axis",
-            min=-180.0,
-            max=180.0,
+            min=-pi,
+            max=pi,
             default=(0.0, 0.0, 0.0),
-            subtype='TRANSLATION',
+            subtype='EULER',
             )
     use_scale = BoolProperty(
             name="Randomize Scale",
@@ -162,14 +162,12 @@ class RandomizeLocRotSize(Operator):
             )
 
     def execute(self, context):
-        from math import radians
-
         seed = self.random_seed
 
         delta = self.use_delta
 
         loc = None if not self.use_loc else self.loc
-        rot = None if not self.use_rot else self.rot * radians(1.0)
+        rot = None if not self.use_rot else Vector(self.rot)
         scale = None if not self.use_scale else self.scale
 
         scale_even = self.scale_even

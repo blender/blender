@@ -942,7 +942,7 @@ static struct GPUMaterialState {
 
 	GPUBlendMode *alphablend;
 	GPUBlendMode alphablend_fixed[FIXEDMAT];
-	int alphapass;
+	int use_alpha_pass, is_alpha_pass;
 
 	int lastmatnr, lastretval;
 	GPUBlendMode lastalphablend;
@@ -993,7 +993,7 @@ static Material *gpu_active_node_material(Material *ma)
 	return ma;
 }
 
-void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
+void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, int glsl, int *do_alpha_after)
 {
 	Material *ma;
 	GPUMaterial *gpumat;
@@ -1015,9 +1015,15 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.gviewmat= rv3d->viewmat;
 	GMS.gviewinv= rv3d->viewinv;
 
-	GMS.alphapass = (v3d && v3d->transp);
-	if(do_alpha_pass)
-		*do_alpha_pass = 0;
+	/* alpha pass setup. there's various cases to handle here:
+	   * object transparency on: only solid materials draw in the first pass,
+	   and only transparent in the second 'alpha' pass.
+	   * object transparency off: for glsl we draw both in a single pass, and
+	   for solid we don't use transparency at all. */
+	GMS.use_alpha_pass = (do_alpha_after != NULL);
+	GMS.is_alpha_pass = (v3d && v3d->transp);
+	if(GMS.use_alpha_pass)
+		*do_alpha_after = 0;
 	
 	if(GMS.totmat > FIXEDMAT) {
 		GMS.matbuf= MEM_callocN(sizeof(GPUMaterialFixed)*GMS.totmat, "GMS.matbuf");
@@ -1064,20 +1070,23 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			/* fixed function opengl materials */
 			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
 
-			alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
-			if(do_alpha_pass && GMS.alphapass)
+			if(GMS.use_alpha_pass) {
 				GMS.matbuf[a].diff[3]= ma->alpha;
-			else
+				alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
+			}
+			else {
 				GMS.matbuf[a].diff[3]= 1.0f;
+				alphablend = GPU_BLEND_SOLID;
+			}
 		}
 
-		/* setting do_alpha_pass = 1 indicates this object needs to be
+		/* setting do_alpha_after = 1 indicates this object needs to be
 		 * drawn in a second alpha pass for improved blending */
-		if(do_alpha_pass) {
-			GMS.alphablend[a]= alphablend;
-			if(ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT) && !GMS.alphapass)
-				*do_alpha_pass= 1;
-		}
+		if(GMS.use_alpha_pass && !GMS.is_alpha_pass)
+			if(ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
+				*do_alpha_after= 1;
+
+		GMS.alphablend[a]= alphablend;
 	}
 
 	/* let's start with a clean state */
@@ -1122,20 +1131,26 @@ int GPU_enable_material(int nr, void *attribs)
 
 	/* unbind glsl material */
 	if(GMS.gboundmat) {
-		if(GMS.alphapass) glDepthMask(0);
+		if(GMS.is_alpha_pass) glDepthMask(0);
 		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
 		GMS.gboundmat= NULL;
 	}
 
 	/* draw materials with alpha in alpha pass */
 	GMS.lastmatnr = nr;
-	GMS.lastretval = ELEM(GMS.alphablend[nr], GPU_BLEND_SOLID, GPU_BLEND_CLIP);
-	if(GMS.alphapass)
-		GMS.lastretval = !GMS.lastretval;
+	GMS.lastretval = 1;
+
+	if(GMS.use_alpha_pass) {
+		GMS.lastretval = ELEM(GMS.alphablend[nr], GPU_BLEND_SOLID, GPU_BLEND_CLIP);
+		if(GMS.is_alpha_pass)
+			GMS.lastretval = !GMS.lastretval;
+	}
+	else
+		GMS.lastretval = !GMS.is_alpha_pass;
 
 	if(GMS.lastretval) {
 		/* for alpha pass, use alpha blend */
-		alphablend = (GMS.alphapass)? GPU_BLEND_ALPHA: GPU_BLEND_SOLID;
+		alphablend = GMS.alphablend[nr];
 
 		if(gattribs && GMS.gmatbuf[nr]) {
 			/* bind glsl material and get attributes */
@@ -1152,7 +1167,7 @@ int GPU_enable_material(int nr, void *attribs)
 			if(mat->game.alpha_blend != GPU_BLEND_SOLID)
 				alphablend= mat->game.alpha_blend;
 
-			if(GMS.alphapass) glDepthMask(1);
+			if(GMS.is_alpha_pass) glDepthMask(1);
 		}
 		else {
 			/* or do fixed function opengl material */
@@ -1188,7 +1203,7 @@ void GPU_disable_material(void)
 	GMS.lastretval= 1;
 
 	if(GMS.gboundmat) {
-		if(GMS.alphapass) glDepthMask(0);
+		if(GMS.is_alpha_pass) glDepthMask(0);
 		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
 		GMS.gboundmat= NULL;
 	}

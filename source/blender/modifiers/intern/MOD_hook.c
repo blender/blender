@@ -143,14 +143,9 @@ static float hook_falloff(float *co_1, float *co_2, const float falloff_squared,
 	return fac;
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *dm,
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
+                           float (*vertexCos)[3], int numVerts)
 {
-	HookModifierData *hmd = (HookModifierData*) md;
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 	float vec[3], mat[4][4], dmat[4][4];
 	int i, *index_pt;
@@ -251,17 +246,29 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 }
 
-static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct BMEditMesh *editData,
-	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                        float (*vertexCos)[3], int numVerts,
+                        int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
-	DerivedMesh *dm = derivedData;
+	HookModifierData *hmd = (HookModifierData*) md;
+	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, 0);
 
-	if(!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, 0);
+	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
+	if(derivedData != dm)
+		dm->release(dm);
+}
 
-	if(!derivedData) dm->release(dm);
+static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editData,
+                          DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
+
+	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
+
+	if(derivedData != dm)
+		dm->release(dm);
 }
 
 

@@ -577,46 +577,61 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	return dw_new;
 }
 
-/* Removes the given vertex from the vertex group, specified either by its defgrp_idx,
- * or directly by its MDeformWeight pointer, if dw is not NULL.
- * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
-void defvert_remove_index(MDeformVert *dvert, int defgroup, MDeformWeight *dw)
+/* TODO. merge with code above! */
+
+/* Adds the given vertex to the specified vertex group, with given weight.
+ * warning, this does NOT check for existign, assume caller already knows its not there */
+void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weight)
 {
 	MDeformWeight *dw_new;
-	int i;
 
-	/* Get index of removed MDeformWeight. */
-	if (dw == NULL) {
-		dw = dvert->dw;
-		for (i = dvert->totweight; i > 0; i--, dw++) {
-			if (dw->def_nr == defgroup)
-				break;
-		}
-		i--;
-	}
-	else {
-		i = dw - dvert->dw;
-		/* Security check! */
-		if(i < 0 || i >= dvert->totweight)
-			return;
-	}
+	/* do this check always, this function is used to check for it */
+	if (!dvert || defgroup < 0)
+		return;
 
-	dvert->totweight--;
-	/* If there are still other deform weights attached to this vert then remove
-	 * this deform weight, and reshuffle the others.
-	 */
-	if (dvert->totweight) {
-		dw_new = BLI_cellalloc_malloc(sizeof(MDeformWeight)*(dvert->totweight), __func__);
-		if (dvert->dw){
-			memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
-			memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
-			BLI_cellalloc_free(dvert->dw);
-		}
-		dvert->dw = dw_new;
-	}
-	else {
-		/* If there are no other deform weights left then just remove this one. */
+	dw_new = BLI_cellalloc_calloc(sizeof(MDeformWeight)*(dvert->totweight+1), "defvert_add_to group, new deformWeight");
+	if(dvert->dw) {
+		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
 		BLI_cellalloc_free(dvert->dw);
-		dvert->dw = NULL;
+	}
+	dvert->dw = dw_new;
+	dw_new += dvert->totweight;
+	dw_new->weight = weight;
+	dw_new->def_nr = defgroup;
+	dvert->totweight++;
+}
+
+
+/* Removes the given vertex from the vertex group.
+ * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
+void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
+{
+	if (dvert && dw) {
+		MDeformWeight *dw_new;
+		int i = dw - dvert->dw;
+
+		/* Security check! */
+		if(i < 0 || i >= dvert->totweight) {
+			return;
+		}
+
+		dvert->totweight--;
+		/* If there are still other deform weights attached to this vert then remove
+		 * this deform weight, and reshuffle the others.
+		 */
+		if (dvert->totweight) {
+			dw_new = BLI_cellalloc_malloc(sizeof(MDeformWeight)*(dvert->totweight), __func__);
+			if (dvert->dw){
+				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
+				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
+				BLI_cellalloc_free(dvert->dw);
+			}
+			dvert->dw = dw_new;
+		}
+		else {
+			/* If there are no other deform weights left then just remove this one. */
+			BLI_cellalloc_free(dvert->dw);
+			dvert->dw = NULL;
+		}
 	}
 }
