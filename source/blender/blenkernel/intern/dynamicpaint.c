@@ -1546,7 +1546,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
                                                        Object *ob,
                                                        DerivedMesh *dm)
 {	
-	DerivedMesh *result = CDDM_copy(dm, 0); /* BMESH_TODO second argument untested, may be incorrect - campbell */
+	DerivedMesh *result = CDDM_copy(dm, 0);
 
 	if(pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
 
@@ -1756,7 +1756,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 	/* make a copy of dm to use as brush data */
 	if (pmd->brush) {
 		if (pmd->brush->dm) pmd->brush->dm->release(pmd->brush->dm);
-		pmd->brush->dm = CDDM_copy(result, 0); /* BMESH_TODO untested second argument - campbell */
+		pmd->brush->dm = CDDM_copy(result, 0);
 	}
 
 	return result;
@@ -1774,7 +1774,7 @@ void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
 void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 {
 	if (canvas->dm) canvas->dm->release(canvas->dm);
-	canvas->dm = CDDM_copy(dm, 0); /* BMESH_TODO second argument untested, may be incorrect - campbell */
+	canvas->dm = CDDM_copy(dm, 0);
 }
 
 /*
@@ -1929,7 +1929,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 	{
 		int numOfFaces = dm->getNumTessFaces(dm);
 		MFace *mface = dm->getTessFaceArray(dm);
-		MTFace *tface =  CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname); /* BMESH_TODO, is this data valid?, possibly need loop uv's */
+		MTFace *tface =  CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
 
 		/* Get closest edge to that subpixel on UV map	*/
 		{
@@ -3022,7 +3022,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Scene *scene, Object *ob, Dy
 	scene->r.subframe = prev_sfra;
 
 	subframe_updateObject(scene, ob, UPDATE_EVERYTHING, BKE_curframe(scene));
-	dm_p = CDDM_copy(brush->dm, 0); /* BMESH_TODO second argument untested, may be incorrect - campbell */
+	dm_p = CDDM_copy(brush->dm, 0);
 	numOfVerts_p = dm_p->getNumVerts(dm_p);
 	mvert_p = dm_p->getVertArray(dm_p);
 	copy_m4_m4(prev_obmat, ob->obmat);
@@ -3126,7 +3126,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 		Bounds3D mesh_bb = {0};
 		VolumeGrid *grid = bData->grid;
 
-		dm = CDDM_copy(brush->dm, 0); /* BMESH_TODO second argument untested, may be incorrect - campbell */
+		dm = CDDM_copy(brush->dm, 0);
 		mvert = dm->getVertArray(dm);
 		mface = dm->getTessFaceArray(dm);
 		numOfVerts = dm->getNumVerts(dm);

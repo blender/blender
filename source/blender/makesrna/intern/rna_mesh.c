@@ -1480,8 +1480,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshUVLoop");
 	RNA_def_property_collection_funcs(prop, "rna_MeshUVLoopLayer_data_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_MeshUVLoopLayer_data_length", NULL, NULL, NULL);
 
-	/* BMESH_TODO: add active/clone/render properties */
-
 	srna= RNA_def_struct(brna, "MeshUVLoop", NULL);
 	RNA_def_struct_sdna(srna, "MLoopUV");
 	RNA_def_struct_path_func(srna, "rna_MeshUVLoop_path");
@@ -1495,11 +1493,11 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MLOOPUV_VERTSEL);
-	RNA_def_property_ui_text(prop, "UV Pinned", "");
+	RNA_def_property_ui_text(prop, "UV Select", "");
 
 	prop= RNA_def_property(srna, "select_edge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MLOOPUV_EDGESEL);
-	RNA_def_property_ui_text(prop, "UV Pinned", "");
+	RNA_def_property_ui_text(prop, "UV Edge Select", "");
 }
 
 static void rna_def_mtface(BlenderRNA *brna)

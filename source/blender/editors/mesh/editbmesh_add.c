@@ -182,10 +182,10 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
-			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, sqrt(2.0), mat)) 
+			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, M_SQRT2, mat))
 		return OPERATOR_CANCELLED;
 	
-	/* BMESH_TODO make plane side this: sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
+	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
 	make_prim_finish(C, &state, enter_editmode);
 
 	return OPERATOR_FINISHED;	
@@ -229,7 +229,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_cube mat=%m4 size=%f", mat, 2.0f)) 
 		return OPERATOR_CANCELLED;
 	
-	/* BMESH_TODO make plane side this: sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
+	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
 	make_prim_finish(C, &state, enter_editmode);
 
 	return OPERATOR_FINISHED;	
