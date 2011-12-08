@@ -1218,6 +1218,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	em->bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* alloc */
+	totvert = em->bm->totvert;
 	nedges = MEM_callocN(sizeof(*nedges)*totvert+1, "SeamPathNEdges");
 	edges = MEM_mallocN(sizeof(*edges)*totedge*2, "SeamPathEdges");
 	prevedge = MEM_mallocN(sizeof(*prevedge)*totedge, "SeamPathPrevious");
