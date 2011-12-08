@@ -1715,6 +1715,10 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	if(!ED_view3d_context_activate(C))
 		return OPERATOR_CANCELLED;
 	
+	/* redraw to hide any menus/popups, we don't go back to
+	   the window manager until after this operator exits */
+	WM_redraw_windows(C);
+
 	rv3d= CTX_wm_region_view3d(C);
 	/* sa= CTX_wm_area(C); */ /* UNUSED */
 	ar= CTX_wm_region(C);
@@ -1750,6 +1754,8 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		CTX_wm_window_set(C, NULL);
 	}
 	
+	ED_area_tag_redraw(CTX_wm_area(C));
+
 	if(prevwin) {
 		/* restore context, in case it changed in the meantime, for
 		   example by working in another window or closing it */
@@ -1763,8 +1769,6 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(CTX_data_main(C), startscene);
 	//XXX scene_update_for_newframe(bmain, scene, scene->lay);
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 #else
