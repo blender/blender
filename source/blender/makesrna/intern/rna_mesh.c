@@ -1489,7 +1489,17 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "uv", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	/* BMESH_TODO: add props for each MLoopUV flag */
+	prop= RNA_def_property(srna, "pin_uv", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MLOOPUV_PINNED);
+	RNA_def_property_ui_text(prop, "UV Pinned", "");
+
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MLOOPUV_VERTSEL);
+	RNA_def_property_ui_text(prop, "UV Pinned", "");
+
+	prop= RNA_def_property(srna, "select_edge", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MLOOPUV_EDGESEL);
+	RNA_def_property_ui_text(prop, "UV Pinned", "");
 }
 
 static void rna_def_mtface(BlenderRNA *brna)
@@ -1659,7 +1669,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-#if 0 /*BMESH_TODO*/
+#if 0 /* moved to MeshUVLoopLayer */
 	prop= RNA_def_property(srna, "pin_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "unwrap", TF_PIN1);
 	RNA_def_property_array(prop, 4);
