@@ -5241,11 +5241,14 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	data->state= state;
 
-	if(!ELEM(state, BUTTON_STATE_EXIT, BUTTON_STATE_HIGHLIGHT)) {
-		/* When objects for eg. are removed, running ui_check_but()
-		 * can access the removed data - so disable update on exit
-		 * or highlight */
-		ui_check_but(but);
+	if(state != BUTTON_STATE_EXIT) {
+		/* When objects for eg. are removed, running ui_check_but() can access
+		   the removed data - so disable update on exit. Also in case of
+		   highlight when not in a popup menu, we remove because data used in
+		   button below popup might have been removed by action of popup. Needs
+		   a more reliable solution... */
+		if(state != BUTTON_STATE_HIGHLIGHT || but->block->handle)
+			ui_check_but(but);
 	}
 
 	/* redraw */
