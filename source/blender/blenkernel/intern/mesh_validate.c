@@ -45,6 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_mesh.h"
+#include "BKE_deform.h"
 
 #define SELECT 1
 
@@ -118,7 +119,12 @@ static int search_face_cmp(const void *v1, const void *v2)
 
 #define PRINT if(do_verbose) printf
 
-int BKE_mesh_validate_arrays(Mesh *me, MVert *mverts, unsigned int totvert, MEdge *medges, unsigned int totedge, MFace *mfaces, unsigned int totface, const short do_verbose, const short do_fixes)
+int BKE_mesh_validate_arrays( Mesh *me,
+                              MVert *mverts, unsigned int totvert,
+                              MEdge *medges, unsigned int totedge,
+                              MFace *mfaces, unsigned int totface,
+                              MDeformVert *dverts, /* assume totvert length */
+                              const short do_verbose, const short do_fixes)
 {
 #	define REMOVE_EDGE_TAG(_med) { _med->v2= _med->v1; do_edge_free= 1; }
 #	define REMOVE_FACE_TAG(_mf) { _mf->v3=0; do_face_free= 1; }
@@ -157,7 +163,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *mverts, unsigned int totvert, MEdg
 		int fix_normal= TRUE;
 
 		for(j=0; j<3; j++) {
-			if(isnan(mvert->co[j]) || !finite(mvert->co[j])) {
+			if(!finite(mvert->co[j])) {
 				PRINT("    vertex %u: has invalid coordinate\n", i);
 				zero_v3(mvert->co);
 
@@ -307,6 +313,43 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *mverts, unsigned int totvert, MEdg
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(sort_faces);
 
+
+	/* fix deform verts */
+	if (dverts) {
+		MDeformVert *dv;
+		for(i=0, dv= dverts; i<totvert; i++, dv++) {
+			MDeformWeight *dw= dv->dw;
+			unsigned int j= 0;
+
+			for(j=0, dw= dv->dw; j < dv->totweight; j++, dw++) {
+				/* note, greater then max defgroups is accounted for in our code, but not < 0 */
+				if (!finite(dw->weight)) {
+					PRINT("    vertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
+					if (do_fixes) {
+						dw->weight= 0.0f;
+					}
+				}
+
+				if (dw->def_nr < 0) {
+					PRINT("    vertex deform %u, has invalid group %d\n", i, dw->def_nr);
+					if (do_fixes) {
+						defvert_remove_group(dv, dw);
+						if (dv->dw) {
+							/* re-allocated, the new values compensate for stepping
+							 * within the for loop and may not be valid */
+							j--;
+							dw= dv->dw + j;
+						}
+						else { /* all freed */
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+
 	PRINT("BKE_mesh_validate: finished\n\n");
 
 #	 undef REMOVE_EDGE_TAG
@@ -357,7 +400,8 @@ static int mesh_validate_customdata(CustomData *data, short do_verbose, const sh
 
 #undef PRINT
 
-static int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata, CustomData *fdata, short do_verbose, const short do_fixes)
+static int BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata, CustomData *fdata,
+                                            short do_verbose, const short do_fixes)
 {
 	int vfixed= 0, efixed= 0, ffixed= 0;
 
@@ -377,14 +421,24 @@ int BKE_mesh_validate(Mesh *me, int do_verbose)
 	}
 
 	layers_fixed= BKE_mesh_validate_all_customdata(&me->vdata, &me->edata, &me->fdata, do_verbose, TRUE);
-	arrays_fixed= BKE_mesh_validate_arrays(me, me->mvert, me->totvert, me->medge, me->totedge, me->mface, me->totface, do_verbose, TRUE);
+	arrays_fixed= BKE_mesh_validate_arrays(me,
+	                                       me->mvert, me->totvert,
+	                                       me->medge, me->totedge,
+	                                       me->mface, me->totface,
+	                                       me->dvert,
+	                                       do_verbose, TRUE);
 
 	return layers_fixed || arrays_fixed;
 }
 
 int BKE_mesh_validate_dm(DerivedMesh *dm)
 {
-	return BKE_mesh_validate_arrays(NULL, dm->getVertArray(dm), dm->getNumVerts(dm), dm->getEdgeArray(dm), dm->getNumEdges(dm), dm->getFaceArray(dm), dm->getNumFaces(dm), TRUE, FALSE);
+	return BKE_mesh_validate_arrays(NULL,
+	                                dm->getVertArray(dm), dm->getNumVerts(dm),
+	                                dm->getEdgeArray(dm), dm->getNumEdges(dm),
+	                                dm->getFaceArray(dm), dm->getNumFaces(dm),
+	                                dm->getVertDataArray(dm, CD_MDEFORMVERT),
+	                                TRUE, FALSE);
 }
 
 void BKE_mesh_calc_edges(Mesh *mesh, int update)
