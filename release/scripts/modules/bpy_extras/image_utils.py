@@ -104,7 +104,10 @@ def load_image(imagepath,
                 return _image_load(nfilepath)
 
     if place_holder:
-        image = bpy.data.images.new(bpy.path.basename(imagepath), 128, 128)
+        name = bpy.path.basename(imagepath)
+        if type(name) == bytes:
+            name = name.decode('utf-8', "replace")
+        image = bpy.data.images.new(name, 128, 128)
         # allow the path to be resolved later
         image.filepath = imagepath
         return image
