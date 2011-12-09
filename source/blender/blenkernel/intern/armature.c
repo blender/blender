@@ -827,7 +827,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	const short use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	const short use_quaternion = deformflag & ARM_DEF_QUATERNION;
 	const short invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
-	int numGroups = 0;		/* safety for vertexgroup index overflow */
+	int defbase_tot = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
 	int armature_def_nr;
@@ -869,7 +869,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	armature_def_nr= defgroup_name_index(target, defgrp_name);
 	
 	if(ELEM(target->type, OB_MESH, OB_LATTICE)) {
-		numGroups = BLI_countlist(&target->defbase);
+		defbase_tot = BLI_countlist(&target->defbase);
 		
 		if(target->type==OB_MESH) {
 			Mesh *me= target->data;
@@ -896,8 +896,8 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			else if(dverts) use_dverts = 1;
 
 			if(use_dverts) {
-				defnrToPC = MEM_callocN(sizeof(*defnrToPC) * numGroups, "defnrToBone");
-				defnrToPCIndex = MEM_callocN(sizeof(*defnrToPCIndex) * numGroups, "defnrToIndex");
+				defnrToPC = MEM_callocN(sizeof(*defnrToPC) * defbase_tot, "defnrToBone");
+				defnrToPCIndex = MEM_callocN(sizeof(*defnrToPCIndex) * defbase_tot, "defnrToIndex");
 				for(i = 0, dg = target->defbase.first; dg;
 					i++, dg = dg->next) {
 					defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
@@ -975,7 +975,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			
 			for(j = 0; j < dvert->totweight; j++){
 				int index = dvert->dw[j].def_nr;
-				if(index < numGroups && (pchan= defnrToPC[index])) {
+				if(index < defbase_tot && (pchan= defnrToPC[index])) {
 					float weight = dvert->dw[j].weight;
 					Bone *bone= pchan->bone;
 					pdef_info= pdef_info_array + defnrToPCIndex[index];

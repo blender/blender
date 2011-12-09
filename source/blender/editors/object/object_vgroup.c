@@ -286,8 +286,8 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	int dvert_tot_from;
 	int dvert_tot;
 	int i;
-	int totdef_from= BLI_countlist(&ob_from->defbase);
-	int totdef= BLI_countlist(&ob->defbase);
+	int defbase_tot_from= BLI_countlist(&ob_from->defbase);
+	int defbase_tot= BLI_countlist(&ob->defbase);
 	short new_vgroup= FALSE;
 
 	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from);
@@ -314,11 +314,11 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	BLI_duplicatelist(&ob->defbase, &ob_from->defbase);
 	ob->actdef= ob_from->actdef;
 
-	if(totdef_from < totdef) {
+	if(defbase_tot_from < defbase_tot) {
 		/* correct vgroup indices because the number of vgroups is being reduced. */
-		int *remap= MEM_mallocN(sizeof(int) * (totdef + 1), "ED_vgroup_copy_array");
-		for(i=0; i<=totdef_from; i++) remap[i]= i;
-		for(; i<=totdef; i++) remap[i]= 0; /* can't use these, so disable */
+		int *remap= MEM_mallocN(sizeof(int) * (defbase_tot + 1), "ED_vgroup_copy_array");
+		for(i=0; i<=defbase_tot_from; i++) remap[i]= i;
+		for(; i<=defbase_tot; i++) remap[i]= 0; /* can't use these, so disable */
 
 		vgroup_remap_update_users(ob, remap);
 		MEM_freeN(remap);
@@ -1809,12 +1809,12 @@ static void vgroup_remap_update_users(Object *ob, int *map)
 
 static void vgroup_delete_update_users(Object *ob, int id)
 {
-	int i, tot= BLI_countlist(&ob->defbase) + 1;
-	int *map= MEM_mallocN(sizeof(int) * tot, "vgroup del");
+	int i, defbase_tot= BLI_countlist(&ob->defbase) + 1;
+	int *map= MEM_mallocN(sizeof(int) * defbase_tot, "vgroup del");
 
 	map[id]= map[0]= 0;
 	for(i=1; i<id; i++) map[i]=i;
-	for(i=id+1; i<tot; i++) map[i]=i-1;
+	for(i=id+1; i<defbase_tot; i++) map[i]=i-1;
 
 	vgroup_remap_update_users(ob, map);
 	MEM_freeN(map);
@@ -2817,8 +2817,8 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 static char *vgroup_init_remap(Object *ob)
 {
 	bDeformGroup *def;
-	int def_tot = BLI_countlist(&ob->defbase);
-	char *name_array= MEM_mallocN(MAX_VGROUP_NAME * sizeof(char) * def_tot, "sort vgroups");
+	int defbase_tot = BLI_countlist(&ob->defbase);
+	char *name_array= MEM_mallocN(MAX_VGROUP_NAME * sizeof(char) * defbase_tot, "sort vgroups");
 	char *name;
 
 	name= name_array;
@@ -2834,8 +2834,8 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 {
 	MDeformVert *dvert= NULL;
 	bDeformGroup *def;
-	int def_tot = BLI_countlist(&ob->defbase);
-	int *sort_map_update= MEM_mallocN(sizeof(int) * (def_tot + 1), "sort vgroups"); /* needs a dummy index at the start*/
+	int defbase_tot = BLI_countlist(&ob->defbase);
+	int *sort_map_update= MEM_mallocN(sizeof(int) * (defbase_tot + 1), "sort vgroups"); /* needs a dummy index at the start*/
 	int *sort_map= sort_map_update + 1;
 	char *name;
 	int i;
@@ -2856,7 +2856,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 			for(eve=em->verts.first; eve; eve=eve->next){
 				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				if(dvert && dvert->totweight){
-					defvert_remap(dvert, sort_map);
+					defvert_remap(dvert, sort_map, defbase_tot);
 				}
 			}
 		}
@@ -2874,13 +2874,13 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 		/*create as necassary*/
 		while(dvert && dvert_tot--) {
 			if(dvert->totweight)
-				defvert_remap(dvert, sort_map);
+				defvert_remap(dvert, sort_map, defbase_tot);
 			dvert++;
 		}
 	}
 
 	/* update users */
-	for(i=0; i<def_tot; i++)
+	for(i=0; i<defbase_tot; i++)
 		sort_map[i]++;
 
 	sort_map_update[0]= 0;
