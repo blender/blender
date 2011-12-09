@@ -457,8 +457,8 @@ class WM_OT_context_cycle_enum(Operator):
 
 
 class WM_OT_context_cycle_array(Operator):
-    '''Set a context array value.
-    Useful for cycling the active mesh edit mode'''
+    '''Set a context array value. '''
+    '''Useful for cycling the active mesh edit mode'''
     bl_idname = "wm.context_cycle_array"
     bl_label = "Context Array Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
