@@ -161,12 +161,14 @@ void defvert_sync_mapped(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
 }
 
 /* be sure all flip_map values are valid */
-void defvert_remap(MDeformVert *dvert, int *map)
+void defvert_remap(MDeformVert *dvert, int *map, const int map_len)
 {
 	MDeformWeight *dw;
 	int i;
 	for (i=0, dw=dvert->dw; i<dvert->totweight; i++, dw++) {
-		dw->def_nr= map[dw->def_nr];
+		if (dw->def_nr < map_len) {
+			dw->def_nr= map[dw->def_nr];
+		}
 	}
 }
 
@@ -198,8 +200,10 @@ void defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_le
 	int i;
 
 	for (dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++) {
-		if ((dw->def_nr < flip_map_len) && (flip_map[dw->def_nr] >= 0)) {
-			dw->def_nr= flip_map[dw->def_nr];
+		if (dw->def_nr < flip_map_len) {
+			if (flip_map[dw->def_nr] >= 0) {
+				dw->def_nr= flip_map[dw->def_nr];
+			}
 		}
 	}
 }
@@ -283,17 +287,17 @@ int defgroup_find_index(Object *ob, bDeformGroup *dg)
 /* note, must be freed */
 int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 {
-	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
+	int defbase_tot= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if (totdg==0) {
+	if (defbase_tot==0) {
 		return NULL;
 	}
 	else {
 		bDeformGroup *dg;
 		char name[sizeof(dg->name)];
-		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
+		int i, flip_num, *map= MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-		for (i=0; i < totdg; i++) {
+		for (i=0; i < defbase_tot; i++) {
 			map[i]= -1;
 		}
 
@@ -321,17 +325,17 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 /* note, must be freed */
 int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, int defgroup)
 {
-	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
+	int defbase_tot= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if (totdg==0) {
+	if (defbase_tot==0) {
 		return NULL;
 	}
 	else {
 		bDeformGroup *dg;
 		char name[sizeof(dg->name)];
-		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
+		int i, flip_num, *map= MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-		for (i=0; i < totdg; i++) {
+		for (i=0; i < defbase_tot; i++) {
 			if (use_default) map[i]= i;
 			else             map[i]= -1;
 		}
@@ -410,10 +414,14 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	char    number[MAX_VGROUP_NAME]=  "";   /* The number extension string */
 	char    *index=NULL;
 
-	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
-	if (len < 3) return; // we don't do names like .R or .L
-
+	/* always copy the name, since this can be called with an uninitialized string */
 	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
+
+	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
+	if (len < 3) {
+		/* we don't do names like .R or .L */
+		return;
+	}
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if (isdigit(name[len-1])) {
@@ -574,46 +582,61 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	return dw_new;
 }
 
-/* Removes the given vertex from the vertex group, specified either by its defgrp_idx,
- * or directly by its MDeformWeight pointer, if dw is not NULL.
- * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
-void defvert_remove_index(MDeformVert *dvert, int defgroup, MDeformWeight *dw)
+/* TODO. merge with code above! */
+
+/* Adds the given vertex to the specified vertex group, with given weight.
+ * warning, this does NOT check for existign, assume caller already knows its not there */
+void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weight)
 {
 	MDeformWeight *dw_new;
-	int i;
 
-	/* Get index of removed MDeformWeight. */
-	if (dw == NULL) {
-		dw = dvert->dw;
-		for (i = dvert->totweight; i > 0; i--, dw++) {
-			if (dw->def_nr == defgroup)
-				break;
-		}
-		i--;
-	}
-	else {
-		i = dw - dvert->dw;
-		/* Security check! */
-		if(i < 0 || i >= dvert->totweight)
-			return;
-	}
+	/* do this check always, this function is used to check for it */
+	if (!dvert || defgroup < 0)
+		return;
 
-	dvert->totweight--;
-	/* If there are still other deform weights attached to this vert then remove
-	 * this deform weight, and reshuffle the others.
-	 */
-	if (dvert->totweight) {
-		dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
-		if (dvert->dw){
-			memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
-			memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
-			MEM_freeN(dvert->dw);
-		}
-		dvert->dw = dw_new;
-	}
-	else {
-		/* If there are no other deform weights left then just remove this one. */
+	dw_new = MEM_callocN(sizeof(MDeformWeight)*(dvert->totweight+1), "defvert_add_to group, new deformWeight");
+	if(dvert->dw) {
+		memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
 		MEM_freeN(dvert->dw);
-		dvert->dw = NULL;
+	}
+	dvert->dw = dw_new;
+	dw_new += dvert->totweight;
+	dw_new->weight = weight;
+	dw_new->def_nr = defgroup;
+	dvert->totweight++;
+}
+
+
+/* Removes the given vertex from the vertex group.
+ * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
+void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
+{
+	if (dvert && dw) {
+		MDeformWeight *dw_new;
+		int i = dw - dvert->dw;
+
+		/* Security check! */
+		if(i < 0 || i >= dvert->totweight) {
+			return;
+		}
+
+		dvert->totweight--;
+		/* If there are still other deform weights attached to this vert then remove
+		 * this deform weight, and reshuffle the others.
+		 */
+		if (dvert->totweight) {
+			dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
+			if (dvert->dw){
+				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
+				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
+				MEM_freeN(dvert->dw);
+			}
+			dvert->dw = dw_new;
+		}
+		else {
+			/* If there are no other deform weights left then just remove this one. */
+			MEM_freeN(dvert->dw);
+			dvert->dw = NULL;
+		}
 	}
 }

@@ -50,6 +50,7 @@ program_list = [] # A list holding Nodes to final binaries, used to create insta
 arguments = None
 targets = None
 resources = []
+bitness = 0
 
 #some internals
 blenderdeps = [] # don't manipulate this one outside this module!

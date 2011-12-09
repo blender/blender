@@ -270,15 +270,19 @@ void Mesh::compute_bvh(SceneParams *params, Progress& progress)
 void Mesh::tag_update(Scene *scene, bool rebuild)
 {
 	need_update = true;
-	if(rebuild)
+
+	if(rebuild) {
 		need_update_rebuild = true;
+		scene->light_manager->need_update = true;
+	}
+	else {
+		foreach(uint sindex, used_shaders)
+			if(scene->shaders[sindex]->has_surface_emission)
+				scene->light_manager->need_update = true;
+	}
 
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
-
-	foreach(uint sindex, used_shaders)
-		if(scene->shaders[sindex]->has_surface_emission)
-			scene->light_manager->need_update = true;
 }
 
 /* Mesh Manager */
@@ -685,9 +689,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			if(!mesh->transform_applied) {
 				string msg = "Updating Mesh BVH ";
 				if(mesh->name == "")
-					msg += string_printf("%lu/%lu", (unsigned long)(i+1), (unsigned long)num_instance_bvh);
+					msg += string_printf("%u/%u", (uint)(i+1), (uint)num_instance_bvh);
 				else
-					msg += string_printf("%s %lu/%lu", mesh->name.c_str(), (unsigned long)(i+1), (unsigned long)num_instance_bvh);
+					msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)num_instance_bvh);
 				progress.set_status(msg, "Building BVH");
 
 				mesh->compute_bvh(&scene->params, progress);

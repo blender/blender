@@ -119,6 +119,12 @@ tempbitness = int(B.arguments.get('BF_BITNESS', bitness)) # default to bitness f
 if tempbitness in (32, 64): # only set if 32 or 64 has been given
     bitness = int(tempbitness)
 
+if bitness:
+    B.bitness = bitness
+else: 
+    B.bitness = tempbitness
+    
+
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)

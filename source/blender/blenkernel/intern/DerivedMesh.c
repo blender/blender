@@ -641,7 +641,9 @@ enum {
 	CALC_WP_AUTO_NORMALIZE= (1<<1)
 };
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
+static void calc_weightpaint_vert_color(
+        Object *ob, const int defbase_tot, ColorBand *coba, int vert, unsigned char *col,
+        const char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
 	float input = 0.0f;
@@ -659,10 +661,12 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 			for (i = dvert->totweight; i > 0; i--, dw++) {
 				/* in multipaint, get the average if auto normalize is inactive
 				 * get the sum if it is active */
-				if (dg_flags[dw->def_nr]) {
-					if (dw->weight) {
-						input += dw->weight;
-						was_a_nonzero= TRUE;
+				if (dw->def_nr < defbase_tot) {
+					if (dg_flags[dw->def_nr]) {
+						if (dw->weight) {
+							input += dw->weight;
+							was_a_nonzero= TRUE;
+						}
 					}
 				}
 			}
@@ -691,12 +695,8 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 		float colf[4];
 		CLAMP(input, 0.0f, 1.0f);
 
-		colf[0]= colf[1]= colf[2]= -1;
-
-		if(coba)
-			do_colorband(coba, input, colf);
-		else
-			weight_to_rgb(colf, input);
+		if(coba) do_colorband(coba, input, colf);
+		else     weight_to_rgb(colf, input);
 
 		col[3] = (unsigned char)(colf[0] * 255.0f);
 		col[2] = (unsigned char)(colf[1] * 255.0f);
@@ -720,20 +720,20 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	unsigned char *wtcol;
 	int i;
 	
-	int defbase_len = BLI_countlist(&ob->defbase);
-	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
-	int selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
-	int unselected = defbase_len - selected;
+	int defbase_tot = BLI_countlist(&ob->defbase);
+	char *defbase_sel = MEM_mallocN(defbase_tot * sizeof(char), __func__);
+	int selected = get_selected_defgroups(ob, defbase_sel, defbase_tot);
+	int unselected = defbase_tot - selected;
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
+			calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
 	}
 	
 	MEM_freeN(defbase_sel);

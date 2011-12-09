@@ -265,7 +265,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
 
-static int check_material_alpha(Base *base, int glsl)
+static int check_alpha_pass(Base *base)
 {
 	if(base->flag & OB_FROMDUPLI)
 		return 0;
@@ -273,7 +273,7 @@ static int check_material_alpha(Base *base, int glsl)
 	if(G.f & G_PICKSEL)
 		return 0;
 	
-	return (glsl || (base->object->dtx & OB_DRAWTRANSP));
+	return (base->object->dtx & OB_DRAWTRANSP);
 }
 
 	/***/
@@ -3326,7 +3326,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *obedit= scene->obedit;
 	Mesh *me= ob->data;
 	EditMesh *em= me->edit_mesh;
-	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha, i;
+	int do_alpha_after= 0, drawlinked= 0, retval= 0, glsl, check_alpha, i;
 
 	/* If we are drawing shadows and any of the materials don't cast a shadow,
 	 * then don't draw the object */
@@ -3371,11 +3371,11 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, glsl);
+			check_alpha = check_alpha_pass(base);
 
 			if(dt==OB_SOLID || glsl) {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
-					(check_alpha)? &do_alpha_pass: NULL);
+					(check_alpha)? &do_alpha_after: NULL);
 			}
 
 			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, flag);
@@ -3387,7 +3387,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	
 	/* GPU_begin_object_materials checked if this is needed */
-	if(do_alpha_pass) {
+	if(do_alpha_after) {
 		if(ob->dtx & OB_DRAWXRAY) {
 			add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
 		}
