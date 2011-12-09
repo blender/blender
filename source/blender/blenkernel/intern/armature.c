@@ -2473,7 +2473,7 @@ void where_is_pose (Scene *scene, Object *ob)
 
 /* Returns total selected vgroups,
  * wpi.defbase_sel is assumed malloc'd, all values are set */
-int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
+int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
 {
 	bDeformGroup *defgroup;
 	unsigned int i;
@@ -2482,7 +2482,7 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
 
 	if(armob) {
 		bPose *pose= armob->pose;
-		for (i= 0, defgroup= ob->defbase.first; i < defbase_len && defgroup; defgroup = defgroup->next, i++) {
+		for (i= 0, defgroup= ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
 			bPoseChannel *pchan= get_pose_channel(pose, defgroup->name);
 			if(pchan && (pchan->bone->flag & BONE_SELECTED)) {
 				dg_selection[i]= TRUE;
@@ -2494,7 +2494,7 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
 		}
 	}
 	else {
-		memset(dg_selection, FALSE, sizeof(char) * defbase_len);
+		memset(dg_selection, FALSE, sizeof(char) * defbase_tot);
 	}
 
 	return dg_flags_sel_tot;
