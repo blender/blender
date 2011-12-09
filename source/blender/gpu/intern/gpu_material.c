@@ -94,7 +94,7 @@ struct GPUMaterial {
 	/* for passing uniforms */
 	int viewmatloc, invviewmatloc;
 	int obmatloc, invobmatloc;
-	int obcolloc;
+	int obcolloc, obautobumpscaleloc;
 
 	ListBase lamps;
 };
@@ -212,7 +212,8 @@ static int GPU_material_construct_end(GPUMaterial *material)
 			material->invobmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_INVERSE_OBJECT_MATRIX));
 		if(material->builtins & GPU_OBCOLOR)
 			material->obcolloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_OBCOLOR));
-
+		if(material->builtins & GPU_AUTO_BUMPSCALE)
+			material->obautobumpscaleloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_AUTO_BUMPSCALE));
 		return 1;
 	}
 
@@ -273,7 +274,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 	}
 }
 
-void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float viewmat[][4], float viewinv[][4], float obcol[4])
+void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float viewmat[][4], float viewinv[][4], float obcol[4], float autobumpscale)
 {
 	if(material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
@@ -300,7 +301,9 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 			CLAMP(col[3], 0.0f, 1.0f);
 			GPU_shader_uniform_vector(shader, material->obcolloc, 4, 1, col);
 		}
-
+		if(material->builtins & GPU_AUTO_BUMPSCALE) {
+			GPU_shader_uniform_vector(shader, material->obautobumpscaleloc, 1, 1, &autobumpscale);
+		}
 		/* update lamps */
 		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
 			lamp= nlink->data;
@@ -1087,8 +1090,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						/* ntap bumpmap image */
 						int iBumpSpace;
 						float ima_x, ima_y;
-						float hScale = 0.1f; // compatibility adjustment factor for all bumpspace types
-						float hScaleTex = 13.0f; // factor for scaling texspace bumps
+						float hScale; 
 
 						float imag_tspace_dimension_x = 1024.0f;		// only used for texture space variant
 						float aspect = 1.0f;
@@ -1096,16 +1098,35 @@ static void do_material_tex(GPUShadeInput *shi)
 						GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
 						GPUNodeLink *vR1, *vR2;
 						GPUNodeLink *dBs, *dBt, *fDet;
-						
+
+						hScale = 0.1;		// compatibility adjustment factor for all bumpspace types
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
-							hScale = hScaleTex;
+							hScale = 13.0f;		// factor for scaling texspace bumps
+						else if(found_deriv_map!=0)
+							hScale = 1.0f;
+
+						// resolve texture resolution
+						if( (mtex->texflag & MTEX_BUMP_TEXTURESPACE) || found_deriv_map ) {
+							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
+							ima_x= 512.0f; ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
+							if(ibuf) {
+								ima_x= ibuf->x;
+								ima_y= ibuf->y;
+								aspect = ((float) ima_y) / ima_x;
+							}
+						}
 
 						// The negate on norfac is done because the
 						// normal in the renderer points inward which corresponds
 						// to inverting the bump map. Should this ever change
 						// this negate must be removed.
 						norfac = -hScale * mtex->norfac;
+						if(found_deriv_map) norfac /= sqrtf(ima_x*ima_y);
+
 						tnorfac = GPU_uniform(&norfac);
+
+						if(found_deriv_map)
+							GPU_link(mat, "math_multiply", tnorfac, GPU_builtin(GPU_AUTO_BUMPSCALE), &tnorfac);
 						
 						if(GPU_link_changed(stencil))
 							GPU_link(mat, "math_multiply", tnorfac, stencil, &tnorfac);
@@ -1151,17 +1172,6 @@ static void do_material_tex(GPUShadeInput *shi)
 								          &vR1, &vR2, &fDet );
 							
 							iBumpSpacePrev = iBumpSpace;
-						}
-
-						// resolve texture resolution
-						if( (mtex->texflag & MTEX_BUMP_TEXTURESPACE) || found_deriv_map ) {
-							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
-							ima_x= 512.0f; ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
-							if(ibuf) {
-								ima_x= ibuf->x;
-								ima_y= ibuf->y;
-								aspect = ((float) ima_y) / ima_x;
-							}
 						}
 						
 						
@@ -1703,6 +1713,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 		{ GPU_OBJECT_MATRIX, GPU_DYNAMIC_OBJECT_MAT, GPU_DATA_16F },
 		{ GPU_INVERSE_OBJECT_MATRIX, GPU_DYNAMIC_OBJECT_IMAT, GPU_DATA_16F },
 		{ GPU_OBCOLOR, GPU_DYNAMIC_OBJECT_COLOR, GPU_DATA_4F },
+		{ GPU_AUTO_BUMPSCALE, GPU_DYNAMIC_OBJECT_AUTOBUMPSCALE, GPU_DATA_1F },
 		{ 0 }
 	};
 

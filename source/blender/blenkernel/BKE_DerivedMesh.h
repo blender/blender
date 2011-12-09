@@ -94,6 +94,7 @@ struct DerivedMesh {
 	BVHCache bvhCache;
 	struct GPUDrawObject *drawObject;
 	DerivedMeshType type;
+	float auto_bump_scale;
 
 	/* Misc. Queries */
 
@@ -578,6 +579,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm,
 	struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
 
 void DM_add_tangent_layer(DerivedMesh *dm);
+void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
 /* Set object's bounding box based on DerivedMesh min/max data */
 void DM_set_object_boundbox(struct Object *ob, DerivedMesh *dm);
