@@ -41,6 +41,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -893,7 +894,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 	extend= RNA_boolean_get(op->ptr, "extend");
 	
 	CTX_DATA_BEGIN(C, Base*, primbase, selected_bases) {
-		char tmpname[32];
+		char tmpname[MAXBONENAME];
 
 		flip_side_name(tmpname, primbase->object->id.name+2, TRUE);
 		

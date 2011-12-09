@@ -410,10 +410,14 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	char    number[MAX_VGROUP_NAME]=  "";   /* The number extension string */
 	char    *index=NULL;
 
-	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
-	if (len < 3) return; // we don't do names like .R or .L
-
+	/* always copy the name, since this can be called with an uninitialized string */
 	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
+
+	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
+	if (len < 3) {
+		/* we don't do names like .R or .L */
+		return;
+	}
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if (isdigit(name[len-1])) {
