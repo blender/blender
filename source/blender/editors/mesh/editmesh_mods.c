@@ -873,12 +873,10 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		/* here was an edge-mode only select flush case, has to be generalized */
 		EM_selectmode_flush(em);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-		BKE_mesh_end_editmesh(me, em);
-		return OPERATOR_FINISHED;
 	}
 	
 	BKE_mesh_end_editmesh(me, em);
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }	
 
 /* ***************************************************** */
@@ -1092,12 +1090,10 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		/* here was an edge-mode only select flush case, has to be generalized */
 		EM_selectmode_flush(em);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-		BKE_mesh_end_editmesh(me, em);
-		return OPERATOR_FINISHED;
 	}
-	
+
 	BKE_mesh_end_editmesh(me, em);
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 /* ********************************* */
@@ -1135,7 +1131,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	
 	if (!ok || !deselcount) { /* no data selected OR no more data to select*/
 		BKE_mesh_end_editmesh(me, em);
-		return 0;
+		return OPERATOR_CANCELLED;
 	}
 	
 	if(mode == SIMVERT_FACE) {
@@ -1230,12 +1226,10 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	if(selcount) {
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-		BKE_mesh_end_editmesh(me, em);
-		return OPERATOR_FINISHED;
 	}
 
 	BKE_mesh_end_editmesh(me, em);
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 static int select_similar_exec(bContext *C, wmOperator *op)
