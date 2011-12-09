@@ -81,7 +81,7 @@ private:
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 
 	/* util */
-	void find_shader(BL::ID id, vector<uint>& used_shaders);
+	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
