@@ -1166,7 +1166,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 							deselcount--;
 							if (!deselcount) {/*have we selected all posible faces?, if so return*/
 								BKE_mesh_end_editmesh(me, em);
-								return selcount;
+								return OPERATOR_FINISHED;
 							}
 						}
 					}
@@ -1184,7 +1184,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						deselcount--;
 						if (!deselcount) {/*have we selected all posible faces?, if so return*/
 							BKE_mesh_end_editmesh(me, em);
-							return selcount;
+							return OPERATOR_FINISHED;
 						}
 					}
 				}
@@ -1198,7 +1198,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 				if (!base_dvert || base_dvert->totweight == 0) {
 					BKE_mesh_end_editmesh(me, em);
-					return selcount;
+					return OPERATOR_FINISHED;
 				}
 				
 				for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1216,7 +1216,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 									deselcount--;
 									if (!deselcount) { /*have we selected all posible faces?, if so return*/
 										BKE_mesh_end_editmesh(me, em);
-										return selcount;
+										return OPERATOR_FINISHED;
 									}
 									break;
 								}
