@@ -1917,73 +1917,46 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	BMFace *efa;
 	BMIter iter;
 
-	efa = BMIter_New(&iter, bm, BM_FACES_OF_VERT, eve);
-	if (efa) {
-		BM_Compute_Face_CenterMean(bm, efa, cent_r);
+	BM_ITER(efa, &iter, bm, BM_FACES_OF_VERT, eve) {
+		if (BM_Selected(bm, efa)) {
+			BM_Compute_Face_CenterMean(bm, efa, cent_r);
+			break;
+		}
 	}
-	else {
-		zero_v3(cent_r);
-	}
-
-	if (is_zero_v3(cent_r)) cent_r[2] = 1.0f;
 }
 
-#define VertsToTransData(t, td, em, eve, bweight) \
-	td->flag = 0;\
-	td->loc = eve->co;\
-	copy_v3_v3(td->center, td->loc);\
-	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))\
-		get_face_center(td->center, em, eve);\
-	copy_v3_v3(td->iloc, td->loc);\
-	copy_v3_v3(td->axismtx[2], eve->no);\
-	td->axismtx[0][0]		=\
-		td->axismtx[0][1]	=\
-		td->axismtx[0][2]	=\
-		td->axismtx[1][0]	=\
-		td->axismtx[1][1]	=\
-		td->axismtx[1][2]	= 0.0f;\
-	td->ext = NULL;\
-	td->val = NULL;\
-	td->extra = NULL;\
-	if (t->mode == TFM_BWEIGHT) {\
-		td->val = bweight;\
-		td->ival = bweight ? *(bweight) : 1.0f;\
-	}
-
-#if 0
-//way to overwrite what data is edited with transform
-//static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
-inline void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve)
+/* way to overwrite what data is edited with transform
+ * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
+static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
 	//if(key)
-	//	td->loc = key->co;
-	//else
+    //	td->loc = key->co;
+    //else
 	td->loc = eve->co;
 
 	copy_v3_v3(td->center, td->loc);
 	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
-		get_face_center(td->center, em, eve);
+		get_face_center(td->center, em->bm, eve);
 	copy_v3_v3(td->iloc, td->loc);
 
 	// Setting normals
 	copy_v3_v3(td->axismtx[2], eve->no);
 	td->axismtx[0][0]		=
-		td->axismtx[0][1]	=
-		td->axismtx[0][2]	=
-		td->axismtx[1][0]	=
-		td->axismtx[1][1]	=
-		td->axismtx[1][2]	= 0.0f;
+	        td->axismtx[0][1]	=
+	        td->axismtx[0][2]	=
+	        td->axismtx[1][0]	=
+	        td->axismtx[1][1]	=
+	        td->axismtx[1][2]	= 0.0f;
 
 	td->ext = NULL;
 	td->val = NULL;
 	td->extra = NULL;
 	if (t->mode == TFM_BWEIGHT) {
-		td->val = &(eve->bweight);
-		td->ival = eve->bweight;
+		td->val = bweight;
+		td->ival = bweight ? *(bweight) : 1.0f;
 	}
-}
-#endif
+ }
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
 
@@ -2220,7 +2193,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(propmode || selstate[a]) {
 				float *bweight = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_BWEIGHT);
 				
-				VertsToTransData(t, tob, bm, eve, bweight);
+				VertsToTransData(t, tob, em, eve, bweight);
 
 				/* selected */
 				if(selstate[a]) tob->flag |= TD_SELECTED;
