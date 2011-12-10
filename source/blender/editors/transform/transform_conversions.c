@@ -298,7 +298,8 @@ static void createTransTexspace(TransInfo *t)
 
 /* ********************* edge (for crease) ***** */
 
-static void createTransEdge(TransInfo *t) {
+static void createTransEdge(TransInfo *t)
+{
 	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 	TransData *td = NULL;
 	BMEdge *eed;
@@ -308,11 +309,10 @@ static void createTransEdge(TransInfo *t) {
 	int propmode = t->flag & T_PROP_EDIT;
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(eed, BM_HIDDEN))
-			continue;
-
-		if (BM_TestHFlag(eed, BM_SELECT)) countsel++;
-		if (propmode) count++;
+		if (!BM_TestHFlag(eed, BM_HIDDEN)) {
+			if (BM_TestHFlag(eed, BM_SELECT)) countsel++;
+			if (propmode) count++;
+		}
 	}
 
 	if (countsel == 0)
@@ -1931,8 +1931,8 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert
 {
 	td->flag = 0;
 	//if(key)
-    //	td->loc = key->co;
-    //else
+	//	td->loc = key->co;
+	//else
 	td->loc = eve->co;
 
 	copy_v3_v3(td->center, td->loc);
@@ -1943,11 +1943,11 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert
 	// Setting normals
 	copy_v3_v3(td->axismtx[2], eve->no);
 	td->axismtx[0][0]		=
-	        td->axismtx[0][1]	=
-	        td->axismtx[0][2]	=
-	        td->axismtx[1][0]	=
-	        td->axismtx[1][1]	=
-	        td->axismtx[1][2]	= 0.0f;
+		td->axismtx[0][1]	=
+		td->axismtx[0][2]	=
+		td->axismtx[1][0]	=
+		td->axismtx[1][1]	=
+		td->axismtx[1][2]	= 0.0f;
 
 	td->ext = NULL;
 	td->val = NULL;
@@ -1956,77 +1956,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert
 		td->val = bweight;
 		td->ival = bweight ? *(bweight) : 1.0f;
 	}
- }
-
-/* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
-
-static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
-{
-	float *vec = userData;
-
-	vec+= 3*index;
-	VECCOPY(vec, co);
 }
-
-static int modifiers_disable_subsurf_temporary(Object *ob)
-{
-	ModifierData *md;
-	int disabled = 0;
-
-	for(md=ob->modifiers.first; md; md=md->next)
-		if(md->type==eModifierType_Subsurf)
-			if(md->mode & eModifierMode_OnCage) {
-				md->mode ^= eModifierMode_DisableTemporary;
-				disabled= 1;
-			}
-
-	return disabled;
-}
-
-/* disable subsurf temporal, get mapped cos, and enable it */
-static float *get_crazy_mapped_editverts(TransInfo *t)
-{
-	Mesh *me= t->obedit->data;
-	DerivedMesh *dm;
-	float *vertexcos;
-
-	/* disable subsurf temporal, get mapped cos, and enable it */
-	if(modifiers_disable_subsurf_temporary(t->obedit)) {
-		/* need to make new derivemesh */
-		makeDerivedMesh(t->scene, t->obedit, me->edit_btmesh, CD_MASK_BAREMESH, 0);
-	}
-
-	/* now get the cage */
-	dm= editbmesh_get_derived_cage(t->scene, t->obedit, me->edit_btmesh, CD_MASK_BAREMESH);
-
-	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_btmesh->bm->totvert, "vertexcos map");
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
-
-	dm->release(dm);
-
-	/* set back the flag, no new cage needs to be built, transform does it */
-	modifiers_disable_subsurf_temporary(t->obedit);
-
-	return vertexcos;
-}
-
-#define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
-static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
-{
-	float vecu[3], vecv[3];
-	float q1[4], q2[4];
-
-	TAN_MAKE_VEC(vecu, v1, v2);
-	TAN_MAKE_VEC(vecv, v1, v3);
-	tri_to_quat( q1,v1, vecu, vecv);
-
-	TAN_MAKE_VEC(vecu, def1, def2);
-	TAN_MAKE_VEC(vecv, def1, def3);
-	tri_to_quat( q2,def1, vecu, vecv);
-
-	sub_qt_qtqt(quat, q2, q1);
-}
-#undef TAN_MAKE_VEC
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {
@@ -2146,8 +2076,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	if(propmode & T_PROP_CONNECTED)
+	if(propmode & T_PROP_CONNECTED) {
 		editmesh_set_connectivity_distance(em, mtx, dists);
+	}
 
 	/* detect CrazySpace [tm] */
 	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
@@ -2272,8 +2203,7 @@ cleanup:
 	
 	BLI_array_free(selstate);
 
-	if (t->flag & T_MIRROR)
-	{
+	if (t->flag & T_MIRROR) {
 		EDBM_EndMirrorCache(em);
 		mirror = 1;
 	}
@@ -2525,8 +2455,6 @@ void flushTransUVs(TransInfo *t)
 
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0, td= t->data2d; a<t->total; a++, td++) {
-		if (!td->loc2d) continue;
-		
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 
