@@ -190,17 +190,9 @@ static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f);
 static void knife_input_ray_cast(knifetool_opdata *kcd, const int mval_i[2],
                                  float r_origin[3], float r_ray[3]);
 
-static void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
+static void knife_project_v3(knifetool_opdata *kcd, const float co[3], float sco[3])
 {
-	if (kcd->is_ortho) {
-		mul_v3_m4v3(sco, kcd->projmat, co);
-		
-		sco[0] = (float)(kcd->ar->winx/2.0f)+(kcd->ar->winx/2.0f)*sco[0];
-		sco[1] = (float)(kcd->ar->winy/2.0f)+(kcd->ar->winy/2.0f)*sco[1];
-	}
-	else {
-		ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
-	}
+	ED_view3d_project_float(kcd->ar, co, sco, kcd->projmat);
 }
 
 static KnifeEdge *new_knife_edge(knifetool_opdata *kcd)
