@@ -1960,13 +1960,16 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	}
 	
 	if(found_deriv_map) {
-		float dBdu, dBdv, auto_bump;
+		float dBdu, dBdv, auto_bump = 1.0f;
 		float s = 1;		// negate this if flipped texture coordinate
 		texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
 		rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, texres);
 
-		auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
-		auto_bump /= sqrtf((float) (dimx*dimy));
+		if(shi->obr->ob->derivedFinal)
+		{
+			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
+			auto_bump /= sqrtf((float) (dimx*dimy));
+		}
 		
 		// this variant using a derivative map is described here
 		// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
