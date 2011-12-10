@@ -1834,7 +1834,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 
 void DM_calc_auto_bump_scale(DerivedMesh *dm)
 {
-	int totvert= dm->getNumVerts(dm);
+	/* int totvert= dm->getNumVerts(dm); */ /* UNUSED */
 	int totface= dm->getNumFaces(dm);
 
 	MVert * mvert = dm->getVertArray(dm);
