@@ -47,6 +47,7 @@
  */
 
 #include "util_debug.h"
+#include "util_types.h"
 
 #include "sobol.h"
 
@@ -55,8 +56,8 @@ CCL_NAMESPACE_BEGIN
 #define SOBOL_MAX_NUMBER 32
 
 typedef struct SobolDirectionNumbers {
-	unsigned int d, s, a;
-	unsigned int m[SOBOL_MAX_NUMBER];
+	uint d, s, a;
+	uint m[SOBOL_MAX_NUMBER];
 } SobolDirectionNumbers;
 
 static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS-1] = {
@@ -21262,38 +21263,38 @@ static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS-1] = {
 {21201, 18, 131059, {1, 1, 7, 11, 15, 7, 37, 239, 337, 245, 1557, 3681, 7357, 9639, 27367, 26869, 114603, 86317}}
 };
 
-void sobol_generate_direction_vectors(unsigned int vectors[][SOBOL_BITS], int dimensions)
+void sobol_generate_direction_vectors(uint vectors[][SOBOL_BITS], int dimensions)
 {
 	assert(dimensions <= SOBOL_MAX_DIMENSIONS);
 
-	const unsigned int L = SOBOL_BITS;
+	const uint L = SOBOL_BITS;
 
 	/* first dimension is exception */
-	unsigned int *v = vectors[0];
+	uint *v = vectors[0];
 
-	for(unsigned int i = 0; i < L; i++)
+	for(uint i = 0; i < L; i++)
 		v[i] = 1 << (31-i); // all m's = 1
 
 	for(int dim = 1; dim < dimensions; dim++) {
 		SobolDirectionNumbers *numbers = &SOBOL_NUMBERS[dim-1];
-		unsigned int s = numbers->s;
-		unsigned int a = numbers->a;
-		unsigned int *m = numbers->m;
+		uint s = numbers->s;
+		uint a = numbers->a;
+		uint *m = numbers->m;
 
 		v = vectors[dim];
 
 		if(L <= s) {
-			for(unsigned int i = 0; i < L; i++)
+			for(uint i = 0; i < L; i++)
 				v[i] = m[i] << (31-i); 
 		}
 		else {
-			for(unsigned int i = 0; i < s; i++)
+			for(uint i = 0; i < s; i++)
 				v[i] = m[i] << (31-i); 
 
-			for(unsigned int i = s; i < L; i++) {
+			for(uint i = s; i < L; i++) {
 				v[i] = v[i-s] ^ (v[i-s] >> s); 
 
-				for(unsigned int k = 1; k < s; k++) 
+				for(uint k = 1; k < s; k++) 
 					v[i] ^= (((a >> (s-1-k)) & 1) * v[i-k]); 
 			}
 		}

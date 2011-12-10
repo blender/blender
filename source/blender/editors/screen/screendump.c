@@ -68,28 +68,20 @@
 typedef struct ScreenshotData {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
+	rcti crop;
 } ScreenshotData;
 
 /* get shot from frontbuffer */
-static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscreen)
+static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy)
 {
 	wmWindow *win= CTX_wm_window(C);
-	ScrArea *curarea= CTX_wm_area(C);
 	int x=0, y=0;
 	unsigned int *dumprect= NULL;
 	
-	if(fscreen) {	/* full screen */
-		x= 0;
-		y= 0;
-		*dumpsx= win->sizex;
-		*dumpsy= win->sizey;
-	} 
-	else {
-		x= curarea->totrct.xmin;
-		y= curarea->totrct.ymin;
-		*dumpsx= curarea->totrct.xmax-x;
-		*dumpsy= curarea->totrct.ymax-y;
-	}
+	x= 0;
+	y= 0;
+	*dumpsx= win->sizex;
+	*dumpsy= win->sizey;
 
 	if (*dumpsx && *dumpsy) {
 		
@@ -108,15 +100,23 @@ static int screenshot_data_create(bContext *C, wmOperator *op)
 {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
+
+	/* do redraw so we don't show popups/menus */
+	WM_redraw_windows(C);
 	
-	dumprect= screenshot(C, &dumpsx, &dumpsy, RNA_boolean_get(op->ptr, "full"));
+	dumprect= screenshot(C, &dumpsx, &dumpsy);
+
 	if(dumprect) {
 		ScreenshotData *scd= MEM_callocN(sizeof(ScreenshotData), "screenshot");
+		ScrArea *sa= CTX_wm_area(C);
 		
 		scd->dumpsx= dumpsx;
 		scd->dumpsy= dumpsy;
 		scd->dumprect= dumprect;
+		if(sa)
+			scd->crop= sa->totrct;
 		op->customdata= scd;
+
 		return TRUE;
 	}
 	else {
@@ -134,6 +134,21 @@ static void screenshot_data_free(wmOperator *op)
 			MEM_freeN(scd->dumprect);
 		MEM_freeN(scd);
 		op->customdata= NULL;
+	}
+}
+
+static void screenshot_crop(ImBuf *ibuf, rcti crop)
+{
+	unsigned int *to= ibuf->rect;
+	unsigned int *from= ibuf->rect + crop.ymin*ibuf->x + crop.xmin;
+	int y, cropw= crop.xmax - crop.xmin, croph = crop.ymax - crop.ymin;
+
+	if(cropw > 0 && croph > 0) {
+		for(y=0; y<croph; y++, to+=cropw, from+=ibuf->x)
+			memmove(to, from, sizeof(unsigned int)*cropw);
+
+		ibuf->x= cropw;
+		ibuf->y= croph;
 	}
 }
 
@@ -165,6 +180,10 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 
 			ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
 			ibuf->rect= scd->dumprect;
+
+			/* crop to show only single editor */
+			if(!RNA_boolean_get(op->ptr, "full"))
+				screenshot_crop(ibuf, scd->crop);
 
 			BKE_write_ibuf(ibuf, path, &scene->r.im_format);
 
@@ -199,8 +218,6 @@ static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname= "SCREEN_OT_screenshot";
 	
@@ -212,8 +229,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag= 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
-	prop= RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN); /* hide because once the file sel is displayed, the option no longer does anything */
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 
 /* *************** screenshot movie job ************************* */

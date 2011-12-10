@@ -76,8 +76,7 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->camera.pixel_aspect= 1.0f;
 	tracking->camera.units= CAMERA_UNITS_MM;
 
-	tracking->settings.default_tracker= TRACKER_KLT;
-	tracking->settings.default_pyramid_levels= 2;
+	tracking->settings.default_tracker= TRACKER_HYBRID;
 	tracking->settings.default_minimum_correlation= 0.75;
 	tracking->settings.default_pattern_size= 11;
 	tracking->settings.default_search_size= 51;
@@ -810,9 +809,9 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							int level= MIN2(track->pyramid_levels, max_pyramid_levels);
 
 							if(track->tracker==TRACKER_KLT)
-								track_context.region_tracker= libmv_pyramidRegionTrackerNew(100, level, MAX2(wndx, wndy));
+								track_context.region_tracker= libmv_pyramidRegionTrackerNew(100, level, MAX2(wndx, wndy), track->minimum_correlation);
 							else
-								track_context.region_tracker= libmv_hybridRegionTrackerNew(100, MAX2(wndx, wndy));
+								track_context.region_tracker= libmv_hybridRegionTrackerNew(100, MAX2(wndx, wndy), track->minimum_correlation);
 						}
 						else if(track->tracker==TRACKER_SAD) {
 							track_context.pattern_size= MAX2(patx, paty);
@@ -1145,7 +1144,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!ibuf_new)
 		return 0;
 
-    #pragma omp parallel for private(a) shared(ibuf_new, ok) if(map_size>1)
+	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(map_size>1)
 	for(a= 0; a<map_size; a++) {
 		TrackContext *track_context;
 		MovieTrackingTrack *track;
@@ -1158,7 +1157,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 		if(marker && (marker->flag&MARKER_DISABLED)==0) {
 #ifdef WITH_LIBMV
 			int width, height, origin[2], tracked= 0, need_readjust= 0;
-			float pos[2], margin[2];
+			float pos[2], margin[2], dim[2];
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
@@ -1174,7 +1173,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			else nextfra= curfra+1;
 
 			/* margin from frame boundaries */
-			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
+			sub_v2_v2v2(dim, track->pat_max, track->pat_min);
+			margin[0]= margin[1]= MAX2(dim[0], dim[1]) / 2.0f;
 
 			margin[0]= MAX2(margin[0], (float)track->margin / ibuf_new->x);
 			margin[1]= MAX2(margin[1], (float)track->margin / ibuf_new->y);
@@ -1281,13 +1281,13 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 
 			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
-			if(coords_correct && (tracked || !context->disable_failed)) {
+			if(coords_correct && !onbound && (tracked || !context->disable_failed)) {
 				if(context->first_time) {
 					#pragma omp critical
 					{
 						/* check if there's no keyframe/tracked markers before tracking marker.
 						   if so -- create disabled marker before currently tracking "segment" */
-						put_disabled_marker(track, marker, 1, 0);
+						put_disabled_marker(track, marker, !context->backwards, 0);
 					}
 				}
 
@@ -1311,7 +1311,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				/* make currently tracked segment be finished with disabled marker */
 				#pragma omp critical
 				{
-					put_disabled_marker(track, &marker_new, 0, 0);
+					put_disabled_marker(track, &marker_new, context->backwards, 0);
 				}
 			} else {
 				marker_new= *marker;

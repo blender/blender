@@ -977,7 +977,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			if(te->name)
 				te->flag |= TE_FREE_NAME;
 			else
-				te->name= (char*)RNA_struct_ui_name(ptr->type);
+				te->name= RNA_struct_ui_name(ptr->type);
 
 			/* If searching don't expand RNA entries */
 			if(SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA",te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
@@ -1007,7 +1007,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			prop= propptr.data;
 			proptype= RNA_property_type(prop);
 
-			te->name= (char*)RNA_property_ui_name(prop);
+			te->name= RNA_property_ui_name(prop);
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 

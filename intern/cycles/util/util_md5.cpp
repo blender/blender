@@ -361,14 +361,15 @@ void MD5Hash::finish(uint8_t digest[16])
 string MD5Hash::get_hex()
 {
 	uint8_t digest[16];
-	char buf[16*2];
+	char buf[16*2+1];
 
 	finish(digest);
 
 	for(int i=0; i<16; i++)
 		sprintf(buf + i*2, "%02X", digest[i]);
+	buf[sizeof(buf)-1] = '\0';
 	
-	return string(buf, sizeof(buf));
+	return string(buf);
 }
 
 CCL_NAMESPACE_END

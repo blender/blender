@@ -1578,7 +1578,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }

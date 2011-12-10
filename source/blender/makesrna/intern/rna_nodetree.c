@@ -365,6 +365,17 @@ static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	node_update(bmain, scene, ntree, node);
 }
 
+static void rna_Node_material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+
+	if(node->id)
+		nodeSetActive(ntree, node);
+
+	node_update(bmain, scene, ntree, node);
+}
+
 static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
@@ -1119,7 +1130,7 @@ static void def_sh_material(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_material_update");
 
 	prop = RNA_def_property(srna, "use_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", SH_NODE_MAT_DIFF);

@@ -2939,6 +2939,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_range(prop, 3, 40);
 	RNA_def_property_ui_text(prop, "Drag Threshold", "Amount of pixels you have to drag before dragging UI items happens");
 
+	prop= RNA_def_property(srna, "tweak_threshold", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tweak_threshold");
+	RNA_def_property_range(prop, 3, 1024);
+	RNA_def_property_ui_text(prop, "Tweak Threshold", "Number of pixels you have to drag before tweak event is triggered");
+
 	/* 3D mouse settings */
 	/* global options */
 	prop= RNA_def_property(srna, "ndof_sensitivity", PROP_FLOAT, PROP_NONE);

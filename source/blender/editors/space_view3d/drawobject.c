@@ -265,7 +265,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
 
-static int check_material_alpha(Base *base, int glsl)
+static int check_alpha_pass(Base *base)
 {
 	if(base->flag & OB_FROMDUPLI)
 		return 0;
@@ -273,7 +273,7 @@ static int check_material_alpha(Base *base, int glsl)
 	if(G.f & G_PICKSEL)
 		return 0;
 	
-	return (glsl || (base->object->dtx & OB_DRAWTRANSP));
+	return (base->object->dtx & OB_DRAWTRANSP);
 }
 
 	/***/
@@ -2360,7 +2360,7 @@ static void draw_dm_edges_freestyle(DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { DerivedMesh *dm; unsigned char *cols[4]; EditFace *efa_act; } * data = userData;
+	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
@@ -2380,17 +2380,16 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { DerivedMesh *dm; unsigned char *cols[4]; EditFace *efa_act; } *data = userData;
-	int *orig_index= DM_get_face_data_layer(data->dm, CD_ORIGINDEX);
+	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } *data = userData;
 	EditFace *efa;
 	EditFace *next_efa;
 	unsigned char *col, *next_col;
 
-	if(!orig_index)
+	if(!data->orig_index)
 		return 0;
 
-	efa= EM_get_face_for_index(orig_index[index]);
-	next_efa= EM_get_face_for_index(orig_index[next_index]);
+	efa= EM_get_face_for_index(data->orig_index[index]);
+	next_efa= EM_get_face_for_index(data->orig_index[next_index]);
 
 	if(efa == next_efa)
 		return 1;
@@ -2410,13 +2409,13 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 /* also draws the active face */
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *markCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { DerivedMesh *dm; unsigned char *cols[4]; EditFace *efa_act; } data;
-	data.dm= dm;
+	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } data;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = markCol;
 	data.cols[3] = actCol;
 	data.efa_act = efa_act;
+	data.orig_index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
@@ -3012,7 +3011,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int /* totvert,*/ totedge, totface;
 	DerivedMesh *dm= mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	ModifierData *md = NULL;
-	const short is_obact= (ob != NULL && ob == OBACT);
+	const short is_obact= (ob == OBACT);
 	int draw_flags = (is_obact && paint_facesel_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if(!dm)
@@ -3320,7 +3319,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *obedit= scene->obedit;
 	Mesh *me= ob->data;
 	EditMesh *em= me->edit_mesh;
-	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha, i;
+	int do_alpha_after= 0, drawlinked= 0, retval= 0, glsl, check_alpha, i;
 
 	/* If we are drawing shadows and any of the materials don't cast a shadow,
 	 * then don't draw the object */
@@ -3365,11 +3364,11 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, glsl);
+			check_alpha = check_alpha_pass(base);
 
 			if(dt==OB_SOLID || glsl) {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
-					(check_alpha)? &do_alpha_pass: NULL);
+					(check_alpha)? &do_alpha_after: NULL);
 			}
 
 			draw_mesh_fancy(scene, ar, v3d, rv3d, base, dt, flag);
@@ -3381,7 +3380,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	
 	/* GPU_begin_object_materials checked if this is needed */
-	if(do_alpha_pass) {
+	if(do_alpha_after) {
 		if(ob->dtx & OB_DRAWXRAY) {
 			add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
 		}
@@ -6134,7 +6133,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
-	const short is_obact= (ob != NULL && ob == OBACT);
+	const short is_obact= (ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

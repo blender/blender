@@ -3751,7 +3751,7 @@ char *RNA_path_append(const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *pr
 			BLI_dynstr_append(dynstr, ".");
 	}
 
-	BLI_dynstr_append(dynstr, (char*)RNA_property_identifier(prop));
+	BLI_dynstr_append(dynstr, RNA_property_identifier(prop));
 
 	if(RNA_property_type(prop) == PROP_COLLECTION) {
 		/* add ["strkey"] or [intkey] */

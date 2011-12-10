@@ -33,7 +33,7 @@
 #include <Eigen/QR>
 #include <Eigen/SVD>
 
-#if _WIN32 || __APPLE__
+#if _WIN32 || __APPLE__ || __FreeBSD__
   void static sincos (double x, double *sinx, double *cosx) {
     *sinx = sin(x);
     *cosx = cos(x);

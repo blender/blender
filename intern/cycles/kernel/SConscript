@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 import os
+import Blender as B
 
 def normpath(path):
     return os.path.abspath(os.path.normpath(path))
@@ -8,6 +9,12 @@ def normpath(path):
 Import ('env')
 
 kernel_binaries = []
+
+#Bitness
+if B.bitness == 32:
+    bits = 32
+else:
+    bits = 64
 
 if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     kernel = env.Clone()
@@ -27,13 +34,15 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     svm_dir = os.path.join(source_dir, "../svm")
 
     # nvcc flags
-    nvcc_flags = "--cubin -use_fast_math --ptxas-options=\"-v\" --maxrregcount=24"
+    nvcc_flags = "-m%s" % (bits)
+    nvcc_flags += " --cubin -use_fast_math --ptxas-options=\"-v\" --maxrregcount=24"
     nvcc_flags += " --opencc-options -OPT:Olimit=0"
     nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
     nvcc_flags += " -I \"%s\" -I \"%s\"" % (util_dir, svm_dir)
 
     # dependencies
     dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h')
+    last_cubin_file = None
 
     # add command for each cuda architecture
     for arch in cuda_archs:
@@ -45,6 +54,12 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
         kernel.Depends(cubin_file, dependencies)
 
         kernel_binaries.append(cubin_file)
+        
+        if not env['WITH_BF_CYCLES_CUDA_THREADED_COMPILE']:
+            # trick to compile one kernel at a time to reduce memory usage
+            if last_cubin_file:
+                kernel.Depends(cubin_file, last_cubin_file)
+            last_cubin_file = cubin_file
 
 Return('kernel_binaries')
 

@@ -973,7 +973,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
         image_settings = rd.image_settings
-        file_format = rd.image_settings.file_format
+        file_format = image_settings.file_format
 
         layout.prop(rd, "filepath", text="")
 
@@ -982,7 +982,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         flow.prop(rd, "use_placeholder")
         flow.prop(rd, "use_file_extension")
 
-        layout.template_image_settings(rd.image_settings)
+        layout.template_image_settings(image_settings)
 
         if file_format == 'QUICKTIME_CARBON':
             layout.operator("scene.render_data_set_quicktime_codec")

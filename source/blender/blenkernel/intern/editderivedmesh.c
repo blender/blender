@@ -273,7 +273,7 @@ static void emDM_drawMappedFaces(
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
-	int i, draw;
+	int i, draw, flush;
 	const int skip_normals= !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
 
 	/* GL_ZERO is used to detect if drawing has started or not */
@@ -352,7 +352,11 @@ static void emDM_drawMappedFaces(
 					}
 				}
 
-				if (draw==2) {
+				flush= (draw==2);
+				if (!skip_normals && !flush && efa->next)
+					flush|= efa->mat_nr != efa->next->mat_nr;
+
+				if (flush) {
 					glEnd();
 					poly_prev= GL_ZERO; /* force glBegin */
 
@@ -419,8 +423,11 @@ static void emDM_drawMappedFaces(
 					}
 				}
 
+				flush= (draw==2);
+				if (!skip_normals && !flush && efa->next)
+					flush|= efa->mat_nr != efa->next->mat_nr;
 
-				if (draw==2) {
+				if (flush) {
 					glEnd();
 					poly_prev= GL_ZERO; /* force glBegin */
 

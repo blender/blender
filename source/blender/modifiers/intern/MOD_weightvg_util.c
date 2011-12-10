@@ -222,23 +222,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 	}
 }
 
-/* Adds the given vertex to the specified vertex group, with given weight. */
-static void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float weight)
-{
-	/* TODO, move into deform.c as a generic function. This assumes the vertex
-	 * groups have already been checked, so this has to remain low level. */
-	MDeformWeight *newdw;
 
-	newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "defvert_add_to group, new deformWeight");
-	if(dv->dw) {
-		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-		MEM_freeN(dv->dw);
-	}
-	dv->dw = newdw;
-	dv->dw[dv->totweight].weight = weight;
-	dv->dw[dv->totweight].def_nr = defgrp_idx;
-	dv->totweight++;
-}
 
 
 /* Applies weights to given vgroup (defgroup), and optionnaly add/remove vertices from the group.
@@ -264,7 +248,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 		/* If the vertex is in this vgroup, remove it if needed, or just update it. */
 		if(dw != NULL) {
 			if(do_rem && w < rem_thresh) {
-				defvert_remove_index(dv, defgrp_idx, dw);
+				defvert_remove_group(dv, dw);
 			}
 			else {
 				dw->weight = w;
@@ -272,7 +256,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 		}
 		/* Else, add it if needed! */
 		else if(do_add && w > add_thresh) {
-			defvert_add_to_group(dv, defgrp_idx, w);
+			defvert_add_index_notest(dv, defgrp_idx, w);
 		}
 	}
 }

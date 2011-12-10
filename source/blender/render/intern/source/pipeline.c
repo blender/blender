@@ -3169,7 +3169,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.im_format.imtype);
 	int cfrao= scene->r.cfra;
-	int nfra;
+	int nfra, totrendered= 0, totskipped= 0;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
 	if(!render_initialize_from_main(re, bmain, scene, NULL, camera_override, lay, 0, 1))
@@ -3194,6 +3194,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				BLI_exec_cb(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 				do_render_all_options(re);
+				totrendered++;
 
 				if(re->test_break(re->tbh) == 0) {
 					if(!do_write_image_or_movie(re, bmain, scene, mh, NULL))
@@ -3242,6 +3243,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 				if(scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
+					totskipped++;
 					continue;
 				}
 				if(scene->r.mode & R_TOUCH && !BLI_exists(name)) {
@@ -3257,6 +3259,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			
 			do_render_all_options(re);
+			totrendered++;
 			
 			if(re->test_break(re->tbh) == 0) {
 				if(!G.afbreek)
@@ -3286,6 +3289,9 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	/* end movie */
 	if(BKE_imtype_is_movie(scene->r.im_format.imtype))
 		mh->end_movie();
+	
+	if(totskipped && totrendered == 0)
+		BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");
 
 	scene->r.cfra= cfrao;
 

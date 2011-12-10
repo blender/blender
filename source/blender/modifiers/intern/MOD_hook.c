@@ -143,14 +143,9 @@ static float hook_falloff(float *co_1, float *co_2, const float falloff_squared,
 	return fac;
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *dm,
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
+                           float (*vertexCos)[3], int numVerts)
 {
-	HookModifierData *hmd = (HookModifierData*) md;
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 	float vec[3], mat[4][4], dmat[4][4];
 	int i, *index_pt;
@@ -190,22 +185,20 @@ static void deformVerts(ModifierData *md, Object *ob,
 		const float fac_orig= hmd->force;
 		float fac;
 		const int *origindex_ar;
-
-		/* if DerivedMesh is present and has original index data,
-		* use it
-		*/
+		
+		/* if DerivedMesh is present and has original index data, use it */
 		if(dm && (origindex_ar= dm->getVertDataArray(dm, CD_ORIGINDEX))) {
 			for(i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if(*index_pt < numVerts) {
 					int j;
-
+					
 					for(j = 0; j < numVerts; j++) {
 						if(origindex_ar[j] == *index_pt) {
 							float *co = vertexCos[j];
 							if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 								if(dvert)
 									fac *= defvert_find_weight(dvert+j, defgrp_index);
-
+								
 								if(fac) {
 									mul_v3_m4v3(vec, mat, co);
 									interp_v3_v3v3(co, co, vec, fac);
@@ -223,7 +216,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 					if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 						if(dvert)
 							fac *= defvert_find_weight(dvert+(*index_pt), defgrp_index);
-
+						
 						if(fac) {
 							mul_v3_m4v3(vec, mat, co);
 							interp_v3_v3v3(co, co, vec, fac);
@@ -235,11 +228,11 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 	else if(dvert) {	/* vertex group hook */
 		const float fac_orig= hmd->force;
-
+		
 		for(i = 0; i < max_dvert; i++, dvert++) {
 			float fac;
 			float *co = vertexCos[i];
-
+			
 			if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
 				fac *= defvert_find_weight(dvert, defgrp_index);
 				if(fac) {
@@ -251,17 +244,25 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 }
 
-static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct EditMesh *editData,
-	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                        float (*vertexCos)[3], int numVerts,
+                        int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
-	DerivedMesh *dm = derivedData;
+	HookModifierData *hmd = (HookModifierData*) md;
+	
+	deformVerts_do(hmd, ob, derivedData, vertexCos, numVerts);
+}
 
-	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editData,
+                          DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
+	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 
-	if(!derivedData) dm->release(dm);
+	if(derivedData != dm)
+		dm->release(dm);
 }
 
 

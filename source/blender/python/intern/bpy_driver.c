@@ -82,9 +82,10 @@ int bpy_pydriver_create_dict(void)
 	}
 
 	/* add noise to global namespace */
-	mod= PyImport_ImportModuleLevel((char *)"mathutils.noise", NULL, NULL, NULL, 0);
+	mod= PyImport_ImportModuleLevel((char *)"mathutils", NULL, NULL, NULL, 0);
 	if (mod) {
-		PyDict_SetItemString(bpy_pydriver_Dict, "noise", mod);
+		PyObject *modsub= PyDict_GetItemString(PyModule_GetDict(mod), "noise");
+		PyDict_SetItemString(bpy_pydriver_Dict, "noise", modsub);
 		Py_DECREF(mod);
 	}
 

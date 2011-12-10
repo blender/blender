@@ -889,6 +889,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
 
+        col.prop(inputs, "tweak_threshold")
+
         row.separator()
 
     def draw(self, context):

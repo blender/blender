@@ -114,7 +114,7 @@ class CLIP_PT_tools_marker(Panel):
             row.menu('CLIP_MT_tracking_settings_presets', text=label)
             row.operator("clip.tracking_settings_preset_add",
                          text="", icon='ZOOMIN')
-            props = row.operator("clip.track_color_preset_add",
+            props = row.operator("clip.tracking_settings_preset_add",
                                  text="", icon='ZOOMOUT')
             props.remove_active = True
 
@@ -129,8 +129,7 @@ class CLIP_PT_tools_marker(Panel):
 
             if settings.default_tracker == 'KLT':
                 col.prop(settings, "default_pyramid_levels")
-            elif settings.default_tracker == 'SAD':
-                col.prop(settings, "default_correlation_min")
+            col.prop(settings, "default_correlation_min")
 
             col.separator()
 
@@ -156,7 +155,7 @@ class CLIP_PT_tools_tracking(Panel):
 
     def draw(self, context):
         layout = self.layout
-        clip = context.space_data.clip
+        # clip = context.space_data.clip  # UNUSED
 
         row = layout.row(align=True)
 
@@ -497,8 +496,7 @@ class CLIP_PT_track_settings(Panel):
 
             if active.tracker == 'KLT':
                 col.prop(active, "pyramid_levels")
-            elif active.tracker == 'SAD':
-                col.prop(active, "correlation_min")
+            col.prop(active, "correlation_min")
 
             col.separator()
             col.prop(active, "frames_limit")

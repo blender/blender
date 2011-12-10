@@ -219,7 +219,7 @@ typedef struct Object {
 	ListBase controllers;	/* game logic controllers */
 	ListBase actuators;		/* game logic actuators */
 
-	float bbsize[3];
+	float bbsize[3]  DNA_DEPRECATED;
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
 	float col[4];			/* object color */
