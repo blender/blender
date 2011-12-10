@@ -483,6 +483,7 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 	}
 	else {
 		*ntree= NULL;
+		*edittree= NULL;
 		if(treetype) *treetype= 0;
 	}
 }
