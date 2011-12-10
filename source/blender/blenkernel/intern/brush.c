@@ -384,6 +384,7 @@ void brush_reset_sculpt(Brush *br)
 		br->sub_col[1] = 1.000000;
 		break;
 	case SCULPT_TOOL_ROTATE:
+		br->alpha = 1.0;
 		break;
 	case SCULPT_TOOL_SMOOTH:
 		br->flag &= ~BRUSH_SPACE_ATTEN;

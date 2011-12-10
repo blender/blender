@@ -546,6 +546,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
                 row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_pressure_strength", text="")
 
+            if tool == 'ROTATE':
+                row = col.row(align=True)
+                row.prop(brush, "strength", text="Strength", slider=True)
+                row.prop(brush, "use_pressure_strength", text="")
+
             if tool != 'SMOOTH':
                 col.separator()
 
