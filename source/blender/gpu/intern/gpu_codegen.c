@@ -344,6 +344,8 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "varnormal";
 	else if(builtin == GPU_OBCOLOR)
 		return "unfobcolor";
+	else if(builtin == GPU_AUTO_BUMPSCALE)
+		return "unfobautobumpscale";
 	else
 		return "";
 }

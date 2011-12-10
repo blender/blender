@@ -22,6 +22,7 @@ import bpy
 from bpy.types import Operator
 from mathutils import Vector
 
+
 def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
     import random
@@ -42,8 +43,13 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
         else:  # otherwise the values change under us
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
-        if rot:  # TODO, non euler's
+        if rot:
             vec = rand_vec(rot)
+
+            rotation_mode = obj.rotation_mode
+            if rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
+                obj.rotation_mode = 'XYZ'
+                
             if delta:
                 obj.delta_rotation_euler[0] += vec[0]
                 obj.delta_rotation_euler[1] += vec[1]
@@ -52,6 +58,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
                 obj.rotation_euler[0] += vec[0]
                 obj.rotation_euler[1] += vec[1]
                 obj.rotation_euler[2] += vec[2]
+            obj.rotation_mode = rotation_mode
         else:
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 

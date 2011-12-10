@@ -276,6 +276,7 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
 	DM_init_funcs(dm);
 	
 	dm->needsFree = 1;
+	dm->auto_bump_scale = -1.0f;
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
@@ -883,7 +884,7 @@ enum {
 };
 
 static void calc_weightpaint_vert_color(
-        Object *ob, ColorBand *coba, int vert, unsigned char *col,
+        Object *ob, const int defbase_tot, ColorBand *coba, int vert, unsigned char *col,
         const char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
@@ -902,10 +903,12 @@ static void calc_weightpaint_vert_color(
 			for (i = dvert->totweight; i > 0; i--, dw++) {
 				/* in multipaint, get the average if auto normalize is inactive
 				 * get the sum if it is active */
-				if (dg_flags[dw->def_nr]) {
-					if (dw->weight) {
-						input += dw->weight;
-						was_a_nonzero= TRUE;
+				if (dw->def_nr < defbase_tot) {
+					if (dg_flags[dw->def_nr]) {
+						if (dw->weight) {
+							input += dw->weight;
+							was_a_nonzero= TRUE;
+						}
 					}
 				}
 			}
@@ -964,10 +967,10 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	int i, j, totface=dm->getNumTessFaces(dm), totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
-	int defbase_len = BLI_countlist(&ob->defbase);
-	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
-	int selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
-	int unselected = defbase_len - selected;
+	int defbase_tot = BLI_countlist(&ob->defbase);
+	char *defbase_sel = MEM_mallocN(defbase_tot * sizeof(char), __func__);
+	int selected = get_selected_defgroups(ob, defbase_sel, defbase_tot);
+	int unselected = defbase_tot - selected;
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
 	
@@ -975,11 +978,11 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
 	for (i=0; i<totface; i++, mf++) {
 		/*origindex being NULL means we're operating on original mesh data*/
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
+			calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
 	}
 	
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
@@ -992,7 +995,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 		for (j=0; j<mp->totloop; j++, ml++, totloop++) {
 			BLI_array_growone(wlcol);
 
-			calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[ml->v] : ml->v,
+			calc_weightpaint_vert_color(ob, defbase_tot, coba, origIndex ? origIndex[ml->v] : ml->v,
 										(unsigned char *)&wlcol[totloop], defbase_sel, selected, unselected, draw_flag);
 		}
 	}
@@ -2222,6 +2225,159 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	MEM_freeN(vtangents);
 }
 
+void DM_calc_auto_bump_scale(DerivedMesh *dm)
+{
+	/* int totvert= dm->getNumVerts(dm); */ /* UNUSED */
+	int totface= dm->getNumTessFaces(dm);
+
+	MVert * mvert = dm->getVertArray(dm);
+	MFace * mface = dm->getTessFaceArray(dm);
+	MTFace * mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
+
+	if(mtface)
+	{
+		double dsum = 0.0;
+		int nr_accumulated = 0;
+		int f;
+
+		for ( f=0; f<totface; f++ )
+		{
+			{
+				float * verts[4], * tex_coords[4];
+				const int nr_verts = mface[f].v4!=0 ? 4 : 3;
+				int i, is_degenerate;
+
+				verts[0]=mvert[mface[f].v1].co; verts[1]=mvert[mface[f].v2].co; verts[2]=mvert[mface[f].v3].co;
+				tex_coords[0]=mtface[f].uv[0]; tex_coords[1]=mtface[f].uv[1]; tex_coords[2]=mtface[f].uv[2];
+				if(nr_verts==4)
+				{
+					verts[3]=mvert[mface[f].v4].co;
+					tex_coords[3]=mtface[f].uv[3];
+				}
+
+				// discard degenerate faces
+				is_degenerate = 0;
+				if(	equals_v3v3(verts[0], verts[1]) || equals_v3v3(verts[0], verts[2]) || equals_v3v3(verts[1], verts[2]) ||
+					equals_v2v2(tex_coords[0], tex_coords[1]) || equals_v2v2(tex_coords[0], tex_coords[2]) || equals_v2v2(tex_coords[1], tex_coords[2]) )
+				{
+					is_degenerate = 1;
+				}
+
+				// verify last vertex as well if this is a quad
+				if ( is_degenerate==0 && nr_verts==4 )
+				{
+					if(	equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
+						equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]) )
+					{
+						is_degenerate = 1;
+					}
+
+					// verify the winding is consistent
+					if ( is_degenerate==0 )
+					{
+						float prev_edge[2];
+						int is_signed = 0;
+						sub_v2_v2v2(prev_edge, tex_coords[0], tex_coords[3]);
+
+						i = 0;
+						while ( is_degenerate==0 && i<4 )
+						{
+							float cur_edge[2], signed_area;
+							sub_v2_v2v2(cur_edge, tex_coords[(i+1)&0x3], tex_coords[i]);
+							signed_area = prev_edge[0]*cur_edge[1] - prev_edge[1]*cur_edge[0];
+							if ( i==0 ) is_signed = signed_area<0.0f ? 1 : 0;
+							else if((is_signed!=0)!=(signed_area<0.0f)) is_degenerate=1;
+
+							if ( is_degenerate==0 )
+							{
+								copy_v2_v2(prev_edge, cur_edge);
+								++i;
+							}
+						}
+					}
+				}
+
+				// proceed if not a degenerate face
+				if ( is_degenerate==0 )
+				{
+					int nr_tris_to_pile=0;
+					// quads split at shortest diagonal
+					int offs = 0;		// initial triangulation is 0,1,2 and 0, 2, 3
+					if ( nr_verts==4 )
+					{
+						float pos_len_diag0, pos_len_diag1;
+						float vtmp[3];
+						sub_v3_v3v3(vtmp, verts[2], verts[0]);
+						pos_len_diag0 = dot_v3v3(vtmp, vtmp);
+						sub_v3_v3v3(vtmp, verts[3], verts[1]);
+						pos_len_diag1 = dot_v3v3(vtmp, vtmp);
+
+						if(pos_len_diag1<pos_len_diag0)
+							offs=1;		// alter split
+						else if(pos_len_diag0==pos_len_diag1)		// do UV check instead
+						{
+							float tex_len_diag0, tex_len_diag1;
+
+							sub_v2_v2v2(vtmp, tex_coords[2], tex_coords[0]);
+							tex_len_diag0 = dot_v2v2(vtmp, vtmp);
+							sub_v2_v2v2(vtmp, tex_coords[3], tex_coords[1]);
+							tex_len_diag1 = dot_v2v2(vtmp, vtmp);
+
+							if(tex_len_diag1<tex_len_diag0)
+							{
+								offs=1;		// alter split
+							}
+						}
+					}
+					nr_tris_to_pile = nr_verts-2 ;
+					if ( nr_tris_to_pile==1 || nr_tris_to_pile==2 )
+					{
+						const int indices[] = {offs+0, offs+1, offs+2, offs+0, offs+2, (offs+3)&0x3 };
+						int t;
+						for ( t=0; t<nr_tris_to_pile; t++ )
+						{
+							float f2x_area_uv;
+							float * p0 = verts[indices[t*3+0]];
+							float * p1 = verts[indices[t*3+1]];
+							float * p2 = verts[indices[t*3+2]];
+
+							float edge_t0[2], edge_t1[2];
+							sub_v2_v2v2(edge_t0, tex_coords[indices[t*3+1]], tex_coords[indices[t*3+0]]);
+							sub_v2_v2v2(edge_t1, tex_coords[indices[t*3+2]], tex_coords[indices[t*3+0]]);
+
+							f2x_area_uv = fabsf(edge_t0[0]*edge_t1[1] - edge_t0[1]*edge_t1[0]);
+							if ( f2x_area_uv>FLT_EPSILON )
+							{
+								float norm[3], v0[3], v1[3], f2x_surf_area, fsurf_ratio;
+								sub_v3_v3v3(v0, p1, p0);
+								sub_v3_v3v3(v1, p2, p0);
+								cross_v3_v3v3(norm, v0, v1);
+
+								f2x_surf_area = len_v3(norm);
+								fsurf_ratio = f2x_surf_area/f2x_area_uv;	// tri area divided by texture area
+
+								++nr_accumulated;
+								dsum += (double)(fsurf_ratio);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// finalize
+		{
+			const float avg_area_ratio = (nr_accumulated>0) ? ((float)(dsum / nr_accumulated)) : 1.0f;
+			const float use_as_render_bump_scale = sqrtf(avg_area_ratio);		// use width of average surface ratio as your bump scale
+			dm->auto_bump_scale = use_as_render_bump_scale;
+		}
+	}
+	else
+	{
+		dm->auto_bump_scale = 1.0f;
+	}
+}
+
 void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, DMVertexAttribs *attribs)
 {
 	CustomData *vdata, *fdata, *tfdata = NULL;
@@ -2235,6 +2391,15 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	vdata = &dm->vertData;
 	fdata = tfdata = dm->getTessFaceDataLayout(dm);
 	
+	/* calc auto bump scale if necessary */
+#if 0
+	if(dm->auto_bump_scale<=0.0f)
+		DM_calc_auto_bump_scale(dm);
+#else
+	dm->auto_bump_scale = 1.0f; // will revert this after release
+#endif
+
+
 	/* add a tangent layer if necessary */
 	for(b = 0; b < gattribs->totlayer; b++)
 		if(gattribs->layer[b].type == CD_TANGENT)

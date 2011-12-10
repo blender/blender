@@ -164,12 +164,14 @@ void defvert_sync_mapped(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
 }
 
 /* be sure all flip_map values are valid */
-void defvert_remap(MDeformVert *dvert, int *map)
+void defvert_remap(MDeformVert *dvert, int *map, const int map_len)
 {
 	MDeformWeight *dw;
 	int i;
 	for (i=0, dw=dvert->dw; i<dvert->totweight; i++, dw++) {
-		dw->def_nr= map[dw->def_nr];
+		if (dw->def_nr < map_len) {
+			dw->def_nr= map[dw->def_nr];
+		}
 	}
 }
 
@@ -201,8 +203,10 @@ void defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_le
 	int i;
 
 	for (dw= dvert->dw, i=0; i<dvert->totweight; dw++, i++) {
-		if ((dw->def_nr < flip_map_len) && (flip_map[dw->def_nr] >= 0)) {
-			dw->def_nr= flip_map[dw->def_nr];
+		if (dw->def_nr < flip_map_len) {
+			if (flip_map[dw->def_nr] >= 0) {
+				dw->def_nr= flip_map[dw->def_nr];
+			}
 		}
 	}
 }
@@ -286,17 +290,17 @@ int defgroup_find_index(Object *ob, bDeformGroup *dg)
 /* note, must be freed */
 int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 {
-	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
+	int defbase_tot= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if (totdg==0) {
+	if (defbase_tot==0) {
 		return NULL;
 	}
 	else {
 		bDeformGroup *dg;
 		char name[sizeof(dg->name)];
-		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
+		int i, flip_num, *map= MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-		for (i=0; i < totdg; i++) {
+		for (i=0; i < defbase_tot; i++) {
 			map[i]= -1;
 		}
 
@@ -324,17 +328,17 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, int use_default)
 /* note, must be freed */
 int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, int defgroup)
 {
-	int totdg= *flip_map_len= BLI_countlist(&ob->defbase);
+	int defbase_tot= *flip_map_len= BLI_countlist(&ob->defbase);
 
-	if (totdg==0) {
+	if (defbase_tot==0) {
 		return NULL;
 	}
 	else {
 		bDeformGroup *dg;
 		char name[sizeof(dg->name)];
-		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), __func__);
+		int i, flip_num, *map= MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-		for (i=0; i < totdg; i++) {
+		for (i=0; i < defbase_tot; i++) {
 			if (use_default) map[i]= i;
 			else             map[i]= -1;
 		}
@@ -413,10 +417,14 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	char    number[MAX_VGROUP_NAME]=  "";   /* The number extension string */
 	char    *index=NULL;
 
-	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
-	if (len < 3) return; // we don't do names like .R or .L
-
+	/* always copy the name, since this can be called with an uninitialized string */
 	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
+
+	len= BLI_strnlen(from_name, MAX_VGROUP_NAME);
+	if (len < 3) {
+		/* we don't do names like .R or .L */
+		return;
+	}
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if (isdigit(name[len-1])) {

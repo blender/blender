@@ -63,7 +63,7 @@ void defvert_copy_index(struct MDeformVert *dvert_dst, const struct MDeformVert 
 void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, int use_verify);
 void defvert_sync_mapped(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
                          const int *flip_map, const int flip_map_len, const int use_verify);
-void defvert_remap (struct MDeformVert *dvert, int *map);
+void defvert_remap (struct MDeformVert *dvert, int *map, const int map_len);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_normalize(struct MDeformVert *dvert);
 

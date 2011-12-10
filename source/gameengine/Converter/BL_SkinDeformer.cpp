@@ -217,14 +217,14 @@ void BL_SkinDeformer::BGEDeformVerts()
 	Object *par_arma = m_armobj->GetArmatureObject();
 	MDeformVert *dverts = m_bmesh->dvert;
 	bDeformGroup *dg;
-	int numGroups = BLI_countlist(&m_objMesh->defbase);
+	int defbase_tot = BLI_countlist(&m_objMesh->defbase);
 
 	if (!dverts)
 		return;
 
 	if (m_dfnrToPC == NULL)
 	{
-		m_dfnrToPC = new bPoseChannel*[numGroups];
+		m_dfnrToPC = new bPoseChannel*[defbase_tot];
 		int i;
 		for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
 			dg;
@@ -260,7 +260,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 		{
 			int index = dvert->dw[j].def_nr;
 
-			if (index < numGroups && (pchan=m_dfnrToPC[index]))
+			if (index < defbase_tot && (pchan=m_dfnrToPC[index]))
 			{
 				weight = dvert->dw[j].weight;
 

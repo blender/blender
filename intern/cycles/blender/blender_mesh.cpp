@@ -233,9 +233,9 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	BL::Object::material_slots_iterator slot;
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
 		if(render_layer.material_override)
-			find_shader(render_layer.material_override, used_shaders);
+			find_shader(render_layer.material_override, used_shaders, scene->default_surface);
 		else
-			find_shader(slot->material(), used_shaders);
+			find_shader(slot->material(), used_shaders, scene->default_surface);
 	}
 
 	if(used_shaders.size() == 0)

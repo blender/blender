@@ -895,7 +895,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	const short use_global= RNA_boolean_get(op->ptr, "global");
+	const short use_global= RNA_boolean_get(op->ptr, "use_global");
 	/* int islamp= 0; */ /* UNUSED */
 	
 	if(CTX_data_edit_object(C)) 
@@ -953,7 +953,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "global", 0, "Delete Globally", "Remove object from all scenes");
+	RNA_def_boolean(ot->srna, "use_global", 0, "Delete Globally", "Remove object from all scenes");
 }
 
 /**************************** Copy Utilities ******************************/

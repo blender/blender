@@ -36,9 +36,9 @@ typedef map<void*, SocketPair> PtrSockMap;
 
 /* Find */
 
-void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders)
+void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader)
 {
-	Shader *shader = shader_map.find(id);
+	Shader *shader = (id)? shader_map.find(id): scene->shaders[default_shader];
 
 	for(size_t i = 0; i < scene->shaders.size(); i++) {
 		if(scene->shaders[i] == shader) {

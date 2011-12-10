@@ -81,6 +81,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_deform.h"
 
 #include "RE_render_ext.h"
 
@@ -1849,20 +1850,6 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 /************************************************/
 /*			Path Cache							*/
 /************************************************/
-static float vert_weight(MDeformVert *dvert, int group)
-{
-	MDeformWeight *dw;
-	int i;
-	
-	if(dvert) {
-		dw= dvert->dw;
-		for(i= dvert->totweight; i>0; i--, dw++) {
-			if(dw->def_nr == group) return dw->weight;
-			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
-		}
-	}
-	return 0.0;
-}
 
 static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat, short type, short axis, float obmat[][4], int smooth_start)
 {
@@ -2310,11 +2297,11 @@ float *psys_cache_vgroup(DerivedMesh *dm, ParticleSystem *psys, int vgroup)
 			vg=MEM_callocN(sizeof(float)*totvert, "vg_cache");
 			if(psys->vg_neg&(1<<vgroup)){
 				for(i=0; i<totvert; i++)
-					vg[i]=1.0f-vert_weight(dvert+i,psys->vgroup[vgroup]-1);
+					vg[i]= 1.0f - defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
 			}
 			else{
 				for(i=0; i<totvert; i++)
-					vg[i]=vert_weight(dvert+i,psys->vgroup[vgroup]-1);
+					vg[i]=  defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
 			}
 		}
 	}

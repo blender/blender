@@ -161,7 +161,7 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
-	char name[32];
+	char name[MAXBONENAME];
 	
 	if (ebo == NULL)
 		return NULL;
@@ -4663,7 +4663,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		
 		/* find flipped group */
 		if (dgroup && mirror) {
-			char name[32];
+			char name[MAXBONENAME];
 
 			// 0 = don't strip off number extensions
 			flip_side_name(name, dgroup->name, FALSE);
@@ -5456,7 +5456,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
-	char newname[32];
+	char newname[MAXBONENAME];
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 

@@ -989,7 +989,7 @@ static void set_pose_keys (Object *ob)
 static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short selOnly, short flip)
 {
 	bPoseChannel *pchan;
-	char name[32];
+	char name[MAXBONENAME];
 	short paste_ok;
 	
 	/* get the name - if flipping, we must flip this first */
@@ -1740,7 +1740,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
-		char newname[32];
+		char newname[MAXBONENAME];
 		flip_side_name(newname, pchan->name, TRUE);
 		ED_armature_bone_rename(arm, pchan->name, newname);
 	}

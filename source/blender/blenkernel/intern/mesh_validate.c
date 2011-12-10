@@ -136,9 +136,11 @@ int BKE_mesh_validate_arrays( Mesh *me,
 	MVert *mvert= mverts;
 	unsigned int i;
 
-	int do_face_free= FALSE;
-	int do_edge_free= FALSE;
-	int verts_fixed= FALSE;
+	short do_face_free= FALSE;
+	short do_edge_free= FALSE;
+
+	short verts_fixed= FALSE;
+	short vert_weights_fixed= FALSE;
 
 	int do_edge_recalc= FALSE;
 
@@ -165,9 +167,12 @@ int BKE_mesh_validate_arrays( Mesh *me,
 		for(j=0; j<3; j++) {
 			if(!finite(mvert->co[j])) {
 				PRINT("    vertex %u: has invalid coordinate\n", i);
-				zero_v3(mvert->co);
 
-				verts_fixed= TRUE;
+				if (do_fixes) {
+					zero_v3(mvert->co);
+
+					verts_fixed= TRUE;
+				}
 			}
 
 			if(mvert->no[j]!=0)
@@ -176,8 +181,10 @@ int BKE_mesh_validate_arrays( Mesh *me,
 
 		if(fix_normal) {
 			PRINT("    vertex %u: has zero normal, assuming Z-up normal\n", i);
-			mvert->no[2]= SHRT_MAX;
-			verts_fixed= TRUE;
+			if (do_fixes) {
+				mvert->no[2]= SHRT_MAX;
+				verts_fixed= TRUE;
+			}
 		}
 	}
 
@@ -318,8 +325,8 @@ int BKE_mesh_validate_arrays( Mesh *me,
 	if (dverts) {
 		MDeformVert *dv;
 		for(i=0, dv= dverts; i<totvert; i++, dv++) {
-			MDeformWeight *dw= dv->dw;
-			unsigned int j= 0;
+			MDeformWeight *dw;
+			unsigned int j;
 
 			for(j=0, dw= dv->dw; j < dv->totweight; j++, dw++) {
 				/* note, greater then max defgroups is accounted for in our code, but not < 0 */
@@ -327,6 +334,14 @@ int BKE_mesh_validate_arrays( Mesh *me,
 					PRINT("    vertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {
 						dw->weight= 0.0f;
+						vert_weights_fixed= TRUE;
+					}
+				}
+				else if (dw->weight < 0.0f || dw->weight > 1.0f) {
+					PRINT("    vertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
+					if (do_fixes) {
+						CLAMP(dw->weight, 0.0f, 1.0f);
+						vert_weights_fixed= TRUE;
 					}
 				}
 
@@ -339,6 +354,8 @@ int BKE_mesh_validate_arrays( Mesh *me,
 							 * within the for loop and may not be valid */
 							j--;
 							dw= dv->dw + j;
+
+							vert_weights_fixed= TRUE;
 						}
 						else { /* all freed */
 							break;
@@ -369,7 +386,7 @@ int BKE_mesh_validate_arrays( Mesh *me,
 		}
 	}
 
-	return (verts_fixed || do_face_free || do_edge_free || do_edge_recalc);
+	return (verts_fixed || vert_weights_fixed || do_face_free || do_edge_free || do_edge_recalc);
 }
 
 static int mesh_validate_customdata(CustomData *data, short do_verbose, const short do_fixes)

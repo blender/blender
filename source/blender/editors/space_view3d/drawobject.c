@@ -2375,7 +2375,7 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} *data = userData;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; int *orig_index;} *data = userData;
 	BMFace *efa = EDBM_get_face_for_index(data->em, index);
 	unsigned char *col;
 	
@@ -2398,18 +2398,18 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} * data = userData;
-	int *orig_index= DM_get_tessface_data_layer(data->dm, CD_ORIGINDEX);
+
+	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; int *orig_index; } * data = userData;
 	BMFace *efa;
 	BMFace *next_efa;
 
 	unsigned char *col, *next_col;
 
-	if(!orig_index)
+	if(!data->orig_index)
 		return 0;
 
-	efa= EDBM_get_face_for_index(data->em, orig_index[index]);
-	next_efa= EDBM_get_face_for_index(data->em, orig_index[next_index]);
+	efa= EDBM_get_face_for_index(data->em, data->orig_index[index]);
+	next_efa= EDBM_get_face_for_index(data->em, data->orig_index[next_index]);
 
 	if(efa == next_efa)
 		return 1;
@@ -2428,16 +2428,16 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 
 /* also draws the active face */
 static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
-			      unsigned char *selCol, unsigned char *actCol, BMFace *efa_act, Mesh *me) 
+			      unsigned char *selCol, unsigned char *actCol, BMFace *efa_act)
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; Mesh *me;} data;
+	struct { DerivedMesh *dm; unsigned char *cols[3]; BMEditMesh *em; BMFace *efa_act; int *orig_index; } data;
 	data.dm= dm;
 	data.cols[0] = baseCol;
 	data.em = em;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
-	data.me = me;
+	data.orig_index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
@@ -2928,7 +2928,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if CHECK_OB_DRAWTEXTURE(v3d, dt)
 			col1[3] = 0;
 		
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act, me);
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2943,7 +2943,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act, me);
+		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer

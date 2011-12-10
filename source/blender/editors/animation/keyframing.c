@@ -524,7 +524,8 @@ static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int inde
 enum {
 	VISUALKEY_NONE = 0,
 	VISUALKEY_LOC,
-	VISUALKEY_ROT,
+	VISUALKEY_ROT
+	/* VISUALKEY_SCA */ /* TODO - looks like support can be added now */
 };
 
 /* This helper function determines if visual-keyframing should be used when  
@@ -655,7 +656,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
  */
 static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
-	char *identifier= (char *)RNA_property_identifier(prop);
+	const char *identifier= RNA_property_identifier(prop);
 	
 	/* handle for Objects or PoseChannels only 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
