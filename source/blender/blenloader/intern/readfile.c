@@ -12737,6 +12737,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 8))
+	{
+		Brush *brush;
+
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			if (brush->sculpt_tool == SCULPT_TOOL_ROTATE)
+				brush->alpha= 1.0f;
+		}
+	}
+
 	/* put compatibility code here until next subversion bump */
 	{
 		/* nothing! */

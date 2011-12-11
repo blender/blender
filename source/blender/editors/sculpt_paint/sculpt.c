@@ -648,8 +648,10 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 			return feather;
 
 		case SCULPT_TOOL_GRAB:
-		case SCULPT_TOOL_ROTATE:
 			return feather;
+
+		case SCULPT_TOOL_ROTATE:
+			return alpha*pressure*feather;
 
 		default:
 			return 0;
@@ -1502,13 +1504,20 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float bstrength= ss->cache->bstrength;
 	float an[3];
 	int n;
-	float m[3][3];
+	float m[4][4], rot[4][4], lmat[4][4], ilmat[4][4];
 	static const int flip[8] = { 1, -1, -1, 1, -1, 1, 1, -1 };
 	float angle = ss->cache->vertex_rotation * flip[ss->cache->mirror_symmetry_pass];
 
 	calc_sculpt_normal(sd, ob, an, nodes, totnode);
 
-	axis_angle_to_mat3(m, an, angle);
+	unit_m4(m);
+	unit_m4(lmat);
+
+	copy_v3_v3(lmat[3], ss->cache->location);
+	invert_m4_m4(ilmat, lmat);
+	axis_angle_to_mat4(rot, an, angle);
+
+	mul_serie_m4(m, lmat, rot, ilmat, NULL, NULL, NULL, NULL, NULL);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for(n=0; n<totnode; n++) {
@@ -1532,7 +1541,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				const float fade = bstrength*tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                          an, origno[vd.i], NULL);
 
-				mul_v3_m3v3(proxy[vd.i], m, origco[vd.i]);
+				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
 				mul_v3_fl(proxy[vd.i], fade);
 
@@ -3160,7 +3169,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 
-		cache->vertex_rotation = -atan2(dx, dy);
+		cache->vertex_rotation = -atan2(dx, dy) * cache->bstrength;
 
 		sd->draw_anchored = 1;
 		copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);

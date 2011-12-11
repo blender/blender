@@ -118,7 +118,7 @@ typedef struct MSticky {
 
 typedef struct MSelect {
 	int index;
-	int type;
+	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
 /*tesselation uv face data*/
@@ -221,11 +221,6 @@ typedef struct MRecast{
 #define ME_SHARP			(1<<9)    /* only reason this flag remains a 'short' */
 
 /* puno = vertexnormal (mface) */
-/* render assumes flips to be ordered like this */
-#define ME_FLIPV1		1
-#define ME_FLIPV2		2
-#define ME_FLIPV3		4
-#define ME_FLIPV4		8
 #define ME_PROJXY		16
 #define ME_PROJXZ		32
 #define ME_PROJYZ		64

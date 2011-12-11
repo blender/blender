@@ -572,7 +572,7 @@ void rna_Main_armatures_tag(Main *bmain, int value) { tag_main_lb(&bmain->armatu
 void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, value); }
 void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
 void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
-void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
+void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
