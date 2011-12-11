@@ -695,7 +695,7 @@ int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicat
   CurveInternal::CurvePointIterator vnext = vit; ++vnext;
 
   
-  for(; (vit!=vitend)&&(vnext!=vitend)&&(split._CurvilinearLength-vit._CurvilinearLength> 0.001); ++vit,++vnext){
+  for(; (vit!=vitend)&&(vnext!=vitend)&&(vnext._CurvilinearLength<split._CurvilinearLength); ++vit,++vnext){
     new_curve_a->push_vertex_back(&(*vit));
   }
   if((vit==vitend) || (vnext == vitend)){
@@ -707,15 +707,11 @@ int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicat
   }
 
   // build the two resulting chains
-  if(fabs(vit._CurvilinearLength-split._CurvilinearLength) > 0.001){
-    new_curve_a->push_vertex_back(&(*split));
-    new_curve_b->push_vertex_back(&(*split));
-  }
-  else{
-    new_curve_a->push_vertex_back(&(*vit));
-  }
+  new_curve_a->push_vertex_back(&(*vit));
+  new_curve_a->push_vertex_back(&(*split));
+  new_curve_b->push_vertex_back(&(*split));
 
-  for(;vit!=vitend;++vit)
+  for(vit=vnext;vit!=vitend;++vit)
     new_curve_b->push_vertex_back(&(*vit));
   
   // let's check whether one or two of the two new curves 
@@ -864,7 +860,7 @@ int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicat
   CurveInternal::CurvePointIterator vnext = vit; ++vnext;
 
   
-  for(; (vit!=vitend)&&(vnext!=vitend)&&(split._CurvilinearLength-vit._CurvilinearLength> 0.001); ++vit,++vnext){
+  for(; (vit!=vitend)&&(vnext!=vitend)&&(vnext._CurvilinearLength<split._CurvilinearLength); ++vit,++vnext){
     new_curve_a->push_vertex_back(&(*vit));
   }
   if((vit==vitend) || (vnext == vitend)){
@@ -876,15 +872,11 @@ int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicat
   }
 
   // build the two resulting chains
-  if(fabs(vit._CurvilinearLength-split._CurvilinearLength) > 0.001){
-    new_curve_a->push_vertex_back(&(*split));
-    new_curve_b->push_vertex_back(&(*split));
-  }
-  else{
-    new_curve_a->push_vertex_back(&(*vit));
-  }
+  new_curve_a->push_vertex_back(&(*vit));
+  new_curve_a->push_vertex_back(&(*split));
+  new_curve_b->push_vertex_back(&(*split));
 
-  for(;vit!=vitend;++vit)
+  for(vit=vnext;vit!=vitend;++vit)
     new_curve_b->push_vertex_back(&(*vit));
   
   // let's check whether one or two of the two new curves 
