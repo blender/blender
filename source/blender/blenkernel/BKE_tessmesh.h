@@ -62,6 +62,10 @@ typedef struct BMEditMesh {
 	int mirr_free_arrays;
 } BMEditMesh;
 
+/* undo triggers editmesh tessface update, this is odd but works OK.
+ * BMESH_TODO, look into having the update elsewhere. */
+#define BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
+
 void BMEdit_RecalcTesselation(BMEditMesh *tm);
 BMEditMesh *BMEdit_Create(BMesh *bm);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);

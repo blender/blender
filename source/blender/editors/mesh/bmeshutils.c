@@ -559,9 +559,13 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	/*make sure shape keys work*/
 	me->me.key = obme->key ? copy_key_nolib(obme->key) : NULL;
 
+#ifdef BMESH_EM_UNDO_RECALC_TESSFACE_WORKAROUND
+
 	/*we recalc the tesselation here, to avoid seeding calls to
 	  BMEdit_RecalcTesselation throughout the code.*/
 	BMEdit_RecalcTesselation(em);
+
+#endif
 
 	BMO_CallOpf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", me, 1);
 	me->selectmode = em->selectmode;
