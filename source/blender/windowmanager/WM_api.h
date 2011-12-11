@@ -206,6 +206,7 @@ void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int exten
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
+int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 
 /* MOVE THIS SOMEWHERE ELSE */

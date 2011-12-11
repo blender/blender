@@ -907,6 +907,15 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
+/* return FALSE, if the UI should be disabled */
+int WM_operator_check_ui_enabled(const bContext *C, const char *idname)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	Scene *scene= CTX_data_scene(C);
+
+	return !(ED_undo_valid(C, idname)==0 || WM_jobs_test(wm, scene));
+}
+
 wmOperator *WM_operator_last_redo(const bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -940,7 +949,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
-	if(ED_undo_valid(C, op->type->name)==0)
+	if (!WM_operator_check_ui_enabled(C, op->type->name))
 		uiLayoutSetEnabled(layout, 0);
 
 	if(op->type->flag & OPTYPE_MACRO) {
