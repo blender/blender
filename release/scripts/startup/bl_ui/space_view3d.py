@@ -1581,6 +1581,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("mesh.rip_move")
         layout.operator("mesh.split")
         layout.operator("mesh.separate")
+        layout.operator("mesh.vert_connect")
 
         layout.separator()
 
