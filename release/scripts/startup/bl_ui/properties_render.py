@@ -598,30 +598,34 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             # Splitting
             col = layout.column()
             col.label(text="Splitting:")
-            sub = col.row()
-            subcol = sub.column()
-            subcol.prop(linestyle, "use_min_angle", text="Min Angle")
-            subsub = subcol.split()
-            subsub.prop(linestyle, "min_angle", text="")
-            subsub.enabled = linestyle.use_min_angle
-            subcol = sub.column()
-            subcol.prop(linestyle, "use_max_angle", text="Max Angle")
-            subsub = subcol.split()
-            subsub.prop(linestyle, "max_angle", text="")
-            subsub.enabled = linestyle.use_max_angle
             row = col.row()
             row.prop(linestyle, "material_boundary")
+            row = col.row()
+            sub = row.column()
+            sub.prop(linestyle, "use_min_angle", text="Min 2D Angle")
+            subsub = sub.split()
+            subsub.prop(linestyle, "min_angle", text="")
+            subsub.enabled = linestyle.use_min_angle
+            sub = row.column()
+            sub.prop(linestyle, "use_max_angle", text="Max 2D Angle")
+            subsub = sub.split()
+            subsub.prop(linestyle, "max_angle", text="")
+            subsub.enabled = linestyle.use_max_angle
+            col.prop(linestyle, "use_split_length", text="2D Length")
+            row = col.row()
+            row.prop(linestyle, "split_length", text="")
+            row.enabled = linestyle.use_split_length
             # Selection
             col = layout.column()
             col.label(text="Selection:")
             sub = col.row()
             subcol = sub.column()
-            subcol.prop(linestyle, "use_min_length", text="Min Length")
+            subcol.prop(linestyle, "use_min_length", text="Min 2D Length")
             subsub = subcol.split()
             subsub.prop(linestyle, "min_length", text="")
             subsub.enabled = linestyle.use_min_length
             subcol = sub.column()
-            subcol.prop(linestyle, "use_max_length", text="Max Length")
+            subcol.prop(linestyle, "use_max_length", text="Max 2D Length")
             subsub = subcol.split()
             subsub.prop(linestyle, "max_length", text="")
             subsub.enabled = linestyle.use_max_length

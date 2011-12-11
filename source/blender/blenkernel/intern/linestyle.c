@@ -79,6 +79,7 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->max_angle = 0.0f;
 	linestyle->min_length = 0.0f;
 	linestyle->max_length = 10000.0f;
+	linestyle->split_length = 100;
 
 	linestyle->color_modifiers.first = linestyle->color_modifiers.last = NULL;
 	linestyle->alpha_modifiers.first = linestyle->alpha_modifiers.last = NULL;
@@ -140,6 +141,7 @@ FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
 	new_linestyle->max_angle = linestyle->max_angle;
 	new_linestyle->min_length = linestyle->min_length;
 	new_linestyle->max_length = linestyle->max_length;
+	new_linestyle->split_length = linestyle->split_length;
 	new_linestyle->dash1 = linestyle->dash1;
 	new_linestyle->gap1 = linestyle->gap1;
 	new_linestyle->dash2 = linestyle->dash2;

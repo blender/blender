@@ -818,6 +818,23 @@ class Curvature2DAngleThresholdUP0D(UnaryPredicate0D):
             return True
         return False
 
+class Length2DThresholdUP0D(UnaryPredicate0D):
+    def __init__(self, length_limit):
+        UnaryPredicate0D.__init__(self)
+        self._length_limit = length_limit
+        self._t = 0.0
+    def getName(self):
+        return "Length2DThresholdUP0D"
+    def __call__(self, inter):
+        t = inter.t() # curvilinear abscissa
+        if t < self._t:
+            self._t = 0.0
+            return False
+        if t - self._t < self._length_limit:
+            return False
+        self._t = t
+        return True
+
 # Seed for random number generation
 
 class Seed:
@@ -939,6 +956,8 @@ def process(layer_name, lineset_name):
                 Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(linestyle.rounds))
             else:
                 Operators.bidirectionalChain(pySketchyChainingIterator(linestyle.rounds))
+    else:
+        Operators.chain(ChainPredicateIterator(FalseUP1D(), FalseBP1D()), NotUP1D(upred))
     # split chains
     if linestyle.material_boundary:
         Operators.sequentialSplit(MaterialBoundaryUP0D())
@@ -946,6 +965,8 @@ def process(layer_name, lineset_name):
         min_angle = linestyle.min_angle if linestyle.use_min_angle else None
         max_angle = linestyle.max_angle if linestyle.use_max_angle else None
         Operators.sequentialSplit(Curvature2DAngleThresholdUP0D(min_angle, max_angle))
+    if linestyle.use_split_length:
+        Operators.sequentialSplit(Length2DThresholdUP0D(linestyle.split_length), 1.0)
     # select chains
     if linestyle.use_min_length or linestyle.use_max_length:
         min_length = linestyle.min_length if linestyle.use_min_length else None

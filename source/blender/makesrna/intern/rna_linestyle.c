@@ -823,6 +823,17 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "use_split_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SPLIT_LENGTH);
+	RNA_def_property_ui_text(prop, "Use Split Length", "Enable chain splitting by curvilinear 2D length");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "split_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "split_length");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Split Length", "Curvilinear 2D length for chain splitting");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "use_min_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MIN_2D_ANGLE);
 	RNA_def_property_ui_text(prop, "Use Min 2D Angle", "Split chains at points with angles smaller than the minimum 2D angle");
@@ -853,7 +864,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "min_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Min 2D Length", "Minimum 2D length for the selection of chains");
+	RNA_def_property_ui_text(prop, "Min 2D Length", "Minimum curvilinear 2D length for the selection of chains");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "use_max_length", PROP_BOOLEAN, PROP_NONE);
@@ -864,7 +875,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "max_length", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_length");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Max 2D Length", "Maximum 2D length for the selection of chains");
+	RNA_def_property_ui_text(prop, "Max 2D Length", "Maximum curvilinear 2D length for the selection of chains");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "material_boundary", PROP_BOOLEAN, PROP_NONE);
