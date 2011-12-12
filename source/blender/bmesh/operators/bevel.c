@@ -33,17 +33,23 @@ typedef struct EdgeTag {
 
 static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 {
-	float  no[3], /*tan[3]*,*/ vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
-	/*float p1[3], p2[3], w[3];
-	float l1, l2;*/
-	int /*ret,*/ inv=0;
+	float  no[3], vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
+	int inv;
 	
 	if (l->f->len > 2) {
 		copy_v3_v3(v1, l->prev->v->co);
 		copy_v3_v3(v2, l->v->co);
 		copy_v3_v3(v3, l->v->co);
 		copy_v3_v3(v4, l->next->v->co);
-	} else {
+
+		/*calculate normal*/
+		sub_v3_v3v3(vec1, v1, v2);
+		sub_v3_v3v3(vec2, v4, v3);
+
+		cross_v3_v3v3(no, vec1, vec2);
+		inv= dot_v3v3(no, l->f->no) > 0.0f;
+	}
+	else {
 		BMIter iter;
 		BMLoop *l2;
 		float up[3] = {0.0f, 0.0f, 1.0f};
@@ -68,66 +74,13 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 		}
 		
 		inv = dot_v3v3(no, up) < 0.0f;
-	}
-	
-	/*calculate normal*/
-	sub_v3_v3v3(vec1, v1, v2);
-	sub_v3_v3v3(vec2, v4, v3);
-	
-#if 0
-	cross_v3_v3v3(no, vec2, vec1);
-	normalize_v3(no);
-	
-	if (dot_v3v3(no, no) < FLT_EPSILON*10) {
-		copy_v3_v3(no, l->f->no);
-	}
-	
-	if (dot_v3v3(no, no) < FLT_EPSILON*10) {
-		no[0] = 0.0; no[1] = 0.0; no[2] = 1.0f;
-	}
-	
-	/*compute offsets*/
-	l1 = len_v3(vec1)*fac; //(1.0-(cos(angle_v3v3(vec1, vec2))*0.5+0.5))
-	l2 = len_v3(vec2)*fac;
 
-	l2 = (l1 + l2)*0.5;
-	l1 = l2;
-	if (dot_v3v3(no, l->f->no) < 0.0) {
-		negate_v3(no);
-	}	
-	
-	/*compute tangent and offset first edge*/
-	cross_v3_v3v3(tan, vec1, no);
-	normalize_v3(tan);
-
-	mul_v3_fl(tan, l1);
-	
-	add_v3_v3(v1, tan);
-	add_v3_v3(v2, tan);
-	
-	/*compute tangent and offset second edge*/
-	cross_v3_v3v3(tan, no, vec2);
-	normalize_v3(tan);
-	
-	mul_v3_fl(tan, l2);
-
-	add_v3_v3(v3, tan);
-	add_v3_v3(v4, tan);
-	
-	/*compute intersection*/
-	ret = isect_line_line_v3(v1, v2, v3, v4, p1, p2);
-	
-	if (ret==1) {
-		copy_v3_v3(co, p1);
-	} else if (ret==2) {
-		add_v3_v3v3(co, p1, p2);
-		mul_v3_fl(co, 0.5);
-	} else { /*colinear case*/
-		add_v3_v3v3(co, v2, v3);
-		mul_v3_fl(co, 0.5);
+		/*calculate normal*/
+		sub_v3_v3v3(vec1, v1, v2);
+		sub_v3_v3v3(vec2, v4, v3);
 	}
-#else
-	/*oddly, this simplistic method seems to work the best*/
+
+	/*simple percentage method */
 	add_v3_v3(vec1, vec2);
 	mul_v3_fl(vec1, fac * 0.5);
 
@@ -135,7 +88,6 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 		negate_v3(vec1);
 	
 	add_v3_v3v3(co, vec1, l->v->co);
-#endif
 }
 
 #define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BM_GetIndex((e))].newv2 = (nv))
