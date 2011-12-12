@@ -5492,6 +5492,11 @@ wmOperator *uiContextActiveOperator(const struct bContext *C)
 	ARegion *ar_ctx= CTX_wm_region(C);
 	uiBlock *block;
 
+	/* background mode */
+	if (ar_ctx == NULL) {
+		return NULL;
+	}
+
 	/* scan active regions ui */
 	for(block=ar_ctx->uiblocks.first; block; block=block->next) {
 		if (block->ui_operator) {
