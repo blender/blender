@@ -597,7 +597,9 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	
 }
 
-/* for running operators with frozen context (modal handlers, menus) */
+/* for running operators with frozen context (modal handlers, menus)
+ *
+ * warning: do not use this within an operator to call its self! [#29537] */
 int WM_operator_call(bContext *C, wmOperator *op)
 {
 	return wm_operator_exec(C, op, 0);

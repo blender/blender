@@ -2003,6 +2003,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	char name[FILE_MAX];
 	int check_existing=1;
+	int ret;
 	
 	/* cancel if no active window */
 	if (CTX_wm_window(C) == NULL)
@@ -2027,16 +2028,20 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 			check_existing = 0;
 	
 	if (G.save_over) {
-		if (check_existing)
+		if (check_existing && BLI_exists(name)) {
 			uiPupMenuSaveOver(C, op, name);
-		else {
-			wm_save_as_mainfile_exec(C, op);
+			ret= OPERATOR_RUNNING_MODAL;
 		}
-	} else {
+		else {
+			ret= wm_save_as_mainfile_exec(C, op);
+		}
+	}
+	else {
 		WM_event_add_fileselect(C, op);
+		ret= OPERATOR_RUNNING_MODAL;
 	}
 	
-	return OPERATOR_RUNNING_MODAL;
+	return ret;
 }
 
 static void WM_OT_save_mainfile(wmOperatorType *ot)

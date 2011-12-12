@@ -56,6 +56,7 @@ int    BLI_create_symlink(const char *path, const char *to);
 struct direntry;
 
 int    BLI_is_dir(const char *path);
+int    BLI_is_file(const char *path);
 void   BLI_dir_create_recursive(const char *dir);
 double BLI_dir_free_space(const char *dir);
 char  *BLI_current_working_dir(char *dir, const int maxlen);
