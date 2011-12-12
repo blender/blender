@@ -33,7 +33,7 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_array.h"
 
 #include "bmesh.h"

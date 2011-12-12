@@ -34,7 +34,6 @@
 #include "BKE_DerivedMesh.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_ghash.h"

@@ -43,7 +43,6 @@
 #include "BKE_utildefines.h"
 #include "bmesh.h"
 #include "bmesh_private.h"
-#include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
 

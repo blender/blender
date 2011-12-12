@@ -44,7 +44,6 @@
 #include "mesh_intern.h"
 #include "ED_mesh.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_array.h"
 #include "BLI_array.h"

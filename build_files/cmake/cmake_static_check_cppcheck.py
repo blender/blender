@@ -39,7 +39,7 @@ CHECKER_ARGS = [
     "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern", "glew", "include"),
 
     #  "--check-config", # when includes are missing
-    #  "--enable=all",  # if you want sixty hundred pedantic suggestions
+    "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
 
 
@@ -48,6 +48,8 @@ def main():
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
+        if not 'bevel' in c: continue
+        if 'MOD' in c: continue
         cmd = ([CHECKER_BIN] +
                 CHECKER_ARGS +
                [c] +
@@ -60,7 +62,7 @@ def main():
     process_functions = []
 
     def my_process(i, c, cmd):
-        percent = 100.0 * (i / (len(check_commands) - 1))
+        percent = 100.0 * (i / (len(check_commands)))
         percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
         sys.stdout.flush()

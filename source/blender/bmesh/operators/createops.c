@@ -6,7 +6,7 @@
 #include "BLI_mempool.h"
 #include "BLI_heap.h"
 #include "BLI_ghash.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
