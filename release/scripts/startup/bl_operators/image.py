@@ -30,9 +30,7 @@ class EditExternally(Operator):
     bl_options = {'REGISTER'}
 
     filepath = StringProperty(
-            name="File Path",
-            description="Path to an image file",
-            maxlen=1024,
+            subtype='FILE_PATH',
             )
 
     def _editor_guess(self, context):

@@ -54,7 +54,7 @@ def abspath(path, start=None, library=None):
     """
     if path.startswith("//"):
         if library:
-            start = abspath(_os.path.dirname(library.filepath))
+            start = _os.path.dirname(abspath(library.filepath))
         return _os.path.join(_os.path.dirname(_bpy.data.filepath)
                              if start is None else start,
                              path[2:],

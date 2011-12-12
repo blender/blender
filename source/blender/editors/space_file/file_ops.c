@@ -715,7 +715,7 @@ int file_draw_check_exists(SpaceFile *sfile)
 			if(RNA_boolean_get(sfile->op->ptr, "check_existing")) {
 				char filepath[FILE_MAX];
 				BLI_join_dirfile(filepath, sizeof(filepath), sfile->params->dir, sfile->params->file);
-				if(BLI_exists(filepath) && !BLI_is_dir(filepath)) {
+				if(BLI_is_file(filepath)) {
 					return TRUE;
 				}
 			}
@@ -1143,8 +1143,8 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 			BLI_dir_create_recursive(sfile->params->dir);
 		}
 
-		/* special case, user may have pasted a fulepath into the directory */
-		if(BLI_exists(sfile->params->dir) && BLI_is_dir(sfile->params->dir) == 0) {
+		/* special case, user may have pasted a filepath into the directory */
+		if(BLI_is_file(sfile->params->dir)) {
 			char path[sizeof(sfile->params->dir)];
 			BLI_strncpy(path, sfile->params->dir, sizeof(path));
 			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));

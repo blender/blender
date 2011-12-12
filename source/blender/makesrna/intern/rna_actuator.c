@@ -1404,7 +1404,7 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Scene", "");
+	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	//XXX filter only camera objects

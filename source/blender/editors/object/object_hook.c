@@ -612,7 +612,9 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* this operator removes modifier which isn't stored in local undo stack,
+	   so redoing it from redo panel gives totally weird results  */
+	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
@@ -799,7 +801,9 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	ot->poll= hook_op_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* this operator changes data stored in modifier which doesn't get pushed to undo stack,
+	   so redoing it from redo panel gives totally weird results  */
+	ot->flag= /*OPTYPE_REGISTER|*/OPTYPE_UNDO;
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");

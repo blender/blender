@@ -471,6 +471,12 @@ int BLI_is_dir(const char *file)
 	return S_ISDIR(BLI_exists(file));
 }
 
+int BLI_is_file(const char *path)
+{
+	int mode= BLI_exists(path);
+	return (mode && !S_ISDIR(mode));
+}
+
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
 	FILE *fp= fopen(name, "r");

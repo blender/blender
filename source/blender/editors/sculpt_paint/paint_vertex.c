@@ -1843,9 +1843,12 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 /* for switching to/from mode */
 static int paint_poll_test(bContext *C)
 {
+	Object *ob= CTX_data_active_object(C);
 	if(CTX_data_edit_object(C))
 		return 0;
 	if(CTX_data_active_object(C)==NULL)
+		return 0;
+	if(!ob->data || ((ID *)ob->data)->lib)
 		return 0;
 	return 1;
 }

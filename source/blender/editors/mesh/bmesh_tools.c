@@ -2778,10 +2778,11 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	int axis= RNA_enum_get(op->ptr, "axis");
 	int mode= RNA_enum_get(op->ptr, "mode"); /* -1==aligned, 0==neg, 1==pos*/
 
-	if(ese==NULL)
+	if (ese==NULL || ese->htype != BM_VERT) {
+		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
 		return OPERATOR_CANCELLED;
-
-	if (ese->htype==BM_VERT) {
+	}
+	else {
 		BMVert *ev, *act_vert= (BMVert*)ese->data;
 		BMIter iter;
 		float value= act_vert->co[axis];

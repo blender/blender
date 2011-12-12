@@ -141,8 +141,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	ScrArea *sa= CTX_wm_area(C);
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
-	    or they can just lead to freezing job in some other cases */
-	if(WM_jobs_has_running(CTX_wm_manager(C))) {
+	 * or they can just lead to freezing job in some other cases */
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -356,13 +356,24 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 	int ret= 0;
 
 	if(op) {
+		wmWindowManager *wm= CTX_wm_manager(C);
+		struct Scene *scene= CTX_data_scene(C);
+
 		ARegion *ar= CTX_wm_region(C);
 		ARegion *ar1= BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
 
 		if(ar1)
 			CTX_wm_region_set(C, ar1);
 
-		if(WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type)) {
+		if ( (WM_operator_repeat_check(C, op)) &&
+		     (WM_operator_poll(C, op->type)) &&
+		     /* note, undo/redo cant run if there are jobs active,
+		      * check for screen jobs only so jobs like material/texture/world preview
+		      * (which copy their data), wont stop redo, see [#29579]],
+		      *
+		      * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
+		     (WM_jobs_test(wm, scene) == 0))
+		{
 			int retval;
 
 			if (G.f & G_DEBUG)
