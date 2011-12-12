@@ -272,7 +272,7 @@ if 'blenderlite' in B.targets:
         if k not in B.arguments:
             env[k] = v
 
-# Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY detection for OSX
+# Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY and JAckOSX detection for OSX
 if env['OURPLATFORM']=='darwin':
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'][:9] + " --"
     print "Available " + env['MACOSX_SDK_CHECK']
@@ -290,6 +290,16 @@ if env['OURPLATFORM']=='darwin':
             env['WITH_BF_3DMOUSE'] = 0
         else:
             env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
+
+    # for now, Mac builders must download and install the JackOSX framework 
+    # necessary header file lives here when installed:
+    # /Library/Frameworks/Jackmp.framework/Versions/A/Headers/jack.h
+    if env['WITH_BF_JACK'] == 1:
+        if not os.path.exists('/Library/Frameworks/Jackmp.framework'):
+            print "JackOSX install not found, disabling WITH_BF_JACK" # avoid build errors !
+            env['WITH_BF_JACK'] = 0
+        else:
+            env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
