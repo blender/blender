@@ -112,7 +112,7 @@ public:
 	virtual void *osl_memory() { return NULL; }
 
 	/* load/compile kernels, must be called before adding tasks */ 
-	virtual bool load_kernels() { return true; }
+	virtual bool load_kernels(bool experimental) { return true; }
 
 	/* tasks */
 	virtual void task_add(DeviceTask& task) = 0;

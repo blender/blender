@@ -43,6 +43,7 @@ public:
 	string output_path;
 
 	bool progressive;
+	bool experimental;
 	int samples;
 	int tile_size;
 	int min_size;
@@ -59,6 +60,7 @@ public:
 		output_path = "";
 
 		progressive = false;
+		experimental = false;
 		samples = INT_MAX;
 		tile_size = 64;
 		min_size = 64;
@@ -75,6 +77,7 @@ public:
 		&& output_path == params.output_path
 		/* && samples == params.samples */
 		&& progressive == params.progressive
+		&& experimental == params.experimental
 		&& tile_size == params.tile_size
 		&& min_size == params.min_size
 		&& threads == params.threads
