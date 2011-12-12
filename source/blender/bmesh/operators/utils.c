@@ -416,25 +416,6 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 }
 
 /*
-** compute the centroid of an ngon
-**
-** NOTE: This should probably go to bmesh_polygon.c and replace the function that compute its center
-** basing on bounding box
-*/
-static void ngon_center(float *v, BMesh *bm, BMFace *f)
-{
-	BMIter	liter;
-	BMLoop	*l;
-	v[0] = v[1] = v[2] = 0;
-
-	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-		add_v3_v3v3(v, v, l->v->co);
-	}
-
-	if( f->len ) mul_v3_fl(v, 1.0f / (float)f->len);
-}
-
-/*
 ** compute the perimeter of an ngon
 **
 ** NOTE: This should probably go to bmesh_polygon.c
@@ -478,7 +459,7 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 	float	v[3], sv[3], c[3];
 	float	area = 0.0f;
 
-	ngon_center(c, bm, f);
+	BM_Compute_Face_CenterMean(bm, f, c);
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if( num_verts == 0 ) {
@@ -572,7 +553,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 
 			case SIMFACE_COPLANAR:
 				/* compute the center of the polygon */
-				ngon_center(f_ext[i].c, bm, f_ext[i].f);
+				BM_Compute_Face_CenterMean(bm, f_ext[i].f, f_ext[i].c);
 
 				/* normalize the polygon normal */
 				copy_v3_v3(t_no, f_ext[i].f->no);

@@ -377,7 +377,7 @@ void BMO_Set_Pnt(BMOperator *op, const char *slotname, void *p)
 	slot->data.p = p;
 }
 
-void BMO_Set_Vec(BMOperator *op, const char *slotname, float *vec)
+void BMO_Set_Vec(BMOperator *op, const char *slotname, const float vec[3])
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	if( !(slot->slottype == BMOP_OPSLOT_VEC) )
@@ -415,13 +415,13 @@ void *BMO_Get_Pnt(BMOperator *op, const char *slotname)
 	return slot->data.p;
 }
 
-void BMO_Get_Vec(BMOperator *op, const char *slotname, float *vec_out)
+void BMO_Get_Vec(BMOperator *op, const char *slotname, float r_vec[3])
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	if( !(slot->slottype == BMOP_OPSLOT_VEC) )
 		return;
 
-	copy_v3_v3(vec_out, slot->data.vec);
+	copy_v3_v3(r_vec, slot->data.vec);
 }
 
 /*

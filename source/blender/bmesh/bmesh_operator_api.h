@@ -249,8 +249,8 @@ int BMO_Get_Int(BMOperator *op, const char *slotname);
   though.*/
 void BMO_Set_Pnt(struct BMOperator *op, const char *slotname, void *p);
 void *BMO_Get_Pnt(BMOperator *op, const char *slotname);
-void BMO_Set_Vec(struct BMOperator *op, const char *slotname, float *vec);
-void BMO_Get_Vec(BMOperator *op, const char *slotname, float *vec_out);
+void BMO_Set_Vec(struct BMOperator *op, const char *slotname, const float vec[3]);
+void BMO_Get_Vec(BMOperator *op, const char *slotname, float r_vec[3]);
 
 /*only supports square mats*/
 /*size must be 3 or 4; this api is meant only for transformation matrices.

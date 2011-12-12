@@ -430,56 +430,57 @@ BMFace *BM_get_actFace(BMesh *bm, int sloppy)
 	return NULL;
 }
 
-/* generic way to get data from an EditSelection type 
-These functions were written to be used by the Modifier widget when in Rotate about active mode,
-but can be used anywhere.
-EM_editselection_center
-EM_editselection_normal
-EM_editselection_plane
+/* Generic way to get data from an EditSelection type
+ * These functions were written to be used by the Modifier widget
+ * when in Rotate about active mode, but can be used anywhere.
+ *
+ * - EM_editselection_center
+ * - EM_editselection_normal
+ * - EM_editselection_plane
 */
-void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese)
+void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese)
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
-		copy_v3_v3(center, eve->co);
+		copy_v3_v3(r_center, eve->co);
 	}
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed= ese->data;
-		add_v3_v3v3(center, eed->v1->co, eed->v2->co);
-		mul_v3_fl(center, 0.5);
+		add_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
+		mul_v3_fl(r_center, 0.5);
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
-		BM_Compute_Face_CenterBounds(bm, efa, center);
+		BM_Compute_Face_CenterBounds(bm, efa, r_center);
 	}
 }
 
-void BM_editselection_normal(float *normal, BMEditSelection *ese)
+void BM_editselection_normal(float r_normal[3], BMEditSelection *ese)
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
-		copy_v3_v3(normal, eve->no);
+		copy_v3_v3(r_normal, eve->no);
 	}
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed= ese->data;
 		float plane[3]; /* need a plane to correct the normal */
 		float vec[3]; /* temp vec storage */
 		
-		add_v3_v3v3(normal, eed->v1->no, eed->v2->no);
+		add_v3_v3v3(r_normal, eed->v1->no, eed->v2->no);
 		sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
 		
 		/* the 2 vertex normals will be close but not at rightangles to the edge
 		for rotate about edge we want them to be at right angles, so we need to
 		do some extra colculation to correct the vert normals,
 		we need the plane for this */
-		cross_v3_v3v3(vec, normal, plane);
-		cross_v3_v3v3(normal, plane, vec); 
-		normalize_v3(normal);
+		cross_v3_v3v3(vec, r_normal, plane);
+		cross_v3_v3v3(r_normal, plane, vec);
+		normalize_v3(r_normal);
 		
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa= ese->data;
-		copy_v3_v3(normal, efa->no);
+		copy_v3_v3(r_normal, efa->no);
 	}
 }
 
@@ -488,7 +489,7 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
 also make the plane run along an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
-void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
+void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese)
 {
 	if (ese->htype == BM_VERT) {
 		BMVert *eve= ese->data;
@@ -496,7 +497,7 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 		
 		if (ese->prev) { /*use previously selected data to make a useful vertex plane */
 			BM_editselection_center(bm, vec, ese->prev);
-			sub_v3_v3v3(plane, vec, eve->co);
+			sub_v3_v3v3(r_plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
@@ -505,7 +506,7 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 			if (eve->no[0] < 0.5f)		vec[0]= 1.0f;
 			else if (eve->no[1] < 0.5f)	vec[1]= 1.0f;
 			else						vec[2]= 1.0f;
-			cross_v3_v3v3(plane, eve->no, vec);
+			cross_v3_v3v3(r_plane, eve->no, vec);
 		}
 	}
 	else if (ese->htype == BM_EDGE) {
@@ -517,9 +518,9 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 		(running along the edge).. to flip less often.
 		at least its more pradictable */
 		if (eed->v2->co[1] > eed->v1->co[1]) /*check which to do first */
-			sub_v3_v3v3(plane, eed->v2->co, eed->v1->co);
+			sub_v3_v3v3(r_plane, eed->v2->co, eed->v1->co);
 		else
-			sub_v3_v3v3(plane, eed->v1->co, eed->v2->co);
+			sub_v3_v3v3(r_plane, eed->v1->co, eed->v2->co);
 		
 	}
 	else if (ese->htype == BM_FACE) {
@@ -537,7 +538,7 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 			if      (efa->no[0] < 0.5f)	vec[0]= 1.0f;
 			else if (efa->no[1] < 0.5f)	vec[1]= 1.0f;
 			else                        vec[2]= 1.0f;
-			cross_v3_v3v3(plane, efa->no, vec);
+			cross_v3_v3v3(r_plane, efa->no, vec);
 		}
 		else {
 			BMVert *verts[4]= {NULL};
@@ -548,37 +549,37 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 				float vecA[3], vecB[3];
 				sub_v3_v3v3(vecA, verts[3]->co, verts[2]->co);
 				sub_v3_v3v3(vecB, verts[0]->co, verts[1]->co);
-				add_v3_v3v3(plane, vecA, vecB);
+				add_v3_v3v3(r_plane, vecA, vecB);
 
 				sub_v3_v3v3(vecA, verts[0]->co, verts[3]->co);
 				sub_v3_v3v3(vecB, verts[1]->co, verts[2]->co);
 				add_v3_v3v3(vec, vecA, vecB);
 				/*use the biggest edge length*/
-				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec)) {
-					copy_v3_v3(plane, vec);
+				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec)) {
+					copy_v3_v3(r_plane, vec);
 				}
 			}
 			else {
 				/* BMESH_TODO (not urgent, use longest ngon edge for alignment) */
 
 				/*start with v1-2 */
-				sub_v3_v3v3(plane, verts[0]->co, verts[1]->co);
+				sub_v3_v3v3(r_plane, verts[0]->co, verts[1]->co);
 
 				/*test the edge between v2-3, use if longer */
 				sub_v3_v3v3(vec, verts[1]->co, verts[2]->co);
-				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec))
-					copy_v3_v3(plane, vec);
+				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec))
+					copy_v3_v3(r_plane, vec);
 
 				/*test the edge between v1-3, use if longer */
 				sub_v3_v3v3(vec, verts[2]->co, verts[0]->co);
-				if (dot_v3v3(plane, plane) < dot_v3v3(vec, vec)) {
-					copy_v3_v3(plane, vec);
+				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec)) {
+					copy_v3_v3(r_plane, vec);
 				}
 			}
 
 		}
 	}
-	normalize_v3(plane);
+	normalize_v3(r_plane);
 }
 
 static int BM_check_selection(BMesh *bm, void *data)

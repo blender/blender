@@ -43,9 +43,9 @@ int BM_CountFlag(struct BMesh *bm, const char htype, const char hflag, int respe
 /*edit selection stuff*/
 void BM_set_actFace(BMesh *em, BMFace *f);
 BMFace *BM_get_actFace(BMesh *bm, int sloppy);
-void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese);
-void BM_editselection_normal(float *normal, BMEditSelection *ese);
-void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese);
+void BM_editselection_center(BMesh *bm, float r_center[3], BMEditSelection *ese);
+void BM_editselection_normal(float r_normal[3], BMEditSelection *ese);
+void BM_editselection_plane(BMesh *bm, float r_plane[3], BMEditSelection *ese);
 void BM_remove_selection(BMesh *bm, void *data);
 void BM_store_selection(BMesh *bm, void *data);
 void BM_validate_selections(BMesh *bm);

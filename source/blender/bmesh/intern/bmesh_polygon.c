@@ -58,7 +58,7 @@
  *
 */
 
-static short testedgeside(double *v1, double *v2, double *v3)
+static short testedgeside(const double v1[2], const double v2[2], const double v3[2])
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
 	double inp;
@@ -74,7 +74,7 @@ static short testedgeside(double *v1, double *v2, double *v3)
 	return 1;
 }
 
-static short testedgesidef(float *v1, float *v2, float *v3)
+static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
 	double inp;
@@ -90,7 +90,7 @@ static short testedgesidef(float *v1, float *v2, float *v3)
 	return 1;
 }
 
-static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
+static int point_in_triangle(const double v1[2], const double v2[2], const double v3[2], const double pt[2])
 {
 	if(testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
 		return 1;
@@ -187,7 +187,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
  *
 */
 
-static int compute_poly_center(float center[3], float *area, float (*verts)[3], int nverts)
+static int compute_poly_center(float center[3], float *r_area, float (*verts)[3], int nverts)
 {
 	int i, j;
 	float atmp = 0.0, xtmp = 0.0, ytmp = 0.0, ai;
@@ -209,8 +209,8 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 		j += 1;
 	}
 
-	if(area)
-		*area = atmp / 2.0f;	
+	if(r_area)
+		*r_area = atmp / 2.0f;
 	
 	if (atmp != 0){
 		center[0] = xtmp /  (3.0f * atmp);
@@ -220,7 +220,7 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 	return 0;
 }
 
-float BM_face_area(BMFace *f)
+float BM_Compute_Face_Area(BMesh *bm, BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
@@ -231,7 +231,7 @@ float BM_face_area(BMFace *f)
 	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
 
 	i = 0;
-	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_FACE, f) {
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 		copy_v3_v3(verts[i], l->v->co);
 		i++;
 	}
@@ -275,7 +275,7 @@ void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float r_cent[3])
 		add_v3_v3(r_cent, l->v->co);
 	}
 
-	mul_v3_fl(r_cent, 1.0f / (float)f->len);
+	if (f->len) mul_v3_fl(r_cent, 1.0f / (float)f->len);
 }
 
 /*
@@ -355,7 +355,7 @@ static void shrink_edged(double *v1, double *v2, double fac)
 }
 #endif
 
-static void shrink_edgef(float *v1, float *v2, float fac)
+static void shrink_edgef(float v1[3], float v2[3], const float fac)
 {
 	float mid[3];
 
@@ -537,7 +537,7 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-static int UNUSED_FUNCTION(linecrosses)(double *v1, double *v2, double *v3, double *v4)
+static int UNUSED_FUNCTION(linecrosses)(const double v1[2], const double v2[2], const double v3[2], const double v4[2])
 {
 	int w1, w2, w3, w4, w5;
 	
@@ -558,7 +558,7 @@ static int UNUSED_FUNCTION(linecrosses)(double *v1, double *v2, double *v3, doub
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-static int linecrossesf(float *v1, float *v2, float *v3, float *v4)
+static int linecrossesf(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	int w1, w2, w3, w4, w5 /*, ret*/;
 	float mv1[2], mv2[2], mv3[2], mv4[2];

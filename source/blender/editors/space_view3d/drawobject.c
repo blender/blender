@@ -2700,7 +2700,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	}
 
 	if(me->drawflag & ME_DRAWEXTRA_FACEAREA) {
-		/* would be nice to use BM_face_area, but that is for 2d faces
+		/* would be nice to use BM_Compute_Face_Area, but that is for 2d faces
 		so instead add up tessalation triangle areas */
 		BMFace *f;
 		int n;

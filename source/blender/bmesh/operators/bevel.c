@@ -79,7 +79,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3])
 
 		/* not strictly necessary, balance vectors
 		 * so the longer edge doesn't skew the result,
-		 * gives nicer, move event output */
+		 * gives nicer, move even output */
 		float medium= (normalize_v3(l_vec_prev) + normalize_v3(l_vec_next)) / 2.0f;
 		mul_v3_fl(l_vec_prev, medium);
 		mul_v3_fl(l_vec_next, medium);

@@ -110,7 +110,7 @@
  *	A BMVert pointer.
  */
 
-BMVert *bmesh_mv(BMesh *bm, float *vec)
+BMVert *bmesh_mv(BMesh *bm, const float vec[3])
 {
 	BMVert *v = bmesh_addvertlist(bm, NULL);	
 	copy_v3_v3(v->co,vec);

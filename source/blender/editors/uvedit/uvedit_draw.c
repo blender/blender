@@ -202,7 +202,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 				poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
-				totarea += BM_face_area(efa);
+				totarea += BM_Compute_Face_Area(em->bm, efa);
 				//totuvarea += tf_area(tf, efa->v4!=0);
 				totuvarea += poly_uv_area(tf_uv, efa->len);
 				
@@ -234,7 +234,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			else {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 					if(BM_TestHFlag(efa, BM_TMP_TAG)) {
-						area = BM_face_area(efa) / totarea;
+						area = BM_Compute_Face_Area(em->bm, efa) / totarea;
 
 						BLI_array_empty(tf_uv);
 						BLI_array_empty(tf_uvorig);

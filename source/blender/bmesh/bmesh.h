@@ -287,9 +287,11 @@ void BM_free_data_layer_n(BMesh *bm, CustomData *data, int type, int n);
 float BM_GetCDf(struct CustomData *cd, void *element, int type);
 void BM_SetCDf(struct CustomData *cd, void *element, int type, float val);
 
-/*computes the centroid of a face, using the center of the bounding box*/
+/* get the area of the face */
+float BM_Compute_Face_Area(BMesh *bm, BMFace *f);
+/* computes the centroid of a face, using the center of the bounding box */
 void BM_Compute_Face_CenterBounds(BMesh *bm, BMFace *f, float center[3]);
-/*computes the centroid of a face, using the mean average*/
+/* computes the centroid of a face, using the mean average */
 void BM_Compute_Face_CenterMean(BMesh *bm, BMFace *f, float center[3]);
 
 void BM_SelectMode_Flush ( BMesh *bm );

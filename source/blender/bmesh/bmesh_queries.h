@@ -4,9 +4,6 @@
 
 /*Queries*/
 
-/*get the area of face f*/
-float BM_face_area(BMFace *f);
-
 /*counts number of elements of type type are in the mesh.*/
 int BM_Count_Element(struct BMesh *bm, const char htype);
 
