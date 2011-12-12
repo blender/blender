@@ -3,7 +3,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
-#include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_array.h"
@@ -31,53 +30,47 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
+static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3])
 {
-	float  no[3], vec1[3], vec2[3], v1[3], v2[3], v3[3], v4[3];
-	int inv;
+	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3];
+	int is_concave;
 	
 	if (l->f->len > 2) {
-		copy_v3_v3(v1, l->prev->v->co);
-		copy_v3_v3(v2, l->v->co);
-		copy_v3_v3(v3, l->v->co);
-		copy_v3_v3(v4, l->next->v->co);
+		copy_v3_v3(l_co_prev, l->prev->v->co);
+		copy_v3_v3(l_co, l->v->co);
+		copy_v3_v3(l_co_next, l->next->v->co);
 
 		/*calculate normal*/
-		sub_v3_v3v3(vec1, v1, v2);
-		sub_v3_v3v3(vec2, v4, v3);
+		sub_v3_v3v3(l_vec_prev, l_co_prev, l_co);
+		sub_v3_v3v3(l_vec_next, l_co_next, l_co);
 
-		cross_v3_v3v3(no, vec1, vec2);
-		inv= dot_v3v3(no, l->f->no) > 0.0f;
+		cross_v3_v3v3(no, l_vec_prev, l_vec_next);
+		is_concave= dot_v3v3(no, l->f->no) > 0.0f;
 	}
 	else {
 		BMIter iter;
 		BMLoop *l2;
 		float up[3] = {0.0f, 0.0f, 1.0f};
-		
-		copy_v3_v3(v1, l->prev->v->co);
-		copy_v3_v3(v2, l->v->co);
-		copy_v3_v3(v3, l->v->co);
+
+		copy_v3_v3(l_co_prev, l->prev->v->co);
+		copy_v3_v3(l_co, l->v->co);
 		
 		BM_ITER(l2, &iter, bm, BM_LOOPS_OF_VERT, l->v) {
 			if (l2->f != l->f) {
-				copy_v3_v3(v4, BM_OtherEdgeVert(l2->e, l2->next->v)->co);
+				copy_v3_v3(l_co_next, BM_OtherEdgeVert(l2->e, l2->next->v)->co);
 				break;
 			}
 		}
 		
-		sub_v3_v3v3(vec1, v1, v2);
-		sub_v3_v3v3(vec2, v4, v3);
+		sub_v3_v3v3(l_vec_prev, l_co_prev, l_co);
+		sub_v3_v3v3(l_vec_next, l_co_next, l_co);
 
-		cross_v3_v3v3(no, vec1, vec2);
+		cross_v3_v3v3(no, l_vec_prev, l_vec_next);
 		if (dot_v3v3(no, no) == 0.0f) {
 			no[0] = no[1] = 0.0f; no[2] = -1.0f;	
 		}
 		
-		inv = dot_v3v3(no, up) < 0.0f;
-
-		/*calculate normal*/
-		sub_v3_v3v3(vec1, v1, v2);
-		sub_v3_v3v3(vec2, v4, v3);
+		is_concave = dot_v3v3(no, up) < 0.0f;
 	}
 
 	if (1) {
@@ -87,43 +80,43 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 		/* not strictly necessary, balance vectors
 		 * so the longer edge doesn't skew the result,
 		 * gives nicer, move event output */
-		float medium= (normalize_v3(vec1) + normalize_v3(vec2)) / 2.0f;
-		mul_v3_fl(vec1, medium);
-		mul_v3_fl(vec2, medium);
+		float medium= (normalize_v3(l_vec_prev) + normalize_v3(l_vec_next)) / 2.0f;
+		mul_v3_fl(l_vec_prev, medium);
+		mul_v3_fl(l_vec_next, medium);
 		/* done */
 
 
-		add_v3_v3(vec1, vec2);
-		mul_v3_fl(vec1, fac * 0.5);
+		add_v3_v3(l_vec_prev, l_vec_next);
+		mul_v3_fl(l_vec_prev, fac * 0.5);
 
-		if (inv)
-			negate_v3(vec1);
+		if (is_concave)
+			negate_v3(l_vec_prev);
 
-		add_v3_v3v3(co, vec1, l->v->co);
+		add_v3_v3v3(r_co, l_vec_prev, l->v->co);
 	}
 	else {
 		/* distance based */
 		float tvec[3];
 		float dist;
 
-		normalize_v3(vec1);
-		normalize_v3(vec2);
+		normalize_v3(l_vec_prev);
+		normalize_v3(l_vec_next);
 
 		/* get the medium normalized direction */
-		add_v3_v3v3(tvec, vec1,vec2);
+		add_v3_v3v3(tvec, l_vec_prev,l_vec_next);
 		normalize_v3(tvec);
 
 		/* for angle calculation */
-		negate_v3(vec2);
+		negate_v3(l_vec_next);
 
-		dist= shell_angle_to_dist(angle_normalized_v3v3(vec1, vec2) * 0.5);
+		dist= shell_angle_to_dist(angle_normalized_v3v3(l_vec_prev, l_vec_next) * 0.5);
 
 		mul_v3_fl(tvec, fac * dist);
 
-		if (inv)
+		if (is_concave)
 			negate_v3(tvec);
 
-		add_v3_v3v3(co, tvec, l->v->co);
+		add_v3_v3v3(r_co, tvec, l->v->co);
 
 	}
 }
@@ -321,7 +314,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				if (BMO_TestFlag(bm, l->prev->e, BEVEL_FLAG))
 				{
 					tag = tags + BM_GetIndex(l);
-					calc_corner_co(bm, l, co, fac);
+					calc_corner_co(bm, l, fac, co);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 				} else {
 					tag = tags + BM_GetIndex(l);
