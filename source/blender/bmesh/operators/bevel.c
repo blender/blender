@@ -80,14 +80,52 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 		sub_v3_v3v3(vec2, v4, v3);
 	}
 
-	/*simple percentage method */
-	add_v3_v3(vec1, vec2);
-	mul_v3_fl(vec1, fac * 0.5);
+	if (1) {
+		/*simple percentage method */
 
-	if (inv)
-		negate_v3(vec1);
-	
-	add_v3_v3v3(co, vec1, l->v->co);
+
+		/* not strictly necessary, balance vectors
+		 * so the longer edge doesn't skew the result,
+		 * gives nicer, move event output */
+		float medium= (normalize_v3(vec1) + normalize_v3(vec2)) / 2.0f;
+		mul_v3_fl(vec1, medium);
+		mul_v3_fl(vec2, medium);
+		/* done */
+
+
+		add_v3_v3(vec1, vec2);
+		mul_v3_fl(vec1, fac * 0.5);
+
+		if (inv)
+			negate_v3(vec1);
+
+		add_v3_v3v3(co, vec1, l->v->co);
+	}
+	else {
+		/* distance based */
+		float tvec[3];
+		float dist;
+
+		normalize_v3(vec1);
+		normalize_v3(vec2);
+
+		/* get the medium normalized direction */
+		add_v3_v3v3(tvec, vec1,vec2);
+		normalize_v3(tvec);
+
+		/* for angle calculation */
+		negate_v3(vec2);
+
+		dist= shell_angle_to_dist(angle_normalized_v3v3(vec1, vec2) * 0.5);
+
+		mul_v3_fl(tvec, fac * dist);
+
+		if (inv)
+			negate_v3(tvec);
+
+		add_v3_v3v3(co, tvec, l->v->co);
+
+	}
 }
 
 #define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BM_GetIndex((e))].newv2 = (nv))
