@@ -201,7 +201,7 @@ void CLIP_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Clip";
-	ot->description= "Load a sequence of frames or a movie file.";
+	ot->description= "Load a sequence of frames or a movie file";
 	ot->idname= "CLIP_OT_open";
 
 	/* api callbacks */
