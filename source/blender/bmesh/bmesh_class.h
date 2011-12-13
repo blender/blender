@@ -37,13 +37,10 @@ struct BMVert;
 struct BMEdge;
 struct BMLoop;
 struct BMFace;
-struct BMVert;
-struct BMEdge;
-struct BMLoop;
-struct BMFace;
+struct BMFlagLayer;
 struct BMLayerType;
 struct BMSubClassLayer;
-struct BMFlagLayer;
+
 struct BLI_mempool;
 struct Object;
 
@@ -54,7 +51,12 @@ struct Object;
 typedef struct BMHeader {
 	void *data; /*customdata layers*/
 	struct BMFlagLayer *flags;
-	int index; /*note: use BM_GetIndex/SetIndex macros for index*/
+	int index; /* notes:
+	            * - Use BM_GetIndex/SetIndex macros for index
+	            * - Unitialized to -1 so we can easily tell its not set.
+	            * - Used for edge/vert/face, check BMesh.elem_index_dirty for valid index values,
+	            *   this is abused by various tools which set it dirty.
+	            * - For loops this is used for sorting during tesselation. */
 
 	char htype; /*element geometric type (verts/edges/loops/faces)*/
 	char hflag; /*this would be a CD layer, see below*/
@@ -95,7 +97,6 @@ typedef struct BMLoop {
 	
 	/*private variables*/
 	struct BMLoop *next, *prev; /*won't be able to use listbase API, ger, due to head*/
-	int _index; /*used for sorting during tesselation*/
 } BMLoop;
 
 /*eventually, this structure will be used for supporting holes in faces*/

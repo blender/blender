@@ -199,7 +199,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 			
 				BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_FACE, l->f) {
-					BM_SetIndex(l2, BLI_array_count(tags)); /* set_dirty! */
+					BM_SetIndex(l2, BLI_array_count(tags)); /* set_loop */
 					BLI_array_growone(tags);
 
 					if (!BMO_TestFlag(bm, l2->e, EDGE_OLD)) {

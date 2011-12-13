@@ -173,7 +173,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BMIter_Step(&liter), j++) {
 				/*mark order*/
-				l->_index = j;
+				BM_SetIndex(l, j); /* set_loop */
 
 				v = BLI_addfillvert(l->v->co);
 				v->tmp.p = l;
@@ -198,9 +198,9 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 
 				BLI_array_growone(looptris);
 
-				if (l1->_index > l2->_index) { SWAP(BMLoop*, l1, l2); }
-				if (l2->_index > l3->_index) { SWAP(BMLoop*, l2, l3); }
-				if (l1->_index > l2->_index) { SWAP(BMLoop*, l1, l2); }
+				if (BM_GetIndex(l1) > BM_GetIndex(l2)) { SWAP(BMLoop*, l1, l2); }
+				if (BM_GetIndex(l2) > BM_GetIndex(l3)) { SWAP(BMLoop*, l2, l3); }
+				if (BM_GetIndex(l1) > BM_GetIndex(l2)) { SWAP(BMLoop*, l1, l2); }
 
 				looptris[i][0] = l1;
 				looptris[i][1] = l2;
