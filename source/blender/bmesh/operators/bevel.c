@@ -30,11 +30,12 @@ typedef struct EdgeTag {
 	BMVert *newv1, *newv2;
 } EdgeTag;
 
-static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3])
+static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3], const short do_dist, const short do_even)
 {
-	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3];
+	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3], co_ofs[3];
 	int is_concave;
 
+	/* first get the prev/next verts */
 	if (l->f->len > 2) {
 		copy_v3_v3(l_co_prev, l->prev->v->co);
 		copy_v3_v3(l_co, l->v->co);
@@ -73,56 +74,68 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3])
 		is_concave = dot_v3v3(no, up) < 0.0f;
 	}
 
-	if (1) {
-		/*simple percentage method */
 
+	/* now calculate the new location */
+	if (do_dist) { /* treat 'fac' as distance */
+
+		normalize_v3(l_vec_prev);
+		normalize_v3(l_vec_next);
+
+		add_v3_v3v3(co_ofs, l_vec_prev,l_vec_next);
+		normalize_v3(co_ofs);
+
+		if (do_even) {
+			negate_v3(l_vec_next);
+			mul_v3_fl(co_ofs, fac * shell_angle_to_dist(0.5f * angle_normalized_v3v3(l_vec_prev, l_vec_next)));
+			/* negate_v3(l_vec_next); */ /* no need unless we use again */
+		}
+		else {
+			mul_v3_fl(co_ofs, fac);
+		}
+	}
+	else { /* treat as 'fac' as a factor (0 - 1) */
 
 		/* not strictly necessary, balance vectors
 		 * so the longer edge doesn't skew the result,
 		 * gives nicer, move even output */
 		float medium= (normalize_v3(l_vec_prev) + normalize_v3(l_vec_next)) / 2.0f;
+		float angle= do_even ? angle_normalized_v3v3(l_vec_prev, l_vec_next) : 0.0f; /* get angle while normalized */
+
 		mul_v3_fl(l_vec_prev, medium);
 		mul_v3_fl(l_vec_next, medium);
+
+		add_v3_v3v3(co_ofs, l_vec_prev, l_vec_next);
+
 		/* done */
-
-
-		add_v3_v3(l_vec_prev, l_vec_next);
-		mul_v3_fl(l_vec_prev, fac * 0.5);
-
-		if (is_concave)
-			negate_v3(l_vec_prev);
-
-		add_v3_v3v3(r_co, l_vec_prev, l->v->co);
+		if (do_even) {
+			negate_v3(l_vec_next);
+			mul_v3_fl(co_ofs, (fac * 0.5) * shell_angle_to_dist(0.5f * angle));
+			/* negate_v3(l_vec_next); */ /* no need unless we use again */
+		}
+		else {
+			mul_v3_fl(co_ofs, fac * 0.5);
+		}
 	}
-	else {
-		/* distance based */
-		float tvec[3];
-		float dist;
 
-		normalize_v3(l_vec_prev);
-		normalize_v3(l_vec_next);
+	/* apply delta vec */
+	if (is_concave)
+		negate_v3(co_ofs);
 
-		/* get the medium normalized direction */
-		add_v3_v3v3(tvec, l_vec_prev,l_vec_next);
-		normalize_v3(tvec);
-
-		/* for angle calculation */
-		negate_v3(l_vec_next);
-
-		dist= shell_angle_to_dist(angle_normalized_v3v3(l_vec_prev, l_vec_next) * 0.5);
-
-		mul_v3_fl(tvec, fac * dist);
-
-		if (is_concave)
-			negate_v3(tvec);
-
-		add_v3_v3v3(r_co, tvec, l->v->co);
-
-	}
+	add_v3_v3v3(r_co, co_ofs, l->v->co);
 }
 
-#define ETAG_SET(e, v, nv) (v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1 = (nv)) : (etags[BM_GetIndex((e))].newv2 = (nv))
-#define ETAG_GET(e, v) ((v) == (e)->v1 ? (etags[BM_GetIndex((e))].newv1) : (etags[BM_GetIndex((e))].newv2))
+
+#define ETAG_SET(e, v, nv)  (                                                 \
+	(v) == (e)->v1 ?                                                          \
+		(etags[BM_GetIndex((e))].newv1 = (nv)) :                              \
+		(etags[BM_GetIndex((e))].newv2 = (nv))                                \
+	)
+
+#define ETAG_GET(e, v)  (                                                     \
+	(v) == (e)->v1 ?                                                          \
+		(etags[BM_GetIndex((e))].newv1) :                                     \
+		(etags[BM_GetIndex((e))].newv2)                                       \
+	)
 
 void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 {
@@ -142,9 +155,11 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	SmallHash hash;
 	float fac = BMO_Get_Float(op, "percent");
+	const short do_even = BMO_Get_Int(op, "use_even");
+	const short do_dist = BMO_Get_Int(op, "use_dist");
 	int i, li, has_elens, HasMDisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	
-	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_Get_Int(op, "uselengths");
+	has_elens = CustomData_has_layer(&bm->edata, CD_PROP_FLT) && BMO_Get_Int(op, "use_lengths");
 	if (has_elens) {
 		li = BMO_Get_Int(op, "lengthlayer");
 	}
@@ -314,7 +329,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				if (BMO_TestFlag(bm, l->prev->e, BEVEL_FLAG))
 				{
 					tag = tags + BM_GetIndex(l);
-					calc_corner_co(bm, l, fac, co);
+					calc_corner_co(bm, l, fac, co, do_dist, do_even);
 					tag->newv = BM_Make_Vert(bm, co, l->v);
 				} else {
 					tag = tags + BM_GetIndex(l);

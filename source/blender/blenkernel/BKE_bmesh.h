@@ -209,6 +209,10 @@ int BME_loop_reverse(struct BME_Mesh *bm, struct BME_Poly *f);
 #define BME_BEVEL_RUNNING		(1<<9)
 #define BME_BEVEL_RES			(1<<10)
 
+#define BME_BEVEL_EVEN			(1<<11) /* this is a new setting not related to old (trunk bmesh bevel code) but adding
+                                         * here because they are mixed - campbell */
+#define BME_BEVEL_DIST			(1<<12) /* same as above */
+
 typedef struct BME_TransData {
 	BME_Mesh *bm; /* the bmesh the vert belongs to */
 	BME_Vert *v;  /* pointer to the vert this tdata applies to */

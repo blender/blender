@@ -1012,7 +1012,10 @@ static BMOpDefine def_bevel = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
 	 {BMOP_OPSLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
-	 {BMOP_OPSLOT_INT, "uselengths"}, /* grab edge lengths from a PROP_FLT customdata layer*/
+	 {BMOP_OPSLOT_INT, "use_lengths"}, /* grab edge lengths from a PROP_FLT customdata layer*/
+	 {BMOP_OPSLOT_INT, "use_even"}, /* corner vert placement: use shell/angle calculations  */
+	 {BMOP_OPSLOT_INT, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
+	                                 * modifier uses this. We could do this as another float setting */
 	 {BMOP_OPSLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to use*/
 	 {BMOP_OPSLOT_FLT, "percent"}, /* percentage to expand bevelled edges*/
 	 {0} /*null-terminating sentinel*/},

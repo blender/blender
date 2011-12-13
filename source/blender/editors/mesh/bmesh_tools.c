@@ -4461,11 +4461,9 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMOperator bmop;
 	float factor= RNA_float_get(op->ptr, "percent"), fac=factor /*, dfac */ /* UNUSED */, df, s;
-	/*float p2 = RNA_float_get(op->ptr, "param2");
-	float p3 = RNA_float_get(op->ptr, "param3");
-	float p4 = RNA_float_get(op->ptr, "param4");
-	float p5 = RNA_float_get(op->ptr, "param5");*/
 	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	const int use_even= RNA_boolean_get(op->ptr, "use_even");
+	const int use_dist= RNA_boolean_get(op->ptr, "use_dist");
 	float *w = NULL, ftot;
 	int li;
 	BLI_array_declare(w);
@@ -4500,7 +4498,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	for (i=0; i<BLI_array_count(w); i++) {
 		fac = w[BLI_array_count(w)-i-1]*factor;
 
-		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f lengthlayer=%i uselengths=%i", BM_SELECT, fac, li, 1))
+		if (!EDBM_InitOpf(em, &bmop, op, "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%i use_even=%i use_dist=%i", BM_SELECT, fac, li, 1, use_even, use_dist))
 			return OPERATOR_CANCELLED;
 		
 		BMO_Exec_Op(em->bm, &bmop);
@@ -4535,10 +4533,10 @@ void MESH_OT_bevel(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
-	//RNA_def_float(ot->srna, "param2", 1.0f, -FLT_MAX, FLT_MAX, "Parameter 2", "", -1000.0f, 1000.0f);
-	//RNA_def_float(ot->srna, "param3", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 3", "", -1000.0f, 1000.0f);
-	//RNA_def_float(ot->srna, "param4", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 4", "", -1000.0f, 1000.0f);
-	//RNA_def_float(ot->srna, "param5", 0.5f, -FLT_MAX, FLT_MAX, "Parameter 5", "", -1000.0f, 1000.0f);
+
+	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
+	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
+
 }
 
 static int mesh_export_obj_exec(bContext *C, wmOperator *op)
