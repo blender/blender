@@ -85,7 +85,7 @@ void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr,
 
 /* 2D tracking */
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,
-			short backwards, short disable_failed);
+			short backwards, short disable_failed, short sequence);
 void BKE_tracking_context_free(struct MovieTrackingContext *context);
 void BKE_tracking_sync(struct MovieTrackingContext *context);
 void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingContext *context);
