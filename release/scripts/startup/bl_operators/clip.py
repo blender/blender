@@ -413,7 +413,12 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _setupCamera(context):
+        sc = context.space_data
+        clip = sc.clip
+        tracking = clip.tracking
+
         camob = CLIP_OT_setup_tracking_scene._findOrCreateCamera(context)
+        cam = camob.data
 
         # Remove all constraints to be sure motion is fine
         camob.constraints.clear()
@@ -422,6 +427,9 @@ class CLIP_OT_setup_tracking_scene(Operator):
         con = camob.constraints.new(type='CAMERA_SOLVER')
         con.use_active_clip = True
         con.influence = 1.0
+
+        cam.sensor_width = tracking.camera.sensor_width
+        cam.lens = tracking.camera.focal_length
 
     @staticmethod
     def _setupViewport(context):

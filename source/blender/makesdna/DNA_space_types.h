@@ -553,23 +553,6 @@ typedef struct SpaceClip {
 #define BUTS_CONSTRAINT		13
 #define BUTS_EFFECTS		14
 
-/* sbuts->tab new (deprecated) */
-#define TAB_SHADING_MAT 	0
-#define TAB_SHADING_TEX 	1
-#define TAB_SHADING_RAD 	2
-#define TAB_SHADING_WORLD	3
-#define TAB_SHADING_LAMP	4
-
-#define TAB_OBJECT_OBJECT	0
-#define TAB_OBJECT_PHYSICS 	1
-#define TAB_OBJECT_PARTICLE	2
-
-#define TAB_SCENE_RENDER	0
-#define TAB_SCENE_WORLD     	1
-#define TAB_SCENE_ANIM		2
-#define TAB_SCENE_SOUND		3
-#define TAB_SCENE_SEQUENCER	4
-
 /* buts->mainb new */
 #define BCONTEXT_RENDER				0
 #define BCONTEXT_SCENE				1
@@ -684,7 +667,7 @@ enum FileSortTypeE {
 
 
 /* Selection Flags in filesel: struct direntry, unsigned char selflag */
-#define ACTIVE_FILE 		(1<<1)
+/* #define ACTIVE_FILE 		(1<<1) */ /* UNUSED */
 #define HILITED_FILE		(1<<2)
 #define SELECTED_FILE		(1<<3)
 #define EDITING_FILE		(1<<4)

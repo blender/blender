@@ -2481,22 +2481,14 @@ void uiPupMenuOkee(bContext *C, const char *opname, const char *str, ...)
 	va_end(ap);
 }
 
+/* note, only call this is the file exists,
+ * the case where the file does not exist so can be saved without a
+ * popup must be checked for already, since saving from here
+ * will free the operator which will break invoke().
+ * The operator state for this is implicitly OPERATOR_RUNNING_MODAL */
 void uiPupMenuSaveOver(bContext *C, wmOperator *op, const char *filename)
 {
-	size_t len= strlen(filename);
-
-	if(len==0)
-		return;
-
-	if(filename[len-1]=='/' || filename[len-1]=='\\') {
-		uiPupMenuError(C, "Cannot overwrite a directory");
-		WM_operator_free(op);
-		return;
-	}
-	if(BLI_exists(filename)==0)
-		operator_cb(C, op, 1);
-	else
-		confirm_operator(C, op, "Save Over", filename);
+	confirm_operator(C, op, "Save Over", filename);
 }
 
 void uiPupMenuNotice(bContext *C, const char *str, ...)

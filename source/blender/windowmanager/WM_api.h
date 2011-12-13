@@ -191,6 +191,7 @@ struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *
 int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
 int			WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context);
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
+int			WM_operator_call_notest(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
 int			WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
@@ -206,6 +207,7 @@ void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int exten
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
+int         WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 
 /* MOVE THIS SOMEWHERE ELSE */

@@ -410,7 +410,7 @@ void Session::run()
 	/* load kernels */
 	progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
-	if(!device->load_kernels()) {
+	if(!device->load_kernels(params.experimental)) {
 		string message = device->error_message();
 		if(message == "")
 			message = "Failed loading render kernel, see console for errors";

@@ -469,7 +469,7 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 	}
 
 #ifdef WITH_INTERNATIONAL
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
+	if(description && (U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
 		description= BLF_gettext(description);
 #endif
 

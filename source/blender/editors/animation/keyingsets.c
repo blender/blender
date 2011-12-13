@@ -798,7 +798,7 @@ void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op
 	for (ks= builtin_keyingsets.first; ks; ks=ks->next, i--) {
 		/* only show KeyingSet if context is suitable */
 		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemEnumO_value(layout, ks->name, ICON_NONE, op_name, "type", i);
+			uiItemIntO(layout, ks->name, ICON_NONE, op_name, "type", i);
 	}
 	
 	uiPupMenuEnd(C, pup);

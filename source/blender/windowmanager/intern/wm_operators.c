@@ -802,7 +802,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (RNA_property_is_set(op->ptr, "filepath")) {
-		return WM_operator_call(C, op);
+		return WM_operator_call_notest(C, op); /* call exec direct */
 	} 
 	else {
 		WM_event_add_fileselect(C, op);
@@ -907,6 +907,15 @@ int WM_operator_winactive(bContext *C)
 	return 1;
 }
 
+/* return FALSE, if the UI should be disabled */
+int WM_operator_check_ui_enabled(const bContext *C, const char *idname)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	Scene *scene= CTX_data_scene(C);
+
+	return !(ED_undo_valid(C, idname)==0 || WM_jobs_test(wm, scene));
+}
+
 wmOperator *WM_operator_last_redo(const bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -940,7 +949,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
-	if(ED_undo_valid(C, op->type->name)==0)
+	if (!WM_operator_check_ui_enabled(C, op->type->name))
 		uiLayoutSetEnabled(layout, 0);
 
 	if(op->type->flag & OPTYPE_MACRO) {
@@ -1628,7 +1637,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if(RNA_property_is_set(op->ptr, "filepath")) {
-		return WM_operator_call(C, op);
+		return WM_operator_call_notest(C, op);
 	} 
 	else {
 		/* XXX TODO solve where to get last linked library from */
@@ -1994,6 +2003,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	char name[FILE_MAX];
 	int check_existing=1;
+	int ret;
 	
 	/* cancel if no active window */
 	if (CTX_wm_window(C) == NULL)
@@ -2018,16 +2028,20 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 			check_existing = 0;
 	
 	if (G.save_over) {
-		if (check_existing)
+		if (check_existing && BLI_exists(name)) {
 			uiPupMenuSaveOver(C, op, name);
-		else {
-			wm_save_as_mainfile_exec(C, op);
+			ret= OPERATOR_RUNNING_MODAL;
 		}
-	} else {
+		else {
+			ret= wm_save_as_mainfile_exec(C, op);
+		}
+	}
+	else {
 		WM_event_add_fileselect(C, op);
+		ret= OPERATOR_RUNNING_MODAL;
 	}
 	
-	return OPERATOR_RUNNING_MODAL;
+	return ret;
 }
 
 static void WM_OT_save_mainfile(wmOperatorType *ot)

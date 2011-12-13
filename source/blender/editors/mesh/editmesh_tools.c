@@ -7510,10 +7510,11 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	EditSelection *ese = em->selected.last;
 
 
-	if(ese==NULL)
+	if (ese==NULL || ese->type != EDITVERT) {
+		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
 		return OPERATOR_CANCELLED;
-
-	if(ese->type==EDITVERT) {
+	}
+	else {
 		EditVert *ev;
 		EditVert *act_vert= (EditVert*)ese->data;
 		float value= act_vert->co[axis];

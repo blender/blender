@@ -513,7 +513,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	struct {DerivedMesh *dm; EditMesh *em; short has_mcol; short has_mtface;} *data = userData;
+	struct {EditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} *data = userData;
 	EditMesh *em = data->em;
 	EditFace *efa= EM_get_face_for_index(index);
 	MTFace *tface;
@@ -631,14 +631,12 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 static int compareDrawOptions(void *userData, int cur_index, int next_index)
 {
-	DerivedMesh *dm= (DerivedMesh*) userData;
-	MFace *mf = DM_get_face_data_layer(dm, CD_MFACE);
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
+	struct { MFace *mf; MTFace *tf; } *data = userData;
 
-	if(mf && mf[cur_index].mat_nr != mf[next_index].mat_nr)
+	if(data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
 		return 0;
 
-	if(tf && tf[cur_index].tpage != tf[next_index].tpage)
+	if(data->tf && data->tf[cur_index].tpage != data->tf[next_index].tpage)
 		return 0;
 
 	return 1;
@@ -646,14 +644,12 @@ static int compareDrawOptions(void *userData, int cur_index, int next_index)
 
 static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 {
-	struct {DerivedMesh *dm; EditMesh *em; short has_mcol; short has_mtface;} *data= userData;
-	MFace *mf = DM_get_face_data_layer(data->dm, CD_MFACE);
-	MTFace *tf = DM_get_face_data_layer(data->dm, CD_MTFACE);
+	struct {EditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} *data= userData;
 
-	if(mf && mf[cur_index].mat_nr != mf[next_index].mat_nr)
+	if(data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
 		return 0;
 
-	if(tf && tf[cur_index].tpage != tf[next_index].tpage)
+	if(data->tf && data->tf[cur_index].tpage != data->tf[next_index].tpage)
 		return 0;
 
 	return 1;
@@ -673,12 +669,13 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if(ob->mode & OB_MODE_EDIT) {
-		struct {DerivedMesh *dm; EditMesh *em; short has_mcol; short has_mtface;} data;
+		struct {EditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} data;
 
-		data.dm = dm;
 		data.em= me->edit_mesh;
 		data.has_mcol= CustomData_has_layer(&me->edit_mesh->fdata, CD_MCOL);
 		data.has_mtface= CustomData_has_layer(&me->edit_mesh->fdata, CD_MTFACE);
+		data.mf= DM_get_face_data_layer(dm, CD_MFACE);
+		data.tf= DM_get_face_data_layer(dm, CD_MTFACE);
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data);
 	}
@@ -696,10 +693,15 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				dm->drawFacesTex(dm, draw_tface__set_draw_legacy, NULL, NULL);
 		}
 		else {
+			struct { MFace *mf; MTFace *tf; } userData;
+
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
 
-			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, dm);
+			userData.mf = DM_get_face_data_layer(dm, CD_MFACE);
+			userData.tf = DM_get_face_data_layer(dm, CD_MTFACE);
+
+			dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData);
 		}
 	}
 

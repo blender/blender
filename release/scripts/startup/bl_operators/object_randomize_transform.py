@@ -22,6 +22,7 @@ import bpy
 from bpy.types import Operator
 from mathutils import Vector
 
+
 def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
     import random
@@ -44,9 +45,9 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
 
         if rot:
             vec = rand_vec(rot)
-            
+
             rotation_mode = obj.rotation_mode
-            if rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+            if rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
                 obj.rotation_mode = 'XYZ'
                 
             if delta:

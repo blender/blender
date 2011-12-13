@@ -1080,7 +1080,7 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend_out", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "blendout");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifier_blending_range");
-	RNA_def_property_ui_text(prop, "Blend Out", "Number of frames from start frame for influence to fade out");
+	RNA_def_property_ui_text(prop, "Blend Out", "Number of frames from end frame for influence to fade out");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* influence */

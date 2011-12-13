@@ -48,6 +48,7 @@
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
 #include "BKE_tracking.h"
@@ -881,6 +882,8 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->clip= clip;
 	context->user= *user;
 
+	BLI_begin_threaded_malloc();
+
 	return context;
 }
 
@@ -907,6 +910,8 @@ static void track_context_free(void *customdata)
 
 void BKE_tracking_context_free(MovieTrackingContext *context)
 {
+	BLI_end_threaded_malloc();
+
 	tracks_map_free(context->tracks_map, track_context_free);
 
 	MEM_freeN(context);

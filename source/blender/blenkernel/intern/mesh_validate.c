@@ -325,8 +325,8 @@ int BKE_mesh_validate_arrays( Mesh *me,
 	if (dverts) {
 		MDeformVert *dv;
 		for(i=0, dv= dverts; i<totvert; i++, dv++) {
-			MDeformWeight *dw= dv->dw;
-			unsigned int j= 0;
+			MDeformWeight *dw;
+			unsigned int j;
 
 			for(j=0, dw= dv->dw; j < dv->totweight; j++, dw++) {
 				/* note, greater then max defgroups is accounted for in our code, but not < 0 */
@@ -334,6 +334,13 @@ int BKE_mesh_validate_arrays( Mesh *me,
 					PRINT("    vertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {
 						dw->weight= 0.0f;
+						vert_weights_fixed= TRUE;
+					}
+				}
+				else if (dw->weight < 0.0f || dw->weight > 1.0f) {
+					PRINT("    vertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
+					if (do_fixes) {
+						CLAMP(dw->weight, 0.0f, 1.0f);
 						vert_weights_fixed= TRUE;
 					}
 				}

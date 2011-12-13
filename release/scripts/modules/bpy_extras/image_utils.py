@@ -65,18 +65,44 @@ def load_image(imagepath,
 
     # TODO: recursive
 
+    # -------------------------------------------------------------------------
+    # Utility Functions
+
+    def _image_load_placeholder(path):
+        name = bpy.path.basename(path)
+        if type(name) == bytes:
+            name = name.decode('utf-8', "replace")
+        image = bpy.data.images.new(name, 128, 128)
+        # allow the path to be resolved later
+        image.filepath = path
+        image.source = 'FILE'
+        return image
+
     def _image_load(path):
         import bpy
 
         if convert_callback:
             path = convert_callback(path)
 
-        image = bpy.data.images.load(path)
+        try:
+            image = bpy.data.images.load(path)
+        except RuntimeError:
+            image = None
 
         if verbose:
-            print("    image loaded '%s'" % path)
+            if image:
+                print("    image loaded '%s'" % path)
+            else:
+                print("    image load failed '%s'" % path)
+
+        # image path has been checked so the path could not be read for some
+        # reason, so be sure to return a placeholder
+        if place_holder:
+            image = _image_load_placeholder(path)
 
         return image
+
+    # -------------------------------------------------------------------------
 
     if verbose:
         print("load_image('%s', '%s', ...)" % (imagepath, dirname))
@@ -103,11 +129,9 @@ def load_image(imagepath,
             if os.path.exists(nfilepath):
                 return _image_load(nfilepath)
 
+    # None of the paths exist so return placeholder
     if place_holder:
-        image = bpy.data.images.new(bpy.path.basename(imagepath), 128, 128)
-        # allow the path to be resolved later
-        image.filepath = imagepath
-        return image
+        return _image_load_placeholder(imagepath)
 
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None

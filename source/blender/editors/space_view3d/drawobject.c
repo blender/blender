@@ -2381,7 +2381,7 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { unsigned char *cols[3]; EditFace *efa_act; int *orig_index; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
@@ -2401,17 +2401,16 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } *data = userData;
-	int *orig_index= DM_get_face_data_layer(data->dm, CD_ORIGINDEX);
+	struct { unsigned char *cols[3]; EditFace *efa_act; int *orig_index; } *data = userData;
 	EditFace *efa;
 	EditFace *next_efa;
 	unsigned char *col, *next_col;
 
-	if(!orig_index)
+	if(!data->orig_index)
 		return 0;
 
-	efa= EM_get_face_for_index(orig_index[index]);
-	next_efa= EM_get_face_for_index(orig_index[next_index]);
+	efa= EM_get_face_for_index(data->orig_index[index]);
+	next_efa= EM_get_face_for_index(data->orig_index[next_index]);
 
 	if(efa == next_efa)
 		return 1;
@@ -2431,12 +2430,12 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 /* also draws the active face */
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { DerivedMesh *dm; unsigned char *cols[3]; EditFace *efa_act; } data;
-	data.dm= dm;
+	struct { unsigned char *cols[3]; EditFace *efa_act; int *orig_index; } data;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
+	data.orig_index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
