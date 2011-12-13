@@ -79,7 +79,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 			l3 = l->next;
 			l4 = l2->next;
 
-			f3 = BM_Make_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
+			f3 = BM_Make_Face_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
 			
 			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3));
 			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3)->next);
@@ -130,7 +130,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 			v4 = e->v1;
 		}
 			/*not sure what to do about example face, pass	 NULL for now.*/
-		f = BM_Make_QuadTri(bm, v1, v2, v3, v4, NULL, 0);		
+		f = BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, 0);
 		
 		if (BMO_TestFlag(bm, e, EXT_INPUT))
 			e = e2;
@@ -284,7 +284,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/*not sure what to do about example face, pass NULL for now.*/
-		f = BM_Make_Quadtriangle(bm, verts, NULL, 4, NULL, 0);		
+		f = BM_Make_Face_QuadTri_v(bm, verts, NULL, 4, NULL, 0);
 
 		/*copy attributes*/
 		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);

@@ -34,7 +34,7 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3])
 {
 	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3];
 	int is_concave;
-	
+
 	if (l->f->len > 2) {
 		copy_v3_v3(l_co_prev, l->prev->v->co);
 		copy_v3_v3(l_co, l->v->co);
@@ -483,7 +483,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				BMEdge *e1, *e2;
 				float d1, d2, *d3;
 				
-				f = BM_Make_QuadTri(bm, v4, v3, v2, v1, l->f, 1);
+				f = BM_Make_Face_QuadTri(bm, v4, v3, v2, v1, l->f, 1);
 
 				e1 = BM_Edge_Exist(v4, v3);
 				e2 = BM_Edge_Exist(v2, v1);

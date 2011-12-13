@@ -1578,7 +1578,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 			if (BM_Face_Exists(bm, verts, 3, &f2))
 				continue;
 		
-			f2 = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
+			f2 = BM_Make_Face_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
 			BMO_SetFlag(bm, f2, FACE_NEW);
 			
 			l = bm_firstfaceloop(f2);

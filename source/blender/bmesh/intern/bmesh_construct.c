@@ -138,7 +138,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
  *
 */
 
-BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, 
+BMFace *BM_Make_Face_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
                         BMVert *v4, const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
@@ -160,11 +160,11 @@ BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
 	vtar[2] = v3;
 	vtar[3] = v4;
 
-	return BM_Make_Quadtriangle(bm, vtar, edar, v4?4:3, example, nodouble);
+	return BM_Make_Face_QuadTri_v(bm, vtar, edar, v4?4:3, example, nodouble);
 }
 
 /*remove the edge array bits from this. Its not really needed?*/
-BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len, const BMFace *example, int nodouble)
+BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, BMEdge **edges, int len, const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMFace *f = NULL;

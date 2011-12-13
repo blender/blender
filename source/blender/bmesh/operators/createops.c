@@ -1249,28 +1249,28 @@ void bmesh_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, e, ELE_OUT);		
 	} else if (amount == 3) {
 		/*create triangle*/
-		BM_Make_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, 1);
+		BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], NULL, NULL, 1);
 	} else if (amount == 4) {
 		f = NULL;
 
 		/* the order of vertices can be anything, 6 cases to check */
 		if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[2]->co, verts[3]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[2], verts[3], NULL, 1);
 		}
 		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[3]->co, verts[1]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[3], verts[1], NULL, 1);
 		}
 		else if( is_quad_convex_v3(verts[0]->co, verts[2]->co, verts[1]->co, verts[3]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[2], verts[1], verts[3], NULL, 1);
 		}
 		else if( is_quad_convex_v3(verts[0]->co, verts[1]->co, verts[3]->co, verts[2]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[1], verts[3], verts[2], NULL, 1);
 		}
 		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[2]->co, verts[1]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[2], verts[1], NULL, 1);
 		}
 		else if( is_quad_convex_v3(verts[0]->co, verts[3]->co, verts[1]->co, verts[2]->co) ) {
-			f= BM_Make_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, 1);
+			f= BM_Make_Face_QuadTri(bm, verts[0], verts[3], verts[1], verts[2], NULL, 1);
 		}
 		else {
 			printf("cannot find nice quad from concave set of vertices\n");

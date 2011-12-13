@@ -171,7 +171,7 @@ void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_edgefill(0);
 	
 	for (efa=fillfacebase.first; efa; efa=efa->next) {
-		BMFace *f = BM_Make_QuadTri(bm, efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL, NULL, 1);
+		BMFace *f = BM_Make_Face_QuadTri(bm, efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL, NULL, 1);
 		BMLoop *l;
 		BMIter liter;
 		

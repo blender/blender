@@ -380,7 +380,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				SWAP(int, i2, i2next);
 			}
 
-			f = BM_Make_QuadTri(bm, 
+			f = BM_Make_Face_QuadTri(bm, 
 				vv1[i1],
 				vv2[i2],
 				vv2[i2next],

@@ -386,7 +386,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 				else
 					face[k]= uniquevbase+tri[k]-nv; /* unique vertex */
 			}
-			newFace= BM_Make_QuadTri(em->bm, EDBM_get_vert_for_index(em, face[0]), EDBM_get_vert_for_index(em, face[2]),
+			newFace= BM_Make_Face_QuadTri(em->bm, EDBM_get_vert_for_index(em, face[0]), EDBM_get_vert_for_index(em, face[2]),
 									EDBM_get_vert_for_index(em, face[1]), NULL, NULL, 0);
 
 			/* set navigation polygon idx to the custom layer */

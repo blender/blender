@@ -383,7 +383,7 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		v2= eva[ icoface[a][1] ];
 		v3= eva[ icoface[a][2] ];
 
-		eftemp = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
+		eftemp = BM_Make_Face_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
 		
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
 			BMO_SetFlag(bm, l->e, EDGE_MARK);
@@ -433,8 +433,8 @@ void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (i=0; i<monkeynf; i++) {
-		BM_Make_QuadTri(bm, tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, 0);
-		BM_Make_QuadTri(bm, tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, 0);
+		BM_Make_Face_QuadTri(bm, tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, 0);
+		BM_Make_Face_QuadTri(bm, tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, 0);
 	}
 
 	MEM_freeN(tv);
@@ -484,7 +484,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 		if (a && cap_ends) {
 			BMFace *f;
 			
-			f = BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
+			f = BM_Make_Face_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
 			BMO_SetFlag(bm, f, FACE_NEW);
 		}
 		
@@ -502,7 +502,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
+		f = BM_Make_Face_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
 	}
 	
@@ -570,12 +570,12 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 			if (cap_ends) {
 				BMFace *f;
 				
-				f = BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
+				f = BM_Make_Face_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
 				BMO_SetFlag(bm, f, FACE_NEW);
-				f = BM_Make_QuadTri(bm, cent2, v2, lastv2, NULL, NULL, 0);
+				f = BM_Make_Face_QuadTri(bm, cent2, v2, lastv2, NULL, NULL, 0);
 				BMO_SetFlag(bm, f, FACE_NEW);
 			}
-			BM_Make_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, 0);
+			BM_Make_Face_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, 0);
 		} else {
 			firstv1 = v1;
 			firstv2 = v2;
@@ -591,9 +591,9 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
+		f = BM_Make_Face_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
-		f = BM_Make_QuadTri(bm, cent2, firstv2, v2, NULL, NULL, 0);
+		f = BM_Make_Face_QuadTri(bm, cent2, firstv2, v2, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
 	}
 	
@@ -601,7 +601,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
 	}
 	
-	BM_Make_QuadTri(bm, v1, v2, firstv2, firstv1, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v1, v2, firstv2, firstv1, NULL, 0);
 
 	BMO_CallOpf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
@@ -673,14 +673,14 @@ void bmesh_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMO_SetFlag(bm, v8, VERT_MARK);
 
 	/*the four sides*/
-	BM_Make_QuadTri(bm, v5, v6, v2, v1, NULL, 0);
-	BM_Make_QuadTri(bm, v6, v7, v3, v2, NULL, 0);
-	BM_Make_QuadTri(bm, v7, v8, v4, v3, NULL, 0);
-	BM_Make_QuadTri(bm, v8, v5, v1, v4, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v5, v6, v2, v1, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v6, v7, v3, v2, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v7, v8, v4, v3, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v8, v5, v1, v4, NULL, 0);
 	
 	/*top/bottom*/
-	BM_Make_QuadTri(bm, v1, v2, v3, v4, NULL, 0);
-	BM_Make_QuadTri(bm, v8, v7, v6, v5, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v1, v2, v3, v4, NULL, 0);
+	BM_Make_Face_QuadTri(bm, v8, v7, v6, v5, NULL, 0);
 
 	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
 }
