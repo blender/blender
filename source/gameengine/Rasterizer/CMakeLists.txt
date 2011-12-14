@@ -29,6 +29,7 @@ set(INC
 	../Ketsji
 	../SceneGraph
 	../../blender/makesdna
+	../../blender/blenkernel
 	../../../intern/container
 	../../../intern/guardedalloc
 	../../../intern/moto/include

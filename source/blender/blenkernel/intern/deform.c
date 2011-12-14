@@ -539,6 +539,12 @@ float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
 	return dw ? dw->weight : 0.0f;
 }
 
+/* take care with this the rationale is:
+ * - if the object has no vertex group. act like vertex group isnt set and return 1.0,
+ * - if the vertex group exists but the 'defgroup' isnt found on this vertex, _still_ return 0.0
+ *
+ * This is a bit confusing, just saves some checks from the caller.
+ */
 float defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup)
 {
 	if (defgroup == -1 || dvert == NULL)
