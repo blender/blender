@@ -139,13 +139,16 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		case AUD_JACK_DEVICE:
 #ifdef __APPLE__
 			struct stat st;
-			if(stat("/Library/Frameworks/Jackmp.framework",&st) != 0){
-			printf("Warning: Jack Framework not installed\n");
-			break;
-			} else {
+			if(stat("/Library/Frameworks/Jackmp.framework", &st) != 0)
+			{
+				printf("Warning: Jack Framework not installed\n");
+				// No break, fall through to default, to return false
+			}
+			else
+			{
 #endif
-			dev = new AUD_JackDevice("Blender", specs, buffersize);
-			break;
+				dev = new AUD_JackDevice("Blender", specs, buffersize);
+				break;
 #ifdef __APPLE__
 			}
 #endif
