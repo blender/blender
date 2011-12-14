@@ -1697,7 +1697,7 @@ static void vgroup_delete_update_users(Object *ob, int id)
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 {
 	MDeformVert *dvert_array=NULL;
-	int i, e, dvert_tot=0;
+	int dvert_tot=0;
 	const int def_nr= BLI_findindex(&ob->defbase, dg);
 
 	assert(def_nr > -1);
@@ -1705,20 +1705,21 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
+		int i, j;
 		MDeformVert *dv;
 		for(i= 0, dv= dvert_array; i < dvert_tot; i++, dv++) {
 			MDeformWeight *dw;
 
 			dw= defvert_find_index(dv, def_nr);
 			defvert_remove_group(dv, dw); /* dw can be NULL */
-		}
 
-		for(i= 0, dv= dvert_array; i < dvert_tot; i++, dv++) {
-			for(e = 0; e < dv->totweight; e++) {
-				if(dv->dw[e].def_nr > def_nr) {
-					dv->dw[e].def_nr--;
+			/* inline, make into a function if anything else needs to do this */
+			for(j = 0; j < dv->totweight; j++) {
+				if(dv->dw[j].def_nr > def_nr) {
+					dv->dw[j].def_nr--;
 				}
 			}
+			/* done */
 		}
 	}
 

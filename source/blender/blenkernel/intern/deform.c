@@ -645,9 +645,16 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		if (dvert->totweight) {
 			dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
 			if (dvert->dw) {
+#if 1			/* since we dont care about order, swap this with the last, save a memcpy */
+				if (i != dvert->totweight) {
+					dvert->dw[i]= dvert->dw[dvert->totweight];
+				}
+				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
+				MEM_freeN(dvert->dw);
+#else
 				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
 				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
-				MEM_freeN(dvert->dw);
+#endif
 			}
 			dvert->dw = dw_new;
 		}
