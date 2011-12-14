@@ -191,7 +191,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				startl = l;
 				do {
 					l = BM_OtherFaceLoop(l->e, l->f, v);
-					if (BM_Edge_FaceCount(l->e) != 2) {
+					if (l == startl || BM_Edge_FaceCount(l->e) != 2) {
 						break;
 					}
 					l = l->radial_next;
