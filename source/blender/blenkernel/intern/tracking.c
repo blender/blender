@@ -785,11 +785,11 @@ typedef struct MovieTrackingContext {
 	MovieTrackingSettings settings;
 	TracksMap *tracks_map;
 
-	short backwards;
+	short backwards, sequence;
 	int sync_frame;
 } MovieTrackingContext;
 
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short sequence)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
@@ -803,6 +803,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->backwards= backwards;
 	context->sync_frame= user->framenr;
 	context->first_time= 1;
+	context->sequence= sequence;
 
 	/* count */
 	track= tracksbase->first;
@@ -882,7 +883,8 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->clip= clip;
 	context->user= *user;
 
-	BLI_begin_threaded_malloc();
+	if(!sequence)
+		BLI_begin_threaded_malloc();
 
 	return context;
 }
@@ -910,7 +912,8 @@ static void track_context_free(void *customdata)
 
 void BKE_tracking_context_free(MovieTrackingContext *context)
 {
-	BLI_end_threaded_malloc();
+	if(!context->sequence)
+		BLI_end_threaded_malloc();
 
 	tracks_map_free(context->tracks_map, track_context_free);
 

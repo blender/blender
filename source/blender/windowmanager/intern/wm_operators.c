@@ -1634,6 +1634,22 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 /* **************** link/append *************** */
 
+int wm_link_append_poll(bContext *C)
+{
+	if(WM_operator_winactive(C)) {
+		/* linking changes active object which is pretty useful in general,
+		   but which totally confuses edit mode (i.e. it becoming not so obvious
+		   to leave from edit mode and inwalid tools in toolbar might be displayed)
+		   so disable link/append when in edit mode (sergey) */
+		if(CTX_data_edit_object(C))
+			return 0;
+
+		return 1;
+	}
+
+	return 0;
+}
+
 static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if(RNA_property_is_set(op->ptr, "filepath")) {
@@ -1796,7 +1812,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->invoke= wm_link_append_invoke;
 	ot->exec= wm_link_append_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= wm_link_append_poll;
 	
 	ot->flag |= OPTYPE_UNDO;
 
