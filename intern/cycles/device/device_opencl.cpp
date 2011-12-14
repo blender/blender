@@ -365,7 +365,7 @@ public:
 		return md5.get_hex();
 	}
 
-	bool load_kernels()
+	bool load_kernels(bool experimental)
 	{
 		/* verify if device was initialized */
 		if(!device_initialized) {

@@ -96,6 +96,7 @@ WITH_BF_JACK = True
 
 # Cycles
 WITH_BF_CYCLES = True
+WITH_BF_CYCLES_CUDA_BINARIES = True
 
 WITH_BF_OIIO = True
 WITH_BF_STATICOIIO = True
@@ -116,5 +117,5 @@ WITH_BF_OCEANSIM = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CCFLAGS = ['-O2']  # C & C++
+REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib64']

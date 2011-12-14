@@ -132,10 +132,10 @@ public:
 		return desc.str();
 	}
 
-	bool load_kernels()
+	bool load_kernels(bool experimental)
 	{
 		foreach(SubDevice& sub, devices)
-			if(!sub.device->load_kernels())
+			if(!sub.device->load_kernels(experimental))
 				return false;
 
 		return true;

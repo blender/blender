@@ -36,6 +36,10 @@
 
 #include <string>
 
+#if defined(__APPLE__) // always first include for jack weaklinking !
+#include <weakjack.h>
+#endif
+
 #include <jack.h>
 #include <ringbuffer.h>
 
