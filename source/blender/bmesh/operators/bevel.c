@@ -97,12 +97,14 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, const float fac, float r_co[3],
 
 		/* not strictly necessary, balance vectors
 		 * so the longer edge doesn't skew the result,
-		 * gives nicer, move even output */
-		float medium= (normalize_v3(l_vec_prev) + normalize_v3(l_vec_next)) / 2.0f;
+		 * gives nicer, move even output.
+		 *
+		 * Use the minimum rather then the middle value so skinny faces don't flip along the short axis */
+		float min_fac= minf(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
 		float angle= do_even ? angle_normalized_v3v3(l_vec_prev, l_vec_next) : 0.0f; /* get angle while normalized */
 
-		mul_v3_fl(l_vec_prev, medium);
-		mul_v3_fl(l_vec_next, medium);
+		mul_v3_fl(l_vec_prev, min_fac);
+		mul_v3_fl(l_vec_next, min_fac);
 
 		add_v3_v3v3(co_ofs, l_vec_prev, l_vec_next);
 
