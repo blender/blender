@@ -78,6 +78,9 @@
 
 #ifdef WITH_JACK
 #include "AUD_JackDevice.h"
+#ifdef __APPLE__
+#include <boost/filesystem/operations.hpp>
+#endif
 #endif
 
 
@@ -137,8 +140,17 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 #endif
 #ifdef WITH_JACK
 		case AUD_JACK_DEVICE:
+#ifdef __APPLE__
+			if (!boost::filesystem::exists("/Library/Frameworks/Jackmp.framework")){
+			printf("Warning: Jack Framework not available\n");
+			break;
+			} else {
+#endif
 			dev = new AUD_JackDevice("Blender", specs, buffersize);
 			break;
+#ifdef __APPLE__
+			}
+#endif
 #endif
 		default:
 			return false;
