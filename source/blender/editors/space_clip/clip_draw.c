@@ -97,6 +97,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	int *points, totseg, i, a;
 	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
 	MovieTrackingTrack *act_track= BKE_tracking_active_track(&clip->tracking);
+	MovieTrackingReconstruction *reconstruction= BKE_tracking_get_reconstruction(&clip->tracking);
 
 	glEnable(GL_BLEND);
 
@@ -153,9 +154,9 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	}
 
 	/* failed frames */
-	if(clip->tracking.reconstruction.flag&TRACKING_RECONSTRUCTED) {
-		int n= clip->tracking.reconstruction.camnr;
-		MovieReconstructedCamera *cameras= clip->tracking.reconstruction.cameras;
+	if(reconstruction->flag&TRACKING_RECONSTRUCTED) {
+		int n= reconstruction->camnr;
+		MovieReconstructedCamera *cameras= reconstruction->cameras;
 
 		glColor4ub(255, 0, 0, 96);
 

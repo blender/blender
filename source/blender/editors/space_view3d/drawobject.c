@@ -1487,6 +1487,10 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	else {
 		float obmat[4][4];
 
+		if(flag & DRAW_PICKING) {
+			return;
+		}
+
 		BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, obmat);
 
 		invert_m4_m4(imat, obmat);

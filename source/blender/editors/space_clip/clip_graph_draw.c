@@ -207,7 +207,7 @@ static void draw_frame_curves(SpaceClip *sc)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
+	MovieTrackingReconstruction *reconstruction= BKE_tracking_get_reconstruction(tracking);
 	int i, lines= 0, prevfra= 0;
 
 	glColor3f(0.0f, 0.0f, 1.0f);
