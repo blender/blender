@@ -438,8 +438,12 @@ GHOST_TKey GHOST_SystemWin32::hardKey(GHOST_IWindow *window, RAWINPUT const& raw
 
 	GHOST_ModifierKeys modifiers;
 	system->retrieveModifierKeys(modifiers);
-	
-	*keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK);
+
+	// RI_KEY_BREAK doesn't work for sticky keys release, so we also
+	// check for the up message
+	unsigned int msg = raw.data.keyboard.Message;
+	*keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
+
 	key = this->convertKey(window, raw.data.keyboard.VKey, raw.data.keyboard.MakeCode, (raw.data.keyboard.Flags&(RI_KEY_E1|RI_KEY_E0)));
 	
 	// extra handling of modifier keys: don't send repeats out from GHOST
