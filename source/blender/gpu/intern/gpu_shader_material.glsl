@@ -1152,8 +1152,8 @@ void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
 							  out float fPrevMagnitude_out, out vec3 vNacc_out, 
 							  out vec3 vR1, out vec3 vR2, out float fDet ) 
 {
-	mat3 obj2view = to_mat3(mView * mObj);
-	mat3 view2obj = to_mat3(mObjInv * mViewInv);
+	mat3 obj2view = to_mat3(gl_ModelViewMatrix);
+	mat3 view2obj = to_mat3(gl_ModelViewMatrixInverse);
 	
 	vec3 vSigmaS = view2obj * dFdx( surf_pos );
 	vec3 vSigmaT = view2obj * dFdy( surf_pos );
@@ -1224,6 +1224,84 @@ void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale,
 	dBs = hScale * (Hlr - Hll);
 	dBt = hScale * (Hul - Hll);
 }
+
+#ifdef BUMP_BICUBIC
+
+void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale, 
+                     out float dBs, out float dBt ) 
+{
+	vec2 TexDx = dFdx(texco.xy);
+	vec2 TexDy = dFdy(texco.xy);
+ 
+	vec2 STl = texco.xy - 0.5 * TexDx ;
+	vec2 STr = texco.xy + 0.5 * TexDx ;
+	vec2 STd = texco.xy - 0.5 * TexDy ;
+	vec2 STu = texco.xy + 0.5 * TexDy ;
+	
+	float Hl = texture2D(ima, STl).x;
+	float Hr = texture2D(ima, STr).x;
+	float Hd = texture2D(ima, STd).x;
+	float Hu = texture2D(ima, STu).x;
+	
+	vec2 dHdxy = vec2(Hr - Hl, Hu - Hd);
+	float fBlend = clamp(1.0-textureQueryLOD(ima, texco.xy).x, 0.0, 1.0);
+	if(fBlend!=0.0)
+	{
+		// the derivative of the bicubic sampling of level 0
+		ivec2 vDim;
+		vDim = textureSize(ima, 0);
+
+		vec2 fTexLoc = vDim*texco.xy-vec2(0.5,0.5);
+		ivec2 iTexLoc = ivec2(floor(fTexLoc));
+		vec2 t = clamp(fTexLoc - iTexLoc, 0.0, 1.0);		// sat just to be pedantic
+
+		ivec2 iTexLocMod = iTexLoc + ivec2(-1, -1);
+
+/*******************************************************************************************
+ * This block will replace the one below when one channel textures are properly supported. *
+ *******************************************************************************************
+		vec4 vSamplesUL = textureGather(ima, (iTexLoc+ivec2(-1,-1) + vec2(0.5,0.5))/vDim );
+		vec4 vSamplesUR = textureGather(ima, (iTexLoc+ivec2(1,-1) + vec2(0.5,0.5))/vDim );
+		vec4 vSamplesLL = textureGather(ima, (iTexLoc+ivec2(-1,1) + vec2(0.5,0.5))/vDim );
+		vec4 vSamplesLR = textureGather(ima, (iTexLoc+ivec2(1,1) + vec2(0.5,0.5))/vDim );
+		
+		mat4 H = mat4(vSamplesUL.w, vSamplesUL.x, vSamplesLL.w, vSamplesLL.x,
+					vSamplesUL.z, vSamplesUL.y, vSamplesLL.z, vSamplesLL.y,
+					vSamplesUR.w, vSamplesUR.x, vSamplesLR.w, vSamplesLR.x,
+					vSamplesUR.z, vSamplesUR.y, vSamplesLR.z, vSamplesLR.y);
+*/	
+		mat4 H;
+		
+		for(int i = 0; i < 4; i++){
+			for(int j = 0; j < 4; j++){
+				mtex_rgbtoint(texelFetch(ima, (iTexLocMod + ivec2(i,j)), 0), H[i][j]);
+			}
+		}
+		
+		float x = t.x, y = t.y;
+		float x2 = x * x, x3 = x2 * x, y2 = y * y, y3 = y2 * y;
+
+		vec4 X = vec4(-0.5*(x3+x)+x2,		1.5*x3-2.5*x2+1,	-1.5*x3+2*x2+0.5*x,		0.5*(x3-x2));
+		vec4 Y = vec4(-0.5*(y3+y)+y2,		1.5*y3-2.5*y2+1,	-1.5*y3+2*y2+0.5*y,		0.5*(y3-y2));
+		vec4 dX = vec4(-1.5*x2+2*x-0.5,		4.5*x2-5*x,			-4.5*x2+4*x+0.5,		1.5*x2-x);
+		vec4 dY = vec4(-1.5*y2+2*y-0.5,		4.5*y2-5*y,			-4.5*y2+4*y+0.5,		1.5*y2-y);
+	
+		// complete derivative in normalized coordinates (mul by vDim)
+		vec2 dHdST = vDim * vec2(dot(Y, H * dX), dot(dY, H * X));
+
+		// transform derivative to screen-space
+		vec2 dHdxy_bicubic = vec2( dHdST.x * TexDx.x + dHdST.y * TexDx.y,
+								   dHdST.x * TexDy.x + dHdST.y * TexDy.y );
+
+		// blend between the two
+		dHdxy = dHdxy*(1-fBlend) + dHdxy_bicubic*fBlend;
+	}
+
+	dBs = hScale * dHdxy.x;
+	dBt = hScale * dHdxy.y;
+}
+
+#endif
 
 void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale, 
                      out float dBs, out float dBt ) 

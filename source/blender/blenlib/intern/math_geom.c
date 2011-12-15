@@ -209,33 +209,54 @@ float dist_to_line_segment_v2(const float v1[2], const float v2[2], const float 
 }
 
 /* point closest to v1 on line v2-v3 in 2D */
-void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2])
+void closest_to_line_segment_v2(float close_r[2], const float p[2], const float l1[2], const float l2[2])
 {
 	float lambda, cp[2];
 
 	lambda= closest_to_line_v2(cp,p, l1, l2);
 
 	if(lambda <= 0.0f)
-		copy_v2_v2(closest, l1);
+		copy_v2_v2(close_r, l1);
 	else if(lambda >= 1.0f)
-		copy_v2_v2(closest, l2);
+		copy_v2_v2(close_r, l2);
 	else
-		copy_v2_v2(closest, cp);
+		copy_v2_v2(close_r, cp);
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-void closest_to_line_segment_v3(float closest[3], const float v1[3], const float v2[3], const float v3[3])
+void closest_to_line_segment_v3(float close_r[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float lambda, cp[3];
 
 	lambda= closest_to_line_v3(cp,v1, v2, v3);
 
 	if(lambda <= 0.0f)
-		copy_v3_v3(closest, v2);
+		copy_v3_v3(close_r, v2);
 	else if(lambda >= 1.0f)
-		copy_v3_v3(closest, v3);
+		copy_v3_v3(close_r, v3);
 	else
-		copy_v3_v3(closest, cp);
+		copy_v3_v3(close_r, cp);
+}
+
+/* find the closest point on a plane to another point and store it in close_r
+ * close_r:       return coordinate
+ * plane_co:      a point on the plane
+ * plane_no_unit: the plane's normal, and d is the last number in the plane equation 0 = ax + by + cz + d
+ * pt:            the point that you want the nearest of
+ */
+
+// const float norm[3], const float coord[3], const float point[3], float dst_r[3]
+void closest_to_plane_v3(float close_r[3], const float plane_co[3], const float plane_no_unit[3], const float pt[3])
+{
+	float temp[3];
+	float dotprod;
+
+	sub_v3_v3v3(temp, pt, plane_co);
+	dotprod= dot_v3v3(temp, plane_no_unit);
+
+	close_r[0] = pt[0] - (plane_no_unit[0] * dotprod);
+	close_r[1] = pt[1] - (plane_no_unit[1] * dotprod);
+	close_r[2] = pt[2] - (plane_no_unit[2] * dotprod);
 }
 
 /* signed distance from the point to the plane in 3D */

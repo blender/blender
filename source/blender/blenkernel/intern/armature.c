@@ -924,7 +924,6 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		float contrib = 0.0f;
 		float armature_weight = 1.0f;	/* default to 1 if no overall def group */
 		float prevco_weight = 1.0f;		/* weight for optional cached vertexcos */
-		int	  j;
 
 		if(use_quaternion) {
 			memset(&sumdq, 0, sizeof(DualQuat));
@@ -971,12 +970,14 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		mul_m4_v3(premat, co);
 		
 		if(use_dverts && dvert && dvert->totweight) { // use weight groups ?
+			MDeformWeight *dw= dvert->dw;
 			int deformed = 0;
+			unsigned int j;
 			
-			for(j = 0; j < dvert->totweight; j++){
-				int index = dvert->dw[j].def_nr;
+			for (j= dvert->totweight; j != 0; j--, dw++) {
+				const int index = dw->def_nr;
 				if(index < defbase_tot && (pchan= defnrToPC[index])) {
-					float weight = dvert->dw[j].weight;
+					float weight = dw->weight;
 					Bone *bone= pchan->bone;
 					pdef_info= pdef_info_array + defnrToPCIndex[index];
 

@@ -1968,8 +1968,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if(shi->obr->ob->derivedFinal)
 		{
 			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
-			auto_bump /= sqrtf((float) (dimx*dimy));
 		}
+		auto_bump /= sqrtf((float) (dimx*dimy));
 		
 		// this variant using a derivative map is described here
 		// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
@@ -2191,7 +2191,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 			found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
 			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP);
-			use_ntap_bump= ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP))!=0 || found_deriv_map!=0) ? 1 : 0;
+			use_ntap_bump= ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP))!=0 || found_deriv_map!=0) ? 1 : 0;
 
 			/* XXX texture node trees don't work for this yet */
 			if(tex->nodetree && tex->use_nodes) {

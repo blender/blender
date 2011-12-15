@@ -8807,9 +8807,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			if(ob->soft && ob->soft->vertgroup==0) {
 				bDeformGroup *locGroup = defgroup_find_name(ob, "SOFTGOAL");
-				if(locGroup){
+				if (locGroup) {
 					/* retrieve index for that group */
-					ob->soft->vertgroup =  1 + defgroup_find_index(ob, locGroup); 
+					ob->soft->vertgroup =  1 + BLI_findindex(&ob->defbase, locGroup);
 				}
 			}
 		}

@@ -440,16 +440,15 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
-	int dgroup;
+	const int defgroup= defgroup_name_index(ob, substring);
 	short freeDM = 0;
 	
 	/* initialize target matrix using target matrix */
 	copy_m4_m4(mat, ob->obmat);
 	
 	/* get index of vertex group */
-	dgroup = defgroup_name_index(ob, substring);
-	if (dgroup < 0) return;
-	
+	if (defgroup == -1) return;
+
 	/* get DerivedMesh */
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
@@ -467,28 +466,25 @@ static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat
 	if (dm) {
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		int numVerts = dm->getNumVerts(dm);
-		int i, j, count = 0;
+		int i, count = 0;
 		float co[3], nor[3];
 		
 		/* check that dvert is a valid pointers (just in case) */
 		if (dvert) {
+			MDeformVert *dv= dvert;
 			/* get the average of all verts with that are in the vertex-group */
-			for (i = 0; i < numVerts; i++) {	
-				for (j = 0; j < dvert[i].totweight; j++) {
-					/* does this vertex belong to nominated vertex group? */
-					if (dvert[i].dw[j].def_nr == dgroup) {
-						dm->getVertCo(dm, i, co);
-						dm->getVertNo(dm, i, nor);
-						add_v3_v3(vec, co);
-						add_v3_v3(normal, nor);
-						count++;
-						break;
-					}
+			for (i = 0; i < numVerts; i++, dv++) {
+				MDeformWeight *dw= defvert_find_index(dv, defgroup);
+				if (dw && dw->weight != 0.0f) {
+					dm->getVertCo(dm, i, co);
+					dm->getVertNo(dm, i, nor);
+					add_v3_v3(vec, co);
+					add_v3_v3(normal, nor);
+					count++;
 					
 				}
 			}
-			
-			
+
 			/* calculate averages of normal and coordinates */
 			if (count > 0) {
 				mul_v3_fl(vec, 1.0f / count);
@@ -537,43 +533,38 @@ static void contarget_get_lattice_mat (Object *ob, const char *substring, float 
 	float *co = dl?dl->verts:NULL;
 	BPoint *bp = lt->def;
 	
-	MDeformVert *dvert = lt->dvert;
+	MDeformVert *dv = lt->dvert;
 	int tot_verts= lt->pntsu*lt->pntsv*lt->pntsw;
 	float vec[3]= {0.0f, 0.0f, 0.0f}, tvec[3];
-	int dgroup=0, grouped=0;
+	int grouped=0;
 	int i, n;
+	const int defgroup= defgroup_name_index(ob, substring);
 	
 	/* initialize target matrix using target matrix */
 	copy_m4_m4(mat, ob->obmat);
-	
+
 	/* get index of vertex group */
-	dgroup = defgroup_name_index(ob, substring);
-	if (dgroup < 0) return;
-	if (dvert == NULL) return;
+	if (defgroup == -1) return;
+	if (dv == NULL) return;
 	
 	/* 1. Loop through control-points checking if in nominated vertex-group.
 	 * 2. If it is, add it to vec to find the average point.
 	 */
-	for (i=0; i < tot_verts; i++, dvert++) {
-		for (n= 0; n < dvert->totweight; n++) {
-			/* found match - vert is in vgroup */
-			if (dvert->dw[n].def_nr == dgroup) {
+	for (i=0; i < tot_verts; i++, dv++) {
+		for (n= 0; n < dv->totweight; n++) {
+			MDeformWeight *dw= defvert_find_index(dv, defgroup);
+			if (dw && dw->weight > 0.0f) {
 				/* copy coordinates of point to temporary vector, then add to find average */
-				if (co)
-					memcpy(tvec, co, 3*sizeof(float));
-				else
-					memcpy(tvec, bp->vec, 3*sizeof(float));
-					
+				memcpy(tvec, co ? co : bp->vec, 3 * sizeof(float));
+
 				add_v3_v3(vec, tvec);
 				grouped++;
-				
-				break;
 			}
 		}
 		
 		/* advance pointer to coordinate data */
-		if (co) co+= 3;
-		else bp++;
+		if (co) co += 3;
+		else    bp++;
 	}
 	
 	/* find average location, then multiply by ob->obmat to find world-space location */
@@ -1108,10 +1099,10 @@ static void kinematic_new_data (void *cdata)
 {
 	bKinematicConstraint *data= (bKinematicConstraint *)cdata;
 	
-	data->weight= (float)1.0;
-	data->orientweight= (float)1.0;
+	data->weight= 1.0f;
+	data->orientweight= 1.0f;
 	data->iterations = 500;
-	data->dist= (float)1.0;
+	data->dist= 1.0f;
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
