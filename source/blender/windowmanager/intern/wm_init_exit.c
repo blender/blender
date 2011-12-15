@@ -176,6 +176,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		GPU_extensions_init();
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		GPU_set_anisotropic(U.anisotropic_filter);
+		GPU_code_generate_glsl_lib();
 	
 		UI_init();
 	}
