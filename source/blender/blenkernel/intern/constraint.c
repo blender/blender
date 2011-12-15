@@ -3974,27 +3974,27 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
 		if (track->flag & TRACK_HAS_BUNDLE) {
 			MovieTracking *tracking= &clip->tracking;
-			float pos[3], mat[4][4];
+			float obmat[4][4], mat[4][4];
+
+			copy_m4_m4(obmat, cob->matrix);
 
 			if((tracking_object->flag&TRACKING_OBJECT_CAMERA)==0) {
-				float obmat[4][4], imat[4][4];
+				float imat[4][4];
 
 				copy_m4_m4(mat, camob->obmat);
 
-				BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, obmat);
+				BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, imat);
+				invert_m4(imat);
 
-				invert_m4_m4(imat, obmat);
-				mul_m4_m4m4(mat, imat, mat);
+				mul_serie_m4(cob->matrix, obmat, mat, imat, NULL, NULL, NULL, NULL, NULL);
+				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
-				BKE_get_tracking_mat(cob->scene, NULL, mat);
+				BKE_get_tracking_mat(cob->scene, camob, mat);
+
+				mul_m4_m4m4(cob->matrix, mat, obmat);
+				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
-
-			mul_v3_m4v3(pos, mat, track->bundle_pos);
-
-			cob->matrix[3][0] = pos[0];
-			cob->matrix[3][1] = pos[1];
-			cob->matrix[3][2] = pos[2];
 		}
 	} 
 	else {
