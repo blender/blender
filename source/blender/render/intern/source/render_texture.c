@@ -1968,8 +1968,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if(shi->obr->ob->derivedFinal)
 		{
 			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
-			auto_bump /= sqrtf((float) (dimx*dimy));
 		}
+		auto_bump /= sqrtf((float) (dimx*dimy));
 		
 		// this variant using a derivative map is described here
 		// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html

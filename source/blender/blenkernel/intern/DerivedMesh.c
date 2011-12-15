@@ -2006,13 +2006,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 		tfdata = fdata;
 
 	/* calc auto bump scale if necessary */
-#if 0
 	if(dm->auto_bump_scale<=0.0f)
 		DM_calc_auto_bump_scale(dm);
-#else
-	dm->auto_bump_scale = 1.0f; // will revert this after release
-#endif
-
 
 	/* add a tangent layer if necessary */
 	for(b = 0; b < gattribs->totlayer; b++)
