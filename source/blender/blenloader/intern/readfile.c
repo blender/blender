@@ -12689,12 +12689,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 	{
 		MovieClip *clip;
+		Object *ob;
 
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
 			MovieTracking *tracking= &clip->tracking;
 
 			if(tracking->objects.first == NULL)
 				BKE_tracking_new_object(tracking, "Camera");
+		}
+
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			bConstraint *con;
+			for (con= ob->constraints.first; con; con=con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+				if(!cti)
+					continue;
+
+				if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+					bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+
+					if(data->invmat[3][3]==0.0f)
+						unit_m4(data->invmat);
+				}
+			}
 		}
 	}
 

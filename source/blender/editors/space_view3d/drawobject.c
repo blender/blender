@@ -6820,7 +6820,20 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
-				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
+				if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+					/* special case for object solver constraint because it doesn't fill
+					   constraint targets properly (design limitation -- scene is needed for
+					   it's target but it can't be accessed from get_targets callvack) */
+					if(scene->camera) {
+						setlinestyle(3);
+						glBegin(GL_LINES);
+						glVertex3fv(scene->camera->obmat[3]);
+						glVertex3fv(ob->obmat[3]);
+						glEnd();
+						setlinestyle(0);
+					}
+				}
+				else if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
 					cti->get_constraint_targets(curcon, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {

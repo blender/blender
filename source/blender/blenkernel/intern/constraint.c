@@ -825,7 +825,7 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 {
 	bChildOfConstraint *data= con->data;
 	bConstraintTarget *ct= targets->first;
-	
+
 	/* only evaluate if there is a target */
 	if (VALID_CONS_TARGET(ct)) {
 		float parmat[4][4];
@@ -4183,20 +4183,21 @@ static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 		object= BKE_tracking_named_object(tracking, data->object);
 
 		if(object) {
-			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4];
+			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
 
 			where_is_object_mat(scene, scene->camera, cammat);
 
 			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
 
 			invert_m4_m4(camimat, cammat);
+			mul_m4_m4m4(parmat, data->invmat, cammat);
 
 			copy_m4_m4(cammat, scene->camera->obmat);
 			copy_m4_m4(obmat, cob->matrix);
 
 			invert_m4_m4(imat, mat);
 
-			mul_serie_m4(cob->matrix, cammat, imat, camimat, obmat, NULL, NULL, NULL, NULL);
+			mul_serie_m4(cob->matrix, cammat, imat, camimat, parmat, obmat, NULL, NULL, NULL);
 		}
 	}
 }

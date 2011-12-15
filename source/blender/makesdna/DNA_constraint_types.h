@@ -426,6 +426,7 @@ typedef struct bObjectSolverConstraint {
 	struct MovieClip	*clip;
 	int		flag, pad;
 	char		object[24];
+	float		invmat[4][4];	/* parent-inverse matrix to use */
 } bObjectSolverConstraint;
 
 /* ------------------------------------------ */

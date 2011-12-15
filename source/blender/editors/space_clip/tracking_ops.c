@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"	/* SELECT */
@@ -45,6 +46,7 @@
 
 #include "BKE_main.h"
 #include "BKE_context.h"
+#include "BKE_constraint.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_global.h"
@@ -1938,6 +1940,29 @@ static int count_selected_bundles(bContext *C)
 	return tot;
 }
 
+static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
+{
+	Object *cam= scene->camera;
+	bConstraint *con;
+
+	where_is_object_mat(scene, cam, invmat);
+
+	for (con= ob->constraints.first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+		if(!cti)
+			continue;
+
+		if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+
+			mul_m4_m4m4(invmat, data->invmat, invmat);
+		}
+	}
+
+	invert_m4(invmat);
+}
+
 static int set_origin_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -1948,10 +1973,11 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *object;
 	ListBase *tracksbase;
-	float mat[4][4], vec[3];
+	float mat[4][4], vec[3], median[3];
+	int selected_count= count_selected_bundles(C);
 
-	if(count_selected_bundles(C)!=1) {
-		BKE_report(op->reports, RPT_ERROR, "Track with bundle should be selected to define origin position");
+	if(selected_count==0) {
+		BKE_report(op->reports, RPT_ERROR, "At least one track with bundle should be selected to define origin position");
 
 		return OPERATOR_CANCELLED;
 	}
@@ -1969,21 +1995,28 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 
 	track= tracksbase->first;
+	zero_v3(median);
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track))
-			break;
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_HAS_BUNDLE)) {
+			add_v3_v3(median, track->bundle_pos);
+		}
 
 		track= track->next;
 	}
+	mul_v3_fl(median, 1.0f/selected_count);
 
 	BKE_get_tracking_mat(scene, NULL, mat);
 
-	mul_v3_m4v3(vec, mat, track->bundle_pos);
+	mul_v3_m4v3(vec, mat, median);
 
-	if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
+	if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
 		sub_v3_v3(object->loc, vec);
-	else
+	}
+	else {
+		object_solver_inverted_matrix(scene, object, mat);
+		mul_v3_m4v3(vec, mat, vec);
 		copy_v3_v3(object->loc, vec);
+	}
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&object->id, OB_RECALC_OB);
@@ -2007,6 +2040,9 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_median", 0, "Use Median", "Set origin to median point of selected bundles");
 }
 
 /********************** set floor operator *********************/
@@ -2026,6 +2062,9 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 
 	if(!is_camera) {
 		float imat[4][4];
+
+		object_solver_inverted_matrix(scene, ob, imat);
+		mul_v3_m4v3(vec, imat, vec);
 
 		invert_m4_m4(imat, obmat);
 		mul_v3_m4v3(dvec, imat, vec);
@@ -2094,23 +2133,22 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 		mul_m4_m4m4(mat, obmat, mat);
 	}
 	else {
-		float lmat[4][4], ilmat[4][4], m[4][4];
-
-		unit_m4(lmat);
-		copy_v3_v3(lmat[3], obmat[3]);
-		invert_m4_m4(ilmat, lmat);
-
 		if(!flip) {
-			float rmat[3][3], tmat[4][4];
+			float lmat[4][4], ilmat[4][4], rmat[3][3];
 
 			object_rot_to_mat3(ob, rmat);
-			copy_m4_m3(tmat, rmat);
-			invert_m4(tmat);
+			invert_m3(rmat);
+			mul_m4_m4m3(mat, mat, rmat);
 
-			mul_m4_m4m4(mat, mat, tmat);
+			unit_m4(lmat);
+			copy_v3_v3(lmat[3], obmat[3]);
+			invert_m4_m4(ilmat, lmat);
+
+			mul_serie_m4(mat, lmat, mat, ilmat, obmat, NULL, NULL, NULL, NULL);
 		}
-
-		mul_serie_m4(mat, lmat, mat, ilmat, obmat, NULL, NULL, NULL, NULL);
+		else {
+			mul_m4_m4m4(mat, mat, obmat);
+		}
 	}
 
 	object_apply_mat4(ob, mat, 0, 0);

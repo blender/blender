@@ -784,6 +784,10 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "object")
 
+        row = layout.row()
+        row.operator("constraint.objectsolver_set_inverse")
+        row.operator("constraint.objectsolver_clear_inverse")
+
         layout.operator("clip.constraint_to_fcurve")
 
     def SCRIPT(self, context, layout, con):
