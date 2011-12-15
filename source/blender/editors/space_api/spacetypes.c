@@ -132,6 +132,7 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_graph();
 	ED_operatormacros_action();
 	ED_operatormacros_clip();
+	ED_operatormacros_curve();
 	
 	/* register dropboxes (can use macros) */
 	spacetypes = BKE_spacetypes_list();

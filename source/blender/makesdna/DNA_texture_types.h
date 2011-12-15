@@ -494,6 +494,7 @@ typedef struct ColorMapping {
 #define MTEX_BUMP_OBJECTSPACE	1024
 #define MTEX_BUMP_TEXTURESPACE	2048
 /* #define MTEX_BUMP_FLIPPED 	4096 */ /* UNUSED */
+#define MTEX_BICUBIC_BUMP		8192
 
 /* blendtype */
 #define MTEX_BLEND		0

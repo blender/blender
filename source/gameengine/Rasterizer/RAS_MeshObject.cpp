@@ -43,6 +43,10 @@
 
 #include <algorithm>
 
+extern "C" {
+#	include "BKE_deform.h"
+}
+
 /* polygon sorting */
 
 struct RAS_MeshObject::polygonSlot
@@ -573,8 +577,8 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 {
 	KeyBlock *kb;
 	int kbindex, defindex;
-	MDeformVert *dvert= NULL;
-	int totvert, i, j;
+	MDeformVert *dv= NULL;
+	int totvert, i;
 	float *weights;
 
 	if (!m_mesh->key)
@@ -598,19 +602,15 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 				kb->weights = NULL;
 			}
 
-			dvert= m_mesh->dvert;
+			dv= m_mesh->dvert;
 			totvert= m_mesh->totvert;
 		
-			weights= (float*)MEM_callocN(totvert*sizeof(float), "weights");
+			weights= (float*)MEM_mallocN(totvert*sizeof(float), "weights");
 		
-			for (i=0; i < totvert; i++, dvert++) {
-				for(j=0; j<dvert->totweight; j++) {
-					if (dvert->dw[j].def_nr == defindex) {
-						weights[i]= dvert->dw[j].weight;
-						break;
-					}
-				}
+			for (i=0; i < totvert; i++, dv++) {
+				weights[i]= defvert_find_weight(dv, defindex);
 			}
+
 			kb->weights = weights;
 			m_cacheWeightIndex[kbindex] = defindex;
 		}

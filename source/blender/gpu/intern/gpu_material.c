@@ -1086,7 +1086,7 @@ static void do_material_tex(GPUShadeInput *shi)
 							GPU_link(mat, "mtex_blend_normal", tnorfac, shi->vn, newnor, &shi->vn);
 						}
 						
-					} else if( (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) || found_deriv_map) {
+					} else if( (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP)) || found_deriv_map) {
 						/* ntap bumpmap image */
 						int iBumpSpace;
 						float ima_x, ima_y;
@@ -1184,10 +1184,21 @@ static void do_material_tex(GPUShadeInput *shi)
 							GPU_link( mat, "mtex_bump_tap3", 
 							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
 							          &dBs, &dBt );
-						else
-							GPU_link( mat, "mtex_bump_tap5", 
+						else if( mtex->texflag & MTEX_5TAP_BUMP )
+							GPU_link( mat, "mtex_bump_tap5",
 							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
 							          &dBs, &dBt );
+						else if( mtex->texflag & MTEX_BICUBIC_BUMP ){
+							if(GPU_bicubic_bump_support()){
+								GPU_link( mat, "mtex_bump_bicubic",
+										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+										&dBs, &dBt );
+							}else{
+								GPU_link( mat, "mtex_bump_tap5",
+										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+										&dBs, &dBt );
+							}
+						}
 						
 						
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {

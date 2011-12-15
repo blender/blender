@@ -822,6 +822,9 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)",
 		                                        "Interpolate a global timestamp using the "
 		                                        "record date and time written by recording device"},
+		{SEQ_PROXY_TC_RECORD_RUN_NO_GAPS, "FREE_RUN_NO_GAPS", 0, "Free Run No Gaps",
+		                                        "Record run, but ignore timecode, "
+		                                        "changes in framerate or dropouts"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);

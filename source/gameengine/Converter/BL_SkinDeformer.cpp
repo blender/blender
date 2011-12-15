@@ -237,12 +237,12 @@ void BL_SkinDeformer::BGEDeformVerts()
 		}
 	}
 
+	MDeformVert *dv= dverts;
 
-	for (int i=0; i<m_bmesh->totvert; ++i)
+	for (int i=0; i<m_bmesh->totvert; ++i, dv++)
 	{
 		float contrib = 0.f, weight, max_weight=0.f;
 		bPoseChannel *pchan=NULL;
-		MDeformVert *dvert;
 		Eigen::Map<Eigen::Vector3f> norm(m_transnors[i]);
 		Eigen::Vector4f vec(0, 0, 0, 1);
 		Eigen::Matrix4f norm_chan_mat;
@@ -251,18 +251,18 @@ void BL_SkinDeformer::BGEDeformVerts()
 							m_transverts[i][2],
 							1.f);
 
-		dvert = dverts+i;
-
-		if (!dvert->totweight)
+		if (!dv->totweight)
 			continue;
 
-		for (int j=0; j<dvert->totweight; ++j)
+		MDeformWeight *dw= dv->dw;
+
+		for (unsigned int j= dv->totweight; j != 0; j--, dw++)
 		{
-			int index = dvert->dw[j].def_nr;
+			const int index = dw->def_nr;
 
 			if (index < defbase_tot && (pchan=m_dfnrToPC[index]))
 			{
-				weight = dvert->dw[j].weight;
+				weight = dw->weight;
 
 				if (weight)
 				{

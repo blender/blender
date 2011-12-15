@@ -163,33 +163,85 @@ void defvert_sync_mapped(MDeformVert *dvert_dst, const MDeformVert *dvert_src,
 /* be sure all flip_map values are valid */
 void defvert_remap(MDeformVert *dvert, int *map, const int map_len)
 {
-	MDeformWeight *dw;
-	int i;
-	for (i=0, dw=dvert->dw; i<dvert->totweight; i++, dw++) {
+	MDeformWeight *dw= dvert->dw;
+	unsigned int i;
+	for (i= dvert->totweight; i != 0; i--, dw++) {
 		if (dw->def_nr < map_len) {
 			dw->def_nr= map[dw->def_nr];
+
+			/* just incase */
+			BLI_assert(dw->def_nr >= 0);
 		}
 	}
 }
 
 void defvert_normalize(MDeformVert *dvert)
 {
-	if (dvert->totweight<=0) {
+	if (dvert->totweight <= 0) {
 		/* nothing */
 	}
 	else if (dvert->totweight==1) {
 		dvert->dw[0].weight= 1.0f;
 	}
 	else {
-		int i;
-		float tot= 0.0f;
 		MDeformWeight *dw;
-		for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
-			tot += dw->weight;
+		unsigned int i;
+		float tot_weight= 0.0f;
 
-		if (tot > 0.0f) {
-			for (i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
-				dw->weight /= tot;
+		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+			tot_weight += dw->weight;
+		}
+
+		if (tot_weight > 0.0f) {
+			float scalar= 1.0f / tot_weight;
+			for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+				dw->weight *= scalar;
+
+				/* incase of division errors with very low weights */
+				CLAMP(dw->weight, 0.0f, 1.0f);
+			}
+		}
+	}
+}
+
+void defvert_normalize_lock(MDeformVert *dvert, const int def_nr_lock)
+{
+	if (dvert->totweight <= 0) {
+		/* nothing */
+	}
+	else if (dvert->totweight==1) {
+		dvert->dw[0].weight= 1.0f;
+	}
+	else {
+		MDeformWeight *dw_lock;
+		MDeformWeight *dw;
+		unsigned int i;
+		float tot_weight= 0.0f;
+		float lock_iweight= 1.0f;
+
+		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+			if(dw->def_nr != def_nr_lock) {
+				tot_weight += dw->weight;
+			}
+			else {
+				dw_lock= dw;
+				lock_iweight = (1.0f - dw_lock->weight);
+				CLAMP(lock_iweight, 0.0f, 1.0f);
+			}
+		}
+
+		if (tot_weight > 0.0f) {
+			/* paranoid, should be 1.0 but incase of float error clamp anyway */
+
+			float scalar= (1.0f / tot_weight) * lock_iweight;
+			for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+				if(dw != dw_lock) {
+					dw->weight *= scalar;
+
+					/* incase of division errors with very low weights */
+					CLAMP(dw->weight, 0.0f, 1.0f);
+				}
+			}
 		}
 	}
 }
@@ -227,7 +279,7 @@ bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 int defgroup_name_index(Object *ob, const char *name)
 {
 	/* Return the location of the named deform group within the list of
-	 * deform groups. This function is a combination of defgroup_find_index and
+	 * deform groups. This function is a combination of BLI_findlink and
 	 * defgroup_find_name. The other two could be called instead, but that
 	 * require looping over the vertexgroups twice.
 	 */
@@ -242,46 +294,6 @@ int defgroup_name_index(Object *ob, const char *name)
 	}
 
 	return -1;
-}
-
-int defgroup_find_index(Object *ob, bDeformGroup *dg)
-{
-	/* Fetch the location of this deform group
-	 * within the linked list of deform groups.
-	 * (this number is stored in the deform
-	 * weights of the deform verts to link them
-	 * to this deform group).
-	 *
-	 * note: this is zero based, ob->actdef starts at 1.
-	 */
-
-	bDeformGroup *eg;
-	int def_nr;
-
-	eg = ob->defbase.first;
-	def_nr = 0;
-
-	/* loop through all deform groups */
-	while (eg != NULL) {
-
-		/* if the current deform group is
-		 * the one we are after, return
-		 * def_nr
-		 */
-		if (eg == dg) {
-			break;
-		}
-		++def_nr;
-		eg = eg->next;
-	}
-
-	/* if there was no deform group found then
-	 * return -1 (should set up a nice symbolic
-	 * constant for this)
-	 */
-	if (eg == NULL) return -1;
-
-	return def_nr;
 }
 
 /* note, must be freed */
@@ -527,6 +539,12 @@ float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
 	return dw ? dw->weight : 0.0f;
 }
 
+/* take care with this the rationale is:
+ * - if the object has no vertex group. act like vertex group isnt set and return 1.0,
+ * - if the vertex group exists but the 'defgroup' isnt found on this vertex, _still_ return 0.0
+ *
+ * This is a bit confusing, just saves some checks from the caller.
+ */
 float defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup)
 {
 	if (defgroup == -1 || dvert == NULL)
@@ -540,9 +558,9 @@ MDeformWeight *defvert_find_index(const MDeformVert *dvert, const int defgroup)
 {
 	if (dvert && defgroup >= 0) {
 		MDeformWeight *dw = dvert->dw;
-		int i;
+		unsigned int i;
 
-		for (i=dvert->totweight; i>0; i--, dw++) {
+		for (i= dvert->totweight; i != 0; i--, dw++) {
 			if (dw->def_nr == defgroup) {
 				return dw;
 			}
@@ -626,10 +644,17 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		 */
 		if (dvert->totweight) {
 			dw_new = MEM_mallocN(sizeof(MDeformWeight)*(dvert->totweight), __func__);
-			if (dvert->dw){
+			if (dvert->dw) {
+#if 1			/* since we dont care about order, swap this with the last, save a memcpy */
+				if (i != dvert->totweight) {
+					dvert->dw[i]= dvert->dw[dvert->totweight];
+				}
+				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
+				MEM_freeN(dvert->dw);
+#else
 				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight)*i);
 				memcpy(dw_new+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
-				MEM_freeN(dvert->dw);
+#endif
 			}
 			dvert->dw = dw_new;
 		}

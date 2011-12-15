@@ -52,8 +52,11 @@ static int proxy_sizes[] = { IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75,
 static float proxy_fac[] = { 0.25, 0.50, 0.75, 1.00 };
 
 #ifdef WITH_FFMPEG
-static int tc_types[] = { IMB_TC_RECORD_RUN, IMB_TC_FREE_RUN,
-                          IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN };
+static int tc_types[] = { IMB_TC_RECORD_RUN,
+                          IMB_TC_FREE_RUN,
+                          IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN,
+                          IMB_TC_RECORD_RUN_NO_GAPS,
+                        };
 #endif
 
 #define INDEX_FILE_VERSION 1
@@ -102,7 +105,7 @@ anim_index_builder * IMB_index_builder_create(const char * name)
 }
 
 void IMB_index_builder_add_entry(anim_index_builder * fp, 
-				 int frameno,unsigned long long seek_pos,
+				 int frameno, unsigned long long seek_pos,
 				 unsigned long long seek_pos_dts,
 				 unsigned long long pts)
 {
@@ -344,6 +347,8 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 		return 1;
 	case IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN:
 		return 2;
+	case IMB_TC_RECORD_RUN_NO_GAPS:
+		return 3;
 	default:
 		return 0;
 	};
@@ -401,8 +406,10 @@ static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
 	char index_dir[FILE_MAXDIR];
 	int i = IMB_timecode_to_array_index(tc);
 	const char * index_names[] = {
-		"record_run%s.blen_tc", "free_run%s.blen_tc",
-		"interp_free_run%s.blen_tc" };
+		"record_run%s.blen_tc",
+		"free_run%s.blen_tc",
+		"interp_free_run%s.blen_tc",
+		"record_run_no_gaps%s.blen_tc"};
 
 	char stream_suffix[20];
 	char index_name[256];
@@ -696,7 +703,7 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 	unsigned long long start_pts = 0;
 	double frame_rate;
 	double pts_time_base;
-	int frameno = 0;
+	int frameno = 0, frameno_gapless = 0;
 	int start_pts_set = FALSE;
 
 	AVFormatContext *iFormatCtx;
@@ -858,13 +865,21 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 
 			for (i = 0; i < num_indexers; i++) {
 				if (tcs_in_use & tc_types[i]) {
+					int tc_frameno = frameno;
+
+					if(tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
+						tc_frameno = frameno_gapless;
+
 					IMB_index_builder_proc_frame(
 						indexer[i], 
 						next_packet.data, 
 						next_packet.size,
-						frameno, s_pos,	s_dts, pts);
+						tc_frameno,
+						s_pos, s_dts, pts);
 				}
 			}
+
+			frameno_gapless++;
 		}
 		av_free_packet(&next_packet);
 	}

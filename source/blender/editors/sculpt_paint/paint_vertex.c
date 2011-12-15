@@ -1432,15 +1432,15 @@ static float get_mp_change(MDeformVert *odv, const int defbase_tot, const char *
 
 /* change the weights back to the wv's weights
  * it assumes you already have the correct pointer index */
-static void reset_to_prev(MDeformVert *wv, MDeformVert *dvert)
+static void defvert_reset_to_prev(MDeformVert *dv_prev, MDeformVert *dv)
 {
-	MDeformWeight *dw= dvert->dw;
-	MDeformWeight *w;
+	MDeformWeight *dw= dv->dw;
+	MDeformWeight *dw_prev;
 	unsigned int i;
-	for (i= dvert->totweight; i != 0; i--, dw++) {
-		w= defvert_find_index(wv, dw->def_nr);
+	for (i= dv->totweight; i != 0; i--, dw++) {
+		dw_prev= defvert_find_index(dv_prev, dw->def_nr);
 		/* if there was no w when there is a d, then the old weight was 0 */
-		dw->weight = w ? w->weight : 0.0f;
+		dw->weight = dw_prev ? dw_prev->weight : 0.0f;
 	}
 }
 
@@ -1652,7 +1652,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 						if( testw > tuw->weight ) {
 							if(change > oldChange) {
 								/* reset the weights and use the new change */
-								reset_to_prev(wp->wpaint_prev+index, dv);
+								defvert_reset_to_prev(wp->wpaint_prev+index, dv);
 							}
 							else {
 								/* the old change was more significant, so set
@@ -1662,7 +1662,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 						}
 						else {
 							if(change < oldChange) {
-								reset_to_prev(wp->wpaint_prev+index, dv);
+								defvert_reset_to_prev(wp->wpaint_prev+index, dv);
 							}
 							else {
 								change = 0;
@@ -1677,7 +1677,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		}
 		
 		if(apply_mp_locks_normalize(me, wpi, index, dw, tdw, change, oldChange, oldw, neww)) {
-			reset_to_prev(&dv_copy, dv);
+			defvert_reset_to_prev(&dv_copy, dv);
 			change = 0;
 			oldChange = 0;
 		}
@@ -1918,7 +1918,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					}
 					else {
-						ob->actdef= 1 + defgroup_find_index(ob, dg);
+						ob->actdef= 1 + BLI_findindex(&ob->defbase, dg);
 						BLI_assert(ob->actdef >= 0);
 					}
 				}
