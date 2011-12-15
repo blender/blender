@@ -1459,13 +1459,13 @@ static void draw_bundle_sphere(void)
 }
 
 static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D *v3d,
-			MovieClip *clip, MovieTrackingObject *tracking_object, int flag)
+			MovieClip *clip, MovieTrackingObject *tracking_object, int flag, int *global_track_index)
 {
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
 	float mat[4][4], imat[4][4];
 	unsigned char col[4], scol[4];
-	int bundlenr= 1;
+	int tracknr= *global_track_index;
 	ListBase *tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 
 	UI_GetThemeColor4ubv(TH_TEXT, col);
@@ -1487,10 +1487,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	else {
 		float obmat[4][4];
 
-		if(flag & DRAW_PICKING) {
-			return;
-		}
-
 		BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, obmat);
 
 		invert_m4_m4(imat, obmat);
@@ -1504,7 +1500,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			continue;
 
 		if(flag&DRAW_PICKING)
-			glLoadName(base->selcol + (bundlenr<<16));
+			glLoadName(base->selcol + (tracknr<<16));
 
 		glPushMatrix();
 			glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -1512,7 +1508,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 			if(v3d->drawtype==OB_WIRE) {
 				glDisable(GL_LIGHTING);
-				glDepthMask(0);
 
 				if(selected) {
 					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
@@ -1524,7 +1519,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 				drawaxes(0.05f, v3d->bundle_drawtype);
 
-				glDepthMask(1);
 				glEnable(GL_LIGHTING);
 			} else if(v3d->drawtype>OB_WIRE) {
 				if(v3d->bundle_drawtype==OB_EMPTY_SPHERE) {
@@ -1533,7 +1527,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 						else UI_ThemeColor(TH_SELECT);
 
-						glDepthMask(0);
 						glLineWidth(2.f);
 						glDisable(GL_LIGHTING);
 						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1543,7 +1536,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 						glEnable(GL_LIGHTING);
 						glLineWidth(1.f);
-						glDepthMask(1);
 					}
 
 					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
@@ -1552,7 +1544,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					draw_bundle_sphere();
 				} else {
 					glDisable(GL_LIGHTING);
-					glDepthMask(0);
 
 					if(selected) {
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
@@ -1564,7 +1555,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 					drawaxes(0.05f, v3d->bundle_drawtype);
 
-					glDepthMask(1);
 					glEnable(GL_LIGHTING);
 				}
 			}
@@ -1582,7 +1572,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			view3d_cached_text_draw_add(pos, track->name, 10, V3D_CACHE_TEXT_GLOBALSPACE, tcol);
 		}
 
-		bundlenr++;
+		tracknr++;
 	}
 
 	if((flag & DRAW_PICKING)==0) {
@@ -1611,6 +1601,8 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	}
 
 	glPopMatrix();
+
+	*global_track_index= tracknr;
 }
 
 static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
@@ -1618,6 +1610,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingObject *tracking_object;
 	float curcol[4];
+	int global_track_index= 1;
 
 	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
 		return;
@@ -1634,7 +1627,8 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 	tracking_object= tracking->objects.first;
 	while(tracking_object) {
-		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object, flag);
+		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object,
+					flag, &global_track_index);
 
 		tracking_object= tracking_object->next;
 	}

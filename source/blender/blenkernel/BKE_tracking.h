@@ -77,7 +77,7 @@ struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrac
 void BKE_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 
 struct MovieTrackingTrack *BKE_tracking_named_track(struct MovieTracking *tracking, struct MovieTrackingObject *object, const char *name);
-struct MovieTrackingTrack *BKE_tracking_indexed_track(struct MovieTracking *tracking, int tracknr);
+struct MovieTrackingTrack *BKE_tracking_indexed_track(struct MovieTracking *tracking, int tracknr, struct ListBase **tracksbase_r);
 
 void BKE_tracking_camera_shift(struct MovieTracking *tracking, int winx, int winy, float *shiftx, float *shifty);
 void BKE_tracking_camera_to_blender(struct MovieTracking *tracking, struct Scene *scene, struct Camera *camera, int width, int height);

@@ -755,7 +755,16 @@ class ConstraintButtonsPanel():
         col = layout.column()
         col.prop(con, "rotation_range", text="Pivot When")
 
+    @staticmethod
+    def _getConstraintClip(context, con):
+        if not con.use_active_clip:
+            return con.clip
+        else:
+            return context.scene.active_clip
+
     def FOLLOW_TRACK(self, context, layout, con):
+        clip = self._getConstraintClip(context, con)
+
         row = layout.row()
         row.prop(con, "use_active_clip")
         row.prop(con, "use_3d_position")
@@ -763,8 +772,9 @@ class ConstraintButtonsPanel():
         if not con.use_active_clip:
             layout.prop(con, "clip")
 
-        layout.prop(con, "object")
-        layout.prop(con, "track")
+        if clip:
+            layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
+            layout.prop_search(con, "track", clip.tracking, "tracks", icon='ANIMATION_DATA')
 
         layout.operator("clip.constraint_to_fcurve")
 
@@ -777,12 +787,16 @@ class ConstraintButtonsPanel():
         layout.operator("clip.constraint_to_fcurve")
 
     def OBJECT_SOLVER(self, context, layout, con):
+        scene = context.scene
+        clip = self._getConstraintClip(context, con)
+
         layout.prop(con, "use_active_clip")
 
         if not con.use_active_clip:
             layout.prop(con, "clip")
 
-        layout.prop(con, "object")
+        if clip:
+            layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
 
         row = layout.row()
         row.operator("constraint.objectsolver_set_inverse")

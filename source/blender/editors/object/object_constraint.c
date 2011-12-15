@@ -433,6 +433,12 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
+			else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+				bObjectSolverConstraint *data = curcon->data;
+
+				if((data->flag&CAMERASOLVER_ACTIVECLIP)==0 && data->clip == NULL)
+					curcon->flag |= CONSTRAINT_DISABLE;
+			}
 			
 			/* Check targets for constraints */
 			if (cti && cti->get_constraint_targets) {

@@ -2257,22 +2257,33 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 #endif
 }
 
-MovieTrackingTrack *BKE_tracking_indexed_track(MovieTracking *tracking, int tracknr)
+MovieTrackingTrack *BKE_tracking_indexed_track(MovieTracking *tracking, int tracknr, ListBase **tracksbase_r)
 {
-	ListBase *tracksbase= &tracking->tracks;	/* XXX: need proper tracks base */
-	MovieTrackingTrack *track= tracksbase->first;
+	MovieTrackingObject *object;
 	int cur= 1;
 
-	while(track) {
-		if(track->flag&TRACK_HAS_BUNDLE) {
-			if(cur==tracknr)
-				return track;
+	object= tracking->objects.first;
+	while(object) {
+		ListBase *tracksbase= BKE_tracking_object_tracks(tracking, object);
+		MovieTrackingTrack *track= tracksbase->first;
 
-			cur++;
+		while(track) {
+			if(track->flag&TRACK_HAS_BUNDLE) {
+				if(cur==tracknr) {
+					*tracksbase_r= tracksbase;
+					return track;
+				}
+
+				cur++;
+			}
+
+			track= track->next;
 		}
 
-		track= track->next;
+		object= object->next;
 	}
+
+	*tracksbase_r= NULL;
 
 	return NULL;
 }
