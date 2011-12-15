@@ -413,6 +413,7 @@ typedef struct bFollowTrackConstraint {
 	char	track[24];
 	int		flag, pad;
 	char		object[24];
+	struct Object *camera;
 } bFollowTrackConstraint;
 
 /* Camera Solver constraints */
@@ -427,6 +428,7 @@ typedef struct bObjectSolverConstraint {
 	int		flag, pad;
 	char		object[24];
 	float		invmat[4][4];	/* parent-inverse matrix to use */
+	struct Object *camera;
 } bObjectSolverConstraint;
 
 /* ------------------------------------------ */

@@ -330,6 +330,49 @@ static void rna_SplineIKConstraint_joint_bindings_set(PointerRNA *ptr, const flo
 	memcpy(ikData->points, values, ikData->numpoints * sizeof(float));
 }
 
+static int rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_CAMERA && ob != (Object*)ptr->id.data) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr, PointerRNA value)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bFollowTrackConstraint *data= (bFollowTrackConstraint*)con->data;
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_CAMERA && ob != (Object*)ptr->id.data) {
+			data->camera= ob;
+		}
+	} else {
+		data->camera= NULL;
+	}
+}
+
+static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA value)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bObjectSolverConstraint *data= (bObjectSolverConstraint*)con->data;
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_CAMERA && ob != (Object*)ptr->id.data) {
+			data->camera= ob;
+		}
+	} else {
+		data->camera= NULL;
+	}
+}
+
 #else
 
 EnumPropertyItem constraint_distance_items[] = {
@@ -2073,8 +2116,16 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	/* object */
 	prop= RNA_def_property(srna, "object", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "object");
-	RNA_def_property_ui_text(prop, "Object", "Movie tracking object to follow");
+	RNA_def_property_ui_text(prop, "Object", "Movie tracking object to follow (if empty, camera object is used)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	/* camera */
+	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "camera");
+	RNA_def_property_ui_text(prop, "Camera", "Camera to which motion is parented (if empty active scene camera is used)");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Constraint_followTrack_camera_set", NULL, "rna_Constraint_cameraObject_poll");
 }
 
 static void rna_def_constraint_camera_solver(BlenderRNA *brna)
@@ -2127,6 +2178,14 @@ static void rna_def_constraint_object_solver(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "object");
 	RNA_def_property_ui_text(prop, "Object", "Movie tracking object to follow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	/* camera */
+	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "camera");
+	RNA_def_property_ui_text(prop, "Camera", "Camera to which motion is parented (if empty active scene camera is used)");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Constraint_objectSolver_camera_set", NULL, "rna_Constraint_cameraObject_poll");
 }
 
 /* base struct for constraints */

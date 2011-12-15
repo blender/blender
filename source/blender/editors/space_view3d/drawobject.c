@@ -6818,14 +6818,28 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
-				if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
-					/* special case for object solver constraint because it doesn't fill
-					   constraint targets properly (design limitation -- scene is needed for
-					   it's target but it can't be accessed from get_targets callvack) */
-					if(scene->camera) {
+				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+					/* special case for object solver and follow track constraints because they don't fill
+					   constraint targets properly (design limitation -- scene is needed for their target
+					   but it can't be accessed from get_targets callvack) */
+
+					Object *camob= NULL;
+
+					if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+						bFollowTrackConstraint *data= (bFollowTrackConstraint *)curcon->data;
+
+						camob= data->camera ? data->camera : scene->camera;
+					}
+					else if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+						bObjectSolverConstraint *data= (bObjectSolverConstraint *)curcon->data;
+
+						camob= data->camera ? data->camera : scene->camera;
+					}
+
+					if(camob) {
 						setlinestyle(3);
 						glBegin(GL_LINES);
-						glVertex3fv(scene->camera->obmat[3]);
+						glVertex3fv(camob->obmat[3]);
 						glVertex3fv(ob->obmat[3]);
 						glEnd();
 						setlinestyle(0);

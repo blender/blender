@@ -776,6 +776,8 @@ class ConstraintButtonsPanel():
             layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
             layout.prop_search(con, "track", clip.tracking, "tracks", icon='ANIMATION_DATA')
 
+        layout.prop(con, "camera")
+
         layout.operator("clip.constraint_to_fcurve")
 
     def CAMERA_SOLVER(self, context, layout, con):
@@ -797,6 +799,8 @@ class ConstraintButtonsPanel():
 
         if clip:
             layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
+
+        layout.prop(con, "camera")
 
         row = layout.row()
         row.operator("constraint.objectsolver_set_inverse")

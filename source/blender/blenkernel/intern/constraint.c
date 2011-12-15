@@ -3937,6 +3937,7 @@ static void followtrack_id_looper (bConstraint *con, ConstraintIDFunc func, void
 	bFollowTrackConstraint *data= con->data;
 	
 	func(con, (ID**)&data->clip, userdata);
+	func(con, (ID**)&data->camera, userdata);
 }
 
 static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -3947,11 +3948,12 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 	MovieTracking *tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
+	Object *camob= data->camera ? data->camera : scene->camera;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
 		clip= scene->clip;
 
-	if (!clip || !data->track[0])
+	if (!clip || !data->track[0] || !camob)
 		return;
 
 	tracking= &clip->tracking;
@@ -3975,11 +3977,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			float pos[3], mat[4][4];
 
 			if((tracking_object->flag&TRACKING_OBJECT_CAMERA)==0) {
-				Object *camob= scene->camera;
 				float obmat[4][4], imat[4][4];
-
-				if(!camob)
-					return;
 
 				copy_m4_m4(mat, camob->obmat);
 
@@ -4000,77 +3998,73 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 		}
 	} 
 	else {
-		Object *camob= scene->camera;
+		MovieClipUser user;
+		MovieTrackingMarker *marker;
+		float vec[3], disp[3], axis[3], mat[4][4];
+		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
+		float len, d;
 
-		if (camob) {
-			MovieClipUser user;
-			MovieTrackingMarker *marker;
-			float vec[3], disp[3], axis[3], mat[4][4];
-			float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
-			float len, d;
+		where_is_object_mat(scene, camob, mat);
 
-			where_is_object_mat(scene, camob, mat);
+		/* camera axis */
+		vec[0]= 0.0f;
+		vec[1]= 0.0f;
+		vec[2]= 1.0f;
+		mul_v3_m4v3(axis, mat, vec);
 
-			/* camera axis */
-			vec[0]= 0.0f;
-			vec[1]= 0.0f;
-			vec[2]= 1.0f;
-			mul_v3_m4v3(axis, mat, vec);
+		/* distance to projection plane */
+		copy_v3_v3(vec, cob->matrix[3]);
+		sub_v3_v3(vec, mat[3]);
+		project_v3_v3v3(disp, vec, axis);
 
-			/* distance to projection plane */
-			copy_v3_v3(vec, cob->matrix[3]);
-			sub_v3_v3(vec, mat[3]);
-			project_v3_v3v3(disp, vec, axis);
+		len= len_v3(disp);
 
-			len= len_v3(disp);
+		if (len > FLT_EPSILON) {
+			CameraParams params;
+			float pos[2], rmat[4][4];
 
-			if (len > FLT_EPSILON) {
-				CameraParams params;
-				float pos[2], rmat[4][4];
+			user.framenr= scene->r.cfra;
+			marker= BKE_tracking_get_marker(track, user.framenr);
 
-				user.framenr= scene->r.cfra;
-				marker= BKE_tracking_get_marker(track, user.framenr);
+			add_v2_v2v2(pos, marker->pos, track->offset);
 
-				add_v2_v2v2(pos, marker->pos, track->offset);
+			camera_params_init(&params);
+			camera_params_from_object(&params, camob);
 
-				camera_params_init(&params);
-				camera_params_from_object(&params, camob);
+			if (params.is_ortho) {
+				vec[0]= params.ortho_scale * (pos[0]-0.5f+params.shiftx);
+				vec[1]= params.ortho_scale * (pos[1]-0.5f+params.shifty);
+				vec[2]= -len;
 
-				if (params.is_ortho) {
-					vec[0]= params.ortho_scale * (pos[0]-0.5f+params.shiftx);
-					vec[1]= params.ortho_scale * (pos[1]-0.5f+params.shifty);
-					vec[2]= -len;
+				if (aspect > 1.0f) vec[1] /= aspect;
+				else vec[0] *= aspect;
 
-					if (aspect > 1.0f) vec[1] /= aspect;
-					else vec[0] *= aspect;
+				mul_v3_m4v3(disp, camob->obmat, vec);
 
-					mul_v3_m4v3(disp, camob->obmat, vec);
+				copy_m4_m4(rmat, camob->obmat);
+				zero_v3(rmat[3]);
+				mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
 
-					copy_m4_m4(rmat, camob->obmat);
-					zero_v3(rmat[3]);
-					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
+				copy_v3_v3(cob->matrix[3], disp);
+			}
+			else {
+				d= (len*params.sensor_x) / (2.0f*params.lens);
 
-					copy_v3_v3(cob->matrix[3], disp);
-				}
-				else {
-					d= (len*params.sensor_x) / (2.0f*params.lens);
+				vec[0]= d*(2.0f*(pos[0]+params.shiftx)-1.0f);
+				vec[1]= d*(2.0f*(pos[1]+params.shifty)-1.0f);
+				vec[2]= -len;
 
-					vec[0]= d*(2.0f*(pos[0]+params.shiftx)-1.0f);
-					vec[1]= d*(2.0f*(pos[1]+params.shifty)-1.0f);
-					vec[2]= -len;
+				if (aspect > 1.0f) vec[1] /= aspect;
+				else vec[0] *= aspect;
 
-					if (aspect > 1.0f) vec[1] /= aspect;
-					else vec[0] *= aspect;
+				mul_v3_m4v3(disp, camob->obmat, vec);
 
-					mul_v3_m4v3(disp, camob->obmat, vec);
+				/* apply camera rotation so Z-axis would be co-linear */
+				copy_m4_m4(rmat, camob->obmat);
+				zero_v3(rmat[3]);
+				mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
 
-					/* apply camera rotation so Z-axis would be co-linear */
-					copy_m4_m4(rmat, camob->obmat);
-					zero_v3(rmat[3]);
-					mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
-
-					copy_v3_v3(cob->matrix[3], disp);
-				}
+				copy_v3_v3(cob->matrix[3], disp);
 			}
 		}
 	}
@@ -4162,6 +4156,7 @@ static void objectsolver_id_looper (bConstraint *con, ConstraintIDFunc func, voi
 	bObjectSolverConstraint *data= con->data;
 
 	func(con, (ID**)&data->clip, userdata);
+	func(con, (ID**)&data->camera, userdata);
 }
 
 static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -4169,11 +4164,12 @@ static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 	Scene *scene= cob->scene;
 	bObjectSolverConstraint *data= con->data;
 	MovieClip *clip= data->clip;
+	Object *camob= data->camera ? data->camera : scene->camera;
 
 	if (data->flag & OBJECTSOLVER_ACTIVECLIP)
 		clip= scene->clip;
 
-	if(!scene->camera)
+	if(!camob || !clip)
 		return;
 
 	if (clip) {
@@ -4185,14 +4181,14 @@ static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 		if(object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
 
-			where_is_object_mat(scene, scene->camera, cammat);
+			where_is_object_mat(scene, camob, cammat);
 
 			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
 
 			invert_m4_m4(camimat, cammat);
 			mul_m4_m4m4(parmat, data->invmat, cammat);
 
-			copy_m4_m4(cammat, scene->camera->obmat);
+			copy_m4_m4(cammat, camob->obmat);
 			copy_m4_m4(obmat, cob->matrix);
 
 			invert_m4_m4(imat, mat);
