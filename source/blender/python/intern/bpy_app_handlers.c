@@ -210,6 +210,7 @@ PyObject *BPY_app_handlers_struct(void)
 	/* prevent user from creating new instances */
 	BlenderAppCbType.tp_init= NULL;
 	BlenderAppCbType.tp_new= NULL;
+	BlenderAppCbType.tp_hash= (hashfunc)_Py_HashPointer; /* without this we can't do set(sys.modules) [#29635] */
 
 	/* assign the C callbacks */
 	if (ret) {

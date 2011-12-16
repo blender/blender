@@ -926,7 +926,8 @@ static int MirrTopo_item_sort(const void *v1, const void *v2)
 }
 
 static long *mesh_topo_lookup = NULL;
-static int  mesh_topo_lookup_tot = -1;
+static int  mesh_topo_lookup_vert_tot = -1;
+static int  mesh_topo_lookup_edge_tot = -1;
 static int  mesh_topo_lookup_mode = -1;
 
 /* mode is 's' start, or 'e' end, or 'u' use */
@@ -937,8 +938,10 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		Mesh *me= ob->data;
 		if(	(mesh_topo_lookup==NULL) ||
 			(mesh_topo_lookup_mode != ob->mode) ||
-			(me->edit_btmesh && me->edit_btmesh->bm->totvert != mesh_topo_lookup_tot) ||
-			(me->edit_btmesh==NULL && me->totvert != mesh_topo_lookup_tot)
+			(me->edit_btmesh && me->edit_btmesh->bm->totvert != mesh_topo_lookup_vert_tot) ||
+			(me->edit_btmesh && me->edit_btmesh->bm->totedge != mesh_topo_lookup_edge_tot) ||
+			(me->edit_btmesh==NULL && me->totvert != mesh_topo_lookup_vert_tot) ||
+			(me->edit_btmesh==NULL && me->totedge != mesh_topo_lookup_edge_tot)
 		) {
 			mesh_mirrtopo_table(ob, 's');
 		}
@@ -951,7 +954,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		MIRRHASH_TYPE *MirrTopoHash = NULL;
 		MIRRHASH_TYPE *MirrTopoHash_Prev = NULL;
 		MirrTopoPair *MirrTopoPairs;
-		int a, last, totvert;
+		int a, last;
+		int totvert, totedge;
 		int totUnique= -1, totUniqueOld= -1;
 
 		mesh_topo_lookup_mode= ob->mode;
@@ -975,12 +979,15 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 		/* Initialize the vert-edge-user counts used to detect unique topology */
 		if(em) {
+			totedge= me->edit_btmesh->bm->totedge;
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 				MirrTopoHash[BM_GetIndex(eed->v1)]++;
 				MirrTopoHash[BM_GetIndex(eed->v2)]++;
 			}
 		} else {
-			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
+			totedge= me->totedge;
+
+			for(a=0, medge=me->medge; a < me->totedge; a++, medge++) {
 				MirrTopoHash[medge->v1]++;
 				MirrTopoHash[medge->v2]++;
 			}
@@ -1078,14 +1085,16 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		MEM_freeN( MirrTopoHash );
 		MEM_freeN( MirrTopoHash_Prev );
 
-		mesh_topo_lookup_tot = totvert;
+		mesh_topo_lookup_vert_tot = totvert;
+		mesh_topo_lookup_edge_tot = totedge;
 
 	} else if(mode=='e') { /* end table */
 		if (mesh_topo_lookup) {
 			MEM_freeN(mesh_topo_lookup);
 		}
 		mesh_topo_lookup = NULL;
-		mesh_topo_lookup_tot= -1;
+		mesh_topo_lookup_vert_tot= -1;
+		mesh_topo_lookup_edge_tot= -1;
 	}
 	return 0;
 }

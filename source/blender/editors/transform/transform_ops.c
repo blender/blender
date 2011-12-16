@@ -632,7 +632,7 @@ void TRANSFORM_OT_warp(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_screenactive;
 
-	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", 0, 1);
+	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
 
 	Transform_Properties(ot, P_PROPORTIONAL|P_MIRROR|P_SNAP);
 	// XXX Warp axis?
