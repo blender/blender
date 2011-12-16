@@ -142,6 +142,16 @@ int				BLI_ghashutil_strcmp	(const void *a, const void *b);
 unsigned int	BLI_ghashutil_inthash	(const void *ptr);
 int				BLI_ghashutil_intcmp	(const void *a, const void *b);
 
+typedef struct GHashPair {
+	const void *first;
+	int second;
+} GHashPair;
+
+GHashPair*		BLI_ghashutil_pairalloc (const void *first, int second);
+unsigned int	BLI_ghashutil_pairhash	(const void *ptr);
+int				BLI_ghashutil_paircmp	(const void *a, const void *b);
+void			BLI_ghashutil_pairfree	(const void *ptr);
+
 #ifdef __cplusplus
 }
 #endif
