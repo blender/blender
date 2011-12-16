@@ -343,6 +343,13 @@ public:
 	static ShaderEnum type_enum;
 };
 
+class NormalNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(NormalNode)
+
+	float3 direction;
+};
+
 class VectorMathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(VectorMathNode)

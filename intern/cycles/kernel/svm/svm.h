@@ -134,6 +134,7 @@ CCL_NAMESPACE_END
 #include "svm_light_path.h"
 #include "svm_magic.h"
 #include "svm_mapping.h"
+#include "svm_normal.h"
 #include "svm_wave.h"
 #include "svm_math.h"
 #include "svm_mix.h"
@@ -299,6 +300,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_VECTOR_MATH:
 				svm_node_vector_math(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_NORMAL:
+				svm_node_normal(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
 			case NODE_MAPPING:
 				svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);

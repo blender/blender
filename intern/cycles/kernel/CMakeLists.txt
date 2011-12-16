@@ -72,6 +72,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_musgrave.h
 	svm/svm_noise.h
 	svm/svm_noisetex.h
+	svm/svm_normal.h
 	svm/svm_sepcomb_rgb.h
 	svm/svm_sky.h
 	svm/svm_tex_coord.h
