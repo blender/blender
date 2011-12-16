@@ -650,7 +650,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 			float imat[4][4], mat[4][4];
 			
 			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
-			mul_m4_m4m4(mat, pchan->pose_mat, hmd->object->obmat);
+			mult_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
 			
 			invert_m4_m4(imat, mat);
 			mul_serie_m4(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);

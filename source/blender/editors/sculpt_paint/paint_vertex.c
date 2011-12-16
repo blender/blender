@@ -2010,7 +2010,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	}
 
 	/* imat for normals */
-	mul_m4_m4m4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(wpd->wpimat, imat);
 	
@@ -2060,7 +2060,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 		
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
@@ -2479,7 +2479,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
 	
 	/* some old cruft to sort out later */
-	mul_m4_m4m4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
@@ -2546,7 +2546,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 			
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;

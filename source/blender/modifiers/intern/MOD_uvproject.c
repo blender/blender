@@ -222,11 +222,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				if(cam->type == CAM_PERSP) {
 					float perspmat[4][4];
 					perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-					mul_m4_m4m4(tmpmat, projectors[i].projmat, perspmat);
+					mult_m4_m4m4(tmpmat, perspmat, projectors[i].projmat);
 				} else { /* if(cam->type == CAM_ORTHO) */
 					float orthomat[4][4];
 					orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-					mul_m4_m4m4(tmpmat, projectors[i].projmat, orthomat);
+					mult_m4_m4m4(tmpmat, orthomat, projectors[i].projmat);
 				}
 			}
 		} else {
@@ -250,7 +250,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			}
 		}
 		
-		mul_m4_m4m4(projectors[i].projmat, tmpmat, offsetmat);
+		mult_m4_m4m4(projectors[i].projmat, offsetmat, tmpmat);
 
 		/* calculate worldspace projector normal (for best projector test) */
 		projectors[i].normal[0] = 0;

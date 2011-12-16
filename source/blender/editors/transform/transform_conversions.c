@@ -449,14 +449,14 @@ static short apply_targetless_ik(Object *ob)
 						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 						mul_m4_v3(parchan->parent->pose_mat, rmat[3]);
 
-						mul_m4_m4m4(tmat, offs_bone, rmat);
+						mult_m4_m4m4(tmat, rmat, offs_bone);
 					}
 					else if(parchan->bone->flag & BONE_NO_SCALE) {
-						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
+						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
 						normalize_m4(tmat);
 					}
 					else
-						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
+						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
 
 					invert_m4_m4(imat, tmat);
 				}
@@ -467,7 +467,7 @@ static short apply_targetless_ik(Object *ob)
 					invert_m4_m4(imat, tmat);
 				}
 				/* result matrix */
-				mul_m4_m4m4(rmat, parchan->pose_mat, imat);
+				mult_m4_m4m4(rmat, imat, parchan->pose_mat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{

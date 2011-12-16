@@ -711,8 +711,8 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	psys->childcachebufs.first = psys->childcachebufs.last = NULL;
 
 	copy_m4_m4(data->winmat, winmat);
-	mul_m4_m4m4(data->viewmat, ob->obmat, viewmat);
-	mul_m4_m4m4(data->mat, data->viewmat, winmat);
+	mult_m4_m4m4(data->viewmat, viewmat, ob->obmat);
+	mult_m4_m4m4(data->mat, winmat, data->viewmat);
 	data->winx= winx;
 	data->winy= winy;
 
@@ -3376,7 +3376,7 @@ void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleDa
 
 	psys_mat_hair_to_object(ob, dm, from, pa, facemat);
 
-	mul_m4_m4m4(hairmat, facemat, ob->obmat);
+	mult_m4_m4m4(hairmat, ob->obmat, facemat);
 }
 
 /************************************************/

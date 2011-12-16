@@ -1677,7 +1677,7 @@ static void knife_recalc_projmat(knifetool_opdata *kcd)
 	
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
 	ED_view3d_ob_project_mat_get(ar->regiondata, kcd->ob, kcd->projmat);
-	//mul_m4_m4m4(kcd->projmat, kcd->vc.rv3d->viewmat, kcd->vc.rv3d->winmat);
+	//mult_m4_m4m4(kcd->projmat, kcd->vc.rv3d->winmat, kcd->vc.rv3d->viewmat);
 	
 	kcd->is_ortho = project_knife_view_clip(kcd->vc.v3d, kcd->vc.rv3d, 
 	                                        &kcd->clipsta, &kcd->clipend);

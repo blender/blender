@@ -3087,8 +3087,8 @@ static void project_paint_begin(ProjPaintState *ps)
 			}
 
 			/* same as view3d_get_object_project_mat */
-			mul_m4_m4m4(vmat, ps->ob->obmat, viewmat);
-			mul_m4_m4m4(ps->projectMat, vmat, winmat);
+			mult_m4_m4m4(vmat, viewmat, ps->ob->obmat);
+			mult_m4_m4m4(ps->projectMat, winmat, vmat);
 		}
 
 

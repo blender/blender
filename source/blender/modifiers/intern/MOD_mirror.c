@@ -146,7 +146,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		/*tmp is a transform from coords relative to the object's own origin, to
 		  coords relative to the mirror object origin*/
 		invert_m4_m4(tmp, mmd->mirror_ob->obmat);
-		mul_m4_m4m4(tmp, ob->obmat, tmp);
+		mult_m4_m4m4(tmp, tmp, ob->obmat);
 
 		/*itmp is the reverse transform back to origin-relative coordiantes*/
 		invert_m4_m4(itmp, tmp);
@@ -154,8 +154,8 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		/*combine matrices to get a single matrix that translates coordinates into
 		  mirror-object-relative space, does the mirror, and translates back to
 		  origin-relative space*/
-		mul_m4_m4m4(mtx, tmp, mtx);
-		mul_m4_m4m4(mtx, mtx, itmp);
+		mult_m4_m4m4(mtx, mtx, tmp);
+		mult_m4_m4m4(mtx, itmp, mtx);
 	}
 	
 	cddm = CDDM_from_template(dm, dm->numVertData*2, dm->numEdgeData*2, 0, dm->numLoopData*2, dm->numPolyData*2);

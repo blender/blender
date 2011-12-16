@@ -279,7 +279,7 @@ static void waveModifier_do(WaveModifierData *md,
 		float mat[4][4];
 		/* get the control object's location in local coordinates */
 		invert_m4_m4(ob->imat, ob->obmat);
-		mul_m4_m4m4(mat, wmd->objectcenter->obmat, ob->imat);
+		mult_m4_m4m4(mat, ob->imat, wmd->objectcenter->obmat);
 
 		wmd->startx = mat[3][0];
 		wmd->starty = mat[3][1];

@@ -936,7 +936,7 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 			
 			/* Find the difference matrix */
 			invert_m4_m4(oimat, ob->obmat);
-			mul_m4_m4m4(mat, base->object->obmat, oimat);
+			mult_m4_m4m4(mat, oimat, base->object->obmat);
 			
 			/* Copy bones and posechannels from the object to the edit armature */
 			for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
@@ -972,7 +972,7 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 					
 					/* Find the roll */
 					invert_m4_m4(imat, premat);
-					mul_m4_m4m4(difmat, postmat, imat);
+					mult_m4_m4m4(difmat, imat, postmat);
 					
 					curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
 				}

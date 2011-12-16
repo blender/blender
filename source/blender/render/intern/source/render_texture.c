@@ -2087,7 +2087,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			// TODO: these calculations happen for every pixel!
 			//	-> move to shi->obi
-			mul_m4_m4m4(tmp, shi->obr->ob->obmat, R.viewmat);
+			mult_m4_m4m4(tmp, R.viewmat, shi->obr->ob->obmat);
 			copy_m3_m4(obj2view, tmp); // use only upper left 3x3 matrix
 			invert_m3_m3(view2obj, obj2view);
 		

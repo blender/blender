@@ -197,11 +197,11 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 	invert_m4_m4(obinv, ob->obmat);
 
-	mul_m4_m4m4(mat_from, wmd->object_from->obmat, obinv);
-	mul_m4_m4m4(mat_to, wmd->object_to->obmat, obinv);
+	mult_m4_m4m4(mat_from, obinv, wmd->object_from->obmat);
+	mult_m4_m4m4(mat_to, obinv, wmd->object_to->obmat);
 
 	invert_m4_m4(tmat, mat_from); // swap?
-	mul_m4_m4m4(mat_final, mat_to, tmat);
+	mult_m4_m4m4(mat_final, tmat, mat_to);
 
 	invert_m4_m4(mat_from_inv, mat_from);
 

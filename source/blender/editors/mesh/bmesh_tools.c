@@ -291,7 +291,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
 					invert_m4_m4(imtx, mmd->mirror_ob->obmat);
-					mul_m4_m4m4(mtx, obedit->obmat, imtx);
+					mult_m4_m4m4(mtx, imtx, obedit->obmat);
 				}
 
 				for (edge=BMIter_New(&iter,bm,BM_EDGES_OF_MESH,NULL);
@@ -4207,7 +4207,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 		float cur[3];
 		
 		if (event == 1)
-			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
+			mult_m4_m4m4(mat, rv3d->viewmat, OBACT->obmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if( v3d && v3d->localvd ) {
 				copy_v3_v3(cur, v3d->cursor);
