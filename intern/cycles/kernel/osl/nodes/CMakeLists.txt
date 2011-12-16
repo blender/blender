@@ -33,6 +33,7 @@ set(SRC_OSL
 	node_mix.osl
 	node_mix_closure.osl
 	node_musgrave_texture.osl
+	node_normal.osl
 	node_blend_weight_texture.osl
 	node_noise_texture.osl
 	node_output_displacement.osl

@@ -120,6 +120,8 @@ void BKE_scene_foreach_display_point(
         const short flag,
         void (*func_cb)(const float[3], void *), void *user_data);
 
+int BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
+
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 

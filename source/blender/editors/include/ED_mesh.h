@@ -99,6 +99,9 @@ struct ToolSettings;
 
 float *bm_get_cd_float(struct CustomData *cdata, void *data, int type);
 
+intptr_t    mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
+int         mesh_mirrtopo_table(struct Object *ob, char mode);
+
 /* bmeshutils.c */
 
 /*
@@ -197,9 +200,6 @@ void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 
 /* editmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
-
-intptr_t	mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
-long		mesh_mirrtopo_table(struct Object *ob, char mode);
 
 int			mouse_mesh(struct bContext *C, const int mval[2], short extend);
 

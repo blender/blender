@@ -386,6 +386,8 @@ static EnumPropertyItem prop_column_select_types[] = {
 /* ------------------- */ 
 
 /* Selects all visible keyframes between the specified markers */
+/* TODO, this is almost an _exact_ duplicate of a function of the same name in action_select.c
+ * should de-duplicate - campbell */
 static void markers_selectkeys_between (bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -393,7 +395,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{NULL}};
 	float min, max;
 	
 	/* get extreme markers */
@@ -404,9 +406,8 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	/* get editing funcs + data */
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
-	
-	memset(&ked, 0, sizeof(KeyframeEditData));
-	ked.f1= min; 
+
+	ked.f1= min;
 	ked.f2= max;
 	
 	/* filter data */
@@ -416,8 +417,8 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	/* select keys in-between */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		
-		if (adt) {	
+
+		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);

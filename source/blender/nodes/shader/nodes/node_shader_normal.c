@@ -84,7 +84,7 @@ void register_node_type_sh_normal(bNodeTreeType *ttype)
 	static bNodeType ntype;
 	
 	node_type_base(ttype, &ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING);
+	node_type_compatibility(&ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_normal_in, sh_node_normal_out);
 	node_type_init(&ntype, node_shader_init_normal);
 	node_type_exec(&ntype, node_shader_exec_normal);

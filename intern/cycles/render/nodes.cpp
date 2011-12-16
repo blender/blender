@@ -713,6 +713,41 @@ void MagicTextureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_magic_texture");
 }
 
+/* Normal */
+
+NormalNode::NormalNode()
+: ShaderNode("normal")
+{
+	direction = make_float3(0.0f, 0.0f, 1.0f);
+
+	add_input("Normal", SHADER_SOCKET_NORMAL);
+	add_output("Normal", SHADER_SOCKET_NORMAL);
+	add_output("Dot",  SHADER_SOCKET_FLOAT);
+}
+
+void NormalNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *normal_in = input("Normal");
+	ShaderOutput *normal_out = output("Normal");
+	ShaderOutput *dot_out = output("Dot");
+
+	compiler.stack_assign(normal_in);
+	compiler.stack_assign(normal_out);
+	compiler.stack_assign(dot_out);
+
+	compiler.add_node(NODE_NORMAL, normal_in->stack_offset, normal_out->stack_offset, dot_out->stack_offset);
+	compiler.add_node(
+		__float_as_int(direction.x),
+		__float_as_int(direction.y),
+		__float_as_int(direction.z));
+}
+
+void NormalNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter_vector("Direction", direction);
+	compiler.add(this, "node_normal");
+}
+
 /* Mapping */
 
 MappingNode::MappingNode()

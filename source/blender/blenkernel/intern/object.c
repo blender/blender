@@ -2488,6 +2488,14 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 	copy_m4_m4(ob->imat, obtfm->imat);
 }
 
+int BKE_object_parent_loop_check(const Object *par, const Object *ob)
+{
+	/* test if 'ob' is a parent somewhere in par's parents */
+	if(par == NULL) return 0;
+	if(ob == par) return 1;
+	return BKE_object_parent_loop_check(par->parent, ob);
+}
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
 /*           local_object->proxy      == pointer to library object, saved in files and read */
 

@@ -510,19 +510,9 @@ static EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int test_parent_loop(Object *par, Object *ob)
-{
-	/* test if 'ob' is a parent somewhere in par's parents */
-	
-	if(par == NULL) return 0;
-	if(ob == par) return 1;
-	
-	return test_parent_loop(par->parent, ob);
-}
-
 void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
 {
-	if(!par || test_parent_loop(par, ob)) {
+	if (!par || BKE_object_parent_loop_check(par, ob)) {
 		ob->parent= NULL;
 		ob->partype= PAROBJECT;
 		ob->parsubstr[0]= 0;
@@ -591,7 +581,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 		
 		if(ob!=par) {
 			
-			if( test_parent_loop(par, ob) ) {
+			if (BKE_object_parent_loop_check(par, ob)) {
 				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
 			}
 			else {
@@ -764,7 +754,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	/* context iterator */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if (ob != par) {
-			if (test_parent_loop(par, ob)) {
+			if (BKE_object_parent_loop_check(par, ob)) {
 				BKE_report(op->reports, RPT_ERROR, "Loop in parents");
 			}
 			else {

@@ -38,11 +38,11 @@ extern "C" {
 }
 
 // (n&(n-1)) zeros the least significant bit of n 
-static int is_pow2(int num) {
+static int is_power_of_2_i(int num) {
 	return ((num)&(num-1))==0;
 }
-static int smaller_pow2(int num) {
-	while (!is_pow2(num))
+static int power_of_2_min_i(int num) {
+	while (!is_power_of_2_i(num))
 		num= num&(num-1);
 	return num;	
 }
@@ -159,7 +159,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 {
-	if (!is_pow2(x) || !is_pow2(y) ) {
+	if (!is_power_of_2_i(x) || !is_power_of_2_i(y) ) {
 		InitNonPow2Tex(pix, x,y,mipmap);
 		return;
 	}
@@ -184,8 +184,8 @@ void BL_Texture::InitGLTex(unsigned int *pix,int x,int y,bool mipmap)
 
 void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 {
-	int nx= smaller_pow2(x);
-	int ny= smaller_pow2(y);
+	int nx= power_of_2_min_i(x);
+	int ny= power_of_2_min_i(y);
 
 	unsigned int *newPixels = (unsigned int *)malloc(nx*ny*sizeof(unsigned int));
 	
@@ -274,7 +274,7 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 		my_envmap_split_ima(cubemap, ibuf);
 
 
-	if (!is_pow2(cubemap->cube[0]->x) || !is_pow2(cubemap->cube[0]->y))
+	if (!is_power_of_2_i(cubemap->cube[0]->x) || !is_power_of_2_i(cubemap->cube[0]->y))
 	{
 		spit("invalid envmap size please render with CubeRes @ power of two");
 
@@ -610,8 +610,8 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 
 int BL_Texture::GetPow2(int n)
 {
-	if(!is_pow2(n))
-		n = smaller_pow2(n);
+	if(!is_power_of_2_i(n))
+		n = power_of_2_min_i(n);
 
 	return n;
 }

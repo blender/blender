@@ -115,6 +115,31 @@ MINLINE float power_of_2(float val)
 	return (float)pow(2.0, ceil(log((double)val) / M_LN2));
 }
 
+MINLINE int is_power_of_2_i(int n)
+{
+	return (n & (n - 1)) == 0;
+}
+
+MINLINE int power_of_2_max_i(int n)
+{
+	if (is_power_of_2_i(n))
+		return n;
+
+	while(!is_power_of_2_i(n))
+		n = n & (n - 1);
+
+	return n * 2;
+}
+
+MINLINE int power_of_2_min_i(int n)
+{
+	while (!is_power_of_2_i(n))
+		n = n & (n - 1);
+
+	return n;
+}
+
+
 MINLINE float minf(float a, float b)
 {
 	return (a < b)? a: b;
@@ -129,6 +154,7 @@ MINLINE float signf(float f)
 {
 	return (f < 0.f)? -1.f: 1.f;
 }
+
 
 #endif /* BLI_MATH_BASE_INLINE_H */
 

@@ -60,6 +60,7 @@
 #include "BKE_screen.h"
 #include "BKE_tessmesh.h"
 #include "BKE_deform.h"
+#include "BKE_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1120,14 +1121,6 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	}	
 }
 
-/* test if 'ob' is a parent somewhere in par's parents */
-static int test_parent_loop(Object *par, Object *ob)
-{
-	if(par == NULL) return 0;
-	if(ob == par) return 1;
-	return test_parent_loop(par->parent, ob);
-}
-
 static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
 	Main *bmain= CTX_data_main(C);
@@ -1159,7 +1152,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		/* note; this case also used for parbone */
 	case B_OBJECTPANELPARENT:
 		if(ob) {
-			if(ob->id.lib || test_parent_loop(ob->parent, ob) ) 
+			if (ob->id.lib || BKE_object_parent_loop_check(ob->parent, ob))
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(bmain, scene);
