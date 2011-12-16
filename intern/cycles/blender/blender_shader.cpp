@@ -160,6 +160,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new InvertNode();
 			break;
 		}
+		case BL::ShaderNode::type_GAMMA: {
+			node = new GammaNode();
+			break;
+		}
 		case BL::ShaderNode::type_MIX_RGB: {
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
