@@ -335,7 +335,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 				}
 			}
 			// calc new matrix and apply
-			mul_m4_m4m4(obn->obmat, mat, obn->obmat);
+			mult_m4_m4m4(obn->obmat, obn->obmat, mat);
 			object_apply_mat4(obn, obn->obmat, 0, 0);
 		}
 	}

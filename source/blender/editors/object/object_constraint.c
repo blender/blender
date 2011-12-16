@@ -747,7 +747,7 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 		 * the effect of the constraint
 		 */
 		invert_m4_m4(imat, pchan->pose_mat);
-		mul_m4_m4m4(tmat, imat, pmat);
+		mult_m4_m4m4(tmat, pmat, imat);
 		invert_m4_m4(data->invmat, tmat);
 		
 		/* 5. restore constraints */

@@ -1484,7 +1484,7 @@ static int retrieve_libmv_reconstruct_tracks(MovieReconstructContext *context, M
 			}
 
 			if(origin_set)
-				mul_m4_m4m4(mat, mat, imat);
+				mult_m4_m4m4(mat, imat, mat);
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr= a;
@@ -1914,7 +1914,7 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 		float imat[4][4];
 
 		invert_m4_m4(imat, camera->mat);
-		mul_m4_m4m4(mat, imat, winmat);
+		mult_m4_m4m4(mat, winmat, imat);
 	} else copy_m4_m4(mat, winmat);
 }
 

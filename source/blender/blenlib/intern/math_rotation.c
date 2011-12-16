@@ -1433,7 +1433,7 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 
 	/* split scaling and rotation, there is probably a faster way to do
 	   this, it's done like this now to correctly get negative scaling */
-	mul_m4_m4m4(baseRS, basemat, mat);
+	mult_m4_m4m4(baseRS, mat, basemat);
 	mat4_to_size(scale,baseRS);
 
 	copy_v3_v3(dscale, scale);
@@ -1452,10 +1452,10 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 		copy_v3_v3(baseR[3], baseRS[3]);
 
 		invert_m4_m4(baseinv, basemat);
-		mul_m4_m4m4(R, baseinv, baseR);
+		mult_m4_m4m4(R, baseR, baseinv);
 
 		invert_m4_m4(baseRinv, baseR);
-		mul_m4_m4m4(S, baseRS, baseRinv);
+		mult_m4_m4m4(S, baseRinv, baseRS);
 
 		/* set scaling part */
 		mul_serie_m4(dq->scale, basemat, S, baseinv, NULL, NULL, NULL, NULL, NULL);

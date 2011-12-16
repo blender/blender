@@ -327,7 +327,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				/* if this is the object we're merging into, no need to do anything */
 				if(base->object != ob) {
 					/* watch this: switch matmul order really goes wrong */
-					mul_m4_m4m4(cmat, base->object->obmat, imat);
+					mult_m4_m4m4(cmat, imat, base->object->obmat);
 					
 					/* transform vertex coordinates into new space */
 					for(a=0, mv=mvert; a < me->totvert; a++, mv++) {

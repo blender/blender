@@ -740,8 +740,8 @@ void ED_view3d_ob_project_mat_get(RegionView3D *rv3d, Object *ob, float pmat[4][
 {
 	float vmat[4][4];
 	
-	mul_m4_m4m4(vmat, ob->obmat, rv3d->viewmat);
-	mul_m4_m4m4(pmat, vmat, rv3d->winmat);
+	mult_m4_m4m4(vmat, rv3d->viewmat, ob->obmat);
+	mult_m4_m4m4(pmat, rv3d->winmat, vmat);
 }
 
 #if 0
@@ -809,7 +809,7 @@ int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	if(bb==NULL) return 1;
 	if(bb->flag & OB_BB_DISABLED) return 1;
 	
-	mul_m4_m4m4(mat, obmat, rv3d->persmat);
+	mult_m4_m4m4(mat, rv3d->persmat, obmat);
 	
 	for(a=0; a<8; a++) {
 		copy_v3_v3(vec, bb->vec[a]);
@@ -1196,7 +1196,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	}
 	
 	setwinmatrixview3d(ar, v3d, &rect);
-	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
+	mult_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
 	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
@@ -1274,7 +1274,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(ar, v3d, NULL);
-	mul_m4_m4m4(vc->rv3d->persmat, vc->rv3d->viewmat, vc->rv3d->winmat);
+	mult_m4_m4m4(vc->rv3d->persmat, vc->rv3d->winmat, vc->rv3d->viewmat);
 	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= 0;

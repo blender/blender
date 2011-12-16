@@ -316,7 +316,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	else {
 		/* in deformspace, calc matrix */
 		invert_m4_m4(imat, oblatt->obmat);
-		mul_m4_m4m4(lt->latmat, ob->obmat, imat);
+		mult_m4_m4m4(lt->latmat, imat, ob->obmat);
 	
 		/* back: put in deform array */
 		invert_m4_m4(imat, lt->latmat);
@@ -470,7 +470,7 @@ typedef struct {
 static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc)
 {
 	invert_m4_m4(ob->imat, ob->obmat);
-	mul_m4_m4m4(cd->objectspace, par->obmat, ob->imat);
+	mult_m4_m4m4(cd->objectspace, ob->imat, par->obmat);
 	invert_m4_m4(cd->curvespace, cd->objectspace);
 	copy_m3_m4(cd->objectspace3, cd->objectspace);
 	
