@@ -189,20 +189,6 @@ void GPU_render_text(MTFace *tface, int mode,
 
 /* Checking powers of two for images since opengl 1.x requires it */
 
-static int is_pow2(int num)
-{
-	/* (n&(n-1)) zeros the least significant bit of n */
-	return ((num)&(num-1))==0;
-}
-
-static int smaller_pow2(int num)
-{
-	while (!is_pow2(num))
-		num= num&(num-1);
-
-	return num;	
-}
-
 static int is_pow2_limit(int num)
 {
 	/* take texture clamping into account */
@@ -214,7 +200,7 @@ static int is_pow2_limit(int num)
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
 
-	return ((num)&(num-1))==0;
+	return is_power_of_2_i(num);
 }
 
 static int smaller_pow2_limit(int num)
@@ -227,7 +213,7 @@ static int smaller_pow2_limit(int num)
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return U.glreslimit;
 
-	return smaller_pow2(num);
+	return power_of_2_min_i(num);
 }
 
 /* Current OpenGL state caching for GPU_set_tpage */
@@ -692,7 +678,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
 	if (ima->repbind || (gpu_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
-		(!is_pow2(ibuf->x) || !is_pow2(ibuf->y)) ||
+		(!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
 		(w == 0) || (h == 0)) {
 		/* these cases require full reload still */
 		GPU_free_image(ima);

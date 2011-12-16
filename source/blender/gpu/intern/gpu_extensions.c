@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
@@ -292,22 +293,6 @@ static unsigned char *GPU_texture_convert_pixels(int length, float *fpixels)
 	return pixels;
 }
 
-static int is_pow2(int n)
-{
-	return ((n)&(n-1))==0;
-}
-
-static int larger_pow2(int n)
-{
-	if (is_pow2(n))
-		return n;
-
-	while(!is_pow2(n))
-		n= n&(n-1);
-
-	return n*2;
-}
-
 static void GPU_glTexSubImageEmpty(GLenum target, GLenum format, int x, int y, int w, int h)
 {
 	void *pixels = MEM_callocN(sizeof(char)*4*w*h, "GPUTextureEmptyPixels");
@@ -353,8 +338,8 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	}
 
 	if (!GPU_non_power_of_two_support()) {
-		tex->w = larger_pow2(tex->w);
-		tex->h = larger_pow2(tex->h);
+		tex->w = power_of_2_max_i(tex->w);
+		tex->h = power_of_2_max_i(tex->h);
 	}
 
 	tex->number = 0;
@@ -462,9 +447,9 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	}
 
 	if (!GPU_non_power_of_two_support()) {
-		tex->w = larger_pow2(tex->w);
-		tex->h = larger_pow2(tex->h);
-		tex->depth = larger_pow2(tex->depth);
+		tex->w = power_of_2_max_i(tex->w);
+		tex->h = power_of_2_max_i(tex->h);
+		tex->depth = power_of_2_max_i(tex->depth);
 	}
 
 	tex->number = 0;

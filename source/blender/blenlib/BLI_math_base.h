@@ -167,6 +167,11 @@ MINLINE float signf(float f);
 
 MINLINE float power_of_2(float f);
 
+/* these dont really fit anywhere but were being copied about a lot */
+MINLINE int is_power_of_2_i(int n);
+MINLINE int power_of_2_max_i(int n);
+MINLINE int power_of_2_min_i(int n);
+
 MINLINE float shell_angle_to_dist(float angle);
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
