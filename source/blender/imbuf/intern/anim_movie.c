@@ -110,7 +110,8 @@
 #endif
 #endif
 
-int ismovie(const char *UNUSED(filepath)) {
+int ismovie(const char *UNUSED(filepath))
+{
 	return 0;
 }
 
@@ -126,7 +127,8 @@ static void free_anim_movie(struct anim *UNUSED(anim)) { ; }
 # define PATHSEPERATOR '/'
 #endif
 
-static int an_stringdec(const char *string, char* head, char *tail, unsigned short *numlen) {
+static int an_stringdec(const char *string, char* head, char *tail, unsigned short *numlen)
+{
 	unsigned short len,nume,nums=0;
 	short i,found=FALSE;
 
@@ -161,11 +163,13 @@ static int an_stringdec(const char *string, char* head, char *tail, unsigned sho
 }
 
 
-static void an_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic) {
+static void an_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic)
+{
 	BLI_stringenc(string, head, tail, numlen, pic);
 }
 
-static void free_anim_avi (struct anim *anim) {
+static void free_anim_avi (struct anim *anim)
+{
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	int i;
 #endif
@@ -206,7 +210,8 @@ static void free_anim_ffmpeg(struct anim * anim);
 static void free_anim_redcode(struct anim * anim);
 #endif
 
-void IMB_free_anim(struct anim * anim) {
+void IMB_free_anim(struct anim * anim)
+{
 	if (anim == NULL) {
 		printf("free anim, anim == NULL\n");
 		return;
@@ -229,14 +234,16 @@ void IMB_free_anim(struct anim * anim) {
 	MEM_freeN(anim);
 }
 
-void IMB_close_anim(struct anim * anim) {
+void IMB_close_anim(struct anim * anim)
+{
 	if (anim == NULL) return;
 
 	IMB_free_anim(anim);
 }
 
 
-struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex) {
+struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex)
+{
 	struct anim * anim;
 
 	anim = (struct anim*)MEM_callocN(sizeof(struct anim), "anim struct");
@@ -249,7 +256,8 @@ struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex) {
 }
 
 
-static int startavi (struct anim *anim) {
+static int startavi (struct anim *anim)
+{
 
 	AviError avierror;
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
@@ -355,7 +363,8 @@ static int startavi (struct anim *anim) {
 	return 0;
 }
 
-static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
+static ImBuf * avi_fetchibuf (struct anim *anim, int position)
+{
 	ImBuf *ibuf = NULL;
 	int *tmp;
 	int y;
@@ -405,7 +414,8 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 
 extern void do_init_ffmpeg(void);
 
-static int startffmpeg(struct anim * anim) {
+static int startffmpeg(struct anim * anim)
+{
 	int            i, videoStream;
 
 	AVCodec *pCodec;
@@ -1032,7 +1042,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	return anim->last_frame;
 }
 
-static void free_anim_ffmpeg(struct anim * anim) {
+static void free_anim_ffmpeg(struct anim * anim)
+{
 	if (anim == NULL) return;
 
 	if (anim->pCodecCtx) {
@@ -1058,7 +1069,8 @@ static void free_anim_ffmpeg(struct anim * anim) {
 
 #ifdef WITH_REDCODE
 
-static int startredcode(struct anim * anim) {
+static int startredcode(struct anim * anim)
+{
 	anim->redcodeCtx = redcode_open(anim->name);
 	if (!anim->redcodeCtx) {
 		return -1;
@@ -1068,7 +1080,8 @@ static int startredcode(struct anim * anim) {
 	return 0;
 }
 
-static ImBuf * redcode_fetchibuf(struct anim * anim, int position) {
+static ImBuf * redcode_fetchibuf(struct anim * anim, int position)
+{
 	struct ImBuf * ibuf;
 	struct redcode_frame * frame;
 	struct redcode_frame_raw * raw_frame;
@@ -1099,7 +1112,8 @@ static ImBuf * redcode_fetchibuf(struct anim * anim, int position) {
 	return ibuf;
 }
 
-static void free_anim_redcode(struct anim * anim) {
+static void free_anim_redcode(struct anim * anim)
+{
 	if (anim->redcodeCtx) {
 		redcode_close(anim->redcodeCtx);
 		anim->redcodeCtx = 0;
@@ -1113,7 +1127,8 @@ static void free_anim_redcode(struct anim * anim) {
 /* Geen plaatje, probeer dan volgende animatie te openen */
 /* gelukt, haal dan eerste plaatje van animatie */
 
-static struct ImBuf * anim_getnew(struct anim * anim) {
+static struct ImBuf * anim_getnew(struct anim * anim)
+{
 	struct ImBuf *ibuf = NULL;
 
 	if (anim == NULL) return(NULL);
@@ -1175,7 +1190,8 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	return(ibuf);
 }
 
-struct ImBuf * IMB_anim_previewframe(struct anim * anim) {
+struct ImBuf * IMB_anim_previewframe(struct anim * anim)
+{
 	struct ImBuf * ibuf = NULL;
 	int position = 0;
 	
@@ -1282,7 +1298,8 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position,
 
 /***/
 
-int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc) {
+int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
+{
 	struct anim_index * idx;
 	if (tc == IMB_TC_NONE) {
 		return anim->duration;

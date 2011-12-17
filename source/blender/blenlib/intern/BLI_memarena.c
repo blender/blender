@@ -48,7 +48,8 @@ struct MemArena {
 	LinkNode *bufs;
 };
 
-MemArena *BLI_memarena_new(int bufsize, const char *name) {
+MemArena *BLI_memarena_new(int bufsize, const char *name)
+{
 	MemArena *ma= MEM_callocN(sizeof(*ma), "memarena");
 	ma->bufsize= bufsize;
 	ma->align = 8;
@@ -57,20 +58,24 @@ MemArena *BLI_memarena_new(int bufsize, const char *name) {
 	return ma;
 }
 
-void BLI_memarena_use_calloc(MemArena *ma) {
+void BLI_memarena_use_calloc(MemArena *ma)
+{
 	ma->use_calloc= 1;
 }
 
-void BLI_memarena_use_malloc(MemArena *ma) {
+void BLI_memarena_use_malloc(MemArena *ma)
+{
 	ma->use_calloc= 0;
 }
 
-void BLI_memarena_use_align(struct MemArena *ma, int align) {
+void BLI_memarena_use_align(struct MemArena *ma, int align)
+{
 	/* align should be a power of two */
 	ma->align = align;
 }
 
-void BLI_memarena_free(MemArena *ma) {
+void BLI_memarena_free(MemArena *ma)
+{
 	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
 	MEM_freeN(ma);
 }
@@ -78,7 +83,8 @@ void BLI_memarena_free(MemArena *ma) {
 	/* amt must be power of two */
 #define PADUP(num, amt)	((num+(amt-1))&~(amt-1))
 
-void *BLI_memarena_alloc(MemArena *ma, int size) {
+void *BLI_memarena_alloc(MemArena *ma, int size)
+{
 	void *ptr;
 
 		/* ensure proper alignment by rounding

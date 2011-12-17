@@ -805,7 +805,8 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject *UNUSED(self), PyObj
 PyDoc_STRVAR(M_Geometry_intersect_point_quad_2d_doc,
 ".. function:: intersect_point_quad_2d(pt, quad_p1, quad_p2, quad_p3, quad_p4)\n"
 "\n"
-"   Takes 5 vectors (using only the x and y coordinates): one is the point and the next 4 define the quad, only the x and y are used from the vectors. Returns 1 if the point is within the quad, otherwise 0.\n"
+"   Takes 5 vectors (using only the x and y coordinates): one is the point and the next 4 define the quad, \n"
+"   only the x and y are used from the vectors. Returns 1 if the point is within the quad, otherwise 0.\n"
 "\n"
 "   :arg pt: Point\n"
 "   :type pt: :class:`mathutils.Vector`\n"

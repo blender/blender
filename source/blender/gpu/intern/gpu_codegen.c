@@ -647,11 +647,13 @@ static char *code_generate_vertex(ListBase *nodes)
 	return code;
 }
 
-int GPU_bicubic_bump_support(void){
+int GPU_bicubic_bump_support(void)
+{
 	return GLEW_ARB_texture_gather && GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0;
 }
 
-void GPU_code_generate_glsl_lib(void){
+void GPU_code_generate_glsl_lib(void)
+{
 	DynStr *ds;
 
 	/* only initialize the library once */

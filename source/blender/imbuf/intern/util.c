@@ -199,12 +199,14 @@ int IMB_ispic(const char *filename)
 
 
 
-static int isavi (const char *name) {
+static int isavi (const char *name)
+{
 	return AVI_is_avi (name);
 }
 
 #ifdef WITH_QUICKTIME
-static int isqtime (const char *name) {
+static int isqtime (const char *name)
+{
 	return anim_is_quicktime (name);
 }
 #endif
@@ -240,7 +242,8 @@ void do_init_ffmpeg(void)
 	}
 }
 
-static int isffmpeg (const char *filename) {
+static int isffmpeg (const char *filename)
+{
 	AVFormatContext *pFormatCtx;
 	unsigned int i;
 	int videoStream;
@@ -323,7 +326,8 @@ static int isredcode(const char * filename)
 
 #endif
 
-int imb_get_anim_type(const char * name) {
+int imb_get_anim_type(const char * name)
+{
 	int type;
 	struct stat st;
 
@@ -364,7 +368,8 @@ int imb_get_anim_type(const char * name) {
 	return(0);
 }
  
-int IMB_isanim(const char *filename) {
+int IMB_isanim(const char *filename)
+{
 	int type;
 	
 	if(U.uiflag & USER_FILTERFILEEXTS) {

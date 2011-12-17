@@ -2851,7 +2851,8 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsign
 /* Returns the first matching marker on the specified line between two points.
    If the group or flags fields are non-zero the returned flag must be in the
    specified group and have at least the specified flags set. */
-TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
+TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
+{
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
 	
@@ -2918,7 +2919,8 @@ short txt_clear_markers(Text *text, int group, int flags)
 
 /* Finds the marker at the specified line and cursor position with at least the
    specified flags set in the given group (if non-zero). */
-TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags) {
+TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags)
+{
 	TextMarker *marker;
 	int lineno= txt_get_span(text->lines.first, line);
 	
@@ -2936,7 +2938,8 @@ TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int
 
 /* Finds the previous marker in the same group. If no other is found, the same
    marker will be returned */
-TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
+TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
+{
 	TextMarker *tmp= marker;
 	while (tmp) {
 		if (tmp->prev) tmp= tmp->prev;
@@ -2949,7 +2952,8 @@ TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
 
 /* Finds the next marker in the same group. If no other is found, the same
    marker will be returned */
-TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
+TextMarker *txt_next_marker(Text *text, TextMarker *marker)
+{
 	TextMarker *tmp= marker;
 	while (tmp) {
 		if (tmp->next) tmp= tmp->next;

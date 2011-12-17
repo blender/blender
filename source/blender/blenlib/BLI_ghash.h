@@ -150,7 +150,7 @@ typedef struct GHashPair {
 GHashPair*		BLI_ghashutil_pairalloc (const void *first, int second);
 unsigned int	BLI_ghashutil_pairhash	(const void *ptr);
 int				BLI_ghashutil_paircmp	(const void *a, const void *b);
-void			BLI_ghashutil_pairfree	(const void *ptr);
+void			BLI_ghashutil_pairfree	(void *ptr);
 
 #ifdef __cplusplus
 }
