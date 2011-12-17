@@ -1023,8 +1023,8 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
 
+	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef= type + 1;
-	BLI_assert(vc.obact->actdef >= 0);
 
 	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, vc.obact);
@@ -1432,15 +1432,15 @@ static float get_mp_change(MDeformVert *odv, const int defbase_tot, const char *
 
 /* change the weights back to the wv's weights
  * it assumes you already have the correct pointer index */
-static void reset_to_prev(MDeformVert *wv, MDeformVert *dvert)
+static void defvert_reset_to_prev(MDeformVert *dv_prev, MDeformVert *dv)
 {
-	MDeformWeight *dw= dvert->dw;
-	MDeformWeight *w;
+	MDeformWeight *dw= dv->dw;
+	MDeformWeight *dw_prev;
 	unsigned int i;
-	for (i= dvert->totweight; i != 0; i--, dw++) {
-		w= defvert_find_index(wv, dw->def_nr);
+	for (i= dv->totweight; i != 0; i--, dw++) {
+		dw_prev= defvert_find_index(dv_prev, dw->def_nr);
 		/* if there was no w when there is a d, then the old weight was 0 */
-		dw->weight = w ? w->weight : 0.0f;
+		dw->weight = dw_prev ? dw_prev->weight : 0.0f;
 	}
 }
 
@@ -1652,7 +1652,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 						if( testw > tuw->weight ) {
 							if(change > oldChange) {
 								/* reset the weights and use the new change */
-								reset_to_prev(wp->wpaint_prev+index, dv);
+								defvert_reset_to_prev(wp->wpaint_prev+index, dv);
 							}
 							else {
 								/* the old change was more significant, so set
@@ -1662,7 +1662,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 						}
 						else {
 							if(change < oldChange) {
-								reset_to_prev(wp->wpaint_prev+index, dv);
+								defvert_reset_to_prev(wp->wpaint_prev+index, dv);
 							}
 							else {
 								change = 0;
@@ -1677,7 +1677,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		}
 		
 		if(apply_mp_locks_normalize(me, wpi, index, dw, tdw, change, oldChange, oldw, neww)) {
-			reset_to_prev(&dv_copy, dv);
+			defvert_reset_to_prev(&dv_copy, dv);
 			change = 0;
 			oldChange = 0;
 		}
@@ -1763,9 +1763,12 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 /* for switching to/from mode */
 static int paint_poll_test(bContext *C)
 {
+	Object *ob= CTX_data_active_object(C);
 	if(CTX_data_edit_object(C))
 		return 0;
 	if(CTX_data_active_object(C)==NULL)
+		return 0;
+	if(!ob->data || ((ID *)ob->data)->lib)
 		return 0;
 	return 1;
 }
@@ -1915,8 +1918,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					}
 					else {
-						ob->actdef= 1 + defgroup_find_index(ob, dg);
-						BLI_assert(ob->actdef >= 0);
+						int actdef = 1 + BLI_findindex(&ob->defbase, dg);
+						BLI_assert(actdef >= 0);
+						ob->actdef= actdef;
 					}
 				}
 			}
@@ -1927,7 +1931,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	}
 
 	/* imat for normals */
-	mul_m4_m4m4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(wpd->wpimat, imat);
 	
@@ -1977,7 +1981,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 		
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
@@ -2358,7 +2362,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
 	
 	/* some old cruft to sort out later */
-	mul_m4_m4m4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
@@ -2420,7 +2424,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 			
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;

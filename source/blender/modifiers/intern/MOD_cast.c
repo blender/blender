@@ -159,7 +159,7 @@ static void sphere_do(
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
-			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
 		}
 
@@ -200,11 +200,11 @@ static void sphere_do(
 	* with or w/o a vgroup. With lots of if's in the code below,
 	* further optimizations are possible, if needed */
 	if (dvert) { /* with a vgroup */
+		MDeformVert *dv= dvert;
 		float fac_orig = fac;
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *dw = NULL;
-			int j;
+		for (i = 0; i < numVerts; i++, dv++) {
 			float tmp_co[3];
+			float weight;
 
 			copy_v3_v3(tmp_co, vertexCos[i]);
 			if(ctrl_ob) {
@@ -224,15 +224,10 @@ static void sphere_do(
 				if (len_v3(vec) > cmd->radius) continue;
 			}
 
-			for (j = 0; j < dvert[i].totweight; ++j) {
-				if(dvert[i].dw[j].def_nr == defgrp_index) {
-					dw = &dvert[i].dw[j];
-					break;
-				}
-			}
-			if (!dw) continue;
+			weight= defvert_find_weight(dv, defgrp_index);
+			if (weight <= 0.0f) continue;
 
-			fac = fac_orig * dw->weight;
+			fac = fac_orig * weight;
 			facm = 1.0f - fac;
 
 			normalize_v3(vec);
@@ -336,7 +331,7 @@ static void cuboid_do(
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
-			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
 		}
 

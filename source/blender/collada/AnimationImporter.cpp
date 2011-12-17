@@ -723,7 +723,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 
 			// calc M
 			calc_joint_parent_mat_rest(par, NULL, root, node);
-			mul_m4_m4m4(temp, matfra, par);
+			mult_m4_m4m4(temp, par, matfra);
 
 			// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
 
@@ -1276,7 +1276,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 
 			// calc M
 			calc_joint_parent_mat_rest(par, NULL, root, node);
-			mul_m4_m4m4(temp, matfra, par);
+			mult_m4_m4m4(temp, par, matfra);
 
 			// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
 
@@ -1434,7 +1434,7 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 		float temp[4][4];
 		copy_m4_m4(temp, mat);
 
-		mul_m4_m4m4(mat, m, temp);
+		mult_m4_m4m4(mat, temp, m);
 	}
 }
 
@@ -1597,7 +1597,7 @@ void AnimationImporter::get_joint_rest_mat(float mat[4][4], COLLADAFW::Node *roo
 
 		calc_joint_parent_mat_rest(par, NULL, root, node);
 		get_node_mat(m, node, NULL, NULL);
-		mul_m4_m4m4(mat, m, par);
+		mult_m4_m4m4(mat, par, m);
 	}
 }
 
@@ -1616,7 +1616,7 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4], float par[4]
 		if (par) {
 			float temp[4][4];
 			get_node_mat(temp, node, NULL, NULL);
-			mul_m4_m4m4(m, temp, par);
+			mult_m4_m4m4(m, par, temp);
 		}
 		else {
 			get_node_mat(m, node, NULL, NULL);
@@ -1656,7 +1656,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 			float temp[4][4], ipar[4][4];
 			invert_m4_m4(ipar, par_job->obmat);
 			copy_m4_m4(temp, mat);
-			mul_m4_m4m4(mat, temp, ipar);
+			mult_m4_m4m4(mat, ipar, temp);
 		}
 
 		TransformBase::decompose(mat, job->loc, NULL, job->quat, job->size);
@@ -1689,7 +1689,7 @@ bool AnimationImporter::evaluate_joint_world_transform_at_frame(float mat[4][4],
 	if (par) {
 		float temp[4][4];
 		evaluate_transform_at_frame(temp, node, node == end ? fra : 0.0f);
-		mul_m4_m4m4(m, temp, par);
+		mult_m4_m4m4(m, par, temp);
 	}
 	else {
 		evaluate_transform_at_frame(m, node, node == end ? fra : 0.0f);

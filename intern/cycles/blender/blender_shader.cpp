@@ -132,7 +132,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
-		case BL::ShaderNode::type_NORMAL: break;
 		case BL::ShaderNode::type_OUTPUT: break;
 		case BL::ShaderNode::type_SCRIPT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
@@ -159,6 +158,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 		case BL::ShaderNode::type_INVERT: {
 			node = new InvertNode();
+			break;
+		}
+		case BL::ShaderNode::type_GAMMA: {
+			node = new GammaNode();
 			break;
 		}
 		case BL::ShaderNode::type_MIX_RGB: {
@@ -196,6 +199,17 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			VectorMathNode *vmath = new VectorMathNode();
 			vmath->type = VectorMathNode::type_enum[b_vector_math_node.operation()];
 			node = vmath;
+			break;
+		}
+		case BL::ShaderNode::type_NORMAL: {
+			BL::Node::outputs_iterator out_it;
+			b_node.outputs.begin(out_it);
+			BL::NodeSocketVectorNone vec_sock(*out_it);
+
+			NormalNode *norm = new NormalNode();
+			norm->direction = get_float3(vec_sock.default_value());
+
+			node = norm;
 			break;
 		}
 		case BL::ShaderNode::type_MAPPING: {

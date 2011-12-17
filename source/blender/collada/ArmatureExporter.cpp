@@ -218,11 +218,11 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 
 		float invpar[4][4];
 		invert_m4_m4(invpar, parchan->pose_mat);
-		mul_m4_m4m4(mat, pchan->pose_mat, invpar);
+		mult_m4_m4m4(mat, invpar, pchan->pose_mat);
 	}
 	else {
 		// get world-space from armature-space
-		mul_m4_m4m4(mat, pchan->pose_mat, ob_arm->obmat);
+		mult_m4_m4m4(mat, ob_arm->obmat, pchan->pose_mat);
 	}
 
 	TransformWriter::add_node_transform(node, mat,NULL );
@@ -374,7 +374,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 			float inv_bind_mat[4][4];
 
 			// make world-space matrix, arm_mat is armature-space
-			mul_m4_m4m4(world, pchan->bone->arm_mat, ob_arm->obmat);
+			mult_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
 			
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);

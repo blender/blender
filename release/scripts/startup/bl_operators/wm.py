@@ -748,8 +748,6 @@ class WM_OT_path_open(Operator):
     bl_label = ""
 
     filepath = StringProperty(
-            name="File Path",
-            maxlen=1024,
             subtype='FILE_PATH',
             )
 
@@ -1085,8 +1083,7 @@ class WM_OT_keyconfig_activate(Operator):
     bl_label = "Activate Keyconfig"
 
     filepath = StringProperty(
-            name="File Path",
-            maxlen=1024,
+            subtype='FILE_PATH',
             )
 
     def execute(self, context):
@@ -1116,8 +1113,7 @@ class WM_OT_appconfig_activate(Operator):
     bl_label = "Activate Application Configuration"
 
     filepath = StringProperty(
-            name="File Path",
-            maxlen=1024,
+            subtype='FILE_PATH',
             )
 
     def execute(self, context):
@@ -1203,8 +1199,7 @@ class WM_OT_keyconfig_import(Operator):
     bl_label = "Import Key Configuration..."
 
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath to write file to",
+            subtype='FILE_PATH',
             default="keymap.py",
             )
     filter_folder = BoolProperty(
@@ -1270,8 +1265,7 @@ class WM_OT_keyconfig_export(Operator):
     bl_label = "Export Key Configuration..."
 
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath to write file to",
+            subtype='FILE_PATH',
             default="keymap.py",
             )
     filter_folder = BoolProperty(
@@ -1513,8 +1507,7 @@ class WM_OT_addon_install(Operator):
             )
 
     filepath = StringProperty(
-            name="File Path",
-            description="File path to write file to",
+            subtype='FILE_PATH',
             )
     filter_folder = BoolProperty(
             name="Filter folders",

@@ -148,12 +148,12 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
-# TODO - set proper paths here (add precompiled to lib/ ? )
-WITH_BF_JACK = False
-BF_JACK = '/usr'
-BF_JACK_INC = '${BF_JACK}/include/jack'
+# we use simply jack framework
+WITH_BF_JACK = True
+BF_JACK = '/Library/Frameworks/Jackmp.framework'
+BF_JACK_INC = '${BF_JACK}/headers'
 BF_JACK_LIB = 'jack'
-BF_JACK_LIBPATH = '${BF_JACK}/lib'
+BF_JACK_LIBPATH = '${BF_JACK}'
 
 WITH_BF_SNDFILE = True
 BF_SNDFILE = LIBDIR + '/sndfile'

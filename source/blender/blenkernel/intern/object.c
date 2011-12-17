@@ -1373,7 +1373,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	 *   this is closer to making a copy of the object - in-place. */
 	if(gob) {
 		ob->rotmode= target->rotmode;
-		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
+		mult_m4_m4m4(ob->obmat, gob->obmat, target->obmat);
 		if(gob->dup_group) { /* should always be true */
 			float tvec[3];
 			copy_v3_v3(tvec, gob->dup_group->dupli_ofs);
@@ -1599,9 +1599,9 @@ void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const
 
 	if(use_parent && ob->parent) {
 		float rmat[4][4], diff_mat[4][4], imat[4][4];
-		mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
+		mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
 		invert_m4_m4(imat, diff_mat);
-		mul_m4_m4m4(rmat, mat, imat); /* get the parent relative matrix */
+		mult_m4_m4m4(rmat, imat, mat); /* get the parent relative matrix */
 		object_apply_mat4(ob, rmat, use_compat, FALSE);
 		
 		/* same as below, use rmat rather than mat */
@@ -1725,7 +1725,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		if(cu->flag & CU_PATH_RADIUS) {
 			float tmat[4][4], rmat[4][4];
 			scale_m4_fl(tmat, radius);
-			mul_m4_m4m4(rmat, mat, tmat);
+			mult_m4_m4m4(rmat, tmat, mat);
 			copy_m4_m4(mat, rmat);
 		}
 
@@ -2483,6 +2483,14 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 	copy_m4_m4(ob->imat, obtfm->imat);
 }
 
+int BKE_object_parent_loop_check(const Object *par, const Object *ob)
+{
+	/* test if 'ob' is a parent somewhere in par's parents */
+	if(par == NULL) return 0;
+	if(ob == par) return 1;
+	return BKE_object_parent_loop_check(par->parent, ob);
+}
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
 /*           local_object->proxy      == pointer to library object, saved in files and read */
 
@@ -2522,7 +2530,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				if(ob->proxy_from->proxy_group) {/* transform proxy into group space */
 					Object *obg= ob->proxy_from->proxy_group;
 					invert_m4_m4(obg->imat, obg->obmat);
-					mul_m4_m4m4(ob->obmat, ob->proxy_from->obmat, obg->imat);
+					mult_m4_m4m4(ob->obmat, obg->imat, ob->proxy_from->obmat);
 					if(obg->dup_group) { /* should always be true */
 						add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
 					}

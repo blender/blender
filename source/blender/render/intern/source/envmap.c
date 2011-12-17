@@ -263,7 +263,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		/* append or set matrix depending on dupli */
 		if(obi->flag & R_DUPLI_TRANSFORMED) {
 			copy_m4_m4(tmpmat, obi->mat);
-			mul_m4_m4m4(obi->mat, tmpmat, tmat);
+			mult_m4_m4m4(obi->mat, tmat, tmpmat);
 		}
 		else if(mode==1)
 			copy_m4_m4(obi->mat, tmat);
@@ -312,10 +312,10 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		if(lar->shb) {
 			if(mode==1) {
 				invert_m4_m4(pmat, mat);
-				mul_m4_m4m4(smat, pmat, lar->shb->viewmat);
-				mul_m4_m4m4(lar->shb->persmat, smat, lar->shb->winmat);
+				mult_m4_m4m4(smat, lar->shb->viewmat, pmat);
+				mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, smat);
 			}
-			else mul_m4_m4m4(lar->shb->persmat, lar->shb->viewmat, lar->shb->winmat);
+			else mult_m4_m4m4(lar->shb->persmat, lar->shb->winmat, lar->shb->viewmat);
 		}
 	}
 	
@@ -393,7 +393,7 @@ static void env_set_imats(Render *re)
 	
 	base= re->scene->base.first;
 	while(base) {
-		mul_m4_m4m4(mat, base->object->obmat, re->viewmat);
+		mult_m4_m4m4(mat, re->viewmat, base->object->obmat);
 		invert_m4_m4(base->object->imat, mat);
 		
 		base= base->next;
@@ -422,7 +422,7 @@ static void render_envmap(Render *re, EnvMap *env)
 	normalize_m4(orthmat);
 	
 	/* need imat later for texture imat */
-	mul_m4_m4m4(mat, orthmat, re->viewmat);
+	mult_m4_m4m4(mat, re->viewmat, orthmat);
 	invert_m4_m4(tmat, mat);
 	copy_m3_m4(env->obimat, tmat);
 
@@ -441,7 +441,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		copy_m4_m4(envre->viewinv, tmat);
 		
 		/* we have to correct for the already rotated vertexcoords */
-		mul_m4_m4m4(tmat, oldviewinv, envre->viewmat);
+		mult_m4_m4m4(tmat, envre->viewmat, oldviewinv);
 		invert_m4_m4(env->imat, tmat);
 		
 		env_rotate_scene(envre, tmat, 1);
@@ -528,7 +528,7 @@ void make_envmaps(Render *re)
 							normalize_m4(orthmat);
 							
 							/* need imat later for texture imat */
-							mul_m4_m4m4(mat, orthmat, re->viewmat);
+							mult_m4_m4m4(mat, re->viewmat, orthmat);
 							invert_m4_m4(tmat, mat);
 							copy_m3_m4(env->obimat, tmat);
 						}

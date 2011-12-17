@@ -4716,18 +4716,6 @@ static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
-{
-	if(extrude_exec(C, op) == OPERATOR_FINISHED) {
-		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-		return OPERATOR_FINISHED;
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
 void CURVE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -4737,7 +4725,6 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= extrude_exec;
-	ot->invoke= extrude_invoke;
 	ot->poll= ED_operator_editsurfcurve;
 
 	/* flags */
@@ -5599,16 +5586,6 @@ static int duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
-{
-	duplicate_exec(C, op);
-
-	RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -5618,14 +5595,10 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= duplicate_exec;
-	ot->invoke= duplicate_invoke;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /********************** delete operator *********************/
@@ -6083,7 +6056,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 			
 				if(cu->nurb.first) {
 					/* watch it: switch order here really goes wrong */
-					mul_m4_m4m4(cmat, base->object->obmat, imat);
+					mult_m4_m4m4(cmat, imat, base->object->obmat);
 					
 					nu= cu->nurb.first;
 					while(nu) {

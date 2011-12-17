@@ -47,6 +47,7 @@ struct BPoint;
 
 /* curve_ops.c */
 void	ED_operatortypes_curve(void);
+void	ED_operatormacros_curve(void);
 void	ED_keymap_curve	(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */

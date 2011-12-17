@@ -848,7 +848,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 		/* compute matrix and try clipping whole object */
 		if(obi->flag & R_TRANSFORMED)
-			mul_m4_m4m4(obwinmat, obi->mat, winmat);
+			mult_m4_m4m4(obwinmat, winmat, obi->mat);
 		else
 			copy_m4_m4(obwinmat, winmat);
 

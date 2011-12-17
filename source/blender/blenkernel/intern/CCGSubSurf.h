@@ -56,7 +56,7 @@ CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
 
-CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, int seam, CCGVert **v_r);
+CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertData, int seam, CCGVert **v_r);
 CCGError	ccgSubSurf_syncEdge		(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease, CCGEdge **e_r);
 CCGError	ccgSubSurf_syncFace		(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs, CCGFace **f_r);
 
@@ -84,15 +84,15 @@ CCGError	ccgSubSurf_setCalcVertexNormals		(CCGSubSurf *ss, int useVertNormals, i
 
 /***/
 
-int			ccgSubSurf_getNumVerts				(CCGSubSurf *ss);
-int			ccgSubSurf_getNumEdges				(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFaces				(CCGSubSurf *ss);
+int			ccgSubSurf_getNumVerts				(const CCGSubSurf *ss);
+int			ccgSubSurf_getNumEdges				(const CCGSubSurf *ss);
+int			ccgSubSurf_getNumFaces				(const CCGSubSurf *ss);
 
-int			ccgSubSurf_getSubdivisionLevels		(CCGSubSurf *ss);
-int			ccgSubSurf_getEdgeSize				(CCGSubSurf *ss);
-int			ccgSubSurf_getEdgeLevelSize			(CCGSubSurf *ss, int level);
-int			ccgSubSurf_getGridSize				(CCGSubSurf *ss);
-int			ccgSubSurf_getGridLevelSize			(CCGSubSurf *ss, int level);
+int			ccgSubSurf_getSubdivisionLevels		(const CCGSubSurf *ss);
+int			ccgSubSurf_getEdgeSize				(const CCGSubSurf *ss);
+int			ccgSubSurf_getEdgeLevelSize			(const CCGSubSurf *ss, int level);
+int			ccgSubSurf_getGridSize				(const CCGSubSurf *ss);
+int			ccgSubSurf_getGridLevelSize			(const CCGSubSurf *ss, int level);
 
 CCGVert*	ccgSubSurf_getVert					(CCGSubSurf *ss, CCGVertHDL v);
 CCGVertHDL	ccgSubSurf_getVertVertHandle		(CCGVert *v);
@@ -135,9 +135,9 @@ void*		ccgSubSurf_getFaceGridEdgeData		(CCGSubSurf *ss, CCGFace *f, int gridInde
 void*		ccgSubSurf_getFaceGridDataArray		(CCGSubSurf *ss, CCGFace *f, int gridIndex);
 void*		ccgSubSurf_getFaceGridData			(CCGSubSurf *ss, CCGFace *f, int gridIndex, int x, int y);
 
-int			ccgSubSurf_getNumFinalVerts		(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFinalEdges		(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFinalFaces		(CCGSubSurf *ss);
+int			ccgSubSurf_getNumFinalVerts		(const CCGSubSurf *ss);
+int			ccgSubSurf_getNumFinalEdges		(const CCGSubSurf *ss);
+int			ccgSubSurf_getNumFinalFaces		(const CCGSubSurf *ss);
 
 /***/
 

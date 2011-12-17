@@ -94,7 +94,8 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr)
 	ds->curlen+= cstrlen;
 }
 
-void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
+void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len)
+{
 	DynStrElem *dse= malloc(sizeof(*dse));
 	int cstrlen= BLI_strnlen(cstr, len);
 
@@ -225,7 +226,8 @@ int BLI_dynstr_get_len(DynStr *ds)
 	return ds->curlen;
 }
 
-char *BLI_dynstr_get_cstring(DynStr *ds) {
+char *BLI_dynstr_get_cstring(DynStr *ds)
+{
 	char *s, *rets= MEM_mallocN(ds->curlen+1, "dynstr_cstring");
 	DynStrElem *dse;
 	
@@ -241,7 +243,8 @@ char *BLI_dynstr_get_cstring(DynStr *ds) {
 	return rets;
 }
 
-void BLI_dynstr_free(DynStr *ds) {
+void BLI_dynstr_free(DynStr *ds)
+{
 	DynStrElem *dse;
 	
 	for (dse= ds->elems; dse; ) {

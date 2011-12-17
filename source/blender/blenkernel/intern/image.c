@@ -1508,10 +1508,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 
 	int ok;
 
-	if(imtype == -1) {
-		/* use whatever existing image type is set by 'ibuf' */
-	}
-	else if(imtype== R_IMF_IMTYPE_IRIS) {
+	if(imtype== R_IMF_IMTYPE_IRIS) {
 		ibuf->ftype= IMAGIC;
 	}
 #ifdef WITH_HDR
@@ -2277,7 +2274,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	ibuf->x= rres.rectx;
 	ibuf->y= rres.recty;
 	
-	if(ibuf->rect_float!=rectf || rect) /* ensure correct redraw */
+	/* free rect buffer if float buffer changes, so it can be recreated with
+	   the updated result, and also in case we got byte buffer from sequencer,
+	   so we don't keep reference to freed buffer */
+	if(ibuf->rect_float!=rectf || rect || !rectf)
 		imb_freerectImBuf(ibuf);
 
 	if(rect)

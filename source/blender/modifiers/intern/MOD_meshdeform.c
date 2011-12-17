@@ -188,7 +188,6 @@ static void meshdeformModifier_do(
 	struct EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
-	MDeformWeight *dw;
 	MDefInfluence *influences;
 	int *offsets;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
@@ -224,8 +223,8 @@ static void meshdeformModifier_do(
 
 	/* compute matrices to go in and out of cage object space */
 	invert_m4_m4(imat, mmd->object->obmat);
-	mul_m4_m4m4(cagemat, ob->obmat, imat);
-	mul_m4_m4m4(cmat, cagemat, mmd->bindmat);
+	mult_m4_m4m4(cagemat, imat, ob->obmat);
+	mult_m4_m4m4(cmat, mmd->bindmat, cagemat);
 	invert_m4_m4(iobmat, cmat);
 	copy_m3_m4(icagemat, iobmat);
 
@@ -293,21 +292,14 @@ static void meshdeformModifier_do(
 				continue;
 
 		if(dvert) {
-			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
-				if(dvert[b].dw[a].def_nr == defgrp_index) {
-					dw = &dvert[b].dw[a];
-					break;
-				}
+			fac= defvert_find_weight(&dvert[b], defgrp_index);
+
+			if (mmd->flag & MOD_MDEF_INVERT_VGROUP) {
+				fac= 1.0f - fac;
 			}
 
-			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
-				if(!dw) fac= 1.0f;
-				else if(dw->weight == 1.0f) continue;
-				else fac=1.0f-dw->weight;
-			}
-			else {
-				if(!dw) continue;
-				else fac= dw->weight;
+			if (fac <= 0.0) {
+				continue;
 			}
 		}
 

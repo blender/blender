@@ -713,6 +713,41 @@ void MagicTextureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_magic_texture");
 }
 
+/* Normal */
+
+NormalNode::NormalNode()
+: ShaderNode("normal")
+{
+	direction = make_float3(0.0f, 0.0f, 1.0f);
+
+	add_input("Normal", SHADER_SOCKET_NORMAL);
+	add_output("Normal", SHADER_SOCKET_NORMAL);
+	add_output("Dot",  SHADER_SOCKET_FLOAT);
+}
+
+void NormalNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *normal_in = input("Normal");
+	ShaderOutput *normal_out = output("Normal");
+	ShaderOutput *dot_out = output("Dot");
+
+	compiler.stack_assign(normal_in);
+	compiler.stack_assign(normal_out);
+	compiler.stack_assign(dot_out);
+
+	compiler.add_node(NODE_NORMAL, normal_in->stack_offset, normal_out->stack_offset, dot_out->stack_offset);
+	compiler.add_node(
+		__float_as_int(direction.x),
+		__float_as_int(direction.y),
+		__float_as_int(direction.z));
+}
+
+void NormalNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter_vector("Direction", direction);
+	compiler.add(this, "node_normal");
+}
+
 /* Mapping */
 
 MappingNode::MappingNode()
@@ -1689,6 +1724,33 @@ void CombineRGBNode::compile(SVMCompiler& compiler)
 void CombineRGBNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_combine_rgb");
+}
+
+/* Gamma */
+GammaNode::GammaNode()
+: ShaderNode("gamma")
+{
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_input("Gamma", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void GammaNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Color");
+	ShaderInput *gamma_in = input("Gamma");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(gamma_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_GAMMA, gamma_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+}
+
+void GammaNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_gamma");
 }
 
 /* Separate RGB */

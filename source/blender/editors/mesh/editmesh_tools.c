@@ -7247,7 +7247,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 		float cur[3];
 		
 		if (event == 1)
-			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
+			mult_m4_m4m4(mat, rv3d->viewmat, OBACT->obmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if( v3d && v3d->localvd ) {
 				VECCOPY(cur, v3d->cursor);
@@ -7511,10 +7511,11 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	EditSelection *ese = em->selected.last;
 
 
-	if(ese==NULL)
+	if (ese==NULL || ese->type != EDITVERT) {
+		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
 		return OPERATOR_CANCELLED;
-
-	if(ese->type==EDITVERT) {
+	}
+	else {
 		EditVert *ev;
 		EditVert *act_vert= (EditVert*)ese->data;
 		float value= act_vert->co[axis];

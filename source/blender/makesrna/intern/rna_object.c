@@ -174,7 +174,7 @@ static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 	if(ob->parent) {
 		float invmat[4][4]; /* for inverse of parent's matrix */
 		invert_m4_m4(invmat, ob->parent->obmat);
-		mul_m4_m4m4((float(*)[4])values, ob->obmat, invmat);
+		mult_m4_m4m4((float(*)[4])values, invmat, ob->obmat);
 	}
 	else {
 		copy_m4_m4((float(*)[4])values, ob->obmat);
@@ -191,7 +191,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	if(ob->parent) {
 		float invmat[4][4];
 		invert_m4_m4(invmat, ob->parentinv);
-		mul_m4_m4m4(ob->obmat, (float(*)[4])values, invmat);
+		mult_m4_m4m4(ob->obmat, invmat, (float(*)[4])values);
 	}
 	else {
 		copy_m4_m4(ob->obmat, (float(*)[4])values);
@@ -2072,6 +2072,8 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "delta_scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "dscale");
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
+	RNA_def_property_float_array_default(prop, default_scale);
 	RNA_def_property_ui_text(prop, "Delta Scale", "Extra scaling added to the scale of the object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 	

@@ -198,7 +198,8 @@ typedef enum IMB_Timecode_Type {
 				  record date and time written by recording
 				  device (*every* consumer camcorder can do
 				  that :) )*/
-	IMB_TC_MAX_SLOT   = 3
+	IMB_TC_RECORD_RUN_NO_GAPS = 8,
+	IMB_TC_MAX_SLOT   = 8
 } IMB_Timecode_Type;
 
 typedef enum IMB_Proxy_Size {

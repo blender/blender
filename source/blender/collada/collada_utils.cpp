@@ -89,7 +89,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 		where_is_object(sce, par);
 
 		// move child obmat into world space
-		mul_m4_m4m4(mat, ob->obmat, par->obmat);
+		mult_m4_m4m4(mat, par->obmat, ob->obmat);
 		copy_m4_m4(ob->obmat, mat);
 	}
 	

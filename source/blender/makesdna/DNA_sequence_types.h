@@ -309,7 +309,8 @@ typedef struct SpeedControlVars {
 #define SEQ_PROXY_TC_RECORD_RUN                 1
 #define SEQ_PROXY_TC_FREE_RUN                   2
 #define SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN   4
-#define SEQ_PROXY_TC_ALL                        7
+#define SEQ_PROXY_TC_RECORD_RUN_NO_GAPS         8
+#define SEQ_PROXY_TC_ALL                        15
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

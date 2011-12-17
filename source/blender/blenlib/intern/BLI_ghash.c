@@ -56,7 +56,8 @@ static unsigned int hashsizes[]= {
 
 /***/
 
-GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) {
+GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
+{
 	GHash *gh= MEM_mallocN(sizeof(*gh), info);
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
@@ -72,11 +73,13 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) {
 	return gh;
 }
 
-int BLI_ghash_size(GHash *gh) {
+int BLI_ghash_size(GHash *gh)
+{
 	return gh->nentries;
 }
 
-void BLI_ghash_insert(GHash *gh, void *key, void *val) {
+void BLI_ghash_insert(GHash *gh, void *key, void *val)
+{
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e= (Entry*) BLI_mempool_alloc(gh->entrypool);
 
@@ -109,7 +112,8 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-void *BLI_ghash_lookup(GHash *gh, const void *key) {
+void *BLI_ghash_lookup(GHash *gh, const void *key)
+{
 	if(gh) {
 		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 		Entry *e;
@@ -151,7 +155,8 @@ int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 	return 0;
 }
 
-int BLI_ghash_haskey(GHash *gh, void *key) {
+int BLI_ghash_haskey(GHash *gh, void *key)
+{
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
 
@@ -162,7 +167,8 @@ int BLI_ghash_haskey(GHash *gh, void *key) {
 	return 0;
 }
 
-void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp) {
+void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
 	int i;
 	
 	if (keyfreefp || valfreefp) {
@@ -190,7 +196,8 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 
 /***/
 
-GHashIterator *BLI_ghashIterator_new(GHash *gh) {
+GHashIterator *BLI_ghashIterator_new(GHash *gh)
+{
 	GHashIterator *ghi= MEM_mallocN(sizeof(*ghi), "ghash iterator");
 	ghi->gh= gh;
 	ghi->curEntry= NULL;
@@ -203,7 +210,8 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh) {
 	}
 	return ghi;
 }
-void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh) {
+void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
+{
 	ghi->gh= gh;
 	ghi->curEntry= NULL;
 	ghi->curBucket= -1;
@@ -214,18 +222,22 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh) {
 		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
 	}
 }
-void BLI_ghashIterator_free(GHashIterator *ghi) {
+void BLI_ghashIterator_free(GHashIterator *ghi)
+{
 	MEM_freeN(ghi);
 }
 
-void *BLI_ghashIterator_getKey(GHashIterator *ghi) {
+void *BLI_ghashIterator_getKey(GHashIterator *ghi)
+{
 	return ghi->curEntry?ghi->curEntry->key:NULL;
 }
-void *BLI_ghashIterator_getValue(GHashIterator *ghi) {
+void *BLI_ghashIterator_getValue(GHashIterator *ghi)
+{
 	return ghi->curEntry?ghi->curEntry->val:NULL;
 }
 
-void BLI_ghashIterator_step(GHashIterator *ghi) {
+void BLI_ghashIterator_step(GHashIterator *ghi)
+{
 	if (ghi->curEntry) {
 		ghi->curEntry= ghi->curEntry->next;
 		while (!ghi->curEntry) {
@@ -236,23 +248,27 @@ void BLI_ghashIterator_step(GHashIterator *ghi) {
 		}
 	}
 }
-int BLI_ghashIterator_isDone(GHashIterator *ghi) {
+int BLI_ghashIterator_isDone(GHashIterator *ghi)
+{
 	return !ghi->curEntry;
 }
 
 /***/
 
-unsigned int BLI_ghashutil_ptrhash(const void *key) {
+unsigned int BLI_ghashutil_ptrhash(const void *key)
+{
 	return (unsigned int)(intptr_t)key;
 }
-int BLI_ghashutil_ptrcmp(const void *a, const void *b) {
+int BLI_ghashutil_ptrcmp(const void *a, const void *b)
+{
 	if (a==b)
 		return 0;
 	else
 		return (a<b)?-1:1;
 }
 
-unsigned int BLI_ghashutil_inthash(const void *ptr) {
+unsigned int BLI_ghashutil_inthash(const void *ptr)
+{
 	uintptr_t key = (uintptr_t)ptr;
 
 	key += ~(key << 16);
@@ -265,14 +281,16 @@ unsigned int BLI_ghashutil_inthash(const void *ptr) {
 	return (unsigned int)(key & 0xffffffff);
 }
 
-int BLI_ghashutil_intcmp(const void *a, const void *b) {
+int BLI_ghashutil_intcmp(const void *a, const void *b)
+{
 	if (a==b)
 		return 0;
 	else
 		return (a<b)?-1:1;
 }
 
-unsigned int BLI_ghashutil_strhash(const void *ptr) {
+unsigned int BLI_ghashutil_strhash(const void *ptr)
+{
 	const char *s= ptr;
 	unsigned int i= 0;
 	unsigned char c;
@@ -282,6 +300,39 @@ unsigned int BLI_ghashutil_strhash(const void *ptr) {
 		
 	return i;
 }
-int BLI_ghashutil_strcmp(const void *a, const void *b) {
+int BLI_ghashutil_strcmp(const void *a, const void *b)
+{
 	return strcmp(a, b);
 }
+
+GHashPair *BLI_ghashutil_pairalloc(const void *first, int second)
+{
+	GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
+	pair->first = first;
+	pair->second = second;
+	return pair;
+}
+
+unsigned int BLI_ghashutil_pairhash(const void *ptr)
+{
+	const GHashPair *pair = ptr;
+	unsigned int hash = BLI_ghashutil_ptrhash(pair->first);
+	return hash ^ BLI_ghashutil_inthash(SET_INT_IN_POINTER(pair->second));
+}
+
+int BLI_ghashutil_paircmp(const void *a, const void *b)
+{
+	const GHashPair *A = a;
+	const GHashPair *B = b;
+
+	int cmp = BLI_ghashutil_ptrcmp(A->first, B->first);
+	if(cmp == 0)
+		return BLI_ghashutil_intcmp(SET_INT_IN_POINTER(A->second), SET_INT_IN_POINTER(B->second));
+	return cmp;
+}
+
+void BLI_ghashutil_pairfree(void *ptr)
+{
+	MEM_freeN((void*)ptr);
+}
+

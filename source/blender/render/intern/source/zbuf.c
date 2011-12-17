@@ -1819,7 +1819,7 @@ void zbuf_make_winmat(Render *re, float winmat[][4])
 		panomat[2][0]= -re->panosi;
 		panomat[2][2]= re->panoco;
 
-		mul_m4_m4m4(winmat, panomat, re->winmat);
+		mult_m4_m4m4(winmat, re->winmat, panomat);
 	}
 	else
 		copy_m4_m4(winmat, re->winmat);
@@ -2138,7 +2138,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 				continue;
 			
 			if(obi->flag & R_TRANSFORMED)
-				mul_m4_m4m4(obwinmat, obi->mat, winmat);
+				mult_m4_m4m4(obwinmat, winmat, obi->mat);
 			else
 				copy_m4_m4(obwinmat, winmat);
 
@@ -2318,7 +2318,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			mul_m4_m4m4(obwinmat, obi->mat, winmat);
+			mult_m4_m4m4(obwinmat, winmat, obi->mat);
 		else
 			copy_m4_m4(obwinmat, winmat);
 
@@ -2557,7 +2557,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			mul_m4_m4m4(obwinmat, obi->mat, winmat);
+			mult_m4_m4m4(obwinmat, winmat, obi->mat);
 		else
 			copy_m4_m4(obwinmat, winmat);
 
@@ -3300,7 +3300,7 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
-			mul_m4_m4m4(obwinmat, obi->mat, winmat);
+			mult_m4_m4m4(obwinmat, winmat, obi->mat);
 		else
 			copy_m4_m4(obwinmat, winmat);
 

@@ -158,23 +158,6 @@ static int convex(float *p0, float *up, float *a, float *b)
 	return dot_v3v3(up, tmp) >= 0;
 }
 
-// copied from gpu_extension.c
-static int is_pow2(int n)
-{
-	return ((n)&(n-1))==0;
-}
-
-static int larger_pow2(int n)
-{
-	if (is_pow2(n))
-		return n;
-
-	while(!is_pow2(n))
-		n= n&(n-1);
-
-	return n*2;
-}
-
 void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -379,9 +362,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 		printf("No volume shadow\n");
 
 	if (!GPU_non_power_of_two_support()) {
-		cor[0] = (float)res[0]/(float)larger_pow2(res[0]);
-		cor[1] = (float)res[1]/(float)larger_pow2(res[1]);
-		cor[2] = (float)res[2]/(float)larger_pow2(res[2]);
+		cor[0] = (float)res[0]/(float)power_of_2_max_i(res[0]);
+		cor[1] = (float)res[1]/(float)power_of_2_max_i(res[1]);
+		cor[2] = (float)res[2]/(float)power_of_2_max_i(res[2]);
 	}
 
 	// our slices are defined by the plane equation a*x + b*y +c*z + d = 0

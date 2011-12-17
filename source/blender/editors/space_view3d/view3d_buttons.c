@@ -59,6 +59,7 @@
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
 #include "BKE_deform.h"
+#include "BKE_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -688,57 +689,51 @@ static void vgroup_copy_active_to_sel(Object *ob)
 	}
 }
 
-static void vgroup_copy_active_to_sel_single(Object *ob, int def_nr)
+static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 {
 	EditVert *eve_act;
-	MDeformVert *dvert_act;
+	MDeformVert *dv_act;
 
-	act_vert_def(ob, &eve_act, &dvert_act);
+	act_vert_def(ob, &eve_act, &dv_act);
 
-	if(dvert_act==NULL) {
+	if(dv_act==NULL) {
 		return;
 	}
 	else {
 		Mesh *me= ob->data;
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 		EditVert *eve;
-		MDeformVert *dvert;
+		MDeformVert *dv;
 		MDeformWeight *dw;
-		float act_weight = -1.0f;
-		int i;
+		float weight_act;
 		int index= 0;
 
-		for(i=0, dw=dvert_act->dw; i < dvert_act->totweight; i++, dw++) {
-			if(def_nr == dw->def_nr) {
-				act_weight= dw->weight;
-				break;
-			}
-		}
+		dw= defvert_find_index(dv_act, def_nr);
 
-		if(act_weight < -0.5f)
+		if(dw == NULL)
 			return;
 
-		for(eve= em->verts.first; eve; eve= eve->next, index++) {
-			if(eve->f & SELECT && eve != eve_act) {
-				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-				if(dvert) {
-					for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
-						if(def_nr == dw->def_nr) {
-							dw->weight= act_weight;
+		weight_act= dw->weight;
 
-							if(me->editflag & ME_EDIT_MIRROR_X)
-								editvert_mirror_update(ob, eve, -1, index);
+		for (eve= em->verts.first; eve; eve= eve->next, index++) {
+			if (eve->f & SELECT && eve != eve_act) {
+				dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+				if(dv) {
+					dw= defvert_find_index(dv, def_nr);
+					if (dw) {
+						dw->weight= weight_act;
 
-							break;
+						if (me->editflag & ME_EDIT_MIRROR_X) {
+							editvert_mirror_update(ob, eve, -1, index);
 						}
 					}
 				}
 			}
 		}
 
-		if(me->editflag & ME_EDIT_MIRROR_X)
+		if (me->editflag & ME_EDIT_MIRROR_X) {
 			editvert_mirror_update(ob, eve_act, -1, -1);
-
+		}
 	}
 }
 
@@ -808,14 +803,15 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 
 	EditVert *eve;
-	MDeformVert *dvert;
+	MDeformVert *dv;
 
-	act_vert_def(ob, &eve, &dvert);
+	act_vert_def(ob, &eve, &dv);
 
-	if(dvert && dvert->totweight) {
+	if(dv && dv->totweight) {
 		uiLayout *col;
 		bDeformGroup *dg;
-		int i;
+		MDeformWeight *dw = dv->dw;
+		unsigned int i;
 		int yco = 0;
 
 		uiBlockSetHandleFunc(block, do_view3d_vgroup_buttons, NULL);
@@ -825,11 +821,11 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
 		uiBlockBeginAlign(block);
 
-		for (i=0; i<dvert->totweight; i++){
-			dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
+		for (i= dv->totweight; i != 0; i--, dw++) {
+			dg = BLI_findlink (&ob->defbase, dw->def_nr);
 			if(dg) {
-				uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + dvert->dw[i].def_nr, dg->name,	0, yco, 180, 20, &dvert->dw[i].weight, 0.0, 1.0, 1, 3, "");
-				uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + dvert->dw[i].def_nr, "C", 180,yco,20,20, NULL, 0, 0, 0, 0, "Copy this groups weight to other selected verts");
+				uiDefButF(block, NUM, B_VGRP_PNL_EDIT_SINGLE + dw->def_nr, dg->name,	0, yco, 180, 20, &dw->weight, 0.0, 1.0, 1, 3, "");
+				uiDefBut(block, BUT, B_VGRP_PNL_COPY_SINGLE + dw->def_nr, "C", 180,yco,20,20, NULL, 0, 0, 0, 0, "Copy this groups weight to other selected verts");
 				yco -= 20;
 			}
 		}
@@ -1110,14 +1106,6 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 	}	
 }
 
-/* test if 'ob' is a parent somewhere in par's parents */
-static int test_parent_loop(Object *par, Object *ob)
-{
-	if(par == NULL) return 0;
-	if(ob == par) return 1;
-	return test_parent_loop(par->parent, ob);
-}
-
 static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
 	Main *bmain= CTX_data_main(C);
@@ -1149,7 +1137,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		/* note; this case also used for parbone */
 	case B_OBJECTPANELPARENT:
 		if(ob) {
-			if(ob->id.lib || test_parent_loop(ob->parent, ob) ) 
+			if (ob->id.lib || BKE_object_parent_loop_check(ob->parent, ob))
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(bmain, scene);

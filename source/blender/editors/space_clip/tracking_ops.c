@@ -1302,7 +1302,7 @@ static int track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backward
 		else if(settings->speed==TRACKING_SPEED_DOUBLE) tmj->delay/= 2;
 	}
 
-	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1);
+	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1, 1);
 
 	clip->tracking_context= tmj->context;
 
@@ -1413,7 +1413,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* do not disable tracks due to threshold when tracking frame-by-frame */
-	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
+	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence, sequence);
 
 	while(framenr != efra) {
 		if(!BKE_tracking_next(context))
@@ -2005,7 +2005,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 	invert_m4(mat);
 
 	object_to_mat4(ob, obmat);
-	mul_m4_m4m4(mat, obmat, mat);
+	mult_m4_m4m4(mat, mat, obmat);
 	object_apply_mat4(ob, mat, 0, 0);
 }
 
@@ -2073,14 +2073,14 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	invert_m4(mat);
 
 	object_to_mat4(parent, obmat);
-	mul_m4_m4m4(mat, obmat, mat);
-	mul_m4_m4m4(newmat, mat, rot);
+	mult_m4_m4m4(mat, mat, obmat);
+	mult_m4_m4m4(newmat, rot, mat);
 	object_apply_mat4(parent, newmat, 0, 0);
 
 	/* make camera have positive z-coordinate */
 	if(parent->loc[2]<0) {
 		invert_m4(rot);
-		mul_m4_m4m4(newmat, mat, rot);
+		mult_m4_m4m4(newmat, rot, mat);
 		object_apply_mat4(parent, newmat, 0, 0);
 	}
 

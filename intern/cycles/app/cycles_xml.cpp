@@ -368,6 +368,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_enum(&wood->type, WaveTextureNode::type_enum, node, "type");
 			snode = wood;
 		}
+		else if(string_iequals(node.name(), "normal")) {
+			snode = new NormalNode();
+		}
 		else if(string_iequals(node.name(), "mapping")) {
 			snode = new MappingNode();
 		}
@@ -442,6 +445,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			MixNode *mix = new MixNode();
 			xml_read_enum(&mix->type, MixNode::type_enum, node, "type");
 			snode = mix;
+		}
+		else if(string_iequals(node.name(), "gamma")) {
+			snode = new GammaNode();
 		}
 		else if(string_iequals(node.name(), "combine_rgb")) {
 			snode = new CombineRGBNode();

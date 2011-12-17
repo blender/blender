@@ -1056,7 +1056,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
             # the space setting is supported for: derivative-maps + bump-maps (DEFAULT,BEST_QUALITY), not for normal-maps
             sub = row.row()
-            sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map) and ((tex.bump_method in {'BUMP_DEFAULT', 'BUMP_BEST_QUALITY'}) or (tex.texture.type == 'IMAGE' and tex.texture.use_derivative_map))
+            sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map) and ((tex.bump_method in {'BUMP_LOW_QUALITY', 'BUMP_MEDIUM_QUALITY', 'BUMP_BEST_QUALITY'}) or (tex.texture.type == 'IMAGE' and tex.texture.use_derivative_map))
             sub.prop(tex, "bump_objectspace", text="Space")
 
 

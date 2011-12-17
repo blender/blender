@@ -94,7 +94,7 @@ typedef struct MSticky {
 
 typedef struct MSelect {
 	int index;
-	int type;
+	int type; /* EDITVERT/EDITEDGE/EDITFACE */
 } MSelect;
 
 typedef struct MTFace {
@@ -197,11 +197,6 @@ typedef struct MRecast{
 #define ME_FREESTYLE_EDGE	(1<<10)
 
 /* puno = vertexnormal (mface) */
-/* render assumes flips to be ordered like this */
-#define ME_FLIPV1		1
-#define ME_FLIPV2		2
-#define ME_FLIPV3		4
-#define ME_FLIPV4		8
 #define ME_PROJXY		16
 #define ME_PROJXZ		32
 #define ME_PROJYZ		64
@@ -218,11 +213,6 @@ typedef struct MRecast{
 #define ME_FACE_SEL			2
 #define ME_FREESTYLE_FACE	4
 						/* flag ME_HIDE==16 is used here too */ 
-/* mselect->type */
-#define ME_VSEl	0
-#define ME_ESEl 1
-#define ME_FSEL 2
-
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
 #define TF_ACTIVE	2 /* deprecated! */

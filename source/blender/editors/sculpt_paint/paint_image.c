@@ -383,7 +383,7 @@ typedef struct UndoImageTile {
 	void *rect;
 	int x, y;
 
-	short source;
+	short source, use_float;
 	char gen_type;
 } UndoImageTile;
 
@@ -413,11 +413,13 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
 	int allocsize;
+	short use_float = ibuf->rect_float ? 1 : 0;
 
 	for(tile=lb->first; tile; tile=tile->next)
 		if(tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source)
-			if(strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
-				return tile->rect;
+			if(tile->use_float == use_float)
+				if(strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
+					return tile->rect;
 	
 	if (*tmpibuf==NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
@@ -435,6 +437,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 
 	tile->gen_type= ima->gen_type;
 	tile->source= ima->source;
+	tile->use_float= use_float;
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
 	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
@@ -455,6 +458,8 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 							IB_rectfloat|IB_rect);
 	
 	for(tile=lb->first; tile; tile=tile->next) {
+		short use_float;
+
 		/* find image based on name, pointer becomes invalid with global undo */
 		if(ima && strcmp(tile->idname, ima->id.name)==0) {
 			/* ima is valid */
@@ -464,6 +469,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		}
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
+		use_float = ibuf->rect_float ? 1 : 0;
 
 		if(ima && ibuf && strcmp(tile->ibufname, ibuf->name)!=0) {
 			/* current ImBuf filename was changed, probably current frame
@@ -478,6 +484,9 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 			continue;
 
 		if (ima->gen_type != tile->gen_type || ima->source != tile->source)
+			continue;
+
+		if (use_float != tile->use_float)
 			continue;
 
 		undo_copy_tile(tile, tmpibuf, ibuf, 1);
@@ -3078,8 +3087,8 @@ static void project_paint_begin(ProjPaintState *ps)
 			}
 
 			/* same as view3d_get_object_project_mat */
-			mul_m4_m4m4(vmat, ps->ob->obmat, viewmat);
-			mul_m4_m4m4(ps->projectMat, vmat, winmat);
+			mult_m4_m4m4(vmat, viewmat, ps->ob->obmat);
+			mult_m4_m4m4(ps->projectMat, winmat, vmat);
 		}
 
 

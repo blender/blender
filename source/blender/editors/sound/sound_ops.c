@@ -212,6 +212,104 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono");
 }
 
+/* ******************************************************* */
+
+static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Sequence* seq;
+	Scene* scene = CTX_data_scene(C);
+	struct FCurve* fcu;
+	char driven;
+
+	SEQ_BEGIN(scene->ed, seq) {
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
+
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
+
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
+	}
+	SEQ_END
+
+	fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
+	if(fcu || driven)
+		scene->audio.flag |= AUDIO_VOLUME_ANIMATED;
+	else
+		scene->audio.flag &= ~AUDIO_VOLUME_ANIMATED;
+
+	return OPERATOR_FINISHED;
+}
+
+static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
+{
+	/*
+	  This operator is needed to set a correct state of the sound animation
+	  System. Unfortunately there's no really correct place to call the exec
+	  function, that's why I made it an operator that's only visible in the
+	  search menu. Apart from that the bake animation operator calls it too.
+	*/
+
+	/* identifiers */
+	ot->name= "Update animation";
+	ot->description= "Update animation flags";
+	ot->idname= "SOUND_OT_update_animation_flags";
+
+	/* api callbacks */
+	ot->exec= sound_update_animation_flags_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* ******************************************************* */
+
+static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main* bmain = CTX_data_main(C);
+	Scene* scene = CTX_data_scene(C);
+	int oldfra = scene->r.cfra;
+	int cfra;
+
+	sound_update_animation_flags_exec(C, NULL);
+
+	for(cfra = scene->r.sfra > 0 ? scene->r.sfra - 1 : 0; cfra <= scene->r.efra + 1; cfra++)
+	{
+		scene->r.cfra = cfra;
+		scene_update_for_newframe(bmain, scene, scene->lay);
+	}
+
+	scene->r.cfra = oldfra;
+	scene_update_for_newframe(bmain, scene, scene->lay);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SOUND_OT_bake_animation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Update animation cache";
+	ot->description= "Updates the audio animation cache so that it's up to date";
+	ot->idname= "SOUND_OT_bake_animation";
+
+	/* api callbacks */
+	ot->exec= sound_bake_animation_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+
 /******************** mixdown operator ********************/
 
 static int sound_mixdown_exec(bContext *C, wmOperator *op)
@@ -227,6 +325,8 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	AUD_Container container;
 	AUD_Codec codec;
 	const char* result;
+
+	sound_bake_animation_exec(C, op);
 
 	RNA_string_get(op->ptr, "filepath", path);
 	bitrate = RNA_int_get(op->ptr, "bitrate") * 1000;
@@ -612,104 +712,6 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Sound Name", "Sound datablock name to unpack"); /* XXX, weark!, will fail with library, name collisions */
 }
-
-/* ******************************************************* */
-
-static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Sequence* seq;
-	Scene* scene = CTX_data_scene(C);
-	struct FCurve* fcu;
-	char driven;
-
-	SEQ_BEGIN(scene->ed, seq) {
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
-		if(fcu || driven)
-			seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
-
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
-		if(fcu || driven)
-			seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
-
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
-		if(fcu || driven)
-			seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
-	}
-	SEQ_END
-
-	fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
-	if(fcu || driven)
-		scene->audio.flag |= AUDIO_VOLUME_ANIMATED;
-	else
-		scene->audio.flag &= ~AUDIO_VOLUME_ANIMATED;
-
-	return OPERATOR_FINISHED;
-}
-
-static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
-{
-	/*
-	  This operator is needed to set a correct state of the sound animation
-	  System. Unfortunately there's no really correct place to call the exec
-	  function, that's why I made it an operator that's only visible in the
-	  search menu. Apart from that the bake animation operator calls it too.
-	*/
-
-	/* identifiers */
-	ot->name= "Update animation";
-	ot->description= "Update animation flags";
-	ot->idname= "SOUND_OT_update_animation_flags";
-
-	/* api callbacks */
-	ot->exec= sound_update_animation_flags_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-}
-
-/* ******************************************************* */
-
-static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Main* bmain = CTX_data_main(C);
-	Scene* scene = CTX_data_scene(C);
-	int oldfra = scene->r.cfra;
-	int cfra;
-
-	sound_update_animation_flags_exec(C, NULL);
-
-	for(cfra = scene->r.sfra > 0 ? scene->r.sfra - 1 : 0; cfra <= scene->r.efra + 1; cfra++)
-	{
-		scene->r.cfra = cfra;
-		scene_update_for_newframe(bmain, scene, scene->lay);
-	}
-
-	scene->r.cfra = oldfra;
-	scene_update_for_newframe(bmain, scene, scene->lay);
-
-	return OPERATOR_FINISHED;
-}
-
-static void SOUND_OT_bake_animation(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Update animation cache";
-	ot->description= "Updates the audio animation cache so that it's up to date";
-	ot->idname= "SOUND_OT_bake_animation";
-
-	/* api callbacks */
-	ot->exec= sound_bake_animation_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-}
-
 
 /* ******************************************************* */
 

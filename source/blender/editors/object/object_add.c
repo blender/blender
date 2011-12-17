@@ -47,9 +47,10 @@
 #include "DNA_speaker_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim.h"
@@ -1050,11 +1051,17 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 {
 	ListBase *lb;
 	DupliObject *dob;
-
+	GHash *dupli_gh= NULL, *parent_gh= NULL;
+	
 	if(!(base->object->transflag & OB_DUPLI))
 		return;
 	
 	lb= object_duplilist(scene, base->object);
+
+	if(use_hierarchy || use_base_parent) {
+		dupli_gh= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "make_object_duplilist_real dupli_gh");
+		parent_gh= BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, "make_object_duplilist_real parent_gh");
+	}
 	
 	for(dob= lb->first; dob; dob= dob->next) {
 		Base *basen;
@@ -1083,6 +1090,11 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		
 		copy_m4_m4(ob->obmat, dob->mat);
 		object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+
+		if(dupli_gh)
+			BLI_ghash_insert(dupli_gh, dob, ob);
+		if(parent_gh)
+			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, dob->index), ob);
 	}
 	
 	if (use_hierarchy) {
@@ -1091,12 +1103,17 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			Object *ob_src=     dob->ob;
 			Object *ob_src_par= ob_src->parent;
 
-			Object *ob_dst=     (Object *)ob_src->id.newid;
+			Object *ob_dst=     BLI_ghash_lookup(dupli_gh, dob);
+			Object *ob_dst_par= NULL;
 
-			if (ob_src_par && ob_src_par->id.newid) {
-				/* the parent was also made real, parent newly real duplis */
-				Object *ob_dst_par= (Object *)ob_src_par->id.newid;
+			/* find parent that was also made real */
+			if(ob_src_par) {
+				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, dob->index);
+				ob_dst_par = BLI_ghash_lookup(parent_gh, pair);
+				BLI_ghashutil_pairfree(pair);
+			}
 
+			if (ob_dst_par) {
 				/* allow for all possible parent types */
 				ob_dst->partype= ob_src->partype;
 				BLI_strncpy(ob_dst->parsubstr, ob_src->parsubstr, sizeof(ob_dst->parsubstr));
@@ -1130,8 +1147,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		 * base object */
 		for(dob= lb->first; dob; dob= dob->next) {
 			/* original parents */
-			Object *ob_src=     dob->ob;
-			Object *ob_dst=     (Object *)ob_src->id.newid;
+			Object *ob_dst= BLI_ghash_lookup(dupli_gh, dob);
 
 			ob_dst->parent= base->object;
 			ob_dst->partype= PAROBJECT;
@@ -1144,6 +1160,11 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 		}
 	}
+
+	if(dupli_gh)
+		BLI_ghash_free(dupli_gh, NULL, NULL);
+	if(parent_gh)
+		BLI_ghash_free(parent_gh, BLI_ghashutil_pairfree, NULL);
 
 	copy_object_set_idnew(C, 0);
 	

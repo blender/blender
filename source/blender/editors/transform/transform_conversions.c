@@ -118,7 +118,8 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
-static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, TransData *temp) {
+static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, TransData *temp)
+{
 	TransData *ihead = head;
 	TransData *itail = tail;
 	*temp = *head;
@@ -165,7 +166,8 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, Tra
 	}
 }
 
-void sort_trans_data_dist(TransInfo *t) {
+void sort_trans_data_dist(TransInfo *t)
+{
 	TransData temp;
 	TransData *start = t->data;
 	int i = 1;
@@ -294,7 +296,8 @@ static void createTransTexspace(TransInfo *t)
 
 /* ********************* edge (for crease) ***** */
 
-static void createTransEdge(TransInfo *t) {
+static void createTransEdge(TransInfo *t)
+{
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	TransData *td = NULL;
 	EditEdge *eed;
@@ -440,14 +443,14 @@ static short apply_targetless_ik(Object *ob)
 						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 						mul_m4_v3(parchan->parent->pose_mat, rmat[3]);
 
-						mul_m4_m4m4(tmat, offs_bone, rmat);
+						mult_m4_m4m4(tmat, rmat, offs_bone);
 					}
 					else if(parchan->bone->flag & BONE_NO_SCALE) {
-						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
+						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
 						normalize_m4(tmat);
 					}
 					else
-						mul_m4_m4m4(tmat, offs_bone, parchan->parent->pose_mat);
+						mult_m4_m4m4(tmat, parchan->parent->pose_mat, offs_bone);
 
 					invert_m4_m4(imat, tmat);
 				}
@@ -458,7 +461,7 @@ static short apply_targetless_ik(Object *ob)
 					invert_m4_m4(imat, tmat);
 				}
 				/* result matrix */
-				mul_m4_m4m4(rmat, parchan->pose_mat, imat);
+				mult_m4_m4m4(rmat, imat, parchan->pose_mat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
@@ -1325,7 +1328,8 @@ static void createTransMBallVerts(TransInfo *t)
 
 /* ********************* curve/surface ********* */
 
-static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
+static void calc_distanceCurveVerts(TransData *head, TransData *tail)
+{
 	TransData *td, *td_near = NULL;
 	for (td = head; td<=tail; td++) {
 		if (td->flag & TD_SELECTED) {
@@ -1370,7 +1374,8 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 }
 
 /* Utility function for getting the handle data from bezier's */
-static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt) {
+static TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt)
+{
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
 	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
@@ -1919,8 +1924,8 @@ static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
 	}
 }
 
-//way to overwrite what data is edited with transform
-//static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
+/* way to overwrite what data is edited with transform
+ * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
 static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert *eve)
 {
 	td->flag = 0;
@@ -1951,33 +1956,6 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 		td->ival = eve->bweight;
 	}
 }
-
-#if 0
-static void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
-	BME_Vert *v;
-	BME_TransData *vtd;
-	TransData *tob;
-	int i;
-
-	tob = t->data = MEM_callocN(td->len*sizeof(TransData), "TransObData(Bevel tool)");
-
-	for (i=0,v=bm->verts.first;v;v=v->next) {
-		if ( (vtd = BME_get_transdata(td,v)) ) {
-			tob->loc = vtd->loc;
-			tob->val = &vtd->factor;
-			copy_v3_v3(tob->iloc,vtd->co);
-			copy_v3_v3(tob->center,vtd->org);
-			copy_v3_v3(tob->axismtx[0],vtd->vec);
-			tob->axismtx[1][0] = vtd->max ? *vtd->max : 0;
-			tob++;
-			i++;
-		}
-	}
-	/* since td is a memarena, it can hold more transdata than actual elements
-	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
-	t->total = i;
-}
-#endif
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {

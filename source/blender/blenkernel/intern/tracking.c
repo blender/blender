@@ -48,6 +48,7 @@
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
 #include "BKE_tracking.h"
@@ -735,11 +736,11 @@ typedef struct MovieTrackingContext {
 	MovieTrackingSettings settings;
 	TracksMap *tracks_map;
 
-	short backwards, disable_failed;
+	short backwards, disable_failed, sequence;
 	int sync_frame;
 } MovieTrackingContext;
 
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short disable_failed)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short disable_failed, short sequence)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
@@ -752,6 +753,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->disable_failed= disable_failed;
 	context->sync_frame= user->framenr;
 	context->first_time= 1;
+	context->sequence= sequence;
 
 	/* count */
 	track= tracking->tracks.first;
@@ -830,6 +832,9 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->clip= clip;
 	context->user= *user;
 
+	if(!sequence)
+		BLI_begin_threaded_malloc();
+
 	return context;
 }
 
@@ -856,6 +861,9 @@ static void track_context_free(void *customdata)
 
 void BKE_tracking_context_free(MovieTrackingContext *context)
 {
+	if(!context->sequence)
+		BLI_end_threaded_malloc();
+
 	tracks_map_free(context->tracks_map, track_context_free);
 
 	MEM_freeN(context);
@@ -1146,7 +1154,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(map_size>1)
 	for(a= 0; a<map_size; a++) {
-		TrackContext *track_context;
+		TrackContext *track_context = NULL;
 		MovieTrackingTrack *track;
 		MovieTrackingMarker *marker;
 
@@ -1476,7 +1484,7 @@ static int retrieve_libmv_reconstruct_tracks(MovieReconstructContext *context, M
 			}
 
 			if(origin_set)
-				mul_m4_m4m4(mat, mat, imat);
+				mult_m4_m4m4(mat, imat, mat);
 
 			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
 			reconstructed[reconstruction->camnr].framenr= a;
@@ -1906,7 +1914,7 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 		float imat[4][4];
 
 		invert_m4_m4(imat, camera->mat);
-		mul_m4_m4m4(mat, imat, winmat);
+		mult_m4_m4m4(mat, winmat, imat);
 	} else copy_m4_m4(mat, winmat);
 }
 

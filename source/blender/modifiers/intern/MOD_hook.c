@@ -157,7 +157,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
 		/* bone target if there's a matching pose-channel */
-		mul_m4_m4m4(dmat, pchan->pose_mat, hmd->object->obmat);
+		mult_m4_m4m4(dmat, hmd->object->obmat, pchan->pose_mat);
 	}
 	else {
 		/* just object target */
@@ -249,15 +249,25 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
                         int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	
-	deformVerts_do(hmd, ob, derivedData, vertexCos, numVerts);
+	DerivedMesh *dm = derivedData;
+	/* We need a valid dm for meshes when a vgroup is set... */
+	if(!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
+		dm = get_dm(ob, NULL, dm, NULL, 0);
+
+	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
+
+	if(derivedData != dm)
+		dm->release(dm);
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob, struct EditMesh *editData,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
+	DerivedMesh *dm = derivedData;
+	/* We need a valid dm for meshes when a vgroup is set... */
+	if(!dm && ob->type == OB_MESH && hmd->name[0] != '\0')
+		dm = get_dm(ob, editData, dm, NULL, 0);
 
 	deformVerts_do(hmd, ob, dm, vertexCos, numVerts);
 

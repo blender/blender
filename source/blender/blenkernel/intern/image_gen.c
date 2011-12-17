@@ -30,6 +30,7 @@
 
 #include "BKE_image.h"
 #include "BLI_math_color.h"
+#include "BLI_math_base.h"
 #include "BLF_api.h"
 
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, float color[4])
@@ -161,21 +162,6 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 #define BLEND_FLOAT(real, add)  (real+add <= 1.0f) ? (real+add) : 1.0f
 #define BLEND_CHAR(real, add) ((real + (char)(add * 255.0f)) <= 255) ? (real + (char)(add * 255.0f)) : 255
 
-static int is_pow2(int n)
-{
-	return ((n)&(n-1))==0;
-}
-static int larger_pow2(int n)
-{
-	if (is_pow2(n))
-		return n;
-
-	while(!is_pow2(n))
-		n= n&(n-1);
-
-	return n*2;
-}
-
 static void checker_board_color_fill(unsigned char *rect, float *rect_float, int width, int height)
 {
 	int hue_step, y, x;
@@ -183,7 +169,7 @@ static void checker_board_color_fill(unsigned char *rect, float *rect_float, int
 
 	sat= 1.0;
 
-	hue_step= larger_pow2(width / 8);
+	hue_step= power_of_2_max_i(width / 8);
 	if(hue_step < 8) hue_step= 8;
 
 	for(y= 0; y < height; y++)

@@ -225,6 +225,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	CCGVertHDL fverts[4];
 	EdgeHash *ehash;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
+	float uv[3]= {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0]= limit[1]= STD_UV_CONNECT_LIMIT;
 	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
@@ -248,11 +249,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 			if (v->separate) {
 				CCGVert *ssv;
 				CCGVertHDL vhdl = SET_INT_IN_POINTER(v->f*4 + v->tfindex);
-				float uv[3];
 
-				uv[0]= (tface+v->f)->uv[v->tfindex][0];
-				uv[1]= (tface+v->f)->uv[v->tfindex][1];
-				uv[2]= 0.0f;
+				copy_v2_v2(uv, (tface+v->f)->uv[v->tfindex]);
 
 				ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
 			}
@@ -359,15 +357,10 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 
 			for(y = 0; y < gridFaces; y++) {
 				for(x = 0; x < gridFaces; x++) {
-					float *a = faceGridData[(y + 0)*gridSize + x + 0].co;
-					float *b = faceGridData[(y + 0)*gridSize + x + 1].co;
-					float *c = faceGridData[(y + 1)*gridSize + x + 1].co;
-					float *d = faceGridData[(y + 1)*gridSize + x + 0].co;
-
-					tf->uv[0][0] = a[0]; tf->uv[0][1] = a[1];
-					tf->uv[1][0] = d[0]; tf->uv[1][1] = d[1];
-					tf->uv[2][0] = c[0]; tf->uv[2][1] = c[1];
-					tf->uv[3][0] = b[0]; tf->uv[3][1] = b[1];
+					copy_v2_v2(tf->uv[0], faceGridData[(y + 0)*gridSize + x + 0].co);
+					copy_v2_v2(tf->uv[1], faceGridData[(y + 1)*gridSize + x + 0].co);
+					copy_v2_v2(tf->uv[2], faceGridData[(y + 1)*gridSize + x + 1].co);
+					copy_v2_v2(tf->uv[3], faceGridData[(y + 0)*gridSize + x + 1].co);
 
 					tf++;
 				}

@@ -590,8 +590,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, EditMesh *em, float c
 			cent[0]= cent[1]= 0.0f;
 
 			for(i=0; i<nverts; i++) {
-				cent[0] += tf->uv[i][0];
-				cent[1] += tf->uv[i][1];
+				add_v2_v2(cent, tf->uv[i]);
 			}
 
 			cent[0] /= nverts;
