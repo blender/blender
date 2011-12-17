@@ -237,6 +237,40 @@ static PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+static char SVertex_curvatures___doc__[] =
+".. method:: curvatures()\n"
+"\n"
+"   Returns curvature information in the form of a seven-element tuple\n"
+"   (K1, e1, K2, e2, Kr, er, dKr), where K1 and K2 are scalar values\n"
+"   representing the first (maximum) and second (minimum) principal\n"
+"   curvatures at this SVertex, respectively; e1 and e2 are\n"
+"   three-dimensional vectors representing the first and second principal\n"
+"   directions, i.e. the directions of the normal plane where the\n"
+"   curvature takes its maximum and minimum values, respectively; and Kr,\n"
+"   er and dKr are the radial curvature, radial direction, and the\n"
+"   derivative of the radial curvature at this SVertex, repectively.\n"
+"   :return: curvature information expressed by a seven-element tuple\n"
+"   (K1, e1, K2, e2, Kr, er, dKr).\n"
+"   :rtype: tuple\n";
+
+static PyObject *SVertex_curvatures( BPy_SVertex *self , PyObject *args) {
+	const CurvatureInfo *info = self->sv->getCurvatureInfo();
+	if (!info)
+		Py_RETURN_NONE;
+	Vec3r e1(info->e1.x(), info->e1.y(), info->e1.z());
+	Vec3r e2(info->e2.x(), info->e2.y(), info->e2.z());
+	Vec3r er(info->er.x(), info->er.y(), info->er.z());
+	PyObject *retval = PyTuple_New(7);
+	PyTuple_SetItem( retval, 0, PyFloat_FromDouble(info->K1));
+	PyTuple_SetItem( retval, 2, Vector_from_Vec3r(e1));
+	PyTuple_SetItem( retval, 1, PyFloat_FromDouble(info->K2));
+	PyTuple_SetItem( retval, 3, Vector_from_Vec3r(e2));
+	PyTuple_SetItem( retval, 4, PyFloat_FromDouble(info->Kr));
+	PyTuple_SetItem( retval, 5, Vector_from_Vec3r(er));
+	PyTuple_SetItem( retval, 6, PyFloat_FromDouble(info->dKr));
+	return retval;
+}
+
 // virtual bool 	operator== (const SVertex &iBrother)
 // ViewVertex * 	viewvertex ()
 
@@ -250,6 +284,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
 	{"AddNormal", ( PyCFunction ) SVertex_AddNormal, METH_VARARGS, SVertex_AddNormal___doc__},
 	{"setId", ( PyCFunction ) SVertex_setId, METH_VARARGS, SVertex_setId___doc__},
 	{"AddFEdge", ( PyCFunction ) SVertex_AddFEdge, METH_VARARGS, SVertex_AddFEdge___doc__},
+	{"curvatures", ( PyCFunction ) SVertex_curvatures, METH_NOARGS, SVertex_curvatures___doc__},
 	{NULL, NULL, 0, NULL}
 };
 
