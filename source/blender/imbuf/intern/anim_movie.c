@@ -703,7 +703,6 @@ static void ffmpeg_postprocess(struct anim * anim)
 		int dstStride2[4] = { -dstStride[0], 0, 0, 0 };
 		uint8_t* dst2[4]  = { dst[0] + (anim->y - 1)*dstStride[0],
 				      0, 0, 0 };
-		int i;
 		
 		sws_scale(anim->img_convert_ctx,
 		          (const uint8_t * const *)input->data,

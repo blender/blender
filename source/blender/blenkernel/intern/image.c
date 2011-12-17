@@ -1508,10 +1508,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 
 	int ok;
 
-	if(imtype == -1) {
-		/* use whatever existing image type is set by 'ibuf' */
-	}
-	else if(imtype== R_IMF_IMTYPE_IRIS) {
+	if(imtype== R_IMF_IMTYPE_IRIS) {
 		ibuf->ftype= IMAGIC;
 	}
 #ifdef WITH_HDR

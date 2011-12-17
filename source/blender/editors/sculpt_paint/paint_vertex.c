@@ -1023,8 +1023,8 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
 
+	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef= type + 1;
-	BLI_assert(vc.obact->actdef >= 0);
 
 	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, vc.obact);
@@ -1918,8 +1918,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					}
 					else {
-						ob->actdef= 1 + BLI_findindex(&ob->defbase, dg);
-						BLI_assert(ob->actdef >= 0);
+						int actdef = 1 + BLI_findindex(&ob->defbase, dg);
+						BLI_assert(actdef >= 0);
+						ob->actdef= actdef;
 					}
 				}
 			}
