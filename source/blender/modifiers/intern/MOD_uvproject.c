@@ -295,15 +295,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				}
 				else {
 					/* apply transformed coords as UVs */
-					tface->uv[0][0] = coords[mf->v1][0];
-					tface->uv[0][1] = coords[mf->v1][1];
-					tface->uv[1][0] = coords[mf->v2][0];
-					tface->uv[1][1] = coords[mf->v2][1];
-					tface->uv[2][0] = coords[mf->v3][0];
-					tface->uv[2][1] = coords[mf->v3][1];
-					if(mf->v4) {
-						tface->uv[3][0] = coords[mf->v4][0];
-						tface->uv[3][1] = coords[mf->v4][1];
+					copy_v2_v2(tface->uv[0], coords[mf->v1]);
+					copy_v2_v2(tface->uv[1], coords[mf->v2]);
+					copy_v2_v2(tface->uv[2], coords[mf->v3]);
+					if (mf->v4) {
+						copy_v2_v2(tface->uv[3], coords[mf->v4]);
 					}
 				}
 			} else {
@@ -358,15 +354,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						mul_project_m4_v3(best_projector->projmat, co4);
 
 					/* apply transformed coords as UVs */
-					tface->uv[0][0] = co1[0];
-					tface->uv[0][1] = co1[1];
-					tface->uv[1][0] = co2[0];
-					tface->uv[1][1] = co2[1];
-					tface->uv[2][0] = co3[0];
-					tface->uv[2][1] = co3[1];
-					if(mf->v4) {
-						tface->uv[3][0] = co4[0];
-						tface->uv[3][1] = co4[1];
+					copy_v2_v2(tface->uv[0], co1);
+					copy_v2_v2(tface->uv[1], co2);
+					copy_v2_v2(tface->uv[2], co3);
+					if (mf->v4) {
+						copy_v2_v2(tface->uv[3], co4);
 					}
 				}
 			}

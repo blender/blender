@@ -1143,21 +1143,17 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv1], w);
 								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv2], w);
 								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv3], w);
-								if(mv4)
+								if (mv4) {
 									madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv4], w);
+								}
 							}
 
 							if(mtface) {
-								dob->uv[0] += w*mtface[a].uv[0][0];
-								dob->uv[1] += w*mtface[a].uv[0][1];
-								dob->uv[0] += w*mtface[a].uv[1][0];
-								dob->uv[1] += w*mtface[a].uv[1][1];
-								dob->uv[0] += w*mtface[a].uv[2][0];
-								dob->uv[1] += w*mtface[a].uv[2][1];
-
-								if(mv4) {
-									dob->uv[0] += w*mtface[a].uv[3][0];
-									dob->uv[1] += w*mtface[a].uv[3][1];
+								madd_v2_v2v2fl(dob->uv, dob->uv, mtface[a].uv[0], w);
+								madd_v2_v2v2fl(dob->uv, dob->uv, mtface[a].uv[1], w);
+								madd_v2_v2v2fl(dob->uv, dob->uv, mtface[a].uv[2], w);
+								if (mv4) {
+									madd_v2_v2v2fl(dob->uv, dob->uv, mtface[a].uv[3], w);
 								}
 							}
 						}
