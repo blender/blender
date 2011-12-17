@@ -529,7 +529,8 @@ void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int compare(const void * a, const void * b){  
+static int compare(const void * a, const void * b)
+{
 	return ( *(int*)a - *(int*)b );
 }
 

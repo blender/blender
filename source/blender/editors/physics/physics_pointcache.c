@@ -59,7 +59,8 @@
 
 #include "physics_intern.h"
 
-static int cache_break_test(void *UNUSED(cbd)) {
+static int cache_break_test(void *UNUSED(cbd))
+{
 	return G.afbreek==1;
 }
 static int ptcache_bake_all_poll(bContext *C)

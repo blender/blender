@@ -35,7 +35,8 @@
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
-int BLI_linklist_length(LinkNode *list) {
+int BLI_linklist_length(LinkNode *list)
+{
 	if (0) {
 		return list?(1+BLI_linklist_length(list->next)):0;
 	} else {
@@ -70,7 +71,8 @@ LinkNode *BLI_linklist_find(LinkNode *list, int index)
 	return NULL;
 }
 
-void BLI_linklist_reverse(LinkNode **listp) {
+void BLI_linklist_reverse(LinkNode **listp)
+{
 	LinkNode *rhead= NULL, *cur= *listp;
 	
 	while (cur) {
@@ -85,7 +87,8 @@ void BLI_linklist_reverse(LinkNode **listp) {
 	*listp= rhead;
 }
 
-void BLI_linklist_prepend(LinkNode **listp, void *ptr) {
+void BLI_linklist_prepend(LinkNode **listp, void *ptr)
+{
 	LinkNode *nlink= MEM_mallocN(sizeof(*nlink), "nlink");
 	nlink->link= ptr;
 	
@@ -93,7 +96,8 @@ void BLI_linklist_prepend(LinkNode **listp, void *ptr) {
 	*listp= nlink;
 }
 
-void BLI_linklist_append(LinkNode **listp, void *ptr) {
+void BLI_linklist_append(LinkNode **listp, void *ptr)
+{
 	LinkNode *nlink= MEM_mallocN(sizeof(*nlink), "nlink");
 	LinkNode *node = *listp;
 	
@@ -110,7 +114,8 @@ void BLI_linklist_append(LinkNode **listp, void *ptr) {
 	}
 }
 
-void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma) {
+void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma)
+{
 	LinkNode *nlink= BLI_memarena_alloc(ma, sizeof(*nlink));
 	nlink->link= ptr;
 	
@@ -118,7 +123,8 @@ void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma) {
 	*listp= nlink;
 }
 
-void BLI_linklist_insert_after(LinkNode **listp, void *ptr) {
+void BLI_linklist_insert_after(LinkNode **listp, void *ptr)
+{
 	LinkNode *nlink= MEM_mallocN(sizeof(*nlink), "nlink");
 	LinkNode *node = *listp;
 
@@ -134,7 +140,8 @@ void BLI_linklist_insert_after(LinkNode **listp, void *ptr) {
 	}
 }
 
-void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc) {
+void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
+{
 	while (list) {
 		LinkNode *next= list->next;
 		
@@ -146,7 +153,8 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc) {
 	}
 }
 
-void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata) {
+void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata)
+{
 	for (; list; list= list->next)
 		applyfunc(list->link, userdata);
 }

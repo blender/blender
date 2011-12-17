@@ -40,7 +40,8 @@
 #include "mjpeg.h"
 #include "rgb32.h"
 
-void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size) {
+void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size)
+{
 	if (from == to)
 		return buffer;
 
@@ -82,7 +83,8 @@ void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat f
 	return buffer;
 }
 
-int avi_get_data_id (AviFormat format, int stream) {
+int avi_get_data_id (AviFormat format, int stream)
+{
 	char fcc[5];
 
 	if (avi_get_format_type (format) == FCC("vids"))
@@ -95,7 +97,8 @@ int avi_get_data_id (AviFormat format, int stream) {
 	return FCC(fcc);
 }
 
-int avi_get_format_type (AviFormat format) {
+int avi_get_format_type (AviFormat format)
+{
 	switch (format) {
 	case AVI_FORMAT_RGB24:
 	case AVI_FORMAT_RGB32:
@@ -109,7 +112,8 @@ int avi_get_format_type (AviFormat format) {
 	}
 }
 
-int avi_get_format_fcc (AviFormat format) {
+int avi_get_format_fcc (AviFormat format)
+{
 	switch (format) {
 	case AVI_FORMAT_RGB24:
 	case AVI_FORMAT_RGB32:
@@ -125,7 +129,8 @@ int avi_get_format_fcc (AviFormat format) {
 	}
 }
 
-int avi_get_format_compression (AviFormat format) {
+int avi_get_format_compression (AviFormat format)
+{
 	switch (format) {
 	case AVI_FORMAT_RGB24:
 	case AVI_FORMAT_RGB32:

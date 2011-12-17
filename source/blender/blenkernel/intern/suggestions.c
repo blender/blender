@@ -47,7 +47,8 @@ static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static char *documentation = NULL;
 //static int doc_lines = 0;
 
-static int txttl_cmp(const char *first, const char *second, int len) {	
+static int txttl_cmp(const char *first, const char *second, int len)
+{
 	int cmp, i;
 	for (cmp=0, i=0; i<len; i++) {
 		if ( (cmp= toupper(first[i])-toupper(second[i])) ) {
@@ -57,7 +58,8 @@ static int txttl_cmp(const char *first, const char *second, int len) {
 	return cmp;
 }
 
-static void txttl_free_suggest(void) {
+static void txttl_free_suggest(void)
+{
 	SuggItem *item, *prev;
 	for (item = suggestions.last; item; item=prev) {
 		prev = item->prev;
@@ -69,7 +71,8 @@ static void txttl_free_suggest(void) {
 	suggestions.top = 0;
 }
 
-static void txttl_free_docs(void) {
+static void txttl_free_docs(void)
+{
 	if (documentation) {
 		MEM_freeN(documentation);
 		documentation = NULL;
@@ -80,23 +83,27 @@ static void txttl_free_docs(void) {
 /* General tool functions */
 /**************************/
 
-void free_texttools(void) {
+void free_texttools(void)
+{
 	txttl_free_suggest();
 	txttl_free_docs();
 }
 
-void texttool_text_set_active(Text *text) {
+void texttool_text_set_active(Text *text)
+{
 	if (activeToolText == text) return;
 	texttool_text_clear();
 	activeToolText = text;
 }
 
-void texttool_text_clear(void) {
+void texttool_text_clear(void)
+{
 	free_texttools();
 	activeToolText = NULL;
 }
 
-short texttool_text_is_active(Text *text) {
+short texttool_text_is_active(Text *text)
+{
 	return activeToolText==text ? 1 : 0;
 }
 
@@ -104,7 +111,8 @@ short texttool_text_is_active(Text *text) {
 /* Suggestion list methods */
 /***************************/
 
-void texttool_suggest_add(const char *name, char type) {
+void texttool_suggest_add(const char *name, char type)
+{
 	SuggItem *newitem, *item;
 	int len, cmp;
 
@@ -154,7 +162,8 @@ void texttool_suggest_add(const char *name, char type) {
 	suggestions.top= 0;
 }
 
-void texttool_suggest_prefix(const char *prefix) {
+void texttool_suggest_prefix(const char *prefix)
+{
 	SuggItem *match, *first, *last;
 	int cmp, len = strlen(prefix), top = 0;
 
@@ -194,27 +203,33 @@ void texttool_suggest_prefix(const char *prefix) {
 	}
 }
 
-void texttool_suggest_clear(void) {
+void texttool_suggest_clear(void)
+{
 	txttl_free_suggest();
 }
 
-SuggItem *texttool_suggest_first(void) {
+SuggItem *texttool_suggest_first(void)
+{
 	return suggestions.firstmatch;
 }
 
-SuggItem *texttool_suggest_last(void) {
+SuggItem *texttool_suggest_last(void)
+{
 	return suggestions.lastmatch;
 }
 
-void texttool_suggest_select(SuggItem *sel) {
+void texttool_suggest_select(SuggItem *sel)
+{
 	suggestions.selected = sel;
 }
 
-SuggItem *texttool_suggest_selected(void) {
+SuggItem *texttool_suggest_selected(void)
+{
 	return suggestions.selected;
 }
 
-int *texttool_suggest_top(void) {
+int *texttool_suggest_top(void)
+{
 	return &suggestions.top;
 }
 
@@ -222,7 +237,8 @@ int *texttool_suggest_top(void) {
 /* Documentation methods */
 /*************************/
 
-void texttool_docs_show(const char *docs) {
+void texttool_docs_show(const char *docs)
+{
 	int len;
 
 	if (!docs) return;
@@ -246,10 +262,12 @@ void texttool_docs_show(const char *docs) {
 	documentation[len] = '\0';
 }
 
-char *texttool_docs_get(void) {
+char *texttool_docs_get(void)
+{
 	return documentation;
 }
 
-void texttool_docs_clear(void) {
+void texttool_docs_clear(void)
+{
 	txttl_free_docs();
 }

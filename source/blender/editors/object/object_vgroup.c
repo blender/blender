@@ -2605,8 +2605,8 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	int nr= RNA_enum_get(op->ptr, "group");
 
+	BLI_assert(nr+1 >= 0);
 	ob->actdef= nr+1;
-	BLI_assert(ob->actdef >= 0);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
@@ -2740,8 +2740,8 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	sort_map_update[0]= 0;
 	vgroup_remap_update_users(ob, sort_map_update);
 
+	BLI_assert(sort_map_update[ob->actdef] >= 0);
 	ob->actdef= sort_map_update[ob->actdef];
-	BLI_assert(ob->actdef >= 0);
 	
 	MEM_freeN(sort_map_update);
 

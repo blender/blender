@@ -302,6 +302,11 @@ public:
 	SHADER_NODE_CLASS(CombineRGBNode)
 };
 
+class GammaNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(GammaNode)
+};
+
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)

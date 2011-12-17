@@ -1899,6 +1899,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_output(ttype);
 	register_node_type_sh_material(ttype);
 	register_node_type_sh_camera(ttype);
+	register_node_type_sh_gamma(ttype);
 	register_node_type_sh_value(ttype);
 	register_node_type_sh_rgb(ttype);
 	register_node_type_sh_mix_rgb(ttype);

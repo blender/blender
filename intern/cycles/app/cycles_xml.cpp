@@ -446,6 +446,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_enum(&mix->type, MixNode::type_enum, node, "type");
 			snode = mix;
 		}
+		else if(string_iequals(node.name(), "gamma")) {
+			snode = new GammaNode();
+		}
 		else if(string_iequals(node.name(), "combine_rgb")) {
 			snode = new CombineRGBNode();
 		}

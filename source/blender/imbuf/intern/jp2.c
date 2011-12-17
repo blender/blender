@@ -70,21 +70,24 @@ int imb_is_a_jp2(unsigned char *buf)
 /**
 sample error callback expecting a FILE* client object
 */
-static void error_callback(const char *msg, void *client_data) {
+static void error_callback(const char *msg, void *client_data)
+{
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[ERROR] %s", msg);
 }
 /**
 sample warning callback expecting a FILE* client object
 */
-static void warning_callback(const char *msg, void *client_data) {
+static void warning_callback(const char *msg, void *client_data)
+{
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[WARNING] %s", msg);
 }
 /**
 sample debug callback expecting no client object
 */
-static void info_callback(const char *msg, void *client_data) {
+static void info_callback(const char *msg, void *client_data)
+{
 	(void)client_data;
 	fprintf(stdout, "[INFO] %s", msg);
 }
@@ -305,7 +308,8 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 #define COMP_48_CS 520833		/*Maximum size per color component for 2K @ 48fps*/
 
 
-static int initialise_4K_poc(opj_poc_t *POC, int numres){
+static int initialise_4K_poc(opj_poc_t *POC, int numres)
+{
 	POC[0].tile  = 1; 
 	POC[0].resno0  = 0; 
 	POC[0].compno0 = 0;
@@ -323,7 +327,8 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres){
 	return 2;
 }
 
-static void cinema_parameters(opj_cparameters_t *parameters){
+static void cinema_parameters(opj_cparameters_t *parameters)
+{
 	parameters->tile_size_on = false;
 	parameters->cp_tdx=1;
 	parameters->cp_tdy=1;
@@ -356,7 +361,8 @@ static void cinema_parameters(opj_cparameters_t *parameters){
 
 }
 
-static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol){
+static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *image, img_fol_t *img_fol)
+{
 	int i;
 	float temp_rate;
 
@@ -442,8 +448,8 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,opj_image_t *imag
 }
 
 
-static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
-	
+static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
+{
 	unsigned char *rect;
 	float *rect_float;
 	
@@ -662,8 +668,8 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
-	
+int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
+{
 	int quality = ibuf->ftype & 0xff;
 	
 	int bSuccess;

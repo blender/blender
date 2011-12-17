@@ -1726,6 +1726,33 @@ void CombineRGBNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_combine_rgb");
 }
 
+/* Gamma */
+GammaNode::GammaNode()
+: ShaderNode("gamma")
+{
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_input("Gamma", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+void GammaNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Color");
+	ShaderInput *gamma_in = input("Gamma");
+	ShaderOutput *color_out = output("Color");
+
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(gamma_in);
+	compiler.stack_assign(color_out);
+
+	compiler.add_node(NODE_GAMMA, gamma_in->stack_offset, color_in->stack_offset, color_out->stack_offset);
+}
+
+void GammaNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_gamma");
+}
+
 /* Separate RGB */
 SeparateRGBNode::SeparateRGBNode()
 : ShaderNode("separate_rgb")

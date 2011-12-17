@@ -42,7 +42,8 @@
 
 /***/
 
-EdgeHash *BLI_edgehash_new(void) {
+EdgeHash *BLI_edgehash_new(void)
+{
 	EdgeHash *eh= MEM_callocN(sizeof(*eh), "EdgeHash");
 	eh->cursize= 0;
 	eh->nentries= 0;
@@ -54,11 +55,13 @@ EdgeHash *BLI_edgehash_new(void) {
 	return eh;
 }
 
-int BLI_edgehash_size(EdgeHash *eh) {
+int BLI_edgehash_size(EdgeHash *eh)
+{
 	return eh->nentries;
 }
 
-void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
+void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+{
 	int i;
 	
 	for (i=0; i<eh->nbuckets; i++) {
@@ -78,7 +81,8 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 	eh->nentries= 0;
 }
 
-void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
+void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+{
 	BLI_edgehash_clear(eh, valfreefp);
 
 	BLI_mempool_destroy(eh->epool);
@@ -96,7 +100,8 @@ struct EdgeHashIterator {
 	EdgeEntry *curEntry;
 };
 
-EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) {
+EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
+{
 	EdgeHashIterator *ehi= MEM_mallocN(sizeof(*ehi), "eh iter");
 	ehi->eh= eh;
 	ehi->curEntry= NULL;
@@ -109,26 +114,31 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) {
 	}
 	return ehi;
 }
-void BLI_edgehashIterator_free(EdgeHashIterator *ehi) {
+void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
+{
 	MEM_freeN(ehi);
 }
 
-void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r) {
+void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r)
+{
 	if (ehi->curEntry) {
 		*v0_r = ehi->curEntry->v0;
 		*v1_r = ehi->curEntry->v1;
 	}
 }
-void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) {
+void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
+{
 	return ehi->curEntry?ehi->curEntry->val:NULL;
 }
 
-void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val) {
+void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
+{
 	if(ehi->curEntry)
 		ehi->curEntry->val= val;
 }
 
-void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {
+void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
+{
 	if (ehi->curEntry) {
 		ehi->curEntry= ehi->curEntry->next;
 		while (!ehi->curEntry) {
