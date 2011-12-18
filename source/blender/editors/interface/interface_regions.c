@@ -1071,18 +1071,16 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* copy to int, gets projected if possible too */
 		x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
 		
-		if(butregion) {
-			if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-				UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
-				UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
-			}
-			
-			x1 += butregion->winrct.xmin;
-			x2 += butregion->winrct.xmin;
-			y1 += butregion->winrct.ymin;
-			y2 += butregion->winrct.ymin;
+		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
 		}
-		
+
+		x1 += butregion->winrct.xmin;
+		x2 += butregion->winrct.xmin;
+		y1 += butregion->winrct.ymin;
+		y2 += butregion->winrct.ymin;
+
 		wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 		
 		if(x2 > winx) {
@@ -1096,7 +1094,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 				x2= winx;
 			}
 		}
-		if(y1 < 0) { /* XXX butregion NULL check?, there is one above */
+
+		if(y1 < 0) {
 			int newy1;
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, NULL, &newy1);
 			newy1 += butregion->winrct.ymin;
