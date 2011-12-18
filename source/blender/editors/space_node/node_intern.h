@@ -82,16 +82,22 @@ void node_operatortypes(void);
 void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.c */
+void node_deselect_all(struct SpaceNode *snode);
+int node_select_same_type(struct SpaceNode *snode);
+int node_select_same_type_np(struct SpaceNode *snode, int dir);
+void node_select_single(struct bContext *C, struct bNode *node);
+
 void NODE_OT_select(struct wmOperatorType *ot);
 void NODE_OT_select_all(wmOperatorType *ot);
 void NODE_OT_select_linked_to(wmOperatorType *ot);
 void NODE_OT_select_linked_from(wmOperatorType *ot);
-void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
-void NODE_OT_view_all(struct wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
 void NODE_OT_select_same_type(struct wmOperatorType *ot);
 void NODE_OT_select_same_type_next(wmOperatorType *ot);
 void NODE_OT_select_same_type_prev(wmOperatorType *ot);
+
+/* node_state.c */
+void NODE_OT_view_all(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
@@ -108,10 +114,6 @@ void snode_dag_update(bContext *C, SpaceNode *snode);
 bNode *node_add_node(struct SpaceNode *snode, struct Main *bmain, struct Scene *scene, struct bNodeTemplate *ntemp, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
-void node_sort(struct bNodeTree *ntree);
-void node_deselectall(SpaceNode *snode);
-int node_select_same_type(SpaceNode *snode);
-int node_select_same_type_np(SpaceNode *snode, int dir);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void node_tree_verify_groups(bNodeTree *nodetree);
@@ -141,6 +143,7 @@ void NODE_OT_mute_toggle(struct wmOperatorType *ot);
 void NODE_OT_hide_toggle(struct wmOperatorType *ot);
 void NODE_OT_hide_socket_toggle(struct wmOperatorType *ot);
 void NODE_OT_preview_toggle(struct wmOperatorType *ot);
+void NODE_OT_options_toggle(struct wmOperatorType *ot);
 
 void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
