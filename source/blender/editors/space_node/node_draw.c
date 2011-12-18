@@ -642,26 +642,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiButSetFunc(but, node_toggle_button_cb, node, (void*)"NODE_OT_group_edit");
 		uiBlockSetEmboss(node->block, UI_EMBOSS);
 	}
-	/* option buttons */
-	if(node->typeinfo->flag & NODE_OPTIONS) {
-		uiBut *but;
-		iconofs-=iconbutw;
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefIconBut(node->block, TOGBUT, B_REDR, ICON_BUTS,
-						   iconofs, rct->ymax-NODE_DY, iconbutw, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void*)"NODE_OT_options_toggle");
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
-	}
-	/* hide unused sockets */
-	{
-		uiBut *but;
-		iconofs-=iconbutw;
-		uiBlockSetEmboss(node->block, UI_EMBOSSN);
-		but = uiDefIconBut(node->block, TOGBUT, B_REDR, ICON_PLUS,
-						   iconofs, rct->ymax-NODE_DY, iconbutw, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(but, node_toggle_button_cb, node, (void*)"NODE_OT_hide_socket_toggle");
-		uiBlockSetEmboss(node->block, UI_EMBOSS);
-	}
 	
 	/* title */
 	if(node->flag & SELECT) 
