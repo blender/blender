@@ -92,28 +92,6 @@ static int space_clip_frame_poll(bContext *C)
 	return 0;
 }
 
-static int space_clip_frame_camera_poll(bContext *C)
-{
-	Scene *scene= CTX_data_scene(C);
-
-	if(space_clip_frame_poll(C)) {
-		return scene->camera != NULL;
-	}
-
-	return 0;
-}
-
-static int space_clip_camera_poll(bContext *C)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	Scene *scene= CTX_data_scene(C);
-
-	if(sc && sc->clip && scene->camera)
-		return 1;
-
-	return 0;
-}
-
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -1921,6 +1899,24 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 /********************** set origin operator *********************/
 
+static int set_orientation_poll(bContext *C)
+{
+	if(space_clip_frame_poll(C)) {
+		Scene *scene= CTX_data_scene(C);
+		SpaceClip *sc= CTX_wm_space_clip(C);
+		MovieClip *clip= ED_space_clip(sc);
+		MovieTracking *tracking= &clip->tracking;
+		MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+
+		if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
+			return scene->camera != NULL;
+		else
+			return OBACT != NULL;
+	}
+
+	return 0;
+}
+
 static int count_selected_bundles(bContext *C)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -2036,7 +2032,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= set_origin_exec;
-	ot->poll= space_clip_frame_camera_poll;
+	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2267,7 +2263,7 @@ void CLIP_OT_set_floor(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= set_floor_exec;
-	ot->poll= space_clip_camera_poll;
+	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2337,7 +2333,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= set_axis_exec;
-	ot->poll= space_clip_frame_camera_poll;
+	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2352,10 +2348,12 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
 	MovieTrackingTrack *track;
 	Scene *scene= CTX_data_scene(C);
-	Object *parent= scene->camera;
-	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	Object *object;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	int tot= 0;
 	float vec[2][3], mat[4][4], scale;
 	float dist= RNA_float_get(op->ptr, "distance");
@@ -2366,8 +2364,13 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(scene->camera->parent)
-		parent= scene->camera->parent;
+	if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
+		object= scene->camera;
+	else
+		object= OBACT;
+
+	if(object->parent)
+		object= object->parent;
 
 	BKE_get_tracking_mat(scene, NULL, mat);
 
@@ -2386,11 +2389,21 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 	if(len_v3(vec[0])>1e-5f) {
 		scale= dist / len_v3(vec[0]);
 
-		mul_v3_fl(parent->size, scale);
-		mul_v3_fl(parent->loc, scale);
+		if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+			mul_v3_fl(object->size, scale);
+			mul_v3_fl(object->loc, scale);
+		} else {
+			object->size[0]= object->size[1]= object->size[2]= 1.0f/scale;
+
+			if(scene->camera) {
+				object->size[0]/= scene->camera->size[0];
+				object->size[1]/= scene->camera->size[1];
+				object->size[2]/= scene->camera->size[2];
+			}
+		}
 
 		DAG_id_tag_update(&clip->id, 0);
-		DAG_id_tag_update(&parent->id, OB_RECALC_OB);
+		DAG_id_tag_update(&object->id, OB_RECALC_OB);
 
 		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
@@ -2421,7 +2434,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= set_scale_exec;
 	ot->invoke= set_scale_invoke;
-	ot->poll= space_clip_frame_camera_poll;
+	ot->poll= set_orientation_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
