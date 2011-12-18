@@ -292,6 +292,42 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 	}
 }
 
+void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
+{
+	foreach(ShaderNode *node, nodes) {
+		ProxyNode *proxy = dynamic_cast<ProxyNode*>(node);
+		if (proxy) {
+			ShaderInput *input = proxy->inputs[0];
+			ShaderOutput *output = proxy->outputs[0];
+			
+			/* temp. copy of the output links list.
+			 * output->links is modified when we disconnect!
+			 */
+			vector<ShaderInput*> links(output->links);
+			ShaderOutput *from = input->link;
+			
+			/* bypass the proxy node */
+			if (from) {
+				disconnect(input);
+				foreach(ShaderInput *to, links) {
+					disconnect(to);
+					connect(from, to);
+				}
+			}
+			else {
+				foreach(ShaderInput *to, links) {
+					disconnect(to);
+					
+					/* transfer the default input value to the target socket */
+					to->set(input->value);
+				}
+			}
+			
+			removed[proxy->id] = true;
+		}
+	}
+}
+
 void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack)
 {
 	visited[node->id] = true;
@@ -322,15 +358,28 @@ void ShaderGraph::clean()
 	   nodes that don't feed into the output. how cycles are broken is
 	   undefined, they are invalid input, the important thing is to not crash */
 
+	vector<bool> removed(nodes.size(), false);
 	vector<bool> visited(nodes.size(), false);
 	vector<bool> on_stack(nodes.size(), false);
+	
+	list<ShaderNode*> newnodes;
+	
+	/* remove proxy nodes */
+	remove_proxy_nodes(removed);
+	
+	foreach(ShaderNode *node, nodes) {
+		if(!removed[node->id])
+			newnodes.push_back(node);
+		else
+			delete node;
+	}
+	nodes = newnodes;
+	newnodes.clear();
 
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
 
 	/* remove unused nodes */
-	list<ShaderNode*> newnodes;
-	
 	foreach(ShaderNode *node, nodes) {
 		if(visited[node->id])
 			newnodes.push_back(node);
