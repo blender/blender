@@ -57,7 +57,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED
 	float *vec= NULL;
 	int size= 3; /* default to a 3D vector */
 
-	switch(PyTuple_GET_SIZE(args)) {
+	switch (PyTuple_GET_SIZE(args)) {
 	case 0:
 		vec= PyMem_Malloc(size * sizeof(float));
 
@@ -165,7 +165,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	switch(PyTuple_GET_SIZE(args)){
+	switch (PyTuple_GET_SIZE(args)) {
 	case 1:
 		size = start;
 		start= 0;
@@ -430,7 +430,7 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 
 	/*if (!PyArg_ParseTuple(args, "i:resize", &size))
 		return NULL;*/
-	if ((size = PyLong_AsLong(value)) == -1){
+	if ((size = PyLong_AsLong(value)) == -1) {
 		return NULL;
 	}
 
@@ -712,7 +712,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 
 		if (strlen(strack) == 2) {
 			if (strack[0] == '-') {
-				switch(strack[1]) {
+				switch (strack[1]) {
 					case 'X':
 						track = 3;
 						break;
@@ -733,7 +733,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 			}
 		}
 		else if (strlen(strack) == 1) {
-			switch(strack[0]) {
+			switch (strack[0]) {
 			case '-':
 			case 'X':
 				track = 0;
@@ -758,7 +758,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 	if (sup) {
 		const char *axis_err_msg= "only X, Y or Z for up axis";
 		if (strlen(sup) == 1) {
-			switch(*sup) {
+			switch (*sup) {
 			case 'X':
 				up = 0;
 				break;

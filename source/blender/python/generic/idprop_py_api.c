@@ -405,7 +405,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 		val.array.len = PySequence_Size(ob);
 
-		switch(val.array.type) {
+		switch (val.array.type) {
 		case IDP_DOUBLE:
 			prop = IDP_New(IDP_ARRAY, &val, name);
 			for (i=0; i<val.array.len; i++) {
@@ -565,7 +565,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			return NULL;
 		}
 
-		switch(prop->subtype) {
+		switch (prop->subtype) {
 		case IDP_FLOAT:
 		{
 			float *array= (float*)IDP_Array(prop);
@@ -976,7 +976,7 @@ static PyObject *BPy_IDArray_repr(BPy_IDArray *self)
 
 static PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
 {
-	switch(self->prop->subtype) {
+	switch (self->prop->subtype) {
 	case IDP_FLOAT:
 		return PyUnicode_FromString("f");
 	case IDP_DOUBLE:

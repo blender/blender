@@ -148,8 +148,8 @@ static int pyrna_struct_anim_args_parse(
 
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(
-        PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-        const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
+		PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
+		const char **path_full, int *index, float *cfra, const char **group_name) /* return values */
 {
 	static const char *kwlist[]= {"data_path", "index", "frame", "group", NULL};
 	const char *path;

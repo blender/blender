@@ -971,14 +971,14 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 		item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
-		if (    (PyTuple_CheckExact(item)) &&
-		        (item_size= PyTuple_GET_SIZE(item)) &&
-		        (item_size == 3 || item_size == 4) &&
-		        (tmp.identifier=  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
-		        (tmp.name=        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-		        (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
-		        (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) /* TODO, number isnt ensured to be unique from the script author */
-		) {
+		if ( (PyTuple_CheckExact(item)) &&
+		     (item_size= PyTuple_GET_SIZE(item)) &&
+		     (item_size == 3 || item_size == 4) &&
+		     (tmp.identifier=  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+		     (tmp.name=        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+		     (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
+		     (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1)) /* TODO, number isnt ensured to be unique from the script author */
+		{
 			if (is_enum_flag) {
 				if (item_size < 4) {
 					tmp.value= 1<<i;

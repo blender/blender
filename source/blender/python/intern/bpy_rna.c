@@ -624,7 +624,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		if (!is_thick)
 			ret= pyrna_prop_CreatePyObject(ptr, prop); /* owned by the mathutils PyObject */
 
-		switch(subtype) {
+		switch (subtype) {
 		case PROP_ALL_VECTOR_SUBTYPES:
 			if (len>=2 && len <= 4) {
 				if (is_thick) {
@@ -3441,7 +3441,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
 			if (done==1) { /* found */
-				switch(newtype) {
+				switch (newtype) {
 				case CTX_DATA_TYPE_POINTER:
 					if (newptr.data == NULL) {
 						ret= Py_None;
@@ -4201,7 +4201,7 @@ static int foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, cons
 {
 	char f= format ? *format:'B'; /* B is assumed when not set */
 
-	switch(raw_type) {
+	switch (raw_type) {
 	case PROP_RAW_CHAR:
 		if (attr_signed)  return (f=='b') ? 1:0;
 		else              return (f=='B') ? 1:0;
@@ -4265,7 +4265,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 
 			for ( ; i<tot; i++) {
 				item= PySequence_GetItem(seq, i);
-				switch(raw_type) {
+				switch (raw_type) {
 				case PROP_RAW_CHAR:
 					((char *)array)[i]= (char)PyLong_AsLong(item);
 					break;
@@ -4320,7 +4320,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 
 			for ( ; i<tot; i++) {
 
-				switch(raw_type) {
+				switch (raw_type) {
 				case PROP_RAW_CHAR:
 					item= PyLong_FromSsize_t((Py_ssize_t) ((char *)array)[i]);
 					break;
@@ -4616,7 +4616,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				PyTuple_SET_ITEM(ret, a, PyLong_FromSsize_t((Py_ssize_t)((int*)data)[a]));
 			break;
 		case PROP_FLOAT:
-			switch(RNA_property_subtype(prop)) {
+			switch (RNA_property_subtype(prop)) {
 #ifdef USE_MATHUTILS
 				case PROP_ALL_VECTOR_SUBTYPES:
 					ret= Vector_CreatePyObject(data, len, Py_NEW, NULL);
@@ -6969,10 +6969,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	if (err != 0) {
 		ReportList *reports;
 		/* alert the user, else they wont know unless they see the console. */
-		if (    (!is_static) &&
-		        (ptr->data) &&
-		        (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
-		        (is_valid_wm == (CTX_wm_manager(C) != NULL)))
+		if ( (!is_static) &&
+		     (ptr->data) &&
+		     (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
+		     (is_valid_wm == (CTX_wm_manager(C) != NULL)))
 		{
 			wmOperator *op= ptr->data;
 			reports= op->reports;

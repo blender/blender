@@ -82,7 +82,7 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 {
 	PyObject *value;
 
-	if(!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value))
+	if (!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value))
 		return NULL;
 
 	if (PyFunction_Check(value)) {
@@ -252,12 +252,12 @@ void BPY_app_handlers_reset(const short do_all)
 			PyObject *item;
 			PyObject **dict_ptr;
 
-			for(i= PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
+			for (i= PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
 
-				if (    (PyFunction_Check((item= PyList_GET_ITEM(ls, i)))) &&
-				        (dict_ptr= _PyObject_GetDictPtr(item)) &&
-				        (*dict_ptr) &&
-				        (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
+				if ( (PyFunction_Check((item= PyList_GET_ITEM(ls, i)))) &&
+				     (dict_ptr= _PyObject_GetDictPtr(item)) &&
+				     (*dict_ptr) &&
+				     (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
 				{
 					/* keep */
 				}

@@ -59,7 +59,7 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTuple(args, "|Os:mathutils.Euler", &seq, &order_str))
 		return NULL;
 
-	switch(PyTuple_GET_SIZE(args)) {
+	switch (PyTuple_GET_SIZE(args)) {
 	case 0:
 		break;
 	case 2:
@@ -84,7 +84,7 @@ static const char *euler_order_str(EulerObject *self)
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if ((str[0] && str[1] && str[2] && str[3]=='\0')) {
-		switch(*((PY_INT32_T *)str)) {
+		switch (*((PY_INT32_T *)str)) {
 			case 'X'|'Y'<<8|'Z'<<16:	return EULER_ORDER_XYZ;
 			case 'X'|'Z'<<8|'Y'<<16:	return EULER_ORDER_XZY;
 			case 'Y'|'X'<<8|'Z'<<16:	return EULER_ORDER_YXZ;

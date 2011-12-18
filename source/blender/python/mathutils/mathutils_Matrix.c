@@ -123,7 +123,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		return NULL;
 	}
 
-	switch(PyTuple_GET_SIZE(args)) {
+	switch (PyTuple_GET_SIZE(args)) {
 		case 0:
 			return Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, type);
 		case 1:
@@ -1307,7 +1307,7 @@ static PyObject *Matrix_repr(MatrixObject *self)
 			PyTuple_SET_ITEM(rows[x], y, PyFloat_FromDouble(self->matrix[x][y]));
 		}
 	}
-	switch(self->row_size) {
+	switch (self->row_size) {
 	case 2:	return PyUnicode_FromFormat("Matrix((%R,\n"
 										"        %R))", rows[0], rows[1]);
 

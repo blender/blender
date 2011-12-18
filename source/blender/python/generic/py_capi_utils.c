@@ -191,7 +191,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
 
 void PyC_FileAndNum_Safe(const char **filename, int *lineno)
 {
-	if(!PYC_INTERPRETER_ACTIVE) {
+	if (!PYC_INTERPRETER_ACTIVE) {
 		return;
 	}
 

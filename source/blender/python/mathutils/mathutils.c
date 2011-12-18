@@ -74,10 +74,10 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 
 #if 1 /* approx 6x speedup for mathutils types */
 
-	if (    (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
-	        (size= EulerObject_Check(value)      ? 3 : 0) ||
-	        (size= QuaternionObject_Check(value) ? 4 : 0) ||
-	        (size= ColorObject_Check(value)      ? 3 : 0))
+	if ( (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
+	     (size= EulerObject_Check(value)      ? 3 : 0) ||
+	     (size= QuaternionObject_Check(value) ? 4 : 0) ||
+	     (size= ColorObject_Check(value)      ? 3 : 0))
 	{
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
@@ -138,10 +138,10 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 
 #if 1 /* approx 6x speedup for mathutils types */
 
-	if (    (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
-	        (size= EulerObject_Check(value)      ? 3 : 0) ||
-	        (size= QuaternionObject_Check(value) ? 4 : 0) ||
-	        (size= ColorObject_Check(value)      ? 3 : 0))
+	if ( (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
+	     (size= EulerObject_Check(value)      ? 3 : 0) ||
+	     (size= QuaternionObject_Check(value) ? 4 : 0) ||
+	     (size= ColorObject_Check(value)      ? 3 : 0))
 	{
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;

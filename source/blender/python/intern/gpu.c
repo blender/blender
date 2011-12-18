@@ -184,7 +184,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;
 		}
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() first argument should be of Scene type");
 		return NULL;
 	}
@@ -204,7 +205,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;
 		}
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() second argument should be of Material type");
 		return NULL;
 	}
@@ -260,7 +262,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 		if (attribute->name) {
 			if (attribute->name[0] != 0) {
 				PY_DICT_ADD_STRING(dict,attribute,name);
-			} else {
+			}
+			else {
 				val = PyLong_FromLong(0);
 				PyDict_SetItemString(dict, "name", val);
 				Py_DECREF(val);
