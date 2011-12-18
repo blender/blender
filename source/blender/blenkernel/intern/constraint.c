@@ -4149,6 +4149,7 @@ static void objectsolver_new_data (void *cdata)
 
 	data->clip = NULL;
 	data->flag |= OBJECTSOLVER_ACTIVECLIP;
+	unit_m4(data->invmat);
 }
 
 static void objectsolver_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
