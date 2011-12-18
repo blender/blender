@@ -57,6 +57,32 @@
 /* Util macro. */
 #define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
 
+/* Benchmark macros */
+#if !defined(_WIN32) && 1
+
+#include <sys/time.h>
+
+#define BENCH_INIT	\
+		double _t1, _t2;				\
+		struct timeval _tstart, _tend;	\
+
+#define BENCH_START	\
+		gettimeofday ( &_tstart, NULL);	\
+
+#define BENCH_END	\
+		gettimeofday ( &_tend, NULL);	\
+		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
+		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
+		printf("BENCH: %fs (real)\n", _t2-_t1);\
+
+#else
+
+#define BENCH_INIT
+#define BENCH_START
+#define BENCH_END
+
+#endif
+
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
  */
@@ -449,9 +475,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	MEM_freeN(tdw);
 
 	/* Get our vertex coordinates. */
-	v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
-	for (i = 0; i < numIdx; i++)
-		ret->getVertCo(ret, indices[i], v_cos[i]);
+	{
+		/* XXX In some situations, this code can be up to about 50 times more performant
+		 *     than simply using getVertCo for each affected vertex...
+		 */
+		float (*tv_cos)[3] = MEM_mallocN(sizeof(float[3]) * numVerts, "WeightVGProximity Modifier, tv_cos");
+		v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
+		ret->getVertCos(ret, tv_cos);
+		for (i = 0; i < numIdx; i++)
+			copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
+		MEM_freeN(tv_cos);
+	}
 
 	/* Compute wanted distances. */
 	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
