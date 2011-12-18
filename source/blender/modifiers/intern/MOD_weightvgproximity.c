@@ -57,32 +57,6 @@
 /* Util macro. */
 #define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
 
-/* Benchmark macros */
-#if !defined(_WIN32) && 1
-
-#include <sys/time.h>
-
-#define BENCH_INIT	\
-		double _t1, _t2;				\
-		struct timeval _tstart, _tend;	\
-
-#define BENCH_START	\
-		gettimeofday ( &_tstart, NULL);	\
-
-#define BENCH_END	\
-		gettimeofday ( &_tend, NULL);	\
-		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
-		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
-		printf("BENCH: %fs (real)\n", _t2-_t1);\
-
-#else
-
-#define BENCH_INIT
-#define BENCH_START
-#define BENCH_END
-
-#endif
-
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
  */
