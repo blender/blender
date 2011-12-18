@@ -649,10 +649,6 @@ elseif(WIN32)
 		set(ICONV_LIBPATH ${ICONV}/lib)
 	endif()
 
-	set(PNG "${LIBDIR}/png")
-	set(PNG_INCLUDE_DIR "${PNG}/include")
-	set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
-
 	set(JPEG "${LIBDIR}/jpeg")
 	set(JPEG_INCLUDE_DIR "${JPEG}/include")
 	set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
@@ -733,6 +729,10 @@ elseif(WIN32)
 			set(PNG_LIBRARIES libpng_st)
 		endif()
 		set(JPEG_LIBRARIES libjpeg)
+		
+		set(PNG "${LIBDIR}/png")
+		set(PNG_INCLUDE_DIR "${PNG}/include")
+		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 		if(CMAKE_CL_64)
@@ -913,6 +913,10 @@ elseif(WIN32)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 			set(GETTEXT_LIBRARIES intl)
 		endif()
+		
+		set(PNG "${LIBDIR}/gcc/png")
+		set(PNG_INCLUDE_DIR "${PNG}/include")
+		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		set(JPEG_LIBRARIES libjpeg)
 		set(PNG_LIBRARIES png)
