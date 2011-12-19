@@ -792,7 +792,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, imat);
 			invert_m4(imat);
 
-			mul_m4_m4m4(obmat, imat, cammat);
+			mult_m4_m4m4(obmat, cammat, imat);
 		}
 
 		while(track) {

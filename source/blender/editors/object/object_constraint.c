@@ -754,7 +754,7 @@ static void child_get_inverse_matrix (Scene *scene, Object *ob, bConstraint *con
 		 * the effect of the constraint
 		 */
 		invert_m4_m4(imat, pchan->pose_mat);
-		mul_m4_m4m4(tmat, imat, pmat);
+		mult_m4_m4m4(tmat, pmat, imat);
 		invert_m4_m4(invmat, tmat);
 		
 		/* 5. restore constraints */

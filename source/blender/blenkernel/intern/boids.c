@@ -1514,7 +1514,8 @@ BoidState *boid_new_state(BoidSettings *boids)
 	return state;
 }
 
-BoidState *boid_duplicate_state(BoidSettings *boids, BoidState *state) {
+BoidState *boid_duplicate_state(BoidSettings *boids, BoidState *state)
+{
 	BoidState *staten = MEM_dupallocN(state);
 
 	BLI_duplicatelist(&staten->rules, &state->rules);

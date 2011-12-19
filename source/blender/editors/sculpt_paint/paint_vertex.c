@@ -1023,8 +1023,8 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
 
+	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef= type + 1;
-	BLI_assert(vc.obact->actdef >= 0);
 
 	DAG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, vc.obact);
@@ -1918,8 +1918,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					}
 					else {
-						ob->actdef= 1 + BLI_findindex(&ob->defbase, dg);
-						BLI_assert(ob->actdef >= 0);
+						int actdef = 1 + BLI_findindex(&ob->defbase, dg);
+						BLI_assert(actdef >= 0);
+						ob->actdef= actdef;
 					}
 				}
 			}
@@ -1930,7 +1931,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	}
 
 	/* imat for normals */
-	mul_m4_m4m4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(wpd->wpimat, imat);
 	
@@ -1980,7 +1981,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 		
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
@@ -2361,7 +2362,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
 	
 	/* some old cruft to sort out later */
-	mul_m4_m4m4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
+	mult_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
@@ -2423,7 +2424,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 			
 	/* load projection matrix */
-	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
+	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;

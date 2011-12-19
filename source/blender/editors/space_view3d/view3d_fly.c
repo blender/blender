@@ -663,8 +663,8 @@ static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orien
 		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
 		invert_m4_m4(prev_view_imat, prev_view_mat);
 		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-		mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
-		mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
+		mult_m4_m4m4(diff_mat, view_mat, prev_view_imat);
+		mult_m4_m4m4(parent_mat, diff_mat, fly->root_parent->obmat);
 		object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
 
 		// where_is_object(scene, fly->root_parent);

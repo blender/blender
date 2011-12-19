@@ -199,7 +199,7 @@ static void make_dmats(bPoseChannel *pchan)
 	if (pchan->parent) {
 		float iR_parmat[4][4];
 		invert_m4_m4(iR_parmat, pchan->parent->pose_mat);
-		mul_m4_m4m4(pchan->chan_mat,  pchan->pose_mat, iR_parmat);	// delta mat
+		mult_m4_m4m4(pchan->chan_mat, iR_parmat,  pchan->pose_mat);	// delta mat
 	}
 	else copy_m4_m4(pchan->chan_mat, pchan->pose_mat);
 }
@@ -216,7 +216,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 	if (pchan->parent)
 		mul_serie_m4(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat, NULL, NULL, NULL, NULL, NULL);
 	else 
-		mul_m4_m4m4(pchan->pose_mat, ikmat, pchan->chan_mat);
+		mult_m4_m4m4(pchan->pose_mat, pchan->chan_mat, ikmat);
 
 	/* calculate head */
 	copy_v3_v3(pchan->pose_head, pchan->pose_mat[3]);
@@ -356,7 +356,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		unit_m4(rootmat);
 	copy_v3_v3(rootmat[3], pchan->pose_head);
 	
-	mul_m4_m4m4(imat, rootmat, ob->obmat);
+	mult_m4_m4m4(imat, ob->obmat, rootmat);
 	invert_m4_m4(goalinv, imat);
 	
 	for (target=tree->targets.first; target; target=target->next) {
@@ -371,7 +371,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		get_constraint_target_matrix(scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 		
 		/* and set and transform goal */
-		mul_m4_m4m4(goal, rootmat, goalinv);
+		mult_m4_m4m4(goal, goalinv, rootmat);
 		
 		copy_v3_v3(goalpos, goal[3]);
 		copy_m3_m4(goalrot, goal);
@@ -385,7 +385,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 				break;
 			}
 			else {
-				mul_m4_m4m4(goal, rootmat, goalinv);
+				mult_m4_m4m4(goal, goalinv, rootmat);
 				copy_v3_v3(polepos, goal[3]);
 				poleconstrain= 1;
 

@@ -474,7 +474,7 @@ static DerivedMesh *NewBooleanDerivedMesh_intern(
 	// we need to compute the inverse transform from global to ob (inv_mat),
 	// and the transform from ob to ob_select for use in interpolation (map_mat)
 	invert_m4_m4(inv_mat, ob->obmat);
-	mul_m4_m4m4(map_mat, ob_select->obmat, inv_mat);
+	mult_m4_m4m4(map_mat, inv_mat, ob_select->obmat);
 	invert_m4_m4(inv_mat, ob_select->obmat);
 
 	{

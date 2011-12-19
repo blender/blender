@@ -199,7 +199,11 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
  - filesize: filesize for the file
 */
 #define MAX_RECUR 16
-static int findFileRecursive(char *filename_new, const char *dirname, const char *filename, int *filesize, int *recur_depth)
+static int findFileRecursive(char *filename_new,
+                             const char *dirname,
+                             const char *filename,
+                             int *filesize,
+                             int *recur_depth)
 {
 	/* file searching stuff */
 	DIR *dir;
@@ -314,7 +318,11 @@ static int rewrite_path_fixed(char *path, BPathVisitor visit_cb, const char *abs
 	}
 }
 
-static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR], char path_file[FILE_MAXFILE], BPathVisitor visit_cb, const char *absbase, void *userdata)
+static int rewrite_path_fixed_dirfile(char path_dir[FILE_MAXDIR],
+                                      char path_file[FILE_MAXFILE],
+                                      BPathVisitor visit_cb,
+                                      const char *absbase,
+                                      void *userdata)
 {
 	char path_src[FILE_MAX];
 	char path_dst[FILE_MAX];
@@ -496,7 +504,8 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 				SEQ_BEGIN(scene->ed, seq) {
 					if (SEQ_HAS_PATH(seq)) {
 						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
-							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name, visit_cb, absbase, bpath_user_data);
+							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name,
+							                           visit_cb, absbase, bpath_user_data);
 						}
 						else if (seq->type == SEQ_IMAGE) {
 							/* might want an option not to loop over all strips */
@@ -510,7 +519,8 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 							}
 
 							for(i= 0; i < len; i++, se++) {
-								rewrite_path_fixed_dirfile(seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);
+								rewrite_path_fixed_dirfile(seq->strip->dir, se->name,
+								                           visit_cb, absbase, bpath_user_data);
 							}
 						}
 						else {

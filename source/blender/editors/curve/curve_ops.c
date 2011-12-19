@@ -151,8 +151,7 @@ void ED_operatormacros_curve(void)
 
 	ot= WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude curve and move result";
-	otmacro= WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
-	RNA_enum_set(otmacro->ptr, "type", 1);
+	WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);

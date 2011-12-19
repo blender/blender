@@ -2833,7 +2833,7 @@ uiBut *uiDefBut(uiBlock *block, int type, int retval, const char *str, int x1, i
 	 */
 static int findBitIndex(unsigned int x)
 {
-	if (!x || (x&(x-1))!=0) {	/* x&(x-1) strips lowest bit */
+	if (!x || !is_power_of_2_i(x)) { /* is_power_of_2_i(x) strips lowest bit */
 		return -1;
 	} else {
 		int idx= 0;

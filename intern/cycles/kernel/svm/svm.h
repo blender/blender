@@ -130,10 +130,12 @@ CCL_NAMESPACE_END
 #include "svm_geometry.h"
 #include "svm_hsv.h"
 #include "svm_image.h"
+#include "svm_gamma.h"
 #include "svm_invert.h"
 #include "svm_light_path.h"
 #include "svm_magic.h"
 #include "svm_mapping.h"
+#include "svm_normal.h"
 #include "svm_wave.h"
 #include "svm_math.h"
 #include "svm_mix.h"
@@ -261,6 +263,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_INVERT:
 				svm_node_invert(sd, stack, node.y, node.z, node.w);
 				break;
+			case NODE_GAMMA:
+				svm_node_gamma(sd, stack, node.y, node.z, node.w);
+				break;
 			case NODE_MIX:
 				svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
@@ -299,6 +304,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_VECTOR_MATH:
 				svm_node_vector_math(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_NORMAL:
+				svm_node_normal(kg, sd, stack, node.y, node.z, node.w, &offset);
 				break;
 			case NODE_MAPPING:
 				svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);

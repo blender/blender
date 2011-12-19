@@ -657,7 +657,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i, j, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-	int startFace = 0, lastFlag = 0xdeadbeef;
+	int startFace = 0 /*, lastFlag = 0xdeadbeef */ /* UNUSED */;
 	MCol *mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);
 	if(!mcol)
 		mcol = dm->getFaceDataArray(dm, CD_MCOL);
@@ -776,7 +776,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			int next_actualFace= dm->drawObject->triangle_to_mface[0];
 
 			glShadeModel( GL_SMOOTH );
-			lastFlag = 0;
+			/* lastFlag = 0; */ /* UNUSED */
 			for(i = 0; i < tottri; i++) {
 				int actualFace = next_actualFace;
 				int flag = 1;
@@ -1870,7 +1870,7 @@ void CDDM_apply_vert_coords(DerivedMesh *dm, float (*vertCoords)[3])
 	int i;
 
 	/* this will just return the pointer if it wasn't a referenced layer */
-	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
@@ -1884,7 +1884,7 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 	int i;
 
 	/* this will just return the pointer if it wasn't a referenced layer */
-	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
@@ -1899,7 +1899,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	if(dm->numVertData == 0) return;
 
 	/* we don't want to overwrite any referenced layers */
-	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 
 	/* make a face normal layer if not present */
 	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);

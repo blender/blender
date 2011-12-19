@@ -389,17 +389,7 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 		glEnable( GL_BLEND );
 	}
 	
-	/* solid part */
-	uiDrawBox(GL_POLYGON, minx, miny, maxx, maxy, rad);
-	
-	/* set antialias line */
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_BLEND );
-	
-	uiDrawBox(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_LINE_SMOOTH );
+	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad);
 }
 
 

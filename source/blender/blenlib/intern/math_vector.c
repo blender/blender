@@ -416,6 +416,15 @@ void range_vn_i(int *array_tar, const int size, const int start)
 	while(i--) { *(array_pt--) = j--; }
 }
 
+void range_vn_fl(float *array_tar, const int size, const float start, const float step)
+{
+	float *array_pt= array_tar + (size-1);
+	int i= size;
+	while(i--) {
+		*(array_pt--) = start + step * (float)(i);
+	}
+}
+
 void negate_vn(float *array_tar, const int size)
 {
 	float *array_pt= array_tar + (size-1);

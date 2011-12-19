@@ -1268,7 +1268,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				zbuf_make_winmat(&R, winmat);
 				if(shi->obi->flag & R_TRANSFORMED)
-					mul_m4_m4m4(obwinmat, obi->mat, winmat);
+					mult_m4_m4m4(obwinmat, winmat, obi->mat);
 				else
 					copy_m4_m4(obwinmat, winmat);
 

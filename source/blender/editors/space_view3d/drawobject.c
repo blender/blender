@@ -4050,7 +4050,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		float mat[4][4];
-		mul_m4_m4m4(mat, psys->imat, ob->obmat);
+		mult_m4_m4m4(mat, ob->obmat, psys->imat);
 		glMultMatrixf(mat);
 	}
 

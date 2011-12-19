@@ -159,7 +159,7 @@ static void sphere_do(
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
-			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
 		}
 
@@ -331,7 +331,7 @@ static void cuboid_do(
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 			invert_m4_m4(ctrl_ob->imat, ctrl_ob->obmat);
-			mul_m4_m4m4(mat, ob->obmat, ctrl_ob->imat);
+			mult_m4_m4m4(mat, ctrl_ob->imat, ob->obmat);
 			invert_m4_m4(imat, mat);
 		}
 

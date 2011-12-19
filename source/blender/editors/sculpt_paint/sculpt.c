@@ -1688,7 +1688,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		if(ss->cache->original) {
 			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 				if(sculpt_brush_test_fast(&test, unode->co[vd.i])) {
-					add_v3_v3(private_fc, vd.co);
+					add_v3_v3(private_fc, unode->co[vd.i]);
 					private_count++;
 				}
 			}
@@ -1758,7 +1758,7 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob, PBVHNode
 					add_norm_if(ss->cache->view_normal, private_an, private_out_flip, fno);
 
 					// fc
-					add_v3_v3(private_fc, vd.co);
+					add_v3_v3(private_fc, unode->co[vd.i]);
 					private_count++;
 				}
 			}
@@ -2121,7 +2121,7 @@ static void do_clay_tubes_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 	copy_v3_v3(mat[3], ss->cache->location);  mat[3][3] = 1;
 	normalize_m4(mat);
 	scale_m4_fl(scale, ss->cache->radius);
-	mul_m4_m4m4(tmat, scale, mat);
+	mult_m4_m4m4(tmat, mat, scale);
 	invert_m4_m4(mat, tmat);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)

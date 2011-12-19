@@ -767,7 +767,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames , Ob
 		// compute bone local mat
 		if (bone->parent) {
 			invert_m4_m4(ipar, parchan->pose_mat);
-			mul_m4_m4m4(mat, pchan->pose_mat, ipar);
+			mult_m4_m4m4(mat, ipar, pchan->pose_mat);
 		}
 		else
 			copy_m4_m4(mat, pchan->pose_mat);
@@ -1274,7 +1274,7 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 		// compute bone local mat
 		if (bone->parent) {
 			invert_m4_m4(ipar, parchan->pose_mat);
-			mul_m4_m4m4(mat, pchan->pose_mat, ipar);
+			mult_m4_m4m4(mat, ipar, pchan->pose_mat);
 		}
 		else
 			copy_m4_m4(mat, pchan->pose_mat);

@@ -31,6 +31,8 @@
 
 #include <stdio.h>
 
+#include "BLI_listbase.h"
+
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
@@ -68,6 +70,206 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 	return NULL;
 }
 
+static int compare_nodes(bNode *a, bNode *b)
+{
+	bNode *parent;
+	/* These tell if either the node or any of the parent nodes is selected.
+	 * A selected parent means an unselected node is also in foreground!
+	 */
+	int a_select=(a->flag & NODE_SELECT), b_select=(b->flag & NODE_SELECT);
+	int a_active=(a->flag & NODE_ACTIVE), b_active=(b->flag & NODE_ACTIVE);
+	
+	/* if one is an ancestor of the other */
+	/* XXX there might be a better sorting algorithm for stable topological sort, this is O(n^2) worst case */
+	for (parent = a->parent; parent; parent=parent->parent) {
+		/* if b is an ancestor, it is always behind a */
+		if (parent==b)
+			return 1;
+		/* any selected ancestor moves the node forward */
+		if (parent->flag & NODE_ACTIVE)
+			a_active = 1;
+		if (parent->flag & NODE_SELECT)
+			a_select = 1;
+	}
+	for (parent = b->parent; parent; parent=parent->parent) {
+		/* if a is an ancestor, it is always behind b */
+		if (parent==a)
+			return 0;
+		/* any selected ancestor moves the node forward */
+		if (parent->flag & NODE_ACTIVE)
+			b_active = 1;
+		if (parent->flag & NODE_SELECT)
+			b_select = 1;
+	}
+
+	/* if one of the nodes is in the background and the other not */
+	if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND))
+		return 0;
+	else if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND))
+		return 1;
+	
+	/* if one has a higher selection state (active > selected > nothing) */
+	if (!b_active && a_active)
+		return 1;
+	else if (!b_select && (a_active || a_select))
+		return 1;
+	
+	return 0;
+}
+
+/* Sorts nodes by selection: unselected nodes first, then selected,
+ * then the active node at the very end. Relative order is kept intact!
+ */
+static void node_sort(bNodeTree *ntree)
+{
+	/* merge sort is the algorithm of choice here */
+	bNode *first_a, *first_b, *node_a, *node_b, *tmp;
+	int totnodes= BLI_countlist(&ntree->nodes);
+	int k, a, b;
+	
+	k = 1;
+	while (k < totnodes) {
+		first_a = first_b = ntree->nodes.first;
+		
+		do {
+			/* setup first_b pointer */
+			for (b=0; b < k && first_b; ++b) {
+				first_b = first_b->next;
+			}
+			/* all batches merged? */
+			if (first_b==NULL)
+				break;
+			
+			/* merge batches */
+			node_a = first_a;
+			node_b = first_b;
+			a = b = 0;
+			while (a < k && b < k && node_b) {
+				if (compare_nodes(node_a, node_b)==0) {
+					node_a = node_a->next;
+					++a;
+				}
+				else {
+					tmp = node_b;
+					node_b = node_b->next;
+					++b;
+					BLI_remlink(&ntree->nodes, tmp);
+					BLI_insertlinkbefore(&ntree->nodes, node_a, tmp);
+				}
+			}
+
+			/* setup first pointers for next batch */
+			first_b = node_b;
+			for (; b < k; ++b) {
+				/* all nodes sorted? */
+				if (first_b==NULL)
+					break;
+				first_b = first_b->next;
+			}
+			first_a = first_b;
+		} while (first_b);
+		
+		k = k << 1;
+	}
+}
+
+/* no undo here! */
+void node_deselect_all(SpaceNode *snode)
+{
+	bNode *node;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		node->flag &= ~SELECT;
+}
+
+/* return 1 if we need redraw otherwise zero. */
+int node_select_same_type(SpaceNode *snode)
+{
+	bNode *nac, *p;
+	int redraw;
+
+	/* search for the active node. */
+	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+		if (nac->flag & SELECT)
+			break;
+	}
+
+	/* no active node, return. */
+	if (!nac)
+		return(0);
+
+	redraw= 0;
+	for (p= snode->edittree->nodes.first; p; p= p->next) {
+		if (p->type != nac->type && p->flag & SELECT) {
+			/* if it's selected but different type, unselect */
+			redraw= 1;
+			p->flag &= ~SELECT;
+		}
+		else if (p->type == nac->type && (!(p->flag & SELECT))) {
+			/* if it's the same type and is not selected, select! */
+			redraw= 1;
+			p->flag |= SELECT;
+		}
+	}
+	return(redraw);
+}
+
+/* return 1 if we need redraw, otherwise zero.
+ * dir can be 0 == next or 0 != prev.
+ */
+int node_select_same_type_np(SpaceNode *snode, int dir)
+{
+	bNode *nac, *p;
+
+	/* search the active one. */
+	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+		if (nac->flag & SELECT)
+			break;
+	}
+
+	/* no active node, return. */
+	if (!nac)
+		return(0);
+
+	if (dir == 0)
+		p= nac->next;
+	else
+		p= nac->prev;
+
+	while (p) {
+		/* Now search the next with the same type. */
+		if (p->type == nac->type)
+			break;
+
+		if (dir == 0)
+			p= p->next;
+		else
+			p= p->prev;
+	}
+
+	if (p) {
+		node_deselect_all(snode);
+		p->flag |= SELECT;
+		return(1);
+	}
+	return(0);
+}
+
+void node_select_single(bContext *C, bNode *node)
+{
+	Main *bmain= CTX_data_main(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	node_deselect_all(snode);
+	node->flag |= SELECT;
+	
+	ED_node_set_active(bmain, snode->edittree, node);
+	
+	node_sort(snode->edittree);
+	
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+}
+
 /* ****** Click Select ****** */
  
 static bNode *node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], short extend)
@@ -86,7 +288,7 @@ static bNode *node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, cons
 	
 	if (node) {
 		if (extend == 0) {
-			node_deselectall(snode);
+			node_deselect_all(snode);
 			node->flag |= SELECT;
 		}
 		else

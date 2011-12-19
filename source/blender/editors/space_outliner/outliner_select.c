@@ -396,8 +396,8 @@ static int tree_element_active_defgroup(bContext *C, Scene *scene, TreeElement *
 	/* id in tselem is object */
 	ob= (Object *)tselem->id;
 	if(set) {
+		BLI_assert(te->index+1 >= 0);
 		ob->actdef= te->index+1;
-		BLI_assert(ob->actdef >= 0);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);

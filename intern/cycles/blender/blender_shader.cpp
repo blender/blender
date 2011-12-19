@@ -50,28 +50,6 @@ void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders, int default
 
 /* Graph */
 
-static BL::NodeSocket get_node_input(BL::Node *b_group_node, BL::NodeSocket b_in)
-{
-	if(b_group_node) {
-
-		BL::NodeTree b_ntree = BL::NodeGroup(*b_group_node).node_tree();
-		BL::NodeTree::links_iterator b_link;
-
-		for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
-			if(b_link->to_socket().ptr.data == b_in.ptr.data) {
-				BL::Node::inputs_iterator b_gin;
-
-				for(b_group_node->inputs.begin(b_gin); b_gin != b_group_node->inputs.end(); ++b_gin)
-					if(b_gin->group_socket().ptr.data == b_link->from_socket().ptr.data)
-						return *b_gin;
-
-			}
-		}
-	}
-
-	return b_in;
-}
-
 static BL::NodeSocket get_node_output(BL::Node b_node, const string& name)
 {
 	BL::Node::outputs_iterator b_out;
@@ -121,7 +99,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 	mapping->scale = get_float3(b_mapping.scale());
 }
 
-static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *b_group_node, BL::ShaderNode b_node)
+static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
 
@@ -132,7 +110,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
-		case BL::ShaderNode::type_NORMAL: break;
 		case BL::ShaderNode::type_OUTPUT: break;
 		case BL::ShaderNode::type_SCRIPT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
@@ -159,6 +136,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 		case BL::ShaderNode::type_INVERT: {
 			node = new InvertNode();
+			break;
+		}
+		case BL::ShaderNode::type_GAMMA: {
+			node = new GammaNode();
 			break;
 		}
 		case BL::ShaderNode::type_MIX_RGB: {
@@ -196,6 +177,17 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			VectorMathNode *vmath = new VectorMathNode();
 			vmath->type = VectorMathNode::type_enum[b_vector_math_node.operation()];
 			node = vmath;
+			break;
+		}
+		case BL::ShaderNode::type_NORMAL: {
+			BL::Node::outputs_iterator out_it;
+			b_node.outputs.begin(out_it);
+			BL::NodeSocketVectorNone vec_sock(*out_it);
+
+			NormalNode *norm = new NormalNode();
+			norm->direction = get_float3(vec_sock.default_value());
+
+			node = norm;
 			break;
 		}
 		case BL::ShaderNode::type_MAPPING: {
@@ -456,59 +448,115 @@ static SocketPair node_socket_map_pair(PtrNodeMap& node_map, BL::Node b_node, BL
 	return SocketPair(node_map[b_node.ptr.data], name);
 }
 
-static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::Node *b_group_node, PtrSockMap& sockets_map)
+static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
+{
+	switch (b_type) {
+	case BL::NodeSocket::type_VALUE:
+		return SHADER_SOCKET_FLOAT;
+	case BL::NodeSocket::type_VECTOR:
+		return SHADER_SOCKET_VECTOR;
+	case BL::NodeSocket::type_RGBA:
+		return SHADER_SOCKET_COLOR;
+	case BL::NodeSocket::type_SHADER:
+		return SHADER_SOCKET_CLOSURE;
+	
+	case BL::NodeSocket::type_BOOLEAN:
+	case BL::NodeSocket::type_MESH:
+	case BL::NodeSocket::type_INT:
+	default:
+		return SHADER_SOCKET_FLOAT;
+	}
+}
+
+static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
+{
+	/* copy values for non linked inputs */
+	switch(input->type) {
+	case SHADER_SOCKET_FLOAT: {
+		BL::NodeSocketFloatNone value_sock(sock);
+		input->set(value_sock.default_value());
+		break;
+	}
+	case SHADER_SOCKET_COLOR: {
+		BL::NodeSocketRGBA rgba_sock(sock);
+		input->set(get_float3(rgba_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_NORMAL:
+	case SHADER_SOCKET_POINT:
+	case SHADER_SOCKET_VECTOR: {
+		BL::NodeSocketVectorNone vec_sock(sock);
+		input->set(get_float3(vec_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_CLOSURE:
+		break;
+	}
+}
+
+static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)
 {
 	/* add nodes */
 	BL::ShaderNodeTree::nodes_iterator b_node;
 	PtrNodeMap node_map;
-	map<void*, PtrSockMap> node_groups;
+	PtrSockMap proxy_map;
 
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
 		if(b_node->is_a(&RNA_NodeGroup)) {
+			/* add proxy converter nodes for inputs and outputs */
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
-
-			node_groups[b_node->ptr.data] = PtrSockMap();
-			add_nodes(b_data, graph, b_group_ntree, &b_gnode, node_groups[b_node->ptr.data]);
+			BL::Node::inputs_iterator b_input;
+			BL::Node::outputs_iterator b_output;
+			
+			PtrSockMap group_sockmap;
+			
+			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
+				ShaderSocketType extern_type = convert_socket_type(b_input->type());
+				ShaderSocketType intern_type = convert_socket_type(b_input->group_socket().type());
+				ShaderNode *proxy = graph->add(new ProxyNode(extern_type, intern_type));
+				
+				/* map the external node socket to the proxy node socket */
+				proxy_map[b_input->ptr.data] = SocketPair(proxy, proxy->inputs[0]->name);
+				/* map the internal group socket to the proxy node socket */
+				group_sockmap[b_input->group_socket().ptr.data] = SocketPair(proxy, proxy->outputs[0]->name);
+				
+				/* default input values of the group node */
+				set_default_value(proxy->inputs[0], *b_input);
+			}
+			
+			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
+				ShaderSocketType extern_type = convert_socket_type(b_output->type());
+				ShaderSocketType intern_type = convert_socket_type(b_output->group_socket().type());
+				ShaderNode *proxy = graph->add(new ProxyNode(intern_type, extern_type));
+				
+				/* map the external node socket to the proxy node socket */
+				proxy_map[b_output->ptr.data] = SocketPair(proxy, proxy->outputs[0]->name);
+				/* map the internal group socket to the proxy node socket */
+				group_sockmap[b_output->group_socket().ptr.data] = SocketPair(proxy, proxy->inputs[0]->name);
+				
+				/* default input values of internal, unlinked group outputs */
+				set_default_value(proxy->inputs[0], b_output->group_socket());
+			}
+			
+			add_nodes(b_data, graph, b_group_ntree, group_sockmap);
 		}
 		else {
-			ShaderNode *node = add_node(b_data, graph, b_group_node, BL::ShaderNode(*b_node));
-
+			ShaderNode *node = add_node(b_data, graph, BL::ShaderNode(*b_node));
+			
 			if(node) {
 				BL::Node::inputs_iterator b_input;
-				BL::Node::outputs_iterator b_output;
-
+				
 				node_map[b_node->ptr.data] = node;
-
+				
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					SocketPair pair = node_socket_map_pair(node_map, *b_node, *b_input);
 					ShaderInput *input = pair.first->input(pair.second.c_str());
-					BL::NodeSocket sock(get_node_input(b_group_node, *b_input));
-
+					
 					assert(input);
-
+					
 					/* copy values for non linked inputs */
-					switch(input->type) {
-						case SHADER_SOCKET_FLOAT: {
-							BL::NodeSocketFloatNone value_sock(sock);
-							input->set(value_sock.default_value());
-							break;
-						}
-						case SHADER_SOCKET_COLOR: {
-							BL::NodeSocketRGBA rgba_sock(sock);
-							input->set(get_float3(rgba_sock.default_value()));
-							break;
-						}
-						case SHADER_SOCKET_NORMAL:
-						case SHADER_SOCKET_POINT:
-						case SHADER_SOCKET_VECTOR: {
-							BL::NodeSocketVectorNone vec_sock(sock);
-							input->set(get_float3(vec_sock.default_value()));
-							break;
-						}
-						case SHADER_SOCKET_CLOSURE:
-							break;
-					}
+					set_default_value(input, *b_input);
 				}
 			}
 		}
@@ -525,54 +573,34 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 		BL::NodeSocket b_from_sock = b_link->from_socket();
 		BL::NodeSocket b_to_sock = b_link->to_socket();
 
-		/* if link with group socket, add to map so we can connect it later */
-		if(b_group_node) {
-			if(!b_from_node) {
-				sockets_map[b_from_sock.ptr.data] =
-					node_socket_map_pair(node_map, b_to_node, b_to_sock);
-
-				continue;
-			}
-			else if(!b_to_node) {
-				sockets_map[b_to_sock.ptr.data] =
-					node_socket_map_pair(node_map, b_from_node, b_from_sock);
-
-				continue;
-			}
-		}
-
 		SocketPair from_pair, to_pair;
 
+		/* links without a node pointer are connections to group inputs/outputs */
+
 		/* from sock */
-		if(b_from_node.is_a(&RNA_NodeGroup)) {
-			/* group node */
-			BL::NodeSocket group_sock = b_from_sock.group_socket();
-			from_pair = node_groups[b_from_node.ptr.data][group_sock.ptr.data];
+		if(b_from_node) {
+			if (b_from_node.is_a(&RNA_NodeGroup))
+				from_pair = proxy_map[b_from_sock.ptr.data];
+			else
+				from_pair = node_socket_map_pair(node_map, b_from_node, b_from_sock);
 		}
-		else {
-			/* regular node */
-			from_pair = node_socket_map_pair(node_map, b_from_node, b_from_sock);
-		}
+		else
+			from_pair = sockets_map[b_from_sock.ptr.data];
 
 		/* to sock */
-		if(b_to_node.is_a(&RNA_NodeGroup)) {
-			/* group node */
-			BL::NodeSocket group_sock = b_to_sock.group_socket();
-			to_pair = node_groups[b_to_node.ptr.data][group_sock.ptr.data];
+		if(b_to_node) {
+			if (b_to_node.is_a(&RNA_NodeGroup))
+				to_pair = proxy_map[b_to_sock.ptr.data];
+			else
+				to_pair = node_socket_map_pair(node_map, b_to_node, b_to_sock);
 		}
-		else {
-			/* regular node */
-			to_pair = node_socket_map_pair(node_map, b_to_node, b_to_sock);
-		}
+		else
+			to_pair = sockets_map[b_to_sock.ptr.data];
 
-		/* in case of groups there may not actually be a node inside the group
-		   that the group socket connects to, so from_node or to_node may be NULL */
-		if(from_pair.first && to_pair.first) {
-			ShaderOutput *output = from_pair.first->output(from_pair.second.c_str());
-			ShaderInput *input = to_pair.first->input(to_pair.second.c_str());
+		ShaderOutput *output = from_pair.first->output(from_pair.second.c_str());
+		ShaderInput *input = to_pair.first->input(to_pair.second.c_str());
 
-			graph->connect(output, input);
-		}
+		graph->connect(output, input);
 	}
 }
 
@@ -599,7 +627,7 @@ void BlenderSync::sync_materials()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+				add_nodes(b_data, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;
@@ -640,7 +668,7 @@ void BlenderSync::sync_world()
 			PtrSockMap sock_to_node;
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+			add_nodes(b_data, graph, b_ntree, sock_to_node);
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
@@ -689,7 +717,7 @@ void BlenderSync::sync_lamps()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(b_data, graph, b_ntree, NULL, sock_to_node);
+				add_nodes(b_data, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;

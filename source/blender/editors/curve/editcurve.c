@@ -6056,7 +6056,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 			
 				if(cu->nurb.first) {
 					/* watch it: switch order here really goes wrong */
-					mul_m4_m4m4(cmat, base->object->obmat, imat);
+					mult_m4_m4m4(cmat, imat, base->object->obmat);
 					
 					nu= cu->nurb.first;
 					while(nu) {

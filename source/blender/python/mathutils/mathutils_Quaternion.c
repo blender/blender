@@ -1039,7 +1039,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	if (!PyArg_ParseTuple(args, "|Od:mathutils.Quaternion", &seq, &angle))
 		return NULL;
 
-	switch(PyTuple_GET_SIZE(args)) {
+	switch (PyTuple_GET_SIZE(args)) {
 	case 0:
 		break;
 	case 1:
@@ -1075,18 +1075,18 @@ static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObjec
 static void quat__axis_angle_sanitize(float axis[3], float *angle)
 {
 	if (axis) {
-		if (   !finite(axis[0]) ||
-			   !finite(axis[1]) ||
-			   !finite(axis[2]))
+		if ( !finite(axis[0]) ||
+		     !finite(axis[1]) ||
+		     !finite(axis[2]))
 		{
 			axis[0]= 1.0f;
 			axis[1]= 0.0f;
 			axis[2]= 0.0f;
 		}
-		else if (    EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
-					 EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
-					 EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
-		) {
+		else if ( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
+		          EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
+		          EXPP_FloatsAreEqual(axis[2], 0.0f, 10))
+		{
 			axis[0] = 1.0f;
 		}
 	}

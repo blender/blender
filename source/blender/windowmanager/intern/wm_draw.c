@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -355,36 +356,12 @@ typedef struct wmDrawTriple {
 	GLenum target;
 } wmDrawTriple;
 
-static int is_pow2(int n)
-{
-	return ((n)&(n-1))==0;
-}
-
-static int smaller_pow2(int n)
-{
-	while (!is_pow2(n))
-		n= n&(n-1);
-
-	return n;
-}
-
-static int larger_pow2(int n)
-{
-	if (is_pow2(n))
-		return n;
-
-	while(!is_pow2(n))
-		n= n&(n-1);
-
-	return n*2;
-}
-
 static void split_width(int x, int n, int *splitx, int *nx)
 {
 	int a, newnx, waste;
 
 	/* if already power of two just use it */
-	if(is_pow2(x)) {
+	if(is_power_of_2_i(x)) {
 		splitx[0]= x;
 		(*nx)++;
 		return;
@@ -392,12 +369,12 @@ static void split_width(int x, int n, int *splitx, int *nx)
 
 	if(n == 1) {
 		/* last part, we have to go larger */
-		splitx[0]= larger_pow2(x);
+		splitx[0]= power_of_2_max_i(x);
 		(*nx)++;
 	}
 	else {
 		/* two or more parts to go, use smaller part */
-		splitx[0]= smaller_pow2(x);
+		splitx[0]= power_of_2_min_i(x);
 		newnx= ++(*nx);
 		split_width(x-splitx[0], n-1, splitx+1, &newnx);
 
@@ -406,8 +383,8 @@ static void split_width(int x, int n, int *splitx, int *nx)
 
 		/* if we waste more space or use the same amount,
 		 * revert deeper splits and just use larger */
-		if(waste >= larger_pow2(x)) {
-			splitx[0]= larger_pow2(x);
+		if(waste >= power_of_2_max_i(x)) {
+			splitx[0]= power_of_2_max_i(x);
 			memset(splitx+1, 0, sizeof(int)*(n-1));
 		}
 		else

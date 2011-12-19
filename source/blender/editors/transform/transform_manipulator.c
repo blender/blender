@@ -1564,7 +1564,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	rect.ymax= mval[1]+hotspot;
 
 	setwinmatrixview3d(ar, v3d, &rect);
-	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	glSelectBuffer( 64, buffer);
 	glRenderMode(GL_SELECT);
@@ -1586,7 +1586,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(ar, v3d, NULL);
-	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
 	if(hits==1) return buffer[3];
 	else if(hits>1) {

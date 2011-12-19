@@ -2000,23 +2000,6 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, proxy_render_size_items);
 	RNA_def_property_ui_text(prop, "Proxy render size", "Draw preview using full resolution or different proxy resolutions");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
-	
-	
-	/* not sure we need rna access to these but adding anyway */
-	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "xof");
-	RNA_def_property_ui_text(prop, "X Offset", "Offset image horizontally from the view center");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
-
-	prop= RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "yof");
-	RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically from the view center");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
-	
-	prop= RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "zoom");
-	RNA_def_property_ui_text(prop, "Zoom", "Display zoom level");	
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 }
 
 static void rna_def_space_text(BlenderRNA *brna)

@@ -449,9 +449,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	MEM_freeN(tdw);
 
 	/* Get our vertex coordinates. */
-	v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
-	for (i = 0; i < numIdx; i++)
-		ret->getVertCo(ret, indices[i], v_cos[i]);
+	{
+		/* XXX In some situations, this code can be up to about 50 times more performant
+		 *     than simply using getVertCo for each affected vertex...
+		 */
+		float (*tv_cos)[3] = MEM_mallocN(sizeof(float[3]) * numVerts, "WeightVGProximity Modifier, tv_cos");
+		v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
+		ret->getVertCos(ret, tv_cos);
+		for (i = 0; i < numIdx; i++)
+			copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
+		MEM_freeN(tv_cos);
+	}
 
 	/* Compute wanted distances. */
 	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {

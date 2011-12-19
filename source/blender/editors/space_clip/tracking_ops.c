@@ -1952,7 +1952,7 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 		if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
 			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
 
-			mul_m4_m4m4(invmat, data->invmat, invmat);
+			mult_m4_m4m4(invmat, invmat, data->invmat);
 		}
 	}
 
@@ -2126,7 +2126,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 	if(is_camera) {
 		invert_m4(mat);
 
-		mul_m4_m4m4(mat, obmat, mat);
+		mult_m4_m4m4(mat, mat, obmat);
 	}
 	else {
 		if(!flip) {
@@ -2143,7 +2143,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_ob
 			mul_serie_m4(mat, lmat, mat, ilmat, obmat, NULL, NULL, NULL, NULL);
 		}
 		else {
-			mul_m4_m4m4(mat, mat, obmat);
+			mult_m4_m4m4(mat, obmat, mat);
 		}
 	}
 
@@ -2227,14 +2227,14 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 		invert_m4(mat);
 
 		object_to_mat4(object, obmat);
-		mul_m4_m4m4(mat, obmat, mat);
-		mul_m4_m4m4(newmat, mat, rot);
+		mult_m4_m4m4(mat, mat, obmat);
+		mult_m4_m4m4(newmat, rot, mat);
 		object_apply_mat4(object, newmat, 0, 0);
 
 		/* make camera have positive z-coordinate */
 		if(object->loc[2]<0) {
 		  invert_m4(rot);
-		  mul_m4_m4m4(newmat, mat, rot);
+		  mult_m4_m4m4(newmat, rot, mat);
 		  object_apply_mat4(object, newmat, 0, 0);
 		}
 	}

@@ -19,6 +19,7 @@ set(SRC_OSL
 	node_emission.osl
 	node_environment_texture.osl
 	node_fresnel.osl
+	node_gamma.osl
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
@@ -33,6 +34,7 @@ set(SRC_OSL
 	node_mix.osl
 	node_mix_closure.osl
 	node_musgrave_texture.osl
+	node_normal.osl
 	node_blend_weight_texture.osl
 	node_noise_texture.osl
 	node_output_displacement.osl

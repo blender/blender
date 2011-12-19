@@ -40,36 +40,13 @@ PyDoc_STRVAR(M_Mathutils_doc,
 "This module provides access to matrices, eulers, quaternions and vectors."
 );
 static int mathutils_array_parse_fast(float *array,
-                                      int array_min, int array_max,
-                                      PyObject *value, const char *error_prefix)
+                                      int size,
+                                      PyObject *value_fast,
+									  const char *error_prefix)
 {
-	PyObject *value_fast= NULL;
 	PyObject *item;
 
-	int i, size;
-
-	/* non list/tuple cases */
-	if (!(value_fast=PySequence_Fast(value, error_prefix))) {
-		/* PySequence_Fast sets the error */
-		return -1;
-	}
-
-	size= PySequence_Fast_GET_SIZE(value_fast);
-
-	if (size > array_max || size < array_min) {
-		if (array_max == array_min)	{
-			PyErr_Format(PyExc_ValueError,
-			             "%.200s: sequence size is %d, expected %d",
-			             error_prefix, size, array_max);
-		}
-		else {
-			PyErr_Format(PyExc_ValueError,
-			             "%.200s: sequence size is %d, expected [%d - %d]",
-			             error_prefix, size, array_min, array_max);
-		}
-		Py_DECREF(value_fast);
-		return -1;
-	}
+	int i;
 
 	i= size;
 	do {
@@ -93,13 +70,14 @@ static int mathutils_array_parse_fast(float *array,
 /* helper functionm returns length of the 'value', -1 on error */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
-#if 1 /* approx 6x speedup for mathutils types */
 	int size;
 
-	if (    (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
-	        (size= EulerObject_Check(value)      ? 3 : 0) ||
-	        (size= QuaternionObject_Check(value) ? 4 : 0) ||
-	        (size= ColorObject_Check(value)      ? 3 : 0))
+#if 1 /* approx 6x speedup for mathutils types */
+
+	if ( (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
+	     (size= EulerObject_Check(value)      ? 3 : 0) ||
+	     (size= QuaternionObject_Check(value) ? 4 : 0) ||
+	     (size= ColorObject_Check(value)      ? 3 : 0))
 	{
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
@@ -125,7 +103,85 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	else
 #endif
 	{
-		return mathutils_array_parse_fast(array, array_min, array_max, value, error_prefix);
+		PyObject *value_fast= NULL;
+
+		/* non list/tuple cases */
+		if (!(value_fast=PySequence_Fast(value, error_prefix))) {
+			/* PySequence_Fast sets the error */
+			return -1;
+		}
+
+		size= PySequence_Fast_GET_SIZE(value_fast);
+
+		if (size > array_max || size < array_min) {
+			if (array_max == array_min)	{
+				PyErr_Format(PyExc_ValueError,
+							 "%.200s: sequence size is %d, expected %d",
+							 error_prefix, size, array_max);
+			}
+			else {
+				PyErr_Format(PyExc_ValueError,
+							 "%.200s: sequence size is %d, expected [%d - %d]",
+							 error_prefix, size, array_min, array_max);
+			}
+			Py_DECREF(value_fast);
+			return -1;
+		}
+
+		return mathutils_array_parse_fast(array, size, value_fast, error_prefix);
+	}
+}
+
+int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, const char *error_prefix)
+{
+	int size;
+
+#if 1 /* approx 6x speedup for mathutils types */
+
+	if ( (size= VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
+	     (size= EulerObject_Check(value)      ? 3 : 0) ||
+	     (size= QuaternionObject_Check(value) ? 4 : 0) ||
+	     (size= ColorObject_Check(value)      ? 3 : 0))
+	{
+		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
+			return -1;
+		}
+
+		if (size < array_min) {
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: sequence size is %d, expected > %d",
+			             error_prefix, size, array_min);
+			return -1;
+		}
+		
+		*array= PyMem_Malloc(size * sizeof(float));
+		memcpy(*array, ((BaseMathObject *)value)->data, size * sizeof(float));
+		return size;
+	}
+	else
+#endif
+	{
+		PyObject *value_fast= NULL;
+		//*array= NULL;
+
+		/* non list/tuple cases */
+		if (!(value_fast=PySequence_Fast(value, error_prefix))) {
+			/* PySequence_Fast sets the error */
+			return -1;
+		}
+
+		size= PySequence_Fast_GET_SIZE(value_fast);
+
+		if (size < array_min) {
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: sequence size is %d, expected > %d",
+			             error_prefix, size, array_min);
+			return -1;
+		}
+
+		*array= PyMem_Malloc(size * sizeof(float));
+
+		return mathutils_array_parse_fast(*array, size, value_fast, error_prefix);
 	}
 }
 

@@ -157,7 +157,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
 		/* bone target if there's a matching pose-channel */
-		mul_m4_m4m4(dmat, pchan->pose_mat, hmd->object->obmat);
+		mult_m4_m4m4(dmat, hmd->object->obmat, pchan->pose_mat);
 	}
 	else {
 		/* just object target */

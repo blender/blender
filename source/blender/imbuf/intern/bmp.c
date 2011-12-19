@@ -185,14 +185,16 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 }
 
 /* Couple of helper functions for writing our data */
-static int putIntLSB(unsigned int ui,FILE *ofile) { 
+static int putIntLSB(unsigned int ui,FILE *ofile)
+{
 	putc((ui>>0)&0xFF,ofile); 
 	putc((ui>>8)&0xFF,ofile); 
 	putc((ui>>16)&0xFF,ofile); 
 	return putc((ui>>24)&0xFF,ofile); 
 }
 
-static int putShortLSB(unsigned short us,FILE *ofile) { 
+static int putShortLSB(unsigned short us,FILE *ofile)
+{
 	putc((us>>0)&0xFF,ofile); 
 	return putc((us>>8)&0xFF,ofile); 
 } 

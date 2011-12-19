@@ -121,9 +121,9 @@ int CustomData_number_of_layers(const struct CustomData *data, int type);
 
 /* duplicate data of a layer with flag NOFREE, and remove that flag.
  * returns the layer data */
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type);
+void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int type, const int totelem);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, const char *name);
+												  const int type, const char *name, const int totelem);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask

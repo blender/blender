@@ -1343,7 +1343,8 @@ typedef struct Ocean {
 } Ocean;
 
 
-float BKE_ocean_jminus_to_foam(float UNUSED(jminus), float UNUSED(coverage)) {
+float BKE_ocean_jminus_to_foam(float UNUSED(jminus), float UNUSED(coverage))
+{
 	return 0.0f;
 }
 

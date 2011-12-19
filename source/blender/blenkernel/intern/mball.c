@@ -1679,7 +1679,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					temp2[3][1]= ml->y;
 					temp2[3][2]= ml->z;
 
-					mul_m4_m4m4(temp1, temp3, temp2);
+					mult_m4_m4m4(temp1, temp2, temp3);
 				
 					/* make a copy because of duplicates */
 					mainb[a]= new_pgn_element(sizeof(MetaElem));
@@ -1691,9 +1691,9 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					
 					/* mat is the matrix to transform from mball into the basis-mball */
 					invert_m4_m4(obinv, obmat);
-					mul_m4_m4m4(temp2, bob->obmat, obinv);
+					mult_m4_m4m4(temp2, obinv, bob->obmat);
 					/* MetaBall transformation */
-					mul_m4_m4m4(mat, temp1, temp2);
+					mult_m4_m4m4(mat, temp2, temp1);
 
 					invert_m4_m4(imat,mat);				
 

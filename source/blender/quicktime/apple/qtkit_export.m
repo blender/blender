@@ -658,7 +658,7 @@ int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int rect
 			}
 			else {
 				//Error getting audio packets
-				BKE_reportf(reports, RPT_ERROR, "Unable to get further audio packets from frame %i, error = 0x%x",qtexport->audioTotalExportedFrames,err);
+				BKE_reportf(reports, RPT_ERROR, "Unable to get further audio packets from frame %i, error = 0x%x",(int)qtexport->audioTotalExportedFrames,err);
 				break;
 			}
 
@@ -779,7 +779,7 @@ void free_qtcomponentdata(void) {
 
 void quicktime_verify_image_type(RenderData *rd)
 {
-	if (rd->imtype == R_IMF_IMTYPE_QUICKTIME) {
+	if (rd->im_format.imtype == R_IMF_IMTYPE_QUICKTIME) {
 		if ((rd->qtcodecsettings.codecType<= 0) ||
 			(rd->qtcodecsettings.codecSpatialQuality <0) ||
 			(rd->qtcodecsettings.codecSpatialQuality > 100)) {

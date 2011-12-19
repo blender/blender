@@ -138,7 +138,8 @@ void constraintNumInput(TransInfo *t, float vec[3])
 	}
 }
 
-static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
+static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
+{
 	int i = 0;
 
 	mul_m3_v3(t->con.imtx, vec);
@@ -209,7 +210,8 @@ static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
 	}
 }
 
-static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
+static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3])
+{
 	float norm[3], vec[3], factor, angle;
 	float t_con_center[3];
 
@@ -284,7 +286,8 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	}
 }
 
-static void planeProjection(TransInfo *t, float in[3], float out[3]) {
+static void planeProjection(TransInfo *t, float in[3], float out[3])
+{
 	float vec[3], factor, norm[3];
 
 	add_v3_v3v3(vec, in, t->con.center);
@@ -547,7 +550,8 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 
 /*--------------------- INTERNAL SETUP CALLS ------------------*/
 
-void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]) {
+void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
+{
 	strncpy(t->con.text + 1, text, 48);
 	copy_m3_m3(t->con.mtx, space);
 	t->con.mode = mode;
@@ -562,7 +566,8 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->redraw = 1;
 }
 
-void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
+void setLocalConstraint(TransInfo *t, int mode, const char text[])
+{
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
@@ -596,7 +601,8 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	ftext is a format string passed to sprintf. It will add the name of
 	the orientation where %s is (logically).
 */
-void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[]) {
+void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
+{
 	char text[40];
 
 	switch(orientation) {
@@ -744,7 +750,8 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 	}
 }
 
-static void drawObjectConstraint(TransInfo *t) {
+static void drawObjectConstraint(TransInfo *t)
+{
 	int i;
 	TransData * td = t->data;
 
@@ -781,13 +788,15 @@ static void drawObjectConstraint(TransInfo *t) {
 
 /*--------------------- START / STOP CONSTRAINTS ---------------------- */
 
-void startConstraint(TransInfo *t) {
+void startConstraint(TransInfo *t)
+{
 	t->con.mode |= CON_APPLY;
 	*t->con.text = ' ';
 	t->num.idx_max = MIN2(getConstraintSpaceDimension(t) - 1, t->idx_max);
 }
 
-void stopConstraint(TransInfo *t) {
+void stopConstraint(TransInfo *t)
+{
 	t->con.mode &= ~(CON_APPLY|CON_SELECT);
 	*t->con.text = '\0';
 	t->num.idx_max = t->idx_max;
@@ -836,7 +845,8 @@ void initSelectConstraint(TransInfo *t, float mtx[3][3])
 	t->con.applyRot = applyAxisConstraintRot;
 }
 
-void selectConstraint(TransInfo *t) {
+void selectConstraint(TransInfo *t)
+{
 	if (t->con.mode & CON_SELECT) {
 		setNearestAxis(t);
 		startConstraint(t);
@@ -970,7 +980,8 @@ void setNearestAxis(TransInfo *t)
 
 /*-------------- HELPER FUNCTIONS ----------------*/
 
-char constraintModeToChar(TransInfo *t) {
+char constraintModeToChar(TransInfo *t)
+{
 	if ((t->con.mode & CON_APPLY)==0) {
 		return '\0';
 	}
@@ -990,7 +1001,8 @@ char constraintModeToChar(TransInfo *t) {
 }
 
 
-int isLockConstraint(TransInfo *t) {
+int isLockConstraint(TransInfo *t)
+{
 	int mode = t->con.mode;
 
 	if ( (mode & (CON_AXIS0|CON_AXIS1)) == (CON_AXIS0|CON_AXIS1))

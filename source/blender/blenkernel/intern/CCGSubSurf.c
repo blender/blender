@@ -218,7 +218,7 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void) {
 
 /***/
 
-static int VertDataEqual(float *a, float *b) {
+static int VertDataEqual(const float *a, const float *b) {
 	return a[0]==b[0] && a[1]==b[1] && a[2]==b[2];
 }
 #define VertDataZero(av)				{ float *_a = (float*) av; _a[0] = _a[1] = _a[2] = 0.0f; }
@@ -238,7 +238,7 @@ static int VertDataEqual(float *a, float *b) {
 #define NormAdd(av, bv)					{ float *_a = (float*) av, *_b = (float*) bv; _a[0]+=_b[0]; _a[1]+=_b[1]; _a[2]+=_b[2]; }
 
 
-static int _edge_isBoundary(CCGEdge *e);
+static int _edge_isBoundary(const CCGEdge *e);
 
 /***/
 
@@ -392,7 +392,7 @@ static void _vert_addFace(CCGVert *v, CCGFace *f, CCGSubSurf *ss) {
 	v->faces = CCGSUBSURF_realloc(ss, v->faces, (v->numFaces+1)*sizeof(*v->faces), v->numFaces*sizeof(*v->faces));
 	v->faces[v->numFaces++] = f;
 }
-static CCGEdge *_vert_findEdgeTo(CCGVert *v, CCGVert *vQ) {
+static CCGEdge *_vert_findEdgeTo(const CCGVert *v, const CCGVert *vQ) {
 	int i;
 	for (i=0; i<v->numEdges; i++) {
 		CCGEdge *e = v->edges[v->numEdges-1-i]; // XXX, note reverse
@@ -402,7 +402,7 @@ static CCGEdge *_vert_findEdgeTo(CCGVert *v, CCGVert *vQ) {
 	}
 	return NULL;
 }
-static int _vert_isBoundary(CCGVert *v) {
+static int _vert_isBoundary(const CCGVert *v) {
 	int i;
 	for (i=0; i<v->numEdges; i++)
 		if (_edge_isBoundary(v->edges[i]))
@@ -423,7 +423,7 @@ static void _vert_free(CCGVert *v, CCGSubSurf *ss) {
 	CCGSUBSURF_free(ss, v);
 }
 
-static int VERT_seam(CCGVert *v) {
+static int VERT_seam(const CCGVert *v) {
 	return ((v->flags & Vert_eSeam) != 0);
 }
 
@@ -462,7 +462,7 @@ static void _edge_addFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
 	e->faces = CCGSUBSURF_realloc(ss, e->faces, (e->numFaces+1)*sizeof(*e->faces), e->numFaces*sizeof(*e->faces));
 	e->faces[e->numFaces++] = f;
 }
-static int _edge_isBoundary(CCGEdge *e) {
+static int _edge_isBoundary(const CCGEdge *e) {
 	return e->numFaces<2;
 }
 
@@ -900,7 +900,7 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL) {
 	return eCCGError_None;
 }
 
-CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, int seam, CCGVert **v_r) {
+CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertData, int seam, CCGVert **v_r) {
 	void **prevp;
 	CCGVert *v = NULL;
 	short seamflag = (seam)? Vert_eSeam: 0;
@@ -2484,13 +2484,13 @@ CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, i
 
 /*** External API accessor functions ***/
 
-int ccgSubSurf_getNumVerts(CCGSubSurf *ss) {
+int ccgSubSurf_getNumVerts(const CCGSubSurf *ss) {
 	return ss->vMap->numEntries;
 }
-int ccgSubSurf_getNumEdges(CCGSubSurf *ss) {
+int ccgSubSurf_getNumEdges(const CCGSubSurf *ss) {
 	return ss->eMap->numEntries;
 }
-int ccgSubSurf_getNumFaces(CCGSubSurf *ss) {
+int ccgSubSurf_getNumFaces(const CCGSubSurf *ss) {
 	return ss->fMap->numEntries;
 }
 
@@ -2504,23 +2504,23 @@ CCGFace *ccgSubSurf_getFace(CCGSubSurf *ss, CCGFaceHDL f) {
 	return (CCGFace*) _ehash_lookup(ss->fMap, f);
 }
 
-int ccgSubSurf_getSubdivisionLevels(CCGSubSurf *ss) {
+int ccgSubSurf_getSubdivisionLevels(const CCGSubSurf *ss) {
 	return ss->subdivLevels;
 }
-int ccgSubSurf_getEdgeSize(CCGSubSurf *ss) {
+int ccgSubSurf_getEdgeSize(const CCGSubSurf *ss) {
 	return ccgSubSurf_getEdgeLevelSize(ss, ss->subdivLevels);
 }
-int ccgSubSurf_getEdgeLevelSize(CCGSubSurf *ss, int level) {
+int ccgSubSurf_getEdgeLevelSize(const CCGSubSurf *ss, int level) {
 	if (level<1 || level>ss->subdivLevels) {
 		return -1;
 	} else {
 		return 1 + (1<<level);
 	}
 }
-int ccgSubSurf_getGridSize(CCGSubSurf *ss) {
+int ccgSubSurf_getGridSize(const CCGSubSurf *ss) {
 	return ccgSubSurf_getGridLevelSize(ss, ss->subdivLevels);
 }
-int ccgSubSurf_getGridLevelSize(CCGSubSurf *ss, int level) {
+int ccgSubSurf_getGridLevelSize(const CCGSubSurf *ss, int level) {
 	if (level<1 || level>ss->subdivLevels) {
 		return -1;
 	} else {
@@ -2736,19 +2736,19 @@ void ccgFaceIterator_free(CCGFaceIterator *vi) {
 
 /*** Extern API final vert/edge/face interface ***/
 
-int ccgSubSurf_getNumFinalVerts(CCGSubSurf *ss) {
+int ccgSubSurf_getNumFinalVerts(const CCGSubSurf *ss) {
 	int edgeSize = 1 + (1<<ss->subdivLevels);
 	int gridSize = 1 + (1<<(ss->subdivLevels-1));
 	int numFinalVerts = ss->vMap->numEntries + ss->eMap->numEntries*(edgeSize-2) + ss->fMap->numEntries + ss->numGrids*((gridSize-2) + ((gridSize-2)*(gridSize-2)));
 	return numFinalVerts;
 }
-int ccgSubSurf_getNumFinalEdges(CCGSubSurf *ss) {
+int ccgSubSurf_getNumFinalEdges(const CCGSubSurf *ss) {
 	int edgeSize = 1 + (1<<ss->subdivLevels);
 	int gridSize = 1 + (1<<(ss->subdivLevels-1));
 	int numFinalEdges = ss->eMap->numEntries*(edgeSize-1) + ss->numGrids*((gridSize-1) + 2*((gridSize-2)*(gridSize-1)));
 	return numFinalEdges;
 }
-int ccgSubSurf_getNumFinalFaces(CCGSubSurf *ss) {
+int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss) {
 	int gridSize = 1 + (1<<(ss->subdivLevels-1));
 	int numFinalFaces = ss->numGrids*((gridSize-1)*(gridSize-1));
 	return numFinalFaces;

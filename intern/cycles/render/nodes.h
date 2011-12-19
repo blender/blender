@@ -158,6 +158,14 @@ public:
 	ShaderSocketType from, to;
 };
 
+class ProxyNode : public ShaderNode {
+public:
+	ProxyNode(ShaderSocketType from, ShaderSocketType to);
+	SHADER_NODE_BASE_CLASS(ProxyNode)
+
+	ShaderSocketType from, to;
+};
+
 class BsdfNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BsdfNode)
@@ -302,6 +310,11 @@ public:
 	SHADER_NODE_CLASS(CombineRGBNode)
 };
 
+class GammaNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(GammaNode)
+};
+
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
@@ -341,6 +354,13 @@ public:
 
 	ustring type;
 	static ShaderEnum type_enum;
+};
+
+class NormalNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(NormalNode)
+
+	float3 direction;
 };
 
 class VectorMathNode : public ShaderNode {

@@ -153,7 +153,7 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 				}
 				
 				/* matrix in world-space */
-				mul_m4_m4m4(cob->matrix, cob->pchan->pose_mat, ob->obmat);
+				mult_m4_m4m4(cob->matrix, ob->obmat, cob->pchan->pose_mat);
 			}
 			else
 				unit_m4(cob->matrix);
@@ -182,7 +182,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 	
 	/* calculate delta of constraints evaluation */
 	invert_m4_m4(imat, cob->startmat);
-	mul_m4_m4m4(delta, imat, cob->matrix);
+	mult_m4_m4m4(delta, cob->matrix, imat);
 	
 	/* copy matrices back to source */
 	switch (cob->type) {
@@ -203,7 +203,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 			/* cob->ob or cob->pchan might not exist */
 			if (cob->ob && cob->pchan) {
 				/* copy new pose-matrix back to owner */
-				mul_m4_m4m4(cob->pchan->pose_mat, cob->matrix, cob->ob->imat);
+				mult_m4_m4m4(cob->pchan->pose_mat, cob->ob->imat, cob->matrix);
 				
 				/* copy inverse of delta back to owner */
 				invert_m4_m4(cob->pchan->constinv, delta);
@@ -242,7 +242,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* world to pose */
 				invert_m4_m4(imat, ob->obmat);
 				copy_m4_m4(tempmat, mat);
-				mul_m4_m4m4(mat, tempmat, imat);
+				mult_m4_m4m4(mat, imat, tempmat);
 				
 				/* use pose-space as stepping stone for other spaces... */
 				if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
@@ -256,7 +256,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				/* pose to world */
 				if (to == CONSTRAINT_SPACE_WORLD) {
 					copy_m4_m4(tempmat, mat);
-					mul_m4_m4m4(mat, tempmat, ob->obmat);
+					mult_m4_m4m4(mat, ob->obmat, tempmat);
 				}
 				/* pose to local */
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
@@ -281,12 +281,12 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 								mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
 								
-								mul_m4_m4m4(diff_mat, offs_bone, tmat);
+								mult_m4_m4m4(diff_mat, tmat, offs_bone);
 								invert_m4_m4(imat, diff_mat);
 							}
 							else {
 								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								mul_m4_m4m4(diff_mat, offs_bone, pchan->parent->pose_mat);
+								mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
 								invert_m4_m4(imat, diff_mat);
 							}
 						}
@@ -296,7 +296,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 						}
 						
 						copy_m4_m4(tempmat, mat);
-						mul_m4_m4m4(mat, tempmat, imat);
+						mult_m4_m4m4(mat, imat, tempmat);
 					}
 				}
 				/* pose to local with parent */
@@ -304,7 +304,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 					if (pchan->bone) {
 						invert_m4_m4(imat, pchan->bone->arm_mat);
 						copy_m4_m4(tempmat, mat);
-						mul_m4_m4m4(mat, tempmat, imat);
+						mult_m4_m4m4(mat, imat, tempmat);
 					}
 				}
 			}
@@ -334,22 +334,22 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 							zero_v3(offs_bone[3]);
 							mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
 							
-							mul_m4_m4m4(diff_mat, offs_bone, tmat);
+							mult_m4_m4m4(diff_mat, tmat, offs_bone);
 							copy_m4_m4(tempmat, mat);
-							mul_m4_m4m4(mat, tempmat, diff_mat);
+							mult_m4_m4m4(mat, diff_mat, tempmat);
 						}
 						else {
 							/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-							mul_m4_m4m4(diff_mat, offs_bone, pchan->parent->pose_mat);
+							mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
 							copy_m4_m4(tempmat, mat);
-							mul_m4_m4m4(mat, tempmat, diff_mat);
+							mult_m4_m4m4(mat, diff_mat, tempmat);
 						}
 					}
 					else {
 						copy_m4_m4(diff_mat, pchan->bone->arm_mat);
 						
 						copy_m4_m4(tempmat, mat);
-						mul_m4_m4m4(mat, tempmat, diff_mat);
+						mult_m4_m4m4(mat, diff_mat, tempmat);
 					}
 				}
 				
@@ -366,7 +366,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				if (pchan->bone) {					
 					copy_m4_m4(diff_mat, pchan->bone->arm_mat);
 					copy_m4_m4(tempmat, mat);
-					mul_m4_m4m4(mat, diff_mat, tempmat);
+					mult_m4_m4m4(mat, tempmat, diff_mat);
 				}
 				
 				/* use pose-space as stepping stone for other spaces */
@@ -384,10 +384,10 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			/* check if object has a parent */
 			if (ob->parent) {
 				/* 'subtract' parent's effects from owner */
-				mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
+				mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
 				invert_m4_m4(imat, diff_mat);
 				copy_m4_m4(tempmat, mat);
-				mul_m4_m4m4(mat, tempmat, imat);
+				mult_m4_m4m4(mat, imat, tempmat);
 			}
 			else {
 				/* Local space in this case will have to be defined as local to the owner's 
@@ -399,7 +399,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				
 				invert_m4_m4(imat, diff_mat);
 				copy_m4_m4(tempmat, mat);
-				mul_m4_m4m4(mat, tempmat, imat);
+				mult_m4_m4m4(mat, imat, tempmat);
 			}
 		}
 		else if (from==CONSTRAINT_SPACE_LOCAL && to==CONSTRAINT_SPACE_WORLD) {
@@ -407,8 +407,8 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			if (ob->parent) {
 				/* 'add' parent's effect back to owner */
 				copy_m4_m4(tempmat, mat);
-				mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
-				mul_m4_m4m4(mat, tempmat, diff_mat);
+				mult_m4_m4m4(diff_mat, ob->parent->obmat, ob->parentinv);
+				mult_m4_m4m4(mat, diff_mat, tempmat);
 			}
 			else {
 				/* Local space in this case will have to be defined as local to the owner's 
@@ -419,7 +419,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				zero_v3(diff_mat[3]);
 				
 				copy_m4_m4(tempmat, mat);
-				mul_m4_m4m4(mat, tempmat, diff_mat);
+				mult_m4_m4m4(mat, diff_mat, tempmat);
 			}
 		}
 	}
@@ -612,7 +612,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 			 */
 			if (headtail < 0.000001f) {
 				/* skip length interpolation if set to head */
-				mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
+				mult_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
 			}
 			else {
 				float tempmat[4][4], loc[3];
@@ -624,7 +624,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 				copy_m4_m4(tempmat, pchan->pose_mat);	
 				copy_v3_v3(tempmat[3], loc);
 				
-				mul_m4_m4m4(mat, tempmat, ob->obmat);
+				mult_m4_m4m4(mat, ob->obmat, tempmat);
 			}
 		} 
 		else
@@ -836,12 +836,12 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
 			 * the effect of the parent that will be exherted on the owner
 			 */
-			mul_m4_m4m4(parmat, data->invmat, ct->matrix);
+			mult_m4_m4m4(parmat, ct->matrix, data->invmat);
 			
 			/* now multiply the parent matrix by the owner matrix to get the 
 			 * the effect of this constraint (i.e.  owner is 'parented' to parent)
 			 */
-			mul_m4_m4m4(cob->matrix, cob->matrix, parmat);
+			mult_m4_m4m4(cob->matrix, parmat, cob->matrix);
 		}
 		else {
 			float invmat[4][4], tempmat[4][4];
@@ -878,13 +878,13 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
 			 * the effect of the parent that will be exherted on the owner
 			 */
-			mul_m4_m4m4(parmat, invmat, ct->matrix);
+			mult_m4_m4m4(parmat, ct->matrix, invmat);
 			
 			/* now multiply the parent matrix by the owner matrix to get the 
 			 * the effect of this constraint (i.e.  owner is 'parented' to parent)
 			 */
 			copy_m4_m4(tempmat, cob->matrix);
-			mul_m4_m4m4(cob->matrix, tempmat, parmat);
+			mult_m4_m4m4(cob->matrix, parmat, tempmat);
 
 			/* without this, changes to scale and rotation can change location
 			 * of a parentless bone or a disconnected bone. Even though its set
@@ -1294,7 +1294,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				if (data->followflag & FOLLOWPATH_RADIUS) {
 					float tmat[4][4], rmat[4][4];
 					scale_m4_fl(tmat, radius);
-					mul_m4_m4m4(rmat, totmat, tmat);
+					mult_m4_m4m4(rmat, tmat, totmat);
 					copy_m4_m4(totmat, rmat);
 				}
 				
@@ -2237,7 +2237,7 @@ static void actcon_evaluate (bConstraint *UNUSED(con), bConstraintOb *cob, ListB
 		 * function has already taken care of everything else.
 		 */
 		copy_m4_m4(temp, cob->matrix);
-		mul_m4_m4m4(cob->matrix, ct->matrix, temp);
+		mult_m4_m4m4(cob->matrix, temp, ct->matrix);
 	}
 }
 
@@ -2928,7 +2928,7 @@ static void minmax_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *tar
 		if (data->flag & MINMAX_USEROT) {
 			/* take rotation of target into account by doing the transaction in target's localspace */
 			invert_m4_m4(imat, tarmat);
-			mul_m4_m4m4(tmat, obmat, imat);
+			mult_m4_m4m4(tmat, imat, obmat);
 			copy_m4_m4(obmat, tmat);
 			unit_m4(tarmat);
 		}
@@ -2981,7 +2981,7 @@ static void minmax_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *tar
 			}
 			if (data->flag & MINMAX_USEROT) {
 				/* get out of localspace */
-				mul_m4_m4m4(tmat, obmat, ct->matrix);
+				mult_m4_m4m4(tmat, ct->matrix, obmat);
 				copy_m4_m4(cob->matrix, tmat);
 			} 
 			else {			
@@ -3992,7 +3992,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			else {
 				BKE_get_tracking_mat(cob->scene, camob, mat);
 
-				mul_m4_m4m4(cob->matrix, mat, obmat);
+				mult_m4_m4m4(cob->matrix, obmat, mat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 		}
@@ -4043,7 +4043,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 				copy_m4_m4(rmat, camob->obmat);
 				zero_v3(rmat[3]);
-				mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
+				mult_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
 				copy_v3_v3(cob->matrix[3], disp);
 			}
@@ -4062,7 +4062,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				/* apply camera rotation so Z-axis would be co-linear */
 				copy_m4_m4(rmat, camob->obmat);
 				zero_v3(rmat[3]);
-				mul_m4_m4m4(cob->matrix, rmat, cob->matrix);
+				mult_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
 				copy_v3_v3(cob->matrix[3], disp);
 			}
@@ -4121,7 +4121,7 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 
 		copy_m4_m4(obmat, cob->matrix);
 
-		mul_m4_m4m4(cob->matrix, mat, obmat);
+		mult_m4_m4m4(cob->matrix, obmat, mat);
 	}
 }
 
@@ -4187,7 +4187,7 @@ static void objectsolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
 
 			invert_m4_m4(camimat, cammat);
-			mul_m4_m4m4(parmat, data->invmat, cammat);
+			mult_m4_m4m4(parmat, cammat, data->invmat);
 
 			copy_m4_m4(cammat, camob->obmat);
 			copy_m4_m4(obmat, cob->matrix);

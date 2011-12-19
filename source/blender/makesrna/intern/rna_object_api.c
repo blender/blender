@@ -191,13 +191,12 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		if( tmpcu->mat ) {
 			for( i = tmpcu->totcol; i-- > 0; ) {
 				/* are we an object material or data based? */
-				if (ob->colbits & 1<<i) 
-					tmpmesh->mat[i] = ob->mat[i];
-				else 
-					tmpmesh->mat[i] = tmpcu->mat[i];
 
-				if (tmpmesh->mat[i]) 
+				tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
+
+				if (tmpmesh->mat[i]) {
 					tmpmesh->mat[i]->id.us++;
+				}
 			}
 		}
 		break;
@@ -230,12 +229,11 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			if( origmesh->mat ) {
 				for( i = origmesh->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->colbits & 1<<i)
-						tmpmesh->mat[i] = ob->mat[i];
-					else
-						tmpmesh->mat[i] = origmesh->mat[i];
-					if (tmpmesh->mat[i])
+					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
+
+					if (tmpmesh->mat[i]) {
 						tmpmesh->mat[i]->id.us++;
+					}
 				}
 			}
 		}

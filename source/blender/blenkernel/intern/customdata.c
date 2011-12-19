@@ -1404,7 +1404,7 @@ int CustomData_number_of_layers(const CustomData *data, int type)
 	return number;
 }
 
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
+void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int type, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1416,7 +1416,20 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 
@@ -1424,7 +1437,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 }
 
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, const char *name)
+												  const int type, const char *name, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1436,7 +1449,20 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 
@@ -1995,7 +2021,8 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), 0);
 	}		
 }
-void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
+void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total)
+{
 	int i;
 	for(i=0; i < pdata->totlayer; i++){
 		if(pdata->layers[i].type == CD_MTEXPOLY)
@@ -2008,7 +2035,8 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 }
 
 
-void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
+void CustomData_bmesh_init_pool(CustomData *data, int allocsize)
+{
 	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, FALSE, FALSE);
 }
 

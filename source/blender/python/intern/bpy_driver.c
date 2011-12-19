@@ -94,13 +94,12 @@ int bpy_pydriver_create_dict(void)
 
 /* note, this function should do nothing most runs, only when changing frame */
 static PyObject *bpy_pydriver_InternStr__frame= NULL;
+/* not thread safe but neither is python */
+static float bpy_pydriver_evaltime_prev= FLT_MAX;
 
 static void bpy_pydriver_update_dict(const float evaltime)
 {
-	/* not thread safe but neither is python */
-	static float evaltime_prev= FLT_MAX;
-
-	if (evaltime_prev != evaltime) {
+	if (bpy_pydriver_evaltime_prev != evaltime) {
 
 		/* currently only update the frame */
 		if (bpy_pydriver_InternStr__frame == NULL) {
@@ -111,7 +110,7 @@ static void bpy_pydriver_update_dict(const float evaltime)
 		               bpy_pydriver_InternStr__frame,
 		               PyFloat_FromDouble(evaltime));
 
-		evaltime_prev= evaltime;
+		bpy_pydriver_evaltime_prev= evaltime;
 	}
 }
 
@@ -137,6 +136,7 @@ void BPY_driver_reset(void)
 	if (bpy_pydriver_InternStr__frame) {
 		Py_DECREF(bpy_pydriver_InternStr__frame);
 		bpy_pydriver_InternStr__frame= NULL;
+		bpy_pydriver_evaltime_prev= FLT_MAX;
 	}
 
 	if (use_gil)

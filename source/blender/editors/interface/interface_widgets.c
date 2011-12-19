@@ -200,7 +200,25 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_BLEND);
+}
+
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad)
+{
+	float color[4];
+	int j;
 	
+	glEnable(GL_BLEND);
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	color[3] *= 0.125f;
+	glColor4fv(color);
+	
+	for(j=0; j<8; j++) {
+		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
+		uiDrawBox(mode, minx, miny, maxx, maxy, rad);
+		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
+	}
+
+	glDisable(GL_BLEND);
 }
 
 static void widget_init(uiWidgetBase *wtb)
