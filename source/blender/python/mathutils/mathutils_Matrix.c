@@ -1956,14 +1956,13 @@ self->matrix[1][1] = self->contigPtr[4] */
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  (i.e. it must be created here with PyMEM_malloc())*/
 PyObject *Matrix_CreatePyObject(float *mat,
-                                const unsigned short rowSize, const unsigned short colSize,
+                                const unsigned short row_size, const unsigned short col_size,
                                 int type, PyTypeObject *base_type)
 {
 	MatrixObject *self;
-	int row, col;
 
-	/*matrix objects can be any 2-4row x 2-4col matrix*/
-	if (rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4) {
+	/* matrix objects can be any 2-4row x 2-4col matrix */
+	if (row_size < 2 || row_size > 4 || col_size < 2 || col_size > 4) {
 		PyErr_SetString(PyExc_RuntimeError,
 		                "Matrix(): "
 		                "row and column sizes must be between 2 and 4");
@@ -1974,8 +1973,8 @@ PyObject *Matrix_CreatePyObject(float *mat,
 						(MatrixObject *)PyObject_GC_New(MatrixObject, &matrix_Type);
 
 	if (self) {
-		self->row_size = rowSize;
-		self->col_size = colSize;
+		self->row_size = row_size;
+		self->col_size = col_size;
 
 		/* init callbacks as NULL */
 		self->cb_user= NULL;
@@ -1986,24 +1985,23 @@ PyObject *Matrix_CreatePyObject(float *mat,
 			self->wrapped = Py_WRAP;
 		}
 		else if (type == Py_NEW) {
-			self->contigPtr = PyMem_Malloc(rowSize * colSize * sizeof(float));
+			self->contigPtr = PyMem_Malloc(row_size * col_size * sizeof(float));
 			if (self->contigPtr == NULL) { /*allocation failure*/
 				PyErr_SetString(PyExc_MemoryError,
 				                "Matrix(): "
 				                "problem allocating pointer space");
 				return NULL;
 			}
-			/*parse*/
+
 			if (mat) {	/*if a float array passed*/
-				for (row = 0; row < rowSize; row++) {
-					for (col = 0; col < colSize; col++) {
-						MATRIX_ITEM(self, row, col) = mat[(row * colSize) + col];
-					}
-				}
+				memcpy(self->contigPtr, mat, row_size * col_size * sizeof(float));
 			}
-			else if (rowSize == colSize) { /*or if no arguments are passed return identity matrix for square matrices */
+			else if (row_size == col_size) { /*or if no arguments are passed return identity matrix for square matrices */
 				PyObject *ret_dummy= Matrix_identity(self);
 				Py_DECREF(ret_dummy);
+			}
+			else {
+				memset(self->contigPtr, 0, row_size * col_size * sizeof(float));
 			}
 			self->wrapped = Py_NEW;
 		}
