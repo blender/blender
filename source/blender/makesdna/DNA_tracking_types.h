@@ -142,7 +142,10 @@ typedef struct MovieTrackingSettings {
 
 	/* cleanup */
 	int clean_frames, clean_action;
-	float clean_error, pad;
+	float clean_error;
+
+	/* set object scale */
+	float object_distance;		/* distance between two bundles used for object scaling */
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -176,7 +179,9 @@ typedef struct MovieTrackingObject {
 	struct MovieTrackingObject *next, *prev;
 
 	char name[24];			/* Name of tracking object */
-	int flag, pad;
+	int flag;
+	float scale;			/* scale of object solution in amera space */
+
 	ListBase tracks;		/* list of tracks use to tracking this object */
 	MovieTrackingReconstruction reconstruction;	/* reconstruction data for this object */
 } MovieTrackingObject;

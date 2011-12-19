@@ -12693,9 +12693,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
 			MovieTracking *tracking= &clip->tracking;
+			MovieTrackingObject *tracking_object= tracking->objects.first;
+
+			if(!tracking->settings.object_distance)
+				tracking->settings.object_distance= 1.0f;
 
 			if(tracking->objects.first == NULL)
 				BKE_tracking_new_object(tracking, "Camera");
+
+			while(tracking_object) {
+				if(!tracking_object->scale)
+					tracking_object->scale= 1.0f;
+
+				tracking_object= tracking_object->next;
+			}
 		}
 
 		for (ob= main->object.first; ob; ob= ob->id.next) {

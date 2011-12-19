@@ -336,6 +336,14 @@ void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
 	BKE_tracking_object_unique_name(&clip->tracking, object);
 }
 
+static void rna_trackingObject_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+
+	WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, NULL);
+	DAG_id_tag_update(&clip->id, 0);
+}
+
 /* API */
 
 static void add_tracks_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, int frame, int number)
@@ -572,6 +580,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 5, 1000);
 	RNA_def_property_update(prop, 0, "rna_tracking_defaultSettings_searchUpdate");
 	RNA_def_property_ui_text(prop, "Search Size", "Size of search area for newly created tracks");
+
+	/* object distance */
+	prop= RNA_def_property(srna, "object_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "object_distance");
+	RNA_def_property_ui_text(prop, "Distance", "Distance between two bundles used for object scaling");
+	RNA_def_property_range(prop, 0.001, 10000);
+	RNA_def_property_ui_range(prop, 0.001, 10000.0, 1, 3);
 }
 
 static void rna_def_trackingCamera(BlenderRNA *brna)
@@ -1100,6 +1116,15 @@ static void rna_def_trackingObject(BlenderRNA *brna)
 	/* reconstruction */
 	prop= RNA_def_property(srna, "reconstruction", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingReconstruction");
+
+	/* scale */
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_range(prop, 0.0001f, 10000.0f);
+	RNA_def_property_ui_range(prop, 0.0001f, 10000.0, 1, 4);
+	RNA_def_property_ui_text(prop, "Scale", "Scale of object solution in camera space");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_trackingObject_flushUpdate");
 }
 
 static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)

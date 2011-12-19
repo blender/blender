@@ -302,6 +302,39 @@ class CLIP_PT_tools_orientation(Panel):
         col.prop(settings, "distance")
 
 
+class CLIP_PT_tools_object(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Object"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        if clip and sc.mode == 'RECONSTRUCTION':
+            tracking_object = clip.tracking.objects.active
+            return not tracking_object.is_camera
+
+        return False
+
+    def draw(self, context):
+        sc = context.space_data
+        clip = sc.clip
+        layout = self.layout
+        tracking_object = clip.tracking.objects.active
+        settings = sc.clip.tracking.settings
+
+        col = layout.column()
+
+        col.prop(tracking_object, "scale")
+
+        col.separator()
+
+        col.operator("clip.set_solution_scale", text="Set Scale")
+        col.prop(settings, "object_distance")
+
+
 class CLIP_PT_tools_grease_pencil(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'

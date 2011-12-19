@@ -351,6 +351,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_set_floor);
 	WM_operatortype_append(CLIP_OT_set_axis);
 	WM_operatortype_append(CLIP_OT_set_scale);
+	WM_operatortype_append(CLIP_OT_set_solution_scale);
 
 	/* detect */
 	WM_operatortype_append(CLIP_OT_detect_features);

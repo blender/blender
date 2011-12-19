@@ -86,6 +86,7 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->settings.keyframe1= 1;
 	tracking->settings.keyframe2= 30;
 	tracking->settings.dist= 1;
+	tracking->settings.object_distance= 1;
 
 	tracking->stabilization.scaleinf= 1.0f;
 	tracking->stabilization.locinf= 1.0f;
@@ -1920,6 +1921,16 @@ static int reconstruction_camera_index(MovieTrackingReconstruction *reconstructi
 	return -1;
 }
 
+static void scale_reconstructed_camera(MovieTrackingObject *object, float mat[4][4])
+{
+	if((object->flag&TRACKING_OBJECT_CAMERA)==0) {
+		float smat[4][4];
+
+		scale_m4_fl(smat, 1.0f/object->scale);
+		mult_m4_m4m4(mat, mat, smat);
+	}
+}
+
 MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking,
 			MovieTrackingObject *object, int framenr)
 {
@@ -1958,6 +1969,8 @@ void BKE_tracking_get_interpolated_camera(MovieTracking *tracking, MovieTracking
 	} else {
 		copy_m4_m4(mat, cameras[a].mat);
 	}
+
+	scale_reconstructed_camera(object, mat);
 }
 
 void BKE_get_tracking_mat(Scene *scene, Object *ob, float mat[4][4])
