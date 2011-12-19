@@ -1701,7 +1701,7 @@ int CustomData_number_of_layers(const CustomData *data, int type)
 	return number;
 }
 
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
+void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int type, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1713,7 +1713,20 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 
@@ -1721,7 +1734,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 }
 
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, const char *name)
+												  const int type, const char *name, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1733,7 +1746,20 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 

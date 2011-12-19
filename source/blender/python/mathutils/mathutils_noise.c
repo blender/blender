@@ -201,7 +201,7 @@ static void rand_vn(float *array_tar, const int size)
 {
 	float *array_pt= array_tar + (size-1);
 	int i= size;
-	while(i--) { *(array_pt--) = 2.0f * frand() - 1.0f; }
+	while (i--) { *(array_pt--) = 2.0f * frand() - 1.0f; }
 }
 
 /* Fills an array of length 3 with noise values */

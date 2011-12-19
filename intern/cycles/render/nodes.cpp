@@ -869,6 +869,26 @@ void ConvertNode::compile(OSLCompiler& compiler)
 		assert(0);
 }
 
+/* Proxy */
+
+ProxyNode::ProxyNode(ShaderSocketType from_, ShaderSocketType to_)
+: ShaderNode("proxy")
+{
+	from = from_;
+	to = to_;
+
+	add_input("Input", from);
+	add_output("Output", to);
+}
+
+void ProxyNode::compile(SVMCompiler& compiler)
+{
+}
+
+void ProxyNode::compile(OSLCompiler& compiler)
+{
+}
+
 /* BSDF Closure */
 
 BsdfNode::BsdfNode()

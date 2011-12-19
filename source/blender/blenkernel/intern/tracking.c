@@ -1154,7 +1154,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(map_size>1)
 	for(a= 0; a<map_size; a++) {
-		TrackContext *track_context;
+		TrackContext *track_context = NULL;
 		MovieTrackingTrack *track;
 		MovieTrackingMarker *marker;
 

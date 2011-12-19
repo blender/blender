@@ -279,24 +279,22 @@
 #  endif
 #  if defined(__GNUC__) || defined(_MSC_VER) /* check __func__ is available */
 #    define BLI_assert(a)                                                     \
-do {                                                                          \
-	if (!(a)) {                                                               \
+	(void)((!(a)) ?  (                                                        \
+		(                                                                     \
 		fprintf(stderr,                                                       \
 			"BLI_assert failed: %s, %s(), %d at \'%s\'\n",                    \
-			__FILE__, __func__, __LINE__, STRINGIFY(a));                      \
-		_dummy_abort();                                                       \
-	}                                                                         \
-} while (0)
+			__FILE__, __func__, __LINE__, STRINGIFY(a)),                      \
+		_dummy_abort(),                                                       \
+		NULL)) : NULL)
 #  else
-#    define BLI_assert(a) \
-do {                                                                          \
-	if (0 == (a)) {                                                           \
+#    define BLI_assert(a)                                                     \
+	(void)((!(a)) ?  (                                                        \
+		(                                                                     \
 		fprintf(stderr,                                                       \
 			"BLI_assert failed: %s, %d at \'%s\'\n",                          \
-			__FILE__, __LINE__, STRINGIFY(a));                                \
-		_dummy_abort();                                                       \
-	}                                                                         \
-} while (0)
+			__FILE__, __LINE__, STRINGIFY(a)),                                \
+		_dummy_abort(),                                                       \
+		NULL)) : NULL)
 #  endif
 #else
 #  define BLI_assert(a) (void)0

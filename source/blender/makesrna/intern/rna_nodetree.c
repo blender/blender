@@ -64,9 +64,13 @@ EnumPropertyItem nodetree_type_items[] = {
 
 
 EnumPropertyItem node_socket_type_items[] = {
-	{SOCK_FLOAT,  "VALUE",     0,    "Value",     ""},
-	{SOCK_VECTOR, "VECTOR",    0,    "Vector",    ""},
-	{SOCK_RGBA,   "RGBA",      0,    "RGBA",      ""},
+	{SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
+	{SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
+	{SOCK_RGBA,    "RGBA",      0,    "RGBA",      ""},
+	{SOCK_SHADER,  "SHADER",    0,    "Shader",    ""},
+	{SOCK_BOOLEAN, "BOOLEAN",   0,    "Boolean",   ""},
+	{SOCK_MESH,    "MESH",      0,    "Mesh",      ""},
+	{SOCK_INT,     "INT",       0,    "Int",       ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem node_math_items[] = {

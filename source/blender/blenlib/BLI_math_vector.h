@@ -199,6 +199,7 @@ double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int s
 float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
 float normalize_vn(float *array_tar, const int size);
 void range_vn_i(int *array_tar, const int size, const int start);
+void range_vn_fl(float *array_tar, const int size, const float start, const float step);
 void negate_vn(float *array_tar, const int size);
 void negate_vn_vn(float *array_tar, const float *array_src, const int size);
 void mul_vn_fl(float *array_tar, const int size, const float f);

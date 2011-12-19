@@ -231,6 +231,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	BLI_array_declare(fverts);
 	EdgeHash *ehash;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
+	float uv[3]= {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0]= limit[1]= STD_UV_CONNECT_LIMIT;
 	vmap= make_uv_vert_map(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
@@ -254,11 +255,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 			if (v->separate) {
 				CCGVert *ssv;
 				CCGVertHDL vhdl = SET_INT_IN_POINTER(v->f*4 + v->tfindex);
-				float uv[3];
 
-				uv[0]= mloopuv[mpoly[v->f].loopstart + v->tfindex].uv[0];
-				uv[1]= mloopuv[mpoly[v->f].loopstart + v->tfindex].uv[1];
-				uv[2]= 0.0f;
+				copy_v2_v2(uv, mloopuv[mpoly[v->f].loopstart + v->tfindex].uv);
 
 				ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
 			}

@@ -3214,7 +3214,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 						/* hit data	*/
 						float hitCoord[3];
 						int hitFace = -1;
-						short hitQuad;
+						short hitQuad = 0;
 
 						/* Supersampling factor	*/
 						if (samples > 1 && surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
@@ -4641,7 +4641,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 	#pragma omp parallel for schedule(static)
 	for (index=0; index<sData->total_points; index++)
 	{
-		float prev_point[3];
+		float prev_point[3] = {0.0f, 0.0f, 0.0f};
 		if (do_velocity_data && !new_bdata) {
 			copy_v3_v3(prev_point, bData->realCoord[bData->s_pos[index]].v);
 		}

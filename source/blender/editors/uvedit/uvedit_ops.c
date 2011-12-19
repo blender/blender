@@ -724,8 +724,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			cent[0] += luv->uv[0];
-			cent[1] += luv->uv[1];
+			add_v2_v2(cent, luv->uv);
 		}
 
 		cent[0] /= efa->len;

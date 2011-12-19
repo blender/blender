@@ -156,6 +156,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.mute_toggle")
         layout.operator("node.preview_toggle")
         layout.operator("node.hide_socket_toggle")
+        layout.operator("node.options_toggle")
 
         layout.separator()
 

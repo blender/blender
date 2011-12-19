@@ -883,67 +883,71 @@ enum {
 	CALC_WP_AUTO_NORMALIZE= (1<<1)
 };
 
-static void calc_weightpaint_vert_color(
-        Object *ob, const int defbase_tot, ColorBand *coba, int vert, unsigned char *col,
-        const char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
+void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const float input)
 {
-	Mesh *me = ob->data;
+	float colf[4];
+
+	if(coba) do_colorband(coba, input, colf);
+	else     weight_to_rgb(colf, input);
+
+	r_col[3] = (unsigned char)(colf[0] * 255.0f);
+	r_col[2] = (unsigned char)(colf[1] * 255.0f);
+	r_col[1] = (unsigned char)(colf[2] * 255.0f);
+	r_col[0] = 255;
+}
+
+
+static void calc_weightpaint_vert_color(
+        unsigned char r_col[4],
+        MDeformVert *dv, ColorBand *coba,
+        const int defbase_tot, const int defbase_act,
+        const char *dg_flags,
+        const int selected, const int draw_flag)
+{
 	float input = 0.0f;
 	
 	int make_black= FALSE;
 
-	if (me->dvert) {
-		MDeformVert *dvert= &me->dvert[vert];
+	if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
+		int was_a_nonzero= FALSE;
+		int i;
 
-		if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
-			int was_a_nonzero= FALSE;
-			int i;
-
-			MDeformWeight *dw= dvert->dw;
-			for (i = dvert->totweight; i > 0; i--, dw++) {
-				/* in multipaint, get the average if auto normalize is inactive
-				 * get the sum if it is active */
-				if (dw->def_nr < defbase_tot) {
-					if (dg_flags[dw->def_nr]) {
-						if (dw->weight) {
-							input += dw->weight;
-							was_a_nonzero= TRUE;
-						}
+		MDeformWeight *dw= dv->dw;
+		for (i = dv->totweight; i > 0; i--, dw++) {
+			/* in multipaint, get the average if auto normalize is inactive
+			 * get the sum if it is active */
+			if (dw->def_nr < defbase_tot) {
+				if (dg_flags[dw->def_nr]) {
+					if (dw->weight) {
+						input += dw->weight;
+						was_a_nonzero= TRUE;
 					}
 				}
 			}
+		}
 
-			/* make it black if the selected groups have no weight on a vertex */
-			if (was_a_nonzero == FALSE) {
-				make_black = TRUE;
-			}
-			else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
-				input /= selected; /* get the average */
-			}
+		/* make it black if the selected groups have no weight on a vertex */
+		if (was_a_nonzero == FALSE) {
+			make_black = TRUE;
 		}
-		else {
-			/* default, non tricky behavior */
-			input= defvert_find_weight(dvert, ob->actdef-1);
+		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
+			input /= selected; /* get the average */
 		}
-	}
-	
-	if (make_black) {
-		col[3] = 0;
-		col[2] = 0;
-		col[1] = 0;
-		col[0] = 255;
 	}
 	else {
-		float colf[4];
+		/* default, non tricky behavior */
+		input= defvert_find_weight(dv, defbase_act);
+	}
+
+	if (make_black) { /* TODO, theme color */
+		r_col[3] = 0;
+		r_col[2] = 0;
+		r_col[1] = 0;
+		r_col[0] = 255;
+	}
+	else {
 		CLAMP(input, 0.0f, 1.0f);
-
-		if(coba) do_colorband(coba, input, colf);
-		else     weight_to_rgb(colf, input);
-
-		col[3] = (unsigned char)(colf[0] * 255.0f);
-		col[2] = (unsigned char)(colf[1] * 255.0f);
-		col[1] = (unsigned char)(colf[2] * 255.0f);
-		col[0] = 255;
+		weightpaint_color(r_col, coba, input);
 	}
 }
 
@@ -956,7 +960,7 @@ void vDM_ColorBand_store(ColorBand *coba)
 
 static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 {
-	// Mesh *me = ob->data; // UNUSED
+	Mesh *me = ob->data;
 	MFace *mf = dm->getTessFaceArray(dm);
 	MLoop *mloop = dm->getLoopArray(dm), *ml;
 	MPoly *mp = dm->getPolyArray(dm);
@@ -968,21 +972,32 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 
 	int defbase_tot = BLI_countlist(&ob->defbase);
-	char *defbase_sel = MEM_mallocN(defbase_tot * sizeof(char), __func__);
-	int selected = get_selected_defgroups(ob, defbase_sel, defbase_tot);
-	int unselected = defbase_tot - selected;
+	const int defbase_act = ob->actdef-1;
+	char *dg_flags = MEM_mallocN(defbase_tot * sizeof(char), __func__);
+	int selected = get_selected_defgroups(ob, dg_flags, defbase_tot);
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
-	
-	/*first add colors to the tesselation faces*/
-	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
-	for (i=0; i<totface; i++, mf++) {
-		/*origindex being NULL means we're operating on original mesh data*/
-		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
-		if (mf->v4)
-			calc_weightpaint_vert_color(ob, defbase_tot, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
+
+	if (me->dvert) {
+		MDeformVert *dvert= me->dvert;
+		/*first add colors to the tesselation faces*/
+		memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
+		for (i=0; i<totface; i++, mf++) {
+			/*origindex being NULL means we're operating on original mesh data*/
+			unsigned int fidx= mf->v4 ? 3:2;
+			do {
+				calc_weightpaint_vert_color(&wtcol[(i*4 + fidx)*4],
+				                            &dvert[*(&mf->v1 + fidx)], coba,
+				                            defbase_tot, defbase_act,
+				                            dg_flags, selected, draw_flag);
+			} while (fidx--);
+		}
+	}
+	else {
+		/* no weights, fill in zero */
+		int col_i;
+		weightpaint_color((unsigned char *)&col_i, coba, 0.0f);
+		fill_vn_i((int *)wtcol, totface*4, col_i);
 	}
 	
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
@@ -990,17 +1005,21 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	/*now add to loops, so the data can be passed through the modifier stack*/
 	totloop = 0;
 	for (i=0; i<dm->numPolyData; i++, mp++) {
+		MDeformVert *dvert= me->dvert;
+
 		ml = mloop + mp->loopstart;
 
 		for (j=0; j<mp->totloop; j++, ml++, totloop++) {
 			BLI_array_growone(wlcol);
 
-			calc_weightpaint_vert_color(ob, defbase_tot, coba, origIndex ? origIndex[ml->v] : ml->v,
-										(unsigned char *)&wlcol[totloop], defbase_sel, selected, unselected, draw_flag);
+			calc_weightpaint_vert_color((unsigned char *)&wlcol[totloop],
+			                            &dvert[origIndex ? origIndex[ml->v] : ml->v], coba,
+			                            defbase_tot, defbase_act,
+										dg_flags, selected, draw_flag);
 		}
 	}
 
-	MEM_freeN(defbase_sel);
+	MEM_freeN(dg_flags);
 
 	CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wlcol, totloop);
 }

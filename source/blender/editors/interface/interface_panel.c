@@ -330,7 +330,6 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 #endif
 
 /* triangle 'icon' for panel header */
-/* NOTE - this seems to be only used for hiding nodes now */
 void UI_DrawTriIcon(float x, float y, char dir)
 {
 	if(dir=='h') {

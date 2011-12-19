@@ -810,11 +810,11 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 	
 	if(value) {
 		ob->matbits[index]= 1;
-		ob->colbits |= (1<<index);
+		/* ob->colbits |= (1<<index); */ /* DEPRECATED */
 	}
 	else {
 		ob->matbits[index]= 0;
-		ob->colbits &= ~(1<<index);
+		/* ob->colbits &= ~(1<<index); */ /* DEPRECATED */
 	}
 }
 
