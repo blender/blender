@@ -1939,22 +1939,10 @@ PyTypeObject matrix_Type = {
 	NULL								/*tp_del*/
 };
 
-/*------------------------Matrix_CreatePyObject (internal)-------------
-creates a new matrix object
-self->matrix     self->contiguous_ptr (reference to data.xxx)
-	   [0]------------->[0]
-						[1]
-						[2]
-	   [1]------------->[3]
-						[4]
-						[5]
-
-self->matrix[1][1] = self->contigPtr[4] */
-
-/*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
- (i.e. it was allocated elsewhere by MEM_mallocN())
-  pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
- (i.e. it must be created here with PyMEM_malloc())*/
+/* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
+ * (i.e. it was allocated elsewhere by MEM_mallocN())
+ * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
+ * (i.e. it must be created here with PyMEM_malloc()) */
 PyObject *Matrix_CreatePyObject(float *mat,
                                 const unsigned short row_size, const unsigned short col_size,
                                 int type, PyTypeObject *base_type)
@@ -1996,11 +1984,13 @@ PyObject *Matrix_CreatePyObject(float *mat,
 			if (mat) {	/*if a float array passed*/
 				memcpy(self->contigPtr, mat, row_size * col_size * sizeof(float));
 			}
-			else if (row_size == col_size) { /*or if no arguments are passed return identity matrix for square matrices */
+			else if (row_size == col_size) {
+				/* or if no arguments are passed return identity matrix for square matrices */
 				PyObject *ret_dummy= Matrix_identity(self);
 				Py_DECREF(ret_dummy);
 			}
 			else {
+				/* otherwise zero everything */
 				memset(self->contigPtr, 0, row_size * col_size * sizeof(float));
 			}
 			self->wrapped = Py_NEW;
