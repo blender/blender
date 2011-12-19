@@ -1487,7 +1487,7 @@ int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, 
 
 	for (x = 0; x < mat->col_size; x++) {
 		for (y = 0; y < mat->row_size; y++) {
-			dot += (double)(mat->matrix[y][x] * vec_cpy[y]);
+			dot += (double)(MATRIX_ITEM(mat, y, x) * vec_cpy[y]);
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;
@@ -2610,7 +2610,7 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	//muliplication
 	for (x = 0; x < mat->row_size; x++) {
 		for (y = 0; y < mat->col_size; y++) {
-			dot += mat->matrix[x][y] * vec_cpy[y];
+			dot += MATRIX_ITEM(mat, x, y) * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;

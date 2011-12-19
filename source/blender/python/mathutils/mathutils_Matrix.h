@@ -38,9 +38,23 @@ extern PyTypeObject matrix_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 #define MATRIX_MAX_DIM 4
 
+/* to remove pymat->matrix[row][col] */
+
+#ifdef DEBUG
+#  define MATRIX_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->row_size && _col < (_mat)->col_size))
+#else
+#  define MATRIX_ASSERT(_mat, _row, _col) (void)0
+#endif
+
+#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ASSERT(_mat, _row, _col), (((_mat)->col_size * (_row)) + (_col)))
+#define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->contigPtr + MATRIX_ITEM_INDEX(_mat, _row, _col))
+#define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->contigPtr  [MATRIX_ITEM_INDEX(_mat, _row, _col)])
+
+#define MATRIX_ROW_INDEX(_mat, _row) (MATRIX_ITEM_INDEX(_mat, _row, 0))
+#define MATRIX_ROW_PTR(  _mat, _row) ((_mat)->contigPtr + MATRIX_ROW_INDEX(_mat, _row))
+
 typedef struct {
 	BASE_MATH_MEMBERS(contigPtr);
-	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
 	unsigned short row_size;
 	unsigned short col_size;
 } MatrixObject;
