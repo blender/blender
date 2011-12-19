@@ -1325,32 +1325,6 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_TEXTURE;
 }
 
-/* use flags are not persistent yet, groups might need different tagging, so we do it each time
-   when we need to get this info */
-void ntreeSocketUseFlags(bNodeTree *ntree)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	bNodeLink *link;
-	
-	/* clear flags */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_IN_USE;
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_IN_USE;
-	}
-	
-	/* tag all thats in use */
-	for(link= ntree->links.first; link; link= link->next) {
-	
-		if(link->fromsock) // FIXME, see below
-			link->fromsock->flag |= SOCK_IN_USE;
-		if(link->tosock) // FIXME This can be NULL, when dragging a new link in the UI, should probably copy the node tree for preview render - campbell
-			link->tosock->flag |= SOCK_IN_USE;
-	}
-}
-
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
@@ -1425,16 +1399,27 @@ static void ntree_update_link_pointers(bNodeTree *ntree)
 	
 	/* first clear data */
 	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next)
+		for(sock= node->inputs.first; sock; sock= sock->next) {
 			sock->link= NULL;
+			sock->flag &= ~SOCK_IN_USE;
+		}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			sock->flag &= ~SOCK_IN_USE;
+		}
 	}
-	/* clear socket links */
-	for(sock= ntree->outputs.first; sock; sock= sock->next)
+	for(sock= ntree->inputs.first; sock; sock= sock->next) {
+		sock->flag &= ~SOCK_IN_USE;
+	}
+	for(sock= ntree->outputs.first; sock; sock= sock->next) {
 		sock->link= NULL;
+		sock->flag &= ~SOCK_IN_USE;
+	}
 
 	for(link= ntree->links.first; link; link= link->next) {
-		if (link->tosock)
-			link->tosock->link= link;
+		link->tosock->link= link;
+		
+		link->fromsock->flag |= SOCK_IN_USE;
+		link->tosock->flag |= SOCK_IN_USE;
 	}
 }
 
