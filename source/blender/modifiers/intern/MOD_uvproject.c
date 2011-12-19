@@ -259,11 +259,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
+	numFaces = dm->getNumFaces(dm);
+
 	/* make sure we are not modifying the original UV map */
 	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
-			CD_MTFACE, uvname);
+			CD_MTFACE, uvname, numFaces);
 
-	
 	numVerts = dm->getNumVerts(dm);
 
 	coords = MEM_callocN(sizeof(*coords) * numVerts,
@@ -280,7 +281,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			mul_project_m4_v3(projectors[0].projmat, *co);
 
 	mface = dm->getFaceArray(dm);
-	numFaces = dm->getNumFaces(dm);
 
 	/* apply coords as UVs, and apply image if tfaces are new */
 	for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tface) {
