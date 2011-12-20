@@ -25,6 +25,7 @@
 #include "device.h"
 #include "device_intern.h"
 
+#include "util_foreach.h"
 #include "util_map.h"
 #include "util_math.h"
 #include "util_md5.h"
@@ -52,6 +53,7 @@ public:
 	map<string, device_memory*> mem_map;
 	device_ptr null_mem;
 	bool device_initialized;
+	string platform_name;
 
 	const char *opencl_error_string(cl_int err)
 	{
@@ -175,6 +177,10 @@ public:
 		if(opencl_error(ciErr))
 			return;
 
+		char name[256];
+		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
+		platform_name = name;
+
 		cxContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
 		if(opencl_error(ciErr))
 			return;
@@ -191,7 +197,7 @@ public:
 	{
 		char version[256];
 
-		int major, minor, req_major = 1, req_minor = 0;
+		int major, minor, req_major = 1, req_minor = 1;
 
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
 
@@ -277,14 +283,11 @@ public:
 	{
 		string build_options = " -cl-fast-relaxed-math ";
 		
-		/* Full Shading only on NVIDIA cards at the moment */
-		char vendor[256];
-
-		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(vendor), &vendor, NULL);
-		string name = vendor;
-		
-		if(name == "NVIDIA CUDA")
-			build_options += "-D__KERNEL_SHADING__ -D__MULTI_CLOSURE__ ";
+		/* full shading only on NVIDIA cards at the moment */
+		if(platform_name == "NVIDIA CUDA")
+			build_options += "-D__KERNEL_SHADING__ -D__MULTI_CLOSURE__ -cl-nv-maxrregcount=24 -cl-nv-verbose ";
+		if(platform_name == "Apple")
+			build_options += " -D__CL_NO_FLOAT3__ ";
 
 		return build_options;
 	}
@@ -657,12 +660,24 @@ public:
 		opencl_assert(clFinish(cqCommandQueue));
 	}
 
-	void task_add(DeviceTask& task)
+	void task_add(DeviceTask& maintask)
 	{
-		if(task.type == DeviceTask::TONEMAP)
-			tonemap(task);
-		else if(task.type == DeviceTask::PATH_TRACE)
-			path_trace(task);
+		list<DeviceTask> tasks;
+
+		/* arbitrary limit to work around apple ATI opencl issue */
+		if(platform_name == "Apple")
+			maintask.split_max_size(tasks, 76800);
+		else
+			tasks.push_back(maintask);
+
+		DeviceTask task;
+
+		foreach(DeviceTask& task, tasks) {
+			if(task.type == DeviceTask::TONEMAP)
+				tonemap(task);
+			else if(task.type == DeviceTask::PATH_TRACE)
+				path_trace(task);
+		}
 	}
 
 	void task_wait()

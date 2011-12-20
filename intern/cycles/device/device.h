@@ -23,6 +23,7 @@
 
 #include "device_memory.h"
 
+#include "util_list.h"
 #include "util_string.h"
 #include "util_thread.h"
 #include "util_types.h"
@@ -67,7 +68,10 @@ public:
 	int displace_x, displace_w;
 
 	DeviceTask(Type type = PATH_TRACE);
+
+	void split(list<DeviceTask>& tasks, int num);
 	void split(ThreadQueue<DeviceTask>& tasks, int num);
+	void split_max_size(list<DeviceTask>& tasks, int max_size);
 };
 
 /* Device */
