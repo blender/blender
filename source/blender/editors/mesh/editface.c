@@ -820,7 +820,8 @@ int ED_mesh_mirrtopo_recalc_check(Mesh *me, const int ob_mode, MirrTopoStore_t *
 
 }
 
-void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store)
+void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
+                           const short skip_em_vert_array_init)
 {
 	MEdge *medge;
 	BMEditMesh *em= me->edit_btmesh;
@@ -914,7 +915,9 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 	mesh_topo_store->index_lookup = MEM_mallocN( totvert * sizeof(long), "mesh_topo_lookup" );
 
 	if(em) {
-		EDBM_init_index_arrays(em,1,0,0);
+		if (skip_em_vert_array_init == FALSE) {
+			EDBM_init_index_arrays(em,1,0,0);
+		}
 	}
 
 
@@ -949,7 +952,9 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 	}
 	if(em) {
-		EDBM_free_index_arrays(em);
+		if (skip_em_vert_array_init == FALSE) {
+			EDBM_free_index_arrays(em);
+		}
 	}
 
 	MEM_freeN( MirrTopoPairs );

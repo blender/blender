@@ -796,6 +796,12 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
 }
 
+static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
+{
+	intptr_t eve_i= index_lookup[index];
+	return (eve_i == -1) ? NULL : (BMVert *)eve_i;
+}
+
 /* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a
  * preference */
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
@@ -803,10 +809,13 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 {
 	Mesh *me = em->me;
-	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMVert *v;
 	int li, topo = 0;
+
+	/* one or the other is used depending if topo is enabled */
+	BMBVHTree *tree= NULL;
+	MirrTopoStore_t mesh_topo_store= {NULL, -1, -1, -1};
 
 	if (me && (me->editflag & ME_EDIT_MIRROR_TOPO)) {
 		topo = 1;
@@ -827,6 +836,13 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 
 	BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
+	if (topo) {
+		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, TRUE);
+	}
+	else {
+		 tree= BMBVH_NewBVH(em, 0, NULL, NULL);
+	}
+
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		BMVert *mirr;
 		int *idx = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, li);
@@ -835,9 +851,10 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 		//temporary for testing, check for selection
 		if (use_select && !BM_TestHFlag(v, BM_SELECT))
 			continue;
-		
+
 		mirr = topo ?
-			BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST_MIRR, v) :
+			/* BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST_MIRR, v) */
+		    cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, BM_GetIndex(v)) :
 			BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST_MIRR);
 
 		if (mirr && mirr != v) {
@@ -850,7 +867,13 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 		}
 	}
 
-	BMBVH_FreeBVH(tree);
+
+	if (topo) {
+		ED_mesh_mirrtopo_free(&mesh_topo_store);
+	}
+	else {
+		BMBVH_FreeBVH(tree);
+	}
 
 	em->mirror_cdlayer= li;
 }

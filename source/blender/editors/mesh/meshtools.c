@@ -914,7 +914,7 @@ int mesh_mirrtopo_table(Object *ob, char mode)
 		}
 	}
 	else if(mode=='s') { /* start table */
-		ED_mesh_mirrtopo_init(ob->data, ob->mode, &mesh_topo_store);
+		ED_mesh_mirrtopo_init(ob->data, ob->mode, &mesh_topo_store, FALSE);
 	}
 	else if(mode=='e') { /* end table */
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
