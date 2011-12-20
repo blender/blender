@@ -191,7 +191,7 @@ public:
 	{
 		char version[256];
 
-		int major, minor, req_major = 1, req_minor = 1;
+		int major, minor, req_major = 1, req_minor = 0;
 
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
 
@@ -541,6 +541,8 @@ public:
 		cl_int d_w = task.w;
 		cl_int d_h = task.h;
 		cl_int d_sample = task.sample;
+		cl_int d_offset = task.offset;
+		cl_int d_stride = task.stride;
 
 		/* sample arguments */
 		int narg = 0;
@@ -559,6 +561,8 @@ public:
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_h), (void*)&d_h);
+		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_offset), (void*)&d_offset);
+		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_stride), (void*)&d_stride);
 
 		opencl_assert(ciErr);
 
@@ -611,6 +615,8 @@ public:
 		cl_int d_h = task.h;
 		cl_int d_sample = task.sample;
 		cl_int d_resolution = task.resolution;
+		cl_int d_offset = task.offset;
+		cl_int d_stride = task.stride;
 
 		/* sample arguments */
 		int narg = 0;
@@ -630,6 +636,8 @@ public:
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_w), (void*)&d_w);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_h), (void*)&d_h);
+		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_offset), (void*)&d_offset);
+		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_stride), (void*)&d_stride);
 
 		opencl_assert(ciErr);
 

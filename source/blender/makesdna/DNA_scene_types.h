@@ -576,7 +576,7 @@ typedef struct GameData {
 	short mode, matmode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
-	short pad[2];
+	short exitkey, pad;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation, pad1;
 	float levelHeight;

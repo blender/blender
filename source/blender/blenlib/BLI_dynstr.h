@@ -100,6 +100,17 @@ int		BLI_dynstr_get_len				(DynStr *ds);
 	 */
 char*	BLI_dynstr_get_cstring			(DynStr *ds);
 
+/**
+ * Get a DynStr's contents as a c-string.
+ * <i> The str argument must be allocated to be at
+ * least the size of BLI_dynstr_get_len(ds) + 1. </i>
+ *
+ * @param ds The DynStr of interest.
+ * @param str The string to fill.
+ * @return The contents of @a ds as a c-string.
+ */
+void	BLI_dynstr_get_cstring_ex		(DynStr *ds, char *str);
+
 	/**
 	 * Free the DynStr
 	 * 

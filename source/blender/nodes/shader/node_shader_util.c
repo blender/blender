@@ -134,8 +134,6 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 	bNodeSocket *sock;
 	int a;
 	
-	ntreeSocketUseFlags(ntree);
-
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==SH_NODE_TEXTURE) {
 			if((r_mode & R_OSA) && node->id) {

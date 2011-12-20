@@ -273,7 +273,6 @@ static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turb
 
 	ksunsky->theta = theta;
 	ksunsky->phi = phi;
-	ksunsky->dir = dir;
 
 	float theta2 = theta*theta;
 	float theta3 = theta*theta*theta;

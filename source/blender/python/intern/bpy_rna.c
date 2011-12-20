@@ -642,7 +642,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			if (len==16) {
 				if (is_thick) {
 					ret= Matrix_CreatePyObject(NULL, 4, 4, Py_NEW, NULL);
-					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
+					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 				}
 				else {
 					PyObject *mat_cb= Matrix_CreatePyObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
@@ -653,7 +653,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 			else if (len==9) {
 				if (is_thick) {
 					ret= Matrix_CreatePyObject(NULL, 3, 3, Py_NEW, NULL);
-					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->contigPtr);
+					RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 				}
 				else {
 					PyObject *mat_cb= Matrix_CreatePyObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);

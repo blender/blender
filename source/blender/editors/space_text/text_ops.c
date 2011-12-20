@@ -195,7 +195,6 @@ void TEXT_OT_new(wmOperatorType *ot)
 	ot->description= "Create a new text data block";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= text_new_exec;
 	ot->poll= text_new_poll;
 	

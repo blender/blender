@@ -7459,6 +7459,30 @@ void do_versions_image_settings_2_60(Scene *sce)
 
 }
 
+/* socket use flags were only temporary before */
+static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		for (sock=node->inputs.first; sock; sock=sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+		for (sock=node->outputs.first; sock; sock=sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+	}
+	for (sock=ntree->inputs.first; sock; sock=sock->next)
+		sock->flag &= ~SOCK_IN_USE;
+	for (sock=ntree->outputs.first; sock; sock=sock->next)
+		sock->flag &= ~SOCK_IN_USE;
+	
+	for (link=ntree->links.first; link; link=link->next) {
+		link->fromsock->flag |= SOCK_IN_USE;
+		link->tosock->flag |= SOCK_IN_USE;
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -12688,40 +12712,82 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
-		MovieClip *clip;
-		Object *ob;
+		{
+			/* update use flags for node sockets (was only temporary before) */
+			Scene *sce;
+			Material *mat;
+			Tex *tex;
+			Lamp *lamp;
+			World *world;
+			bNodeTree *ntree;
 
-		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
-			MovieTracking *tracking= &clip->tracking;
-			MovieTrackingObject *tracking_object= tracking->objects.first;
+			for (sce=main->scene.first; sce; sce=sce->id.next)
+				if (sce->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(sce->nodetree);
 
-			if(!tracking->settings.object_distance)
-				tracking->settings.object_distance= 1.0f;
+			for (mat=main->mat.first; mat; mat=mat->id.next)
+				if (mat->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(mat->nodetree);
 
-			if(tracking->objects.first == NULL)
-				BKE_tracking_new_object(tracking, "Camera");
+			for (tex=main->tex.first; tex; tex=tex->id.next)
+				if (tex->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(tex->nodetree);
 
-			while(tracking_object) {
-				if(!tracking_object->scale)
-					tracking_object->scale= 1.0f;
+			for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
+				if (lamp->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(lamp->nodetree);
 
-				tracking_object= tracking_object->next;
+			for (world=main->world.first; world; world=world->id.next)
+				if (world->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(world->nodetree);
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_socket_use_flags_2_62(ntree);
+		}
+		{
+			/* Initialize BGE exit key to esc key */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				if (!scene->gm.exitkey)
+					scene->gm.exitkey = 218; // Blender key code for ESC
 			}
 		}
+		{
+			MovieClip *clip;
+			Object *ob;
 
-		for (ob= main->object.first; ob; ob= ob->id.next) {
-			bConstraint *con;
-			for (con= ob->constraints.first; con; con=con->next) {
-				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+				MovieTracking *tracking= &clip->tracking;
+				MovieTrackingObject *tracking_object= tracking->objects.first;
 
-				if(!cti)
-					continue;
+				if(!tracking->settings.object_distance)
+					tracking->settings.object_distance= 1.0f;
 
-				if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
-					bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+				if(tracking->objects.first == NULL)
+					BKE_tracking_new_object(tracking, "Camera");
 
-					if(data->invmat[3][3]==0.0f)
-						unit_m4(data->invmat);
+				while(tracking_object) {
+					if(!tracking_object->scale)
+						tracking_object->scale= 1.0f;
+
+					tracking_object= tracking_object->next;
+				}
+			}
+
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				bConstraint *con;
+				for (con= ob->constraints.first; con; con=con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+					if(!cti)
+						continue;
+
+					if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+						bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+
+						if(data->invmat[3][3]==0.0f)
+							unit_m4(data->invmat);
+					}
 				}
 			}
 		}

@@ -174,9 +174,7 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.operator_context = 'EXEC_AREA'
         layout.operator("text.new")
-        layout.operator_context = 'INVOKE_AREA'
         layout.operator("text.open")
 
         if text:

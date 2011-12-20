@@ -28,21 +28,21 @@ TileManager::TileManager(bool progressive_, int samples_, int tile_size_, int mi
 	tile_size = tile_size_;
 	min_size = min_size_;
 
-	reset(0, 0, 0);
+	BufferParams buffer_params;
+	reset(buffer_params, 0);
 }
 
 TileManager::~TileManager()
 {
 }
 
-void TileManager::reset(int width_, int height_, int samples_)
+void TileManager::reset(BufferParams& params_, int samples_)
 {
-	full_width = width_;
-	full_height = height_;
+	params = params_;
 
 	start_resolution = 1;
 
-	int w = width_, h = height_;
+	int w = params.width, h = params.height;
 
 	if(min_size != INT_MAX) {
 		while(w*h > min_size*min_size) {
@@ -55,6 +55,8 @@ void TileManager::reset(int width_, int height_, int samples_)
 
 	samples = samples_;
 
+	state.full_x = 0;
+	state.full_y = 0;
 	state.width = 0;
 	state.height = 0;
 	state.sample = -1;
@@ -70,8 +72,8 @@ void TileManager::set_samples(int samples_)
 void TileManager::set_tiles()
 {
 	int resolution = state.resolution;
-	int image_w = max(1, full_width/resolution);
-	int image_h = max(1, full_height/resolution);
+	int image_w = max(1, params.width/resolution);
+	int image_h = max(1, params.height/resolution);
 	int tile_w = (image_w + tile_size - 1)/tile_size;
 	int tile_h = (image_h + tile_size - 1)/tile_size;
 	int sub_w = image_w/tile_w;
@@ -90,6 +92,8 @@ void TileManager::set_tiles()
 		}
 	}
 
+	state.full_x = params.full_x/resolution;
+	state.full_y = params.full_y/resolution;
 	state.width = image_w;
 	state.height = image_h;
 }

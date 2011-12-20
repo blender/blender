@@ -181,6 +181,7 @@ typedef struct World {
 #define TEXCO_ANGMAP	64
 #define TEXCO_H_SPHEREMAP	256
 #define TEXCO_H_TUBEMAP	1024
+#define TEXCO_EQUIRECTMAP 2048
 
 /* mapto */
 #define WOMAP_BLEND		1

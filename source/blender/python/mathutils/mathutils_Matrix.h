@@ -41,22 +41,22 @@ extern PyTypeObject matrix_Type;
 /* matrix[row][col] == MATRIX_ITEM_INDEX(matrix, row, col) */
 
 #ifdef DEBUG
-#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->row_size && _col < (_mat)->col_size))
+#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->num_row && _col < (_mat)->num_col))
 #else
 #  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (void)0
 #endif
 
-#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->col_size * (_row)) + (_col)))
-#define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->contigPtr + MATRIX_ITEM_INDEX(_mat, _row, _col))
-#define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->contigPtr  [MATRIX_ITEM_INDEX(_mat, _row, _col)])
+#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->num_row * (_col)) + (_row)))
+#define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->matrix + MATRIX_ITEM_INDEX(_mat, _row, _col))
+#define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->matrix  [MATRIX_ITEM_INDEX(_mat, _row, _col)])
 
-#define MATRIX_ROW_INDEX(_mat, _row) (MATRIX_ITEM_INDEX(_mat, _row, 0))
-#define MATRIX_ROW_PTR(  _mat, _row) ((_mat)->contigPtr + MATRIX_ROW_INDEX(_mat, _row))
+#define MATRIX_COL_INDEX(_mat, _col) (MATRIX_ITEM_INDEX(_mat, 0, _col))
+#define MATRIX_COL_PTR(  _mat, _col) ((_mat)->matrix + MATRIX_COL_INDEX(_mat, _col))
 
 typedef struct {
-	BASE_MATH_MEMBERS(contigPtr);
-	unsigned short row_size;
-	unsigned short col_size;
+	BASE_MATH_MEMBERS(matrix);
+	unsigned short num_col;
+	unsigned short num_row;
 } MatrixObject;
 
 /* struct data contains a pointer to the actual data that the
@@ -66,9 +66,9 @@ typedef struct {
 
 /* prototypes */
 PyObject *Matrix_CreatePyObject(float *mat,
-                                const unsigned short row_size, const unsigned short col_size,
+                                const unsigned short num_col, const unsigned short num_row,
                                 int type, PyTypeObject *base_type);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
+PyObject *Matrix_CreatePyObject_cb(PyObject *user, int num_col, int num_row, int cb_type, int cb_subtype);
 
 extern int mathutils_matrix_vector_cb_index;
 extern struct Mathutils_Callback mathutils_matrix_vector_cb;

@@ -520,6 +520,12 @@ public:
 		cuda_assert(cuParamSeti(cuPathTrace, offset, task.h))
 		offset += sizeof(task.h);
 
+		cuda_assert(cuParamSeti(cuPathTrace, offset, task.offset))
+		offset += sizeof(task.offset);
+
+		cuda_assert(cuParamSeti(cuPathTrace, offset, task.stride))
+		offset += sizeof(task.stride);
+
 		cuda_assert(cuParamSetSize(cuPathTrace, offset))
 
 		/* launch kernel: todo find optimal size, cache config for fermi */
@@ -580,6 +586,12 @@ public:
 
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.h))
 		offset += sizeof(task.h);
+
+		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.offset))
+		offset += sizeof(task.offset);
+
+		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.stride))
+		offset += sizeof(task.stride);
 
 		cuda_assert(cuParamSetSize(cuFilmConvert, offset))
 

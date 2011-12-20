@@ -64,7 +64,7 @@ BF_JPEG_LIB = 'liblibjpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
 WITH_BF_PNG = True
-BF_PNG = LIBDIR + 'gcc/png'
+BF_PNG = LIBDIR + '/gcc/png'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'

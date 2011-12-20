@@ -1213,6 +1213,13 @@ static void rna_GameSettings_auto_start_set(PointerRNA *UNUSED(ptr), int value)
 		G.fileflags &= ~G_FILE_AUTOPLAY;
 }
 
+static void rna_GameSettings_exit_key_set(PointerRNA *ptr, int value)
+{
+	GameData *gm = (GameData*)ptr->data;
+
+	if(ISKEYBOARD(value))
+		gm->exitkey=value;
+}
 
 static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 {
@@ -2102,6 +2109,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 8, 32);
 	RNA_def_property_ui_text(prop, "Bits", "Display bit depth of full screen display");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "exit_key", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "exitkey");
+	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_GameSettings_exit_key_set", NULL);
+	RNA_def_property_ui_text(prop, "Exit Key",  "Sets the key that exits the Game Engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	// Do we need it here ? (since we already have it in World

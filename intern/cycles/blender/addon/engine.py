@@ -62,11 +62,7 @@ def render(engine):
 
 def update(engine, data, scene):
     import bcycles
-    if scene.render.use_border:
-        engine.report({'ERROR'}, "Border rendering not supported yet")
-        free(engine)
-    else:
-        bcycles.sync(engine.session)
+    bcycles.sync(engine.session)
 
 
 def draw(engine, region, v3d, rv3d):

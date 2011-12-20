@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
 
 #define MAX_DIMENSIONS 4
 
@@ -1171,6 +1172,29 @@ static PyObject *Vector_repr(VectorObject *self)
 	return ret;
 }
 
+static PyObject *Vector_str(VectorObject *self)
+{
+	int i;
+
+	DynStr *ds;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	ds= BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, "<Vector (");
+
+	for (i = 0; i < self->size; i++) {
+		BLI_dynstr_appendf(ds, i ? ", %.4f" : "%.4f", self->vec[i]);
+	}
+
+	BLI_dynstr_append(ds, ")>");
+
+	return mathutils_dynstr_to_py(ds); /* frees ds */
+}
+
+
 /* Sequence Protocol */
 /* sequence length len(vector) */
 static int Vector_len(VectorObject *self)
@@ -1462,14 +1486,14 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
  * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
  * note: assume read callbacks have been done first.
  */
-int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
+int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
-	int x, y, z = 0;
+	int row, col, z = 0;
 
-	if (mat->row_size != vec->size) {
-		if (mat->row_size == 4 && vec->size == 3) {
+	if (mat->num_col != vec->size) {
+		if (mat->num_col == 4 && vec->size == 3) {
 			vec_cpy[3] = 1.0f;
 		}
 		else {
@@ -1483,13 +1507,13 @@ int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, 
 
 	memcpy(vec_cpy, vec->vec, vec->size * sizeof(float));
 
-	rvec[3] = 1.0f;
+	r_vec[3] = 1.0f;
 
-	for (x = 0; x < mat->col_size; x++) {
-		for (y = 0; y < mat->row_size; y++) {
-			dot += (double)(MATRIX_ITEM(mat, y, x) * vec_cpy[y]);
+	for (row = 0; row < mat->num_row; row++) {
+		for (col = 0; col < mat->num_col; col++) {
+			dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
 		}
-		rvec[z++] = (float)dot;
+		r_vec[z++] = (float)dot;
 		dot = 0.0f;
 	}
 
@@ -2589,8 +2613,8 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	double dot = 0.0f;
 	int x, y, z= 0, vec_size= vec->size;
 
-	if (mat->col_size != vec_size) {
-		if (mat->col_size == 4 && vec_size != 3) {
+	if (mat->num_row != vec_size) {
+		if (mat->num_row == 4 && vec_size != 3) {
 			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
@@ -2608,9 +2632,9 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 
 	rvec[3] = 1.0f;
 	//muliplication
-	for (x = 0; x < mat->row_size; x++) {
-		for (y = 0; y < mat->col_size; y++) {
-			dot += MATRIX_ITEM(mat, x, y) * vec_cpy[y];
+	for (x = 0; x < mat->num_col; x++) {
+		for (y = 0; y < mat->num_row; y++) {
+			dot += MATRIX_ITEM(mat, y, x) * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;
@@ -2715,7 +2739,7 @@ PyTypeObject vector_Type = {
 
 	NULL,                       /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
+	(reprfunc)Vector_str,       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
 

@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
 
 PyDoc_STRVAR(M_Mathutils_doc,
 "This module provides access to matrices, eulers, quaternions and vectors."
@@ -211,7 +212,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
-		else if (((MatrixObject *)value)->col_size < 3 || ((MatrixObject *)value)->row_size < 3) {
+		else if (((MatrixObject *)value)->num_row < 3 || ((MatrixObject *)value)->num_col < 3) {
 			PyErr_Format(PyExc_ValueError,
 			             "%.200s: matrix must have minimum 3x3 dimensions",
 			             error_prefix);
@@ -267,6 +268,18 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 	return 1;
 }
 
+/* dynstr as python string utility funcions, frees 'ds'! */
+PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
+{
+	const int ds_len = BLI_dynstr_get_len(ds); /* space for \0 */
+	char *ds_buf     = PyMem_Malloc(ds_len + 1);
+	PyObject *ret;
+	BLI_dynstr_get_cstring_ex(ds, ds_buf);
+	BLI_dynstr_free(ds);
+	ret = PyUnicode_FromStringAndSize(ds_buf, ds_len);
+	PyMem_Free(ds_buf);
+	return ret;
+}
 
 /* Mathutils Callbacks */
 
