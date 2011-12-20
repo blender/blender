@@ -48,10 +48,9 @@ __device uchar4 film_float_to_byte(float4 color)
 	return result;
 }
 
-__device void kernel_film_tonemap(KernelGlobals *kg, __global uchar4 *rgba, __global float4 *buffer, int sample, int resolution, int x, int y)
+__device void kernel_film_tonemap(KernelGlobals *kg, __global uchar4 *rgba, __global float4 *buffer, int sample, int resolution, int x, int y, int offset, int stride)
 {
-	int w = kernel_data.cam.width;
-	int index = x + y*w;
+	int index = offset + x + y*stride;
 	float4 irradiance = buffer[index];
 
 	float4 float_result = film_map(kg, irradiance, sample);

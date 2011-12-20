@@ -536,6 +536,11 @@ __device_inline float3 float4_to_float3(const float4 a)
 	return make_float3(a.x, a.y, a.z);
 }
 
+__device_inline float4 float3_to_float4(const float3 a)
+{
+	return make_float4(a.x, a.y, a.z, 1.0f);
+}
+
 #ifndef __KERNEL_GPU__
 
 __device_inline void print_float3(const char *label, const float3& a)

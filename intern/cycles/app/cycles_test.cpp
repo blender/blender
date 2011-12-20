@@ -82,10 +82,21 @@ static void session_print_status()
 	session_print(status);
 }
 
+static BufferParams session_buffer_params()
+{
+	BufferParams buffer_params;
+	buffer_params.width = options.width;
+	buffer_params.height = options.height;
+	buffer_params.full_width = options.width;
+	buffer_params.full_height = options.height;
+
+	return buffer_params;
+}
+
 static void session_init()
 {
 	options.session = new Session(options.session_params);
-	options.session->reset(options.width, options.height, options.session_params.samples);
+	options.session->reset(session_buffer_params(), options.session_params.samples);
 	options.session->scene = options.scene;
 	
 	if(options.session_params.background && !options.quiet)
@@ -151,7 +162,7 @@ static void display_info(Progress& progress)
 
 static void display()
 {
-	options.session->draw(options.width, options.height);
+	options.session->draw(session_buffer_params());
 
 	display_info(options.session->progress);
 }
@@ -162,13 +173,13 @@ static void resize(int width, int height)
 	options.height= height;
 
 	if(options.session)
-		options.session->reset(options.width, options.height, options.session_params.samples);
+		options.session->reset(session_buffer_params(), options.session_params.samples);
 }
 
 void keyboard(unsigned char key)
 {
 	if(key == 'r')
-		options.session->reset(options.width, options.height, options.session_params.samples);
+		options.session->reset(session_buffer_params(), options.session_params.samples);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Cancelled");
 }

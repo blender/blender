@@ -72,8 +72,9 @@ void Camera::update()
 	if(!need_update)
 		return;
 	
+	/* ndc to raster */
 	Transform screentocamera;
-	Transform ndctoraster = transform_scale((float)width, (float)height, 1.0f);
+	Transform ndctoraster = transform_scale(width, height, 1.0f);
 
 	/* raster to screen */
 	Transform screentoraster = ndctoraster *
@@ -148,13 +149,9 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	/* type */
 	kcam->ortho = ortho;
 
-	/* size */
-	kcam->width = width;
-	kcam->height = height;
-
 	/* store differentials */
-	kcam->dx = dx;
-	kcam->dy = dy;
+	kcam->dx = float3_to_float4(dx);
+	kcam->dy = float3_to_float4(dy);
 
 	/* clipping */
 	kcam->nearclip = nearclip;
