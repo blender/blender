@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
 
 #define MAX_DIMENSIONS 4
 
@@ -1170,6 +1171,29 @@ static PyObject *Vector_repr(VectorObject *self)
 	Py_DECREF(tuple);
 	return ret;
 }
+
+static PyObject *Vector_str(VectorObject *self)
+{
+	int i;
+
+	DynStr *ds;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	ds= BLI_dynstr_new();
+
+	BLI_dynstr_append(ds, "<Vector (");
+
+	for (i = 0; i < self->size; i++) {
+		BLI_dynstr_appendf(ds, i ? ", %.4f" : "%.4f", self->vec[i]);
+	}
+
+	BLI_dynstr_append(ds, ") >");
+
+	return mathutils_dynstr_to_py(ds); /* frees ds */
+}
+
 
 /* Sequence Protocol */
 /* sequence length len(vector) */
@@ -2715,7 +2739,7 @@ PyTypeObject vector_Type = {
 
 	NULL,                       /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
+	(reprfunc)Vector_str,       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
 

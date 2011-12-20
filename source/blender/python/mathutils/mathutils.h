@@ -37,6 +37,8 @@
 
 /* Can cast different mathutils types to this, use for generic funcs */
 
+struct DynStr;
+
 extern char BaseMathObject_Wrapped_doc[];
 extern char BaseMathObject_Owner_doc[];
 
@@ -119,5 +121,8 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
 int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
+
+/* dynstr as python string utility funcions */
+PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 
 #endif /* MATHUTILS_H */

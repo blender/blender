@@ -1325,19 +1325,16 @@ static PyObject *Matrix_repr(MatrixObject *self)
 static PyObject* Matrix_str(MatrixObject *self)
 {
 	DynStr *ds;
-	char *ds_buf;
-	int ds_size;
 
-	int row, col, *maxsize;
-	PyObject *ret;
+	int maxsize[MATRIX_MAX_DIM];
+	int row, col;
+
 	char dummy_buf[1];
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
 	ds= BLI_dynstr_new();
-
-	maxsize= PyMem_Malloc(self->row_size * sizeof(int));
 
 	/* First determine the maximum width for each column */
 	for (col = 0; col < self->row_size; col++) {
@@ -1358,15 +1355,7 @@ static PyObject* Matrix_str(MatrixObject *self)
 	}
 	BLI_dynstr_append(ds, " >");
 
-	ds_size= BLI_dynstr_get_len(ds) + 1; /* space for \n */
-	ds_buf= PyMem_Malloc(ds_size);
-	BLI_dynstr_get_cstring_ex(ds, ds_buf);
-	BLI_dynstr_free(ds);
-
-	PyMem_Free(maxsize);
-	ret= PyUnicode_FromStringAndSize(ds_buf, ds_size);
-	PyMem_Free(ds_buf);
-	return ret;
+	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
 
 static PyObject* Matrix_richcmpr(PyObject *a, PyObject *b, int op)
