@@ -73,6 +73,25 @@
 
 #include "view3d_intern.h"	// own include
 
+/* user data structures for derived mesh callbacks */
+typedef struct drawMeshFaceSelect_userData {
+	Mesh *me;
+	EdgeHash *eh;
+} drawMeshFaceSelect_userData;
+
+typedef struct drawEMTFMapped_userData {
+	BMEditMesh *em;
+	short has_mcol;
+	short has_mtface;
+	MFace *mf;
+	MTFace *tf;
+} drawEMTFMapped_userData;
+
+typedef struct drawTFace_userData {
+	MFace *mf;
+	MTFace *tf;
+} drawTFace_userData;
+
 /**************************** Face Select Mode *******************************/
 
 /* Flags for marked edges */
@@ -124,7 +143,7 @@ static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 
 static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 {
-	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	drawMeshFaceSelect_userData *data = userData;
 	Mesh *me= data->me;
 	MEdge *med = &me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
@@ -141,7 +160,7 @@ static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 
 static int draw_mesh_face_select__setSelectOpts(void *userData, int index)
 {
-	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	drawMeshFaceSelect_userData *data = userData;
 	MEdge *med = &data->me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
@@ -162,7 +181,7 @@ static int draw_mesh_face_select__drawFaceOptsInv(void *userData, int index)
 
 static void draw_mesh_face_select(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 {
-	struct { Mesh *me; EdgeHash *eh; } data;
+	drawMeshFaceSelect_userData data;
 
 	data.me = me;
 	data.eh = get_tface_mesh_marked_edge_info(me);
@@ -531,7 +550,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	struct {BMEditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} *data = userData;
+	drawEMTFMapped_userData *data = userData;
 	BMEditMesh *em = data->em;
 	BMFace *efa= EDBM_get_face_for_index(em, index);
 
@@ -660,7 +679,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 static int compareDrawOptions(void *userData, int cur_index, int next_index)
 {
-	struct { MFace *mf; MTFace *tf; } *data = userData;
+	drawTFace_userData *data = userData;
 
 	if(data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
 		return 0;
@@ -673,7 +692,7 @@ static int compareDrawOptions(void *userData, int cur_index, int next_index)
 
 static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 {
-	struct {BMEditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} *data= userData;
+	drawEMTFMapped_userData *data= userData;
 
 	if(data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
 		return 0;
@@ -698,7 +717,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if(ob->mode & OB_MODE_EDIT) {
-		struct {BMEditMesh *em; short has_mcol; short has_mtface; MFace *mf; MTFace *tf;} data;
+		drawEMTFMapped_userData data;
 
 		data.em= me->edit_btmesh;
 		data.has_mcol= CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
@@ -722,7 +741,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				dm->drawFacesTex(dm, draw_tface__set_draw_legacy, NULL, NULL);
 		}
 		else {
-			struct { MFace *mf; MTFace *tf; } userData;
+			drawTFace_userData userData;
 
 			if(!CustomData_has_layer(&dm->faceData,CD_TEXTURE_MCOL))
 				add_tface_color_layer(dm);
