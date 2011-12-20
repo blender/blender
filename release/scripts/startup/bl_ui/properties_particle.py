@@ -76,12 +76,12 @@ class ParticleButtonsPanel():
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    # COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return (context.particle_system or context.object or context.space_data.pin_id)# and (engine in cls.COMPAT_ENGINES)
+        return (context.particle_system or context.object or context.space_data.pin_id) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
