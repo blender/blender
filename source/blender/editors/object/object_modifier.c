@@ -452,7 +452,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		Key *key=me->key;
 		KeyBlock *kb;
 		
-		if(!modifier_sameTopology(md)) {
+		if(!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
 			return 0;
 		}
@@ -500,7 +500,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
 
-		if( me->key) {
+		if(me->key && mti->type != eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
 			return 0;
 		}

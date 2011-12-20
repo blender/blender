@@ -520,7 +520,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* name */              "VertexWeightProximity",
 	/* structName */        "WeightVGProximityModifierData",
 	/* structSize */        sizeof(WeightVGProximityModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
+	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
 /*	                       |eModifierTypeFlag_SupportsMapping*/
 	                       |eModifierTypeFlag_SupportsEditmode,

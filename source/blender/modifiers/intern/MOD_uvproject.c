@@ -407,7 +407,7 @@ ModifierTypeInfo modifierType_UVProject = {
 	/* name */              "UVProject",
 	/* structName */        "UVProjectModifierData",
 	/* structSize */        sizeof(UVProjectModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
+	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
 							| eModifierTypeFlag_SupportsMapping
 							| eModifierTypeFlag_SupportsEditmode
