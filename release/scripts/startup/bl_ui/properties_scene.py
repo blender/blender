@@ -35,6 +35,7 @@ class SceneButtonsPanel():
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
     bl_label = "Scene"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -75,6 +76,7 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
     bl_label = "Units"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -92,6 +94,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
     bl_label = "Keying Sets"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -124,6 +127,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
     bl_label = "Active Keying Set"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
     def poll(cls, context):
@@ -191,6 +195,7 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
 
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     bl_label = "Simplify"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render
