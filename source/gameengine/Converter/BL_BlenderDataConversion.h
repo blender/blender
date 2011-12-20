@@ -36,6 +36,7 @@
 #include "STR_String.h"
 #include "KX_Python.h"
 #include "KX_PhysicsEngineEnums.h"
+#include "SCA_IInputDevice.h"
 
 class RAS_MeshObject* BL_ConvertMesh(struct Mesh* mesh,struct Object* lightobj,class KX_Scene* scene, class KX_BlenderSceneConverter *converter);
 
@@ -48,6 +49,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  class KX_BlenderSceneConverter* sceneconverter, 
 							  bool alwaysUseExpandFraming
 							  );
+
+SCA_IInputDevice::KX_EnumInputs ConvertKeyCode(int key_code);
 
 #endif // __BLENDER_CONVERT
 

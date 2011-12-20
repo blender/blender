@@ -29,12 +29,12 @@ class SceneButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        return context.scene
+        rd = context.scene.render
+        return context.scene and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
     bl_label = "Scene"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -75,7 +75,6 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
     bl_label = "Units"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -192,7 +191,6 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
 
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     bl_label = "Simplify"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render

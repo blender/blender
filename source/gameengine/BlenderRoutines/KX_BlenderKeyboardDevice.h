@@ -50,6 +50,8 @@ public:
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
 	virtual void	NextFrame();
 	virtual void	HookEscape();
+private:
+	short		m_exit_key;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

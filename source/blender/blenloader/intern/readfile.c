@@ -12723,6 +12723,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
 				do_versions_nodetree_socket_use_flags_2_62(ntree);
 		}
+		{
+			/* Initialize BGE exit key to esc key */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				if (!scene->gm.exitkey)
+					scene->gm.exitkey = 218; // Blender key code for ESC
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
