@@ -41,17 +41,17 @@ extern PyTypeObject matrix_Type;
 /* matrix[row][col] == MATRIX_ITEM_INDEX(matrix, row, col) */
 
 #ifdef DEBUG
-#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->num_col && _col < (_mat)->num_row))
+#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->num_row && _col < (_mat)->num_col))
 #else
 #  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (void)0
 #endif
 
-#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->num_row * (_row)) + (_col)))
+#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->num_row * (_col)) + (_row)))
 #define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->matrix + MATRIX_ITEM_INDEX(_mat, _row, _col))
 #define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->matrix  [MATRIX_ITEM_INDEX(_mat, _row, _col)])
 
-#define MATRIX_ROW_INDEX(_mat, _row) (MATRIX_ITEM_INDEX(_mat, _row, 0))
-#define MATRIX_ROW_PTR(  _mat, _row) ((_mat)->matrix + MATRIX_ROW_INDEX(_mat, _row))
+#define MATRIX_COL_INDEX(_mat, _col) (MATRIX_ITEM_INDEX(_mat, 0, _col))
+#define MATRIX_COL_PTR(  _mat, _col) ((_mat)->matrix + MATRIX_COL_INDEX(_mat, _col))
 
 typedef struct {
 	BASE_MATH_MEMBERS(matrix);

@@ -51,56 +51,56 @@ static int mathutils_matrix_vector_check(BaseMathObject *bmo)
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype)
+static int mathutils_matrix_vector_get(BaseMathObject *bmo, int col)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
-	int index;
+	int row;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
-	for (index=0; index < self->num_row; index++) {
-		bmo->data[index] = MATRIX_ITEM(self, subtype, index);
+	for (row=0; row < self->num_row; row++) {
+		bmo->data[row] = MATRIX_ITEM(self, row, col);
 	}
 
 	return 0;
 }
 
-static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype)
+static int mathutils_matrix_vector_set(BaseMathObject *bmo, int col)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
-	int index;
+	int row;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
-	for (index=0; index < self->num_row; index++) {
-		MATRIX_ITEM(self, subtype, index) = bmo->data[index];
+	for (row=0; row < self->num_row; row++) {
+		MATRIX_ITEM(self, row, col) = bmo->data[row];
 	}
 
 	(void)BaseMath_WriteCallback(self);
 	return 0;
 }
 
-static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int subtype, int index)
+static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int col, int row)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
-	bmo->data[index]= MATRIX_ITEM(self, subtype, index);
+	bmo->data[row]= MATRIX_ITEM(self, row, col);
 	return 0;
 }
 
-static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, int index)
+static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int col, int row)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
-	MATRIX_ITEM(self, subtype, index) = bmo->data[index];
+	MATRIX_ITEM(self, row, col) = bmo->data[row];
 
 	(void)BaseMath_WriteCallback(self);
 	return 0;
@@ -624,9 +624,9 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self)
 {
-	copy_v3_v3(mat[0], MATRIX_ROW_PTR(self, 0));
-	copy_v3_v3(mat[1], MATRIX_ROW_PTR(self, 1));
-	copy_v3_v3(mat[2], MATRIX_ROW_PTR(self, 2));
+	copy_v3_v3(mat[0], MATRIX_COL_PTR(self, 0));
+	copy_v3_v3(mat[1], MATRIX_COL_PTR(self, 1));
+	copy_v3_v3(mat[2], MATRIX_COL_PTR(self, 2));
 }
 
 /* assumes rowsize == colsize is checked and the read callback has run */
@@ -889,7 +889,7 @@ static PyObject *Matrix_to_translation(MatrixObject *self)
 		return NULL;
 	}
 
-	return Vector_CreatePyObject(MATRIX_ROW_PTR(self, 3), 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(MATRIX_COL_PTR(self, 3), 3, Py_NEW, NULL);
 }
 
 PyDoc_STRVAR(Matrix_to_scale_doc,
@@ -981,7 +981,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 		/*set values*/
 		for (x = 0; x < self->num_col; x++) {
 			for (y = 0; y < self->num_row; y++) {
-				MATRIX_ITEM(self, x, y) = mat[z];
+				MATRIX_ITEM(self, y, x) = mat[z];
 				z++;
 			}
 		}
@@ -1292,16 +1292,16 @@ static PyObject *Matrix_copy(MatrixObject *self)
 /*print the object to screen*/
 static PyObject *Matrix_repr(MatrixObject *self)
 {
-	int x, y;
+	int col, row;
 	PyObject *rows[MATRIX_MAX_DIM]= {NULL};
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	for (x = 0; x < self->num_col; x++) {
-		rows[x]= PyTuple_New(self->num_row);
-		for (y = 0; y < self->num_row; y++) {
-			PyTuple_SET_ITEM(rows[x], y, PyFloat_FromDouble(MATRIX_ITEM(self, x, y)));
+	for (col = 0; col < self->num_col; col++) {
+		rows[col]= PyTuple_New(self->num_row);
+		for (row = 0; row < self->num_row; row++) {
+			PyTuple_SET_ITEM(rows[col], row, PyFloat_FromDouble(MATRIX_ITEM(self, row, col)));
 		}
 	}
 	switch (self->num_col) {
@@ -1340,7 +1340,7 @@ static PyObject* Matrix_str(MatrixObject *self)
 	for (col = 0; col < self->num_col; col++) {
 		maxsize[col]= 0;
 		for (row = 0; row < self->num_row; row++) {
-			int size= BLI_snprintf(dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, col, row));
+			int size= BLI_snprintf(dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, row, col));
 			maxsize[col]= MAX2(maxsize[col], size);
 		}
 	}
@@ -1349,7 +1349,7 @@ static PyObject* Matrix_str(MatrixObject *self)
 	BLI_dynstr_appendf(ds, "<Matrix %dx%d (", self->num_row, self->num_col);
 	for (row = 0; row < self->num_row; row++) {
 		for (col = 0; col < self->num_col; col++) {
-			BLI_dynstr_appendf(ds, col ? ", %*.4f" : "%*.4f", maxsize[col], MATRIX_ITEM(self, col, row));
+			BLI_dynstr_appendf(ds, col ? ", %*.4f" : "%*.4f", maxsize[col], MATRIX_ITEM(self, row, col));
 		}
 		BLI_dynstr_append(ds, row + 1 != self->num_row ? ")\n             " : ")");
 	}
@@ -1439,7 +1439,7 @@ static int Matrix_ass_item(MatrixObject *self, int i, PyObject *value)
 		return -1;
 	}
 
-	memcpy(MATRIX_ROW_PTR(self, i), vec, self->num_row * sizeof(float));
+	memcpy(MATRIX_COL_PTR(self, i), vec, self->num_row * sizeof(float));
 
 	(void)BaseMath_WriteCallback(self);
 	return 0;
@@ -1619,14 +1619,14 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 						0.0f, 0.0f, 0.0f, 0.0f,
 						0.0f, 0.0f, 0.0f, 1.0f};
 		double dot = 0.0f;
-		int x, y, z;
+		int col, row, item;
 
-		for (x = 0; x < mat2->num_col; x++) {
-			for (y = 0; y < mat1->num_row; y++) {
-				for (z = 0; z < mat1->num_col; z++) {
-					dot += MATRIX_ITEM(mat1, z, y) * MATRIX_ITEM(mat2, x, z);
+		for (col = 0; col < mat2->num_col; col++) {
+			for (row = 0; row < mat1->num_row; row++) {
+				for (item = 0; item < mat1->num_col; item++) {
+					dot += MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col);
 				}
-				mat[((x * mat1->num_row) + y)] = (float)dot;
+				mat[((col * mat1->num_row) + row)] = (float)dot;
 				dot = 0.0f;
 			}
 		}
