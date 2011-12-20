@@ -503,7 +503,7 @@ static PyObject *Quaternion_str(QuaternionObject *self)
 
 	ds= BLI_dynstr_new();
 
-	BLI_dynstr_appendf(ds, "<Quaternion (w=%.4f, x=%.4f, y=%.4f, z=%.4f) >",
+	BLI_dynstr_appendf(ds, "<Quaternion (w=%.4f, x=%.4f, y=%.4f, z=%.4f)>",
 	                   self->quat[0], self->quat[1], self->quat[2], self->quat[3]);
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */

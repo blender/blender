@@ -327,7 +327,7 @@ static PyObject *Euler_str(EulerObject * self)
 
 	ds= BLI_dynstr_new();
 
-	BLI_dynstr_appendf(ds, "<Euler (x=%.4f, y=%.4f, z=%.4f), order='%s' >",
+	BLI_dynstr_appendf(ds, "<Euler (x=%.4f, y=%.4f, z=%.4f), order='%s'>",
 	                   self->eul[0], self->eul[1], self->eul[2], euler_order_str(self));
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */

@@ -135,7 +135,7 @@ static PyObject *Color_str(ColorObject * self)
 
 	ds= BLI_dynstr_new();
 
-	BLI_dynstr_appendf(ds, "<Color (r=%.4f, g=%.4f, b=%.4f) >",
+	BLI_dynstr_appendf(ds, "<Color (r=%.4f, g=%.4f, b=%.4f)>",
 	                   self->col[0], self->col[1], self->col[2]);
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
