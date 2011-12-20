@@ -35,6 +35,8 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_dynstr.h"
 
 static PyObject *Matrix_copy(MatrixObject *self);
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
@@ -1320,6 +1322,53 @@ static PyObject *Matrix_repr(MatrixObject *self)
 	return NULL;
 }
 
+static PyObject* Matrix_str(MatrixObject *self)
+{
+	DynStr *ds;
+	char *ds_buf;
+	int ds_size;
+
+	int row, col, *maxsize;
+	PyObject *ret;
+	char dummy_buf[1];
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	ds= BLI_dynstr_new();
+
+	maxsize= PyMem_Malloc(self->row_size * sizeof(int));
+
+	/* First determine the maximum width for each column */
+	for (col = 0; col < self->row_size; col++) {
+		maxsize[col]= 0;
+		for (row = 0; row < self->col_size; row++) {
+			int size= BLI_snprintf(dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, col, row));
+			maxsize[col]= MAX2(maxsize[col], size);
+		}
+	}
+
+	/* Now write the unicode string to be printed */
+	BLI_dynstr_appendf(ds, "<Matrix %dx%d (", self->col_size, self->row_size);
+	for (row = 0; row < self->col_size; row++) {
+		for (col = 0; col < self->row_size; col++) {
+			BLI_dynstr_appendf(ds, col ? ", %*.4f" : "%*.4f", maxsize[col], MATRIX_ITEM(self, col, row));
+		}
+		BLI_dynstr_append(ds, row + 1 != self->col_size ? ")\n             " : ")");
+	}
+	BLI_dynstr_append(ds, " >");
+
+	ds_size= BLI_dynstr_get_len(ds) + 1; /* space for \n */
+	ds_buf= PyMem_Malloc(ds_size);
+	BLI_dynstr_get_cstring_ex(ds, ds_buf);
+	BLI_dynstr_free(ds);
+
+	PyMem_Free(maxsize);
+	ret= PyUnicode_FromStringAndSize(ds_buf, ds_size);
+	PyMem_Free(ds_buf);
+	return ret;
+}
+
 static PyObject* Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 {
 	PyObject *res;
@@ -1906,7 +1955,7 @@ PyTypeObject matrix_Type = {
 	&Matrix_AsMapping,					/*tp_as_mapping*/
 	NULL,								/*tp_hash*/
 	NULL,								/*tp_call*/
-	NULL,								/*tp_str*/
+	(reprfunc) Matrix_str,				/*tp_str*/
 	NULL,								/*tp_getattro*/
 	NULL,								/*tp_setattro*/
 	NULL,								/*tp_as_buffer*/

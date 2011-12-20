@@ -226,11 +226,11 @@ int BLI_dynstr_get_len(DynStr *ds)
 	return ds->curlen;
 }
 
-char *BLI_dynstr_get_cstring(DynStr *ds)
+void BLI_dynstr_get_cstring_ex(DynStr *ds, char *rets)
 {
-	char *s, *rets= MEM_mallocN(ds->curlen+1, "dynstr_cstring");
+	char *s;
 	DynStrElem *dse;
-	
+
 	for (s= rets, dse= ds->elems; dse; dse= dse->next) {
 		int slen= strlen(dse->str);
 
@@ -239,7 +239,12 @@ char *BLI_dynstr_get_cstring(DynStr *ds)
 		s+= slen;
 	}
 	rets[ds->curlen]= '\0';
-	
+}
+
+char *BLI_dynstr_get_cstring(DynStr *ds)
+{
+	char *rets= MEM_mallocN(ds->curlen+1, "dynstr_cstring");
+	BLI_dynstr_get_cstring_ex(ds, rets);
 	return rets;
 }
 
