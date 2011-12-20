@@ -774,22 +774,22 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 
 typedef int MirrTopoHash_t;
 
-typedef struct MirrTopoPair_t {
+typedef struct MirrTopoVert_t {
 	MirrTopoHash_t  hash;
 	int             v_index;
-} MirrTopoPair_t;
+} MirrTopoVert_t;
 
-static int MirrTopo_long_sort(const void *l1, const void *l2)
+static int mirrtopo_hash_sort(const void *l1, const void *l2)
 {
 	if       ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2 ) return  1;
 	else if  ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2 ) return -1;
 	return 0;
 }
 
-static int MirrTopo_item_sort(const void *v1, const void *v2)
+static int mirrtopo_vert_sort(const void *v1, const void *v2)
 {
-	if      (((MirrTopoPair_t *)v1)->hash > ((MirrTopoPair_t *)v2)->hash ) return  1;
-	else if (((MirrTopoPair_t *)v1)->hash < ((MirrTopoPair_t *)v2)->hash ) return -1;
+	if      (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash ) return  1;
+	else if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash ) return -1;
 	return 0;
 }
 
@@ -799,12 +799,12 @@ int ED_mesh_mirrtopo_recalc_check(Mesh *me, const int ob_mode, MirrTopoStore_t *
 	int totedge;
 
 	if (me->edit_btmesh) {
-		totvert= me->edit_btmesh->bm->totvert;
-		totedge= me->edit_btmesh->bm->totedge;
+		totvert = me->edit_btmesh->bm->totvert;
+		totedge = me->edit_btmesh->bm->totedge;
 	}
 	else {
-		totvert= me->totvert;
-		totedge= me->totedge;
+		totvert = me->totvert;
+		totedge = me->totedge;
 	}
 
 	if(	(mesh_topo_store->index_lookup==NULL) ||
@@ -824,131 +824,141 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
                            const short skip_em_vert_array_init)
 {
 	MEdge *medge;
-	BMEditMesh *em= me->edit_btmesh;
+	BMEditMesh *em = me->edit_btmesh;
+
+	/* editmode*/
 	BMEdge *eed;
 	BMIter iter;
+
 	int a, last;
 	int totvert, totedge;
-	int totUnique= -1, totUniqueOld= -1;
+	int tot_unique = -1, tot_unique_prev = -1;
 
-	MirrTopoHash_t *MirrTopoHash = NULL;
-	MirrTopoHash_t *MirrTopoHash_Prev = NULL;
-	MirrTopoPair_t *MirrTopoPairs;
+	MirrTopoHash_t *topo_hash = NULL;
+	MirrTopoHash_t *topo_hash_prev = NULL;
+	MirrTopoVert_t *topo_pairs;
+
+	intptr_t *index_lookup; /* direct access to mesh_topo_store->index_lookup */
 
 	/* reallocate if needed */
 	ED_mesh_mirrtopo_free(mesh_topo_store);
 
-	mesh_topo_store->prev_ob_mode= ob_mode;
+	mesh_topo_store->prev_ob_mode = ob_mode;
 
 	if(em) {
 		BM_ElemIndex_Ensure(em->bm, BM_VERT);
 
-		totvert= em->bm->totvert;
+		totvert = em->bm->totvert;
 	}
 	else {
 		totvert = me->totvert;
 	}
 
-	MirrTopoHash = MEM_callocN( totvert * sizeof(MirrTopoHash_t), "TopoMirr" );
+	topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
 
 	/* Initialize the vert-edge-user counts used to detect unique topology */
 	if(em) {
-		totedge= me->edit_btmesh->bm->totedge;
+		totedge = me->edit_btmesh->bm->totedge;
+
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			MirrTopoHash[BM_GetIndex(eed->v1)]++;
-			MirrTopoHash[BM_GetIndex(eed->v2)]++;
+			topo_hash[BM_GetIndex(eed->v1)]++;
+			topo_hash[BM_GetIndex(eed->v2)]++;
 		}
-	} else {
-		totedge= me->totedge;
+	}
+	else {
+		totedge = me->totedge;
 
 		for(a=0, medge=me->medge; a < me->totedge; a++, medge++) {
-			MirrTopoHash[medge->v1]++;
-			MirrTopoHash[medge->v2]++;
+			topo_hash[medge->v1]++;
+			topo_hash[medge->v2]++;
 		}
 	}
 
-	MirrTopoHash_Prev = MEM_dupallocN( MirrTopoHash );
+	topo_hash_prev = MEM_dupallocN(topo_hash);
 
-	totUniqueOld = -1;
+	tot_unique_prev = -1;
 	while(1) {
 		/* use the number of edges per vert to give verts unique topology IDs */
 
 		if(em) {
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-				MirrTopoHash[BM_GetIndex(eed->v1)] += MirrTopoHash_Prev[BM_GetIndex(eed->v2)];
-				MirrTopoHash[BM_GetIndex(eed->v2)] += MirrTopoHash_Prev[BM_GetIndex(eed->v1)];
+				topo_hash[BM_GetIndex(eed->v1)] += topo_hash_prev[BM_GetIndex(eed->v2)];
+				topo_hash[BM_GetIndex(eed->v2)] += topo_hash_prev[BM_GetIndex(eed->v1)];
 			}
-		} else {
+		}
+		else {
 			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
 				/* This can make really big numbers, wrapping around here is fine */
-				MirrTopoHash[medge->v1] += MirrTopoHash_Prev[medge->v2];
-				MirrTopoHash[medge->v2] += MirrTopoHash_Prev[medge->v1];
+				topo_hash[medge->v1] += topo_hash_prev[medge->v2];
+				topo_hash[medge->v2] += topo_hash_prev[medge->v1];
 			}
 		}
-		memcpy(MirrTopoHash_Prev, MirrTopoHash, sizeof(MirrTopoHash_t) * totvert);
+		memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
 
 		/* sort so we can count unique values */
-		qsort(MirrTopoHash_Prev, totvert, sizeof(MirrTopoHash_t), MirrTopo_long_sort);
+		qsort(topo_hash_prev, totvert, sizeof(MirrTopoHash_t), mirrtopo_hash_sort);
 
-		totUnique = 1; /* account for skiping the first value */
+		tot_unique = 1; /* account for skiping the first value */
 		for(a=1; a<totvert; a++) {
-			if (MirrTopoHash_Prev[a-1] != MirrTopoHash_Prev[a]) {
-				totUnique++;
+			if (topo_hash_prev[a-1] != topo_hash_prev[a]) {
+				tot_unique++;
 			}
 		}
 
-		if (totUnique <= totUniqueOld) {
+		if (tot_unique <= tot_unique_prev) {
 			/* Finish searching for unique valus when 1 loop dosnt give a
 			 * higher number of unique values compared to the previous loop */
 			break;
-		} else {
-			totUniqueOld = totUnique;
+		}
+		else {
+			tot_unique_prev = tot_unique;
 		}
 		/* Copy the hash calculated this iter, so we can use them next time */
-		memcpy(MirrTopoHash_Prev, MirrTopoHash, sizeof(MirrTopoHash_t) * totvert);
+		memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
 	}
 
 	/* Hash/Index pairs are needed for sorting to find index pairs */
-	MirrTopoPairs= MEM_callocN( sizeof(MirrTopoPair_t) * totvert, "MirrTopoPairs");
+	topo_pairs = MEM_callocN( sizeof(MirrTopoVert_t) * totvert, "MirrTopoPairs");
 
 	/* since we are looping through verts, initialize these values here too */
-	mesh_topo_store->index_lookup = MEM_mallocN( totvert * sizeof(long), "mesh_topo_lookup" );
+	index_lookup = MEM_mallocN(totvert * sizeof(*index_lookup), "mesh_topo_lookup");
 
 	if(em) {
 		if (skip_em_vert_array_init == FALSE) {
-			EDBM_init_index_arrays(em,1,0,0);
+			EDBM_init_index_arrays(em,1, 0, 0);
 		}
 	}
 
 
 	for(a=0; a<totvert; a++) {
-		MirrTopoPairs[a].hash= MirrTopoHash[a];
-		MirrTopoPairs[a].v_index = a;
+		topo_pairs[a].hash    = topo_hash[a];
+		topo_pairs[a].v_index = a;
 
 		/* initialize lookup */
-		mesh_topo_store->index_lookup[a] = -1;
+		index_lookup[a] = -1;
 	}
 
-	qsort(MirrTopoPairs, totvert, sizeof(MirrTopoPair_t), MirrTopo_item_sort);
+	qsort(topo_pairs, totvert, sizeof(MirrTopoVert_t), mirrtopo_hash_sort);
 
 	/* Since the loop starts at 2, we must define the last index where the hash's differ */
-	last = ((totvert >= 2) && (MirrTopoPairs[0].hash == MirrTopoPairs[1].hash)) ? 0 : 1;
+	last = ((totvert >= 2) && (topo_pairs[0].hash == topo_pairs[1].hash)) ? 0 : 1;
 
 	/* Get the pairs out of the sorted hashes, note, totvert+1 means we can use the previous 2,
 	 * but you cant ever access the last 'a' index of MirrTopoPairs */
 	for(a=2; a <= totvert; a++) {
 		/* printf("I %d %ld %d\n", (a-last), MirrTopoPairs[a  ].hash, MirrTopoPairs[a  ].v_index ); */
-		if ((a==totvert) || (MirrTopoPairs[a-1].hash != MirrTopoPairs[a].hash)) {
+		if ((a==totvert) || (topo_pairs[a-1].hash != topo_pairs[a].hash)) {
 			if (a-last==2) {
 				if(em) {
-					mesh_topo_store->index_lookup[MirrTopoPairs[a-1].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, MirrTopoPairs[a-2].v_index);
-					mesh_topo_store->index_lookup[MirrTopoPairs[a-2].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, MirrTopoPairs[a-1].v_index);
-				} else {
-					mesh_topo_store->index_lookup[MirrTopoPairs[a-1].v_index] =	MirrTopoPairs[a-2].v_index;
-					mesh_topo_store->index_lookup[MirrTopoPairs[a-2].v_index] =	MirrTopoPairs[a-1].v_index;
+					index_lookup[topo_pairs[a-1].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, topo_pairs[a-2].v_index);
+					index_lookup[topo_pairs[a-2].v_index] =	(intptr_t)EDBM_get_vert_for_index(em, topo_pairs[a-1].v_index);
+				}
+				else {
+					index_lookup[topo_pairs[a-1].v_index] =	topo_pairs[a-2].v_index;
+					index_lookup[topo_pairs[a-2].v_index] =	topo_pairs[a-1].v_index;
 				}
 			}
-			last= a;
+			last = a;
 		}
 	}
 	if(em) {
@@ -957,12 +967,13 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 	}
 
-	MEM_freeN( MirrTopoPairs );
-	MirrTopoPairs = NULL;
+	MEM_freeN(topo_pairs);
+	topo_pairs = NULL;
 
-	MEM_freeN( MirrTopoHash );
-	MEM_freeN( MirrTopoHash_Prev );
+	MEM_freeN(topo_hash);
+	MEM_freeN(topo_hash_prev);
 
+	mesh_topo_store->index_lookup  = index_lookup;
 	mesh_topo_store->prev_vert_tot = totvert;
 	mesh_topo_store->prev_edge_tot = totedge;
 }
