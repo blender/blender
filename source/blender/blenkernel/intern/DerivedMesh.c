@@ -717,11 +717,15 @@ void vDM_ColorBand_store(ColorBand *coba)
 	stored_cb= coba;
 }
 
-/* return an array of vertex weight colors */
+/* return an array of vertex weight colors, caller must free.
+ *
+ * note that we could save some memory and allocate RGB only but then we'd need to
+ * re-arrange the colors when copying to the face since MCol has odd ordering,
+ * so leave this as is - campbell */
 static unsigned char *calc_weightpaint_vert_array(Object *ob, int const draw_flag, ColorBand *coba)
 {
 	Mesh *me = ob->data;
-	unsigned char *wtcol_v = MEM_callocN (sizeof(unsigned char) * me->totvert * 4, "weightmap_v");
+	unsigned char *wtcol_v = MEM_mallocN (sizeof(unsigned char) * me->totvert * 4, "weightmap_v");
 
 	if (me->dvert) {
 		unsigned char *wc = wtcol_v;
@@ -749,8 +753,6 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, int const draw_fla
 
 	return wtcol_v;
 }
-
-#include "PIL_time.h"
 
 static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 {
