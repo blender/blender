@@ -295,7 +295,11 @@ typedef struct ShaderData {
 #endif
 } ShaderData;
 
-/* Constrant Kernel Data */
+/* Constrant Kernel Data
+ *
+ * These structs are passed from CPU to various devices, and the struct layout
+ * must match exactly. Structs are padded to ensure 16 byte alignment, and we
+ * do not use float3 because its size may not be the same on all devices. */
 
 typedef struct KernelCamera {
 	/* type */
@@ -307,14 +311,8 @@ typedef struct KernelCamera {
 	Transform rastertocamera;
 
 	/* differentials */
-	float3 dx;
-#ifndef WITH_OPENCL
-	float pad1;
-#endif
-	float3 dy;
-#ifndef WITH_OPENCL
-	float pad2;
-#endif
+	float4 dx;
+	float4 dy;
 
 	/* depth of field */
 	float aperturesize;
@@ -355,10 +353,6 @@ typedef struct KernelBackground {
 typedef struct KernelSunSky {
 	/* sun direction in spherical and cartesian */
 	float theta, phi, pad3, pad4;
-	float3 dir;
-#ifndef WITH_OPENCL
-	float pad;
-#endif
 
 	/* perez function parameters */
 	float zenith_Y, zenith_x, zenith_y, pad2;

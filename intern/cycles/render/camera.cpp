@@ -150,8 +150,8 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	kcam->ortho = ortho;
 
 	/* store differentials */
-	kcam->dx = dx;
-	kcam->dy = dy;
+	kcam->dx = float3_to_float4(dx);
+	kcam->dy = float3_to_float4(dy);
 
 	/* clipping */
 	kcam->nearclip = nearclip;

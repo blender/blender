@@ -74,8 +74,8 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	ray->dP.dx = make_float3(0.0f, 0.0f, 0.0f);
 	ray->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
 
-	ray->dD.dx = normalize(Ddiff + kernel_data.cam.dx) - normalize(Ddiff);
-	ray->dD.dy = normalize(Ddiff + kernel_data.cam.dy) - normalize(Ddiff);
+	ray->dD.dx = normalize(Ddiff + float4_to_float3(kernel_data.cam.dx)) - normalize(Ddiff);
+	ray->dD.dy = normalize(Ddiff + float4_to_float3(kernel_data.cam.dy)) - normalize(Ddiff);
 #endif
 
 #ifdef __CAMERA_CLIPPING__
@@ -107,8 +107,8 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* ray differential */
-	ray->dP.dx = kernel_data.cam.dx;
-	ray->dP.dy = kernel_data.cam.dy;
+	ray->dP.dx = float4_to_float3(kernel_data.cam.dx);
+	ray->dP.dy = float4_to_float3(kernel_data.cam.dy);
 
 	ray->dD.dx = make_float3(0.0f, 0.0f, 0.0f);
 	ray->dD.dy = make_float3(0.0f, 0.0f, 0.0f);
