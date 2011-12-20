@@ -207,6 +207,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 	/* transform, note the blender camera points along the negative z-axis */
 	cam->matrix = bcam->matrix * transform_scale(1.0f, 1.0f, -1.0f);
+	cam->matrix = transform_clear_scale(cam->matrix);
 
 	/* set update flag */
 	if(cam->modified(prevcam))

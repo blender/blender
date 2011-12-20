@@ -34,6 +34,7 @@
 #endif
 
 #include <OpenGL/gl.h>
+#include <OpenGL/CGLRenderers.h>
 /***** Multithreaded opengl code : uncomment for enabling
 #include <OpenGL/OpenGL.h>
 */
@@ -485,7 +486,14 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// needed for 'Draw Overlap' drawing method
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
 	
-	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+	// Force software OpenGL, for debugging
+	if(getenv("BLENDER_SOFTWAREGL")) {
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
+		pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
+	}
+	else
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
@@ -521,7 +529,14 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		// needed for 'Draw Overlap' drawing method
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
 		
-		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+		// Force software OpenGL, for debugging
+		if(getenv("BLENDER_SOFTWAREGL")) {
+			pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
+			pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
+		}
+		else
+			pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 		
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;

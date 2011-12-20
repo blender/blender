@@ -723,11 +723,7 @@ elseif(WIN32)
 			set(GETTEXT_LIBRARIES gnu_gettext)
 		endif()
 
-		if(CMAKE_CL_64)
-			set(PNG_LIBRARIES libpng)
-		else()
-			set(PNG_LIBRARIES libpng_st)
-		endif()
+		set(PNG_LIBRARIES libpng)
 		set(JPEG_LIBRARIES libjpeg)
 		
 		set(PNG "${LIBDIR}/png")

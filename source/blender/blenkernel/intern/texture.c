@@ -349,9 +349,9 @@ ColorBand *add_colorband(int rangetype)
 
 /* ------------------------------------------------------------------------- */
 
-int do_colorband(ColorBand *coba, float in, float out[4])
+int do_colorband(const ColorBand *coba, float in, float out[4])
 {
-	CBData *cbd1, *cbd2, *cbd0, *cbd3;
+	const CBData *cbd1, *cbd2, *cbd0, *cbd3;
 	float fac, mfac, t[4];
 	int a;
 	
