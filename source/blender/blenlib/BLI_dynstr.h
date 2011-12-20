@@ -103,7 +103,7 @@ char*	BLI_dynstr_get_cstring			(DynStr *ds);
 /**
  * Get a DynStr's contents as a c-string.
  * <i> The str argument must be allocated to be at
- * least the size of BLI_dynstr_get_len(ds). </i>
+ * least the size of BLI_dynstr_get_len(ds) + 1. </i>
  *
  * @param ds The DynStr of interest.
  * @param str The string to fill.

@@ -243,6 +243,19 @@ int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 int ED_mesh_color_remove_named(struct bContext *C, struct Object *ob, struct Mesh *me, const char *name);
 
+
+/* mirrtopo */
+typedef struct MirrTopoStore_t {
+	intptr_t *index_lookup;
+	int       prev_vert_tot;
+	int       prev_edge_tot;
+	int       prev_ob_mode;
+} MirrTopoStore_t;
+
+int  ED_mesh_mirrtopo_recalc_check(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
+
 #ifdef __cplusplus
 }
 #endif
