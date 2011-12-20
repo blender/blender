@@ -57,6 +57,7 @@ protected:
 	 * System dependent keyboard codes are stored as ints.
 	 */
 	std::map<int, KX_EnumInputs> m_reverseKeyTranslateTable;
+	short	m_exitkey;
 
 public:
 	bool m_hookesc;

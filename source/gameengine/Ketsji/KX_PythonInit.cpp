@@ -419,6 +419,20 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
 }
 
+static PyObject* gPySetExitKey(PyObject*, PyObject* args)
+{
+	short exitkey;
+	if (!PyArg_ParseTuple(args, "h:setExitKey", &exitkey))
+		return NULL;
+	KX_KetsjiEngine::SetExitKey(exitkey);
+	Py_RETURN_NONE;
+}
+
+static PyObject* gPyGetExitKey(PyObject*)
+{
+	return PyLong_FromSsize_t(KX_KetsjiEngine::GetExitKey());
+}
+
 static PyObject* gPySetMaxLogicFrame(PyObject*, PyObject* args)
 {
 	int frame;
@@ -812,6 +826,8 @@ static struct PyMethodDef game_methods[] = {
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (const char *)"Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (const char *)"Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, (const char *)"Sets the physics tic rate"},
+	{"getExitKey", (PyCFunction) gPyGetExitKey, METH_NOARGS, (const char *)"Gets the key used to exit the game engine"},
+	{"setExitKey", (PyCFunction) gPySetExitKey, METH_VARARGS, (const char *)"Sets the key used to exit the game engine"},
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (const char *)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (const char *)"Prints GL Extension Info"},

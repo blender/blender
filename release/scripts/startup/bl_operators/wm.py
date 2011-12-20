@@ -29,6 +29,8 @@ from bpy.props import (StringProperty,
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
+import subprocess
+import os
 
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
@@ -1175,6 +1177,26 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
+class WM_OT_blenderplayer_start(bpy.types.Operator):
+    '''Launches the Blenderplayer with the current blendfile'''
+    bl_idname = "wm.blenderplayer_start"
+    bl_label = "Start"
+    
+    blender_bin_path = bpy.app.binary_path
+    blender_bin_dir = os.path.dirname(blender_bin_path)
+    ext = os.path.splitext(blender_bin_path)[-1]
+    player_path = os.path.join(blender_bin_dir, 'blenderplayer' + ext)
+    
+    def execute(self, context):
+        import sys
+
+        if sys.platform == 'darwin':
+            self.player_path = os.path.join(self.blender_bin_dir, '../../../blenderplayer.app/Contents/MacOS/blenderplayer')
+	
+        filepath = bpy.app.tempdir + "game.blend"
+        bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
+        subprocess.call([self.player_path, filepath])
+        return {'FINISHED'}
 
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"

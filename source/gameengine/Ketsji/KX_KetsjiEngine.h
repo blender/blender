@@ -124,6 +124,8 @@ private:
 	static double			m_suspendedtime;
 	static double			m_suspendeddelta;
 
+	static short			m_exitkey; /* Key used to exit the BGE */
+
 	int					m_exitcode;
 	STR_String			m_exitstring;
 		/**
@@ -351,6 +353,10 @@ public:
 	 * Gets the last estimated average framerate
 	 */
 	static double GetAverageFrameRate();
+
+	static void SetExitKey(short key);
+
+	static short GetExitKey();
 
 	/**
 	 * Activates or deactivates timing information display.
