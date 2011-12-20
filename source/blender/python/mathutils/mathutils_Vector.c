@@ -1486,11 +1486,11 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
  * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
  * note: assume read callbacks have been done first.
  */
-int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
+int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
-	int x, y, z = 0;
+	int row, col, z = 0;
 
 	if (mat->num_col != vec->size) {
 		if (mat->num_col == 4 && vec->size == 3) {
@@ -1507,13 +1507,13 @@ int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, 
 
 	memcpy(vec_cpy, vec->vec, vec->size * sizeof(float));
 
-	rvec[3] = 1.0f;
+	r_vec[3] = 1.0f;
 
-	for (x = 0; x < mat->num_row; x++) {
-		for (y = 0; y < mat->num_col; y++) {
-			dot += (double)(MATRIX_ITEM(mat, y, x) * vec_cpy[y]);
+	for (row = 0; row < mat->num_row; row++) {
+		for (col = 0; col < mat->num_col; col++) {
+			dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
 		}
-		rvec[z++] = (float)dot;
+		r_vec[z++] = (float)dot;
 		dot = 0.0f;
 	}
 
@@ -2634,7 +2634,7 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	//muliplication
 	for (x = 0; x < mat->num_col; x++) {
 		for (y = 0; y < mat->num_row; y++) {
-			dot += MATRIX_ITEM(mat, x, y) * vec_cpy[y];
+			dot += MATRIX_ITEM(mat, y, x) * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;
