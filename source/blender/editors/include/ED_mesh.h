@@ -303,6 +303,19 @@ void EDBM_ClearMesh(struct BMEditMesh *em);
 
 #include "../mesh/editbmesh_bvh.h"
 
+
+/* mirrtopo */
+typedef struct MirrTopoStore_t {
+	intptr_t *index_lookup;
+	int       prev_vert_tot;
+	int       prev_edge_tot;
+	int       prev_ob_mode;
+} MirrTopoStore_t;
+
+int  ED_mesh_mirrtopo_recalc_check(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
+
 #ifdef __cplusplus
 }
 #endif

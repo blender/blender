@@ -291,7 +291,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
 					project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
 					project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
-					if(mf->v3)
+					if(mf->v4)
 						project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
 				}
 				else {
@@ -344,7 +344,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					project_from_camera(tface->uv[0], coords[mf->v1], best_projector->uci);
 					project_from_camera(tface->uv[1], coords[mf->v2], best_projector->uci);
 					project_from_camera(tface->uv[2], coords[mf->v3], best_projector->uci);
-					if(mf->v3)
+					if(mf->v4)
 						project_from_camera(tface->uv[3], coords[mf->v4], best_projector->uci);
 				}
 				else {
