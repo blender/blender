@@ -60,6 +60,7 @@ public:
 	device_ptr buffer;
 	int sample;
 	int resolution;
+	int offset, stride;
 
 	device_ptr displace_input;
 	device_ptr displace_offset;

@@ -34,7 +34,7 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __MODIFY_TP__
-__device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global float3 *buffer, int x, int y, int sample)
+__device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global float3 *buffer, int x, int y, int offset, int stride, int sample)
 {
 	/* modify throughput to influence path termination probability, to avoid
 	   darker regions receiving fewer samples than lighter regions. also RGB
@@ -45,7 +45,7 @@ __device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global f
 	const float minL = 0.1f;
 
 	if(sample >= minsample) {
-		float3 L = buffer[x + y*kernel_data.cam.width];
+		float3 L = buffer[offset + x + y*stride];
 		float3 Lmin = make_float3(minL, minL, minL);
 		float correct = (float)(sample+1)/(float)sample;
 
@@ -379,7 +379,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 	return make_float4(L.x, L.y, L.z, 1.0f - Ltransparent);
 }
 
-__device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __global uint *rng_state, int sample, int x, int y)
+__device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __global uint *rng_state, int sample, int x, int y, int offset, int stride)
 {
 	/* initialize random numbers */
 	RNG rng;
@@ -387,7 +387,7 @@ __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __gl
 	float filter_u;
 	float filter_v;
 
-	path_rng_init(kg, rng_state, sample, &rng, x, y, &filter_u, &filter_v);
+	path_rng_init(kg, rng_state, sample, &rng, x, y, offset, stride, &filter_u, &filter_v);
 
 	/* sample camera ray */
 	Ray ray;
@@ -399,7 +399,7 @@ __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __gl
 
 	/* integrate */
 #ifdef __MODIFY_TP__
-	float3 throughput = path_terminate_modified_throughput(kg, buffer, x, y, sample);
+	float3 throughput = path_terminate_modified_throughput(kg, buffer, x, y, offset, stride, sample);
 	float4 L = kernel_path_integrate(kg, &rng, sample, ray, throughput)/throughput;
 #else
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
@@ -407,14 +407,14 @@ __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __gl
 #endif
 
 	/* accumulate result in output buffer */
-	int index = x + y*kernel_data.cam.width;
+	int index = offset + x + y*stride;
 
 	if(sample == 0)
 		buffer[index] = L;
 	else
 		buffer[index] += L;
 
-	path_rng_end(kg, rng_state, rng, x, y);
+	path_rng_end(kg, rng_state, rng, x, y, offset, stride);
 }
 
 CCL_NAMESPACE_END

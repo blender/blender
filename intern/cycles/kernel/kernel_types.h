@@ -300,10 +300,7 @@ typedef struct ShaderData {
 typedef struct KernelCamera {
 	/* type */
 	int ortho;
-	int pad;
-
-	/* size */
-	int width, height;
+	int pad1, pad2, pad3;
 
 	/* matrices */
 	Transform cameratoworld;

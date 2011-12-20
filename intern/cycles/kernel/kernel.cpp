@@ -204,16 +204,16 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 
 /* Path Tracing */
 
-void kernel_cpu_path_trace(KernelGlobals *kg, float4 *buffer, unsigned int *rng_state, int sample, int x, int y)
+void kernel_cpu_path_trace(KernelGlobals *kg, float4 *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
 {
-	kernel_path_trace(kg, buffer, rng_state, sample, x, y);
+	kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
 /* Tonemapping */
 
-void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffer, int sample, int resolution, int x, int y)
+void kernel_cpu_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffer, int sample, int resolution, int x, int y, int offset, int stride)
 {
-	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y);
+	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
 }
 
 /* Displacement */

@@ -100,7 +100,9 @@ void BlenderSession::create_session()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* start rendering */
-	session->reset(width, height, session_params.samples);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+
+	session->reset(buffer_params, session_params.samples);
 	session->start();
 }
 
@@ -135,7 +137,10 @@ void BlenderSession::write_render_result()
 	if(!pixels)
 		return;
 
-	struct RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+	int w = buffer_params.width, h = buffer_params.height;
+
+	struct RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, w, h);
 	PointerRNA rrptr;
 	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
 	BL::RenderResult rr(rrptr);
@@ -188,8 +193,10 @@ void BlenderSession::synchronize()
 	session->scene->mutex.unlock();
 
 	/* reset if needed */
-	if(scene->need_reset())
-		session->reset(width, height, session_params.samples);
+	if(scene->need_reset()) {
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+		session->reset(buffer_params, session_params.samples);
+	}
 }
 
 bool BlenderSession::draw(int w, int h)
@@ -225,7 +232,9 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
-			session->reset(width, height, session_params.samples);
+			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+
+			session->reset(buffer_params, session_params.samples);
 		}
 	}
 
@@ -233,7 +242,9 @@ bool BlenderSession::draw(int w, int h)
 	update_status_progress();
 
 	/* draw */
-	return !session->draw(width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+
+	return !session->draw(buffer_params);
 }
 
 void BlenderSession::get_status(string& status, string& substatus)
