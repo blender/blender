@@ -47,7 +47,8 @@ static bNodeSocketTemplate cmp_node_alphaover_out[]= {
 static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
-	if(over[3]<=0.0f) {
+	/* Zero alpha values should still permit an add of RGB data */	
+	if(over[3]<0.0f) {
 		copy_v4_v4(out, src);
 	}
 	else if(fac[0]==1.0f && over[3]>=1.0f) {
