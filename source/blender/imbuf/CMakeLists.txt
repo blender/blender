@@ -53,7 +53,6 @@ set(SRC
 	intern/indexer_dv.c
 	intern/iris.c
 	intern/jpeg.c
-	intern/md5.c
 	intern/metadata.c
 	intern/module.c
 	intern/moviecache.c
@@ -96,7 +95,6 @@ set(SRC
 	intern/dds/Stream.h
 	intern/dds/dds_api.h
 	intern/imbuf.h
-	intern/md5.h
 	intern/openexr/openexr_api.h
 	intern/openexr/openexr_multi.h
 	

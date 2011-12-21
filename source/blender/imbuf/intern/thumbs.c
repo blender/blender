@@ -32,16 +32,17 @@
 
 #include <stdio.h>
 
-#include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_md5.h"
+
+#include "BKE_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
 #include "IMB_metadata.h"
-
-#include "md5.h"
 
 #include <ctype.h>
 #include <stdlib.h>
