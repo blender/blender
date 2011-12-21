@@ -37,7 +37,6 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"

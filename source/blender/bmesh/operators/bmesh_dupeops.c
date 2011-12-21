@@ -160,9 +160,14 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 {
 
-	BMVert *v = NULL, *v2, **vtar = NULL;
-	BMEdge *e = NULL, **edar = NULL;
+	BMVert *v = NULL, *v2;
+	BMEdge *e = NULL;
 	BMFace *f = NULL;
+
+	BLI_array_declare(vtar);
+	BLI_array_declare(edar);
+	BMVert **vtar = NULL;
+	BMEdge **edar = NULL;
 	
 	BMIter verts;
 	BMIter edges;
@@ -170,19 +175,10 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	
 	GHash *vhash;
 	GHash *ehash;
-	
-	int maxlength = 0;
 
 	/*initialize pointer hashes*/
 	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops v");
 	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
-	
-	/*initialize edge pointer array*/
-	for(f = BMIter_New(&faces, source, BM_FACES_OF_MESH, source); f; f = BMIter_Step(&faces)) {
-		if(f->len > maxlength) maxlength = f->len;
-	}
-	edar = MEM_callocN(sizeof(BMEdge*) * maxlength, "BM copy mesh edge pointer array");
-	vtar = MEM_callocN(sizeof(BMVert*) * maxlength, "BM copy mesh vert pointer array");
 	
 	for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH, source); v; v = BMIter_Step(&verts)) {
 		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))) {
@@ -250,6 +246,14 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 					BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE);
 				}
 			}
+
+			/* ensure arrays are the right size */
+			BLI_array_empty(vtar);
+			BLI_array_empty(edar);
+
+			BLI_array_growitems(vtar, f->len);
+			BLI_array_growitems(edar, f->len);
+
 			copy_face(op, source, f, target, vtar, edar, vhash, ehash);
 			BMO_SetFlag(source, (BMHeader*)f, DUPE_DONE);
 		}
@@ -259,14 +263,8 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	BLI_ghash_free(vhash, NULL, NULL);
 	BLI_ghash_free(ehash, NULL, NULL);	
 
-	/*free edge pointer array*/
-	if (edar) {
-		MEM_freeN(edar);
-	}
-	/*free vert pointer array*/
-	if (vtar) {
-		MEM_freeN(vtar);
-	}
+	BLI_array_free(vtar); /* free vert pointer array */
+	BLI_array_free(edar); /* free edge pointer array */
 }
 
 /*

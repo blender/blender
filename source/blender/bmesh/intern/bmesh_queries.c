@@ -39,7 +39,6 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
 #include "BLI_utildefines.h"
 
 #define BM_OVERLAP (1<<13)
