@@ -515,10 +515,8 @@ void Session::update_scene()
 	   knows nothing about progressive or cropped rendering, it just gets the
 	   image dimensions passed in */
 	Camera *cam = scene->camera;
-	float progressive_x = tile_manager.state.width/(float)tile_manager.params.width;
-	float progressive_y = tile_manager.state.height/(float)tile_manager.params.height;
-	int width = tile_manager.params.full_width*progressive_x;
-	int height = tile_manager.params.full_height*progressive_y;
+	int width = tile_manager.state.buffer.full_width;
+	int height = tile_manager.state.buffer.full_height;
 
 	if(width != cam->width || height != cam->height) {
 		cam->width = width;
@@ -574,16 +572,15 @@ void Session::path_trace(Tile& tile)
 	/* add path trace task */
 	DeviceTask task(DeviceTask::PATH_TRACE);
 
-	task.x = tile_manager.state.full_x + tile.x;
-	task.y = tile_manager.state.full_y + tile.y;
+	task.x = tile_manager.state.buffer.full_x + tile.x;
+	task.y = tile_manager.state.buffer.full_y + tile.y;
 	task.w = tile.w;
 	task.h = tile.h;
 	task.buffer = buffers->buffer.device_pointer;
 	task.rng_state = buffers->rng_state.device_pointer;
 	task.sample = tile_manager.state.sample;
 	task.resolution = tile_manager.state.resolution;
-	task.offset = -(tile_manager.state.full_x + tile_manager.state.full_y*tile_manager.state.width);
-	task.stride = tile_manager.state.width;
+	tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
 
 	device->task_add(task);
 }
@@ -593,16 +590,15 @@ void Session::tonemap()
 	/* add tonemap task */
 	DeviceTask task(DeviceTask::TONEMAP);
 
-	task.x = tile_manager.state.full_x;
-	task.y = tile_manager.state.full_y;
-	task.w = tile_manager.state.width;
-	task.h = tile_manager.state.height;
+	task.x = tile_manager.state.buffer.full_x;
+	task.y = tile_manager.state.buffer.full_y;
+	task.w = tile_manager.state.buffer.width;
+	task.h = tile_manager.state.buffer.height;
 	task.rgba = display->rgba.device_pointer;
 	task.buffer = buffers->buffer.device_pointer;
 	task.sample = tile_manager.state.sample;
 	task.resolution = tile_manager.state.resolution;
-	task.offset = -(tile_manager.state.full_x + tile_manager.state.full_y*tile_manager.state.width);
-	task.stride = tile_manager.state.width;
+	tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
 
 	if(task.w > 0 && task.h > 0) {
 		device->task_add(task);

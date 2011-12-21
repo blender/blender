@@ -86,7 +86,7 @@ static const char *locales[] = {
 	"Chinese (Traditional)_China.1252", "zh_TW",
 	"russian", "ru_RU",
 	"croatian", "hr_HR",
-	"serbian", "sr_RS",
+	"serbian", "sr",
 	"ukrainian", "uk_UA",
 	"polish", "pl_PL",
 	"romanian", "ro_RO",
@@ -96,7 +96,8 @@ static const char *locales[] = {
 	"korean", "ko_KR",
 	"nepali", "ne_NP",
 	"persian", "fa_PE",
-	"indonesian", "id_ID"
+	"indonesian", "id_ID",
+	"serbian (latin)", "sr@latin",
 };
 
 void BLF_lang_init(void)

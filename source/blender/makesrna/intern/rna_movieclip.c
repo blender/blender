@@ -78,6 +78,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 		{IMB_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run", "Use images in the order they are recorded"},
 		{IMB_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", "Use global timestamp written by recording device"},
 		{IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)", "Interpolate a global timestamp using the record date and time written by recording device"},
+		{IMB_TC_RECORD_RUN_NO_GAPS, "FREE_RUN_NO_GAPS", 0, "Free Run No Gaps", "Record run, but ignore timecode, changes in framerate or dropouts"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "MovieClipProxy", NULL);

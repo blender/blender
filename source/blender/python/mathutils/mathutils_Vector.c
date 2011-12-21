@@ -1576,7 +1576,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 				return NULL;
 			}
 
-			return Vector_CreatePyObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
+			return Vector_CreatePyObject(tvec, ((MatrixObject *)v2)->num_col, Py_NEW, Py_TYPE(vec1));
 		}
 		else if (QuaternionObject_Check(v2)) {
 			/* VEC * QUAT */
@@ -2603,7 +2603,7 @@ if len(unique) != len(items):
 */
 
 /* ROW VECTOR Multiplication - Vector X Matrix
- * [x][y][z] *  [1][4][7]
+ * [x][y][z] * [1][4][7]
  *             [2][5][8]
  *             [3][6][9]
  * vector/matrix multiplication IS NOT COMMUTATIVE!!!! */
@@ -2611,7 +2611,7 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
-	int x, y, z= 0, vec_size= vec->size;
+	int row, col, z= 0, vec_size= vec->size;
 
 	if (mat->num_row != vec_size) {
 		if (mat->num_row == 4 && vec_size != 3) {
@@ -2632,9 +2632,9 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 
 	rvec[3] = 1.0f;
 	//muliplication
-	for (x = 0; x < mat->num_col; x++) {
-		for (y = 0; y < mat->num_row; y++) {
-			dot += MATRIX_ITEM(mat, y, x) * vec_cpy[y];
+	for (col = 0; col < mat->num_col; col++) {
+		for (row = 0; row < mat->num_row; row++) {
+			dot += MATRIX_ITEM(mat, row, col) * vec_cpy[row];
 		}
 		rvec[z++] = (float)dot;
 		dot = 0.0f;

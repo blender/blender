@@ -25,12 +25,21 @@
 /* no namespaces in opencl */
 #define CCL_NAMESPACE_BEGIN
 #define CCL_NAMESPACE_END
-#define WITH_OPENCL
+
+#ifdef __CL_NO_FLOAT3__
+#define float3 float4
+#endif
+
+#ifdef __CL_NOINLINE__
+#define __noinline __attribute__((noinline))
+#else
+#define __noinline
+#endif
 
 /* in opencl all functions are device functions, so leave this empty */
 #define __device
-#define __device_inline
-#define __device_noinline
+#define __device_inline __device
+#define __device_noinline  __device __noinline
 
 /* no assert in opencl */
 #define kernel_assert(cond)
@@ -68,7 +77,11 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 #endif
 
 #define make_float2(x, y) ((float2)(x, y))
+#ifdef __CL_NO_FLOAT3__
+#define make_float3(x, y, z) ((float4)(x, y, z, 0.0))
+#else
 #define make_float3(x, y, z) ((float3)(x, y, z))
+#endif
 #define make_float4(x, y, z, w) ((float4)(x, y, z, w))
 #define make_int2(x, y) ((int2)(x, y))
 #define make_int3(x, y, z) ((int3)(x, y, z))

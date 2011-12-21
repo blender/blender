@@ -1901,7 +1901,7 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			if(softmin < (double)but->hardmin)
 				softmin= (double)but->hardmin;
 		}
-		else if(value_max-1e-10 > softmax) {
+		if(value_max-1e-10 > softmax) {
 			if(value_max < 0.0)
 				softmax= -soft_range_round_down(-value_max, -softmax);
 			else

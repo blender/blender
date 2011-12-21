@@ -1795,7 +1795,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;
-	float centx, centy, radius;
+	float centx, centy, radius, cursor_radius;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a, tot= 32;
 	int color_profile = but->block->color_profile;
@@ -1864,12 +1864,12 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	ang= 2.0f*(float)M_PI*hsvo[0] + 0.5f*(float)M_PI;
 
 	if(but->flag & UI_BUT_COLOR_CUBIC)
-		radius= (1.0f - powf(1.0f - hsvo[1], 3.0f)) *radius;
+		cursor_radius = (1.0f - powf(1.0f - hsvo[1], 3.0f));
 	else
-		radius= hsvo[1] * radius;
+		cursor_radius = hsvo[1];
 
+	radius= CLAMPIS(cursor_radius, 0.0f, 1.0f) * radius;
 	ui_hsv_cursor(centx + cosf(-ang)*radius, centy + sinf(-ang)*radius);
-	
 }
 
 /* ************ custom buttons, old stuff ************** */
