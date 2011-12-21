@@ -1899,6 +1899,51 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 
 /********************** set origin operator *********************/
 
+static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
+{
+	Object *camera= scene->camera;
+	Base *base;
+
+	if(camera && object_get_movieclip(scene, camera, 0)==clip)
+		return camera;
+
+	base= scene->base.first;
+	while(base) {
+		if(base->object->type == OB_CAMERA) {
+			if(object_get_movieclip(scene, base->object, 0)==clip) {
+				camera= base->object;
+				break;
+			}
+		}
+
+		base= base->next;
+	}
+
+	return camera;
+}
+
+static Object *get_orientation_object(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
+	Object *object= NULL;
+
+	if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+		object= get_camera_with_movieclip(scene, clip);
+	}
+	else {
+		object= OBACT;
+	}
+
+	if(object && object->parent)
+		object= object->parent;
+
+	return object;
+}
+
 static int set_orientation_poll(bContext *C)
 {
 	if(space_clip_frame_poll(C)) {
@@ -1908,10 +1953,12 @@ static int set_orientation_poll(bContext *C)
 		MovieTracking *tracking= &clip->tracking;
 		MovieTrackingObject *tracking_object= BKE_tracking_active_object(tracking);
 
-		if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
-			return scene->camera != NULL;
-		else
+		if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+			return 1;
+		}
+		else {
 			return OBACT != NULL;
+		}
 	}
 
 	return 0;
@@ -1938,10 +1985,8 @@ static int count_selected_bundles(bContext *C)
 
 static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
 {
-	Object *cam= scene->camera;
 	bConstraint *con;
-
-	where_is_object_mat(scene, cam, invmat);
+	int found= 0;
 
 	for (con= ob->constraints.first; con; con=con->next) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -1952,11 +1997,42 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 		if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
 			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
 
+			if(!found) {
+				Object *cam= data->camera ? data->camera : scene->camera;
+
+				where_is_object_mat(scene, cam, invmat);
+			}
+
 			mult_m4_m4m4(invmat, invmat, data->invmat);
+
+			found= 1;
 		}
 	}
 
-	invert_m4(invmat);
+	if(found)
+		invert_m4(invmat);
+	else
+		unit_m4(invmat);
+}
+
+static Object *object_solver_camera(Scene *scene, Object *ob)
+{
+	bConstraint *con;
+
+	for (con= ob->constraints.first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+
+		if(!cti)
+			continue;
+
+		if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+			bObjectSolverConstraint *data= (bObjectSolverConstraint *)con->data;
+
+			return data->camera ? data->camera : scene->camera;
+		}
+	}
+
+	return NULL;
 }
 
 static int set_origin_exec(bContext *C, wmOperator *op)
@@ -1968,6 +2044,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	MovieTrackingObject *tracking_object;
 	Scene *scene= CTX_data_scene(C);
 	Object *object;
+	Object *camera= get_camera_with_movieclip(scene, clip);
 	ListBase *tracksbase;
 	float mat[4][4], vec[3], median[3];
 	int selected_count= count_selected_bundles(C);
@@ -1978,15 +2055,14 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	object= get_orientation_object(C);
+	if(!object) {
+		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
+
+		return OPERATOR_CANCELLED;
+	}
+
 	tracking_object= BKE_tracking_active_object(tracking);
-
-	if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
-		object= scene->camera;
-	else
-		object= OBACT;
-
-	if(object->parent)
-		object= object->parent;
 
 	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 
@@ -2001,7 +2077,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	}
 	mul_v3_fl(median, 1.0f/selected_count);
 
-	BKE_get_tracking_mat(scene, NULL, mat);
+	BKE_get_tracking_mat(scene, camera, mat);
 
 	mul_v3_m4v3(vec, mat, median);
 
@@ -2043,16 +2119,17 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 
 /********************** set floor operator *********************/
 
-static void set_axis(Scene *scene,  Object *ob, MovieTrackingObject *tracking_object,
+static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingObject *tracking_object,
 			MovieTrackingTrack *track, char axis)
 {
+	Object *camera= get_camera_with_movieclip(scene, clip);
 	int is_camera= tracking_object->flag&TRACKING_OBJECT_CAMERA;
 	int  flip= 0;
 	float mat[4][4], vec[3], obmat[4][4], dvec[3];
 
 	object_to_mat4(ob, obmat);
 
-	BKE_get_tracking_mat(scene, NULL, mat);
+	BKE_get_tracking_mat(scene, camera, mat);
 	mul_v3_m4v3(vec, mat, track->bundle_pos);
 	copy_v3_v3(dvec, vec);
 
@@ -2160,6 +2237,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track, *axis_track= NULL, *act_track;
 	ListBase *tracksbase;
 	Object *object;
+	Object *camera= get_camera_with_movieclip(scene, clip);
 	int tot= 0;
 	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.0f, 0.0f, 0.0f};
 	float rot[4][4]={{0.0f, 0.0f, -1.0f, 0.0f},
@@ -2177,15 +2255,14 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 	act_track= BKE_tracking_active_track(tracking);
 
-	if(tracking_object->flag&TRACKING_OBJECT_CAMERA)
-		object= scene->camera;
-	else
-		object= OBACT;
+	object= get_orientation_object(C);
+	if(!object) {
+		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
-	if(object->parent)
-		object= object->parent;
+		return OPERATOR_CANCELLED;
+	}
 
-	BKE_get_tracking_mat(scene, NULL, mat);
+	BKE_get_tracking_mat(scene, camera, mat);
 
 	/* get 3 bundles to use as reference */
 	track= tracksbase->first;
@@ -2243,7 +2320,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	}
 
 	where_is_object(scene, object);
-	set_axis(scene, object, tracking_object, axis_track, 'X');
+	set_axis(scene, object, clip, tracking_object, axis_track, 'X');
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&object->id, OB_RECALC_OB);
@@ -2289,13 +2366,12 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(tracking_object->flag & TRACKING_OBJECT_CAMERA)
-		object= scene->camera;
-	else
-		object= OBACT;
+	object= get_orientation_object(C);
+	if(!object) {
+		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 
-	if(object->parent)
-		object= object->parent;
+		return OPERATOR_CANCELLED;
+	}
 
 	tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 
@@ -2307,7 +2383,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	set_axis(scene, object, tracking_object, track, axis==0?'X':'Y');
+	set_axis(scene, object, clip, tracking_object, track, axis==0?'X':'Y');
 
 	DAG_id_tag_update(&clip->id, 0);
 	DAG_id_tag_update(&object->id, OB_RECALC_OB);
@@ -2353,6 +2429,7 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 	MovieTrackingTrack *track;
 	Scene *scene= CTX_data_scene(C);
 	Object *object= NULL;
+	Object *camera= get_camera_with_movieclip(scene, clip);
 	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	int tot= 0;
 	float vec[2][3], mat[4][4], scale;
@@ -2364,17 +2441,14 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
-		object= scene->camera;
-	}
-	else if(!scale_solution) {
-		object= OBACT;
+	object= get_orientation_object(C);
+	if(!object) {
+		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
+
+		return OPERATOR_CANCELLED;
 	}
 
-	if(object && object->parent)
-		object= object->parent;
-
-	BKE_get_tracking_mat(scene, NULL, mat);
+	BKE_get_tracking_mat(scene, camera, mat);
 
 	track= tracksbase->first;
 	while(track) {
@@ -2396,12 +2470,14 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 			mul_v3_fl(object->loc, scale);
 		} else
 		if(!scale_solution){
+			Object *camera= object_solver_camera(scene, object);
+
 			object->size[0]= object->size[1]= object->size[2]= 1.0f/scale;
 
-			if(scene->camera) {
-				object->size[0]/= scene->camera->size[0];
-				object->size[1]/= scene->camera->size[1];
-				object->size[2]/= scene->camera->size[2];
+			if(camera) {
+				object->size[0]/= camera->size[0];
+				object->size[1]/= camera->size[1];
+				object->size[2]/= camera->size[2];
 			}
 		}
 		else {
@@ -2462,7 +2538,6 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 static int set_solution_scale_poll(bContext *C)
 {
 	if(space_clip_frame_poll(C)) {
-		Scene *scene= CTX_data_scene(C);
 		SpaceClip *sc= CTX_wm_space_clip(C);
 		MovieClip *clip= ED_space_clip(sc);
 		MovieTracking *tracking= &clip->tracking;
