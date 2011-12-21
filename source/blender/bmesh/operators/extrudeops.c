@@ -284,7 +284,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/*not sure what to do about example face, pass NULL for now.*/
-		f = BM_Make_Face_QuadTri_v(bm, verts, NULL, 4, NULL, 0);
+		f = BM_Make_Face_QuadTri_v(bm, verts, 4, NULL, 0);
 
 		/*copy attributes*/
 		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);

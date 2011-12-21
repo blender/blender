@@ -140,58 +140,29 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 
 BMFace *BM_Make_Face_QuadTri(BMesh *bm,
                              BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                             const BMFace *example, int nodouble)
+                             const BMFace *example, const int nodouble)
 {
-	BMEdge *edar[4];
-	BMVert *vtar[4];
-
-	edar[0] = BM_Edge_Exist(v1, v2);
-	edar[1] = BM_Edge_Exist(v2, v3);
-	edar[2] = BM_Edge_Exist(v3, v4? v4 : v1);
-	if (v4) edar[3] = BM_Edge_Exist(v4, v1);
-	else edar[3] = NULL;
-
-	if (!edar[0]) edar[0] = BM_Make_Edge(bm, v1, v2, NULL, 0);
-	if (!edar[1]) edar[1] = BM_Make_Edge(bm, v2, v3, NULL, 0);
-	if (!edar[2]) edar[2] = BM_Make_Edge(bm, v3, v4?v4:v1, NULL, 0);
-	if (!edar[0] && v4) edar[0] = BM_Make_Edge(bm, v4, v1, NULL, 0);
-
-	vtar[0] = v1;
-	vtar[1] = v2;
-	vtar[2] = v3;
-	vtar[3] = v4;
-
-	return BM_Make_Face_QuadTri_v(bm, vtar, edar, v4?4:3, example, nodouble);
+	BMVert *vtar[4]= {v1, v2, v3, v4};
+	return BM_Make_Face_QuadTri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
 }
 
 /*remove the edge array bits from this. Its not really needed?*/
-BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, BMEdge **edges, int len, const BMFace *example, int nodouble)
+BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
 {
-	BMEdge *edar[4];
+	BMEdge *edar[4]= {NULL};
 	BMFace *f = NULL;
 	int overlap = 0;
 
-	edar[0] = edar[1] = edar[2] = edar[3] = NULL;
-	
-	if(edges) {
-		edar[0] = edges[0];
-		edar[1] = edges[1];
-		edar[2] = edges[2];
-		if(len == 4) edar[3] = edges[3];
+	edar[0] = BM_Edge_Exist(verts[0], verts[1]);
+	edar[1] = BM_Edge_Exist(verts[1], verts[2]);
+	if(len == 4) {
+		edar[2] = BM_Edge_Exist(verts[2], verts[3]);
+		edar[3] = BM_Edge_Exist(verts[3], verts[0]);
 	}
 	else {
-		edar[0] = BM_Edge_Exist(verts[0],verts[1]);
-		edar[1] = BM_Edge_Exist(verts[1],verts[2]);
-		if(len == 4) {
-			edar[2] = BM_Edge_Exist(verts[2],verts[3]);
-			edar[3] = BM_Edge_Exist(verts[3],verts[0]);
-
-		}
-		else {
-			edar[2] = BM_Edge_Exist(verts[2],verts[0]);
-		}
+		edar[2] = BM_Edge_Exist(verts[2], verts[0]);
 	}
-	
+
 	if(nodouble) {
 		/*check if face exists or overlaps*/
 		if(len == 4) {

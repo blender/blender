@@ -129,13 +129,13 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, i
 BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble);
 
 BMFace *BM_Make_Face_QuadTri_v(BMesh *bm,
-                               BMVert **verts, BMEdge **edges, int len,
-                               const BMFace *example, int nodouble);
+                               BMVert **verts, int len,
+                               const BMFace *example, const int nodouble);
 
 /* easier to use version of BM_Make_Face_QuadTri_v.
  * creates edges if necassary. */
 BMFace *BM_Make_Face_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                             const BMFace *example, int nodouble);
+                             const BMFace *example, const int nodouble);
 
 /*makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
 defining edges[0], and define the winding of the new face.*/
