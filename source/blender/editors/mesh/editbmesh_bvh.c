@@ -664,36 +664,6 @@ static void vertsearchcallback_topo(void *userdata, int index, const float *UNUS
 	}
 }
 
-BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMVert *sourcev)
-{
-	BVHTreeNearest hit;
-
-	memset(&hit, 0, sizeof(hit));
-
-	copy_v3_v3(hit.co, co);
-	copy_v3_v3(tree->co, co);
-	hit.index = -1;
-	hit.dist = maxdist;
-
-	tree->curw = FLT_MAX;
-	tree->curd = FLT_MAX;
-	tree->curv = NULL;
-	tree->curtag = 1;
-
-	tree->gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh bvh");
-
-	tree->maxdist = maxdist;
-	tree->v = sourcev;
-
-	BLI_bvhtree_find_nearest(tree->tree, co, &hit, vertsearchcallback_topo, tree);
-	
-	BLI_ghash_free(tree->gh, NULL, NULL);
-	tree->gh = NULL;
-
-	return tree->curv;
-}
-
-
 #if 0 //BMESH_TODO: not implemented yet
 int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 {

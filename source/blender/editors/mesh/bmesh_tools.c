@@ -3945,14 +3945,11 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 
 static int select_mirror_exec(bContext *C, wmOperator *op)
 {
-	
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMVert *v1, *v2;
 	BMIter iter;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	float mirror_co[3];
 
 	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN)) {
@@ -3963,6 +3960,8 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	EDBM_CacheMirrorVerts(em, FALSE);
+
 	if (!extend)
 		EDBM_clear_flag_all(em, BM_SELECT);
 
@@ -3970,13 +3969,13 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 		if (!BM_TestHFlag(v1, BM_TMP_TAG) || BM_TestHFlag(v1, BM_HIDDEN))
 			continue;
 
-		copy_v3_v3(mirror_co, v1->co);
-		mirror_co[0] *= -1.0f;
-
-		v2 = BMBVH_FindClosestVertTopo(tree, mirror_co, MIRROR_THRESH, v1);
-		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN))
+		v2= EDBM_GetMirrorVert(em, v1);
+		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN)) {
 			BM_Select(em->bm, v2, 1);
+		}
 	}
+
+	EDBM_EndMirrorCache(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;

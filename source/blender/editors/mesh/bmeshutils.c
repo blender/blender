@@ -809,6 +809,7 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
 void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 {
 	Mesh *me = em->me;
+	BMesh *bm = em->bm;
 	BMIter iter;
 	BMVert *v;
 	int li, topo = 0;
@@ -826,15 +827,15 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 		em->mirr_free_arrays = 1;
 	}
 
-	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID)) {
-		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+	if (!CustomData_get_layer_named(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID)) {
+		BM_add_data_layer_named(bm, &bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
 	}
 
-	li= CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
+	li= CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
 
-	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
+	bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
 
-	BM_ElemIndex_Ensure(em->bm, BM_VERT);
+	BM_ElemIndex_Ensure(bm, BM_VERT);
 
 	if (topo) {
 		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, TRUE);
@@ -843,28 +844,34 @@ void EDBM_CacheMirrorVerts(BMEditMesh *em, const short use_select)
 		 tree= BMBVH_NewBVH(em, 0, NULL, NULL);
 	}
 
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		BMVert *mirr;
-		int *idx = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, li);
-		float co[3] = {-v->co[0], v->co[1], v->co[2]};
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 
-		//temporary for testing, check for selection
-		if (use_select && !BM_TestHFlag(v, BM_SELECT))
-			continue;
-
-		mirr = topo ?
-			/* BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST_MIRR, v) */
-		    cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, BM_GetIndex(v)) :
-			BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST_MIRR);
-
-		if (mirr && mirr != v) {
-			*idx = BM_GetIndex(mirr);
-			idx = CustomData_bmesh_get_layer_n(&em->bm->vdata,mirr->head.data, li);
-			*idx = BM_GetIndex(v);
+		/* temporary for testing, check for selection */
+		if (use_select && !BM_TestHFlag(v, BM_SELECT)) {
+			/* do nothing */
 		}
 		else {
-			*idx = -1;
+			BMVert *mirr;
+			int *idx = CustomData_bmesh_get_layer_n(&bm->vdata, v->head.data, li);
+
+			if (topo) {
+				mirr= cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, BM_GetIndex(v));
+			}
+			else {
+				float co[3] = {-v->co[0], v->co[1], v->co[2]};
+				mirr= BMBVH_FindClosestVert(tree, co, BM_SEARCH_MAXDIST_MIRR);
+			}
+
+			if (mirr && mirr != v) {
+				*idx = BM_GetIndex(mirr);
+				idx = CustomData_bmesh_get_layer_n(&bm->vdata, mirr->head.data, li);
+				*idx = BM_GetIndex(v);
+			}
+			else {
+				*idx = -1;
+			}
 		}
+
 	}
 
 
