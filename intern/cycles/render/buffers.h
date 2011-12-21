@@ -56,6 +56,12 @@ public:
 		full_height = 0;
 	}
 
+	void get_offset_stride(int& offset, int& stride)
+	{
+		offset = -(full_x + full_y*width);
+		stride = width;
+	}
+
 	bool modified(const BufferParams& params)
 	{
 		return !(full_x == params.full_x

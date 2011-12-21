@@ -41,11 +41,9 @@ public:
 class TileManager {
 public:
 	BufferParams params;
+
 	struct State {
-		int full_x;
-		int full_y;
-		int width;
-		int height;
+		BufferParams buffer;
 		int sample;
 		int resolution;
 		list<Tile> tiles;
