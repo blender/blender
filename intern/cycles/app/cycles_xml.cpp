@@ -258,7 +258,6 @@ static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
 	xml_read_int(&integrator->min_bounce, node, "min_bounce");
 	xml_read_int(&integrator->max_bounce, node, "max_bounce");
 	xml_read_bool(&integrator->no_caustics, node, "no_caustics");
-	xml_read_float(&integrator->blur_caustics, node, "blur_caustics");
 }
 
 /* Camera */

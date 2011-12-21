@@ -122,9 +122,9 @@ bool BlenderSync::sync_recalc()
 
 void BlenderSync::sync_data(BL::SpaceView3D b_v3d)
 {
+	sync_render_layer(b_v3d);
 	sync_integrator();
 	sync_film();
-	sync_render_layer(b_v3d);
 	sync_shaders();
 	sync_objects(b_v3d);
 }
@@ -152,9 +152,8 @@ void BlenderSync::sync_integrator()
 	integrator->transparent_shadows = get_boolean(cscene, "use_transparent_shadows");
 
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
-	integrator->blur_caustics = get_float(cscene, "blur_caustics");
-
 	integrator->seed = get_int(cscene, "seed");
+	integrator->layer_flag = render_layer.layer;
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
