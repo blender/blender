@@ -415,8 +415,8 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_COMPAT_BUMP, "BUMP_COMPATIBLE", 0, "Compatible", ""},
 		{MTEX_3TAP_BUMP, "BUMP_LOW_QUALITY", 0, "Low Quality", "Use 3 tap filtering"},
 		{MTEX_5TAP_BUMP, "BUMP_MEDIUM_QUALITY", 0, "Medium Quality", "Use 5 tap filtering"},
-		{MTEX_BICUBIC_BUMP, "BUMP_BEST_QUALITY", 0, "Best Quality", "Use bicubic filtering. Requires OpenGL 3.0+. "
-			"It will fall back on medium setting for other systems"},
+		{MTEX_BICUBIC_BUMP, "BUMP_BEST_QUALITY", 0, "Best Quality", "Use bicubic filtering (requires OpenGL 3.0+, "
+		                                            "it will fall back on medium setting for other systems)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_bump_space_items[] = {
