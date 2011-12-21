@@ -993,6 +993,7 @@ class VIEW3D_MT_object_game(Menu):
         layout = self.layout
 
         layout.operator("object.logic_bricks_copy", text="Copy Logic Bricks")
+        layout.operator("object.game_physics_copy", text="Copy Physics Properties")
 
         layout.separator()
 
