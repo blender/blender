@@ -643,7 +643,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *ob= ED_object_active_context(C);
-	EnumPropertyItem *item= NULL, *md_item;
+	EnumPropertyItem *item= NULL, *md_item, *group_item= NULL;
 	ModifierTypeInfo *mti;
 	int totitem= 0, a;
 	
@@ -662,6 +662,17 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if(!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
 			   (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
 				continue;
+		}
+		else {
+			group_item= md_item;
+			md_item= NULL;
+
+			continue;
+		}
+
+		if(group_item) {
+			RNA_enum_item_add(&item, &totitem, group_item);
+			group_item= NULL;
 		}
 
 		RNA_enum_item_add(&item, &totitem, md_item);
