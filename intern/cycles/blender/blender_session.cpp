@@ -40,7 +40,8 @@
 CCL_NAMESPACE_BEGIN
 
 BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_)
-: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL)
+: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL),
+  b_rr(PointerRNA_NULL), b_rlay(PointerRNA_NULL)
 {
 	/* offline render */
 	BL::RenderSettings r = b_scene.render();
@@ -55,7 +56,8 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_
 
 BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_,
 	BL::SpaceView3D b_v3d_, BL::RegionView3D b_rv3d_, int width_, int height_)
-: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(b_v3d_), b_rv3d(b_rv3d_)
+: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(b_v3d_), b_rv3d(b_rv3d_),
+  b_rr(PointerRNA_NULL), b_rlay(PointerRNA_NULL)
 {
 	/* 3d view render */
 	width = width_;
@@ -64,6 +66,7 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_
 	last_redraw_time = 0.0f;
 
 	create_session();
+	session->start();
 }
 
 BlenderSession::~BlenderSession()
@@ -99,11 +102,9 @@ void BlenderSession::create_session()
 	session->progress.set_cancel_callback(function_bind(&BlenderSession::test_cancel, this));
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
-	/* start rendering */
+	/* set buffer parameters */
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
-
 	session->reset(buffer_params, session_params.samples);
-	session->start();
 }
 
 void BlenderSession::free_session()
@@ -114,42 +115,67 @@ void BlenderSession::free_session()
 
 void BlenderSession::render()
 {
-	session->wait();
+	/* get buffer parameters */
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+	int w = buffer_params.width, h = buffer_params.height;
 
-	if(session->progress.get_cancel())
-		return;
+	/* create render result */
+	RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, w, h);
+	PointerRNA rrptr;
+	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
+	b_rr = BL::RenderResult(rrptr);
 
-	/* write result */
-	write_render_result();
+	BL::RenderSettings r = b_scene.render();
+	BL::RenderResult::layers_iterator b_iter;
+	BL::RenderLayers b_rr_layers(r.ptr);
+	
+	int active = 0;
+
+	/* render each layer */
+	for(b_rr.layers.begin(b_iter); b_iter != b_rr.layers.end(); ++b_iter, ++active) {
+		/* single layer render */
+		if(r.use_single_layer())
+			active = b_rr_layers.active_index();
+
+		/* set layer */
+		b_rlay = *b_iter;
+
+		/* update scene */
+		sync->sync_data(b_v3d, active);
+
+		/* render */
+		session->start();
+		session->wait();
+
+		if(session->progress.get_cancel())
+			break;
+
+		/* write result */
+		write_render_result();
+	}
+
+	/* delete render result */
+	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
 }
 
 void BlenderSession::write_render_result()
 {
-	/* get result */
+	/* get state */
 	RenderBuffers *buffers = session->buffers;
 	float exposure = scene->film->exposure;
 	double total_time, sample_time;
 	int sample;
 	session->progress.get_sample(sample, total_time, sample_time);
 
+	/* get pixels */
 	float4 *pixels = buffers->copy_from_device(exposure, sample);
 
 	if(!pixels)
 		return;
 
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
-	int w = buffer_params.width, h = buffer_params.height;
-
-	struct RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, w, h);
-	PointerRNA rrptr;
-	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
-	BL::RenderResult rr(rrptr);
-
-	BL::RenderResult::layers_iterator layer;
-	rr.layers.begin(layer);
-	rna_RenderLayer_rect_set(&layer->ptr, (float*)pixels);
-
-	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, rrp);
+	/* write pixels */
+	rna_RenderLayer_rect_set(&b_rlay.ptr, (float*)pixels);
+	RE_engine_update_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
 
 	delete [] pixels;
 }
@@ -164,6 +190,7 @@ void BlenderSession::synchronize()
 	   scene->params.modified(scene_params)) {
 		free_session();
 		create_session();
+		session->start();
 		return;
 	}
 

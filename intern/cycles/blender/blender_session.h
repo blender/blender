@@ -69,6 +69,8 @@ public:
 	BL::Scene b_scene;
 	BL::SpaceView3D b_v3d;
 	BL::RegionView3D b_rv3d;
+	BL::RenderResult b_rr;
+	BL::RenderLayer b_rlay;
 
 	string last_status;
 	float last_progress;

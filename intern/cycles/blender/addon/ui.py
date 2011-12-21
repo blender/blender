@@ -160,18 +160,17 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         scene = context.scene
         rd = scene.render
 
-        # row = layout.row()
-        # row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+        row = layout.row()
+        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
 
-        # col = row.column(align=True)
-        # col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
-        # col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
+        col = row.column(align=True)
+        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         row = layout.row()
-        # rl = rd.layers.active
-        rl = rd.layers[0]
+        rl = rd.layers.active
         row.prop(rl, "name")
-        #row.prop(rd, "use_single_layer", text="", icon_only=True)
+        row.prop(rd, "use_single_layer", text="", icon_only=True)
 
         split = layout.split()
 
@@ -183,6 +182,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
 
         layout.separator()
 
+        rl = rd.layers[0]
         layout.prop(rl, "material_override", text="Material")
 
 

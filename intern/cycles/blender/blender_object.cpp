@@ -203,7 +203,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 {
 	/* layer data */
-	uint scene_layer = render_layer.scene_layer;
+	uint scene_layer = render_layers.front().scene_layer;
 	
 	/* prepare for sync */
 	light_map.pre_sync();
