@@ -142,12 +142,12 @@ BMEdge *bmesh_me(BMesh *bm, BMVert *v1, BMVert *v2)
 	
 	#ifndef bmesh_FASTEULER
 	/*count valance of v1*/
-	if(v1->e){ 
+	if(v1->e) {
 		d1 = bmesh_disk_getpointer(v1->e,v1);
 		if(d1) valance1 = bmesh_cycle_length(d1);
 		else bmesh_error();
 	}
-	if(v2->e){
+	if(v2->e) {
 		d2 = bmesh_disk_getpointer(v2->e,v2);
 		if(d2) valance2 = bmesh_cycle_length(d2);
 		else bmesh_error();
@@ -225,13 +225,13 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 			diskbase = bmesh_disk_getpointer(v1->e, v1);
 			len = bmesh_cycle_length(diskbase);
 
-			for(a=0,curedge=v1->e;a<len;a++,curedge = bmesh_disk_nextedge(curedge,v1)){
+			for(a=0,curedge=v1->e;a<len;a++,curedge = bmesh_disk_nextedge(curedge,v1)) {
 				curedge->head.eflag1 = curedge->head.eflag2 = 0;
 			}
 		}
 	}
 
-	for(i=0;i<len;i++){
+	for(i=0;i<len;i++) {
 		elist[i]->head.eflag1 |= MF_CANDIDATE;
 		
 		/*if elist[i] has a loop, count its radial length*/
@@ -243,7 +243,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		Note that this does not gauruntee that face is a single closed loop. At best it gauruntees
 		that elist contains a finite number of seperate closed loops.
 	*/
-//	for(i=0; i<len; i++){
+//	for(i=0; i<len; i++) {
 //		edok = bmesh_disk_count_edgeflag(elist[i]->v1, MF_CANDIDATE, 0);
 //		if(edok != 2) return NULL;
 //		edok = bmesh_disk_count_edgeflag(elist[i]->v2, MF_CANDIDATE, 0);
@@ -255,7 +255,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 	tv = v1;
 	curvert = v2;
 	
-	if(bm->vtarlen < len){
+	if(bm->vtarlen < len) {
 		if (bm->vtar) MEM_freeN(bm->vtar);
 		bm->vtar = MEM_callocN(sizeof(BMVert *)* len, "BM Vert pointer array");
 		bm->vtarlen = len;
@@ -271,7 +271,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		edge, loop until we find TV. We know TV is reachable because of test we did earlier.
 	*/
 	done=0;
-	while(!done){
+	while(!done) {
 		/*add curvert to vlist*/
 		/*insert some error cheking here for overflows*/
 		i++;
@@ -283,7 +283,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		/*find next edge and vert*/
 		curedge = bmesh_disk_next_edgeflag(curedge, curvert, MF_CANDIDATE, 0);
 		curvert = bmesh_edge_getothervert(curedge, curvert);
-		if(curvert == tv){
+		if(curvert == tv) {
 			curedge->head.eflag1 |= MF_VISITED;
 			done=1;
 		}
@@ -293,17 +293,17 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		from sv, but that several unconnected loops were passed in via elist.
 	*/
 	cont=1;
-//	for(i=0; i<len; i++){
+//	for(i=0; i<len; i++) {
 //		if((elist[i]->head.eflag1 & MF_VISITED) == 0) cont = 0;
 //	}
 	
 	/*if we get this far, its ok to allocate the face and add the loops*/
-	if(cont){
+	if(cont) {
 		BMLoop *l;
 		BMEdge *e;
 		f = bmesh_addpolylist(bm, NULL);
 		f->len = len;
-		for(i=0;i<len;i++){
+		for(i=0;i<len;i++) {
 			curvert = vlist[i];
 			l = bmesh_create_loop(bm,curvert,NULL,f,NULL);
 			if(!(f->loopbase)) f->lbase = l;
@@ -315,10 +315,10 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 			e = NULL;
 			if(l == f->loopbase) e = elist[0]; /*first edge*/
 			
-			else{/*search elist for others*/
-				for(j=1; j<len; j++){
+			else {/*search elist for others*/
+				for(j=1; j<len; j++) {
 					edok = bmesh_verts_in_edge(l->v, ((l->next))->v, elist[j]);
-					if(edok){ 
+					if(edok) {
 						e = elist[j];
 						break;
 					}
@@ -333,7 +333,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		/*Validation Loop cycle*/
 		edok = bmesh_cycle_validate(len, f->lbase);
 		if(!edok) bmesh_error();
-		for(i=0, l = f->loopbase; i<len; i++, l=((l->next))){
+		for(i=0, l = f->loopbase; i<len; i++, l=((l->next))) {
 			/*validate loop vert pointers*/
 			edok = bmesh_verts_in_edge(l->v, ((l->next))->v, l->e);
 			if(!edok) bmesh_error();
@@ -362,7 +362,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 
 int bmesh_kv(BMesh *bm, BMVert *v)
 {
-	if(v->e == NULL){ 
+	if(v->e == NULL) {
 		if (BM_TestHFlag(v, BM_SELECT)) bm->totvertsel--;
 
 		BLI_remlink(&(bm->verts), &(v->head));
@@ -388,7 +388,7 @@ int bmesh_ke(BMesh *bm, BMEdge *e)
 	int edok;
 	
 	/*Make sure that no faces!*/
-	if(e->l == NULL){
+	if(e->l == NULL) {
 		bmesh_disk_remove_edge(e, e->v1);
 		bmesh_disk_remove_edge(e, e->v2);
 		
@@ -431,7 +431,7 @@ int bmesh_kf(BMesh *bm, BMFace *bply)
 		bmesh_radial_remove_loop(curloop, curloop->e);
 	
 	/*now deallocate the editloops*/
-	for(i=0; i < len; i++){
+	for(i=0; i < len; i++) {
 		newbase = ((bply->lbase->next));
 		oldbase = bply->lbase;
 		bmesh_cycle_remove(oldbase, oldbase);
@@ -506,12 +506,12 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 	if(!edok) bmesh_error();
 	
 	/*Split the radial cycle if present*/
-	if(e->l){
+	if(e->l) {
 		BMLoop *nl,*l;
 		BMNode *radEBase=NULL, *radNEBase=NULL;
 		int radlen = bmesh_cycle_length(&(e->l->radial));
 		/*Take the next loop. Remove it from radial. Split it. Append to appropriate radials.*/
-		while(e->l){
+		while(e->l) {
 			l=e->l;
 			l->f->len++;
 			bmesh_radial_remove_loop(l,e);
@@ -524,18 +524,18 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 			nl->v = nv;
 			
 			/*assign the correct edge to the correct loop*/
-			if(bmesh_verts_in_edge(nl->v, ((nl->next))->v, e)){
+			if(bmesh_verts_in_edge(nl->v, ((nl->next))->v, e)) {
 				nl->e = e;
 				l->e = ne;
 				
 				/*append l into ne's rad cycle*/
-				if(!radNEBase){
+				if(!radNEBase) {
 					radNEBase = &(l->radial);
 					radNEBase->next = NULL;
 					radNEBase->prev = NULL;
 				}
 				
-				if(!radEBase){
+				if(!radEBase) {
 					radEBase = &(nl->radial);
 					radEBase->next = NULL;
 					radEBase->prev = NULL;
@@ -545,16 +545,16 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 				bmesh_cycle_append(radNEBase,&(l->radial));
 					
 			}
-			else if(bmesh_verts_in_edge(nl->v,((nl->next))->v,ne)){
+			else if(bmesh_verts_in_edge(nl->v,((nl->next))->v,ne)) {
 				nl->e = ne;
 				l->e = e;
 				
-				if(!radNEBase){
+				if(!radNEBase) {
 					radNEBase = &(nl->radial);
 					radNEBase->next = NULL;
 					radNEBase->prev = NULL;
 				}
-				if(!radEBase){
+				if(!radEBase) {
 					radEBase = &(l->radial);
 					radEBase->next = NULL;
 					radEBase->prev = NULL;
@@ -575,7 +575,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 		if(!edok) bmesh_error();
 		
 		/*verify loop->v and loop->next->v pointers for e*/
-		for(i=0,l=e->l; i < radlen; i++, l = l->radial_next){
+		for(i=0,l=e->l; i < radlen; i++, l = l->radial_next) {
 			if(!(l->e == e)) bmesh_error();
 			if(!(l->radial.data == l)) bmesh_error();
 			if( ((l->prev))->e != ne && ((l->next))->e != ne) bmesh_error();
@@ -588,7 +588,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re)
 			if(!edok) bmesh_error();
 		}
 		/*verify loop->v and loop->next->v pointers for ne*/
-		for(i=0,l=ne->l; i < radlen; i++, l = l->radial_next){
+		for(i=0,l=ne->l; i < radlen; i++, l = l->radial_next) {
 			if(!(l->e == ne)) bmesh_error();
 			if(!(l->radial.data == l)) bmesh_error();
 			if( ((l->prev))->e != e && ((l->next))->e != e) bmesh_error();
@@ -646,7 +646,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **rl)
 	
 	/*verify that v1 and v2 are in face.*/
 	len = bmesh_cycle_length(f->lbase);
-	for(i = 0, curloop = f->loopbase; i < len; i++, curloop = ((curloop->next)) ){
+	for(i = 0, curloop = f->loopbase; i < len; i++, curloop = ((curloop->next)) ) {
 		if(curloop->v == v1) v1loop = curloop;
 		else if(curloop->v == v2) v2loop = curloop;
 	}
@@ -740,14 +740,14 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 	diskbase = bmesh_disk_getpointer(kv->e, kv);
 	len = bmesh_cycle_length(diskbase);
 	
-	if(len == 2){
+	if(len == 2) {
 		oe = bmesh_disk_nextedge(ke, kv);
 		tv = bmesh_edge_getothervert(ke, kv);
 		ov = bmesh_edge_getothervert(oe, kv);		
 		halt = bmesh_verts_in_edge(kv, tv, oe); //check for double edges
 		
 		if(halt) return 0;
-		else{
+		else {
 			
 			/*For verification later, count valance of ov and tv*/
 			diskbase = bmesh_disk_getpointer(ov->e, ov);
@@ -767,10 +767,10 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			
 
 			/*deal with radial cycle of ke*/
-			if(ke->l){
+			if(ke->l) {
 				/*first step, fix the neighboring loops of all loops in ke's radial cycle*/
 				radlen = bmesh_cycle_length(&(ke->l->radial));
-				for(i=0,killoop = ke->l; i<radlen; i++, killoop = bmesh_radial_nextloop(killoop)){
+				for(i=0,killoop = ke->l; i<radlen; i++, killoop = bmesh_radial_nextloop(killoop)) {
 					/*relink loops and fix vertex pointer*/
 					killoop->next->prev = killoop->prev;
 					killoop->prev->next = killoop->next;
@@ -784,20 +784,20 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 				killoop = ke->l;
 				radlen = bmesh_cycle_length(&(ke->l->radial));
 				/*make sure we have enough room in bm->lpar*/
-				if(bm->lparlen < radlen){
+				if(bm->lparlen < radlen) {
 					MEM_freeN(bm->lpar);
 					bm->lpar = MEM_callocN(sizeof(BMLoop *)* radlen, "BM Loop pointer array");
 					bm->lparlen = bm->lparlen * radlen;
 				}
 				/*this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well...*/
 				i=0;
-				while(i<radlen){
+				while(i<radlen) {
 					bm->lpar[i] = killoop;
 					killoop = killoop->radial_next;
 					i++;
 				}
 				i=0;
-				while(i<radlen){
+				while(i<radlen) {
 					bmesh_free_loop(bm,bm->lpar[i]);
 					i++;
 				}
@@ -816,7 +816,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
 			if(!edok) bmesh_error();
 			
 			/*Validate loop cycle of all faces attached to oe*/
-			for(i=0,nextl = oe->l; i<radlen; i++, nextl = bmesh_radial_nextloop(nextl)){
+			for(i=0,nextl = oe->l; i<radlen; i++, nextl = bmesh_radial_nextloop(nextl)) {
 				edok = bmesh_cycle_validate(nextl->f->len,nextl->f->lbase);
 				if(!edok) bmesh_error();
 			}
@@ -854,13 +854,13 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 	int i, j, edok, len = 0;
 
 	len = bmesh_cycle_length(l);
-	if(bm->edarlen < len){
+	if(bm->edarlen < len) {
 		MEM_freeN(bm->edar);
 		bm->edar = MEM_callocN(sizeof(BMEdge *)* len, "BM Edge pointer array");
 		bm->edarlen = len;
 	}
 	
-	for(i=0, curloop = l; i< len; i++, curloop= ((curloop->next)) ){
+	for(i=0, curloop = l; i< len; i++, curloop= ((curloop->next)) ) {
 		curloop->e->head.eflag1 = 0;
 		curloop->e->head.eflag2 = bmesh_cycle_length(&curloop->radial);
 		bmesh_radial_remove_loop(curloop, curloop->e);
@@ -870,7 +870,7 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 	}
 	
 	/*actually reverse the loop. This belongs in bmesh_cycle_reverse!*/
-	for(i=0, curloop = l; i < len; i++){
+	for(i=0, curloop = l; i < len; i++) {
 		oldnext = ((curloop->next));
 		oldprev = ((curloop->prev));
 		curloop->next = (BMHeader*)oldprev;
@@ -878,17 +878,17 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 		curloop = oldnext;
 	}
 
-	if(len == 2){ //two edged face
+	if(len == 2) { //two edged face
 		//do some verification here!
 		l->e = bm->edar[1];
 		((l->next))->e = bm->edar[0];
 	}
-	else{
-		for(i=0, curloop = l; i < len; i++, curloop = ((curloop->next)) ){
+	else {
+		for(i=0, curloop = l; i < len; i++, curloop = ((curloop->next)) ) {
 			edok = 0;
-			for(j=0; j < len; j++){
+			for(j=0; j < len; j++) {
 				edok = bmesh_verts_in_edge(curloop->v, ((curloop->next))->v, bm->edar[j]);
-				if(edok){
+				if(edok) {
 					curloop->e = bm->edar[j];
 					break;
 				}
@@ -899,9 +899,9 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 	for(i=0, curloop = l; i < len; i++, curloop = curloop->next ) bmesh_radial_append(curloop->e, curloop);
 	
 	/*validate radial*/
-	for(i=0, curloop = l; i < len; i++, curloop = ((curloop->next)) ){
+	for(i=0, curloop = l; i < len; i++, curloop = ((curloop->next)) ) {
 		edok = bmesh_cycle_validate(curloop->e->head.eflag2, &(curloop->radial));
-		if(!edok){
+		if(!edok) {
 			bmesh_error();
 		}
 	}
@@ -952,14 +952,14 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/*verify that e is in both f1 and f2*/
 	f1len = bmesh_cycle_length(f1->lbase);
 	f2len = bmesh_cycle_length(f2->lbase);
-	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ){
-		if(curloop->e == e){ 
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ) {
+		if(curloop->e == e) {
 			f1loop = curloop;
 			break;
 		}
 	}
-	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ){
-		if(curloop->e==e){
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ) {
+		if(curloop->e==e) {
 			f2loop = curloop;
 			break;
 		}
@@ -990,21 +990,21 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ) curloop->v->head.eflag1 = 0;
 	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ) curloop->v->head.eflag1 = 0;
 
-	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ){
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ) {
 		if(curloop != f1loop)
 			curloop->v->head.eflag1++;
 	}
-	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ){
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ) {
 		if(curloop != f2loop)
 			curloop->v->head.eflag1++;
 	}
 
-	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ){
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((curloop->next)) ) {
 		if(curloop->v->head.eflag1 > 1)
 			return NULL;
 	}
 	
-	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ){
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((curloop->next)) ) {
 		if(curloop->v->head.eflag1 > 1)
 			return NULL;
 	}
@@ -1079,21 +1079,21 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
    
     /*first verify no wire edges on sv*/
     curedge = sv->e;
-    do{
+    do {
         if(curedge->l == NULL)
             return NULL;
         curedge = bmesh_disk_nextedge(curedge, sv);
-    }while(curedge != sv->e);
+    } while(curedge != sv->e);
    
     /*next verify that sv is in sf*/
     l = sf->loopbase;
-    do{
-        if(l->v == sv){
+    do {
+        if(l->v == sv) {
             sl = l;
             break;
         }
         l = (l->next);
-    }while(l != sf->lbase);
+    } while(l != sf->lbase);
    
     if(sl == NULL)
         return NULL;
@@ -1102,16 +1102,16 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
     sv->head.eflag1 = 0;
    
     curedge = sv->e;
-    do{
+    do {
         curedge->head.eflag1 = 0;
         l = curedge->l;
-        do{
+        do {
             l->head.eflag1 = 0;
             l->f->head.eflag1 = 0;
             l = bmesh_radial_nextloop(l);
-        }while(l != curedge->l);
+        } while(l != curedge->l);
         curedge = bmesh_disk_nextedge(curedge, sv);
-    }while(curedge != sv->e);
+    } while(curedge != sv->e);
    
     /*search through face disk and flag elements as we go.*/
     /*Note, test this to make sure that it works correct on
@@ -1120,45 +1120,45 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
     l = sl;
     l->e->head.eflag1 |= URMV_VISIT;
     l->f->head.eflag1 |= URMV_VISIT;
-    do{
+    do {
         if(l->v == sv)
             l = bmesh_radial_nextloop((l->prev));
         else
             l = bmesh_radial_nextloop((l->next));
         l->e->head.eflag1 |= URMV_VISIT;
         l->f->head.eflag1 |= URMV_VISIT;
-    }while(l != sl && (bmesh_cycle_length(&(l->radial)) > 1) );
+    } while(l != sl && (bmesh_cycle_length(&(l->radial)) > 1) );
    
     /*Verify that all visited edges are at least 1 or 2 manifold*/
     curedge = sv->e;
-    do{
+    do {
         if(curedge->head.eflag1 && (bmesh_cycle_length(&(curedge->l->radial)) > 2) )
             return NULL;
         curedge = bmesh_disk_nextedge(curedge, sv);
-    }while(curedge != sv->e);
+    } while(curedge != sv->e);
 
 	/*allocate temp storage - we overallocate here instead of trying to be clever*/
 	maxedges = 0;
 	maxloops = 0;
 	curedge = sv->e;
-	do{
-		if(curedge->l){
+	do {
+		if(curedge->l) {
 			l = curedge->l;
-			do{
+			do {
 				maxloops += l->f->len;
 				l = bmesh_radial_nextloop(l);
-			}while(l != curedge->l);
+			} while(l != curedge->l);
 		}
 		maxedges+= 1;
 		curedge = bmesh_disk_nextedge(curedge,sv);
-	}while(curedge != sv->e);
+	} while(curedge != sv->e);
 
-	if(bm->edarlen < maxedges){
+	if(bm->edarlen < maxedges) {
 		MEM_freeN(bm->edar);
 		bm->edar = MEM_callocN(sizeof(BMEdge *) * maxedges, "BM Edge pointer array");
 		bm->edarlen = maxedges;
 	}
-	if(bm->lparlen < maxloops){
+	if(bm->lparlen < maxloops) {
 		MEM_freeN(bm->lpar);
 		bm->lpar = MEM_callocN(sizeof(BMLoop *) * maxloops, "BM Loop pointer array");
 		bm->lparlen = maxloops;
@@ -1166,36 +1166,36 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
 
     /*first get loops by looping around edges and loops around that edges faces*/
     curedge = sv->e;
-    do{
-        if(curedge->l){
+    do {
+        if(curedge->l) {
             l = curedge->l;
-            do{
-                if( (l->head.eflag1 & URMV_VISIT) && (!(l->head.eflag1 & URMV_VISIT2)) ){
+            do {
+                if( (l->head.eflag1 & URMV_VISIT) && (!(l->head.eflag1 & URMV_VISIT2)) ) {
                     bm->lpar[numloops] = l;
                     l->head.eflag1 |= URMV_VISIT2;
                     numloops++;
                 }
                 l = bmesh_radial_nextloop(l);
-            }while(l != curedge->l);
+            } while(l != curedge->l);
         }
         curedge = bmesh_disk_nextedge(curedge, sv);
-    }while(curedge != sv->e);
+    } while(curedge != sv->e);
 
     /*now collect edges by looping around edges and looking at visited flags*/
     curedge = sv->e;
-    do{
-        if(curedge->head.eflag1 & URMV_VISIT){
+    do {
+        if(curedge->head.eflag1 & URMV_VISIT) {
             bm->edar[numedges] = curedge;
             numedges++;
         }
         curedge = bmesh_disk_nextedge(curedge, sv);
-    }while(curedge != sv->e);
+    } while(curedge != sv->e);
    
     /*make new vertex*/
     nv = bmesh_addvertlist(bm, sv);
    
     /*go through and relink edges*/
-    for(i = 0;  i <  numedges; i++){
+    for(i = 0;  i <  numedges; i++) {
         curedge = bm->edar[i];
         /*remove curedge from sv*/
         bmesh_disk_remove_edge(curedge, sv);
@@ -1206,7 +1206,7 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
     }
    
     /*go through and relink loops*/
-    for(i = 0; i < numloops; i ++){
+    for(i = 0; i < numloops; i ++) {
         l = bm->lpar[i];
         if(l->v == sv)
             l->v = nv;

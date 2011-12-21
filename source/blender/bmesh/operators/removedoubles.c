@@ -66,11 +66,11 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 
 	if (overlapface) *overlapface = NULL;
 
-	for(i=0; i < len; i++){
+	for(i=0; i < len; i++) {
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
-		while(f){
+		while(f) {
 			amount = BM_Verts_In_Face(bm, f, varr, len);
-			if(amount >= len){
+			if(amount >= len) {
 				if (overlapface) *overlapface = f;
 				return 1;				
 			}

@@ -290,27 +290,27 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 		                                "Selection Conversion Face Pointer Array");
 
 		for(i = 0, vertex = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		    vertex; i++, vertex = BMIter_Step(&iter)){
+		    vertex; i++, vertex = BMIter_Step(&iter)) {
 			vertex_array[i] = vertex;
 		}
 
 		for(i = 0, edge = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-		    edge; i++, edge = BMIter_Step(&iter)){
+		    edge; i++, edge = BMIter_Step(&iter)) {
 			edge_array[i] = edge;
 		}
 
 		for(i = 0, face = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-		    face; i++, face = BMIter_Step(&iter)){
+		    face; i++, face = BMIter_Step(&iter)) {
 			face_array[i] = face;
 		}
 
 		if(me->mselect) {
-			for(i = 0; i < me->totselect; i++){
-				if(me->mselect[i].type == ME_VSEL){
+			for(i = 0; i < me->totselect; i++) {
+				if(me->mselect[i].type == ME_VSEL) {
 					BM_store_selection(bm, vertex_array[me->mselect[i].index]);
-				}else if(me->mselect[i].type == ME_ESEL){
+				}else if(me->mselect[i].type == ME_ESEL) {
 					BM_store_selection(bm, edge_array[me->mselect[i].index]);
-				}else if(me->mselect[i].type == ME_FSEL){
+				}else if(me->mselect[i].type == ME_FSEL) {
 					BM_store_selection(bm, face_array[me->mselect[i].index]);
 				}
 			}
@@ -362,7 +362,7 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 		}
 	}
 
-	for(i=0; i < numCol; i++){
+	for(i=0; i < numCol; i++) {
 		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
 
 		for (j=0; j<3; j++) {
@@ -780,14 +780,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		me->mselect = MEM_callocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
 
 
-		for(i = 0, selected = bm->selected.first; selected; i++, selected = selected->next){
-			if(selected->htype == BM_VERT){
+		for(i = 0, selected = bm->selected.first; selected; i++, selected = selected->next) {
+			if(selected->htype == BM_VERT) {
 				me->mselect[i].type = ME_VSEL;
 
-			}else if(selected->htype == BM_EDGE){
+			}else if(selected->htype == BM_EDGE) {
 				me->mselect[i].type = ME_ESEL;
 
-			}else if(selected->htype == BM_FACE){
+			}else if(selected->htype == BM_FACE) {
 				me->mselect[i].type = ME_FSEL;
 			}
 

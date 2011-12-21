@@ -107,18 +107,18 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		return 0;
 	}
 	
-	if(v->e){
+	if(v->e) {
 		/*v->e we keep, what else?*/
 		e = v->e;
-		do{
+		do {
 			e = bmesh_disk_nextedge(e,v);
-			if(!(BM_Edge_Share_Faces(e, v->e))){
+			if(!(BM_Edge_Share_Faces(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
 				break;
 			}
 			len++;
-		}while(e != v->e);
+		} while(e != v->e);
 	}
 	
 	/*this code for handling 2 and 3-valence verts
@@ -135,7 +135,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 			return 0;
 		}
 		return 1;
-	} else if (keepedge == NULL && len == 2) {
+	}
+	else if (keepedge == NULL && len == 2) {
 		/*collapse the vertex*/
 		e = BM_Collapse_Vert_Faces(bm, v->e, v, 1.0);
 
@@ -154,13 +155,13 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 		return 1;
 	}
 
-	if(keepedge){
+	if(keepedge) {
 		int done = 0;
 
-		while(!done){
+		while(!done) {
 			done = 1;
 			e = v->e;
-			do{
+			do {
 				f = NULL;
 				len = bmesh_radial_length(e->l);
 				if(len == 2 && (e!=baseedge) && (e!=keepedge)) {
@@ -171,12 +172,12 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 					if (!f) return 0;
 				}
 
-				if(f){
+				if(f) {
 					done = 0;
 					break;
 				}
 				e = bmesh_disk_nextedge(e, v);
-			}while(e != v->e);
+			} while(e != v->e);
 		}
 
 		/*collapse the vertex*/
@@ -208,9 +209,9 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 	BMIter iter;
 	int done, len;
 	
-	if(v->e){
+	if(v->e) {
 		done = 0;
-		while(!done){
+		while(!done) {
 			done = 1;
 			
 			/*loop the edges looking for an edge to dissolve*/
@@ -218,12 +219,12 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v)
 			     e = BMIter_Step(&iter)) {
 				f = NULL;
 				len = bmesh_cycle_length(&(e->l->radial));
-				if(len == 2){
+				if(len == 2) {
 					f = BM_Join_TwoFaces(bm,e->l->f,((BMLoop*)
 					      (e->l->radial_next))->f, 
 					       e);
 				}
-				if(f){ 
+				if(f) {
 					done = 0;
 					break;
 				}
@@ -258,16 +259,16 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	BMFace *faces[2] = {f1, f2};
 	
 	jed = e;
-	if(!jed){
+	if(!jed) {
 		/*search for an edge that has both these faces in its radial cycle*/
 		l1 = bm_firstfaceloop(f1);
-		do{
+		do {
 			if(l1->radial_next->f == f2 ) {
 				jed = l1->e;
 				break;
 			}
 			l1 = l1->next;
-		}while(l1!=bm_firstfaceloop(f1));
+		} while(l1!=bm_firstfaceloop(f1));
 	}
 
 	if (!jed) {
@@ -423,7 +424,7 @@ BMEdge* BM_Collapse_Vert_Faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac)
 
 	if (ke->l) {
 		l = ke->l;
-		do{
+		do {
 			if(l->v == tv && l->next->v == kv) {
 				tvloop = l;
 				kvloop = l->next;
@@ -634,7 +635,7 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 	float percent;
 	BMVert *nv = NULL;
 	
-	for(i=0; i < numcuts; i++){
+	for(i=0; i < numcuts; i++) {
 		percent = 1.0f / (float)(numcuts + 1 - i);
 		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent);
 	}

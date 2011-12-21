@@ -382,7 +382,7 @@ static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int
  */
 BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 {
-	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)){
+	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
 		unsigned int index;
 		BMVert *eve;
@@ -908,9 +908,9 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	int totedgesel = 0;
 
 	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	    eed; eed = BMIter_Step(&iter)){
+	    eed; eed = BMIter_Step(&iter)) {
 
-		if(BM_TestHFlag(eed, BM_SELECT)){
+		if(BM_TestHFlag(eed, BM_SELECT)) {
 			totedgesel++;
 		}
 	}
@@ -920,23 +920,23 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	edindex = 0;
 	
 	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	    eed; eed = BMIter_Step(&iter)){
+	    eed; eed = BMIter_Step(&iter)) {
 
-		if(BM_TestHFlag(eed, BM_SELECT)){
+		if(BM_TestHFlag(eed, BM_SELECT)) {
 			edarray[edindex] = eed;
 			edindex++;
 		}
 	}
 	
-	if(looptype){
-		for(edindex = 0; edindex < totedgesel; edindex +=1){
+	if(looptype) {
+		for(edindex = 0; edindex < totedgesel; edindex +=1) {
 			eed = edarray[edindex];
 			walker_select(em, BMW_EDGERING, eed, 1);
 		}
 		EDBM_selectmode_flush(em);
 	}
 	else{
-		for(edindex = 0; edindex < totedgesel; edindex +=1){
+		for(edindex = 0; edindex < totedgesel; edindex +=1) {
 			eed = edarray[edindex];
 			walker_select(em, BMW_LOOP, eed, 1);
 		}
@@ -1477,7 +1477,7 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 				EDBM_store_selection(vc.em, eve);
 				BM_Select(vc.em->bm, eve, TRUE);
 			}
-			else if(extend){ 
+			else if(extend) {
 				EDBM_remove_selection(vc.em, eve);
 				BM_Select(vc.em->bm, eve, FALSE);
 			}
@@ -1504,25 +1504,25 @@ static void EDBM_strip_selections(BMEditMesh *em)
 {
 	BMEditSelection *ese, *nextese;
 
-	if(!(em->selectmode & SCE_SELECT_VERTEX)){
+	if(!(em->selectmode & SCE_SELECT_VERTEX)) {
 		ese = em->bm->selected.first;
-		while(ese){
+		while(ese) {
 			nextese = ese->next; 
 			if(ese->htype == BM_VERT) BLI_freelinkN(&(em->bm->selected),ese);
 			ese = nextese;
 		}
 	}
-	if(!(em->selectmode & SCE_SELECT_EDGE)){
+	if(!(em->selectmode & SCE_SELECT_EDGE)) {
 		ese=em->bm->selected.first;
-		while(ese){
+		while(ese) {
 			nextese = ese->next;
 			if(ese->htype == BM_EDGE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
 		}
 	}
-	if(!(em->selectmode & SCE_SELECT_FACE)){
+	if(!(em->selectmode & SCE_SELECT_FACE)) {
 		ese=em->bm->selected.first;
-		while(ese){
+		while(ese) {
 			nextese = ese->next;
 			if(ese->htype == BM_FACE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
@@ -1620,7 +1620,7 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 		}
 	}
 	
-	if(oldmode == SCE_SELECT_EDGE){
+	if(oldmode == SCE_SELECT_EDGE) {
 		if(selectmode == SCE_SELECT_FACE) {
 			BMIter liter;
 			BMLoop *l;

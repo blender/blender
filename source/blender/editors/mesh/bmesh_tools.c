@@ -2046,7 +2046,7 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 	BMEditSelection *ese;
 
 	/* do sanity check in mergemenu in edit.c ?*/
-	if(first == 0){
+	if(first == 0) {
 		ese = em->bm->selected.last;
 		mergevert= (BMVert*)ese->data;
 	}
@@ -2630,8 +2630,8 @@ static void shape_propagate(Object *obedit, BMEditMesh *em, wmOperator *op)
 
 #if 0
 	//TAG Mesh Objects that share this data
-	for(base = scene->base.first; base; base = base->next){
-		if(base->object && base->object->data == me){
+	for(base = scene->base.first; base; base = base->next) {
+		if(base->object && base->object->data == me) {
 			base->object->recalc = OB_RECALC_DATA;
 		}
 	}
@@ -2987,9 +2987,9 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 	*isected = 0;
 
 	/*check for *exact* vertex intersection first*/
-	if(mode!=KNIFE_MULTICUT){
-		for (i=0; i<len; i++){
-			if (i>0){
+	if(mode!=KNIFE_MULTICUT) {
+		for (i=0; i<len; i++) {
+			if (i>0) {
 				x11=x12;
 				y11=y12;
 			}
@@ -3001,13 +3001,13 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 			y12=c[i].y;
 			
 			/*test e->v1*/
-			if((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)){
+			if((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)) {
 				perc = 0;
 				*isected = 1;
 				return(perc);
 			}
 			/*test e->v2*/
-			else if((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)){
+			else if((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)) {
 				perc = 0;
 				*isected = 2;
 				return(perc);
@@ -3016,8 +3016,8 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 	}
 	
 	/*now check for edge interesect (may produce vertex intersection as well)*/
-	for (i=0; i<len; i++){
-		if (i>0){
+	for (i=0; i<len; i++) {
+		if (i>0) {
 			x11=x12;
 			y11=y12;
 		}
@@ -3036,9 +3036,9 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 		if (i==0) lastdist=dist;
 		
 		/* if dist changes sign, and intersect point in edge's Bound Box*/
-		if ((lastdist*dist)<=0){
+		if ((lastdist*dist)<=0) {
 			xdiff1=(x12-x11); /* Equation of line between last 2 points */
-			if (xdiff1){
+			if (xdiff1) {
 				m1=(y12-y11)/xdiff1;
 				b1= ((x12*y11)-(x11*y12))/xdiff1;
 			}
@@ -3052,7 +3052,7 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 			y2min=MIN2(y21,y22)-0.001;
 			
 			/* Found an intersect,  calc intersect point */
-			if (m1==m2){ /* co-incident lines */
+			if (m1==m2) { /* co-incident lines */
 				/* cut at 50% of overlap area*/
 				x1max=MAX2(x11, x12);
 				x1min=MIN2(x11, x12);
@@ -3062,11 +3062,11 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 				y1min=MIN2(y11, y12);
 				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0;
 			}			
-			else if (m2==MAXSLOPE){ 
+			else if (m2==MAXSLOPE) {
 				xi=x22;
 				yi=m1*x22+b1;
 			}
-			else if (m1==MAXSLOPE){ 
+			else if (m1==MAXSLOPE) {
 				xi=x12;
 				yi=m2*x12+b2;
 			}
@@ -3076,18 +3076,18 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 			}
 			
 			/* Intersect inside bounding box of edge?*/
-			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
+			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)) {
 				/*test for vertex intersect that may be 'close enough'*/
-				if(mode!=KNIFE_MULTICUT){
-					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)){
-						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)){
+				if(mode!=KNIFE_MULTICUT) {
+					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)) {
+						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)) {
 							*isected = 1;
 							perc = 0;
 							break;
 						}
 					}
-					if(xi <= (x22 + threshold) && xi >= (x22 - threshold)){
-						if(yi <= (y22 + threshold) && yi >= (y22 - threshold)){
+					if(xi <= (x22 + threshold) && xi >= (x22 - threshold)) {
+						if(yi <= (y22 + threshold) && yi >= (y22 - threshold)) {
 							*isected = 2;
 							perc = 0;
 							break;
@@ -3149,7 +3149,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
-	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)){
+	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)) {
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		copy_v3_v3(co, bv->co);
 		co[3]= 1.0;
@@ -3752,20 +3752,20 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	v1 = NULL;
 	v2 = NULL;
 	for(eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	    eve; eve = BMIter_Step(&iter)){
+	    eve; eve = BMIter_Step(&iter)) {
 
 		valence = 0;
 
 		for(eed = BMIter_New(&eiter, em->bm, BM_EDGES_OF_VERT, eve);
-		    eed; eed = BMIter_Step(&eiter)){
+		    eed; eed = BMIter_Step(&eiter)) {
 
-			if(BM_TestHFlag(eed, BM_SELECT)){
+			if(BM_TestHFlag(eed, BM_SELECT)) {
 				valence++;
 			}
 
 		}
 
-		if(valence == 1){
+		if(valence == 1) {
 			if(v1==NULL) v1 = eve;
 			else if(v2==NULL) v2= eve;
 			else {
@@ -3850,19 +3850,19 @@ static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	for(efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-	    efa; efa = BMIter_Step(&iter)){
+	    efa; efa = BMIter_Step(&iter)) {
 
 		int select = 0;
 
-		if(type == 0 && efa->len < numverts){
+		if(type == 0 && efa->len < numverts) {
 			select = 1;
-		}else if(type == 1 && efa->len == numverts){
+		}else if(type == 1 && efa->len == numverts) {
 			select = 1;
-		}else if(type == 2 && efa->len > numverts){
+		}else if(type == 2 && efa->len > numverts) {
 			select = 1;
 		}
 
-		if(select){
+		if(select) {
 			BM_Select(em->bm, efa, TRUE);
 		}
 	}
@@ -3908,17 +3908,17 @@ static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	BMIter iter;
 
 	for(eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	    eve; eve = BMIter_Step(&iter)){
+	    eve; eve = BMIter_Step(&iter)) {
 
-		if(!eve->e){
+		if(!eve->e) {
 			BM_Select(em->bm, eve, TRUE);
 		}
 	}
 
 	for(eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	    eed; eed = BMIter_Step(&iter)){
+	    eed; eed = BMIter_Step(&iter)) {
 
-		if(!eed->l){
+		if(!eed->l) {
 			BM_Select(em->bm, eed, TRUE);
 		}
 	}

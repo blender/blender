@@ -102,12 +102,13 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 
 	if(!e1->l) return;
 	l = e1->l;
-	do{
-		if(l->v == v1){ 
+	do {
+		if(l->v == v1) {
 			v1loop = l;
 			vloop = v1loop->next;
 			v2loop = vloop->next;
-		}else if(l->v == v){
+		}
+		else if(l->v == v) {
 			v1loop = l->next;
 			vloop = l;
 			v2loop = l->prev;
@@ -121,7 +122,7 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 
 		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->head.data); 				
 		l = l->radial_next;
-	}while(l!=e1->l);
+	} while(l!=e1->l);
 }
 
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
@@ -136,7 +137,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	MLoopUV *mloopuv;
 	int i, j;
 
-	for(i=0; i < numTex; i++){
+	for(i=0; i < numTex; i++) {
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
@@ -158,7 +159,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 
 	}
 
-	for(i=0; i < numCol; i++){
+	for(i=0; i < numCol; i++) {
 		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
 
 		j = 0;

@@ -77,7 +77,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
 
-	for(i=0; i < numTex; i++){
+	for(i=0; i < numTex; i++) {
 		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
@@ -100,7 +100,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 
 	}
 
-	for(i=0; i < numCol; i++){
+	for(i=0; i < numCol; i++) {
 		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
 		j = 0;
 		l = f->loopbase;
@@ -158,7 +158,7 @@ static EditEdge *bmeshedge_to_editedge(BMesh *bm, EditMesh *em, BMEdge *e, EditV
 {
 	EditEdge *eed = NULL;
 
-	if(!(findedgelist(em, evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1]))){
+	if(!(findedgelist(em, evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1]))) {
 		eed= addedgelist(em, evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1], NULL);
 		bmeshedge_to_editedge_internal(bm, em, e, eed);
 	}

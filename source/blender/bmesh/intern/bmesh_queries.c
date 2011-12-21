@@ -165,11 +165,11 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 	BMLoop *l;
 
 	l = bm_firstfaceloop(f);
-	do{
+	do {
 
 		if(l->e == e) return 1;
 		l = l->next;
-	}while(l != bm_firstfaceloop(f));
+	} while(l != bm_firstfaceloop(f));
 
 	return 0;
 }
@@ -222,12 +222,12 @@ int BM_Edge_FaceCount(BMEdge *e)
 	int count = 0;
 	BMLoop *curloop = NULL;
 
-	if(e->l){
+	if(e->l) {
 		curloop = e->l;
-		do{
+		do {
 			count++;
 			curloop = bmesh_radial_nextloop(curloop);
-		}while(curloop != e->l);
+		} while(curloop != e->l);
 	}
 
 	return count;
@@ -252,12 +252,12 @@ int BM_Vert_FaceCount(BMVert *v)
 #if 0 //this code isn't working
 	BMEdge *curedge = NULL;
 
-	if(v->e){
+	if(v->e) {
 		curedge = v->e;
-		do{
+		do {
 			if(curedge->l) count += BM_Edge_FaceCount(curedge);
 			curedge = bmesh_disk_nextedge(curedge,v);
-		}while(curedge != v->e);
+		} while(curedge != v->e);
 	}
 	return count;
 #endif
@@ -280,10 +280,10 @@ int BM_Wire_Vert(BMesh *UNUSED(bm), BMVert *v)
 	if(!(v->e)) return 0;
 	
 	curedge = v->e;
-	do{
+	do {
 		if(curedge->l) return 0;
 		curedge = bmesh_disk_nextedge(curedge, v);
-	}while(curedge != v->e);
+	} while(curedge != v->e);
 
 	return 1;
 }
@@ -430,10 +430,10 @@ int BM_Face_Share_Edges(BMFace *f1, BMFace *f2)
 	int count = 0;
 	
 	l = bm_firstfaceloop(f1);
-	do{
+	do {
 		if(bmesh_radial_find_face(l->e,f2)) count++;
 		l = l->next;
-	}while(l != bm_firstfaceloop(f1));
+	} while(l != bm_firstfaceloop(f1));
 	
 	return count;
 }
@@ -451,15 +451,15 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 	BMLoop *l;
 	BMFace *f;
 
-	if(e1->l && e2->l){
+	if(e1->l && e2->l) {
 		l = e1->l;
-		do{
+		do {
 			f = l->f;
-			if(bmesh_radial_find_face(e2,f)){
+			if(bmesh_radial_find_face(e2,f)) {
 				return 1;
 			}
 			l = l->radial_next;
-		}while(l != e1->l);
+		} while(l != e1->l);
 	}
 	return 0;
 }
@@ -552,11 +552,11 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapfa
 
 	if (overlapface) *overlapface = NULL;
 
-	for(i=0; i < len; i++){
+	for(i=0; i < len; i++) {
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
-		while(f){
+		while(f) {
 			amount = BM_Verts_In_Face(bm, f, varr, len);
-			if(amount >= len){
+			if(amount >= len) {
 				if (overlapface) *overlapface = f;
 				return 1;				
 			}
@@ -588,11 +588,11 @@ int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
 
 	if (existface) *existface = NULL;
 
-	for(i=0; i < len; i++){
+	for(i=0; i < len; i++) {
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
-		while(f){
+		while(f) {
 			amount = BM_Verts_In_Face(bm, f, varr, len);
-			if(amount == len && amount == f->len){
+			if(amount == len && amount == f->len) {
 				if (existface) *existface = f;
 				return 1;				
 			}

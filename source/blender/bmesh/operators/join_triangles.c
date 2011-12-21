@@ -147,7 +147,7 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	/*compare faceedges for each face attribute. Additional per face attributes can be added later*/
 
 	/*do VCOLs*/
-	if(lcol1 && dovcols){
+	if(lcol1 && dovcols) {
 		char *cols[4] = {(char*)lcol1, (char*)lcol2, (char*)lcol3, (char*)lcol4};
 		int i;
 

@@ -265,7 +265,7 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, const char *src, c
 			/*do buffer copy*/
 			dest_slot->data.buf = NULL;
 			dest_slot->len = source_slot->len;
-			if(dest_slot->len){
+			if(dest_slot->len) {
 				dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
 				memcpy(dest_slot->data.buf, source_slot->data.buf, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
 			}
@@ -438,20 +438,20 @@ int BMO_CountFlag(BMesh *bm, int flag, const char htype)
 	BMHeader *e;
 	int count = 0;
 
-	if(htype & BM_VERT){
-		for(e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)){
+	if(htype & BM_VERT) {
+		for(e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
 			if(BMO_TestFlag(bm, e, flag))
 				count++;
 		}
 	}
-	if(htype & BM_EDGE){
-		for(e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)){
+	if(htype & BM_EDGE) {
+		for(e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
 			if(BMO_TestFlag(bm, e, flag))
 				count++;
 		}
 	}
-	if(htype & BM_FACE){
-		for(e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)){
+	if(htype & BM_FACE) {
+		for(e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
 			if(BMO_TestFlag(bm, e, flag))
 				count++;
 		}
@@ -587,7 +587,7 @@ static void BMO_All_To_Slot(BMesh *bm, BMOperator *op, const char *slotname, con
 	if (htype & BM_EDGE) totelement += bm->totedge;
 	if (htype & BM_FACE) totelement += bm->totface;
 
-	if(totelement){
+	if(totelement) {
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
@@ -632,7 +632,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 	
 	totelement = BM_CountFlag(bm, htype, hflag, 1);
 
-	if(totelement){
+	if(totelement) {
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
@@ -681,12 +681,12 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 	BMOpSlot *output = BMO_GetSlot(op, slotname);
 	int totelement = BMO_CountFlag(bm, flag, htype), i=0;
 
-	if(totelement){
+	if(totelement) {
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (htype & BM_VERT) {
 			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(BMO_TestFlag(bm, e, flag)){
+				if(BMO_TestFlag(bm, e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}
@@ -695,7 +695,7 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 
 		if (htype & BM_EDGE) {
 			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(BMO_TestFlag(bm, e, flag)){
+				if(BMO_TestFlag(bm, e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}
@@ -704,7 +704,7 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, const char *slotname,
 
 		if (htype & BM_FACE) {
 			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(BMO_TestFlag(bm, e, flag)){
+				if(BMO_TestFlag(bm, e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}
@@ -774,7 +774,7 @@ int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag)
 		const int len= bmesh_disk_count(v);
 		int i;
 		
-		for(i = 0, curedge=v->e; i<len; i++){
+		for(i = 0, curedge=v->e; i<len; i++) {
 			if (BMO_TestFlag(bm, curedge, toolflag))
 				count++;
 			curedge = bmesh_disk_nextedge(curedge, v);
@@ -942,13 +942,13 @@ static void clear_flag_layer(BMesh *bm)
 	BMIter faces;
 	
 	/*now go through and memcpy all the flags*/
-	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
+	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)) {
 		memset(v->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
-	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
+	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)) {
 		memset(e->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
-	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
+	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)) {
 		memset(f->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
 }

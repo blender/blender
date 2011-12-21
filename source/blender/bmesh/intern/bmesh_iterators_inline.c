@@ -63,7 +63,7 @@ BM_INLINE void *BMIter_New(BMIter *iter, BMesh *bm, const char itype, void *data
 	iter->bm = bm;
 
 	/* inlining optimizes out this switch when called with the defined type */
-	switch(itype){
+	switch(itype) {
 		case BM_VERTS_OF_MESH:
 			iter->begin = bmiter__vert_of_mesh_begin;
 			iter->step =  bmiter__vert_of_mesh_step;

@@ -30,7 +30,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Flag_Buffer(bm, op, "verts", VERT_INPUT, BM_VERT);
 
-	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)){
+	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
 		BLI_array_empty(loops);
 		BLI_array_empty(verts);
 		

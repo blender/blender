@@ -208,7 +208,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		found = 0;
 
 		BM_ITER(e, &viter, bm, BM_EDGES_OF_VERT, v) {
-			if (!BMO_TestFlag(bm, e, EXT_INPUT) || !BMO_TestFlag(bm, e, EXT_DEL)){
+			if (!BMO_TestFlag(bm, e, EXT_INPUT) || !BMO_TestFlag(bm, e, EXT_DEL)) {
 				found = 1;
 				break;
 			}

@@ -117,7 +117,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	/*this fixes some weird numerical error*/
 	add_v3_fl(verts[0], 0.0001f);
 
-	for(i = 0; i < nverts; i++){
+	for(i = 0; i < nverts; i++) {
 		copy_v3_v3(u, verts[i]);
 		copy_v3_v3(v, verts[(i+1) % nverts]);
 		copy_v3_v3(w, verts[(i+2) % nverts]);
@@ -200,7 +200,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	i = nverts-1;
 	j = 0;
 	
-	while(j < nverts){
+	while(j < nverts) {
 		ai = verts[i][0] * verts[j][1] - verts[j][0] * verts[i][1];				
 		atmp += ai;
 		xtmp += (verts[j][0] + verts[i][0]) * ai;
@@ -212,7 +212,7 @@ static int compute_poly_center(float center[3], float *r_area, float (*verts)[3]
 	if(r_area)
 		*r_area = atmp / 2.0f;
 	
-	if (atmp != 0){
+	if (atmp != 0) {
 		center[0] = xtmp /  (3.0f * atmp);
 		center[1] = xtmp /  (3.0f * atmp);
 		return 1;
@@ -300,7 +300,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	zero_v3(avgn);
 	zero_v3(avgc);
 
-	for(i = 0; i < nverts; i++){
+	for(i = 0; i < nverts; i++) {
 		v1 = verts[i];
 		v2 = verts[(i+1) % nverts];
 		v3 = verts[(i+2) % nverts];
@@ -323,7 +323,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		normalize_v3(avgn);
 	}
 	
-	for(i = 0; i < nverts; i++){
+	for(i = 0; i < nverts; i++) {
 		v1 = verts[i];
 		mag = dot_v3v3(v1, avgn);
 		madd_v3_v3fl(v1, avgn, -mag);
@@ -500,14 +500,14 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 
 		compute_poly_normal(f->no, projectverts, f->len);	
 	}
-	else if(f->len == 3){
+	else if(f->len == 3) {
 		BMVert *v1, *v2, *v3;
 		v1 = bm_firstfaceloop(f)->v;
 		v2 = bm_firstfaceloop(f)->next->v;
 		v3 = bm_firstfaceloop(f)->next->next->v;
 		normal_tri_v3( f->no,v1->co, v2->co, v3->co);
 	}
-	else if(f->len == 4){
+	else if(f->len == 4) {
 		BMVert *v1, *v2, *v3, *v4;
 		v1 = bm_firstfaceloop(f)->v;
 		v2 = bm_firstfaceloop(f)->next->v;
@@ -515,7 +515,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		v4 = bm_firstfaceloop(f)->prev->v;
 		normal_quad_v3( f->no,v1->co, v2->co, v3->co, v4->co);
 	}
-	else{ /*horrible, two sided face!*/
+	else { /*horrible, two sided face!*/
 		zero_v3(f->no);
 	}
 
@@ -767,12 +767,12 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
 	l = bm_firstfaceloop(f);
-	do{
+	do {
 		copy_v3_v3(projectverts[i], l->v->co);
 		BM_SetIndex(l->v, i); /* set dirty! */
 		i++;
 		l = l->next;
-	}while(l != bm_firstfaceloop(f));
+	} while(l != bm_firstfaceloop(f));
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
@@ -789,7 +789,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}
 
 	done = 0;
-	while(!done && f->len > 3){
+	while(!done && f->len > 3) {
 		done = 1;
 		l = find_ear(bm, f, projectverts, nvert);
 		if(l) {
@@ -821,9 +821,9 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		}
 	}
 
-	if (f->len > 3){
+	if (f->len > 3) {
 		l = bm_firstfaceloop(f);
-		while (l->f->len > 3){
+		while (l->f->len > 3) {
 			nextloop = l->next->next;
 			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
 			                  &newl, NULL);

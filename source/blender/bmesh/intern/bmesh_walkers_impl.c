@@ -149,7 +149,7 @@ static void *shellWalker_step(BMWalker *walker)
 
 	/*find the next edge whose other vertex has not been visited*/
 	curedge = shellWalk.curedge;
-	do{
+	do {
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
 			if(!walker->restrictflag || (walker->restrictflag &&
 			   BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
@@ -169,7 +169,7 @@ static void *shellWalker_step(BMWalker *walker)
 			}
 		}
 		curedge = bmesh_disk_nextedge(curedge, shellWalk.base);
-	}while(curedge != shellWalk.curedge);
+	} while(curedge != shellWalk.curedge);
 	
 	return shellWalk.curedge;
 }
@@ -297,7 +297,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 			l = bmesh_radial_nextloop(l);
 			f = l->f;
 			e = l->e;
-			if(walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)){
+			if(walker->mask_face && !BMO_TestFlag(walker->bm, f, walker->mask_face)) {
 				l = l->radial_next;
 				break;
 			}

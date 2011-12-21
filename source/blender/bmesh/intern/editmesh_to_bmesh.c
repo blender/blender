@@ -80,7 +80,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 	MLoopUV *mloopuv;
 	BMIter iter;
 
-	for(i=0; i < numTex; i++){
+	for(i=0; i < numTex; i++) {
 		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
 		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
 		
@@ -98,7 +98,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 		}
 
 	}
-	for(i=0; i < numCol; i++){
+	for(i=0; i < numCol; i++) {
 		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
 		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); l; j++, l=BMIter_Step(&iter)) {
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
@@ -194,10 +194,11 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 
 		edar[0] = BM_Make_Edge(bm, efa->v1->tmp.p, efa->v2->tmp.p, NULL, 1); 
 		edar[1] = BM_Make_Edge(bm, efa->v2->tmp.p, efa->v3->tmp.p, NULL, 1); 
-		if(efa->v4){
+		if(efa->v4) {
 			edar[2] = BM_Make_Edge(bm, efa->v3->tmp.p, efa->v4->tmp.p, NULL, 1); 
 			edar[3] = BM_Make_Edge(bm, efa->v4->tmp.p, efa->v1->tmp.p, NULL, 1); 
-		}else{
+		}
+		else {
 			edar[2] = BM_Make_Edge(bm, efa->v3->tmp.p, efa->v1->tmp.p, NULL, 1); 
 		}
 
@@ -282,7 +283,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 
 	sf = f;
 	done = 0;
-	while(!done){
+	while(!done) {
 		done = 1;
 		l = sf->loopbase;
 		do{
@@ -297,7 +298,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 				}
 
 				sf->head.flag |= act;
-				if(sf){
+				if(sf) {
 					done = 0;
 					break;
 				} else { /*we have to get out of here...*/
@@ -305,7 +306,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 				}
 			}
 			l = l->next;
-		}while(l != sf->loopbase);
+		} while(l != sf->loopbase);
 	}
 }
 
@@ -331,12 +332,12 @@ static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int n
 	EM_fgon_flags(em);
 
 	/*zero out efa->tmp, we store fgon index here*/
-	for(efa = em->faces.first; efa; efa = efa->next){ 
+	for(efa = em->faces.first; efa; efa = efa->next) {
 		efa->tmp.l = 0;
 		amount++;
 	}
 	/*go through and give each editface an fgon index*/
-	for(efa = em->faces.first; efa; efa = efa->next){
+	for(efa = em->faces.first; efa; efa = efa->next) {
 		if(efa->e1->fgoni) efa->tmp.l = efa->e1->fgoni;
 		else if(efa->e2->fgoni) efa->tmp.l = efa->e2->fgoni;
 		else if(efa->e3->fgoni) efa->tmp.l = efa->e3->fgoni;
@@ -345,7 +346,7 @@ static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int n
 
 	sb= sortblock= MEM_mallocN(sizeof(fgonsort)* amount,"fgon sort block");
 
-	for(efa = em->faces.first; efa; efa=efa->next){
+	for(efa = em->faces.first; efa; efa=efa->next) {
 		sb->x = efa->tmp.l;
 		sb->efa = efa;
 		sb->done = 0;
@@ -356,9 +357,9 @@ static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int n
 
 	sb = sortblock;
 	for(a=0; a<amount; a++, sb++) {
-		if(sb->x && sb->done == 0){
+		if(sb->x && sb->done == 0) {
 			/*first pass: add in faces for this fgon*/
-			for(b=a, sb1 = sb; b<amount && sb1->x == sb->x; b++, sb1++){
+			for(b=a, sb1 = sb; b<amount && sb1->x == sb->x; b++, sb1++) {
 				efa = sb1->efa;
 				sb1->f = editface_to_BMFace(bm, op, em, efa, numCol, numTex);
 				sb1->done = 1;
@@ -383,7 +384,7 @@ static void tag_wire_edges(EditMesh *em)
 	EditFace *efa;
 	EditEdge *eed;
 	for(eed = em->edges.first; eed; eed = eed->next) eed->f1 = 1;
-	for(efa = em->faces.first; efa; efa = efa->next){
+	for(efa = em->faces.first; efa; efa = efa->next) {
 		efa->e1->f1 = 0;
 		efa->e2->f1 = 0;
 		efa->e3->f1 = 0;
@@ -444,7 +445,7 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op)
 	tag_wire_edges(em);
 
 	/*add verts*/
-	for(eve = em->verts.first; eve; eve = eve->next){
+	for(eve = em->verts.first; eve; eve = eve->next) {
 		v = editvert_to_BMVert(bm, op, em, eve);
 		eve->tmp.p = v;
 	}
@@ -452,17 +453,17 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op)
 	BM_fgonconvert(bm, op, em, numCol, numTex);
 	
 	/*clean up any dangling fgon flags*/
-	for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e=BMIter_Step(&iter)){
+	for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e=BMIter_Step(&iter)) {
 		e->head.flag &= ~BM_FGON;
 	}
 
 	/*do quads + triangles*/
-	for(efa = em->faces.first; efa; efa = efa->next){
+	for(efa = em->faces.first; efa; efa = efa->next) {
 		if(!efa->tmp.l) editface_to_BMFace(bm, op, em, efa, numCol, numTex);
 	}
 
 	/*add wire edges*/	
-	for(eed = em->edges.first; eed; eed = eed->next){
+	for(eed = em->edges.first; eed; eed = eed->next) {
 		if(eed->f1) editedge_to_BMEdge(bm, op, em, eed);
 	}
 	//BM_end_edit(bm, BM_CALC_NORM);

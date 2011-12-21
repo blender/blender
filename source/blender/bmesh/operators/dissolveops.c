@@ -359,7 +359,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		found3 = 1;
 		while (found3) {
 			found3 = 0;
-			for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)){
+			for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
 				if (!BM_Validate_Face(bm, f, stderr)) {
 					printf("error.\n");
 				}

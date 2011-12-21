@@ -109,7 +109,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 	if(nodouble) /*test if edge already exists.*/
 		e = BM_Edge_Exist(v1, v2);
 
-	if(!e){
+	if(!e) {
 		e = bmesh_me(bm, v1, v2);
 
 		if(example)
@@ -138,8 +138,9 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
  *
 */
 
-BMFace *BM_Make_Face_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
-                        BMVert *v4, const BMFace *example, int nodouble)
+BMFace *BM_Make_Face_QuadTri(BMesh *bm,
+                             BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
+                             const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMVert *vtar[4];
@@ -172,37 +173,40 @@ BMFace *BM_Make_Face_QuadTri_v(BMesh *bm, BMVert **verts, BMEdge **edges, int le
 
 	edar[0] = edar[1] = edar[2] = edar[3] = NULL;
 	
-	if(edges){
+	if(edges) {
 		edar[0] = edges[0];
 		edar[1] = edges[1];
 		edar[2] = edges[2];
 		if(len == 4) edar[3] = edges[3];
-	}else{
+	}
+	else {
 		edar[0] = BM_Edge_Exist(verts[0],verts[1]);
 		edar[1] = BM_Edge_Exist(verts[1],verts[2]);
-		if(len == 4){
+		if(len == 4) {
 			edar[2] = BM_Edge_Exist(verts[2],verts[3]);
 			edar[3] = BM_Edge_Exist(verts[3],verts[0]);
 
-		}else{
+		}
+		else {
 			edar[2] = BM_Edge_Exist(verts[2],verts[0]);
 		}
 	}
 	
-	if(nodouble){
+	if(nodouble) {
 		/*check if face exists or overlaps*/
-		if(len == 4){
+		if(len == 4) {
 			overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
-		}else{
+		}
+		else {
 			overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
 		}
 	}
 
 	/*make new face*/
-	if((!f) && (!overlap)){
+	if((!f) && (!overlap)) {
 		if(!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
 		if(!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, 0);
-		if(len == 4){
+		if(len == 4) {
 			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, 0);
 			if(!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, 0);
 		} else {

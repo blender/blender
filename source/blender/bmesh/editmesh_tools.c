@@ -2356,7 +2356,7 @@ static void fill_quad_singlevert(EditFace *efa, struct GHash *gh)
 				X--------	--------X
 */
 
-	if(v[left]->f1){
+	if(v[left]->f1) {
 		//triangle is composed of cutvert, end and left
 		hold = addfacelist(verts[1],v[end],v[left],NULL, NULL,NULL);
 		hold->e1->f2 |= EDGENEW;
@@ -2374,7 +2374,7 @@ static void fill_quad_singlevert(EditFace *efa, struct GHash *gh)
 		hold->e1->f2 |= EDGEINNER;
 		facecopy(efa, hold);
 	}
-	else if(v[right]->f1){
+	else if(v[right]->f1) {
 		//triangle is composed of cutvert, right and start
 		hold = addfacelist(verts[1],v[right],v[start], NULL, NULL, NULL);
 		hold->e1->f2 |= EDGENEW;
@@ -2442,7 +2442,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			if(mmd->flag & MOD_MIR_CLIPPING) {
 				for (eve= em->verts.first; eve; eve= eve->next) {
 					eve->f2= 0;
-					switch(mmd->axis){
+					switch(mmd->axis) {
 						case 0:
 							if (fabs(eve->co[0]) < mmd->tolerance)
 								eve->f2 |= 1;
