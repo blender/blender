@@ -938,7 +938,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		index_lookup[a] = -1;
 	}
 
-	qsort(topo_pairs, totvert, sizeof(MirrTopoVert_t), mirrtopo_hash_sort);
+	qsort(topo_pairs, totvert, sizeof(MirrTopoVert_t), mirrtopo_vert_sort);
 
 	/* Since the loop starts at 2, we must define the last index where the hash's differ */
 	last = ((totvert >= 2) && (topo_pairs[0].hash == topo_pairs[1].hash)) ? 0 : 1;
