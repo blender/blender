@@ -761,7 +761,8 @@ PyDoc_STRVAR(Matrix_resize_4x4_doc,
 );
 static PyObject *Matrix_resize_4x4(MatrixObject *self)
 {
-	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
+	float mat[16];
+	int col;
 
 	if (self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError,
@@ -784,30 +785,14 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 		return NULL;
 	}
 
-	/*move data to new spot in array + clean*/
-	for (blank_rows = (4 - self->num_col); blank_rows > 0; blank_rows--) {
-		for (x = 0; x < 4; x++) {
-			index = (4 * (self->num_col + (blank_rows - 1))) + x;
-			if (index == 10 || index == 15) {
-				self->matrix[index] = 1.0f;
-			}
-			else {
-				self->matrix[index] = 0.0f;
-			}
-		}
+	unit_m4((float (*)[4])mat);
+
+	for (col = 0; col < self->num_col; col++) {
+		memcpy(mat + (4 * col), MATRIX_COL_PTR(self, col), self->num_row * sizeof(float));
 	}
-	for (x = 1; x <= self->num_col; x++) {
-		first_row_elem = (self->num_row * (self->num_col - x));
-		curr_pos = (first_row_elem + (self->num_row -1));
-		new_pos = (4 * (self->num_col - x)) + (curr_pos - first_row_elem);
-		for (blank_columns = (4 - self->num_row); blank_columns > 0; blank_columns--) {
-			self->matrix[new_pos + blank_columns] = 0.0f;
-		}
-		for ( ; curr_pos >= first_row_elem; curr_pos--) {
-			self->matrix[new_pos] = self->matrix[curr_pos];
-			new_pos--;
-		}
-	}
+
+	copy_m4_m4((float (*)[4])self->matrix, (float (*)[4])mat);
+
 	self->num_col = 4;
 	self->num_row = 4;
 
@@ -1598,6 +1583,7 @@ static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 {
 	float scalar;
+	int vec_size;
 
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
@@ -1621,12 +1607,19 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 		double dot = 0.0f;
 		int col, row, item;
 
+		if (mat1->num_col != mat2->num_row) {
+			PyErr_SetString(PyExc_ValueError,
+							"matrix1 * matrix2: matrix1 number of columns "
+							"and the matrix2 number of rows must be the same");
+			return NULL;
+		}
+
 		for (col = 0; col < mat2->num_col; col++) {
 			for (row = 0; row < mat1->num_row; row++) {
 				for (item = 0; item < mat1->num_col; item++) {
 					dot += MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col);
 				}
-				mat[((col * mat1->num_row) + row)] = (float)dot;
+				mat[(col * mat1->num_row) + row] = (float)dot;
 				dot = 0.0f;
 			}
 		}
@@ -1640,7 +1633,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 		}
 	}
 	else if (mat1) {
-		/*VEC * MATRIX */
+		/* MATRIX * VECTOR */
 		if (VectorObject_Check(m2)) {
 			VectorObject *vec2= (VectorObject *)m2;
 			float tvec[4];
@@ -1650,7 +1643,14 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 				return NULL;
 			}
 
-			return Vector_CreatePyObject(tvec, vec2->size, Py_NEW, Py_TYPE(m2));
+			if (mat1->num_col == 4 && vec2->size == 3) {
+				vec_size = 3;
+			}
+			else {
+				vec_size = mat1->num_row;
+			}
+
+			return Vector_CreatePyObject(tvec, vec_size, Py_NEW, Py_TYPE(m2));
 		}
 		/*FLOAT/INT * MATRIX */
 		else if (((scalar= PyFloat_AsDouble(m2)) == -1.0f && PyErr_Occurred())==0) {

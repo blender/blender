@@ -1540,6 +1540,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	float scalar;
+	int vec_size;
 
 	if VectorObject_Check(v1) {
 		vec1= (VectorObject *)v1;
@@ -1576,7 +1577,14 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 				return NULL;
 			}
 
-			return Vector_CreatePyObject(tvec, ((MatrixObject *)v2)->num_col, Py_NEW, Py_TYPE(vec1));
+			if (((MatrixObject *)v2)->num_row == 4 && vec1->size == 3) {
+				vec_size = 3;
+			}
+			else {
+				vec_size = ((MatrixObject *)v2)->num_col;
+			}
+
+			return Vector_CreatePyObject(tvec, vec_size, Py_NEW, Py_TYPE(vec1));
 		}
 		else if (QuaternionObject_Check(v2)) {
 			/* VEC * QUAT */
@@ -2614,14 +2622,14 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	int row, col, z= 0, vec_size= vec->size;
 
 	if (mat->num_row != vec_size) {
-		if (mat->num_row == 4 && vec_size != 3) {
+		if (mat->num_row == 4 && vec_size == 3) {
+			vec_cpy[3] = 1.0f;
+		}
+		else {
 			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
 			return -1;
-		}
-		else {
-			vec_cpy[3] = 1.0f;
 		}
 	}
 
