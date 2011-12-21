@@ -837,12 +837,17 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	PropertySubType subtype= rna_ensure_property(prop)->subtype;
 
 	/* get string to use for array index */
-	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE))
+	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE)) {
 		return quatitem[index];
-	else if((index < 4) && ELEM8(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_XYZ_LENGTH, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION, PROP_COORDS))
+	}
+	else if((index < 4) && ELEM8(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_XYZ_LENGTH,
+	                                      PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION, PROP_COORDS))
+	{
 		return vectoritem[index];
-	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
+	}
+	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA)) {
 		return coloritem[index];
+	}
 
 	return '\0';
 }
@@ -865,7 +870,9 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 				return 3;
 		}
 	}
-	else if(ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION)) {
+	else if(ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ,
+	                       PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
+	{
 		switch (name) {
 			case 'x':
 				return 0;
@@ -1519,7 +1526,8 @@ void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
 	/* find cache element for which key matches... */
 	for (uce = rna_updates_cache.first; uce; uce = uce->next) {
 		/* just match by id only for now, since most update calls that we'll encounter only really care about this */
-		// TODO: later, the cache might need to have some nesting on L1 to cope better with these problems + some tagging to indicate we need this
+		/* TODO: later, the cache might need to have some nesting on L1 to cope better
+		 * with these problems + some tagging to indicate we need this */
 		if (uce->ptr.id.data == ptr->id.data)
 			break;
 	}
@@ -4969,7 +4977,9 @@ static int rna_function_format_array_length(const char *format, int ofs, int fle
 	return 0;
 }
 
-static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, PropertyType type, char ftype, int len, void *dest, void *src, StructRNA *srna, const char *tid, const char *fid, const char *pid)
+static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, PropertyType type,
+                                        char ftype, int len, void *dest, void *src, StructRNA *srna,
+                                        const char *tid, const char *fid, const char *pid)
 {
 	/* ptr is always a function pointer, prop always a parameter */
 
@@ -5055,7 +5065,9 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			 }
 			
 			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
-				fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, "
+				        "an object of type %s was expected, passed an object of type %s\n",
+				        tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
 				return -1;
 			}
  
@@ -5080,7 +5092,10 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			ptype= RNA_property_pointer_type(ptr, prop);
 			
 			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
-				fprintf(stderr, "%s.%s: wrong type for parameter %s, a collection of objects of type %s was expected, passed a collection of objects of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
+				fprintf(stderr, "%s.%s: wrong type for parameter %s, "
+				        "a collection of objects of type %s was expected, "
+				        "passed a collection of objects of type %s\n",
+				        tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));
 				return -1;
 			}
 
@@ -5159,7 +5174,10 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 		if (len!=alen) {
 			err= -1;
-			fprintf(stderr, "%s.%s: for parameter %s, was expecting an array of %i elements, passed %i elements instead\n", tid, fid, pid, len, alen);
+			fprintf(stderr, "%s.%s: for parameter %s, "
+			        "was expecting an array of %i elements, "
+			        "passed %i elements instead\n",
+			        tid, fid, pid, len, alen);
 			break;
 		}
 
@@ -5224,7 +5242,9 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 		if (len!=alen) {
 			err= -1;
-			fprintf(stderr, "%s.%s: for return parameter %s, was expecting an array of %i elements, passed %i elements instead\n", tid, fid, pid, len, alen);
+			fprintf(stderr, "%s.%s: for return parameter %s, "
+			        "was expecting an array of %i elements, passed %i elements instead\n",
+			        tid, fid, pid, len, alen);
 		}
 		else {
 			switch (type) {
@@ -5278,7 +5298,8 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 	return err;
 }
 
-int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args)
+int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, PointerRNA *ptr,
+                                       const char *identifier, const char *format, va_list args)
 {
 	FunctionRNA *func;
 
