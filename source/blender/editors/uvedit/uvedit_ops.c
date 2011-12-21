@@ -300,7 +300,7 @@ int uvedit_face_select(Scene *scene, BMEditMesh *em, BMFace *efa)
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION)
-		BM_Select(em->bm, efa, 1);
+		BM_Select(em->bm, efa, TRUE);
 	else {
 		BMLoop *l;
 		MLoopUV *luv;
@@ -321,8 +321,9 @@ int uvedit_face_deselect(Scene *scene, BMEditMesh *em, BMFace *efa)
 {
 	ToolSettings *ts= scene->toolsettings;
 
-	if(ts->uv_flag & UV_SYNC_SELECTION)
-		BM_Select(em->bm, efa, 0);
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		BM_Select(em->bm, efa, FALSE);
+	}
 	else {
 		BMLoop *l;
 		MLoopUV *luv;
@@ -369,12 +370,12 @@ void uvedit_edge_select(BMEditMesh *em, Scene *scene, BMLoop *l)
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		if(ts->selectmode & SCE_SELECT_FACE)
-			BM_Select(em->bm, l->f, 1);
+			BM_Select(em->bm, l->f, TRUE);
 		else if(ts->selectmode & SCE_SELECT_EDGE)
-			BM_Select(em->bm, l->e, 1);
+			BM_Select(em->bm, l->e, TRUE);
 		else {
-			BM_Select(em->bm, l->e->v1, 1);
-			BM_Select(em->bm, l->e->v2, 1);
+			BM_Select(em->bm, l->e->v1, TRUE);
+			BM_Select(em->bm, l->e->v2, TRUE);
 		}
 	}
 	else {
@@ -395,12 +396,12 @@ void uvedit_edge_deselect(BMEditMesh *em, Scene *scene, BMLoop *l)
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		if(ts->selectmode & SCE_SELECT_FACE)
-			BM_Select(em->bm, l->f, 0);
+			BM_Select(em->bm, l->f, FALSE);
 		else if(ts->selectmode & SCE_SELECT_EDGE)
-			BM_Select(em->bm, l->e, 0);
+			BM_Select(em->bm, l->e, FALSE);
 		else {
-			BM_Select(em->bm, l->e->v1, 0);
-			BM_Select(em->bm, l->e->v2, 0);
+			BM_Select(em->bm, l->e->v1, FALSE);
+			BM_Select(em->bm, l->e->v2, FALSE);
 		}
 	}
 	else {
@@ -437,9 +438,9 @@ void uvedit_uv_select(BMEditMesh *em, Scene *scene, BMLoop *l)
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		if(ts->selectmode & SCE_SELECT_FACE)
-			BM_Select(em->bm, l->f, 1);
+			BM_Select(em->bm, l->f, TRUE);
 		else
-			BM_Select(em->bm, l->v, 1);
+			BM_Select(em->bm, l->v, TRUE);
 	}
 	else {
 		MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -454,9 +455,9 @@ void uvedit_uv_deselect(BMEditMesh *em, Scene *scene, BMLoop *l)
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		if(ts->selectmode & SCE_SELECT_FACE)
-			BM_Select(em->bm, l->f, 0);
+			BM_Select(em->bm, l->f, FALSE);
 		else
-			BM_Select(em->bm, l->v, 0);
+			BM_Select(em->bm, l->v, FALSE);
 	}
 	else {
 		MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -3180,7 +3181,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 				}
 				
 				if (!luv) {
-					BM_Select(em->bm, efa, 0);
+					BM_Select(em->bm, efa, FALSE);
 					uvedit_face_deselect(scene, em, efa);
 				}
 			} else if(em->selectmode == SCE_SELECT_FACE) {
@@ -3188,7 +3189,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					if (luv->flag & MLOOPUV_VERTSEL) {
-						BM_Select(em->bm, efa, 0);
+						BM_Select(em->bm, efa, FALSE);
 					}
 					luv->flag &= ~MLOOPUV_VERTSEL;
 				}
@@ -3196,7 +3197,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					if (luv->flag & MLOOPUV_VERTSEL) {
-						BM_Select(em->bm, l->v, 0);
+						BM_Select(em->bm, l->v, FALSE);
 						luv->flag &= ~MLOOPUV_VERTSEL;
 					}
 				}
@@ -3254,7 +3255,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 		if(em->selectmode == SCE_SELECT_FACE) {
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 				if (!BM_TestHFlag(efa, BM_HIDDEN) && !BM_TestHFlag(efa, BM_SELECT)) {
-					BM_Select(em->bm, efa, 1);
+					BM_Select(em->bm, efa, TRUE);
 					BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 						luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						luv->flag |= MLOOPUV_VERTSEL;
@@ -3278,7 +3279,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 								luv->flag |= MLOOPUV_VERTSEL;
 							}
 							
-							BM_Select(em->bm, efa, 1);
+							BM_Select(em->bm, efa, TRUE);
 						}
 					}
 				}
@@ -3292,7 +3293,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 							}
 						}
 						
-						BM_Select(em->bm, efa, 1);				
+						BM_Select(em->bm, efa, TRUE);
 					}
 				}
 			}
@@ -3305,7 +3306,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 					luv->flag |= MLOOPUV_VERTSEL;
 				}
 				
-				BM_Select(em->bm, efa, 1);
+				BM_Select(em->bm, efa, TRUE);
 			}
 		}
 	} else {
@@ -3318,7 +3319,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 				}
 				
-				BM_Select(em->bm, efa, 1);				
+				BM_Select(em->bm, efa, TRUE);
 			}
 		}
 	}

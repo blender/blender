@@ -501,7 +501,7 @@ void EDBM_clear_flag_all(BMEditMesh *em, const char hflag)
 
 	for (i=0; i<3; i++) {
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
-			if (hflag & BM_SELECT) BM_Select(em->bm, ele, 0);
+			if (hflag & BM_SELECT) BM_Select(em->bm, ele, FALSE);
 			BM_ClearHFlag(ele, hflag);
 		}
 	}
@@ -518,7 +518,7 @@ void EDBM_set_flag_all(BMEditMesh *em, const char hflag)
 		ele= BMIter_New(&iter, em->bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (hflag & BM_SELECT) {
-				BM_Select(em->bm, ele, 1);
+				BM_Select(em->bm, ele, TRUE);
 			}
 			else {
 				BM_SetHFlag(ele, hflag);

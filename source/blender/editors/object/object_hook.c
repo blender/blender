@@ -148,7 +148,7 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 	
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if(nr==hmd->indexar[index]) {
-			BM_Select(em->bm, eve, 1);
+			BM_Select(em->bm, eve, TRUE);
 			if(index < hmd->totindex-1) index++;
 		}
 

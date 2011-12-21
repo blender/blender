@@ -29,7 +29,7 @@ static BMVert *copy_vertex(BMMesh *source_mesh, BMVert *source_vertex, BMMesh *t
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->data, &target_vertex->data);	
 
 	/*Copy Markings*/
-	if(BM_Is_Selected((BMHeader*)source_vertex)) BM_Select_Vert(target_mesh, target_vertex, 1);
+	if(BM_Is_Selected((BMHeader*)source_vertex)) BM_Select_Vert(target_mesh, target_vertex, TRUE);
 	if(BM_Is_Hidden((BMHeader*)source_vertex)) BM_Mark_Hidden((BMHeader*)target_vertex, 1);
 
 	BMO_SetFlag(target_mesh, (BMHeader*)target_vertex, DUPE_NEW);
@@ -63,7 +63,7 @@ static BMEdge *copy_edge(BMMesh *source_mesh, BMEdge *source_edge, BMMesh *targe
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->data, &target_edge->data);
 	
 	/*copy flags*/
-	if(BM_Is_Selected((BMHeader*) source_edge)) BM_Select_Edge(target_mesh, target_edge, 1);
+	if(BM_Is_Selected((BMHeader*) source_edge)) BM_Select_Edge(target_mesh, target_edge, TRUE);
 	if(BM_Is_Hidden((BMHeader*) source_edge)) BM_Mark_Hidden(target_mesh, target_edge, 1);
 	if(BM_Is_Sharp((BMHeader*) source_edge)) BM_Mark_Sharp(target_edge, 1);
 	if(BM_Is_Seam((BMHeader*) source_edge)) BM_Mark_Seam(target_edge, 1);
@@ -109,7 +109,7 @@ static BMFace *copy_face(BMMesh *source_mesh, BMFace *source_face, BMMesh *targe
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->data, &target_face->data);	
 
 	/*copy flags*/
-	if(BM_Is_Selected((BMHeader*)source_face)) BM_Select_face(target, target_face, 1);
+	if(BM_Is_Selected((BMHeader*)source_face)) BM_Select_face(target, target_face, TRUE);
 	if(BM_Is_Hidden((BMHeader*)source_face)) BM_Mark_Hidden((BMHeader*)target_face, 1);
 
 	/*mark the face for output*/

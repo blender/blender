@@ -214,7 +214,7 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, const char 
 	BMO_Exec_Op(em->bm, &bmop);
 	
 	BMO_ITER(f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
-		BM_Select(em->bm, f, 1);
+		BM_Select(em->bm, f, TRUE);
 
 		/*set face vertex normals to face normal*/
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
@@ -335,7 +335,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	nor[0] = nor[1] = nor[2] = 0.0f;
 	
 	BMO_ITER(el, &siter, bm, &extop, "geomout", BM_ALL) {
-		BM_Select(bm, el, 1);
+		BM_Select(bm, el, TRUE);
 
 		if (el->htype == BM_FACE) {
 			f = (BMFace*)el;
@@ -361,8 +361,8 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 	for ( ; eed; eed=BMIter_Step(&iter)) {
 		if (BM_TestHFlag(eed, hflag)) {
 			if (hflag & BM_SELECT) {
-				BM_Select(em->bm, eed->v1, 1);
-				BM_Select(em->bm, eed->v2, 1);
+				BM_Select(em->bm, eed->v1, TRUE);
+				BM_Select(em->bm, eed->v2, TRUE);
 			}
 
 			BM_SetHFlag(eed->v1, hflag & ~BM_SELECT);
@@ -370,7 +370,7 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, const char hflag,
 		} else {
 			if (BM_TestHFlag(eed->v1, hflag) && BM_TestHFlag(eed->v2, hflag)) {
 				if (hflag & BM_SELECT) {
-					BM_Select(em->bm, eed, 1);
+					BM_Select(em->bm, eed, TRUE);
 				}
 
 				BM_SetHFlag(eed, hflag & ~BM_SELECT);
@@ -850,7 +850,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		BMO_Exec_Op(vc.em->bm, &bmop);
 
 		BMO_ITER(v1, &oiter, vc.em->bm, &bmop, "newvertout", BM_VERT) {
-			BM_Select(vc.em->bm, v1, 1);
+			BM_Select(vc.em->bm, v1, TRUE);
 		}
 
 		if (!EDBM_FinishOp(vc.em, &bmop, op, 1))
@@ -1559,7 +1559,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
 			if (BM_TestHFlag(ele, BM_TMP_TAG)) {
-				BM_Select(em->bm, ele, 1);
+				BM_Select(em->bm, ele, TRUE);
 			}
 		}
 	}
@@ -1722,7 +1722,7 @@ static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 			continue;
 
 		if (!BMBVH_EdgeVisible(tree, e, ar, v3d, obedit))
-			BM_Select(em->bm, e, 0);
+			BM_Select(em->bm, e, FALSE);
 	}
 
 	BMBVH_FreeBVH(tree);
@@ -2452,12 +2452,12 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetHFlag(e, BM_TMP_TAG);
-			BM_Select(bm, e, 1);
+			BM_Select(bm, e, TRUE);
 			
 			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetHFlag(e, BM_TMP_TAG);
-			BM_Select(bm, e, 1);
+			BM_Select(bm, e, TRUE);
 		}
 
 		dist = FLT_MAX;
@@ -2478,8 +2478,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				l = l->radial_next;
 				l = BM_OtherFaceLoop(l->e, l->f, v);
 
-				if (l)
-					BM_Select(bm, l->e, 1);
+				if (l) {
+					BM_Select(bm, l->e, TRUE);
+				}
 			}
 		}
 	}
@@ -2556,14 +2557,14 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if (i == 1)  {
 			if (singlesel)
-				BM_Select(bm, v, 0);
+				BM_Select(bm, v, FALSE);
 			else
-				BM_Select(bm, e2, 0);
+				BM_Select(bm, e2, FALSE);
 		}
 	}
 
 	if (ripvert) {
-		BM_Select(bm, ripvert, 1);
+		BM_Select(bm, ripvert, TRUE);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -2798,15 +2799,15 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 				switch(mode) {
 				case -1: /* aligned */
 					if(fabs(ev->co[axis] - value) < limit)
-						BM_Select(em->bm, ev, 1);
+						BM_Select(em->bm, ev, TRUE);
 					break;
 				case 0: /* neg */
 					if(ev->co[axis] > value)
-						BM_Select(em->bm, ev, 1);
+						BM_Select(em->bm, ev, TRUE);
 					break;
 				case 1: /* pos */
 					if(ev->co[axis] < value)
-						BM_Select(em->bm, ev, 1);
+						BM_Select(em->bm, ev, TRUE);
 					break;
 				}
 			}
@@ -3267,8 +3268,9 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		if (BM_TestHFlag(e, BM_HIDDEN))
 			continue;
 
-		if (BM_Edge_FaceCount(e) != 0)
-			BM_Select(em->bm, e, 0); /*deselect*/
+		if (BM_Edge_FaceCount(e) != 0) {
+			BM_Select(em->bm, e, FALSE);
+		}
 	}
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_EDGES);
 
@@ -3277,8 +3279,9 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 
-		if (BM_Vert_EdgeCount(v) != 0)
-			BM_Select(em->bm, v, 0); /*deselect*/
+		if (BM_Vert_EdgeCount(v) != 0) {
+			BM_Select(em->bm, v, FALSE);
+		}
 	}
 
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_VERTS);
@@ -3315,7 +3318,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 
 	/*Clear all selected vertices*/
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_Select(bm, v, 0);
+		BM_Select(bm, v, FALSE);
 	}
 
 	/*Flush the selection to clear edge/face selections to match
@@ -3343,15 +3346,15 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOper
 		}
 
 		/*Select the seed explicitly, in case it has no edges*/
-		BM_Select(bm, v_seed, 1);
+		BM_Select(bm, v_seed, TRUE);
 
 		/*Walk from the single vertex, selecting everything connected
 		  to it*/
 		BMW_Init(&walker, bm, BMW_SHELL,  0,0,0,0,  BMW_NIL_LAY);
 		e = BMW_Begin(&walker, v_seed);
 		for (; e; e=BMW_Step(&walker)) {
-			BM_Select(bm, e->v1, 1);
-			BM_Select(bm, e->v2, 1);
+			BM_Select(bm, e->v1, TRUE);
+			BM_Select(bm, e->v2, TRUE);
 		}
 		BMW_End(&walker);
 				
@@ -3860,7 +3863,7 @@ static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 		}
 
 		if(select){
-			BM_Select(em->bm, efa, 1);
+			BM_Select(em->bm, efa, TRUE);
 		}
 	}
 
@@ -3908,7 +3911,7 @@ static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	    eve; eve = BMIter_Step(&iter)){
 
 		if(!eve->e){
-			BM_Select(em->bm, eve, 1);
+			BM_Select(em->bm, eve, TRUE);
 		}
 	}
 
@@ -3916,7 +3919,7 @@ static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 	    eed; eed = BMIter_Step(&iter)){
 
 		if(!eed->l){
-			BM_Select(em->bm, eed, 1);
+			BM_Select(em->bm, eed, TRUE);
 		}
 	}
 
@@ -3960,7 +3963,7 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_CacheMirrorVerts(em, FALSE);
+	EDBM_CacheMirrorVerts(em, TRUE);
 
 	if (!extend)
 		EDBM_clear_flag_all(em, BM_SELECT);
@@ -3971,7 +3974,7 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 
 		v2= EDBM_GetMirrorVert(em, v1);
 		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN)) {
-			BM_Select(em->bm, v2, 1);
+			BM_Select(em->bm, v2, TRUE);
 		}
 	}
 

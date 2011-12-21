@@ -187,8 +187,8 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 		if (!BM_TestHFlag(e, BM_SELECT)) bm->totedgesel += 1;
 
 		BM_SetHFlag(&(e->head), BM_SELECT);
-		BM_Select(bm, e->v1, 1);
-		BM_Select(bm, e->v2, 1);
+		BM_Select(bm, e->v1, TRUE);
+		BM_Select(bm, e->v2, TRUE);
 	}else{ 
 		if (BM_TestHFlag(e, BM_SELECT)) bm->totedgesel -= 1;
 		BM_ClearHFlag(&(e->head), BM_SELECT);
@@ -218,11 +218,12 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 					}
 				}
 
-				if(deselect) BM_Select_Vert(bm, verts[i], 0);
+				if(deselect) BM_Select_Vert(bm, verts[i], FALSE);
 			}
-		}else{
-			BM_Select(bm, e->v1, 0);
-			BM_Select(bm, e->v2, 0);
+		}
+		else {
+			BM_Select(bm, e->v1, FALSE);
+			BM_Select(bm, e->v2, FALSE);
 		}
 
 	}
@@ -251,8 +252,8 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		BM_SetHFlag(&(f->head), BM_SELECT);
 		l=(BMLoop*) bm_firstfaceloop(f);
 		do{
-			BM_Select_Vert(bm, l->v, 1);
-			BM_Select_Edge(bm, l->e, 1);
+			BM_Select_Vert(bm, l->v, TRUE);
+			BM_Select_Edge(bm, l->e, TRUE);
 			l = l->next;
 		}while(l != bm_firstfaceloop(f));
 	}
@@ -274,7 +275,7 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 
 			if (!f2)
 			{
-				BM_Select(bm, l->e, 0);
+				BM_Select(bm, l->e, FALSE);
 			}
 		}
 
@@ -287,9 +288,8 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 					break;
 			}
 
-			if (!e)
-			{
-				BM_Select(bm, l->v, 0);
+			if (!e) {
+				BM_Select(bm, l->v, FALSE);
 			}
 		}
 	}
@@ -324,18 +324,20 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 	else if(bm->selectmode & SCE_SELECT_EDGE) {
 		for(v= BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts))
 			BM_ClearHFlag(v, 0);
-		for(e= BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)){
-			if(BM_TestHFlag(&(e->head), BM_SELECT))
-				BM_Select_Edge(bm, e, 1);
+		for(e= BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)) {
+			if(BM_TestHFlag(&(e->head), BM_SELECT)) {
+				BM_Select_Edge(bm, e, TRUE);
+			}
 		}
 		BM_SelectMode_Flush(bm);
 	}
 	else if(bm->selectmode & SCE_SELECT_FACE) {
 		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))
 			BM_ClearHFlag(e, 0);
-		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)){
-			if(BM_TestHFlag(&(f->head), BM_SELECT))
-				BM_Select_Face(bm, f, 1);
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
+			if(BM_TestHFlag(&(f->head), BM_SELECT)) {
+				BM_Select_Face(bm, f, TRUE);
+			}
 		}
 		BM_SelectMode_Flush(bm);
 	}
@@ -649,7 +651,7 @@ void BM_clear_flag_all(BMesh *bm, const char hflag)
 	for (i=0; i<3; i++) {		
 		ele = BMIter_New(&iter, bm, itypes[i], NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
-			if (hflag & BM_SELECT) BM_Select(bm, ele, 0);
+			if (hflag & BM_SELECT) BM_Select(bm, ele, FALSE);
 			BM_ClearHFlag(ele, hflag);
 		}
 	}
@@ -746,7 +748,7 @@ void BM_Hide(BMesh *bm, void *element, int hide)
 	/*Follow convention of always deselecting before
 	  hiding an element*/
 	if (hide)
-		BM_Select(bm, element, 0);
+		BM_Select(bm, element, FALSE);
 
 	switch (h->htype) {
 		case BM_VERT:

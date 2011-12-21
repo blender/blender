@@ -108,8 +108,8 @@ static void EDBM_select_mirrored(Object *obedit, BMEditMesh *em)
 			if (BM_TestHFlag(eve, BM_SELECT) && !BM_TestHFlag(eve, BM_HIDDEN)) {
 				v1= editbmesh_get_x_mirror_vert(obedit, em, eve, eve->co, i);
 				if(v1) {
-					BM_Select(em->bm, eve, 0);
-					BM_Select(em->bm, v1, 1);
+					BM_Select(em->bm, eve, FALSE);
+					BM_Select(em->bm, v1, TRUE);
 				}
 			}
 			i++;
@@ -1455,31 +1455,31 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 			
 			if(!BM_TestHFlag(efa, BM_SELECT)) {
 				EDBM_store_selection(vc.em, efa);
-				BM_Select(vc.em->bm, efa, 1);
+				BM_Select(vc.em->bm, efa, TRUE);
 			}
 			else if(extend) {
 				EDBM_remove_selection(vc.em, efa);
-				BM_Select(vc.em->bm, efa, 0);
+				BM_Select(vc.em->bm, efa, FALSE);
 			}
 		}
 		else if(eed) {
 			if(!BM_TestHFlag(eed, BM_SELECT)) {
 				EDBM_store_selection(vc.em, eed);
-				BM_Select(vc.em->bm, eed, 1);
+				BM_Select(vc.em->bm, eed, TRUE);
 			}
 			else if(extend) {
 				EDBM_remove_selection(vc.em, eed);
-				BM_Select(vc.em->bm, eed, 0);
+				BM_Select(vc.em->bm, eed, FALSE);
 			}
 		}
 		else if(eve) {
 			if(!BM_TestHFlag(eve, BM_SELECT)) {
 				EDBM_store_selection(vc.em, eve);
-				BM_Select(vc.em->bm, eve, 1);
+				BM_Select(vc.em->bm, eve, TRUE);
 			}
 			else if(extend){ 
 				EDBM_remove_selection(vc.em, eve);
-				BM_Select(vc.em->bm, eve, 0);
+				BM_Select(vc.em->bm, eve, FALSE);
 			}
 		}
 		
@@ -1547,22 +1547,23 @@ void EDBM_selectmode_set(BMEditMesh *em)
 		/*BMIter iter;
 		
 		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, FALSE);
 		
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, 0);*/
+		for ( ; efa; efa=BMIter_Step(&iter)) BM_Select(em->bm, efa, FALSE);*/
 
 		EDBM_selectmode_flush(em);
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		/* deselect vertices, and select again based on edge select */
 		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-		for ( ; eve; eve=BMIter_Step(&iter)) BM_Select(em->bm, eve, 0);
+		for ( ; eve; eve=BMIter_Step(&iter)) BM_Select(em->bm, eve, FALSE);
 		
 		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for ( ; eed; eed=BMIter_Step(&iter)) {
-			if (BM_TestHFlag(eed, BM_SELECT))
-				BM_Select(em->bm, eed, 1);
+			if (BM_TestHFlag(eed, BM_SELECT)) {
+				BM_Select(em->bm, eed, TRUE);
+			}
 		}
 		
 		/* selects faces based on edge status */
@@ -1571,12 +1572,13 @@ void EDBM_selectmode_set(BMEditMesh *em)
 	else if(em->selectmode & SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */
 		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
+		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, FALSE);
 		
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 		for ( ; efa; efa=BMIter_Step(&iter)) {
-			if (BM_TestHFlag(efa, BM_SELECT))
-				BM_Select(em->bm, efa, 1);
+			if (BM_TestHFlag(efa, BM_SELECT)) {
+				BM_Select(em->bm, efa, TRUE);
+			}
 		}
 	}
 }
@@ -1593,8 +1595,11 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 			/*select all edges associated with every selected vertex*/
 			eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 			for ( ; eed; eed=BMIter_Step(&iter)) {
-				if(BM_TestHFlag(eed->v1, BM_SELECT)) BM_Select(em->bm, eed, 1);
-				else if(BM_TestHFlag(eed->v2, BM_SELECT)) BM_Select(em->bm, eed, 1);
+				if ( (BM_TestHFlag(eed->v1, BM_SELECT) ||
+				      BM_TestHFlag(eed->v2, BM_SELECT)))
+				{
+					BM_Select(em->bm, eed, TRUE);
+				}
 			}
 		}		
 		else if(selectmode == SCE_SELECT_FACE) {
@@ -1607,7 +1612,7 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
 				for (; l; l=BMIter_Step(&liter)) {
 					if (BM_TestHFlag(l->v, BM_SELECT)) {
-						BM_Select(em->bm, efa, 1);
+						BM_Select(em->bm, efa, TRUE);
 						break;
 					}
 				}
@@ -1626,7 +1631,7 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 				l = BMIter_New(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
 				for (; l; l=BMIter_Step(&liter)) {
 					if (BM_TestHFlag(l->v, BM_SELECT)) {
-						BM_Select(em->bm, efa, 1);
+						BM_Select(em->bm, efa, TRUE);
 						break;
 					}
 				}
@@ -1867,8 +1872,8 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 			if (BM_TestHFlag(v, BM_TMP_TAG)) {
 				e = BMW_Begin(&walker, v);
 				for (; e; e=BMW_Step(&walker)) {
-					BM_Select(em->bm, e->v1, 1);
-					BM_Select(em->bm, e->v2, 1);
+					BM_Select(em->bm, e->v1, TRUE);
+					BM_Select(em->bm, e->v2, TRUE);
 				}
 			}
 		}
@@ -2029,7 +2034,7 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	for (h = BMW_Begin(&walker, h_act); h != NULL; h = BMW_Step(&walker)) {
 		/* Deselect elements that aren't at "nth" depth from active */
 		if ((offset + BMW_CurrentDepth(&walker)) % nth) {
-			BM_Select(bm, h, 0);
+			BM_Select(bm, h, FALSE);
 		}
 	}
 	BMW_End(&walker);
@@ -2205,7 +2210,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 		angle = saacos(l1->f->no[0]*l2->f->no[0]+l1->f->no[1]*l2->f->no[1]+l1->f->no[2]*l2->f->no[2]);
 
 		if (fabsf(angle) < sharp) {
-			BM_Select(em->bm, e, 1);
+			BM_Select(em->bm, e, TRUE);
 		}
 
 	}
@@ -2264,7 +2269,7 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 			f = stack[i-1];
 			i--;
 
-			BM_Select(em->bm, f, 1);
+			BM_Select(em->bm, f, TRUE);
 
 			BM_SetHFlag(f, BM_TMP_TAG);
 
@@ -2332,13 +2337,15 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Nonmanifold_Vert(em->bm, v))
-			BM_Select(em->bm, v, 1);
+		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Nonmanifold_Vert(em->bm, v)) {
+			BM_Select(em->bm, v, TRUE);
+		}
 	}
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Edge_FaceCount(e) != 2)
-			BM_Select(em->bm, e, 1);
+		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Edge_FaceCount(e) != 2) {
+			BM_Select(em->bm, e, TRUE);
+		}
 	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
@@ -2378,22 +2385,25 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			if (!BM_TestHFlag(eve, BM_HIDDEN) && BLI_frand() < randfac)
-				BM_Select(em->bm, eve, 1);
+			if (!BM_TestHFlag(eve, BM_HIDDEN) && BLI_frand() < randfac) {
+				BM_Select(em->bm, eve, TRUE);
+			}
 		}
 		EDBM_selectmode_flush(em);
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(eed, BM_HIDDEN) && BLI_frand() < randfac)
-				BM_Select(em->bm, eed, 1);
+			if (!BM_TestHFlag(eed, BM_HIDDEN) && BLI_frand() < randfac) {
+				BM_Select(em->bm, eed, TRUE);
+			}
 		}
 		EDBM_selectmode_flush(em);
 	}
 	else {
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			if (!BM_TestHFlag(efa, BM_HIDDEN) && BLI_frand() < randfac)
-				BM_Select(em->bm, efa, 1);
+			if (!BM_TestHFlag(efa, BM_HIDDEN) && BLI_frand() < randfac) {
+				BM_Select(em->bm, efa, TRUE);
+			}
 		}
 		EDBM_selectmode_flush(em);
 	}
@@ -2441,14 +2451,14 @@ static int select_next_loop(bContext *C, wmOperator *UNUSED(op))
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
 			if (BM_TestHFlag(l->v, BM_SELECT) && !BM_TestHFlag(l->v, BM_HIDDEN)) {
 				BM_SetHFlag(l->next->v, BM_TMP_TAG);
-				BM_Select(em->bm, l->v, 0);
+				BM_Select(em->bm, l->v, FALSE);
 			}
 		}
 	}
 
 	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_TMP_TAG)) {
-			BM_Select(em->bm, v, 1);
+			BM_Select(em->bm, v, TRUE);
 		}
 	}
 
@@ -2508,7 +2518,7 @@ static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 	
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_TMP_TAG) && !BM_TestHFlag(e, BM_HIDDEN))
-			BM_Select_Edge(em->bm, e, 1);
+			BM_Select_Edge(em->bm, e, TRUE);
 	}
 
 	/* If in face-only select mode, switch to edge select mode so that
@@ -2695,7 +2705,7 @@ static int loop_to_region(bContext *C, wmOperator *op)
 	
 	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_TMP_TAG) && !BM_TestHFlag(f, BM_HIDDEN)) {
-			BM_Select_Face(em->bm, f, 1);
+			BM_Select_Face(em->bm, f, TRUE);
 		}
 	}
 	

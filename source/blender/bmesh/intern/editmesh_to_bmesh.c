@@ -127,7 +127,7 @@ static BMVert *editvert_to_BMVert(BMesh *bm, BMOperator *op, EditMesh *em, EditV
 
 		/*transfer flags*/
 		v->head.flag = eve->h ? BM_HIDDEN : 0;
-		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);
+		if(eve->f & SELECT) BM_Select_Vert(bm, v, TRUE);
 		v->bweight = eve->bweight;
 
 		BMO_Insert_MapPointer(bm, op, "map", eve, v);
@@ -228,7 +228,7 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 
 		f->head.flag = 0;
 		f->mat_nr = efa->mat_nr;
-		if(efa->f & SELECT) BM_Select_Face(bm, f, 1);
+		if(efa->f & SELECT) BM_Select_Face(bm, f, TRUE);
 		if (efa->flag & ME_SMOOTH) f->head.flag |= BM_SMOOTH;
 		if(efa->h) f->head.flag |= BM_HIDDEN;
 

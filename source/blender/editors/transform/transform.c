@@ -4605,12 +4605,12 @@ static int createSlideVerts(TransInfo *t)
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_Copy_Face(em->bm, f, 1, 1);
 				
-				BM_Select(em->bm, copyf, 0);
+				BM_Select(em->bm, copyf, FALSE);
 				BM_SetHFlag(copyf, BM_HIDDEN);
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, copyf) {
-					BM_Select(em->bm, l->v, 0);
+					BM_Select(em->bm, l->v, FALSE);
 					BM_SetHFlag(l->v, BM_HIDDEN);
-					BM_Select(em->bm, l->e, 0);
+					BM_Select(em->bm, l->e, FALSE);
 					BM_SetHFlag(l->e, BM_HIDDEN);
 				}
 

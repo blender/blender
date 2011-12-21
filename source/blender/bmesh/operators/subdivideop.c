@@ -1113,7 +1113,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 		
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
-			BM_Select(bm, ele, 1);
+			BM_Select(bm, ele, TRUE);
 		}
 	} else if (seltype == SUBDIV_SELECT_LOOPCUT) {
 		BMOIter iter;
@@ -1125,7 +1125,7 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
-			BM_Select(bm, ele, 1);
+			BM_Select(bm, ele, TRUE);
 
 			if (ele->htype == BM_VERT) {
 				BMEdge *e;
@@ -1134,12 +1134,12 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
 					if (!BM_TestHFlag(e, BM_SELECT) && BM_TestHFlag(e->v1, BM_SELECT) 
 													&& BM_TestHFlag(e->v2, BM_SELECT)) {
-						BM_Select(bm, e, 1);
+						BM_Select(bm, e, TRUE);
 						bm->totedgesel += 1;
 					} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
 														  || !BM_TestHFlag(e->v2, BM_SELECT))) {
-						BM_Select(bm, e, 0);
-						bm->totedgesel -= 1;		
+						BM_Select(bm, e, FALSE);
+						bm->totedgesel -= 1;
 					}
 				}
 			}
