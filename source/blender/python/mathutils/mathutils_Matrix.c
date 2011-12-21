@@ -115,6 +115,87 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 };
 /* matrix vector callbacks, this is so you can do matrix[i][j] = val  */
 
+/* matrix row callbacks */
+int mathutils_matrix_column_cb_index= -1;
+
+static int mathutils_matrix_column_check(BaseMathObject *bmo)
+{
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
+	return BaseMath_ReadCallback(self);
+}
+
+static int mathutils_matrix_column_get(BaseMathObject *bmo, int col)
+{
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
+	int num_row;
+	int row;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	/* for 'translation' size will always be '3' even on 4x4 vec */
+	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+
+	for (row = 0; row < num_row; row++) {
+		bmo->data[row] = MATRIX_ITEM(self, row, col);
+	}
+
+	return 0;
+}
+
+static int mathutils_matrix_column_set(BaseMathObject *bmo, int col)
+{
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
+	int num_row;
+	int row;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	/* for 'translation' size will always be '3' even on 4x4 vec */
+	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+
+	for (row = 0; row < num_row; row++) {
+		MATRIX_ITEM(self, row, col) = bmo->data[row];
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
+}
+
+static int mathutils_matrix_column_get_index(BaseMathObject *bmo, int col, int row)
+{
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	bmo->data[row]= MATRIX_ITEM(self, row, col);
+	return 0;
+}
+
+static int mathutils_matrix_column_set_index(BaseMathObject *bmo, int col, int row)
+{
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	MATRIX_ITEM(self, row, col) = bmo->data[row];
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
+}
+
+Mathutils_Callback mathutils_matrix_column_cb = {
+	mathutils_matrix_column_check,
+	mathutils_matrix_column_get,
+	mathutils_matrix_column_set,
+	mathutils_matrix_column_get_index,
+	mathutils_matrix_column_set_index
+};
+/* matrix column callbacks, this is so you can do matrix.translation = Vector()  */
+
 //----------------------------------mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
 //create a new matrix type
@@ -1813,6 +1894,51 @@ static PyObject *Matrix_getColSize(MatrixObject *self, void *UNUSED(closure))
 	return PyLong_FromLong((long) self->num_row);
 }
 
+static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure))
+{
+	PyObject *ret;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	/*must be 4x4 square matrix*/
+	if (self->num_row != 4 || self->num_col != 4) {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix.translation: "
+		                "inappropriate matrix size, must be 4x4");
+		return NULL;
+	}
+
+	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_column_cb_index, 3);
+
+	return ret;
+}
+
+static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNUSED(closure))
+{
+	float tvec[3];
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	/*must be 4x4 square matrix*/
+	if (self->num_row != 4 || self->num_col != 4) {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix.translation: "
+		                "inappropriate matrix size, must be 4x4");
+		return -1;
+	}
+
+	if ((mathutils_array_parse(tvec, 3, 3, value, "Matrix.translation")) == -1)
+		return -1;
+
+	copy_v3_v3(((float (*)[4])self->matrix)[3], tvec);
+
+	(void)BaseMath_WriteCallback(self);
+
+	return 0;
+}
+
 static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closure))
 {
 	float mat[3][3];
@@ -1876,6 +2002,7 @@ static PyGetSetDef Matrix_getseters[] = {
 	{(char *)"row_size", (getter)Matrix_getRowSize, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
 	{(char *)"col_size", (getter)Matrix_getColSize, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
 	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
+	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, (char *)"The translation component of the matrix.\n\n:type: Vector", NULL},
 	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, (char *)"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
