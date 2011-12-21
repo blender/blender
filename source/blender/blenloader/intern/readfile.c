@@ -139,6 +139,8 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
 
+#include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
+
 #include "NOD_socket.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -12588,10 +12590,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					clip->aspy= 1.0f;
 				}
 
-				/* XXX: a bit hacky, probably include imbuf and use real constants are nicer */
-				clip->proxy.build_tc_flag= 7;
+				clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN |
+				                           IMB_TC_FREE_RUN |
+				                           IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+
 				if(clip->proxy.build_size_flag==0)
-					clip->proxy.build_size_flag= 1;
+					clip->proxy.build_size_flag= IMB_PROXY_25;
 
 				if(clip->proxy.quality==0)
 					clip->proxy.quality= 90;
@@ -12729,6 +12733,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(scene= main->scene.first; scene; scene= scene->id.next) {
 				if (!scene->gm.exitkey)
 					scene->gm.exitkey = 218; // Blender key code for ESC
+			}
+		}
+		{
+			MovieClip *clip;
+			for(clip= main->movieclip.first; clip; clip= clip->id.next) {
+				clip->proxy.build_tc_flag|= IMB_TC_RECORD_RUN_NO_GAPS;
 			}
 		}
 	}
