@@ -276,7 +276,7 @@ static int modeselect_addmode(char *str, const char *title, int id, int icon)
 static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
-	static char string[256];
+	static char string[512];
 	const char *title= IFACE_("Mode: %t");
 	char *str = string;
 
