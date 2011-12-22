@@ -655,90 +655,80 @@ char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 	return compflags;
 }
 
-static void cast_elem(char *ctype, char *otype, const char *name, char *curdata, char *olddata)
+static eSDNA_Type sdna_type_nr(const char *dna_type)
+{
+	if     ((strcmp(dna_type, "char")==0) || (strcmp(dna_type, "const char")==0))         return SDNA_TYPE_CHAR;
+	else if((strcmp(dna_type, "uchar")==0) || (strcmp(dna_type, "unsigned char")==0))     return SDNA_TYPE_UCHAR;
+	else if( strcmp(dna_type, "short")==0)                                                return SDNA_TYPE_SHORT;
+	else if((strcmp(dna_type, "ushort")==0)||(strcmp(dna_type, "unsigned short")==0))     return SDNA_TYPE_USHORT;
+	else if( strcmp(dna_type, "int")==0)                                                  return SDNA_TYPE_INT;
+	else if( strcmp(dna_type, "long")==0)                                                 return SDNA_TYPE_LONG;
+	else if((strcmp(dna_type, "ulong")==0)||(strcmp(dna_type, "unsigned long")==0))       return SDNA_TYPE_ULONG;
+	else if( strcmp(dna_type, "float")==0)                                                return SDNA_TYPE_FLOAT;
+	else if( strcmp(dna_type, "double")==0)                                               return SDNA_TYPE_DOUBLE;
+	else                                                                                  return -1; /* invalid! */
+}
+
+static void cast_elem(const char *ctype, const char *otype, const char *name, char *curdata, char *olddata)
 {
 	double val = 0.0;
-	int arrlen, curlen=1, oldlen=1, ctypenr, otypenr;
-	
+	int arrlen, curlen=1, oldlen=1;
+
+	eSDNA_Type ctypenr, otypenr;
+
 	arrlen= DNA_elem_array_size(name, strlen(name));
-	
-	/* define otypenr */
-	if(strcmp(otype, "char")==0 || (strcmp(otype, "const char")==0)) otypenr= 0; 
-	else if((strcmp(otype, "uchar")==0) || (strcmp(otype, "unsigned char")==0)) otypenr= 1;
-	else if(strcmp(otype, "short")==0) otypenr= 2; 
-	else if((strcmp(otype, "ushort")==0)||(strcmp(otype, "unsigned short")==0)) otypenr= 3;
-	else if(strcmp(otype, "int")==0) otypenr= 4;
-	else if(strcmp(otype, "long")==0) otypenr= 5;
-	else if((strcmp(otype, "ulong")==0)||(strcmp(otype, "unsigned long")==0)) otypenr= 6;
-	else if(strcmp(otype, "float")==0) otypenr= 7;
-	else if(strcmp(otype, "double")==0) otypenr= 8;
-	else return;
-	
-	/* define ctypenr */
-	if(strcmp(ctype, "char")==0) ctypenr= 0; 
-	else if(strcmp(ctype, "const char")==0) ctypenr= 0; 
-	else if((strcmp(ctype, "uchar")==0)||(strcmp(ctype, "unsigned char")==0)) ctypenr= 1;
-	else if(strcmp(ctype, "short")==0) ctypenr= 2; 
-	else if((strcmp(ctype, "ushort")==0)||(strcmp(ctype, "unsigned short")==0)) ctypenr= 3;
-	else if(strcmp(ctype, "int")==0) ctypenr= 4;
-	else if(strcmp(ctype, "long")==0) ctypenr= 5;
-	else if((strcmp(ctype, "ulong")==0)||(strcmp(ctype, "unsigned long")==0)) ctypenr= 6;
-	else if(strcmp(ctype, "float")==0) ctypenr= 7;
-	else if(strcmp(ctype, "double")==0) ctypenr= 8;
-	else return;
+
+	if ( (otypenr= sdna_type_nr(otype)) == -1 ||
+	     (ctypenr= sdna_type_nr(ctype)) == -1 )
+	{
+		return;
+	}
 
 	/* define lengths */
-	if(otypenr < 2) oldlen= 1;
-	else if(otypenr < 4) oldlen= 2;
-	else if(otypenr < 8) oldlen= 4;
-	else oldlen= 8;
+	oldlen= DNA_elem_type_size(otypenr);
+	curlen= DNA_elem_type_size(ctypenr);
 
-	if(ctypenr < 2) curlen= 1;
-	else if(ctypenr < 4) curlen= 2;
-	else if(ctypenr < 8) curlen= 4;
-	else curlen= 8;
-	
 	while(arrlen>0) {
 		switch(otypenr) {
-		case 0:
+		case SDNA_TYPE_CHAR:
 			val= *olddata; break;
-		case 1:
+		case SDNA_TYPE_UCHAR:
 			val= *( (unsigned char *)olddata); break;
-		case 2:
+		case SDNA_TYPE_SHORT:
 			val= *( (short *)olddata); break;
-		case 3:
+		case SDNA_TYPE_USHORT:
 			val= *( (unsigned short *)olddata); break;
-		case 4:
+		case SDNA_TYPE_INT:
 			val= *( (int *)olddata); break;
-		case 5:
+		case SDNA_TYPE_LONG:
 			val= *( (int *)olddata); break;
-		case 6:
+		case SDNA_TYPE_ULONG:
 			val= *( (unsigned int *)olddata); break;
-		case 7:
+		case SDNA_TYPE_FLOAT:
 			val= *( (float *)olddata); break;
-		case 8:
+		case SDNA_TYPE_DOUBLE:
 			val= *( (double *)olddata); break;
 		}
 		
 		switch(ctypenr) {
-		case 0:
+		case SDNA_TYPE_CHAR:
 			*curdata= val; break;
-		case 1:
+		case SDNA_TYPE_UCHAR:
 			*( (unsigned char *)curdata)= val; break;
-		case 2:
+		case SDNA_TYPE_SHORT:
 			*( (short *)curdata)= val; break;
-		case 3:
+		case SDNA_TYPE_USHORT:
 			*( (unsigned short *)curdata)= val; break;
-		case 4:
+		case SDNA_TYPE_INT:
 			*( (int *)curdata)= val; break;
-		case 5:
+		case SDNA_TYPE_LONG:
 			*( (int *)curdata)= val; break;
-		case 6:
+		case SDNA_TYPE_ULONG:
 			*( (unsigned int *)curdata)= val; break;
-		case 7:
+		case SDNA_TYPE_FLOAT:
 			if(otypenr<2) val/= 255;
 			*( (float *)curdata)= val; break;
-		case 8:
+		case SDNA_TYPE_DOUBLE:
 			if(otypenr<2) val/= 255;
 			*( (double *)curdata)= val; break;
 		}
@@ -838,7 +828,8 @@ static char *find_elem(SDNA *sdna, const char *type, const char *name, short *ol
 	return NULL;
 }
 
-static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, const char *name, char *curdata, short *old, char *olddata)
+static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna,
+                             char *type, const char *name, char *curdata, short *old, char *olddata)
 {
 	/* rules: test for NAME:
 			- name equal:
@@ -912,7 +903,8 @@ static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, const cha
 	}
 }
 
-static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int oldSDNAnr, char *data, int curSDNAnr, char *cur)
+static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna,
+                               char *compflags, int oldSDNAnr, char *data, int curSDNAnr, char *cur)
 {
 	/* Recursive!
 	 * Per element from cur_struct, read data from old_struct.
@@ -1054,7 +1046,9 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 			}
 			else {
 				
-				if( spc[0]==2 || spc[0]==3 ) {	/* short-ushort */
+				if ( spc[0]==SDNA_TYPE_SHORT ||
+				     spc[0]==SDNA_TYPE_USHORT )
+				{
 					
 					/* exception: variable called blocktype/ipowin: derived from ID_  */
 					skip= 0;
@@ -1076,7 +1070,11 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						}
 					}
 				}
-				else if(spc[0]>3 && spc[0]<8) { /* int-long-ulong-float */
+				else if ( (spc[0]==SDNA_TYPE_INT    ||
+				           spc[0]==SDNA_TYPE_LONG   ||
+				           spc[0]==SDNA_TYPE_ULONG  ||
+				           spc[0]==SDNA_TYPE_FLOAT))
+				{
 
 					mul= DNA_elem_array_size(name, strlen(name));
 					cpo= cur;
@@ -1138,3 +1136,25 @@ int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const ch
 	return (int)((intptr_t)cp);
 }
 
+int DNA_elem_type_size(const eSDNA_Type elem_nr)
+{
+	/* should containt all enum types */
+	switch (elem_nr) {
+		case SDNA_TYPE_CHAR:
+		case SDNA_TYPE_UCHAR:
+			return 1;
+		case SDNA_TYPE_SHORT:
+		case SDNA_TYPE_USHORT:
+			return 2;
+		case SDNA_TYPE_INT:
+		case SDNA_TYPE_LONG:
+		case SDNA_TYPE_ULONG:
+		case SDNA_TYPE_FLOAT:
+			return 4;
+		case SDNA_TYPE_DOUBLE:
+			return 8;
+	}
+
+	/* weak */
+	return 8;
+}
