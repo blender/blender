@@ -2205,12 +2205,12 @@ size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_m
 	
 	/* only filter data if there's somewhere to put it */
 	if (data && anim_data) {
-		Object *obact= (ac) ? ac->obact : NULL;
 		
 		/* firstly filter the data */
 		switch (datatype) {
 			case ANIMCONT_ACTION:	/* 'Action Editor' */
 			{
+				Object *obact= ac->obact;
 				SpaceAction *saction = (SpaceAction *)ac->sl;
 				bDopeSheet *ads = (saction)? &saction->ads : NULL;
 				

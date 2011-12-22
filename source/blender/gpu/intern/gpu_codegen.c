@@ -538,12 +538,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_appendf(ds, ", gl_TexCoord[%d].st", input->texid);
 			}
 			else if (input->source == GPU_SOURCE_TEX_PIXEL) {
-				if (input->link && input->link->output)
-					codegen_convert_datatype(ds, input->link->output->type, input->type,
-						"tmp", input->link->output->id);
-				else
-					codegen_convert_datatype(ds, input->link->output->type, input->type,
-						"tex", input->texid);
+				codegen_convert_datatype(ds, input->link->output->type, input->type,
+					"tmp", input->link->output->id);
 			}
 			else if(input->source == GPU_SOURCE_BUILTIN)
 				BLI_dynstr_appendf(ds, "%s", GPU_builtin_name(input->builtin));

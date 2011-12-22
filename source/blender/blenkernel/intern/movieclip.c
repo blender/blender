@@ -988,9 +988,9 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 	}
 
 	for(ob= bmain->object.first; ob; ob= ob->id.next) {
-		bConstraint *con= ob->constraints.first;
+		bConstraint *con;
 
-		for (con= ob->constraints.first; con; con= con->next) {
+		for(con= ob->constraints.first; con; con= con->next) {
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 
 			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
