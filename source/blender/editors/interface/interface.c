@@ -904,7 +904,9 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	/* handle pending stuff */
 	if(block->layouts.first) uiBlockLayoutResolve(block, NULL, NULL);
 	ui_block_do_align(block);
-	if((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT)) ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
+	if((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT)) {
+		ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
+	}
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
 	
 	/* after keymaps! */

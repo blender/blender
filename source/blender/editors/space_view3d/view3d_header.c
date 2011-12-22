@@ -316,7 +316,10 @@ static char *view3d_modeselect_pup(Scene *scene)
 		str += modeselect_addmode(str, N_("Pose Mode"), OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
-	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
+	if ( ob->particlesystem.first ||
+	     modifiers_findByType(ob, eModifierType_Cloth) ||
+	     modifiers_findByType(ob, eModifierType_Softbody))
+	{
 		str += modeselect_addmode(str, N_("Particle Mode"), OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 	(void)str;

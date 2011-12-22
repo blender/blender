@@ -3450,7 +3450,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+				if ( ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
+				     ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
+				     ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+				{
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1= HD_ALIGN;
 						bezt->h2= HD_ALIGN;
@@ -4146,7 +4149,10 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 				int i;
 				for(i=0; i<3; i++) {
 					seq_user= *((&seq->seq1) + i);
-					if (seq_user && (seq_user->flag & SELECT) && !(seq_user->flag & SEQ_LOCK) && !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL))) {
+					if ( seq_user && (seq_user->flag & SELECT) &&
+					     !(seq_user->flag & SEQ_LOCK) &&
+					     !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
+					{
 						seq->flag |= SELECT;
 					}
 				}
