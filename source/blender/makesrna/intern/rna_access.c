@@ -486,8 +486,12 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 		name= ((IDProperty*)prop)->name;
 
 #ifdef WITH_INTERNATIONAL
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
-		name= BLF_gettext(name);
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+		if(prop->translation_context)
+			name = BLF_pgettext(prop->translation_context, name);
+		else
+			name = BLF_gettext(name);
+	}
 #endif
 
 	return name;
@@ -1194,8 +1198,12 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 		}
 
 		for(i=0; nitem[i].identifier; i++) {
-			if( nitem[i].name )
-				nitem[i].name = BLF_gettext(nitem[i].name);
+			if( nitem[i].name ) {
+				if(prop->translation_context)
+					nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
+				else
+					nitem[i].name = BLF_gettext(nitem[i].name);
+			}
 			if( nitem[i].description )
 				nitem[i].description = BLF_gettext(nitem[i].description);
 		}

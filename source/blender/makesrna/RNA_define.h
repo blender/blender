@@ -175,6 +175,8 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 void RNA_def_property_srna(PropertyRNA *prop, const char *type);
 void RNA_def_py_data(PropertyRNA *prop, void *py_data);
 
+void RNA_def_property_translation_context(PropertyRNA *prop, const char *context);
+
 /* Function */
 
 FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const char *call);

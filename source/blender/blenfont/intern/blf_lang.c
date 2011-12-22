@@ -58,7 +58,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
-#define DOMAIN_NAME "blender"
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
 #define FONT_SIZE_DEFAULT 12
 
@@ -205,15 +204,15 @@ void BLF_lang_set(const char *str)
 
 	setlocale(LC_NUMERIC, "C");
 
-	textdomain(DOMAIN_NAME);
-	bindtextdomain(DOMAIN_NAME, global_messagepath);
-	bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name);
+	textdomain(TEXT_DOMAIN_NAME);
+	bindtextdomain(TEXT_DOMAIN_NAME, global_messagepath);
+	bind_textdomain_codeset(TEXT_DOMAIN_NAME, global_encoding_name);
 }
 
 void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
-	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
+	/* bind_textdomain_codeset(TEXT_DOMAIN_NAME, encoding_name); */
 }
 
 #else /* ! WITH_INTERNATIONAL */
