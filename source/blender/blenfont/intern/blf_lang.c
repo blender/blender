@@ -189,6 +189,12 @@ void BLF_lang_set(const char *str)
 
 			if (locreturn == NULL) {
 				printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
+
+				/* fallback to default settings */
+				locreturn= setlocale(LC_ALL, "");
+				BLI_setenv("LANG", default_locale);
+				BLI_setenv("LANGUAGE", default_locale);
+
 				ok= 0;
 			}
 
