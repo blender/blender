@@ -756,7 +756,7 @@ def VectoQuat(vec):
 
 
 class thickface(object):
-    __slost__= 'v', 'uv', 'no', 'area', 'edge_keys'
+    __slost__= "v", "uv", "no", "area", "edge_keys"
     def __init__(self, face, uvface, mesh_verts):
         self.v = [mesh_verts[i] for i in face.vertices]
         if len(self.v)==4:

@@ -188,7 +188,7 @@ class CLIP_OT_delete_proxy(Operator):
             proxydir = clip.proxy.directory
         else:
             clipdir = os.path.dirname(clip.filepath)
-            proxydir = os.path.join(clipdir, 'BL_proxy')
+            proxydir = os.path.join(clipdir, "BL_proxy")
 
         clipfile = os.path.basename(clip.filepath)
         proxy = os.path.join(proxydir, clipfile)
@@ -196,15 +196,15 @@ class CLIP_OT_delete_proxy(Operator):
 
         # proxy_<quality>[_undostorted]
         for x in (25, 50, 75, 100):
-            d = os.path.join(absproxy, 'proxy_' + str(x))
+            d = os.path.join(absproxy, "proxy_%d" % x)
 
             self._rmproxy(d)
-            self._rmproxy(d + '_undistorted')
-            self._rmproxy(os.path.join(absproxy, 'proxy_' + str(x) + '.avi'))
+            self._rmproxy(d + "_undistorted")
+            self._rmproxy(os.path.join(absproxy, "proxy_%d.avi" % x))
 
-        tc = ('free_run.blen_tc',
-              'interp_free_run.blen_tc',
-              'record_run.blen_tc')
+        tc = ("free_run.blen_tc",
+              "interp_free_run.blen_tc",
+              "record_run.blen_tc")
 
         for x in tc:
             self._rmproxy(os.path.join(absproxy, x))
@@ -269,7 +269,7 @@ object's movement caused by this constraint"""
         # TODO: several camera solvers and track followers would fail,
         #       but can't think about eal workflow where it'll be useful
         for x in ob.constraints:
-            if x.type in ('CAMERA_SOLVER', 'FOLLOW_TRACK'):
+            if x.type in {'CAMERA_SOLVER', 'FOLLOW_TRACK'}:
                 con = x
 
         if not con:
@@ -340,7 +340,8 @@ object's movement caused by this constraint"""
 
     def execute(self, context):
         scene = context.scene
-
+        # XXX, should probably use context.selected_editable_objects
+        # since selected objects can be from a lib or in hidden layer!
         for ob in scene.objects:
             if ob.select:
                 self._bake_object(scene, ob)
