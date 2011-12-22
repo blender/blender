@@ -2626,8 +2626,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d,
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
-                                  Object *ob, EditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	EditEdge *eed;
@@ -2650,11 +2649,6 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	else if (grid < 1.0f)	conv_float= "%.4g";
 	else if (grid < 10.0f)	conv_float= "%.3g";
 	else					conv_float= "%.2g";
-
-	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
-		glDisable(GL_DEPTH_TEST);
-
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
@@ -2772,24 +2766,6 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 				}
 			}
 		}
-	}
-
-	/* useful for debugging index vs shape key index */
-#if 0
-	{
-		EditVert *eve;
-		int j;
-		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		for(eve= em->verts.first, j= 0; eve; eve= eve->next, j++) {
-			sprintf(val, "%d:%d", j, eve->keyindex);
-			view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
-		}
-	}
-#endif
-
-	if(v3d->zbuf) {
-		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0f);
 	}
 }
 
@@ -3004,7 +2980,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG)) &&
 		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
-			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+			draw_em_measure_stats(v3d, ob, em, &scene->unit);
 		}
 
 		if ((G.f & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
