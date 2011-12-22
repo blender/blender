@@ -2793,6 +2793,44 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	}
 }
 
+static void draw_em_indices(EditMesh *em)
+{
+	EditEdge *e;
+	EditFace *f;
+	EditVert *v;
+	int i;
+	char val[32];
+	float pos[3];
+	unsigned char col[4];
+
+	/* For now, reuse appropriate theme colors from stats text colors */
+
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+	for (v = em->verts.first, i = 0; v; v = v->next, i++) {
+		if (v->f & SELECT) {
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+	}
+
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+	for (e = em->edges.first, i = 0; e; e = e->next, i++) {
+		if (e->f & SELECT) {
+			sprintf(val, "%d", i);
+			mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+	}
+
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+	for (f = em->faces.first, i = 0; f; f = f->next, i++) {
+		if (f->f & SELECT) {
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(f->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+	}
+}
+
 static int draw_em_fancy__setFaceOpts(void *UNUSED(userData), int index, int *UNUSED(drawSmooth_r))
 {
 	EditFace *efa = EM_get_face_for_index(index);
@@ -2967,6 +3005,11 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
 			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+		}
+
+		if ((G.f & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+			draw_em_indices(em);
 		}
 	}
 
