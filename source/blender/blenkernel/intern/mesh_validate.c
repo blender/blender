@@ -395,7 +395,7 @@ static int mesh_validate_customdata(CustomData *data, short do_verbose, const sh
 
 	while(i<data->totlayer) {
 		CustomDataLayer *layer= &data->layers[i];
-		int mask= 1 << layer->type;
+		CustomDataMask mask= CD_TYPE_AS_MASK(layer->type);
 		int ok= 1;
 
 		if((mask&CD_MASK_MESH)==0) {

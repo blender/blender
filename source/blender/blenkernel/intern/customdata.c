@@ -943,7 +943,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			number++;
 
 		if(lastflag & CD_FLAG_NOCOPY) continue;
-		else if(!((int)mask & (int)(1 << (int)type))) continue;
+		else if(!(mask & CD_TYPE_AS_MASK(type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (lastflag & CD_FLAG_NOFREE))
@@ -1500,7 +1500,7 @@ void CustomData_set_only_copy(const struct CustomData *data,
 	int i;
 
 	for(i = 0; i < data->totlayer; ++i)
-		if(!((int)mask & (int)(1 << (int)data->layers[i].type)))
+		if(!(mask & CD_TYPE_AS_MASK(data->layers[i].type)))
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 
@@ -2441,7 +2441,7 @@ void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if((layer->flag & CD_FLAG_EXTERNAL) && (layer->flag & CD_FLAG_IN_MEMORY)) {
 			if(typeInfo->free)
 				typeInfo->free(layer->data, totelem, typeInfo->size);
@@ -2467,7 +2467,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if(layer->flag & CD_FLAG_IN_MEMORY);
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read)
 			update= 1;
@@ -2488,7 +2488,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if(layer->flag & CD_FLAG_IN_MEMORY);
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read) {
 			blay= cdf_layer_find(cdf, layer->type, layer->name);
@@ -2527,7 +2527,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write)
 			update= 1;
 	}
@@ -2641,7 +2641,7 @@ void CustomData_external_remove(CustomData *data, ID *id, int type, int totelem)
 
 	if(layer->flag & CD_FLAG_EXTERNAL) {
 		if(!(layer->flag & CD_FLAG_IN_MEMORY))
-			CustomData_external_read(data, id, (1<<layer->type), totelem);
+			CustomData_external_read(data, id, CD_TYPE_AS_MASK(layer->type), totelem);
 
 		layer->flag &= ~CD_FLAG_EXTERNAL;
 

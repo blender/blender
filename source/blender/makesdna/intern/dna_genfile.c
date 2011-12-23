@@ -667,6 +667,7 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 	else if( strcmp(dna_type, "float")==0)                                                return SDNA_TYPE_FLOAT;
 	else if( strcmp(dna_type, "double")==0)                                               return SDNA_TYPE_DOUBLE;
 	else if( strcmp(dna_type, "int64_t")==0)                                              return SDNA_TYPE_INT64;
+	else if( strcmp(dna_type, "u_int64_t")==0)                                            return SDNA_TYPE_UINT64;
 	else                                                                                  return -1; /* invalid! */
 }
 
@@ -711,6 +712,8 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 			val= *( (double *)olddata); break;
 		case SDNA_TYPE_INT64:
 			val= *( (int64_t *)olddata); break;
+		case SDNA_TYPE_UINT64:
+			val= *( (u_int64_t *)olddata); break;
 		}
 		
 		switch(ctypenr) {
@@ -736,6 +739,8 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 			*( (double *)curdata)= val; break;
 		case SDNA_TYPE_INT64:
 			*( (int64_t *)curdata)= val; break;
+		case SDNA_TYPE_UINT64:
+			*( (u_int64_t *)curdata)= val; break;
 		}
 
 		olddata+= oldlen;
@@ -1093,7 +1098,9 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						cpo+= 4;
 					}
 				}
-				else if ( (spc[0]==SDNA_TYPE_INT64)) {
+				else if ( (spc[0]==SDNA_TYPE_INT64) ||
+				          (spc[0]==SDNA_TYPE_UINT64))
+				{
 					mul= DNA_elem_array_size(name, strlen(name));
 					cpo= cur;
 					while(mul--) {
@@ -1170,6 +1177,7 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 			return 4;
 		case SDNA_TYPE_DOUBLE:
 		case SDNA_TYPE_INT64:
+		case SDNA_TYPE_UINT64:
 			return 8;
 	}
 

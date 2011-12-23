@@ -186,7 +186,7 @@ void wm_event_do_notifiers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note, *next;
 	wmWindow *win;
-	unsigned int win_combine_v3d_datamask= 0;
+	u_int64_t win_combine_v3d_datamask= 0;
 	
 	if(wm==NULL)
 		return;
