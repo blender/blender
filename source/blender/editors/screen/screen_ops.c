@@ -1742,11 +1742,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* note, 'UI_UNIT_Y/4' means you need to drag the header almost
 				 * all the way down for it to become hidden, this is done
 				 * otherwise its too easy to do this by accident */
-				if(rmd->ar->sizey < UI_UNIT_Y/4 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
+				if(rmd->ar->sizey < UI_UNIT_Y/4) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						region_scale_toggle_hidden(C, rmd);
 				}
+				else if(maxsize > 0 && (rmd->ar->sizey > maxsize)) 
+					rmd->ar->sizey= maxsize;
 				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
 					region_scale_toggle_hidden(C, rmd);
 			}
