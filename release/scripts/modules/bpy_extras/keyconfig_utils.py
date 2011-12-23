@@ -89,7 +89,6 @@ KM_HIERARCHY = [
 
     ('Property Editor', 'PROPERTIES', 'WINDOW', []),  # align context menu
 
-    ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
     ('Console', 'CONSOLE', 'WINDOW', []),
     ('Clip', 'CLIP_EDITOR', 'WINDOW', [
