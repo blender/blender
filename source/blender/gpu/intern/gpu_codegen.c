@@ -241,7 +241,12 @@ GPUFunction *GPU_lookup_function(const char *name)
 	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, (void *)name);
 }
 
-void GPU_extensions_exit(void)
+void GPU_codegen_init(void)
+{
+	GPU_code_generate_glsl_lib();
+}
+
+void GPU_codegen_exit(void)
 {
 	extern Material defmaterial;    // render module abuse...
 
@@ -253,8 +258,11 @@ void GPU_extensions_exit(void)
 		FUNCTION_HASH = NULL;
 	}
 
-	if(glsl_material_library)
+	if(glsl_material_library) {
 		MEM_freeN(glsl_material_library);
+		glsl_material_library = NULL;
+	}
+
 	/*if(FUNCTION_PROTOTYPES) {
 		MEM_freeN(FUNCTION_PROTOTYPES);
 		FUNCTION_PROTOTYPES = NULL;
