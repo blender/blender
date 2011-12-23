@@ -131,6 +131,7 @@ const char *BLF_pgettext(const char *context, const char *message)
 
 	return translation;
 #else
+	(void)context;
 	return message;
 #endif
 }
