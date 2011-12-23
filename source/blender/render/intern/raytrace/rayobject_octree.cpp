@@ -978,7 +978,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		}
 		
 		xo=ocx1; yo=ocy1; zo=ocz1;
-		labdao= ddalabda= MIN3(labdax,labday,labdaz);
+		ddalabda= MIN3(labdax,labday,labdaz);
 		
 		vec2[0]= ox1;
 		vec2[1]= oy1;

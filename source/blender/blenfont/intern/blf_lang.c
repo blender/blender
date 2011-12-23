@@ -58,7 +58,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
-#define DOMAIN_NAME "blender"
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
 #define FONT_SIZE_DEFAULT 12
 
@@ -86,7 +85,7 @@ static const char *locales[] = {
 	"Chinese (Traditional)_China.1252", "zh_TW",
 	"russian", "ru_RU",
 	"croatian", "hr_HR",
-	"serbian", "sr_RS",
+	"serbian", "sr",
 	"ukrainian", "uk_UA",
 	"polish", "pl_PL",
 	"romanian", "ro_RO",
@@ -96,7 +95,8 @@ static const char *locales[] = {
 	"korean", "ko_KR",
 	"nepali", "ne_NP",
 	"persian", "fa_PE",
-	"indonesian", "id_ID"
+	"indonesian", "id_ID",
+	"serbian (latin)", "sr@latin",
 };
 
 void BLF_lang_init(void)
@@ -189,6 +189,12 @@ void BLF_lang_set(const char *str)
 
 			if (locreturn == NULL) {
 				printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
+
+				/* fallback to default settings */
+				locreturn= setlocale(LC_ALL, "");
+				BLI_setenv("LANG", default_locale);
+				BLI_setenv("LANGUAGE", default_locale);
+
 				ok= 0;
 			}
 
@@ -204,15 +210,15 @@ void BLF_lang_set(const char *str)
 
 	setlocale(LC_NUMERIC, "C");
 
-	textdomain(DOMAIN_NAME);
-	bindtextdomain(DOMAIN_NAME, global_messagepath);
-	bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name);
+	textdomain(TEXT_DOMAIN_NAME);
+	bindtextdomain(TEXT_DOMAIN_NAME, global_messagepath);
+	bind_textdomain_codeset(TEXT_DOMAIN_NAME, global_encoding_name);
 }
 
 void BLF_lang_encoding(const char *str)
 {
 	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
-	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
+	/* bind_textdomain_codeset(TEXT_DOMAIN_NAME, encoding_name); */
 }
 
 #else /* ! WITH_INTERNATIONAL */

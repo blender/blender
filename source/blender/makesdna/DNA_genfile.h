@@ -38,6 +38,23 @@ struct SDNA;
 extern unsigned char DNAstr[];  /* DNA.c */
 extern int DNAlen;
 
+typedef enum eSDNA_Type {
+	SDNA_TYPE_CHAR     = 0,
+	SDNA_TYPE_UCHAR    = 1,
+	SDNA_TYPE_SHORT    = 2,
+	SDNA_TYPE_USHORT   = 3,
+	SDNA_TYPE_INT      = 4,
+	SDNA_TYPE_LONG     = 5,
+	SDNA_TYPE_ULONG    = 6,
+	SDNA_TYPE_FLOAT    = 7,
+	SDNA_TYPE_DOUBLE   = 8,
+	SDNA_TYPE_INT64    = 9
+	/* ,SDNA_TYPE_VOID     = 10 */ /* nothing uses yet */
+} eSDNA_Type;
+
+/* define so switch statements don't complain */
+#define SDNA_TYPE_VOID 10
+
 struct SDNA *DNA_sdna_from_data(void *data, int datalen, int do_endian_swap);
 void DNA_sdna_free(struct SDNA *sdna);
 
@@ -49,6 +66,7 @@ void *DNA_struct_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *c
 int DNA_elem_array_size(const char *astr, int len);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
+
+int DNA_elem_type_size(const eSDNA_Type elem_nr);
+
 #endif
-
-

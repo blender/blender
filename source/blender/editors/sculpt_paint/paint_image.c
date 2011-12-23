@@ -1816,7 +1816,9 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 		return 1;
 	 */
 	
-	if((bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) || (bucket_bounds->ymin <= cent[1] && bucket_bounds->ymax >= cent[1]) ) {
+	if ( (bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) ||
+	     (bucket_bounds->ymin <= cent[1] && bucket_bounds->ymax >= cent[1]) )
+	{
 		return 1;
 	}
 	
@@ -2816,7 +2818,11 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 	p4[0] = bucket_bounds.xmax;	p4[1] = bucket_bounds.ymin;
 		
 	if (mf->v4) {
-		if(	isect_point_quad_v2(p1, v1, v2, v3, v4) || isect_point_quad_v2(p2, v1, v2, v3, v4) || isect_point_quad_v2(p3, v1, v2, v3, v4) || isect_point_quad_v2(p4, v1, v2, v3, v4) ||
+		if ( isect_point_quad_v2(p1, v1, v2, v3, v4) ||
+		     isect_point_quad_v2(p2, v1, v2, v3, v4) ||
+		     isect_point_quad_v2(p3, v1, v2, v3, v4) ||
+		     isect_point_quad_v2(p4, v1, v2, v3, v4) ||
+
 			/* we can avoid testing v3,v1 because another intersection MUST exist if this intersects */
 			(isect_line_line_v2(p1, p2, v1, v2) || isect_line_line_v2(p1, p2, v2, v3) || isect_line_line_v2(p1, p2, v3, v4)) ||
 			(isect_line_line_v2(p2, p3, v1, v2) || isect_line_line_v2(p2, p3, v2, v3) || isect_line_line_v2(p2, p3, v3, v4)) ||
@@ -2827,7 +2833,10 @@ static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucke
 		}
 	}
 	else {
-		if(	isect_point_tri_v2(p1, v1, v2, v3) || isect_point_tri_v2(p2, v1, v2, v3) || isect_point_tri_v2(p3, v1, v2, v3) || isect_point_tri_v2(p4, v1, v2, v3) ||
+		if ( isect_point_tri_v2(p1, v1, v2, v3) ||
+		     isect_point_tri_v2(p2, v1, v2, v3) ||
+		     isect_point_tri_v2(p3, v1, v2, v3) ||
+		     isect_point_tri_v2(p4, v1, v2, v3) ||
 			/* we can avoid testing v3,v1 because another intersection MUST exist if this intersects */
 			(isect_line_line_v2(p1, p2, v1, v2) || isect_line_line_v2(p1, p2, v2, v3)) ||
 			(isect_line_line_v2(p2, p3, v1, v2) || isect_line_line_v2(p2, p3, v2, v3)) ||

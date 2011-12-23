@@ -833,7 +833,6 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 	memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "strand sort arena");
 	firstseg= NULL;
-	sortseg= sortsegments;
 	totsegment= 0;
 
 	/* for all object instances */

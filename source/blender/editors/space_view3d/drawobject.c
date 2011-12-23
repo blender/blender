@@ -2685,8 +2685,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
-                                  Object *ob, BMEditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
@@ -2709,11 +2708,6 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	else if (grid < 1.0f)	conv_float= "%.4g";
 	else if (grid < 10.0f)	conv_float= "%.3g";
 	else					conv_float= "%.2g";
-
-	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
-		glDisable(GL_DEPTH_TEST);
-
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		BMEdge *eed;
@@ -2836,43 +2830,52 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 			}
 		}
 	}
+}
 
-	/* useful for debugging index vs shape key index */
-#if 0
-	{
-		BMIter iter;
-		BMVert *eve;
-		int j=0;
+static void draw_em_indices(BMEditMesh *em)
+{
+	BMEdge *e;
+	BMFace *f;
+	BMVert *v;
+	int i;
+	char val[32];
+	float pos[3];
+	unsigned char col[4];
 
-		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+	BMIter iter;
+	BMesh *bm= em->bm;
 
-		if(CustomData_has_layer(&em->bm->vdata, CD_SHAPE_KEYINDEX)) {
-			int *keyi;
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				keyi = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-				if(keyi && *keyi != ORIGINDEX_NONE) {
-					sprintf(val, "%d:%d", j, *keyi);
-				}
-				else {
-					sprintf(val, "%d", j);
-				}
-				view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
-				i++;
-			}
+	/* For now, reuse appropriate theme colors from stats text colors */
+	i= 0;
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT)) {
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
 		}
-		else {
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				sprintf(val, "%d", j);
-				view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
-				j++;
-			}
-		}
+		i++;
 	}
-#endif
 
-	if(v3d->zbuf) {
-		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0f);
+	i= 0;
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			sprintf(val, "%d", i);
+			mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+		i++;
+	}
+
+	i= 0;
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_TestHFlag(f, BM_SELECT)) {
+			BM_Compute_Face_CenterMean(bm, f, pos);
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+		i++;
 	}
 }
 
@@ -3050,7 +3053,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG)) &&
 		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
-			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+			draw_em_measure_stats(v3d, ob, em, &scene->unit);
+		}
+
+		if ((G.f & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+			draw_em_indices(em);
 		}
 	}
 

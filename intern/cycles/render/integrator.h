@@ -41,9 +41,9 @@ public:
 	bool transparent_shadows;
 
 	bool no_caustics;
-	float blur_caustics;
 
 	int seed;
+	int layer_flag;
 
 	bool need_update;
 

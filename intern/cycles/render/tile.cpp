@@ -55,10 +55,7 @@ void TileManager::reset(BufferParams& params_, int samples_)
 
 	samples = samples_;
 
-	state.full_x = 0;
-	state.full_y = 0;
-	state.width = 0;
-	state.height = 0;
+	state.buffer = BufferParams();
 	state.sample = -1;
 	state.resolution = start_resolution;
 	state.tiles.clear();
@@ -92,10 +89,13 @@ void TileManager::set_tiles()
 		}
 	}
 
-	state.full_x = params.full_x/resolution;
-	state.full_y = params.full_y/resolution;
-	state.width = image_w;
-	state.height = image_h;
+	state.buffer.width = image_w;
+	state.buffer.height = image_h;
+
+	state.buffer.full_x = params.full_x/resolution;
+	state.buffer.full_y = params.full_y/resolution;
+	state.buffer.full_width = max(1, params.full_width/resolution);
+	state.buffer.full_height = max(1, params.full_height/resolution);
 }
 
 bool TileManager::done()

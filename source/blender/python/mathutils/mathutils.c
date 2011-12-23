@@ -456,6 +456,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	Py_INCREF(item);
 
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
+	mathutils_matrix_column_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_column_cb);
 
 	return submodule;
 }

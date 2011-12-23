@@ -496,7 +496,7 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 				break;
 			
 			/* store this level as the 'old' level now */
-			prevLevel= level; // XXX: prevLevel is unused
+			// prevLevel= level; // XXX: prevLevel is unused
 		}
 	}
 }

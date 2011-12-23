@@ -592,7 +592,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 {
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
-	int a, iCalcNewMethod;
+	int a;
 
 	if(do_nmap_tangent) {
 		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "nmap tangent arena");
@@ -680,8 +680,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
-	iCalcNewMethod = 1;
-	if(iCalcNewMethod!=0 && do_nmap_tangent!=0)
+	if(do_nmap_tangent!=0)
 	{
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
@@ -701,10 +700,8 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		sInterface.m_getNormal = GetNormal;
 		sInterface.m_setTSpaceBasic = SetTSpace;
 
-		// 0 if failed
-		iCalcNewMethod = genTangSpaceDefault(&sContext);
+		genTangSpaceDefault(&sContext);
 	}
-
 
 	if(arena)
 		BLI_memarena_free(arena);
@@ -1068,7 +1065,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 
 		mul_v3_fl(cross, width);
 	}
-	else width= 1.0f;
 	
 	if(ma->mode & MA_TANGENT_STR)
 		flag= R_SMOOTH|R_TANGENT;

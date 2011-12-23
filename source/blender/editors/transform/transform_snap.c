@@ -1637,7 +1637,12 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 	}
 
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( BASE_VISIBLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)) ) {
+		if ( (BASE_VISIBLE(v3d, base)) &&
+		     (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 &&
+
+		     (  (mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) ||
+		        (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT))  )
+		{
 			Object *ob = base->object;
 			
 			if (ob->transflag & OB_DUPLI)

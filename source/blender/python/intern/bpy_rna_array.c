@@ -36,6 +36,12 @@
 
 #include "RNA_access.h"
 
+#define USE_MATHUTILS
+
+#ifdef USE_MATHUTILS
+#  include "../mathutils/mathutils.h" /* so we can have mathutils callbacks */
+#endif
+
 #define MAX_ARRAY_DIMENSION 10
 
 typedef void (*ItemConvertFunc)(PyObject *, char *);
@@ -259,10 +265,47 @@ static int validate_array(PyObject *rvalue, PointerRNA *ptr, PropertyRNA *prop,
 
 	/* validate type first because length validation may modify property array length */
 
-	if (validate_array_type(rvalue, lvalue_dim, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1)
-		return -1;
 
-	return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
+#ifdef USE_MATHUTILS
+	if (lvalue_dim == 0) { /* only valid for first level array */
+		if (MatrixObject_Check(rvalue)) {
+			MatrixObject *pymat= (MatrixObject *)rvalue;
+
+			if (BaseMath_ReadCallback(pymat) == -1)
+				return -1;
+
+			if (RNA_property_type(prop) != PROP_FLOAT) {
+				PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, matrix assign to non float array",
+				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
+				return -1;
+			}
+			else if (totdim != 2) {
+				PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, matrix assign array with %d dimensions",
+				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), totdim);
+				return -1;
+			}
+			else if (pymat->num_col != dimsize[0] || pymat->num_row != dimsize[1]) {
+				PyErr_Format(PyExc_ValueError, "%s %.200s.%.200s, matrix assign dimension size mismatch, "
+				             "is %dx%d, expected be %dx%d",
+				             error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop),
+				             pymat->num_col, pymat->num_row, dimsize[0], dimsize[1]);
+				return -1;
+			}
+			else {
+				*totitem= dimsize[0] * dimsize[1];
+				return 0;
+			}
+		}
+	}
+#endif /* USE_MATHUTILS */
+
+
+	{
+		if (validate_array_type(rvalue, lvalue_dim, totdim, dimsize, check_item_type, item_type_str, error_prefix) == -1)
+			return -1;
+
+		return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
+	}
 }
 
 static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *prop,
@@ -304,6 +347,26 @@ static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop,
 	if (seq_size == -1) {
 		return NULL;
 	}
+
+
+#ifdef USE_MATHUTILS
+	if (dim == 0) {
+		if (MatrixObject_Check(seq)) {
+			MatrixObject *pymat= (MatrixObject *)seq;
+			size_t allocsize= pymat->num_col * pymat->num_row * sizeof(float);
+
+			/* read callback already done by validate */
+			/* since this is the first iteration we can assume data is allocated */
+			memcpy(data, pymat->matrix, allocsize);
+
+			/* not really needed but do for completeness */
+			data += allocsize;
+
+			return data;
+		}
+	}
+#endif /* USE_MATHUTILS */
+
 
 	for (i= 0; i < seq_size; i++) {
 		PyObject *item= PySequence_GetItem(seq, i);

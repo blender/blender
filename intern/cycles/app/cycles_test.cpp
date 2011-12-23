@@ -82,9 +82,9 @@ static void session_print_status()
 	session_print(status);
 }
 
-static BufferParams session_buffer_params()
+static BufferParams& session_buffer_params()
 {
-	BufferParams buffer_params;
+	static BufferParams buffer_params;
 	buffer_params.width = options.width;
 	buffer_params.height = options.height;
 	buffer_params.full_width = options.width;

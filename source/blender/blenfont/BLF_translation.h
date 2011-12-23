@@ -33,6 +33,8 @@
 #ifndef BLF_TRANSLATION_H
 #define BLF_TRANSLATION_H
 
+#define TEXT_DOMAIN_NAME "blender"
+
 /* blf_translation.c  */
 
 #ifdef WITH_INTERNATIONAL
@@ -40,7 +42,8 @@ unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
 #endif
 
-const char* BLF_gettext(const char *msgid);
+const char *BLF_gettext(const char *msgid);
+const char *BLF_pgettext(const char *context, const char *message);
 
 /* blf_lang.c */
 

@@ -32,6 +32,7 @@ set(INC
 	../nodes
 	../render/extern/include
 	../../../intern/guardedalloc
+	../imbuf
 )
 
 set(INC_SYS

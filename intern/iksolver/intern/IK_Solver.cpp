@@ -225,10 +225,11 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
 {
 	IK_QSegment *qseg = (IK_QSegment*)seg;
-	const MT_Matrix3x3& change = qseg->BasisChange();
 
 	if (qseg->Translational() && qseg->Composite())
 		qseg = qseg->Composite();
+
+	const MT_Matrix3x3& change = qseg->BasisChange();
 
 	// convert from moto row major to blender column major
 	basis_change[0][0] = (float)change[0][0];

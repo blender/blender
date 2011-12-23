@@ -372,7 +372,10 @@ static MovieClip *movieclip_alloc(const char *name)
 	BKE_tracking_init_settings(&clip->tracking);
 
 	clip->proxy.build_size_flag= IMB_PROXY_25;
-	clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+	clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN |
+	                           IMB_TC_FREE_RUN |
+	                           IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN |
+	                           IMB_TC_RECORD_RUN_NO_GAPS;
 	clip->proxy.quality= 90;
 
 	return clip;
@@ -985,9 +988,9 @@ void unlink_movieclip(Main *bmain, MovieClip *clip)
 	}
 
 	for(ob= bmain->object.first; ob; ob= ob->id.next) {
-		bConstraint *con= ob->constraints.first;
+		bConstraint *con;
 
-		for (con= ob->constraints.first; con; con= con->next) {
+		for(con= ob->constraints.first; con; con= con->next) {
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 
 			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {

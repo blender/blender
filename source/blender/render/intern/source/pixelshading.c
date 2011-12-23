@@ -176,7 +176,6 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 			if(inpr<t) continue;
 			else {
 				t= inpr-t;
-				i= 1.0;
 				soft= 1.0;
 				if(t<lar->spotbl && lar->spotbl!=0.0f) {
 					/* soft area */

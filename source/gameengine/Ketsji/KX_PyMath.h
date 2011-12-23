@@ -65,32 +65,59 @@ bool PyMatTo(PyObject* pymat, T& mat)
 {
 	bool noerror = true;
 	mat.setIdentity();
+
+
+#ifdef USE_MATHUTILS
+
+	if (MatrixObject_Check(pymat))
+	{
+		MatrixObject *pymatrix = (MatrixObject *)pymat;
+
+		if (BaseMath_ReadCallback(pymatrix) == -1)
+			return false;
+
+		if (pymatrix->num_col != Size(mat) || pymatrix->num_row != Size(mat))
+			return false;
+
+		for (unsigned int row = 0; row < Size(mat); row++)
+		{
+			for (unsigned int col = 0; col < Size(mat); col++)
+			{
+				mat[row][col] = *(pymatrix->matrix + col * pymatrix->num_row + row);
+			}
+		}
+	}
+	else
+
+#endif /* USE_MATHUTILS */
+
+
 	if (PySequence_Check(pymat))
 	{
-		unsigned int cols = PySequence_Size(pymat);
-		if (cols != Size(mat))
+		unsigned int rows = PySequence_Size(pymat);
+		if (rows != Size(mat))
 			return false;
 			
-		for (unsigned int x = 0; noerror && x < cols; x++)
+		for (unsigned int row = 0; noerror && row < rows; row++)
 		{
-			PyObject *pycol = PySequence_GetItem(pymat, x); /* new ref */
-			if (!PyErr_Occurred() && PySequence_Check(pycol))
+			PyObject *pyrow = PySequence_GetItem(pymat, row); /* new ref */
+			if (!PyErr_Occurred() && PySequence_Check(pyrow))
 			{
-				unsigned int rows = PySequence_Size(pycol);
-				if (rows != Size(mat))
+				unsigned int cols = PySequence_Size(pyrow);
+				if (cols != Size(mat))
 					noerror = false;
 				else
 				{
-					for( unsigned int y = 0; y < rows; y++)
+					for( unsigned int col = 0; col < cols; col++)
 					{
-						PyObject *item = PySequence_GetItem(pycol, y); /* new ref */
-						mat[y][x] = PyFloat_AsDouble(item);
+						PyObject *item = PySequence_GetItem(pyrow, col); /* new ref */
+						mat[row][col] = PyFloat_AsDouble(item);
 						Py_DECREF(item);
 					}
 				}
 			} else 
 				noerror = false;
-			Py_DECREF(pycol);
+			Py_DECREF(pyrow);
 		}
 	} else 
 		noerror = false;

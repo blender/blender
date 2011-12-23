@@ -1824,6 +1824,11 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 	}
 }
 
+void RNA_def_property_translation_context(PropertyRNA *prop, const char *context)
+{
+	prop->translation_context= context;
+}
+
 /* Functions */
 
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable)

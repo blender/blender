@@ -269,14 +269,12 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 				if(p1[2]<-ladist) t1= t3;
 			}
 			else {
-				ok1= 1;
 				t1= t3;
 			}
 			if(ok2) {
 				if(p2[2]<-ladist) t2= t3;
 			}
 			else {
-				ok2= 1;
 				t2= t3;
 			}
 		}

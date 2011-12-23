@@ -992,6 +992,7 @@ class VIEW3D_MT_object_game(Menu):
         layout = self.layout
 
         layout.operator("object.logic_bricks_copy", text="Copy Logic Bricks")
+        layout.operator("object.game_physics_copy", text="Copy Physics Properties")
 
         layout.separator()
 
@@ -2247,6 +2248,8 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.prop(mesh, "show_extra_edge_length")
         col.prop(mesh, "show_extra_face_angle")
         col.prop(mesh, "show_extra_face_area")
+        if bpy.app.debug:
+          col.prop(mesh, "show_extra_indices")
 
 
 class VIEW3D_PT_view3d_curvedisplay(Panel):

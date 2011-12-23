@@ -24,7 +24,8 @@
 #define NUM_TEMPV(m,w,t,b)  ( SUPERLU_MAX(m, (t + b)*w) )
 
 #ifndef USER_ABORT
-#define USER_ABORT(msg) superlu_abort_and_exit(msg)
+#define USER_ABORT(msg) \
+ {  fprintf(stderr, "%s", msg); exit (-1); }
 #endif
 
 #define ABORT(err_msg) \

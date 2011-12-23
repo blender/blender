@@ -399,29 +399,37 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		MEM_freeN(tdw);
 		return dm;
 	}
-	indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGProximity Modifier, indices");
-	memcpy(indices, tidx, sizeof(int) * numIdx);
-	org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, org_w");
+	if(numIdx != numVerts) {
+		indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGProximity Modifier, indices");
+		memcpy(indices, tidx, sizeof(int) * numIdx);
+		org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, org_w");
+		memcpy(org_w, tw, sizeof(float) * numIdx);
+		dw = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGProximity Modifier, dw");
+		memcpy(dw, tdw, sizeof(MDeformWeight*) * numIdx);
+		MEM_freeN(tw);
+		MEM_freeN(tdw);
+	}
+	else {
+		org_w = tw;
+		dw = tdw;
+	}
 	new_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, new_w");
-	memcpy(org_w, tw, sizeof(float) * numIdx);
-	dw = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGProximity Modifier, dw");
-	memcpy(dw, tdw, sizeof(MDeformWeight*) * numIdx);
 	MEM_freeN(tidx);
-	MEM_freeN(tw);
-	MEM_freeN(tdw);
 
 	/* Get our vertex coordinates. */
-	{
+	v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
+	if(numIdx != numVerts) {
 		/* XXX In some situations, this code can be up to about 50 times more performant
 		 *     than simply using getVertCo for each affected vertex...
 		 */
 		float (*tv_cos)[3] = MEM_mallocN(sizeof(float[3]) * numVerts, "WeightVGProximity Modifier, tv_cos");
-		v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
 		dm->getVertCos(dm, tv_cos);
 		for (i = 0; i < numIdx; i++)
 			copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
 		MEM_freeN(tv_cos);
 	}
+	else
+		dm->getVertCos(dm, v_cos);
 
 	/* Compute wanted distances. */
 	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
@@ -497,7 +505,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
 	MEM_freeN(dw);
-	MEM_freeN(indices);
+	if(indices)
+		MEM_freeN(indices);
 	MEM_freeN(v_cos);
 
 #if DO_PROFILE

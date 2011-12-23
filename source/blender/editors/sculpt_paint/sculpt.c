@@ -592,7 +592,12 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
-	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN && brush->flag & BRUSH_SPACE && !(brush->flag & BRUSH_ANCHORED)) && (brush->spacing < 100) ? 1.0f/accum : 1; // spacing is integer percentage of radius, divide by 50 to get normalized diameter
+	/* spacing is integer percentage of radius, divide by 50 to get
+	   normalized diameter */
+	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN &&
+						  brush->flag & BRUSH_SPACE &&
+						  !(brush->flag & BRUSH_ANCHORED) &&
+						  (brush->spacing < 100)) ? 1.0f/accum : 1;
 	float flip         = dir * invert * pen_flip;
 
 	switch(brush->sculpt_tool){
@@ -1716,7 +1721,9 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
 /* this calculates flatten center and area normal together, 
 amortizing the memory bandwidth and loop overhead to calculate both at the same time */
-static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float an[3], float fc[3])
+static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
+												PBVHNode **nodes, int totnode,
+												float an[3], float fc[3])
 {
 	SculptSession *ss = ob->sculpt;
 	int n;
@@ -2588,7 +2595,9 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
    calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float UNUSED(feather))
+static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
+								const char axis, const float angle,
+								const float UNUSED(feather))
 {
 	(void)sd; /* unused */
 
@@ -2620,7 +2629,9 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
 }
 
-static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, const char symm, const int axis, const float feather)
+static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
+							   const char symm, const int axis,
+							   const float feather)
 {
 	SculptSession *ss = ob->sculpt;
 	int i;
@@ -2954,7 +2965,10 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 		cache->original = 1;
 	}
 
-	if(ELEM8(brush->sculpt_tool, SCULPT_TOOL_DRAW,  SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB, SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_TUBES, SCULPT_TOOL_ROTATE))
+	if(ELEM8(brush->sculpt_tool,
+			 SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
+			 SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
+			 SCULPT_TOOL_CLAY_TUBES, SCULPT_TOOL_ROTATE))
 		if(!(brush->flag & BRUSH_ACCUMULATE))
 			cache->original = 1;
 
@@ -3038,7 +3052,9 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 }
 
 /* Initialize the stroke cache variants from operator properties */
-static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, struct PaintStroke *stroke, PointerRNA *ptr)
+static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
+										 struct PaintStroke *stroke,
+										 PointerRNA *ptr)
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
@@ -3095,7 +3111,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 
 	cache->radius_squared = cache->radius*cache->radius;
 
-	if(!(brush->flag & BRUSH_ANCHORED || ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE))) {
+	if(!(brush->flag & BRUSH_ANCHORED ||
+		 ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
+			   SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE))) {
 		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
 		if  ( (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
@@ -3137,7 +3155,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 		if (!hit)
 			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
 
-		cache->radius= paint_calc_object_space_radius(paint_stroke_view_context(stroke), cache->true_location, cache->pixel_radius);
+		cache->radius= paint_calc_object_space_radius(paint_stroke_view_context(stroke),
+													  cache->true_location,
+													  cache->pixel_radius);
 		cache->radius_squared = cache->radius*cache->radius;
 
 		copy_v3_v3(sd->anchored_location, cache->true_location);
