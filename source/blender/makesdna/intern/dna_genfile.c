@@ -491,7 +491,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			for(nr=0; nr<sdna->nr_structs; nr++) {
 				sp= sdna->structs[nr];
 				if(strcmp(sdna->types[sp[0]], "ClothSimSettings") == 0)
-					sp[10]= 9;
+					sp[10]= SDNA_TYPE_VOID;
 			}
 		}
 
@@ -666,6 +666,7 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 	else if((strcmp(dna_type, "ulong")==0)||(strcmp(dna_type, "unsigned long")==0))       return SDNA_TYPE_ULONG;
 	else if( strcmp(dna_type, "float")==0)                                                return SDNA_TYPE_FLOAT;
 	else if( strcmp(dna_type, "double")==0)                                               return SDNA_TYPE_DOUBLE;
+	else if( strcmp(dna_type, "int64_t")==0)                                              return SDNA_TYPE_INT64;
 	else                                                                                  return -1; /* invalid! */
 }
 
@@ -708,6 +709,8 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 			val= *( (float *)olddata); break;
 		case SDNA_TYPE_DOUBLE:
 			val= *( (double *)olddata); break;
+		case SDNA_TYPE_INT64:
+			val= *( (int64_t *)olddata); break;
 		}
 		
 		switch(ctypenr) {
@@ -731,6 +734,8 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 		case SDNA_TYPE_DOUBLE:
 			if(otypenr<2) val/= 255;
 			*( (double *)curdata)= val; break;
+		case SDNA_TYPE_INT64:
+			*( (int64_t *)curdata)= val; break;
 		}
 
 		olddata+= oldlen;
@@ -1088,6 +1093,18 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						cpo+= 4;
 					}
 				}
+				else if ( (spc[0]==SDNA_TYPE_INT64)) {
+					mul= DNA_elem_array_size(name, strlen(name));
+					cpo= cur;
+					while(mul--) {
+						cval= cpo[0]; cpo[0]= cpo[7]; cpo[7]= cval;
+						cval= cpo[1]; cpo[1]= cpo[6]; cpo[6]= cval;
+						cval= cpo[2]; cpo[2]= cpo[5]; cpo[5]= cval;
+						cval= cpo[3]; cpo[3]= cpo[4]; cpo[4]= cval;
+
+						cpo+= 8;
+					}
+				}
 			}
 		}
 		cur+= elen;
@@ -1152,6 +1169,7 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 		case SDNA_TYPE_FLOAT:
 			return 4;
 		case SDNA_TYPE_DOUBLE:
+		case SDNA_TYPE_INT64:
 			return 8;
 	}
 

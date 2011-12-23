@@ -938,6 +938,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	add_type("ulong", 4);	/* SDNA_TYPE_ULONG */
 	add_type("float", 4);	/* SDNA_TYPE_FLOAT */
 	add_type("double", 8);	/* SDNA_TYPE_DOUBLE */
+	add_type("int64_t", 8);	/* SDNA_TYPE_INT64 */
 	add_type("void", 0);	/* SDNA_TYPE_VOID */
 
 	// the defines above shouldn't be output in the padding file...
