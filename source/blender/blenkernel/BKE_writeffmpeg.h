@@ -72,7 +72,7 @@ extern int append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rect
 void filepath_ffmpeg(char* string, struct RenderData* rd);
 
 extern void ffmpeg_set_preset(struct RenderData *rd, int preset);
-extern void ffmpeg_verify_image_type(struct RenderData *rd);
+extern void ffmpeg_verify_image_type(struct RenderData *rd, struct ImageFormatData *imf);
 
 extern struct IDProperty *ffmpeg_property_add(struct RenderData *Rd, const char *type, int opt_index, int parent_index);
 extern int ffmpeg_property_add_string(struct RenderData *rd, const char *type, const char *str);

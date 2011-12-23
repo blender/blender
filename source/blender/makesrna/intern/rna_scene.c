@@ -659,10 +659,10 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 		Scene *scene= ptr->id.data;
 		RenderData *rd= &scene->r;
 #ifdef WITH_FFMPEG
-		ffmpeg_verify_image_type(rd);
+		ffmpeg_verify_image_type(rd, imf);
 #endif
 #ifdef WITH_QUICKTIME
-		quicktime_verify_image_type(rd);
+		quicktime_verify_image_type(rd, imf);
 #endif
 		(void)rd;
 	}
