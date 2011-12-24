@@ -43,7 +43,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
 
 /* matrix row callbacks */
-int mathutils_matrix_vector_cb_index= -1;
+int mathutils_matrix_row_cb_index= -1;
 
 static int mathutils_matrix_vector_check(BaseMathObject *bmo)
 {
@@ -106,7 +106,7 @@ static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int row, int c
 	return 0;
 }
 
-Mathutils_Callback mathutils_matrix_vector_cb = {
+Mathutils_Callback mathutils_matrix_row_cb = {
 	mathutils_matrix_vector_check,
 	mathutils_matrix_vector_get,
 	mathutils_matrix_vector_set,
@@ -116,7 +116,7 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 /* matrix vector callbacks, this is so you can do matrix[i][j] = val  */
 
 /* matrix row callbacks */
-int mathutils_matrix_column_cb_index= -1;
+int mathutils_matrix_col_cb_index= -1;
 
 static int mathutils_matrix_column_check(BaseMathObject *bmo)
 {
@@ -187,7 +187,7 @@ static int mathutils_matrix_column_set_index(BaseMathObject *bmo, int col, int r
 	return 0;
 }
 
-Mathutils_Callback mathutils_matrix_column_cb = {
+Mathutils_Callback mathutils_matrix_col_cb = {
 	mathutils_matrix_column_check,
 	mathutils_matrix_column_get,
 	mathutils_matrix_column_set,
@@ -1483,7 +1483,7 @@ static PyObject *Matrix_item(MatrixObject *self, int row)
 		                "array index out of range");
 		return NULL;
 	}
-	return Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_vector_cb_index, row);
+	return Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, row);
 }
 /*----------------------------object[]-------------------------
   sequence accessor (set) */
@@ -1532,7 +1532,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 	tuple= PyTuple_New(end - begin);
 	for (count= begin; count < end; count++) {
 		PyTuple_SET_ITEM(tuple, count - begin,
-				Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_vector_cb_index, count));
+				Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, count));
 
 	}
 
@@ -1786,13 +1786,13 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 		if (i == -1 && PyErr_Occurred())
 			return NULL;
 		if (i < 0)
-			i += self->num_col;
+			i += self->num_row;
 		return Matrix_item(self, i);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, self->num_col, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, self->num_row, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
@@ -1822,13 +1822,13 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 		if (i == -1 && PyErr_Occurred())
 			return -1;
 		if (i < 0)
-			i += self->num_col;
+			i += self->num_row;
 		return Matrix_ass_item(self, i, value);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, self->num_col, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx((void *)item, self->num_row, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)
@@ -1916,7 +1916,7 @@ static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure
 		return NULL;
 	}
 
-	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_column_cb_index, 3);
+	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_col_cb_index, 3);
 
 	return ret;
 }

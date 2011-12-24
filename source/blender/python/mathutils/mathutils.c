@@ -455,8 +455,8 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	PyDict_SetItemString(sys_modules, "mathutils.noise", item);
 	Py_INCREF(item);
 
-	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
-	mathutils_matrix_column_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_column_cb);
+	mathutils_matrix_row_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_row_cb);
+	mathutils_matrix_col_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_col_cb);
 
 	return submodule;
 }
