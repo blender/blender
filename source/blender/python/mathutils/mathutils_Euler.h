@@ -47,7 +47,7 @@ typedef struct {
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
 be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
+blender (stored in blend_data). This is an either/or struct not both */
 
 //prototypes
 PyObject *Euler_CreatePyObject( float *eul, short order, int type, PyTypeObject *base_type);
