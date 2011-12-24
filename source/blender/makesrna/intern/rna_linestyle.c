@@ -74,6 +74,8 @@ EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_linestyle.h"
+
 static StructRNA *rna_LineStyle_color_modifier_refine(struct PointerRNA *ptr)
 {
 	LineStyleModifier *m = (LineStyleModifier *)ptr->data;
@@ -182,11 +184,48 @@ static char *rna_LineStyle_geometry_modifier_path(PointerRNA *ptr)
 	return BLI_sprintfN("geometry_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
 }
 
+static void rna_LineStyleColorModifier_name_set(PointerRNA *ptr, const char *value)
+{
+	FreestyleLineStyle *linestyle= (FreestyleLineStyle*)ptr->id.data;
+	LineStyleModifier *m= (LineStyleModifier*)ptr->data;
+
+	BLI_strncpy_utf8(m->name, value, sizeof(m->name));
+	BLI_uniquename(&linestyle->color_modifiers, m, "ColorModifier", '.', offsetof(LineStyleModifier, name), sizeof(m->name));
+}
+
+static void rna_LineStyleAlphaModifier_name_set(PointerRNA *ptr, const char *value)
+{
+	FreestyleLineStyle *linestyle= (FreestyleLineStyle*)ptr->id.data;
+	LineStyleModifier *m= (LineStyleModifier*)ptr->data;
+
+	BLI_strncpy_utf8(m->name, value, sizeof(m->name));
+	BLI_uniquename(&linestyle->alpha_modifiers, m, "AlphaModifier", '.', offsetof(LineStyleModifier, name), sizeof(m->name));
+}
+
+static void rna_LineStyleThicknessModifier_name_set(PointerRNA *ptr, const char *value)
+{
+	FreestyleLineStyle *linestyle= (FreestyleLineStyle*)ptr->id.data;
+	LineStyleModifier *m= (LineStyleModifier*)ptr->data;
+
+	BLI_strncpy_utf8(m->name, value, sizeof(m->name));
+	BLI_uniquename(&linestyle->thickness_modifiers, m, "ThicknessModifier", '.', offsetof(LineStyleModifier, name), sizeof(m->name));
+}
+
+static void rna_LineStyleGeometryModifier_name_set(PointerRNA *ptr, const char *value)
+{
+	FreestyleLineStyle *linestyle= (FreestyleLineStyle*)ptr->id.data;
+	LineStyleModifier *m= (LineStyleModifier*)ptr->data;
+
+	BLI_strncpy_utf8(m->name, value, sizeof(m->name));
+	BLI_uniquename(&linestyle->geometry_modifiers, m, "GeometryModifier", '.', offsetof(LineStyleModifier, name), sizeof(m->name));
+}
+
 #else
 
 #include "BLI_math.h"
 
-static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items, int blend, int color)
+static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items,
+										 char *set_name_func, int blend, int color)
 {
 	PropertyRNA *prop;
 
@@ -230,6 +269,7 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "modifier.name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, set_name_func);
 	RNA_def_property_ui_text(prop, "Modifier Name", "Name of the modifier");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_struct_name_property(srna, prop);
@@ -259,22 +299,26 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 
 static void rna_def_color_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items, 1, 1);
+	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items,
+		"rna_LineStyleColorModifier_name_set", 1, 1);
 }
 
 static void rna_def_alpha_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items, 1, 0);
+	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items,
+		"rna_LineStyleAlphaModifier_name_set", 1, 0);
 }
 
 static void rna_def_thickness_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items, 1, 0);
+	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items,
+		"rna_LineStyleThicknessModifier_name_set", 1, 0);
 }
 
 static void rna_def_geometry_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_geometry_modifier_type_items, 0, 0);
+	rna_def_modifier_type_common(srna, linestyle_geometry_modifier_type_items,
+		"rna_LineStyleGeometryModifier_name_set", 0, 0);
 }
 
 static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
