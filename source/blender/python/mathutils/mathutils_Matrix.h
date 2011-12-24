@@ -68,7 +68,9 @@ typedef struct {
 PyObject *Matrix_CreatePyObject(float *mat,
                                 const unsigned short num_col, const unsigned short num_row,
                                 int type, PyTypeObject *base_type);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user, int num_col, int num_row, int cb_type, int cb_subtype);
+PyObject *Matrix_CreatePyObject_cb(PyObject *user,
+                                   const unsigned short num_col, const unsigned short num_row,
+                                   int cb_type, int cb_subtype);
 
 extern int mathutils_matrix_vector_cb_index;
 extern int mathutils_matrix_column_cb_index;

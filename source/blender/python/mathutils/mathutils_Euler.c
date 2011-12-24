@@ -571,18 +571,18 @@ static PyMappingMethods Euler_AsMapping = {
 /*
  * euler axis, euler.x/y/z
  */
-static PyObject *Euler_getAxis(EulerObject *self, void *type)
+static PyObject *Euler_axis_get(EulerObject *self, void *type)
 {
 	return Euler_item(self, GET_INT_FROM_POINTER(type));
 }
 
-static int Euler_setAxis(EulerObject *self, PyObject *value, void *type)
+static int Euler_axis_set(EulerObject *self, PyObject *value, void *type)
 {
 	return Euler_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
 
 /* rotation order */
-static PyObject *Euler_getOrder(EulerObject *self, void *UNUSED(closure))
+static PyObject *Euler_order_get(EulerObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1) /* can read order too */
 		return NULL;
@@ -590,7 +590,7 @@ static PyObject *Euler_getOrder(EulerObject *self, void *UNUSED(closure))
 	return PyUnicode_FromString(euler_order_str(self));
 }
 
-static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closure))
+static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(closure))
 {
 	const char *order_str= _PyUnicode_AsString(value);
 	short order= euler_order_from_string(order_str, "euler.order");
@@ -607,13 +607,13 @@ static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Euler_getseters[] = {
-	{(char *)"x", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler X axis in radians.\n\n:type: float", (void *)0},
-	{(char *)"y", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler Y axis in radians.\n\n:type: float", (void *)1},
-	{(char *)"z", (getter)Euler_getAxis, (setter)Euler_setAxis, (char *)"Euler Z axis in radians.\n\n:type: float", (void *)2},
-	{(char *)"order", (getter)Euler_getOrder, (setter)Euler_setOrder, (char *)"Euler rotation order.\n\n:type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']", (void *)NULL},
+	{(char *)"x", (getter)Euler_axis_get, (setter)Euler_axis_set, (char *)"Euler X axis in radians.\n\n:type: float", (void *)0},
+	{(char *)"y", (getter)Euler_axis_get, (setter)Euler_axis_set, (char *)"Euler Y axis in radians.\n\n:type: float", (void *)1},
+	{(char *)"z", (getter)Euler_axis_get, (setter)Euler_axis_set, (char *)"Euler Z axis in radians.\n\n:type: float", (void *)2},
+	{(char *)"order", (getter)Euler_order_get, (setter)Euler_order_set, (char *)"Euler rotation order.\n\n:type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']", (void *)NULL},
 
-	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
-	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, (char *)BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

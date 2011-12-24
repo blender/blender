@@ -39,8 +39,8 @@
 
 struct DynStr;
 
-extern char BaseMathObject_Wrapped_doc[];
-extern char BaseMathObject_Owner_doc[];
+extern char BaseMathObject_is_wrapped_doc[];
+extern char BaseMathObject_owner_doc[];
 
 #define BASE_MATH_MEMBERS(_data)                                                                                 \
 	PyObject_VAR_HEAD                                                                                            \
@@ -67,8 +67,8 @@ typedef struct {
 #include "mathutils_geometry.h"
 #include "mathutils_noise.h"
 
-PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
-PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
+PyObject *BaseMathObject_owner_get( BaseMathObject * self, void * );
+PyObject *BaseMathObject_is_wrapped_get( BaseMathObject *self, void * );
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);

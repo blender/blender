@@ -670,18 +670,18 @@ static PyNumberMethods Color_NumMethods = {
 };
 
 /* color channel, vector.r/g/b */
-static PyObject *Color_getChannel(ColorObject * self, void *type)
+static PyObject *Color_channel_get(ColorObject * self, void *type)
 {
 	return Color_item(self, GET_INT_FROM_POINTER(type));
 }
 
-static int Color_setChannel(ColorObject * self, PyObject *value, void * type)
+static int Color_channel_set(ColorObject * self, PyObject *value, void * type)
 {
 	return Color_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
 
 /* color channel (HSV), color.h/s/v */
-static PyObject *Color_getChannelHSV(ColorObject * self, void *type)
+static PyObject *Color_channel_hsv_get(ColorObject * self, void *type)
 {
 	float hsv[3];
 	int i= GET_INT_FROM_POINTER(type);
@@ -694,7 +694,7 @@ static PyObject *Color_getChannelHSV(ColorObject * self, void *type)
 	return PyFloat_FromDouble(hsv[i]);
 }
 
-static int Color_setChannelHSV(ColorObject * self, PyObject *value, void * type)
+static int Color_channel_hsv_set(ColorObject * self, PyObject *value, void * type)
 {
 	float hsv[3];
 	int i= GET_INT_FROM_POINTER(type);
@@ -722,7 +722,7 @@ static int Color_setChannelHSV(ColorObject * self, PyObject *value, void * type)
 }
 
 /* color channel (HSV), color.h/s/v */
-static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
+static PyObject *Color_hsv_get(ColorObject * self, void *UNUSED(closure))
 {
 	float hsv[3];
 	PyObject *ret;
@@ -739,7 +739,7 @@ static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
 	return ret;
 }
 
-static int Color_setHSV(ColorObject * self, PyObject *value, void *UNUSED(closure))
+static int Color_hsv_set(ColorObject * self, PyObject *value, void *UNUSED(closure))
 {
 	float hsv[3];
 
@@ -762,18 +762,18 @@ static int Color_setHSV(ColorObject * self, PyObject *value, void *UNUSED(closur
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Color_getseters[] = {
-	{(char *)"r", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Red color channel.\n\n:type: float", (void *)0},
-	{(char *)"g", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Green color channel.\n\n:type: float", (void *)1},
-	{(char *)"b", (getter)Color_getChannel, (setter)Color_setChannel, (char *)"Blue color channel.\n\n:type: float", (void *)2},
+	{(char *)"r", (getter)Color_channel_get, (setter)Color_channel_set, (char *)"Red color channel.\n\n:type: float", (void *)0},
+	{(char *)"g", (getter)Color_channel_get, (setter)Color_channel_set, (char *)"Green color channel.\n\n:type: float", (void *)1},
+	{(char *)"b", (getter)Color_channel_get, (setter)Color_channel_set, (char *)"Blue color channel.\n\n:type: float", (void *)2},
 
-	{(char *)"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
-	{(char *)"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
-	{(char *)"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, (char *)"HSV Value component in [0, 1].\n\n:type: float", (void *)2},
+	{(char *)"h", (getter)Color_channel_hsv_get, (setter)Color_channel_hsv_set, (char *)"HSV Hue component in [0, 1].\n\n:type: float", (void *)0},
+	{(char *)"s", (getter)Color_channel_hsv_get, (setter)Color_channel_hsv_set, (char *)"HSV Saturation component in [0, 1].\n\n:type: float", (void *)1},
+	{(char *)"v", (getter)Color_channel_hsv_get, (setter)Color_channel_hsv_set, (char *)"HSV Value component in [0, 1].\n\n:type: float", (void *)2},
 
-	{(char *)"hsv", (getter)Color_getHSV, (setter)Color_setHSV, (char *)"HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
+	{(char *)"hsv", (getter)Color_hsv_get, (setter)Color_hsv_set, (char *)"HSV Values in [0, 1].\n\n:type: float triplet", (void *)0},
 
-	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

@@ -389,15 +389,12 @@ PyDoc_STRVAR(C_Matrix_Translation_doc,
 );
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 {
-	float mat[16], tvec[3];
+	float mat[4][4]= MAT4_UNITY;
 
-	if (mathutils_array_parse(tvec, 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
+	if (mathutils_array_parse(mat[3], 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
 		return NULL;
 
-	/* create a identity matrix and add translation */
-	unit_m4((float(*)[4]) mat);
-	copy_v3_v3(mat + 12, tvec); /* 12, 13, 14 */
-	return Matrix_CreatePyObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
+	return Matrix_CreatePyObject(&mat[0][0], 4, 4, Py_NEW, (PyTypeObject *)cls);
 }
 //----------------------------------mathutils.Matrix.Scale() -------------
 //mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
@@ -583,19 +580,19 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		}
 		if (matSize == 2) {
 			mat[0] = 1 - (tvec[0] * tvec[0]);
-			mat[1] = -(tvec[0] * tvec[1]);
-			mat[2] = -(tvec[0] * tvec[1]);
+			mat[1] =   - (tvec[0] * tvec[1]);
+			mat[2] =   - (tvec[0] * tvec[1]);
 			mat[3] = 1 - (tvec[1] * tvec[1]);
 		}
 		else if (matSize > 2) {
 			mat[0] = 1 - (tvec[0] * tvec[0]);
-			mat[1] = -(tvec[0] * tvec[1]);
-			mat[2] = -(tvec[0] * tvec[2]);
-			mat[3] = -(tvec[0] * tvec[1]);
+			mat[1] =   - (tvec[0] * tvec[1]);
+			mat[2] =   - (tvec[0] * tvec[2]);
+			mat[3] =   - (tvec[0] * tvec[1]);
 			mat[4] = 1 - (tvec[1] * tvec[1]);
-			mat[5] = -(tvec[1] * tvec[2]);
-			mat[6] = -(tvec[0] * tvec[2]);
-			mat[7] = -(tvec[1] * tvec[2]);
+			mat[5] =   - (tvec[1] * tvec[2]);
+			mat[6] =   - (tvec[0] * tvec[2]);
+			mat[7] =   - (tvec[1] * tvec[2]);
 			mat[8] = 1 - (tvec[2] * tvec[2]);
 		}
 	}
@@ -846,7 +843,7 @@ PyDoc_STRVAR(Matrix_resize_4x4_doc,
 );
 static PyObject *Matrix_resize_4x4(MatrixObject *self)
 {
-	float mat[16];
+	float mat[4][4]= MAT4_UNITY;
 	int col;
 
 	if (self->wrapped==Py_WRAP) {
@@ -870,10 +867,8 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 		return NULL;
 	}
 
-	unit_m4((float (*)[4])mat);
-
 	for (col = 0; col < self->num_col; col++) {
-		memcpy(mat + (4 * col), MATRIX_COL_PTR(self, col), self->num_row * sizeof(float));
+		memcpy(mat[col], MATRIX_COL_PTR(self, col), self->num_row * sizeof(float));
 	}
 
 	copy_m4_m4((float (*)[4])self->matrix, (float (*)[4])mat);
@@ -1896,12 +1891,12 @@ static PyNumberMethods Matrix_NumMethods = {
 		NULL,				/* nb_index */
 };
 
-static PyObject *Matrix_getRowSize(MatrixObject *self, void *UNUSED(closure))
+static PyObject *Matrix_row_size_get(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->num_col);
 }
 
-static PyObject *Matrix_getColSize(MatrixObject *self, void *UNUSED(closure))
+static PyObject *Matrix_col_size_get(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->num_row);
 }
@@ -2011,14 +2006,14 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{(char *)"row_size", (getter)Matrix_getRowSize, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
-	{(char *)"col_size", (getter)Matrix_getColSize, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"row_size", (getter)Matrix_row_size_get, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
+	{(char *)"col_size", (getter)Matrix_col_size_get, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
 	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
 	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, (char *)"The translation component of the matrix.\n\n:type: Vector", NULL},
 	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, (char *)"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
-	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
-	{(char *)"owner",(getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner",(getter)BaseMathObject_owner_get, (setter)NULL, (char *)BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
@@ -2180,9 +2175,11 @@ PyObject *Matrix_CreatePyObject(float *mat,
 	return (PyObject *) self;
 }
 
-PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb_type, int cb_subtype)
+PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
+                                   const unsigned short num_col, const unsigned short num_row,
+                                   int cb_type, int cb_subtype)
 {
-	MatrixObject *self= (MatrixObject *)Matrix_CreatePyObject(NULL, rowSize, colSize, Py_NEW, NULL);
+	MatrixObject *self= (MatrixObject *)Matrix_CreatePyObject(NULL, num_col, num_row, Py_NEW, NULL);
 	if (self) {
 		Py_INCREF(cb_user);
 		self->cb_user=			cb_user;

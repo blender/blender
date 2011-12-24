@@ -358,16 +358,16 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 }
 
 /* BaseMathObject generic functions for all mathutils types */
-char BaseMathObject_Owner_doc[] = "The item this is wrapping or None  (readonly).";
-PyObject *BaseMathObject_getOwner(BaseMathObject *self, void *UNUSED(closure))
+char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (readonly).";
+PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 {
 	PyObject *ret= self->cb_user ? self->cb_user : Py_None;
 	Py_INCREF(ret);
 	return ret;
 }
 
-char BaseMathObject_Wrapped_doc[] = "True when this object wraps external data (readonly).\n\n:type: boolean";
-PyObject *BaseMathObject_getWrapped(BaseMathObject *self, void *UNUSED(closure))
+char BaseMathObject_is_wrapped_doc[] = "True when this object wraps external data (readonly).\n\n:type: boolean";
+PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *UNUSED(closure))
 {
 	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);
 }
