@@ -40,16 +40,16 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
 
-
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
-#include "MEM_guardedalloc.h"
 
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */

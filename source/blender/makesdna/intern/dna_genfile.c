@@ -667,7 +667,7 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 	else if( strcmp(dna_type, "float")==0)                                                return SDNA_TYPE_FLOAT;
 	else if( strcmp(dna_type, "double")==0)                                               return SDNA_TYPE_DOUBLE;
 	else if( strcmp(dna_type, "int64_t")==0)                                              return SDNA_TYPE_INT64;
-	else if( strcmp(dna_type, "u_int64_t")==0)                                            return SDNA_TYPE_UINT64;
+	else if( strcmp(dna_type, "uint64_t")==0)                                             return SDNA_TYPE_UINT64;
 	else                                                                                  return -1; /* invalid! */
 }
 
@@ -713,7 +713,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 		case SDNA_TYPE_INT64:
 			val= *( (int64_t *)olddata); break;
 		case SDNA_TYPE_UINT64:
-			val= *( (u_int64_t *)olddata); break;
+			val= *( (uint64_t *)olddata); break;
 		}
 		
 		switch(ctypenr) {
@@ -740,7 +740,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 		case SDNA_TYPE_INT64:
 			*( (int64_t *)curdata)= val; break;
 		case SDNA_TYPE_UINT64:
-			*( (u_int64_t *)curdata)= val; break;
+			*( (uint64_t *)curdata)= val; break;
 		}
 
 		olddata+= oldlen;

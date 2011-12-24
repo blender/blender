@@ -970,8 +970,8 @@ typedef struct Scene {
 	/* Movie Tracking */
 	struct MovieClip *clip;			/* active movie clip */
 
-	u_int64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
-	u_int64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
+	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
+	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 } Scene;
 
 

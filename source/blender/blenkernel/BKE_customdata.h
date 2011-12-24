@@ -41,7 +41,7 @@ extern "C" {
 struct ID;
 struct CustomData;
 struct CustomDataLayer;
-typedef u_int64_t CustomDataMask;
+typedef uint64_t CustomDataMask;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
