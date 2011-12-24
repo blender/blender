@@ -287,18 +287,6 @@ if(MINGW)
 							"because it is currently unsupported, remove this "
 							"line if youre a developer who wants to add support.")
 	endif()
-
-	if(WITH_CYCLES)
-		message(FATAL_ERROR "MINGW requires WITH_CYCLES to be OFF "
-							"because it is currently unsupported, remove this "
-							"line if youre a developer who wants to add support.")
-	endif()
-
-	if(WITH_IMAGE_OPENEXR)
-		message(FATAL_ERROR "MINGW requires WITH_IMAGE_OPENEXR to be OFF "
-							"because it is currently unsupported, remove this "
-							"line if youre a developer who wants to add support.")
-	endif()
 endif()
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
