@@ -425,7 +425,9 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	if (PyType_Ready(&vector_Type) < 0)
 		return NULL;
 	if (PyType_Ready(&matrix_Type) < 0)
-		return NULL;	
+		return NULL;
+	if (PyType_Ready(&matrix_access_Type) < 0)
+		return NULL;
 	if (PyType_Ready(&euler_Type) < 0)
 		return NULL;
 	if (PyType_Ready(&quaternion_Type) < 0)

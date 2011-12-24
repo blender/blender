@@ -38,9 +38,15 @@
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 
+typedef enum eMatrixAccess_t {
+	MAT_ACCESS_ROW,
+	MAT_ACCESS_COL
+} eMatrixAccess_t;
+
 static PyObject *Matrix_copy(MatrixObject *self);
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
+static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
 
 /* matrix row callbacks */
 int mathutils_matrix_row_cb_index= -1;
@@ -1472,7 +1478,7 @@ static int Matrix_len(MatrixObject *self)
 /*----------------------------object[]---------------------------
   sequence accessor (get)
   the wrapped vector gives direct access to the matrix data*/
-static PyObject *Matrix_item(MatrixObject *self, int row)
+static PyObject *Matrix_item_row(MatrixObject *self, int row)
 {
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -1485,10 +1491,25 @@ static PyObject *Matrix_item(MatrixObject *self, int row)
 	}
 	return Vector_CreatePyObject_cb((PyObject *)self, self->num_col, mathutils_matrix_row_cb_index, row);
 }
+/* same but column access */
+static PyObject *Matrix_item_col(MatrixObject *self, int col)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (col < 0 || col >= self->num_col) {
+		PyErr_SetString(PyExc_IndexError,
+		                "matrix[attribute]: "
+		                "array index out of range");
+		return NULL;
+	}
+	return Vector_CreatePyObject_cb((PyObject *)self, self->num_row, mathutils_matrix_col_cb_index, col);
+}
+
 /*----------------------------object[]-------------------------
   sequence accessor (set) */
 
-static int Matrix_ass_item(MatrixObject *self, int row, PyObject *value)
+static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 {
 	int col;
 	float vec[4];
@@ -1513,6 +1534,32 @@ static int Matrix_ass_item(MatrixObject *self, int row, PyObject *value)
 	(void)BaseMath_WriteCallback(self);
 	return 0;
 }
+static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
+{
+	int row;
+	float vec[4];
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	if (col >= self->num_col || col < 0) {
+		PyErr_SetString(PyExc_IndexError,
+		                "matrix[attribute] = x: bad col");
+		return -1;
+	}
+
+	if (mathutils_array_parse(vec, self->num_row, self->num_row, value, "matrix[i] = value assignment") < 0) {
+		return -1;
+	}
+
+	/* Since we are assigning a row we cannot memcpy */
+	for (row = 0; row < self->num_row; row++) {
+		MATRIX_ITEM(self, row, col) = vec[row];
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
+}
+
 
 /*----------------------------object[z:y]------------------------
   sequence slice (get)*/
@@ -1768,9 +1815,9 @@ static PySequenceMethods Matrix_SeqMethods = {
 	(lenfunc) Matrix_len,						/* sq_length */
 	(binaryfunc) NULL,							/* sq_concat */
 	(ssizeargfunc) NULL,						/* sq_repeat */
-	(ssizeargfunc) Matrix_item,					/* sq_item */
+	(ssizeargfunc) Matrix_item_row,				/* sq_item */
 	(ssizessizeargfunc) NULL,					/* sq_slice, deprecated */
-	(ssizeobjargproc) Matrix_ass_item,			/* sq_ass_item */
+	(ssizeobjargproc) Matrix_ass_item_row,		/* sq_ass_item */
 	(ssizessizeobjargproc) NULL,				/* sq_ass_slice, deprecated */
 	(objobjproc) NULL,							/* sq_contains */
 	(binaryfunc) NULL,							/* sq_inplace_concat */
@@ -1787,7 +1834,7 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 			return NULL;
 		if (i < 0)
 			i += self->num_row;
-		return Matrix_item(self, i);
+		return Matrix_item_row(self, i);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
@@ -1823,7 +1870,7 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 			return -1;
 		if (i < 0)
 			i += self->num_row;
-		return Matrix_ass_item(self, i, value);
+		return Matrix_ass_item_row(self, i, value);
 	}
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
@@ -1921,6 +1968,15 @@ static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure
 	return ret;
 }
 
+static PyObject *Matrix_row_get(MatrixObject *self, void *UNUSED(closure))
+{
+	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
+}
+static PyObject *Matrix_col_get(MatrixObject *self, void *UNUSED(closure))
+{
+	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
+}
+
 static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNUSED(closure))
 {
 	float tvec[3];
@@ -2010,6 +2066,9 @@ static PyGetSetDef Matrix_getseters[] = {
 	{(char *)"col_size", (getter)Matrix_col_size_get, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
 	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
 	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, (char *)"The translation component of the matrix.\n\n:type: Vector", NULL},
+	/* MatrixAccess_CreatePyObject*/
+	{(char *)"row", (getter)Matrix_row_get, (setter)NULL, (char *)"Access the matix by rows (default), (readonly).\n\n:type: Matrix Access", NULL},
+	{(char *)"col", (getter)Matrix_col_get, (setter)NULL, (char *)"Access the matix by colums, 3x3 and 4x4 only, (readonly).\n\n:type: Matrix Access", NULL},
 	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, (char *)"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
@@ -2189,3 +2248,152 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
 	}
 	return (PyObject *) self;
 }
+
+
+/* ----------------------------------------------------------------------------
+ * special type for alaternate access */
+
+typedef struct {
+	PyObject_HEAD /* required python macro   */
+	MatrixObject *matrix_user;
+	eMatrixAccess_t type;
+} MatrixAccessObject;
+
+static int MatrixAccess_traverse(MatrixAccessObject *self, visitproc visit, void *arg)
+{
+	Py_VISIT(self->matrix_user);
+	return 0;
+}
+
+int MatrixAccess_clear(MatrixAccessObject *self)
+{
+	Py_CLEAR(self->matrix_user);
+	return 0;
+}
+
+void MatrixAccess_dealloc(MatrixAccessObject *self)
+{
+	if (self->matrix_user) {
+		PyObject_GC_UnTrack(self);
+		MatrixAccess_clear(self);
+	}
+
+	Py_TYPE(self)->tp_free(self);
+}
+
+/* sequence access */
+
+static int MatrixAccess_len(MatrixAccessObject *self)
+{
+	return (self->type == MAT_ACCESS_ROW) ?
+	            self->matrix_user->num_row :
+	            self->matrix_user->num_col;
+}
+
+static PyObject *MatrixAccess_subscript(MatrixAccessObject* self, PyObject* item)
+{
+	MatrixObject *matrix_user= self->matrix_user;
+
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (self->type == MAT_ACCESS_ROW) {
+			if (i < 0)
+				i += matrix_user->num_row;
+			return Matrix_item_row(matrix_user, i);
+		}
+		else { /* MAT_ACCESS_ROW */
+			if (i < 0)
+				i += matrix_user->num_col;
+			return Matrix_item_col(matrix_user, i);
+		}
+	}
+	/* TODO, slice */
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "matrix indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
+		return NULL;
+	}
+}
+
+static int MatrixAccess_ass_subscript(MatrixAccessObject* self, PyObject* item, PyObject* value)
+{
+	MatrixObject *matrix_user= self->matrix_user;
+
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+
+		if (self->type == MAT_ACCESS_ROW) {
+			if (i < 0)
+				i += matrix_user->num_row;
+			return Matrix_ass_item_row(matrix_user, i, value);
+		}
+		else { /* MAT_ACCESS_ROW */
+			if (i < 0)
+				i += matrix_user->num_col;
+			return Matrix_ass_item_col(matrix_user, i, value);
+		}
+
+	}
+	/* TODO, slice */
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "matrix indices must be integers, not %.200s",
+		             Py_TYPE(item)->tp_name);
+		return -1;
+	}
+}
+
+
+static PyMappingMethods MatrixAccess_AsMapping = {
+	(lenfunc)MatrixAccess_len,
+	(binaryfunc)MatrixAccess_subscript,
+	(objobjargproc) MatrixAccess_ass_subscript
+};
+
+PyTypeObject matrix_access_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"MatrixAccess",						/*tp_name*/
+	sizeof(MatrixAccessObject),			/*tp_basicsize*/
+	0,									/*tp_itemsize*/
+	(destructor)MatrixAccess_dealloc,	/*tp_dealloc*/
+	NULL,								/*tp_print*/
+	NULL,								/*tp_getattr*/
+	NULL,								/*tp_setattr*/
+	NULL,								/*tp_compare*/
+	NULL,								/*tp_repr*/
+	NULL,								/*tp_as_number*/
+	NULL /*&MatrixAccess_SeqMethods*/ /* TODO */,			/*tp_as_sequence*/
+	&MatrixAccess_AsMapping,			/*tp_as_mapping*/
+	NULL,								/*tp_hash*/
+	NULL,								/*tp_call*/
+	NULL,								/*tp_str*/
+	NULL,								/*tp_getattro*/
+	NULL,								/*tp_setattro*/
+	NULL,								/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+	NULL,								/*tp_doc*/
+	(traverseproc)MatrixAccess_traverse,	//tp_traverse
+	(inquiry)MatrixAccess_clear,	//tp_clear
+	NULL /* (richcmpfunc)MatrixAccess_richcmpr */ /* TODO*/, /*tp_richcompare*/
+};
+
+static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type)
+{
+	MatrixAccessObject *matrix_access= (MatrixAccessObject *)PyObject_GC_New(MatrixObject, &matrix_access_Type);
+
+	matrix_access->matrix_user= matrix;
+	Py_INCREF(matrix);
+
+	matrix_access->type= type;
+
+	return (PyObject *)matrix_access;
+}
+
+/* end special access
+ * -------------------------------------------------------------------------- */

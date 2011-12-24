@@ -35,6 +35,7 @@
 #define MATHUTILS_MATRIX_H
 
 extern PyTypeObject matrix_Type;
+extern PyTypeObject matrix_access_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 #define MATRIX_MAX_DIM 4
 
