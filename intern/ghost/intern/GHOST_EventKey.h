@@ -49,7 +49,10 @@ public:
 	 * @param type	The type of key event.
 	 * @param key	The key code of the key.
 	 */
-	GHOST_EventKey(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TKey key)
+	GHOST_EventKey(GHOST_TUns64 msec,
+	               GHOST_TEventType type,
+	               GHOST_IWindow* window,
+	               GHOST_TKey key)
 		: GHOST_Event(msec, type, window)
 	{
 		m_keyEventData.key = key;
@@ -65,7 +68,12 @@ public:
 	 * @param key	The key code of the key.
 	 * @param ascii The ascii code for the key event.
 	 */
-	GHOST_EventKey(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TKey key, char ascii, const char utf8_buf[6])
+	GHOST_EventKey(GHOST_TUns64 msec,
+	               GHOST_TEventType type,
+	               GHOST_IWindow* window,
+	               GHOST_TKey key,
+	               char ascii,
+	               const char utf8_buf[6])
 		: GHOST_Event(msec, type, window)
 	{
 		m_keyEventData.key = key;

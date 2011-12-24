@@ -42,7 +42,7 @@
 #include "GHOST_CallbackEventConsumer.h"
 
 GHOST_CallbackEventConsumer::GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
-														GHOST_TUserDataPtr userData)
+                                                         GHOST_TUserDataPtr userData)
 {
 	m_eventCallback = eventCallback;
 	m_userData = userData;

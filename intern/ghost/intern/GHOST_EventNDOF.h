@@ -19,7 +19,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
+/** \file ghost/intern/GHOST_EventNDOF.h
+ *  \ingroup GHOST
+ * Declaration of GHOST_EventManager class.
+ */
 
 #ifndef _GHOST_EVENT_NDOF_H_
 #define _GHOST_EVENT_NDOF_H_

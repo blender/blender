@@ -790,9 +790,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			/*Check to see if the requestor is asking for String*/
 			if(xse->target == string || xse->target == compound_text || xse->target == c_string) {
 				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
-					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace,
+					                (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
 				} else if (xse->selection == XInternAtom(m_display, "CLIPBOARD", False)) {
-					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace,
+					                (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
 				}
 			} else if (xse->target == target) {
 				Atom alist[4];
@@ -800,7 +802,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				alist[1] = string;
 				alist[2] = compound_text;
 				alist[3] = c_string;
-				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace, (unsigned char*)alist, 4);
+				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace,
+				                (unsigned char*)alist, 4);
 				XFlush(m_display);
 			} else  {
 				//Change property to None because we do not support anything but STRING
