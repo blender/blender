@@ -34,13 +34,11 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
-#if defined(__APPLE__) && (__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)
-#include <stdint.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
 
 struct ID;
 struct CustomData;
