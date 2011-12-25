@@ -281,10 +281,12 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-if(WITH_CODEC_QUICKTIME AND MINGW)
-	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
-						"because it is currently unsupported, remove this "
-						"line if youre a developer who wants to add support.")
+if(MINGW)
+	if(WITH_CODEC_QUICKTIME)
+		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+							"because it is currently unsupported, remove this "
+							"line if youre a developer who wants to add support.")
+	endif()
 endif()
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)

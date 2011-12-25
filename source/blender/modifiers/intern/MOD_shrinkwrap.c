@@ -35,14 +35,14 @@
 
 #include <string.h>
 
+#include "DNA_object_types.h"
+
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"
-
-#include "DNA_object_types.h"
 
 #include "depsgraph_private.h"
 

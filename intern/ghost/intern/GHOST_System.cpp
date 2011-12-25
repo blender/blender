@@ -73,7 +73,10 @@ GHOST_TUns64 GHOST_System::getMilliSeconds() const
 }
 
 
-GHOST_ITimerTask* GHOST_System::installTimer(GHOST_TUns64 delay, GHOST_TUns64 interval, GHOST_TimerProcPtr timerProc, GHOST_TUserDataPtr userData)
+GHOST_ITimerTask* GHOST_System::installTimer(GHOST_TUns64 delay,
+                                             GHOST_TUns64 interval,
+                                             GHOST_TimerProcPtr timerProc,
+                                             GHOST_TUserDataPtr userData)
 {
 	GHOST_TUns64 millis = getMilliSeconds();
 	GHOST_TimerTask* timer = new GHOST_TimerTask(millis+delay, interval, timerProc, userData);

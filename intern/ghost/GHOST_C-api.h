@@ -81,7 +81,8 @@ extern GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle);
  * @param eventCallback The event callback routine.
  * @param userdata		Pointer to user data returned to the callback routine.
  */
-extern GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback, GHOST_TUserDataPtr userdata);
+extern GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
+                                                           GHOST_TUserDataPtr userdata);
 
 /**
  * Disposes an event consumer object

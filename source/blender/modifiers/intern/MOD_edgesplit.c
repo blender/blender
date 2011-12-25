@@ -39,14 +39,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_tessmesh.h"
 #include "BKE_mesh.h"
 
 #include "DNA_object_types.h"
-
-#include "MEM_guardedalloc.h"
 
 /* EdgeSplit */
 /* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag

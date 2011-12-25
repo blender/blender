@@ -1333,11 +1333,11 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 	}
 }
 
-void ffmpeg_verify_image_type(RenderData *rd)
+void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 {
 	int audio= 0;
 
-	if(rd->imtype == R_IMF_IMTYPE_FFMPEG) {
+	if(imf->imtype == R_IMF_IMTYPE_FFMPEG) {
 		if(rd->ffcodecdata.type <= 0 ||
 		   rd->ffcodecdata.codec <= 0 ||
 		   rd->ffcodecdata.audio_codec <= 0 ||
@@ -1353,19 +1353,19 @@ void ffmpeg_verify_image_type(RenderData *rd)
 
 		audio= 1;
 	}
-	else if(rd->imtype == R_IMF_IMTYPE_H264) {
+	else if(imf->imtype == R_IMF_IMTYPE_H264) {
 		if(rd->ffcodecdata.codec != CODEC_ID_H264) {
 			ffmpeg_set_preset(rd, FFMPEG_PRESET_H264);
 			audio= 1;
 		}
 	}
-	else if(rd->imtype == R_IMF_IMTYPE_XVID) {
+	else if(imf->imtype == R_IMF_IMTYPE_XVID) {
 		if(rd->ffcodecdata.codec != CODEC_ID_MPEG4) {
 			ffmpeg_set_preset(rd, FFMPEG_PRESET_XVID);
 			audio= 1;
 		}
 	}
-	else if(rd->imtype == R_IMF_IMTYPE_THEORA) {
+	else if(imf->imtype == R_IMF_IMTYPE_THEORA) {
 		if(rd->ffcodecdata.codec != CODEC_ID_THEORA) {
 			ffmpeg_set_preset(rd, FFMPEG_PRESET_THEORA);
 			audio= 1;

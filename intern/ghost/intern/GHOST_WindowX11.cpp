@@ -239,7 +239,8 @@ GHOST_WindowX11(
 			}
 		} else {
 			if (m_numOfAASamples && (m_numOfAASamples > samples)) {
-				printf("%s:%d: oversampling requested %i but using %i samples\n", __FILE__, __LINE__, m_numOfAASamples, samples);
+				printf("%s:%d: oversampling requested %i but using %i samples\n",
+				       __FILE__, __LINE__, m_numOfAASamples, samples);
 			}
 			break;
 		}
@@ -1491,7 +1492,8 @@ setWindowCursorGrab(
 
 		}
 #ifdef GHOST_X11_GRAB
-		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		XGrabPointer(m_display, m_window, False, ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
+		             GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 #endif
 	}
 	else {

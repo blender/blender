@@ -123,19 +123,19 @@ static int same_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 {
 	MTex* mtex = &brush->mtex;
 
-	return 
-		(mtex->tex &&
-		    mtex->ofs[0] == snap->ofs[0] &&
-		    mtex->ofs[1] == snap->ofs[1] &&
-		    mtex->ofs[2] == snap->ofs[2] &&
-		    mtex->size[0] == snap->size[0] &&
-		    mtex->size[1] == snap->size[1] &&
-		    mtex->size[2] == snap->size[2] &&
-		    mtex->rot == snap->rot) &&
-		((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED && brush_size(brush) <= snap->brush_size) || (brush_size(brush) == snap->brush_size)) && // make brush smaller shouldn't cause a resample
-		mtex->brush_map_mode == snap->brush_map_mode &&
-		vc->ar->winx == snap->winx &&
-		vc->ar->winy == snap->winy;
+	return  ( (mtex->tex) &&
+	          equals_v3v3(mtex->ofs, snap->ofs) &&
+	          equals_v3v3(mtex->size, snap->size) &&
+	          mtex->rot == snap->rot
+	          ) &&
+
+	        /* make brush smaller shouldn't cause a resample */
+	        ( (mtex->brush_map_mode == MTEX_MAP_MODE_FIXED && (brush_size(brush) <= snap->brush_size)) ||
+	          (brush_size(brush) == snap->brush_size)) &&
+
+	        (mtex->brush_map_mode == snap->brush_map_mode) &&
+	        (vc->ar->winx == snap->winx) &&
+	        (vc->ar->winy == snap->winy);
 }
 
 static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
@@ -869,7 +869,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else if(first || ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (event->type == TIMER && (event->customdata == stroke->timer))) {
+	else if( (first) ||
+	         (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) ||
+	         (event->type == TIMER && (event->customdata == stroke->timer)) )
+	{
 		if(stroke->stroke_started) {
 			if(paint_smooth_stroke(stroke, mouse, event)) {
 				if(paint_space_stroke_enabled(stroke->brush)) {
@@ -887,7 +890,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	/* we want the stroke to have the first daub at the start location instead of waiting till we have moved the space distance */
+	/* we want the stroke to have the first daub at the start location
+	 * instead of waiting till we have moved the space distance */
 	if(first &&
 	   stroke->stroke_started &&
 	   paint_space_stroke_enabled(stroke->brush) &&

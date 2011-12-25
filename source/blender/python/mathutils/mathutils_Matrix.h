@@ -35,6 +35,7 @@
 #define MATHUTILS_MATRIX_H
 
 extern PyTypeObject matrix_Type;
+extern PyTypeObject matrix_access_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 #define MATRIX_MAX_DIM 4
 
@@ -68,12 +69,14 @@ typedef struct {
 PyObject *Matrix_CreatePyObject(float *mat,
                                 const unsigned short num_col, const unsigned short num_row,
                                 int type, PyTypeObject *base_type);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user, int num_col, int num_row, int cb_type, int cb_subtype);
+PyObject *Matrix_CreatePyObject_cb(PyObject *user,
+                                   const unsigned short num_col, const unsigned short num_row,
+                                   int cb_type, int cb_subtype);
 
-extern int mathutils_matrix_vector_cb_index;
-extern int mathutils_matrix_column_cb_index;
-extern struct Mathutils_Callback mathutils_matrix_vector_cb;
-extern struct Mathutils_Callback mathutils_matrix_column_cb;
+extern int mathutils_matrix_row_cb_index; /* default */
+extern int mathutils_matrix_col_cb_index;
+extern struct Mathutils_Callback mathutils_matrix_row_cb; /* default */
+extern struct Mathutils_Callback mathutils_matrix_col_cb;
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self);
 

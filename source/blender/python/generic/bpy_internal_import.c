@@ -141,9 +141,10 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
 		return NULL;
 	}
-	
-	if (namelen >= (MAX_ID_NAME-2) - 3) return NULL; /* we know this cant be importable, the name is too long for blender! */
-	
+
+	/* we know this cant be importable, the name is too long for blender! */
+	if (namelen >= (MAX_ID_NAME-2) - 3) return NULL;
+
 	memcpy(txtname, name, namelen);
 	memcpy(&txtname[namelen], ".py", 4);
 

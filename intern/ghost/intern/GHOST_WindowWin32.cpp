@@ -1196,10 +1196,11 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 	return shrt;
 }
 GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-					GHOST_TUns8 mask[16][2], int hotX, int hotY)
+                                                             GHOST_TUns8 mask[16][2],
+                                                             int hotX, int hotY)
 {
 	return setWindowCustomCursorShape((GHOST_TUns8*)bitmap, (GHOST_TUns8*)mask,
-									16, 16, hotX, hotY, 0, 1);
+	                                  16, 16, hotX, hotY, 0, 1);
 }
 
 GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,

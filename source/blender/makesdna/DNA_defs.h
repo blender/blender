@@ -42,4 +42,7 @@
 #  endif
 #endif
 
+/* hrmf, we need a better include then this */
+#include "../blenloader/BLO_sys_types.h" /* needed for int64_t only! */
+
 #endif /* DNA_DEFS_H */

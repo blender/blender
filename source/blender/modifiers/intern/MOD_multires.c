@@ -35,13 +35,13 @@
 
 #include <stddef.h>
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-
-#include "DNA_mesh_types.h"
 
 #include "MOD_util.h"
 

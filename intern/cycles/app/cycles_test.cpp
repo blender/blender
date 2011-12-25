@@ -109,12 +109,15 @@ static void session_init()
 	options.scene = NULL;
 }
 
-static void scene_init()
+static void scene_init(int width, int height)
 {
 	options.scene = new Scene(options.scene_params);
 	xml_read_file(options.scene, options.filepath.c_str());
-	options.width = options.scene->camera->width;
-	options.height = options.scene->camera->height;
+	
+	if (width == 0 || height == 0) {
+		options.width = options.scene->camera->width;
+		options.height = options.scene->camera->height;
+	}
 }
 
 static void session_exit()
@@ -194,8 +197,8 @@ static int files_parse(int argc, const char *argv[])
 
 static void options_parse(int argc, const char **argv)
 {
-	options.width= 1024;
-	options.height= 512;
+	options.width= 0;
+	options.height= 0;
 	options.filepath = "";
 	options.session = NULL;
 	options.quiet = false;
@@ -234,6 +237,8 @@ static void options_parse(int argc, const char **argv)
 		"--samples %d", &options.session_params.samples, "Number of samples to render",
 		"--output %s", &options.session_params.output_path, "File path to write output image",
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
+		"--width  %d", &options.width, "Window width in pixel",
+		"--height %d", &options.height, "Window height in pixel",
 		"--help", &help, "Print help message",
 		NULL);
 	
@@ -287,7 +292,7 @@ static void options_parse(int argc, const char **argv)
 	}
 
 	/* load scene */
-	scene_init();
+	scene_init(options.width, options.height);
 }
 
 CCL_NAMESPACE_END
