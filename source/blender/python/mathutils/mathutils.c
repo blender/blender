@@ -43,7 +43,7 @@ PyDoc_STRVAR(M_Mathutils_doc,
 static int mathutils_array_parse_fast(float *array,
                                       int size,
                                       PyObject *value_fast,
-									  const char *error_prefix)
+                                      const char *error_prefix)
 {
 	PyObject *item;
 

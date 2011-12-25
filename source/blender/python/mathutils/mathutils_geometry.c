@@ -1052,7 +1052,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 
 	len_polylines = PySequence_Size(polyLineSeq);
 
-	for (i = 0; i < len_polylines; ++i) {
+	for (i = 0; i < len_polylines; i++) {
 		polyLine = PySequence_GetItem(polyLineSeq, i);
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
@@ -1083,7 +1083,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 			dl->verts = fp = MEM_callocN(sizeof(float) * 3 * len_polypoints, "dl verts");
 			dl->index = MEM_callocN(sizeof(int) * 3 * len_polypoints, "dl index");
 
-			for (index = 0; index < len_polypoints; ++index, fp += 3) {
+			for (index = 0; index < len_polypoints; index++, fp += 3) {
 				polyVec = PySequence_GetItem(polyLine, index);
 				if (VectorObject_Check(polyVec)) {
 
@@ -1210,7 +1210,7 @@ static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
 	len = PyList_GET_SIZE(value);
 
 	for (i = 0; i < len; i++) {
-		box = (*boxarray)+i;
+		box = (*boxarray) + i;
 		list_item = PyList_GET_ITEM(value, box->index);
 		PyList_SET_ITEM(list_item, 0, PyFloat_FromDouble(box->x));
 		PyList_SET_ITEM(list_item, 1, PyFloat_FromDouble(box->y));

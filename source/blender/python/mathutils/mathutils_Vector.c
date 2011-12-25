@@ -174,8 +174,8 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 	case 2:
 		if (start >= stop) {
 			PyErr_SetString(PyExc_RuntimeError,
-		                "Start value is larger"
-						"than the stop value");
+			                "Start value is larger"
+			                "than the stop value");
 			return NULL;
 		}
 
@@ -184,8 +184,8 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 	default:
 		if (start >= stop) {
 			PyErr_SetString(PyExc_RuntimeError,
-		                "Start value is larger"
-						"than the stop value");
+			                "Start value is larger"
+			                "than the stop value");
 			return NULL;
 		}
 		size = (stop - start)/step;
@@ -198,7 +198,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 
 	if (vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"Vector.Range(): "
+		                "Vector.Range(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -242,7 +242,7 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 
 	if (vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"Vector.Linspace(): "
+		                "Vector.Linspace(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -286,7 +286,7 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 
 	if (iter_vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"Vector.Repeat(): "
+		                "Vector.Repeat(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -295,7 +295,7 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 
 	if (vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"Vector.Repeat(): "
+		                "Vector.Repeat(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -445,7 +445,7 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 
 	if (vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"Vector.resized(): "
+		                "Vector.resized(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -2023,9 +2023,12 @@ static PyNumberMethods Vector_NumMethods = {
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
 
-/*
- * vector axis, vector.x/y/z/w
- */
+/* vector axis, vector.x/y/z/w */
+
+PyDoc_STRVAR(Vector_axis_x_doc, "Vector X axis.\n\n:type: float");
+PyDoc_STRVAR(Vector_axis_y_doc, "Vector Y axis.\n\n:type: float");
+PyDoc_STRVAR(Vector_axis_z_doc, "Vector Z axis (3D Vectors only).\n\n:type: float");
+PyDoc_STRVAR(Vector_axis_w_doc, "Vector W axis (4D Vectors only).\n\n:type: float");
 
 static PyObject *Vector_axis_get(VectorObject *self, void *type)
 {
@@ -2038,6 +2041,10 @@ static int Vector_axis_set(VectorObject *self, PyObject *value, void *type)
 }
 
 /* vector.length */
+
+PyDoc_STRVAR(Vector_length_doc,
+"Vector Length.\n\n:type: float"
+);
 static PyObject *Vector_length_get(VectorObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -2089,6 +2096,9 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
 }
 
 /* vector.length_squared */
+PyDoc_STRVAR(Vector_length_squared_doc,
+"Vector length squared (v.dot(v)).\n\n:type: float"
+);
 static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -2098,8 +2108,8 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
 }
 
 /* Get a new Vector according to the provided swizzle. This function has little
-   error checking, as we are in control of the inputs: the closure is set by us
-   in Vector_createSwizzleGetSeter. */
+ * error checking, as we are in control of the inputs: the closure is set by us
+ * in Vector_createSwizzleGetSeter. */
 static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 {
 	size_t axis_to;
@@ -2113,8 +2123,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 	/* Unpack the axes from the closure into an array. */
 	axis_to = 0;
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
-	while (swizzleClosure & SWIZZLE_VALID_AXIS)
-	{
+	while (swizzleClosure & SWIZZLE_VALID_AXIS) {
 		axis_from = swizzleClosure & SWIZZLE_AXIS;
 		if (axis_from >= self->size) {
 			PyErr_SetString(PyExc_AttributeError,
@@ -2132,15 +2141,15 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 }
 
 /* Set the items of this vector using a swizzle.
-   - If value is a vector or list this operates like an array copy, except that
-	 the destination is effectively re-ordered as defined by the swizzle. At
-	 most min(len(source), len(dest)) values will be copied.
-   - If the value is scalar, it is copied to all axes listed in the swizzle.
-   - If an axis appears more than once in the swizzle, the final occurrence is
-	 the one that determines its value.
+ * - If value is a vector or list this operates like an array copy, except that
+ *   the destination is effectively re-ordered as defined by the swizzle. At
+ *   most min(len(source), len(dest)) values will be copied.
+ * - If the value is scalar, it is copied to all axes listed in the swizzle.
+ * - If an axis appears more than once in the swizzle, the final occurrence is
+ *   the one that determines its value.
 
-   Returns 0 on success and -1 on failure. On failure, the vector will be
-   unchanged. */
+ * Returns 0 on success and -1 on failure. On failure, the vector will be
+ * unchanged. */
 static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure)
 {
 	size_t size_from;
@@ -2158,13 +2167,13 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 		return -1;
 
 	/* Check that the closure can be used with this vector: even 2D vectors have
-	   swizzles defined for axes z and w, but they would be invalid. */
+	 * swizzles defined for axes z and w, but they would be invalid. */
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
 	axis_from = 0;
+
 	while (swizzleClosure & SWIZZLE_VALID_AXIS) {
 		axis_to = swizzleClosure & SWIZZLE_AXIS;
-		if (axis_to >= self->size)
-		{
+		if (axis_to >= self->size) {
 			PyErr_SetString(PyExc_AttributeError,
 			                "Vector swizzle: "
 			                "specified axis not present");
@@ -2176,8 +2185,10 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 	if (((scalarVal = PyFloat_AsDouble(value)) == -1 && PyErr_Occurred()) == 0) {
 		int i;
-		for (i = 0; i < MAX_DIMENSIONS; i++)
+
+		for (i = 0; i < MAX_DIMENSIONS; i++) {
 			vec_assign[i] = scalarVal;
+		}
 
 		size_from = axis_from;
 	}
@@ -2197,8 +2208,8 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 	/* Copy vector contents onto swizzled axes. */
 	axis_from = 0;
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
-	while (swizzleClosure & SWIZZLE_VALID_AXIS)
-	{
+
+	while (swizzleClosure & SWIZZLE_VALID_AXIS)	{
 		axis_to = swizzleClosure & SWIZZLE_AXIS;
 		tvec[axis_to] = vec_assign[axis_from];
 		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
@@ -2218,15 +2229,15 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Vector_getseters[] = {
-	{(char *)"x", (getter)Vector_axis_get, (setter)Vector_axis_set, (char *)"Vector X axis.\n\n:type: float", (void *)0},
-	{(char *)"y", (getter)Vector_axis_get, (setter)Vector_axis_set, (char *)"Vector Y axis.\n\n:type: float", (void *)1},
-	{(char *)"z", (getter)Vector_axis_get, (setter)Vector_axis_set, (char *)"Vector Z axis (3D Vectors only).\n\n:type: float", (void *)2},
-	{(char *)"w", (getter)Vector_axis_get, (setter)Vector_axis_set, (char *)"Vector W axis (4D Vectors only).\n\n:type: float", (void *)3},
-	{(char *)"length", (getter)Vector_length_get, (setter)Vector_length_set, (char *)"Vector Length.\n\n:type: float", NULL},
-	{(char *)"length_squared", (getter)Vector_length_squared_get, (setter)NULL, (char *)"Vector length squared (v.dot(v)).\n\n:type: float", NULL},
-	{(char *)"magnitude", (getter)Vector_length_get, (setter)Vector_length_set, (char *)"Vector Length.\n\n:type: float", NULL},
-	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
-	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, (char *)BaseMathObject_owner_doc, NULL},
+	{(char *)"x", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_x_doc, (void *)0},
+	{(char *)"y", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_y_doc, (void *)1},
+	{(char *)"z", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_z_doc, (void *)2},
+	{(char *)"w", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_w_doc, (void *)3},
+	{(char *)"length", (getter)Vector_length_get, (setter)Vector_length_set, Vector_length_doc, NULL},
+	{(char *)"length_squared", (getter)Vector_length_squared_get, (setter)NULL, Vector_length_squared_doc, NULL},
+	{(char *)"magnitude", (getter)Vector_length_get, (setter)Vector_length_set, Vector_length_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 
 	/* autogenerated swizzle attrs, see python script below */
 	{(char *)"xx",   (getter)Vector_swizzle_get, (setter)NULL, NULL, SET_INT_IN_POINTER(((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, // 36
@@ -2582,15 +2593,15 @@ while len(axises) >= 2:
 		axis_0_pos = axis_pos[axis_0]
 		for axis_1 in axises:
 			axis_1_pos = axis_pos[axis_1]
-			axis_dict[axis_0+axis_1] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS))' % (axis_0_pos, axis_1_pos)
+			axis_dict[axis_0 + axis_1] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS))' % (axis_0_pos, axis_1_pos)
 			if len(axises)>2:
 				for axis_2 in axises:
 					axis_2_pos = axis_pos[axis_2]
-					axis_dict[axis_0+axis_1+axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
+					axis_dict[axis_0 + axis_1 + axis_2] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)))' % (axis_0_pos, axis_1_pos, axis_2_pos)
 					if len(axises)>3:
 						for axis_3 in axises:
 							axis_3_pos = axis_pos[axis_3]
-							axis_dict[axis_0+axis_1+axis_2+axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
+							axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = '((%s|SWIZZLE_VALID_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*2)) | ((%s|SWIZZLE_VALID_AXIS)<<(SWIZZLE_BITS_PER_AXIS*3)))  ' % (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos)
 
 	axises = axises[:-1]
 
@@ -2617,7 +2628,6 @@ if len(unique) != len(items):
 static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
-	double dot = 0.0f;
 	int row, col, z = 0, vec_size = vec->size;
 
 	if (mat->num_row != vec_size) {
@@ -2640,11 +2650,11 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 	rvec[3] = 1.0f;
 	//muliplication
 	for (col = 0; col < mat->num_col; col++) {
+		double dot = 0.0;
 		for (row = 0; row < mat->num_row; row++) {
 			dot += MATRIX_ITEM(mat, row, col) * vec_cpy[row];
 		}
 		rvec[z++] = (float)dot;
-		dot = 0.0f;
 	}
 	return 0;
 }

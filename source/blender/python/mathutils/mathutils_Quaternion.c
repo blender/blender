@@ -922,6 +922,9 @@ static PyNumberMethods Quaternion_NumMethods = {
 	NULL,				/* nb_index */
 };
 
+PyDoc_STRVAR(Quaternion_axis_doc,
+"Quaternion axis value.\n\n:type: float"
+);
 static PyObject *Quaternion_axis_get(QuaternionObject *self, void *type)
 {
 	return Quaternion_item(self, GET_INT_FROM_POINTER(type));
@@ -932,6 +935,9 @@ static int Quaternion_axis_set(QuaternionObject *self, PyObject *value, void *ty
 	return Quaternion_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
 
+PyDoc_STRVAR(Quaternion_magnitude_doc,
+"Size of the quaternion (readonly).\n\n:type: float"
+);
 static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -940,6 +946,9 @@ static PyObject *Quaternion_magnitude_get(QuaternionObject *self, void *UNUSED(c
 	return PyFloat_FromDouble(sqrt(dot_qtqt(self->quat, self->quat)));
 }
 
+PyDoc_STRVAR(Quaternion_angle_doc,
+"Angle of the quaternion.\n\n:type: float"
+);
 static PyObject *Quaternion_angle_get(QuaternionObject *self, void *UNUSED(closure))
 {
 	float tquat[4];
@@ -992,6 +1001,9 @@ static int Quaternion_angle_set(QuaternionObject *self, PyObject *value, void *U
 	return 0;
 }
 
+PyDoc_STRVAR(Quaternion_axis_vector_doc,
+"Quaternion axis as a vector.\n\n:type: :class:`Vector`"
+);
 static PyObject *Quaternion_axis_vector_get(QuaternionObject *self, void *UNUSED(closure))
 {
 	float tquat[4];
@@ -1151,15 +1163,15 @@ static struct PyMethodDef Quaternion_methods[] = {
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Quaternion_getseters[] = {
-	{(char *)"w", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, (char *)"Quaternion W value.\n\n:type: float", (void *)0},
-	{(char *)"x", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, (char *)"Quaternion X axis.\n\n:type: float", (void *)1},
-	{(char *)"y", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, (char *)"Quaternion Y axis.\n\n:type: float", (void *)2},
-	{(char *)"z", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, (char *)"Quaternion Z axis.\n\n:type: float", (void *)3},
-	{(char *)"magnitude", (getter)Quaternion_magnitude_get, (setter)NULL, (char *)"Size of the quaternion (readonly).\n\n:type: float", NULL},
-	{(char *)"angle", (getter)Quaternion_angle_get, (setter)Quaternion_angle_set, (char *)"angle of the quaternion.\n\n:type: float", NULL},
-	{(char *)"axis",(getter)Quaternion_axis_vector_get, (setter)Quaternion_axis_vector_set, (char *)"quaternion axis as a vector.\n\n:type: :class:`Vector`", NULL},
-	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
-	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, (char *)BaseMathObject_owner_doc, NULL},
+	{(char *)"w", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, Quaternion_axis_doc, (void *)0},
+	{(char *)"x", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, Quaternion_axis_doc, (void *)1},
+	{(char *)"y", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, Quaternion_axis_doc, (void *)2},
+	{(char *)"z", (getter)Quaternion_axis_get, (setter)Quaternion_axis_set, Quaternion_axis_doc, (void *)3},
+	{(char *)"magnitude", (getter)Quaternion_magnitude_get, (setter)NULL, Quaternion_magnitude_doc, NULL},
+	{(char *)"angle", (getter)Quaternion_angle_get, (setter)Quaternion_angle_set, Quaternion_angle_doc, NULL},
+	{(char *)"axis",(getter)Quaternion_axis_vector_get, (setter)Quaternion_axis_vector_set, Quaternion_axis_vector_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

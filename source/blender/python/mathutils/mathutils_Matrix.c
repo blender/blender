@@ -1938,16 +1938,25 @@ static PyNumberMethods Matrix_NumMethods = {
 		NULL,				/* nb_index */
 };
 
+PyDoc_STRVAR(Matrix_row_size_doc,
+"The row size of the matrix (readonly).\n\n:type: int"
+);
 static PyObject *Matrix_row_size_get(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->num_col);
 }
 
+PyDoc_STRVAR(Matrix_col_size_doc,
+"The column size of the matrix (readonly).\n\n:type: int"
+);
 static PyObject *Matrix_col_size_get(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->num_row);
 }
 
+PyDoc_STRVAR(Matrix_translation_doc,
+"The translation component of the matrix.\n\n:type: Vector"
+);
 static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure))
 {
 	PyObject *ret;
@@ -1966,15 +1975,6 @@ static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure
 	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_col_cb_index, 3);
 
 	return ret;
-}
-
-static PyObject *Matrix_row_get(MatrixObject *self, void *UNUSED(closure))
-{
-	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
-}
-static PyObject *Matrix_col_get(MatrixObject *self, void *UNUSED(closure))
-{
-	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
 }
 
 static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNUSED(closure))
@@ -2002,6 +2002,25 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
 	return 0;
 }
 
+PyDoc_STRVAR(Matrix_row_doc,
+"Access the matix by rows (default), (readonly).\n\n:type: Matrix Access"
+);
+static PyObject *Matrix_row_get(MatrixObject *self, void *UNUSED(closure))
+{
+	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
+}
+
+PyDoc_STRVAR(Matrix_col_doc,
+"Access the matix by colums, 3x3 and 4x4 only, (readonly).\n\n:type: Matrix Access"
+);
+static PyObject *Matrix_col_get(MatrixObject *self, void *UNUSED(closure))
+{
+	return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
+}
+
+PyDoc_STRVAR(Matrix_median_scale_doc,
+"The average scale applied to each axis (readonly).\n\n:type: float"
+);
 static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closure))
 {
 	float mat[3][3];
@@ -2022,6 +2041,9 @@ static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closur
 	return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
+PyDoc_STRVAR(Matrix_is_negative_doc,
+"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool"
+);
 static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -2040,6 +2062,9 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure
 	}
 }
 
+PyDoc_STRVAR(Matrix_is_orthogonal_doc,
+"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool"
+);
 static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closure))
 {
 	if (BaseMath_ReadCallback(self) == -1)
@@ -2062,17 +2087,16 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{(char *)"row_size", (getter)Matrix_row_size_get, (setter)NULL, (char *)"The row size of the matrix (readonly).\n\n:type: int", NULL},
-	{(char *)"col_size", (getter)Matrix_col_size_get, (setter)NULL, (char *)"The column size of the matrix (readonly).\n\n:type: int", NULL},
-	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, (char *)"The average scale applied to each axis (readonly).\n\n:type: float", NULL},
-	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, (char *)"The translation component of the matrix.\n\n:type: Vector", NULL},
-	/* MatrixAccess_CreatePyObject*/
-	{(char *)"row", (getter)Matrix_row_get, (setter)NULL, (char *)"Access the matix by rows (default), (readonly).\n\n:type: Matrix Access", NULL},
-	{(char *)"col", (getter)Matrix_col_get, (setter)NULL, (char *)"Access the matix by colums, 3x3 and 4x4 only, (readonly).\n\n:type: Matrix Access", NULL},
-	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, (char *)"True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
-	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, (char *)"True if this matrix is orthogonal, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
-	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, (char *)BaseMathObject_is_wrapped_doc, NULL},
-	{(char *)"owner",(getter)BaseMathObject_owner_get, (setter)NULL, (char *)BaseMathObject_owner_doc, NULL},
+	{(char *)"row_size", (getter)Matrix_row_size_get, (setter)NULL, Matrix_row_size_doc, NULL},
+	{(char *)"col_size", (getter)Matrix_col_size_get, (setter)NULL, Matrix_col_size_doc, NULL},
+	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, Matrix_median_scale_doc, NULL},
+	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, Matrix_translation_doc, NULL},
+	{(char *)"row", (getter)Matrix_row_get, (setter)NULL, Matrix_row_doc, NULL},
+	{(char *)"col", (getter)Matrix_col_get, (setter)NULL, Matrix_col_doc, NULL},
+	{(char *)"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, Matrix_is_negative_doc, NULL},
+	{(char *)"is_orthogonal", (getter)Matrix_is_orthogonal_get, (setter)NULL, Matrix_is_orthogonal_doc, NULL},
+	{(char *)"is_wrapped", (getter)BaseMathObject_is_wrapped_get, (setter)NULL, BaseMathObject_is_wrapped_doc, NULL},
+	{(char *)"owner",(getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
