@@ -585,6 +585,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
+
+		// Snapping mouse move events
+		t->redraw |= handleSnapping(t, event);
 	}
 
 	/* handle modal keymap first */
@@ -1027,7 +1030,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		// Numerical input events
 		t->redraw |= handleNumInput(&(t->num), event);
 
-		// Snapping events
+		// Snapping key events
 		t->redraw |= handleSnapping(t, event);
 
 	}

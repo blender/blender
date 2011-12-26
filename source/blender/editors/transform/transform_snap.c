@@ -141,11 +141,16 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	if (validSnap(t) && activeSnap(t))
 		{
 		
-		unsigned char col[4];
+		unsigned char col[4], selectedCol[4], activeCol[4];
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 		col[3]= 128;
-		glColor4ubv(col);
 		
+		UI_GetThemeColor3ubv(TH_SELECT, selectedCol);
+		selectedCol[3]= 128;
+
+		UI_GetThemeColor3ubv(TH_ACTIVE, activeCol);
+		activeCol[3]= 192;
+
 		if (t->spacetype == SPACE_VIEW3D) {
 			TransSnapPoint *p;
 			View3D *v3d = CTX_wm_view3d(C);
@@ -160,16 +165,26 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			invert_m4_m4(imat, rv3d->viewmat);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
-				drawcircball(GL_LINE_LOOP, p->co, ED_view3d_pixel_size(rv3d, p->co) * size, imat);
+				if (p == t->tsnap.selectedPoint) {
+					glColor4ubv(selectedCol);
+				} else {
+					glColor4ubv(col);
+				}
+
+				drawcircball(GL_LINE_LOOP, p->co, ED_view3d_pixel_size(rv3d, p->co) * size * 0.75f, imat);
 			}
 
 			if (t->tsnap.status & POINT_INIT) {
+				glColor4ubv(activeCol);
+
 				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, ED_view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat);
 			}
 			
 			/* draw normal if needed */
 			if (usingSnappingNormal(t) && validSnappingNormal(t))
 			{
+				glColor4ubv(activeCol);
+
 				glBegin(GL_LINES);
 					glVertex3f(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
 					glVertex3f(	t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
@@ -219,7 +234,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-int  handleSnapping(TransInfo *UNUSED(t), wmEvent *UNUSED(event))
+int  handleSnapping(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 
@@ -232,6 +247,10 @@ int  handleSnapping(TransInfo *UNUSED(t), wmEvent *UNUSED(event))
 		status = 1;
 	}
 #endif
+	if (event->type == MOUSEMOVE)
+	{
+		status |= updateSelectedSnapPoint(t);
+	}
 	
 	return status;
 }
@@ -541,6 +560,8 @@ void addSnapPoint(TransInfo *t)
 	if (t->tsnap.status & POINT_INIT) {
 		TransSnapPoint *p = MEM_callocN(sizeof(TransSnapPoint), "SnapPoint");
 
+		t->tsnap.selectedPoint = p;
+
 		copy_v3_v3(p->co, t->tsnap.snapPoint);
 
 		BLI_addtail(&t->tsnap.points, p);
@@ -549,13 +570,55 @@ void addSnapPoint(TransInfo *t)
 	}
 }
 
+int updateSelectedSnapPoint(TransInfo *t)
+{
+	int status = 0;
+	if (t->tsnap.status & MULTI_POINTS) {
+		TransSnapPoint *p, *closest_p = NULL;
+		int closest_dist = 0;
+		int screen_loc[2];
+
+		for( p = t->tsnap.points.first; p; p = p->next ) {
+			int dx, dy;
+			int dist;
+
+			project_int(t->ar, p->co, screen_loc);
+
+			dx = t->mval[0] - screen_loc[0];
+			dy = t->mval[1] - screen_loc[1];
+
+			dist = dx * dx + dy * dy;
+
+			if (dist < 100 && (closest_p == NULL || closest_dist > dist)) {
+				closest_p = p;
+				closest_dist = dist;
+			}
+		}
+
+		if (closest_p) {
+			status = t->tsnap.selectedPoint == closest_p ? 0 : 1;
+			t->tsnap.selectedPoint = closest_p;
+		}
+	}
+
+	return status;
+}
+
 void removeSnapPoint(TransInfo *t)
 {
 	if (t->tsnap.status & MULTI_POINTS) {
-		BLI_freelinkN(&t->tsnap.points, t->tsnap.points.last);
+		updateSelectedSnapPoint(t);
 
-		if (t->tsnap.points.first == NULL)
-			t->tsnap.status &= ~MULTI_POINTS;
+		if (t->tsnap.selectedPoint) {
+			BLI_freelinkN(&t->tsnap.points, t->tsnap.selectedPoint);
+
+			if (t->tsnap.points.first == NULL) {
+				t->tsnap.status &= ~MULTI_POINTS;
+			}
+
+			t->tsnap.selectedPoint = NULL;
+		}
+
 	}
 }
 

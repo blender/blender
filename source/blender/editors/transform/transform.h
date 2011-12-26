@@ -65,15 +65,6 @@ struct wmTimer;
 struct ARegion;
 struct ReportList;
 
-/*
-	The ctrl value has different meaning:
-		0			: No value has been typed
-
-		otherwise, |value| - 1 is where the cursor is located after the period
-		Positive	: number is positive
-		Negative	: number is negative
-*/
-
 typedef struct TransSnapPoint {
 	struct TransSnapPoint *next,*prev;
 	float co[3];
@@ -94,6 +85,7 @@ typedef struct TransSnap {
 	float	snapNormal[3];
 	float	snapTangent[3];
 	ListBase points;
+	TransSnapPoint	*selectedPoint;
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -618,6 +610,7 @@ int validSnappingNormal(TransInfo *t);
 
 void getSnapPoint(TransInfo *t, float vec[3]);
 void addSnapPoint(TransInfo *t);
+int updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
