@@ -680,7 +680,7 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 
 static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 {
-	float d1[3], d2[3], center[3];
+	float d1[3], d2[3], center[3], len_d1;
 	
 	copy_v3_v3(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
@@ -696,7 +696,9 @@ static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 		mul_m3_v3(t->con.pmtx, d2);
 	}
 	
-	return len_v3(d2) / len_v3(d1);
+	len_d1 = len_v3(d1);
+
+	return len_d1 != 0.0f ? len_v3(d2) / len_d1 : 1;
 }
 
 /********************** CALC **************************/
