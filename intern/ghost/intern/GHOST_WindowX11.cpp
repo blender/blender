@@ -1344,7 +1344,9 @@ installDrawingContext(
 			if (!s_firstContext) {
 				s_firstContext = m_context;
 			}
-			glXMakeCurrent(m_display, m_window,m_context);						
+			glXMakeCurrent(m_display, m_window,m_context);
+			glClearColor(0.447, 0.447, 0.447, 0);
+			glClear(GL_COLOR_BUFFER_BIT);
 			success = GHOST_kSuccess;
 		} else {
 			success = GHOST_kFailure;

@@ -33,7 +33,7 @@
 
 static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 {
-	return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename)));
+	return PyBytes_AS_STRING((*coerce = PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename)));
 }
 
 /* copied from pythonrun.c, 3.2.0 */
@@ -110,8 +110,8 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 	PyObject *exception, *value;
 	PyTracebackObject *tb;
 
-	*lineno= -1;
-	*offset= 0;
+	*lineno = -1;
+	*offset = 0;
 
 	PyErr_Fetch(&exception, &value, (PyObject **)&tb);
 
@@ -133,11 +133,11 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 					/* good */
 				}
 				else {
-					*lineno= -1;
+					*lineno = -1;
 				}
 			}
 			else {
-				*lineno= -1;
+				*lineno = -1;
 			}
 		}
 	}
@@ -146,17 +146,17 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		PyErr_Restore(exception, value, (PyObject *)tb);	/* takes away reference! */
 		PyErr_Print();
 
-		for (tb= (PyTracebackObject *)PySys_GetObject("last_traceback");
+		for (tb = (PyTracebackObject *)PySys_GetObject("last_traceback");
 		     tb && (PyObject *)tb != Py_None;
-		     tb= tb->tb_next)
+		     tb = tb->tb_next)
 		{
 			PyObject *coerce;
-			const char *tb_filepath= traceback_filepath(tb, &coerce);
-			const int match= strcmp(tb_filepath, filepath) != 0;
+			const char *tb_filepath = traceback_filepath(tb, &coerce);
+			const int match = strcmp(tb_filepath, filepath) != 0;
 			Py_DECREF(coerce);
 
 			if (match) {
-				*lineno= tb->tb_lineno;
+				*lineno = tb->tb_lineno;
 				break;
 			}
 		}

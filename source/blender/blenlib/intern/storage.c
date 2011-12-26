@@ -54,7 +54,7 @@
 #include <sys/mount.h>
 #endif
 
-#if defined(linux) || defined(__CYGWIN32__) || defined(__hpux)
+#if defined(linux) || defined(__CYGWIN32__) || defined(__hpux) || defined(__GNU__) || defined(__GLIBC__)
 #include <sys/vfs.h>
 #endif
 
@@ -180,7 +180,7 @@ double BLI_dir_free_space(const char *dir)
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");
 
-#if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) 
+#if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) || defined(__GNU__) || defined(__GLIBC__)
 	if (statfs(name, &disk)) return(-1);
 #endif
 

@@ -284,7 +284,7 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 /* Mathutils Callbacks */
 
 /* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
-static Mathutils_Callback *mathutils_callbacks[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static Mathutils_Callback *mathutils_callbacks[8] = {NULL};
 
 int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 {
@@ -459,6 +459,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 
 	mathutils_matrix_row_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_row_cb);
 	mathutils_matrix_col_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_col_cb);
+	mathutils_matrix_translation_cb_index = Mathutils_RegisterCallback(&mathutils_matrix_translation_cb);
 
 	return submodule;
 }
