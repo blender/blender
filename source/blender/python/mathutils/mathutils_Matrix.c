@@ -432,13 +432,12 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	const char *axis = NULL;
 	int matSize;
 	double angle; /* use double because of precision problems at high values */
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if (!PyArg_ParseTuple(args, "di|O", &angle, &matSize, &vec)) {
-		PyErr_SetString(PyExc_TypeError,
-		                "Matrix.Rotation(angle, size, axis): "
-		                "expected float int and a string or vector");
+	if (!PyArg_ParseTuple(args, "di|O:Matrix.Rotation", &angle, &matSize, &vec)) {
 		return NULL;
 	}
 
@@ -552,8 +551,10 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	float tvec[3];
 	float factor;
 	int matSize;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if (!PyArg_ParseTuple(args, "fi|O:Matrix.Scale", &factor, &matSize, &vec)) {
 		return NULL;
@@ -566,7 +567,9 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	}
 	if (vec) {
 		vec_size = (matSize == 2 ? 2 : 3);
-		if (mathutils_array_parse(tvec, vec_size, vec_size, vec, "Matrix.Scale(factor, size, axis), invalid 'axis' arg") == -1) {
+		if (mathutils_array_parse(tvec, vec_size, vec_size, vec,
+		                          "Matrix.Scale(factor, size, axis), invalid 'axis' arg") == -1)
+		{
 			return NULL;
 		}
 	}
@@ -638,8 +641,10 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 
 	int matSize, x;
 	float norm = 0.0f;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if (!PyArg_ParseTuple(args, "Oi:Matrix.OrthoProjection", &axis, &matSize)) {
 		return NULL;
@@ -757,8 +762,10 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	int matSize;
 	const char *plane;
 	PyObject *fac;
-	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 0.0f,
+	                 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if (!PyArg_ParseTuple(args, "siO:Matrix.Shear", &plane, &matSize, &fac)) {
 		return NULL;
@@ -1751,8 +1758,11 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 			/* parse each sub sequence */
 			PyObject *item = PySequence_Fast_GET_ITEM(value_fast, row - begin);
 
-			if (mathutils_array_parse(vec, self->num_col, self->num_col, item, "matrix[begin:end] = value assignment") < 0)
+			if (mathutils_array_parse(vec, self->num_col, self->num_col, item,
+			                          "matrix[begin:end] = value assignment") < 0)
+			{
 				return -1;
+			}
 
 			for (col = 0; col < self->num_col; col++) {
 				mat[col * self->num_row + row] = vec[col];
@@ -1866,7 +1876,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 		                 0.0f, 0.0f, 0.0f, 0.0f,
 		                 0.0f, 0.0f, 0.0f, 0.0f,
 		                 0.0f, 0.0f, 0.0f, 1.0f};
-		double dot = 0.0f;
+
 		int col, row, item;
 
 		if (mat1->num_col != mat2->num_row) {
@@ -1878,11 +1888,11 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 		for (col = 0; col < mat2->num_col; col++) {
 			for (row = 0; row < mat1->num_row; row++) {
+				double dot = 0.0f;
 				for (item = 0; item < mat1->num_col; item++) {
 					dot += MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col);
 				}
 				mat[(col * mat1->num_row) + row] = (float)dot;
-				dot = 0.0f;
 			}
 		}
 
@@ -2119,8 +2129,9 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
 		return -1;
 	}
 
-	if ((mathutils_array_parse(tvec, 3, 3, value, "Matrix.translation")) == -1)
+	if ((mathutils_array_parse(tvec, 3, 3, value, "Matrix.translation")) == -1) {
 		return -1;
+	}
 
 	copy_v3_v3(((float (*)[4])self->matrix)[3], tvec);
 

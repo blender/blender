@@ -279,7 +279,9 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	if ((value_size = mathutils_array_parse_alloc(&iter_vec, 2, value, "Vector.Repeat(vector, size), invalid 'vector' arg")) == -1) {
+	if ((value_size = mathutils_array_parse_alloc(&iter_vec, 2, value,
+	                                              "Vector.Repeat(vector, size), invalid 'vector' arg")) == -1)
+	{
 		PyMem_Free(iter_vec);
 		return NULL;
 	}
@@ -1489,7 +1491,6 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
-	double dot = 0.0f;
 	int row, col, z = 0;
 
 	if (mat->num_col != vec->size) {
@@ -1510,11 +1511,11 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
 	r_vec[3] = 1.0f;
 
 	for (row = 0; row < mat->num_row; row++) {
+		double dot = 0.0f;
 		for (col = 0; col < mat->num_col; col++) {
 			dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
 		}
 		r_vec[z++] = (float)dot;
-		dot = 0.0f;
 	}
 
 	return 0;
@@ -2625,7 +2626,7 @@ if len(unique) != len(items):
  *             [2][5][8]
  *             [3][6][9]
  * vector/matrix multiplication IS NOT COMMUTATIVE!!!! */
-static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
+static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	int row, col, z = 0, vec_size = vec->size;
@@ -2647,14 +2648,14 @@ static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *v
 
 	memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
 
-	rvec[3] = 1.0f;
+	r_vec[3] = 1.0f;
 	//muliplication
 	for (col = 0; col < mat->num_col; col++) {
 		double dot = 0.0;
 		for (row = 0; row < mat->num_row; row++) {
 			dot += MATRIX_ITEM(mat, row, col) * vec_cpy[row];
 		}
-		rvec[z++] = (float)dot;
+		r_vec[z++] = (float)dot;
 	}
 	return 0;
 }
