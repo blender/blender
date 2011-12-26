@@ -48,21 +48,52 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
 static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
 
-/* matrix row callbacks */
+static int matrix_row_vector_check(MatrixObject *mat, VectorObject *vec, int row)
+{
+	if ((vec->size != mat->num_col) || (row >= mat->num_row)) {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix(): "
+		                "owner matrix has been resized since this row vector was created");
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col)
+{
+	if ((vec->size != mat->num_row) || (col >= mat->num_col)) {
+		PyErr_SetString(PyExc_AttributeError,
+		                "Matrix(): "
+		                "owner matrix has been resized since this column vector was created");
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * matrix row callbacks
+ * this is so you can do matrix[i][j] = val OR matrix.row[i][j] = val */
+
 int mathutils_matrix_row_cb_index = -1;
 
-static int mathutils_matrix_vector_check(BaseMathObject *bmo)
+static int mathutils_matrix_row_check(BaseMathObject *bmo)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(BaseMathObject *bmo, int row)
+static int mathutils_matrix_row_get(BaseMathObject *bmo, int row)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int col;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
 
 	for (col = 0; col < self->num_col; col++) {
@@ -72,12 +103,14 @@ static int mathutils_matrix_vector_get(BaseMathObject *bmo, int row)
 	return 0;
 }
 
-static int mathutils_matrix_vector_set(BaseMathObject *bmo, int row)
+static int mathutils_matrix_row_set(BaseMathObject *bmo, int row)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int col;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
 
 	for (col = 0; col < self->num_col; col++) {
@@ -88,22 +121,26 @@ static int mathutils_matrix_vector_set(BaseMathObject *bmo, int row)
 	return 0;
 }
 
-static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int row, int col)
+static int mathutils_matrix_row_get_index(BaseMathObject *bmo, int row, int col)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
 
 	bmo->data[col] = MATRIX_ITEM(self, row, col);
 	return 0;
 }
 
-static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int row, int col)
+static int mathutils_matrix_row_set_index(BaseMathObject *bmo, int row, int col)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_row_vector_check(self, (VectorObject *)bmo, row))
 		return -1;
 
 	MATRIX_ITEM(self, row, col) = bmo->data[col];
@@ -113,30 +150,35 @@ static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int row, int c
 }
 
 Mathutils_Callback mathutils_matrix_row_cb = {
-	mathutils_matrix_vector_check,
-	mathutils_matrix_vector_get,
-	mathutils_matrix_vector_set,
-	mathutils_matrix_vector_get_index,
-	mathutils_matrix_vector_set_index
+	mathutils_matrix_row_check,
+	mathutils_matrix_row_get,
+	mathutils_matrix_row_set,
+	mathutils_matrix_row_get_index,
+	mathutils_matrix_row_set_index
 };
-/* matrix vector callbacks, this is so you can do matrix[i][j] = val  */
 
-/* matrix row callbacks */
+
+/* ----------------------------------------------------------------------------
+ * matrix row callbacks
+ * this is so you can do matrix.col[i][j] = val */
+
 int mathutils_matrix_col_cb_index = -1;
 
-static int mathutils_matrix_column_check(BaseMathObject *bmo)
+static int mathutils_matrix_col_check(BaseMathObject *bmo)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_column_get(BaseMathObject *bmo, int col)
+static int mathutils_matrix_col_get(BaseMathObject *bmo, int col)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int num_row;
 	int row;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
@@ -149,13 +191,15 @@ static int mathutils_matrix_column_get(BaseMathObject *bmo, int col)
 	return 0;
 }
 
-static int mathutils_matrix_column_set(BaseMathObject *bmo, int col)
+static int mathutils_matrix_col_set(BaseMathObject *bmo, int col)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 	int num_row;
 	int row;
 
 	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
@@ -169,7 +213,88 @@ static int mathutils_matrix_column_set(BaseMathObject *bmo, int col)
 	return 0;
 }
 
-static int mathutils_matrix_column_get_index(BaseMathObject *bmo, int col, int row)
+static int mathutils_matrix_col_get_index(BaseMathObject *bmo, int col, int row)
+{
+	MatrixObject *self = (MatrixObject *)bmo->cb_user;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
+		return -1;
+
+	bmo->data[row] = MATRIX_ITEM(self, row, col);
+	return 0;
+}
+
+static int mathutils_matrix_col_set_index(BaseMathObject *bmo, int col, int row)
+{
+	MatrixObject *self = (MatrixObject *)bmo->cb_user;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+	if (!matrix_col_vector_check(self, (VectorObject *)bmo, col))
+		return -1;
+
+	MATRIX_ITEM(self, row, col) = bmo->data[row];
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
+}
+
+Mathutils_Callback mathutils_matrix_col_cb = {
+	mathutils_matrix_col_check,
+	mathutils_matrix_col_get,
+	mathutils_matrix_col_set,
+	mathutils_matrix_col_get_index,
+	mathutils_matrix_col_set_index
+};
+
+
+/* ----------------------------------------------------------------------------
+ * matrix row callbacks
+ * this is so you can do matrix.translation = val
+ * note, this is _exactly like matrix.col except the 4th component is always omitted */
+
+int mathutils_matrix_translation_cb_index = -1;
+
+static int mathutils_matrix_translation_check(BaseMathObject *bmo)
+{
+	MatrixObject *self = (MatrixObject *)bmo->cb_user;
+	return BaseMath_ReadCallback(self);
+}
+
+static int mathutils_matrix_translation_get(BaseMathObject *bmo, int col)
+{
+	MatrixObject *self = (MatrixObject *)bmo->cb_user;
+	int row;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	for (row = 0; row < 3; row++) {
+		bmo->data[row] = MATRIX_ITEM(self, row, col);
+	}
+
+	return 0;
+}
+
+static int mathutils_matrix_translation_set(BaseMathObject *bmo, int col)
+{
+	MatrixObject *self = (MatrixObject *)bmo->cb_user;
+	int row;
+
+	if (BaseMath_ReadCallback(self) == -1)
+		return -1;
+
+	for (row = 0; row < 3; row++) {
+		MATRIX_ITEM(self, row, col) = bmo->data[row];
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	return 0;
+}
+
+static int mathutils_matrix_translation_get_index(BaseMathObject *bmo, int col, int row)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
@@ -180,7 +305,7 @@ static int mathutils_matrix_column_get_index(BaseMathObject *bmo, int col, int r
 	return 0;
 }
 
-static int mathutils_matrix_column_set_index(BaseMathObject *bmo, int col, int row)
+static int mathutils_matrix_translation_set_index(BaseMathObject *bmo, int col, int row)
 {
 	MatrixObject *self = (MatrixObject *)bmo->cb_user;
 
@@ -193,13 +318,15 @@ static int mathutils_matrix_column_set_index(BaseMathObject *bmo, int col, int r
 	return 0;
 }
 
-Mathutils_Callback mathutils_matrix_col_cb = {
-	mathutils_matrix_column_check,
-	mathutils_matrix_column_get,
-	mathutils_matrix_column_set,
-	mathutils_matrix_column_get_index,
-	mathutils_matrix_column_set_index
+Mathutils_Callback mathutils_matrix_translation_cb = {
+	mathutils_matrix_translation_check,
+	mathutils_matrix_translation_get,
+	mathutils_matrix_translation_set,
+	mathutils_matrix_translation_get_index,
+	mathutils_matrix_translation_set_index
 };
+
+
 /* matrix column callbacks, this is so you can do matrix.translation = Vector()  */
 
 //----------------------------------mathutils.Matrix() -----------------
@@ -1972,7 +2099,7 @@ static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure
 		return NULL;
 	}
 
-	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_col_cb_index, 3);
+	ret = (PyObject *)Vector_CreatePyObject_cb((PyObject *)self, 3, mathutils_matrix_translation_cb_index, 3);
 
 	return ret;
 }

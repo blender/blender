@@ -75,8 +75,11 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
 
 extern int mathutils_matrix_row_cb_index; /* default */
 extern int mathutils_matrix_col_cb_index;
+extern int mathutils_matrix_translation_cb_index;
+
 extern struct Mathutils_Callback mathutils_matrix_row_cb; /* default */
 extern struct Mathutils_Callback mathutils_matrix_col_cb;
+extern struct Mathutils_Callback mathutils_matrix_translation_cb;
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self);
 
