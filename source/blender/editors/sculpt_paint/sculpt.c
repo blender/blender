@@ -248,90 +248,51 @@ typedef struct StrokeCache {
 
 /* Get a screen-space rectangle of the modified area */
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
-				Object *ob, rcti *rect)
+								  Object *ob, rcti *rect)
 {
+	SculptSession *ss;
 	PBVH *pbvh= ob->sculpt->pbvh;
-	float bb_min[3], bb_max[3], pmat[4][4];
-	int i, j, k;
-
-	ED_view3d_ob_project_mat_get(rv3d, ob, pmat);
+	float bb_min[3], bb_max[3];
 
 	if(!pbvh)
 		return 0;
 
 	BLI_pbvh_redraw_BB(pbvh, bb_min, bb_max);
 
-	rect->xmin = rect->ymin = INT_MAX;
-	rect->xmax = rect->ymax = INT_MIN;
-
-	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+	/* convert 3D bounding box to screen space */
+	if(!paint_convert_bb_to_rect(rect,
+								 bb_min,
+								 bb_max,
+								 ar,
+								 rv3d,
+								 ob)) {
 		return 0;
-
-	for(i = 0; i < 2; ++i) {
-		for(j = 0; j < 2; ++j) {
-			for(k = 0; k < 2; ++k) {
-				float vec[3], proj[2];
-				vec[0] = i ? bb_min[0] : bb_max[0];
-				vec[1] = j ? bb_min[1] : bb_max[1];
-				vec[2] = k ? bb_min[2] : bb_max[2];
-				ED_view3d_project_float(ar, vec, proj, pmat);
-				rect->xmin = MIN2(rect->xmin, proj[0]);
-				rect->xmax = MAX2(rect->xmax, proj[0]);
-				rect->ymin = MIN2(rect->ymin, proj[1]);
-				rect->ymax = MAX2(rect->ymax, proj[1]);
-			}
-		}
-	}
-	
-	if (rect->xmin < rect->xmax && rect->ymin < rect->ymax) {
-		/* expand redraw rect with redraw rect from previous step to prevent
-		   partial-redraw issues caused by fast strokes. This is needed here (not in sculpt_flush_update)
-		   as it was before because redraw rectangle should be the same in both of
-		   optimized PBVH draw function and 3d view redraw (if not -- some mesh parts could
-		   disapper from screen (sergey) */
-		SculptSession *ss = ob->sculpt;
-
-		if (ss->cache) {
-			if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-				BLI_union_rcti(rect, &ss->cache->previous_r);
-		}
-
-		return 1;
 	}
 
-	return 0;
+	/* expand redraw rect with redraw rect from previous step to
+	   prevent partial-redraw issues caused by fast strokes. This is
+	   needed here (not in sculpt_flush_update) as it was before
+	   because redraw rectangle should be the same in both of
+	   optimized PBVH draw function and 3d view redraw (if not -- some
+	   mesh parts could disapper from screen (sergey) */
+	ss = ob->sculpt;
+	if(ss->cache) {
+		if(!BLI_rcti_is_empty(&ss->cache->previous_r))
+			BLI_union_rcti(rect, &ss->cache->previous_r);
+	}
+
+	return 1;
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 				  RegionView3D *rv3d, Object *ob)
 {
 	PBVH *pbvh= ob->sculpt->pbvh;
-	BoundBox bb;
-	bglMats mats;
 	rcti rect;
 
-	memset(&bb, 0, sizeof(BoundBox));
+	sculpt_get_redraw_rect(ar, rv3d, ob, &rect);
 
-	view3d_get_transformation(ar, rv3d, ob, &mats);
-	sculpt_get_redraw_rect(ar, rv3d,ob, &rect);
-
-#if 1
-	/* use some extra space just in case */
-	rect.xmin -= 2;
-	rect.xmax += 2;
-	rect.ymin -= 2;
-	rect.ymax += 2;
-#else
-	/* it was doing this before, allows to redraw a smaller
-	   part of the screen but also gives artifaces .. */
-	rect.xmin += 2;
-	rect.xmax -= 2;
-	rect.ymin += 2;
-	rect.ymax -= 2;
-#endif
-
-	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
-	mul_m4_fl(planes, -1.0f);
+	paint_calc_redraw_planes(planes, ar, rv3d, ob, &rect);
 
 	/* clear redraw flag from nodes */
 	if(pbvh)

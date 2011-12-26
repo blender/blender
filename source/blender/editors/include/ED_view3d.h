@@ -201,7 +201,7 @@ void ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 /* Projection */
 #define IS_CLIPPED        12000
 
-void ED_view3d_calc_clipping(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, struct rcti *rect);
+void ED_view3d_calc_clipping(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
 
 void project_short(struct ARegion *ar, const float vec[3], short adr[2]);
 void project_short_noclip(struct ARegion *ar, const float vec[3], short adr[2]);
@@ -215,7 +215,7 @@ void project_float_noclip(struct ARegion *ar, const float vec[3], float adr[2]);
 int ED_view3d_clip_range_get(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
-void ED_view3d_project_float(struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
+void ED_view3d_project_float(const struct ARegion *a, const float vec[3], float adr[2], float mat[4][4]);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
@@ -257,7 +257,7 @@ void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_region_operator_needs_opengl(struct wmWindow *win, struct ARegion *ar);
 int view3d_get_view_aligned_coordinate(struct ViewContext *vc, float fp[3], const int mval[2], const short do_fallback);
-void view3d_get_transformation(struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
+void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);

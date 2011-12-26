@@ -135,7 +135,7 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 /*
  * ob == NULL if you want global matrices
  * */
-void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
+void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;

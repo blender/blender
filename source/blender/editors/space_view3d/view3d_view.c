@@ -512,7 +512,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 
 /* ********************************** */
 
-void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
+void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, const rcti *rect)
 {
 	float modelview[4][4];
 	double xs, ys, p[3];
@@ -760,7 +760,7 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 #endif
 
 /* use view3d_get_object_project_mat to get projecting mat */
-void ED_view3d_project_float(ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
+void ED_view3d_project_float(const ARegion *ar, const float vec[3], float adr[2], float mat[4][4])
 {
 	float vec4[4];
 	
