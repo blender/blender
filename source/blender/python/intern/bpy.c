@@ -58,7 +58,7 @@
 #include "../generic/blf_py_api.h"
 #include "../mathutils/mathutils.h"
 
-PyObject *bpy_package_py= NULL;
+PyObject *bpy_package_py = NULL;
 
 PyDoc_STRVAR(bpy_script_paths_doc,
 ".. function:: script_paths()\n"
@@ -70,12 +70,12 @@ PyDoc_STRVAR(bpy_script_paths_doc,
 );
 static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
-	PyObject *ret= PyTuple_New(2);
+	PyObject *ret = PyTuple_New(2);
 	char *path;
 
-	path= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
+	path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
-	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
+	path = BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
 
 	return ret;
@@ -83,8 +83,8 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 
 static int bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {
-	PyObject *list= (PyObject *)userdata;
-	PyObject *item= PyUnicode_DecodeFSDefault(path_src);
+	PyObject *list = (PyObject *)userdata;
+	PyObject *item = PyUnicode_DecodeFSDefault(path_src);
 	PyList_Append(list, item);
 	Py_DECREF(item);
 	return FALSE; /* never edits the path */
@@ -106,13 +106,13 @@ PyDoc_STRVAR(bpy_blend_paths_doc,
 );
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	int flag= 0;
+	int flag = 0;
 	PyObject *list;
 
-	int absolute= FALSE;
-	int packed=   FALSE;
-	int local=    FALSE;
-	static const char *kwlist[]= {"absolute", "packed", "local", NULL};
+	int absolute = FALSE;
+	int packed =   FALSE;
+	int local =    FALSE;
+	static const char *kwlist[] = {"absolute", "packed", "local", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ii:blend_paths",
 	                                 (char **)kwlist, &absolute, &packed))
@@ -124,7 +124,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	if (!packed)  flag |= BPATH_TRAVERSE_SKIP_PACKED;
 	if (local)    flag |= BPATH_TRAVERSE_SKIP_LIBRARY;
 
-	list= PyList_New(0);
+	list = PyList_New(0);
 
 	bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
 
@@ -132,13 +132,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 }
 
 
-// PyDoc_STRVAR(bpy_user_resource_doc[]= // now in bpy/utils.py
+// PyDoc_STRVAR(bpy_user_resource_doc[] = // now in bpy/utils.py
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
-	char *subdir= NULL;
+	char *subdir = NULL;
 	int folder_id;
-	static const char *kwlist[]= {"type", "subdir", NULL};
+	static const char *kwlist[] = {"type", "subdir", NULL};
 
 	char *path;
 
@@ -146,20 +146,20 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	
 	/* stupid string compare */
-	if      (!strcmp(type, "DATAFILES")) folder_id= BLENDER_USER_DATAFILES;
-	else if (!strcmp(type, "CONFIG"))    folder_id= BLENDER_USER_CONFIG;
-	else if (!strcmp(type, "SCRIPTS"))   folder_id= BLENDER_USER_SCRIPTS;
-	else if (!strcmp(type, "AUTOSAVE"))  folder_id= BLENDER_USER_AUTOSAVE;
+	if      (!strcmp(type, "DATAFILES")) folder_id = BLENDER_USER_DATAFILES;
+	else if (!strcmp(type, "CONFIG"))    folder_id = BLENDER_USER_CONFIG;
+	else if (!strcmp(type, "SCRIPTS"))   folder_id = BLENDER_USER_SCRIPTS;
+	else if (!strcmp(type, "AUTOSAVE"))  folder_id = BLENDER_USER_AUTOSAVE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
 	}
 	
 	/* same logic as BLI_get_folder_create(), but best leave it up to the script author to create */
-	path= BLI_get_folder(folder_id, subdir);
+	path = BLI_get_folder(folder_id, subdir);
 
 	if (!path)
-		path= BLI_get_user_folder_notest(folder_id, subdir);
+		path = BLI_get_user_folder_notest(folder_id, subdir);
 
 	return PyUnicode_DecodeFSDefault(path ? path : "");
 }
@@ -181,8 +181,8 @@ PyDoc_STRVAR(bpy_resource_path_doc,
 static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
-	int major= BLENDER_VERSION/100, minor= BLENDER_VERSION%100;
-	static const char *kwlist[]= {"type", "major", "minor", NULL};
+	int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
+	static const char *kwlist[] = {"type", "major", "minor", NULL};
 	int folder_id;
 	char *path;
 
@@ -190,32 +190,32 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 
 	/* stupid string compare */
-	if     (!strcmp(type, "USER"))     folder_id= BLENDER_RESOURCE_PATH_USER;
-	else if (!strcmp(type, "LOCAL"))   folder_id= BLENDER_RESOURCE_PATH_LOCAL;
-	else if (!strcmp(type, "SYSTEM"))  folder_id= BLENDER_RESOURCE_PATH_SYSTEM;
+	if     (!strcmp(type, "USER"))     folder_id = BLENDER_RESOURCE_PATH_USER;
+	else if (!strcmp(type, "LOCAL"))   folder_id = BLENDER_RESOURCE_PATH_LOCAL;
+	else if (!strcmp(type, "SYSTEM"))  folder_id = BLENDER_RESOURCE_PATH_SYSTEM;
 	else {
 		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
 		return NULL;
 	}
 
-	path= BLI_get_folder_version(folder_id, (major * 100) + minor, FALSE);
+	path = BLI_get_folder_version(folder_id, (major * 100) + minor, FALSE);
 
 	return PyUnicode_DecodeFSDefault(path);
 }
 
-static PyMethodDef meth_bpy_script_paths=
+static PyMethodDef meth_bpy_script_paths =
 	{"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
-static PyMethodDef meth_bpy_blend_paths=
+static PyMethodDef meth_bpy_blend_paths =
 	{"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
-static PyMethodDef meth_bpy_user_resource=
+static PyMethodDef meth_bpy_user_resource =
 	{"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, NULL};
-static PyMethodDef meth_bpy_resource_path=
+static PyMethodDef meth_bpy_resource_path =
 	{"resource_path", (PyCFunction)bpy_resource_path, METH_VARARGS|METH_KEYWORDS, bpy_resource_path_doc};
 
 
 static PyObject *bpy_import_test(const char *modname)
 {
-	PyObject *mod= PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
+	PyObject *mod = PyImport_ImportModuleLevel((char *)modname, NULL, NULL, NULL, 0);
 	if (mod) {
 		Py_DECREF(mod);
 	}
@@ -238,11 +238,11 @@ void BPy_init_modules(void)
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
+	char *modpath = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
 	if (modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
-		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-		PyObject *py_modpath= PyUnicode_FromString(modpath);
+		PyObject *sys_path = PySys_GetObject("path"); /* borrow */
+		PyObject *py_modpath = PyUnicode_FromString(modpath);
 		PyList_Insert(sys_path, 0, py_modpath); /* add first */
 		Py_DECREF(py_modpath);
 	}
@@ -252,7 +252,7 @@ void BPy_init_modules(void)
 	/* stand alone utility modules not related to blender directly */
 	IDProp_Init_Types(); /* not actually a submodule, just types */
 
-	mod= PyModule_New("_bpy");
+	mod = PyModule_New("_bpy");
 
 	/* add the module so we can import it */
 	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
@@ -280,7 +280,7 @@ void BPy_init_modules(void)
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
-	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
+	bpy_context_module = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
 	/* odd that this is needed, 1 ref on creation and another for the module
 	 * but without we get a crash on exit */
 	Py_INCREF(bpy_context_module);
@@ -298,5 +298,5 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, meth_bpy_unregister_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, NULL));
 
 	/* add our own modules dir, this is a python package */
-	bpy_package_py= bpy_import_test("bpy");
+	bpy_package_py = bpy_import_test("bpy");
 }

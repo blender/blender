@@ -37,22 +37,22 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext*	__py_context= NULL;
+static bContext*	__py_context = NULL;
 bContext*	BPy_GetContext(void) { return __py_context; }
-void		BPy_SetContext(bContext *C) { __py_context= C; }
+void		BPy_SetContext(bContext *C) { __py_context = C; }
 
 char *BPy_enum_as_string(EnumPropertyItem *item)
 {
-	DynStr *dynstr= BLI_dynstr_new();
+	DynStr *dynstr = BLI_dynstr_new();
 	EnumPropertyItem *e;
 	char *cstring;
 
-	for (e= item; item->identifier; item++) {
+	for (e = item; item->identifier; item++) {
 		if (item->identifier[0])
-			BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
+			BLI_dynstr_appendf(dynstr, (e == item)?"'%s'":", '%s'", item->identifier);
 	}
 
-	cstring= BLI_dynstr_get_cstring(dynstr);
+	cstring = BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
@@ -61,7 +61,7 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short
 {
 	char *report_str;
 
-	report_str= BKE_reports_string(reports, RPT_ERROR);
+	report_str = BKE_reports_string(reports, RPT_ERROR);
 
 	if (clear) {
 		BKE_reports_clear(reports);
@@ -79,7 +79,7 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short
 short BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
-	PyObject *pystring_format= NULL; // workaround, see below
+	PyObject *pystring_format = NULL; // workaround, see below
 	char *cstring;
 
 	const char *filename;
@@ -89,30 +89,30 @@ short BPy_errors_to_report(ReportList *reports)
 		return 1;
 	
 	/* less hassle if we allow NULL */
-	if (reports==NULL) {
+	if (reports == NULL) {
 		PyErr_Print();
 		PyErr_Clear();
 		return 1;
 	}
 	
-	pystring= PyC_ExceptionBuffer();
+	pystring = PyC_ExceptionBuffer();
 	
-	if (pystring==NULL) {
+	if (pystring == NULL) {
 		BKE_report(reports, RPT_ERROR, "unknown py-exception, couldn't convert");
 		return 0;
 	}
 	
 	PyC_FileAndNum(&filename, &lineno);
-	if (filename==NULL)
-		filename= "<unknown location>";
+	if (filename == NULL)
+		filename = "<unknown location>";
 	
-	cstring= _PyUnicode_AsString(pystring);
+	cstring = _PyUnicode_AsString(pystring);
 
 #if 0 // ARG!. workaround for a bug in blenders use of vsnprintf
 	BKE_reportf(reports, RPT_ERROR, "%s\nlocation:%s:%d\n", cstring, filename, lineno);
 #else
-	pystring_format= PyUnicode_FromFormat("%s\nlocation:%s:%d\n", cstring, filename, lineno);
-	cstring= _PyUnicode_AsString(pystring_format);
+	pystring_format = PyUnicode_FromFormat("%s\nlocation:%s:%d\n", cstring, filename, lineno);
+	cstring = _PyUnicode_AsString(pystring_format);
 	BKE_report(reports, RPT_ERROR, cstring);
 #endif
 	

@@ -40,15 +40,15 @@
 static PyObject *bpy_atexit(PyObject *UNUSED(self), PyObject *UNUSED(args), PyObject *UNUSED(kw))
 {
 	/* close down enough of blender at least not to crash */
-	struct bContext *C= BPy_GetContext();
+	struct bContext *C = BPy_GetContext();
 
 	WM_exit_ext(C, 0);
 
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef meth_bpy_atexit= {"bpy_atexit", (PyCFunction)bpy_atexit, METH_NOARGS, NULL};
-static PyObject *func_bpy_atregister= NULL; /* borrowed referebce, atexit holds */
+static PyMethodDef meth_bpy_atexit = {"bpy_atexit", (PyCFunction)bpy_atexit, METH_NOARGS, NULL};
+static PyObject *func_bpy_atregister = NULL; /* borrowed referebce, atexit holds */
 
 static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 {
@@ -56,15 +56,15 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 	 * this is intended, but if its problematic it could be changed
 	 * - campbell */
 
-	PyObject *atexit_mod= PyImport_ImportModuleLevel((char *)"atexit", NULL, NULL, NULL, 0);
-	PyObject *atexit_func= PyObject_GetAttrString(atexit_mod, func_name);
-	PyObject *args= PyTuple_New(1);
+	PyObject *atexit_mod = PyImport_ImportModuleLevel((char *)"atexit", NULL, NULL, NULL, 0);
+	PyObject *atexit_func = PyObject_GetAttrString(atexit_mod, func_name);
+	PyObject *args = PyTuple_New(1);
 	PyObject *ret;
 
 	PyTuple_SET_ITEM(args, 0, atexit_func_arg);
 	Py_INCREF(atexit_func_arg); /* only incref so we dont dec'ref along with 'args' */
 
-	ret= PyObject_CallObject(atexit_func, args);
+	ret = PyObject_CallObject(atexit_func, args);
 
 	Py_DECREF(atexit_mod);
 	Py_DECREF(atexit_func);
@@ -83,7 +83,7 @@ void BPY_atexit_register(void)
 	/* atexit module owns this new function reference */
 	BLI_assert(func_bpy_atregister == NULL);
 
-	func_bpy_atregister= (PyObject *)PyCFunction_New(&meth_bpy_atexit, NULL);
+	func_bpy_atregister = (PyObject *)PyCFunction_New(&meth_bpy_atexit, NULL);
 	atexit_func_call("register", func_bpy_atregister);
 }
 
@@ -92,5 +92,5 @@ void BPY_atexit_unregister(void)
 	BLI_assert(func_bpy_atregister != NULL);
 
 	atexit_func_call("unregister", func_bpy_atregister);
-	func_bpy_atregister= NULL; /* don't really need to set but just incase */
+	func_bpy_atregister = NULL; /* don't really need to set but just incase */
 }
