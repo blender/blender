@@ -1686,7 +1686,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 	int save_for_old_blender= 0;
 
 #ifdef USE_MESH_FORWARDS_COMAT
-	/* TODO, add UI option to allow bmesh to save for pre-bmesh blender versions */
+	save_for_old_blender = wd->use_mesh_compat; /* option to save with older mesh format */
 #endif
 
 	mesh= idbase->first;
