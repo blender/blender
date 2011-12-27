@@ -350,7 +350,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	{
 		static int corner_indices[4] = {2, 1, 0, 3};
-		int is_quad;
+		unsigned int is_quad;
 
 		for(i=0, mf=mface+numFaces; i<numFaces; i++, mf++) {
 			mf->v1 += numVerts;
@@ -362,7 +362,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* Flip face normal */
 			{
 				is_quad = mf->v4;
-				SWAP(int, mf->v1, mf->v3);
+				SWAP(unsigned int, mf->v1, mf->v3);
 				DM_swap_face_data(result, i+numFaces, corner_indices);
 				test_index_face(mf, &result->faceData, numFaces, is_quad ? 4:3);
 			}

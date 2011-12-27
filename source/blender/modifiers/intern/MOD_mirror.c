@@ -266,7 +266,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			}
 			
 			/* Flip face normal */
-			SWAP(int, mf2->v1, mf2->v3);
+			SWAP(unsigned int, mf2->v1, mf2->v3);
 			DM_swap_face_data(result, numFaces, corner_indices);
 			
 			test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);

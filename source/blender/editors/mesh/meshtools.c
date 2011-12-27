@@ -1080,8 +1080,8 @@ int *mesh_get_x_mirror_faces(Object *ob, EditMesh *em)
 
 		/* make sure v4 is not 0 if a quad */
 		if(mf->v4 && mirrormf.v4==0) {
-			SWAP(int, mirrormf.v1, mirrormf.v3);
-			SWAP(int, mirrormf.v2, mirrormf.v4);
+			SWAP(unsigned int, mirrormf.v1, mirrormf.v3);
+			SWAP(unsigned int, mirrormf.v2, mirrormf.v4);
 		}
 
 		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
