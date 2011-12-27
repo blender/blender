@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_mesh_types.h" /* only for USE_MESH_FORWARDS_COMAT */
 
 #include "BLF_translation.h"
 
@@ -2011,6 +2012,9 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
 	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active");
+#ifdef USE_MESH_FORWARDS_COMAT
+	RNA_def_boolean(ot->srna, "use_mesh_compat", 0, "Legacy Mesh Format", "Save using legacy mesh format (no ngons)");
+#endif
 }
 
 /* *************** save file directly ******** */

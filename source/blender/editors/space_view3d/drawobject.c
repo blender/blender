@@ -2847,35 +2847,41 @@ static void draw_em_indices(BMEditMesh *em)
 
 	/* For now, reuse appropriate theme colors from stats text colors */
 	i= 0;
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BM_TestHFlag(v, BM_SELECT)) {
-			sprintf(val, "%d", i);
-			view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(v, BM_SELECT)) {
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
+			i++;
 		}
-		i++;
 	}
 
-	i= 0;
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_SELECT)) {
-			sprintf(val, "%d", i);
-			mid_v3_v3v3(pos, e->v1->co, e->v2->co);
-			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		i= 0;
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(e, BM_SELECT)) {
+				sprintf(val, "%d", i);
+				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
+			i++;
 		}
-		i++;
 	}
 
-	i= 0;
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BM_TestHFlag(f, BM_SELECT)) {
-			BM_Compute_Face_CenterMean(bm, f, pos);
-			sprintf(val, "%d", i);
-			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_FACE) {
+		i= 0;
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_TestHFlag(f, BM_SELECT)) {
+				BM_Compute_Face_CenterMean(bm, f, pos);
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
+			i++;
 		}
-		i++;
 	}
 }
 

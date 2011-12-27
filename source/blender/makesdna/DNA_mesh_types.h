@@ -211,6 +211,8 @@ typedef struct TFace {
 
 /* this is so we can save bmesh files that load in trunk, ignoring NGons
  * will eventually be removed */
+
 #define USE_MESH_FORWARDS_COMAT
+
 
 #endif

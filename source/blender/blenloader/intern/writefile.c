@@ -175,6 +175,10 @@ typedef struct {
 	MemFile *compare, *current;
 	
 	int tot, count, error, memsize;
+
+#ifdef USE_MESH_FORWARDS_COMAT
+	char use_mesh_compat; /* option to save with older mesh format */
+#endif
 } WriteData;
 
 static WriteData *writedata_new(int file)
@@ -2666,7 +2670,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.curscene= screen->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
-	fg.fileflags= (fileflags & ~(G_FILE_NO_UI|G_FILE_RELATIVE_REMAP));	// prevent to save this, is not good convention, and feature with concerns...
+
+	/* prevent to save this, is not good convention, and feature with concerns... */
+	fg.fileflags= (fileflags & ~(G_FILE_NO_UI|G_FILE_RELATIVE_REMAP|G_FILE_MESH_COMPAT));
+
 	fg.globalf= G.f;
 	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
 
@@ -2709,7 +2716,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	blo_split_main(&mainlist, mainvar);
 
 	wd= bgnwrite(handle, compare, current);
-	
+
+#ifdef USE_MESH_FORWARDS_COMAT
+	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
+#endif
+
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
 	mywrite(wd, buf, 12);
 

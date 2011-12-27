@@ -141,6 +141,7 @@ typedef struct Global {
 #define G_FILE_RECOVER			 (1 << 23)
 #define G_FILE_RELATIVE_REMAP	 (1 << 24)
 #define G_FILE_HISTORY			 (1 << 25)
+#define G_FILE_MESH_COMPAT		 (1 << 26)				/* BMesh option to save as older mesh format */
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0
