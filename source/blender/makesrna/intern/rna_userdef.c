@@ -2639,8 +2639,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_PE"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
 		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
-		{17, "SERBIAN", 0, "Serbian (Српски)", "sr"},
-		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr@latin"},
+		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
+		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, NULL, 0, NULL, NULL}};

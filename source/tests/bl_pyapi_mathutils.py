@@ -27,9 +27,9 @@ class MatrixTesting(unittest.TestCase):
 
         mat = Matrix(args)
 
-        for i in range(4):
-            for j in range(4):
-                self.assertEqual(mat[i][j], args[i][j])
+        for row in range(4):
+            for col in range(4):
+                self.assertEqual(mat[row][col], args[row][col])
 
         self.assertEqual(mat[0][2], 0)
         self.assertEqual(mat[3][1], 9)
@@ -41,13 +41,13 @@ class MatrixTesting(unittest.TestCase):
         mat = Matrix() - Matrix()
         indices = (0, 0), (1, 3), (2, 0), (3, 2), (3, 1)
         checked_indices = []
-        for col, row in indices:
-            mat[col][row] = 1
+        for row, col in indices:
+            mat[row][col] = 1
 
-        for col in range(4):
-            for row in range(4):
-                if mat[col][row]:
-                    checked_indices.append((col, row))
+        for row in range(4):
+            for col in range(4):
+                if mat[row][col]:
+                    checked_indices.append((row, col))
 
         for item in checked_indices:
             self.assertIn(item, indices)
@@ -64,8 +64,62 @@ class MatrixTesting(unittest.TestCase):
 
     def test_matrix_to_translation(self):
         mat = Matrix()
-        mat[3] = (1, 2, 3, 4)
+        mat[0][3] = 1
+        mat[1][3] = 2
+        mat[2][3] = 3
         self.assertEqual(mat.to_translation(), Vector((1, 2, 3)))
+
+    def test_matrix_translation(self):
+        mat = Matrix()
+        mat.translation = Vector((1, 2, 3))
+        self.assertEqual(mat[0][3], 1)
+        self.assertEqual(mat[1][3], 2)
+        self.assertEqual(mat[2][3], 3)
+
+    def test_non_square_mult(self):
+        mat1 = Matrix(((1, 2, 3),
+                       (4, 5, 6)))
+        mat2 = Matrix(((1, 2),
+                       (3, 4),
+                       (5, 6)))
+
+        prod_mat1 = Matrix(((22, 28),
+                            (49, 64)))
+        prod_mat2 = Matrix(((9, 12, 15),
+                            (19, 26, 33),
+                            (29, 40, 51)))
+
+        self.assertEqual(mat1*mat2, prod_mat1)
+        self.assertEqual(mat2 * mat1, prod_mat2)
+
+    def test_mat4x4_vec3D_mult(self):
+        mat = Matrix(((1, 0, 2, 0),
+                      (0, 6, 0, 0),
+                      (0, 0, 1, 1),
+                      (0, 0, 0, 1)))
+
+        vec = Vector((1, 2, 3))
+        
+        prod_mat_vec = Vector((7, 12, 4))
+        prod_vec_mat = Vector((1, 12, 5))
+
+        self.assertEqual(mat * vec, prod_mat_vec)
+        self.assertEqual(vec * mat, prod_vec_mat)
+
+    def test_mat_vec_mult(self):
+        mat1 = Matrix()
+
+        vec = Vector((1, 2))
+
+        self.assertRaises(TypeError, mat1.__mul__, vec)
+        self.assertRaises(ValueError, vec.__mul__, mat1)  # Why are these different?!
+
+        mat2 = Matrix(((1, 2),
+                       (-2, 3)))
+
+        prod = Vector((5, 4))
+
+        self.assertEqual(mat2 * vec, prod)
 
     def test_matrix_inverse(self):
         mat = Matrix(((1, 4, 0, -1),

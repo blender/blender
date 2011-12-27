@@ -10712,8 +10712,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->id.lib==NULL && me->mr && me->mr->level_count > 1) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+				/* XXX - library meshes crash on loading most yoFrankie levels,
+				 * the multires pointer gets invalid -  Campbell */
+				if(me && me->id.lib==NULL && me->mr && me->mr->level_count > 1) {
 					multires_load_old(ob, me);
+				}
 
 				ob->data = olddata;
 			}
@@ -14327,7 +14330,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					expand_main(fd, mainptr);
 					
-					/* dang FileData... now new libraries need to be appended to original filedata, it is not a good replacement for the old global (ton) */
+					/* dang FileData... now new libraries need to be appended to original filedata,
+					 * it is not a good replacement for the old global (ton) */
 					while( fd->mainlist.first ) {
 						Main *mp= fd->mainlist.first;
 						BLI_remlink(&fd->mainlist, mp);
@@ -14349,8 +14353,13 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					BKE_reportf(basefd->reports, RPT_ERROR,
+					            "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
+					            BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					if (!G.background && basefd->reports) {
+						printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
+						       BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					}
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

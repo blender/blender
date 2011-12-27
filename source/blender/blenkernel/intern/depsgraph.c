@@ -1709,7 +1709,7 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 /* sort the base list on dependency order */
 void DAG_scene_sort(Main *bmain, Scene *sce)
 {
-	DagNode *node;
+	DagNode *node, *rootnode;
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
 	int time;
@@ -1731,11 +1731,10 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	
 	time = 1;
 	
-	node = sce->theDag->DagNode.first;
-	
-	node->color = DAG_GRAY;
+	rootnode = sce->theDag->DagNode.first;
+	rootnode->color = DAG_GRAY;
 	time++;
-	push_stack(nqueue,node);  
+	push_stack(nqueue,rootnode);  
 	
 	while(nqueue->count) {
 		
@@ -2853,10 +2852,8 @@ void DAG_pose_sort(Object *ob)
 	for(node = dag->DagNode.first; node; node= node->next) 
 		node->color = DAG_WHITE;
 	
-	node = dag->DagNode.first;
-	
-	node->color = DAG_GRAY;
-	push_stack(nqueue, node);  
+	rootnode->color = DAG_GRAY;
+	push_stack(nqueue, rootnode);  
 	
 	while(nqueue->count) {
 		

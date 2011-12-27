@@ -130,13 +130,16 @@ __device_inline void path_state_next(KernelGlobals *kg, PathState *state, int la
 	}
 }
 
-__device_inline uint path_state_ray_visibility(PathState *state)
+__device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)
 {
 	uint flag = state->flag;
 
 	/* for visibility, diffuse/glossy are for reflection only */
 	if(flag & PATH_RAY_TRANSMIT)
 		flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY);
+	/* for camera visibility, use render layer flags */
+	if(flag & PATH_RAY_CAMERA)
+		flag |= kernel_data.integrator.layer_flag;
 
 	return flag;
 }
@@ -249,7 +252,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 	for(;; rng_offset += PRNG_BOUNCE_NUM) {
 		/* intersect scene */
 		Intersection isect;
-		uint visibility = path_state_ray_visibility(&state);
+		uint visibility = path_state_ray_visibility(kg, &state);
 
 		if(!scene_intersect(kg, &ray, visibility, &isect)) {
 			/* eval background shader if nothing hit */

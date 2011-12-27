@@ -41,9 +41,8 @@ Integrator::Integrator()
 	transparent_shadows = false;
 
 	no_caustics = false;
-	blur_caustics = 0.0f;
-
 	seed = 0;
+	layer_flag = ~0;
 
 	need_update = true;
 }
@@ -81,9 +80,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	kintegrator->transparent_shadows = transparent_shadows;
 
 	kintegrator->no_caustics = no_caustics;
-	kintegrator->blur_caustics = blur_caustics;
-
 	kintegrator->seed = hash_int(seed);
+	kintegrator->layer_flag = layer_flag << PATH_RAY_LAYER_SHIFT;
 
 	/* sobol directions table */
 	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
@@ -115,7 +113,7 @@ bool Integrator::modified(const Integrator& integrator)
 		transparent_probalistic == integrator.transparent_probalistic &&
 		transparent_shadows == integrator.transparent_shadows &&
 		no_caustics == integrator.no_caustics &&
-		blur_caustics == integrator.blur_caustics &&
+		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed);
 }
 

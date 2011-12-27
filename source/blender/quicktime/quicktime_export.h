@@ -61,7 +61,7 @@ void end_qt(void);
 void filepath_qt(char *string, struct RenderData *rd);
 
 /*RNA helper functions */
-void quicktime_verify_image_type(struct RenderData *rd); //used by RNA for defaults values init, if needed
+void quicktime_verify_image_type(struct RenderData *rd, struct ImageFormatData *imf); //used by RNA for defaults values init, if needed
 /*Video codec type*/
 int quicktime_get_num_videocodecs(void);
 QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue);

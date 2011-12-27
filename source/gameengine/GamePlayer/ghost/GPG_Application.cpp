@@ -789,6 +789,10 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
+	// We only want to kill the engine if it has been initialized
+	if (!m_engineInitialized)
+		return;
+
 	sound_exit();
 	if (m_ketsjiengine)
 	{

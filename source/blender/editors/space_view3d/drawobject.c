@@ -2656,8 +2656,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d,
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
-                                  Object *ob, EditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	EditEdge *eed;
@@ -2680,11 +2679,6 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	else if (grid < 1.0f)	conv_float= "%.4g";
 	else if (grid < 10.0f)	conv_float= "%.3g";
 	else					conv_float= "%.2g";
-
-	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
-		glDisable(GL_DEPTH_TEST);
-
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
@@ -2803,23 +2797,43 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 			}
 		}
 	}
+}
 
-	/* useful for debugging index vs shape key index */
-#if 0
-	{
-		EditVert *eve;
-		int j;
-		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		for(eve= em->verts.first, j= 0; eve; eve= eve->next, j++) {
-			sprintf(val, "%d:%d", j, eve->keyindex);
-			view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+static void draw_em_indices(EditMesh *em)
+{
+	EditEdge *e;
+	EditFace *f;
+	EditVert *v;
+	int i;
+	char val[32];
+	float pos[3];
+	unsigned char col[4];
+
+	/* For now, reuse appropriate theme colors from stats text colors */
+
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+	for (v = em->verts.first, i = 0; v; v = v->next, i++) {
+		if (v->f & SELECT) {
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
 		}
 	}
-#endif
 
-	if(v3d->zbuf) {
-		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0f);
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+	for (e = em->edges.first, i = 0; e; e = e->next, i++) {
+		if (e->f & SELECT) {
+			sprintf(val, "%d", i);
+			mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+	}
+
+	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+	for (f = em->faces.first, i = 0; f; f = f->next, i++) {
+		if (f->f & SELECT) {
+			sprintf(val, "%d", i);
+			view3d_cached_text_draw_add(f->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
 	}
 }
 
@@ -2996,7 +3010,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG)) &&
 		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
-			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+			draw_em_measure_stats(v3d, ob, em, &scene->unit);
+		}
+
+		if ((G.f & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+			draw_em_indices(em);
 		}
 	}
 

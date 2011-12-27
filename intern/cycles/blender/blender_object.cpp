@@ -154,7 +154,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint visibility)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag)
 {
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
@@ -181,10 +181,18 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
 		object->tfm = tfm;
-		
-		object->visibility = object_ray_visibility(b_ob) & visibility;
+
+		/* visibility flags for both parent */
+		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;
 		if(b_parent.ptr.data != b_ob.ptr.data)
 			object->visibility &= object_ray_visibility(b_parent);
+
+		/* camera flag is not actually used, instead is tested
+		   against render layer flags */
+		if(object->visibility & PATH_RAY_CAMERA) {
+			object->visibility |= layer_flag << PATH_RAY_LAYER_SHIFT;
+			object->visibility &= ~PATH_RAY_CAMERA;
+		}
 
 		object->tag_update(scene);
 	}
@@ -195,8 +203,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 {
 	/* layer data */
-	uint scene_layer = render_layer.scene_layer;
-	uint layer = render_layer.layer;
+	uint scene_layer = render_layers.front().scene_layer;
 	
 	/* prepare for sync */
 	light_map.pre_sync();
@@ -212,11 +219,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 		uint ob_layer = get_layer(b_ob->layers());
 
 		if(!hide && (ob_layer & scene_layer)) {
-			uint visibility = PATH_RAY_ALL;
-			
-			if(!(ob_layer & layer))
-				visibility &= ~PATH_RAY_CAMERA;
-
 			if(b_ob->is_duplicator()) {
 				/* dupli objects */
 				object_create_duplilist(*b_ob, b_scene);
@@ -226,7 +228,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 
 				for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
 					Transform tfm = get_transform(b_dup->matrix());
-					sync_object(*b_ob, b_index, b_dup->object(), tfm, visibility);
+					sync_object(*b_ob, b_index, b_dup->object(), tfm, ob_layer);
 					b_index++;
 				}
 
@@ -244,7 +246,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 			if(!hide) {
 				/* object itself */
 				Transform tfm = get_transform(b_ob->matrix_world());
-				sync_object(*b_ob, 0, *b_ob, tfm, visibility);
+				sync_object(*b_ob, 0, *b_ob, tfm, ob_layer);
 			}
 		}
 	}

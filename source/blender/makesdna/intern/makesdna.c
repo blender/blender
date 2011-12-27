@@ -928,16 +928,19 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 
 	/* insertion of all known types */
 	/* watch it: uint is not allowed! use in structs an unsigned int */
-	add_type("char", 1);	/* 0 */
-	add_type("uchar", 1);	/* 1 */
-	add_type("short", 2);	/* 2 */
-	add_type("ushort", 2);	/* 3 */
-	add_type("int", 4);		/* 4 */
-	add_type("long", 4);	/* 5 */		/* should it be 8 on 64 bits? */
-	add_type("ulong", 4);	/* 6 */
-	add_type("float", 4);	/* 7 */
-	add_type("double", 8);	/* 8 */
-	add_type("void", 0);	/* 9 */
+	/* watch it: sizes must match DNA_elem_type_size() */
+	add_type("char", 1);	/* SDNA_TYPE_CHAR */
+	add_type("uchar", 1);	/* SDNA_TYPE_UCHAR */
+	add_type("short", 2);	/* SDNA_TYPE_SHORT */
+	add_type("ushort", 2);	/* SDNA_TYPE_USHORT */
+	add_type("int", 4);		/* SDNA_TYPE_INT */
+	add_type("long", 4);	/* SDNA_TYPE_LONG */		/* should it be 8 on 64 bits? */
+	add_type("ulong", 4);	/* SDNA_TYPE_ULONG */
+	add_type("float", 4);	/* SDNA_TYPE_FLOAT */
+	add_type("double", 8);	/* SDNA_TYPE_DOUBLE */
+	add_type("int64_t", 8);	/* SDNA_TYPE_INT64 */
+	add_type("uint64_t", 8); /* SDNA_TYPE_UINT64 */
+	add_type("void", 0);	/* SDNA_TYPE_VOID */
 
 	// the defines above shouldn't be output in the padding file...
 	firststruct = nr_types;

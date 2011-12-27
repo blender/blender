@@ -368,7 +368,7 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
     int m, n, bnz, *b_colptr, i;
     int delta, maxint, nofsub, *invp;
     int *b_rowind, *dhead, *qsize, *llist, *marker;
-    double t, SuperLU_timer_();
+    /* double t, SuperLU_timer_(); */
     
     /* make gcc happy */
     b_rowind=NULL;
@@ -377,7 +377,7 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
     m = A->nrow;
     n = A->ncol;
 
-    t = SuperLU_timer_();
+    /* t = SuperLU_timer_(); */
     switch ( ispec ) {
         case 0: /* Natural ordering */
 	      for (i = 0; i < n; ++i) perm_c[i] = i;
@@ -391,8 +391,8 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
 #if ( PRNTlevel>=1 )
 	      printf("Use minimum degree ordering on A'*A.\n");
 #endif
-	      t = SuperLU_timer_() - t;
-	      /*printf("Form A'*A time = %8.3f\n", t);*/
+	      /*t = SuperLU_timer_() - t;
+	      printf("Form A'*A time = %8.3f\n", t);*/
 	      break;
         case 2: /* Minimum degree ordering on A'+A */
 	      if ( m != n ) ABORT("Matrix is not square");
@@ -401,8 +401,8 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
 #if ( PRNTlevel>=1 )
 	      printf("Use minimum degree ordering on A'+A.\n");
 #endif
-	      t = SuperLU_timer_() - t;
-	      /*printf("Form A'+A time = %8.3f\n", t);*/
+	      /*t = SuperLU_timer_() - t;
+	      printf("Form A'+A time = %8.3f\n", t);*/
 	      break;
         case 3: /* Approximate minimum degree column ordering. */
 	      get_colamd(m, n, Astore->nnz, Astore->colptr, Astore->rowind,
@@ -417,7 +417,7 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
     }
 
     if ( bnz != 0 ) {
-	t = SuperLU_timer_();
+	/* t = SuperLU_timer_(); */
 
 	/* Initialize and allocate storage for GENMMD. */
 	delta = 1; /* DELTA is a parameter to allow the choice of nodes
@@ -452,8 +452,8 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
 	SUPERLU_FREE(llist);
 	SUPERLU_FREE(marker);
 
-	t = SuperLU_timer_() - t;
-	/*  printf("call GENMMD time = %8.3f\n", t);*/
+	/* t = SuperLU_timer_() - t;
+	printf("call GENMMD time = %8.3f\n", t);*/
 
     } else { /* Empty adjacency structure */
 	for (i = 0; i < n; ++i) perm_c[i] = i;

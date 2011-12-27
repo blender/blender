@@ -1137,7 +1137,7 @@ static NLboolean __nlInvert_SUPERLU(__NLContext *context) {
 
 	/* SuperLU variables */
 	SuperMatrix B;
-	NLint info;
+	NLint info = 0;
 
 	for(j=0; j<context->nb_rhs; j++, b+=n, x+=n) {
 		/* Create superlu array for B */

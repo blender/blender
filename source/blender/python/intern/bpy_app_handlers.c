@@ -41,7 +41,7 @@ void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
 
 static PyTypeObject BlenderAppCbType;
 
-static PyStructSequence_Field app_cb_info_fields[]= {
+static PyStructSequence_Field app_cb_info_fields[] = {
 	{(char *)"frame_change_pre",  (char *)"Callback list - on frame change for playback and rendering (before)"},
 	{(char *)"frame_change_post", (char *)"Callback list - on frame change for playback and rendering (after)"},
 	{(char *)"render_pre",        (char *)"Callback list - on render (before)"},
@@ -61,11 +61,11 @@ static PyStructSequence_Field app_cb_info_fields[]= {
 	{NULL}
 };
 
-static PyStructSequence_Desc app_cb_info_desc= {
+static PyStructSequence_Desc app_cb_info_desc = {
 	(char *)"bpy.app.handlers",     /* name */
 	(char *)"This module contains callbacks",    /* doc */
 	app_cb_info_fields,    /* fields */
-	(sizeof(app_cb_info_fields)/sizeof(PyStructSequence_Field)) - 1
+	(sizeof(app_cb_info_fields) / sizeof(PyStructSequence_Field)) - 1
 };
 
 /*
@@ -86,7 +86,7 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 		return NULL;
 
 	if (PyFunction_Check(value)) {
-		PyObject **dict_ptr= _PyObject_GetDictPtr(value);
+		PyObject **dict_ptr = _PyObject_GetDictPtr(value);
 		if (dict_ptr == NULL) {
 			PyErr_SetString(PyExc_ValueError,
 			                "bpy.app.handlers.persistent wasn't able to "
@@ -96,7 +96,7 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type), PyO
 		else {
 			/* set id */
 			if (*dict_ptr == NULL) {
-				*dict_ptr= PyDict_New();
+				*dict_ptr = PyDict_New();
 			}
 
 			PyDict_SetItemString(*dict_ptr, PERMINENT_CB_ID, Py_None);
@@ -163,23 +163,23 @@ static PyTypeObject BPyPersistent_Type = {
     0,                                          /* tp_free */
 };
 
-static PyObject *py_cb_array[BLI_CB_EVT_TOT]= {NULL};
+static PyObject *py_cb_array[BLI_CB_EVT_TOT] = {NULL};
 
 static PyObject *make_app_cb_info(void)
 {
 	PyObject *app_cb_info;
-	int pos= 0;
+	int pos = 0;
 
-	app_cb_info= PyStructSequence_New(&BlenderAppCbType);
+	app_cb_info = PyStructSequence_New(&BlenderAppCbType);
 	if (app_cb_info == NULL) {
 		return NULL;
 	}
 
-	for (pos= 0; pos < BLI_CB_EVT_TOT; pos++) {
+	for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
 		if (app_cb_info_fields[pos].name == NULL) {
 			Py_FatalError("invalid callback slots 1");
 		}
-		PyStructSequence_SET_ITEM(app_cb_info, pos, (py_cb_array[pos]= PyList_New(0)));
+		PyStructSequence_SET_ITEM(app_cb_info, pos, (py_cb_array[pos] = PyList_New(0)));
 	}
 	if (app_cb_info_fields[pos + APP_CB_OTHER_FIELDS].name != NULL) {
 		Py_FatalError("invalid callback slots 2");
@@ -196,7 +196,7 @@ PyObject *BPY_app_handlers_struct(void)
 	PyObject *ret;
 
 #if defined(_MSC_VER) || defined(FREE_WINDOWS)
-	BPyPersistent_Type.ob_base.ob_base.ob_type= &PyType_Type;
+	BPyPersistent_Type.ob_base.ob_base.ob_type = &PyType_Type;
 #endif
 
 	if (PyType_Ready(&BPyPersistent_Type) < 0) {
@@ -205,24 +205,24 @@ PyObject *BPY_app_handlers_struct(void)
 
 	PyStructSequence_InitType(&BlenderAppCbType, &app_cb_info_desc);
 
-	ret= make_app_cb_info();
+	ret = make_app_cb_info();
 
 	/* prevent user from creating new instances */
-	BlenderAppCbType.tp_init= NULL;
-	BlenderAppCbType.tp_new= NULL;
-	BlenderAppCbType.tp_hash= (hashfunc)_Py_HashPointer; /* without this we can't do set(sys.modules) [#29635] */
+	BlenderAppCbType.tp_init = NULL;
+	BlenderAppCbType.tp_new = NULL;
+	BlenderAppCbType.tp_hash = (hashfunc)_Py_HashPointer; /* without this we can't do set(sys.modules) [#29635] */
 
 	/* assign the C callbacks */
 	if (ret) {
-		static bCallbackFuncStore funcstore_array[BLI_CB_EVT_TOT]= {{NULL}};
+		static bCallbackFuncStore funcstore_array[BLI_CB_EVT_TOT] = {{NULL}};
 		bCallbackFuncStore *funcstore;
-		int pos= 0;
+		int pos = 0;
 
-		for (pos= 0; pos < BLI_CB_EVT_TOT; pos++) {
-			funcstore= &funcstore_array[pos];
-			funcstore->func= bpy_app_generic_callback;
-			funcstore->alloc= 0;
-			funcstore->arg= SET_INT_IN_POINTER(pos);
+		for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
+			funcstore = &funcstore_array[pos];
+			funcstore->func = bpy_app_generic_callback;
+			funcstore->alloc = 0;
+			funcstore->arg = SET_INT_IN_POINTER(pos);
 			BLI_add_cb(funcstore, pos);
 		}
 	}
@@ -232,30 +232,30 @@ PyObject *BPY_app_handlers_struct(void)
 
 void BPY_app_handlers_reset(const short do_all)
 {
-	int pos= 0;
+	int pos = 0;
 
 	if (do_all) {
-	for (pos= 0; pos < BLI_CB_EVT_TOT; pos++) {
+	for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
 			/* clear list */
 			PyList_SetSlice(py_cb_array[pos], 0, PY_SSIZE_T_MAX, NULL);
 		}
 	}
 	else {
 		/* save string conversion thrashing */
-		PyObject *perm_id_str= PyUnicode_FromString(PERMINENT_CB_ID);
+		PyObject *perm_id_str = PyUnicode_FromString(PERMINENT_CB_ID);
 
-		for (pos= 0; pos < BLI_CB_EVT_TOT; pos++) {
+		for (pos = 0; pos < BLI_CB_EVT_TOT; pos++) {
 			/* clear only items without PERMINENT_CB_ID */
-			PyObject *ls= py_cb_array[pos];
+			PyObject *ls = py_cb_array[pos];
 			Py_ssize_t i;
 
 			PyObject *item;
 			PyObject **dict_ptr;
 
-			for (i= PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
+			for (i = PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
 
-				if ( (PyFunction_Check((item= PyList_GET_ITEM(ls, i)))) &&
-				     (dict_ptr= _PyObject_GetDictPtr(item)) &&
+				if ( (PyFunction_Check((item = PyList_GET_ITEM(ls, i)))) &&
+				     (dict_ptr = _PyObject_GetDictPtr(item)) &&
 				     (*dict_ptr) &&
 				     (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
 				{
@@ -276,12 +276,12 @@ void BPY_app_handlers_reset(const short do_all)
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *arg)
 {
-	PyObject *cb_list= py_cb_array[GET_INT_FROM_POINTER(arg)];
+	PyObject *cb_list = py_cb_array[GET_INT_FROM_POINTER(arg)];
 	Py_ssize_t cb_list_len;
-	if ((cb_list_len= PyList_GET_SIZE(cb_list)) > 0) {
-		PyGILState_STATE gilstate= PyGILState_Ensure();
+	if ((cb_list_len = PyList_GET_SIZE(cb_list)) > 0) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
 
-		PyObject* args= PyTuple_New(1); // save python creating each call
+		PyObject* args = PyTuple_New(1); // save python creating each call
 		PyObject* func;
 		PyObject* ret;
 		Py_ssize_t pos;
@@ -298,10 +298,10 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 		}
 
 		// Iterate the list and run the callbacks
-		for (pos=0; pos < cb_list_len; pos++) {
-			func= PyList_GET_ITEM(cb_list, pos);
-			ret= PyObject_Call(func, args, NULL);
-			if (ret==NULL) {
+		for (pos = 0; pos < cb_list_len; pos++) {
+			func = PyList_GET_ITEM(cb_list, pos);
+			ret = PyObject_Call(func, args, NULL);
+			if (ret == NULL) {
 				PyErr_Print();
 				PyErr_Clear();
 			}

@@ -465,6 +465,20 @@ static int rna_Property_description_length(PointerRNA *ptr)
 	return prop->description ? strlen(prop->description) : 0;
 }
 
+static void rna_Property_translation_context_get(PointerRNA *ptr, char *value)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	strcpy(value, prop->translation_context ? prop->translation_context:"");
+}
+
+static int rna_Property_translation_context_length(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return prop->translation_context ? strlen(prop->translation_context) : 0;
+}
+
 static int rna_Property_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -1046,6 +1060,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_description_get", "rna_Property_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the property for tooltips");
+
+	prop= RNA_def_property(srna, "translation_context", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Property_translation_context_get", "rna_Property_translation_context_length", NULL);
+	RNA_def_property_ui_text(prop, "Translation Context", "Translation context of the property");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

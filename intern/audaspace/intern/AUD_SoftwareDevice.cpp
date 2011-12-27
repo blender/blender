@@ -121,7 +121,9 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 
 		if(flags & AUD_RENDER_DISTANCE)
 		{
-			if(m_device->m_distance_model == AUD_DISTANCE_MODEL_INVERSE_CLAMPED || m_device->m_distance_model == AUD_DISTANCE_MODEL_LINEAR_CLAMPED || m_device->m_distance_model == AUD_DISTANCE_MODEL_EXPONENT_CLAMPED)
+			if(m_device->m_distance_model == AUD_DISTANCE_MODEL_INVERSE_CLAMPED ||
+			   m_device->m_distance_model == AUD_DISTANCE_MODEL_LINEAR_CLAMPED ||
+			   m_device->m_distance_model == AUD_DISTANCE_MODEL_EXPONENT_CLAMPED)
 			{
 				distance = AUD_MAX(AUD_MIN(m_distance_max, distance), m_distance_reference);
 			}

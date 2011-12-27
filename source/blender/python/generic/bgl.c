@@ -1304,6 +1304,7 @@ PyObject *BPyInit_bgl(void)
 
 
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
+	Py_INCREF((PyObject *)&BGL_bufferType);
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyLong_FromLong((int)x)); Py_DECREF(item)
 

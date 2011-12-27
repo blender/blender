@@ -592,7 +592,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 {
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
-	int a, iCalcNewMethod;
+	int a;
 
 	if(do_nmap_tangent) {
 		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "nmap tangent arena");
@@ -680,8 +680,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
-	iCalcNewMethod = 1;
-	if(iCalcNewMethod!=0 && do_nmap_tangent!=0)
+	if(do_nmap_tangent!=0)
 	{
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
@@ -701,10 +700,8 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		sInterface.m_getNormal = GetNormal;
 		sInterface.m_setTSpaceBasic = SetTSpace;
 
-		// 0 if failed
-		iCalcNewMethod = genTangSpaceDefault(&sContext);
+		genTangSpaceDefault(&sContext);
 	}
-
 
 	if(arena)
 		BLI_memarena_free(arena);
@@ -1068,7 +1065,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 
 		mul_v3_fl(cross, width);
 	}
-	else width= 1.0f;
 	
 	if(ma->mode & MA_TANGENT_STR)
 		flag= R_SMOOTH|R_TANGENT;
@@ -3060,17 +3056,19 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 /* ------------------------------------------------------------------------- */
 
 struct edgesort {
-	int v1, v2;
+	unsigned int v1, v2;
 	int f;
-	int i1, i2;
+	unsigned int i1, i2;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, int f)
+static void to_edgesort(struct edgesort *ed,
+                        unsigned int i1, unsigned int i2,
+                        unsigned int v1, unsigned int v2, int f)
 {
-	if(v1>v2) {
-		SWAP(int, v1, v2);
-		SWAP(int, i1, i2);
+	if (v1 > v2) {
+		SWAP(unsigned int, v1, v2);
+		SWAP(unsigned int, i1, i2);
 	}
 
 	ed->v1= v1;

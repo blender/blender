@@ -45,6 +45,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "gpu_codegen.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -85,6 +86,8 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 
 /* GPU Extensions */
 
+static int gpu_extensions_init = 0;
+
 void GPU_extensions_disable(void)
 {
 	GG.extdisabled = 1;
@@ -96,11 +99,11 @@ void GPU_extensions_init(void)
 	const char *vendor, *renderer;
 
 	/* can't avoid calling this multiple times, see wm_window_add_ghostwindow */
-	static char init= 0;
-	if(init) return;
-	init= 1;
+	if(gpu_extensions_init) return;
+	gpu_extensions_init= 1;
 
 	glewInit();
+	GPU_codegen_init();
 
 	/* glewIsSupported("GL_VERSION_2_0") */
 
@@ -111,8 +114,6 @@ void GPU_extensions_init(void)
 	if (!GLEW_ARB_multitexture) GG.glslsupport = 0;
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
-
-	GPU_code_generate_glsl_lib();
 
 	glGetIntegerv(GL_RED_BITS, &r);
 	glGetIntegerv(GL_GREEN_BITS, &g);
@@ -186,6 +187,12 @@ void GPU_extensions_init(void)
 #ifdef __APPLE__
 	GG.os = GPU_OS_MAC;
 #endif
+}
+
+void GPU_extensions_exit(void)
+{
+	gpu_extensions_init = 0;
+	GPU_codegen_exit();
 }
 
 int GPU_glsl_support(void)

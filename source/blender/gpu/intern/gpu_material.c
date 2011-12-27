@@ -972,7 +972,6 @@ static void do_material_tex(GPUShadeInput *shi)
 				GPU_link(mat, "mtex_mapping_ofs", texco, GPU_uniform(ofs), &texco);
 
 			talpha = 0;
-			rgbnor = 0;
 
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
 				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser), &tin, &trgb);

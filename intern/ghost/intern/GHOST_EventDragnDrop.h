@@ -44,19 +44,21 @@ extern "C" {
  * 
  * The dragging sequence is performed in four phases:
  * 
- * <li> Start sequence (GHOST_kEventDraggingEntered) that tells a drag'n'drop operation has started. Already gives the object data type,
- * and the entering mouse location
+ * <li> Start sequence (GHOST_kEventDraggingEntered) that tells a drag'n'drop operation has started.
+ * Already gives the object data type, and the entering mouse location
  *
- * <li> Update mouse position (GHOST_kEventDraggingUpdated) sent upon each mouse move until the drag'n'drop operation stops, to give the updated mouse position.
- * Useful to highlight a potential destination, and update the status (through GHOST_setAcceptDragOperation) telling if the object can be dropped at
+ * <li> Update mouse position (GHOST_kEventDraggingUpdated) sent upon each mouse move until the drag'n'drop operation
+ * stops, to give the updated mouse position. Useful to highlight a potential destination, and update the status
+ * (through GHOST_setAcceptDragOperation) telling if the object can be dropped at
  * the current cursor position.
  *
  * <li> Abort drag'n'drop sequence (GHOST_kEventDraggingExited) sent when the user moved the mouse outside the window.
  *
  * <li> Send the dropped data (GHOST_kEventDraggingDropDone)
  *
- * <li> Outside of the normal sequence, dropped data can be sent (GHOST_kEventDraggingDropOnIcon). This can happen when the user drops an object
- * on the application icon. (Also used in OSX to pass the filename of the document the user doubled-clicked in the finder)
+ * <li> Outside of the normal sequence, dropped data can be sent (GHOST_kEventDraggingDropOnIcon).
+ * This can happen when the user drops an object on the application icon.
+ * (Also used in OSX to pass the filename of the document the user doubled-clicked in the finder)
  *
  * <br><br>Note that the mouse positions are given in Blender coordinates (y=0 at bottom)
  *
@@ -78,7 +80,10 @@ public:
 	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
 	 * @param data		The "content" dropped in the window
 	 */
-	GHOST_EventDragnDrop(GHOST_TUns64 time, GHOST_TEventType type, GHOST_TDragnDropTypes dataType, GHOST_IWindow* window,
+	GHOST_EventDragnDrop(GHOST_TUns64 time,
+	                     GHOST_TEventType type,
+	                     GHOST_TDragnDropTypes dataType,
+	                     GHOST_IWindow* window,
 						 int x, int y, GHOST_TEventDataPtr data)
 		: GHOST_Event(time, type, window)
 	{

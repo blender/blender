@@ -100,7 +100,10 @@ enum PathTraceDimension {
 
 /* these flag values correspond exactly to OSL defaults, so be careful not to
  * change this, or if you do, set the "raytypes" shading system attribute with
- * your own new ray types and bitflag values */
+ * your own new ray types and bitflag values.
+ *
+ * for ray visibility tests in BVH traversal, the upper 20 bits are used for
+ * layer visibility tests. */
 
 enum PathRayFlag {
 	PATH_RAY_CAMERA = 1,
@@ -117,7 +120,9 @@ enum PathRayFlag {
 
 	PATH_RAY_MIS_SKIP = 512,
 
-	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512)
+	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
+
+	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
 /* Closure Label */
@@ -383,10 +388,12 @@ typedef struct KernelIntegrator {
 
 	/* caustics */
 	int no_caustics;
-	float blur_caustics;
 
 	/* seed */
 	int seed;
+
+	/* render layer */
+	int layer_flag;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

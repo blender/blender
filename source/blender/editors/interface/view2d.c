@@ -177,7 +177,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 		
 		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 		switch (type) {
-			/* 'standard view' - optimum setup for 'standard' view behaviour, that should be used new views as basis for their
+			/* 'standard view' - optimum setup for 'standard' view behaviour,
+			 *  that should be used new views as basis for their
 			 * 	own unique View2D settings, which should be used instead of this in most cases...
 			 */
 			case V2D_COMMONVIEW_STANDARD:

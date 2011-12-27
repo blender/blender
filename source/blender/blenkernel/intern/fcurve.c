@@ -1414,10 +1414,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 	DRIVER_TARGETS_LOOPER_END
 	
 	/* remove the variable from the driver */
-	if (driver)
-		BLI_freelinkN(&driver->variables, dvar);
-	else
-		MEM_freeN(dvar);
+	BLI_freelinkN(&driver->variables, dvar);
 
 #ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */

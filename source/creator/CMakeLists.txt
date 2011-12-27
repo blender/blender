@@ -532,7 +532,6 @@ elseif(WIN32)
 		install(
 			FILES
 				${LIBDIR}/openal/lib/OpenAL32.dll
-				${LIBDIR}/openal/lib/wrap_oal.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()

@@ -34,35 +34,42 @@
 #define _GHOST_DEBUG_H_
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
-	#ifdef DEBUG
-		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-		// #define GHOST_DEBUG
-	#endif // DEBUG
+#  ifdef DEBUG
+#    pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+     // #define GHOST_DEBUG
+#  endif // DEBUG
 #endif // WIN32
 
 #ifdef WITH_GHOST_DEBUG 
-	#define GHOST_DEBUG // spit ghost events to stdout
+#  define GHOST_DEBUG // spit ghost events to stdout
 #endif // WITH_GHOST_DEBUG 
 
 #ifdef GHOST_DEBUG
-	#include <iostream>
-	#include <stdio.h> //for printf()
+#  include <iostream>
+#  include <stdio.h> //for printf()
 #endif // GHOST_DEBUG
 
 
 #ifdef GHOST_DEBUG
-	#define GHOST_PRINT(x) { std::cout << x; }
-	#define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); }
+#  define GHOST_PRINT(x) { std::cout << x; }
+#  define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); }
 #else  // GHOST_DEBUG
-	#define GHOST_PRINT(x)
-	#define GHOST_PRINTF(x, ...)
+#  define GHOST_PRINT(x)
+#  define GHOST_PRINTF(x, ...)
 #endif // GHOST_DEBUG
 
 
 #ifdef GHOST_DEBUG
-	#define GHOST_ASSERT(x, info) { if (!(x)) {GHOST_PRINT("assertion failed: "); GHOST_PRINT(info); GHOST_PRINT("\n"); } }
+#  define GHOST_ASSERT(x, info)                                               \
+	{                                                                         \
+	    if (!(x)) {                                                           \
+	        GHOST_PRINT("assertion failed: ");                                \
+	        GHOST_PRINT(info);                                                \
+	        GHOST_PRINT("\n");                                                \
+	    }                                                                     \
+	}
 #else  // GHOST_DEBUG
-	#define GHOST_ASSERT(x, info)
+#  define GHOST_ASSERT(x, info)
 #endif // GHOST_DEBUG
 
 #endif // _GHOST_DEBUG_H_

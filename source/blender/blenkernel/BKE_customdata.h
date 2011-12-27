@@ -38,10 +38,12 @@
 extern "C" {
 #endif
 
+#include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
+
 struct ID;
 struct CustomData;
 struct CustomDataLayer;
-typedef unsigned int CustomDataMask;
+typedef uint64_t CustomDataMask;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
@@ -64,6 +66,8 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
 						   has same number of elements */
+
+#define CD_TYPE_AS_MASK(_type) (CustomDataMask)(1 << (CustomDataMask)(_type))
 
 /* initialises a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates

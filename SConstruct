@@ -756,7 +756,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
     if env['WITH_BF_OPENAL']:
         dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
-        dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
 
     if env['WITH_BF_SNDFILE']:
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')

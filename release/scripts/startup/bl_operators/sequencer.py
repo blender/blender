@@ -60,14 +60,14 @@ class SequencerCrossfadeSounds(Operator):
         if seq1.frame_final_end > seq2.frame_final_start:
             tempcfra = context.scene.frame_current
             context.scene.frame_current = seq2.frame_final_start
-            seq1.keyframe_insert('volume')
+            seq1.keyframe_insert("volume")
             context.scene.frame_current = seq1.frame_final_end
             seq1.volume = 0
-            seq1.keyframe_insert('volume')
-            seq2.keyframe_insert('volume')
+            seq1.keyframe_insert("volume")
+            seq2.keyframe_insert("volume")
             context.scene.frame_current = seq2.frame_final_start
             seq2.volume = 0
-            seq2.keyframe_insert('volume')
+            seq2.keyframe_insert("volume")
             context.scene.frame_current = tempcfra
             return {'FINISHED'}
         else:

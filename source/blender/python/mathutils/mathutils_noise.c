@@ -199,8 +199,8 @@ static float frand(void)
 /* Fills an array of length size with random numbers in the range (-1, 1)*/
 static void rand_vn(float *array_tar, const int size)
 {
-	float *array_pt= array_tar + (size-1);
-	int i= size;
+	float *array_pt = array_tar + (size-1);
+	int i = size;
 	while (i--) { *(array_pt--) = 2.0f * frand() - 1.0f; }
 }
 
@@ -208,9 +208,9 @@ static void rand_vn(float *array_tar, const int size)
 static void noise_vector(float x, float y, float z, int nb, float v[3])
 {
 	/* Simply evaluate noise at 3 different positions */
-	v[0]= (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0, nb) - 1.0f);
-	v[1]= (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
-	v[2]= (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0, nb) - 1.0f);
+	v[0] = (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0, nb) - 1.0f);
+	v[1] = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
+	v[2] = (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0, nb) - 1.0f);
 }
 
 /* Returns a turbulence value for a given position (x, y, z) */
@@ -301,9 +301,9 @@ PyDoc_STRVAR(M_Noise_random_unit_vector_doc,
 );
 static PyObject *M_Noise_random_unit_vector(PyObject *UNUSED(self), PyObject *args)
 {
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
-	float norm= 2.0f;
-	int size= 3;
+	float vec[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float norm = 2.0f;
+	int size = 3;
 
 	if (!PyArg_ParseTuple(args, "|i:random_vector", &size))
 		return NULL;
@@ -313,9 +313,9 @@ static PyObject *M_Noise_random_unit_vector(PyObject *UNUSED(self), PyObject *ar
 		return NULL;
 	}
 
-	while (norm==0.0f || norm>=1.0f) {
+	while (norm == 0.0f || norm >= 1.0f) {
 		rand_vn(vec, size);
-		norm= normalize_vn(vec, size);
+		norm = normalize_vn(vec, size);
 	}
 
 	return Vector_CreatePyObject(vec, size, Py_NEW, NULL);
@@ -384,7 +384,7 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args)
 {
 	PyObject *value;
 	float vec[3];
-	int nb= 1;
+	int nb = 1;
 	if (!PyArg_ParseTuple(args, "O|i:noise", &value, &nb))
 		return NULL;
 
@@ -410,7 +410,7 @@ static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	PyObject *value;
 	float vec[3], r_vec[3];
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "O|i:noise_vector", &value, &nb))
 		return NULL;
@@ -447,8 +447,8 @@ static PyObject *M_Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
 {
 	PyObject *value;
 	float vec[3];
-	int oct, hd, nb= 1;
-	float as= 0.5f, fs= 2.0f;
+	int oct, hd, nb = 1;
+	float as = 0.5f, fs = 2.0f;
 
 	if (!PyArg_ParseTuple(args, "Oii|iff:turbulence", &value, &oct, &hd, &nb, &as, &fs))
 		return NULL;
@@ -483,8 +483,8 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
 {
 	PyObject *value;
 	float vec[3], r_vec[3];
-	int oct, hd, nb= 1;
-	float as =0.5f, fs= 2.0f;
+	int oct, hd, nb = 1;
+	float as =0.5f, fs = 2.0f;
 	if (!PyArg_ParseTuple(args, "Oii|iff:turbulence_vector", &value, &oct, &hd, &nb, &as, &fs))
 		return NULL;
 
@@ -519,7 +519,7 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args)
 	PyObject *value;
 	float vec[3];
 	float H, lac, oct;
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "Offf|i:fractal", &value, &H, &lac, &oct, &nb))
 		return NULL;
@@ -553,7 +553,7 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args)
 	PyObject *value;
 	float vec[3];
 	float H, lac, oct;
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "Offf|i:multi_fractal", &value, &H, &lac, &oct, &nb))
 		return NULL;
@@ -585,7 +585,7 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
 	PyObject *value;
 	float vec[3];
 	float d;
-	int nt1= 1, nt2= 1;
+	int nt1 = 1, nt2 = 1;
 
 	if (!PyArg_ParseTuple(args, "Of|ii:variable_lacunarity", &value, &d, &nt1, &nt2))
 		return NULL;
@@ -621,7 +621,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args)
 	PyObject *value;
 	float vec[3];
 	float H, lac, oct, ofs;
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "Offff|i:hetero_terrain", &value, &H, &lac, &oct, &ofs, &nb))
 		return NULL;
@@ -659,7 +659,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
 	PyObject *value;
 	float vec[3];
 	float H, lac, oct, ofs, gn;
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "Offfff|i:hybrid_multi_fractal", &value, &H, &lac, &oct, &ofs, &gn, &nb))
 		return NULL;
@@ -697,7 +697,7 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
 	PyObject *value;
 	float vec[3];
 	float H, lac, oct, ofs, gn;
-	int nb= 1;
+	int nb = 1;
 
 	if (!PyArg_ParseTuple(args, "Offfff|i:ridged_multi_fractal", &value, &H, &lac, &oct, &ofs, &gn, &nb))
 		return NULL;
@@ -728,8 +728,8 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	PyObject *list;
 	float vec[3];
 	float da[4], pa[12];
-	int dtype= 0;
-	float me= 2.5f;		/* default minkovsky exponent */
+	int dtype = 0;
+	float me = 2.5f;		/* default minkovsky exponent */
 
 	int i;
 
@@ -739,12 +739,12 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	if (mathutils_array_parse(vec, 3, 3, value, "voronoi: invalid 'position' arg") == -1)
 		return NULL;
 
-	list= PyList_New(4);
+	list = PyList_New(4);
 
 	voronoi(vec[0], vec[1], vec[2], da, pa, me, dtype);
 
-	for (i=0; i<4; i++) {
-		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3*i, 3, Py_NEW, NULL));
+	for (i = 0; i < 4; i++) {
+		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3 * i, 3, Py_NEW, NULL));
 	}
 
 	return Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
@@ -841,11 +841,11 @@ PyMODINIT_FUNC PyInit_mathutils_noise(void)
 	/* use current time as seed for random number generator by default */
 	setRndSeed(0);
 
-	PyModule_AddObject(submodule, "types", (item_types=PyInit_mathutils_noise_types()));
+	PyModule_AddObject(submodule, "types", (item_types = PyInit_mathutils_noise_types()));
 	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.types", item_types);
 	Py_INCREF(item_types);
 
-	PyModule_AddObject(submodule, "distance_metrics", (item_metrics=PyInit_mathutils_noise_metrics()));
+	PyModule_AddObject(submodule, "distance_metrics", (item_metrics = PyInit_mathutils_noise_metrics()));
 	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.distance_metrics", item_metrics);
 	Py_INCREF(item_metrics);
 

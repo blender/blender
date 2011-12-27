@@ -9,9 +9,6 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 {
 
 
-    /* System generated locals */
-    int i__1, i__2;
-
     /* Local variables */
     static int info;
     static float temp;
@@ -213,14 +210,12 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 	    }
 	} else {
 	    if (*incx == 1) {
-		i__1 = *n;
 		for (j = 1; j <= *n; ++j) {
 		    if (X(j) != 0.f) {
 			if (nounit) {
 			    X(j) /= A(j,j);
 			}
 			temp = X(j);
-			i__2 = *n;
 			for (i = j + 1; i <= *n; ++i) {
 			    X(i) -= temp * A(i,j);
 /* L50: */
@@ -230,7 +225,6 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 		}
 	    } else {
 		jx = kx;
-		i__1 = *n;
 		for (j = 1; j <= *n; ++j) {
 		    if (X(jx) != 0.f) {
 			if (nounit) {
@@ -238,7 +232,6 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 			}
 			temp = X(jx);
 			ix = jx;
-			i__2 = *n;
 			for (i = j + 1; i <= *n; ++i) {
 			    ix += *incx;
 			    X(ix) -= temp * A(i,j);
@@ -256,10 +249,8 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 
 	if (lsame_(uplo, "U")) {
 	    if (*incx == 1) {
-		i__1 = *n;
 		for (j = 1; j <= *n; ++j) {
 		    temp = X(j);
-		    i__2 = j - 1;
 		    for (i = 1; i <= j-1; ++i) {
 			temp -= A(i,j) * X(i);
 /* L90: */
@@ -272,11 +263,9 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 		}
 	    } else {
 		jx = kx;
-		i__1 = *n;
 		for (j = 1; j <= *n; ++j) {
 		    temp = X(jx);
 		    ix = kx;
-		    i__2 = j - 1;
 		    for (i = 1; i <= j-1; ++i) {
 			temp -= A(i,j) * X(ix);
 			ix += *incx;
@@ -294,7 +283,6 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 	    if (*incx == 1) {
 		for (j = *n; j >= 1; --j) {
 		    temp = X(j);
-		    i__1 = j + 1;
 		    for (i = *n; i >= j+1; --i) {
 			temp -= A(i,j) * X(i);
 /* L130: */
@@ -311,7 +299,6 @@ int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
 		for (j = *n; j >= 1; --j) {
 		    temp = X(jx);
 		    ix = kx;
-		    i__1 = j + 1;
 		    for (i = *n; i >= j+1; --i) {
 			temp -= A(i,j) * X(ix);
 			ix -= *incx;

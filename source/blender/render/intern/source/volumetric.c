@@ -746,7 +746,6 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float tr[3] = {1.0,1.0,1.0};
 	Isect is= {{0}};
 	float *startco, *endco;
-	int intersect_type = VOL_BOUNDS_DEPTH;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -755,12 +754,11 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	if (shi->flippednor) {
 		startco = last_is->start;
 		endco = shi->co;
-		intersect_type = VOL_BOUNDS_SS;
 	}
 	
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, intersect_type)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
 		startco = shi->co;
 		endco = hitco;
 	}
