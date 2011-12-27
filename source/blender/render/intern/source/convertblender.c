@@ -3056,17 +3056,19 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 /* ------------------------------------------------------------------------- */
 
 struct edgesort {
-	int v1, v2;
+	unsigned int v1, v2;
 	int f;
-	int i1, i2;
+	unsigned int i1, i2;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, int f)
+static void to_edgesort(struct edgesort *ed,
+                        unsigned int i1, unsigned int i2,
+                        unsigned int v1, unsigned int v2, int f)
 {
-	if(v1>v2) {
-		SWAP(int, v1, v2);
-		SWAP(int, i1, i2);
+	if (v1 > v2) {
+		SWAP(unsigned int, v1, v2);
+		SWAP(unsigned int, i1, i2);
 	}
 
 	ed->v1= v1;

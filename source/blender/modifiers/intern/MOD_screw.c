@@ -145,12 +145,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int mface_index=0;
 	int step;
 	int i, j;
-	int i1,i2;
+	unsigned int i1, i2;
 	int step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
 	int maxVerts=0, maxEdges=0, maxFaces=0;
-	int totvert= dm->getNumVerts(dm);
-	int totedge= dm->getNumEdges(dm);
+	const unsigned int totvert= dm->getNumVerts(dm);
+	const unsigned int totedge= dm->getNumEdges(dm);
 
 	char axis_char= 'X', close;
 	float angle= ltmd->angle;
@@ -571,7 +571,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 									if (lt_iter.v == lt_iter.e->v1) {
 										if (ed_loop_flip == 0) {
 											/*printf("\t\t\tFlipping 0\n");*/
-											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
+											SWAP(unsigned int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
 											printf("\t\t\tFlipping Not 0\n");
 										}*/
@@ -579,7 +579,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 									else if (lt_iter.v == lt_iter.e->v2) {
 										if (ed_loop_flip == 1) {
 											/*printf("\t\t\tFlipping 1\n");*/
-											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
+											SWAP(unsigned int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
 											printf("\t\t\tFlipping Not 1\n");
 										}*/
@@ -771,8 +771,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP(int, mf_new->v1, mf_new->v3);
-				SWAP(int, mf_new->v2, mf_new->v4);
+				SWAP(unsigned int, mf_new->v1, mf_new->v3);
+				SWAP(unsigned int, mf_new->v2, mf_new->v4);
 			}
 			mf_new->flag= ME_SMOOTH;
 			origindex[mface_index]= ORIGINDEX_NONE;
@@ -807,8 +807,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 
 			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP(int, mf_new->v1, mf_new->v3);
-				SWAP(int, mf_new->v2, mf_new->v4);
+				SWAP(unsigned int, mf_new->v1, mf_new->v3);
+				SWAP(unsigned int, mf_new->v2, mf_new->v4);
 			}
 			mf_new->flag= ME_SMOOTH;
 			origindex[mface_index]= ORIGINDEX_NONE;

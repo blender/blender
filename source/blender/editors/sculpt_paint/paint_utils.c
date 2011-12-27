@@ -129,12 +129,13 @@ void paint_calc_redraw_planes(float planes[4][4],
 	view3d_get_transformation(ar, rv3d, ob, &mats);
 
 	/* use some extra space just in case */
+	rect = *screen_rect;
 	rect.xmin -= 2;
 	rect.xmax += 2;
 	rect.ymin -= 2;
 	rect.ymax += 2;
 
-	ED_view3d_calc_clipping(&bb, planes, &mats, screen_rect);
+	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
 	mul_m4_fl(planes, -1.0f);
 }
 

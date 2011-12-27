@@ -803,8 +803,8 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		if(mface->v3==0) {
 			static int corner_indices[4] = {1, 2, 0, 3};
 
-			SWAP(int, mface->v1, mface->v2);
-			SWAP(int, mface->v2, mface->v3);
+			SWAP(unsigned int, mface->v1, mface->v2);
+			SWAP(unsigned int, mface->v2, mface->v3);
 
 			if(fdata)
 				CustomData_swap(fdata, mfindex, corner_indices);
@@ -814,8 +814,8 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		if(mface->v3==0 || mface->v4==0) {
 			static int corner_indices[4] = {2, 3, 0, 1};
 
-			SWAP(int, mface->v1, mface->v3);
-			SWAP(int, mface->v2, mface->v4);
+			SWAP(unsigned int, mface->v1, mface->v3);
+			SWAP(unsigned int, mface->v2, mface->v4);
 
 			if(fdata)
 				CustomData_swap(fdata, mfindex, corner_indices);
@@ -857,12 +857,14 @@ void set_mesh(Object *ob, Mesh *me)
 /* ************** make edges in a Mesh, for outside of editmode */
 
 struct edgesort {
-	int v1, v2;
+	unsigned int v1, v2;
 	short is_loose, is_draw;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int v1, int v2, short is_loose, short is_draw)
+static void to_edgesort(struct edgesort *ed,
+                        unsigned int v1, unsigned int v2,
+                        short is_loose, short is_draw)
 {
 	if(v1<v2) {
 		ed->v1= v1; ed->v2= v2;
@@ -968,7 +970,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 			/* order is swapped so extruding this edge as a surface wont flip face normals
 			 * with cyclic curves */
 			if(ed->v1+1 != ed->v2) {
-				SWAP(int, medge->v1, medge->v2);
+				SWAP(unsigned int, medge->v1, medge->v2);
 			}
 			medge++;
 		}
@@ -1434,17 +1436,17 @@ typedef struct EdgeLink {
 
 typedef struct VertLink {
 	Link *next, *prev;
-	int index;
+	unsigned int index;
 } VertLink;
 
-static void prependPolyLineVert(ListBase *lb, int index)
+static void prependPolyLineVert(ListBase *lb, unsigned int index)
 {
 	VertLink *vl= MEM_callocN(sizeof(VertLink), "VertLink");
 	vl->index = index;
 	BLI_addhead(lb, vl);
 }
 
-static void appendPolyLineVert(ListBase *lb, int index)
+static void appendPolyLineVert(ListBase *lb, unsigned int index)
 {
 	VertLink *vl= MEM_callocN(sizeof(VertLink), "VertLink");
 	vl->index = index;
@@ -1516,8 +1518,8 @@ void mesh_to_curve(Scene *scene, Object *ob)
 			int closed = FALSE;
 			int totpoly= 0;
 			MEdge *med_current= ((EdgeLink *)edges.last)->edge;
-			int startVert= med_current->v1;
-			int endVert= med_current->v2;
+			unsigned int startVert= med_current->v1;
+			unsigned int endVert= med_current->v2;
 			int ok= TRUE;
 
 			appendPolyLineVert(&polyline, startVert);	totpoly++;
