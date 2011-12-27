@@ -660,7 +660,7 @@ elseif(WIN32)
 	if(WITH_OPENAL)
 		set(OPENAL ${LIBDIR}/openal)
 		set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
-		set(OPENAL_LIBRARY wrap_oal)
+		set(OPENAL_LIBRARY OpenAL32)
 		set(OPENAL_LIBPATH ${OPENAL}/lib)
 	endif()
 
