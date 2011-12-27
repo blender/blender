@@ -2781,28 +2781,34 @@ static void draw_em_indices(EditMesh *em)
 
 	/* For now, reuse appropriate theme colors from stats text colors */
 
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-	for (v = em->verts.first, i = 0; v; v = v->next, i++) {
-		if (v->f & SELECT) {
-			sprintf(val, "%d", i);
-			view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+		for (v = em->verts.first, i = 0; v; v = v->next, i++) {
+			if (v->f & SELECT) {
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
 		}
 	}
 
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
-	for (e = em->edges.first, i = 0; e; e = e->next, i++) {
-		if (e->f & SELECT) {
-			sprintf(val, "%d", i);
-			mid_v3_v3v3(pos, e->v1->co, e->v2->co);
-			view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+		for (e = em->edges.first, i = 0; e; e = e->next, i++) {
+			if (e->f & SELECT) {
+				sprintf(val, "%d", i);
+				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
 		}
 	}
 
-	UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
-	for (f = em->faces.first, i = 0; f; f = f->next, i++) {
-		if (f->f & SELECT) {
-			sprintf(val, "%d", i);
-			view3d_cached_text_draw_add(f->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+	if (em->selectmode & SCE_SELECT_FACE) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+		for (f = em->faces.first, i = 0; f; f = f->next, i++) {
+			if (f->f & SELECT) {
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(f->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
 		}
 	}
 }
