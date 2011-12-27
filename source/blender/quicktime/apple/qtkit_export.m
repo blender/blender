@@ -110,21 +110,22 @@ static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 	{k422YpCbCr10CodecType, 3, "Uncompressed 10-bit 4:2:2"},
 	{kComponentVideoCodecType, 4, "Component Video"},
 	{kPixletCodecType, 5, "Pixlet"},
-	{kJPEGCodecType, 6, "JPEG"},
-	{kMotionJPEGACodecType, 7, "M-JPEG A"},
-	{kMotionJPEGBCodecType, 8, "M-JPEG B"},
-	{kDVCPALCodecType, 9, "DV PAL"},
-	{kDVCNTSCCodecType, 10, "DV/DVCPRO NTSC"},
-	{kDVCPROHD720pCodecType, 11, "DVCPRO HD 720p"},
-	{kDVCPROHD1080i50CodecType, 12, "DVCPRO HD 1080i50"},
-	{kDVCPROHD1080i60CodecType, 13, "DVCPRO HD 1080i60"},
-	{kMPEG4VisualCodecType, 14, "MPEG4"},
-	{kH263CodecType, 15, "H.263"},
-	{kH264CodecType, 16, "H.264"},
-	{kAnimationCodecType, 17, "Animation"},
+	{kPNGCodecType, 6, "PNG"},
+	{kJPEGCodecType, 7, "JPEG"},
+	{kMotionJPEGACodecType, 8, "M-JPEG A"},
+	{kMotionJPEGBCodecType, 9, "M-JPEG B"},
+	{kDVCPALCodecType, 10, "DV PAL"},
+	{kDVCNTSCCodecType, 11, "DV/DVCPRO NTSC"},
+	{kDVCPROHD720pCodecType, 12, "DVCPRO HD 720p"},
+	{kDVCPROHD1080i50CodecType, 13, "DVCPRO HD 1080i50"},
+	{kDVCPROHD1080i60CodecType, 14, "DVCPRO HD 1080i60"},
+	{kMPEG4VisualCodecType, 15, "MPEG4"},
+	{kH263CodecType, 16, "H.263"},
+	{kH264CodecType, 17, "H.264"},
+	{kAnimationCodecType, 18, "Animation"},
 	{0,0,NULL}};
 
-static int qtVideoCodecCount = 17;
+static int qtVideoCodecCount = 18;
 
 int quicktime_get_num_videocodecs() {
 	return qtVideoCodecCount;
