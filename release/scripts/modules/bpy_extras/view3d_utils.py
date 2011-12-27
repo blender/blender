@@ -42,6 +42,7 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     """
     from mathutils import Vector
 
+    viewinv = rv3d.view_matrix.inverted()
     if rv3d.is_perspective:
         persinv = rv3d.perspective_matrix.inverted()
 
@@ -50,13 +51,11 @@ def region_2d_to_vector_3d(region, rv3d, coord):
                       -0.5
                     ))
 
-        w = ((out[0] * persinv[0][3]) +
-             (out[1] * persinv[1][3]) +
-             (out[2] * persinv[2][3]) + persinv[3][3])
+        w = out.dot(persinv[3].xyz) + persinv[3][3]
 
-        return ((persinv * out) / w) - rv3d.view_matrix.inverted()[3].xyz
+        return ((persinv * out) / w) - viewinv.translation
     else:
-        return rv3d.view_matrix.inverted()[2].xyz.normalized()
+        return viewinv.col[2].xyz.normalized()
 
 
 def region_2d_to_location_3d(region, rv3d, coord, depth_location):
@@ -81,15 +80,16 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     from mathutils.geometry import intersect_point_line
 
     persmat = rv3d.perspective_matrix.copy()
+    viewinv = rv3d.view_matrix.inverted()
     coord_vec = region_2d_to_vector_3d(region, rv3d, coord)
     depth_location = Vector(depth_location)
 
     if rv3d.is_perspective:
         from mathutils.geometry import intersect_line_plane
 
-        origin_start = rv3d.view_matrix.inverted()[3].to_3d()
+        origin_start = viewinv.translation.copy()
         origin_end = origin_start + coord_vec
-        view_vec = rv3d.view_matrix.inverted()[2]
+        view_vec = viewinv.col[2].copy()
         return intersect_line_plane(origin_start,
                                     origin_end,
                                     depth_location,
@@ -100,8 +100,9 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
         dy = (2.0 * coord[1] / region.height) - 1.0
         persinv = persmat.inverted()
         viewinv = rv3d.view_matrix.inverted()
-        origin_start = ((persinv[0].xyz * dx) +
-                        (persinv[1].xyz * dy) + viewinv[3].xyz)
+        origin_start = ((persinv.col[0].xyz * dx) +
+                        (persinv.col[1].xyz * dy) +
+                         viewinv.translation)
         origin_end = origin_start + coord_vec
         return intersect_point_line(depth_location,
                                     origin_start,

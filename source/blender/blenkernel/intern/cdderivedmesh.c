@@ -1871,7 +1871,7 @@ void CDDM_apply_vert_coords(DerivedMesh *dm, float (*vertCoords)[3])
 	int i;
 
 	/* this will just return the pointer if it wasn't a referenced layer */
-	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
@@ -1885,7 +1885,7 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 	int i;
 
 	/* this will just return the pointer if it wasn't a referenced layer */
-	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	vert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
@@ -1900,7 +1900,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	if(dm->numVertData == 0) return;
 
 	/* we don't want to overwrite any referenced layers */
-	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 
 	/* make a face normal layer if not present */
 	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);

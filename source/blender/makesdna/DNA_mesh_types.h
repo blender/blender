@@ -162,8 +162,11 @@ typedef struct TFace {
 #define ME_DRAWEXTRA_FACEAREA (1 << 11)
 #define ME_DRAWEXTRA_FACEANG  (1 << 12)
 
-#define ME_DRAW_FREESTYLE_EDGE (1 << 13)
-#define ME_DRAW_FREESTYLE_FACE (1 << 14)
+/* debug only option */
+#define ME_DRAWEXTRA_INDICES (1 << 13)
+
+#define ME_DRAW_FREESTYLE_EDGE (1 << 14)
+#define ME_DRAW_FREESTYLE_FACE (1 << 15)
 
 /* old global flags:
 #define G_DRAWEDGES		(1 << 18)
@@ -191,5 +194,13 @@ typedef struct TFace {
 #define ME_SIMPLE_SUBSURF 	1
 
 #define MESH_MAX_VERTS 2000000000L
+
+/* this is so we can save bmesh files that load in trunk, ignoring NGons
+ * will eventually be removed */
+
+#if 0 /* enable in bmesh branch only for now */
+#define USE_MESH_FORWARDS_COMAT
+#endif
+
 
 #endif

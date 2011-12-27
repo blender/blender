@@ -22,17 +22,17 @@ import bpy
 
 
 def init():
-    import bcycles
+    import _cycles
     import os.path
 
     path = os.path.dirname(__file__)
     user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
 
-    bcycles.init(path, user_path)
+    _cycles.init(path, user_path)
 
 
 def create(engine, data, scene, region=0, v3d=0, rv3d=0):
-    import bcycles
+    import _cycles
 
     data = data.as_pointer()
     scene = scene.as_pointer()
@@ -43,46 +43,42 @@ def create(engine, data, scene, region=0, v3d=0, rv3d=0):
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    engine.session = bcycles.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
+    engine.session = _cycles.create(engine.as_pointer(), data, scene, region, v3d, rv3d)
 
 
 def free(engine):
     if hasattr(engine, "session"):
         if engine.session:
-            import bcycles
-            bcycles.free(engine.session)
+            import _cycles
+            _cycles.free(engine.session)
         del engine.session
 
 
 def render(engine):
-    import bcycles
+    import _cycles
     if hasattr(engine, "session"):
-        bcycles.render(engine.session)
+        _cycles.render(engine.session)
 
 
 def update(engine, data, scene):
-    import bcycles
-    if scene.render.use_border:
-        engine.report({'ERROR'}, "Border rendering not supported yet")
-        free(engine)
-    else:
-        bcycles.sync(engine.session)
+    import _cycles
+    _cycles.sync(engine.session)
 
 
 def draw(engine, region, v3d, rv3d):
-    import bcycles
+    import _cycles
     v3d = v3d.as_pointer()
     rv3d = rv3d.as_pointer()
 
     # draw render image
-    bcycles.draw(engine.session, v3d, rv3d)
+    _cycles.draw(engine.session, v3d, rv3d)
 
 
 def available_devices():
-    import bcycles
-    return bcycles.available_devices()
+    import _cycles
+    return _cycles.available_devices()
 
 
 def with_osl():
-    import bcycles
-    return bcycles.with_osl()
+    import _cycles
+    return _cycles.with_osl

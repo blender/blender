@@ -35,8 +35,7 @@ static PyObject *init_func(PyObject *self, PyObject *args)
 	
 	path_init(path, user_path);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *create_func(PyObject *self, PyObject *args)
@@ -89,35 +88,23 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	return PyLong_FromVoidPtr(session);
 }
 
-static PyObject *free_func(PyObject *self, PyObject *args)
+static PyObject *free_func(PyObject *self, PyObject *value)
 {
-	PyObject *pysession;
+	delete (BlenderSession*)PyLong_AsVoidPtr(value);
 
-	if(!PyArg_ParseTuple(args, "O", &pysession))
-		return NULL;
-
-	delete (BlenderSession*)PyLong_AsVoidPtr(pysession);
-
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
-static PyObject *render_func(PyObject *self, PyObject *args)
+static PyObject *render_func(PyObject *self, PyObject *value)
 {
-	PyObject *pysession;
-
-	if(!PyArg_ParseTuple(args, "O", &pysession))
-		return NULL;
-	
 	Py_BEGIN_ALLOW_THREADS
 
-	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
 	session->render();
 
 	Py_END_ALLOW_THREADS
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *draw_func(PyObject *self, PyObject *args)
@@ -137,22 +124,15 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 		session->draw(viewport[2], viewport[3]);
 	}
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
-static PyObject *sync_func(PyObject *self, PyObject *args)
+static PyObject *sync_func(PyObject *self, PyObject *value)
 {
-	PyObject *pysession;
-
-	if(!PyArg_ParseTuple(args, "O", &pysession))
-		return NULL;
-
-	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(value);
 	session->synchronize();
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *available_devices_func(PyObject *self, PyObject *args)
@@ -163,38 +143,26 @@ static PyObject *available_devices_func(PyObject *self, PyObject *args)
 
 	for(size_t i = 0; i < types.size(); i++) {
 		string name = Device::string_from_type(types[i]);
-		PyTuple_SetItem(ret, i, PyUnicode_FromString(name.c_str()));
+		PyTuple_SET_ITEM(ret, i, PyUnicode_FromString(name.c_str()));
 	}
 
 	return ret;
 }
 
-static PyObject *with_osl_func(PyObject *self, PyObject *args)
-{
-#ifdef WITH_OSL
-	PyObject *ret = Py_True;
-#else
-	PyObject *ret = Py_False;
-#endif
-
-	return Py_INCREF(ret), ret;
-}
-
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"create", create_func, METH_VARARGS, ""},
-	{"free", free_func, METH_VARARGS, ""},
-	{"render", render_func, METH_VARARGS, ""},
+	{"free", free_func, METH_O, ""},
+	{"render", render_func, METH_O, ""},
 	{"draw", draw_func, METH_VARARGS, ""},
-	{"sync", sync_func, METH_VARARGS, ""},
+	{"sync", sync_func, METH_O, ""},
 	{"available_devices", available_devices_func, METH_NOARGS, ""},
-	{"with_osl", with_osl_func, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef module = {
 	PyModuleDef_HEAD_INIT,
-	"bcycles",
+	"_cycles",
 	"Blender cycles render integration",
 	-1,
 	methods,
@@ -207,6 +175,16 @@ extern "C" PyObject *CYCLES_initPython();
 
 PyObject *CYCLES_initPython()
 {
-	return PyModule_Create(&ccl::module);
+	PyObject *mod= PyModule_Create(&ccl::module);
+
+#ifdef WITH_OSL
+	PyModule_AddObject(mod, "with_osl", Py_True);
+	Py_INCREF(Py_True);
+#else
+	PyModule_AddObject(mod, "with_osl", Py_False);
+	Py_INCREF(Py_False);
+#endif
+
+	return mod;
 }
 

@@ -492,7 +492,6 @@ elseif(WIN32)
 	else()
 		install(
 			FILES
-				${LIBDIR}/png/lib/libpng.dll
 				${LIBDIR}/zlib/lib/zlib.dll
 			DESTINATION ${TARGETDIR}
 		)
@@ -534,7 +533,6 @@ elseif(WIN32)
 		install(
 			FILES
 				${LIBDIR}/openal/lib/OpenAL32.dll
-				${LIBDIR}/openal/lib/wrap_oal.dll
 			DESTINATION ${TARGETDIR}
 		)
 	endif()
@@ -778,11 +776,11 @@ endif()
 		bf_nodes
 		bf_gpu
 		bf_blenloader
+		bf_imbuf
 		bf_blenlib
 		bf_intern_ghost
 		bf_intern_string
 		bf_blenpluginapi
-		bf_imbuf
 		bf_avi
 		bf_imbuf_cineon
 		bf_imbuf_openexr

@@ -65,6 +65,11 @@ typedef enum {
 	 * unless it's a mesh and can be exploded -> curve can also emit particles
 	 */
 	eModifierTypeType_DeformOrConstruct,
+
+	/* Like eModifierTypeType_Nonconstructive, but does not affect the geometry
+	 * of the object, rather some of its CustomData layers.
+	 * E.g. UVProject and WeightVG modifiers. */
+	eModifierTypeType_NonGeometrical,
 } ModifierTypeType;
 
 typedef enum {
@@ -311,6 +316,7 @@ int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
 int           modifier_isCorrectableDeformed(struct ModifierData *md);
 int			  modifier_sameTopology(ModifierData *md);
+int           modifier_nonGeometrical(ModifierData *md);
 int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, const char *format, ...)
 #ifdef __GNUC__

@@ -35,29 +35,51 @@
 #define MATHUTILS_MATRIX_H
 
 extern PyTypeObject matrix_Type;
+extern PyTypeObject matrix_access_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 #define MATRIX_MAX_DIM 4
 
+/* matrix[row][col] == MATRIX_ITEM_INDEX(matrix, row, col) */
+
+#ifdef DEBUG
+#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (BLI_assert(_row < (_mat)->num_row && _col < (_mat)->num_col))
+#else
+#  define MATRIX_ITEM_ASSERT(_mat, _row, _col) (void)0
+#endif
+
+#define MATRIX_ITEM_INDEX(_mat, _row, _col) (MATRIX_ITEM_ASSERT(_mat, _row, _col),(((_mat)->num_row * (_col)) + (_row)))
+#define MATRIX_ITEM_PTR(  _mat, _row, _col) ((_mat)->matrix + MATRIX_ITEM_INDEX(_mat, _row, _col))
+#define MATRIX_ITEM(      _mat, _row, _col) ((_mat)->matrix  [MATRIX_ITEM_INDEX(_mat, _row, _col)])
+
+#define MATRIX_COL_INDEX(_mat, _col) (MATRIX_ITEM_INDEX(_mat, 0, _col))
+#define MATRIX_COL_PTR(  _mat, _col) ((_mat)->matrix + MATRIX_COL_INDEX(_mat, _col))
+
 typedef struct {
-	BASE_MATH_MEMBERS(contigPtr);
-	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
-	unsigned short row_size;
-	unsigned short col_size;
+	BASE_MATH_MEMBERS(matrix);
+	unsigned short num_col;
+	unsigned short num_row;
 } MatrixObject;
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
+/* struct data contains a pointer to the actual data that the
+ * object uses. It can use either PyMem allocated data (which will
+ * be stored in py_data) or be a wrapper for data allocated through
+ * blender (stored in blend_data). This is an either/or struct not both */
 
-/*prototypes*/
+/* prototypes */
 PyObject *Matrix_CreatePyObject(float *mat,
-                                const unsigned short row_size, const unsigned short col_size,
+                                const unsigned short num_col, const unsigned short num_row,
                                 int type, PyTypeObject *base_type);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user, int row_size, int col_size, int cb_type, int cb_subtype);
+PyObject *Matrix_CreatePyObject_cb(PyObject *user,
+                                   const unsigned short num_col, const unsigned short num_row,
+                                   int cb_type, int cb_subtype);
 
-extern int mathutils_matrix_vector_cb_index;
-extern struct Mathutils_Callback mathutils_matrix_vector_cb;
+extern int mathutils_matrix_row_cb_index; /* default */
+extern int mathutils_matrix_col_cb_index;
+extern int mathutils_matrix_translation_cb_index;
+
+extern struct Mathutils_Callback mathutils_matrix_row_cb; /* default */
+extern struct Mathutils_Callback mathutils_matrix_col_cb;
+extern struct Mathutils_Callback mathutils_matrix_translation_cb;
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self);
 

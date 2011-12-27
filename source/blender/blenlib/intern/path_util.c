@@ -317,7 +317,7 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
 
 void BLI_cleanup_path(const char *relabase, char *dir)
 {
-	short a;
+	ptrdiff_t a;
 	char *start, *eind;
 	if (relabase) {
 		BLI_path_abs(dir, relabase);
@@ -1416,7 +1416,7 @@ int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 {
 	size_t path_len= strlen(path);
 	size_t ext_len= strlen(ext);
-	size_t a;
+	ssize_t a;
 
 	for(a= path_len - 1; a >= 0; a--) {
 		if (ELEM3(path[a], '.', '/', '\\')) {
@@ -1424,7 +1424,7 @@ int BLI_replace_extension(char *path, size_t maxlen, const char *ext)
 		}
 	}
 
-	if (path[a] != '.') {
+	if ((a < 0) || (path[a] != '.')) {
 		a= path_len;
 	}
 
@@ -1440,7 +1440,7 @@ int BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
 {
 	size_t path_len= strlen(path);
 	size_t ext_len= strlen(ext);
-	size_t a;
+	ssize_t a;
 
 	/* first check the extension is alread there */
 	if (    (ext_len <= path_len) &&

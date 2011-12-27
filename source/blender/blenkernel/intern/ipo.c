@@ -909,8 +909,10 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 		if (array_index)
 			*array_index= dummy_index;
 	}
-	
+
+	/* 'buf' _must_ be initialized in this block */
 	/* append preceding bits to path */
+	/* note, strings are not escapted and they should be! */
 	if ((actname && actname[0]) && (constname && constname[0])) {
 		/* Constraint in Pose-Channel */
 		sprintf(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);
@@ -918,6 +920,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 	else if (actname && actname[0]) {
 		if ((blocktype == ID_OB) && strcmp(actname, "Object")==0) {
 			/* Actionified "Object" IPO's... no extra path stuff needed */
+			buf[0]= '\0'; /* empty string */
 		}
 		else if ((blocktype == ID_KE) && strcmp(actname, "Shape")==0) {
 			/* Actionified "Shape" IPO's - these are forced onto object level via the action container there... */
@@ -936,8 +939,10 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 		/* Sequence names in Scene */
 		sprintf(buf, "sequence_editor.sequences_all[\"%s\"]", seq->name+2);
 	}
-	else
+	else {
 		buf[0]= '\0'; /* empty string */
+	}
+
 	BLI_dynstr_append(path, buf);
 	
 	/* need to add dot before property if there was anything precceding this */

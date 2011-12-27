@@ -452,7 +452,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		Key *key=me->key;
 		KeyBlock *kb;
 		
-		if(!modifier_sameTopology(md)) {
+		if(!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
 			return 0;
 		}
@@ -500,7 +500,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
 
-		if( me->key) {
+		if(me->key && mti->type != eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
 			return 0;
 		}
@@ -643,7 +643,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *ob= ED_object_active_context(C);
-	EnumPropertyItem *item= NULL, *md_item;
+	EnumPropertyItem *item= NULL, *md_item, *group_item= NULL;
 	ModifierTypeInfo *mti;
 	int totitem= 0, a;
 	
@@ -662,6 +662,17 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if(!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
 			   (ob->type==OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh))))
 				continue;
+		}
+		else {
+			group_item= md_item;
+			md_item= NULL;
+
+			continue;
+		}
+
+		if(group_item) {
+			RNA_enum_item_add(&item, &totitem, group_item);
+			group_item= NULL;
 		}
 
 		RNA_enum_item_add(&item, &totitem, md_item);

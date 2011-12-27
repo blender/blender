@@ -147,6 +147,8 @@ struct PropertyRNA {
 	const char *description;
 	/* icon ID */
 	int icon;
+	/* context for translation */
+	const char *translation_context;
 
 	/* property type as it appears to the outside */
 	PropertyType type;

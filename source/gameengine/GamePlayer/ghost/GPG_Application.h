@@ -103,6 +103,7 @@ protected:
 	 * Shuts the game engine down.
 	 */
 	void exitEngine(void);
+	short					m_exitkey;
 
 	/* The game data */
 	STR_String				m_startSceneName;

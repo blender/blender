@@ -145,7 +145,8 @@ bool KX_IpoSGController::Update(double currentTime)
 		}
 
 		//modifies position?
-		if (m_ipo_channels_active[OB_LOC_X] || m_ipo_channels_active[OB_LOC_Y] || m_ipo_channels_active[OB_LOC_Z] || m_ipo_channels_active[OB_DLOC_X] || m_ipo_channels_active[OB_DLOC_Y] || m_ipo_channels_active[OB_DLOC_Z])
+		if (m_ipo_channels_active[OB_LOC_X]  || m_ipo_channels_active[OB_LOC_Y]  || m_ipo_channels_active[OB_LOC_Z] ||
+		    m_ipo_channels_active[OB_DLOC_X] || m_ipo_channels_active[OB_DLOC_Y] || m_ipo_channels_active[OB_DLOC_Z])
 		{
 			if (m_ipo_as_force == true) 
 			{
@@ -198,7 +199,9 @@ bool KX_IpoSGController::Update(double currentTime)
 			}
 		}
 		//modifies orientation?
-		if (m_ipo_channels_active[OB_ROT_X] || m_ipo_channels_active[OB_ROT_Y] || m_ipo_channels_active[OB_ROT_Z] || m_ipo_channels_active[OB_DROT_X] || m_ipo_channels_active[OB_DROT_Y] || m_ipo_channels_active[OB_DROT_Z]) {
+		if (m_ipo_channels_active[OB_ROT_X]  || m_ipo_channels_active[OB_ROT_Y]  || m_ipo_channels_active[OB_ROT_Z] ||
+		    m_ipo_channels_active[OB_DROT_X] || m_ipo_channels_active[OB_DROT_Y] || m_ipo_channels_active[OB_DROT_Z])
+		{
 			if (m_ipo_as_force) {
 				
 				if (m_game_object && ob) {
@@ -293,7 +296,9 @@ bool KX_IpoSGController::Update(double currentTime)
 			}
 		}
 		//modifies scale?
-		if (m_ipo_channels_active[OB_SIZE_X] || m_ipo_channels_active[OB_SIZE_Y] || m_ipo_channels_active[OB_SIZE_Z] || m_ipo_channels_active[OB_DSIZE_X] || m_ipo_channels_active[OB_DSIZE_Y] || m_ipo_channels_active[OB_DSIZE_Z]) {
+		if (m_ipo_channels_active[OB_SIZE_X] || m_ipo_channels_active[OB_SIZE_Y] || m_ipo_channels_active[OB_SIZE_Z] ||
+		    m_ipo_channels_active[OB_DSIZE_X] || m_ipo_channels_active[OB_DSIZE_Y] || m_ipo_channels_active[OB_DSIZE_Z])
+		{
 			//default is no scale change
 			MT_Vector3 newScale(1.0,1.0,1.0);
 			if (!m_ipo_add)

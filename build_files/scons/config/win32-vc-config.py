@@ -20,7 +20,7 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = True
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include '
-BF_OPENAL_LIB = 'wrap_oal'
+BF_OPENAL_LIB = 'OpenAL32'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_ICONV = True
@@ -72,7 +72,7 @@ BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 WITH_BF_PNG = True
 BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
-BF_PNG_LIB = 'libpng_st'
+BF_PNG_LIB = 'libpng'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 WITH_BF_TIFF = True

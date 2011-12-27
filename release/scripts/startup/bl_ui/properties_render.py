@@ -51,7 +51,7 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        return context.scene and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_render(RenderButtonsPanel, Panel):
@@ -1077,7 +1077,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
 class RENDER_PT_bake(RenderButtonsPanel, Panel):
     bl_label = "Bake"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout

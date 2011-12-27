@@ -273,7 +273,6 @@ static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turb
 
 	ksunsky->theta = theta;
 	ksunsky->phi = phi;
-	ksunsky->dir = dir;
 
 	float theta2 = theta*theta;
 	float theta3 = theta*theta*theta;
@@ -867,6 +866,26 @@ void ConvertNode::compile(OSLCompiler& compiler)
 		compiler.add(this, "node_convert_from_normal");
 	else
 		assert(0);
+}
+
+/* Proxy */
+
+ProxyNode::ProxyNode(ShaderSocketType from_, ShaderSocketType to_)
+: ShaderNode("proxy")
+{
+	from = from_;
+	to = to_;
+
+	add_input("Input", from);
+	add_output("Output", to);
+}
+
+void ProxyNode::compile(SVMCompiler& compiler)
+{
+}
+
+void ProxyNode::compile(OSLCompiler& compiler)
+{
 }
 
 /* BSDF Closure */

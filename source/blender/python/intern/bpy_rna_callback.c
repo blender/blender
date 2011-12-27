@@ -56,11 +56,11 @@ static void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customd
 
 	bpy_context_set((bContext *)C, &gilstate);
 
-	cb_func= PyTuple_GET_ITEM((PyObject *)customdata, 0);
-	cb_args= PyTuple_GET_ITEM((PyObject *)customdata, 1);
-	result= PyObject_CallObject(cb_func, cb_args);
+	cb_func = PyTuple_GET_ITEM((PyObject *)customdata, 0);
+	cb_args = PyTuple_GET_ITEM((PyObject *)customdata, 1);
+	result = PyObject_CallObject(cb_func, cb_args);
 
-	if(result) {
+	if (result) {
 		Py_DECREF(result);
 	}
 	else {
@@ -76,33 +76,34 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 	void *handle;
 
 	PyObject *cb_func, *cb_args;
-	char *cb_event_str= NULL;
+	char *cb_event_str = NULL;
 	int cb_event;
 
 	if (!PyArg_ParseTuple(args, "OO!|s:bpy_struct.callback_add", &cb_func, &PyTuple_Type, &cb_args, &cb_event_str))
 		return NULL;
 	
-	if(!PyCallable_Check(cb_func)) {
+	if (!PyCallable_Check(cb_func)) {
 		PyErr_SetString(PyExc_TypeError, "callback_add(): first argument isn't callable");
 		return NULL;
 	}
 
-	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
-		if(cb_event_str) {
-			static EnumPropertyItem region_draw_mode_items[]= {
+	if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+		if (cb_event_str) {
+			static EnumPropertyItem region_draw_mode_items[] = {
 				{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
 				{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Post View", ""},
 				{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},
 				{0, NULL, 0, NULL, NULL}};
 	
-			if(pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0)
+			if (pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0) {
 				return NULL;
+			}
 		}
 		else {
-			cb_event= REGION_DRAW_POST_PIXEL;
+			cb_event = REGION_DRAW_POST_PIXEL;
 		}
 
-		handle= ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
+		handle = ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
 		Py_INCREF(args);
 	}
 	else {
@@ -122,15 +123,15 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O!:callback_remove", &PyCapsule_Type, &py_handle))
 		return NULL;
 
-	handle= PyCapsule_GetPointer(py_handle, RNA_CAPSULE_ID);
+	handle = PyCapsule_GetPointer(py_handle, RNA_CAPSULE_ID);
 
-	if(handle==NULL) {
+	if (handle == NULL) {
 		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed");
 		return NULL;
 	}
 
-	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
-		customdata= ED_region_draw_cb_customdata(handle);
+	if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+		customdata = ED_region_draw_cb_customdata(handle);
 		Py_DECREF((PyObject *)customdata);
 
 		ED_region_draw_cb_exit(((ARegion *)self->ptr.data)->type, handle);

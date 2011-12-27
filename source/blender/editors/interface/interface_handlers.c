@@ -5247,7 +5247,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		   highlight when not in a popup menu, we remove because data used in
 		   button below popup might have been removed by action of popup. Needs
 		   a more reliable solution... */
-		if(state != BUTTON_STATE_HIGHLIGHT || but->block->handle)
+		if(state != BUTTON_STATE_HIGHLIGHT || (but->block->flag & UI_BLOCK_LOOP))
 			ui_check_but(but);
 	}
 

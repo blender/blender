@@ -40,16 +40,16 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
 
-
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
-#include "MEM_guardedalloc.h"
 
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */
@@ -75,8 +75,8 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	/* we don't want to overwrite any referenced layers */
 
 	/*
-	Dosnt work here!
-	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	Doesn't work here!
+	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, numVerts);
 	cddm->mvert = mv;
 	*/
 
@@ -350,7 +350,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	{
 		static int corner_indices[4] = {2, 1, 0, 3};
-		int is_quad;
+		unsigned int is_quad;
 
 		for(i=0, mf=mface+numFaces; i<numFaces; i++, mf++) {
 			mf->v1 += numVerts;
@@ -362,7 +362,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* Flip face normal */
 			{
 				is_quad = mf->v4;
-				SWAP(int, mf->v1, mf->v3);
+				SWAP(unsigned int, mf->v1, mf->v3);
 				DM_swap_face_data(result, i+numFaces, corner_indices);
 				test_index_face(mf, &result->faceData, numFaces, is_quad ? 4:3);
 			}

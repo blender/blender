@@ -2617,40 +2617,43 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		/* hardcoded here, could become dynamic somehow */
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
+	/* Note: As this list is in alphabetical order, and not defined order,
+	 *       here is the highest define currently in use: 28 (serbian latin). */
 	static EnumPropertyItem language_items[] = {
-		{0, "", 0, "Nearly done", ""},
-		{0, "DEFAULT", 0, "Default (Default)", ""},
-		{1, "ENGLISH", 0, "English (English)", "en_US"},
-		{8, "FRENCH", 0, "French (Français)", "fr_FR"},
-		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
+		{ 0, "", 0, "Nearly done", ""},
+		{ 0, "DEFAULT", 0, "Default (Default)", ""},
+		{ 1, "ENGLISH", 0, "English (English)", "en_US"},
+		{ 8, "FRENCH", 0, "French (Français)", "fr_FR"},
+		{ 4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
 		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
 		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
-		{9, "SPANISH", 0, "Spanish (Español)", "es"},
+		{ 9, "SPANISH", 0, "Spanish (Español)", "es"},
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{0, "", 0, "In progress", ""},
-		{2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
-		{5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
-		{6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
-		{7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
-		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
-		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
-		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
-		{17, "SERBIAN", 0, "Serbian (Српском језику)", "sr_RS"},
-		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
-		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
+		{ 0, "", 0, "In progress", ""},
 		/* using the utf8 flipped form of Arabic (العربية) */
 		{21, "ARABIC", 0, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
 		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
+		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
+		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
+		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
+		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
+		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
+		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
+		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_PE"},
-		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
-		{0, NULL, 0, NULL, NULL}};
+		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
+		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
+		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
+		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
+		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
+		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
+		{ 0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");

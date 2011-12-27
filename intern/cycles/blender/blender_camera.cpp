@@ -207,6 +207,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 	/* transform, note the blender camera points along the negative z-axis */
 	cam->matrix = bcam->matrix * transform_scale(1.0f, 1.0f, -1.0f);
+	cam->matrix = transform_clear_scale(cam->matrix);
 
 	/* set update flag */
 	if(cam->modified(prevcam))
@@ -284,6 +285,30 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 
 	/* sync */
 	blender_camera_sync(scene->camera, &bcam, width, height);
+}
+
+BufferParams BlenderSync::get_buffer_params(BL::Scene b_scene, BL::RegionView3D b_rv3d, int width, int height)
+{
+	BufferParams params;
+
+	params.full_width = width;
+	params.full_height = height;
+
+	/* border render */
+	BL::RenderSettings r = b_scene.render();
+
+	if(!b_rv3d && r.use_border()) {
+		params.full_x = r.border_min_x()*width;
+		params.full_y = r.border_min_y()*height;
+		params.width = (int)(r.border_max_x()*width) - params.full_x;
+		params.height = (int)(r.border_max_y()*height) - params.full_y;
+	}
+	else {
+		params.width = width;
+		params.height = height;
+	}
+
+	return params;
 }
 
 CCL_NAMESPACE_END

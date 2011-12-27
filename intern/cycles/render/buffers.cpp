@@ -36,8 +36,6 @@ CCL_NAMESPACE_BEGIN
 RenderBuffers::RenderBuffers(Device *device_)
 {
 	device = device_;
-	width = 0;
-	height = 0;
 }
 
 RenderBuffers::~RenderBuffers()
@@ -58,24 +56,23 @@ void RenderBuffers::device_free()
 	}
 }
 
-void RenderBuffers::reset(Device *device, int width_, int height_)
+void RenderBuffers::reset(Device *device, BufferParams& params_)
 {
-	width = width_;
-	height = height_;
+	params = params_;
 
 	/* free existing buffers */
 	device_free();
 	
 	/* allocate buffer */
-	buffer.resize(width, height);
+	buffer.resize(params.width, params.height);
 	device->mem_alloc(buffer, MEM_READ_WRITE);
 	device->mem_zero(buffer);
 
 	/* allocate rng state */
-	rng_state.resize(width, height);
+	rng_state.resize(params.width, params.height);
 
-	uint *init_state = rng_state.resize(width, height);
-	int x, y;
+	uint *init_state = rng_state.resize(params.width, params.height);
+	int x, y, width = params.width, height = params.height;
 	
 	for(x=0; x<width; x++)
 		for(y=0; y<height; y++)
@@ -92,11 +89,11 @@ float4 *RenderBuffers::copy_from_device(float exposure, int sample)
 
 	device->mem_copy_from(buffer, 0, buffer.memory_size());
 
-	float4 *out = new float4[width*height];
+	float4 *out = new float4[params.width*params.height];
 	float4 *in = (float4*)buffer.data_pointer;
 	float scale = 1.0f/(float)sample;
 	
-	for(int i = width*height - 1; i >= 0; i--) {
+	for(int i = params.width*params.height - 1; i >= 0; i--) {
 		float4 rgba = in[i]*scale;
 
 		rgba.x = rgba.x*exposure;
@@ -117,8 +114,6 @@ float4 *RenderBuffers::copy_from_device(float exposure, int sample)
 DisplayBuffer::DisplayBuffer(Device *device_)
 {
 	device = device_;
-	width = 0;
-	height = 0;
 	draw_width = 0;
 	draw_height = 0;
 	transparent = true; /* todo: determine from background */
@@ -137,28 +132,27 @@ void DisplayBuffer::device_free()
 	}
 }
 
-void DisplayBuffer::reset(Device *device, int width_, int height_)
+void DisplayBuffer::reset(Device *device, BufferParams& params_)
 {
 	draw_width = 0;
 	draw_height = 0;
 
-	width = width_;
-	height = height_;
+	params = params_;
 
 	/* free existing buffers */
 	device_free();
 
 	/* allocate display pixels */
-	rgba.resize(width, height);
+	rgba.resize(params.width, params.height);
 	device->pixels_alloc(rgba);
 }
 
-void DisplayBuffer::draw_set(int width_, int height_)
+void DisplayBuffer::draw_set(int width, int height)
 {
-	assert(width_ <= width && height_ <= height);
+	assert(width <= params.width && height <= params.height);
 
-	draw_width = width_;
-	draw_height = height_;
+	draw_width = width;
+	draw_height = height;
 }
 
 void DisplayBuffer::draw_transparency_grid()
@@ -175,11 +169,11 @@ void DisplayBuffer::draw_transparency_grid()
 	};
 
 	glColor4ub(50, 50, 50, 255);
-	glRectf(0, 0, width, height);
+	glRectf(0, 0, params.width, params.height);
 	glEnable(GL_POLYGON_STIPPLE);
 	glColor4ub(55, 55, 55, 255);
 	glPolygonStipple(checker_stipple_sml);
-	glRectf(0, 0, width, height);
+	glRectf(0, 0, params.width, params.height);
 	glDisable(GL_POLYGON_STIPPLE);
 }
 
@@ -189,7 +183,7 @@ void DisplayBuffer::draw(Device *device)
 		if(transparent)
 			draw_transparency_grid();
 
-		device->draw_pixels(rgba, 0, draw_width, draw_height, width, height, transparent);
+		device->draw_pixels(rgba, 0, draw_width, draw_height, params.width, params.height, transparent);
 	}
 }
 

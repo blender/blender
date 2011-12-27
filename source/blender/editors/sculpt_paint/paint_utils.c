@@ -67,6 +67,78 @@
 
 #include "paint_intern.h"
 
+/* Convert the object-space axis-aligned bounding box (expressed as
+   its minimum and maximum corners) into a screen-space rectangle,
+   returns zero if the result is empty */
+int paint_convert_bb_to_rect(rcti *rect,
+							 const float bb_min[3],
+							 const float bb_max[3],
+							 const ARegion *ar,
+							 RegionView3D *rv3d,
+							 Object *ob)
+{
+	float projection_mat[4][4];
+	int i, j, k;
+
+	rect->xmin = rect->ymin = INT_MAX;
+	rect->xmax = rect->ymax = INT_MIN;
+
+	/* return zero if the bounding box has non-positive volume */
+	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+		return 0;
+
+	ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
+
+	for(i = 0; i < 2; ++i) {
+		for(j = 0; j < 2; ++j) {
+			for(k = 0; k < 2; ++k) {
+				float vec[3], proj[2];
+				vec[0] = i ? bb_min[0] : bb_max[0];
+				vec[1] = j ? bb_min[1] : bb_max[1];
+				vec[2] = k ? bb_min[2] : bb_max[2];
+				/* convert corner to screen space */
+				ED_view3d_project_float(ar, vec, proj,
+										projection_mat);
+				/* expand 2D rectangle */
+				rect->xmin = MIN2(rect->xmin, proj[0]);
+				rect->xmax = MAX2(rect->xmax, proj[0]);
+				rect->ymin = MIN2(rect->ymin, proj[1]);
+				rect->ymax = MAX2(rect->ymax, proj[1]);
+			}
+		}
+	}
+
+	/* return false if the rectangle has non-positive area */
+	return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
+}
+
+/* Get four planes in object-space that describe the projection of
+   screen_rect from screen into object-space (essentially converting a
+   2D screens-space bounding box into four 3D planes) */
+void paint_calc_redraw_planes(float planes[4][4],
+							  const ARegion *ar,
+							  RegionView3D *rv3d,
+							  Object *ob,
+							  const rcti *screen_rect)
+{
+	BoundBox bb;
+	bglMats mats;
+	rcti rect;
+
+	memset(&bb, 0, sizeof(BoundBox));
+	view3d_get_transformation(ar, rv3d, ob, &mats);
+
+	/* use some extra space just in case */
+	rect = *screen_rect;
+	rect.xmin -= 2;
+	rect.xmax += 2;
+	rect.ymin -= 2;
+	rect.ymax += 2;
+
+	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
+	mul_m4_fl(planes, -1.0f);
+}
+
 /* convert a point in model coordinates to 2D screen coordinates */
 /* TODO: can be deleted once all calls are replaced with
    view3d_project_float() */

@@ -1293,6 +1293,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
 		op->customdata = NULL;
 	}
 	
+	WM_cursor_restore(CTX_wm_window(C));
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	/* this makes sure aligned edges will result in aligned grabbing */
@@ -1491,6 +1492,37 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			break;
+			
+		case MIDDLEMOUSE:
+		case TABKEY:
+			if (sd->previewmode==0){
+			}
+			else{
+				dir = RNA_enum_get(op->ptr, "direction");
+				
+				if(event->val==KM_PRESS){
+					if (sd->sarea){
+						sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H|AREA_FLAG_DRAWSPLIT_V);
+						ED_area_tag_redraw(sd->sarea);
+						
+						if (dir=='v'){
+							RNA_enum_set(op->ptr, "direction", 'h');
+							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
+							
+							WM_cursor_set(CTX_wm_window(C),CURSOR_X_MOVE);
+						}
+						else{
+							RNA_enum_set(op->ptr, "direction", 'v');
+							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
+							
+							WM_cursor_set(CTX_wm_window(C),CURSOR_Y_MOVE);
+						}
+					}
+				}
+			}
+			
+			break;
+			
 		case RIGHTMOUSE: /* cancel operation */
 		case ESCKEY:
 			return area_split_cancel(C, op);
@@ -1634,6 +1666,47 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
+static int region_scale_get_maxsize(RegionMoveData *rmd)
+{
+	int maxsize= 0;
+
+	if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
+		return rmd->sa->winx - UI_UNIT_X;
+	}
+
+	if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
+		/* this calculation seems overly verbose
+		 * can someone explain why this method is necessary? - campbell */
+		maxsize = rmd->maxsize - ((rmd->sa->headertype==HEADERTOP)?UI_UNIT_Y*2:UI_UNIT_Y) - (UI_UNIT_Y/4);
+	}
+
+	return maxsize;
+}
+
+static void region_scale_validate_size(RegionMoveData *rmd)
+{
+	if((rmd->ar->flag & RGN_FLAG_HIDDEN)==0) {
+		short *size, maxsize= -1;
+
+
+		if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT)
+			size= &rmd->ar->sizex;
+		else
+			size= &rmd->ar->sizey;
+
+		maxsize= region_scale_get_maxsize(rmd);
+
+		if(*size > maxsize && maxsize > 0)
+			*size= maxsize;
+	}
+}
+
+static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
+{
+	ED_region_toggle_hidden(C, rmd->ar);
+	region_scale_validate_size(rmd);
+}
+
 static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionMoveData *rmd= op->customdata;
@@ -1653,35 +1726,31 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(rmd->ar->sizex < UI_UNIT_X) {
 					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
-						ED_region_toggle_hidden(C, rmd->ar);
+						region_scale_toggle_hidden(C, rmd);
 				}
 				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
-					ED_region_toggle_hidden(C, rmd->ar);
+					region_scale_toggle_hidden(C, rmd);
 			}
 			else {
-				int maxsize=0;
+				int maxsize= region_scale_get_maxsize(rmd);
 				delta= event->y - rmd->origy;
 				if(rmd->edge==AE_BOTTOM_TO_TOPLEFT) delta= -delta;
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 
-				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
-					/* this calculation seems overly verbose
-					 * can someone explain why this method is necessary? - campbell */
-					maxsize = rmd->maxsize - ((rmd->sa->headertype==HEADERTOP)?UI_UNIT_Y*2:UI_UNIT_Y) - (UI_UNIT_Y/4);
-				}
-
 				/* note, 'UI_UNIT_Y/4' means you need to drag the header almost
 				 * all the way down for it to become hidden, this is done
 				 * otherwise its too easy to do this by accident */
-				if(rmd->ar->sizey < UI_UNIT_Y/4 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
+				if(rmd->ar->sizey < UI_UNIT_Y/4) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
-						ED_region_toggle_hidden(C, rmd->ar);
+						region_scale_toggle_hidden(C, rmd);
 				}
+				else if(maxsize > 0 && (rmd->ar->sizey > maxsize)) 
+					rmd->ar->sizey= maxsize;
 				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
-					ED_region_toggle_hidden(C, rmd->ar);
+					region_scale_toggle_hidden(C, rmd);
 			}
 			ED_area_tag_redraw(rmd->sa);
 			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
@@ -1693,10 +1762,14 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
 					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
-						ED_region_toggle_hidden(C, rmd->ar);
-						ED_area_tag_redraw(rmd->sa);
-						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+						region_scale_toggle_hidden(C, rmd);
 					}
+					else if(rmd->ar->flag & RGN_FLAG_TOO_SMALL) {
+						region_scale_validate_size(rmd);
+					}
+
+					ED_area_tag_redraw(rmd->sa);
+					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				}
 				MEM_freeN(op->customdata);
 				op->customdata = NULL;

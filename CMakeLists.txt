@@ -281,10 +281,12 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-if(WITH_CODEC_QUICKTIME AND MINGW)
-	message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
-						"because it is currently unsupported, remove this "
-						"line if youre a developer who wants to add support.")
+if(MINGW)
+	if(WITH_CODEC_QUICKTIME)
+		message(FATAL_ERROR "MINGW requires WITH_CODEC_QUICKTIME to be OFF "
+							"because it is currently unsupported, remove this "
+							"line if youre a developer who wants to add support.")
+	endif()
 endif()
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
@@ -649,10 +651,6 @@ elseif(WIN32)
 		set(ICONV_LIBPATH ${ICONV}/lib)
 	endif()
 
-	set(PNG "${LIBDIR}/png")
-	set(PNG_INCLUDE_DIR "${PNG}/include")
-	set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
-
 	set(JPEG "${LIBDIR}/jpeg")
 	set(JPEG_INCLUDE_DIR "${JPEG}/include")
 	set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
@@ -662,7 +660,7 @@ elseif(WIN32)
 	if(WITH_OPENAL)
 		set(OPENAL ${LIBDIR}/openal)
 		set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
-		set(OPENAL_LIBRARY wrap_oal)
+		set(OPENAL_LIBRARY OpenAL32)
 		set(OPENAL_LIBPATH ${OPENAL}/lib)
 	endif()
 
@@ -727,12 +725,12 @@ elseif(WIN32)
 			set(GETTEXT_LIBRARIES gnu_gettext)
 		endif()
 
-		if(CMAKE_CL_64)
-			set(PNG_LIBRARIES libpng)
-		else()
-			set(PNG_LIBRARIES libpng_st)
-		endif()
+		set(PNG_LIBRARIES libpng)
 		set(JPEG_LIBRARIES libjpeg)
+		
+		set(PNG "${LIBDIR}/png")
+		set(PNG_INCLUDE_DIR "${PNG}/include")
+		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
 		if(CMAKE_CL_64)
@@ -913,6 +911,10 @@ elseif(WIN32)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 			set(GETTEXT_LIBRARIES intl)
 		endif()
+		
+		set(PNG "${LIBDIR}/gcc/png")
+		set(PNG_INCLUDE_DIR "${PNG}/include")
+		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
 
 		set(JPEG_LIBRARIES libjpeg)
 		set(PNG_LIBRARIES png)

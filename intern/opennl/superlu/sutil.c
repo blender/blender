@@ -370,8 +370,6 @@ void
 sFillRHS(trans_t trans, int nrhs, float *x, int ldx,
          SuperMatrix *A, SuperMatrix *B)
 {
-    NCformat *Astore;
-    float   *Aval;
     DNformat *Bstore;
     float   *rhs;
     float one = 1.0;
@@ -379,8 +377,6 @@ sFillRHS(trans_t trans, int nrhs, float *x, int ldx,
     int      ldc;
     char transc[1];
 
-    Astore = A->Store;
-    Aval   = (float *) Astore->nzval;
     Bstore = B->Store;
     rhs    = Bstore->nzval;
     ldc    = Bstore->lda;

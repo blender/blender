@@ -140,6 +140,8 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
 
+#include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
+
 #include "NOD_socket.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -7627,6 +7629,30 @@ void do_versions_image_settings_2_60(Scene *sce)
 
 }
 
+/* socket use flags were only temporary before */
+static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		for (sock=node->inputs.first; sock; sock=sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+		for (sock=node->outputs.first; sock; sock=sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+	}
+	for (sock=ntree->inputs.first; sock; sock=sock->next)
+		sock->flag &= ~SOCK_IN_USE;
+	for (sock=ntree->outputs.first; sock; sock=sock->next)
+		sock->flag &= ~SOCK_IN_USE;
+	
+	for (link=ntree->links.first; link; link=link->next) {
+		link->fromsock->flag |= SOCK_IN_USE;
+		link->tosock->flag |= SOCK_IN_USE;
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -10854,8 +10880,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->id.lib==NULL && me->mr && me->mr->level_count > 1) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+				/* XXX - library meshes crash on loading most yoFrankie levels,
+				 * the multires pointer gets invalid -  Campbell */
+				if(me && me->id.lib==NULL && me->mr && me->mr->level_count > 1) {
 					multires_load_old(ob, me);
+				}
 
 				ob->data = olddata;
 			}
@@ -12753,10 +12782,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					clip->aspy= 1.0f;
 				}
 
-				/* XXX: a bit hacky, probably include imbuf and use real constants are nicer */
-				clip->proxy.build_tc_flag= 7;
+				clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN |
+				                           IMB_TC_FREE_RUN |
+				                           IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+
 				if(clip->proxy.build_size_flag==0)
-					clip->proxy.build_size_flag= 1;
+					clip->proxy.build_size_flag= IMB_PROXY_25;
 
 				if(clip->proxy.quality==0)
 					clip->proxy.quality= 90;
@@ -12856,7 +12887,52 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
-		/* nothing! */
+		{
+			/* update use flags for node sockets (was only temporary before) */
+			Scene *sce;
+			Material *mat;
+			Tex *tex;
+			Lamp *lamp;
+			World *world;
+			bNodeTree *ntree;
+
+			for (sce=main->scene.first; sce; sce=sce->id.next)
+				if (sce->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(sce->nodetree);
+
+			for (mat=main->mat.first; mat; mat=mat->id.next)
+				if (mat->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(mat->nodetree);
+
+			for (tex=main->tex.first; tex; tex=tex->id.next)
+				if (tex->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(tex->nodetree);
+
+			for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
+				if (lamp->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(lamp->nodetree);
+
+			for (world=main->world.first; world; world=world->id.next)
+				if (world->nodetree)
+					do_versions_nodetree_socket_use_flags_2_62(world->nodetree);
+
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				do_versions_nodetree_socket_use_flags_2_62(ntree);
+		}
+		{
+			/* Initialize BGE exit key to esc key */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				if (!scene->gm.exitkey)
+					scene->gm.exitkey = 218; // Blender key code for ESC
+			}
+		}
+		{
+			MovieClip *clip;
+			for(clip= main->movieclip.first; clip; clip= clip->id.next) {
+				clip->proxy.build_tc_flag|= IMB_TC_RECORD_RUN_NO_GAPS;
+			}
+		}
 	}
 
 	/* default values in Freestyle settings */
@@ -14440,7 +14516,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					expand_main(fd, mainptr);
 					
-					/* dang FileData... now new libraries need to be appended to original filedata, it is not a good replacement for the old global (ton) */
+					/* dang FileData... now new libraries need to be appended to original filedata,
+					 * it is not a good replacement for the old global (ton) */
 					while( fd->mainlist.first ) {
 						Main *mp= fd->mainlist.first;
 						BLI_remlink(&fd->mainlist, mp);
@@ -14462,8 +14539,13 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					BKE_reportf(basefd->reports, RPT_ERROR,
+					            "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
+					            BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					if (!G.background && basefd->reports) {
+						printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
+						       BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					}
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

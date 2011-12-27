@@ -453,7 +453,7 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
 		}
 	}
 
-	switch(self->type) {
+	switch (self->type) {
 	case GL_BYTE:
 		return PyArg_Parse(v, "b:Expected ints", &self->buf.asbyte[i]) ? 0:-1;
 	case GL_SHORT:
@@ -595,7 +595,7 @@ static PyObject *Buffer_repr(Buffer *self)
 	PyObject *repr;
 	const char *typestr= "UNKNOWN";
 
-	switch(self->type) {
+	switch (self->type) {
 	case GL_BYTE:   typestr= "GL_BYTE"; break;
 	case GL_SHORT:  typestr= "GL_SHORT"; break;
 	case GL_INT:    typestr= "GL_BYTE"; break;
@@ -1304,6 +1304,7 @@ PyObject *BPyInit_bgl(void)
 
 
 	PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
+	Py_INCREF((PyObject *)&BGL_bufferType);
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyLong_FromLong((int)x)); Py_DECREF(item)
 

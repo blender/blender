@@ -45,7 +45,7 @@
 
 static void operator_properties_init(wmOperatorType *ot)
 {
-	PyObject *py_class= ot->ext.data;
+	PyObject *py_class = ot->ext.data;
 	RNA_struct_blender_type_set(ot->ext.srna, ot);
 
 	/* only call this so pyrna_deferred_register_class gives a useful error
@@ -63,9 +63,9 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 {
 	/* take care not to overwrite anything set in
 	 * WM_operatortype_append_ptr before opfunc() is called */
-	StructRNA *srna= ot->srna;
-	*ot= *((wmOperatorType *)userdata);
-	ot->srna= srna; /* restore */
+	StructRNA *srna = ot->srna;
+	*ot = *((wmOperatorType *)userdata);
+	ot->srna = srna; /* restore */
 
 	operator_properties_init(ot);
 
@@ -74,25 +74,25 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 		PropertyRNA *prop;
 
 		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-		prop= RNA_struct_find_property(&ptr, "type");
+		prop = RNA_struct_find_property(&ptr, "type");
 		if (prop) {
-			ot->prop= prop;
+			ot->prop = prop;
 		}
 	}
 }
 
 void macro_wrapper(wmOperatorType *ot, void *userdata)
 {
-	wmOperatorType *data= (wmOperatorType *)userdata;
+	wmOperatorType *data = (wmOperatorType *)userdata;
 
 	/* only copy a couple of things, the rest is set by the macro registration */
-	ot->name= data->name;
-	ot->idname= data->idname;
-	ot->description= data->description;
+	ot->name = data->name;
+	ot->idname = data->idname;
+	ot->description = data->description;
 	ot->flag |= data->flag; /* append flags to the one set by registration */
-	ot->pyop_poll= data->pyop_poll;
-	ot->ui= data->ui;
-	ot->ext= data->ext;
+	ot->pyop_poll = data->pyop_poll;
+	ot->ui = data->ui;
+	ot->ext = data->ext;
 
 	operator_properties_init(ot);
 }
@@ -117,17 +117,17 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	/* identifiers */
-	srna= srna_from_self(macro, "Macro Define:");
-	macroname= RNA_struct_identifier(srna);
+	srna = srna_from_self(macro, "Macro Define:");
+	macroname = RNA_struct_identifier(srna);
 
-	ot= WM_operatortype_find(macroname, TRUE);
+	ot = WM_operatortype_find(macroname, TRUE);
 
 	if (!ot) {
 		PyErr_Format(PyExc_ValueError, "Macro Define: '%s' is not a valid macro or hasn't been registered yet", macroname);
 		return NULL;
 	}
 
-	otmacro= WM_operatortype_macro_define(ot, opname);
+	otmacro = WM_operatortype_macro_define(ot, opname);
 
 	RNA_pointer_create(NULL, &RNA_OperatorMacro, otmacro, &ptr_otmacro);
 

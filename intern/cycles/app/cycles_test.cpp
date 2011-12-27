@@ -82,10 +82,21 @@ static void session_print_status()
 	session_print(status);
 }
 
+static BufferParams& session_buffer_params()
+{
+	static BufferParams buffer_params;
+	buffer_params.width = options.width;
+	buffer_params.height = options.height;
+	buffer_params.full_width = options.width;
+	buffer_params.full_height = options.height;
+
+	return buffer_params;
+}
+
 static void session_init()
 {
 	options.session = new Session(options.session_params);
-	options.session->reset(options.width, options.height, options.session_params.samples);
+	options.session->reset(session_buffer_params(), options.session_params.samples);
 	options.session->scene = options.scene;
 	
 	if(options.session_params.background && !options.quiet)
@@ -98,12 +109,15 @@ static void session_init()
 	options.scene = NULL;
 }
 
-static void scene_init()
+static void scene_init(int width, int height)
 {
 	options.scene = new Scene(options.scene_params);
 	xml_read_file(options.scene, options.filepath.c_str());
-	options.width = options.scene->camera->width;
-	options.height = options.scene->camera->height;
+	
+	if (width == 0 || height == 0) {
+		options.width = options.scene->camera->width;
+		options.height = options.scene->camera->height;
+	}
 }
 
 static void session_exit()
@@ -151,7 +165,7 @@ static void display_info(Progress& progress)
 
 static void display()
 {
-	options.session->draw(options.width, options.height);
+	options.session->draw(session_buffer_params());
 
 	display_info(options.session->progress);
 }
@@ -162,13 +176,13 @@ static void resize(int width, int height)
 	options.height= height;
 
 	if(options.session)
-		options.session->reset(options.width, options.height, options.session_params.samples);
+		options.session->reset(session_buffer_params(), options.session_params.samples);
 }
 
 void keyboard(unsigned char key)
 {
 	if(key == 'r')
-		options.session->reset(options.width, options.height, options.session_params.samples);
+		options.session->reset(session_buffer_params(), options.session_params.samples);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Cancelled");
 }
@@ -183,8 +197,8 @@ static int files_parse(int argc, const char *argv[])
 
 static void options_parse(int argc, const char **argv)
 {
-	options.width= 1024;
-	options.height= 512;
+	options.width= 0;
+	options.height= 0;
 	options.filepath = "";
 	options.session = NULL;
 	options.quiet = false;
@@ -223,6 +237,8 @@ static void options_parse(int argc, const char **argv)
 		"--samples %d", &options.session_params.samples, "Number of samples to render",
 		"--output %s", &options.session_params.output_path, "File path to write output image",
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
+		"--width  %d", &options.width, "Window width in pixel",
+		"--height %d", &options.height, "Window height in pixel",
 		"--help", &help, "Print help message",
 		NULL);
 	
@@ -276,7 +292,7 @@ static void options_parse(int argc, const char **argv)
 	}
 
 	/* load scene */
-	scene_init();
+	scene_init(options.width, options.height);
 }
 
 CCL_NAMESPACE_END

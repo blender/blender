@@ -1544,7 +1544,7 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		ibuf->ftype= OPENEXR;
 		if(imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->ftype |= OPENEXR_HALF;
-		ibuf->ftype |= (quality & OPENEXR_COMPRESS);
+		ibuf->ftype |= (imf->exr_codec & OPENEXR_COMPRESS);
 		
 		if(!(imf->flag & R_IMF_FLAG_ZBUF))
 			ibuf->zbuf_float = NULL;	/* signal for exr saving */

@@ -118,6 +118,48 @@ typedef enum eWireDrawMode {
 	OBDRAW_WIRE_ON_DEPTH= 2
 } eWireDrawMode;
 
+/* user data structures for derived mesh callbacks */
+typedef struct foreachScreenVert_userData {
+	void (*func)(void *userData, EditVert *eve, int x, int y, int index);
+	void *userData;
+	ViewContext vc;
+	eV3DClipTest clipVerts;
+} foreachScreenVert_userData;
+
+typedef struct foreachScreenEdge_userData {
+	void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
+	void *userData;
+	ViewContext vc;
+	eV3DClipTest clipVerts;
+} foreachScreenEdge_userData;
+
+typedef struct foreachScreenFace_userData {
+	void (*func)(void *userData, EditFace *efa, int x, int y, int index);
+	void *userData;
+	ViewContext vc;
+} foreachScreenFace_userData;
+
+typedef struct drawDMVerts_userData {
+	int sel;
+	EditVert *eve_act;
+} drawDMVerts_userData;
+
+typedef struct drawDMEdgesSel_userData {
+	unsigned char *baseCol, *selCol, *actCol;
+	EditEdge *eed_act;
+} drawDMEdgesSel_userData;
+
+typedef struct drawDMFacesSel_userData {
+	unsigned char *cols[4];
+	EditFace *efa_act;
+	int *orig_index;
+} drawDMFacesSel_userData;
+
+typedef struct bbsObmodeMeshVerts_userData {
+	void *offset;
+	MVert *mvert;
+} bbsObmodeMeshVerts_userData;
+
 static void draw_bounding_volume(Scene *scene, Object *ob, char type);
 
 static void drawcube_size(float size);
@@ -1914,9 +1956,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
  * use the object matrix in the useual way */
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index);
-		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } *data = userData;
-
+	foreachScreenVert_userData *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
@@ -1938,9 +1978,7 @@ void mesh_foreachScreenVert(
         void (*func)(void *userData, EditVert *eve, int x, int y, int index),
         void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index);
-		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
-
+	foreachScreenVert_userData data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
@@ -1994,8 +2032,7 @@ static int is_co_in_region(ARegion *ar, const short co[2])
 }
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
-		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } *data = userData;
+	foreachScreenEdge_userData *data = userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
@@ -2026,8 +2063,7 @@ void mesh_foreachScreenEdge(
         void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index),
         void *userData, eV3DClipTest clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index);
-		     void *userData; ViewContext vc; eV3DClipTest clipVerts; } data;
+	foreachScreenEdge_userData data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
@@ -2047,7 +2083,7 @@ void mesh_foreachScreenEdge(
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; } *data = userData;
+	foreachScreenFace_userData *data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	short s[2];
 
@@ -2065,7 +2101,7 @@ void mesh_foreachScreenFace(
         void (*func)(void *userData, EditFace *efa, int x, int y, int index),
         void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; } data;
+	foreachScreenFace_userData data;
 	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
@@ -2210,7 +2246,7 @@ static void draw_dm_vert_normals(Scene *scene, DerivedMesh *dm)
 	/* Draw verts with color set based on selection */
 static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	struct { int sel; EditVert *eve_act; } * data = userData;
+	drawDMVerts_userData * data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0 && (eve->f&SELECT)==data->sel) {
@@ -2237,7 +2273,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 
 static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
-	struct { int sel; EditVert *eve_act; } data;
+	drawDMVerts_userData data;
 	data.sel = sel;
 	data.eve_act = eve_act;
 
@@ -2251,7 +2287,7 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	EditEdge *eed = EM_get_edge_for_index(index);
 	//unsigned char **cols = userData, *col;
-	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } * data = userData;
+	drawDMEdgesSel_userData * data = userData;
 	unsigned char *col;
 
 	if (eed->h==0) {
@@ -2275,7 +2311,7 @@ static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 }
 static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditEdge *eed_act) 
 {
-	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } data;
+	drawDMEdgesSel_userData data;
 	
 	data.baseCol = baseCol;
 	data.selCol = selCol;
@@ -2360,7 +2396,7 @@ static void draw_dm_edges_freestyle(DerivedMesh *dm)
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } * data = userData;
+	drawDMFacesSel_userData * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
@@ -2380,7 +2416,7 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } *data = userData;
+	drawDMFacesSel_userData *data = userData;
 	EditFace *efa;
 	EditFace *next_efa;
 	unsigned char *col, *next_col;
@@ -2409,7 +2445,7 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 /* also draws the active face */
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *markCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { unsigned char *cols[4]; EditFace *efa_act; int *orig_index; } data;
+	drawDMFacesSel_userData data;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = markCol;
@@ -2602,8 +2638,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d,
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
-                                  Object *ob, EditMesh *em, UnitSettings *unit)
+static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	EditEdge *eed;
@@ -2626,11 +2661,6 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	else if (grid < 1.0f)	conv_float= "%.4g";
 	else if (grid < 10.0f)	conv_float= "%.3g";
 	else					conv_float= "%.2g";
-
-	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
-		glDisable(GL_DEPTH_TEST);
-
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAWEXTRA_EDGELEN) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
@@ -2749,23 +2779,49 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 			}
 		}
 	}
+}
 
-	/* useful for debugging index vs shape key index */
-#if 0
-	{
-		EditVert *eve;
-		int j;
+static void draw_em_indices(EditMesh *em)
+{
+	EditEdge *e;
+	EditFace *f;
+	EditVert *v;
+	int i;
+	char val[32];
+	float pos[3];
+	unsigned char col[4];
+
+	/* For now, reuse appropriate theme colors from stats text colors */
+
+	if (em->selectmode & SCE_SELECT_VERTEX) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		for(eve= em->verts.first, j= 0; eve; eve= eve->next, j++) {
-			sprintf(val, "%d:%d", j, eve->keyindex);
-			view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		for (v = em->verts.first, i = 0; v; v = v->next, i++) {
+			if (v->f & SELECT) {
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
 		}
 	}
-#endif
 
-	if(v3d->zbuf) {
-		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0f);
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+		for (e = em->edges.first, i = 0; e; e = e->next, i++) {
+			if (e->f & SELECT) {
+				sprintf(val, "%d", i);
+				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
+				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
+		}
+	}
+
+	if (em->selectmode & SCE_SELECT_FACE) {
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+		for (f = em->faces.first, i = 0; f; f = f->next, i++) {
+			if (f->f & SELECT) {
+				sprintf(val, "%d", i);
+				view3d_cached_text_draw_add(f->cent, val, 0, V3D_CACHE_TEXT_ASCII, col);
+			}
+		}
 	}
 }
 
@@ -2956,7 +3012,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if ( (me->drawflag & (ME_DRAWEXTRA_EDGELEN|ME_DRAWEXTRA_FACEAREA|ME_DRAWEXTRA_FACEANG)) &&
 		     !(v3d->flag2 & V3D_RENDER_OVERRIDE))
 		{
-			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
+			draw_em_measure_stats(v3d, ob, em, &scene->unit);
+		}
+
+		if ((G.f & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+			draw_em_indices(em);
 		}
 	}
 
@@ -6848,7 +6909,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	struct {void* offset; MVert *mvert;} *data = userData;
+	bbsObmodeMeshVerts_userData *data = userData;
 	MVert *mv = &data->mvert[index];
 	int offset = (intptr_t) data->offset;
 
@@ -6860,7 +6921,7 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co,
 
 static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 {
-	struct {void* offset; struct MVert *mvert;} data;
+	bbsObmodeMeshVerts_userData data;
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	data.mvert = mvert;

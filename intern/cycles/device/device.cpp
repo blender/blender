@@ -24,6 +24,7 @@
 
 #include "util_cuda.h"
 #include "util_debug.h"
+#include "util_foreach.h"
 #include "util_math.h"
 #include "util_opencl.h"
 #include "util_opengl.h"
@@ -41,7 +42,31 @@ DeviceTask::DeviceTask(Type type_)
 {
 }
 
-void DeviceTask::split(ThreadQueue<DeviceTask>& tasks, int num)
+void DeviceTask::split_max_size(list<DeviceTask>& tasks, int max_size)
+{
+	int num;
+
+	if(type == DISPLACE) {
+		num = (displace_w + max_size - 1)/max_size;
+	}
+	else {
+		max_size = max(1, max_size/w);
+		num = (h + max_size - 1)/max_size;
+	}
+
+	split(tasks, num);
+}
+
+void DeviceTask::split(ThreadQueue<DeviceTask>& queue, int num)
+{
+	list<DeviceTask> tasks;
+	split(tasks, num);
+
+	foreach(DeviceTask& task, tasks)
+		queue.push(task);
+}
+
+void DeviceTask::split(list<DeviceTask>& tasks, int num)
 {
 	if(type == DISPLACE) {
 		num = min(displace_w, num);
@@ -55,7 +80,7 @@ void DeviceTask::split(ThreadQueue<DeviceTask>& tasks, int num)
 			task.displace_x = tx;
 			task.displace_w = tw;
 
-			tasks.push(task);
+			tasks.push_back(task);
 		}
 	}
 	else {
@@ -70,7 +95,7 @@ void DeviceTask::split(ThreadQueue<DeviceTask>& tasks, int num)
 			task.y = ty;
 			task.h = th;
 
-			tasks.push(task);
+			tasks.push_back(task);
 		}
 	}
 }

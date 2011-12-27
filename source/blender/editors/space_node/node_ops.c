@@ -59,10 +59,11 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_same_type_prev);
 
 	WM_operatortype_append(NODE_OT_view_all);
-	WM_operatortype_append(NODE_OT_visibility_toggle);
+
 	WM_operatortype_append(NODE_OT_mute_toggle);
 	WM_operatortype_append(NODE_OT_hide_toggle);
 	WM_operatortype_append(NODE_OT_preview_toggle);
+	WM_operatortype_append(NODE_OT_options_toggle);
 	WM_operatortype_append(NODE_OT_hide_socket_toggle);
 	WM_operatortype_append(NODE_OT_show_cyclic_dependencies);
 	
@@ -148,7 +149,6 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);

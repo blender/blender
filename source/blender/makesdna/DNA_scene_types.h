@@ -581,7 +581,7 @@ typedef struct GameData {
 	short mode, matmode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
-	short pad[2];
+	short exitkey, pad;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation, pad1;
 	float levelHeight;
@@ -920,8 +920,6 @@ typedef struct Scene {
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */
 	unsigned int lay_updated;       /* runtime flag, has layer ever been updated since load? */
-	unsigned int customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
-	unsigned int customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 	
 	short flag;								/* various settings */
 	
@@ -976,6 +974,9 @@ typedef struct Scene {
 
 	/* Movie Tracking */
 	struct MovieClip *clip;			/* active movie clip */
+
+	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
+	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 } Scene;
 
 

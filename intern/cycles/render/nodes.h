@@ -158,6 +158,14 @@ public:
 	ShaderSocketType from, to;
 };
 
+class ProxyNode : public ShaderNode {
+public:
+	ProxyNode(ShaderSocketType from, ShaderSocketType to);
+	SHADER_NODE_BASE_CLASS(ProxyNode)
+
+	ShaderSocketType from, to;
+};
+
 class BsdfNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BsdfNode)

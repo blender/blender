@@ -15,34 +15,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Campbell Barton
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_DEFS_H
-#define DNA_DEFS_H
+#ifndef BLI_MD5_H
+#define BLI_MD5_H 
 
-/** \file DNA_defs.h
- *  \ingroup DNA
+/** \file BLI_md5.h
+ *  \ingroup bli
  */
 
-/* makesdna ignores */
-#ifdef DNA_DEPRECATED_ALLOW
-   /* allow use of deprecated items */
-#  define DNA_DEPRECATED
-#else
-#  ifndef DNA_DEPRECATED
-#    ifdef __GNUC__
-#      define DNA_DEPRECATED __attribute__ ((deprecated))
-#    else
-       /* TODO, msvc & others */
-#      define DNA_DEPRECATED
-#    endif
-#  endif
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
+   result is always in little endian byte order, so that a byte-wise
+   output yields to the wanted ASCII representation of the message
+   digest.  */
+
+void *md5_buffer(const char *buffer, size_t len, void *resblock);
+
+/* Compute MD5 message digest for bytes read from STREAM.  The
+   resulting message digest number will be written into the 16 bytes
+   beginning at RESBLOCK.  */
+
+int md5_stream(FILE *stream, void *resblock);
+
 #endif
 
-/* hrmf, we need a better include then this */
-#include "../blenloader/BLO_sys_types.h" /* needed for int64_t only! */
-
-#endif /* DNA_DEFS_H */

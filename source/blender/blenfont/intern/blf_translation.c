@@ -29,9 +29,19 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef WITH_INTERNATIONAL
 #include <libintl.h>
+#include <locale.h>
+
+#define GETTEXT_CONTEXT_GLUE "\004"
+
+/* needed for windows version of gettext */
+#ifndef LC_MESSAGES
+#	define LC_MESSAGES 1729
+#endif
+
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -91,6 +101,41 @@ const char* BLF_gettext(const char *msgid)
 #endif
 }
 
+const char *BLF_pgettext(const char *context, const char *message)
+{
+#ifdef WITH_INTERNATIONAL
+	char static_msg_ctxt_id[1024];
+	char *dynamic_msg_ctxt_id = NULL;
+	char *msg_ctxt_id;
+	const char *translation;
+
+	size_t overall_length = strlen(context) + strlen(message) + sizeof(GETTEXT_CONTEXT_GLUE) + 1;
+
+	if (overall_length > sizeof(static_msg_ctxt_id)) {
+		dynamic_msg_ctxt_id = malloc(overall_length);
+		msg_ctxt_id = dynamic_msg_ctxt_id;
+	}
+	else {
+		msg_ctxt_id = static_msg_ctxt_id;
+	}
+
+	sprintf(msg_ctxt_id, "%s%s%s", context, GETTEXT_CONTEXT_GLUE, message);
+
+	translation = (char*)dcgettext(TEXT_DOMAIN_NAME, msg_ctxt_id, LC_MESSAGES);
+
+	if (dynamic_msg_ctxt_id)
+		free(dynamic_msg_ctxt_id);
+
+	if (translation == msg_ctxt_id)
+		translation = message;
+
+	return translation;
+#else
+	(void)context;
+	return message;
+#endif
+}
+
 int BLF_translate_iface(void)
 {
 #ifdef WITH_INTERNATIONAL
@@ -132,4 +177,3 @@ const char *BLF_translate_do_tooltip(const char *msgid)
 	return msgid;
 #endif
 }
-

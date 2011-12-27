@@ -305,8 +305,6 @@ void			ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sc
 void			ntreeMakeLocal(struct bNodeTree *ntree);
 int				ntreeHasType(struct bNodeTree *ntree, int type);
 
-void			ntreeSocketUseFlags(struct bNodeTree *ntree);
-
 void			ntreeUpdateTree(struct bNodeTree *ntree);
 /* XXX Currently each tree update call does call to ntreeVerifyNodes too.
  * Some day this should be replaced by a decent depsgraph automatism!

@@ -241,7 +241,12 @@ GPUFunction *GPU_lookup_function(const char *name)
 	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, (void *)name);
 }
 
-void GPU_extensions_exit(void)
+void GPU_codegen_init(void)
+{
+	GPU_code_generate_glsl_lib();
+}
+
+void GPU_codegen_exit(void)
 {
 	extern Material defmaterial;    // render module abuse...
 
@@ -253,8 +258,11 @@ void GPU_extensions_exit(void)
 		FUNCTION_HASH = NULL;
 	}
 
-	if(glsl_material_library)
+	if(glsl_material_library) {
 		MEM_freeN(glsl_material_library);
+		glsl_material_library = NULL;
+	}
+
 	/*if(FUNCTION_PROTOTYPES) {
 		MEM_freeN(FUNCTION_PROTOTYPES);
 		FUNCTION_PROTOTYPES = NULL;
@@ -538,12 +546,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_appendf(ds, ", gl_TexCoord[%d].st", input->texid);
 			}
 			else if (input->source == GPU_SOURCE_TEX_PIXEL) {
-				if (input->link && input->link->output)
-					codegen_convert_datatype(ds, input->link->output->type, input->type,
-						"tmp", input->link->output->id);
-				else
-					codegen_convert_datatype(ds, input->link->output->type, input->type,
-						"tex", input->texid);
+				codegen_convert_datatype(ds, input->link->output->type, input->type,
+					"tmp", input->link->output->id);
 			}
 			else if(input->source == GPU_SOURCE_BUILTIN)
 				BLI_dynstr_appendf(ds, "%s", GPU_builtin_name(input->builtin));

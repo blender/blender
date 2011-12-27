@@ -682,7 +682,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 
 static int modifier_can_delete(ModifierData *md)
 {
-	// fluid particle modifier can't be deleted here
+	/* fluid particle modifier can't be deleted here */
 	if(md->type == eModifierType_ParticleSystem)
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
 			return 0;
@@ -690,14 +690,16 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-// Check wheter Modifier is a simulation or not, this is used for switching to the physics/particles context tab
+/* Check wheter Modifier is a simulation or not, this is used for switching to the physics/particles context tab */
 static int modifier_is_simulation(ModifierData *md)
 {
-	// Physic Tab
-	if(ELEM7(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke, eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint)) {
+	/* Physic Tab */
+	if (ELEM7(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke,
+	                    eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint))
+	{
 		return 1;
 	}
-	// Particle Tab
+	/* Particle Tab */
 	else if (md->type == eModifierType_ParticleSystem) {
 		return 2;
 	}
@@ -706,7 +708,8 @@ static int modifier_is_simulation(ModifierData *md)
 	}
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
+static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
+                               ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
@@ -846,7 +849,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 				uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply"), 0, "apply_as", MODIFIER_APPLY_DATA);
 				
-				if (modifier_sameTopology(md))
+				if (modifier_sameTopology(md) && !modifier_nonGeometrical(md))
 					uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply as Shape"), 0, "apply_as", MODIFIER_APPLY_SHAPE);
 			}
 			
@@ -854,7 +857,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
 			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth, eModifierType_Smoke))
-				uiItemO(row, TIP_("Copy"), ICON_NONE, "OBJECT_OT_modifier_copy");
+				uiItemO(row, IFACE_("Copy"), ICON_NONE, "OBJECT_OT_modifier_copy");
 		}
 		
 		/* result is the layout block inside the box, that we return so that modifier settings can be drawn */

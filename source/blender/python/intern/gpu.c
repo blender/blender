@@ -145,6 +145,14 @@ PyInit_gpu(void)
 	PyObject_SetAttrString(d, #f, val);	\
 	Py_DECREF(val)
 
+PyDoc_STRVAR(GPU_export_shader_doc,
+"export_shader(scene, material)\n"
+"\n"
+"   Returns the GLSL shader that produces the visual effect of material in scene.\n"
+"\n"
+"   :return: Dictionary defining the shader, uniforms and attributes.\n"
+"   :rtype: Dict"
+);
 static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObject *kwds)
 {
 	PyObject* pyscene;
@@ -184,7 +192,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;
 		}
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() first argument should be of Scene type");
 		return NULL;
 	}
@@ -204,7 +213,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;
 		}
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "gpu.export_shader() second argument should be of Material type");
 		return NULL;
 	}
@@ -260,7 +270,8 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 		if (attribute->name) {
 			if (attribute->name[0] != 0) {
 				PY_DICT_ADD_STRING(dict,attribute,name);
-			} else {
+			}
+			else {
 				val = PyLong_FromLong(0);
 				PyDict_SetItemString(dict, "name", val);
 				Py_DECREF(val);
@@ -276,11 +287,9 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	return result;
 }
 
-static PyMethodDef meth_export_shader[] = {{ "export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS,
-										  "export_shader(scene,material)\n\n"
-										  "Returns the GLSL shader that produces the visual effect of material in scene.\n\n"
-										  ":return: Dictionary defining the shader, uniforms and attributes.\n"
-										  ":rtype: Dict"}};
+static PyMethodDef meth_export_shader[] = {
+	{"export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS, GPU_export_shader_doc}
+};
 
 PyObject* GPU_initPython(void)
 {

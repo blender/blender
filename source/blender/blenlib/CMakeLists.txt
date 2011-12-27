@@ -72,6 +72,7 @@ set(SRC
 	intern/math_rotation.c
 	intern/math_vector.c
 	intern/math_vector_inline.c
+	intern/md5.c
 	intern/noise.c
 	intern/path_util.c
 	intern/pbvh.c
@@ -118,6 +119,7 @@ set(SRC
 	BLI_math_matrix.h
 	BLI_math_rotation.h
 	BLI_math_vector.h
+	BLI_md5.h
 	BLI_memarena.h
 	BLI_mempool.h
 	BLI_noise.h

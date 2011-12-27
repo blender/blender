@@ -259,11 +259,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
+	numFaces = dm->getNumFaces(dm);
+
 	/* make sure we are not modifying the original UV map */
 	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
-			CD_MTFACE, uvname);
+			CD_MTFACE, uvname, numFaces);
 
-	
 	numVerts = dm->getNumVerts(dm);
 
 	coords = MEM_callocN(sizeof(*coords) * numVerts,
@@ -280,7 +281,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			mul_project_m4_v3(projectors[0].projmat, *co);
 
 	mface = dm->getFaceArray(dm);
-	numFaces = dm->getNumFaces(dm);
 
 	/* apply coords as UVs, and apply image if tfaces are new */
 	for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tface) {
@@ -290,7 +290,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
 					project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
 					project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
-					if(mf->v3)
+					if(mf->v4)
 						project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
 				}
 				else {
@@ -343,7 +343,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					project_from_camera(tface->uv[0], coords[mf->v1], best_projector->uci);
 					project_from_camera(tface->uv[1], coords[mf->v2], best_projector->uci);
 					project_from_camera(tface->uv[2], coords[mf->v3], best_projector->uci);
-					if(mf->v3)
+					if(mf->v4)
 						project_from_camera(tface->uv[3], coords[mf->v4], best_projector->uci);
 				}
 				else {
@@ -407,7 +407,7 @@ ModifierTypeInfo modifierType_UVProject = {
 	/* name */              "UVProject",
 	/* structName */        "UVProjectModifierData",
 	/* structSize */        sizeof(UVProjectModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
+	/* type */              eModifierTypeType_NonGeometrical,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
 							| eModifierTypeFlag_SupportsMapping
 							| eModifierTypeFlag_SupportsEditmode

@@ -38,13 +38,13 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "MEM_guardedalloc.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
+#include "BKE_cdderivedmesh.h"
 
-#include "MEM_guardedalloc.h"
 
 #ifdef WITH_MOD_DECIMATE
 #include "LOD_decimation.h"

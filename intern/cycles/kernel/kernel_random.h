@@ -123,7 +123,7 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dime
 #endif
 }
 
-__device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, float *fx, float *fy)
+__device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, int offset, int stride, float *fx, float *fy)
 {
 #ifdef __SOBOL_FULL_SCREEN__
 	uint px, py;
@@ -138,7 +138,7 @@ __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, 
 	*fx = size * (float)px * (1.0f/(float)0xFFFFFFFF) - x;
 	*fy = size * (float)py * (1.0f/(float)0xFFFFFFFF) - y;
 #else
-	*rng = rng_state[x + y*kernel_data.cam.width];
+	*rng = rng_state[offset + x + y*stride];
 
 	*rng ^= kernel_data.integrator.seed;
 
@@ -147,7 +147,7 @@ __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, 
 #endif
 }
 
-__device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng, int x, int y)
+__device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng, int x, int y, int offset, int stride)
 {
 	/* nothing to do */
 }
@@ -163,10 +163,10 @@ __device float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dimension)
 	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
 }
 
-__device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, float *fx, float *fy)
+__device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, int offset, int stride, float *fx, float *fy)
 {
 	/* load state */
-	*rng = rng_state[x + y*kernel_data.cam.width];
+	*rng = rng_state[offset + x + y*stride];
 
 	*rng ^= kernel_data.integrator.seed;
 
@@ -174,10 +174,10 @@ __device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sam
 	*fy = path_rng(kg, rng, sample, PRNG_FILTER_V);
 }
 
-__device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng, int x, int y)
+__device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng, int x, int y, int offset, int stride)
 {
 	/* store state for next sample */
-	rng_state[x + y*kernel_data.cam.width] = rng;
+	rng_state[offset + x + y*stride] = rng;
 }
 
 #endif

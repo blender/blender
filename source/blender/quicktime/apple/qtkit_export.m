@@ -106,21 +106,26 @@ static struct QuicktimeExport *qtexport;
 /* Video codec */
 static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 	{kRawCodecType, 1, "Uncompressed"},
-	{kJPEGCodecType, 2, "JPEG"},
-	{kMotionJPEGACodecType, 3, "M-JPEG A"},
-	{kMotionJPEGBCodecType, 4, "M-JPEG B"},
-	{kDVCPALCodecType, 5, "DV PAL"},
-	{kDVCNTSCCodecType, 6, "DV/DVCPRO NTSC"},
-	{kDVCPROHD720pCodecType, 7, "DVCPRO HD 720p"},
-	{kDVCPROHD1080i50CodecType, 8, "DVCPRO HD 1080i50"},
-	{kDVCPROHD1080i60CodecType, 9, "DVCPRO HD 1080i60"},
-	{kMPEG4VisualCodecType, 10, "MPEG4"},
-	{kH263CodecType, 11, "H.263"},
-	{kH264CodecType, 12, "H.264"},
-	{kAnimationCodecType, 13, "Animation"},
+	{k422YpCbCr8CodecType, 2, "Uncompressed 8-bit 4:2:2"},
+	{k422YpCbCr10CodecType, 3, "Uncompressed 10-bit 4:2:2"},
+	{kComponentVideoCodecType, 4, "Component Video"},
+	{kPixletCodecType, 5, "Pixlet"},
+	{kPNGCodecType, 6, "PNG"},
+	{kJPEGCodecType, 7, "JPEG"},
+	{kMotionJPEGACodecType, 8, "M-JPEG A"},
+	{kMotionJPEGBCodecType, 9, "M-JPEG B"},
+	{kDVCPALCodecType, 10, "DV PAL"},
+	{kDVCNTSCCodecType, 11, "DV/DVCPRO NTSC"},
+	{kDVCPROHD720pCodecType, 12, "DVCPRO HD 720p"},
+	{kDVCPROHD1080i50CodecType, 13, "DVCPRO HD 1080i50"},
+	{kDVCPROHD1080i60CodecType, 14, "DVCPRO HD 1080i60"},
+	{kMPEG4VisualCodecType, 15, "MPEG4"},
+	{kH263CodecType, 16, "H.263"},
+	{kH264CodecType, 17, "H.264"},
+	{kAnimationCodecType, 18, "Animation"},
 	{0,0,NULL}};
 
-static int qtVideoCodecCount = 13;
+static int qtVideoCodecCount = 18;
 
 int quicktime_get_num_videocodecs() {
 	return qtVideoCodecCount;
@@ -777,9 +782,9 @@ void end_qt(void)
 void free_qtcomponentdata(void) {
 }
 
-void quicktime_verify_image_type(RenderData *rd)
+void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)
 {
-	if (rd->im_format.imtype == R_IMF_IMTYPE_QUICKTIME) {
+	if (imf->imtype == R_IMF_IMTYPE_QUICKTIME) {
 		if ((rd->qtcodecsettings.codecType<= 0) ||
 			(rd->qtcodecsettings.codecSpatialQuality <0) ||
 			(rd->qtcodecsettings.codecSpatialQuality > 100)) {

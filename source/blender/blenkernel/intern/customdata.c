@@ -943,7 +943,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			number++;
 
 		if(lastflag & CD_FLAG_NOCOPY) continue;
-		else if(!((int)mask & (int)(1 << (int)type))) continue;
+		else if(!(mask & CD_TYPE_AS_MASK(type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
 		if((alloctype == CD_ASSIGN) && (lastflag & CD_FLAG_NOFREE))
@@ -1404,7 +1404,7 @@ int CustomData_number_of_layers(const CustomData *data, int type)
 	return number;
 }
 
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
+void *CustomData_duplicate_referenced_layer(struct CustomData *data, const int type, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1416,7 +1416,20 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 
@@ -1424,7 +1437,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 }
 
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, const char *name)
+												  const int type, const char *name, const int totelem)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1436,7 +1449,20 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
 	layer = &data->layers[layer_index];
 
 	if (layer->flag & CD_FLAG_NOFREE) {
-		layer->data = MEM_dupallocN(layer->data);
+		/* MEM_dupallocN won’t work in case of complex layers, like e.g.
+		 * CD_MDEFORMVERT, which has pointers to allocated data...
+		 * So in case a custom copy function is defined, use it!
+		 */
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->copy) {
+			char *dest_data = MEM_mallocN(typeInfo->size * totelem, "CD duplicate ref layer");
+			typeInfo->copy(layer->data, dest_data, totelem);
+			layer->data = dest_data;
+		}
+		else
+			layer->data = MEM_dupallocN(layer->data);
+
 		layer->flag &= ~CD_FLAG_NOFREE;
 	}
 
@@ -1474,7 +1500,7 @@ void CustomData_set_only_copy(const struct CustomData *data,
 	int i;
 
 	for(i = 0; i < data->totlayer; ++i)
-		if(!((int)mask & (int)(1 << (int)data->layers[i].type)))
+		if(!(mask & CD_TYPE_AS_MASK(data->layers[i].type)))
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 
@@ -2415,7 +2441,7 @@ void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if((layer->flag & CD_FLAG_EXTERNAL) && (layer->flag & CD_FLAG_IN_MEMORY)) {
 			if(typeInfo->free)
 				typeInfo->free(layer->data, totelem, typeInfo->size);
@@ -2441,7 +2467,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if(layer->flag & CD_FLAG_IN_MEMORY);
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read)
 			update= 1;
@@ -2462,7 +2488,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if(layer->flag & CD_FLAG_IN_MEMORY);
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read) {
 			blay= cdf_layer_find(cdf, layer->type, layer->name);
@@ -2501,7 +2527,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if(!(mask & (1<<layer->type)));
+		if(!(mask & CD_TYPE_AS_MASK(layer->type)));
 		else if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write)
 			update= 1;
 	}
@@ -2615,7 +2641,7 @@ void CustomData_external_remove(CustomData *data, ID *id, int type, int totelem)
 
 	if(layer->flag & CD_FLAG_EXTERNAL) {
 		if(!(layer->flag & CD_FLAG_IN_MEMORY))
-			CustomData_external_read(data, id, (1<<layer->type), totelem);
+			CustomData_external_read(data, id, CD_TYPE_AS_MASK(layer->type), totelem);
 
 		layer->flag &= ~CD_FLAG_EXTERNAL;
 

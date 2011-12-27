@@ -303,7 +303,6 @@ scolumn_bmod (
 	   d_fsupc=0 if fsupc >= fpanelc. */
   	d_fsupc = fst_col - fsupc;
 
-	lptr = xlsub[fsupc] + d_fsupc;
 	luptr = xlusup[fst_col] + d_fsupc;
 	nsupr = xlsub[fsupc+1] - xlsub[fsupc];	/* Leading dimension */
 	nsupc = jcol - fst_col;	/* Excluding jcol */

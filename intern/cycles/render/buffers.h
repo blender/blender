@@ -30,12 +30,55 @@ CCL_NAMESPACE_BEGIN
 class Device;
 struct float4;
 
+/* Buffer Parameters
+   Size of render buffer and how it fits in the full image (border render). */
+
+class BufferParams {
+public:
+	/* width/height of the physical buffer */
+	int width;
+	int height;
+
+	/* offset into and width/height of the full buffer */
+	int full_x;
+	int full_y;
+	int full_width;
+	int full_height;
+
+	BufferParams()
+	{
+		width = 0;
+		height = 0;
+
+		full_x = 0;
+		full_y = 0;
+		full_width = 0;
+		full_height = 0;
+	}
+
+	void get_offset_stride(int& offset, int& stride)
+	{
+		offset = -(full_x + full_y*width);
+		stride = width;
+	}
+
+	bool modified(const BufferParams& params)
+	{
+		return !(full_x == params.full_x
+			&& full_y == params.full_y
+			&& width == params.width
+			&& height == params.height
+			&& full_width == params.full_width
+			&& full_height == params.full_height);
+	}
+};
+
 /* Render Buffers */
 
 class RenderBuffers {
 public:
-	/* buffer dimensions */
-	int width, height;
+	/* buffer parameters */
+	BufferParams params;
 	/* float buffer */
 	device_vector<float4> buffer;
 	/* random number generator state */
@@ -46,7 +89,7 @@ public:
 	RenderBuffers(Device *device);
 	~RenderBuffers();
 
-	void reset(Device *device, int width, int height);
+	void reset(Device *device, BufferParams& params);
 	float4 *copy_from_device(float exposure, int sample);
 
 protected:
@@ -62,8 +105,8 @@ protected:
 
 class DisplayBuffer {
 public:
-	/* buffer dimensions */
-	int width, height;
+	/* buffer parameters */
+	BufferParams params;
 	/* dimensions for how much of the buffer is actually ready for display.
 	   with progressive render we can be using only a subset of the buffer.
 	   if these are zero, it means nothing can be drawn yet */
@@ -78,7 +121,7 @@ public:
 	DisplayBuffer(Device *device);
 	~DisplayBuffer();
 
-	void reset(Device *device, int width, int height);
+	void reset(Device *device, BufferParams& params);
 	void write(Device *device, const string& filename);
 
 	void draw_set(int width, int height);

@@ -1548,8 +1548,10 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
 			 * but for now just dont change handle types */
-			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
-				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
+			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0) {
+				/* sets the handles based on their selection, do this after the data is copied to the TransData */
+				testhandlesNurb(nu);
+			}
 		}
 		else {
 			TransData *head, *tail;
@@ -3448,7 +3450,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+				if ( ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
+				     ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
+				     ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+				{
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1= HD_ALIGN;
 						bezt->h2= HD_ALIGN;
@@ -4144,7 +4149,10 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 				int i;
 				for(i=0; i<3; i++) {
 					seq_user= *((&seq->seq1) + i);
-					if (seq_user && (seq_user->flag & SELECT) && !(seq_user->flag & SEQ_LOCK) && !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL))) {
+					if ( seq_user && (seq_user->flag & SELECT) &&
+					     !(seq_user->flag & SEQ_LOCK) &&
+					     !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
+					{
 						seq->flag |= SELECT;
 					}
 				}
@@ -4443,7 +4451,8 @@ static int count_proportional_objects(TransInfo *t)
 		/* mark all children */
 		for (base= scene->base.first; base; base= base->next) {
 			/* all base not already selected or marked that is editable */
-			if ((base->object->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+			if ( (base->object->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
+			     (BASE_EDITABLE_BGMODE(v3d, scene, base)))
 			{
 				mark_children(base->object);
 			}
@@ -4454,7 +4463,8 @@ static int count_proportional_objects(TransInfo *t)
 		Object *ob= base->object;
 
 		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
-		if ((ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 && BASE_EDITABLE_BGMODE(v3d, scene, base))
+		if ( (ob->flag & (SELECT|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT)) == 0 &&
+		     (BASE_EDITABLE_BGMODE(v3d, scene, base)))
 		{
 
 			/* used for flush, depgraph will change recalcs if needed :) */
@@ -4530,7 +4540,9 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			if (adt && adt->action) {
 				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
 					fcu->flag &= ~FCURVE_SELECTED;
-					insert_keyframe(reports, id, adt->action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+					insert_keyframe(reports, id, adt->action,
+					                (fcu->grp ? fcu->grp->name : NULL),
+					                fcu->rna_path, fcu->array_index, cfra, flag);
 				}
 			}
 		}
@@ -5048,8 +5060,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	}
-	else if(t->scene->basact && (ob = t->scene->basact->object) && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, ob)) {
-		;
+	else if ( (t->scene->basact) &&
+	          (ob = t->scene->basact->object) &&
+	          (ob->mode & OB_MODE_PARTICLE_EDIT) &&
+	          PE_get_current(t->scene, ob))
+	{
+		/* do nothing */ ;
 	}
 	else { /* Objects */
 		int i, recalcObPaths=0;

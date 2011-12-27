@@ -2292,6 +2292,9 @@ static int ccgdm_adjacent_grid(CCGSubSurf *ss, int *gridOffset, CCGFace *f, int 
 				break;
 		}
 	}
+
+	if(numEdges == 0)
+		return -1;
 	
 	fIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(ss, adjf));
 

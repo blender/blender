@@ -1069,7 +1069,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 		/* setting do_alpha_after = 1 indicates this object needs to be
 		 * drawn in a second alpha pass for improved blending */
-		if(GMS.use_alpha_pass && !GMS.is_alpha_pass)
+		if(do_alpha_after && !GMS.is_alpha_pass)
 			if(ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
 				*do_alpha_after= 1;
 

@@ -1026,7 +1026,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
 
 			yn= tin*mtex->colfac;
-			zn= tin*mtex->alphafac;
+			//zn= tin*mtex->alphafac;
 
 			if(mtex->mapto & MAP_COL) {
 				zn= 1.0f-yn;
@@ -1112,10 +1112,8 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 	if(ma->mode & MA_HALO_RINGS) har->ringc= ma->ringc;
 	if(ma->mode & MA_HALO_FLARE) har->flarec= ma->flarec;
 
-	if((ma->mode & MA_HALOTEX) && ma->mtex[0]){
+	if((ma->mode & MA_HALOTEX) && ma->mtex[0])
 		har->tex= 1;
-		i=1;
-	}
 	
 	for(i=0; i<MAX_MTEX; i++)
 		if(ma->mtex[i] && (ma->septex & (1<<i))==0) {

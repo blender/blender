@@ -2010,7 +2010,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 		
 		samples++;
 		
-		if (qsa->type == SAMP_TYPE_HALTON) {
+		if (qsa && qsa->type == SAMP_TYPE_HALTON) {
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */		
 			if (adapt_thresh > 0.0f && (samples > max_samples/2) ) {
 				

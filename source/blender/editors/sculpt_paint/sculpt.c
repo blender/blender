@@ -248,90 +248,51 @@ typedef struct StrokeCache {
 
 /* Get a screen-space rectangle of the modified area */
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
-				Object *ob, rcti *rect)
+								  Object *ob, rcti *rect)
 {
+	SculptSession *ss;
 	PBVH *pbvh= ob->sculpt->pbvh;
-	float bb_min[3], bb_max[3], pmat[4][4];
-	int i, j, k;
-
-	ED_view3d_ob_project_mat_get(rv3d, ob, pmat);
+	float bb_min[3], bb_max[3];
 
 	if(!pbvh)
 		return 0;
 
 	BLI_pbvh_redraw_BB(pbvh, bb_min, bb_max);
 
-	rect->xmin = rect->ymin = INT_MAX;
-	rect->xmax = rect->ymax = INT_MIN;
-
-	if(bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+	/* convert 3D bounding box to screen space */
+	if(!paint_convert_bb_to_rect(rect,
+								 bb_min,
+								 bb_max,
+								 ar,
+								 rv3d,
+								 ob)) {
 		return 0;
-
-	for(i = 0; i < 2; ++i) {
-		for(j = 0; j < 2; ++j) {
-			for(k = 0; k < 2; ++k) {
-				float vec[3], proj[2];
-				vec[0] = i ? bb_min[0] : bb_max[0];
-				vec[1] = j ? bb_min[1] : bb_max[1];
-				vec[2] = k ? bb_min[2] : bb_max[2];
-				ED_view3d_project_float(ar, vec, proj, pmat);
-				rect->xmin = MIN2(rect->xmin, proj[0]);
-				rect->xmax = MAX2(rect->xmax, proj[0]);
-				rect->ymin = MIN2(rect->ymin, proj[1]);
-				rect->ymax = MAX2(rect->ymax, proj[1]);
-			}
-		}
-	}
-	
-	if (rect->xmin < rect->xmax && rect->ymin < rect->ymax) {
-		/* expand redraw rect with redraw rect from previous step to prevent
-		   partial-redraw issues caused by fast strokes. This is needed here (not in sculpt_flush_update)
-		   as it was before because redraw rectangle should be the same in both of
-		   optimized PBVH draw function and 3d view redraw (if not -- some mesh parts could
-		   disapper from screen (sergey) */
-		SculptSession *ss = ob->sculpt;
-
-		if (ss->cache) {
-			if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-				BLI_union_rcti(rect, &ss->cache->previous_r);
-		}
-
-		return 1;
 	}
 
-	return 0;
+	/* expand redraw rect with redraw rect from previous step to
+	   prevent partial-redraw issues caused by fast strokes. This is
+	   needed here (not in sculpt_flush_update) as it was before
+	   because redraw rectangle should be the same in both of
+	   optimized PBVH draw function and 3d view redraw (if not -- some
+	   mesh parts could disapper from screen (sergey) */
+	ss = ob->sculpt;
+	if(ss->cache) {
+		if(!BLI_rcti_is_empty(&ss->cache->previous_r))
+			BLI_union_rcti(rect, &ss->cache->previous_r);
+	}
+
+	return 1;
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 				  RegionView3D *rv3d, Object *ob)
 {
 	PBVH *pbvh= ob->sculpt->pbvh;
-	BoundBox bb;
-	bglMats mats;
 	rcti rect;
 
-	memset(&bb, 0, sizeof(BoundBox));
+	sculpt_get_redraw_rect(ar, rv3d, ob, &rect);
 
-	view3d_get_transformation(ar, rv3d, ob, &mats);
-	sculpt_get_redraw_rect(ar, rv3d,ob, &rect);
-
-#if 1
-	/* use some extra space just in case */
-	rect.xmin -= 2;
-	rect.xmax += 2;
-	rect.ymin -= 2;
-	rect.ymax += 2;
-#else
-	/* it was doing this before, allows to redraw a smaller
-	   part of the screen but also gives artifaces .. */
-	rect.xmin += 2;
-	rect.xmax -= 2;
-	rect.ymin += 2;
-	rect.ymax -= 2;
-#endif
-
-	ED_view3d_calc_clipping(&bb, planes, &mats, &rect);
-	mul_m4_fl(planes, -1.0f);
+	paint_calc_redraw_planes(planes, ar, rv3d, ob, &rect);
 
 	/* clear redraw flag from nodes */
 	if(pbvh)
@@ -592,7 +553,12 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
-	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN && brush->flag & BRUSH_SPACE && !(brush->flag & BRUSH_ANCHORED)) && (brush->spacing < 100) ? 1.0f/accum : 1; // spacing is integer percentage of radius, divide by 50 to get normalized diameter
+	/* spacing is integer percentage of radius, divide by 50 to get
+	   normalized diameter */
+	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN &&
+						  brush->flag & BRUSH_SPACE &&
+						  !(brush->flag & BRUSH_ANCHORED) &&
+						  (brush->spacing < 100)) ? 1.0f/accum : 1;
 	float flip         = dir * invert * pen_flip;
 
 	switch(brush->sculpt_tool){
@@ -1716,7 +1682,9 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
 /* this calculates flatten center and area normal together, 
 amortizing the memory bandwidth and loop overhead to calculate both at the same time */
-static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float an[3], float fc[3])
+static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
+												PBVHNode **nodes, int totnode,
+												float an[3], float fc[3])
 {
 	SculptSession *ss = ob->sculpt;
 	int n;
@@ -2588,7 +2556,9 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
    calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float UNUSED(feather))
+static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
+								const char axis, const float angle,
+								const float UNUSED(feather))
 {
 	(void)sd; /* unused */
 
@@ -2620,7 +2590,9 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
 }
 
-static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, const char symm, const int axis, const float feather)
+static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
+							   const char symm, const int axis,
+							   const float feather)
 {
 	SculptSession *ss = ob->sculpt;
 	int i;
@@ -2954,7 +2926,10 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 		cache->original = 1;
 	}
 
-	if(ELEM8(brush->sculpt_tool, SCULPT_TOOL_DRAW,  SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB, SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_TUBES, SCULPT_TOOL_ROTATE))
+	if(ELEM8(brush->sculpt_tool,
+			 SCULPT_TOOL_DRAW, SCULPT_TOOL_CREASE, SCULPT_TOOL_BLOB,
+			 SCULPT_TOOL_LAYER, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
+			 SCULPT_TOOL_CLAY_TUBES, SCULPT_TOOL_ROTATE))
 		if(!(brush->flag & BRUSH_ACCUMULATE))
 			cache->original = 1;
 
@@ -3038,7 +3013,9 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 }
 
 /* Initialize the stroke cache variants from operator properties */
-static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, struct PaintStroke *stroke, PointerRNA *ptr)
+static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
+										 struct PaintStroke *stroke,
+										 PointerRNA *ptr)
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
@@ -3095,7 +3072,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 
 	cache->radius_squared = cache->radius*cache->radius;
 
-	if(!(brush->flag & BRUSH_ANCHORED || ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE))) {
+	if(!(brush->flag & BRUSH_ANCHORED ||
+		 ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK,
+			   SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE))) {
 		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
 		if  ( (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
@@ -3137,7 +3116,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, st
 		if (!hit)
 			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
 
-		cache->radius= paint_calc_object_space_radius(paint_stroke_view_context(stroke), cache->true_location, cache->pixel_radius);
+		cache->radius= paint_calc_object_space_radius(paint_stroke_view_context(stroke),
+													  cache->true_location,
+													  cache->pixel_radius);
 		cache->radius_squared = cache->radius*cache->radius;
 
 		copy_v3_v3(sd->anchored_location, cache->true_location);

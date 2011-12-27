@@ -40,6 +40,7 @@
 #include "GPU_extensions.h"
 
 #include "GPG_Application.h"
+#include "BL_BlenderDataConversion.h"
 
 #include <iostream>
 #include <MT_assert.h>
@@ -626,6 +627,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
 
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
+
+		KX_KetsjiEngine::SetExitKey(ConvertKeyCode(gm->exitkey));
 #ifdef WITH_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);
 #else
@@ -786,6 +789,10 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
+	// We only want to kill the engine if it has been initialized
+	if (!m_engineInitialized)
+		return;
+
 	sound_exit();
 	if (m_ketsjiengine)
 	{
@@ -908,12 +915,10 @@ bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
 		GHOST_TEventKeyData* keyData = static_cast<GHOST_TEventKeyData*>(eventData);
-		//no need for this test
-		//if (fSystem->getFullScreen()) {
-			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc && !m_isEmbedded) {
-				m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
-			}
-		//}
+
+		if (m_keyboard->ToNative(keyData->key) == KX_KetsjiEngine::GetExitKey() && !m_keyboard->m_hookesc && !m_isEmbedded) {
+			m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
+		}
 		m_keyboard->ConvertEvent(keyData->key, isDown);
 		handled = true;
 	}

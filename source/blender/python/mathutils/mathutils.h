@@ -37,8 +37,10 @@
 
 /* Can cast different mathutils types to this, use for generic funcs */
 
-extern char BaseMathObject_Wrapped_doc[];
-extern char BaseMathObject_Owner_doc[];
+struct DynStr;
+
+extern char BaseMathObject_is_wrapped_doc[];
+extern char BaseMathObject_owner_doc[];
 
 #define BASE_MATH_MEMBERS(_data)                                                                                 \
 	PyObject_VAR_HEAD                                                                                            \
@@ -65,8 +67,8 @@ typedef struct {
 #include "mathutils_geometry.h"
 #include "mathutils_noise.h"
 
-PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
-PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
+PyObject *BaseMathObject_owner_get( BaseMathObject * self, void * );
+PyObject *BaseMathObject_is_wrapped_get( BaseMathObject *self, void * );
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
@@ -115,8 +117,12 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
+int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, const char *error_prefix);
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
 
 int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
+
+/* dynstr as python string utility funcions */
+PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 
 #endif /* MATHUTILS_H */

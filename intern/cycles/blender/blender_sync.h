@@ -54,7 +54,7 @@ public:
 
 	/* sync */
 	bool sync_recalc();
-	void sync_data(BL::SpaceView3D b_v3d);
+	void sync_data(BL::SpaceView3D b_v3d, int layer = 0);
 	void sync_camera(int width, int height);
 	void sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
 
@@ -62,6 +62,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
 	static SessionParams get_session_params(BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
+	static BufferParams get_buffer_params(BL::Scene b_scene, BL::RegionView3D b_rv3d, int width, int height);
 
 private:
 	/* sync */
@@ -69,15 +70,15 @@ private:
 	void sync_materials();
 	void sync_objects(BL::SpaceView3D b_v3d);
 	void sync_film();
-	void sync_integrator();
+	void sync_integrator(int layer);
 	void sync_view();
 	void sync_world();
-	void sync_render_layer(BL::SpaceView3D b_v3d);
+	void sync_render_layers(BL::SpaceView3D b_v3d);
 	void sync_shaders();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint visibility);
+	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 
 	/* util */
@@ -111,7 +112,10 @@ private:
 		uint scene_layer;
 		uint layer;
 		BL::Material material_override;
-	} render_layer;
+	};
+
+	vector<RenderLayerInfo> render_layers;
+	int active_layer;
 };
 
 CCL_NAMESPACE_END

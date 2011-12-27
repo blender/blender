@@ -60,6 +60,11 @@ add_test(script_run_operators ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
 )
 
+# test running mathutils testing script
+add_test(script_pyapi_mathutils ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_mathutils.py
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 

@@ -21,6 +21,7 @@
 
 #include <limits.h>
 
+#include "buffers.h"
 #include "util_list.h"
 
 CCL_NAMESPACE_BEGIN
@@ -39,9 +40,10 @@ public:
 
 class TileManager {
 public:
+	BufferParams params;
+
 	struct State {
-		int width;
-		int height;
+		BufferParams buffer;
 		int sample;
 		int resolution;
 		list<Tile> tiles;
@@ -50,7 +52,7 @@ public:
 	TileManager(bool progressive, int samples, int tile_size, int min_size);
 	~TileManager();
 
-	void reset(int width, int height, int samples);
+	void reset(BufferParams& params, int samples);
 	void set_samples(int samples);
 	bool next();
 	bool done();
@@ -63,8 +65,6 @@ protected:
 	int tile_size;
 	int min_size;
 
-	int full_width;
-	int full_height;
 	int start_resolution;
 };
 
