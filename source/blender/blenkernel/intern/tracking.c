@@ -730,6 +730,7 @@ typedef struct TrackContext {
 typedef struct MovieTrackingContext {
 	MovieClipUser user;
 	MovieClip *clip;
+	int clip_flag;
 
 	int first_time, frames;
 
@@ -830,7 +831,20 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	}
 
 	context->clip= clip;
+
+	/* store needed clip flags passing to get_buffer functions
+	 * - MCLIP_USE_PROXY is needed to because timecode affects on movie clip
+	 *   only in case Proxy/Timecode flag is set, so store this flag to use
+	 *   timecodes properly but reset render size to SIZE_FULL so correct resolution
+	 *   would be used for images
+	 * - MCLIP_USE_PROXY_CUSTOM_DIR is needed because proxy/timecode files might
+	 *   be stored in a different location
+	 * ignore all the rest pssible flags for now */
+	context->clip_flag= clip->flag & (MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR);
+
 	context->user= *user;
+	context->user.render_size= 0;
+	context->user.render_flag= MCLIP_PROXY_RENDER_SIZE_FULL;
 
 	if(!sequence)
 		BLI_begin_threaded_malloc();
@@ -1044,7 +1058,7 @@ static ImBuf *get_frame_ibuf(MovieTrackingContext *context, int framenr)
 
 	user.framenr= framenr;
 
-	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, 0);
+	ibuf= BKE_movieclip_get_ibuf_flag(context->clip, &user, context->clip_flag);
 
 	return ibuf;
 }
@@ -1148,7 +1162,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
-	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, 0);
+	ibuf_new= BKE_movieclip_get_ibuf_flag(context->clip, &context->user, context->clip_flag);
 	if(!ibuf_new)
 		return 0;
 
