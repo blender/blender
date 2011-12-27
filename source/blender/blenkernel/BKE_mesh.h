@@ -61,21 +61,26 @@ extern "C" {
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 
 /*
-  this function recreates a tesselation.
-  returns number of tesselation faces.
-
-  use_poly_origindex sets whether or not the tesselation faces' origindex
-  layer should point to original poly indices or real poly indices.
-
-  use_face_origindex sets the tesselation faces' origindex layer
-  to point to the tesselation faces themselves, not the polys.
-
-  if both of the above are 0, it'll use the indices of the mpolys of the MPoly
-  data in pdata, and ignore the origindex layer altogether.
+ * this function recreates a tesselation.
+ * returns number of tesselation faces.
+ *
+ * use_poly_origindex sets whether or not the tesselation faces' origindex
+ * layer should point to original poly indices or real poly indices.
+ *
+ * use_face_origindex sets the tesselation faces' origindex layer
+ * to point to the tesselation faces themselves, not the polys.
+ *
+ * if both of the above are 0, it'll use the indices of the mpolys of the MPoly
+ * data in pdata, and ignore the origindex layer altogether.
  */
 int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
 	struct CustomData *pdata, struct MVert *mvert, int totface, 
 	int totloop, int totpoly);
+
+/* for forwards compat only quad->tri polys to mface, skip ngons.
+ */
+int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
+	struct CustomData *pdata, int totface, int totloop, int totpoly);
 
 /*calculates a face normal.*/
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
@@ -207,9 +212,9 @@ void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 void BKE_mesh_ensure_navmesh(struct Mesh *me);
 
 /*convert a triangle of loop facedata to mface facedata*/
-void mesh_loops_to_tri_corners(struct CustomData *fdata, struct CustomData *ldata, 
-			   struct CustomData *pdata, int lindex[3], int findex, 
-			   int polyindex);
+void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
+			   struct CustomData *pdata, int lindex[4], int findex,
+			   const int polyindex, const int mf_len);
 
 #ifdef __cplusplus
 }

@@ -209,4 +209,8 @@ typedef struct TFace {
 
 #define MESH_MAX_VERTS 2000000000L
 
+/* this is so we can save bmesh files that load in trunk, ignoring NGons
+ * will eventually be removed */
+#define USE_MESH_FORWARDS_COMAT
+
 #endif

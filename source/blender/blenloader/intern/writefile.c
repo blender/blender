@@ -152,6 +152,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
 #include "BKE_pointcache.h"
+#include "BKE_mesh.h"
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
@@ -1678,24 +1679,113 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 static void write_meshs(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
+	int save_for_old_blender= 0;
+
+#ifdef USE_MESH_FORWARDS_COMAT
+	/* TODO, add UI option to allow bmesh to save for pre-bmesh blender versions */
+#endif
 
 	mesh= idbase->first;
 	while(mesh) {
 		if(mesh->id.us>0 || wd->current) {
 			/* write LibData */
-			writestruct(wd, ID_ME, "Mesh", 1, mesh);
+			if (!save_for_old_blender) {
+				writestruct(wd, ID_ME, "Mesh", 1, mesh);
 
-			/* direct data */
-			if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
-			if (mesh->adt) write_animdata(wd, mesh->adt);
+				/* direct data */
+				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
+				if (mesh->adt) write_animdata(wd, mesh->adt);
 
-			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
+				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
-			write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
+			}
+			else {
+
+#ifdef USE_MESH_FORWARDS_COMAT
+
+				Mesh backup_mesh = {{0}};
+
+				/* backup */
+				backup_mesh.mpoly = mesh->mpoly;
+				mesh->mpoly = NULL;
+				/* -- */
+				backup_mesh.mface = mesh->mface;
+				mesh->mface = NULL;
+				/* -- */
+				backup_mesh.totface = mesh->totface;
+				mesh->totface = 0;
+				/* -- */
+				backup_mesh.totpoly = mesh->totpoly;
+				mesh->totpoly = 0;
+				/* -- */
+				backup_mesh.totloop = mesh->totloop;
+				mesh->totloop = 0;
+				/* -- */
+				backup_mesh.fdata = mesh->fdata;
+				memset(&mesh->fdata, 0, sizeof(CustomData));
+				/* -- */
+				backup_mesh.pdata = mesh->pdata;
+				memset(&mesh->pdata, 0, sizeof(CustomData));
+				/* -- */
+				backup_mesh.ldata = mesh->ldata;
+				memset(&mesh->ldata, 0, sizeof(CustomData));
+				/* -- */
+				backup_mesh.edit_btmesh = mesh->edit_btmesh;
+				mesh->edit_btmesh = NULL;
+				/* backup */
+
+
+				/* now fill in polys to mfaces*/
+				mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
+				                                   mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
+
+				mesh_update_customdata_pointers(mesh, FALSE);
+
+				writestruct(wd, ID_ME, "Mesh", 1, mesh);
+
+				/* direct data */
+				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
+				if (mesh->adt) write_animdata(wd, mesh->adt);
+
+				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
+
+				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
+				/* harmless for older blender versioins but _not_ writing these keeps file size down */
+				/*
+				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
+				*/
+
+				/* restore */
+				mesh->mpoly = backup_mesh.mpoly;
+				mesh->totface = backup_mesh.totface;
+				mesh->totpoly = backup_mesh.totpoly;
+				mesh->totloop = backup_mesh.totloop;
+				/* -- */
+				mesh->mface = backup_mesh.mface;
+				/* -- */
+				CustomData_free(&mesh->fdata, mesh->totface);
+				/* -- */
+				mesh->fdata= backup_mesh.fdata;
+				/* -- */
+				mesh->pdata= backup_mesh.pdata;
+				/* -- */
+				mesh->ldata= backup_mesh.ldata;
+				/* -- */
+				mesh_update_customdata_pointers(mesh, FALSE);
+				/* --*/
+				mesh->edit_btmesh = backup_mesh.edit_btmesh; /* keep this after updating custom pointers */
+				/* restore */
+
+#endif /* USE_MESH_FORWARDS_COMAT */
+			}
 		}
 		mesh= mesh->id.next;
 	}

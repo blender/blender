@@ -226,7 +226,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		MPoly *mp = mpoly + *of;
 		MLoop *ml;
 		float co[3], cent[3] = {0.0f, 0.0f, 0.0f};
-		int j, lindex[3] = {0, 1, 2};
+		int j, lindex[4] = {0, 1, 2}; /* only ever use 3 in this case */
 		
 		BLI_array_empty(w);
 		BLI_array_empty(cos);
@@ -262,7 +262,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		interp_weights_poly_v3(w, cos, mp->totloop, co);
 		CustomData_interp(&dm->loopData, &dummy->loopData, loops, w, NULL, mp->totloop, 2);
 		
-		mesh_loops_to_tri_corners(&cddm->faceData, &dummy->loopData, &dm->polyData, lindex, i, origf[i]);
+		mesh_loops_to_mface_corners(&cddm->faceData, &dummy->loopData, &dm->polyData, lindex, i, origf[i], 3);
 	}
 	
 	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, 0, dm->numVertData);
