@@ -191,7 +191,7 @@ void BLF_lang_set(const char *str)
 	locreturn= setlocale(LC_ALL, long_locale);
 
 	if (locreturn == NULL) {
-		if(G.debug & G_DEBUG)
+		if(G.f & G_DEBUG)
 			printf("Could not change locale to %s\n", long_locale);
 
 		ok= 0;
