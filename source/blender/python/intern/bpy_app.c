@@ -32,6 +32,9 @@
 #include <Python.h>
 
 #include "bpy_app.h"
+
+#include "bpy_app_ffmpeg.h"
+
 #include "bpy_app_handlers.h"
 #include "bpy_driver.h"
 
@@ -79,6 +82,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"build_system", (char *)"Build system used"},
 
 	/* submodules */
+	{(char *)"ffmpeg", (char *)"FFmpeg library information backend"},
 	{(char *)"handlers", (char *)"Application handler callbacks"},
 	{NULL}
 };
@@ -147,6 +151,7 @@ static PyObject *make_app_info(void)
 	SetStrItem("Unknown");
 #endif
 
+	SetObjItem(BPY_app_ffmpeg_struct());
 	SetObjItem(BPY_app_handlers_struct());
 
 #undef SetIntItem
