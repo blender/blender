@@ -113,6 +113,8 @@ typedef struct MovieClipScopes {
 #define MCLIP_USE_PROXY					(1<<0)
 #define MCLIP_USE_PROXY_CUSTOM_DIR		(1<<1)
 
+#define MCLIP_TIMECODE_FLAGS			(MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR)
+
 /* MovieClip->render_size */
 #define MCLIP_PROXY_RENDER_SIZE_FULL	0
 #define MCLIP_PROXY_RENDER_SIZE_25		1

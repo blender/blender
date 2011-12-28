@@ -704,7 +704,7 @@ typedef struct SimpleDeformModifierData {
 #define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
 
 /* indicates whether simple deform should use the local
-   coordinates or global coordinates of origin */
+ * coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #define MOD_UVPROJECT_MAX				10

@@ -57,6 +57,11 @@ extern "C" {
 struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
 void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 
+/* for forwards compat only quad->tri polys to mface, skip ngons.
+ */
+int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
+	struct CustomData *pdata, int totface, int totloop, int totpoly);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
 struct Mesh *add_mesh(const char *name);
@@ -158,6 +163,11 @@ int BKE_mesh_validate_dm(struct DerivedMesh *dm);
 void BKE_mesh_calc_edges(struct Mesh *mesh, int update);
 
 void BKE_mesh_ensure_navmesh(struct Mesh *me);
+
+/*convert a triangle of loop facedata to mface facedata*/
+void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
+			   struct CustomData *pdata, int lindex[4], int findex,
+			   const int polyindex, const int mf_len);
 
 #ifdef __cplusplus
 }

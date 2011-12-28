@@ -65,6 +65,10 @@
 /* -- */
 #include "BKE_object.h"
 
+#ifdef USE_BMESH_FORWARD_COMPAT
+#include "BLI_array.h"
+#endif
+
 
 EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 {
@@ -726,7 +730,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		nors= dl->nors;
 		verts= dl->verts;
 		while(a--) {
-			VECCOPY(mvert->co, verts);
+			copy_v3_v3(mvert->co, verts);
 			normal_float_to_short_v3(mvert->no, nors);
 			mvert++;
 			nors+= 3;
@@ -1444,6 +1448,175 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, c
 		}
 	}
 }
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+
+void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
+			   CustomData *pdata, int lindex[4], int findex,
+			   const int polyindex,
+			   const int mf_len /* 3 or 4 */
+			   )
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	int i, j, hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
+	int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		for (j=0; j < mf_len; j++) {
+			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+
+		for (j=0; j < mf_len; j++) {
+			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+
+	if (hasWCol) {
+		mcol = CustomData_get(fdata,  findex, CD_WEIGHT_MCOL);
+
+		for (j=0; j < mf_len; j++) {
+			mloopcol = CustomData_get(ldata, lindex[j], CD_WEIGHT_MLOOPCOL);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
+
+/*
+ * this function recreates a tesselation.
+ * returns number of tesselation faces.
+ */
+int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
+	struct CustomData *pdata, int totface, int UNUSED(totloop), int totpoly)
+{
+	MLoop *mloop;
+
+	int lindex[4];
+	int i;
+	int k;
+
+	MPoly *mp, *mpoly;
+	MFace *mface = NULL, *mf;
+	BLI_array_declare(mface);
+
+	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
+	mloop = CustomData_get_layer(ldata, CD_MLOOP);
+
+	mp = mpoly;
+	k = 0;
+	for (i = 0; i<totpoly; i++, mp++) {
+		if (ELEM(mp->totloop, 3, 4)) {
+			BLI_array_growone(mface);
+			mf = &mface[k];
+
+			mf->mat_nr = mp->mat_nr;
+			mf->flag = mp->flag;
+
+			mf->v1 = mp->loopstart + 0;
+			mf->v2 = mp->loopstart + 1;
+			mf->v3 = mp->loopstart + 2;
+			mf->v4 = (mp->totloop == 4) ? (mp->loopstart + 3) : 0;
+
+			/* abuse edcode for temp storage and clear next loop */
+			mf->edcode = (char)mp->totloop; /* only ever 3 or 4 */
+
+			k++;
+		}
+	}
+
+	CustomData_free(fdata, totface);
+	memset(fdata, 0, sizeof(CustomData));
+
+	totface= k;
+
+	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
+
+	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+
+	mp = mpoly;
+	k = 0;
+	for (i = 0; i<totpoly; i++, mp++) {
+		if (ELEM(mp->totloop, 3, 4)) {
+			mf = &mface[k];
+
+			if (mf->edcode == 3) {
+				/*sort loop indices to ensure winding is correct*/
+				/* NO SORT - looks like we can skip this */
+
+				lindex[0] = mf->v1;
+				lindex[1] = mf->v2;
+				lindex[2] = mf->v3;
+				lindex[3] = 0; /* unused */
+
+				/*transform loop indices to vert indices*/
+				mf->v1 = mloop[mf->v1].v;
+				mf->v2 = mloop[mf->v2].v;
+				mf->v3 = mloop[mf->v3].v;
+
+				mesh_loops_to_mface_corners(fdata, ldata, pdata,
+				                            lindex, k, i, 3);
+				test_index_face(mf, fdata, totface, 3);
+			}
+			else {
+				/*sort loop indices to ensure winding is correct*/
+				/* NO SORT - looks like we can skip this */
+
+				lindex[0] = mf->v1;
+				lindex[1] = mf->v2;
+				lindex[2] = mf->v3;
+				lindex[3] = mf->v4;
+
+				/*transform loop indices to vert indices*/
+				mf->v1 = mloop[mf->v1].v;
+				mf->v2 = mloop[mf->v2].v;
+				mf->v3 = mloop[mf->v3].v;
+				mf->v4 = mloop[mf->v4].v;
+
+				mesh_loops_to_mface_corners(fdata, ldata, pdata,
+				                            lindex, k, i, 4);
+				test_index_face(mf, fdata, totface, 4);
+			}
+
+			mf->edcode= 0;
+
+			k++;
+		}
+	}
+
+	return k;
+}
+
+#endif /* USE_BMESH_FORWARD_COMPAT */
+
+
 
 /* basic vertex data functions */
 int minmax_mesh(Mesh *me, float min[3], float max[3])

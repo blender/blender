@@ -3680,6 +3680,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 	}
 }
 
+/*this isn't really a public api function, so prototyped here*/
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
 	int i = 0;
@@ -3700,6 +3701,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			i++;
 		}
 	}
+
+	CustomData_update_typemap(data);
 }
 
 static void direct_link_mesh(FileData *fd, Mesh *mesh)
@@ -3727,6 +3730,36 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
 	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
 	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
+
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+	/* NEVER ENABLE THIS CODE INTO BMESH!
+	 * THIS IS FOR LOADING BMESH INTO OLDER FILES ONLY */
+	mesh->mpoly= newdataadr(fd, mesh->mpoly);
+	mesh->mloop= newdataadr(fd, mesh->mloop);
+
+	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
+	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
+
+	if (mesh->mpoly) {
+		/* be clever and load polygons as mfaces */
+
+		mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &mesh->ldata, &mesh->pdata,
+		                                   mesh->totface, mesh->totloop, mesh->totpoly);
+
+		CustomData_free(&mesh->pdata, mesh->totpoly);
+		memset(&mesh->pdata, 0, sizeof(CustomData));
+		mesh->totpoly = 0;
+
+		CustomData_free(&mesh->ldata, mesh->totloop);
+		memset(&mesh->ldata, 0, sizeof(CustomData));
+		mesh->totloop = 0;
+
+		mesh_update_customdata_pointers(mesh);
+	}
+
+#endif
+
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;

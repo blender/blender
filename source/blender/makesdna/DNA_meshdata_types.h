@@ -72,21 +72,41 @@ typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
+#ifdef USE_BMESH_FORWARD_COMPAT
+
+/*new face structure, replaces MFace, which is now
+  only used for storing tesselations.*/
+typedef struct MPoly {
+	/* offset into loop array and number of loops in the face */
+	int loopstart;
+	int totloop; /* keep signed since we need to subtract when getting the previous loop */
+	short mat_nr;
+	char flag, pad;
+} MPoly;
+
+/*the e here is because we want to move away from
+  relying on edge hashes.*/
+typedef struct MLoop {
+	unsigned int v; /*vertex index*/
+	unsigned int e; /*edge index*/
+} MLoop;
+
+#endif /* USE_BMESH_FORWARD_COMPAT */
+
 /*bmesh custom data stuff*/
-typedef struct MTexPoly{
+typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
-}MTexPoly;
+} MTexPoly;
 
-typedef struct MLoopUV{
+typedef struct MLoopUV {
 	float uv[2];
-}MLoopUV;
+} MLoopUV;
 
-typedef struct MLoopCol{
+typedef struct MLoopCol {
 	char a, r, g, b;
-	int pad;  /*waste!*/
-}MLoopCol;
+} MLoopCol;
 
 typedef struct MSticky {
 	float co[2];
@@ -105,13 +125,13 @@ typedef struct MTFace {
 } MTFace;
 
 /*Custom Data Properties*/
-typedef struct MFloatProperty{
+typedef struct MFloatProperty {
 	float	f;
 } MFloatProperty;
-typedef struct MIntProperty{
+typedef struct MIntProperty {
 	int		i;
 } MIntProperty;
-typedef struct MStringProperty{
+typedef struct MStringProperty {
 	char	s[256];
 } MStringProperty;
 
@@ -174,7 +194,7 @@ typedef struct Multires {
 
 /** End Multires **/
 
-typedef struct MRecast{
+typedef struct MRecast {
 	int		i;
 } MRecast;
 

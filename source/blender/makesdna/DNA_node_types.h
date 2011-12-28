@@ -354,12 +354,12 @@ typedef struct NodeChroma {
 	float t1,t2,t3;
 	float fsize,fstrength,falpha;
 	float key[4];
-   short algorithm, channel;
+	short algorithm, channel;
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
 	short x1, x2, y1, y2;
-   float fac_x1, fac_x2, fac_y1, fac_y2;
+	float fac_x1, fac_x2, fac_y1, fac_y2;
 } NodeTwoXYs;
 
 typedef struct NodeTwoFloats {
@@ -428,7 +428,7 @@ typedef struct NodeColorspill {
 	short limchan, unspill;
 	float limscale;
 	float uspillr, uspillg, uspillb;
-}NodeColorspill;
+} NodeColorspill;
 
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;

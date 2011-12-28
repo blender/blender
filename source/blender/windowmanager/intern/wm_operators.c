@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_mesh_types.h" /* only for USE_BMESH_SAVE_AS_COMPAT */
 
 #include "BLF_translation.h"
 
@@ -1972,6 +1973,10 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	else											fileflags &= ~G_FILE_COMPRESS;
 	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
 	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
+#ifdef USE_BMESH_SAVE_AS_COMPAT
+	if(RNA_boolean_get(op->ptr, "use_mesh_compat"))	fileflags |=  G_FILE_MESH_COMPAT;
+	else											fileflags &= ~G_FILE_MESH_COMPAT;
+#endif
 
 	if ( WM_write_file(C, path, fileflags, op->reports, copy) != 0)
 		return OPERATOR_CANCELLED;
@@ -2011,6 +2016,9 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
 	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active");
+#ifdef USE_BMESH_SAVE_AS_COMPAT
+	RNA_def_boolean(ot->srna, "use_mesh_compat", 0, "Legacy Mesh Format", "Save using legacy mesh format (no ngons)");
+#endif
 }
 
 /* *************** save file directly ******** */
