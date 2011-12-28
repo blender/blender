@@ -2375,7 +2375,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 }
 
 
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 
 /*
  * this function recreates a tesselation.
@@ -2480,7 +2480,7 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 
 	return k;
 }
-#endif /* USE_MESH_FORWARDS_COMAT */
+#endif /* USE_BMESH_SAVE_AS_COMPAT */
 
 /*
  * COMPUTE POLY NORMAL

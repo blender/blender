@@ -1685,7 +1685,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 	Mesh *mesh;
 	int save_for_old_blender= 0;
 
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 	save_for_old_blender = wd->use_mesh_compat; /* option to save with older mesh format */
 #endif
 
@@ -1710,7 +1710,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			}
 			else {
 
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 
 				Mesh backup_mesh = {{0}};
 
@@ -1788,7 +1788,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->edit_btmesh = backup_mesh.edit_btmesh; /* keep this after updating custom pointers */
 				/* restore */
 
-#endif /* USE_MESH_FORWARDS_COMAT */
+#endif /* USE_BMESH_SAVE_AS_COMPAT */
 			}
 		}
 		mesh= mesh->id.next;
