@@ -198,7 +198,7 @@ typedef struct TFace {
  * will eventually be removed */
 
 #if 0 /* enable in bmesh branch only for now */
-#define USE_MESH_FORWARDS_COMAT
+#define USE_BMESH_SAVE_AS_COMPAT
 #endif
 
 

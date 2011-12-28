@@ -175,7 +175,7 @@ typedef struct {
 	
 	int tot, count, error, memsize;
 
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 	char use_mesh_compat; /* option to save with older mesh format */
 #endif
 } WriteData;
@@ -2625,7 +2625,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 	wd= bgnwrite(handle, compare, current);
 
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
 #endif
 

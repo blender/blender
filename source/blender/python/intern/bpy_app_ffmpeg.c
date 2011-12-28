@@ -69,7 +69,11 @@ static PyStructSequence_Desc app_ffmpeg_info_desc = {
 static PyObject *make_ffmpeg_info(void)
 {
 	PyObject *ffmpeg_info;
-	int pos = 0, curversion;
+	int pos = 0;
+
+#ifdef WITH_FFMPEG
+	int curversion;
+#endif
 
 	ffmpeg_info = PyStructSequence_New(&BlenderAppFFmpegType);
 	if (ffmpeg_info == NULL) {
