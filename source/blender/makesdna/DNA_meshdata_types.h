@@ -77,11 +77,11 @@ typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
-}MTexPoly;
+} MTexPoly;
 
 typedef struct MLoopUV {
 	float uv[2];
-}MLoopUV;
+} MLoopUV;
 
 typedef struct MLoopCol {
 	char a, r, g, b;
@@ -104,7 +104,7 @@ typedef struct MTFace {
 } MTFace;
 
 /*Custom Data Properties*/
-typedef struct MFloatProperty{
+typedef struct MFloatProperty {
 	float	f;
 } MFloatProperty;
 typedef struct MIntProperty {
@@ -173,7 +173,7 @@ typedef struct Multires {
 
 /** End Multires **/
 
-typedef struct MRecast{
+typedef struct MRecast {
 	int		i;
 } MRecast;
 

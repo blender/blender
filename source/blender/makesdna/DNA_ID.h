@@ -57,7 +57,7 @@ typedef struct IDProperty {
 				seemed like a good idea as a pad var was needed anyway :)*/
 	IDPropertyData data;	/* note, alignment for 64 bits */
 	int len; /* array length, also (this is important!) string length + 1.
-				the idea is to be able to reuse array realloc functions on strings.*/
+	          * the idea is to be able to reuse array realloc functions on strings.*/
 	/* totallen is total length of allocated array/string, including a buffer.
 	 * Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
@@ -74,7 +74,7 @@ typedef struct IDProperty {
 #define IDP_ARRAY		5
 #define IDP_GROUP		6
 /* the ID link property type hasn't been implemented yet, this will require
-   some cleanup of blenkernel, most likely.*/
+ * some cleanup of blenkernel, most likely.*/
 #define IDP_ID			7
 #define IDP_DOUBLE		8
 #define IDP_IDPARRAY	9
