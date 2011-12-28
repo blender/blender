@@ -2548,7 +2548,7 @@ void CDDM_calc_edges_poly(DerivedMesh *dm)
 		ml = cddm->mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
 			v1 = ml->v;
-			v2 = (cddm->mloop + mp->loopstart + ((j+1)%mp->totloop))->v;
+			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
 			if (!BLI_edgehash_haskey(eh, v1, v2)) {
 				BLI_edgehash_insert(eh, v1, v2, NULL);
 			}
@@ -2589,7 +2589,7 @@ void CDDM_calc_edges_poly(DerivedMesh *dm)
 		ml = cddm->mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
 			v1 = ml->v;
-			v2 = (cddm->mloop + mp->loopstart + ((j+1)%mp->totloop))->v;
+			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
 			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, v1, v2));
 		}
 	}

@@ -104,15 +104,21 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 		/* This function adds an edge hash if its not there, and adds the face index */
 #define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
-				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, EDV1, EDV2); \
+			{ \
+				const unsigned int ed_v1 = EDV1; \
+				const unsigned int ed_v2 = EDV2; \
+				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ed_v1, ed_v2); \
 				if (!edge_ref) { \
 					edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
-					edge_ref->f1=i; \
-					edge_ref->f2=-1; \
-					BLI_edgehash_insert(edge_hash, EDV1, EDV2, edge_ref); \
-				} else { \
+					edge_ref->f1 = i; \
+					edge_ref->f2 =- 1; \
+					BLI_edgehash_insert(edge_hash, ed_v1, ed_v2, edge_ref); \
+				} \
+				else { \
 					edge_ref->f2=i; \
-				}
+				} \
+			}
+		/* --- end define --- */
 
 		for(i = 0; i < numFaces; i++, mp++) {
 			int j;
@@ -122,8 +128,8 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				mesh_calc_poly_normal(mp, mloop+mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
-			for (j=0; j<mp->totloop; j++) {
-				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(ml[j].v, ml[(j+1)%mp->totloop].v);
+			for (j=0; j<mp->totloop; j++, ml++) {
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(ml->v, ME_POLY_LOOP_NEXT(mloop, mp, j)->v);
 			}
 		}
 
@@ -273,14 +279,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 #define INVALID_PAIR -2
 
 #define ADD_EDGE_USER(_v1, _v2, edge_ord) \
-		eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, _v1, _v2)); \
-		if(edge_users[eidx] == INVALID_UNUSED) { \
-			ed= orig_medge + eidx; \
-			edge_users[eidx]= (_v1 < _v2) == (ed->v1 < ed->v2) ? i:(i+numFaces); \
-			edge_order[eidx]= edge_ord; \
-		} else { \
-			edge_users[eidx]= INVALID_PAIR; \
-		} \
+		{ \
+			const unsigned int ml_v1 = _v1; \
+			const unsigned int ml_v2 = _v2; \
+			eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2)); \
+			if(edge_users[eidx] == INVALID_UNUSED) { \
+				ed= orig_medge + eidx; \
+				edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces); \
+				edge_order[eidx] = edge_ord; \
+			} \
+			else { \
+				edge_users[eidx] = INVALID_PAIR; \
+			} \
+		}
 
 
 		edge_users= MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
@@ -291,8 +302,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			MLoop *ml;
 			
 			for (ml=orig_mloop + mp->loopstart, j=0; j<mp->totloop; ml++, j++) {
-				MLoop *ml2 = orig_mloop + mp->loopstart + (j+1)%mp->totloop;
-				ADD_EDGE_USER(ml->v, ml2->v, j);
+				ADD_EDGE_USER(ml->v, ME_POLY_LOOP_NEXT(orig_mloop, mp, j)->v, j);
 			}	
 		}
 
@@ -456,12 +466,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* just added, calc the normal */
 			BLI_array_empty(face_angles);
 			for (j=0, ml=mloop+mp->loopstart; j<mp->totloop; j++, ml++) {
-				MLoop *ml2 = &mloop[mp->loopstart + (j + 1) % mp->totloop]; //next
-				MLoop *ml3 = &mloop[mp->loopstart + (j + mp->totloop - 1) % mp->totloop]; //previous
+				MLoop *ml_prev = ME_POLY_LOOP_PREV(mloop, mp, j);
+				MLoop *ml_next = ME_POLY_LOOP_NEXT(mloop, mp, j);
+
 				float e1[3], e2[3], angle;
 				
-				sub_v3_v3v3(e1, mvert[ml2->v].co, mvert[ml->v].co);
-				sub_v3_v3v3(e2, mvert[ml3->v].co, mvert[ml->v].co);
+				sub_v3_v3v3(e1, mvert[ml_next->v].co, mvert[ml->v].co);
+				sub_v3_v3v3(e2, mvert[ml_prev->v].co, mvert[ml->v].co);
 				angle = M_PI - angle_normalized_v3v3(e1, e2);
 				BLI_array_append(face_angles, angle);
 			}

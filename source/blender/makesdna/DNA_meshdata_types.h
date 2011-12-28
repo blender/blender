@@ -239,6 +239,9 @@ typedef struct MRecast{
 /* flag ME_HIDE==16 is used here too */ 
 #define ME_DRAW_ACT			4
 
+#define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
+#define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+
 /* mselect->type */
 #define ME_VSEL	0
 #define ME_ESEL 1

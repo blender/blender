@@ -1001,7 +1001,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 			int v1, v2;
 			
 			v1 = mloop[b].v;
-			v2 = mloop[(b+1)%mpoly->totloop].v;
+			v2 = ME_POLY_LOOP_NEXT(mloop, mpoly, b)->v;
 			mloop[b].e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, v1, v2));
 		}
 	}

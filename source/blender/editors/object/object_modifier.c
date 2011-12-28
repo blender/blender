@@ -1199,10 +1199,10 @@ static int multires_test_exec(bContext *C, wmOperator *op)
 		
 		ml = me->mloop + mp->loopstart;
 		for (j=0; j<mp->totloop; j++, ml++) {
-			MLoop *ml2 = me->mloop + mp->loopstart + (j+mp->totloop-1)%mp->totloop;
-			MLoop *ml3 = me->mloop + mp->loopstart + (j+1)%mp->totloop;
+			MLoop *ml_prev = ME_POLY_LOOP_PREV(me->mloop, mp, j);
+			MLoop *ml_next = ME_POLY_LOOP_NEXT(me->mloop, mp, j);
 			
-			if ((me->mvert[ml->v].flag&SELECT) && (me->mvert[ml2->v].flag&SELECT) && (me->mvert[ml3->v].flag&SELECT)) {
+			if ((me->mvert[ml->v].flag&SELECT) && (me->mvert[ml_prev->v].flag&SELECT) && (me->mvert[ml_next->v].flag&SELECT)) {
 				MDisps *md = mdisps + mp->loopstart + j;
 				int res = sqrt(md->totdisp);
 				

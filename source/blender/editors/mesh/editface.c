@@ -235,14 +235,13 @@ void paintface_reveal(Object *ob)
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
 
-static void hash_add_face(EdgeHash *ehash, MPoly *mf, MLoop *mloop)
+static void hash_add_face(EdgeHash *ehash, MPoly *mp, MLoop *mloop)
 {
-	MLoop *ml, *ml2;
+	MLoop *ml;
 	int i;
 
-	for (i=0, ml=mloop; i<mf->totloop; i++, ml++) {
-		ml2 = mloop + (i+1) % mf->totloop;
-		BLI_edgehash_insert(ehash, ml->v, ml2->v, NULL);
+	for (i=0, ml=mloop; i<mp->totloop; i++, ml++) {
+		BLI_edgehash_insert(ehash, ml->v, ME_POLY_LOOP_NEXT(mloop, mp, i)->v, NULL);
 	}
 }
 
