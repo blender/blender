@@ -1138,6 +1138,7 @@ const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
 
+
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
 	if(type < 0 || type >= CD_NUMTYPES) return NULL;
@@ -1163,7 +1164,7 @@ void CustomData_update_typemap(CustomData *data)
 	int i, lasttype = -1;
 
 	/* since we cant do in a pre-processor do here as an assert */
-	BLI_assert(sizeof(data->typemap) / sizeof(int) <= CD_NUMTYPES);
+	BLI_assert(sizeof(data->typemap) / sizeof(int) >= CD_NUMTYPES);
 
 	for (i=0; i<CD_NUMTYPES; i++) {
 		data->typemap[i] = -1;

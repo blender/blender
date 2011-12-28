@@ -182,8 +182,8 @@ void CustomData_em_copy_data(const struct CustomData *source,
 							struct CustomData *dest, void *src_block,
 							void **dest_block);
 void CustomData_bmesh_copy_data(const struct CustomData *source, 
-				struct CustomData *dest, void *src_block, 
-				void **dest_block);
+                                struct CustomData *dest, void *src_block, 
+                                void **dest_block);
 void CustomData_em_validate_data(struct CustomData *data, void *block, int sub_elements);
 
 /* frees data in a CustomData object
