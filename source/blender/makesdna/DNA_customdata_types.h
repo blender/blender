@@ -29,12 +29,15 @@
  *  \ingroup DNA
  */
 
+
 #ifndef DNA_CUSTOMDATA_TYPES_H
 #define DNA_CUSTOMDATA_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
 
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
@@ -94,7 +97,26 @@ typedef struct CustomData {
 #define CD_TEXTURE_MCOL	22
 #define CD_CLOTH_ORCO	23
 #define CD_RECAST		24
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+
+/* BMESH ONLY START */
+#define CD_MPOLY		25
+#define CD_MLOOP		26
+#define CD_SHAPE_KEYINDEX	27
+#define CD_SHAPEKEY		28
+#define CD_BWEIGHT		29
+#define CD_CREASE		30
+#define CD_WEIGHT_MLOOPCOL	31
+/* BMESH ONLY END */
+
+#define CD_NUMTYPES		32
+
+#else
+
 #define CD_NUMTYPES		25
+
+#endif
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -120,6 +142,20 @@ typedef struct CustomData {
 #define CD_MASK_WEIGHT_MCOL	(1 << CD_WEIGHT_MCOL)
 #define CD_MASK_CLOTH_ORCO	(1 << CD_CLOTH_ORCO)
 #define CD_MASK_RECAST		(1 << CD_RECAST)
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+
+/* BMESH ONLY START */
+#define CD_MASK_MPOLY		(1 << CD_MPOLY)
+#define CD_MASK_MLOOP		(1 << CD_MLOOP)
+#define CD_MASK_SHAPE_KEYINDEX	(1 << CD_SHAPE_KEYINDEX)
+#define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
+#define CD_MASK_BWEIGHT		(1 << CD_BWEIGHT)
+#define CD_MASK_CREASE		(1 << CD_CREASE)
+#define CD_MASK_WEIGHT_MLOOPCOL (1 << CD_WEIGHT_MLOOPCOL)
+/* BMESH ONLY END */
+
+#endif
 
 /* CustomData.flag */
 

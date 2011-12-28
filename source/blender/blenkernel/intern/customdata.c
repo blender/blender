@@ -867,6 +867,30 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 24: CD_RECAST */
 	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+	,
+/* BMESH ONLY */
+	/* 25: CD_MPOLY */
+	{sizeof(MPoly), "MPoly", 1, "NGon Face", NULL, NULL, NULL, NULL, NULL},
+	/* 26: CD_MLOOP */
+	{sizeof(MLoop), "MLoop", 1, "NGon Face-Vertex", NULL, NULL, NULL, NULL, NULL},
+	/* 27: CD_SHAPE_KEYINDEX */
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 28: CD_SHAPEKEY */
+	{sizeof(float)*3, "", 0, "ShapeKey", NULL, NULL, layerInterp_shapekey},
+	/* 29: CD_BWEIGHT */
+	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
+	/* 30: CD_CREASE */
+	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
+	/* 31: CD_WEIGHT_MLOOPCOL */
+	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
+	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
+	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
+/* END BMESH ONLY */
+
+#endif /* USE_BMESH_FORWARD_COMPAT */
+
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -875,6 +899,13 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
 	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
 	/* 20-24 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast"
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+	,
+	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
+	/* 30-31 */ "CDSubSurfCrease", "CDWeightLoopCol"
+
+#endif /* USE_BMESH_FORWARD_COMPAT */
 };
 
 const CustomDataMask CD_MASK_BAREMESH =
