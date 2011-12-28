@@ -93,7 +93,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		EdgeHash *edge_hash = BLI_edgehash_new();
 		EdgeHashIterator *edge_iter;
 		int edge_ref_count = 0;
-		int ed_v1, ed_v2; /* use when getting the key */
+		unsigned int ed_v1, ed_v2; /* use when getting the key */
 		EdgeFaceRef *edge_ref_array = MEM_callocN(numEdges * sizeof(EdgeFaceRef), "Edge Connectivity");
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
@@ -101,17 +101,17 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		/* This function adds an edge hash if its not there, and adds the face index */
 #define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
 			{ \
-				const unsigned int ed_v1 = EDV1; \
-				const unsigned int ed_v2 = EDV2; \
-				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ed_v1, ed_v2); \
+				const unsigned int ml_v1 = EDV1; \
+				const unsigned int ml_v2 = EDV2; \
+				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2); \
 				if (!edge_ref) { \
 					edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
 					edge_ref->f1 = i; \
 					edge_ref->f2 =- 1; \
-					BLI_edgehash_insert(edge_hash, ed_v1, ed_v2, edge_ref); \
+					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref); \
 				} \
 				else { \
-					edge_ref->f2=i; \
+					edge_ref->f2 = i; \
 				} \
 			}
 		/* --- end define --- */
@@ -139,7 +139,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 		for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
 			/* Get the edge vert indices, and edge value (the face indices that use it)*/
-			BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
+			BLI_edgehashIterator_getKey(edge_iter, &ed_v1, &ed_v2);
 			edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 
 			if (edge_ref->f2 != -1) {
@@ -256,7 +256,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
 		EdgeHash *edgehash = BLI_edgehash_new();
 		EdgeHashIterator *ehi;
-		int v1, v2;
+		unsigned int v1, v2;
 		int eidx;
 
 		for(i=0, mv=orig_mvert; i<numVerts; i++, mv++) {

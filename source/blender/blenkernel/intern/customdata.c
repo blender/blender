@@ -829,8 +829,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
-	/* 9: CD_FLAGS */
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_POLYINDEX */
+	{sizeof(int), "MIntProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
 	/* 11: CD_PROP_INT */
@@ -895,7 +895,6 @@ const CustomDataMask CD_MASK_BMESH =
 const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
-
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {

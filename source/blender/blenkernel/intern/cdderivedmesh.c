@@ -1950,7 +1950,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
 		BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
-		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
+		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		*index = ORIGINDEX_NONE;
