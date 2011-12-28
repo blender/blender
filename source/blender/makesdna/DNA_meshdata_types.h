@@ -73,20 +73,19 @@ typedef struct MCol {
 } MCol;
 
 /*bmesh custom data stuff*/
-typedef struct MTexPoly{
+typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
 }MTexPoly;
 
-typedef struct MLoopUV{
+typedef struct MLoopUV {
 	float uv[2];
 }MLoopUV;
 
-typedef struct MLoopCol{
+typedef struct MLoopCol {
 	char a, r, g, b;
-	int pad;  /*waste!*/
-}MLoopCol;
+} MLoopCol;
 
 typedef struct MSticky {
 	float co[2];
@@ -108,10 +107,10 @@ typedef struct MTFace {
 typedef struct MFloatProperty{
 	float	f;
 } MFloatProperty;
-typedef struct MIntProperty{
+typedef struct MIntProperty {
 	int		i;
 } MIntProperty;
-typedef struct MStringProperty{
+typedef struct MStringProperty {
 	char	s[256];
 } MStringProperty;
 

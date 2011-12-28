@@ -75,7 +75,7 @@ typedef struct CustomData {
 #define CD_MCOL			6
 #define CD_ORIGINDEX	7
 #define CD_NORMAL		8
-#define CD_FLAGS		9
+#define CD_POLYINDEX	9
 #define CD_PROP_FLT		10
 #define CD_PROP_INT		11
 #define CD_PROP_STR		12
@@ -103,7 +103,7 @@ typedef struct CustomData {
 #define CD_MASK_MCOL		(1 << CD_MCOL)
 #define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
 #define CD_MASK_NORMAL		(1 << CD_NORMAL)
-#define CD_MASK_FLAGS		(1 << CD_FLAGS)
+#define CD_MASK_POLYINDEX	(1 << CD_POLYINDEX)
 #define CD_MASK_PROP_FLT	(1 << CD_PROP_FLT)
 #define CD_MASK_PROP_INT	(1 << CD_PROP_INT)
 #define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
