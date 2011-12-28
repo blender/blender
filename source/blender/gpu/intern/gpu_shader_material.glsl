@@ -306,7 +306,7 @@ void vec_math_negate(vec3 v, out vec3 outv)
 
 void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 {
-	outnor = dir;
+	outnor = nor;
 	outdot = -dot(dir, nor);
 }
 

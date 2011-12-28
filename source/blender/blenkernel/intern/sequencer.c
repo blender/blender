@@ -2025,7 +2025,10 @@ static ImBuf * seq_render_scene_strip_impl(
 			}
 
 			/* float buffers in the sequencer are not linear */
-			ibuf->profile= IB_PROFILE_LINEAR_RGB;
+			if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile= IB_PROFILE_LINEAR_RGB;
+			else
+				ibuf->profile= IB_PROFILE_NONE;
 			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
 		}
 		else if (rres.rect32) {

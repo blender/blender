@@ -25,9 +25,9 @@ __device void svm_node_normal(KernelGlobals *kg, ShaderData *sd, float *stack, u
 	float3 normal = stack_load_float3(stack, in_normal_offset);
 
 	float3 direction;
-	direction.x = node1.x;
-	direction.y = node1.y;
-	direction.z = node1.z;
+	direction.x = __int_as_float(node1.x);
+	direction.y = __int_as_float(node1.y);
+	direction.z = __int_as_float(node1.z);
 	direction = normalize(direction);
 
 	if (stack_valid(out_normal_offset))
