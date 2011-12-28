@@ -499,16 +499,20 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, Fluidsim
 	}
 
 	// assign material + flags to new dm
+	// if there's no faces in original dm, keep materials and flags unchanged
 	mface = orgdm->getFaceArray(orgdm);
-	mat_nr = mface[0].mat_nr;
-	flag = mface[0].flag;
 
-	mface = dm->getFaceArray(dm);
-	numfaces = dm->getNumFaces(dm);
-	for(i=0; i<numfaces; i++)
-	{
-		mface[i].mat_nr = mat_nr;
-		mface[i].flag = flag;
+	if(mface) {
+		mat_nr = mface[0].mat_nr;
+		flag = mface[0].flag;
+
+		mface = dm->getFaceArray(dm);
+		numfaces = dm->getNumFaces(dm);
+		for(i=0; i<numfaces; i++)
+			{
+				mface[i].mat_nr = mat_nr;
+				mface[i].flag = flag;
+			}
 	}
 
 	// load vertex velocities, if they exist...
