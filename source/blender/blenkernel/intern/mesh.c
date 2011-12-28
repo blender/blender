@@ -590,7 +590,7 @@ void make_local_mesh(Mesh *me)
 {
 	Main *bmain= G.main;
 	Object *ob;
-	int local=0, lib=0;
+	int is_local= FALSE, is_lib= FALSE;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
@@ -599,32 +599,28 @@ void make_local_mesh(Mesh *me)
 
 	if(me->id.lib==NULL) return;
 	if(me->id.us==1) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
+		id_clear_lib_data(bmain, &me->id);
 		expand_local_mesh(me);
 		return;
 	}
 
-	for(ob= bmain->object.first; ob && ELEM(0, lib, local); ob= ob->id.next) {
+	for(ob= bmain->object.first; ob && ELEM(0, is_lib, is_local); ob= ob->id.next) {
 		if(me == ob->data) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
+			if(ob->id.lib) is_lib= TRUE;
+			else is_local= TRUE;
 		}
 	}
 
-	if(local && lib==0) {
-		me->id.lib= NULL;
-		me->id.flag= LIB_LOCAL;
-
-		new_id(&bmain->mesh, (ID *)me, NULL);
+	if(is_local && is_lib == FALSE) {
+		id_clear_lib_data(bmain, &me->id);
 		expand_local_mesh(me);
 	}
-	else if(local && lib) {
+	else if(is_local && is_lib) {
 		Mesh *me_new= copy_mesh(me);
 		me_new->id.us= 0;
 
+
+		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, me->id.lib, &me_new->id);
 
 		for(ob= bmain->object.first; ob; ob= ob->id.next) {
