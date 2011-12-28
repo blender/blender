@@ -304,8 +304,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	/* create faces */
 	for (i=0; i<totface; i++) {
-		MPoly *mp = &((MPoly*) mpoly)[i];
-		MLoop *ml= mloop + mp->loopstart;
+		MPoly *mp = &mpoly[i];
+		MLoop *ml= &mloop[mp->loopstart];
 		int nverts= mp->totloop;
 		CCGFace *f;
 

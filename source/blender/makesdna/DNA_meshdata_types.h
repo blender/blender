@@ -77,8 +77,9 @@ typedef struct MCol {
 /*new face structure, replaces MFace, which is now
   only used for storing tesselations.*/
 typedef struct MPoly {
-	/*offset into loop array and number of loops in the face*/
-	int loopstart, totloop;
+	/* offset into loop array and number of loops in the face */
+	int loopstart;
+	int totloop; /* keep signed since we need to subtract when getting the previous loop */
 	short mat_nr;
 	char flag, pad;
 } MPoly;
@@ -86,8 +87,8 @@ typedef struct MPoly {
 /*the e here is because we want to move away from
   relying on edge hashes.*/
 typedef struct MLoop {
-	int v; /*vertex index*/
-	int e; /*edge index*/
+	unsigned int v; /*vertex index*/
+	unsigned int e; /*edge index*/
 } MLoop;
 
 typedef struct MTexPoly{
@@ -242,6 +243,9 @@ typedef struct MRecast{
 #define ME_VSEL	0
 #define ME_ESEL 1
 #define ME_FSEL 2
+
+/* mloop->v */
+#define ME_LOOP_INVALID_INDEX ((unsigned int) -1)
 
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */

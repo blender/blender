@@ -1980,9 +1980,10 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	MPoly *mpoly = cddm->mpoly;
 	int numCol = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
-	int i, j, *index, *polyindex, add_orig;
+	int *index, *polyindex, add_orig;
 	int has_crease, has_edge_bweight, has_vert_bweight;
 	int flag;
+	unsigned int i, j;
 	
 	has_edge_bweight = CustomData_has_layer(&em->bm->edata, CD_BWEIGHT);
 	has_vert_bweight = CustomData_has_layer(&em->bm->vdata, CD_BWEIGHT);
@@ -2324,7 +2325,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	ml = cddm->mloop;
 	c = 0;
 	for (i=0; i<totloop; i++, ml++) {
-		if (ml->v == -1)
+		if (ml->v == ME_LOOP_INVALID_INDEX)
 			continue;
 		
 		if (vtargetmap[ml->v] != -1)
@@ -2371,7 +2372,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 		
 		c = 0;
 		for (j=0; j<mp->totloop; j++, ml++) {
-			if (ml->v == -1)
+			if (ml->v == ME_LOOP_INVALID_INDEX)
 				continue;
 			
 			me = cddm->medge + ml->e;

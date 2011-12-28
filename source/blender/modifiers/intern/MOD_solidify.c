@@ -451,13 +451,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		for (i=0, mp=mpoly; i<numFaces; i++, mp++) {
-			mesh_calc_poly_normal(mp, mloop+mp->loopstart, mvert, face_nors[i]);
+			mesh_calc_poly_normal(mp, &mloop[mp->loopstart], mvert, face_nors[i]);
 			
 			/* just added, calc the normal */
 			BLI_array_empty(face_angles);
 			for (j=0, ml=mloop+mp->loopstart; j<mp->totloop; j++, ml++) {
-				MLoop *ml2 = mloop + mp->loopstart + (j+1)%mp->totloop; //next
-				MLoop *ml3 = mloop + mp->loopstart + (j+mp->totloop-1)%mp->totloop; //previous
+				MLoop *ml2 = &mloop[mp->loopstart + (j + 1) % mp->totloop]; //next
+				MLoop *ml3 = &mloop[mp->loopstart + (j + mp->totloop - 1) % mp->totloop]; //previous
 				float e1[3], e2[3], angle;
 				
 				sub_v3_v3v3(e1, mvert[ml2->v].co, mvert[ml->v].co);
