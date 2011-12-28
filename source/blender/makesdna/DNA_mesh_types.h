@@ -49,6 +49,11 @@ struct MCol;
 struct MSticky;
 struct Mesh;
 struct OcInfo;
+struct MPoly;
+struct MTexPoly;
+struct MLoop;
+struct MLoopUV;
+struct MLoopCol;
 struct Multires;
 struct EditMesh;
 struct AnimData;
@@ -62,6 +67,17 @@ typedef struct Mesh {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+/* BMESH ONLY */
+	/*new face structures*/
+	struct MPoly *mpoly;
+	struct MTexPoly *mtpoly;
+	struct MLoop *mloop;
+	struct MLoopUV *mloopuv;
+	struct MLoopCol *mloopcol;
+/* END BMESH ONLY */
+#endif
 
 	struct MFace *mface;	/* array of mesh object mode faces */
 	struct MTFace *mtface;	/* store face UV's and texture here */
@@ -78,8 +94,20 @@ typedef struct Mesh {
 
 	struct CustomData vdata, edata, fdata;
 
+#ifdef USE_BMESH_FORWARD_COMPAT
+/* BMESH ONLY */
+	struct CustomData pdata, ldata;
+/* END BMESH ONLY */
+#endif
+
 	int totvert, totedge, totface, totselect;
-	
+
+#ifdef USE_BMESH_FORWARD_COMPAT
+/* BMESH ONLY */
+	int totpoly, totloop;
+/* END BMESH ONLY */
+#endif
+
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
 	 * of the last selected face and is similar to the old active face flag where
