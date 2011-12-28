@@ -99,6 +99,14 @@ typedef struct LayerTypeInfo {
 	   default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
+    /* functions necassary for geometry collapse*/
+	int (*equal)(void *data1, void *data2);
+	void (*multiply)(void *data, float fac);
+	void (*initminmax)(void *min, void *max);
+	void (*add)(void *data1, void *data2);
+	void (*dominmax)(void *data1, void *min, void *max);
+	void (*copyvalue)(void *source, void *dest);
+
 	/* a function to read data from a cdf file */
 	int (*read)(CDataFile *cdf, void *data, int count);
 
@@ -329,6 +337,24 @@ static void layerDefault_tface(void *data, int count)
 
 	for(i = 0; i < count; i++)
 		tf[i] = default_tf;
+}
+
+static void layerCopy_propFloat(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MFloatProperty)*count);
+}
+
+static void layerCopy_propInt(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MIntProperty)*count);
+}
+
+static void layerCopy_propString(const void *source, void *dest,
+								  int count)
+{
+	memcpy(dest, source, sizeof(MStringProperty)*count);
 }
 
 static void layerCopy_origspace_face(const void *source, void *dest, int count)
@@ -640,10 +666,83 @@ static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), void *data, int count
 }
 
 /* --------- */
+static void layerCopyValue_mloopcol(void *source, void *dest)
+{
+	MLoopCol *m1 = source, *m2 = dest;
+	
+	m2->r = m1->r;
+	m2->g = m1->g;
+	m2->b = m1->b;
+	m2->a = m1->a;
+}
+
+static int layerEqual_mloopcol(void *data1, void *data2)
+{
+	MLoopCol *m1 = data1, *m2 = data2;
+	float r, g, b, a;
+
+	r = m1->r - m2->r;
+	g = m1->g - m2->g;
+	b = m1->b - m2->b;
+	a = m1->a - m2->a;
+
+	return r*r + g*g + b*b + a*a < 0.001;
+}
+
+static void layerMultiply_mloopcol(void *data, float fac)
+{
+	MLoopCol *m = data;
+
+	m->r = (float)m->r * fac;
+	m->g = (float)m->g * fac;
+	m->b = (float)m->b * fac;
+	m->a = (float)m->a * fac;
+}
+
+static void layerAdd_mloopcol(void *data1, void *data2)
+{
+	MLoopCol *m = data1, *m2 = data2;
+
+	m->r += m2->r;
+	m->g += m2->g;
+	m->b += m2->b;
+	m->a += m2->a;
+}
+
+static void layerDoMinMax_mloopcol(void *data, void *vmin, void *vmax)
+{
+	MLoopCol *m = data;
+	MLoopCol *min = vmin, *max = vmax;
+
+	if (m->r < min->r) min->r = m->r;
+	if (m->g < min->g) min->g = m->g;
+	if (m->b < min->b) min->b = m->b;
+	if (m->a < min->a) min->a = m->a;
+	
+	if (m->r > max->r) max->r = m->r;
+	if (m->g > max->g) max->g = m->g;
+	if (m->b > max->b) max->b = m->b;
+	if (m->a > max->a) max->a = m->a;
+}
+
+static void layerInitMinMax_mloopcol(void *vmin, void *vmax)
+{
+	MLoopCol *min = vmin, *max = vmax;
+
+	min->r = 255;
+	min->g = 255;
+	min->b = 255;
+	min->a = 255;
+
+	max->r = 0;
+	max->g = 0;
+	max->b = 0;
+	max->a = 0;
+}
 
 static void layerDefault_mloopcol(void *data, int count)
 {
-	static MLoopCol default_mloopcol = {255,255,255,255};
+	MLoopCol default_mloopcol = {255,255,255,255};
 	MLoopCol *mlcol = (MLoopCol*)data;
 	int i;
 	for(i = 0; i < count; i++)
@@ -695,6 +794,56 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	mc->g = (int)col.g;
 	mc->b = (int)col.b;
 }
+
+static void layerCopyValue_mloopuv(void *source, void *dest)
+{
+	MLoopUV *luv1 = source, *luv2 = dest;
+	
+	luv2->uv[0] = luv1->uv[0];
+	luv2->uv[1] = luv1->uv[1];
+}
+
+static int layerEqual_mloopuv(void *data1, void *data2)
+{
+	MLoopUV *luv1 = data1, *luv2 = data2;
+	float u, v;
+
+	u = luv1->uv[0] - luv2->uv[0];
+	v = luv1->uv[1] - luv2->uv[1];
+
+	return u*u + v*v < 0.00001;
+}
+
+static void layerMultiply_mloopuv(void *data, float fac)
+{
+	MLoopUV *luv = data;
+
+	luv->uv[0] *= fac;
+	luv->uv[1] *= fac;
+}
+
+static void layerInitMinMax_mloopuv(void *vmin, void *vmax)
+{
+	MLoopUV *min = vmin, *max = vmax;
+
+	INIT_MINMAX2(min->uv, max->uv);
+}
+
+static void layerDoMinMax_mloopuv(void *data, void *vmin, void *vmax)
+{
+	MLoopUV *min = vmin, *max = vmax, *luv = data;
+
+	DO_MINMAX2(luv->uv, min->uv, max->uv);
+}
+
+static void layerAdd_mloopuv(void *data1, void *data2)
+{
+	MLoopUV *l1 = data1, *l2 = data2;
+
+	l1->uv[0] += l2->uv[0];
+	l1->uv[1] += l2->uv[1];
+}
+
 static void layerInterp_mloopuv(void **sources, float *weights,
 				float *sub_weights, int count, void *dest)
 {
@@ -798,11 +947,56 @@ static void layerDefault_mcol(void *data, int count)
 	MCol *mcol = (MCol*)data;
 	int i;
 
-	for(i = 0; i < 4*count; i++)
+	for(i = 0; i < 4*count; i++) {
 		mcol[i] = default_mcol;
+	}
 }
 
+static void layerInterp_bweight(void **sources, float *weights,
+                                float *UNUSED(sub_weights), int count, void *dest)
+{
+	float *f = dest;
+	float **in = (float **)sources;
+	int i;
+	
+	if(count <= 0) return;
 
+	*f = 0.0f;
+
+	if (weights) {
+		for(i = 0; i < count; ++i) {
+			*f += *in[i] * weights[i];
+		}
+	}
+	else {
+		for(i = 0; i < count; ++i) {
+			*f += *in[i];
+		}
+	}
+}
+
+static void layerInterp_shapekey(void **sources, float *weights,
+                                 float *UNUSED(sub_weights), int count, void *dest)
+{
+	float *co = dest;
+	float **in = (float **)sources;
+	int i;
+
+	if(count <= 0) return;
+
+	zero_v3(co);
+
+	if (weights) {
+		for(i = 0; i < count; ++i) {
+			madd_v3_v3fl(co, in[i], weights[i]);
+		}
+	}
+	else {
+		for(i = 0; i < count; ++i) {
+			add_v3_v3(co, in[i]);
+		}
+	}
+}
 
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 0: CD_MVERT */
@@ -832,11 +1026,11 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 9: CD_POLYINDEX */
 	{sizeof(int), "MIntProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 10: CD_PROP_FLT */
-	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
+	{sizeof(MFloatProperty), "MFloatProperty",1,"Float", layerCopy_propFloat,NULL,NULL,NULL},
 	/* 11: CD_PROP_INT */
-	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},
+	{sizeof(MIntProperty), "MIntProperty",1,"Int",layerCopy_propInt,NULL,NULL,NULL},
 	/* 12: CD_PROP_STR */
-	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
+	{sizeof(MStringProperty), "MStringProperty",1,"String",layerCopy_propString,NULL,NULL,NULL},
 	/* 13: CD_ORIGSPACE */
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVMap", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
@@ -845,15 +1039,20 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 15: CD_MTEXPOLY */
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
 	/* 16: CD_MLOOPUV */
-	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
+	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
+	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
+	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv},
 	/* 17: CD_MLOOPCOL */
-	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
+	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, 
+	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
+	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
 	/* 18: CD_TANGENT */
 	{sizeof(float)*4*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 19: CD_MDISPS */
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
-	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, layerRead_mdisps, layerWrite_mdisps,
-	 layerFilesize_mdisps, layerValidate_mdisps},
+	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL,
+	 NULL, NULL, NULL, NULL, NULL, NULL, 
+	 layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps, layerValidate_mdisps},
 	/* 20: CD_WEIGHT_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
