@@ -68,7 +68,7 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-#ifdef USE_BMESH_FORWARD_COMPAT
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	/*new face structures*/
 	struct MPoly *mpoly;
@@ -77,7 +77,7 @@ typedef struct Mesh {
 	struct MLoopUV *mloopuv;
 	struct MLoopCol *mloopcol;
 /* END BMESH ONLY */
-#endif
+/*#endif*/
 
 	struct MFace *mface;	/* array of mesh object mode faces */
 	struct MTFace *mtface;	/* store face UV's and texture here */
@@ -94,19 +94,19 @@ typedef struct Mesh {
 
 	struct CustomData vdata, edata, fdata;
 
-#ifdef USE_BMESH_FORWARD_COMPAT
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
 /* BMESH ONLY */
 	struct CustomData pdata, ldata;
 /* END BMESH ONLY */
-#endif
+/*#endif*/
 
 	int totvert, totedge, totface, totselect;
 
-#ifdef USE_BMESH_FORWARD_COMPAT
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/
 /* BMESH ONLY */
 	int totpoly, totloop;
 /* END BMESH ONLY */
-#endif
+/*#endif*/ /* XXX - ifdefs dont work here! */
 
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
