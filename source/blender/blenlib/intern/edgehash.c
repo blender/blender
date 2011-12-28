@@ -48,14 +48,22 @@ static unsigned int _ehash_hashsizes[]= {
 	268435459
 };
 
-#define EDGEHASH(v0,v1)		((v0*39)^(v1*31))
+#define EDGE_HASH(v0, v1)  ((v0 * 39)^(v1 * 31))
+
+/* ensure v0 is smaller */
+#define EDGE_ORD(v0, v1) \
+	if (v0 < v1) {       \
+		v0 ^= v1;        \
+		v1 ^= v0;        \
+		v0 ^= v1;        \
+	}
 
 /***/
 
 typedef struct EdgeEntry EdgeEntry;
 struct EdgeEntry {
 	EdgeEntry *next;
-	int v0, v1;
+	unsigned int v0, v1;
 	void *val;
 };
 
@@ -69,52 +77,50 @@ struct EdgeHash {
 
 EdgeHash *BLI_edgehash_new(void)
 {
-	EdgeHash *eh= MEM_callocN(sizeof(*eh), "EdgeHash");
-	eh->cursize= 0;
-	eh->nentries= 0;
-	eh->nbuckets= _ehash_hashsizes[eh->cursize];
+	EdgeHash *eh = MEM_callocN(sizeof(*eh), "EdgeHash");
+	eh->cursize = 0;
+	eh->nentries = 0;
+	eh->nbuckets = _ehash_hashsizes[eh->cursize];
 	
-	eh->buckets= MEM_callocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets 2");
+	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets 2");
 	eh->epool = BLI_mempool_create(sizeof(EdgeEntry), 512, 512, TRUE, FALSE);
 
 	return eh;
 }
 
 
-void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
+void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+{
 	unsigned int hash;
-	EdgeEntry *e= BLI_mempool_alloc(eh->epool);
+	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
-	if (v1<v0) {
-		v0 ^= v1;
-		v1 ^= v0;
-		v0 ^= v1;
-	}
-	hash = EDGEHASH(v0,v1)%eh->nbuckets;
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+
+	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
 
 	e->v0 = v0;
 	e->v1 = v1;
 	e->val = val;
-	e->next= eh->buckets[hash];
+	e->next = eh->buckets[hash];
 	eh->buckets[hash]= e;
 
-	if (++eh->nentries>eh->nbuckets*3) {
-		EdgeEntry *e, **old= eh->buckets;
-		int i, nold= eh->nbuckets;
+	if (++eh->nentries>eh->nbuckets * 3) {
+		EdgeEntry *e, **old = eh->buckets;
+		int i, nold = eh->nbuckets;
 
-		eh->nbuckets= _ehash_hashsizes[++eh->cursize];
-		eh->buckets= MEM_mallocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets");
+		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
+		eh->buckets = MEM_mallocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
 		memset(eh->buckets, 0, eh->nbuckets * sizeof(*eh->buckets));
 
-		for (i=0; i<nold; i++) {
-			for (e= old[i]; e;) {
-				EdgeEntry *n= e->next;
+		for (i = 0; i < nold; i++) {
+			for (e = old[i]; e;) {
+				EdgeEntry *n = e->next;
 
-				hash= EDGEHASH(e->v0,e->v1)%eh->nbuckets;
-				e->next= eh->buckets[hash];
+				hash = EDGE_HASH(e->v0, e->v1) % eh->nbuckets;
+				e->next = eh->buckets[hash];
 				eh->buckets[hash]= e;
 
-				e= n;
+				e = n;
 			}
 		}
 
@@ -122,33 +128,31 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	}
 }
 
-void** BLI_edgehash_lookup_p(EdgeHash *eh, int v0, int v1) {
+void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
+{
 	unsigned int hash;
 	EdgeEntry *e;
 
-	if (v1<v0) {
-		v0 ^= v1;
-		v1 ^= v0;
-		v0 ^= v1;
-	}
-	hash = EDGEHASH(v0,v1)%eh->nbuckets;
-	for (e= eh->buckets[hash]; e; e= e->next)
-		if (v0==e->v0 && v1==e->v1)
+	EDGE_ORD(v0, v1); /* ensure v0 is smaller */
+
+	hash = EDGE_HASH(v0, v1) % eh->nbuckets;
+	for (e = eh->buckets[hash]; e; e = e->next)
+		if (v0 == e->v0 && v1 == e->v1)
 			return &e->val;
 
 	return NULL;
 }
 
-void* BLI_edgehash_lookup(EdgeHash *eh, int v0, int v1)
+void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
-	void **value_p = BLI_edgehash_lookup_p(eh,v0,v1);
+	void **value_p = BLI_edgehash_lookup_p(eh, v0, v1);
 
 	return value_p?*value_p:NULL;
 }
 
-int BLI_edgehash_haskey(EdgeHash *eh, int v0, int v1)
+int BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
-	return BLI_edgehash_lookup_p(eh, v0, v1)!=NULL;
+	return BLI_edgehash_lookup_p(eh, v0, v1) != NULL;
 }
 
 int BLI_edgehash_size(EdgeHash *eh)
@@ -160,21 +164,21 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
 	int i;
 	
-	for (i=0; i<eh->nbuckets; i++) {
+	for (i = 0; i<eh->nbuckets; i++) {
 		EdgeEntry *e;
 		
-		for (e= eh->buckets[i]; e; ) {
-			EdgeEntry *n= e->next;
+		for (e = eh->buckets[i]; e; ) {
+			EdgeEntry *n = e->next;
 			
 			if (valfreefp) valfreefp(e->val);
 			BLI_mempool_free(eh->epool, e);
 			
-			e= n;
+			e = n;
 		}
-		eh->buckets[i]= NULL;
+		eh->buckets[i] = NULL;
 	}
 
-	eh->nentries= 0;
+	eh->nentries = 0;
 }
 
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
@@ -198,15 +202,15 @@ struct EdgeHashIterator {
 
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {
-	EdgeHashIterator *ehi= MEM_mallocN(sizeof(*ehi), "eh iter");
-	ehi->eh= eh;
-	ehi->curEntry= NULL;
-	ehi->curBucket= -1;
+	EdgeHashIterator *ehi = MEM_mallocN(sizeof(*ehi), "eh iter");
+	ehi->eh = eh;
+	ehi->curEntry = NULL;
+	ehi->curBucket = -1;
 	while (!ehi->curEntry) {
 		ehi->curBucket++;
-		if (ehi->curBucket==ehi->eh->nbuckets)
+		if (ehi->curBucket == ehi->eh->nbuckets)
 			break;
-		ehi->curEntry= ehi->eh->buckets[ehi->curBucket];
+		ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
 	}
 	return ehi;
 }
@@ -215,7 +219,7 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 	MEM_freeN(ehi);
 }
 
-void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r)
+void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *v0_r, unsigned int *v1_r)
 {
 	if (ehi->curEntry) {
 		*v0_r = ehi->curEntry->v0;
@@ -229,19 +233,22 @@ void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
 
 void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
 {
-	if(ehi->curEntry)
-		ehi->curEntry->val= val;
+	if (ehi->curEntry) {
+		ehi->curEntry->val = val;
+	}
 }
 
 void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
 {
 	if (ehi->curEntry) {
-		ehi->curEntry= ehi->curEntry->next;
+		ehi->curEntry = ehi->curEntry->next;
 		while (!ehi->curEntry) {
 			ehi->curBucket++;
-			if (ehi->curBucket==ehi->eh->nbuckets)
+			if (ehi->curBucket == ehi->eh->nbuckets) {
 				break;
-			ehi->curEntry= ehi->eh->buckets[ehi->curBucket];
+			}
+
+			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
 		}
 	}
 }
