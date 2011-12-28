@@ -1138,7 +1138,6 @@ const CustomDataMask CD_MASK_FACECORNERS =
 	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL;
 
-
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
 	if(type < 0 || type >= CD_NUMTYPES) return NULL;
