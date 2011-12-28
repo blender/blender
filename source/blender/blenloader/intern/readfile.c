@@ -3834,7 +3834,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		memset(&mesh->ldata, 0, sizeof(CustomData));
 		mesh->totloop = 0;
 
-		mesh_update_customdata_pointers(mesh, TRUE);
+		mesh_update_customdata_pointers(mesh);
 	}
 
 #endif

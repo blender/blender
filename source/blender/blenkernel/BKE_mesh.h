@@ -213,8 +213,9 @@ void BKE_mesh_ensure_navmesh(struct Mesh *me);
 
 /*convert a triangle of loop facedata to mface facedata*/
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
-			   struct CustomData *pdata, int lindex[4], int findex,
-			   const int polyindex, const int mf_len);
+                                 struct CustomData *pdata, int lindex[4], int findex,
+                                 const int polyindex, const int mf_len,
+                                 const int numTex, const int numCol, const int hasWCol);
 
 #ifdef __cplusplus
 }

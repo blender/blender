@@ -91,7 +91,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	BLI_array_declare(origf);
 	DerivedMesh *copy = NULL;
 	int i;
-	
+
+	int numTex;
+	int numCol;
+	int hasWCol;
+
 	if (nmd->resolution <= 0)
 		return dm;
 	
@@ -112,7 +116,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 	/*create a dummy mesh to compute interpolated loops on*/
 	dummy = CDDM_from_template(dm, 0, 0, 0, 3, 0);
-	
+
+	/* CustomData we check must match what is passed to mesh_loops_to_mface_corners() */
+	numTex = CustomData_number_of_layers(&dm->polyData, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&dummy->loopData, CD_MLOOPCOL);
+	hasWCol = CustomData_has_layer(&dummy->loopData, CD_WEIGHT_MLOOPCOL);
+
 	/*copy original verts here, so indices stay correct*/
 	omvert = dm->getVertArray(dm);
 	ov = dm->getVertDataArray(dm, CD_ORIGINDEX);
@@ -262,7 +271,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		interp_weights_poly_v3(w, cos, mp->totloop, co);
 		CustomData_interp(&dm->loopData, &dummy->loopData, loops, w, NULL, mp->totloop, 2);
 		
-		mesh_loops_to_mface_corners(&cddm->faceData, &dummy->loopData, &dm->polyData, lindex, i, origf[i], 3);
+		mesh_loops_to_mface_corners(&cddm->faceData, &dummy->loopData, &dm->polyData,
+		                            lindex, i, origf[i], 3,
+		                            numTex, numCol, hasWCol);
 	}
 	
 	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, 0, dm->numVertData);

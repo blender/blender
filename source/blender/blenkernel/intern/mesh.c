@@ -2139,19 +2139,22 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, c
 }
 
 void mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
-			   CustomData *pdata, int lindex[4], int findex,
-			   const int polyindex,
-			   const int mf_len /* 3 or 4 */
-			   )
+                                 CustomData *pdata, int lindex[4], int findex,
+                                 const int polyindex,
+                                 const int mf_len, /* 3 or 4 */
+
+                                 /* cache values to avoid lookups every time */
+                                 const int numTex, /* CustomData_number_of_layers(pdata, CD_MTEXPOLY) */
+                                 const int numCol, /* CustomData_number_of_layers(ldata, CD_MLOOPCOL) */
+                                 const int hasWCol /* CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL) */
+                                 )
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
-	int i, j, hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
-	int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
-	int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	int i, j;
 	
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
@@ -2224,14 +2227,14 @@ int mesh_recalcTesselation(CustomData *fdata,
 	int lindex[4]; /* only ever use 3 in this case */
 	int *polyorigIndex;
 	int i, j, k;
-	int numTex, numCol;
+
+	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	const int hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
 
-	numTex = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-	numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
-	
 	k = 0;
 	mp = mpoly;
 	polyorigIndex = CustomData_get_layer(pdata, CD_ORIGINDEX);
@@ -2365,7 +2368,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 		mf->v3 = mloop[mf->v3].v;
 
 		mesh_loops_to_mface_corners(fdata, ldata, pdata,
-		                            lindex, i, polyIndex[i], 3);
+		                            lindex, i, polyIndex[i], 3,
+		                            numTex, numCol, hasWCol);
 	}
 
 	return totface;
@@ -2393,6 +2397,10 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	MPoly *mp, *mpoly;
 	MFace *mface = NULL, *mf;
 	BLI_array_declare(mface);
+
+	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	const int hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -2449,7 +2457,8 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mf->v3 = mloop[mf->v3].v;
 
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
-				                            lindex, k, i, 3);
+				                            lindex, k, i, 3,
+				                            numTex, numCol, hasWCol);
 				test_index_face(mf, fdata, totface, 3);
 			}
 			else {
@@ -2468,7 +2477,8 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 				mf->v4 = mloop[mf->v4].v;
 
 				mesh_loops_to_mface_corners(fdata, ldata, pdata,
-				                            lindex, k, i, 4);
+				                            lindex, k, i, 4,
+				                            numTex, numCol, hasWCol);
 				test_index_face(mf, fdata, totface, 4);
 			}
 
