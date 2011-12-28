@@ -1162,6 +1162,9 @@ void CustomData_update_typemap(CustomData *data)
 {
 	int i, lasttype = -1;
 
+	/* since we cant do in a pre-processor do here as an assert */
+	BLI_assert(sizeof(data->typemap) / sizeof(int) <= CD_NUMTYPES);
+
 	for (i=0; i<CD_NUMTYPES; i++) {
 		data->typemap[i] = -1;
 	}

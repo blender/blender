@@ -91,13 +91,13 @@ typedef struct MLoop {
 	unsigned int e; /*edge index*/
 } MLoop;
 
-typedef struct MTexPoly{
+typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
 	short mode,tile,unwrap;
 }MTexPoly;
 
-typedef struct MLoopUV{
+typedef struct MLoopUV {
 	float uv[2];
 	int flag;
 }MLoopUV;
@@ -109,7 +109,7 @@ typedef struct MLoopUV{
 
 /* at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
-typedef struct MLoopCol{
+typedef struct MLoopCol {
 	char a, r, g, b;
 } MLoopCol;
 
@@ -134,10 +134,10 @@ typedef struct MTFace {
 typedef struct MFloatProperty{
 	float	f;
 } MFloatProperty;
-typedef struct MIntProperty{
+typedef struct MIntProperty {
 	int		i;
 } MIntProperty;
-typedef struct MStringProperty{
+typedef struct MStringProperty {
 	char	s[256];
 } MStringProperty;
 
@@ -237,7 +237,6 @@ typedef struct MRecast{
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
 /* flag ME_HIDE==16 is used here too */ 
-#define ME_DRAW_ACT			4
 
 #define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
 #define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])

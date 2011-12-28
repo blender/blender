@@ -45,7 +45,7 @@ typedef struct CustomDataLayer {
 	int active_rnd; /* number of the layer to render*/
 	int active_clone; /* number of the layer to render*/
 	int active_mask; /* number of the layer to render*/
-	int uid; /*shape keyblock unique id reference*/
+	int uid;        /* shape keyblock unique id reference*/
 	char name[32];  /* layer name */
 	void *data;     /* layer data */
 } CustomDataLayer;
@@ -59,7 +59,9 @@ typedef struct CustomDataExternal {
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
-	int typemap[100];             /* maps types to indices of first layer of that type */
+	int typemap[32];              /* runtime only! - maps types to indices of first layer of that type,
+	                               * MUST be >= CD_NUMTYPES, but we cant use a define here.
+	                               * Correct size is ensured in CustomData_update_typemap assert() */
 	int totlayer, maxlayer;       /* number of layers, size of layers array */
 	int totsize, pad;             /* in editmode, total size of all data layers */
 	void *pool;                   /* Bmesh: Memory pool for allocation of blocks */
@@ -76,7 +78,7 @@ typedef struct CustomData {
 #define CD_MCOL			6
 #define CD_ORIGINDEX	7
 #define CD_NORMAL		8
-#define CD_POLYINDEX		9
+#define CD_POLYINDEX	9
 #define CD_PROP_FLT		10
 #define CD_PROP_INT		11
 #define CD_PROP_STR		12
