@@ -620,50 +620,6 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 	return 1.0f - w;
 }
 
-static void vertsearchcallback_topo(void *userdata, int index, const float *UNUSED(co), BVHTreeNearest *UNUSED(hit))
-{
-	BMBVHTree *tree = userdata;
-	BMLoop **ls = tree->em->looptris[index];
-	int i;
-	float vec[3], w;
-
-	for (i=0; i<3; i++) {
-		float dis;
-
-		if (BLI_ghash_haskey(tree->gh, ls[i]->v))
-			continue;
-
-		sub_v3_v3v3(vec, tree->co, ls[i]->v->co);
-		dis = dot_v3v3(vec, vec);
-
-		w = topo_compare(tree->em->bm, tree->v, ls[i]->v);
-		tree->curtag++;
-		
-		if (w < tree->curw-FLT_EPSILON*4) {
-			tree->curw = w;
-			tree->curv = ls[i]->v;
-		   
-			sub_v3_v3v3(vec, tree->co, ls[i]->v->co);
-			tree->curd = dot_v3v3(vec, vec);
-
-			/*we deliberately check for equality using (smallest possible float)*4 
-			  comparison factor, to always prefer distance in cases of verts really
-			  close to each other*/
-		} else if (fabs(tree->curw - w) < FLT_EPSILON*4) {
-			/*if w is equal to hitex->curw, sort by distance*/
-			sub_v3_v3v3(vec, tree->co, ls[i]->v->co);
-			dis = dot_v3v3(vec, vec);
-
-			if (dis < tree->curd) {
-				tree->curd = dis;
-				tree->curv = ls[i]->v;
-			}
-		}
-
-		BLI_ghash_insert(tree->gh, ls[i]->v, NULL);
-	}
-}
-
 #if 0 //BMESH_TODO: not implemented yet
 int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 {

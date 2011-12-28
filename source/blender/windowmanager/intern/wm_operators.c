@@ -1973,7 +1973,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	else											fileflags &= ~G_FILE_COMPRESS;
 	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
 	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
-#ifdef USE_MESH_FORWARDS_COMAT
+#ifdef USE_BMESH_SAVE_AS_COMPAT
 	if(RNA_boolean_get(op->ptr, "use_mesh_compat"))	fileflags |=  G_FILE_MESH_COMPAT;
 	else											fileflags &= ~G_FILE_MESH_COMPAT;
 #endif

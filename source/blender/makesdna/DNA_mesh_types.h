@@ -67,13 +67,15 @@ typedef struct Mesh {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
-	
+
+/* BMESH ONLY */
 	/*new face structures*/
 	struct MPoly *mpoly;
 	struct MTexPoly *mtpoly;
 	struct MLoop *mloop;
 	struct MLoopUV *mloopuv;
 	struct MLoopCol *mloopcol;
+/* END BMESH ONLY */
 
 	/*mface stores the tesselation (triangulation) of the mesh,
 	  real faces are now stored in nface.*/
@@ -83,7 +85,7 @@ typedef struct Mesh {
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* deformgroup vertices */
-	
+
 	/* array of colors for the tesselated faces, must be number of tesselated
 	   faces * 4 in length */
 	struct MCol *mcol;		
@@ -93,10 +95,18 @@ typedef struct Mesh {
 	
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
 
-	struct CustomData vdata, edata, fdata, pdata, ldata;
+	struct CustomData vdata, edata, fdata;
 
-	int totvert, totedge, totface, totpoly, totloop, totselect;
-	
+/* BMESH ONLY */
+	struct CustomData pdata, ldata;
+/* END BMESH ONLY */
+
+	int totvert, totedge, totface, totselect;
+
+/* BMESH ONLY */
+	int totpoly, totloop;
+/* END BMESH ONLY */
+
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
 	 * of the last selected face and is similar to the old active face flag where
