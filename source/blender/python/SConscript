@@ -48,6 +48,7 @@ if env['WITH_BF_CYCLES']:
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
+    incs += ' ' + env['BF_FFMPEG_INC']
 
 sources = env.Glob('intern/*.c')
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361])
