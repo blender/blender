@@ -206,14 +206,11 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 * float buffer. */
 
 	if(oglrender->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-		float *rctf = rr->rectf;
-		int i;
+		int predivide= 0; /* no alpha */
 
-		for (i = oglrender->sizex * oglrender->sizey; i > 0; i--, rctf+=4) {
-			rctf[0]= srgb_to_linearrgb(rctf[0]);
-			rctf[1]= srgb_to_linearrgb(rctf[1]);
-			rctf[2]= srgb_to_linearrgb(rctf[2]);
-		}
+		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
+			4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, predivide,
+			oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
 	}
 
 	RE_ReleaseResult(oglrender->re);
