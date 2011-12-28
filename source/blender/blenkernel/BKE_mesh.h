@@ -37,11 +37,13 @@ struct BoundBox;
 struct DispList;
 struct ListBase;
 struct EditMesh;
-struct MDeformVert;
 struct Mesh;
+struct MPoly;
+struct MLoop;
 struct MFace;
 struct MEdge;
 struct MVert;
+struct MDeformVert;
 struct MCol;
 struct Object;
 struct MTFace;
@@ -49,6 +51,7 @@ struct VecNor;
 struct CustomData;
 struct DerivedMesh;
 struct Scene;
+struct MLoopUV;
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,8 +169,9 @@ void BKE_mesh_ensure_navmesh(struct Mesh *me);
 
 /*convert a triangle of loop facedata to mface facedata*/
 void mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData *ldata,
-			   struct CustomData *pdata, int lindex[4], int findex,
-			   const int polyindex, const int mf_len);
+                                 struct CustomData *pdata, int lindex[4], int findex,
+                                 const int polyindex, const int mf_len,
+                                 const int numTex, const int numCol, const int hasWCol);
 
 #ifdef __cplusplus
 }
