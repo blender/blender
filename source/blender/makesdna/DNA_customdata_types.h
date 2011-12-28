@@ -90,17 +90,21 @@ typedef struct CustomData {
 #define CD_TANGENT		18
 #define CD_MDISPS		19
 #define CD_WEIGHT_MCOL	20 /* for displaying weightpaint colors */
-#define CD_MPOLY		21
-#define CD_MLOOP		22
+#define CD_ID_MCOL		21
+#define CD_TEXTURE_MCOL	22
 #define CD_CLOTH_ORCO	23
-#define CD_ID_MCOL		24
-#define CD_TEXTURE_MCOL		25
-#define CD_SHAPE_KEYINDEX	26
-#define CD_SHAPEKEY		27
-#define CD_BWEIGHT		28
-#define CD_CREASE		29
-#define CD_WEIGHT_MLOOPCOL	30
-#define CD_RECAST		31
+#define CD_RECAST		24
+
+/* BMESH ONLY START */
+#define CD_MPOLY		25
+#define CD_MLOOP		26
+#define CD_SHAPE_KEYINDEX	27
+#define CD_SHAPEKEY		28
+#define CD_BWEIGHT		29
+#define CD_CREASE		30
+#define CD_WEIGHT_MLOOPCOL	31
+/* BMESH ONLY END */
+
 #define CD_NUMTYPES		32
 
 /* Bits for CustomDataMask */
@@ -125,18 +129,18 @@ typedef struct CustomData {
 #define CD_MASK_TANGENT		(1 << CD_TANGENT)
 #define CD_MASK_MDISPS		(1 << CD_MDISPS)
 #define CD_MASK_WEIGHT_MCOL	(1 << CD_WEIGHT_MCOL)
-#define CD_MASK_MPOLY		(1 << CD_MPOLY)
-#define CD_MASK_MLOOP		(1 << CD_MLOOP)
-#define CD_MASK_WEIGHT_MLOOPCOL (1 << CD_WEIGHT_MLOOPCOL)
-#define CD_MASK_SHAPE_KEYINDEX	(1 << CD_SHAPE_KEYINDEX)
-#define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
 #define CD_MASK_CLOTH_ORCO	(1 << CD_CLOTH_ORCO)
 #define CD_MASK_RECAST		(1 << CD_RECAST)
 
-/* derivedmesh wants CustomDataMask for weightpaint too, is not customdata though */
-#define CD_MASK_WEIGHTPAINT	(1 << CD_WEIGHTPAINT)
+/* BMESH ONLY START */
+#define CD_MASK_MPOLY		(1 << CD_MPOLY)
+#define CD_MASK_MLOOP		(1 << CD_MLOOP)
+#define CD_MASK_SHAPE_KEYINDEX	(1 << CD_SHAPE_KEYINDEX)
+#define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
 #define CD_MASK_BWEIGHT		(1 << CD_BWEIGHT)
 #define CD_MASK_CREASE		(1 << CD_CREASE)
+#define CD_MASK_WEIGHT_MLOOPCOL (1 << CD_WEIGHT_MLOOPCOL)
+/* BMESH ONLY END */
 
 /* CustomData.flag */
 

@@ -976,47 +976,54 @@ static void layerDefault_mcol(void *data, int count)
 	MCol *mcol = (MCol*)data;
 	int i;
 
-	for(i = 0; i < 4*count; i++)
+	for(i = 0; i < 4*count; i++) {
 		mcol[i] = default_mcol;
+	}
 }
 
 static void layerInterp_bweight(void **sources, float *weights,
-                             float *UNUSED(sub_weights), int count, void *dest)
+                                float *UNUSED(sub_weights), int count, void *dest)
 {
-	float *f = dest, *src;
+	float *f = dest;
 	float **in = (float **)sources;
 	int i;
 	
 	if(count <= 0) return;
 
 	*f = 0.0f;
-	
-	for(i = 0; i < count; ++i) {
-		float weight = weights ? weights[i] : 1.0f;
-		
-		src = in[i];
-		*f += *src * weight;
+
+	if (weights) {
+		for(i = 0; i < count; ++i) {
+			*f += *in[i] * weights[i];
+		}
+	}
+	else {
+		for(i = 0; i < count; ++i) {
+			*f += *in[i];
+		}
 	}
 }
 
 static void layerInterp_shapekey(void **sources, float *weights,
-                             float *UNUSED(sub_weights), int count, void *dest)
+                                 float *UNUSED(sub_weights), int count, void *dest)
 {
-	float *co = dest, *src;
+	float *co = dest;
 	float **in = (float **)sources;
 	int i;
 
 	if(count <= 0) return;
 
-	memset(co, 0, sizeof(float)*3);
-	
-	for(i = 0; i < count; ++i) {
-		float weight = weights ? weights[i] : 1.0f;
-		
-		src = in[i];
-		co[0] += src[0] * weight;
-		co[1] += src[1] * weight;
-		co[2] += src[2] * weight;
+	zero_v3(co);
+
+	if (weights) {
+		for(i = 0; i < count; ++i) {
+			madd_v3_v3fl(co, in[i], weights[i]);
+		}
+	}
+	else {
+		for(i = 0; i < count; ++i) {
+			add_v3_v3(co, in[i]);
+		}
 	}
 }
 
@@ -1080,34 +1087,55 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 20: CD_WEIGHT_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	{sizeof(MPoly), "MPoly", 1, "NGon Face", NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MLoop), "MLoop", 1, "NGon Face-Vertex", NULL, NULL, NULL, NULL, NULL},
-	{sizeof(float)*3, "", 0, "ClothOrco", NULL, NULL, layerInterp_shapekey},
 	/* 21: CD_ID_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	{sizeof(MCol)*4, "MCol", 4, "TextureCol", NULL, NULL, layerInterp_mcol,
+	/* 22: CD_TEXTURE_MCOL */
+	{sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
+	/* 23: CD_CLOTH_ORCO */
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 24: CD_RECAST */
+	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
+
+/* BMESH ONLY */
+	,
+	/* 25: CD_MPOLY */
+	{sizeof(MPoly), "MPoly", 1, "NGon Face", NULL, NULL, NULL, NULL, NULL},
+	/* 26: CD_MLOOP */
+	{sizeof(MLoop), "MLoop", 1, "NGon Face-Vertex", NULL, NULL, NULL, NULL, NULL},
+	/* 27: CD_SHAPE_KEYINDEX */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 28: CD_SHAPEKEY */
 	{sizeof(float)*3, "", 0, "ShapeKey", NULL, NULL, layerInterp_shapekey},
+	/* 29: CD_BWEIGHT */
 	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
+	/* 30: CD_CREASE */
 	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
+	/* 31: CD_WEIGHT_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
-	/* 24: CD_RECAST */
-	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
+/* END BMESH ONLY */
+
+
 };
 
 /* note, numbers are from trunk and need updating for bmesh */
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	/*   5-9 */ "CDMCol", "CDOrigIndex", "CDNormal", "CDPolyIndex","CDMFloatProperty",
-	/* 10-14 */ "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
-	/* 15-19 */ "CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
-	/* 20-24 */ "CDMLoop", "CDMClothOrco", "CDMLoopCol", "CDIDCol", "CDTextureCol",
-	/* ?-? */ "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight", "CDSubSurfCrease", "CDMRecast"
+	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
+	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
+	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
+	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
+	/* 20-24 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast"
+
+/* BMESH ONLY */
+	,
+	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
+	/* 30-31 */ "CDSubSurfCrease", "CDWeightLoopCol"
+/* END BMESH ONLY */
+
 };
 
 
