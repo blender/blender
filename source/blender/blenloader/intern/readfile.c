@@ -3680,6 +3680,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 	}
 }
 
+/*this isn't really a public api function, so prototyped here*/
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
 	int i = 0;
@@ -3700,6 +3701,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			i++;
 		}
 	}
+
+	CustomData_update_typemap(data);
 }
 
 static void direct_link_mesh(FileData *fd, Mesh *mesh)

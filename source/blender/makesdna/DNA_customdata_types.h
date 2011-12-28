@@ -59,6 +59,9 @@ typedef struct CustomDataExternal {
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
+	int typemap[32];              /* runtime only! - maps types to indices of first layer of that type,
+	                               * MUST be >= CD_NUMTYPES, but we cant use a define here.
+	                               * Correct size is ensured in CustomData_update_typemap assert() */
 	int totlayer, maxlayer;       /* number of layers, size of layers array */
 	int totsize, pad;             /* in editmode, total size of all data layers */
 	void *pool;                   /* Bmesh: Memory pool for allocation of blocks */
