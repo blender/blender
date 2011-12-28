@@ -395,7 +395,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "options", "subtype", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int def = 0;
 		PropertyRNA *prop;
@@ -423,7 +423,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		prop = RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
 		RNA_def_property_boolean_default(prop, def);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -463,7 +463,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "options", "subtype", "size", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int def[PYRNA_STACK_ARRAY] = {0};
 		int size = 3;
@@ -501,11 +501,11 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 			return NULL;
 		}
 
-		// prop = RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
+		// prop = RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name ? name : id, description);
 		prop = RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
 		RNA_def_property_array(prop, size);
 		if (pydef) RNA_def_property_boolean_array_default(prop, def);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -541,7 +541,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1, def = 0;
 		PropertyRNA *prop;
@@ -570,8 +570,8 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		prop = RNA_def_property(srna, id, PROP_INT, subtype);
 		RNA_def_property_int_default(prop, def);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 		RNA_def_property_range(prop, min, max);
-		RNA_def_property_ui_text(prop, name, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if (pyopts) {
@@ -612,7 +612,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "min", "max", "soft_min", "soft_max",
 		                              "step", "options", "subtype", "size", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1;
 		int def[PYRNA_STACK_ARRAY] = {0};
@@ -657,7 +657,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		RNA_def_property_array(prop, size);
 		if (pydef) RNA_def_property_int_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if (pyopts) {
@@ -696,7 +696,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "min", "max", "soft_min", "soft_max",
 		                              "step", "precision", "options", "subtype", "unit", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3, def = 0.0f;
 		int precision = 2;
@@ -735,7 +735,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		prop = RNA_def_property(srna, id, PROP_FLOAT, subtype | unit);
 		RNA_def_property_float_default(prop, def);
 		RNA_def_property_range(prop, min, max);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if (pyopts) {
@@ -777,7 +777,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "min", "max", "soft_min", "soft_max",
 		                              "step", "precision", "options", "subtype", "unit", "size", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3, def[PYRNA_STACK_ARRAY] = {0.0f};
 		int precision = 2, size = 3;
@@ -828,7 +828,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		RNA_def_property_array(prop, size);
 		if (pydef) RNA_def_property_float_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if (pyopts) {
@@ -864,7 +864,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
 		                              "maxlen", "options", "subtype", "update", NULL};
-		const char *id = NULL, *name = "", *description = "", *def = "";
+		const char *id = NULL, *name = NULL, *description = "", *def = "";
 		int id_len;
 		int maxlen = 0;
 		PropertyRNA *prop;
@@ -893,7 +893,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		prop = RNA_def_property(srna, id, PROP_STRING, subtype);
 		if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1); /* +1 since it includes null terminator */
 		if (def) RNA_def_property_string_default(prop, def);
-		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_text(prop, name ? name : id, description);
 
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -1163,7 +1163,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if (srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default",
 		                              "options", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		PyObject *def = NULL;
 		int id_len;
 		int defvalue = 0;
@@ -1227,8 +1227,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			}
 		}
 
-		if (opts & PROP_ENUM_FLAG)  prop = RNA_def_enum_flag(srna, id, eitems, defvalue, name, description);
-		else                        prop = RNA_def_enum(srna, id, eitems, defvalue, name, description);
+		if (opts & PROP_ENUM_FLAG)  prop = RNA_def_enum_flag(srna, id, eitems, defvalue, name ? name : id, description);
+		else                        prop = RNA_def_enum(srna, id, eitems, defvalue, name ? name : id, description);
 
 		if (is_itemf) {
 			RNA_def_enum_funcs(prop, bpy_props_enum_itemf);
@@ -1307,7 +1307,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", "update", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
@@ -1336,7 +1336,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 			return NULL;
 		}
 
-		prop = RNA_def_pointer_runtime(srna, id, ptype, name, description);
+		prop = RNA_def_pointer_runtime(srna, id, ptype, name ? name : id, description);
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1368,7 +1368,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
-		const char *id = NULL, *name = "", *description = "";
+		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
@@ -1391,7 +1391,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 		if (!ptype)
 			return NULL;
 
-		prop = RNA_def_collection_runtime(srna, id, ptype, name, description);
+		prop = RNA_def_collection_runtime(srna, id, ptype, name ? name : id, description);
 		if (pyopts) {
 			if (opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if ((opts & PROP_ANIMATABLE) == 0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
