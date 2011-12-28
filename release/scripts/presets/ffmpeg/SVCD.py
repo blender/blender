@@ -21,4 +21,4 @@ bpy.context.scene.render.ffmpeg_muxrate = 0
 bpy.context.scene.render.ffmpeg_audio_bitrate = 224
 bpy.context.scene.render.ffmpeg_audio_mixrate = 44100
 bpy.context.scene.render.ffmpeg_audio_codec = "MP2"
-bpy.context.scene.render.ffmpeg_audio_channels = 2
+bpy.context.scene.render.ffmpeg_audio_channels = "STEREO"
