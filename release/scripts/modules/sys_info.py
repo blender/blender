@@ -94,6 +94,16 @@ def write_sysinfo(op):
     output.write('autosave: {}\n'.format(bpy.utils.user_resource('AUTOSAVE')))
     output.write('tempdir: {}\n'.format(bpy.app.tempdir))
 
+    output.write('\nFFmpeg:\n')
+    output.write(lilies)
+    ffmpeg = bpy.app.ffmpeg
+    if ffmpeg.supported:
+        for lib in ['avcodec', 'avdevice', 'avformat', 'avutil', 'swscale']:
+            output.write('{}:{}{}\n'.format(lib, " "*(10-len(lib)),
+                         getattr(ffmpeg, lib + '_version_string')))
+    else:
+        output.write('Blender was built without FFmpeg support\n')
+
     if bpy.app.background:
         output.write('\nOpenGL: missing, background mode\n')
     else:
