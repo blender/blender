@@ -606,7 +606,9 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 	RenderData *rd= data;
 	bNodePreview *preview= node->preview;
 	int xsize, ysize;
-	int color_manage= rd->color_mgt_flag & R_COLOR_MANAGEMENT;
+	int profile_from= (rd->color_mgt_flag & R_COLOR_MANAGEMENT)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
+	int predivide= 0;
+	int dither= 0;
 	unsigned char *rect;
 	
 	if(preview && stackbuf) {
@@ -633,10 +635,9 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 		/* convert to byte for preview */
 		rect= MEM_callocN(sizeof(unsigned char)*4*xsize*ysize, "bNodePreview.rect");
 
-		if(color_manage)
-			floatbuf_to_srgb_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
-		else
-			floatbuf_to_byte(cbuf->rect, rect, 0, xsize, 0, ysize, xsize);
+		IMB_buffer_byte_from_float(rect, cbuf->rect,
+			4, dither, IB_PROFILE_SRGB, profile_from, predivide, 
+			xsize, ysize, xsize, xsize);
 		
 		free_compbuf(cbuf);
 		if(stackbuf_use!=stackbuf)
