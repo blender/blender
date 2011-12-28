@@ -65,7 +65,7 @@ typedef struct BoidParticle {
 typedef struct ParticleSpring {
 	float rest_length;
 	unsigned int particle_index[2], delete_flag;
-}ParticleSpring;
+} ParticleSpring;
 
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
@@ -295,7 +295,7 @@ typedef struct ParticleSystem
 
 	float dt_frac;							/* current time step, as a fraction of a frame */
 	float _pad;								/* spare capacity */
-}ParticleSystem;
+} ParticleSystem;
 
 /* part->type */
 /* hair is allways baked static in object/geometry space */

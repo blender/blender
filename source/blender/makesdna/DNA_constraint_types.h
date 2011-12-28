@@ -126,10 +126,10 @@ typedef struct bPythonConstraint {
 
 
 /* Inverse-Kinematics (IK) constraint
-   This constraint supports a variety of mode determine by the type field 
-   according to B_CONSTRAINT_IK_TYPE.
-   Some fields are used by all types, some are specific to some types
-   This is indicated in the comments for each field
+ * This constraint supports a variety of mode determine by the type field
+ * according to B_CONSTRAINT_IK_TYPE.
+ * Some fields are used by all types, some are specific to some types
+ * This is indicated in the comments for each field
  */
 typedef struct bKinematicConstraint {
 	struct Object		*tar;			/* All: target object in case constraint needs a target */
