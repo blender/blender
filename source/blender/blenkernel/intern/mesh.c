@@ -2304,6 +2304,10 @@ int mesh_recalcTesselation(CustomData *fdata,
 				mf->mat_nr = mp->mat_nr;
 				mf->flag = mp->flag;
 
+#ifdef USE_TESSFACE_SPEEDUP
+				mf->edcode = 1; /* tag for sorting loop indicies */
+#endif
+
 				if (polyorigIndex) {
 					BLI_array_append(origIndex, polyorigIndex[polyIndex[k]]);
 				}
@@ -2322,19 +2326,19 @@ int mesh_recalcTesselation(CustomData *fdata,
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
 
 	/* CD_POLYINDEX will contain an array of indices from tessfaces to the polygons
-	   they are directly tesselated from */
+	 * they are directly tesselated from */
 	CustomData_add_layer(fdata, CD_POLYINDEX, CD_ASSIGN, polyIndex, totface);
 	if (origIndex) {
 		/* If polys had a CD_ORIGINDEX layer, then the tesselated faces will get this
-		   layer as well, pointing to polys from the original mesh (not the polys
-		   that just got tesselated) */
+		 * layer as well, pointing to polys from the original mesh (not the polys
+		 * that just got tesselated) */
 		CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, origIndex, totface);
 	}
 
 	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
 
 	/* If polys have a normals layer, copying that to faces can help
-	   avoid the need to recalculate normals later */
+	 * avoid the need to recalculate normals later */
 	if (CustomData_has_layer(pdata, CD_NORMAL)) {
 		float *pnors = CustomData_get_layer(pdata, CD_NORMAL);
 		float *fnors = CustomData_add_layer(fdata, CD_NORMAL, CD_CALLOC, NULL, totface);
@@ -2345,15 +2349,26 @@ int mesh_recalcTesselation(CustomData *fdata,
 
 	mf = mface;
 	for (i=0; i < totface; i++, mf++) {
-		/*sort loop indices to ensure winding is correct*/
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
 
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
-		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
-	
+#ifdef USE_TESSFACE_SPEEDUP
+		/* skip sorting when not using ngons */
+		if (UNLIKELY(mf->edcode == 1))
+#endif
+		{
+			/* sort loop indices to ensure winding is correct */
+			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+			if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
+			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+
+			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+			if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
+			if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+
+#ifdef USE_TESSFACE_SPEEDUP
+			mf->edcode = 0;
+#endif
+		}
+
 		lindex[0] = mf->v1;
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
