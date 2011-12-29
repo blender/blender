@@ -49,9 +49,6 @@
 #include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
 
-/*from MOD_array.c*/
-void vertgroup_flip_name (char *name, int strip_number);
-
 static void initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
