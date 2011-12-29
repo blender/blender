@@ -425,51 +425,6 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
-/******************* paste buffer operator ********************/
-
-static int paste_buffer_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	const char *filename;
-
-#ifdef WIN32
-	filename= "C:\\windows\\temp\\cutbuf.txt";
-
-//	The following is more likely to work on all Win32 installations.
-//	suggested by Douglas Toltzman. Needs windows include files...
-/*
-	char tempFileName[MAX_PATH];
-	DWORD pathlen;
-	static const char cutbufname[]="cutbuf.txt";
-
-	if((pathlen=GetTempPath(sizeof(tempFileName),tempFileName)) > 0 &&
-		pathlen + sizeof(cutbufname) <= sizeof(tempFileName))
-	{
-		strcat(tempFileName,cutbufname);
-		filename= tempFilename;
-	}
-*/
-#else
-	filename= "/tmp/.cutbuffer";
-#endif
-
-	return paste_file(C, NULL, filename);
-}
-
-void FONT_OT_buffer_paste(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Paste Buffer";
-	ot->description= "Paste text from OS buffer";
-	ot->idname= "FONT_OT_buffer_paste";
-	
-	/* api callbacks */
-	ot->exec= paste_buffer_exec;
-	ot->poll= ED_operator_editfont;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 /******************* text to object operator ********************/
 
 static void txt_add_object(bContext *C, TextLine *firstline, int totline, float offset[3])
