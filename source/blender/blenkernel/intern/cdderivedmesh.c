@@ -2285,7 +2285,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	CDDerivedMesh *cddm2 = NULL;
 	MVert *mv, *mvert = NULL;
 	BLI_array_declare(mvert);
-	MEdge *me, *medge = NULL;
+	MEdge *med, *medge = NULL;
 	BLI_array_declare(medge);
 	MPoly *mp, *mpoly = NULL;
 	BLI_array_declare(mpoly);
@@ -2326,42 +2326,34 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	ml = cddm->mloop;
 	c = 0;
 	for (i=0; i<totloop; i++, ml++) {
-		if (ml->v == ME_LOOP_INVALID_INDEX)
-			continue;
-		
-		if (vtargetmap[ml->v] != -1)
+		if (vtargetmap[ml->v] != -1) {
 			ml->v = vtargetmap[ml->v];
-	}
-	
-	/*now go through and fix edges and faces*/
-	me = cddm->medge;
-	c = 0;
-	for (i=0; i<dm->numEdgeData; i++, me++) {
-		int v1, v2;
-		
-		if (me->v1 == me->v2) {
-			newe[i] = -1;
-			continue;
 		}
+	}
+
+	/*now go through and fix edges and faces*/
+	med = cddm->medge;
+	c = 0;
+	for (i=0; i<dm->numEdgeData; i++, med++) {
 		
-		if (vtargetmap[me->v1] != -1)
-			v1 = vtargetmap[me->v1];
-		else
-			v1 = me->v1;
-		
-		if (vtargetmap[me->v2] != -1)
-			v2 = vtargetmap[me->v2];
-		else
-			v2 = me->v2;
-		
-		if (BLI_edgehash_haskey(ehash, v1, v2)) {
-			newe[i] = GET_INT_FROM_POINTER(BLI_edgehash_lookup(ehash, v1, v2));
-		} else {
-			BLI_array_append(olde, i);
-			newe[i] = c;
-			BLI_array_append(medge, *me);
-			BLI_edgehash_insert(ehash, v1, v2, SET_INT_IN_POINTER(c));
-			c++;
+		if (med->v1 != med->v2) {
+			const unsigned int v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
+			const unsigned int v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
+			void **eh_p= BLI_edgehash_lookup_p(ehash, v1, v2);
+
+			if (eh_p) {
+				newe[i] = GET_INT_FROM_POINTER(*eh_p);
+			}
+			else {
+				BLI_array_append(olde, i);
+				newe[i] = c;
+				BLI_array_append(medge, *med);
+				BLI_edgehash_insert(ehash, v1, v2, SET_INT_IN_POINTER(c));
+				c++;
+			}
+		}
+		else {
+			newe[i] = -1;
 		}
 	}
 	
@@ -2370,14 +2362,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 		MPoly *mp2;
 		
 		ml = cddm->mloop + mp->loopstart;
-		
+
 		c = 0;
 		for (j=0; j<mp->totloop; j++, ml++) {
-			if (ml->v == ME_LOOP_INVALID_INDEX)
-				continue;
-			
-			me = cddm->medge + ml->e;
-			if (me->v1 != me->v2) {
+			med = cddm->medge + ml->e;
+			if (med->v1 != med->v2) {
 				BLI_array_append(oldl, j+mp->loopstart);
 				BLI_array_append(mloop, *ml);
 				newl[j+mp->loopstart] = BLI_array_count(mloop)-1;
@@ -2399,12 +2388,12 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	cddm2 = (CDDerivedMesh*) CDDM_from_template((DerivedMesh*)cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
 	
 	/*update edge indices and copy customdata*/
-	me = medge;
-	for (i=0; i<cddm2->dm.numEdgeData; i++, me++) {
-		if (newv[me->v1] != -1)
-			me->v1 = newv[me->v1];
-		if (newv[me->v2] != -1)
-			me->v2 = newv[me->v2];
+	med = medge;
+	for (i=0; i<cddm2->dm.numEdgeData; i++, med++) {
+		if (newv[med->v1] != -1)
+			med->v1 = newv[med->v1];
+		if (newv[med->v2] != -1)
+			med->v2 = newv[med->v2];
 		
 		CustomData_copy_data(&dm->edgeData, &cddm2->dm.edgeData, olde[i], i, 1);
 	}

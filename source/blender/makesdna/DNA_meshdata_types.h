@@ -246,9 +246,6 @@ typedef struct MRecast {
 #define ME_ESEL 1
 #define ME_FSEL 2
 
-/* mloop->v */
-#define ME_LOOP_INVALID_INDEX ((unsigned int) -1)
-
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
 #define TF_ACTIVE	2 /* deprecated! */
