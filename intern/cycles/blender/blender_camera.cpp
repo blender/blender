@@ -72,17 +72,12 @@ static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
 	if(!b_dof_object)
 		return b_camera.dof_distance();
 	
-	/* for dof object, return distance along camera direction. this is
-	 * compatible with blender, but does it fit our dof model? */
-	Transform obmat = get_transform(b_ob.matrix_world());
+	/* for dof object, return distance along camera Z direction */
+	Transform obmat = transform_clear_scale(get_transform(b_ob.matrix_world()));
 	Transform dofmat = get_transform(b_dof_object.matrix_world());
+	Transform mat = transform_inverse(obmat) * dofmat;
 
-	float3 cam_p = transform_get_column(&obmat, 3);
-	float3 cam_dir = normalize(transform_get_column(&obmat, 2));
-	float3 dof_p = transform_get_column(&dofmat, 3);
-	float3 proj_p = dot(dof_p, cam_dir) * cam_dir;
-
-	return len(proj_p - cam_p);
+	return fabsf(transform_get_column(&mat, 3).z);
 }
 
 static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
