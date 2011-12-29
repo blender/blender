@@ -28,13 +28,15 @@
  *
  */
 
+/** \file blender/modifiers/intern/MOD_mirror.c
+ *  \ingroup modifiers
+ */
+
+
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
-#include "BLI_smallhash.h"
 #include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -44,6 +46,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
+#include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
 
 /*from MOD_array.c*/
@@ -74,13 +77,14 @@ static void foreachObjectLink(
 		 void *userData)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
-	
-	if (mmd->mirror_ob)
-		walk(userData, ob, &mmd->mirror_ob);
+
+	walk(userData, ob, &mmd->mirror_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
-					  Object *UNUSED(ob), DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
@@ -96,7 +100,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 /* Mirror */
 #define VERT_NEW	1
 
-DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
+static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
 		int UNUSED(initFlags),
@@ -288,9 +292,10 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	return result;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -303,9 +308,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct BMEditMesh *UNUSED(editData),
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct BMEditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }

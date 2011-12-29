@@ -188,8 +188,7 @@ static void displaceModifier_do(
 	tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
 				 "displaceModifier_do tex_co");
 	get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
-	
-	
+
 	for(i = 0; i < numVerts; ++i) {
 		TexResult texres;
 		float delta = 0, strength = dmd->strength;

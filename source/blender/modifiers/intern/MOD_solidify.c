@@ -41,7 +41,6 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_array.h"
-#include "BLI_smallhash.h"
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"

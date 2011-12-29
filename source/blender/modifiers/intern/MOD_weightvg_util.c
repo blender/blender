@@ -32,7 +32,6 @@
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLI_cellalloc.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
 #include "DNA_mesh_types.h"
@@ -222,6 +221,9 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		}
 	}
 }
+
+
+
 
 /* Applies weights to given vgroup (defgroup), and optionnaly add/remove vertices from the group.
  * If dws is not NULL, it must be an array of MDeformWeight pointers of same length as weights (and

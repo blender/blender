@@ -384,7 +384,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BLI_ghash_free(faceHash, NULL, NULL);
 	
 	/* return the new mesh */
-
 	return result;
 }
 

@@ -28,13 +28,18 @@
  *
  */
 
+/** \file blender/modifiers/intern/MOD_array.c
+ *  \ingroup modifiers
+ */
+
+
 /* Array modifier: duplicates the object multiple times along an axis */
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
-#include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_edgehash.h"
 
@@ -106,8 +111,8 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
-					 Object *UNUSED(ob), DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+	struct Scene *UNUSED(scene), Object *UNUSED(ob), DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
@@ -365,10 +370,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if(cu) {
 			float tmp_mat[3][3];
 			float scale;
-
+			
 			object_to_mat3(amd->curve_ob, tmp_mat);
 			scale = mat3_to_scale(tmp_mat);
-
+				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
 				makeDispListCurveTypes(scene, amd->curve_ob, 0);
@@ -381,9 +386,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	/* calculate the maximum number of copies which will fit within the
 	prescribed length */
 	if(amd->fit_type == MOD_ARR_FITLENGTH
-		  || amd->fit_type == MOD_ARR_FITCURVE)
-	{
-		float dist = sqrtf(dot_v3v3(offset[3], offset[3]));
+		  || amd->fit_type == MOD_ARR_FITCURVE) {
+		float dist = sqrt(dot_v3v3(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
@@ -506,26 +510,27 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	return cddm;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
-	result = arrayModifier_doArray(amd, md->scene, ob, derivedData, 0);
+	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	//if(result != derivedData)
+	//if(result != dm)
 	//	CDDM_calc_normals(result);
 
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct BMEditMesh *UNUSED(editData),
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct BMEditMesh *UNUSED(editData),
+						DerivedMesh *dm)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, dm, 0, 1);
 }
 
 

@@ -159,7 +159,8 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-									BMEditMesh *UNUSED(editData), DerivedMesh *derivedData)
+						struct BMEditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
