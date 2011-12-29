@@ -231,6 +231,25 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		ml->e += dm->numEdgeData;
 	}
 
+	/* handle uvs,
+	 * let tessface recalc handle updating the MTFace data */
+	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
+		const int do_mirr_u= (mmd->flag & MOD_MIR_MIRROR_U) != 0;
+		const int do_mirr_v= (mmd->flag & MOD_MIR_MIRROR_V) != 0;
+
+		const int totuv = CustomData_number_of_layers(&cddm->loopData, CD_MLOOPUV);
+
+		for (a=0; a<totuv; a++) {
+			MLoopUV *dmloopuv = CustomData_get_layer_n(&cddm->loopData, CD_MLOOPUV, a);
+			int j = dm->numLoopData;
+			dmloopuv += j; /* second set of loops only */
+			for ( ; i-- > 0; dmloopuv++) {
+				if(do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0];
+				if(do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1];
+			}
+		}
+	}
+
 	CDDM_recalc_tesselation(cddm);
 	
 	/*handle vgroup stuff*/
