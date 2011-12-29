@@ -997,9 +997,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	*lvl= mmd->lvl;
 
 	if(*lvl==0) {
-		DerivedMesh *tmp_dm= CDDM_from_mesh(me, ob);
-		dm= CDDM_copy(tmp_dm);
-		tmp_dm->release(tmp_dm);
+		return NULL;
 	} else {
 		MultiresModifierData tmp_mmd= *mmd;
 		DerivedMesh *cddm= CDDM_from_mesh(me, ob);
@@ -1059,6 +1057,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 {
 	Object *ob;
 	Scene *scene= CTX_data_scene(C);
+	int objects_baked= 0;
 
 	if(!multiresbake_check(C, op))
 		return OPERATOR_CANCELLED;
@@ -1089,6 +1088,10 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		bkr.lores_dm= multiresbake_create_loresdm(scene, ob, &bkr.lvl);
+
+		if(!bkr.lores_dm)
+			continue;
+
 		bkr.hires_dm= multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
 
 		multiresbake_start(&bkr);
@@ -1097,8 +1100,13 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 
 		bkr.lores_dm->release(bkr.lores_dm);
 		bkr.hires_dm->release(bkr.hires_dm);
+
+		objects_baked++;
 	}
 	CTX_DATA_END;
+
+	if(!objects_baked)
+		BKE_report(op->reports, RPT_ERROR, "No objects found to bake from");
 
 	return OPERATOR_FINISHED;
 }
@@ -1117,13 +1125,21 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		MultiresBakerJobData *data;
+		DerivedMesh *lores_dm;
+		int lvl;
 		ob= base->object;
 
 		multires_force_update(ob);
 
+		lores_dm = multiresbake_create_loresdm(scene, ob, &lvl);
+		if(!lores_dm)
+			continue;
+
 		data= MEM_callocN(sizeof(MultiresBakerJobData), "multiresBaker derivedMesh_data");
-		data->lores_dm = multiresbake_create_loresdm(scene, ob, &data->lvl);
+		data->lores_dm = lores_dm;
+		data->lvl = lvl;
 		data->hires_dm = multiresbake_create_hiresdm(scene, ob, &data->tot_lvl, &data->simple);
+
 		BLI_addtail(&bkj->data, data);
 	}
 	CTX_DATA_END;
@@ -1205,6 +1221,11 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 
 	bkr= MEM_callocN(sizeof(MultiresBakeJob), "MultiresBakeJob data");
 	init_multiresbake_job(C, bkr);
+
+	if(!bkr->data.first) {
+		BKE_report(op->reports, RPT_ERROR, "No objects found to bake from");
+		return OPERATOR_CANCELLED;
+	}
 
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Multires Bake", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
