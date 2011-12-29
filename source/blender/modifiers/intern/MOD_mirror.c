@@ -93,15 +93,10 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-
-/* Mirror */
-#define VERT_NEW	1
-
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-		Object *ob,
-		DerivedMesh *dm,
-		int UNUSED(initFlags),
-		int axis)
+                                   Object *ob,
+                                   DerivedMesh *dm,
+                                   int axis)
 {
 	float tolerance_sq;
 	DerivedMesh *cddm, *origdm;
@@ -266,23 +261,22 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-						Object *ob, DerivedMesh *dm,
-						int initFlags)
+						Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result = dm;
 
 	/* check which axes have been toggled and mirror accordingly */
 	if(mmd->flag & MOD_MIR_AXIS_X) {
-		result = doMirrorOnAxis(mmd, ob, result, initFlags, 0);
+		result = doMirrorOnAxis(mmd, ob, result, 0);
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Y) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, ob, result, initFlags, 1);
+		result = doMirrorOnAxis(mmd, ob, result, 1);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Z) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, ob, result, initFlags, 2);
+		result = doMirrorOnAxis(mmd, ob, result, 2);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 
@@ -297,7 +291,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	result = mirrorModifier__doMirror(mmd, ob, derivedData, 0);
+	result = mirrorModifier__doMirror(mmd, ob, derivedData);
 
 	if(result != derivedData)
 		CDDM_calc_normals(result);
