@@ -2968,15 +2968,17 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* write movie or image */
 	if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		int dofree = 0;
+		unsigned int *rect32 = (unsigned int *)rres.rect32;
 		/* note; the way it gets 32 bits rects is weak... */
-		if(rres.rect32==NULL) {
-			rres.rect32= MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+		if(rres.rect32 == NULL) {
+			rect32 = MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+			RE_ResultGet32(re, rect32);
 			dofree = 1;
 		}
-		RE_ResultGet32(re, (unsigned int *)rres.rect32);
-		ok= mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty, re->reports);
+
+		ok= mh->append_movie(&re->r, scene->r.cfra, (int *)rect32, rres.rectx, rres.recty, re->reports);
 		if(dofree) {
-			MEM_freeN(rres.rect32);
+			MEM_freeN(rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
 	} 
