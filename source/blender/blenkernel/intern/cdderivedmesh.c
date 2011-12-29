@@ -2268,15 +2268,16 @@ void CDDM_calc_normals(DerivedMesh *dm)
 }
 
 #if 1
-/*merge verts
- 
-  vtargetmap is a table that maps vertices to target vertices.  a value of -1
-  indicates a vertex is a target, and is to be kept.
-  
-  this frees dm, and returns a new one.
-  
-  this is a really horribly written function.  ger. - joeedh
-
+/* merge verts
+ *
+ * vtargetmap is a table that maps vertices to target vertices.  a value of -1
+ * indicates a vertex is a target, and is to be kept.
+ *
+ * this frees dm, and returns a new one.
+ *
+ * this is a really horribly written function.  ger. - joeedh
+ *
+ * note, CDDM_recalc_tesselation has to run on the returned DM if you want to access tessfaces.
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 {
@@ -2437,8 +2438,6 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	memcpy(cddm2->mloop, mloop, sizeof(MLoop)*BLI_array_count(mloop));
 	memcpy(cddm2->mpoly, mpoly, sizeof(MPoly)*BLI_array_count(mpoly));
 	BLI_array_free(mvert); BLI_array_free(medge); BLI_array_free(mloop); BLI_array_free(mpoly);
-
-	CDDM_recalc_tesselation((DerivedMesh*)cddm2);
 	
 	if (newv) 
 		MEM_freeN(newv); 

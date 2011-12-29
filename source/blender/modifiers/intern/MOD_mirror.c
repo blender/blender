@@ -100,36 +100,21 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 {
 	float tolerance_sq;
 	DerivedMesh *cddm, *origdm;
-	bDeformGroup *def;
-	bDeformGroup **vector_def = NULL;
 	MVert *mv, *ov;
 	MEdge *me;
 	MLoop *ml;
 	MPoly *mp;
 	float mtx[4][4];
-	int i, j, *vtargetmap = NULL;
-	BLI_array_declare(vtargetmap);
-	int vector_size=0, a, totshape;
+	int i, j;
+	int a, totshape;
+	int *vtargetmap, *vtmap_a, *vtmap_b;
+	const int do_vtargetmap = !(mmd->flag & MOD_MIR_NO_MERGE);
 
 	tolerance_sq = mmd->tolerance * mmd->tolerance;
 	
 	origdm = dm;
 	if (!CDDM_Check(dm))
 		dm = CDDM_copy(dm, 0);
-	
-	if (mmd->flag & MOD_MIR_VGROUP) {
-		/* calculate the number of deformedGroups */
-		for(vector_size = 0, def = ob->defbase.first; def;
-			def = def->next, vector_size++);
-
-		/* load the deformedGroups for fast access */
-		vector_def =
-			(bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
-										 "group_index");
-		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
-			vector_def[a] = def;
-		}
-	}
 
 	/*mtx is the mirror transformation*/
 	unit_m4(mtx);
@@ -166,19 +151,29 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, dm->numVertData, dm->numVertData);
 	CustomData_copy_data(&dm->edgeData, &cddm->edgeData, 0, dm->numEdgeData, dm->numEdgeData);
 	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, dm->numPolyData, dm->numPolyData);
-	
+
+	if (do_vtargetmap) {
+		/* second half is filled with -1 */
+		vtargetmap = MEM_mallocN(sizeof(int) * dm->numVertData * 2, "MOD_mirror tarmap");
+
+		vtmap_a = vtargetmap;
+		vtmap_b = vtargetmap + dm->numVertData;
+	}
+
 	/*mirror vertex coordinates*/
 	ov = CDDM_get_verts(cddm);
 	mv = ov + dm->numVertData;
 	for (i=0; i<dm->numVertData; i++, mv++, ov++) {
 		mul_m4_v3(mtx, mv->co);
-		/*compare location of the original and mirrored vertex, to see if they
-		  should be mapped for merging*/
-		if (len_squared_v3v3(ov->co, mv->co) < tolerance_sq) {
-			BLI_array_append(vtargetmap, i+dm->numVertData);
-		}
-		else {
-			BLI_array_append(vtargetmap, -1);
+
+		if (do_vtargetmap) {
+			/* compare location of the original and mirrored vertex, to see if they
+			 * should be mapped for merging */
+			*vtmap_a = (len_squared_v3v3(ov->co, mv->co) < tolerance_sq) ? dm->numVertData + i : -1;
+			*vtmap_b = -1; /* fill here to avoid 2x loops */
+
+			vtmap_a++;
+			vtmap_b++;
 		}
 	}
 	
@@ -189,10 +184,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		for (i=dm->numVertData; i<cddm->numVertData; i++) {
 			mul_m4_v3(mtx, cos[i]);
 		}
-	}
-	
-	for (i=0; i<dm->numVertData; i++) {
-		BLI_array_append(vtargetmap, -1);
 	}
 	
 	/*adjust mirrored edge vertex indices*/
@@ -250,8 +241,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 
-	CDDM_recalc_tesselation(cddm);
-	
 	/*handle vgroup stuff*/
 	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&cddm->vertData, CD_MDEFORMVERT)) {
 		MDeformVert *dvert = CustomData_get_layer(&cddm->vertData, CD_MDEFORMVERT);
@@ -259,17 +248,18 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
-		for (i=0; i<dm->numVertData; i++, dvert++) {
+		for (i = dm->numVertData; i-- > 0; dvert++) {
 			defvert_flip(dvert, flip_map, flip_map_len);
 		}
 	}
-	
-	if (!(mmd->flag & MOD_MIR_NO_MERGE))
+
+	if (do_vtargetmap) {
+		/* this calls CDDM_recalc_tesselation, so dont do twice */
 		cddm = CDDM_merge_verts(cddm, vtargetmap);
-	
-	BLI_array_free(vtargetmap);
-	
-	if (vector_def) MEM_freeN(vector_def);
+		MEM_freeN(vtargetmap);
+	}
+
+	CDDM_recalc_tesselation(cddm);
 	
 	if (dm != origdm) {
 		dm->needsFree = 1;
