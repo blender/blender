@@ -95,10 +95,10 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-		Object *ob,
-		DerivedMesh *dm,
-		int initFlags,
-		int axis)
+                                   Object *ob,
+                                   DerivedMesh *dm,
+                                   int initFlags,
+                                   int axis)
 {
 	int i;
 	float tolerance = mmd->tolerance;
@@ -109,7 +109,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxFaces = dm->getNumFaces(dm);
 	int *flip_map= NULL, flip_map_len= 0;
 	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
-	int (*indexMap)[2];
+	unsigned int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
 	numVerts = numEdges = numFaces = 0;
@@ -153,25 +153,27 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			isShared = ABS(co[axis])<=tolerance;
 		
 		/* Because the topology result (# of vertices) must be the same if
-		* the mesh data is overridden by vertex cos, have to calc sharedness
-		* based on original coordinates. This is why we test before copy.
-		*/
+		 * the mesh data is overridden by vertex cos, have to calc sharedness
+		 * based on original coordinates. This is why we test before copy.
+		 */
 		DM_copy_vert_data(dm, result, i, numVerts, 1);
 		*mv = inMV;
-		numVerts++;
-		
-		indexMap[i][0] = numVerts - 1;
+
+		indexMap[i][0] = numVerts;
 		indexMap[i][1] = !isShared;
-		//
+
+		numVerts++;
+
 		if(isShared ) {
-			co[axis] = 0;
+			co[axis] = 0.0f;
 			if (mmd->mirror_ob) {
 				mul_m4_v3(imtx, co);
 			}
 			copy_v3_v3(mv->co, co);
 			
 			mv->flag |= ME_VERT_MERGED;
-		} else {
+		}
+		else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
 			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
@@ -236,10 +238,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		mf->v3 = indexMap[inMF.v3][0];
 		mf->v4 = indexMap[inMF.v4][0];
 		
-		if(indexMap[inMF.v1][1]
-				 || indexMap[inMF.v2][1]
-				 || indexMap[inMF.v3][1]
-				 || (mf->v4 && indexMap[inMF.v4][1])) {
+		if ( indexMap[inMF.v1][1] ||
+		     indexMap[inMF.v2][1] ||
+		     indexMap[inMF.v3][1] ||
+		     (mf->v4 && indexMap[inMF.v4][1]))
+		{
 			MFace *mf2 = CDDM_get_face(result, numFaces);
 			static int corner_indices[4] = {2, 1, 0, 3};
 			
