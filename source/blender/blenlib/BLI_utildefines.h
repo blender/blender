@@ -300,4 +300,13 @@
 #  define BLI_assert(a) (void)0
 #endif
 
+/* hints for branch pradiction, only use in code that runs a _lot_ where */
+#ifdef __GNUC__
+#  define LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define LIKELY(x)       (x)
+#  define UNLIKELY(x)     (x)
+#endif
+
 #endif // BLI_UTILDEFINES_H

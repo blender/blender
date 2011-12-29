@@ -33,7 +33,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-    ../../gpu
+	../../gpu
 	../../../../intern/guardedalloc
 )
 

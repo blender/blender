@@ -40,7 +40,7 @@ set(INC
 
 set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
-        ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
