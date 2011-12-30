@@ -453,7 +453,8 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {
-	int predivide= 0, profile_from;
+	int predivide= (ibuf->flags & IB_cm_predivide);
+	int profile_from;
 
 	/* verify we have a float buffer */
 	if(ibuf->rect_float==NULL)
@@ -485,7 +486,8 @@ void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y
 {
 	float *rect_float;
 	uchar *rect_byte;
-	int predivide= 0, profile_from;
+	int predivide= (ibuf->flags & IB_cm_predivide);
+	int profile_from;
 
 	/* verify we have a float buffer */
 	if(ibuf->rect_float==NULL || buffer==NULL)
@@ -521,7 +523,8 @@ void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y
 
 void IMB_float_from_rect(struct ImBuf *ibuf)
 {
-	int predivide= 0, profile_from;
+	int predivide= (ibuf->flags & IB_cm_predivide);
+	int profile_from;
 
 	/* verify if we byte and float buffers */
 	if(ibuf->rect==NULL)
@@ -546,7 +549,7 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 /* no profile conversion */
 void IMB_float_from_rect_simple(struct ImBuf *ibuf)
 {
-	int predivide= 0;
+	int predivide= (ibuf->flags & IB_cm_predivide);
 
 	if(ibuf->rect_float==NULL)
 		imb_addrectfloatImBuf(ibuf);
@@ -558,7 +561,8 @@ void IMB_float_from_rect_simple(struct ImBuf *ibuf)
 
 void IMB_convert_profile(struct ImBuf *ibuf, int profile)
 {
-	int predivide= 0, profile_from, profile_to;
+	int predivide= (ibuf->flags & IB_cm_predivide);
+	int profile_from, profile_to;
 
 	if(ibuf->profile == profile)
 		return;
@@ -599,7 +603,8 @@ void IMB_convert_profile(struct ImBuf *ibuf, int profile)
  * if the return  */
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc)
 {
-	int predivide= 0, profile_from, profile_to;
+	int predivide= (ibuf->flags & IB_cm_predivide);
+	int profile_from, profile_to;
 
 	/* determine profiles */
 	if(ibuf->profile == IB_PROFILE_NONE)

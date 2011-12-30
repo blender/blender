@@ -1100,7 +1100,8 @@ typedef struct Scene {
 #define R_ALPHAKEY		2
 
 /* color_mgt_flag */
-#define R_COLOR_MANAGEMENT	1
+#define R_COLOR_MANAGEMENT              (1 << 0)
+#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF    1                                      /*deprecated*/
