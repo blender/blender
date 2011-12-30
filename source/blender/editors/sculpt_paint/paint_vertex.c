@@ -288,9 +288,9 @@ static void make_vertexcol(Object *ob)	/* single ob */
 }
 
 /* mirror_vgroup is set to -1 when invalid */
-static int wpaint_mirror_vgroup_ensure(Object *ob)
+static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
-	bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef - 1);
+	bDeformGroup *defgroup= BLI_findlink(&ob->defbase, vgroup_active);
 
 	if(defgroup) {
 		bDeformGroup *curdef;
@@ -391,7 +391,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	Mesh *me= ob->data;
 	MFace *mf;
 	MDeformWeight *dw, *uw;
-	int vgroup, vgroup_mirror= -1;
+	int vgroup_active, vgroup_mirror= -1;
 	unsigned int index;
 
 	/* mutually exclusive, could be made into a */
@@ -399,11 +399,11 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 
 	if(me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
-	vgroup= ob->actdef-1;
+	vgroup_active = ob->actdef - 1;
 
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		vgroup_mirror= wpaint_mirror_vgroup_ensure(ob);
+		vgroup_mirror= wpaint_mirror_vgroup_ensure(ob, vgroup_active);
 	}
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
@@ -423,9 +423,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 					continue;
 				}
 
-				dw= defvert_verify_index(&me->dvert[vidx], vgroup);
+				dw= defvert_verify_index(&me->dvert[vidx], vgroup_active);
 				if(dw) {
-					uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup);
+					uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup_active);
 					uw->weight= dw->weight; /* set the undo weight */
 					dw->weight= paintweight;
 
@@ -437,8 +437,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 								dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
 								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
 							} else {
-								dw= defvert_verify_index(me->dvert+j, vgroup);
-								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup);
+								dw= defvert_verify_index(me->dvert+j, vgroup_active);
+								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_active);
 							}
 							uw->weight= dw->weight; /* set the undo weight */
 							dw->weight= paintweight;
@@ -890,7 +890,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				MFace *mf= ((MFace *)me->mface) + index-1;
-				const int vgroup= vc.obact->actdef - 1;
+				const int vgroup_active= vc.obact->actdef - 1;
 				ToolSettings *ts= vc.scene->toolsettings;
 				float mval_f[2];
 				int v_idx_best= -1;
@@ -914,7 +914,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				} while (fidx--);
 
 				if(v_idx_best != -1) { /* should always be valid */
-					ts->vgroup_weight= defvert_find_weight(&me->dvert[v_idx_best], vgroup);
+					ts->vgroup_weight= defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
 					change= TRUE;
 				}
 			}
@@ -1465,6 +1465,7 @@ typedef struct WeightPaintInfo {
 	int defbase_tot_sel;
 	int defbase_tot_unsel;
 
+	int vgroup_active; /* (ob->actdef - 1) */
 	int vgroup_mirror; /* mirror group or -1 */
 
 	const char *lock_flags;  /* boolean array for locked bones,
@@ -1569,15 +1570,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	MDeformVert *dv= &me->dvert[index];
 	
 	MDeformWeight *dw, *uw;
-	int vgroup= ob->actdef-1;
 
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= defvert_find_index(dv, vgroup);
-		uw= defvert_find_index(wp->wpaint_prev+index, vgroup);
+		dw= defvert_find_index(dv, wpi->vgroup_active);
+		uw= defvert_find_index(wp->wpaint_prev+index, wpi->vgroup_active);
 	}
 	else {
-		dw= defvert_verify_index(dv, vgroup);
-		uw= defvert_verify_index(wp->wpaint_prev+index, vgroup);
+		dw= defvert_verify_index(dv, wpi->vgroup_active);
+		uw= defvert_verify_index(wp->wpaint_prev+index, wpi->vgroup_active);
 	}
 
 	if(dw==NULL || uw==NULL) {
@@ -1599,7 +1599,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			if(index_mirr != -1) {
 				MDeformVert *dv_mirr= &me->dvert[index_mirr];
 				/* copy, not paint again */
-				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : vgroup);
+				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active);
 				uw->weight= dw->weight;
 			}
 		}
@@ -1698,7 +1698,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			if(index_mirr != -1) {
 				MDeformVert *dv_mirr= &me->dvert[index_mirr];
 				/* copy, not paint again */
-				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : vgroup);
+				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active);
 				//uw->weight= dw->weight;
 				apply_mp_locks_normalize(me, wpi, index_mirr, uw, tdw, change, oldChange, oldw, neww);
 			}
@@ -1794,6 +1794,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 struct WPaintData {
 	ViewContext vc;
 	int *indexar;
+	int vgroup_active;
 	int vgroup_mirror;
 	float *vertexcosnos;
 	float wpimat[3][3];
@@ -1883,29 +1884,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_vgroup_data_create(&me->id);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 	}
-	
-	/* make mode data storage */
-	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
-	paint_stroke_set_mode_data(stroke, wpd);
-	view3d_set_viewcontext(C, &wpd->vc);
-	wpd->vgroup_mirror= -1;
-	
-	/*set up auto-normalize, and generate map for detecting which
-	  vgroups affect deform bones*/
-	wpd->defbase_tot = BLI_countlist(&ob->defbase);
-	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
-	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
-		wpd->vgroup_validmap = wpaint_make_validmap(ob);
-	}
 
-	/* ALLOCATIONS! no return after this line */
-	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	wpd->vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
-	wpd->indexar= get_indexarray(me);
-	copy_wpaint_prev(wp, me->dvert, me->totvert);
-	
 	/* this happens on a Bone select, when no vgroup existed yet */
-	if(ob->actdef<=0) {
+	if (ob->actdef <= 0) {
 		Object *modob;
 		if((modob = modifiers_isDeformedByArmature(ob))) {
 			Bone *actbone= ((bArmature *)modob->data)->act_bone;
@@ -1930,14 +1911,41 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_vgroup_add(ob);
 	}
 
+	/* ensure we dont try paint onto an invalid group */
+	if (ob->actdef <= 0) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	/* ALLOCATIONS! no return after this line */
+	/* make mode data storage */
+	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	paint_stroke_set_mode_data(stroke, wpd);
+	view3d_set_viewcontext(C, &wpd->vc);
+
+	wpd->vgroup_active = ob->actdef - 1;
+	wpd->vgroup_mirror = -1;
+
+	/* set up auto-normalize, and generate map for detecting which
+	 * vgroups affect deform bones*/
+	wpd->defbase_tot = BLI_countlist(&ob->defbase);
+	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
+	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
+		wpd->vgroup_validmap = wpaint_make_validmap(ob);
+	}
+
+	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	wpd->vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
+	wpd->indexar= get_indexarray(me);
+	copy_wpaint_prev(wp, me->dvert, me->totvert);
+
 	/* imat for normals */
 	mult_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(wpd->wpimat, imat);
-	
+
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		wpd->vgroup_mirror= wpaint_mirror_vgroup_ensure(ob);
+		wpd->vgroup_mirror = wpaint_mirror_vgroup_ensure(ob, wpd->vgroup_active);
 	}
 	
 	return 1;
@@ -1998,6 +2006,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if(wpi.defbase_tot_sel == 0 && ob->actdef > 0) wpi.defbase_tot_sel = 1;
 
 	wpi.defbase_tot_unsel=  wpi.defbase_tot - wpi.defbase_tot_sel;
+	wpi.vgroup_active=      wpd->vgroup_active;
 	wpi.vgroup_mirror=      wpd->vgroup_mirror;
 	wpi.lock_flags=         wpd->lock_flags;
 	wpi.vgroup_validmap=    wpd->vgroup_validmap;
@@ -2086,9 +2095,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				do {
 					unsigned int vidx= *(&mface->v1 + fidx);
 
-					dw= dw_func(me->dvert+vidx, ob->actdef-1);
+					dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
 					if(dw) {
-						paintweight+= dw->weight;
+						paintweight += dw->weight;
 						totw++;
 					}
 
