@@ -352,9 +352,15 @@ class CLIP_PT_track(Panel):
         layout.template_track(sc, "scopes")
 
         row = layout.row(align=True)
-        row.prop(act_track, "use_red_channel", text="R", toggle=True)
-        row.prop(act_track, "use_green_channel", text="G", toggle=True)
-        row.prop(act_track, "use_blue_channel", text="B", toggle=True)
+        sub = row.row()
+        sub.prop(act_track, "use_red_channel", text="R", toggle=True)
+        sub.prop(act_track, "use_green_channel", text="G", toggle=True)
+        sub.prop(act_track, "use_blue_channel", text="B", toggle=True)
+
+        row.separator()
+
+        sub = row.row()
+        sub.prop(act_track, "use_grayscale_preview", text="B/W", toggle=True)
 
         layout.separator()
 
