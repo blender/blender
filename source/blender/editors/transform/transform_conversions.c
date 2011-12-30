@@ -4208,6 +4208,7 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
 				if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) return 1;
 				if (con->type == CONSTRAINT_TYPE_CLAMPTO) return 1;
+				if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) return 1;
 				
 					/* constraints that require this only under special conditions */
 				if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
@@ -5385,6 +5386,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	TransData2D *td2d;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
+	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
@@ -5398,7 +5400,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	/* count */
 	t->total = 0;
 
-	track = clip->tracking.tracks.first;
+	track = tracksbase->first;
 	while(track) {
 		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);
@@ -5425,7 +5427,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	t->customFree= transDataTrackingFree;
 
 	/* create actual data */
-	track = clip->tracking.tracks.first;
+	track = tracksbase->first;
 	while(track) {
 		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);

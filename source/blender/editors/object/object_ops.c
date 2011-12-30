@@ -161,6 +161,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(CONSTRAINT_OT_limitdistance_reset);
 	WM_operatortype_append(CONSTRAINT_OT_childof_set_inverse);
 	WM_operatortype_append(CONSTRAINT_OT_childof_clear_inverse);
+	WM_operatortype_append(CONSTRAINT_OT_objectsolver_set_inverse);
+	WM_operatortype_append(CONSTRAINT_OT_objectsolver_clear_inverse);
 
 	WM_operatortype_append(OBJECT_OT_vertex_group_add);
 	WM_operatortype_append(OBJECT_OT_vertex_group_remove);

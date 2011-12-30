@@ -34,11 +34,13 @@
 
 struct bGPDlayer;
 struct ImBuf;
+struct ListBase;
 struct MovieReconstructContext;
 struct MovieTrackingTrack;
 struct MovieTrackingMarker;
 struct MovieTracking;
 struct MovieTrackingContext;
+struct MovieTrackingObject;
 struct MovieClipUser;
 struct MovieDistortion;
 struct Camera;
@@ -49,8 +51,8 @@ void BKE_tracking_init_settings(struct MovieTracking *tracking);
 void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 
-struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, float x, float y,
-			int framenr, int width, int height);
+struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, struct ListBase *tracksbase,
+			float x, float y, int framenr, int width, int height);
 void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 
@@ -72,16 +74,27 @@ struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTra
 struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
 			struct MovieTrackingMarker *marker, int margin, int anchored, float pos[2], int origin[2]);
 
-void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingTrack *track);
+void BKE_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 
-struct MovieTrackingTrack *BKE_tracking_named_track(struct MovieTracking *tracking, const char *name);
-struct MovieTrackingTrack *BKE_tracking_indexed_track(struct MovieTracking *tracking, int tracknr);
+struct MovieTrackingTrack *BKE_tracking_named_track(struct MovieTracking *tracking, struct MovieTrackingObject *object, const char *name);
+struct MovieTrackingTrack *BKE_tracking_indexed_track(struct MovieTracking *tracking, int tracknr, struct ListBase **tracksbase_r);
 
 void BKE_tracking_camera_shift(struct MovieTracking *tracking, int winx, int winy, float *shiftx, float *shifty);
 void BKE_tracking_camera_to_blender(struct MovieTracking *tracking, struct Scene *scene, struct Camera *camera, int width, int height);
 
 void BKE_get_tracking_mat(struct Scene *scene, struct Object *ob, float mat[4][4]);
-void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
+void BKE_tracking_projection_matrix(struct MovieTracking *tracking, struct MovieTrackingObject *object,
+			int framenr, int winx, int winy, float mat[4][4]);
+
+struct ListBase *BKE_tracking_get_tracks(struct MovieTracking *tracking);
+struct MovieTrackingReconstruction *BKE_tracking_get_reconstruction(struct MovieTracking *tracking);
+
+struct MovieTrackingTrack *BKE_tracking_active_track(struct MovieTracking *tracking);
+struct MovieTrackingObject *BKE_tracking_active_object(struct MovieTracking *tracking);
+struct MovieTrackingObject *BKE_tracking_get_camera_object(struct MovieTracking *tracking);
+struct ListBase *BKE_tracking_object_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+struct MovieTrackingReconstruction *BKE_tracking_object_reconstruction(struct MovieTracking *tracking,
+			struct MovieTrackingObject *object);
 
 /* 2D tracking */
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,
@@ -92,20 +105,23 @@ void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingCont
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
 /* Camera solving */
-int BKE_tracking_can_reconstruct(struct MovieTracking *tracking, char *error_msg, int error_size);
+int BKE_tracking_can_reconstruct(struct MovieTracking *tracking, struct MovieTrackingObject *object,
+			char *error_msg, int error_size);
 
 struct MovieReconstructContext* BKE_tracking_reconstruction_context_new(struct MovieTracking *tracking,
-			int keyframe1, int keyframe2, int width, int height);
+			struct MovieTrackingObject *object, int keyframe1, int keyframe2, int width, int height);
 void BKE_tracking_reconstruction_context_free(struct MovieReconstructContext *context);
 void BKE_tracking_solve_reconstruction(struct MovieReconstructContext *context,
 			short *stop, short *do_update, float *progress, char *stats_message, int message_size);
 int BKE_tracking_finish_reconstruction(struct MovieReconstructContext *context, struct MovieTracking *tracking);
 
-struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
-void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking, int framenr, float mat[4][4]);
+struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking,
+			struct MovieTrackingObject *object, int framenr);
+void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking,
+			struct MovieTrackingObject *object, int framenr, float mat[4][4]);
 
 /* Feature detection */
-void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ImBuf *imbuf,
+void BKE_tracking_detect_fast(struct MovieTracking *tracking, struct ListBase *tracksbase, struct ImBuf *imbuf,
 			int framenr, int margin, int min_trackness, int min_distance, struct bGPDlayer *layer,
 			int place_outside_layer);
 
@@ -127,8 +143,14 @@ void BKE_tracking_distortion_destroy(struct MovieDistortion *distortion);
 struct ImBuf *BKE_tracking_undistort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height, float overscan);
 struct ImBuf *BKE_tracking_distort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height, float overscan);
 
+/* Object tracking */
+struct MovieTrackingObject *BKE_tracking_new_object(struct MovieTracking *tracking, const char *name);
+void BKE_tracking_remove_object(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+void BKE_tracking_object_unique_name(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+struct MovieTrackingObject *BKE_tracking_named_object(struct MovieTracking *tracking, const char *name);
+
 /* Select */
-void BKE_tracking_select_track(struct MovieTracking *tracking, struct MovieTrackingTrack *track, int area, int extend);
+void BKE_tracking_select_track(struct ListBase *tracksbase, struct MovieTrackingTrack *track, int area, int extend);
 void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
 #define TRACK_SELECTED(track)				((((track)->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))

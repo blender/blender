@@ -70,7 +70,13 @@ class CLIP_HT_header(Header):
         row.template_ID(sc, "clip", open='clip.open')
 
         if clip:
-            r = clip.tracking.reconstruction
+            tracking = clip.tracking
+            active = tracking.objects.active
+
+            if active and not active.is_camera:
+                r = active.reconstruction
+            else:
+                r = tracking.reconstruction
 
             if r.is_valid:
                 layout.label(text="Average solve error: %.4f" %
@@ -197,10 +203,18 @@ class CLIP_PT_tools_solve(Panel):
     def draw(self, context):
         layout = self.layout
         clip = context.space_data.clip
-        settings = clip.tracking.settings
+        tracking = clip.tracking
+        settings = tracking.settings
+        tracking_object = tracking.objects.active
 
         col = layout.column(align=True)
-        col.operator("clip.solve_camera", text="Camera Motion")
+
+        if tracking_object.is_camera:
+            solve_text = "Camera Motion"
+        else:
+            solve_text = "Object Motion"
+
+        col.operator("clip.solve_camera", text=solve_text)
         col.operator("clip.clear_solution")
 
         col = layout.column(align=True)
@@ -208,6 +222,7 @@ class CLIP_PT_tools_solve(Panel):
         col.prop(settings, "keyframe_b")
 
         col = layout.column(align=True)
+        col.active = tracking_object.is_camera
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
 
@@ -287,6 +302,39 @@ class CLIP_PT_tools_orientation(Panel):
         col.prop(settings, "distance")
 
 
+class CLIP_PT_tools_object(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Object"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        if clip and sc.mode == 'RECONSTRUCTION':
+            tracking_object = clip.tracking.objects.active
+            return not tracking_object.is_camera
+
+        return False
+
+    def draw(self, context):
+        sc = context.space_data
+        clip = sc.clip
+        layout = self.layout
+        tracking_object = clip.tracking.objects.active
+        settings = sc.clip.tracking.settings
+
+        col = layout.column()
+
+        col.prop(tracking_object, "scale")
+
+        col.separator()
+
+        col.operator("clip.set_solution_scale", text="Set Scale")
+        col.prop(settings, "object_distance")
+
+
 class CLIP_PT_tools_grease_pencil(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -314,6 +362,37 @@ class CLIP_PT_tools_grease_pencil(Panel):
 
         row = col.row()
         row.prop(context.tool_settings, "use_grease_pencil_sessions")
+
+
+class CLIP_PT_objects(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Objects"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = context.space_data.clip
+        tracking = clip.tracking
+
+        row = layout.row()
+        row.template_list(tracking, "objects", tracking, "active_object_index", rows=3)
+
+        sub = row.column(align=True)
+
+        sub.operator("clip.tracking_object_new", icon='ZOOMIN', text="")
+        sub.operator("clip.tracking_object_remove", icon='ZOOMOUT', text="")
+
+        active = tracking.objects.active
+        if active:
+            layout.prop(active, "name")
 
 
 class CLIP_PT_track(Panel):
@@ -428,7 +507,7 @@ class CLIP_PT_tracking_camera(Panel):
         col.operator("clip.set_center_principal", text="Center")
 
         col = layout.column(align=True)
-        col.label(text="Undistortion:")
+        col.label(text="Lens Distortion:")
         col.prop(clip.tracking.camera, "k1")
         col.prop(clip.tracking.camera, "k2")
         col.prop(clip.tracking.camera, "k3")

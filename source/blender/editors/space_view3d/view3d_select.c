@@ -1320,6 +1320,25 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	return basact;
 }
 
+static void deselect_all_tracks(MovieTracking *tracking)
+{
+	MovieTrackingObject *object;
+
+	object= tracking->objects.first;
+	while(object) {
+		ListBase *tracksbase= BKE_tracking_object_tracks(tracking, object);
+		MovieTrackingTrack *track= tracksbase->first;
+
+		while(track) {
+			BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+
+			track= track->next;
+		}
+
+		object= object->next;
+	}
+}
+
 /* mval is region coords */
 static int mouse_select(bContext *C, const int mval[2], short extend, short obcenter, short enumerate)
 {
@@ -1391,27 +1410,41 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 				if(basact->object->type==OB_CAMERA) {
 					if(BASACT==basact) {
 						int i, hitresult;
-						MovieTrackingTrack *track;
+						int changed= 0;
 
 						for (i=0; i< hits; i++) {
 							hitresult= buffer[3+(i*4)];
 
 							/* if there's bundles in buffer select bundles first,
 							   so non-camera elements should be ignored in buffer */
-							if(basact->selcol != (hitresult & 0xFFFF))
+							if(basact->selcol != (hitresult & 0xFFFF)) {
 								continue;
+							}
 
 							/* index of bundle is 1<<16-based. if there's no "bone" index
 							   in hight word, this buffer value belongs to camera,. not to bundle */
 							if(buffer[4*i+3] & 0xFFFF0000) {
 								MovieClip *clip= object_get_movieclip(scene, basact->object, 0);
-								int selected;
-								track= BKE_tracking_indexed_track(&clip->tracking, hitresult >> 16);
+								MovieTracking *tracking= &clip->tracking;
+								ListBase *tracksbase;
+								MovieTrackingTrack *track;
 
-								selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
+								track= BKE_tracking_indexed_track(&clip->tracking, hitresult >> 16, &tracksbase);
 
-								if(selected && extend)  BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
-								else BKE_tracking_select_track(&clip->tracking, track, TRACK_AREA_ALL, extend);
+								if(TRACK_SELECTED(track) && extend) {
+									changed= 0;
+									BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+								}
+								else {
+									int oldsel= TRACK_SELECTED(track) ? 1 : 0;
+									if(!extend)
+										deselect_all_tracks(tracking);
+
+									BKE_tracking_select_track(tracksbase, track, TRACK_AREA_ALL, extend);
+
+									if(oldsel!=(TRACK_SELECTED(track) ? 1 : 0))
+										changed= 1;
+								}
 
 								basact->flag|= SELECT;
 								basact->object->flag= basact->flag;
@@ -1423,6 +1456,12 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 
 								break;
 							}
+						}
+
+						if(!changed) {
+							/* fallback to regular object selection if no new bundles were selected,
+							   allows to select object parented to reconstruction object */
+							basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, 0);
 						}
 					}
 				}

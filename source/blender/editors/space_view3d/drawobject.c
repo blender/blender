@@ -1500,48 +1500,49 @@ static void draw_bundle_sphere(void)
 	glCallList(displist);
 }
 
-static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
+static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D *v3d,
+			MovieClip *clip, MovieTrackingObject *tracking_object, int flag, int *global_track_index)
 {
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
-	float mat[4][4], imat[4][4], curcol[4];
+	float mat[4][4], imat[4][4];
 	unsigned char col[4], scol[4];
-	int bundlenr= 1;
-
-	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
-		return;
-
-	if(v3d->flag2&V3D_RENDER_OVERRIDE)
-		return;
-
-	glGetFloatv(GL_CURRENT_COLOR, curcol);
+	int tracknr= *global_track_index;
+	ListBase *tracksbase= BKE_tracking_object_tracks(tracking, tracking_object);
 
 	UI_GetThemeColor4ubv(TH_TEXT, col);
 	UI_GetThemeColor4ubv(TH_SELECT, scol);
 
 	BKE_get_tracking_mat(scene, base->object, mat);
 
-	glEnable(GL_LIGHTING);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);
-
-	/* current ogl matrix is translated in camera space, bundles should
-	   be rendered in world space, so camera matrix should be "removed"
-	   from current ogl matrix */
-	invert_m4_m4(imat, base->object->obmat);
-
 	glPushMatrix();
-	glMultMatrixf(imat);
-	glMultMatrixf(mat);
 
-	for ( track= tracking->tracks.first; track; track= track->next) {
-		int selected= track->flag&SELECT || track->pat_flag&SELECT || track->search_flag&SELECT;
+	if(tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+		/* current ogl matrix is translated in camera space, bundles should
+		   be rendered in world space, so camera matrix should be "removed"
+		   from current ogl matrix */
+		invert_m4_m4(imat, base->object->obmat);
+
+		glMultMatrixf(imat);
+		glMultMatrixf(mat);
+	}
+	else {
+		float obmat[4][4];
+
+		BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, obmat);
+
+		invert_m4_m4(imat, obmat);
+		glMultMatrixf(imat);
+	}
+
+	for (track= tracksbase->first; track; track= track->next) {
+		int selected= TRACK_SELECTED(track);
+
 		if((track->flag&TRACK_HAS_BUNDLE)==0)
 			continue;
 
 		if(flag&DRAW_PICKING)
-			glLoadName(base->selcol + (bundlenr<<16));
+			glLoadName(base->selcol + (tracknr<<16));
 
 		glPushMatrix();
 			glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -1549,7 +1550,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 			if(v3d->drawtype==OB_WIRE) {
 				glDisable(GL_LIGHTING);
-				glDepthMask(0);
 
 				if(selected) {
 					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
@@ -1561,7 +1561,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 				drawaxes(0.05f, v3d->bundle_drawtype);
 
-				glDepthMask(1);
 				glEnable(GL_LIGHTING);
 			} else if(v3d->drawtype>OB_WIRE) {
 				if(v3d->bundle_drawtype==OB_EMPTY_SPHERE) {
@@ -1570,7 +1569,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 						else UI_ThemeColor(TH_SELECT);
 
-						glDepthMask(0);
 						glLineWidth(2.f);
 						glDisable(GL_LIGHTING);
 						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1580,7 +1578,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 						glEnable(GL_LIGHTING);
 						glLineWidth(1.f);
-						glDepthMask(1);
 					}
 
 					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
@@ -1589,7 +1586,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 					draw_bundle_sphere();
 				} else {
 					glDisable(GL_LIGHTING);
-					glDepthMask(0);
 
 					if(selected) {
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
@@ -1601,7 +1597,6 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 					drawaxes(0.05f, v3d->bundle_drawtype);
 
-					glDepthMask(1);
 					glEnable(GL_LIGHTING);
 				}
 			}
@@ -1619,31 +1614,66 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 			view3d_cached_text_draw_add(pos, track->name, 10, V3D_CACHE_TEXT_GLOBALSPACE, tcol);
 		}
 
-		bundlenr++;
+		tracknr++;
 	}
 
 	if((flag & DRAW_PICKING)==0) {
-		if(v3d->flag2&V3D_SHOW_CAMERAPATH && clip->tracking.reconstruction.camnr) {
-			int a= 0;
-			MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
-			MovieReconstructedCamera *camera= tracking->reconstruction.cameras;
+		if((v3d->flag2&V3D_SHOW_CAMERAPATH) && (tracking_object->flag&TRACKING_OBJECT_CAMERA)) {
+			MovieTrackingReconstruction *reconstruction;
+			reconstruction= BKE_tracking_object_reconstruction(tracking, tracking_object);
 
-			glDisable(GL_LIGHTING);
-			UI_ThemeColor(TH_CAMERA_PATH);
-			glLineWidth(2.0f);
+			if(reconstruction->camnr) {
+				MovieReconstructedCamera *camera= reconstruction->cameras;
+				int a= 0;
 
-			glBegin(GL_LINE_STRIP);
-				for(a= 0; a<reconstruction->camnr; a++, camera++) {
-					glVertex3fv(camera->mat[3]);
-				}
-			glEnd();
+				glDisable(GL_LIGHTING);
+				UI_ThemeColor(TH_CAMERA_PATH);
+				glLineWidth(2.0f);
 
-			glLineWidth(1.0f);
-			glEnable(GL_LIGHTING);
+				glBegin(GL_LINE_STRIP);
+					for(a= 0; a<reconstruction->camnr; a++, camera++) {
+						glVertex3fv(camera->mat[3]);
+					}
+					glEnd();
+
+					glLineWidth(1.0f);
+					glEnable(GL_LIGHTING);
+			}
 		}
 	}
 
 	glPopMatrix();
+
+	*global_track_index= tracknr;
+}
+
+static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
+{
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingObject *tracking_object;
+	float curcol[4];
+	int global_track_index= 1;
+
+	if((v3d->flag2&V3D_SHOW_RECONSTRUCTION)==0)
+		return;
+
+	if(v3d->flag2&V3D_RENDER_OVERRIDE)
+		return;
+
+	glGetFloatv(GL_CURRENT_COLOR, curcol);
+
+	glEnable(GL_LIGHTING);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+	glShadeModel(GL_SMOOTH);
+
+	tracking_object= tracking->objects.first;
+	while(tracking_object) {
+		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object,
+					flag, &global_track_index);
+
+		tracking_object= tracking_object->next;
+	}
 
 	/* restore */
 	glShadeModel(GL_FLAT);
@@ -6849,7 +6879,34 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
-				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
+				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+					/* special case for object solver and follow track constraints because they don't fill
+					   constraint targets properly (design limitation -- scene is needed for their target
+					   but it can't be accessed from get_targets callvack) */
+
+					Object *camob= NULL;
+
+					if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
+						bFollowTrackConstraint *data= (bFollowTrackConstraint *)curcon->data;
+
+						camob= data->camera ? data->camera : scene->camera;
+					}
+					else if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER) {
+						bObjectSolverConstraint *data= (bObjectSolverConstraint *)curcon->data;
+
+						camob= data->camera ? data->camera : scene->camera;
+					}
+
+					if(camob) {
+						setlinestyle(3);
+						glBegin(GL_LINES);
+						glVertex3fv(camob->obmat[3]);
+						glVertex3fv(ob->obmat[3]);
+						glEnd();
+						setlinestyle(0);
+					}
+				}
+				else if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
 					cti->get_constraint_targets(curcon, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {

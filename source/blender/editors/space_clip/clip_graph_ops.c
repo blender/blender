@@ -155,13 +155,14 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 	static const int delta= 6;
 
-	if(tracking->act_track) {
+	if(act_track) {
 		MouseSelectUserData userdata;
 
 		mouse_select_init_data(&userdata, co);
-		clip_graph_tracking_values_iterate_track(sc, tracking->act_track,
+		clip_graph_tracking_values_iterate_track(sc, act_track,
 					&userdata, find_nearest_tracking_knot_cb, NULL, NULL);
 
 		if(userdata.marker) {
@@ -191,6 +192,7 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 	MouseSelectUserData userdata;
 
 	mouse_select_init_data(&userdata, co);
@@ -198,12 +200,12 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 
 	if(userdata.track) {
 		if(extend) {
-			if(tracking->act_track==userdata.track) {
+			if(act_track==userdata.track) {
 				/* currently only single curve can be selected (selected curve represents active track) */
-				tracking->act_track= NULL;
+				act_track= NULL;
 			}
 		}
-		else if(tracking->act_track!=userdata.track) {
+		else if(act_track!=userdata.track) {
 			MovieTrackingMarker *marker;
 			SelectUserData selectdata = {SEL_DESELECT};
 
@@ -292,9 +294,11 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 
-	if(tracking->act_track)
-		clip_delete_track(C, clip, tracking->act_track);
+	if(act_track)
+		clip_delete_track(C, clip, tracksbase, act_track);
 
 	return OPERATOR_FINISHED;
 }
@@ -322,16 +326,17 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 
-	if(tracking->act_track) {
+	if(act_track) {
 		int a= 0;
-		MovieTrackingTrack *track= tracking->act_track;
 
-		while(a<track->markersnr) {
-			MovieTrackingMarker *marker= &track->markers[a];
+		while(a<act_track->markersnr) {
+			MovieTrackingMarker *marker= &act_track->markers[a];
 
 			if(marker->flag&MARKER_GRAPH_SEL)
-				clip_delete_marker(C, clip, track, marker);
+				clip_delete_marker(C, clip, tracksbase, act_track, marker);
 			else
 				a++;
 		}

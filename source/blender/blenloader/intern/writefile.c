@@ -2526,6 +2526,27 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_movieTracks(WriteData *wd, ListBase *tracks)
+{
+	MovieTrackingTrack *track;
+
+	track= tracks->first;
+	while(track) {
+		writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
+
+		if(track->markers)
+			writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
+
+		track= track->next;
+	}
+}
+
+static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction *reconstruction)
+{
+	if(reconstruction->camnr)
+		writestruct(wd, DATA, "MovieReconstructedCamera", reconstruction->camnr, reconstruction->cameras);
+}
+
 static void write_movieclips(WriteData *wd, ListBase *idbase)
 {
 	MovieClip *clip;
@@ -2534,20 +2555,20 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	while(clip) {
 		if(clip->id.us>0 || wd->current) {
 			MovieTracking *tracking= &clip->tracking;
-			MovieTrackingTrack *track;
+			MovieTrackingObject *object;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
-			if(tracking->reconstruction.camnr)
-				writestruct(wd, DATA, "MovieReconstructedCamera", tracking->reconstruction.camnr, tracking->reconstruction.cameras);
+			write_movieTracks(wd, &tracking->tracks);
+			write_movieReconstruction(wd, &tracking->reconstruction);
 
-			track= tracking->tracks.first;
-			while(track) {
-				writestruct(wd, DATA, "MovieTrackingTrack", 1, track);
+			object= tracking->objects.first;
+			while(object) {
+				writestruct(wd, DATA, "MovieTrackingObject", 1, object);
 
-				if(track->markers)
-					writestruct(wd, DATA, "MovieTrackingMarker", track->markersnr, track->markers);
+				write_movieTracks(wd, &object->tracks);
+				write_movieReconstruction(wd, &object->reconstruction);
 
-				track= track->next;
+				object= object->next;
 			}
 		}
 

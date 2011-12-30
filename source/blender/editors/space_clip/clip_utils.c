@@ -119,9 +119,10 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, void *userdata,
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
 
-	track= tracking->tracks.first;
+	track= tracksbase->first;
 	while(track) {
 		if(TRACK_VIEW_SELECTED(sc, track)) {
 			clip_graph_tracking_values_iterate_track(sc, track, userdata, func, segment_start, segment_end);
@@ -136,9 +137,10 @@ void clip_graph_tracking_iterate(SpaceClip *sc, void *userdata,
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
+	ListBase *tracksbase= BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
 
-	track= tracking->tracks.first;
+	track= tracksbase->first;
 	while(track) {
 		if(TRACK_VIEW_SELECTED(sc, track)) {
 			int i;
@@ -158,14 +160,15 @@ void clip_graph_tracking_iterate(SpaceClip *sc, void *userdata,
 	}
 }
 
-void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
+void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, MovieTrackingTrack *track)
 {
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingStabilization *stab= &tracking->stabilization;
+	MovieTrackingTrack *act_track= BKE_tracking_active_track(tracking);
 
 	int has_bundle= 0, update_stab= 0;
 
-	if(track==tracking->act_track)
+	if(track==act_track)
 		tracking->act_track= NULL;
 
 	if(track==stab->rot_track) {
@@ -179,7 +182,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 		has_bundle= 1;
 
 	BKE_tracking_free_track(track);
-	BLI_freelinkN(&tracking->tracks, track);
+	BLI_freelinkN(tracksbase, track);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
@@ -194,10 +197,10 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
-void clip_delete_marker(bContext *C, MovieClip *clip, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase, MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
 	if(track->markersnr==1) {
-		clip_delete_track(C, clip, track);
+		clip_delete_track(C, clip, tracksbase, track);
 	}
 	else {
 		BKE_tracking_delete_marker(track, marker->framenr);
