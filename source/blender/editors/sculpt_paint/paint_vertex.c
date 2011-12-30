@@ -734,47 +734,69 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	return tot;
 }
 
-static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, const float mval[2], float pressure)
+/* keep these 2 functions in sync */
+static float calc_vp_strength(VPaint *vp, ViewContext *vc, float *vert_nor,
+                              const float mval[2], const float brush_size_final)
 {
 	Brush *brush = paint_brush(&vp->paint);
-	float fac, fac_2, size, dx, dy;
-	float alpha;
-	int vertco[2];
-	const int radius= brush_size(brush);
+	float dist_squared;
+	float vertco[2], delta[2];
 
-	project_int_noclip(vc->ar, vert_nor, vertco);
-	dx= mval[0]-vertco[0];
-	dy= mval[1]-vertco[1];
-	
-	if (brush_use_size_pressure(brush))
-		size = pressure * radius;
-	else
-		size = radius;
-	
-	fac_2= dx*dx + dy*dy;
-	if(fac_2 > size*size) return 0.f;
-	fac = sqrtf(fac_2);
-	
-	alpha= brush_alpha(brush) * brush_curve_strength_clamp(brush, fac, size);
-	
-	if (brush_use_alpha_pressure(brush))
-		alpha *= pressure;
-		
-	if(vp->flag & VP_NORMALS) {
-		float *no= vert_nor+3;
-		
-		/* transpose ! */
-		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
-		if(fac > 0.0f) {
-			dx= vpimat[0][0]*no[0]+vpimat[0][1]*no[1]+vpimat[0][2]*no[2];
-			dy= vpimat[1][0]*no[0]+vpimat[1][1]*no[1]+vpimat[1][2]*no[2];
-			
-			alpha*= fac/sqrtf(dx*dx + dy*dy + fac*fac);
-		}
-		else return 0.f;
+	project_float_noclip(vc->ar, vert_nor, vertco);
+	sub_v2_v2v2(delta, mval, vertco);
+	dist_squared= dot_v2v2(delta, delta); /* len squared */
+	if (dist_squared > brush_size_final * brush_size_final) {
+		return 0.0f;
 	}
-	
-	return alpha;
+	else {
+		const float dist = sqrtf(dist_squared);
+		return brush_curve_strength_clamp(brush, dist, brush_size_final);
+	}
+}
+/* similar to function above, would share this logic but isn't so simple */
+static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor,
+                              const float mval[2], const float brush_size_final, const float pressure)
+{
+	Brush *brush = paint_brush(&vp->paint);
+	float dist_squared;
+	float vertco[2], delta[2];
+
+	project_float_noclip(vc->ar, vert_nor, vertco);
+	sub_v2_v2v2(delta, mval, vertco);
+	dist_squared= dot_v2v2(delta, delta); /* len squared */
+	if (dist_squared > brush_size_final * brush_size_final) {
+		return 0.0f;
+	}
+	else {
+		const float dist = sqrtf(dist_squared);
+		float alpha;
+
+		alpha= brush_alpha(brush) * brush_curve_strength_clamp(brush, dist, brush_size_final);
+
+		/* --- below this line differs from calc_vp_strength() --- */
+
+		if (brush_use_alpha_pressure(brush))
+			alpha *= pressure;
+
+		if(vp->flag & VP_NORMALS) {
+			float dvec[2];
+			float *no= vert_nor+3;
+
+			/* transpose ! */
+			dvec[2] = dot_v3v3(vpimat[2], no);
+			if (dvec[2] > 0.0f) {
+				dvec[0] = dot_v3v3(vpimat[0], no);
+				dvec[1] = dot_v3v3(vpimat[1], no);
+
+				alpha *= dist / len_v3(dvec);
+			}
+			else {
+				return 0.0f;
+			}
+		}
+
+		return alpha;
+	}
 }
 
 static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip, int multipaint)
@@ -1966,9 +1988,12 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	int totw;
 	unsigned int index, totindex;
 	float alpha;
-	float mval[2], pressure;
+	float mval[2];
 	int use_vert_sel;
 	char *defbase_sel;
+
+	const float pressure = RNA_float_get(itemptr, "pressure");
+	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(brush) ? pressure : 1.0f);
 
 	/* intentionally dont initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -1991,7 +2016,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* load projection matrix */
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
-	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
@@ -2025,7 +2049,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if(wp->flag & VP_AREA) {
 		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
 		me->editflag &= ~ME_EDIT_VERT_SEL;
-		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size_final);
 		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
 	}
 	else {
@@ -2119,7 +2143,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				unsigned int vidx= *(&mf->v1 + fidx);
 
 				if(me->dvert[vidx].flag) {
-					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx, mval, pressure);
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx,
+					                        mval, brush_size_final, pressure);
 					if(alpha) {
 						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
 					}
@@ -2378,7 +2403,8 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	return 1;
 }
 
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, const unsigned int index, const float mval[2], float pressure, int UNUSED(flip))
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, const unsigned int index,
+                              const float mval[2], const float brush_size_final, float pressure, int UNUSED(flip))
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
@@ -2406,7 +2432,8 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, const uns
 	}
 
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
-		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
+		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i],
+		                        mval, brush_size_final, pressure);
 		if(alpha)
 			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
 	}
@@ -2424,11 +2451,13 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mat[4][4];
 	int *indexar= vpd->indexar;
 	int totindex, index, flip;
-	float pressure, mval[2];
+	float mval[2];
+
+	const float pressure = RNA_float_get(itemptr, "pressure");
+	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 	flip = RNA_boolean_get(itemptr, "pen_flip");
-	pressure = RNA_float_get(itemptr, "pressure");
 			
 	view3d_operator_needs_opengl(C);
 			
@@ -2441,7 +2470,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* which faces are involved */
 	if(vp->flag & VP_AREA) {
-		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size_final);
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -2452,8 +2481,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	for(index=0; index<totindex; index++) {				
-		if(indexar[index] && indexar[index]<=me->totface)
-			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval, pressure, flip);
+		if (indexar[index] && indexar[index]<=me->totface) {
+			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval, brush_size_final, pressure, flip);
+		}
 	}
 						
 	swap_m4m4(vc->rv3d->persmat, mat);
