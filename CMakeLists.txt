@@ -765,22 +765,27 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
 				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
 			)
+			
+			set_lib_path(OPENCOLLADA_LIBPATH "opencollada/lib")
 
 			set(OPENCOLLADA_LIBRARIES
-				${LIBDIR}/opencollada/lib/OpenCOLLADASaxFrameworkLoader.lib
-				${LIBDIR}/opencollada/lib/OpenCOLLADAFramework.lib
-				${LIBDIR}/opencollada/lib/OpenCOLLADABaseUtils.lib
-				${LIBDIR}/opencollada/lib/OpenCOLLADAStreamWriter.lib
-				${LIBDIR}/opencollada/lib/MathMLSolver.lib
-				${LIBDIR}/opencollada/lib/GeneratedSaxParser.lib
-				${LIBDIR}/opencollada/lib/xml2.lib
-				${LIBDIR}/opencollada/lib/buffer.lib
-				${LIBDIR}/opencollada/lib/ftoa.lib
-				${LIBDIR}/opencollada/lib/UTF.lib
+				${OPENCOLLADA_LIBPATH}/OpenCOLLADASaxFrameworkLoader.lib
+				${OPENCOLLADA_LIBPATH}/OpenCOLLADAFramework.lib
+				${OPENCOLLADA_LIBPATH}/OpenCOLLADABaseUtils.lib
+				${OPENCOLLADA_LIBPATH}/OpenCOLLADAStreamWriter.lib
+				${OPENCOLLADA_LIBPATH}/MathMLSolver.lib
+				${OPENCOLLADA_LIBPATH}/GeneratedSaxParser.lib
+				${OPENCOLLADA_LIBPATH}/xml2.lib
+				${OPENCOLLADA_LIBPATH}/buffer.lib
+				${OPENCOLLADA_LIBPATH}/ftoa.lib
+				${OPENCOLLADA_LIBPATH}/UTF.lib
 			)
 			set(PCRE_LIBRARIES
-				${LIBDIR}/opencollada/lib/pcre.lib
+				${OPENCOLLADA_LIBPATH}/pcre.lib
 			)
+			
+			unset(OPENCOLLADA_LIBPATH)
+			
 		endif()
 
 		if(WITH_CODEC_FFMPEG)
@@ -798,18 +803,8 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_IMAGE_OPENEXR)
-			if(MSVC90)
-				set(MSVC_LIB _vs2008)
-				set(MSVC_INC)
-			elseif(MSVC10)
-				set(MSVC_LIB _vs2010)
-				set(MSVC_INC _vs2010)
-			else()
-				set(MSVC_LIB msvc)
-				set(MSVC_INC)
-			endif()
-			set(OPENEXR ${LIBDIR}/openexr)
-			set(OPENEXR_LIBPATH ${OPENEXR}/lib${MSVC_LIB})
+			set_lib_path(OPENEXR "openexr")
+			set_lib_path(OPENEXR_LIBPATH "openexr/lib")
 			set(OPENEXR_LIBRARIES
 				${OPENEXR_LIBPATH}/Iex.lib
 				${OPENEXR_LIBPATH}/Half.lib
@@ -817,7 +812,7 @@ elseif(WIN32)
 				${OPENEXR_LIBPATH}/Imath.lib
 				${OPENEXR_LIBPATH}/IlmThread.lib
 			)
-			set(OPENEXR_INCUDE ${OPENEXR}/include${MSVC_INC})
+			set_lib_path(OPENEXR_INCUDE "openexr/include")
 			set(OPENEXR_INCLUDE_DIRS
 				${OPENEXR_INCUDE}
 				${OPENEXR_INCUDE}/IlmImf
@@ -844,9 +839,9 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			# normally cached but not since we include them with blender
 			set(PYTHON_VERSION 3.2) # CACHE STRING)
-			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}") # CACHE PATH)
-			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32.lib") #CACHE FILEPATH)
-
+			set_lib_path(PYTHON_INCLUDE_DIR "python/include/python${PYTHON_VERSION}")
+			set_lib_path(PYTHON_LIBRARY "python/lib/python32.lib") #CACHE FILEPATH)
+			
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
@@ -879,7 +874,7 @@ elseif(WIN32)
 			set(OPENIMAGEIO ${LIBDIR}/openimageio)
 			set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
-			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+			set_lib_path(OPENIMAGEIO_LIBPATH "openimageio/lib")
 			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
@@ -1431,11 +1426,9 @@ endif()
 if(MSVC10)
 	if(WITH_IMAGE_OPENEXR)
 		message(WARNING "MSVC 2010 does not support OpenEXR, disabling WITH_IMAGE_OPENEXR. To enable support use Use MSVC 2008")
-		set(WITH_IMAGE_OPENEXR OFF)
 	endif()
 	if(WITH_OPENCOLLADA)
 		message(WARNING "MSVC 2010 does not support OpenCollada, disabling WITH_OPENCOLLADA. To enable support use Use MSVC 2008")
-		set(WITH_OPENCOLLADA OFF)
 	endif()
 endif()
 
