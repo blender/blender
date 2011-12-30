@@ -1985,7 +1985,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mat[4][4];
 	float paintweight;
 	int *indexar;
-	int totw;
+	float totw;
 	unsigned int index, totindex;
 	float alpha;
 	float mval[2];
@@ -2084,7 +2084,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* make sure each vertex gets treated only once */
 	/* and calculate filter weight */
-	totw= 0;
+	totw= 0.0f;
 	if(brush->vertexpaint_tool==VP_BLUR) 
 		paintweight= 0.0f;
 	else
@@ -2118,11 +2118,11 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 				do {
 					unsigned int vidx= *(&mface->v1 + fidx);
-
-					dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
-					if(dw) {
-						paintweight += dw->weight;
-						totw++;
+					const float fac = calc_vp_strength(wp, vc, wpd->vertexcosnos+6*vidx, mval, brush_size_final);
+					if (fac > 0.0f) {
+						dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
+						paintweight += dw ? (dw->weight * fac) : 0.0f;
+						totw += fac;
 					}
 
 				} while (fidx--);
@@ -2131,9 +2131,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	if(brush->vertexpaint_tool==VP_BLUR) 
-		paintweight/= (float)totw;
-			
+	if (brush->vertexpaint_tool==VP_BLUR) {
+		paintweight /= totw;
+	}
+
 	for(index=0; index<totindex; index++) {
 				
 		if(indexar[index] && indexar[index]<=me->totface) {
