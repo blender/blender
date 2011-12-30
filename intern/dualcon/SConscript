@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = '. ../../extern/Eigen3'
+defs = ''
+
+env.BlenderLib ('bf_intern_dualcon', sources, Split(incs), Split(defs), libtype=['intern'], priority=[100] )

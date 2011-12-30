@@ -135,9 +135,9 @@ typedef struct IndexNode {
 	struct IndexNode *next, *prev;
 	int index;
 } IndexNode;
-void create_vert_face_map(ListBase **map, IndexNode **mem, const struct MFace *mface,
+void create_vert_face_map(struct ListBase **map, IndexNode **mem, const struct MFace *mface,
                           const int totvert, const int totface);
-void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *medge,
+void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
                           const int totvert, const int totedge);
 
 /* functions for making menu's from customdata layers */

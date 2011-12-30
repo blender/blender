@@ -813,6 +813,20 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 
+    def REMESH(self, layout, ob, md):
+        layout.prop(md, "mode")
+
+        layout.prop(md, "octree_depth")
+        layout.prop(md, "scale")
+        row = layout.row()
+        row.active = md.mode == "SHARP"
+        row.prop(md, "sharpness")
+
+        layout.prop(md, "remove_disconnected_pieces")
+        row = layout.row()
+        row.active = md.remove_disconnected_pieces
+        row.prop(md, "threshold")
+
     @staticmethod
     def vertex_weight_mask(layout, ob, md):
         layout.label(text="Influence/Mask Options:")

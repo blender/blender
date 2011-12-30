@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. ./intern'
-incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
+incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include #/intern/dualcon'
 incs += ' ../render/extern/include ../blenloader'
 incs += ' ../include ../blenlib ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
 incs += ' ../gpu'

@@ -821,6 +821,7 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		bf_intern_dualcon
 		bf_intern_cycles
 		cycles_render
 		cycles_bvh

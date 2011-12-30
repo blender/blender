@@ -464,6 +464,17 @@ void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {} ;
 
+/* intern/dualcon */
+struct DualConMesh;
+struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
+			    void *create_mesh,
+			    int flags,
+			    int mode,
+			    float threshold,
+			    float hermite_num,
+			    float scale,
+			    int depth) {return 0;}
+
 
 char blender_path[] = "";
 
