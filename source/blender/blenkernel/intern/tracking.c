@@ -1609,7 +1609,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 	context->tracks_map= tracks_map_new(num_tracks, 0);
 	track= tracking->tracks.first;
 	while(track) {
-		int first= 0, last= track->markersnr;
+		int first= 0, last= track->markersnr-1;
 		MovieTrackingMarker *first_marker= &track->markers[0];
 		MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
 
