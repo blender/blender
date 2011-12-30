@@ -1614,7 +1614,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 		MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
 
 		/* find first not-disabled marker */
-		while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+		while(first<=track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
 			first++;
 			first_marker++;
 		}
