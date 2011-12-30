@@ -1255,6 +1255,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
+				Nurb *nu = cu->nurb.first;
 				curvetime= cu->ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
@@ -1264,7 +1265,18 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 				 */
 				curvetime /= cu->pathlen;
-				CLAMP(curvetime, 0.0f, 1.0f);
+
+				if (nu && nu->flagu & CU_NURB_CYCLIC) {
+					/* If the curve is cyclic, enable looping around if the time is
+					 * outside the bounds 0..1 */
+					if ((curvetime < 0.0f) || (curvetime > 1.0f)) {
+						curvetime -= floor(curvetime);
+					}
+				}
+				else {
+					/* The curve is not cyclic, so clamp to the begin/end points. */
+					CLAMP(curvetime, 0.0f, 1.0f);
+				}
 			}
 			else {
 				/* fixed position along curve */
