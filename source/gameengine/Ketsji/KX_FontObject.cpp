@@ -215,7 +215,7 @@ PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF 
 			str += '\n';
 		str += self->m_text[i];
 	}
-	return PyUnicode_FromString(str.ReadPtr());
+	return PyUnicode_From_STR_String(str);
 }
 
 int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
