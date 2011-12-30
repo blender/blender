@@ -24,13 +24,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_ID_H
-#define DNA_ID_H
 
 /** \file DNA_ID.h
  *  \ingroup DNA
  *  \brief ID and Library types, which are fundamental for sdna.
  */
+
+#ifndef DNA_ID_H
+#define DNA_ID_H
 
 #include "DNA_listBase.h"
 

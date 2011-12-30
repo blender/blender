@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_EFFECT_TYPES_H
-#define DNA_EFFECT_TYPES_H
 
 /** \file DNA_effect_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_EFFECT_TYPES_H
+#define DNA_EFFECT_TYPES_H
 
 /* don't forget, new effects also in writefile.c for dna!!! */
 

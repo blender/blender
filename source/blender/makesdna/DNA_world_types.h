@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_WORLD_TYPES_H
-#define DNA_WORLD_TYPES_H
 
 /** \file DNA_world_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_WORLD_TYPES_H
+#define DNA_WORLD_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"

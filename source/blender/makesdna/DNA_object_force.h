@@ -26,12 +26,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_OBJECT_FORCE_H
-#define DNA_OBJECT_FORCE_H
 
 /** \file DNA_object_force.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_OBJECT_FORCE_H
+#define DNA_OBJECT_FORCE_H
 
 #ifdef __cplusplus
 extern "C" {

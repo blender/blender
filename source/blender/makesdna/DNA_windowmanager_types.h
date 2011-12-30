@@ -23,12 +23,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_WINDOWMANAGER_TYPES_H
-#define DNA_WINDOWMANAGER_TYPES_H
 
 /** \file DNA_windowmanager_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_WINDOWMANAGER_TYPES_H
+#define DNA_WINDOWMANAGER_TYPES_H
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"

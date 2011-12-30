@@ -26,12 +26,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_OBJECT_FLUIDSIM_H
-#define DNA_OBJECT_FLUIDSIM_H
 
 /** \file DNA_object_fluidsim.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_OBJECT_FLUIDSIM_H
+#define DNA_OBJECT_FLUIDSIM_H
 
 #include "DNA_ID.h"
 

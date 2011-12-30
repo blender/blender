@@ -24,14 +24,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SENSOR_TYPES_H
-#define DNA_SENSOR_TYPES_H
+
 /** \file DNA_sensor_types.h
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
- *	
  */
+
+#ifndef DNA_SENSOR_TYPES_H
+#define DNA_SENSOR_TYPES_H
 
 struct Object;
 struct Material;

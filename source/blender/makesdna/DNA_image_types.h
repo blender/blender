@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_IMAGE_TYPES_H
-#define DNA_IMAGE_TYPES_H
 
 /** \file DNA_image_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_IMAGE_TYPES_H
+#define DNA_IMAGE_TYPES_H
 
 #include "DNA_ID.h"
 
