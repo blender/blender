@@ -787,11 +787,11 @@ typedef struct MovieTrackingContext {
 	MovieTrackingSettings settings;
 	TracksMap *tracks_map;
 
-	short backwards, disable_failed, sequence;
+	short backwards, sequence;
 	int sync_frame;
 } MovieTrackingContext;
 
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short disable_failed, short sequence)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short sequence)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
@@ -803,7 +803,6 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	context->settings= *settings;
 	context->backwards= backwards;
-	context->disable_failed= disable_failed;
 	context->sync_frame= user->framenr;
 	context->first_time= 1;
 	context->sequence= sequence;
@@ -1379,7 +1378,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 
 			coords_correct= !onbound && !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
-			if(coords_correct && (tracked || !context->disable_failed)) {
+			if(coords_correct && !onbound && tracked) {
 				if(context->first_time) {
 					#pragma omp critical
 					{
