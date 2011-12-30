@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_CONTROLLER_TYPES_H
-#define DNA_CONTROLLER_TYPES_H
 
 /** \file DNA_controller_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CONTROLLER_TYPES_H
+#define DNA_CONTROLLER_TYPES_H
 
 struct bActuator;
 struct Text;

@@ -23,12 +23,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_ANIM_TYPES_H
-#define DNA_ANIM_TYPES_H
-
 /** \file DNA_anim_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_ANIM_TYPES_H
+#define DNA_ANIM_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {

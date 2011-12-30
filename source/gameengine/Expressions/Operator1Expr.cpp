@@ -98,10 +98,9 @@ bool COperator1Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 }
 
 */
-bool COperator1Expr::NeedsRecalculated() {
-	
+bool COperator1Expr::NeedsRecalculated()
+{
 	return m_lhs->NeedsRecalculated();
-
 }
 
 CExpression* COperator1Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlinks) {

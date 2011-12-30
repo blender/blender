@@ -20,12 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_DEFS_H
-#define DNA_DEFS_H
-
 /** \file DNA_defs.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_DEFS_H
+#define DNA_DEFS_H
 
 /* makesdna ignores */
 #ifdef DNA_DEPRECATED_ALLOW

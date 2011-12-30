@@ -25,13 +25,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef GENFILE_H
-#define GENFILE_H
-
 /** \file DNA_genfile.h
  *  \ingroup DNA
  *  \brief blenloader genfile private function prototypes
  */
+
+#ifndef DNA_GENFILE_H
+#define DNA_GENFILE_H
 
 struct SDNA;
 

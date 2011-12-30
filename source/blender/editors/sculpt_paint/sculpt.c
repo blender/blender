@@ -673,16 +673,16 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 
 			radius = ss->cache->pixel_radius; // use pressure adjusted size for fixed mode
 
-			x = point_2d[0];
-			y = point_2d[1];
+			x = point_2d[0] + ss->cache->vc->ar->winrct.xmin;
+			y = point_2d[1] + ss->cache->vc->ar->winrct.ymin;
 		}
 		else /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED),
 		        leave the coordinates relative to the screen */
 		{
 			radius = brush_size(br); // use unadjusted size for tiled mode
 		
-			x = point_2d[0] - ss->cache->vc->ar->winrct.xmin;
-			y = point_2d[1] - ss->cache->vc->ar->winrct.ymin;
+			x = point_2d[0];
+			y = point_2d[1];
 		}
 
 		x /= ss->cache->vc->ar->winx;

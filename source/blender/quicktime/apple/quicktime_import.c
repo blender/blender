@@ -249,7 +249,8 @@ int anim_is_quicktime (const char *name)
 }
 
 
-void free_anim_quicktime (struct anim *anim) {
+void free_anim_quicktime (struct anim *anim)
+{
 	if (anim == NULL) return;
 	if (anim->qtime == NULL) return;
 

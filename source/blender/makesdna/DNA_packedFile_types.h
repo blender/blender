@@ -25,14 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_PACKEDFILE_TYPES_H
-#define DNA_PACKEDFILE_TYPES_H
-
 /** \file DNA_packedFile_types.h
  *  \ingroup DNA
  *  \author nzc
  *  \since 12-oct-2000 nzc
  */
+
+#ifndef DNA_PACKEDFILE_TYPES_H
+#define DNA_PACKEDFILE_TYPES_H
 
 typedef struct PackedFile {
 	int size;

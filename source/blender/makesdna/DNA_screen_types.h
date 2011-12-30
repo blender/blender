@@ -22,12 +22,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SCREEN_TYPES_H
-#define DNA_SCREEN_TYPES_H
 
 /** \file DNA_screen_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_SCREEN_TYPES_H
+#define DNA_SCREEN_TYPES_H
 
 #include "DNA_listBase.h"
 #include "DNA_view2d_types.h"

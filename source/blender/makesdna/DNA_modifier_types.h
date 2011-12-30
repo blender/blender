@@ -18,12 +18,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_MODIFIER_TYPES_H
-#define DNA_MODIFIER_TYPES_H
-
 /** \file DNA_modifier_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_MODIFIER_TYPES_H
+#define DNA_MODIFIER_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

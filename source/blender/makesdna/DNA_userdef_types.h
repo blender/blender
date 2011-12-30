@@ -25,14 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_USERDEF_TYPES_H
-#define DNA_USERDEF_TYPES_H
 /** \file DNA_userdef_types.h
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
- *
  */
+
+#ifndef DNA_USERDEF_TYPES_H
+#define DNA_USERDEF_TYPES_H
 
 #include "DNA_listBase.h"
 #include "DNA_texture_types.h" /* ColorBand */

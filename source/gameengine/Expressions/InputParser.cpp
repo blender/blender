@@ -346,7 +346,8 @@ void CParser::NextSym()
 }
 
 #if 0
-int CParser::MakeInt() {
+int CParser::MakeInt()
+{
 	// returns the integer representation of the value in the global
 	// variable const_as_string
 	// pre: const_as_string contains only numercal chars
@@ -354,7 +355,8 @@ int CParser::MakeInt() {
 }
 #endif
 
-STR_String CParser::Symbol2Str(int s) {
+STR_String CParser::Symbol2Str(int s)
+{
 	// returns a string representation of of symbol s,
 	// for use in Term when generating an error
 	switch(s) {
@@ -373,7 +375,8 @@ STR_String CParser::Symbol2Str(int s) {
 	}
 }
 
-void CParser::Term(int s) {
+void CParser::Term(int s)
+{
 	// generates an error if the next symbol isn't the specified symbol s
 	// otherwise, skip the symbol
 	if(s == sym) NextSym();
@@ -387,7 +390,8 @@ void CParser::Term(int s) {
 	}
 }
 
-int CParser::Priority(int optorkind) {
+int CParser::Priority(int optorkind)
+{
 	// returns the priority of an operator
 	// higher number means higher priority
 	switch(optorkind) {
@@ -409,7 +413,8 @@ int CParser::Priority(int optorkind) {
 	return 0;      // should not happen
 }
 
-CExpression *CParser::Ex(int i) {
+CExpression *CParser::Ex(int i)
+{
 	// parses an expression in the imput, starting at priority i, and
 	// returns an CExpression, containing the parsed input
 	CExpression *e1 = NULL, *e2 = NULL;
@@ -551,7 +556,8 @@ CExpression *CParser::Ex(int i) {
 	return e1;
 }
 
-CExpression *CParser::Expr() {
+CExpression *CParser::Expr()
+{
 	// parses an expression in the imput, and
 	// returns an CExpression, containing the parsed input
 	return Ex(1);

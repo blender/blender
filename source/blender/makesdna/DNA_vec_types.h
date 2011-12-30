@@ -26,13 +26,14 @@
  * 
  */
 
-#ifndef DNA_VEC_TYPES_H
-#define DNA_VEC_TYPES_H
 /** \file DNA_vec_types.h
  *  \ingroup DNA
  *  \since dec-2000
  *  \author nzc
  */
+
+#ifndef DNA_VEC_TYPES_H
+#define DNA_VEC_TYPES_H
 
 /* types */
 

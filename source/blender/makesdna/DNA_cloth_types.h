@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_CLOTH_TYPES_H
-#define DNA_CLOTH_TYPES_H
 
 /** \file DNA_cloth_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CLOTH_TYPES_H
+#define DNA_CLOTH_TYPES_H
 
 /**
 * This struct contains all the global data required to run a simulation.

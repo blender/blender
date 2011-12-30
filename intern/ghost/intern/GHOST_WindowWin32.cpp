@@ -1269,7 +1269,8 @@ GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
 /*  Ron Fosner's code for weighting pixel formats and forcing software.
 	See http://www.opengl.org/resources/faq/technical/weight.cpp */
 
-static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
+static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd)
+{
 	int weight = 0;
 
 	/* assume desktop color depth is 32 bits per pixel */
@@ -1302,7 +1303,8 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 
 /* A modification of Ron Fosner's replacement for ChoosePixelFormat */
 /* returns 0 on error, else returns the pixel format number to be used */
-static int EnumPixelFormats(HDC hdc) {
+static int EnumPixelFormats(HDC hdc)
+{
 	int iPixelFormat;
 	int i, n, w, weight = 0;
 	PIXELFORMATDESCRIPTOR pfd;

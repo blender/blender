@@ -62,7 +62,8 @@ int plugin_seq_getversion(void) { return B_PLUGIN_VERSION;}
 void plugin_but_changed(int but) {}
 void plugin_init() {}
 
-void plugin_getinfo(PluginInfo *info) {
+void plugin_getinfo(PluginInfo *info)
+{
 	info->name= name;
 	info->nvars= sizeof(varstr)/sizeof(VarStruct);
 	info->cfra= &cfra;
@@ -74,7 +75,8 @@ void plugin_getinfo(PluginInfo *info) {
 	info->callback= plugin_but_changed;
 }
 
-static void rgb_to_yuv(float rgb[3], float yuv[3]) {
+static void rgb_to_yuv(float rgb[3], float yuv[3])
+{
 	yuv[0]= 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
 	yuv[1]= 0.492*(rgb[2] - yuv[0]);
 	yuv[2]= 0.877*(rgb[0] - yuv[0]);
@@ -84,7 +86,8 @@ static void rgb_to_yuv(float rgb[3], float yuv[3]) {
 	yuv[2] /= 0.615;
 }
 
-static void yuv_to_rgb(float yuv[3], float rgb[3]) {
+static void yuv_to_rgb(float yuv[3], float rgb[3])
+{
 	yuv[1] *= 0.436;
 	yuv[2] *= 0.615;
 

@@ -23,12 +23,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_ARMATURE_TYPES_H
-#define DNA_ARMATURE_TYPES_H
-
 /** \file DNA_armature_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_ARMATURE_TYPES_H
+#define DNA_ARMATURE_TYPES_H
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

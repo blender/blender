@@ -27,8 +27,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_PROPERTY_TYPES_H
-#define DNA_PROPERTY_TYPES_H
 
 /** \file DNA_property_types.h
  *  \ingroup DNA
@@ -37,6 +35,9 @@
  *  \attention Renderrecipe and scene decription. The fact that there is a
  *             hierarchy here is a bit strange, and not desirable.
  */
+
+#ifndef DNA_PROPERTY_TYPES_H
+#define DNA_PROPERTY_TYPES_H
 
 /* ********************* PROPERTY ************************ */
 

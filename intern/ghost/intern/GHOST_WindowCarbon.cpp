@@ -70,7 +70,8 @@ const EventTypeSpec	kWEvents[] = {
 	{ kEventClassWindow, kEventWindowZoom },  /* for new zoom behaviour */ 
 };
 
-static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData) {
+static OSStatus myWEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
+{
 	WindowRef mywindow;
 	GHOST_WindowCarbon *ghost_window;
 	OSStatus err;

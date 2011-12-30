@@ -26,14 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_TRACKING_TYPES_H
-#define DNA_TRACKING_TYPES_H
-
 /** \file DNA_tracking_types.h
  *  \ingroup DNA
  *  \since may-2011
  *  \author Sergey Sharybin
  */
+
+#ifndef DNA_TRACKING_TYPES_H
+#define DNA_TRACKING_TYPES_H
 
 #include "DNA_listBase.h"
 

@@ -266,7 +266,8 @@ bool SCA_RandomActuator::Update()
 	return false;
 }
 
-void SCA_RandomActuator::enforceConstraints() {
+void SCA_RandomActuator::enforceConstraints()
+{
 	/* The constraints that are checked here are the ones fundamental to     */
 	/* the various distributions. Limitations of the algorithms are checked  */
 	/* elsewhere (or they should be... ).                                    */

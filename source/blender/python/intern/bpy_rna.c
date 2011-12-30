@@ -1118,12 +1118,10 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	const char *param = _PyUnicode_AsString(item);
 
 	if (param == NULL) {
-		const char *enum_str = pyrna_enum_as_string(ptr, prop);
 		PyErr_Format(PyExc_TypeError,
-		             "%.200s expected a string enum type in (%.200s)",
-		             error_prefix, enum_str);
-		MEM_freeN((void *)enum_str);
-		return 0;
+		             "%.200s expected a string enum, not %.200s",
+		             error_prefix, Py_TYPE(item)->tp_name);
+		return -1;
 	}
 	else {
 		/* hack so that dynamic enums used for operator properties will be able to be built (i.e. context will be supplied to itemf)
@@ -1136,11 +1134,11 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 			             "%.200s enum \"%.200s\" not found in (%.200s)",
 			             error_prefix, param, enum_str);
 			MEM_freeN((void *)enum_str);
-			return 0;
+			return -1;
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 /* 'value' _must_ be a set type, error check before calling */
@@ -1652,7 +1650,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			}
 			else {
 				/* simple enum string */
-				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) < 0) {
+				if (pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) < 0) {
 					return -1;
 				}
 			}

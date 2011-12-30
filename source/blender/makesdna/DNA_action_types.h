@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 /** \file DNA_action_types.h
  *  \ingroup DNA
  */
-
 
 #ifndef DNA_ACTION_TYPES_H
 #define DNA_ACTION_TYPES_H
@@ -204,7 +203,9 @@ typedef struct bPoseChannel {
 	
 	bMotionPath *mpath;				/* motion path cache for this bone */
 	struct Object *custom;			/* draws custom object instead of default bone shape */
-	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
+	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform.
+	                                 * needed in rare cases for advanced rigs,
+	                                 * since the alternative is highly complicated - campbell */
 
 		/* transforms - written in by actions or transform */
 	float		loc[3];				
@@ -219,7 +220,8 @@ typedef struct bPoseChannel {
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
 	float		pose_mat[4][4];		/* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat */
-	float		constinv[4][4];		/* inverse result of constraints. doesn't include effect of restposition, parent, and local transform*/
+	float		constinv[4][4];		/* inverse result of constraints.
+	                                 * doesn't include effect of restposition, parent, and local transform*/
 	
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */

@@ -27,14 +27,14 @@
  *
  */
 
-#ifndef DNA_LISTBASE_H
-#define DNA_LISTBASE_H
-
 /** \file DNA_listBase.h
  *  \ingroup DNA
  *  \brief These structs are the foundation for all linked lists in the
  *         library system.
  */
+
+#ifndef DNA_LISTBASE_H
+#define DNA_LISTBASE_H
 
 #ifdef __cplusplus
 extern "C" {

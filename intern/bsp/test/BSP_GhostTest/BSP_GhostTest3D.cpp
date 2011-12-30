@@ -202,7 +202,7 @@ Operate(
 }
 
 
-	void 
+	void
 BSP_GhostTestApp3D::
 UpdateFrame(
 ){
@@ -210,9 +210,9 @@ if (m_window) {
 
 	GHOST_Rect v_rect;
 	m_window->getClientBounds(v_rect);
-	
+
 	glViewport(0,0,v_rect.getWidth(),v_rect.getHeight());
-	
+
 }
 }
 

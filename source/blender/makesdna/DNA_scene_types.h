@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SCENE_TYPES_H
-#define DNA_SCENE_TYPES_H
 
 /** \file DNA_scene_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_SCENE_TYPES_H
+#define DNA_SCENE_TYPES_H
 
 #include "DNA_defs.h"
 
@@ -332,9 +333,15 @@ typedef struct RenderData {
 
 	/** For UR edge rendering: give the edges this color */
 	float edgeR, edgeG, edgeB;
-	
-	short fullscreen  DNA_DEPRECATED, xplay  DNA_DEPRECATED, yplay  DNA_DEPRECATED, freqplay  DNA_DEPRECATED;	/* standalone player */  //  XXX deprecated since 2.5
-	short depth  DNA_DEPRECATED, attrib  DNA_DEPRECATED;			/* standalone player */  //  XXX deprecated since 2.5
+
+
+	/* standalone player */  //  XXX deprecated since 2.5
+	short fullscreen  DNA_DEPRECATED, xplay  DNA_DEPRECATED, yplay  DNA_DEPRECATED;
+	short freqplay  DNA_DEPRECATED;
+	/* standalone player */  //  XXX deprecated since 2.5
+	short depth  DNA_DEPRECATED, attrib  DNA_DEPRECATED;
+
+
 	int frame_step;		/* frames to jump during render/playback */
 
 	short stereomode  DNA_DEPRECATED;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
@@ -1083,7 +1090,9 @@ typedef struct Scene {
 #define R_STAMP_SEQSTRIP	0x0200
 #define R_STAMP_RENDERTIME	0x0400
 #define R_STAMP_CAMERALENS	0x0800
-#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|R_STAMP_RENDERTIME|R_STAMP_CAMERALENS)
+#define R_STAMP_ALL (R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE| \
+                     R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP|        \
+                     R_STAMP_RENDERTIME|R_STAMP_CAMERALENS)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -1141,12 +1150,31 @@ typedef struct Scene {
 #define MINAFRAMEF	-300000.0f
 
 /* depricate this! */
-#define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
-#define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define TESTBASELIB_BGMODE(v3d, scene, base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define BASE_EDITABLE_BGMODE(v3d, scene, base)   (((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==NULL) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
-#define BASE_VISIBLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & OB_RESTRICT_VIEW)==0)
+#define TESTBASE(v3d, base)  (                                                \
+	((base)->flag & SELECT) &&                                                \
+	((base)->lay & v3d->lay) &&                                               \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+#define TESTBASELIB(v3d, base)  (                                             \
+	((base)->flag & SELECT) &&                                                \
+	((base)->lay & v3d->lay) &&                                               \
+	((base)->object->id.lib==NULL) &&                                         \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+#define TESTBASELIB_BGMODE(v3d, scene, base)  (                               \
+	((base)->flag & SELECT) &&                                                \
+	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
+	((base)->object->id.lib==NULL) &&                                         \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+#define BASE_EDITABLE_BGMODE(v3d, scene, base)  (                             \
+	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
+	((base)->object->id.lib==NULL) &&                                         \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define BASE_SELECTABLE(v3d, base)  (                                         \
+	(base->lay & v3d->lay) &&                                                 \
+	(base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0  )
+#define BASE_VISIBLE(v3d, base)  (                                            \
+	(base->lay & v3d->lay) &&                                                 \
+	(base->object->restrictflag & OB_RESTRICT_VIEW)==0  )
+
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
