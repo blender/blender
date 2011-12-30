@@ -247,12 +247,14 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 	return materials;
 }
 
-PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
+PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
+{
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
 	return PyLong_FromSsize_t(self->m_meshobj->NumMaterials());
 }
 
-PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
+PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
+{
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
 	return PyLong_FromSsize_t(self->m_meshobj->NumPolygons());
 }
