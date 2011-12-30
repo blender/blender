@@ -62,7 +62,8 @@ int plugin_seq_getversion(void) { return B_PLUGIN_VERSION;}
 void plugin_but_changed(int but) {}
 void plugin_init() {}
 
-void plugin_getinfo(PluginInfo *info) {
+void plugin_getinfo(PluginInfo *info)
+{
 	info->name= name;
 	info->nvars= sizeof(varstr)/sizeof(VarStruct);
 	info->cfra= &cfra;

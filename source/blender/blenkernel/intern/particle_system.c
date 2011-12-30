@@ -107,7 +107,8 @@
 /*			Reacting to system events			*/
 /************************************************/
 
-static int particles_are_dynamic(ParticleSystem *psys) {
+static int particles_are_dynamic(ParticleSystem *psys)
+{
 	if(psys->pointcache->flag & PTCACHE_BAKED)
 		return 0;
 
@@ -2240,7 +2241,8 @@ static void sph_spring_delete(ParticleSystem *psys, int j)
 		psys->fluid_springs = (ParticleSpring*)MEM_reallocN(psys->fluid_springs,  psys->alloc_fluidsprings * sizeof(ParticleSpring));
 	}
 }
-static void sph_springs_modify(ParticleSystem *psys, float dtime){
+static void sph_springs_modify(ParticleSystem *psys, float dtime)
+{
 	SPHFluidSettings *fluid = psys->part->fluid;
 	ParticleData *pa1, *pa2;
 	ParticleSpring *spring = psys->fluid_springs;
@@ -2490,7 +2492,8 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 		madd_v3_v3fl(force, gravity, fluid->buoyancy * (pfr.density-rest_density));
 }
 
-static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash, float *element_size, float flow[3]) {
+static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash, float *element_size, float flow[3])
+{
 	ParticleTarget *pt;
 	int i;
 
@@ -3293,7 +3296,8 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
  * -uses Newton-Rhapson iteration to find the collisions
  * -handles spherical particles and (nearly) point like particles
  */
-static void collision_check(ParticleSimulationData *sim, int p, float dfra, float cfra){
+static void collision_check(ParticleSimulationData *sim, int p, float dfra, float cfra)
+{
 	ParticleSettings *part = sim->psys->part;
 	ParticleData *pa = sim->psys->particles + p;
 	ParticleCollision col;
@@ -3561,7 +3565,8 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	psys->flag |= PSYS_HAIR_UPDATED;
 }
 
-static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra)){
+static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
+{
 	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;
 	HairKey *key, *root;
@@ -4241,7 +4246,8 @@ void psys_check_boid_data(ParticleSystem *psys)
 		}
 }
 
-static void fluid_default_settings(ParticleSettings *part){
+static void fluid_default_settings(ParticleSettings *part)
+{
 	SPHFluidSettings *fluid = part->fluid;
 
 	fluid->spring_k = 0.f;

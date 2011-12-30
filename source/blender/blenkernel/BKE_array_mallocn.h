@@ -34,28 +34,28 @@
  */
 
 /* example of usage:
-
-int *arr = NULL;
-V_DECLARE(arr);
-int i;
-
-for (i=0; i<10; i++) {
-	V_GROW(arr);
-	arr[i] = something;
-}
-V_FREE(arr);
-
-arrays are buffered, using double-buffering (so on each reallocation,
-the array size is doubled).  supposedly this should give good Big Oh
-behaviour, though it may not be the best in practice.
-*/
+ *
+ * int *arr = NULL;
+ * V_DECLARE(arr);
+ * int i;
+ *
+ * for (i=0; i<10; i++) {
+ * 	V_GROW(arr);
+ * 	arr[i] = something;
+ * }
+ * V_FREE(arr);
+ *
+ * arrays are buffered, using double-buffering (so on each reallocation,
+ * the array size is doubled).  supposedly this should give good Big Oh
+ * behaviour, though it may not be the best in practice.
+ */
 
 #define V_DECLARE(vec) int _##vec##_count=0; void *_##vec##_tmp
 
-/*in the future, I plan on having V_DECLARE allocate stack memory it'll
-  use at first, and switch over to heap when it needs more.  that'll mess
-  up cases where you'd want to use this API to build a dynamic list for
-  non-local use, so all such cases should use this macro.*/
+/* in the future, I plan on having V_DECLARE allocate stack memory it'll
+ * use at first, and switch over to heap when it needs more.  that'll mess
+ * up cases where you'd want to use this API to build a dynamic list for
+ * non-local use, so all such cases should use this macro.*/
 #define V_DYNDECLARE(vec) V_DECLARE(vec)
 
 /*this returns the entire size of the array, including any buffering.*/

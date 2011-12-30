@@ -112,7 +112,8 @@ int anim_is_quicktime (const char *name)
 }
 
 
-void free_anim_quicktime (struct anim *anim) {
+void free_anim_quicktime (struct anim *anim)
+{
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	if (anim == NULL) return;

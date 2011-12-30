@@ -1875,11 +1875,14 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 {
 	Scene *scene= CTX_data_scene(C);
 	struct PaintStroke *stroke = op->customdata;
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	ToolSettings *ts= scene->toolsettings;
 	VPaint *wp= ts->wpaint;
 	Object *ob= CTX_data_active_object(C);
 	struct WPaintData *wpd;
 	Mesh *me;
+
+//	bDeformGroup *dg;
+
 	float mat[4][4], imat[4][4];
 	
 	if(scene->obedit) return OPERATOR_CANCELLED;
@@ -1923,6 +1926,20 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	if (ob->actdef <= 0) {
 		return OPERATOR_PASS_THROUGH;
 	}
+
+#if 0
+	/* check if we are attempting to paint onto a locked vertex group,
+	 * and other options disallow it from doing anything useful */
+	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
+	if ( (dg->flag & DG_LOCK_WEIGHT) &&
+	     (ts->auto_normalize == FALSE) &&
+	     (ts->multipaint == FALSE) )
+	{
+		BKE_report(op->reports, RPT_WARNING, "Active group is locked, multi-paint/normalize disabled, aborting");
+
+		return OPERATOR_CANCELLED;
+	}
+#endif
 
 	/* ALLOCATIONS! no return after this line */
 	/* make mode data storage */

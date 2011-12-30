@@ -211,7 +211,8 @@ extern "C" void smoke_initWaveletBlenderRNA(WTURBULENCE *wt, float *strength)
 	wt->initBlenderRNA(strength);
 }
 
-template < class T > inline T ABS( T a ) {
+template < class T > inline T ABS( T a )
+{
 	return (0 < a) ? a : -a ;
 }
 

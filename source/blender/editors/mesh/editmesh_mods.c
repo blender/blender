@@ -1336,7 +1336,8 @@ void mesh_layers_menu_concat(CustomData *data, int type, char *str)
 	}
 }
 
-int mesh_layers_menu(CustomData *data, int type) {
+int mesh_layers_menu(CustomData *data, int type)
+{
 	int ret;
 	char *str_pt, *str;
 	
@@ -2455,7 +2456,8 @@ static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
 #undef is_face_tag
 #undef face_tag
 
-static void linked_limit_default(bContext *C, wmOperator *op) {
+static void linked_limit_default(bContext *C, wmOperator *op)
+{
 	if(!RNA_property_is_set(op->ptr, "limit")) {
 		Object *obedit= CTX_data_edit_object(C);
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
