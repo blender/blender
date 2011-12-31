@@ -31,10 +31,13 @@ add_subdirectory(memutil)
 add_subdirectory(iksolver)
 add_subdirectory(opennl)
 add_subdirectory(mikktspace)
-add_subdirectory(dualcon)
 
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)
+endif()
+
+if(WITH_MOD_REMESH)
+	add_subdirectory(dualcon)
 endif()
 
 if(WITH_MOD_FLUID)

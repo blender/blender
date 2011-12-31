@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. ./intern'
-incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include #/intern/dualcon'
+incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
 incs += ' ../render/extern/include ../blenloader'
 incs += ' ../include ../blenlib ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
 incs += ' ../gpu'
@@ -14,7 +14,11 @@ incs += ' ' + env['BF_ZLIB_INC']
 defs = []
 
 if env ['WITH_BF_BOOLEAN']:
+    incs += ' #/intern/dualcon'
     defs.append('WITH_MOD_BOOLEAN')
+
+if env['WITH_BF_REMESH']:
+    defs.append('WITH_MOD_REMESH')
 
 if env ['WITH_BF_DECIMATE']:
     defs.append('WITH_MOD_DECIMATE')

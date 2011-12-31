@@ -9,7 +9,6 @@ SConscript(['audaspace/SConscript',
             'container/SConscript',
             'memutil/SConscript/',
             'decimation/SConscript',
-            'dualcon/SConscript',
             'iksolver/SConscript',
             'itasc/SConscript',
             'boolop/SConscript',
@@ -22,6 +21,9 @@ SConscript(['audaspace/SConscript',
 # intern/bsp has been used anyway, so
 # perhaps get rid of intern/csg?
 NEW_CSG='false'
+
+if env ['WITH_BF_REMESH']:
+	SConscript(['dualcon/SConscript'])
 
 if env['WITH_BF_FLUID']:
     SConscript(['elbeem/SConscript'])

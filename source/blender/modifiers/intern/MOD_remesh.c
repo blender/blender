@@ -46,7 +46,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dualcon.h"
+#ifdef WITH_MOD_REMESH
+#  include "dualcon.h"
+#endif
 
 static void initData(ModifierData *md)
 {
@@ -73,7 +75,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	trmd->mode = rmd->mode;
 }
 
-void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
+#ifdef WITH_MOD_REMESH
+
+static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 {
 	memset(mesh, 0, sizeof(DualConInput));
 
@@ -96,7 +100,7 @@ typedef struct {
 } DualConOutput;
 
 /* allocate and initialize a DualConOutput */
-void *dualcon_alloc_output(int totvert, int totquad)
+static void *dualcon_alloc_output(int totvert, int totquad)
 {
 	DualConOutput *output;
 
@@ -108,7 +112,7 @@ void *dualcon_alloc_output(int totvert, int totquad)
 	return output;
 }
 
-void dualcon_add_vert(void *output_v, const float co[3])
+static void dualcon_add_vert(void *output_v, const float co[3])
 {
 	DualConOutput *output = output_v;
 	DerivedMesh *dm = output->dm;
@@ -119,7 +123,7 @@ void dualcon_add_vert(void *output_v, const float co[3])
 	output->curvert++;
 }
 
-void dualcon_add_quad(void *output_v, const int vert_indices[4])
+static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 {
 	DualConOutput *output = output_v;
 	DerivedMesh *dm = output->dm;
@@ -188,6 +192,18 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 	return result;
 }
+
+#else /* !WITH_MOD_REMESH */
+
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
+{
+	return derivedData;
+}
+
+#endif /* !WITH_MOD_REMESH */
 
 ModifierTypeInfo modifierType_Remesh = {
 	/* name */              "Remesh",

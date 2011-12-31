@@ -36,7 +36,6 @@ set(INC
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
-	../../../intern/dualcon
 )
 
 set(INC_SYS
@@ -105,6 +104,13 @@ if(WITH_MOD_BOOLEAN)
 	)
 	list(APPEND INC
 		../../../intern/bsp/extern
+	)
+endif()
+
+if(WITH_MOD_REMESH)
+	add_definitions(-DWITH_MOD_REMESH)
+	list(APPEND INC
+		../../../intern/dualcon
 	)
 endif()
 
