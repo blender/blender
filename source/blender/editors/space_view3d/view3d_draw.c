@@ -1521,9 +1521,6 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				clip= NULL;
 
 				if(bgpic->flag&V3D_BGPIC_CAMERACLIP) {
-					if(!scene->camera)
-						scene->camera= scene_find_camera(scene);
-
 					if(scene->camera)
 						clip= object_get_movieclip(scene, scene->camera, 1);
 				} else clip= bgpic->clip;

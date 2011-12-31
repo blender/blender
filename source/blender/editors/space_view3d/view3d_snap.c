@@ -768,10 +768,6 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	tracking= &clip->tracking;
 
-	/* XXX - seems like an unneeded side effect, snapping should _not_ set the active camera for eg. - campbell */
-	if(!scene->camera)
-		scene->camera= scene_find_camera(scene);
-
 	if(scene->camera)
 		copy_m4_m4(cammat, scene->camera->obmat);
 
