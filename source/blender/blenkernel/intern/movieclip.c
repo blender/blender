@@ -816,7 +816,8 @@ void BKE_movieclip_reload(MovieClip *clip)
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
 {
-	if(scopes->ok) return;
+	if(scopes->ok)
+		return;
 
 	if(scopes->track_preview) {
 		IMB_freeImBuf(scopes->track_preview);
@@ -827,8 +828,10 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->track= NULL;
 
 	if(clip) {
-		if(clip->tracking.act_track) {
-			MovieTrackingTrack *track= clip->tracking.act_track;
+		MovieTrackingTrack *act_track= BKE_tracking_active_track(&clip->tracking);
+
+		if(act_track) {
+			MovieTrackingTrack *track= act_track;
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 			if(marker->flag&MARKER_DISABLED) {

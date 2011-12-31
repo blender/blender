@@ -43,7 +43,7 @@ public:
 	virtual CValue*		GetReplica();
 #ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython() {
-		return PyUnicode_FromString(m_strString.Ptr());
+		return PyUnicode_From_STR_String(m_strString);
 	}
 #endif // WITH_PYTHON
 

@@ -62,7 +62,7 @@ static bNodeSocketTemplate cmp_node_rlayers_out[]= {
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 {
 	float *rect;
-	int predivide= 0;
+	int predivide= (ibuf->flags & IB_cm_predivide);
 
 	*alloc= FALSE;
 

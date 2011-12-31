@@ -112,14 +112,14 @@ typedef struct Image {
 /* **************** IMAGE ********************* */
 
 /* Image.flag */
-#define IMA_FIELDS		1
-#define IMA_STD_FIELD	2
-#define IMA_DO_PREMUL	4
-
-#define	IMA_REFLECT		16
-#define IMA_NOCOLLECT   32
-#define IMA_DEPRECATED	64
-#define IMA_OLD_PREMUL	128
+#define IMA_FIELDS			1
+#define IMA_STD_FIELD		2
+#define IMA_DO_PREMUL		4
+#define IMA_REFLECT			16
+#define IMA_NOCOLLECT   	32
+#define IMA_DEPRECATED		64
+#define IMA_OLD_PREMUL		128
+#define IMA_CM_PREDIVIDE	256
 
 /* Image.tpageflag */
 #define IMA_TILES			1

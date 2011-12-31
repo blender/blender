@@ -607,7 +607,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 	bNodePreview *preview= node->preview;
 	int xsize, ysize;
 	int profile_from= (rd->color_mgt_flag & R_COLOR_MANAGEMENT)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
-	int predivide= 0;
+	int predivide= (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 	int dither= 0;
 	unsigned char *rect;
 	

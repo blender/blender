@@ -888,7 +888,7 @@ public:
 	 */
 	virtual PyObject* py_repr(void)
 	{
-		return PyUnicode_FromString(GetName().ReadPtr());
+		return PyUnicode_From_STR_String(GetName());
 	}
 
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);

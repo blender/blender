@@ -76,6 +76,7 @@ class AddPresetBase():
             if hasattr(self, "add"):
                 self.add(context, filepath)
             else:
+                print("Writing Preset: %r" % filepath)
                 file_preset = open(filepath, 'w')
                 file_preset.write("import bpy\n")
 

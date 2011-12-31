@@ -92,8 +92,8 @@ void clip_graph_tracking_values_iterate(struct SpaceClip *sc, void *userdata,
 void clip_graph_tracking_iterate(struct SpaceClip *sc, void *userdata,
 			void (*func) (void *userdata, struct MovieTrackingMarker *marker));
 
-void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
-void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);
+void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 
 void clip_view_center_to_point(struct SpaceClip *sc, float x, float y);
 
@@ -124,6 +124,7 @@ void CLIP_OT_set_origin(struct wmOperatorType *ot);
 void CLIP_OT_set_floor(struct wmOperatorType *ot);
 void CLIP_OT_set_axis(struct wmOperatorType *ot);
 void CLIP_OT_set_scale(struct wmOperatorType *ot);
+void CLIP_OT_set_solution_scale(struct wmOperatorType *ot);
 
 void CLIP_OT_set_center_principal(struct wmOperatorType *ot);
 
@@ -139,6 +140,9 @@ void CLIP_OT_stabilize_2d_remove(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_select(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_set_rotation(struct wmOperatorType *ot);
 
-void CLIP_OT_clean_tracks(wmOperatorType *ot);
+void CLIP_OT_clean_tracks(struct wmOperatorType *ot);
+
+void CLIP_OT_tracking_object_new(struct wmOperatorType *ot);
+void CLIP_OT_tracking_object_remove(struct wmOperatorType *ot);
 
 #endif /* ED_CLIP_INTERN_H */

@@ -2201,6 +2201,17 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		}
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "is_active", i, 0, 0, 0, 0,  NULL);
 	}
+	else if(itemptr->type == &RNA_MovieTrackingObject) {
+		MovieTrackingObject *tracking_object= (MovieTrackingObject*)itemptr->data;
+
+		split= uiLayoutSplit(sub, 0.75f, 0);
+		if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
+			uiItemL(split, name, ICON_CAMERA_DATA);
+		}
+		else {
+			uiItemL(split, name, ICON_OBJECT_DATA);
+		}
+	}
 
 	/* There is a last chance to display custom controls (in addition to the name/label):
 	 * If the given item property group features a string property named as prop_list,

@@ -138,11 +138,14 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (unsigned char*)(ibuf->rect + ibuf->x*rymin + rxmin);
 
-	if(scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT))
+	if(scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
 		profile_from= IB_PROFILE_LINEAR_RGB;
-	else
+		predivide= (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
+	}
+	else {
 		profile_from= IB_PROFILE_SRGB;
-	predivide= 0;
+		predivide= 0;
+	}
 
 	IMB_buffer_byte_from_float(rectc, rectf,
 		4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,

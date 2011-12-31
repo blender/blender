@@ -649,16 +649,21 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			continue;
 
 		/* special case for camera tracking -- it doesn't use targets to define relations */
-		if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+		if(ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+			int depends_on_camera= 0;
+
 			if(cti->type==CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data= (bFollowTrackConstraint *)con->data;
 
-				if((data->clip || data->flag&FOLLOWTRACK_ACTIVECLIP) && data->track[0]) {
-					if(scene->camera) {
-						node2 = dag_get_node(dag, scene->camera);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
-					}
-				}
+				if((data->clip || data->flag&FOLLOWTRACK_ACTIVECLIP) && data->track[0])
+					depends_on_camera= 1;
+			}
+			else if(cti->type==CONSTRAINT_TYPE_OBJECTSOLVER)
+				depends_on_camera= 1;
+
+			if(depends_on_camera && scene->camera) {
+				node2 = dag_get_node(dag, scene->camera);
+				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
 			}
 
 			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
@@ -2165,7 +2170,7 @@ static void dag_object_time_update_flags(Object *ob)
 			
 			if (cti) {
 				/* special case for camera tracking -- it doesn't use targets to define relations */
-				if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+				if(ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
 					ob->recalc |= OB_RECALC_OB;
 				}
 				else if (cti->get_constraint_targets) {
