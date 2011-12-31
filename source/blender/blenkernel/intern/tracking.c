@@ -1377,7 +1377,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MEM_freeN(image_new);
 			}
 
-			coords_correct= !onbound && !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
+			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
 			if(coords_correct && !onbound && tracked) {
 				if(context->first_time) {
 					#pragma omp critical
