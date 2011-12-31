@@ -47,11 +47,11 @@ void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float4 *buffe
 	kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
 }
 
-/* Displacement */
+/* Shader Evaluate */
 
-void kernel_cpu_optimized_displace(KernelGlobals *kg, uint4 *input, float3 *offset, int i)
+void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float3 *output, int type, int i)
 {
-	kernel_displace(kg, input, offset, i);
+	kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i);
 }
 
 CCL_NAMESPACE_END

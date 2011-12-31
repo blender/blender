@@ -80,10 +80,10 @@ __kernel void kernel_ocl_tonemap(
 		kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y, offset, stride);
 }
 
-/*__kernel void kernel_ocl_displace(__global uint4 *input, __global float3 *offset, int sx)
+/*__kernel void kernel_ocl_shader(__global uint4 *input, __global float3 *output, int type, int sx)
 {
 	int x = sx + get_global_id(0);
 
-	kernel_displace(input, offset, x);
+	kernel_shader_evaluate(input, output, (ShaderEvalType)type, x);
 }*/
 

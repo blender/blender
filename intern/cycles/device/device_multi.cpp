@@ -306,8 +306,8 @@ public:
 				if(task.buffer) subtask.buffer = sub.ptr_map[task.buffer];
 				if(task.rng_state) subtask.rng_state = sub.ptr_map[task.rng_state];
 				if(task.rgba) subtask.rgba = sub.ptr_map[task.rgba];
-				if(task.displace_input) subtask.displace_input = sub.ptr_map[task.displace_input];
-				if(task.displace_offset) subtask.displace_offset = sub.ptr_map[task.displace_offset];
+				if(task.shader_input) subtask.shader_input = sub.ptr_map[task.shader_input];
+				if(task.shader_output) subtask.shader_output = sub.ptr_map[task.shader_output];
 
 				sub.device->task_add(subtask);
 			}
