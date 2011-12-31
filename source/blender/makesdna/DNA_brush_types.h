@@ -25,12 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_BRUSH_TYPES_H
-#define DNA_BRUSH_TYPES_H
-
 /** \file DNA_brush_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_BRUSH_TYPES_H
+#define DNA_BRUSH_TYPES_H
 
 
 #include "DNA_ID.h"
@@ -132,7 +132,7 @@ typedef struct Brush {
 #define BRUSH_CUSTOM_ICON (1<<28)
 
 /* temporary flag which sets up autmatically for correct
-   brush drawing when inverted modal operator is running */
+ * brush drawing when inverted modal operator is running */
 #define BRUSH_INVERTED (1<<29)
 
 /* Brush.sculpt_tool */

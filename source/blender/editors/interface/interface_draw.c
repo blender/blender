@@ -1465,6 +1465,8 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 {
 	ImBuf *scaleibuf;
 	int x, y, w= ibuf->x*zoomx, h= ibuf->y*zoomy;
+	const float max_x= ibuf->x-1.0f;
+	const float max_y= ibuf->y-1.0f;
 	const float scalex= 1.0f/zoomx;
 	const float scaley= 1.0f/zoomy;
 
@@ -1472,15 +1474,13 @@ static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float zoomx, float zoomy)
 
 	for(y= 0; y<scaleibuf->y; y++) {
 		for (x= 0; x<scaleibuf->x; x++) {
-			int pixel= scaleibuf->x*y + x;
-			int orig_pixel= ibuf->x*(int)(scaley*(float)y) + (int)(scalex*(float)x);
-			char *rrgb= (char*)scaleibuf->rect + pixel*4;
-			char *orig_rrgb= (char*)ibuf->rect + orig_pixel*4;
+			float src_x= scalex*x;
+			float src_y= scaley*y;
 
-			rrgb[0]= orig_rrgb[0];
-			rrgb[1]= orig_rrgb[1];
-			rrgb[2]= orig_rrgb[2];
-			rrgb[3]= orig_rrgb[3];
+			CLAMP(src_x, 0, max_x);
+			CLAMP(src_y, 0, max_y);
+
+			bicubic_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
 		}
 	}
 

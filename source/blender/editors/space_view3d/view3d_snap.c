@@ -55,6 +55,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
@@ -756,28 +757,50 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
-	MovieTrackingTrack *track;
 	MovieClip *clip= object_get_movieclip(scene, ob, 0);
+	MovieTracking *tracking;
+	MovieTrackingObject *object;
 	int ok= 0;
-	float min[3], max[3], mat[4][4], pos[3];
+	float min[3], max[3], mat[4][4], pos[3], cammat[4][4] = MAT4_UNITY;
 
 	if(!clip)
 		return;
+
+	tracking= &clip->tracking;
+
+	if(scene->camera)
+		copy_m4_m4(cammat, scene->camera->obmat);
 
 	BKE_get_tracking_mat(scene, ob, mat);
 
 	INIT_MINMAX(min, max);
 
-	track= clip->tracking.tracks.first;
-	while(track) {
-		int selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
-		if((track->flag&TRACK_HAS_BUNDLE) && selected) {
-			ok= 1;
-			mul_v3_m4v3(pos, mat, track->bundle_pos);
-			DO_MINMAX(pos, min, max);
+	for (object= tracking->objects.first; object; object= object->next) {
+		ListBase *tracksbase= BKE_tracking_object_tracks(tracking, object);
+		MovieTrackingTrack *track= tracksbase->first;
+		float obmat[4][4];
+
+		if(object->flag & TRACKING_OBJECT_CAMERA) {
+			copy_m4_m4(obmat, mat);
+		}
+		else {
+			float imat[4][4];
+
+			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, imat);
+			invert_m4(imat);
+
+			mult_m4_m4m4(obmat, cammat, imat);
 		}
 
-		track= track->next;
+		while(track) {
+			if((track->flag&TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
+				ok= 1;
+				mul_v3_m4v3(pos, obmat, track->bundle_pos);
+				DO_MINMAX(pos, min, max);
+			}
+
+			track= track->next;
+		}
 	}
 
 	if(ok) {

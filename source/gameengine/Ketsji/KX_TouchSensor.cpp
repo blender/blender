@@ -55,7 +55,8 @@ void KX_TouchSensor::SynchronizeTransform()
 }
 
 
-void KX_TouchSensor::EndFrame() {
+void KX_TouchSensor::EndFrame()
+{
 	m_colliders->ReleaseAndRemoveAll();
 	m_hitObject = NULL;
 	m_bTriggered = false;

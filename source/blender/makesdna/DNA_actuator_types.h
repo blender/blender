@@ -194,7 +194,7 @@ typedef struct bVisibilityActuator {
 	int flag;
 } bVisibilityActuator;
 
-typedef struct bTwoDFilterActuator{
+typedef struct bTwoDFilterActuator {
 	char pad[4];
 	/* Tells what type of 2D Filter */
 	short type;
@@ -205,7 +205,7 @@ typedef struct bTwoDFilterActuator{
 	/* a float argument */
 	float float_arg;
 	struct Text *text;
-}bTwoDFilterActuator;
+} bTwoDFilterActuator;
 
 typedef struct bParentActuator {
 	char pad[2];

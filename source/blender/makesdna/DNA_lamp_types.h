@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_LAMP_TYPES_H
-#define DNA_LAMP_TYPES_H
 
 /** \file DNA_lamp_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_LAMP_TYPES_H
+#define DNA_LAMP_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"

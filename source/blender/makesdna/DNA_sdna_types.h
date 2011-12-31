@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SDNA_H
-#define DNA_SDNA_H
 /**
  * \file DNA_sdna_types.h
  * \ingroup DNA
  */
+
+#ifndef DNA_SDNA_H
+#define DNA_SDNA_H
 
 #
 #

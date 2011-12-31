@@ -66,7 +66,8 @@ BL_InterpolatorList::~BL_InterpolatorList() {
 	}
 }
 
-KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *rna_path, int array_index) {
+KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *rna_path, int array_index)
+{
 	for(BL_InterpolatorList::iterator i = begin(); (i != end()) ; i++ )
 	{
 		FCurve *fcu= (static_cast<BL_ScalarInterpolator *>(*i))->GetFCurve();

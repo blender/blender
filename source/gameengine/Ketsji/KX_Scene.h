@@ -617,7 +617,7 @@ public:
 	static PyObject*	pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_drawing_callback_post(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-	virtual PyObject* py_repr(void) { return PyUnicode_FromString(GetName().ReadPtr()); }
+	virtual PyObject* py_repr(void) { return PyUnicode_From_STR_String(GetName()); }
 	
 	/* getitem/setitem */
 	static PyMappingMethods	Mapping;

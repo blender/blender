@@ -6309,8 +6309,8 @@ static int validate_loop(EditMesh *em, Collection *edgecollection)
 	return(1);
 }
 
-static int loop_bisect(EditMesh *em, Collection *edgecollection){
-
+static int loop_bisect(EditMesh *em, Collection *edgecollection)
+{
 	EditFace *efa, *sf1, *sf2;
 	EditEdge *eed, *sed;
 	CollectedEdge *curredge;

@@ -556,10 +556,11 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
 	int *fs, totesplit=0,totfsplit=0,curdupface=0;
-	int i,j,v1,v2,v3,v4,esplit,
+	int i, v1, v2, v3, v4, esplit,
 	    v[4]  = {0, 0, 0, 0}, /* To quite gcc barking... */
 	    uv[4] = {0, 0, 0, 0}; /* To quite gcc barking... */
 	int numlayer;
+	unsigned int ed_v1, ed_v2;
 
 	edgehash= BLI_edgehash_new();
 
@@ -650,16 +651,16 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	/* create new verts */
 	ehi= BLI_edgehashIterator_new(edgehash);
 	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-		BLI_edgehashIterator_getKey(ehi, &i, &j);
+		BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
 		esplit= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
-		mv=CDDM_get_vert(splitdm,j);
+		mv=CDDM_get_vert(splitdm, ed_v2);
 		dupve=CDDM_get_vert(splitdm,esplit);
 
-		DM_copy_vert_data(splitdm,splitdm,j,esplit,1);
+		DM_copy_vert_data(splitdm,splitdm, ed_v2, esplit,1);
 
 		*dupve=*mv;
 
-		mv=CDDM_get_vert(splitdm,i);
+		mv=CDDM_get_vert(splitdm, ed_v1);
 
 		add_v3_v3(dupve->co, mv->co);
 		mul_v3_fl(dupve->co, 0.5f);
@@ -789,7 +790,8 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	/* float timestep; */
 	int *facepa=emd->facepa;
 	int totdup=0,totvert=0,totface=0,totpart=0;
-	int i, j, v, mindex=0;
+	int i, v;
+	unsigned int ed_v1, ed_v2, mindex=0;
 	MTFace *mtface = NULL, *mtf;
 
 	totface= dm->getNumFaces(dm);
@@ -852,24 +854,24 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 		MVert *dest;
 
 		/* get particle + vertex from hash */
-		BLI_edgehashIterator_getKey(ehi, &j, &i);
-		i -= totvert;
+		BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
+		ed_v2 -= totvert;
 		v= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 
-		dm->getVert(dm, j, &source);
+		dm->getVert(dm, ed_v1, &source);
 		dest = CDDM_get_vert(explode,v);
 
-		DM_copy_vert_data(dm,explode,j,v,1);
+		DM_copy_vert_data(dm, explode, ed_v1, v, 1);
 		*dest = source;
 
-		if(i!=totpart) {
+		if(ed_v2 != totpart) {
 			/* get particle */
-			pa= pars+i;
+			pa= pars + ed_v2;
 
 			psys_get_birth_coordinates(&sim, pa, &birth, 0, 0);
 
 			state.time=cfra;
-			psys_get_particle_state(&sim, i, &state, 1);
+			psys_get_particle_state(&sim, ed_v2, &state, 1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
 			mul_m4_v3(ob->obmat,vertco);

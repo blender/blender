@@ -24,17 +24,20 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_MESH_TYPES_H
-#define DNA_MESH_TYPES_H
 
 /** \file DNA_mesh_types.h
  *  \ingroup DNA
  */
 
+#ifndef DNA_MESH_TYPES_H
+#define DNA_MESH_TYPES_H
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
+
+#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
 
 struct DerivedMesh;
 struct Ipo;
@@ -47,6 +50,11 @@ struct MCol;
 struct MSticky;
 struct Mesh;
 struct OcInfo;
+struct MPoly;
+struct MTexPoly;
+struct MLoop;
+struct MLoopUV;
+struct MLoopCol;
 struct Multires;
 struct EditMesh;
 struct AnimData;
@@ -60,6 +68,17 @@ typedef struct Mesh {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Key *key;
 	struct Material **mat;
+
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
+/* BMESH ONLY */
+	/*new face structures*/
+	struct MPoly *mpoly;
+	struct MTexPoly *mtpoly;
+	struct MLoop *mloop;
+	struct MLoopUV *mloopuv;
+	struct MLoopCol *mloopcol;
+/* END BMESH ONLY */
+/*#endif*/
 
 	struct MFace *mface;	/* array of mesh object mode faces */
 	struct MTFace *mtface;	/* store face UV's and texture here */
@@ -76,8 +95,20 @@ typedef struct Mesh {
 
 	struct CustomData vdata, edata, fdata;
 
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/ /* XXX - ifdefs dont work here! */
+/* BMESH ONLY */
+	struct CustomData pdata, ldata;
+/* END BMESH ONLY */
+/*#endif*/
+
 	int totvert, totedge, totface, totselect;
-	
+
+/*#ifdef USE_BMESH_FORWARD_COMPAT*/
+/* BMESH ONLY */
+	int totpoly, totloop;
+/* END BMESH ONLY */
+/*#endif*/ /* XXX - ifdefs dont work here! */
+
 	/* the last selected vertex/edge/face are used for the active face however
 	 * this means the active face must always be selected, this is to keep track
 	 * of the last selected face and is similar to the old active face flag where
@@ -199,7 +230,7 @@ typedef struct TFace {
  * will eventually be removed */
 
 #if 0 /* enable in bmesh branch only for now */
-#define USE_MESH_FORWARDS_COMAT
+#define USE_BMESH_SAVE_AS_COMPAT
 #endif
 
 

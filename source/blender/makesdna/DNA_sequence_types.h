@@ -24,13 +24,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SEQUENCE_TYPES_H
-#define DNA_SEQUENCE_TYPES_H
 /** \file DNA_sequence_types.h
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
  */
+
+#ifndef DNA_SEQUENCE_TYPES_H
+#define DNA_SEQUENCE_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -347,9 +348,9 @@ typedef struct SpeedControlVars {
 
 #define SEQ_BLEND_REPLACE      0
 /* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical
-   to the table above. (Only those effects that handle _exactly_ two inputs,
-   otherwise, you can't really blend, right :) !)
-*/
+ * to the table above. (Only those effects that handle _exactly_ two inputs,
+ * otherwise, you can't really blend, right :) !)
+ */
 
 
 #define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))

@@ -26,14 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_TRACKING_TYPES_H
-#define DNA_TRACKING_TYPES_H
-
 /** \file DNA_tracking_types.h
  *  \ingroup DNA
  *  \since may-2011
  *  \author Sergey Sharybin
  */
+
+#ifndef DNA_TRACKING_TYPES_H
+#define DNA_TRACKING_TYPES_H
 
 #include "DNA_listBase.h"
 
@@ -142,7 +142,10 @@ typedef struct MovieTrackingSettings {
 
 	/* cleanup */
 	int clean_frames, clean_action;
-	float clean_error, pad;
+	float clean_error;
+
+	/* set object scale */
+	float object_distance;		/* distance between two bundles used for object scaling */
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -172,6 +175,17 @@ typedef struct MovieTrackingReconstruction {
 	struct MovieReconstructedCamera *cameras;	/* reconstructed cameras */
 } MovieTrackingReconstruction;
 
+typedef struct MovieTrackingObject {
+	struct MovieTrackingObject *next, *prev;
+
+	char name[24];			/* Name of tracking object */
+	int flag;
+	float scale;			/* scale of object solution in amera space */
+
+	ListBase tracks;		/* list of tracks use to tracking this object */
+	MovieTrackingReconstruction reconstruction;	/* reconstruction data for this object */
+} MovieTrackingObject;
+
 typedef struct MovieTrackingStats {
 	char message[256];
 } MovieTrackingStats;
@@ -179,10 +193,13 @@ typedef struct MovieTrackingStats {
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	MovieTrackingCamera camera;		/* camera intrinsics */
-	ListBase tracks;				/* all tracks */
-	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
+	ListBase tracks;				/* list of tracks used for camera object */
+	MovieTrackingReconstruction reconstruction;	/* reconstruction data for camera object */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
 	MovieTrackingTrack *act_track;		/* active track */
+
+	ListBase objects;
+	int objectnr, tot_object;		/* index of active object and total number of objects */
 
 	MovieTrackingStats *stats;		/* statistics displaying in clip editor */
 } MovieTracking;
@@ -207,6 +224,7 @@ enum {
 #define TRACK_LOCKED		(1<<6)
 #define TRACK_CUSTOMCOLOR	(1<<7)
 #define TRACK_USE_2D_STAB	(1<<8)
+#define TRACK_PREVIEW_GRAYSCALE	(1<<9)
 
 /* MovieTrackingTrack->tracker */
 #define TRACKER_KLT		0
@@ -240,6 +258,9 @@ enum {
 
 /* MovieTrackingReconstruction->flag */
 #define TRACKING_RECONSTRUCTED	(1<<0)
+
+/* MovieTrackingObject->flag */
+#define TRACKING_OBJECT_CAMERA		(1<<0)
 
 #define TRACKING_CLEAN_SELECT			0
 #define TRACKING_CLEAN_DELETE_TRACK		1

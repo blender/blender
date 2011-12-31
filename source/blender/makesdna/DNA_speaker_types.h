@@ -19,12 +19,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SPEAKER_TYPES_H
-#define DNA_SPEAKER_TYPES_H
 
 /** \file DNA_speaker_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_SPEAKER_TYPES_H
+#define DNA_SPEAKER_TYPES_H
 
 #include "DNA_ID.h"
 

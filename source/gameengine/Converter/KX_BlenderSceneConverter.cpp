@@ -703,8 +703,8 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 
 }
 
-void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
-	
+void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
+{
 	if (addInitFromFrame){		
 		KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
 		int numScenes = scenes->size();

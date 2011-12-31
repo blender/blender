@@ -61,7 +61,8 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 static void node_dynamic_free_storage_cb(bNode *node);
 
 #ifdef WITH_PYTHON
-static PyObject *init_dynamicdict(void) {
+static PyObject *init_dynamicdict(void)
+{
 	PyObject *newscriptdict, *item;
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
@@ -329,7 +330,8 @@ static void node_dynamic_reset_loaded(bNode *node)
 	node->typeinfo = node_dynamic_find_typeinfo(&node_all_shaders, NULL);
 }
 
-int nodeDynamicUnlinkText(ID *txtid) {
+int nodeDynamicUnlinkText(ID *txtid)
+{
 	Material *ma;
 	bNode *nd;
 
@@ -653,7 +655,8 @@ static void node_dynamic_setup(bNode *node)
  *  NODE_DYNAMIC_MENU: for the default Dynamic node type
  *  > NODE_DYNAMIC_MENU: for the new types defined by scripts
 */
-static void node_dynamic_init_cb(bNode *node) {
+static void node_dynamic_init_cb(bNode *node)
+{
 	int type = node->custom2;
 
 	node->custom2 = 0;
@@ -700,7 +703,8 @@ static void node_dynamic_copy_cb(bNode *orig_node, bNode *new_node)
 
 /* node_dynamic_exec_cb: the execution callback called per pixel
  * during rendering. */
-static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNodeStack **out) {
+static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
 #ifndef WITH_PYTHON
 	return;
 #else

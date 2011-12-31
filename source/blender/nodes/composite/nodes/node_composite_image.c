@@ -62,6 +62,7 @@ static bNodeSocketTemplate cmp_node_rlayers_out[]= {
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 {
 	float *rect;
+	int predivide= (ibuf->flags & IB_cm_predivide);
 
 	*alloc= FALSE;
 
@@ -71,7 +72,11 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 		}
 		else {
 			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-			srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+
+			IMB_buffer_float_from_float(rect, ibuf->rect_float,
+				4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, predivide,
+				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+
 			*alloc= TRUE;
 		}
 	}
@@ -81,7 +86,11 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 		}
 		else {
 			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-			linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+
+			IMB_buffer_float_from_float(rect, ibuf->rect_float,
+				4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
+				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+
 			*alloc= TRUE;
 		}
 	}

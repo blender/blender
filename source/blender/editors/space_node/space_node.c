@@ -248,12 +248,10 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:
 			if (wmn->action == NA_EDITED) {
 				if(type==NTREE_COMPOSIT) {
-					Scene *scene= wmn->window->screen->scene;
-					
 					/* note that nodeUpdateID is already called by BKE_image_signal() on all
 					 * scenes so really this is just to know if the images is used in the compo else
 					 * painting on images could become very slow when the compositor is open. */
-					if(nodeUpdateID(scene->nodetree, wmn->reference))
+					if(nodeUpdateID(snode->nodetree, wmn->reference))
 						ED_area_tag_refresh(sa);
 				}
 			}

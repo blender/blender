@@ -510,8 +510,6 @@ static void scene_setSubframe(Scene *scene, float subframe)
 	scene->r.subframe = subframe;
 }
 
-#define BRUSH_USES_VELOCITY (1<<0)
-
 static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 {
 	Base *base = NULL;
@@ -2291,7 +2289,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 							tPoint->quad = (isInside == 2) ? 1 : 0;		/* quad or tri part*/
 
 							/* save vertex indexes	*/
-							tPoint->v1 = mface[i].v1; /* (isInside == 2) ? mface[i].v1 : mface[i].v1; */ /* same! */
+							tPoint->v1 = mface[i].v1;
 							tPoint->v2 = (isInside == 2) ? mface[i].v3 : mface[i].v2;
 							tPoint->v3 = (isInside == 2) ? mface[i].v4 : mface[i].v3;
 
@@ -2371,7 +2369,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 									tPoint->quad = tempPoints[ind].quad;		// quad or tri
 
 									/* save vertex indexes	*/
-									tPoint->v1 = (tPoint->quad) ? mface[i].v1 : mface[i].v1;
+									tPoint->v1 = mface[i].v1;
 									tPoint->v2 = (tPoint->quad) ? mface[i].v3 : mface[i].v2;
 									tPoint->v3 = (tPoint->quad) ? mface[i].v4 : mface[i].v3;
 
@@ -2401,10 +2399,8 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 			}
 		}
 
-		/*	If any effect enabled, create surface effect / wet layer
-		*	neighbour lists. Processes possibly moving data. */
-		if (surface_usesAdjData(surface)) {
-
+		/*	Generate surface adjacency data. */
+		{
 			int i, cursor=0;
 
 			/* Create a temporary array of final indexes (before unassigned
@@ -2417,12 +2413,11 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 			}
 			/* allocate memory */
 			sData->total_points = w*h;
-			dynamicPaint_initAdjacencyData(surface, 0);
+			dynamicPaint_initAdjacencyData(surface, 1);
 
 			if (sData->adj_data) {
 				PaintAdjData *ed = sData->adj_data;
 				unsigned int n_pos = 0;
-				//#pragma omp parallel for schedule(static)
 				for (ty = 0; ty < h; ty++)
 				{
 					int tx;

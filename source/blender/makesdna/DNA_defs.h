@@ -20,12 +20,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_DEFS_H
-#define DNA_DEFS_H
-
 /** \file DNA_defs.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_DEFS_H
+#define DNA_DEFS_H
 
 /* makesdna ignores */
 #ifdef DNA_DEPRECATED_ALLOW
@@ -44,5 +44,7 @@
 
 /* hrmf, we need a better include then this */
 #include "../blenloader/BLO_sys_types.h" /* needed for int64_t only! */
+
+#define USE_BMESH_FORWARD_COMPAT
 
 #endif /* DNA_DEFS_H */

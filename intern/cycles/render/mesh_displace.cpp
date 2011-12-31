@@ -89,25 +89,26 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 		return false;
 	
 	/* run device task */
-	device_vector<float3> d_offset;
-	d_offset.resize(d_input.size());
+	device_vector<float3> d_output;
+	d_output.resize(d_input.size());
 
 	device->mem_alloc(d_input, MEM_READ_ONLY);
 	device->mem_copy_to(d_input);
-	device->mem_alloc(d_offset, MEM_WRITE_ONLY);
+	device->mem_alloc(d_output, MEM_WRITE_ONLY);
 
-	DeviceTask task(DeviceTask::DISPLACE);
-	task.displace_input = d_input.device_pointer;
-	task.displace_offset = d_offset.device_pointer;
-	task.displace_x = 0;
-	task.displace_w = d_input.size();
+	DeviceTask task(DeviceTask::SHADER);
+	task.shader_input = d_input.device_pointer;
+	task.shader_output = d_output.device_pointer;
+	task.shader_eval_type = SHADER_EVAL_DISPLACE;
+	task.shader_x = 0;
+	task.shader_w = d_input.size();
 
 	device->task_add(task);
 	device->task_wait();
 
-	device->mem_copy_from(d_offset, 0, sizeof(float3)*d_offset.size());
+	device->mem_copy_from(d_output, 0, sizeof(float3)*d_output.size());
 	device->mem_free(d_input);
-	device->mem_free(d_offset);
+	device->mem_free(d_output);
 
 	if(progress.get_cancel())
 		return false;
@@ -117,7 +118,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	done.resize(mesh->verts.size(), false);
 	int k = 0;
 
-	float3 *offset = (float3*)d_offset.data_pointer;
+	float3 *offset = (float3*)d_output.data_pointer;
 
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];

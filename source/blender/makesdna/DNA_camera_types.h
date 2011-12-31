@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_CAMERA_TYPES_H
-#define DNA_CAMERA_TYPES_H
 
 /** \file DNA_camera_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CAMERA_TYPES_H
+#define DNA_CAMERA_TYPES_H
 
 #include "DNA_defs.h"
 

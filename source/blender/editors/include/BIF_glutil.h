@@ -136,12 +136,7 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int 
 	 * is expected to be in RGBA byte or float format, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
-	 * @param gamma_correct Optionally gamma correct float sources to sRGB for display
 	 */
-
-	/* only for float rects, converts to 32 bits and draws */
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf, int gamma_correct);
-
 
 void glaDrawPixelsTex		(float x, float y, int img_w, int img_h, int format, void *rect);
 

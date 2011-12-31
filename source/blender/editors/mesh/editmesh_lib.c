@@ -2412,7 +2412,7 @@ void EM_make_hq_normals(EditMesh *em)
 	EdgeHash *edge_hash = BLI_edgehash_new();
 	EdgeHashIterator *edge_iter;
 	int edge_ref_count = 0;
-	int ed_v1, ed_v2; /* use when getting the key */
+	unsigned int ed_v1, ed_v2; /* use when getting the key */
 	EdgeFaceRef *edge_ref_array = MEM_callocN(em->totedge * sizeof(EdgeFaceRef), "Edge Connectivity");
 	EdgeFaceRef *edge_ref;
 	float edge_normal[3];
@@ -2426,15 +2426,20 @@ void EM_make_hq_normals(EditMesh *em)
 
 	/* This function adds an edge hash if its not there, and adds the face index */
 #define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
-			edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, EDV1, EDV2); \
+		{ \
+			const unsigned int mf_v1 = EDV1; \
+			const unsigned int mf_v2 = EDV2; \
+			edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, mf_v1, mf_v2); \
 			if (!edge_ref) { \
 				edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
-				edge_ref->f1=i; \
-				edge_ref->f2=-1; \
-				BLI_edgehash_insert(edge_hash, EDV1, EDV2, edge_ref); \
-			} else { \
-				edge_ref->f2=i; \
-			}
+				edge_ref->f1 = i; \
+				edge_ref->f2 = -1; \
+				BLI_edgehash_insert(edge_hash, mf_v1, mf_v2, edge_ref); \
+			} \
+			else { \
+				edge_ref->f2 = i; \
+			} \
+		}
 
 
 	efa= em->faces.first;
@@ -2456,7 +2461,7 @@ void EM_make_hq_normals(EditMesh *em)
 
 	for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
 		/* Get the edge vert indices, and edge value (the face indices that use it)*/
-		BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
+		BLI_edgehashIterator_getKey(edge_iter, &ed_v1, &ed_v2);
 		edge_ref = BLI_edgehashIterator_getValue(edge_iter);
 
 		if (edge_ref->f2 != -1) {

@@ -40,7 +40,7 @@ set(INC
 
 set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
-        ${GLEW_INCLUDE_PATH}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -70,6 +70,7 @@ set(SRC
 	intern/MOD_ocean.c
 	intern/MOD_particleinstance.c
 	intern/MOD_particlesystem.c
+	intern/MOD_remesh.c
 	intern/MOD_screw.c
 	intern/MOD_shapekey.c
 	intern/MOD_shrinkwrap.c
@@ -103,6 +104,13 @@ if(WITH_MOD_BOOLEAN)
 	)
 	list(APPEND INC
 		../../../intern/bsp/extern
+	)
+endif()
+
+if(WITH_MOD_REMESH)
+	add_definitions(-DWITH_MOD_REMESH)
+	list(APPEND INC
+		../../../intern/dualcon
 	)
 endif()
 

@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_MATERIAL_TYPES_H
-#define DNA_MATERIAL_TYPES_H
 
 /** \file DNA_material_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_MATERIAL_TYPES_H
+#define DNA_MATERIAL_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"
@@ -168,8 +169,8 @@ typedef struct Material {
 	short sss_flag, sss_preset;
 
 	int mapto_textured;	/* render-time cache to optimise texture lookups */
-	short shadowonly_flag;		/* "shadowsonly" type */
-	short index;	/* custom index for render passes */
+	short shadowonly_flag;  /* "shadowsonly" type */
+	short index;            /* custom index for render passes */
 
 	short vcol_alpha;
 	short pad[3];

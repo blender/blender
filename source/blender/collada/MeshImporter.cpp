@@ -187,7 +187,8 @@ void MeshImporter::set_face_indices(MFace *mface, unsigned int *indices, bool qu
 // not used anymore, test_index_face from blenkernel is better
 #if 0
 // change face indices order so that v4 is not 0
-void MeshImporter::rotate_face_indices(MFace *mface) {
+void MeshImporter::rotate_face_indices(MFace *mface)
+{
 	mface->v4 = mface->v1;
 	mface->v1 = mface->v2;
 	mface->v2 = mface->v3;

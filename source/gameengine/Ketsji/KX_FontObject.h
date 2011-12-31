@@ -57,13 +57,15 @@ public:
 	virtual void ProcessReplica();
 
 protected:
-	STR_String		m_text;
+	std::vector<STR_String>		m_text;
 	Object*			m_object;
 	int			m_fontid;
 	int			m_dpi;
 	float			m_fsize;
 	float			m_resolution;
 	float			m_color[4];
+	float			m_line_spacing;
+	MT_Vector3		m_offset;
 
 	class RAS_IRenderTools*	m_rendertools;	//needed for drawing routine
 
@@ -76,6 +78,8 @@ public:
 */
 
 #ifdef WITH_PYTHON
+	static PyObject*	pyattr_get_text(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif
 
 };

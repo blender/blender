@@ -26,12 +26,12 @@
  * Constraint DNA data
  */
 
-#ifndef DNA_CONSTRAINT_TYPES_H
-#define DNA_CONSTRAINT_TYPES_H
-
 /** \file DNA_constraint_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CONSTRAINT_TYPES_H
+#define DNA_CONSTRAINT_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"
@@ -126,10 +126,10 @@ typedef struct bPythonConstraint {
 
 
 /* Inverse-Kinematics (IK) constraint
-   This constraint supports a variety of mode determine by the type field 
-   according to B_CONSTRAINT_IK_TYPE.
-   Some fields are used by all types, some are specific to some types
-   This is indicated in the comments for each field
+ * This constraint supports a variety of mode determine by the type field
+ * according to B_CONSTRAINT_IK_TYPE.
+ * Some fields are used by all types, some are specific to some types
+ * This is indicated in the comments for each field
  */
 typedef struct bKinematicConstraint {
 	struct Object		*tar;			/* All: target object in case constraint needs a target */
@@ -180,7 +180,10 @@ typedef struct bSplineIKConstraint {
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
 	struct Object		*tar;
-	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags, not sure if that's what they were intented for anyway. Not sure either if it would create backward incompatibility if I were to rename them. - theeth*/
+	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags,
+	                        * not sure if that's what they were intented for anyway.
+	                        * Not sure either if it would create backward incompatibility if I were to rename them.
+	                        * - theeth*/
 	int			reserved2;
 	int			flags;
 	int			pad;
@@ -412,6 +415,8 @@ typedef struct bFollowTrackConstraint {
 	struct MovieClip	*clip;
 	char	track[24];
 	int		flag, pad;
+	char		object[24];
+	struct Object *camera;
 } bFollowTrackConstraint;
 
 /* Camera Solver constraints */
@@ -419,6 +424,15 @@ typedef struct bCameraSolverConstraint {
 	struct MovieClip	*clip;
 	int		flag, pad;
 } bCameraSolverConstraint;
+
+/* Camera Solver constraints */
+typedef struct bObjectSolverConstraint {
+	struct MovieClip	*clip;
+	int		flag, pad;
+	char		object[24];
+	float		invmat[4][4];	/* parent-inverse matrix to use */
+	struct Object *camera;
+} bObjectSolverConstraint;
 
 /* ------------------------------------------ */
 
@@ -455,6 +469,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
 	CONSTRAINT_TYPE_FOLLOWTRACK,		/* Follow Track Constraint */
 	CONSTRAINT_TYPE_CAMERASOLVER,		/* Camera Solver Constraint */
+	CONSTRAINT_TYPE_OBJECTSOLVER,		/* Object Solver Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -761,6 +776,11 @@ typedef enum eFollowTrack_Flags {
 typedef enum eCameraSolver_Flags {
 	CAMERASOLVER_ACTIVECLIP	= (1<<0)
 } eCameraSolver_Flags;
+
+/* ObjectSolver Constraint -> flag */
+typedef enum eObjectSolver_Flags {
+	OBJECTSOLVER_ACTIVECLIP	= (1<<0)
+} eObjectSolver_Flags;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40

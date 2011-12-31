@@ -45,7 +45,7 @@ if(WITH_BUILTIN_GLEW)
 endif()
 
 if(WITH_GAMEENGINE)
-   add_subdirectory(recastnavigation)
+	add_subdirectory(recastnavigation)
 endif()
 
 if(WITH_IMAGE_OPENJPEG AND (NOT UNIX OR APPLE))

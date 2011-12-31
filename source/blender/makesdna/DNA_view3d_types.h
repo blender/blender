@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_VIEW3D_TYPES_H
-#define DNA_VIEW3D_TYPES_H
 
 /** \file DNA_view3d_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_VIEW3D_TYPES_H
+#define DNA_VIEW3D_TYPES_H
 
 struct ViewDepths;
 struct Object;

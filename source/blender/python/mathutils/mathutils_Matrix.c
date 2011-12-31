@@ -2075,22 +2075,6 @@ static PyNumberMethods Matrix_NumMethods = {
 		NULL,				/* nb_index */
 };
 
-PyDoc_STRVAR(Matrix_row_size_doc,
-"The row size of the matrix (readonly).\n\n:type: int"
-);
-static PyObject *Matrix_row_size_get(MatrixObject *self, void *UNUSED(closure))
-{
-	return PyLong_FromLong((long) self->num_col);
-}
-
-PyDoc_STRVAR(Matrix_col_size_doc,
-"The column size of the matrix (readonly).\n\n:type: int"
-);
-static PyObject *Matrix_col_size_get(MatrixObject *self, void *UNUSED(closure))
-{
-	return PyLong_FromLong((long) self->num_row);
-}
-
 PyDoc_STRVAR(Matrix_translation_doc,
 "The translation component of the matrix.\n\n:type: Vector"
 );
@@ -2225,8 +2209,6 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{(char *)"row_size", (getter)Matrix_row_size_get, (setter)NULL, Matrix_row_size_doc, NULL},
-	{(char *)"col_size", (getter)Matrix_col_size_get, (setter)NULL, Matrix_col_size_doc, NULL},
 	{(char *)"median_scale", (getter)Matrix_median_scale_get, (setter)NULL, Matrix_median_scale_doc, NULL},
 	{(char *)"translation", (getter)Matrix_translation_get, (setter)Matrix_translation_set, Matrix_translation_doc, NULL},
 	{(char *)"row", (getter)Matrix_row_get, (setter)NULL, Matrix_row_doc, NULL},

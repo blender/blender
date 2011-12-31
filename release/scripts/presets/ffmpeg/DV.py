@@ -11,4 +11,4 @@ else:
 
 bpy.context.scene.render.ffmpeg_audio_mixrate = 48000
 bpy.context.scene.render.ffmpeg_audio_codec = "PCM"
-bpy.context.scene.render.ffmpeg_audio_channels = 2
+bpy.context.scene.render.ffmpeg_audio_channels = "STEREO"

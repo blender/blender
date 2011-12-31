@@ -559,27 +559,6 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, rect, 1.0f, 1.0f);
 }
 
-/* row_w is unused but kept for completeness */
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int UNUSED(row_w), float *rectf, int do_gamma_correct)
-{
-	unsigned char *rect32;
-	
-	/* copy imgw-imgh to a temporal 32 bits rect */
-	if(img_w<1 || img_h<1) return;
-	
-	rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
-	
-	if (do_gamma_correct) {
-		floatbuf_to_srgb_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
-	} else {
-		floatbuf_to_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
-	 }
-	
-	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
-
-	MEM_freeN(rect32);
-}
-
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect)
 {
 	float xzoom= glaGetOneFloat(GL_ZOOM_X);

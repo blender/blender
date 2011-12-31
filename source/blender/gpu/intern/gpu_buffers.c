@@ -701,8 +701,8 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 static void GPU_buffer_copy_color3(DerivedMesh *dm, float *varray_, int *index, int *mat_orig_to_new, void *user)
 {
 	int i, totface;
-	unsigned char *varray = (unsigned char *)varray_;
-	unsigned char *mcol = (unsigned char *)user;
+	char *varray = (char *)varray_;
+	char *mcol = (char *)user;
 	MFace *f = dm->getFaceArray(dm);
 
 	totface= dm->getNumFaces(dm);
@@ -710,16 +710,16 @@ static void GPU_buffer_copy_color3(DerivedMesh *dm, float *varray_, int *index, 
 		int start = index[mat_orig_to_new[f->mat_nr]];
 
 		/* v1 v2 v3 */
-		VECCOPY(&varray[start], &mcol[i*12]);
-		VECCOPY(&varray[start+3], &mcol[i*12+3]);
-		VECCOPY(&varray[start+6], &mcol[i*12+6]);
+		copy_v3_v3_char(&varray[start], &mcol[i*12]);
+		copy_v3_v3_char(&varray[start+3], &mcol[i*12+3]);
+		copy_v3_v3_char(&varray[start+6], &mcol[i*12+6]);
 		index[mat_orig_to_new[f->mat_nr]] += 9;
 
 		if(f->v4) {
 			/* v3 v4 v1 */
-			VECCOPY(&varray[start+9], &mcol[i*12+6]);
-			VECCOPY(&varray[start+12], &mcol[i*12+9]);
-			VECCOPY(&varray[start+15], &mcol[i*12]);
+			copy_v3_v3_char(&varray[start+9], &mcol[i*12+6]);
+			copy_v3_v3_char(&varray[start+12], &mcol[i*12+9]);
+			copy_v3_v3_char(&varray[start+15], &mcol[i*12]);
 			index[mat_orig_to_new[f->mat_nr]] += 9;
 		}
 	}

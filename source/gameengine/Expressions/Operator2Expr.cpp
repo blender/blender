@@ -168,17 +168,18 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 
 
 
-bool COperator2Expr::IsRightInside(float x, float y, float z,bool bBorderInclude) {
-	
+bool COperator2Expr::IsRightInside(float x, float y, float z,bool bBorderInclude)
+{
 	return m_rhs->IsInside(x,y,z,bBorderInclude) ;
-	
 }
 
-bool COperator2Expr::IsLeftInside(float x, float y, float z,bool bBorderInclude) {
+bool COperator2Expr::IsLeftInside(float x, float y, float z,bool bBorderInclude)
+{
 	return m_lhs->IsInside(x,y,z,bBorderInclude);
 }
 */
-bool COperator2Expr::NeedsRecalculated() {
+bool COperator2Expr::NeedsRecalculated()
+{
 	// added some lines, just for debugging purposes, it could be a one-liner :)
 	//bool modleft
 	//bool modright;

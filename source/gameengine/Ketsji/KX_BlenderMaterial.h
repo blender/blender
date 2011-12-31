@@ -106,7 +106,7 @@ public:
 
 #ifdef WITH_PYTHON
 	// --------------------------------
-	virtual PyObject* py_repr(void) { return PyUnicode_FromString(mMaterial->matname.ReadPtr()); }
+	virtual PyObject* py_repr(void) { return PyUnicode_From_STR_String(mMaterial->matname); }
 
 	static PyObject* pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

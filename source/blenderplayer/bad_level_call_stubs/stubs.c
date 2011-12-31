@@ -474,6 +474,16 @@ struct FreestyleLineSet *FRS_get_active_lineset(struct FreestyleConfig *config) 
 short FRS_get_active_lineset_index(struct FreestyleConfig *config) { return 0; }
 void FRS_set_active_lineset_index(struct FreestyleConfig *config, short index) {}
 void FRS_unlink_target_object(struct FreestyleConfig *config, struct Object *ob) {}
+/* intern/dualcon */
+struct DualConMesh;
+struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
+			    void *create_mesh,
+			    int flags,
+			    int mode,
+			    float threshold,
+			    float hermite_num,
+			    float scale,
+			    int depth) {return 0;}
 
 
 char blender_path[] = "";

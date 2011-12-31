@@ -141,8 +141,8 @@ public:
 				thread_path_trace(task);
 			else if(task.type == DeviceTask::TONEMAP)
 				thread_tonemap(task);
-			else if(task.type == DeviceTask::DISPLACE)
-				thread_displace(task);
+			else if(task.type == DeviceTask::SHADER)
+				thread_shader(task);
 
 			tasks.worker_done();
 		}
@@ -207,7 +207,7 @@ public:
 		}
 	}
 
-	void thread_displace(DeviceTask& task)
+	void thread_shader(DeviceTask& task)
 	{
 #ifdef WITH_OSL
 		if(kernel_osl_use(kg))
@@ -216,8 +216,8 @@ public:
 
 #ifdef WITH_OPTIMIZED_KERNEL
 		if(system_cpu_support_optimized()) {
-			for(int x = task.displace_x; x < task.displace_x + task.displace_w; x++) {
-				kernel_cpu_optimized_displace(kg, (uint4*)task.displace_input, (float3*)task.displace_offset, x);
+			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
+				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;
@@ -226,8 +226,8 @@ public:
 		else
 #endif
 		{
-			for(int x = task.displace_x; x < task.displace_x + task.displace_w; x++) {
-				kernel_cpu_displace(kg, (uint4*)task.displace_input, (float3*)task.displace_offset, x);
+			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
+				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float3*)task.shader_output, task.shader_eval_type, x);
 
 				if(tasks.worker_cancel())
 					break;

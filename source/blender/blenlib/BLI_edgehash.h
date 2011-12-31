@@ -47,22 +47,22 @@ void			BLI_edgehash_free		(EdgeHash *eh, EdgeHashFreeFP valfreefp);
 	/* Insert edge (v0,v1) into hash with given value, does
 	 * not check for duplicates.
 	 */
-void			BLI_edgehash_insert		(EdgeHash *eh, int v0, int v1, void *val);
+void			BLI_edgehash_insert		(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
 
 	/* Return value for given edge (v0,v1), or NULL if
 	 * if key does not exist in hash. (If need exists 
 	 * to differentiate between key-value being NULL and 
 	 * lack of key then see BLI_edgehash_lookup_p().
 	 */
-void*			BLI_edgehash_lookup		(EdgeHash *eh, int v0, int v1);
+void*			BLI_edgehash_lookup		(EdgeHash *eh, unsigned int v0, unsigned int v1);
 
 	/* Return pointer to value for given edge (v0,v1),
 	 * or NULL if key does not exist in hash.
 	 */
-void**			BLI_edgehash_lookup_p	(EdgeHash *eh, int v0, int v1);
+void**			BLI_edgehash_lookup_p	(EdgeHash *eh, unsigned int v0, unsigned int v1);
 
 	/* Return boolean true/false if edge (v0,v1) in hash. */
-int				BLI_edgehash_haskey		(EdgeHash *eh, int v0, int v1);
+int				BLI_edgehash_haskey		(EdgeHash *eh, unsigned int v0, unsigned int v1);
 
 	/* Return number of keys in hash. */
 int				BLI_edgehash_size		(EdgeHash *eh);
@@ -83,7 +83,7 @@ EdgeHashIterator*	BLI_edgehashIterator_new		(EdgeHash *eh);
 void				BLI_edgehashIterator_free		(EdgeHashIterator *ehi);
 
 	/* Retrieve the key from an iterator. */
-void 				BLI_edgehashIterator_getKey		(EdgeHashIterator *ehi, int *v0_r, int *v1_r);
+void 				BLI_edgehashIterator_getKey		(EdgeHashIterator *ehi, unsigned int *v0_r, unsigned int *v1_r);
 	
 	/* Retrieve the value from an iterator. */
 void*				BLI_edgehashIterator_getValue	(EdgeHashIterator *ehi);
@@ -98,4 +98,3 @@ void				BLI_edgehashIterator_step		(EdgeHashIterator *ehi);
 int					BLI_edgehashIterator_isDone		(EdgeHashIterator *ehi);
 
 #endif
-

@@ -27,12 +27,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_GROUP_TYPES_H
-#define DNA_GROUP_TYPES_H
 
 /** \file DNA_group_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_GROUP_TYPES_H
+#define DNA_GROUP_TYPES_H
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

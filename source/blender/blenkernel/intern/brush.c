@@ -1216,6 +1216,9 @@ struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 
 /* Unified Size and Strength */
 
+/* XXX, wouldnt it be better to only pass the active scene?
+ * this can return any old scene! - campbell*/
+
 static void set_unified_settings(Brush *brush, short flag, int value)
 {
 	Scene *sce;
@@ -1369,7 +1372,9 @@ static float unified_unprojected_radius(Brush *brush)
 }
 void brush_set_size(Brush *brush, int size)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE)
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE)
 		set_unified_size(brush, size);
 	else
 		brush->size= size;
@@ -1379,12 +1384,16 @@ void brush_set_size(Brush *brush, int size)
 
 int brush_size(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_size(brush) : brush->size;
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_size(brush) : brush->size;
 }
 
 void brush_set_use_locked_size(Brush *brush, int value)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) {
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) {
 		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE, value);
 	}
 	else {
@@ -1399,12 +1408,18 @@ void brush_set_use_locked_size(Brush *brush, int value)
 
 int brush_use_locked_size(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE) : (brush->flag & BRUSH_LOCK_SIZE);
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
+	        (us_flag & SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE) :
+	        (brush->flag & BRUSH_LOCK_SIZE);
 }
 
 void brush_set_use_size_pressure(Brush *brush, int value)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) {
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) {
 		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_SIZE_PRESSURE, value);
 	}
 	else {
@@ -1419,12 +1434,18 @@ void brush_set_use_size_pressure(Brush *brush, int value)
 
 int brush_use_size_pressure(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_SIZE_PRESSURE) : (brush->flag & BRUSH_SIZE_PRESSURE);
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
+	        (us_flag & SCULPT_PAINT_UNIFIED_SIZE_PRESSURE) :
+	        (brush->flag & BRUSH_SIZE_PRESSURE);
 }
 
 void brush_set_use_alpha_pressure(Brush *brush, int value)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) {
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) {
 		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE, value);
 	}
 	else {
@@ -1439,12 +1460,18 @@ void brush_set_use_alpha_pressure(Brush *brush, int value)
 
 int brush_use_alpha_pressure(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE) : (brush->flag & BRUSH_ALPHA_PRESSURE);
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) ?
+	        (us_flag & SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE) :
+	        (brush->flag & BRUSH_ALPHA_PRESSURE);
 }
 
 void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE)
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE)
 		set_unified_unprojected_radius(brush, unprojected_radius);
 	else
 		brush->unprojected_radius= unprojected_radius;
@@ -1454,12 +1481,18 @@ void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 
 float brush_unprojected_radius(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_unprojected_radius(brush) : brush->unprojected_radius;
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
+	        unified_unprojected_radius(brush) :
+	        brush->unprojected_radius;
 }
 
 void brush_set_alpha(Brush *brush, float alpha)
 {
-	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) 
+	const short us_flag = unified_settings(brush);
+
+	if (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA)
 		set_unified_alpha(brush, alpha);
 	else
 		brush->alpha= alpha;
@@ -1469,5 +1502,9 @@ void brush_set_alpha(Brush *brush, float alpha)
 
 float brush_alpha(Brush *brush)
 {
-	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) ? unified_alpha(brush) : brush->alpha;
+	const short us_flag = unified_settings(brush);
+
+	return (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) ?
+	        unified_alpha(brush) :
+	        brush->alpha;
 }
