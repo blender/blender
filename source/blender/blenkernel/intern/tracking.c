@@ -1682,7 +1682,8 @@ int BKE_tracking_can_reconstruct(MovieTracking *tracking, MovieTrackingObject *o
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
-	(void) tracking;
+	(void)tracking;
+	(void)object;
 
 	return 0;
 #endif
@@ -2274,6 +2275,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 	libmv_destroyFeatures(features);
 #else
 	(void)tracking;
+	(void)tracksbase;
 	(void)ibuf;
 	(void)framenr;
 	(void)margin;
