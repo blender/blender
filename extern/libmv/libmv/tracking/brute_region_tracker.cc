@@ -26,6 +26,15 @@
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.
+#ifdef FREE_WINDOWS
+/* make sure _aligned_malloc is included */
+#ifdef __MSVCRT_VERSION__
+#undef __MSVCRT_VERSION__
+#endif
+
+#define __MSVCRT_VERSION__ 0x0700
+#endif
+
 #include <malloc.h>
 #else
 // Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
