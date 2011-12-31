@@ -221,7 +221,7 @@ public:
 	//static PyObject*	PyMake(PyObject*,PyObject*);
 	virtual PyObject *py_repr(void)
 	{
-		return PyUnicode_FromString((const char*)GetText());
+		return PyUnicode_From_STR_String(GetText());
 	}
 
 	virtual PyObject*	ConvertValueToPython() {

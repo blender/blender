@@ -90,7 +90,8 @@ void plugin_seq_free_private_data(void * data)
 	free(d);
 }
 
-void plugin_getinfo(PluginInfo *info) {
+void plugin_getinfo(PluginInfo *info)
+{
 	info->name= name;
 	info->nvars= sizeof(varstr)/sizeof(VarStruct);
 	info->cfra= &cfra;

@@ -472,7 +472,8 @@ GHOST_WindowX11(
 	is configured but not plugged in.
 
 */
-static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent) {
+static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
+{
 	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
 		theEvent->error_code, theEvent->request_code) ;
 

@@ -38,10 +38,12 @@ extern "C" {
 }
 
 // (n&(n-1)) zeros the least significant bit of n 
-static int is_power_of_2_i(int num) {
+static int is_power_of_2_i(int num)
+{
 	return ((num)&(num-1))==0;
 }
-static int power_of_2_min_i(int num) {
+static int power_of_2_min_i(int num)
+{
 	while (!is_power_of_2_i(num))
 		num= num&(num-1);
 	return num;	

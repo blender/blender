@@ -460,12 +460,15 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	Render *re;
 	RenderResult rres;
 	char name[32];
-	int do_gamma_correct=0;
+	int do_gamma_correct=0, do_predivide=0;
 	int offx=0, newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
-		if (sce) do_gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		if (sce) {
+			do_gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+			do_predivide = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE;
+		}
 	}
 
 	if(!split || first) sprintf(name, "Preview %p", (void *)sa);
@@ -488,10 +491,28 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	if(rres.rectf) {
 		
 		if(ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2) {
+
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, do_gamma_correct);
+			if(rres.rectx && rres.recty) {
+				/* temporary conversion to byte for drawing */
+				float fx= rect->xmin + offx;
+				float fy= rect->ymin;
+				int profile_from= (do_gamma_correct)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
+				int dither= 0;
+				unsigned char *rect_byte;
+
+				rect_byte= MEM_mallocN(rres.rectx*rres.recty*sizeof(int), "ed_preview_draw_rect");
+
+				IMB_buffer_byte_from_float(rect_byte, rres.rectf,
+					4, dither, IB_PROFILE_SRGB, profile_from, do_predivide, 
+					rres.rectx, rres.recty, rres.rectx, rres.rectx);
+
+				glaDrawPixelsSafe(fx, fy, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect_byte);
+
+				MEM_freeN(rect_byte);
+			}
 
 			RE_ReleaseResultImage(re);
 			return 1;

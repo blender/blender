@@ -560,10 +560,14 @@ class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
         world = context.world
 
         layout.active = world.mist_settings.use_mist
-
         row = layout.row()
+        row.prop(world.mist_settings, "falloff")
+
+        row = layout.row(align=True)
         row.prop(world.mist_settings, "start")
         row.prop(world.mist_settings, "depth")
+        row = layout.row()
+        row.prop(world.mist_settings, "intensity", text="Minimum Intensity")
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, Panel):

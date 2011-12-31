@@ -24,13 +24,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_SPACE_TYPES_H
-#define DNA_SPACE_TYPES_H
 /** \file DNA_space_types.h
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
  */
+
+#ifndef DNA_SPACE_TYPES_H
+#define DNA_SPACE_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

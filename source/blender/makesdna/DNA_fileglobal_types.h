@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_FILEGLOBAL_TYPES_H
-#define DNA_FILEGLOBAL_TYPES_H
 
 /** \file DNA_fileglobal_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_FILEGLOBAL_TYPES_H
+#define DNA_FILEGLOBAL_TYPES_H
 
 struct bScreen;
 struct Scene;

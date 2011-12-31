@@ -54,7 +54,8 @@ extern "C" {
 }
 #endif
 
-static inline void Py_Fatal(const char *M) {
+static inline void Py_Fatal(const char *M)
+{
 	fprintf(stderr, "%s\n", M);
 	exit(-1);
 };

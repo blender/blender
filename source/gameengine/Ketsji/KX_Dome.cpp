@@ -255,7 +255,8 @@ void KX_Dome::CalculateImageSize(void)
 	}
 }
 
-bool KX_Dome::CreateDL(){
+bool KX_Dome::CreateDL()
+{
 	dlistId = glGenLists((GLsizei) m_numimages);
 	if (dlistId != 0) {
 		if(m_mode == DOME_FISHEYE || m_mode == DOME_TRUNCATED_FRONT || m_mode == DOME_TRUNCATED_REAR){

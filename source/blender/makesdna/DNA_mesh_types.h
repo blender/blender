@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_MESH_TYPES_H
-#define DNA_MESH_TYPES_H
 
 /** \file DNA_mesh_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_MESH_TYPES_H
+#define DNA_MESH_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

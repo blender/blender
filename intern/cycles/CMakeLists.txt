@@ -36,19 +36,19 @@ if(WITH_CYCLES_OPTIMIZED_KERNEL)
 endif()
 
 if(WITH_CYCLES_NETWORK)
-  add_definitions(-DWITH_NETWORK)
+	add_definitions(-DWITH_NETWORK)
 endif()
 
 if(WITH_CYCLES_OSL)
-  add_definitions(-DWITH_OSL)
+	add_definitions(-DWITH_OSL)
 endif()
 
 if(WITH_CYCLES_PARTIO)
-  add_definitions(-DWITH_PARTIO)
+	add_definitions(-DWITH_PARTIO)
 endif()
 
 if(WITH_CYCLES_CUDA_BINARIES)
-  add_definitions(-DWITH_CUDA_BINARIES)
+	add_definitions(-DWITH_CUDA_BINARIES)
 endif()
 
 add_definitions(-DWITH_OPENCL)

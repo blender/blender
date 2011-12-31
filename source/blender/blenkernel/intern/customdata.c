@@ -234,13 +234,11 @@ static void layerInterp_msticky(void **sources, float *weights,
 		w = weights ? weights[i] : 1.0f;
 		mst = (MSticky*)sources[i];
 
-		co[0] += w*mst->co[0];
-		co[1] += w*mst->co[1];
+		madd_v2_v2fl(co, mst->co, w);
 	}
 
 	mst = (MSticky*)dest;
-	mst->co[0] = co[0];
-	mst->co[1] = co[1];
+	copy_v2_v2(mst->co, co);
 }
 
 
@@ -259,12 +257,10 @@ static void layerInterp_tface(void **sources, float *weights,
 {
 	MTFace *tf = dest;
 	int i, j, k;
-	float uv[4][2];
+	float uv[4][2] = {{0.0f}};
 	float *sub_weight;
 
 	if(count <= 0) return;
-
-	memset(uv, 0, sizeof(uv));
 
 	sub_weight = sub_weights;
 	for(i = 0; i < count; ++i) {
@@ -274,24 +270,17 @@ static void layerInterp_tface(void **sources, float *weights,
 		for(j = 0; j < 4; ++j) {
 			if(sub_weights) {
 				for(k = 0; k < 4; ++k, ++sub_weight) {
-					float w = (*sub_weight) * weight;
-					float *tmp_uv = src->uv[k];
-
-					uv[j][0] += tmp_uv[0] * w;
-					uv[j][1] += tmp_uv[1] * w;
+					madd_v2_v2fl(uv[j], src->uv[k], (*sub_weight) * weight);
 				}
-			} else {
-				uv[j][0] += src->uv[j][0] * weight;
-				uv[j][1] += src->uv[j][1] * weight;
+			}
+			else {
+				madd_v2_v2fl(uv[j], src->uv[j], weight);
 			}
 		}
 	}
 
-	*tf = *(MTFace *)sources[0];
-	for(j = 0; j < 4; ++j) {
-		tf->uv[j][0] = uv[j][0];
-		tf->uv[j][1] = uv[j][1];
-	}
+	*tf = *(MTFace *)(*sources);
+	memcpy(tf->uv, uv, sizeof(tf->uv));
 }
 
 static void layerSwap_tface(void *data, const int *corner_indices)
@@ -307,10 +296,9 @@ static void layerSwap_tface(void *data, const int *corner_indices)
 	int j;
 
 	for(j = 0; j < 4; ++j) {
-		int source_index = corner_indices[j];
+		const int source_index = corner_indices[j];
 
-		uv[j][0] = tf->uv[source_index][0];
-		uv[j][1] = tf->uv[source_index][1];
+		copy_v2_v2(uv[j], tf->uv[source_index]);
 
 		// swap pinning flags around
 		if(tf->unwrap & pin_flags[source_index]) {
@@ -372,12 +360,10 @@ static void layerInterp_origspace_face(void **sources, float *weights,
 {
 	OrigSpaceFace *osf = dest;
 	int i, j, k;
-	float uv[4][2];
+	float uv[4][2] = {{0.0f}};
 	float *sub_weight;
 
 	if(count <= 0) return;
-
-	memset(uv, 0, sizeof(uv));
 
 	sub_weight = sub_weights;
 	for(i = 0; i < count; ++i) {
@@ -387,24 +373,18 @@ static void layerInterp_origspace_face(void **sources, float *weights,
 		for(j = 0; j < 4; ++j) {
 			if(sub_weights) {
 				for(k = 0; k < 4; ++k, ++sub_weight) {
-					float w = (*sub_weight) * weight;
-					float *tmp_uv = src->uv[k];
-
-					uv[j][0] += tmp_uv[0] * w;
-					uv[j][1] += tmp_uv[1] * w;
+					madd_v2_v2fl(uv[j], src->uv[k], (*sub_weight) * weight);
 				}
 			} else {
-				uv[j][0] += src->uv[j][0] * weight;
-				uv[j][1] += src->uv[j][1] * weight;
+				madd_v2_v2fl(uv[j], src->uv[j], weight);
 			}
 		}
 	}
 
-	*osf = *(OrigSpaceFace *)sources[0];
-	for(j = 0; j < 4; ++j) {
-		osf->uv[j][0] = uv[j][0];
-		osf->uv[j][1] = uv[j][1];
-	}
+#if 0 /* no need, this ONLY contains UV's */
+	*osf = *(OrigSpaceFace *)(*sources);
+#endif
+	memcpy(osf->uv, uv, sizeof(osf->uv));
 }
 
 static void layerSwap_origspace_face(void *data, const int *corner_indices)
@@ -414,8 +394,7 @@ static void layerSwap_origspace_face(void *data, const int *corner_indices)
 	int j;
 
 	for(j = 0; j < 4; ++j) {
-		uv[j][0] = osf->uv[corner_indices[j]][0];
-		uv[j][1] = osf->uv[corner_indices[j]][1];
+		copy_v2_v2(uv[j], osf->uv[corner_indices[j]]);
 	}
 	memcpy(osf->uv, uv, sizeof(osf->uv));
 }
@@ -773,7 +752,7 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 			col.r += src->r * (*sub_weight) * weight;
 			col.g += src->g * (*sub_weight) * weight;
 			col.b += src->b * (*sub_weight) * weight;
-			sub_weight++;		
+			sub_weight++;
 		} else {
 			col.a += src->a * weight;
 			col.r += src->r * weight;
@@ -798,28 +777,22 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 static void layerCopyValue_mloopuv(void *source, void *dest)
 {
 	MLoopUV *luv1 = source, *luv2 = dest;
-	
-	luv2->uv[0] = luv1->uv[0];
-	luv2->uv[1] = luv1->uv[1];
+
+	copy_v2_v2(luv2->uv, luv1->uv);
 }
 
 static int layerEqual_mloopuv(void *data1, void *data2)
 {
 	MLoopUV *luv1 = data1, *luv2 = data2;
-	float u, v;
 
-	u = luv1->uv[0] - luv2->uv[0];
-	v = luv1->uv[1] - luv2->uv[1];
-
-	return u*u + v*v < 0.00001;
+	return len_squared_v2v2(luv1->uv, luv2->uv) < 0.00001f;
 }
 
 static void layerMultiply_mloopuv(void *data, float fac)
 {
 	MLoopUV *luv = data;
 
-	luv->uv[0] *= fac;
-	luv->uv[1] *= fac;
+	mul_v2_fl(luv->uv, fac);
 }
 
 static void layerInitMinMax_mloopuv(void *vmin, void *vmax)
@@ -840,37 +813,34 @@ static void layerAdd_mloopuv(void *data1, void *data2)
 {
 	MLoopUV *l1 = data1, *l2 = data2;
 
-	l1->uv[0] += l2->uv[0];
-	l1->uv[1] += l2->uv[1];
+	add_v2_v2(l1->uv, l2->uv);
 }
 
 static void layerInterp_mloopuv(void **sources, float *weights,
-				float *sub_weights, int count, void *dest)
+                                float *sub_weights, int count, void *dest)
 {
 	MLoopUV *mluv = dest;
+	float *uv= mluv->uv;
 	int i;
-	float *sub_weight;
-	struct {
-		float u;
-		float v;
-	}uv;
-	uv.u = uv.v = 0.0;
 
-	sub_weight = sub_weights;
-	for(i = 0; i < count; ++i){
-		float weight = weights ? weights[i] : 1;
-		MLoopUV *src = sources[i];
-		if(sub_weights){
-			uv.u += src->uv[0] * (*sub_weight) * weight;
-			uv.v += src->uv[1] * (*sub_weight) * weight;
-			sub_weight++;		
-		} else {
-			uv.u += src->uv[0] * weight;
-			uv.v += src->uv[1] * weight;
+	zero_v2(uv);
+
+	if (sub_weights) {
+		const float *sub_weight = sub_weights;
+		for(i = 0; i < count; i++) {
+			float weight = weights ? weights[i] : 1.0f;
+			MLoopUV *src = sources[i];
+			madd_v2_v2fl(uv, src->uv, (*sub_weight) * weight);
+			sub_weight++;
 		}
 	}
-	mluv->uv[0] = uv.u;
-	mluv->uv[1] = uv.v;
+	else {
+		for(i = 0; i < count; i++) {
+			float weight = weights ? weights[i] : 1;
+			MLoopUV *src = sources[i];
+			madd_v2_v2fl(uv, src->uv, weight);
+		}
+	}
 }
 
 static void layerInterp_mcol(void **sources, float *weights,
@@ -883,12 +853,11 @@ static void layerInterp_mcol(void **sources, float *weights,
 		float r;
 		float g;
 		float b;
-	} col[4];
+	} col[4] = {{0.0f}};
+
 	float *sub_weight;
 
 	if(count <= 0) return;
-
-	memset(col, 0, sizeof(col));
 	
 	sub_weight = sub_weights;
 	for(i = 0; i < count; ++i) {
@@ -898,10 +867,11 @@ static void layerInterp_mcol(void **sources, float *weights,
 			if(sub_weights) {
 				MCol *src = sources[i];
 				for(k = 0; k < 4; ++k, ++sub_weight, ++src) {
-					col[j].a += src->a * (*sub_weight) * weight;
-					col[j].r += src->r * (*sub_weight) * weight;
-					col[j].g += src->g * (*sub_weight) * weight;
-					col[j].b += src->b * (*sub_weight) * weight;
+					const float w= (*sub_weight) * weight;
+					col[j].a += src->a * w;
+					col[j].r += src->r * w;
+					col[j].g += src->g * w;
+					col[j].b += src->b * w;
 				}
 			} else {
 				MCol *src = sources[i];

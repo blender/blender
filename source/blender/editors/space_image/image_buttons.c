@@ -750,7 +750,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 					
-					uiItemR(split, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
+					row= uiLayoutRow(layout, 0);
+					uiItemR(row, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
+					uiItemR(row, &imaptr, "use_color_unpremultiply", 0, NULL, ICON_NONE);
 				}
 			}
 

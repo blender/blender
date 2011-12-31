@@ -148,7 +148,8 @@ static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 
 static int qtVideoCodecCount = 12;
 
-int quicktime_get_num_videocodecs() {
+int quicktime_get_num_videocodecs()
+{
 	return qtVideoCodecCount;
 }
 
@@ -159,7 +160,8 @@ QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue) {
 		return NULL;
 }
 
-int quicktime_rnatmpvalue_from_videocodectype(int codecType) {
+int quicktime_rnatmpvalue_from_videocodectype(int codecType)
+{
 	int i;
 	for (i=0;i<qtVideoCodecCount;i++) {
 		if (qtVideoCodecList[i].codecType == codecType)
@@ -169,7 +171,8 @@ int quicktime_rnatmpvalue_from_videocodectype(int codecType) {
 	return 0;
 }
 
-int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue) {
+int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
+{
 	int i;
 	for (i=0;i<qtVideoCodecCount;i++) {
 		if (qtVideoCodecList[i].rnatmpvalue == rnatmpvalue)
@@ -496,7 +499,8 @@ static void QT_EndAddVideoSamplesToMedia (void)
 } 
 
 
-void filepath_qt(char *string, RenderData *rd) {
+void filepath_qt(char *string, RenderData *rd)
+{
 	char txt[64];
 
 	if (string==0) return;
@@ -513,7 +517,8 @@ void filepath_qt(char *string, RenderData *rd) {
 }
 
 
-int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports) {
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports)
+{
 	OSErr err = noErr;
 
 	char name[2048];
@@ -599,13 +604,15 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 }
 
 
-int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) {
+int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
+{
 	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty, reports);
 	return 1;
 }
 
 
-void end_qt(void) {
+void end_qt(void)
+{
 	OSErr err = noErr;
 	short resId = movieInDataForkResID;
 
@@ -639,7 +646,8 @@ void end_qt(void) {
 }
 
 
-void free_qtcomponentdata(void) {
+void free_qtcomponentdata(void)
+{
 	if(qtdata) {
 		if(qtdata->theComponent) CloseComponent(qtdata->theComponent);
 		MEM_freeN(qtdata);

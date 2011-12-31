@@ -269,7 +269,8 @@ DagNode * pop_queue(DagNodeQueue *queue)
 	}
 }
 
-void	*pop_ob_queue(struct DagNodeQueue *queue) {
+void	*pop_ob_queue(struct DagNodeQueue *queue)
+{
 	return(pop_queue(queue)->ob);
 }
 
@@ -278,7 +279,8 @@ DagNode * get_top_node_queue(DagNodeQueue *queue)
 	return queue->first->node;
 }
 
-int		queue_count(struct DagNodeQueue *queue){
+int		queue_count(struct DagNodeQueue *queue)
+{
 	return queue->count;
 }
 
@@ -1160,7 +1162,8 @@ void graph_bfs(void)
 	queue_delete(nqueue);
 }
 
-int pre_and_post_BFS(DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data) {
+int pre_and_post_BFS(DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data)
+{
 	DagNode *node;
 	
 	node = dag->DagNode.first;
@@ -1346,7 +1349,8 @@ DagNodeQueue * graph_dfs(void)
 }
 
 /* unused */
-int pre_and_post_DFS(DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data) {
+int pre_and_post_DFS(DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data)
+{
 	DagNode *node;
 
 	node = dag->DagNode.first;
@@ -1557,7 +1561,8 @@ struct DagNodeQueue *get_all_childs(struct DagForest	*dag, void *ob)
 }
 
 /* unused */
-short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2) {
+short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2)
+{
 	DagNode * node;
 	DagAdjList *itA;
 	
@@ -1573,7 +1578,8 @@ short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2) {
 	return DAG_NO_RELATION;
 }
 
-int	is_acyclic( DagForest	*dag) {
+int	is_acyclic( DagForest	*dag)
+{
 	return dag->is_acyclic;
 }
 
@@ -2558,7 +2564,9 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+					if(ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER,
+					         CONSTRAINT_TYPE_OBJECTSOLVER))
+					{
 						obt->recalc |= OB_RECALC_OB;
 						break;
 					}

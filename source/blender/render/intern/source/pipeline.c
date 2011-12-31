@@ -1154,7 +1154,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	}
 	else if(rres.rectf) {
 		int profile_from= (re->r.color_mgt_flag & R_COLOR_MANAGEMENT)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
-		int predivide= 0;
+		int predivide= (re->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 		int dither= 0;
 
 		IMB_buffer_byte_from_float((unsigned char*)rect, rres.rectf,
@@ -2556,7 +2556,7 @@ static void do_render_seq(Render * re)
 			 * render engine delivers */
 			int profile_to= (re->r.color_mgt_flag & R_COLOR_MANAGEMENT)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
 			int profile_from= (ibuf->profile == IB_PROFILE_LINEAR_RGB)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
-			int predivide= 0;
+			int predivide= (re->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 
 			if (!rr->rectf)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
@@ -2968,15 +2968,17 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	/* write movie or image */
 	if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		int dofree = 0;
+		unsigned int *rect32 = (unsigned int *)rres.rect32;
 		/* note; the way it gets 32 bits rects is weak... */
-		if(rres.rect32==NULL) {
-			rres.rect32= MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+		if(rres.rect32 == NULL) {
+			rect32 = MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+			RE_ResultGet32(re, rect32);
 			dofree = 1;
 		}
-		RE_ResultGet32(re, (unsigned int *)rres.rect32);
-		ok= mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty, re->reports);
+
+		ok= mh->append_movie(&re->r, scene->r.cfra, (int *)rect32, rres.rectx, rres.recty, re->reports);
 		if(dofree) {
-			MEM_freeN(rres.rect32);
+			MEM_freeN(rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
 	} 
@@ -2993,7 +2995,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 			}
 		}
 		else {
-			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.im_format.planes, 0);
+			int flags = (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE)? IB_cm_predivide: 0;
+			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.im_format.planes, flags);
 			
 			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    

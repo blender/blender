@@ -45,9 +45,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE                        0x812F
 #endif
@@ -560,27 +557,6 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
 {
 	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, rect, 1.0f, 1.0f);
-}
-
-/* row_w is unused but kept for completeness */
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int UNUSED(row_w), float *rectf, int do_gamma_correct)
-{
-	unsigned char *rect32;
-	int profile_from= (do_gamma_correct)? IB_PROFILE_LINEAR_RGB: IB_PROFILE_SRGB;
-	int predivide= 0;
-	
-	/* copy imgw-imgh to a temporal 32 bits rect */
-	if(img_w<1 || img_h<1) return;
-	
-	rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
-	
-	IMB_buffer_byte_from_float(rect32, rectf,
-		4, 0, IB_PROFILE_SRGB, profile_from, predivide, 
-		img_w, img_h, img_w, img_w);
-	
-	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
-
-	MEM_freeN(rect32);
 }
 
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect)

@@ -86,7 +86,8 @@ void SCA_ISensor::ProcessReplica()
 	m_linkedcontrollers.clear();
 }
 
-bool SCA_ISensor::IsPositiveTrigger() { 
+bool SCA_ISensor::IsPositiveTrigger()
+{
 	bool result = false;
 	
 	if (m_eventval) {
@@ -107,40 +108,49 @@ void SCA_ISensor::SetPulseMode(bool posmode,
 	m_pulse_frequency = freq;
 }
 
-void SCA_ISensor::SetInvert(bool inv) {
+void SCA_ISensor::SetInvert(bool inv)
+{
 	m_invert = inv;
 }
 
-void SCA_ISensor::SetLevel(bool lvl) {
+void SCA_ISensor::SetLevel(bool lvl)
+{
 	m_level = lvl;
 }
 
-void SCA_ISensor::SetTap(bool tap) {
+void SCA_ISensor::SetTap(bool tap)
+{
 	m_tap = tap;
 }
 
 
-double SCA_ISensor::GetNumber() {
+double SCA_ISensor::GetNumber()
+{
 	return GetState();
 }
 
-void SCA_ISensor::Suspend() {
+void SCA_ISensor::Suspend()
+{
 	m_suspended = true;
 }
 
-bool SCA_ISensor::IsSuspended() {
+bool SCA_ISensor::IsSuspended()
+{
 	return m_suspended;
 }
 
-void SCA_ISensor::Resume() {
+void SCA_ISensor::Resume()
+{
 	m_suspended = false;
 }
 
-void SCA_ISensor::Init() {
+void SCA_ISensor::Init()
+{
 	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name.Ptr());
 }
 
-void SCA_ISensor::DecLink() {
+void SCA_ISensor::DecLink()
+{
 	m_links--;
 	if (m_links < 0) 
 	{

@@ -579,7 +579,8 @@ GHOST_TSuccess GHOST_SystemCarbon::getButtons(GHOST_Buttons& buttons) const
 static bool g_hasFirstFile = false;
 static char g_firstFileBuf[512];
 
-extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) { 
+extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
+{
 	if (g_hasFirstFile) {
 		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
 		buf[FIRSTFILEBUFLG - 1] = '\0';

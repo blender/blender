@@ -57,7 +57,6 @@ void FONT_OT_text_copy(struct wmOperatorType *ot);
 void FONT_OT_text_cut(struct wmOperatorType *ot);
 void FONT_OT_text_paste(struct wmOperatorType *ot);
 void FONT_OT_file_paste(struct wmOperatorType *ot);
-void FONT_OT_buffer_paste(struct wmOperatorType *ot);
 
 void FONT_OT_move(struct wmOperatorType *ot);
 void FONT_OT_move_select(struct wmOperatorType *ot);

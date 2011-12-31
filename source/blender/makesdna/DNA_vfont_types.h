@@ -24,14 +24,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_VFONT_TYPES_H
-#define DNA_VFONT_TYPES_H
 
 /** \file DNA_vfont_types.h
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
  */
+
+#ifndef DNA_VFONT_TYPES_H
+#define DNA_VFONT_TYPES_H
 
 #include "DNA_ID.h"
 

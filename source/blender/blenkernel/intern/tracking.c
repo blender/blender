@@ -1682,7 +1682,8 @@ int BKE_tracking_can_reconstruct(MovieTracking *tracking, MovieTrackingObject *o
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
-	(void) tracking;
+	(void)tracking;
+	(void)object;
 
 	return 0;
 #endif
@@ -1706,12 +1707,12 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 
 	track= tracksbase->first;
 	while(track) {
-		int first= 0, last= track->markersnr;
+		int first= 0, last= track->markersnr-1;
 		MovieTrackingMarker *first_marker= &track->markers[0];
 		MovieTrackingMarker *last_marker= &track->markers[track->markersnr-1];
 
 		/* find first not-disabled marker */
-		while(first<track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
+		while(first<=track->markersnr-1 && first_marker->flag&MARKER_DISABLED) {
 			first++;
 			first_marker++;
 		}
@@ -2274,6 +2275,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 	libmv_destroyFeatures(features);
 #else
 	(void)tracking;
+	(void)tracksbase;
 	(void)ibuf;
 	(void)framenr;
 	(void)margin;

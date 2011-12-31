@@ -40,6 +40,7 @@
 #include "BKE_image.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 static EnumPropertyItem image_source_items[]= {
 	{IMA_SRC_FILE, "FILE", 0, "Single Image", "Single image file"},
@@ -110,6 +111,7 @@ static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	WM_main_add_notifier(NC_IMAGE|NA_EDITED, &ima->id);
 	DAG_id_tag_update(&ima->id, 0);
 }
 
@@ -474,6 +476,11 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
+	
+	prop= RNA_def_property(srna, "use_color_unpremultiply", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_CM_PREDIVIDE);
+	RNA_def_property_ui_text(prop, "Color Unpremultiply", "For premultiplied alpha images, do color space conversion on colors without alpha, to avoid fringing for images with light backgrounds");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);

@@ -69,6 +69,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
+	{eModifierType_Remesh, "REMESH", ICON_MOD_REMESH, "Remesh", ""},
 	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
@@ -199,6 +200,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_VertexWeightProximityModifier;
 		case eModifierType_DynamicPaint:
 			return &RNA_DynamicPaintModifier;
+		case eModifierType_Remesh:
+			return &RNA_RemeshModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -2867,6 +2870,57 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	rna_def_modifier_weightvg_mask(brna, srna);
 }
 
+static void rna_def_modifier_remesh(BlenderRNA *brna)
+{
+	static EnumPropertyItem mode_items[]= {
+		{MOD_REMESH_CENTROID, "BLOCKS", 0, "Blocks", "Output a blocky surface with no smoothing"},
+		{MOD_REMESH_MASS_POINT, "SMOOTH", 0, "Smooth", "Output a smooth surface with no sharp-features detection"},
+		{MOD_REMESH_SHARP_FEATURES, "SHARP", 0, "Sharp", "Output a surface that reproduces sharp edges and corners from the input mesh"},
+		{0, NULL, 0, NULL, NULL}};
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "RemeshModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Remesh Modifier", "Generate a new surface with regular topology that follows the shape of the input mesh");
+	RNA_def_struct_sdna(srna, "RemeshModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_REMESH);
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 0.99, 0.01, 3);
+	RNA_def_property_range(prop, 0, 0.99);
+	RNA_def_property_ui_text(prop, "Scale", "The ratio of the largest dimension of the model over the size of the grid");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Threshold", "If removing disconnected pieces, minimum size of components to preserve as a ratio of the number of polygons in the largest component");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "octree_depth", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "depth");
+	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_ui_text(prop, "Octree Depth", "Resolution of the octree; higher values give finer details");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "sharpness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "hermite_num");
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Sharpness", "Tolerance for outliers; lower values filter noise while higher values will reproduce edges closer to the input");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "remove_disconnected_pieces", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_REMESH_FLOOD_FILL);
+	RNA_def_property_ui_text(prop, "Remove Disconnected Pieces", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 static void rna_def_modifier_ocean(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3148,6 +3202,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_weightvgproximity(brna);
 	rna_def_modifier_dynamic_paint(brna);
 	rna_def_modifier_ocean(brna);
+	rna_def_modifier_remesh(brna);
 }
 
 #endif

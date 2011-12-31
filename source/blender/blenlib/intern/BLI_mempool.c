@@ -274,6 +274,9 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 	iter->curindex = 0;
 }
 
+#if 0
+/* unoptimized, more readable */
+
 static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 {
 	void *ret = NULL;
@@ -302,6 +305,37 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 	
 	return ret;
 }
+
+#else
+
+/* optimized version of code above */
+
+void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
+{
+	BLI_freenode *ret;
+
+	if (UNLIKELY(iter->pool->totused == 0)) {
+		return NULL;
+	}
+
+	do {
+		if (LIKELY(iter->curchunk)) {
+			ret = (BLI_freenode *)(((char*)iter->curchunk->data) + iter->pool->esize*iter->curindex);
+		}
+		else {
+			return NULL;
+		}
+
+		if (UNLIKELY(++iter->curindex >= iter->pool->pchunk)) {
+			iter->curindex = 0;
+			iter->curchunk = iter->curchunk->next;
+		}
+	} while (ret->freeword == FREEWORD);
+	
+	return ret;
+}
+
+#endif
 
 void BLI_mempool_destroy(BLI_mempool *pool)
 {

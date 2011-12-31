@@ -24,12 +24,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_CURVE_TYPES_H
-#define DNA_CURVE_TYPES_H
 
 /** \file DNA_curve_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CURVE_TYPES_H
+#define DNA_CURVE_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

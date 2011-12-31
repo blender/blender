@@ -127,7 +127,8 @@ static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 
 static int qtVideoCodecCount = 18;
 
-int quicktime_get_num_videocodecs() {
+int quicktime_get_num_videocodecs()
+{
 	return qtVideoCodecCount;
 }
 
@@ -138,7 +139,8 @@ QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue) {
 		return NULL;
 }
 
-int quicktime_rnatmpvalue_from_videocodectype(int codecType) {
+int quicktime_rnatmpvalue_from_videocodectype(int codecType)
+{
 	int i;
 	for (i=0;i<qtVideoCodecCount;i++) {
 		if (qtVideoCodecList[i].codecType == codecType)
@@ -148,7 +150,8 @@ int quicktime_rnatmpvalue_from_videocodectype(int codecType) {
 	return 0;
 }
 
-int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue) {
+int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
+{
 	int i;
 	for (i=0;i<qtVideoCodecCount;i++) {
 		if (qtVideoCodecList[i].rnatmpvalue == rnatmpvalue)
@@ -168,7 +171,8 @@ static QuicktimeCodecTypeDesc qtAudioCodecList[] = {
 
 static int qtAudioCodecCount = 4;
 
-int quicktime_get_num_audiocodecs() {
+int quicktime_get_num_audiocodecs()
+{
 	return qtAudioCodecCount;
 }
 
@@ -179,7 +183,8 @@ QuicktimeCodecTypeDesc* quicktime_get_audiocodecType_desc(int indexValue) {
 		return NULL;
 }
 
-int quicktime_rnatmpvalue_from_audiocodectype(int codecType) {
+int quicktime_rnatmpvalue_from_audiocodectype(int codecType)
+{
 	int i;
 	for (i=0;i<qtAudioCodecCount;i++) {
 		if (qtAudioCodecList[i].codecType == codecType)
@@ -189,7 +194,8 @@ int quicktime_rnatmpvalue_from_audiocodectype(int codecType) {
 	return 0;
 }
 
-int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue) {
+int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue)
+{
 	int i;
 	for (i=0;i<qtAudioCodecCount;i++) {
 		if (qtAudioCodecList[i].rnatmpvalue == rnatmpvalue)
@@ -200,7 +206,8 @@ int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue) {
 }
 
 
-static NSString *stringWithCodecType(int codecType) {
+static NSString *stringWithCodecType(int codecType)
+{
 	char str[5];
 	
 	*((int*)str) = EndianU32_NtoB(codecType);
@@ -209,7 +216,8 @@ static NSString *stringWithCodecType(int codecType) {
 	return [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
 }
 
-void makeqtstring (RenderData *rd, char *string) {
+void makeqtstring (RenderData *rd, char *string)
+{
 	char txt[64];
 
 	strcpy(string, rd->pic);
@@ -223,7 +231,8 @@ void makeqtstring (RenderData *rd, char *string) {
 	}
 }
 
-void filepath_qt(char *string, RenderData *rd) {
+void filepath_qt(char *string, RenderData *rd)
+{
 	if (string==NULL) return;
 	
 	strcpy(string, rd->pic);
@@ -779,7 +788,8 @@ void end_qt(void)
 }
 
 
-void free_qtcomponentdata(void) {
+void free_qtcomponentdata(void)
+{
 }
 
 void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)

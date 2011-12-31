@@ -18,12 +18,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_MODIFIER_TYPES_H
-#define DNA_MODIFIER_TYPES_H
-
 /** \file DNA_modifier_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_MODIFIER_TYPES_H
+#define DNA_MODIFIER_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -76,6 +76,7 @@ typedef enum ModifierType {
 	eModifierType_WeightVGProximity,
 	eModifierType_Ocean,
 	eModifierType_DynamicPaint,
+	eModifierType_Remesh,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1031,5 +1032,40 @@ typedef struct DynamicPaintModifierData {
 	int type;  /* ui display: canvas / brush */
 	int pad;
 } DynamicPaintModifierData;
+
+/* Remesh modifier */
+
+typedef enum RemeshModifierFlags {
+	MOD_REMESH_FLOOD_FILL = 1,
+} RemeshModifierFlags;
+
+typedef enum RemeshModifierMode {
+	/* blocky */
+	MOD_REMESH_CENTROID = 0,
+	/* smooth */
+	MOD_REMESH_MASS_POINT = 1,
+	/* keeps sharp edges */
+	MOD_REMESH_SHARP_FEATURES = 2,
+} RemeshModifierMode;
+
+typedef struct RemeshModifierData {
+	ModifierData modifier;
+
+	/* floodfill option, controls how small components can be
+	   before they are removed */
+	float threshold;
+
+	/* ratio between size of model and grid */
+	float scale;
+
+	float hermite_num;
+
+	/* octree depth */
+	char depth;
+
+	char flag;
+	char mode;
+	char pad;
+} RemeshModifierData;
 
 #endif

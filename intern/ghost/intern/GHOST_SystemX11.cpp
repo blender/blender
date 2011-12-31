@@ -296,7 +296,8 @@ findGhostWindow(
 	
 }
 
-static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep) {
+static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep)
+{
 	int fd = ConnectionNumber(display);
 	fd_set fds;
 	

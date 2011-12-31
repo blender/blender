@@ -72,7 +72,8 @@
 
 #include "STR_HashedString.h"
 
-static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneConverter *converter) {
+static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneConverter *converter)
+{
 	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_act);
 
 	if (!adtList) {		

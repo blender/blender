@@ -1613,9 +1613,6 @@ static void solve_camera_freejob(void *scv)
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
-	if(!scene->camera)
-		scene->camera= scene_find_camera(scene);
-
 	if(scene->camera) {
 		Camera *camera= (Camera*)scene->camera->data;
 		int width, height;
@@ -2310,9 +2307,9 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 
 		/* make camera have positive z-coordinate */
 		if(object->loc[2]<0) {
-		  invert_m4(rot);
-		  mult_m4_m4m4(newmat, rot, mat);
-		  object_apply_mat4(object, newmat, 0, 0);
+			invert_m4(rot);
+			mult_m4_m4m4(newmat, rot, mat);
+			object_apply_mat4(object, newmat, 0, 0);
 		}
 	}
 	else {
@@ -2468,16 +2465,16 @@ static int do_set_scale(bContext *C, wmOperator *op, int scale_solution)
 		if(tracking_object->flag&TRACKING_OBJECT_CAMERA) {
 			mul_v3_fl(object->size, scale);
 			mul_v3_fl(object->loc, scale);
-		} else
-		if(!scale_solution){
-			Object *camera= object_solver_camera(scene, object);
+		}
+		else if(!scale_solution){
+			Object *solver_camera= object_solver_camera(scene, object);
 
 			object->size[0]= object->size[1]= object->size[2]= 1.0f/scale;
 
-			if(camera) {
-				object->size[0]/= camera->size[0];
-				object->size[1]/= camera->size[1];
-				object->size[2]/= camera->size[2];
+			if(solver_camera) {
+				object->size[0]/= solver_camera->size[0];
+				object->size[1]/= solver_camera->size[1];
+				object->size[2]/= solver_camera->size[2];
 			}
 		}
 		else {

@@ -26,12 +26,12 @@
  * Constraint DNA data
  */
 
-#ifndef DNA_CONSTRAINT_TYPES_H
-#define DNA_CONSTRAINT_TYPES_H
-
 /** \file DNA_constraint_types.h
  *  \ingroup DNA
  */
+
+#ifndef DNA_CONSTRAINT_TYPES_H
+#define DNA_CONSTRAINT_TYPES_H
 
 #include "DNA_defs.h"
 #include "DNA_ID.h"
@@ -180,7 +180,10 @@ typedef struct bSplineIKConstraint {
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
 	struct Object		*tar;
-	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags, not sure if that's what they were intented for anyway. Not sure either if it would create backward incompatibility if I were to rename them. - theeth*/
+	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags,
+	                        * not sure if that's what they were intented for anyway.
+	                        * Not sure either if it would create backward incompatibility if I were to rename them.
+	                        * - theeth*/
 	int			reserved2;
 	int			flags;
 	int			pad;
