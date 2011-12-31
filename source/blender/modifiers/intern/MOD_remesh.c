@@ -85,9 +85,9 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 	mesh->co_stride = sizeof(MVert);
 	mesh->totco = dm->getNumVerts(dm);
 
-	mesh->faces = (void*)dm->getFaceArray(dm);
+	mesh->faces = (void*)dm->getTessFaceArray(dm);
 	mesh->face_stride = sizeof(MFace);
-	mesh->totface = dm->getNumFaces(dm);
+	mesh->totface = dm->getNumTessFaces(dm);
 
 	dm->getMinMax(dm, mesh->min, mesh->max);
 }
@@ -108,7 +108,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 							  "DualConOutput")))
 		return NULL;
 	
-	output->dm = CDDM_new(totvert, 0, totquad);
+	output->dm = CDDM_new(totvert, 0, totquad, 0, 0);
 	return output;
 }
 
@@ -129,9 +129,9 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 	DerivedMesh *dm = output->dm;
 	MFace *mface;
 	
-	assert(output->curface < dm->getNumFaces(dm));
+	assert(output->curface < dm->getNumTessFaces(dm));
 
-	mface = &CDDM_get_faces(dm)[output->curface];
+	mface = &CDDM_get_tessfaces(dm)[output->curface];
 	mface->v1 = vert_indices[0];
 	mface->v2 = vert_indices[1];
 	mface->v3 = vert_indices[2];
@@ -184,13 +184,29 @@ static DerivedMesh *applyModifier(ModifierData *md,
 					 rmd->scale,
 					 rmd->depth);
 	result = output->dm;
-	CDDM_lower_num_faces(result, output->curface);
+	CDDM_lower_num_tessfaces(result, output->curface);
 	MEM_freeN(output);
 
 	CDDM_calc_edges(result);
 	CDDM_calc_normals(result);
 
+	/* BMESH_TODO - create polygons */
+
+#if 0
+
 	return result;
+
+#else /* BMESH ONLY */
+
+	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
+	CDDM_calc_normals(dm);
+	result->needsFree = 1;
+	result->release(result);
+
+	return dm;
+
+#endif
+
 }
 
 #else /* !WITH_MOD_REMESH */

@@ -2601,6 +2601,14 @@ void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 	dm->numEdgeData = numEdges;
 }
 
+void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces)
+{
+	if (numTessFaces < dm->numTessFaceData)
+		CustomData_free_elem(&dm->faceData, numTessFaces, dm->numTessFaceData-numTessFaces);
+
+	dm->numTessFaceData = numTessFaces;
+}
+
 void CDDM_lower_num_polys(DerivedMesh *dm, int numPolys)
 {
 	if (numPolys < dm->numPolyData)

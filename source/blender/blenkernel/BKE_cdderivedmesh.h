@@ -119,7 +119,8 @@ void CDDM_recalc_tesselation(struct DerivedMesh *dm);
  */
 void CDDM_lower_num_verts(struct DerivedMesh *dm, int numVerts);
 void CDDM_lower_num_edges(struct DerivedMesh *dm, int numEdges);
-void CDDM_lower_num_faces(struct DerivedMesh *dm, int numFaces);
+void CDDM_lower_num_polys(struct DerivedMesh *dm, int numPolys);
+void CDDM_lower_num_tessfaces(DerivedMesh *dm, int numTessFaces);
 
 /* vertex/edge/face access functions
  * should always succeed if index is within bounds
