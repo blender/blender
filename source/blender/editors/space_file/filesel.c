@@ -667,9 +667,13 @@ void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
 {
-	thumbnails_stop(sfile->files, C);
-	filelist_freelib(sfile->files);
-	filelist_free(sfile->files);
+	/* only NULL in rare cases - [#29734] */
+	if (sfile->files) {
+		thumbnails_stop(sfile->files, C);
+		filelist_freelib(sfile->files);
+		filelist_free(sfile->files);
+	}
+
 	sfile->params->active_file = -1;
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 }

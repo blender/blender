@@ -1258,8 +1258,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
-			int onbound= 0, coords_correct= 0;
-			int nextfra;
+			int onbound= 0, nextfra;
 
 			if(track->pattern_match==TRACK_MATCH_KEYFRAME)
 				need_readjust= context->first_time;
@@ -1377,8 +1376,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MEM_freeN(image_new);
 			}
 
-			coords_correct= !onbound && !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
-			if(coords_correct && !onbound && tracked) {
+			if(tracked && !onbound && finite(x2) && finite(y2)) {
 				if(context->first_time) {
 					#pragma omp critical
 					{
@@ -1682,7 +1680,8 @@ int BKE_tracking_can_reconstruct(MovieTracking *tracking, MovieTrackingObject *o
 	return 1;
 #else
 	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
-	(void) tracking;
+	(void)tracking;
+	(void)object;
 
 	return 0;
 #endif
@@ -2274,6 +2273,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 	libmv_destroyFeatures(features);
 #else
 	(void)tracking;
+	(void)tracksbase;
 	(void)ibuf;
 	(void)framenr;
 	(void)margin;

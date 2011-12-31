@@ -665,3 +665,16 @@ function(delayed_do_install
 	endif()
 endfunction()
 
+macro(set_lib_path
+		lvar
+		lproj)
+
+	
+	if(MSVC10 AND EXISTS ${LIBDIR}/vc2010/${lproj})
+		set(${lvar} ${LIBDIR}/vc2010/${lproj})
+	else()
+		set(${lvar} ${LIBDIR}/${lproj})
+	endif()
+
+
+endmacro()

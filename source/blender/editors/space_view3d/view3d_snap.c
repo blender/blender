@@ -817,18 +817,15 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
 	MovieClip *clip= object_get_movieclip(scene, ob, 0);
-	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingObject *object= tracking->objects.first;
+	MovieTracking *tracking;
+	MovieTrackingObject *object;
 	int ok= 0;
-	float min[3], max[3], mat[4][4], pos[3], cammat[4][4];
+	float min[3], max[3], mat[4][4], pos[3], cammat[4][4] = MAT4_UNITY;
 
 	if(!clip)
 		return;
 
-	unit_m4(cammat);
-
-	if(!scene->camera)
-		scene->camera= scene_find_camera(scene);
+	tracking= &clip->tracking;
 
 	if(scene->camera)
 		copy_m4_m4(cammat, scene->camera->obmat);
@@ -837,7 +834,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	INIT_MINMAX(min, max);
 
-	while(object) {
+	for (object= tracking->objects.first; object; object= object->next) {
 		ListBase *tracksbase= BKE_tracking_object_tracks(tracking, object);
 		MovieTrackingTrack *track= tracksbase->first;
 		float obmat[4][4];
@@ -863,8 +860,6 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 			track= track->next;
 		}
-
-		object= object->next;
 	}
 
 	if(ok) {

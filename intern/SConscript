@@ -22,6 +22,9 @@ SConscript(['audaspace/SConscript',
 # perhaps get rid of intern/csg?
 NEW_CSG='false'
 
+if env ['WITH_BF_REMESH']:
+	SConscript(['dualcon/SConscript'])
+
 if env['WITH_BF_FLUID']:
     SConscript(['elbeem/SConscript'])
     

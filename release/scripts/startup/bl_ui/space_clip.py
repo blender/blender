@@ -16,7 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
+
 import bpy
 from bpy.types import Panel, Header, Menu
 
@@ -209,12 +210,9 @@ class CLIP_PT_tools_solve(Panel):
 
         col = layout.column(align=True)
 
-        if tracking_object.is_camera:
-            solve_text = "Camera Motion"
-        else:
-            solve_text = "Object Motion"
-
-        col.operator("clip.solve_camera", text=solve_text)
+        col.operator("clip.solve_camera",
+                     text="Camera Motion" if tracking_object.is_camera
+                     else "Object Motion")
         col.operator("clip.clear_solution")
 
         col = layout.column(align=True)
@@ -379,11 +377,12 @@ class CLIP_PT_objects(Panel):
     def draw(self, context):
         layout = self.layout
         sc = context.space_data
-        clip = context.space_data.clip
+        clip = sc.clip
         tracking = clip.tracking
 
         row = layout.row()
-        row.template_list(tracking, "objects", tracking, "active_object_index", rows=3)
+        row.template_list(tracking, "objects",
+                          tracking, "active_object_index", rows=3)
 
         sub = row.column(align=True)
 
@@ -472,7 +471,7 @@ class CLIP_PT_tracking_camera(Panel):
     def poll(cls, context):
         sc = context.space_data
 
-        return sc.mode in ['TRACKING', 'DISTORTION'] and sc.clip
+        return sc.mode in {'TRACKING', 'DISTORTION'} and sc.clip
 
     def draw(self, context):
         layout = self.layout

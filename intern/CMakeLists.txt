@@ -36,6 +36,10 @@ if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)
 endif()
 
+if(WITH_MOD_REMESH)
+	add_subdirectory(dualcon)
+endif()
+
 if(WITH_MOD_FLUID)
 	add_subdirectory(elbeem)
 endif()

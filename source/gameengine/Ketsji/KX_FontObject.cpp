@@ -118,8 +118,8 @@ void KX_FontObject::ProcessReplica()
 void KX_FontObject::DrawText()
 {
 	/* Allow for some logic brick control */
-	if(this->GetProperty("text"))
-		m_text = split_string(this->GetProperty("text")->GetText());
+	if(this->GetProperty("Text"))
+		m_text = split_string(this->GetProperty("Text")->GetText());
 
 	/* only draws the text if visible */
 	if(this->GetVisible() == 0) return;
