@@ -2564,7 +2564,9 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {
 					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					if(ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER)) {
+					if(ELEM3(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER,
+					         CONSTRAINT_TYPE_OBJECTSOLVER))
+					{
 						obt->recalc |= OB_RECALC_OB;
 						break;
 					}
