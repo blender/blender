@@ -247,6 +247,7 @@ class RenderButtonsPanel():
 class RENDER_PT_embedded(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Embedded Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
     def draw(self, context):
         layout = self.layout
 
@@ -270,23 +271,22 @@ class RENDER_PT_game_player(RenderButtonsPanel, Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
-        
+
         row = layout.row()
         row.operator("wm.blenderplayer_start", text="Start")
         row.prop(gs, "show_fullscreen")
-        
+
         row = layout.row()
         row.label(text="Resolution:")
         row = layout.row(align=True)
         row.prop(gs, "resolution_x", slider=False, text="X")
         row.prop(gs, "resolution_y", slider=False, text="Y")
-        
+
         col = layout.column()
         col.label(text="Quality:")
         col = layout.column(align=True)
         col.prop(gs, "depth", text="Bit Depth", slider=False)
         col.prop(gs, "frequency", text="Refresh Rate", slider=False)
-
 
 
 class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
@@ -476,6 +476,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
         row.prop(rd, "sample_dist")
         row.prop(rd, "sample_max_error")
 
+
 class RENDER_PT_game_sound(RenderButtonsPanel, Panel):
     bl_label = "Sound"
     COMPAT_ENGINES = {'BLENDER_GAME'}
@@ -490,6 +491,7 @@ class RENDER_PT_game_sound(RenderButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(scene, "audio_doppler_speed", text="Speed")
         col.prop(scene, "audio_doppler_factor")
+
 
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'

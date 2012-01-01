@@ -32,6 +32,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 import subprocess
 import os
 
+
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
@@ -1176,26 +1177,28 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
+
 class WM_OT_blenderplayer_start(bpy.types.Operator):
     '''Launch the Blenderplayer with the current blendfile'''
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
-    
+
     blender_bin_path = bpy.app.binary_path
     blender_bin_dir = os.path.dirname(blender_bin_path)
     ext = os.path.splitext(blender_bin_path)[-1]
     player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
-    
+
     def execute(self, context):
         import sys
 
         if sys.platform == "darwin":
             self.player_path = os.path.join(self.blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
-	
+
         filepath = bpy.app.tempdir + "game.blend"
         bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
         subprocess.call([self.player_path, filepath])
         return {'FINISHED'}
+
 
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
@@ -1461,6 +1464,7 @@ class WM_OT_operator_cheat_sheet(Operator):
         textblock.write('\n'.join(op_strings))
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
+
 
 # -----------------------------------------------------------------------------
 # Addon Operators
@@ -1809,7 +1813,7 @@ class WM_OT_theme_export(Operator, ExportHelper):
 
     def execute(self, context):
         import rna_xml
-        
+
         filepath = self.filepath
         file = open(filepath, 'w', encoding='utf-8')
 

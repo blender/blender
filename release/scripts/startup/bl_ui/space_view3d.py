@@ -2248,7 +2248,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.prop(mesh, "show_extra_face_angle")
         col.prop(mesh, "show_extra_face_area")
         if bpy.app.debug:
-          col.prop(mesh, "show_extra_indices")
+            col.prop(mesh, "show_extra_indices")
 
 
 class VIEW3D_PT_view3d_curvedisplay(Panel):
