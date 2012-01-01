@@ -47,7 +47,7 @@ def rna2xml(fw=print_ln,
             root_node="",
             root_rna=None,  # must be set
             root_rna_skip=set(),
-            ident_val="  ",
+            ident_val="    ",
             skip_classes=(bpy.types.Operator,
                           bpy.types.Panel,
                           bpy.types.KeyingSet,
@@ -115,15 +115,29 @@ def rna2xml(fw=print_ln,
                     # check if the list contains native types
                     subvalue_rna = value.path_resolve(prop, False)
                     if type(subvalue_rna).__name__ == "bpy_prop_array":
-                        # TODO, multi-dim!
-                        def str_recursive(s):
-                            subsubvalue_type = type(s)
-                            if subsubvalue_type in (int, float, bool):
-                                return number_to_str(s, subsubvalue_type)
-                            else:
-                                return " ".join([str_recursive(si) for si in s])
+                        # check if this is a 0-1 color (rgb, rgba)
+                        # in that case write as a hexidecimal
+                        prop_rna = value.bl_rna.properties[prop]
+                        if (prop_rna.subtype == 'COLOR_GAMMA' and
+                                prop_rna.hard_min == 0.0 and
+                                prop_rna.hard_max == 1.0 and
+                                prop_rna.array_length in {3, 4}):
+                            # -----
+                            # color
+                            array_value = "#" + "".join(("%.2x" % int(v * 255) for v in subvalue_rna))
 
-                        node_attrs.append("%s=\"%s\"" % (prop, " ".join(str_recursive(v) for v in subvalue_rna)))
+                        else:
+                            # default
+                            def str_recursive(s):
+                                subsubvalue_type = type(s)
+                                if subsubvalue_type in (int, float, bool):
+                                    return number_to_str(s, subsubvalue_type)
+                                else:
+                                    return " ".join([str_recursive(si) for si in s])
+                            
+                            array_value = " ".join(str_recursive(v) for v in subvalue_rna)
+
+                        node_attrs.append("%s=\"%s\"" % (prop, array_value))
                     else:
                         nodes_lists.append((prop, subvalue_ls, subvalue_type))
 
@@ -224,11 +238,18 @@ def xml2rna(root_xml,
                     value_xml_coerce = value_xml
                     tp_name = 'STR'
                 elif hasattr(subvalue, "__len__"):
-                    value_xml_split = value_xml.split()
-                    try:
-                        value_xml_coerce = [int(v) for v in value_xml_split]
-                    except ValueError:
-                        value_xml_coerce = [float(v) for v in value_xml_split]
+                    if value_xml.startswith("#"):
+                        # read hexidecimal value as float array
+                        value_xml_split = value_xml[1:]
+                        value_xml_coerce = [int(value_xml_split[i:i + 2], 16) / 255  for i in range(0, len(value_xml_split), 2)]
+                        del value_xml_split
+                    else:
+                        value_xml_split = value_xml.split()
+                        try:
+                            value_xml_coerce = [int(v) for v in value_xml_split]
+                        except ValueError:
+                            value_xml_coerce = [float(v) for v in value_xml_split]
+                        del value_xml_split
                     tp_name = 'ARRAY'
 
 #                print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))

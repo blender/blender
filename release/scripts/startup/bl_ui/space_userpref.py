@@ -89,8 +89,8 @@ class USERPREF_HT_header(Header):
         layout.operator_context = 'INVOKE_DEFAULT'
 
         if userpref.active_section == 'INPUT':
-            layout.operator("wm.keyconfig_export")
             layout.operator("wm.keyconfig_import")
+            layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install")
             layout.menu("USERPREF_MT_addons_dev_guides")
