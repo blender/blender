@@ -43,9 +43,14 @@
 #define RNA_VERSION_DATE "FIXME-RNA_VERSION_DATE"
 
 #ifdef _WIN32
-#ifndef snprintf
-#define snprintf _snprintf
+#  ifndef snprintf
+#    define snprintf _snprintf
+#  endif
 #endif
+
+/* so we can use __func__ everywhere */
+#if defined(_MSC_VER)
+#  define __func__ __FUNCTION__
 #endif
 
 /* Replace if different */
