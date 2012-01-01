@@ -502,9 +502,9 @@ class WM_MT_context_menu_enum(Menu):
         values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].enum_items]
 
         for name, identifier in values:
-            prop = self.layout.operator("wm.context_set_enum", text=name)
-            prop.data_path = data_path
-            prop.value = identifier
+            props = self.layout.operator("wm.context_set_enum", text=name)
+            props.data_path = data_path
+            props.value = identifier
 
 
 class WM_OT_context_menu_enum(Operator):

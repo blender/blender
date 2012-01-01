@@ -1523,17 +1523,17 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
-        prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        props = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+        props.value = "(True, False, False)"
+        props.data_path = "tool_settings.mesh_select_mode"
 
-        prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
-        prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        props = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+        props.value = "(False, True, False)"
+        props.data_path = "tool_settings.mesh_select_mode"
 
-        prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        props = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+        props.value = "(False, False, True)"
+        props.data_path = "tool_settings.mesh_select_mode"
 
 
 class VIEW3D_MT_edit_mesh_extrude(Menu):
