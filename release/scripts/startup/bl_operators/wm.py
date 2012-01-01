@@ -1462,6 +1462,8 @@ class WM_OT_operator_cheat_sheet(Operator):
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
+# -----------------------------------------------------------------------------
+# Addon Operators
 
 class WM_OT_addon_enable(Operator):
     "Enable an addon"
@@ -1761,4 +1763,62 @@ class WM_OT_addon_expand(Operator):
 
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
+        return {'FINISHED'}
+
+
+# -----------------------------------------------------------------------------
+# Theme IO
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 )
+
+
+class WM_OT_theme_import(Operator, ImportHelper):
+    bl_idname = "wm.theme_import"
+    bl_label = "Import Theme"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = ".xml"
+    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
+
+    def execute(self, context):
+        import rna_xml
+        import xml.dom.minidom
+
+        filepath = self.filepath
+
+        xml_nodes = xml.dom.minidom.parse(filepath)
+        theme_xml = xml_nodes.getElementsByTagName("Theme")[0]
+
+        # XXX, why always 0?, allow many?
+        theme = context.user_preferences.themes[0]
+
+        rna_xml.xml2rna(theme_xml,
+                        root_rna=theme,
+                        )
+
+        return {'FINISHED'}
+
+
+class WM_OT_theme_export(Operator, ExportHelper):
+    bl_idname = "wm.theme_export"
+    bl_label = "Export Theme"
+
+    filename_ext = ".xml"
+    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
+
+    def execute(self, context):
+        import rna_xml
+        
+        filepath = self.filepath
+        file = open(filepath, 'w', encoding='utf-8')
+
+        # XXX, why always 0?, allow many?
+        theme = context.user_preferences.themes[0]
+
+        rna_xml.rna2xml(file.write,
+                        root_rna=theme,
+                        method='ATTR',
+                        )
+
         return {'FINISHED'}
