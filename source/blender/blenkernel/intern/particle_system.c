@@ -39,6 +39,10 @@
 #include <math.h>
 #include <string.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -2332,7 +2336,12 @@ typedef struct SPHData {
 	int pass;
 	float element_size;
 	float flow[3];
+
+	/* Integrator callbacks. This allows different SPH implementations. */
+	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
+	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
 }SPHData;
+
 static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 {
 	SPHRangeData *pfr = (SPHRangeData *)userdata;
@@ -2437,7 +2446,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 		pfr.massfac = psys[i]->part->mass*inv_mass;
 		pfr.use_size = psys[i]->part->flag & PART_SIZEMASS;
 
-		BLI_bvhtree_range_query(psys[i]->bvhtree, state->co, h, sph_density_accum_cb, &pfr);
+		BLI_bvhtree_range_query(psys[i]->bvhtree, state->co, h, sphdata->density_cb, &pfr);
 	}
 
 	pressure =  stiffness * (pfr.density - rest_density);
@@ -2477,6 +2486,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 		if(spring_constant > 0.f) {
 			/* Viscoelastic spring force */
 			if (pfn->psys == psys[0] && fluid->flag & SPH_VISCOELASTIC_SPRINGS && springhash) {
+				/* BLI_edgehash_lookup appears to be thread-safe. - z0r */
 				spring_index = GET_INT_FROM_POINTER(BLI_edgehash_lookup(springhash, index, pfn->index));
 
 				if(spring_index) {
@@ -2490,7 +2500,9 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 					temp_spring.particle_index[1] = pfn->index;
 					temp_spring.rest_length = (fluid->flag & SPH_CURRENT_REST_LENGTH) ? rij : rest_length;
 					temp_spring.delete_flag = 0;
-								
+
+					/* sph_spring_add is not thread-safe. - z0r */
+					#pragma omp critical
 					sph_spring_add(psys[0], &temp_spring);
 				}
 			}
@@ -2509,28 +2521,46 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	sphdata->pass++;
 }
 
-static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash, float *element_size, float flow[3])
-{
+static void sph_solver_init(ParticleSimulationData *sim, SPHData *sphdata) {
 	ParticleTarget *pt;
 	int i;
 
+	// Add other coupled particle systems.
+	sphdata->psys[0] = sim->psys;
+	for(i=1, pt=sim->psys->targets.first; i<10; i++, pt=(pt?pt->next:NULL))
+		sphdata->psys[i] = pt ? psys_get_target_system(sim->ob, pt) : NULL;
+
+	if (psys_uses_gravity(sim))
+		sphdata->gravity = sim->scene->physics_settings.gravity;
+	else
+		sphdata->gravity = NULL;
+	sphdata->eh = sph_springhash_build(sim->psys);
+
+	// These per-particle values should be overridden later, but just for
+	// completeness we give them default values now.
+	sphdata->pa = NULL;
+	sphdata->mass = 1.0f;
+
+	sphdata->force_cb = sph_force_cb;
+	sphdata->density_cb = sph_density_accum_cb;
+}
+static void sph_solver_finalise(SPHData *sphdata) {
+	if (sphdata->eh) {
+		BLI_edgehash_free(sphdata->eh, NULL);
+		sphdata->eh = NULL;
+	}
+}
+static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, SPHData *sphdata){
 	ParticleSettings *part = sim->psys->part;
 	// float timestep = psys_get_timestep(sim); // UNUSED
 	float pa_mass = part->mass * (part->flag & PART_SIZEMASS ? pa->size : 1.f);
 	float dtime = dfra*psys_get_timestep(sim);
 	// int steps = 1; // UNUSED
 	float effector_acceleration[3];
-	SPHData sphdata;
 
-	sphdata.psys[0] = sim->psys;
-	for(i=1, pt=sim->psys->targets.first; i<10; i++, pt=(pt?pt->next:NULL))
-		sphdata.psys[i] = pt ? psys_get_target_system(sim->ob, pt) : NULL;
-
-	sphdata.pa = pa;
-	sphdata.gravity = gravity;
-	sphdata.mass = pa_mass;
-	sphdata.eh = springhash;
-	sphdata.pass = 0;
+	sphdata->pa = pa;
+	sphdata->mass = pa_mass;
+	sphdata->pass = 0;
 	//sphdata.element_size and sphdata.flow are set in the callback.
 
 	/* restore previous state and treat gravity & effectors as external acceleration*/
@@ -2539,9 +2569,7 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 
 	copy_particle_key(&pa->state, &pa->prev_state, 0);
 
-	integrate_particle(part, pa, dtime, effector_acceleration, sph_force_cb, &sphdata);
-	*element_size = sphdata.element_size;
-	copy_v3_v3(flow, sphdata.flow);
+	integrate_particle(part, pa, dtime, effector_acceleration, sphdata->force_cb, sphdata);
 }
 
 /************************************************/
@@ -3641,15 +3669,15 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
    step, after the velocity has been updated. element_size defines the scale of
    the simulation, and is typically the distance to neighbourning particles. */
 void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
-	float dtime, float element_size, float flow[3])
+	float dtime, SPHData *sphdata)
 {
 	float relative_vel[3];
 	float speed;
 
-	sub_v3_v3v3(relative_vel, pa->prev_state.vel, flow);
+	sub_v3_v3v3(relative_vel, pa->prev_state.vel, sphdata->flow);
 	speed = len_v3(relative_vel);
-	if (sim->courant_num < speed * dtime / element_size)
-		sim->courant_num = speed * dtime / element_size;
+	if (sim->courant_num < speed * dtime / sphdata->element_size)
+		sim->courant_num = speed * dtime / sphdata->element_size;
 }
 /* Update time step size to suit current conditions. */
 float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim,
@@ -3821,37 +3849,32 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		}
 		case PART_PHYS_FLUID:
 		{
-			EdgeHash *springhash = sph_springhash_build(psys);
-			float *gravity = NULL;
-			float element_size, flow[3];
+			SPHData sphdata;
+			sph_solver_init(sim, &sphdata);
 
-			if(psys_uses_gravity(sim))
-				gravity = sim->scene->physics_settings.gravity;
-
+			#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
 			LOOP_DYNAMIC_PARTICLES {
 				/* do global forces & effectors */
 				basic_integrate(sim, p, pa->state.time, cfra);
 
 				/* actual fluids calculations */
-				sph_integrate(sim, pa, pa->state.time, gravity, springhash,
-					&element_size, flow);
+				sph_integrate(sim, pa, pa->state.time, &sphdata);
 
 				if(sim->colliders)
 					collision_check(sim, p, pa->state.time, cfra);
 				
-				/* SPH particles are not physical particles, just interpolation particles,  thus rotation has not a direct sense for them */	
+				/* SPH particles are not physical particles, just interpolation
+				 * particles,  thus rotation has not a direct sense for them */
 				basic_rotate(part, pa, pa->state.time, timestep);  
 
+				#pragma omp critical
 				if (part->time_flag & PART_TIME_AUTOSF)
-					update_courant_num(sim, pa, dtime, element_size, flow);
+					update_courant_num(sim, pa, dtime, &sphdata);
 			}
 
 			sph_springs_modify(psys, timestep);
 
-			if(springhash) {
-				BLI_edgehash_free(springhash, NULL);
-				springhash = NULL;
-			}
+			sph_solver_finalise(&sphdata);
 			break;
 		}
 	}
