@@ -1694,6 +1694,18 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 		if(mesh->id.us>0 || wd->current) {
 			/* write LibData */
 			if (!save_for_old_blender) {
+
+#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
+				Mesh backup_mesh = {{0}};
+				/* cache only - dont write */
+				backup_mesh.mface = mesh->mface;
+				mesh->mface = NULL;
+				/* -- */
+				backup_mesh.totface = mesh->totface;
+				mesh->totface = 0;
+				/* -- */
+#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
+
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
 
 				/* direct data */
@@ -1704,9 +1716,18 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
+				/* fdata is really a dummy - written so slots align */
 				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totloop, &mesh->ldata, -1, 0);
 				write_customdata(wd, &mesh->id, mesh->totpoly, &mesh->pdata, -1, 0);
+
+#ifdef USE_BMESH_SAVE_WITHOUT_MFACE
+				/* cache only - dont write */
+				mesh->mface = backup_mesh.mface;
+				/* -- */
+				mesh->totface = backup_mesh.totface;
+#endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
+
 			}
 			else {
 

@@ -226,6 +226,7 @@ typedef struct TFace {
  * will eventually be removed */
 
 #define USE_BMESH_SAVE_AS_COMPAT
+#define USE_BMESH_SAVE_WITHOUT_MFACE
 
 
 #endif
