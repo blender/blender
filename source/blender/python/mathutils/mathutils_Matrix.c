@@ -2409,13 +2409,13 @@ static int MatrixAccess_traverse(MatrixAccessObject *self, visitproc visit, void
 	return 0;
 }
 
-int MatrixAccess_clear(MatrixAccessObject *self)
+static int MatrixAccess_clear(MatrixAccessObject *self)
 {
 	Py_CLEAR(self->matrix_user);
 	return 0;
 }
 
-void MatrixAccess_dealloc(MatrixAccessObject *self)
+static void MatrixAccess_dealloc(MatrixAccessObject *self)
 {
 	if (self->matrix_user) {
 		PyObject_GC_UnTrack(self);
@@ -2432,6 +2432,38 @@ static int MatrixAccess_len(MatrixAccessObject *self)
 	return (self->type == MAT_ACCESS_ROW) ?
 	            self->matrix_user->num_row :
 	            self->matrix_user->num_col;
+}
+
+static PyObject *MatrixAccess_slice(MatrixAccessObject *self, int begin, int end)
+{
+	PyObject *tuple;
+	int count;
+
+	/* row/col access */
+	MatrixObject *matrix_user = self->matrix_user;
+	int matrix_access_len;
+	PyObject *(*Matrix_item_new)(MatrixObject *, int);
+
+	if (self->type == MAT_ACCESS_ROW) {
+		matrix_access_len = matrix_user->num_row;
+		Matrix_item_new = Matrix_item_row;
+	}
+	else { /* MAT_ACCESS_ROW */
+		matrix_access_len = matrix_user->num_col;
+		Matrix_item_new = Matrix_item_col;
+	}
+
+	CLAMP(begin, 0, matrix_access_len);
+	if (end < 0) end = (matrix_access_len + 1) + end;
+	CLAMP(end, 0, matrix_access_len);
+	begin = MIN2(begin, end);
+
+	tuple = PyTuple_New(end - begin);
+	for (count = begin; count < end; count++) {
+		PyTuple_SET_ITEM(tuple, count - begin, Matrix_item_new(matrix_user, count));
+	}
+
+	return tuple;
 }
 
 static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item)
@@ -2454,7 +2486,24 @@ static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item
 			return Matrix_item_col(matrix_user, i);
 		}
 	}
-	/* TODO, slice */
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((void *)item, MatrixAccess_len(self), &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyTuple_New(0);
+		}
+		else if (step == 1) {
+			return MatrixAccess_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_IndexError,
+			                "slice steps not supported with matrix accessors");
+			return NULL;
+		}
+	}
 	else {
 		PyErr_Format(PyExc_TypeError,
 		             "matrix indices must be integers, not %.200s",
@@ -2493,6 +2542,22 @@ static int MatrixAccess_ass_subscript(MatrixAccessObject *self, PyObject *item, 
 	}
 }
 
+static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
+{
+	/* Try get values from a collection */
+	PyObject *ret;
+	PyObject *iter = NULL;
+	ret = MatrixAccess_slice(self, 0, MATRIX_MAX_DIM);
+
+	/* we know this is a tuple so no need to PyIter_Check
+	 * otherwise it could be NULL (unlikely) if conversion failed */
+	if (ret) {
+		iter = PyObject_GetIter(ret);
+		Py_DECREF(ret);
+	}
+
+	return iter;
+}
 
 static PyMappingMethods MatrixAccess_AsMapping = {
 	(lenfunc)MatrixAccess_len,
@@ -2525,6 +2590,8 @@ PyTypeObject matrix_access_Type = {
 	(traverseproc)MatrixAccess_traverse,	//tp_traverse
 	(inquiry)MatrixAccess_clear,	//tp_clear
 	NULL /* (richcmpfunc)MatrixAccess_richcmpr */ /* TODO*/, /*tp_richcompare*/
+	0,									/*tp_weaklistoffset*/
+	(getiterfunc)MatrixAccess_iter, /* getiterfunc tp_iter; */
 };
 
 static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type)
