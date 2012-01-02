@@ -2301,6 +2301,7 @@ static EdgeHash *sph_springhash_build(ParticleSystem *psys)
 	return springhash;
 }
 
+#define SPH_NEIGHBORS 512
 typedef struct SPHNeighbor
 {
 	ParticleSystem *psys;
@@ -2308,7 +2309,7 @@ typedef struct SPHNeighbor
 } SPHNeighbor;
 typedef struct SPHRangeData
 {
-	SPHNeighbor neighbors[128];
+	SPHNeighbor neighbors[SPH_NEIGHBORS];
 	int tot_neighbors;
 
 	float density, near_density;
@@ -2319,10 +2320,6 @@ typedef struct SPHRangeData
 
 	float massfac;
 	int use_size;
-
-	/* Same as SPHData::element_size */
-	float element_size;
-	float flow[3];
 } SPHRangeData;
 typedef struct SPHData {
 	ParticleSystem *psys[10];
@@ -2332,6 +2329,7 @@ typedef struct SPHData {
 	float *gravity;
 	/* Average distance to neighbours (other particles in the support domain),
 	   for calculating the Courant number (adaptive time step). */
+	int pass;
 	float element_size;
 	float flow[3];
 }SPHData;
@@ -2345,11 +2343,13 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	if(npa == pfr->pa || squared_dist < FLT_EPSILON)
 		return;
 
-	/* Ugh! One particle has over 128 neighbors! Really shouldn't happen,
-	 * but even if it does it shouldn't do any terrible harm if all are
-	 * not taken into account - jahka
+	/* Ugh! One particle has too many neighbors! If some aren't taken into
+	 * account, the forces will be biased by the tree search order. This
+	 * effectively adds enery to the system, and results in a churning motion.
+	 * But, we have to stop somewhere, and it's not the end of the world.
+	 *  - jahka and z0r
 	 */
-	if(pfr->tot_neighbors >= 128)
+	if(pfr->tot_neighbors >= SPH_NEIGHBORS)
 		return;
 
 	pfr->neighbors[pfr->tot_neighbors].index = index;
@@ -2359,14 +2359,37 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	dist = sqrtf(squared_dist);
 	q = (1.f - dist/pfr->h) * pfr->massfac;
 
-	add_v3_v3(pfr->flow, npa->state.vel);
-	pfr->element_size += dist;
-
 	if(pfr->use_size)
 		q *= npa->size;
 
 	pfr->density += q*q;
 	pfr->near_density += q*q*q;
+}
+/*
+ * Find the Courant number for an SPH particle (used for adaptive time step).
+ */
+static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr) {
+	ParticleData *pa, *npa;
+	int i;
+	float flow[3], offset[3], dist;
+
+	flow[0] = flow[1] = flow[2] = 0.0f;
+	dist = 0.0f;
+	if (pfr->tot_neighbors > 0) {
+		pa = pfr->pa;
+		for (i=0; i < pfr->tot_neighbors; i++) {
+			npa = pfr->neighbors[i].psys->particles + pfr->neighbors[i].index;
+			sub_v3_v3v3(offset, pa->prev_state.co, npa->prev_state.co);
+			dist += len_v3(offset);
+			add_v3_v3(flow, npa->prev_state.vel);
+		}
+		dist += sphdata->psys[0]->part->fluid->radius; // TODO: remove this? - z0r
+		sphdata->element_size = dist / pfr->tot_neighbors;
+		mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
+	} else {
+		sphdata->element_size = MAXFLOAT;
+		VECCOPY(sphdata->flow, flow);
+	}
 }
 static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, float *UNUSED(impulse))
 {
@@ -2408,8 +2431,6 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	pfr.density = pfr.near_density = 0.f;
 	pfr.h = h;
 	pfr.pa = pa;
-	pfr.element_size = fluid->radius;
-	pfr.flow[0] = pfr.flow[1] = pfr.flow[2] = 0.0f;
 
 	for(i=0; i<10 && psys[i]; i++) {
 		pfr.npsys = psys[i];
@@ -2418,14 +2439,6 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 
 		BLI_bvhtree_range_query(psys[i]->bvhtree, state->co, h, sph_density_accum_cb, &pfr);
 	}
-	if (pfr.tot_neighbors > 0) {
-		pfr.element_size /= pfr.tot_neighbors;
-		mul_v3_fl(pfr.flow, 1.0f / pfr.tot_neighbors);
-	} else {
-		pfr.element_size = MAXFLOAT;
-	}
-	sphdata->element_size = pfr.element_size;
-	copy_v3_v3(sphdata->flow, pfr.flow);
 
 	pressure =  stiffness * (pfr.density - rest_density);
 	near_pressure = stiffness_near_fac * pfr.near_density;
@@ -2490,6 +2503,10 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	/* Artificial buoyancy force in negative gravity direction  */
 	if (fluid->buoyancy > 0.f && gravity)
 		madd_v3_v3fl(force, gravity, fluid->buoyancy * (pfr.density-rest_density));
+
+	if (sphdata->pass == 0 && psys[0]->part->time_flag & PART_TIME_AUTOSF)
+		sph_particle_courant(sphdata, &pfr);
+	sphdata->pass++;
 }
 
 static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash, float *element_size, float flow[3])
@@ -2513,6 +2530,7 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 	sphdata.gravity = gravity;
 	sphdata.mass = pa_mass;
 	sphdata.eh = springhash;
+	sphdata.pass = 0;
 	//sphdata.element_size and sphdata.flow are set in the callback.
 
 	/* restore previous state and treat gravity & effectors as external acceleration*/
@@ -3628,7 +3646,7 @@ void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float relative_vel[3];
 	float speed;
 
-	sub_v3_v3v3(relative_vel, pa->state.vel, flow);
+	sub_v3_v3v3(relative_vel, pa->prev_state.vel, flow);
 	speed = len_v3(relative_vel);
 	if (sim->courant_num < speed * dtime / element_size)
 		sim->courant_num = speed * dtime / element_size;
@@ -3717,11 +3735,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		case PART_PHYS_FLUID:
 		{
 			ParticleTarget *pt = psys->targets.first;
-			psys_update_particle_bvhtree(psys, psys->cfra);
+			psys_update_particle_bvhtree(psys, cfra);
 			
 			for(; pt; pt=pt->next) {  /* Updating others systems particle tree for fluid-fluid interaction */
 				if(pt->ob)
-					psys_update_particle_bvhtree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), psys->cfra);
+					psys_update_particle_bvhtree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
 			}
 			break;
 		}
