@@ -1052,7 +1052,7 @@ class VIEW3D_MT_vertex_group(Menu):
         layout.operator("object.vertex_group_assign", text="Assign to New Group").new = True
 
         ob = context.active_object
-        if ob.mode == 'EDIT':
+        if ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex):
             if ob.vertex_groups.active:
                 layout.separator()
                 layout.operator("object.vertex_group_assign", text="Assign to Active Group")
