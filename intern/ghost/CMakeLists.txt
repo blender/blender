@@ -234,6 +234,13 @@ elseif(UNIX)
 		)
 	endif()
 
+	if(WITH_X11_XF86VMODE)
+		add_definitions(-DWITH_X11_XF86VMODE)
+		list(APPEND INC_SYS
+			${X11_xf86vmode_INCLUDE_PATH}
+		)
+	endif()
+
 	if(WITH_INPUT_NDOF)
 		list(APPEND SRC
 			intern/GHOST_NDOFManagerX11.cpp

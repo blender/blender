@@ -156,6 +156,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
+	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	OFF)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
 	mark_as_advanced(WITH_XDG_USER_DIRS)
@@ -583,6 +584,17 @@ if(UNIX AND NOT APPLE)
 
 		if(WITH_X11_XINPUT)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
+		endif()
+
+		if(WITH_X11_XF86VMODE)
+			# XXX, why dont cmake make this available?
+			FIND_LIBRARY(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
+			mark_as_advanced(X11_Xxf86vmode_LIB)
+			if(X11_Xxf86vmode_LIB)
+				set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xxf86vmode_LIB}")
+			else()
+				set(WITH_X11_XF86VMODE OFF)
+			endif()
 		endif()
 	endif()
 
@@ -1547,6 +1559,7 @@ if(FIRST_RUN)
 
 	info_cfg_text("System Options:")
 	info_cfg_option(WITH_INSTALL_PORTABLE)
+	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
 	info_cfg_option(WITH_BUILTIN_GLEW)
 
