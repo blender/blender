@@ -1298,7 +1298,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			/* if this is not the last modifier in the stack then recalculate the normals
 			 * to avoid giving bogus normals to the next modifier see: [#23673] */
-			if(dm && isPrevDeform &&  mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+			if(isPrevDeform &&  mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 				/* XXX, this covers bug #23673, but we may need normal calc for other types */
 				if(dm && dm->type == DM_TYPE_CDDM) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -1453,12 +1453,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		dm->release(dm);
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
-
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm, draw_flag);
-
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -1571,7 +1569,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
-	DerivedMesh *dm = NULL, *orcodm = NULL, *finaldm = NULL;
+	DerivedMesh *dm, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -1582,6 +1580,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 		*cage_r = getEditDerivedBMesh(em, ob, NULL);
 	}
 
+	dm = NULL;
 	md = modifiers_getVirtualModifierList(ob);
 
 	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
@@ -1723,23 +1722,23 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	 * then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		finaldm = CDDM_copy(dm, 0);
+		*final_r = CDDM_copy(dm, 0);
 
 		if(!(cage_r && dm == *cage_r)) dm->release(dm);
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
+		CDDM_calc_normals(*final_r);
 	} else if (dm) {
-		finaldm = dm;
+		*final_r = dm;
+		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	} else if (!deformedVerts && cage_r && *cage_r) {
-		finaldm = *cage_r;
+		*final_r = *cage_r;
+		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	} else {
-		finaldm = getEditDerivedBMesh(em, ob, deformedVerts);
+		*final_r = getEditDerivedBMesh(em, ob, deformedVerts);
 		deformedVerts = NULL;
+		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
 	}
-
-	finaldm->calcNormals(finaldm);
-
-	*final_r = finaldm;
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO)
