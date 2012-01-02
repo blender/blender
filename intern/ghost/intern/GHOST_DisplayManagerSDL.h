@@ -46,20 +46,20 @@ public:
 	GHOST_DisplayManagerSDL(GHOST_SystemSDL *system);
 
 	GHOST_TSuccess
-	getNumDisplays(GHOST_TUns8& numDisplays);
+	getNumDisplays(GHOST_TUns8& numDisplays) const;
 
 	GHOST_TSuccess
 	getNumDisplaySettings(GHOST_TUns8 display,
-	                      GHOST_TInt32& numSettings);
+	                      GHOST_TInt32& numSettings) const;
 
 	GHOST_TSuccess
 	getDisplaySetting(GHOST_TUns8 display,
 	                  GHOST_TInt32 index,
-	                  GHOST_DisplaySetting& setting);
+	                  GHOST_DisplaySetting& setting) const;
 
 	GHOST_TSuccess
 	getCurrentDisplaySetting(GHOST_TUns8 display,
-	                         GHOST_DisplaySetting& setting);
+	                         GHOST_DisplaySetting& setting) const;
 
 	GHOST_TSuccess
 	setCurrentDisplaySetting(GHOST_TUns8 display,
