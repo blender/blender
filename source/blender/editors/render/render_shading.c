@@ -73,6 +73,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -91,7 +92,7 @@
 
 static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
@@ -120,7 +121,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
@@ -156,7 +157,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
@@ -216,7 +217,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 
 static int material_slot_de_select(bContext *C, int select)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
@@ -322,7 +323,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 
 static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Material ***matar;
 
 	if(!ob || !(matar= give_matarar(ob)))

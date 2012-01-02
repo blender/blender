@@ -318,14 +318,14 @@ int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *na
 
 static int layers_poll(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 	return (ob && !ob->id.lib && ob->type==OB_MESH && data && !data->lib);
 }
 
 static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	if(!ED_mesh_uv_texture_add(C, me, NULL, TRUE))
@@ -435,7 +435,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	if(!ED_mesh_uv_texture_remove(C, ob, me))
@@ -464,7 +464,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 static int vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	if(!ED_mesh_color_add(C, scene, ob, me, NULL, TRUE))
@@ -490,7 +490,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 
 static int vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	if(!ED_mesh_color_remove(C, ob, me))
@@ -520,7 +520,7 @@ static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	/*if(me->msticky)
@@ -551,7 +551,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 
 static int sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Mesh *me= ob->data;
 
 	if(!me->msticky)
