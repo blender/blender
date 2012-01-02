@@ -1296,10 +1296,9 @@ struct GPU_Buffers {
 	unsigned int tot_tri, tot_quad;
 };
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers_v, MVert *mvert,
+void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 			int *vert_indices, int totvert)
 {
-	GPU_Buffers *buffers = buffers_v;
 	VertexBufferFormat *vert_data;
 	int i;
 
@@ -1413,10 +1412,9 @@ GPU_Buffers *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 	return buffers;
 }
 
-void GPU_update_grid_buffers(GPU_Buffers *buffers_v, DMGridData **grids,
+void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 	int *grid_indices, int totgrid, int gridsize, int smooth)
 {
-	GPU_Buffers *buffers = buffers_v;
 	DMGridData *vert_data;
 	int i, j, k, totvert;
 
@@ -1465,7 +1463,7 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers_v, DMGridData **grids,
 	buffers->totgrid = totgrid;
 	buffers->gridsize = gridsize;
 
-	//printf("node updated %p\n", buffers_v);
+	//printf("node updated %p\n", buffers);
 }
 
 GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
@@ -1558,10 +1556,8 @@ GPU_Buffers *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid
 	return buffers;
 }
 
-void GPU_draw_buffers(GPU_Buffers *buffers_v)
+void GPU_draw_buffers(GPU_Buffers *buffers)
 {
-	GPU_Buffers *buffers = buffers_v;
-
 	if(buffers->vert_buf && buffers->index_buf) {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
@@ -1632,11 +1628,9 @@ void GPU_draw_buffers(GPU_Buffers *buffers_v)
 	}
 }
 
-void GPU_free_buffers(GPU_Buffers *buffers_v)
+void GPU_free_buffers(GPU_Buffers *buffers)
 {
-	if(buffers_v) {
-		GPU_Buffers *buffers = buffers_v;
-		
+	if(buffers) {
 		if(buffers->vert_buf)
 			glDeleteBuffersARB(1, &buffers->vert_buf);
 		if(buffers->index_buf)
@@ -1645,4 +1639,3 @@ void GPU_free_buffers(GPU_Buffers *buffers_v)
 		MEM_freeN(buffers);
 	}
 }
-
