@@ -52,7 +52,7 @@ float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_d
 {
 	float dist;
 
-	if(isect_ray_tri_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL))
+	if(isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
 		return dist;
 
 	return FLT_MAX;

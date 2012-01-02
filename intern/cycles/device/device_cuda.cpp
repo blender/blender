@@ -615,16 +615,16 @@ public:
 		cuda_pop_context();
 	}
 
-	void displace(DeviceTask& task)
+	void shader(DeviceTask& task)
 	{
 		cuda_push_context();
 
 		CUfunction cuDisplace;
-		CUdeviceptr d_input = cuda_device_ptr(task.displace_input);
-		CUdeviceptr d_offset = cuda_device_ptr(task.displace_offset);
+		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
+		CUdeviceptr d_offset = cuda_device_ptr(task.shader_output);
 
 		/* get kernel function */
-		cuda_assert(cuModuleGetFunction(&cuDisplace, cuModule, "kernel_cuda_displace"))
+		cuda_assert(cuModuleGetFunction(&cuDisplace, cuModule, "kernel_cuda_shader"))
 		
 		/* pass in parameters */
 		int offset = 0;
@@ -635,11 +635,14 @@ public:
 		cuda_assert(cuParamSetv(cuDisplace, offset, &d_offset, sizeof(d_offset)))
 		offset += sizeof(d_offset);
 
-		int displace_x = task.displace_x;
-		offset = cuda_align_up(offset, __alignof(displace_x));
+		int shader_eval_type = task.shader_eval_type;
+		offset = cuda_align_up(offset, __alignof(shader_eval_type));
 
-		cuda_assert(cuParamSeti(cuDisplace, offset, task.displace_x))
-		offset += sizeof(task.displace_x);
+		cuda_assert(cuParamSeti(cuDisplace, offset, task.shader_eval_type))
+		offset += sizeof(task.shader_eval_type);
+
+		cuda_assert(cuParamSeti(cuDisplace, offset, task.shader_x))
+		offset += sizeof(task.shader_x);
 
 		cuda_assert(cuParamSetSize(cuDisplace, offset))
 
@@ -649,7 +652,7 @@ public:
 #else
 		int xthreads = 8;
 #endif
-		int xblocks = (task.displace_w + xthreads - 1)/xthreads;
+		int xblocks = (task.shader_w + xthreads - 1)/xthreads;
 
 		cuda_assert(cuFuncSetCacheConfig(cuDisplace, CU_FUNC_CACHE_PREFER_L1))
 		cuda_assert(cuFuncSetBlockShape(cuDisplace, xthreads, 1, 1))
@@ -828,8 +831,8 @@ public:
 			tonemap(task);
 		else if(task.type == DeviceTask::PATH_TRACE)
 			path_trace(task);
-		else if(task.type == DeviceTask::DISPLACE)
-			displace(task);
+		else if(task.type == DeviceTask::SHADER)
+			shader(task);
 	}
 
 	void task_wait()

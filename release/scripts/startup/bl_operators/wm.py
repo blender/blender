@@ -32,6 +32,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 import subprocess
 import os
 
+
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
@@ -501,9 +502,9 @@ class WM_MT_context_menu_enum(Menu):
         values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].enum_items]
 
         for name, identifier in values:
-            prop = self.layout.operator("wm.context_set_enum", text=name)
-            prop.data_path = data_path
-            prop.value = identifier
+            props = self.layout.operator("wm.context_set_enum", text=name)
+            props.data_path = data_path
+            props.value = identifier
 
 
 class WM_OT_context_menu_enum(Operator):
@@ -1176,26 +1177,28 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
+
 class WM_OT_blenderplayer_start(bpy.types.Operator):
     '''Launch the Blenderplayer with the current blendfile'''
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"
-    
+
     blender_bin_path = bpy.app.binary_path
     blender_bin_dir = os.path.dirname(blender_bin_path)
     ext = os.path.splitext(blender_bin_path)[-1]
     player_path = os.path.join(blender_bin_dir, "blenderplayer" + ext)
-    
+
     def execute(self, context):
         import sys
 
         if sys.platform == "darwin":
             self.player_path = os.path.join(self.blender_bin_dir, "../../../blenderplayer.app/Contents/MacOS/blenderplayer")
-	
+
         filepath = bpy.app.tempdir + "game.blend"
         bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
         subprocess.call([self.player_path, filepath])
         return {'FINISHED'}
+
 
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
@@ -1462,6 +1465,9 @@ class WM_OT_operator_cheat_sheet(Operator):
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
+
+# -----------------------------------------------------------------------------
+# Addon Operators
 
 class WM_OT_addon_enable(Operator):
     "Enable an addon"
@@ -1761,4 +1767,62 @@ class WM_OT_addon_expand(Operator):
 
         info = addon_utils.module_bl_info(mod)
         info["show_expanded"] = not info["show_expanded"]
+        return {'FINISHED'}
+
+
+# -----------------------------------------------------------------------------
+# Theme IO
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 )
+
+
+class WM_OT_theme_import(Operator, ImportHelper):
+    bl_idname = "wm.theme_import"
+    bl_label = "Import Theme"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filename_ext = ".xml"
+    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
+
+    def execute(self, context):
+        import rna_xml
+        import xml.dom.minidom
+
+        filepath = self.filepath
+
+        xml_nodes = xml.dom.minidom.parse(filepath)
+        theme_xml = xml_nodes.getElementsByTagName("Theme")[0]
+
+        # XXX, why always 0?, allow many?
+        theme = context.user_preferences.themes[0]
+
+        rna_xml.xml2rna(theme_xml,
+                        root_rna=theme,
+                        )
+
+        return {'FINISHED'}
+
+
+class WM_OT_theme_export(Operator, ExportHelper):
+    bl_idname = "wm.theme_export"
+    bl_label = "Export Theme"
+
+    filename_ext = ".xml"
+    filter_glob = StringProperty(default="*.xml", options={'HIDDEN'})
+
+    def execute(self, context):
+        import rna_xml
+
+        filepath = self.filepath
+        file = open(filepath, 'w', encoding='utf-8')
+
+        # XXX, why always 0?, allow many?
+        theme = context.user_preferences.themes[0]
+
+        rna_xml.rna2xml(file.write,
+                        root_rna=theme,
+                        method='ATTR',
+                        )
+
         return {'FINISHED'}

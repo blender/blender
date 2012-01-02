@@ -52,7 +52,7 @@ enum MemoryType {
 
 class DeviceTask {
 public:
-	typedef enum { PATH_TRACE, TONEMAP, DISPLACE } Type;
+	typedef enum { PATH_TRACE, TONEMAP, SHADER } Type;
 	Type type;
 
 	int x, y, w, h;
@@ -63,9 +63,10 @@ public:
 	int resolution;
 	int offset, stride;
 
-	device_ptr displace_input;
-	device_ptr displace_offset;
-	int displace_x, displace_w;
+	device_ptr shader_input;
+	device_ptr shader_output;
+	int shader_eval_type;
+	int shader_x, shader_w;
 
 	DeviceTask(Type type = PATH_TRACE);
 

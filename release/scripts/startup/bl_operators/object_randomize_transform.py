@@ -49,7 +49,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
             rotation_mode = obj.rotation_mode
             if rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
                 obj.rotation_mode = 'XYZ'
-                
+
             if delta:
                 obj.delta_rotation_euler[0] += vec[0]
                 obj.delta_rotation_euler[1] += vec[1]
