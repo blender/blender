@@ -158,7 +158,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             row = layout.row()
             row.prop(group, "name")
 
-        if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
+        if ob.mode == 'EDIT' and ob.vertex_groups:
             row = layout.row()
 
             sub = row.row(align=True)
