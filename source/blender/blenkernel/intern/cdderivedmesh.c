@@ -2279,7 +2279,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
  *
  * note, CDDM_recalc_tesselation has to run on the returned DM if you want to access tessfaces.
  */
-DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
+DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	CDDerivedMesh *cddm2 = NULL;
@@ -2336,7 +2336,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 	c = 0;
 	for (i=0; i<dm->numEdgeData; i++, med++) {
 		
-		if (med->v1 != med->v2) {
+		if (LIKELY(med->v1 != med->v2)) {
 			const unsigned int v1 = (vtargetmap[med->v1] != -1) ? vtargetmap[med->v1] : med->v1;
 			const unsigned int v2 = (vtargetmap[med->v2] != -1) ? vtargetmap[med->v2] : med->v2;
 			void **eh_p= BLI_edgehash_lookup_p(ehash, v1, v2);
@@ -2366,16 +2366,17 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 		c = 0;
 		for (j=0; j<mp->totloop; j++, ml++) {
 			med = cddm->medge + ml->e;
-			if (med->v1 != med->v2) {
+			if (LIKELY(med->v1 != med->v2)) {
+				newl[j+mp->loopstart] = BLI_array_count(mloop);
 				BLI_array_append(oldl, j+mp->loopstart);
 				BLI_array_append(mloop, *ml);
-				newl[j+mp->loopstart] = BLI_array_count(mloop)-1;
 				c++;
 			}
 		}
-		
-		if (!c)
+
+		if (UNLIKELY(c == 0)) {
 			continue;
+		}
 		
 		mp2 = BLI_array_append_r(mpoly, *mp);
 		mp2->totloop = c;

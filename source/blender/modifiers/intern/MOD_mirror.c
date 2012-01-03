@@ -99,7 +99,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
                                    int axis)
 {
 	float tolerance_sq;
-	DerivedMesh *cddm, *origdm;
+	DerivedMesh *result, *origdm;
 	MVert *mv, *ov;
 	MEdge *me;
 	MLoop *ml;
@@ -139,18 +139,18 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		mult_m4_m4m4(mtx, itmp, mtx);
 	}
 	
-	cddm = CDDM_from_template(dm, dm->numVertData*2, dm->numEdgeData*2, 0, dm->numLoopData*2, dm->numPolyData*2);
+	result = CDDM_from_template(dm, dm->numVertData*2, dm->numEdgeData*2, 0, dm->numLoopData*2, dm->numPolyData*2);
 	
 	/*copy customdata to original geometry*/
-	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, 0, dm->numVertData);
-	CustomData_copy_data(&dm->edgeData, &cddm->edgeData, 0, 0, dm->numEdgeData);
-	CustomData_copy_data(&dm->loopData, &cddm->loopData, 0, 0, dm->numLoopData);
-	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, 0, dm->numPolyData);
+	CustomData_copy_data(&dm->vertData, &result->vertData, 0, 0, dm->numVertData);
+	CustomData_copy_data(&dm->edgeData, &result->edgeData, 0, 0, dm->numEdgeData);
+	CustomData_copy_data(&dm->loopData, &result->loopData, 0, 0, dm->numLoopData);
+	CustomData_copy_data(&dm->polyData, &result->polyData, 0, 0, dm->numPolyData);
 
 	/*copy customdata to new geometry*/
-	CustomData_copy_data(&dm->vertData, &cddm->vertData, 0, dm->numVertData, dm->numVertData);
-	CustomData_copy_data(&dm->edgeData, &cddm->edgeData, 0, dm->numEdgeData, dm->numEdgeData);
-	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, dm->numPolyData, dm->numPolyData);
+	CustomData_copy_data(&dm->vertData, &result->vertData, 0, dm->numVertData, dm->numVertData);
+	CustomData_copy_data(&dm->edgeData, &result->edgeData, 0, dm->numEdgeData, dm->numEdgeData);
+	CustomData_copy_data(&dm->polyData, &result->polyData, 0, dm->numPolyData, dm->numPolyData);
 
 	if (do_vtargetmap) {
 		/* second half is filled with -1 */
@@ -161,7 +161,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	/*mirror vertex coordinates*/
-	ov = CDDM_get_verts(cddm);
+	ov = CDDM_get_verts(result);
 	mv = ov + dm->numVertData;
 	for (i=0; i<dm->numVertData; i++, mv++, ov++) {
 		mul_m4_v3(mtx, mv->co);
@@ -178,30 +178,30 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 	
 	/*handle shape keys*/
-	totshape = CustomData_number_of_layers(&cddm->vertData, CD_SHAPEKEY);
+	totshape = CustomData_number_of_layers(&result->vertData, CD_SHAPEKEY);
 	for (a=0; a<totshape; a++) {
-		float (*cos)[3] = CustomData_get_layer_n(&cddm->vertData, CD_SHAPEKEY, a);
-		for (i=dm->numVertData; i<cddm->numVertData; i++) {
+		float (*cos)[3] = CustomData_get_layer_n(&result->vertData, CD_SHAPEKEY, a);
+		for (i=dm->numVertData; i<result->numVertData; i++) {
 			mul_m4_v3(mtx, cos[i]);
 		}
 	}
 	
 	/*adjust mirrored edge vertex indices*/
-	me = CDDM_get_edges(cddm) + dm->numEdgeData;
+	me = CDDM_get_edges(result) + dm->numEdgeData;
 	for (i=0; i<dm->numEdgeData; i++, me++) {
 		me->v1 += dm->numVertData;
 		me->v2 += dm->numVertData;
 	}
 	
 	/*adjust mirrored poly loopstart indices, and reverse loop order (normals)*/	
-	mp = CDDM_get_polys(cddm) + dm->numPolyData;
-	ml = CDDM_get_loops(cddm);
+	mp = CDDM_get_polys(result) + dm->numPolyData;
+	ml = CDDM_get_loops(result);
 	for (i=0; i<dm->numPolyData; i++, mp++) {
 		MLoop *ml2;
 		int e;
 		
 		for (j=0; j<mp->totloop; j++) {
-			CustomData_copy_data(&dm->loopData, &cddm->loopData, mp->loopstart+j,
+			CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart+j,
 								 mp->loopstart+dm->numLoopData+mp->totloop-j-1, 1);
 		}
 		
@@ -216,7 +216,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	/*adjust mirrored loop vertex and edge indices*/	
-	ml = CDDM_get_loops(cddm) + dm->numLoopData;
+	ml = CDDM_get_loops(result) + dm->numLoopData;
 	for (i=0; i<dm->numLoopData; i++, ml++) {
 		ml->v += dm->numVertData;
 		ml->e += dm->numEdgeData;
@@ -228,10 +228,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		const int do_mirr_u= (mmd->flag & MOD_MIR_MIRROR_U) != 0;
 		const int do_mirr_v= (mmd->flag & MOD_MIR_MIRROR_V) != 0;
 
-		const int totuv = CustomData_number_of_layers(&cddm->loopData, CD_MLOOPUV);
+		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
 
 		for (a=0; a<totuv; a++) {
-			MLoopUV *dmloopuv = CustomData_get_layer_n(&cddm->loopData, CD_MLOOPUV, a);
+			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, a);
 			int j = dm->numLoopData;
 			dmloopuv += j; /* second set of loops only */
 			for ( ; i-- > 0; dmloopuv++) {
@@ -242,8 +242,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	/*handle vgroup stuff*/
-	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&cddm->vertData, CD_MDEFORMVERT)) {
-		MDeformVert *dvert = CustomData_get_layer(&cddm->vertData, CD_MDEFORMVERT);
+	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
+		MDeformVert *dvert = CustomData_get_layer(&result->vertData, CD_MDEFORMVERT);
 		int *flip_map= NULL, flip_map_len= 0;
 
 		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
@@ -255,18 +255,18 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	if (do_vtargetmap) {
 		/* this calls CDDM_recalc_tesselation, so dont do twice */
-		cddm = CDDM_merge_verts(cddm, vtargetmap);
+		result = CDDM_merge_verts(result, vtargetmap);
 		MEM_freeN(vtargetmap);
 	}
 
-	CDDM_recalc_tesselation(cddm);
+	CDDM_recalc_tesselation(result);
 	
 	if (dm != origdm) {
 		dm->needsFree = 1;
 		dm->release(dm);
 	}
 	
-	return cddm;
+	return result;
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
