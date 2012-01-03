@@ -1122,7 +1122,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						norfac = -hScale * mtex->norfac;
 						if(found_deriv_map)
 						{
-							float fVirtDim = sqrtf(ima_x*mtex->size[0]*ima_y*mtex->size[1]);
+							float fVirtDim = sqrtf(fabsf(ima_x*mtex->size[0]*ima_y*mtex->size[1]));
 							norfac /= MAX2(fVirtDim, FLT_EPSILON);
 						}
 

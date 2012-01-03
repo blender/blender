@@ -1970,7 +1970,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
 		}
 		{
-			float fVirtDim = sqrtf((float) (dimx*dimy)*mtex->size[0]*mtex->size[1]);
+			float fVirtDim = sqrtf(fabsf((float) (dimx*dimy)*mtex->size[0]*mtex->size[1]));
 			auto_bump /= MAX2(fVirtDim, FLT_EPSILON);
 		}
 		
