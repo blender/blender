@@ -430,7 +430,8 @@ void unlink_object(Object *ob)
 				if(pchan->custom==ob)
 					pchan->custom= NULL;
 			}
-		} else if(ELEM(OB_MBALL, ob->type, obt->type)) {
+		} 
+		else if(ELEM(OB_MBALL, ob->type, obt->type)) {
 			if(is_mball_basis_for(obt, ob))
 				obt->recalc|= OB_RECALC_DATA;
 		}
@@ -607,21 +608,6 @@ void unlink_object(Object *ob)
 
 		sce= sce->id.next;
 	}
-	
-#if 0 // XXX old animation system
-	/* ipos */
-	ipo= bmain->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL) {
-			IpoCurve *icu;
-			for(icu= ipo->curve.first; icu; icu= icu->next) {
-				if(icu->driver && icu->driver->ob==ob)
-					icu->driver->ob= NULL;
-			}
-		}
-		ipo= ipo->id.next;
-	}
-#endif // XXX old animation system
 	
 	/* screens */
 	sc= bmain->screen.first;
@@ -990,7 +976,7 @@ void copy_object_particlesystems(Object *obn, Object *ob)
 			}
 			else if (md->type==eModifierType_Smoke) {
 				SmokeModifierData *smd = (SmokeModifierData*) md;
-
+				
 				if(smd->type==MOD_SMOKE_TYPE_FLOW) {
 					if (smd->flow) {
 						if (smd->flow->psys == psys)
@@ -1026,22 +1012,6 @@ static void copy_object_pose(Object *obn, Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
-#if 0 // XXX old animation system
-			/* note that we can't change lib linked ipo blocks. for making
-			 * proxies this still works correct however because the object
-			 * is changed to object->proxy_from when evaluating the driver. */
-			if(con->ipo && !con->ipo->id.lib) {
-				IpoCurve *icu;
-				
-				con->ipo= copy_ipo(con->ipo);
-				
-				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
-					if(icu->driver && icu->driver->ob==ob)
-						icu->driver->ob= obn;
-				}
-			}
-#endif // XXX old animation system
-			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);
 				
@@ -1071,8 +1041,7 @@ static int object_pose_context(Object *ob)
 	}
 }
 
-//Object *object_pose_armature_get(Object *ob)
-Object *object_pose_armature_get(struct Object *ob)
+Object *object_pose_armature_get(Object *ob)
 {
 	if(ob==NULL)
 		return NULL;
@@ -1178,13 +1147,8 @@ Object *copy_object(Object *ob)
 
 static void extern_local_object(Object *ob)
 {
-	//bActionStrip *strip;
 	ParticleSystem *psys;
 
-#if 0 // XXX old animation system
-	id_lib_extern((ID *)ob->action);
-	id_lib_extern((ID *)ob->ipo);
-#endif // XXX old animation system
 	id_lib_extern((ID *)ob->data);
 	id_lib_extern((ID *)ob->dup_group);
 	id_lib_extern((ID *)ob->poselib);
@@ -1192,11 +1156,6 @@ static void extern_local_object(Object *ob)
 
 	extern_local_matarar(ob->mat, ob->totcol);
 
-#if 0 // XXX old animation system
-	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
-		id_lib_extern((ID *)strip->act);
-	}
-#endif // XXX old animation system
 	for(psys=ob->particlesystem.first; psys; psys=psys->next)
 		id_lib_extern((ID *)psys->part);
 }
