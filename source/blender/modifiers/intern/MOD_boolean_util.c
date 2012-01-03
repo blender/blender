@@ -346,7 +346,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	DerivedMesh *dm2,
 	Object *ob2)
 {
-	DerivedMesh *result, *orig_dm, *dm;
+	DerivedMesh *result, *orig_dm;
 	GHash *material_hash = NULL;
 	Mesh *me1= (Mesh*)ob1->data;
 	Mesh *me2= (Mesh*)ob2->data;
@@ -434,12 +434,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 	CDDM_calc_edges(result);
 
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	CDDM_calc_normals(dm);
-	result->needsFree = 1;
-	result->release(result);
+	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 
-	return dm;
+	return result;
 }
 	
 static void BuildMeshDescriptors(

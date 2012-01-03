@@ -312,11 +312,9 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	if(size)
 		MEM_freeN(size);
 
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	result->needsFree = 1;
-	result->release(result);
+	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 
-	return dm;
+	return result;
 }
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 						struct BMEditMesh *UNUSED(editData),

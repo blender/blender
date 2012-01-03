@@ -297,16 +297,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	dummy->release(dummy);
 	
 	/*create polys from mface triangles*/
-	dummy = cddm;
-	cddm = CDDM_copy(cddm, 1);
-	dummy->needsFree = 1;
-	dummy->release(dummy);
-	
-	if (copy) {
-		copy->needsFree = 1;
-		copy->release(dm);
-		copy = copy;
-	}
+	CDDM_tessfaces_to_faces(cddm); /*builds ngon faces from tess (mface) faces*/
 
 	return cddm;
 }
@@ -336,4 +327,3 @@ ModifierTypeInfo modifierType_NgonInterp = {
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };
-

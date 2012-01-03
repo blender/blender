@@ -181,12 +181,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
 
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	CDDM_calc_normals(dm);
-	result->needsFree = 1;
-	result->release(result);
+	if (result) {
+		CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 
-	return dm;
+		return result;
+	}
+	else {
+		return dm;
+	}
 }
 #else // WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),

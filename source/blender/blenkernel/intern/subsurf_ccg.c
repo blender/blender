@@ -484,28 +484,6 @@ static void free_ss_weights(WeightTable *wtable)
 		MEM_freeN(wtable->weight_table);
 }
 
-#if 0
-static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
-								 int drawInteriorEdges, int useSubsurfUv,
-								 DerivedMesh *dm, struct MultiresSubsurf *ms)
-{
-	DerivedMesh *cgdm, *result;
-	double curt = PIL_check_seconds_timer();
-
-	cgdm = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
-	result = CDDM_copy(cgdm, 1);
-
-	printf("subsurf conversion time: %.6lf\n", PIL_check_seconds_timer() - curt);
-
-	cgdm->needsFree = 1;
-	cgdm->release(cgdm);
-
-	CDDM_calc_normals(result);
-
-	return result;
-}
-#endif
-
 static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 									 float (*vertexCos)[3], int useFlatSubdiv)
 {

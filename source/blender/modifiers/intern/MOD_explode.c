@@ -774,11 +774,9 @@ static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	MEM_freeN(facesplit);
 	MEM_freeN(vertpa);
 
-	dm = CDDM_copy(splitdm, 1); /*builds ngon faces from tess (mface) faces*/
-	splitdm->needsFree = 1;
-	splitdm->release(splitdm);
+	CDDM_tessfaces_to_faces(splitdm); /*builds ngon faces from tess (mface) faces*/
 
-	return dm;
+	return splitdm;
 }
 static DerivedMesh * explodeMesh(ExplodeModifierData *emd, 
 		ParticleSystemModifierData *psmd, Scene *scene, Object *ob, 
