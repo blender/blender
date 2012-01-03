@@ -1120,7 +1120,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						// to inverting the bump map. Should this ever change
 						// this negate must be removed.
 						norfac = -hScale * mtex->norfac;
-						if(found_deriv_map) norfac /= sqrtf(ima_x*ima_y);
+						if(found_deriv_map) norfac /= MAX2(sqrtf(ima_x*mtex->size[0]*ima_y*mtex->size[1]), FLT_EPSILON);
 
 						tnorfac = GPU_uniform(&norfac);
 
