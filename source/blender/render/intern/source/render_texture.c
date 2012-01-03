@@ -1969,7 +1969,10 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		{
 			auto_bump = shi->obr->ob->derivedFinal->auto_bump_scale;
 		}
-		auto_bump /= MAX2(sqrtf((float) (dimx*dimy)*mtex->size[0]*mtex->size[1]), FLT_EPSILON);
+		{
+			float fVirtDim = sqrtf((float) (dimx*dimy)*mtex->size[0]*mtex->size[1]);
+			auto_bump /= MAX2(fVirtDim, FLT_EPSILON);
+		}
 		
 		// this variant using a derivative map is described here
 		// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
