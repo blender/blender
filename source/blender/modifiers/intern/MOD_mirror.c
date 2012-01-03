@@ -99,6 +99,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 {
 	const float tolerance_sq = mmd->tolerance * mmd->tolerance;
 	const int do_vtargetmap = !(mmd->flag & MOD_MIR_NO_MERGE);
+	int is_vtargetmap = FALSE; /* true when it should be used */
 
 	DerivedMesh *result;
 	const int maxVerts = dm->getNumVerts(dm);
@@ -184,7 +185,14 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if (do_vtargetmap) {
 			/* compare location of the original and mirrored vertex, to see if they
 			 * should be mapped for merging */
-			*vtmap_a = (len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq) ? maxVerts + i : -1;
+			if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+				*vtmap_a = maxVerts + i;
+				is_vtargetmap = TRUE;
+			}
+			else {
+				*vtmap_a = -1;
+			}
+
 			*vtmap_b = -1; /* fill here to avoid 2x loops */
 
 			vtmap_a++;
@@ -269,8 +277,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	}
 
 	if (do_vtargetmap) {
-		/* this calls CDDM_recalc_tesselation, so dont do twice */
-		result = CDDM_merge_verts(result, vtargetmap);
+		if (is_vtargetmap) { /* slow - so only call if one or more merge verts are found */
+			result = CDDM_merge_verts(result, vtargetmap);
+		}
 		MEM_freeN(vtargetmap);
 	}
 
