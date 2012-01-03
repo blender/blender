@@ -203,6 +203,13 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		ibuf->rect+= (ibuf->x*ibuf->y);
 	}
 
+	/* keep this before interpolation [#29761] */
+	if (tex->imaflag & TEX_USEALPHA) {
+		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
+			texres->talpha = TRUE;
+		} 
+	}
+
 	/* interpolate */
 	if (tex->imaflag & TEX_INTERPOL) {
 		float filterx, filtery;
@@ -225,11 +232,6 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		ibuf->rect-= (ibuf->x*ibuf->y);
 	}
 
-	if(tex->imaflag & TEX_USEALPHA) {
-		if(tex->imaflag & TEX_CALCALPHA);
-		else texres->talpha= 1;
-	}
-	
 	if(texres->nor) {
 		if(tex->imaflag & TEX_NORMALMAP) {
 			// qdn: normal from color
