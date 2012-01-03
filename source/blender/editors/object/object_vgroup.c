@@ -613,9 +613,11 @@ static void vgroup_select_verts(Object *ob, int select)
 				dv = me->dvert;
 
 				for (i=0; i<me->totvert; i++, mv++, dv++) {
-					if (defvert_find_index(dv, def_nr)) {
-						if (select)  mv->flag |=  SELECT;
-						else         mv->flag &= ~SELECT;
+					if (!(mv->flag & ME_HIDE)) {
+						if (defvert_find_index(dv, def_nr)) {
+							if (select)  mv->flag |=  SELECT;
+							else         mv->flag &= ~SELECT;
+						}
 					}
 				}
 
