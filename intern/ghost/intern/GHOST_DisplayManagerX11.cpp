@@ -20,7 +20,9 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Video mode switching
+ * Copyright (C) 1997-2001 Id Software, Inc.
+ * Ported from Quake 2 by Alex Fraser <alex@phatcore.com>
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -29,6 +31,10 @@
  *  \ingroup GHOST
  */
 
+#ifdef WITH_X11_XF86VMODE
+#  include <X11/Xlib.h>
+#  include <X11/extensions/xf86vmode.h>
+#endif
 
 #include "GHOST_DisplayManagerX11.h"
 #include "GHOST_SystemX11.h"
@@ -112,12 +118,74 @@ setCurrentDisplaySetting(
 	GHOST_TUns8 display,
 	const GHOST_DisplaySetting& setting
 ){
-	// This is never going to work robustly in X 
-	// but it's currently part of the full screen interface
+#ifdef WITH_X11_XF86VMODE
+	//
+	// Mode switching code ported from Quake 2:
+	// ftp://ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
+	// See linux/gl_glx.c:GLimp_SetMode
+	//
+	int majorVersion, minorVersion;
+	XF86VidModeModeInfo **vidmodes;
+	Display *dpy = m_system->getXDisplay();
+	int scrnum, num_vidmodes;
+	int best_fit, best_dist, dist, x, y;
 
-	// we fudge it for now.
+	scrnum = DefaultScreen(dpy);
 
+	// Get video mode list
+	majorVersion = minorVersion = 0;
+	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
+		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
+		return GHOST_kFailure;
+	}
+#  ifdef _DEBUG
+	printf("Using XFree86-VidModeExtension Version %d.%d\n",
+			majorVersion, minorVersion);
+#  endif
+
+	XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
+
+	best_dist = 9999999;
+	best_fit = -1;
+
+	for (int i = 0; i < num_vidmodes; i++) {
+		if (setting.xPixels > vidmodes[i]->hdisplay ||
+			setting.yPixels > vidmodes[i]->vdisplay)
+			continue;
+
+		x = setting.xPixels - vidmodes[i]->hdisplay;
+		y = setting.yPixels - vidmodes[i]->vdisplay;
+		dist = (x * x) + (y * y);
+		if (dist < best_dist) {
+			best_dist = dist;
+			best_fit = i;
+		}
+	}
+
+	if (best_fit != -1) {
+#  ifdef _DEBUG
+		int actualWidth, actualHeight;
+		actualWidth = vidmodes[best_fit]->hdisplay;
+		actualHeight = vidmodes[best_fit]->vdisplay;
+		printf("Switching to video mode %dx%d\n",
+				actualWidth, actualHeight);
+#  endif
+
+		// change to the mode
+		XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
+
+		// Move the viewport to top left
+		XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
+	} else
+		return GHOST_kFailure;
+
+	XFlush(dpy);
 	return GHOST_kSuccess;
+
+#else
+	// Just pretend the request was successful.
+	return GHOST_kSuccess;
+#endif
 }
 
 

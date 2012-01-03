@@ -170,6 +170,11 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 
 	result= new_render_result(re, &disprect, 0, RR_USEMEM);
 	BLI_addtail(&engine->fullresult, result);
+	
+	result->tilerect.xmin += re->disprect.xmin;
+	result->tilerect.xmax += re->disprect.xmin;
+	result->tilerect.ymin += re->disprect.ymin;
+	result->tilerect.ymax += re->disprect.ymin;
 
 	return result;
 }
@@ -190,11 +195,6 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 
 	if(!result)
 		return;
-	
-	result->tilerect.xmin += re->disprect.xmin;
-	result->tilerect.xmax += re->disprect.xmin;
-	result->tilerect.ymin += re->disprect.ymin;
-	result->tilerect.ymax += re->disprect.ymin;
 
 	/* merge. on break, don't merge in result for preview renders, looks nicer */
 	if(!(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS)))

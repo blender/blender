@@ -234,13 +234,20 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 
 				object_free_duplilist(*b_ob);
 
-				/* check if we should render duplicator */
 				hide = true;
-				BL::Object::particle_systems_iterator b_psys;
+			}
 
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
-					if(b_psys->settings().use_render_emitter())
-						hide = false;
+			/* check if we should render or hide particle emitter */
+			BL::Object::particle_systems_iterator b_psys;
+			bool render_emitter = false;
+
+			for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+				if(b_psys->settings().use_render_emitter()) {
+					hide = false;
+					render_emitter = true;
+				}
+				else if(!render_emitter)
+					hide = true;
 			}
 
 			if(!hide) {

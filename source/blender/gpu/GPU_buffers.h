@@ -167,7 +167,7 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
 			int *vert_indices, int totvert);
 GPU_Buffers *GPU_build_grid_buffers(struct DMGridData **grids,
 	int *grid_indices, int totgrid, int gridsize);
-void GPU_update_grid_buffers(GPU_Buffers *buffers_v, struct DMGridData **grids,
+void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
 	int *grid_indices, int totgrid, int gridsize, int smooth);
 void GPU_draw_buffers(GPU_Buffers *buffers);
 void GPU_free_buffers(GPU_Buffers *buffers);

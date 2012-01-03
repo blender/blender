@@ -2649,6 +2649,7 @@ static void rna_generate_header(BlenderRNA *brna, FILE *f)
 static const char *cpp_classes = ""
 "\n"
 "#include <string>\n"
+"#include <string.h> /* for memcpy */\n"
 "\n"
 "namespace BL {\n"
 "\n"
@@ -2774,6 +2775,7 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");
+	fprintf(f, "#include \"RNA_access.h\"\n");
 
 	fprintf(f, "%s", cpp_classes);
 

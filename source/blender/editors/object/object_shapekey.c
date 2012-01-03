@@ -61,6 +61,7 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "ED_object.h"
 #include "ED_mesh.h"
 
 #include "RNA_access.h"
@@ -269,14 +270,14 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 
 static int shape_key_mode_poll(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 	return (ob && !ob->id.lib && data && !data->lib && ob->mode != OB_MODE_EDIT);
 }
 
 static int shape_key_poll(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 	return (ob && !ob->id.lib && data && !data->lib);
 }
@@ -284,7 +285,7 @@ static int shape_key_poll(bContext *C)
 static int shape_key_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	int from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
 	ED_object_shape_key_add(C, scene, ob, from_mix);
@@ -312,7 +313,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 
 static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!ED_object_shape_key_remove(C, ob))
 		return OPERATOR_CANCELLED;
@@ -337,7 +338,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 
 static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
 
@@ -370,7 +371,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 
 static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(!object_shape_key_mirror(C, ob))
 		return OPERATOR_CANCELLED;
@@ -395,7 +396,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 
 static int shape_key_move_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	int type= RNA_enum_get(op->ptr, "type");
 	Key *key= ob_get_key(ob);

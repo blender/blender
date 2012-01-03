@@ -5067,7 +5067,6 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
 	
-	Object *ob = NULL;
 	Scene *scene= CTX_data_scene(C);
 	int multipaint = scene->toolsettings->multipaint;
 
@@ -5100,8 +5099,8 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
-	if(multipaint) {
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	if (multipaint) {
+		Object *ob = ED_object_context(C);
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 

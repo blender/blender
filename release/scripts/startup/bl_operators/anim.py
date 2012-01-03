@@ -239,7 +239,7 @@ class ClearUselessActions(Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(bpy.data.actions) != 0
+        return bool(bpy.data.actions)
 
     def execute(self, context):
         removed = 0

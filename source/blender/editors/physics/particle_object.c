@@ -59,6 +59,7 @@
 
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "physics_intern.h"
 
@@ -66,7 +67,7 @@
 
 static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 
 	if(!scene || !ob)
@@ -97,7 +98,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 
 static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 	int mode_orig = ob->mode;
 	if(!scene || !ob)
@@ -581,7 +582,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 static int disconnect_hair_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
 	int all = RNA_boolean_get(op->ptr, "all");
@@ -719,7 +720,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 static int connect_hair_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
 	int all = RNA_boolean_get(op->ptr, "all");

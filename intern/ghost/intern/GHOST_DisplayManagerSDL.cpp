@@ -36,7 +36,7 @@ GHOST_DisplayManagerSDL::GHOST_DisplayManagerSDL(GHOST_SystemSDL *system)
 }
 
 GHOST_TSuccess
-GHOST_DisplayManagerSDL::getNumDisplays(GHOST_TUns8& numDisplays)
+GHOST_DisplayManagerSDL::getNumDisplays(GHOST_TUns8& numDisplays) const
 {
 	numDisplays=  SDL_GetNumVideoDisplays();
 	return GHOST_kSuccess;
@@ -44,7 +44,7 @@ GHOST_DisplayManagerSDL::getNumDisplays(GHOST_TUns8& numDisplays)
 
 
 GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplaySettings(GHOST_TUns8 display,
-                                                              GHOST_TInt32& numSettings)
+                                                              GHOST_TInt32& numSettings) const
 {
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 	numSettings= GHOST_TInt32(1);
@@ -54,7 +54,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplaySettings(GHOST_TUns8 displa
 GHOST_TSuccess
 GHOST_DisplayManagerSDL::getDisplaySetting(GHOST_TUns8 display,
                                            GHOST_TInt32 index,
-                                           GHOST_DisplaySetting& setting)
+                                           GHOST_DisplaySetting& setting) const
 {
 
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
@@ -74,7 +74,7 @@ GHOST_DisplayManagerSDL::getDisplaySetting(GHOST_TUns8 display,
 
 GHOST_TSuccess
 GHOST_DisplayManagerSDL::getCurrentDisplaySetting(GHOST_TUns8 display,
-                                                  GHOST_DisplaySetting& setting)
+                                                  GHOST_DisplaySetting& setting) const
 {
 	return getDisplaySetting(display,GHOST_TInt32(0),setting);
 }

@@ -56,7 +56,8 @@ struct wmOperator;
 struct wmOperatorType;
 
 /* object_edit.c */
-struct Object *ED_object_active_context(struct bContext *C);
+struct Object *ED_object_context(struct bContext *C);               /* context.object */
+struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
 
 /* object_ops.c */
 void ED_operatortypes_object(void);

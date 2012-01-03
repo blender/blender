@@ -219,7 +219,7 @@ class InputKeyMapPanel:
 
             filtered_items = [kmi for kmi in km.keymap_items if filter_text in kmi.name.lower()]
 
-            if len(filtered_items) != 0:
+            if filtered_items:
                 col = layout.column()
 
                 row = col.row()
