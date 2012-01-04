@@ -768,8 +768,8 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 					== AV_NOPTS_VALUE) ?
 				       -1 : (long long int)anim->pFrame->pkt_pts,
 					(long long int)anim->next_pts);
+				break;
 			}
-			break;
 		}
 		av_free_packet(&anim->next_packet);
 		anim->next_packet.stream_index = -1;
