@@ -181,7 +181,16 @@ typedef struct knifetool_opdata {
 	
 	int snap_midpoints, prevmode, extend;
 	int ignore_edge_snapping, ignore_vert_snapping;
+	int prevmval[2];
 	
+	enum {
+		ANGLE_FREE,
+		ANGLE_0,
+		ANGLE_45,
+		ANGLE_90,
+		ANGLE_135
+	} angle_snapping;
+
 	int is_space, prev_is_space; /*1 if current cut location, vertco, isn't on the mesh*/
 	float (*cagecos)[3];
 } knifetool_opdata;
@@ -284,6 +293,8 @@ static void knife_start_cut(knifetool_opdata *kcd)
 	kcd->cutnr++;
 	kcd->prev_is_space = kcd->is_space;
 	kcd->is_space = 0;
+	kcd->prevmval[0] = kcd->vc.mval[0];
+	kcd->prevmval[1] = kcd->vc.mval[1];
 	
 	copy_v3_v3(kcd->prevco, kcd->vertco);
 	copy_v3_v3(kcd->prevcage, kcd->vertcage);
@@ -507,6 +518,8 @@ static void knife_add_single_cut(knifetool_opdata *kcd)
 	copy_v3_v3(kcd->prevco, kcd->vertco);
 	copy_v3_v3(kcd->prevcage, kcd->vertcage);
 	kcd->prev_is_space = kcd->is_space;
+	kcd->prevmval[0] = kcd->vc.mval[0];
+	kcd->prevmval[1] = kcd->vc.mval[1];
 }
 
 static int verge_linehit(const void *vlh1, const void *vlh2)
@@ -687,6 +700,8 @@ static void knife_cut_through(knifetool_opdata *kcd)
 	copy_v3_v3(kcd->prevco, kcd->vertco);
 	copy_v3_v3(kcd->prevcage, kcd->vertcage);
 	kcd->prev_is_space = kcd->is_space;
+	kcd->prevmval[0] = kcd->vc.mval[0];
+	kcd->prevmval[1] = kcd->vc.mval[1];
 }
 
 static void knife_add_cut(knifetool_opdata *kcd)
@@ -770,6 +785,99 @@ static void knife_finish_cut(knifetool_opdata *UNUSED(kcd))
 
 }
 
+static void knifetool_draw_angle_snapping(knifetool_opdata *kcd)
+{
+	bglMats mats;
+	double u[3], u1[2], u2[2], v1[3], v2[3], dx, dy;
+	double wminx, wminy, wmaxx, wmaxy;
+
+	/* make u the window coords of prevcage */
+	view3d_get_transformation(kcd->ar, kcd->vc.rv3d, kcd->ob, &mats);
+	gluProject(kcd->prevcage[0], kcd->prevcage[1], kcd->prevcage[2],
+		mats.modelview, mats.projection, mats.viewport,
+		&u[0], &u[1], &u[2]);
+
+	/* make u1, u2 the points on window going through u at snap angle */
+	wminx = kcd->ar->winrct.xmin;
+	wmaxx = kcd->ar->winrct.xmin + kcd->ar->winx;
+	wminy = kcd->ar->winrct.ymin;
+	wmaxy = kcd->ar->winrct.ymin + kcd->ar->winy;
+
+	switch (kcd->angle_snapping) {
+		case ANGLE_0:
+			u1[0] = wminx;
+			u2[0] = wmaxx;
+			u1[1] = u2[1] = u[1];
+			break;
+		case ANGLE_90:
+			u1[0] = u2[0] = u[0];
+			u1[1] = wminy;
+			u2[1] = wmaxy;
+			break;
+		case ANGLE_45:
+			/* clip against left or bottom */
+			dx = u[0] - wminx;
+			dy = u[1] - wminy;
+			if (dy > dx) {
+				u1[0] = wminx;
+				u1[1] = u[1] - dx;
+			} else {
+				u1[0] = u[0] - dy;
+				u1[1] = wminy;
+			}
+			/*clip against right or top */
+			dx = wmaxx - u[0];
+			dy = wmaxy - u[1];
+			if (dy > dx) {
+				u2[0] = wmaxx;
+				u2[1] = u[1] + dx;
+			} else {
+				u2[0] = u[0] + dy;
+				u2[1] = wmaxy;
+			}
+			break;
+		case ANGLE_135:
+			/* clip against right or bottom */
+			dx = wmaxx - u[0];
+			dy = u[1] - wminy;
+			if (dy > dx) {
+				u1[0] = wmaxx;
+				u1[1] = u[1] - dx;
+			} else {
+				u1[0] = u[0] + dy;
+				u1[1] = wminy;
+			}
+			/*clip against left or top */
+			dx = u[0] - wminx;
+			dy = wmaxy - u[1];
+			if (dy > dx) {
+				u2[0] = wminx;
+				u2[1] = u[1] + dx;
+			} else {
+				u2[0] = u[0] - dy;
+				u2[1] = wmaxy;
+			}
+			break;
+		default:
+			return;
+	}
+
+	/* unproject u1 and u2 back into object space */
+	gluUnProject(u1[0], u1[1], 0.0,
+		mats.modelview, mats.projection, mats.viewport,
+		&v1[0], &v1[1], &v1[2]);
+	gluUnProject(u2[0], u2[1], 0.0,
+		mats.modelview, mats.projection, mats.viewport,
+		&v2[0], &v2[1], &v2[2]);
+
+	glColor3f(0.6, 0.6, 0.6);
+	glLineWidth(2.0);
+	glBegin(GL_LINES);
+	glVertex3dv(v1);
+	glVertex3dv(v2);
+	glEnd();
+}
+
 /* modal loop selection drawing callback */
 static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
@@ -783,6 +891,9 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	glMultMatrixf(kcd->ob->obmat);
 	
 	if (kcd->mode == MODE_DRAGGING) {
+		if (kcd->angle_snapping != ANGLE_FREE)
+			knifetool_draw_angle_snapping(kcd);
+
 		glColor3f(0.1, 0.1, 0.1);
 		glLineWidth(2.0);
 		
@@ -1439,9 +1550,41 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], flo
 	return NULL;
 }
 
+static void knife_snap_angle(knifetool_opdata *kcd)
+{
+	int dx, dy;
+	float w, abs_tan;
+
+	dx = kcd->vc.mval[0] - kcd->prevmval[0];
+	dy = kcd->vc.mval[1] - kcd->prevmval[1];
+	if (dx == 0 || dy == 0)
+		return;
+
+	w = (float)dy / (float)dx;
+	abs_tan = fabsf(w);
+	if (abs_tan <= 0.4142f) { /* tan(22.5 degrees) = 0.4142 */	
+		kcd->angle_snapping = ANGLE_0;
+		kcd->vc.mval[1] = kcd->prevmval[1];
+	} else if (abs_tan < 2.4142f) { /* tan(67.5 degrees) = 2.4142 */
+		if (w > 0) {
+			kcd->angle_snapping = ANGLE_45;
+			kcd->vc.mval[1] = kcd->prevmval[1] + dx;
+		} else {
+			kcd->angle_snapping = ANGLE_135;
+			kcd->vc.mval[1] = kcd->prevmval[1] - dx;
+		}
+	} else {
+		kcd->angle_snapping = ANGLE_90;
+		kcd->vc.mval[0] = kcd->prevmval[0];
+	}
+}
+
 /*update active knife edge/vert pointers*/
 static int knife_update_active(knifetool_opdata *kcd)
 {
+	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING)
+		knife_snap_angle(kcd);
+
 	kcd->curvert = NULL; kcd->curedge = NULL; kcd->curbmface = NULL;
 	
 	kcd->curvert = knife_find_closest_vert(kcd, kcd->vertco, kcd->vertcage, &kcd->curbmface, &kcd->is_space);
@@ -2003,6 +2146,7 @@ enum {
 	KNF_MODEL_IGNORE_SNAP_ON,
 	KNF_MODEL_IGNORE_SNAP_OFF,
 	KNF_MODAL_ADD_CUT,
+	KNF_MODAL_ANGLE_SNAP_TOGGLE
 };
 
 wmKeyMap* knifetool_modal_keymap(wmKeyConfig *keyconf)
@@ -2014,6 +2158,7 @@ wmKeyMap* knifetool_modal_keymap(wmKeyConfig *keyconf)
 	{KNF_MODAL_MIDPOINT_OFF, "SNAP_MIDPOINTS_OFF", 0, "Snap To Midpoints Off", ""},
 	{KNF_MODEL_IGNORE_SNAP_ON, "IGNORE_SNAP_ON", 0, "Ignore Snapping On", ""},
 	{KNF_MODEL_IGNORE_SNAP_OFF, "IGNORE_SNAP_OFF", 0, "Ignore Snapping Off", ""},
+	{KNF_MODAL_ANGLE_SNAP_TOGGLE, "ANGLE_SNAP_TOGGLE", 0, "Toggle Angle Snapping", ""},
 	{KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
 	{KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
 
@@ -2044,6 +2189,8 @@ wmKeyMap* knifetool_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTSHIFTKEY, KM_PRESS, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_ON);
 	WM_modalkeymap_add_item(keymap, RIGHTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KNF_MODEL_IGNORE_SNAP_OFF);
 	
+	WM_modalkeymap_add_item(keymap, CKEY, KM_PRESS, 0, 0, KNF_MODAL_ANGLE_SNAP_TOGGLE);
+
 	WM_modalkeymap_assign(keymap, "MESH_OT_knifetool");
 	
 	return keymap;
@@ -2108,6 +2255,9 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 			case KNF_MODEL_IGNORE_SNAP_OFF:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 0;
+				break;
+			case KNF_MODAL_ANGLE_SNAP_TOGGLE:
+				kcd->angle_snapping = !kcd->angle_snapping;
 				break;
 			case KNF_MODAL_NEW_CUT:
 				ED_region_tag_redraw(kcd->ar);
