@@ -16,7 +16,7 @@ When writing python scripts, it's useful to have a terminal open, this is not th
 
 There are 3 main uses for the terminal, these are:
 
-* You can see the output of ``print()`` as you're script runs, which is useful to view debug info.
+* You can see the output of ``print()`` as your script runs, which is useful to view debug info.
 
 * The error trace-back is printed in full to the terminal which won't always generate an error popup in blender's user interface (depending on how the script is executed).
 
@@ -135,15 +135,15 @@ Once the script is running properly in background mode, you'll want to check the
 * if the results can be displayed as text - print them or write them to a file.
 
 
-This can take a little time to setup, but it can be well worth the effort to reduce the time it takes to test changes - you can even have blender running the script ever few seconds with a viewer updating the results, so no need to leave you're text editor to see changes.
+This can take a little time to setup, but it can be well worth the effort to reduce the time it takes to test changes - you can even have blender running the script ever few seconds with a viewer updating the results, so no need to leave your text editor to see changes.
 
 
 Use External Tools
 ==================
 
-When there are no readily available python modules to perform specific tasks it's worth keeping in mind you may be able to have python execute an external command on you're data and read the result back in.
+When there are no readily available python modules to perform specific tasks it's worth keeping in mind you may be able to have python execute an external command on your data and read the result back in.
 
-Using external programs adds an extra dependency and may limit who can use the script but to quickly setup you're own custom pipeline or writing one-off scripts this can be handy.
+Using external programs adds an extra dependency and may limit who can use the script but to quickly setup your own custom pipeline or writing one-off scripts this can be handy.
 
 Examples include:
 
@@ -157,7 +157,7 @@ Examples include:
 Bundled Python & Extensions
 ===========================
 
-The Blender releases distributed from blender.org include a complete python installation on all platforms, this has the disadvantage that any extensions you have installed in you're systems python wont be found by blender.
+The Blender releases distributed from blender.org include a complete python installation on all platforms, this has the disadvantage that any extensions you have installed in your systems python wont be found by blender.
 
 There are 2 ways around this:
 
@@ -166,8 +166,8 @@ There are 2 ways around this:
 * copy the extensions into blender's python sub-directory so blender can access them, you could also copy the entire python installation into blenders sub-directory, replacing the one blender comes with. This works as long as the python versions match and the paths are created in the same relative locations. Doing this has the advantage that you can redistribute this bundle to others with blender and/or the game player, including any extensions you rely on.
 
 
-Drop Into a Python Interpreter in You're Script
-===============================================
+Drop Into a Python Interpreter in Your Script
+=============================================
 
 In the middle of a script you may want to inspect some variables, run some function and generally dig about to see whats going on.
 
@@ -187,7 +187,7 @@ If you want to access both global and local variables do this...
    code.interact(local=namespace)
 
 
-The next example is an equivalent single line version of the script above which is easier to paste into you're code:
+The next example is an equivalent single line version of the script above which is easier to paste into your code:
 
 .. code-block:: python
 
