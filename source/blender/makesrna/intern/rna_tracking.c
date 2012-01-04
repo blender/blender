@@ -305,7 +305,14 @@ static void rna_trackingObject_tracks_begin(CollectionPropertyIterator *iter, Po
 {
 	MovieTrackingObject *object= (MovieTrackingObject* )ptr->data;
 
-	rna_iterator_listbase_begin(iter, &object->tracks, NULL);
+	if(object->flag&TRACKING_OBJECT_CAMERA) {
+		MovieClip *clip= (MovieClip*)ptr->id.data;
+
+		rna_iterator_listbase_begin(iter, &clip->tracking.tracks, NULL);
+	}
+	else {
+		rna_iterator_listbase_begin(iter, &object->tracks, NULL);
+	}
 }
 
 static PointerRNA rna_tracking_active_object_get(PointerRNA *ptr)

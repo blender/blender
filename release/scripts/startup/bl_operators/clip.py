@@ -60,6 +60,22 @@ def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
                       set_background, clip, clip_user)
 
 
+def CLIP_camera_for_clip(context, clip):
+    scene = context.scene
+
+    camera = scene.camera
+
+    for ob in scene.objects:
+        if ob.type == 'CAMERA':
+            for con in ob.constraints:
+                if con.type == 'CAMERA_SOLVER':
+                    cur_clip = scene.clip if con.use_active_clip else con.clip
+
+                    if cur_clip == clip:
+                        return ob
+
+    return camera
+
 def CLIP_track_view_selected(sc, track):
     if track.select_anchor:
         return True
@@ -80,7 +96,7 @@ class CLIP_OT_track_to_empty(Operator):
     bl_label = "Link Empty to Track"
     bl_options = {'UNDO', 'REGISTER'}
 
-    def _link_track(self, context, track):
+    def _link_track(self, context, clip, tracking_object, track):
         sc = context.space_data
         constraint = None
         ob = None
@@ -101,14 +117,17 @@ class CLIP_OT_track_to_empty(Operator):
         constraint.clip = sc.clip
         constraint.track = track.name
         constraint.use_3d_position = False
+        constraint.object = tracking_object.name
+        constraint.camera = CLIP_camera_for_clip(context, clip);
 
     def execute(self, context):
         sc = context.space_data
         clip = sc.clip
+        tracking_object = clip.tracking.objects.active
 
-        for track in clip.tracking.tracks:
+        for track in tracking_object.tracks:
             if CLIP_track_view_selected(sc, track):
-                self._link_track(context, track)
+                self._link_track(context, clip, tracking_object ,track)
 
         return {'FINISHED'}
 
@@ -130,11 +149,12 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
         sc = context.space_data
         clip = sc.clip
+        tracking_object = clip.tracking.objects.active
 
         new_verts = []
 
         mesh = bpy.data.meshes.new(name="Tracks")
-        for track in clip.tracking.tracks:
+        for track in tracking_object.tracks:
             if track.has_bundle:
                 new_verts.append(track.bundle)
 
