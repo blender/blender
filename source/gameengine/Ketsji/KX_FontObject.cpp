@@ -34,6 +34,7 @@
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
 #include "BLI_math.h"
+#include "StringValue.h"
 
 extern "C" {
 #include "BLF_api.h"
@@ -224,7 +225,18 @@ int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	if(!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
 	char* chars = _PyUnicode_AsString(value);
-	self->m_text = split_string(STR_String(chars));
+
+	/* Allow for some logic brick control */
+	CValue* tprop = self->GetProperty("Text");
+	if(tprop) {
+		CValue *newstringprop = new CStringValue(STR_String(chars), "Text");
+		self->SetProperty("Text", newstringprop);
+		newstringprop->Release();
+	}
+	else {
+		self->m_text = split_string(STR_String(chars));
+	}
+
 	return PY_SET_ATTR_SUCCESS;
 }
 

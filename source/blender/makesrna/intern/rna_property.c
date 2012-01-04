@@ -35,6 +35,15 @@
 
 #include "WM_types.h"
 
+EnumPropertyItem gameproperty_type_items[] ={
+	{GPROP_BOOL, "BOOL", 0, "Boolean", "Boolean Property"},
+	{GPROP_INT, "INT", 0, "Integer", "Integer Property"},
+	{GPROP_FLOAT, "FLOAT", 0, "Float", "Floating-Point Property"},
+	{GPROP_STRING, "STRING", 0, "String", "String Property"},
+	{GPROP_TIME, "TIMER", 0, "Timer", "Timer Property"},
+	{0, NULL, 0, NULL, NULL}};
+
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_property.h"
@@ -97,14 +106,6 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem gameproperty_type_items[] ={
-		{GPROP_BOOL, "BOOL", 0, "Boolean", "Boolean Property"},
-		{GPROP_INT, "INT", 0, "Integer", "Integer Property"},
-		{GPROP_FLOAT, "FLOAT", 0, "Float", "Floating-Point Property"},
-		{GPROP_STRING, "STRING", 0, "String", "String Property"},
-		{GPROP_TIME, "TIMER", 0, "Timer", "Timer Property"},
-		{0, NULL, 0, NULL, NULL}};
 
 	/* Base Struct for GameProperty */
 	srna= RNA_def_struct(brna, "GameProperty", NULL);

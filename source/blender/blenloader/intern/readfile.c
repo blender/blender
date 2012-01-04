@@ -12833,6 +12833,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		{
+		/* Warn the user if he is using ["Text"] properties for Font objects */
+			Object *ob;
+			bProperty *prop;
+
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				if (ob->type == OB_FONT) {
+					for (prop=ob->prop.first;prop;prop=prop->next) {
+						if (strcmp(prop->name, "Text") == 0) {
+							BKE_reportf(fd->reports, RPT_WARNING, "Game property name conflict in object: \"%s\".\nText objects reserve the [\"Text\"] game property to change their content through Logic Bricks.\n", ob->id.name+2);
+							if(G.background==0) printf("Game property conflict in object: \"%s\". Texts reserve the [\"Text\"] game property to change their content through Logic Bricks.\n", ob->id.name+2);
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
