@@ -269,7 +269,7 @@ object's movement caused by this constraint"""
         # TODO: several camera solvers and track followers would fail,
         #       but can't think about eal workflow where it'll be useful
         for x in ob.constraints:
-            if x.type in {'CAMERA_SOLVER', 'FOLLOW_TRACK'}:
+            if x.type in {'CAMERA_SOLVER', 'FOLLOW_TRACK', 'OBJECT_SOLVER'}:
                 con = x
 
         if not con:
