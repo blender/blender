@@ -571,6 +571,27 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
                     box.prop(modifier, "backbone_length")
                     box.prop(modifier, "random_backbone")
 
+            elif modifier.type == "2D_OFFSET":
+                row = box.row(align=True)
+                row.prop(modifier, "start")
+                row.prop(modifier, "end")
+                row = box.row(align=True)
+                row.prop(modifier, "x")
+                row.prop(modifier, "y")
+
+            elif modifier.type == "2D_TRANSFORM":
+                box.prop(modifier, "pivot")
+                if modifier.pivot == "PARAM":
+                    box.prop(modifier, "pivot_u")
+                elif modifier.pivot == "ABSOLUTE":
+                    row = box.row(align=True)
+                    row.prop(modifier, "pivot_x")
+                    row.prop(modifier, "pivot_y")
+                row = box.row(align=True)
+                row.prop(modifier, "scale_x")
+                row.prop(modifier, "scale_y")
+                box.prop(modifier, "angle")
+
     def draw(self, context):
         layout = self.layout
 

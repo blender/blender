@@ -65,7 +65,9 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_POLYGONIZATION         14
 #define LS_MODIFIER_GUIDING_LINES          15
 #define LS_MODIFIER_BLUEPRINT              16
-#define LS_MODIFIER_NUM                    17
+#define LS_MODIFIER_2D_OFFSET              17
+#define LS_MODIFIER_2D_TRANSFORM           18
+#define LS_MODIFIER_NUM                    19
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -330,6 +332,33 @@ typedef struct LineStyleGeometryModifier_Blueprint {
 	unsigned int random_backbone;
 
 } LineStyleGeometryModifier_Blueprint;
+
+typedef struct LineStyleGeometryModifier_2DOffset {
+	struct LineStyleModifier modifier;
+
+	float start, end;
+	float x, y;
+
+} LineStyleGeometryModifier_2DOffset;
+
+/* LineStyleGeometryModifier_2DTransform::pivot */
+#define LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER    1
+#define LS_MODIFIER_2D_TRANSFORM_PIVOT_START     2
+#define LS_MODIFIER_2D_TRANSFORM_PIVOT_END       3
+#define LS_MODIFIER_2D_TRANSFORM_PIVOT_PARAM     4
+#define LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE  5
+
+typedef struct LineStyleGeometryModifier_2DTransform {
+	struct LineStyleModifier modifier;
+
+	int pivot;
+	float scale_x, scale_y;
+	float angle;
+	float pivot_u;
+	float pivot_x, pivot_y;
+	int pad;
+
+} LineStyleGeometryModifier_2DTransform;
 
 /* Calligraphic thickness modifier */
 

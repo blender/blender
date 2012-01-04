@@ -493,6 +493,94 @@ class PerlinNoise2DShader(StrokeShader):
             it.increment()
         stroke.UpdateLength()
 
+class Offset2DShader(StrokeShader):
+    def __init__(self, start, end, x, y):
+        StrokeShader.__init__(self)
+        self.__start = start
+        self.__end = end
+        self.__xy = Vector([x, y])
+        self.__getNormal = Normal2DF0D()
+    def getName(self):
+        return "Offset2DShader"
+    def shade(self, stroke):
+        it = stroke.strokeVerticesBegin()
+        while not it.isEnd():
+            v = it.getObject()
+            u = v.u()
+            a = self.__start + u * (self.__end - self.__start)
+            n = self.__getNormal(it.castToInterface0DIterator())
+            n = n * a
+            p = v.getPoint()
+            v.setPoint(p + n + self.__xy)
+            it.increment()
+        stroke.UpdateLength()
+
+class Transform2DShader(StrokeShader):
+    def __init__(self, pivot, scale_x, scale_y, angle, pivot_u, pivot_x, pivot_y):
+        StrokeShader.__init__(self)
+        self.__pivot = pivot
+        self.__scale_x = scale_x
+        self.__scale_y = scale_y
+        self.__angle = angle
+        self.__pivot_u = pivot_u
+        self.__pivot_x = pivot_x
+        self.__pivot_y = pivot_y
+    def getName(self):
+        return "Transform2DShader"
+    def shade(self, stroke):
+        # determine the pivot of scaling and rotation operations
+        if self.__pivot == "START":
+            it = stroke.strokeVerticesBegin()
+            pivot = it.getObject().getPoint()
+        elif self.__pivot == "END":
+            it = stroke.strokeVerticesEnd()
+            it.decrement()
+            pivot = it.getObject().getPoint()
+        elif self.__pivot == "PARAM":
+            p = None
+            it = stroke.strokeVerticesBegin()
+            while not it.isEnd():
+                prev = p
+                v = it.getObject()
+                p = v.getPoint()
+                u = v.u()
+                if self.__pivot_u < u:
+                    break
+                it.increment()
+            if prev is None:
+                pivot = p
+            else:
+                delta = u - self.__pivot_u
+                pivot = p + delta * (prev - p)
+        elif self.__pivot == "CENTER":
+            pivot = Vector([0.0, 0.0])
+            n = 0
+            it = stroke.strokeVerticesBegin()
+            while not it.isEnd():
+                p = it.getObject().getPoint()
+                pivot = pivot + p
+                n = n + 1
+                it.increment()
+            pivot.x = pivot.x / n
+            pivot.y = pivot.y / n
+        elif self.__pivot == "ABSOLUTE":
+            pivot = Vector([self.__pivot_x, self.__pivot_y])
+        # apply scaling and rotation operations
+        cos_theta = math.cos(math.pi * self.__angle / 180.0)
+        sin_theta = math.sin(math.pi * self.__angle / 180.0)
+        it = stroke.strokeVerticesBegin()
+        while not it.isEnd():
+            v = it.getObject()
+            p = v.getPoint()
+            p = p - pivot
+            x = p.x * self.__scale_x
+            y = p.y * self.__scale_y
+            p.x = x * cos_theta - y * sin_theta
+            p.y = x * sin_theta + y * cos_theta
+            v.setPoint(p + pivot)
+            it.increment()
+        stroke.UpdateLength()
+
 # Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
@@ -1035,6 +1123,12 @@ def process(layer_name, lineset_name):
             elif m.shape == "SQUARES":
                 shaders_list.append(pyBluePrintSquaresShader(
                     m.rounds, m.backbone_length, m.random_backbone))
+        elif m.type == "2D_OFFSET":
+            shaders_list.append(Offset2DShader(
+                m.start, m.end, m.x, m.y))
+        elif m.type == "2D_TRANSFORM":
+            shaders_list.append(Transform2DShader(
+                m.pivot, m.scale_x, m.scale_y, m.angle, m.pivot_u, m.pivot_x, m.pivot_y))
     color = linestyle.color
     shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
     shaders_list.append(ConstantThicknessShader(linestyle.thickness))

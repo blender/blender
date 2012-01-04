@@ -59,6 +59,8 @@ EnumPropertyItem linestyle_thickness_modifier_type_items[] ={
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
+	{LS_MODIFIER_2D_OFFSET, "2D_OFFSET", ICON_MODIFIER, "2D Offset", ""},
+	{LS_MODIFIER_2D_TRANSFORM, "2D_TRANSFORM", ICON_MODIFIER, "2D Transform", ""},
 	{LS_MODIFIER_BACKBONE_STRETCHER, "BACKBONE_STRETCHER", ICON_MODIFIER, "Backbone Stretcher", ""},
 	{LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bezier Curve", ""},
 	{LS_MODIFIER_BLUEPRINT, "BLUEPRINT", ICON_MODIFIER, "Blueprint", ""},
@@ -159,6 +161,10 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(struct PointerRNA *ptr)
 			return &RNA_LineStyleGeometryModifier_GuidingLines;
 		case LS_MODIFIER_BLUEPRINT:
 			return &RNA_LineStyleGeometryModifier_Blueprint;
+		case LS_MODIFIER_2D_OFFSET:
+			return &RNA_LineStyleGeometryModifier_2DOffset;
+		case LS_MODIFIER_2D_TRANSFORM:
+			return &RNA_LineStyleGeometryModifier_2DTransform;
 		default:
 			return &RNA_LineStyleGeometryModifier;
 	}
@@ -429,6 +435,14 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 		{LS_MODIFIER_BLUEPRINT_CIRCLES, "CIRCLES", 0, "Circles", "Draw a blueprint using circular contour strokes"},
 		{LS_MODIFIER_BLUEPRINT_ELLIPSES, "ELLIPSES", 0, "Ellipses", "Draw a blueprint using elliptic contour strokes"},
 		{LS_MODIFIER_BLUEPRINT_SQUARES, "SQUARES", 0, "Squares", "Draw a blueprint using square contour strokes"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem transform_pivot_items[] = {
+		{LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER, "CENTER", 0, "Stroke Center", ""},
+		{LS_MODIFIER_2D_TRANSFORM_PIVOT_START, "START", 0, "Stroke Start", ""},
+		{LS_MODIFIER_2D_TRANSFORM_PIVOT_END, "END", 0, "Stroke End", ""},
+		{LS_MODIFIER_2D_TRANSFORM_PIVOT_PARAM, "PARAM", 0, "Stroke Point Parameter", ""},
+		{LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE, "ABSOLUTE", 0, "Absolute 2D Point", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LineStyleModifier", NULL);
@@ -770,6 +784,71 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "random_backbone", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "random_backbone");
 	RNA_def_property_ui_text(prop, "Random Backbone", "Randomness of the backbone stretching");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_2DOffset", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "2D Offset", "Add two-dimensional offsets to stroke backbone geometry");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "start");
+	RNA_def_property_ui_text(prop, "Start", "Displacement that is applied from the beginning of the stroke");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end");
+	RNA_def_property_ui_text(prop, "End", "Displacement that is applied from the end of the stroke");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "x");
+	RNA_def_property_ui_text(prop, "X", "Displacement that is applied to the X coordinates of stroke vertices");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "y");
+	RNA_def_property_ui_text(prop, "Y", "Displacement that is applied to the Y coordinates of stroke vertices");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_2DTransform", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "2D Transform", "Apply two-dimensional scaling and rotation to stroke backbone geometry");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "pivot", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "pivot");
+	RNA_def_property_enum_items(prop, transform_pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot", "Pivot of scaling and rotation operations");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scale_x");
+	RNA_def_property_ui_text(prop, "Scale X", "Scaling factor that is applied along the X axis");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scale_y");
+	RNA_def_property_ui_text(prop, "Scale Y", "Scaling factor that is applied along the Y axis");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "angle");
+	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation angle in degrees");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "pivot_u", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "pivot_u");
+	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_ui_text(prop, "Stroke Point Parameter", "Pivot in terms of the stroke point parameter u (0 <= u <= 1)");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "pivot_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pivot_x");
+	RNA_def_property_ui_text(prop, "Pivot X", "2D X coordinate of the absolute pivot");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "pivot_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pivot_y");
+	RNA_def_property_ui_text(prop, "Pivot Y", "2D Y coordinate of the absolute pivot");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 }

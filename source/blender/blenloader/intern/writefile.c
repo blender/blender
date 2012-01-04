@@ -2761,6 +2761,12 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 		case LS_MODIFIER_BLUEPRINT:
 			struct_name = "LineStyleGeometryModifier_Blueprint";
 			break;
+		case LS_MODIFIER_2D_OFFSET:
+			struct_name = "LineStyleGeometryModifier_2DOffset";
+			break;
+		case LS_MODIFIER_2D_TRANSFORM:
+			struct_name = "LineStyleGeometryModifier_2DTransform";
+			break;
 		default:
 			struct_name = "LineStyleGeometryModifier"; // this should not happen
 		}

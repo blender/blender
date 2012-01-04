@@ -65,7 +65,9 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	"Calligraphy",
 	"Polygonalization",
 	"Guiding Lines",
-	"Blueprint"};
+	"Blueprint",
+	"2D Offset",
+	"2D Transform"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
@@ -636,6 +638,12 @@ static LineStyleModifier *alloc_geometry_modifier(int type)
 	case LS_MODIFIER_BLUEPRINT:
 		size = sizeof(LineStyleGeometryModifier_Blueprint);
 		break;
+	case LS_MODIFIER_2D_OFFSET:
+		size = sizeof(LineStyleGeometryModifier_2DOffset);
+		break;
+	case LS_MODIFIER_2D_TRANSFORM:
+		size = sizeof(LineStyleGeometryModifier_2DTransform);
+		break;
 	default:
 		return NULL; /* unknown modifier type */
 	}
@@ -698,6 +706,21 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 		((LineStyleGeometryModifier_Blueprint *)m)->random_radius = 3;
 		((LineStyleGeometryModifier_Blueprint *)m)->random_center = 5;
 		((LineStyleGeometryModifier_Blueprint *)m)->random_backbone = 5;
+		break;
+	case LS_MODIFIER_2D_OFFSET:
+		((LineStyleGeometryModifier_2DOffset *)m)->start = 0.f;
+		((LineStyleGeometryModifier_2DOffset *)m)->end = 0.f;
+		((LineStyleGeometryModifier_2DOffset *)m)->x = 0.f;
+		((LineStyleGeometryModifier_2DOffset *)m)->y = 0.f;
+		break;
+	case LS_MODIFIER_2D_TRANSFORM:
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot = LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER;
+		((LineStyleGeometryModifier_2DTransform *)m)->scale_x = 1.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->scale_y = 1.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->angle = 0.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot_u = 0.5f;
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot_x = 0.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot_y = 0.f;
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -798,6 +821,27 @@ LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 			((LineStyleGeometryModifier_Blueprint *)new_m)->random_backbone = p->random_backbone;
 		}
 		break;
+	case LS_MODIFIER_2D_OFFSET:
+		{
+			LineStyleGeometryModifier_2DOffset *p = (LineStyleGeometryModifier_2DOffset *)m;
+			((LineStyleGeometryModifier_2DOffset *)new_m)->start = p->start;
+			((LineStyleGeometryModifier_2DOffset *)new_m)->end = p->end;
+			((LineStyleGeometryModifier_2DOffset *)new_m)->x = p->x;
+			((LineStyleGeometryModifier_2DOffset *)new_m)->y = p->y;
+		}
+		break;
+	case LS_MODIFIER_2D_TRANSFORM:
+		{
+			LineStyleGeometryModifier_2DTransform *p = (LineStyleGeometryModifier_2DTransform *)m;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot = p->pivot;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->scale_x = p->scale_x;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->scale_y = p->scale_y;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->angle = p->angle;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_u = p->pivot_u;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_x = p->pivot_x;
+			((LineStyleGeometryModifier_2DTransform *)new_m)->pivot_y = p->pivot_y;
+		}
+		break;
 	default:
 		return NULL; /* unknown modifier type */
 	}
@@ -830,6 +874,10 @@ void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineS
 	case LS_MODIFIER_GUIDING_LINES:
 		break;
 	case LS_MODIFIER_BLUEPRINT:
+		break;
+	case LS_MODIFIER_2D_OFFSET:
+		break;
+	case LS_MODIFIER_2D_TRANSFORM:
 		break;
 	}
 	BLI_freelinkN(&linestyle->geometry_modifiers, m);
