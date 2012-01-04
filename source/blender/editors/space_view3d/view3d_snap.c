@@ -768,8 +768,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	tracking= &clip->tracking;
 
-	if(scene->camera)
-		copy_m4_m4(cammat, scene->camera->obmat);
+	copy_m4_m4(cammat, ob->obmat);
 
 	BKE_get_tracking_mat(scene, ob, mat);
 
