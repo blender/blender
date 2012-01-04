@@ -417,6 +417,7 @@ typedef struct bFollowTrackConstraint {
 	int		flag, pad;
 	char		object[24];
 	struct Object *camera;
+	struct Object *depth_ob;
 } bFollowTrackConstraint;
 
 /* Camera Solver constraints */

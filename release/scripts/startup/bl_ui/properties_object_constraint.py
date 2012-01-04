@@ -778,6 +778,10 @@ class ConstraintButtonsPanel():
 
         layout.prop(con, "camera")
 
+        row = layout.row()
+        row.active = not con.use_3d_position
+        row.prop(con, "depth_object")
+
         layout.operator("clip.constraint_to_fcurve")
 
     def CAMERA_SOLVER(self, context, layout, con):
