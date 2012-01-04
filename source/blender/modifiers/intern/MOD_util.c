@@ -93,29 +93,31 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_DISP_MAP_UV) {
-		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
-			MFace *mface = dm->getTessFaceArray(dm);
-			MFace *mf;
+		if(CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
+			MPoly *mpoly = dm->getPolyArray(dm);
+			MPoly *mp;
+			MLoop *mloop = dm->getLoopArray(dm);
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 			                         "get_texture_coords done");
-			int numFaces = dm->getNumTessFaces(dm);
+			int numPolys = dm->getNumPolys(dm);
 			char uvname[32];
-			MTFace *tf;
+			MLoopUV *mloop_uv;
 
-			CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);
-			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, uvname);
+			CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, dmd->uvlayer_name, uvname);
+			mloop_uv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
 
 			/* verts are given the UV from the first face that uses them */
-			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
-				unsigned int fidx= mf->v4 ? 3:2;
+			for(i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
+				unsigned int fidx= mp->totloop - 1;
 
 				do {
-					unsigned int vidx = *(&mf->v1 + fidx);
+					unsigned int lidx= mp->loopstart + fidx;
+					unsigned int vidx= mloop[lidx].v;
 
 					if (done[vidx] == 0) {
 						/* remap UVs from [0, 1] to [-1, 1] */
-						texco[vidx][0] = (tf->uv[fidx][0] * 2.0f) - 1.0f;
-						texco[vidx][1] = (tf->uv[fidx][1] * 2.0f) - 1.0f;
+						texco[vidx][0] = (mloop_uv[lidx].uv[0] * 2.0f) - 1.0f;
+						texco[vidx][1] = (mloop_uv[lidx].uv[1] * 2.0f) - 1.0f;
 						done[vidx] = 1;
 					}
 
