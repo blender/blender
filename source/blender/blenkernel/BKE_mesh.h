@@ -86,6 +86,9 @@ int mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
                            struct MVert *mvarray, float no[3]);
 
+void mesh_calc_poly_normal_coords(struct MPoly *mpoly, struct MLoop *loopstart,
+                                  const float (*vertex_coords)[3], float no[3]);
+
 void mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
                            struct MVert *mvarray, float cent[3]);
 

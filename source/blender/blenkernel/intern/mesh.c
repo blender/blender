@@ -2600,6 +2600,84 @@ void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 		no[2] = 1.0;
 	}
 }
+/* duplicate of function above _but_ takes coords rather then mverts */
+static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
+                                         const float (*vertex_coords)[3], float normal[3])
+{
+
+	float *v1, *v2, *v3;
+	double u[3], v[3], w[3];
+	double n[3] = {0.0, 0.0, 0.0}, l;
+	int i;
+
+	for(i = 0; i < mpoly->totloop; i++){
+		v1 = vertex_coords + loopstart[i].v;
+		v2 = vertex_coords + loopstart[(i+1)%mpoly->totloop].v;
+		v3 = vertex_coords + loopstart[(i+2)%mpoly->totloop].v;
+
+		VECCOPY(u, v1);
+		VECCOPY(v, v2);
+		VECCOPY(w, v3);
+
+		/*this fixes some weird numerical error*/
+		if (i==0) {
+			u[0] += 0.0001f;
+			u[1] += 0.0001f;
+			u[2] += 0.0001f;
+		}
+
+		n[0] += (u[1] - v[1]) * (u[2] + v[2]);
+		n[1] += (u[2] - v[2]) * (u[0] + v[0]);
+		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
+	}
+
+	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+	l = sqrt(l);
+
+	if (l == 0.0) {
+		normal[0] = 0.0f;
+		normal[1] = 0.0f;
+		normal[2] = 1.0f;
+
+		return;
+	} else l = 1.0f / l;
+
+	n[0] *= l;
+	n[1] *= l;
+	n[2] *= l;
+
+	normal[0] = (float) n[0];
+	normal[1] = (float) n[1];
+	normal[2] = (float) n[2];
+}
+
+void mesh_calc_poly_normal_coords(MPoly *mpoly, MLoop *loopstart,
+                           const float (*vertex_coords)[3], float no[3])
+{
+	if (mpoly->totloop > 4) {
+		mesh_calc_ngon_normal_coords(mpoly, loopstart, vertex_coords, no);
+	}
+	else if (mpoly->totloop == 3){
+		normal_tri_v3(no,
+		              vertex_coords[loopstart[0].v],
+		              vertex_coords[loopstart[1].v],
+		              vertex_coords[loopstart[2].v]
+		              );
+	}
+	else if (mpoly->totloop == 4) {
+		normal_quad_v3(no,
+		               vertex_coords[loopstart[0].v],
+		               vertex_coords[loopstart[1].v],
+		               vertex_coords[loopstart[2].v],
+		               vertex_coords[loopstart[3].v]
+		               );
+	}
+	else { /* horrible, two sided face! */
+		no[0] = 0.0;
+		no[1] = 0.0;
+		no[2] = 1.0;
+	}
+}
 
 static void mesh_calc_ngon_center(MPoly *mpoly, MLoop *loopstart,
                                   MVert *mvert, float cent[3])
