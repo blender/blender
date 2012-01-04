@@ -73,7 +73,7 @@ static void initData(ModifierData *md)
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;
 	wmd->falloff= 0.0f;
-	wmd->texmapping = MOD_WAV_MAP_LOCAL;
+	wmd->texmapping = MOD_DISP_MAP_LOCAL;
 	wmd->defgrp_name[0] = 0;
 }
 
@@ -160,7 +160,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 
 	/* ask for UV coordinates if we need them */
-	if(wmd->texture && wmd->texmapping == MOD_WAV_MAP_UV)
+	if(wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
@@ -178,15 +178,15 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 	int i;
 	int texmapping = wmd->texmapping;
 
-	if(texmapping == MOD_WAV_MAP_OBJECT) {
+	if(texmapping == MOD_DISP_MAP_OBJECT) {
 		if(wmd->map_object)
 			invert_m4_m4(wmd->map_object->imat, wmd->map_object->obmat);
 		else /* if there is no map object, default to local */
-			texmapping = MOD_WAV_MAP_LOCAL;
+			texmapping = MOD_DISP_MAP_LOCAL;
 	}
 
 	/* UVs need special handling, since they come from faces */
-	if(texmapping == MOD_WAV_MAP_UV) {
+	if(texmapping == MOD_DISP_MAP_UV) {
 		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
@@ -236,18 +236,18 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 			MEM_freeN(done);
 			return;
 		} else /* if there are no UVs, default to local */
-			texmapping = MOD_WAV_MAP_LOCAL;
+			texmapping = MOD_DISP_MAP_LOCAL;
 	}
 
 	for(i = 0; i < numVerts; ++i, ++co, ++texco) {
 		switch(texmapping) {
-			case MOD_WAV_MAP_LOCAL:
+			case MOD_DISP_MAP_LOCAL:
 				copy_v3_v3(*texco, *co);
 				break;
-			case MOD_WAV_MAP_GLOBAL:
+			case MOD_DISP_MAP_GLOBAL:
 				mul_v3_m4v3(*texco, ob->obmat, *co);
 				break;
-			case MOD_WAV_MAP_OBJECT:
+			case MOD_DISP_MAP_OBJECT:
 				mul_v3_m4v3(*texco, ob->obmat, *co);
 				mul_m4_v3(wmd->map_object->imat, *texco);
 				break;

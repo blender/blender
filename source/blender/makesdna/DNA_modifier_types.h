@@ -336,7 +336,7 @@ enum {
 	MOD_DISP_MAP_LOCAL,
 	MOD_DISP_MAP_GLOBAL,
 	MOD_DISP_MAP_OBJECT,
-	MOD_DISP_MAP_UV,
+	MOD_DISP_MAP_UV
 };
 
 typedef struct UVProjectModifierData {
@@ -400,13 +400,6 @@ typedef struct CastModifierData {
 	char defgrp_name[32];
 	short flag, type;
 } CastModifierData;
-
-enum {
-	MOD_WAV_MAP_LOCAL,
-	MOD_WAV_MAP_GLOBAL,
-	MOD_WAV_MAP_OBJECT,
-	MOD_WAV_MAP_UV,
-};
 
 /* WaveModifierData.flag */
 #define MOD_WAVE_X      (1<<1)

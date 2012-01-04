@@ -1126,10 +1126,10 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_WAV_MAP_LOCAL, "LOCAL", 0, "Local", ""},
-		{MOD_WAV_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
-		{MOD_WAV_MAP_OBJECT, "OBJECT", 0, "Object", ""},
-		{MOD_WAV_MAP_UV, "MAP_UV", 0, "UV", ""},
+		{MOD_DISP_MAP_LOCAL, "LOCAL", 0, "Local", ""},
+		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
+		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", ""},
+		{MOD_DISP_MAP_UV, "MAP_UV", 0, "UV", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WaveModifier", "Modifier");
