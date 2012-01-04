@@ -999,17 +999,24 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 	if(anchored)
 		add_v2_v2(mpos, track->offset);
 
+	if(pos)
+		zero_v2(pos);
+
 	x= mpos[0]*ibuf->x;
 	y= mpos[1]*ibuf->y;
-	x1= x-(int)(-min[0]*ibuf->x);
-	y1= y-(int)(-min[1]*ibuf->y);
-	x2= x+(int)(max[0]*ibuf->x);
-	y2= y+(int)(max[1]*ibuf->y);
+
+	w= (max[0]-min[0])*ibuf->x;
+	h= (max[1]-min[1])*ibuf->y;
+
+	w= w|1;
+	h= h|1;
+
+	x1= x-(int)(w/2.0f);
+	y1= y-(int)(h/2.0f);
+	x2= x+(int)(w/2.0f);
+	y2= y+(int)(h/2.0f);
 
 	/* dimensions should be odd */
-	w= (x2-x1)|1;
-	h= (y2-y1)|1;
-
 	tmpibuf= IMB_allocImBuf(w+margin*2, h+margin*2, 32, IB_rect);
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1-margin, y1-margin, w+margin*2, h+margin*2);
 
@@ -1023,12 +1030,16 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 		origin[1]= y1-margin;
 	}
 
-	if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
-			(track->flag & TRACK_DISABLE_RED)       ||
-			(track->flag & TRACK_DISABLE_GREEN)     ||
-			(track->flag & TRACK_DISABLE_BLUE) ) {
+	if((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
+	   (track->flag & TRACK_DISABLE_RED)       ||
+	   (track->flag & TRACK_DISABLE_GREEN)     ||
+	   (track->flag & TRACK_DISABLE_BLUE))
+	{
 		disable_imbuf_channels(tmpibuf, track, 1 /* grayscale */);
 	}
+
+	tmpibuf->ftype= PNG;
+	IMB_saveiff(tmpibuf, "/tmp/1.png", IB_rect);
 
 	return tmpibuf;
 }
@@ -1258,8 +1269,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
-			int onbound= 0, coords_correct= 0;
-			int nextfra;
+			int onbound= 0, nextfra;
 
 			if(track->pattern_match==TRACK_MATCH_KEYFRAME)
 				need_readjust= context->first_time;
@@ -1377,8 +1387,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MEM_freeN(image_new);
 			}
 
-			coords_correct= !isnan(x2) && !isnan(y2) && finite(x2) && finite(y2);
-			if(coords_correct && !onbound && tracked) {
+			if(tracked && !onbound && finite(x2) && finite(y2)) {
 				if(context->first_time) {
 					#pragma omp critical
 					{

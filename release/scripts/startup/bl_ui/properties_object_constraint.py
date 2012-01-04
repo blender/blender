@@ -774,7 +774,7 @@ class ConstraintButtonsPanel():
 
         if clip:
             layout.prop_search(con, "object", clip.tracking, "objects", icon='OBJECT_DATA')
-            layout.prop_search(con, "track", clip.tracking, "tracks", icon='ANIMATION_DATA')
+            layout.prop_search(con, "track", clip.tracking, "tracks", icon='ANIM_DATA')
 
         layout.prop(con, "camera")
 

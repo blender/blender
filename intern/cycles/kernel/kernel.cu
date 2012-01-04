@@ -44,10 +44,10 @@ extern "C" __global__ void kernel_cuda_tonemap(uchar4 *rgba, float4 *buffer, int
 		kernel_film_tonemap(NULL, rgba, buffer, sample, resolution, x, y, offset, stride);
 }
 
-extern "C" __global__ void kernel_cuda_displace(uint4 *input, float3 *offset, int sx)
+extern "C" __global__ void kernel_cuda_shader(uint4 *input, float3 *output, int type, int sx)
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
-	kernel_displace(NULL, input, offset, x);
+	kernel_shader_evaluate(NULL, input, output, (ShaderEvalType)type, x);
 }
 

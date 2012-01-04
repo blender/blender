@@ -132,6 +132,10 @@ if(WITH_SDL)
 	)
 
 	add_definitions(-DWITH_SDL)
+
+	if(WITH_GHOST_SDL)
+		add_definitions(-DWITH_GHOST_SDL)
+	endif()
 endif()
 
 blender_add_lib(ge_logic "${SRC}" "${INC}" "${INC_SYS}")

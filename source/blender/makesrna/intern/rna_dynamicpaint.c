@@ -433,7 +433,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "frame_substeps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "substeps");
-	RNA_def_property_range(prop, 0.0, 10.0);
+	RNA_def_property_range(prop, 0.0, 20.0);
 	RNA_def_property_ui_range(prop, 0.0, 10, 1, 0);
 	RNA_def_property_ui_text(prop, "Sub-Steps", "Do extra frames between scene frames to ensure smooth motion");
 	
@@ -618,7 +618,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 
 	/* wave simulator settings */
 	prop= RNA_def_property(srna, "wave_damping", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.001, 1.0);
+	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Damping", "Wave damping factor");
 
@@ -633,7 +633,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Timescale", "Wave time scaling factor");
 
 	prop= RNA_def_property(srna, "wave_spring", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.001, 1.0);
+	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.01, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Spring", "Spring force that pulls water level back to zero");
 

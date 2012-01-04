@@ -452,12 +452,6 @@ static void RNA_WarpModifier_vgroup_set(PointerRNA *ptr, const char *value)
 	rna_object_vgroup_name_set(ptr, value, tmd->defgrp_name, sizeof(tmd->defgrp_name));
 }
 
-static void rna_WaveModifier_uvlayer_set(PointerRNA *ptr, const char *value)
-{
-	WaveModifierData *wmd= (WaveModifierData*)ptr->data;
-	rna_object_uvlayer_name_set(ptr, value, wmd->uvlayer_name, sizeof(wmd->uvlayer_name));
-}
-
 static void rna_WeightVGModifier_mask_uvlayer_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md = (ModifierData*)ptr->data;
@@ -1125,13 +1119,6 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{MOD_WAV_MAP_LOCAL, "LOCAL", 0, "Local", ""},
-		{MOD_WAV_MAP_GLOBAL, "GLOBAL", 0, "Global", ""},
-		{MOD_WAV_MAP_OBJECT, "OBJECT", 0, "Object", ""},
-		{MOD_WAV_MAP_UV, "MAP_UV", 0, "UV", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "WaveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Wave Modifier", "Wave effect modifier");
 	RNA_def_struct_sdna(srna, "WaveModifierData");
@@ -1223,29 +1210,6 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WaveModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Texture", "Texture for modulating the wave");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "texmapping");
-	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
-	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used for modulating input");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
-	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WaveModifier_uvlayer_set");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "texture_coords_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
-	RNA_def_property_ui_text(prop, "Texture Coordinates Object", "");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
-
 	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -1, 1, 10, 2);
@@ -1270,6 +1234,8 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 10, 10, 2);
 	RNA_def_property_ui_text(prop, "Narrowness", "Distance between the top and the base of a wave, the higher the value, the more narrow the wave");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	rna_def_modifier_generic_map_info(srna);
 }
 
 static void rna_def_modifier_armature(BlenderRNA *brna)

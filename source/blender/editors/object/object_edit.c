@@ -111,6 +111,10 @@ static int pupmenu(const char *UNUSED(msg)) {return 0;}
 static bContext *evil_C;
 static void error_libdata(void) {}
 
+Object *ED_object_context(bContext *C)
+{
+	return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+}
 
 /* find the correct active object per context
  * note: context can be NULL when called from a enum with PROP_ENUM_NO_CONTEXT */
@@ -118,7 +122,7 @@ Object *ED_object_active_context(bContext *C)
 {
 	Object *ob= NULL;
 	if(C) {
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		ob= ED_object_context(C);
 		if (!ob) ob= CTX_data_active_object(C);
 	}
 	return ob;

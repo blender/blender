@@ -46,6 +46,7 @@
 #include "BKE_report.h"
 
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -230,7 +231,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Group *group;
 
 	if(ob == NULL)
@@ -261,7 +262,7 @@ void OBJECT_OT_group_add(wmOperatorType *ot)
 static int group_link_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
 
 	if(ELEM(NULL, ob, group))
@@ -299,7 +300,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
 
 	if(!ob || !group)

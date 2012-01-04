@@ -69,13 +69,13 @@ bool BlenderSync::sync_recalc()
 	BL::BlendData::materials_iterator b_mat;
 
 	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat)
-		if(b_mat->is_updated())
+		if(b_mat->is_updated() || (b_mat->node_tree() && b_mat->node_tree().is_updated()))
 			shader_map.set_recalc(*b_mat);
 
 	BL::BlendData::lamps_iterator b_lamp;
 
 	for(b_data.lamps.begin(b_lamp); b_lamp != b_data.lamps.end(); ++b_lamp)
-		if(b_lamp->is_updated())
+		if(b_lamp->is_updated() || (b_lamp->node_tree() && b_lamp->node_tree().is_updated()))
 			shader_map.set_recalc(*b_lamp);
 
 	BL::BlendData::objects_iterator b_ob;
@@ -107,7 +107,8 @@ bool BlenderSync::sync_recalc()
 	BL::BlendData::worlds_iterator b_world;
 
 	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world)
-		if(world_map == b_world->ptr.data && b_world->is_updated())
+		if(world_map == b_world->ptr.data &&
+			(b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
 			world_recalc = true;
 
 	bool recalc =

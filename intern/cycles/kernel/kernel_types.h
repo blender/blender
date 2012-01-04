@@ -78,6 +78,13 @@ CCL_NAMESPACE_BEGIN
 //#define __MODIFY_TP__
 //#define __QBVH__
 
+/* Shader Evaluation */
+
+enum ShaderEvalType {
+	SHADER_EVAL_DISPLACE,
+	SHADER_EVAL_BACKGROUND
+};
+
 /* Path Tracing */
 
 enum PathTraceDimension {

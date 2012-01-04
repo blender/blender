@@ -2,9 +2,9 @@
 Best Practice
 *************
 
-When writing you're own scripts python is great for new developers to pick up and become productive, but you can also pick up odd habits or at least write scripts that are not easy for others to understand.
+When writing your own scripts python is great for new developers to pick up and become productive, but you can also pick up odd habits or at least write scripts that are not easy for others to understand.
 
-For you're own work this is of course fine, but if you want to collaborate with others or have you're work included with blender there are practices we encourage.
+For your own work this is of course fine, but if you want to collaborate with others or have your work included with blender there are practices we encourage.
 
 
 Style Conventions
@@ -244,7 +244,7 @@ Use ``float(string)`` rather than ``eval(string)``, if you know the value will b
 Checking String Start/End
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If your checking the start of a string for a keyword, rather than...
+If you're checking the start of a string for a keyword, rather than...
 
 >>> if line[0:5] == "vert ": ...
 
@@ -279,8 +279,8 @@ Python has two ways to compare values ``a == b`` and ``a is b``, The difference 
 In cases where you know you are checking for the same value which is referenced from multiple places, ``is`` is faster.
 
 
-Time You're Code
-----------------
+Time Your Code
+--------------
 
 While developing a script its good to time it to be aware of any changes in performance, this can be done simply.
 

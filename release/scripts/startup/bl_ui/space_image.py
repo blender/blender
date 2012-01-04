@@ -298,34 +298,34 @@ class IMAGE_MT_uvs_select_mode(Menu):
         # do smart things depending on whether uv_select_sync is on
 
         if toolsettings.use_uv_select_sync:
-            prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
-            prop.value = "(True, False, False)"
-            prop.data_path = "tool_settings.mesh_select_mode"
+            props = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+            props.value = "(True, False, False)"
+            props.data_path = "tool_settings.mesh_select_mode"
 
-            prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
-            prop.value = "(False, True, False)"
-            prop.data_path = "tool_settings.mesh_select_mode"
+            props = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+            props.value = "(False, True, False)"
+            props.data_path = "tool_settings.mesh_select_mode"
 
-            prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
-            prop.value = "(False, False, True)"
-            prop.data_path = "tool_settings.mesh_select_mode"
+            props = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+            props.value = "(False, False, True)"
+            props.data_path = "tool_settings.mesh_select_mode"
 
         else:
-            prop = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
-            prop.value = 'VERTEX'
-            prop.data_path = "tool_settings.uv_select_mode"
+            props = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
+            props.value = 'VERTEX'
+            props.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
-            prop.value = 'EDGE'
-            prop.data_path = "tool_settings.uv_select_mode"
+            props = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
+            props.value = 'EDGE'
+            props.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
-            prop.value = 'FACE'
-            prop.data_path = "tool_settings.uv_select_mode"
+            props = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
+            props.value = 'FACE'
+            props.data_path = "tool_settings.uv_select_mode"
 
-            prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
-            prop.value = 'ISLAND'
-            prop.data_path = "tool_settings.uv_select_mode"
+            props = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
+            props.value = 'ISLAND'
+            props.data_path = "tool_settings.uv_select_mode"
 
 
 class IMAGE_HT_header(Header):

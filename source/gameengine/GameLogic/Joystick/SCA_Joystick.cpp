@@ -88,8 +88,14 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	if (m_refCount == 0) 
 	{
 		int i;
-		// do this once only
+		// The video subsystem is required for joystick input to work. However,
+		// when GHOST is running under SDL, video is initialised elsewhere.
+		// Do this once only.
+#  ifdef WITH_GHOST_SDL
+		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ){
+#  else
 		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ){
+#  endif
 			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}
@@ -124,7 +130,14 @@ void SCA_Joystick::ReleaseInstance()
 			m_instance[i]= NULL;
 		}
 
+		// The video subsystem is required for joystick input to work. However,
+		// when GHOST is running under SDL, video is freed elsewhere.
+		// Do this once only.
+#  ifdef WITH_GHOST_SDL
+		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+#  else
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
+#  endif
 #endif /* WITH_SDL */
 	}
 }

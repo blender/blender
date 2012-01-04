@@ -52,7 +52,7 @@ static unsigned int _ehash_hashsizes[]= {
 
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
-	if (v0 < v1) {       \
+	if (v0 > v1) {       \
 		v0 ^= v1;        \
 		v1 ^= v0;        \
 		v0 ^= v1;        \

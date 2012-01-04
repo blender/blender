@@ -77,6 +77,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "armature_intern.h"
 
@@ -171,7 +172,7 @@ static Object *get_poselib_object (bContext *C)
 	sa = CTX_wm_area(C);
 	
 	if (sa && (sa->spacetype == SPACE_BUTS)) 
-		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		return ED_object_context(C);
 	else
 		return object_pose_armature_get(CTX_data_active_object(C));
 }

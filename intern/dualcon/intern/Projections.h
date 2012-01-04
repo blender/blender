@@ -29,9 +29,10 @@
 #define CONTAINS_INDEX
 #define GRID_DIMENSION 20
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define LONG __int64
 #else
+#include <stdint.h>
 #define LONG int64_t
 #endif
 #define UCHAR unsigned char

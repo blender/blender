@@ -181,9 +181,9 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")
 
-                prop = col.operator("wm.context_set_value", text="From Cursor")
-                prop.data_path = "object.users_group[%d].dupli_offset" % index
-                prop.value = value
+                props = col.operator("wm.context_set_value", text="From Cursor")
+                props.data_path = "object.users_group[%d].dupli_offset" % index
+                props.value = value
                 index += 1
 
 

@@ -156,6 +156,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
+	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	OFF)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
 	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
 	mark_as_advanced(WITH_XDG_USER_DIRS)
@@ -583,6 +584,17 @@ if(UNIX AND NOT APPLE)
 
 		if(WITH_X11_XINPUT)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
+		endif()
+
+		if(WITH_X11_XF86VMODE)
+			# XXX, why dont cmake make this available?
+			FIND_LIBRARY(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
+			mark_as_advanced(X11_Xxf86vmode_LIB)
+			if(X11_Xxf86vmode_LIB)
+				set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xxf86vmode_LIB}")
+			else()
+				set(WITH_X11_XF86VMODE OFF)
+			endif()
 		endif()
 	endif()
 
@@ -1393,7 +1405,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+
+	if(NOT APPLE)
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+	endif()
 
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
@@ -1405,7 +1420,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	# flags to undo strict flags
 	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
 	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
-	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
+
+	if(NOT APPLE)
+		ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+	endif()
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
@@ -1541,6 +1559,7 @@ if(FIRST_RUN)
 
 	info_cfg_text("System Options:")
 	info_cfg_option(WITH_INSTALL_PORTABLE)
+	info_cfg_option(WITH_X11_XF86VMODE)
 	info_cfg_option(WITH_X11_XINPUT)
 	info_cfg_option(WITH_BUILTIN_GLEW)
 

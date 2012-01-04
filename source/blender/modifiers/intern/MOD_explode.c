@@ -790,8 +790,8 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	/* float timestep; */
 	int *facepa=emd->facepa;
 	int totdup=0,totvert=0,totface=0,totpart=0;
-	int i, v, mindex=0;
-	unsigned int ed_v1, ed_v2;
+	int i, v;
+	unsigned int ed_v1, ed_v2, mindex=0;
 	MTFace *mtface = NULL, *mtf;
 
 	totface= dm->getNumFaces(dm);

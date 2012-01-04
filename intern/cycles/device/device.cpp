@@ -38,7 +38,8 @@ CCL_NAMESPACE_BEGIN
 DeviceTask::DeviceTask(Type type_)
 : type(type_), x(0), y(0), w(0), h(0), rng_state(0), rgba(0), buffer(0),
   sample(0), resolution(0),
-  displace_input(0), displace_offset(0), displace_x(0), displace_w(0)
+  shader_input(0), shader_output(0),
+  shader_eval_type(0), shader_x(0), shader_w(0)
 {
 }
 
@@ -46,8 +47,8 @@ void DeviceTask::split_max_size(list<DeviceTask>& tasks, int max_size)
 {
 	int num;
 
-	if(type == DISPLACE) {
-		num = (displace_w + max_size - 1)/max_size;
+	if(type == SHADER) {
+		num = (shader_w + max_size - 1)/max_size;
 	}
 	else {
 		max_size = max(1, max_size/w);
@@ -68,17 +69,17 @@ void DeviceTask::split(ThreadQueue<DeviceTask>& queue, int num)
 
 void DeviceTask::split(list<DeviceTask>& tasks, int num)
 {
-	if(type == DISPLACE) {
-		num = min(displace_w, num);
+	if(type == SHADER) {
+		num = min(shader_w, num);
 
 		for(int i = 0; i < num; i++) {
-			int tx = displace_x + (displace_w/num)*i;
-			int tw = (i == num-1)? displace_w - i*(displace_w/num): displace_w/num;
+			int tx = shader_x + (shader_w/num)*i;
+			int tw = (i == num-1)? shader_w - i*(shader_w/num): shader_w/num;
 
 			DeviceTask task = *this;
 
-			task.displace_x = tx;
-			task.displace_w = tw;
+			task.shader_x = tx;
+			task.shader_w = tw;
 
 			tasks.push_back(task);
 		}

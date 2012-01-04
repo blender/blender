@@ -1712,9 +1712,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 
 	if( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	// vertexcolor light
-		shr->emit[0]= shi->r*(shi->emit+shi->vcol[0]);
-		shr->emit[1]= shi->g*(shi->emit+shi->vcol[1]);
-		shr->emit[2]= shi->b*(shi->emit+shi->vcol[2]);
+		shr->emit[0]= shi->r*(shi->emit+shi->vcol[0]*shi->vcol[3]);
+		shr->emit[1]= shi->g*(shi->emit+shi->vcol[1]*shi->vcol[3]);
+		shr->emit[2]= shi->b*(shi->emit+shi->vcol[2]*shi->vcol[3]);
 	}
 	else {
 		shr->emit[0]= shi->r*shi->emit;
