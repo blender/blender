@@ -2538,9 +2538,17 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	context = seq_new_render_data(re->main, re->scene,
-				      re->result->rectx, re->result->recty, 
-				      100);
+	if((re->r.mode & R_BORDER) && (re->r.mode & R_CROP)==0) {
+		/* if border rendering is used and cropping is disabled, final buffer should
+		    be as large as the whole frame */
+		context = seq_new_render_data(re->main, re->scene,
+					      re->winx, re->winy,
+					      100);
+	} else {
+		context = seq_new_render_data(re->main, re->scene,
+					      re->result->rectx, re->result->recty,
+					      100);
+	}
 
 	ibuf = give_ibuf_seq(context, cfra, 0);
 
