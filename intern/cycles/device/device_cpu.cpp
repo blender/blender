@@ -258,9 +258,21 @@ public:
 	}
 };
 
-Device *device_cpu_create(int threads)
+Device *device_cpu_create(DeviceInfo& info, int threads)
 {
 	return new CPUDevice(threads);
+}
+
+void device_cpu_info(vector<DeviceInfo>& devices)
+{
+	DeviceInfo info;
+
+	info.type = DEVICE_CPU;
+	info.description = system_cpu_brand_string();
+	info.id = "CPU";
+	info.num = 0;
+
+	devices.push_back(info);
 }
 
 CCL_NAMESPACE_END

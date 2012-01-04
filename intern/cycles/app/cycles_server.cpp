@@ -34,8 +34,9 @@ int main(int argc, const char **argv)
 	/* device types */
 	string devices = "";
 	string devicename = "cpu";
+	bool list = false;
 
-	vector<DeviceType> types = Device::available_types();
+	vector<DeviceType>& types = Device::available_types();
 
 	foreach(DeviceType type, types) {
 		if(devices != "")
@@ -49,6 +50,7 @@ int main(int argc, const char **argv)
 
 	ap.options ("Usage: cycles_server [options]",
 		"--device %s", &devicename, ("Devices to use: " + devices).c_str(),
+		"--list-devices", &list, "List information about all available devices",
 		NULL);
 
 	if(ap.parse(argc, argv) < 0) {
@@ -56,11 +58,34 @@ int main(int argc, const char **argv)
 		ap.usage();
 		exit(EXIT_FAILURE);
 	}
+	else if(list) {
+		vector<DeviceInfo>& devices = Device::available_devices();
 
-	DeviceType dtype = Device::type_from_string(devicename.c_str());
+		printf("Devices:\n");
+
+		foreach(DeviceInfo& info, devices) {
+			printf("    %s%s\n",
+				info.description.c_str(),
+				(info.display_device)? " (display)": "");
+		}
+
+		exit(EXIT_SUCCESS);
+	}
+
+	/* find matching device */
+	DeviceType device_type = Device::type_from_string(devicename.c_str());
+	vector<DeviceInfo>& devices = Device::available_devices();
+	DeviceInfo device_info;
+
+	foreach(DeviceInfo& device, devices) {
+		if(device_type == device.type) {
+			device_info = device;
+			break;
+		}
+	}
 
 	while(1) {
-		Device *device = Device::create(dtype);
+		Device *device = Device::create(device_info);
 		printf("Cycles Server with device: %s\n", device->description().c_str());
 		device->server_run();
 		delete device;

@@ -36,6 +36,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum MemoryType {
+	MEM_READ_ONLY,
+	MEM_WRITE_ONLY,
+	MEM_READ_WRITE
+};
+
 /* Supported Data Types */
 
 enum DataType {

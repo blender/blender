@@ -71,8 +71,8 @@ void TileManager::set_tiles()
 	int resolution = state.resolution;
 	int image_w = max(1, params.width/resolution);
 	int image_h = max(1, params.height/resolution);
-	int tile_w = (image_w + tile_size - 1)/tile_size;
-	int tile_h = (image_h + tile_size - 1)/tile_size;
+	int tile_w = (tile_size >= image_w)? 1: (image_w + tile_size - 1)/tile_size;
+	int tile_h = (tile_size >= image_h)? 1: (image_h + tile_size - 1)/tile_size;
 	int sub_w = image_w/tile_w;
 	int sub_h = image_h/tile_h;
 

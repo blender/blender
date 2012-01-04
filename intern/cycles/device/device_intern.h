@@ -23,11 +23,17 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 
-Device *device_cpu_create(int threads);
-Device *device_opencl_create(bool background);
-Device *device_cuda_create(bool background);
-Device *device_network_create(const char *address);
-Device *device_multi_create(bool background);
+Device *device_cpu_create(DeviceInfo& info, int threads);
+Device *device_opencl_create(DeviceInfo& info, bool background);
+Device *device_cuda_create(DeviceInfo& info, bool background);
+Device *device_network_create(DeviceInfo& info, const char *address);
+Device *device_multi_create(DeviceInfo& info, bool background);
+
+void device_cpu_info(vector<DeviceInfo>& devices);
+void device_opencl_info(vector<DeviceInfo>& devices);
+void device_cuda_info(vector<DeviceInfo>& devices);
+void device_network_info(vector<DeviceInfo>& devices);
+void device_multi_info(vector<DeviceInfo>& devices);
 
 CCL_NAMESPACE_END
 
