@@ -4739,7 +4739,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->scene) {
 					seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 					if(seq->scene) {
-						seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+						seq->scene_sound = sound_scene_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
@@ -4751,7 +4751,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+						seq->scene_sound = sound_add_scene_sound_defaults(sce, seq);
 					}
 				}
 				seq->anim= NULL;
