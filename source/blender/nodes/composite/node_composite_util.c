@@ -427,6 +427,18 @@ static float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x,
 
 /* **************************************************** */
 
+static CompBuf *composit_check_compbuf(CompBuf *cbuf, int type, CompBuf *outbuf)
+{
+	/* check type */
+	CompBuf *dbuf= typecheck_compbuf(cbuf, type);
+
+	/* if same as output and translated, duplicate so pixels don't interfere */
+	if(dbuf == outbuf && !dbuf->rect_procedural && (dbuf->xof || dbuf->yof))
+		dbuf= dupalloc_compbuf(dbuf);
+	
+	return dbuf;
+}
+
 /* Pixel-to-Pixel operation, 1 Image in, 1 out */
 void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, float *src_col,
 									  void (*func)(bNode *, float *, float *), 
@@ -437,7 +449,7 @@ void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
-	src_use= typecheck_compbuf(src_buf, src_type);
+	src_use= composit_check_compbuf(src_buf, src_type, out);
 	
 	xrad= out->xrad;
 	yrad= out->yrad;
@@ -463,8 +475,8 @@ void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, floa
 	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
-	src_use= typecheck_compbuf(src_buf, src_type);
-	fac_use= typecheck_compbuf(fac_buf, fac_type);
+	src_use= composit_check_compbuf(src_buf, src_type, out);
+	fac_use= composit_check_compbuf(fac_buf, fac_type, out);
 
 	xrad= out->xrad;
 	yrad= out->yrad;
@@ -493,9 +505,9 @@ void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
-	src1_use= typecheck_compbuf(src1_buf, src1_type);
-	src2_use= typecheck_compbuf(src2_buf, src2_type);
-	fac_use= typecheck_compbuf(fac_buf, fac_type);
+	src1_use= composit_check_compbuf(src1_buf, src1_type, out);
+	src2_use= composit_check_compbuf(src2_buf, src2_type, out);
+	fac_use= composit_check_compbuf(fac_buf, fac_type, out);
 	
 	xrad= out->xrad;
 	yrad= out->yrad;
@@ -529,10 +541,10 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 	float color[4];	/* local color if compbuf is procedural */
 	int xrad, yrad, x, y;
 	
-	src1_use= typecheck_compbuf(src1_buf, src1_type);
-	src2_use= typecheck_compbuf(src2_buf, src2_type);
-	fac1_use= typecheck_compbuf(fac1_buf, fac1_type);
-	fac2_use= typecheck_compbuf(fac2_buf, fac2_type);
+	src1_use= composit_check_compbuf(src1_buf, src1_type, out);
+	src2_use= composit_check_compbuf(src2_buf, src2_type, out);
+	fac1_use= composit_check_compbuf(fac1_buf, fac1_type, out);
+	fac2_use= composit_check_compbuf(fac2_buf, fac2_type, out);
 	
 	xrad= out->xrad;
 	yrad= out->yrad;

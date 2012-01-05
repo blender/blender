@@ -490,9 +490,11 @@ void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, i
 
 void sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence* sequence)
 {
-	sound_move_scene_sound(scene, sequence->scene_sound,
-	                       sequence->startdisp, sequence->enddisp,
-	                       sequence->startofs + sequence->anim_startofs);
+	if (sequence->scene_sound) {
+		sound_move_scene_sound(scene, sequence->scene_sound,
+		                       sequence->startdisp, sequence->enddisp,
+		                       sequence->startofs + sequence->anim_startofs);
+	}
 }
 
 void sound_update_scene_sound(void* handle, struct bSound* sound)

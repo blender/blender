@@ -1661,9 +1661,6 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
-
-	mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, 
-					  me->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,

@@ -66,6 +66,7 @@ set(SRC
 	intern/source/pointdensity.c
 	intern/source/rayshade.c
 	intern/source/rendercore.c
+	intern/source/render_result.c
 	intern/source/render_texture.c
 	intern/source/renderdatabase.c
 	intern/source/shadbuf.c
@@ -96,6 +97,7 @@ set(SRC
 	intern/include/rayintersection.h
 	intern/include/raycounter.h
 	intern/include/render_types.h
+	intern/include/render_result.h
 	intern/include/rendercore.h
 	intern/include/renderdatabase.h
 	intern/include/renderpipeline.h

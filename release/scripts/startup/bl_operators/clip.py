@@ -24,7 +24,7 @@ from bpy.types import Operator
 from mathutils import Vector, Matrix
 
 
-def CLIP_spacees_walk(context, all_screens, tarea, tspace, callback, *args):
+def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
     screens = bpy.data.screens if all_screens else [context.screen]
 
     for screen in screens:
@@ -56,7 +56,7 @@ def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
 
         space_v3d.show_background_images = True
 
-    CLIP_spacees_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
+    CLIP_spaces_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
                       set_background, clip, clip_user)
 
 
@@ -529,7 +529,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         def setup_space(space):
             space.show_backdrop = True
 
-        CLIP_spacees_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
+        CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
                           setup_space)
 
         sc = context.space_data
