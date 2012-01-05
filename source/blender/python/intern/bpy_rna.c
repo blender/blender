@@ -4073,7 +4073,6 @@ static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 	return PyLong_FromVoidPtr(self->ptr.data);
 }
 
-/* TODO, get (string, lib) pair */
 PyDoc_STRVAR(pyrna_prop_collection_get_doc,
 ".. method:: get(key, default=None)\n"
 "\n"
@@ -4118,6 +4117,51 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
 	}
 
 	return Py_INCREF(def), def;
+}
+
+PyDoc_STRVAR(pyrna_prop_collection_find_doc,
+".. method:: find(key)\n"
+"\n"
+"   Returns the index of a key in a collection or -1 when not found\n"
+"   (matches pythons string find function of the same name).\n"
+"\n"
+"   :arg key: The identifier for the collection member.\n"
+"   :type key: string\n"
+"   :return: index of the key.\n"
+"   :rtype: int\n"
+);
+static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key_ob)
+{
+	Py_ssize_t key_len_ssize_t;
+	const char *key = _PyUnicode_AsStringAndSize(key_ob, &key_len_ssize_t);
+	const int key_len = (int)key_len_ssize_t; /* comare with same type */
+
+	char name[256], *nameptr;
+	int namelen;
+	int i = 0;
+	int index = -1;
+
+	PYRNA_PROP_CHECK_OBJ(self);
+
+	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
+		nameptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
+
+		if (nameptr) {
+			if ((key_len == namelen) && memcmp(nameptr, key, key_len) == 0) {
+				index = i;
+				break;
+			}
+
+			if (name != nameptr) {
+				MEM_freeN(nameptr);
+			}
+		}
+
+		i++;
+	}
+	RNA_PROP_END;
+
+	return PyLong_FromSsize_t(index);
 }
 
 static void foreach_attr_type(	BPy_PropertyRNA *self, const char *attr,
@@ -4503,6 +4547,7 @@ static struct PyMethodDef pyrna_prop_collection_methods[] = {
 	{"values", (PyCFunction)pyrna_prop_collection_values, METH_NOARGS, pyrna_prop_collection_values_doc},
 
 	{"get", (PyCFunction)pyrna_prop_collection_get, METH_VARARGS, pyrna_prop_collection_get_doc},
+	{"find", (PyCFunction)pyrna_prop_collection_find, METH_O, pyrna_prop_collection_find_doc},
 	{NULL, NULL, 0, NULL}
 };
 

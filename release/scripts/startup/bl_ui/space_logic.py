@@ -20,13 +20,6 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
-def get_id_by_name(properties, name):
-    """returns ID"""
-    for i, prop in enumerate(properties):
-            if prop.name == name:
-                return i
-    return -1
-
 class LOGIC_PT_properties(Panel):
     bl_space_type = 'LOGIC_EDITOR'
     bl_region_type = 'UI'
@@ -42,20 +35,22 @@ class LOGIC_PT_properties(Panel):
 
         ob = context.active_object
         game = ob.game
+        is_font = (ob.type == 'FONT')
 
-        if ob.type == 'FONT':
-            prop = game.properties.get("Text")
-            if prop:
-                layout.operator("object.game_property_remove", text="Text Game Property", icon='X').index = get_id_by_name(game.properties, "Text")
+        if is_font:
+            prop_index = game.properties.find("Text")
+            if prop_index != -1:
+                layout.operator("object.game_property_remove", text="Renove Text Game Property", icon='X').index = prop_index
                 row = layout.row()
                 sub=row.row()
                 sub.enabled=0
+                prop = game.properties[prop_index]
                 sub.prop(prop, "name", text="")
                 row.prop(prop, "type", text="")
                 # get the property from the body, not the game property
                 row.prop(ob.data, "body", text="")
             else:
-                props=layout.operator("object.game_property_new", text="Text Game Property", icon='ZOOMIN')
+                props=layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
                 props.name='Text'
                 props.type='STRING'
 
@@ -63,7 +58,7 @@ class LOGIC_PT_properties(Panel):
 
         for i, prop in enumerate(game.properties):
 
-            if ob.type == 'FONT' and prop.name == "Text":
+            if is_font and i == prop_index:
                 continue
 
             box = layout.box()
