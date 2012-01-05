@@ -352,6 +352,26 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 	}
 }
 
+/* note: until all modifiers can take MPoly's as input,
+ * use this at the start of modifiers  */
+void DM_ensure_tessface(DerivedMesh *dm)
+{
+	const int numTessFaces = dm->getNumTessFaces(dm);
+	const int numPolys =     dm->getNumPolys(dm);
+
+	if ( (numTessFaces == 0) && (numPolys != 0)) {
+		dm->recalcTesselation(dm);
+
+		if (dm->getNumTessFaces(dm)) {
+			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%d\n",
+			       __func__, numPolys, dm->type);
+		}
+		else {
+			printf("info %s: polys -> ngons calculated\n", __func__);
+		}
+	}
+}
+
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 {
 	/* dm might depend on me, so we need to do everything with a local copy */

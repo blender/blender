@@ -81,6 +81,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	int totvert, totface;
 	int a, numTris;
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	mvert = dm->getVertArray(dm);
 	mface = dm->getTessFaceArray(dm);
 	totvert = dm->getNumVerts(dm);

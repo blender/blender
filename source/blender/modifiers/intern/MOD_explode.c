@@ -983,6 +983,8 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	ParticleSystemModifierData *psmd=findPrecedingParticlesystem(ob,md);
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	if(psmd){
 		ParticleSystem * psys=psmd->psys;
 

@@ -517,6 +517,8 @@ void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 /*sets up mpolys for a DM based on face iterators in source*/
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
+void DM_ensure_tessface(DerivedMesh *dm);
+
 /* interpolates vertex data from the vertices indexed by src_indices in the
  * source mesh using the given weights and stores the result in the vertex
  * indexed by dest_index in the dest mesh

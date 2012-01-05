@@ -151,6 +151,8 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	DualConFlags flags = 0;
 	DualConMode mode = 0;
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	rmd = (RemeshModifierData*)md;
 
 	init_dualcon_mesh(&input, dm);

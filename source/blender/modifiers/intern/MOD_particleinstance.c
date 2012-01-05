@@ -122,6 +122,8 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
 	float *size=NULL;
 
+	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+
 	trackneg=((ob->trackflag>2)?1:0);
 
 	if(pimd->ob==ob){
