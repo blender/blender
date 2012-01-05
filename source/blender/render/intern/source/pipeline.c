@@ -53,7 +53,6 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -62,17 +61,16 @@
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
 #include "BLI_rand.h"
-#include "BLI_threads.h"
 #include "BLI_callbacks.h"
-#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "intern/openexr/openexr_multi.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -83,7 +81,6 @@
 #include "renderpipeline.h"
 #include "renderdatabase.h"
 #include "rendercore.h"
-#include "envmap.h"
 #include "initrender.h"
 #include "shadbuf.h"
 #include "pixelblending.h"
