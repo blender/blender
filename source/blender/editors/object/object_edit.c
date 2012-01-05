@@ -1943,15 +1943,13 @@ static int game_property_new(bContext *C, wmOperator *op)
 	char name[32];
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
 	prop= new_property(type);
 	BLI_addtail(&ob->prop, prop);
 
 	RNA_string_get(op->ptr, "name", name);
-	if(BLI_strnlen(name, 32) > 0)
+	if (name[0] != '\0') {
 		BLI_strncpy(prop->name, name, sizeof(prop->name));
+	}
 
 	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
 
