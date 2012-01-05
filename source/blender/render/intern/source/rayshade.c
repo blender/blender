@@ -780,7 +780,10 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 				tracol[3]= col[3];	// we pass on and accumulate alpha
 				
 				if((shi.mat->mode & MA_TRANSP) && (shi.mat->mode & MA_RAYTRANSP)) {
-					if(traflag & RAY_INSIDE) {
+					/* don't overwrite traflag, it's value is used in mirror reflection */
+					int new_traflag = traflag;
+					
+					if(new_traflag & RAY_INSIDE) {
 						/* inside the material, so use inverse normal */
 						float norm[3];
 						norm[0]= - shi.vn[0];
@@ -789,7 +792,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 
 						if (refraction(refract, norm, shi.view, shi.ang)) {
 							/* ray comes out from the material into air */
-							traflag &= ~RAY_INSIDE;
+							new_traflag &= ~RAY_INSIDE;
 						}
 						else {
 							/* total internal reflection (ray stays inside the material) */
@@ -799,14 +802,14 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 					else {
 						if (refraction(refract, shi.vn, shi.view, shi.ang)) {
 							/* ray goes in to the material from air */
-							traflag |= RAY_INSIDE;
+							new_traflag |= RAY_INSIDE;
 						}
 						else {
 							/* total external reflection (ray doesn't enter the material) */
 							reflection(refract, shi.vn, shi.view, shi.vn);
 						}
 					}
-					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, traflag);
+					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, new_traflag);
 				}
 				else
 					traceray(origshi, origshr, depth-1, shi.co, shi.view, tracol, shi.obi, shi.vlr, 0);
@@ -840,7 +843,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 				float ref[3];
 				
 				reflection_simple(ref, shi.vn, shi.view);
-				traceray(origshi, origshr, depth-1, shi.co, ref, mircol, shi.obi, shi.vlr, 0);
+				traceray(origshi, origshr, depth-1, shi.co, ref, mircol, shi.obi, shi.vlr, traflag);
 			
 				f1= 1.0f-f;
 
