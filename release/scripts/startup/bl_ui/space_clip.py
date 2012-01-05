@@ -317,9 +317,10 @@ class CLIP_PT_tools_object(Panel):
         return False
 
     def draw(self, context):
+        layout = self.layout
+        
         sc = context.space_data
         clip = sc.clip
-        layout = self.layout
         tracking_object = clip.tracking.objects.active
         settings = sc.clip.tracking.settings
 
@@ -376,9 +377,9 @@ class CLIP_PT_objects(Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         sc = context.space_data
-        clip = sc.clip
-        tracking = clip.tracking
+        tracking = sc.clip.tracking
 
         row = layout.row()
         row.template_list(tracking, "objects",
