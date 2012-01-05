@@ -203,17 +203,18 @@ static void options_parse(int argc, const char **argv)
 	options.session = NULL;
 	options.quiet = false;
 
-	/* devices */
-	string devices = "";
+	/* device names */
+	string device_names = "";
 	string devicename = "cpu";
+	bool list = false;
 
-	vector<DeviceType> types = Device::available_types();
+	vector<DeviceType>& types = Device::available_types();
 
 	foreach(DeviceType type, types) {
-		if(devices != "")
-			devices += ", ";
+		if(device_names != "")
+			device_names += ", ";
 
-		devices += Device::string_from_type(type);
+		device_names += Device::string_from_type(type);
 	}
 
 	/* shading system */
@@ -230,7 +231,7 @@ static void options_parse(int argc, const char **argv)
 
 	ap.options ("Usage: cycles_test [options] file.xml",
 		"%*", files_parse, "",
-		"--device %s", &devicename, ("Devices to use: " + devices).c_str(),
+		"--device %s", &devicename, ("Devices to use: " + device_names).c_str(),
 		"--shadingsys %s", &ssname, "Shading system to use: svm, osl",
 		"--background", &options.session_params.background, "Render in background, without user interface",
 		"--quiet", &options.quiet, "In background mode, don't print progress messages",
@@ -239,6 +240,7 @@ static void options_parse(int argc, const char **argv)
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
 		"--width  %d", &options.width, "Window width in pixel",
 		"--height %d", &options.height, "Window height in pixel",
+		"--list-devices", &list, "List information about all available devices",
 		"--help", &help, "Print help message",
 		NULL);
 	
@@ -247,26 +249,44 @@ static void options_parse(int argc, const char **argv)
 		ap.usage();
 		exit(EXIT_FAILURE);
 	}
+	else if(list) {
+		vector<DeviceInfo>& devices = Device::available_devices();
+		printf("Devices:\n");
+
+		foreach(DeviceInfo& info, devices) {
+			printf("    %s%s\n",
+				info.description.c_str(),
+				(info.display_device)? " (display)": "");
+		}
+
+		exit(EXIT_SUCCESS);
+	}
 	else if(help || options.filepath == "") {
 		ap.usage();
 		exit(EXIT_SUCCESS);
 	}
-
-	options.session_params.device_type = Device::type_from_string(devicename.c_str());
 
 	if(ssname == "osl")
 		options.scene_params.shadingsystem = SceneParams::OSL;
 	else if(ssname == "svm")
 		options.scene_params.shadingsystem = SceneParams::SVM;
 
+	/* find matching device */
+	DeviceType device_type = Device::type_from_string(devicename.c_str());
+	vector<DeviceInfo>& devices = Device::available_devices();
+	DeviceInfo device_info;
+	bool device_available = false;
+
+	foreach(DeviceInfo& device, devices) {
+		if(device_type == device.type) {
+			options.session_params.device = device;
+			device_available = true;
+			break;
+		}
+	}
+
 	/* handle invalid configurations */
-	bool type_available = false;
-
-	foreach(DeviceType dtype, types)
-		if(options.session_params.device_type == dtype)
-			type_available = true;
-
-	if(options.session_params.device_type == DEVICE_NONE || !type_available) {
+	if(options.session_params.device.type == DEVICE_NONE || !device_available) {
 		fprintf(stderr, "Unknown device: %s\n", devicename.c_str());
 		exit(EXIT_FAILURE);
 	}
@@ -278,7 +298,7 @@ static void options_parse(int argc, const char **argv)
 		fprintf(stderr, "Unknown shading system: %s\n", ssname.c_str());
 		exit(EXIT_FAILURE);
 	}
-	else if(options.scene_params.shadingsystem == SceneParams::OSL && options.session_params.device_type != DEVICE_CPU) {
+	else if(options.scene_params.shadingsystem == SceneParams::OSL && options.session_params.device.type != DEVICE_CPU) {
 		fprintf(stderr, "OSL shading system only works with CPU device\n");
 		exit(EXIT_FAILURE);
 	}

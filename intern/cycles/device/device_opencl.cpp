@@ -141,7 +141,7 @@ public:
 		}
 	}
 
-	OpenCLDevice(bool background_)
+	OpenCLDevice(DeviceInfo& info, bool background_)
 	{
 		background = background_;
 		cpPlatform = NULL;
@@ -153,10 +153,9 @@ public:
 		null_mem = 0;
 		device_initialized = false;
 
-		vector<cl_platform_id> platform_ids;
+		/* setup platform */
 		cl_uint num_platforms;
 
-		/* setup device */
 		ciErr = clGetPlatformIDs(0, NULL, &num_platforms);
 		if(opencl_error(ciErr))
 			return;
@@ -166,14 +165,7 @@ public:
 			return;
 		}
 
-		platform_ids.resize(num_platforms);
-		ciErr = clGetPlatformIDs(num_platforms, &platform_ids[0], NULL);
-		if(opencl_error(ciErr))
-			return;
-
-		cpPlatform = platform_ids[0]; /* todo: pick specified platform && device */
-
-		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 1, &cdDevice, NULL);
+		ciErr = clGetPlatformIDs(num_platforms, &cpPlatform, NULL);
 		if(opencl_error(ciErr))
 			return;
 
@@ -181,6 +173,29 @@ public:
 		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
 		platform_name = name;
 
+		/* get devices */
+		vector<cl_device_id> device_ids;
+		cl_uint num_devices;
+
+		if(opencl_error(clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices)))
+			return;
+
+		if(info.num > num_devices) {
+			if(num_devices == 0)
+				opencl_error("OpenCL: no devices found.");
+			else
+				opencl_error("OpenCL: specified device not found.");
+			return;
+		}
+
+		device_ids.resize(num_devices);
+		
+		if(opencl_error(clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL)))
+			return;
+
+		cdDevice = device_ids[info.num];
+
+		/* create context */
 		cxContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
 		if(opencl_error(ciErr))
 			return;
@@ -689,9 +704,50 @@ public:
 	}
 };
 
-Device *device_opencl_create(bool background)
+Device *device_opencl_create(DeviceInfo& info, bool background)
 {
-	return new OpenCLDevice(background);
+	return new OpenCLDevice(info, background);
+}
+
+void device_opencl_info(vector<DeviceInfo>& devices)
+{
+	vector<cl_device_id> device_ids;
+	cl_uint num_devices;
+	cl_platform_id platform_id;
+	cl_uint num_platforms;
+
+	/* get devices */
+	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0)
+		return;
+
+	if(clGetPlatformIDs(num_platforms, &platform_id, NULL) != CL_SUCCESS)
+		return;
+
+	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 0, NULL, &num_devices) != CL_SUCCESS)
+		return;
+	
+	device_ids.resize(num_devices);
+
+	if(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, num_devices, &device_ids[0], NULL) != CL_SUCCESS)
+		return;
+	
+	/* add devices */
+	for(int num = 0; num < num_devices; num++) {
+		cl_device_id device_id = device_ids[num];
+		char name[1024];
+
+		if(clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(name), &name, NULL) != CL_SUCCESS)
+			continue;
+
+		DeviceInfo info;
+
+		info.type = DEVICE_OPENCL;
+		info.description = string(name);
+		info.id = string_printf("OPENCL_%d", num);
+		info.num = num;
+
+		devices.push_back(info);
+	}
 }
 
 CCL_NAMESPACE_END

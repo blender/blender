@@ -358,6 +358,34 @@ static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr, PointerRNA va
 	}
 }
 
+static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr, PointerRNA value)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+	bFollowTrackConstraint *data= (bFollowTrackConstraint*)con->data;
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_MESH && ob != (Object*)ptr->id.data) {
+			data->depth_ob= ob;
+		}
+	} else {
+		data->depth_ob= NULL;
+	}
+}
+
+static int rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)value.data;
+
+	if(ob) {
+		if (ob->type == OB_MESH && ob != (Object*)ptr->id.data) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA value)
 {
 	bConstraint *con= (bConstraint*)ptr->data;
@@ -2126,6 +2154,14 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Constraint_followTrack_camera_set", NULL, "rna_Constraint_cameraObject_poll");
+
+	/* depth object */
+	prop= RNA_def_property(srna, "depth_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "depth_ob");
+	RNA_def_property_ui_text(prop, "Depth Object", "Object used to define depth in camera space by projecting onto surface of this object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Constraint_followTrack_depthObject_set", NULL, "rna_Constraint_followTrack_depthObject_poll");
 }
 
 static void rna_def_constraint_camera_solver(BlenderRNA *brna)

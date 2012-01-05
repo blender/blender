@@ -190,6 +190,10 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 
 PLATFORM_LINKFLAGS = ['-Xlinker', '--stack=2097152']
 
+## DISABLED, causes linking errors!
+## for re-distrobution, so users dont need mingw installed
+# PLATFORM_LINKFLAGS += ["-static-libgcc", "-static-libstdc++"]
+
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g', '-D_DEBUG']
 

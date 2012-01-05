@@ -40,7 +40,7 @@ class Scene;
 
 class SessionParams {
 public:
-	DeviceType device_type;
+	DeviceInfo device;
 	bool background;
 	string output_path;
 
@@ -57,7 +57,6 @@ public:
 
 	SessionParams()
 	{
-		device_type = DEVICE_CPU;
 		background = false;
 		output_path = "";
 
@@ -74,7 +73,8 @@ public:
 	}
 
 	bool modified(const SessionParams& params)
-	{ return !(device_type == params.device_type
+	{ return !(device.type == params.device.type
+		&& device.id == params.device.id
 		&& background == params.background
 		&& output_path == params.output_path
 		/* && samples == params.samples */

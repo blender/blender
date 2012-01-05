@@ -48,10 +48,20 @@
 #include "SCA_TimeEventManager.h"
 #include "SCA_IScene.h"
 
+#include "KX_FontObject.h"
+#include "DNA_curve_types.h"
+
 /* This little block needed for linking to Blender... */
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
+
+extern "C" {
+	#include "BKE_property.h"
+}
+
+/* prototype */
+void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer);
 
 void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer)
 {
@@ -155,4 +165,80 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 		//  reserve name for object state
 		scene->AddDebugProperty(gameobj,STR_String("__state__"));
 	}
+
+	/* Font Objects need to 'copy' the Font Object data body to ["Text"] */
+	if (object->type == OB_FONT)
+	{
+		BL_ConvertTextProperty(object, (KX_FontObject *)gameobj, timemgr, scene, isInActiveLayer);
+	}
 }
+
+void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEventManager* timemgr,SCA_IScene* scene, bool isInActiveLayer)
+{
+	CValue* tprop = fontobj->GetProperty("Text");
+	if(!tprop) return;
+	bProperty* prop = get_ob_property(object, "Text");
+	if(!prop) return;
+
+	Curve *curve = static_cast<Curve *>(object->data);
+	STR_String str = curve->str;
+	CValue* propval = NULL;
+
+	switch(prop->type) {
+		case GPROP_BOOL:
+		{
+			int value = atoi(str);
+			propval = new CBoolValue((bool)(value != 0));
+			tprop->SetValue(propval);
+			break;
+		}
+		case GPROP_INT:
+		{
+			int value = atoi(str);
+			propval = new CIntValue(value);
+			tprop->SetValue(propval);
+			break;
+		}
+		case GPROP_FLOAT:
+		{
+			float floatprop = atof(str);
+			propval = new CFloatValue(floatprop);
+			tprop->SetValue(propval);
+			break;
+		}
+		case GPROP_STRING:
+		{
+			propval = new CStringValue(str, "");
+			tprop->SetValue(propval);
+			break;
+		}
+		case GPROP_TIME:
+		{
+			float floatprop = atof(str);
+
+			CValue* timeval = new CFloatValue(floatprop);
+			// set a subproperty called 'timer' so that
+			// we can register the replica of this property
+			// at the time a game object is replicated (AddObjectActuator triggers this)
+			CValue *bval = new CBoolValue(true);
+			timeval->SetProperty("timer",bval);
+			bval->Release();
+			if (isInActiveLayer)
+			{
+				timemgr->AddTimeProperty(timeval);
+			}
+
+			propval = timeval;
+			tprop->SetValue(timeval);
+		}
+		default:
+		{
+			// todo make an assert etc.
+		}
+	}
+
+	if (propval) {
+		propval->Release();
+	}
+}
+

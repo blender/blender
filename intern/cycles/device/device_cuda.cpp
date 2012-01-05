@@ -159,11 +159,11 @@ public:
 		cuda_assert(cuCtxSetCurrent(NULL));
 	}
 
-	CUDADevice(bool background_)
+	CUDADevice(DeviceInfo& info, bool background_)
 	{
 		background = background_;
 
-		cuDevId = 0;
+		cuDevId = info.num;
 		cuDevice = 0;
 		cuContext = 0;
 
@@ -205,7 +205,7 @@ public:
 	string description()
 	{
 		/* print device information */
-		char deviceName[100];
+		char deviceName[256];
 
 		cuda_push_context();
 		cuDeviceGetName(deviceName, 256, cuDevId);
@@ -768,7 +768,7 @@ public:
 		}
 	}
 
-	void draw_pixels(device_memory& mem, int y, int w, int h, int width, int height, bool transparent)
+	void draw_pixels(device_memory& mem, int y, int w, int h, int dy, int width, int height, bool transparent)
 	{
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem.device_pointer];
@@ -794,7 +794,7 @@ public:
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 			glPushMatrix();
-			glTranslatef(0.0f, (float)y, 0.0f);
+			glTranslatef(0.0f, (float)dy, 0.0f);
 				
 			glBegin(GL_QUADS);
 			
@@ -822,7 +822,7 @@ public:
 			return;
 		}
 
-		Device::draw_pixels(mem, y, w, h, width, height, transparent);
+		Device::draw_pixels(mem, y, w, h, dy, width, height, transparent);
 	}
 
 	void task_add(DeviceTask& task)
@@ -849,9 +849,40 @@ public:
 	}
 };
 
-Device *device_cuda_create(bool background)
+Device *device_cuda_create(DeviceInfo& info, bool background)
 {
-	return new CUDADevice(background);
+	return new CUDADevice(info, background);
+}
+
+void device_cuda_info(vector<DeviceInfo>& devices)
+{
+	int count = 0;
+
+	if(cuInit(0) != CUDA_SUCCESS)
+		return;
+	if(cuDeviceGetCount(&count) != CUDA_SUCCESS)
+		return;
+	
+	for(int num = 0; num < count; num++) {
+		char name[256];
+		int attr;
+		
+		if(cuDeviceGetName(name, 256, num) != CUDA_SUCCESS)
+			continue;
+
+		DeviceInfo info;
+
+		info.type = DEVICE_CUDA;
+		info.description = string(name);
+		info.id = string_printf("CUDA_%d", num);
+		info.num = num;
+
+		/* if device has a kernel timeout, assume it is used for display */
+		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1)
+			info.display_device = true;
+
+		devices.push_back(info);
+	}
 }
 
 CCL_NAMESPACE_END
