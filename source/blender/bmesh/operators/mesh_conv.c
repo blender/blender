@@ -406,7 +406,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* Object *ob = BMO_Get_Pnt(op, "object"); */
 	MLoop *mloop;
 	MPoly *mpoly;
-	MVert *mvert, *oldverts;
+	MVert *mvert, *oldverts, *mv;
 	MEdge *med, *medge;
 	BMVert *v, *eve;
 	BMEdge *e;
@@ -475,13 +475,14 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 	
 	i = 0;
+	mv = mvert;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		float *bweight = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BWEIGHT);
 
-		mvert->bweight = bweight ? (char)((*bweight)*255) : 0;
+		mv->bweight = bweight ? (char)((*bweight)*255) : 0;
 
-		copy_v3_v3(mvert->co, v->co);
-		normal_float_to_short_v3(mvert->no, v->no);
+		copy_v3_v3(mv->co, v->co);
+		normal_float_to_short_v3(mv->no, v->no);
 		
 		mvert->flag = BM_Vert_Flag_To_MEFlag(v);
 
@@ -491,7 +492,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
 
 		i++;
-		mvert++;
+		mv++;
 
 		BM_CHECK_ELEMENT(bm, v);
 	}
@@ -612,7 +613,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 
 	if (dotess) {
 		me->totface= mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata,
-		                                    me->mvert,
+		                                    mvert,
 		                                    me->totface, me->totloop, me->totpoly);
 	}
 
