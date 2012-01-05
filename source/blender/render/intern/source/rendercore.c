@@ -67,6 +67,7 @@
 #include "rayintersection.h"
 #include "rayobject.h"
 #include "renderpipeline.h"
+#include "render_result.h"
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "occlusion.h"

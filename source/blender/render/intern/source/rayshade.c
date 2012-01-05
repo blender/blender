@@ -53,6 +53,7 @@
 
 #include "PIL_time.h"
 
+#include "render_result.h"
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "rendercore.h"
