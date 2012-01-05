@@ -1029,8 +1029,9 @@ elseif(WIN32)
 		
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
-		# for re-distrobution, so users dont need mingw installed
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
+		## DISABLE - causes linking errors 
+		## for re-distrobution, so users dont need mingw installed
+		# set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-libgcc -static-libstdc++")
 
 	endif()
 

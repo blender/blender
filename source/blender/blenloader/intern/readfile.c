@@ -12875,7 +12875,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "
 						                 "[\"Text\"] game property to change their content through Logic Bricks.\n",
 						                 ob->id.name+2);
-						break;
 					}
 				}
 			}
