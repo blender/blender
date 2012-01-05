@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
+
 class LOGIC_PT_properties(Panel):
     bl_space_type = 'LOGIC_EDITOR'
     bl_region_type = 'UI'
@@ -42,17 +43,22 @@ class LOGIC_PT_properties(Panel):
             if prop_index != -1:
                 layout.operator("object.game_property_remove", text="Renove Text Game Property", icon='X').index = prop_index
                 row = layout.row()
-                sub=row.row()
-                sub.enabled=0
+                sub = row.row()
+                sub.enabled = 0
                 prop = game.properties[prop_index]
                 sub.prop(prop, "name", text="")
                 row.prop(prop, "type", text="")
                 # get the property from the body, not the game property
-                row.prop(ob.data, "body", text="")
+                # note, dont do this - its too slow and body can potentually be a really long string.
+                # row.prop(ob.data, "body", text="")
+                if prop.type == 'STRING':
+                    row.label("*See Font Object*")
+                else:
+                    row.prop(prop, "value", text="", toggle=True)
             else:
-                props=layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
-                props.name='Text'
-                props.type='STRING'
+                props = layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
+                props.name = 'Text'
+                props.type = 'STRING'
 
         layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
 
