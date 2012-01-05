@@ -123,7 +123,7 @@ MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], float dither)
 
 /* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
-	int channels_from, int dither, int profile_to, int profile_from, int predivide,
+	int channels_from, float dither, int profile_to, int profile_from, int predivide,
 	int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
