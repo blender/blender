@@ -31,6 +31,7 @@ class ModalOperator(bpy.types.Operator):
 
     def execute(self, context):
         context.object.location.x = self.value / 100.0
+        return {'FINISHED'}
 
     def modal(self, context, event):
         if event.type == 'MOUSEMOVE':  # Apply
