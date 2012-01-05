@@ -399,10 +399,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BLI_ghashIterator_free(hashIter);
 
 	MEM_freeN(loop_mapping);
-	
-	/* BMESH_TODO - remove this and make modifiers create their own tessfaces on demand */
-	CDDM_recalc_tesselation(result);
 
+	/* why is this needed? - campbell */
 	/* recalculate normals */
 	CDDM_calc_normals(result);
 	

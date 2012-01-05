@@ -904,11 +904,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 #endif
 
-
-	/* BMESH_TODO - remove this and make modifiers create their own tessfaces on demand */
-	CDDM_recalc_tesselation(result);
-
 	if((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
+		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
 		CDDM_calc_normals(result);
 	}
 

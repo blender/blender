@@ -728,9 +728,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* BMESH_TODO, we only need to get vertex normals here, this is way overkill */
 		CDDM_calc_normals(result);
 	}
-	else {
-		CDDM_recalc_tesselation(result);
-	}
 	
 	if (dm != odm) {
 		dm->needsFree = 1;

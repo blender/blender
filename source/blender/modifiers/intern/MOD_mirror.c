@@ -283,9 +283,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MEM_freeN(vtargetmap);
 	}
 
-	/* BMESH_TODO - remove this and make modifiers create their own tessfaces on demand */
-	CDDM_recalc_tesselation(result);
-
 	return result;
 }
 
