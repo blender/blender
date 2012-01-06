@@ -306,7 +306,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 
 	gzclose( gzf );
 
-	CDDM_calc_edges(dm);
+	CDDM_calc_edges_tessface(dm);
 
 	CDDM_apply_vert_normals(dm, (short (*)[3])normals);
 	MEM_freeN(normals);

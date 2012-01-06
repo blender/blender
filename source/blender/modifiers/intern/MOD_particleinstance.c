@@ -303,7 +303,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 			mf->v4+=(i/totface)*totvert;
 	}
 
-	CDDM_calc_edges(result);
+	CDDM_calc_edges_tessface(result);
 	CDDM_calc_normals_mapping(result);
 
 	if(psys->lattice){

@@ -107,11 +107,11 @@ void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
  * this completely replaces the current edge data in the DerivedMesh
  * builds edges from the tesselated face data.
  */
-void CDDM_calc_edges(struct DerivedMesh *dm);
+void CDDM_calc_edges_tessface(struct DerivedMesh *dm);
 
-/* same as CDDM_calc_edges only makes edges from ngon faces instead of tesselation
+/* same as CDDM_calc_edges_tessface only makes edges from ngon faces instead of tesselation
    faces*/
-void CDDM_calc_edges_poly(struct DerivedMesh *dm);
+void CDDM_calc_edges(struct DerivedMesh *dm);
 
 /* reconstitute face triangulation */
 void CDDM_recalc_tesselation(struct DerivedMesh *dm);

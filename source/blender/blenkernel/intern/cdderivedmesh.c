@@ -2495,7 +2495,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 }
 #endif
 
-void CDDM_calc_edges(DerivedMesh *dm)
+void CDDM_calc_edges_tessface(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	CustomData edgeData;
@@ -2551,8 +2551,8 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	BLI_edgehash_free(eh, NULL);
 }
 
-/* warning, this uses existing edges but CDDM_calc_edges() doesn't */
-void CDDM_calc_edges_poly(DerivedMesh *dm)
+/* warning, this uses existing edges but CDDM_calc_edges_tessface() doesn't */
+void CDDM_calc_edges(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	CustomData edgeData;
@@ -2709,7 +2709,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	int i, totloop;
 	
 	/*ensure we have all the edges we need*/
-	CDDM_calc_edges(dm);
+	CDDM_calc_edges_tessface(dm);
 
 	/*build edge hash*/
 	me = cddm->medge;

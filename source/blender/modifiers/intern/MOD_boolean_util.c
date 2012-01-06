@@ -432,7 +432,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	if (material_hash)
 		BLI_ghash_free(material_hash, NULL, NULL);
 
-	CDDM_calc_edges(result);
+	CDDM_calc_edges_tessface(result);
 
 	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 

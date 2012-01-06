@@ -951,7 +951,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	BLI_edgehash_free(vertpahash, NULL);
 
 	/* finalization */
-	CDDM_calc_edges(explode);
+	CDDM_calc_edges_tessface(explode);
 	CDDM_tessfaces_to_faces(explode);
 	CDDM_calc_normals_mapping(explode);
 

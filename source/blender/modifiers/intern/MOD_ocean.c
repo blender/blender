@@ -348,7 +348,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 		}
 	}
 
-	CDDM_calc_edges_poly(result);
+	CDDM_calc_edges(result);
 
 	/* add uvs */
 	cdlayer= CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);

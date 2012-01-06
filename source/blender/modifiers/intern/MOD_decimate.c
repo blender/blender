@@ -169,7 +169,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 				}
 			}
 
-			CDDM_calc_edges(result);
+			CDDM_calc_edges_tessface(result);
 		}
 		else
 			modifier_setError(md, "Out of memory.");
