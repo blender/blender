@@ -123,7 +123,7 @@ void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert);
 void mesh_delete_material_index(struct Mesh *me, short index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 void convert_mfaces_to_mpolys(struct Mesh *mesh);
-void mesh_calc_tessface_normals(struct MVert *mverts, int numVerts,struct  MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
+void mesh_calc_normals_tessface(struct MVert *mverts, int numVerts,struct  MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 
 /*used for unit testing; compares two meshes, checking only
   differences we care about.  should be usable with leaf's
@@ -143,14 +143,20 @@ void mesh_strip_loose_edges(struct Mesh *me);
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
 	 */
-void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MLoop *mloop, 
-	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
-	struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
+void mesh_calc_normals_mapping(
+        struct MVert *mverts, int numVerts,
+        struct MLoop *mloop, struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
+        struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
 	/* extended version of 'mesh_calc_normals' with option not to calc vertex normals */
-void mesh_calc_normals_ex(struct MVert *mverts, int numVerts, struct MLoop *mloop,
-	struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
-	struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
-	const short only_face_normals);
+void mesh_calc_normals_mapping_ex(
+        struct MVert *mverts, int numVerts, struct MLoop *mloop,
+        struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
+        struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
+        const short only_face_normals);
+
+void mesh_calc_normals(
+        struct MVert *mverts, int numVerts, struct MLoop *mloop,
+        struct MPoly *mpolys, int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3]);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */

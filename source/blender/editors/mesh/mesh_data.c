@@ -774,7 +774,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 	   contain the normal of the poly the face was tesselated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	mesh_calc_normals(
+	mesh_calc_normals_mapping(
 		mesh->mvert,
 		mesh->totvert,
 		mesh->mloop,
@@ -829,7 +829,7 @@ void ED_mesh_transform(Mesh *mesh, float *mat)
 	for(i= 0; i < mesh->totvert; i++, mvert++)
 		mul_m4_v3((float (*)[4])mat, mvert->co);
 
-	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+	mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
@@ -1015,5 +1015,5 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_calc_normals(Mesh *mesh)
 {
-	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+	mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 }

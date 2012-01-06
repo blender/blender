@@ -959,7 +959,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 
 	make_edges(me, 0);
 
-	mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 
 	return true;
 }

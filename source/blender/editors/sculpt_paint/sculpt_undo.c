@@ -197,7 +197,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		if(ss->modifiers_active) {
 			Mesh *mesh= ob->data;
-			mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
+			mesh_calc_normals_mapping(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 
 			free_sculptsession_deformMats(ss);
 			tag_update|= 1;

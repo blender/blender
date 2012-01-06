@@ -2258,7 +2258,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	face_nors = MEM_mallocN(sizeof(float)*3*dm->numTessFaceData, "face_nors");
 	
 	/* calculate face normals */
-	mesh_calc_normals_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	mesh_calc_normals_mapping_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
 	                     dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
 	                     CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
 	                     only_face_normals);
