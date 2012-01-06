@@ -318,7 +318,7 @@ class CLIP_PT_tools_object(Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         sc = context.space_data
         clip = sc.clip
         tracking_object = clip.tracking.objects.active
