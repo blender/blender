@@ -2369,13 +2369,14 @@ class VIEW3D_PT_transform_orientations(Panel):
         view = context.space_data
         orientation = view.current_orientation
 
-        col = layout.column()
-        col.prop(view, "transform_orientation")
-        col.operator("transform.create_orientation", text="Create")
+        row = layout.row(align=True)
+        row.prop(view, "transform_orientation", text="")
+        row.operator("transform.create_orientation", text="", icon='ZOOMIN')
 
         if orientation:
-            col.prop(orientation, "name")
-            col.operator("transform.delete_orientation", text="Delete")
+            row = layout.row(align=True)
+            row.prop(orientation, "name", text="")
+            row.operator("transform.delete_orientation", text="", icon="X")
 
 
 class VIEW3D_PT_etch_a_ton(Panel):
