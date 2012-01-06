@@ -2267,6 +2267,47 @@ void CDDM_calc_normals_mapping(DerivedMesh *dm)
 		face_nors, dm->numTessFaceData);
 }
 
+/* bmesh note: this matches what we have in trunk */
+void CDDM_calc_normals(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	float (*poly_nors)[3];
+
+	if(dm->numVertData == 0) return;
+
+	/* we don't want to overwrite any referenced layers */
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
+
+	/* fill in if it exists */
+	poly_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
+	if (!poly_nors) {
+		poly_nors = CustomData_add_layer(&dm->polyData, CD_NORMAL, CD_CALLOC, NULL, dm->numPolyData);
+	}
+
+	mesh_calc_normals(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	                  dm->numLoopData, dm->numPolyData, poly_nors);
+}
+
+void CDDM_calc_normals_tessface(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	float (*face_nors)[3];
+
+	if(dm->numVertData == 0) return;
+
+	/* we don't want to overwrite any referenced layers */
+	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
+
+	/* fill in if it exists */
+	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+	if (!face_nors) {
+		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC, NULL, dm->numTessFaceData);
+	}
+
+	mesh_calc_normals_tessface(cddm->mvert, dm->numVertData,
+							   cddm->mface, dm->numTessFaceData, face_nors);
+}
+
 #if 1
 /* merge verts
  *

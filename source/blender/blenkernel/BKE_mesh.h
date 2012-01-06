@@ -149,14 +149,15 @@ void mesh_calc_normals_mapping(
         struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
 	/* extended version of 'mesh_calc_normals' with option not to calc vertex normals */
 void mesh_calc_normals_mapping_ex(
-        struct MVert *mverts, int numVerts, struct MLoop *mloop,
-        struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
+        struct MVert *mverts, int numVerts,
+        struct MLoop *mloop, struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
         struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3],
         const short only_face_normals);
 
 void mesh_calc_normals(
-        struct MVert *mverts, int numVerts, struct MLoop *mloop,
-        struct MPoly *mpolys, int UNUSED(numLoops), int numPolys, float (*polyNors_r)[3]);
+        struct MVert *mverts, int numVerts,
+        struct MLoop *mloop, struct MPoly *mpolys,
+        int numLoops, int numPolys, float (*polyNors_r)[3]);
 
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */

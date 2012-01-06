@@ -100,6 +100,8 @@ void CDDM_apply_vert_normals(struct DerivedMesh *cddm, short (*vertNormals)[3]);
 /* recalculates vertex and face normals for a CDDerivedMesh
  */
 void CDDM_calc_normals_mapping(struct DerivedMesh *dm);
+void CDDM_calc_normals(struct DerivedMesh *dm);
+void CDDM_calc_normals_tessface(struct DerivedMesh *dm);
 
 /* calculates edges for a CDDerivedMesh (from face data)
  * this completely replaces the current edge data in the DerivedMesh
