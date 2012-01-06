@@ -320,7 +320,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	result = mirrorModifier__doMirror(mmd, ob, derivedData);
 
 	if(result != derivedData)
-		CDDM_calc_normals(result);
+		CDDM_calc_normals_mapping(result);
 	
 	return result;
 }

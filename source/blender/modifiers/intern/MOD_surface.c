@@ -116,7 +116,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		MVert *x, *v;
 
 		CDDM_apply_vert_coords(surmd->dm, vertexCos);
-		CDDM_calc_normals(surmd->dm);
+		CDDM_calc_normals_mapping(surmd->dm);
 		
 		numverts = surmd->dm->getNumVerts ( surmd->dm );
 

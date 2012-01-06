@@ -278,7 +278,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		}
 	}
 
-	CDDM_calc_normals(result);
+	CDDM_calc_normals_mapping(result);
 	
 	BLI_ghash_free(vertHash, NULL, NULL);
 	BLI_ghash_free(edgeHash, NULL, NULL);

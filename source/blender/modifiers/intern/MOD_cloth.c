@@ -88,7 +88,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if(result)
 	{
-		CDDM_calc_normals(result);
+		CDDM_calc_normals_mapping(result);
 		return result;
 	}
 	return dm;

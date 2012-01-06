@@ -311,7 +311,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename)
 	CDDM_apply_vert_normals(dm, (short (*)[3])normals);
 	MEM_freeN(normals);
 
-	// CDDM_calc_normals(result);
+	// CDDM_calc_normals_mapping(result);
 
 	return dm;
 }

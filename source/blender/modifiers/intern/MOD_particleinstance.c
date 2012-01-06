@@ -304,7 +304,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	}
 
 	CDDM_calc_edges(result);
-	CDDM_calc_normals(result);
+	CDDM_calc_normals_mapping(result);
 
 	if(psys->lattice){
 		end_latt_deform(psys->lattice);

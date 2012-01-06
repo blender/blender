@@ -541,7 +541,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	result = doOcean(md, ob, derivedData, 0);
 
 	if(result != derivedData)
-		CDDM_calc_normals(result);
+		CDDM_calc_normals_mapping(result);
 
 	return result;
 }

@@ -1653,7 +1653,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
-	dm->calcNormals = CDDM_calc_normals;
+	dm->calcNormals = CDDM_calc_normals_mapping;
 	dm->recalcTesselation = CDDM_recalc_tesselation;
 
 	dm->getVertCos = cdDM_getVertCos;
@@ -2226,7 +2226,7 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 		copy_v3_v3_short(vert->no, vertNormals[i]);
 }
 
-void CDDM_calc_normals(DerivedMesh *dm)
+void CDDM_calc_normals_mapping(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
 	float (*face_nors)[3] = NULL;
@@ -2259,9 +2259,9 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	
 	/* calculate face normals */
 	mesh_calc_normals_mapping_ex(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
-	                     dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
-	                     CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
-	                     only_face_normals);
+	                             dm->numLoopData, dm->numPolyData, NULL, cddm->mface, dm->numTessFaceData,
+	                             CustomData_get_layer(&dm->faceData, CD_POLYINDEX), face_nors,
+	                             only_face_normals);
 	
 	CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_ASSIGN, 
 		face_nors, dm->numTessFaceData);

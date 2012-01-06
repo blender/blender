@@ -187,7 +187,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	MEM_freeN(output);
 
 	CDDM_calc_edges(result);
-	CDDM_calc_normals(result);
+	CDDM_calc_normals_mapping(result);
 
 	/* BMESH_TODO - create polygons */
 
@@ -198,7 +198,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 #else /* BMESH ONLY */
 
 	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	CDDM_calc_normals(dm);
+	CDDM_calc_normals_mapping(dm);
 	result->needsFree = 1;
 	result->release(result);
 

@@ -1534,7 +1534,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 	else return;
 
 	if (update_normals)
-		CDDM_calc_normals(result);
+		CDDM_calc_normals_mapping(result);
 }
 
 /*
@@ -1742,7 +1742,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							normal_short_to_float_v3(normal, mvert[i].no);
 							madd_v3_v3fl(mvert[i].co, normal, wPoint[i].height);
 						}
-						CDDM_calc_normals(result);
+						CDDM_calc_normals_mapping(result);
 					}
 
 					/* displace */
