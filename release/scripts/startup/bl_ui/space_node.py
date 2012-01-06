@@ -48,7 +48,7 @@ class NODE_HT_header(Header):
             if scene.render.use_shading_nodes:
                 layout.prop(snode, "shader_type", text="", expand=True)
 
-            if not scene.render.use_shading_nodes or snode.shader_type == 'OBJECT':
+            if (not scene.render.use_shading_nodes or snode.shader_type == 'OBJECT') and ob:
                 # Show material.new when no active ID/slot exists
                 if not id_from and ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'METABALL'}:
                     layout.template_ID(ob, "active_material", new="material.new")
