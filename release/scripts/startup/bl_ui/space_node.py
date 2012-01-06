@@ -28,6 +28,7 @@ class NODE_HT_header(Header):
         layout = self.layout
 
         scene = context.scene
+        ob = context.object
         snode = context.space_data
         snode_id = snode.id
         id_from = snode.id_from
@@ -50,6 +51,8 @@ class NODE_HT_header(Header):
             if not scene.render.use_shading_nodes or snode.shader_type == 'OBJECT':
                 if id_from:
                     layout.template_ID(id_from, "active_material", new="material.new")
+                else:
+                    layout.template_ID(ob, "active_material", new="material.new")
                 if snode_id:
                     layout.prop(snode_id, "use_nodes")
 
