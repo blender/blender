@@ -1700,7 +1700,7 @@ void mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 	if (only_face_normals == FALSE) {
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
-		mesh_calc_normals(mverts, numVerts, mloop, mpolys, numLoops, numPolys, polyNors_r);
+		mesh_calc_normals(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors);
 	}
 	else {
 		/* only calc poly normals */
