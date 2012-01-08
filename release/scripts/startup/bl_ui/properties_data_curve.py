@@ -217,9 +217,8 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             row = layout.row()
             row.label(text="Cyclic:")
             row.prop(act_spline, "use_cyclic_u", text="U")
-            
+
             layout.prop(act_spline, "use_smooth")
-            
         else:
             col = split.column()
             col.label(text="Cyclic:")
@@ -259,11 +258,11 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             if not is_surf:
                 col = layout.column()
                 col.label(text="Interpolation:")
-                
+
                 sub = col.column()
                 sub.active = (curve.dimensions == '3D')
                 sub.prop(act_spline, "tilt_interpolation", text="Tilt")
-                
+
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")

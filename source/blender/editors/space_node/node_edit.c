@@ -1600,40 +1600,38 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 /* ********************** hidden sockets ******************** */
 
-int node_has_hidden_sockets(bNode *node)
+int node_has_hidden_sockets(bNode *node, short flag)
 {
 	bNodeSocket *sock;
 	
 	for(sock= node->inputs.first; sock; sock= sock->next)
-		if(sock->flag & SOCK_HIDDEN)
+		if(sock->flag & flag)
 			return 1;
 	for(sock= node->outputs.first; sock; sock= sock->next)
-		if(sock->flag & SOCK_HIDDEN)
+		if(sock->flag & flag)
 			return 1;
 	return 0;
 }
 
-/* note: call node_tree_verify_groups(snode->nodetree) after this
- */
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, short flag, int set)
 {	
 	bNodeSocket *sock;
 
 	if(set==0) {
 		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_HIDDEN;
+			sock->flag &= ~flag;
 		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->flag &= ~SOCK_HIDDEN;
+			sock->flag &= ~flag;
 	}
 	else {
 		/* hide unused sockets */
 		for(sock= node->inputs.first; sock; sock= sock->next) {
 			if(sock->link==NULL)
-				sock->flag |= SOCK_HIDDEN;
+				sock->flag |= flag;
 		}
 		for(sock= node->outputs.first; sock; sock= sock->next) {
 			if(nodeCountSocketLinks(snode->edittree, sock)==0)
-				sock->flag |= SOCK_HIDDEN;
+				sock->flag |= flag;
 		}
 	}
 }
@@ -1680,14 +1678,14 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 
 			/* find a socket after the previously connected socket */
 			for(sock=sock->next; sock; sock= sock->next)
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+				if(!nodeSocketIsHidden(sock))
 					break;
 		}
 
 		/* find a socket starting from the first socket */
 		if(!sock) {
 			for(sock= tonode->outputs.first; sock; sock= sock->next)
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+				if(!nodeSocketIsHidden(sock))
 					break;
 		}
 		
@@ -1805,7 +1803,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 		
 		if(in_out & SOCK_IN) {
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+				if(!nodeSocketIsHidden(sock)) {
 					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 						if(node == visible_node(snode, &rect)) {
 							*nodep= node;
@@ -1818,7 +1816,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 		}
 		if(in_out & SOCK_OUT) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+				if(!nodeSocketIsHidden(sock)) {
 					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 						if(node == visible_node(snode, &rect)) {
 							*nodep= node;
@@ -1836,7 +1834,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	 */
 	if(in_out & SOCK_IN) {
 		for(sock= snode->edittree->outputs.first; sock; sock= sock->next) {
-			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+			if(!nodeSocketIsHidden(sock)) {
 				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 					*nodep= NULL;	/* NULL node pointer indicates group socket */
 					*sockp= sock;
@@ -1847,7 +1845,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	}
 	if(in_out & SOCK_OUT) {
 		for(sock= snode->edittree->inputs.first; sock; sock= sock->next) {
-			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+			if(!nodeSocketIsHidden(sock)) {
 				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 					*nodep= NULL;	/* NULL node pointer indicates group socket */
 					*sockp= sock;
@@ -1930,13 +1928,12 @@ static int sort_nodes_locx(void *a, void *b)
 
 static int socket_is_available(bNodeTree *ntree, bNodeSocket *sock, int allow_used)
 {
-	if (sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+	if (nodeSocketIsHidden(sock))
 		return 0;
 	
-	if (!allow_used) {
-		if (nodeCountSocketLinks(ntree, sock) > 0)
-			return 0;
-	}
+	if (!allow_used && (sock->flag & SOCK_IN_USE))
+		return 0;
+	
 	return 1;
 }
 
@@ -2246,7 +2243,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 				}
 				if(sock) {
 					tlink->tosock= sock;
-					sock->flag &= ~SOCK_HIDDEN;
+					sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
 				}
 				else {
 					nodeRemLink(snode->edittree, tlink);
@@ -2644,26 +2641,26 @@ static bNodeSocket *socket_best_match(ListBase *sockets, int type)
 	
 	/* first, match type */
 	for(sock= sockets->first; sock; sock= sock->next)
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!nodeSocketIsHidden(sock))
 			if(type == sock->type)
 				return sock;
 	
 	/* then just use first unhidden socket */
 	for(sock= sockets->first; sock; sock= sock->next)
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!nodeSocketIsHidden(sock))
 			return sock;
 
 	/* OK, let's unhide proper one */
 	for(sock= sockets->first; sock; sock= sock->next) {
 		if(type == sock->type) {
-			sock->flag &= ~SOCK_HIDDEN;
+			sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
 			return sock;
 		}
 	}
 	
 	/* just the first */
 	sock= sockets->first;
-	sock->flag &= ~SOCK_HIDDEN;
+	sock->flag &= ~(SOCK_HIDDEN|SOCK_AUTO_HIDDEN);
 	
 	return sockets->first;
 }
@@ -3003,10 +3000,20 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 			if(toggle_flag== NODE_OPTIONS && (node->typeinfo->flag & NODE_OPTIONS)==0)
 				continue;
 			
-			if( (tot_eq && tot_neq) || tot_eq==0)
+			if( (tot_eq && tot_neq) || tot_eq==0) {
 				node->flag |= toggle_flag;
-			else
+				
+				/* hide/unhide node also toggles unlinked socket display */
+				if (toggle_flag== NODE_HIDDEN)
+					node_set_hidden_sockets(snode, node, SOCK_AUTO_HIDDEN, 1);
+			}
+			else {
 				node->flag &= ~toggle_flag;
+				
+				/* hide/unhide node also toggles unlinked socket display */
+				if (toggle_flag== NODE_HIDDEN)
+					node_set_hidden_sockets(snode, node, SOCK_AUTO_HIDDEN, 0);
+			}
 		}
 	}
 }
@@ -3119,7 +3126,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	hidden = 0;
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(node_has_hidden_sockets(node)) {
+			if(node_has_hidden_sockets(node, SOCK_HIDDEN)) {
 				hidden= 1;
 				break;
 			}
@@ -3128,7 +3135,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			node_set_hidden_sockets(snode, node, !hidden);
+			node_set_hidden_sockets(snode, node, SOCK_HIDDEN, !hidden);
 		}
 	}
 

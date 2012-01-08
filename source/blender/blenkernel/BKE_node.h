@@ -374,6 +374,8 @@ int				nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 
 void			nodeFreePreview(struct bNode *node);
 
+int				nodeSocketIsHidden(struct bNodeSocket *sock);
+
 /* ************** NODE TYPE ACCESS *************** */
 
 struct bNodeTemplate nodeMakeTemplate(struct bNode *node);

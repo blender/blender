@@ -46,8 +46,8 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_
 	/* offline render */
 	BL::RenderSettings r = b_scene.render();
 
-	width = (int)(r.resolution_x()*r.resolution_percentage()*0.01f);
-	height = (int)(r.resolution_y()*r.resolution_percentage()*0.01f);
+	width = (int)(r.resolution_x()*r.resolution_percentage()/100);
+	height = (int)(r.resolution_y()*r.resolution_percentage()/100);
 	background = true;
 	last_redraw_time = 0.0f;
 

@@ -233,7 +233,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* output sockets */
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= locx + node->width;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -312,7 +312,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* input sockets */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= locx;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -351,10 +351,10 @@ static void node_update_hidden(bNode *node)
 
 	/* calculate minimal radius */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(nsock))
 			totin++;
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(nsock))
 			totout++;
 	
 	tot= MAX2(totin, totout);
@@ -371,7 +371,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= (float)M_PI/(1.0f + (float)totout);
 	
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE)) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= node->totr.xmax - hiddenrad + (float)sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + (float)cos(rad)*hiddenrad;
 			rad+= drad;
@@ -382,7 +382,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= - (float)M_PI/(1.0f + (float)totin);
 	
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (nsock->flag & SOCK_IN_USE)) {
+		if(!nodeSocketIsHidden(nsock)) {
 			nsock->locx= node->totr.xmin + hiddenrad + (float)sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + (float)cos(rad)*hiddenrad;
 			rad+= drad;
@@ -713,7 +713,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		bNodeSocketType *stype= ntreeGetSocketType(sock->type);
 		
-		if(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		if(nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
@@ -736,7 +736,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		RNA_pointer_create((ID*)ntree, &RNA_NodeSocket, sock, &sockptr);
 		
-		if(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		if(nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
@@ -854,12 +854,12 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (sock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(sock))
 			node_socket_circle_draw(snode->nodetree, sock, socket_size);
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)) && (sock->flag & SOCK_IN_USE))
+		if(!nodeSocketIsHidden(sock))
 			node_socket_circle_draw(snode->nodetree, sock, socket_size);
 	}
 	

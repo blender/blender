@@ -55,6 +55,7 @@
 #include "BKE_texture.h"
 #include "BKE_report.h"
 #include "BKE_displist.h"
+#include "BKE_scene.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -2125,6 +2126,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(RNA_struct_is_a(itemptr->type, &RNA_MaterialSlot)) {
 		/* provision to draw active node name */
 		Material *ma, *manode;
+		Scene *scene= CTX_data_scene(C);
 		Object *ob= (Object*)ptr->id.data;
 		int index= (Material**)itemptr->data - ob->mat;
 		
@@ -2132,7 +2134,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon);
 		
 		ma= give_current_material(ob, index+1);
-		if(ma) {
+		if (ma && !scene_use_new_shading_nodes(scene)){
 			manode= give_node_material(ma);
 			if(manode) {
 				char str[MAX_ID_NAME + 12];

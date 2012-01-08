@@ -426,14 +426,6 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, flo
  * @attention defined in readimage.c
  * @deprecated Only here for backwards compatibility of the
  * @deprecated plugin system.
- */
-struct ImBuf *IMB_loadiffmem(int *mem, int flags);
-
-/**
- *
- * @attention defined in readimage.c
- * @deprecated Only here for backwards compatibility of the
- * @deprecated plugin system.
  */  
 struct ImBuf *IMB_loadifffile(int file, int flags, const char *descr);
 

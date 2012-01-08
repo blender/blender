@@ -248,20 +248,19 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			view_pan_apply(op);
 		}
 			break;
-			
+		/* XXX - Mode switching isn't implemented. See comments in 36818.
+		 * switch to zoom *
 		case LEFTMOUSE:
-			/* switch to zoom */
 			if (event->val==KM_PRESS) {
-				/* calculate overall delta mouse-movement for redo */
+				* calculate overall delta mouse-movement for redo *
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
 				view_pan_exit(op);
 				WM_cursor_restore(CTX_wm_window(C));
-				
 				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
 				return OPERATOR_FINISHED;
-			}
+			}*/
 			
 		default:
 			if (event->type == vpd->invoke_event || event->type==ESCKEY) {

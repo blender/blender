@@ -418,6 +418,12 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         rd = context.scene.render
 
         layout.active = rd.use_stamp
+        
+        layout.prop(rd, "stamp_font_size", text="Font Size")
+        
+        row = layout.row()
+        row.column().prop(rd, "stamp_foreground", slider=True)
+        row.column().prop(rd, "stamp_background", slider=True)
 
         split = layout.split()
 
@@ -427,18 +433,13 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         col.prop(rd, "use_stamp_render_time", text="RenderTime")
         col.prop(rd, "use_stamp_frame", text="Frame")
         col.prop(rd, "use_stamp_scene", text="Scene")
+        
+        col = split.column()
         col.prop(rd, "use_stamp_camera", text="Camera")
         col.prop(rd, "use_stamp_lens", text="Lens")
         col.prop(rd, "use_stamp_filename", text="Filename")
         col.prop(rd, "use_stamp_marker", text="Marker")
         col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
-
-        col = split.column()
-        col.active = rd.use_stamp
-        col.prop(rd, "stamp_foreground", slider=True)
-        col.prop(rd, "stamp_background", slider=True)
-        col.separator()
-        col.prop(rd, "stamp_font_size", text="Font Size")
 
         row = layout.split(percentage=0.2)
         row.prop(rd, "use_stamp_note", text="Note")

@@ -368,7 +368,6 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	float dx, dx1;
 	float y1, y2;
 	float xo, yo;
-	GLint param;
 
 	if ((!g->width) || (!g->height))
 		return 1;
@@ -450,11 +449,6 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state= g->tex));
 	}
 
-	/* Save the current parameter to restore it later. */
-	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &param);
-	if (param != GL_MODULATE)
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
 	if (font->flags & BLF_SHADOW) {
 
 		switch(font->shadow) {
@@ -492,10 +486,6 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			blf_texture_draw(g->uv, dx, y1, dx1, y2);
 			break;
 	}
-
-	/* and restore the original value. */
-	if (param != GL_MODULATE)
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, param);
 
 	return 1;
 }
