@@ -89,6 +89,8 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4]);
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]);
 MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]);
 
+void BLI_init_srgb_conversion(void);
+
 /************************** Other *************************/
 
 int constrain_rgb(float *r, float *g, float *b);
@@ -97,12 +99,12 @@ void minmax_rgb(short c[3]);
 void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
 void rgb_byte_set_hue_float_offset(unsigned char * rgb, float hue_offset);
 
+void rgb_byte_to_float(const unsigned char *in, float *out);
+void rgb_float_to_byte(const float *in, unsigned char *out);
+
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
-
-void rgb_byte_to_float(const unsigned char *in, float *out);
-void rgb_float_to_byte(const float *in, unsigned char *out);
 
 #ifdef BLI_MATH_INLINE_H
 #include "intern/math_color_inline.c"
