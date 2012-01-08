@@ -78,8 +78,6 @@
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
-//XXX #include "nla.h"
-
 #ifdef WIN32
 #else
 #include <sys/time.h>
