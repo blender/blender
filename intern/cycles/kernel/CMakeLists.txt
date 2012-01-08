@@ -57,6 +57,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h
+	svm/svm_checker.h
 	svm/svm_displace.h
 	svm/svm_fresnel.h
 	svm/svm_gamma.h

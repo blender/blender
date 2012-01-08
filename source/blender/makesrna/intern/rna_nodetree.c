@@ -1333,6 +1333,12 @@ static void def_sh_tex_noise(StructRNA *srna)
 	def_sh_tex(srna);
 }
 
+static void def_sh_tex_checker(StructRNA *srna)
+{
+	RNA_def_struct_sdna_from(srna, "NodeTexChecker", "storage");
+	def_sh_tex(srna);
+}
+
 static void def_sh_tex_magic(StructRNA *srna)
 {
 	PropertyRNA *prop;

@@ -162,6 +162,7 @@ set(SRC
 	shader/nodes/node_shader_tex_sky.c
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
+	shader/nodes/node_shader_tex_checker.c
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 

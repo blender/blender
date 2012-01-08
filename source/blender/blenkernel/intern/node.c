@@ -1945,6 +1945,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_tex_musgrave(ttype);
 	register_node_type_sh_tex_gradient(ttype);
 	register_node_type_sh_tex_magic(ttype);
+	register_node_type_sh_tex_checker(ttype);
 }
 
 static void registerTextureNodes(bNodeTreeType *ttype)

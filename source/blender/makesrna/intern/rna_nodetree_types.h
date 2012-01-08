@@ -85,6 +85,7 @@ DefNode( ShaderNode,     SH_NODE_TEX_MAGIC,          def_sh_tex_magic,       "TE
 DefNode( ShaderNode,     SH_NODE_TEX_WAVE,           def_sh_tex_wave,        "TEX_WAVE",           TexWave,          "Wave Texture",      ""       )
 DefNode( ShaderNode,     SH_NODE_TEX_MUSGRAVE,       def_sh_tex_musgrave,    "TEX_MUSGRAVE",       TexMusgrave,      "Musgrave Texture",  ""       )
 DefNode( ShaderNode,     SH_NODE_TEX_VORONOI,        def_sh_tex_voronoi,     "TEX_VORONOI",        TexVoronoi,       "Voronoi Texture",   ""       )
+DefNode( ShaderNode,     SH_NODE_TEX_CHECKER,        def_sh_tex_checker,     "TEX_CHECKER",        TexChecker,       "Checker Texture",   ""       )
 DefNode( ShaderNode,     SH_NODE_TEX_COORD,          0,                      "TEX_COORD",          TexCoord,         "Texture Coordinate","")
 
 DefNode( CompositorNode, CMP_NODE_VIEWER,         0,                      "VIEWER",         Viewer,           "Viewer",            ""              )
