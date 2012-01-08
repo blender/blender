@@ -54,6 +54,7 @@ EnumPropertyItem region_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_global.h"
 
 static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
 {
@@ -62,7 +63,6 @@ static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
 	if(value.data == NULL)
 		return;
 
-	/* exception: can't set screens inside of area/region handers */
 	sc->newscene= value.data;
 }
 
@@ -70,10 +70,14 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
 
-	/* exception: can't set screens inside of area/region handers, and must
-	   use context so notifier gets to the right window  */
+	/* exception: must use context so notifier gets to the right window  */
 	if(sc->newscene) {
+		ED_screen_set_scene(C, sc->newscene);
 		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
+
+		if(G.f & G_DEBUG)
+			printf("scene set %p\n", sc->newscene);
+
 		sc->newscene= NULL;
 	}
 }

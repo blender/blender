@@ -380,7 +380,7 @@ void IMB_color_to_bw(struct ImBuf *ibuf);
 
 /* converting pixel buffers */
 void IMB_buffer_byte_from_float(unsigned char *rect_to, const float *rect_from,
-	int channels_from, int dither, int profile_to, int profile_from, int predivide,
+	int channels_from, float dither, int profile_to, int profile_from, int predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_from_byte(float *rect_to, const unsigned char *rect_from,
 	int profile_to, int profile_from, int predivide,
@@ -420,14 +420,6 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *col, float *co
 void neareast_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-
-/**
- *
- * @attention defined in readimage.c
- * @deprecated Only here for backwards compatibility of the
- * @deprecated plugin system.
- */
-struct ImBuf *IMB_loadiffmem(int *mem, int flags);
 
 /**
  *

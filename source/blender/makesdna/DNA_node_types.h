@@ -129,6 +129,8 @@ typedef struct bNodeSocket {
 #define SOCK_COLLAPSED			64
 	/* hide socket value, if it gets auto default */
 #define SOCK_HIDE_VALUE			128
+	/* socket hidden automatically, to distinguish from manually hidden */
+#define SOCK_AUTO_HIDDEN		256
 
 typedef struct bNodePreview {
 	unsigned char *rect;

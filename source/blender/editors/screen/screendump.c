@@ -278,7 +278,6 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;
 	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.im_format.imtype);
-	int cfra= 1;
 	
 	/* we need this as local variables for renderdata */
 	rd.frs_sec= U.scrcastfps;
@@ -303,9 +302,9 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 		if(sj->dumprect) {
 			
 			if(mh) {
-				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports)) {
-					BKE_reportf(&sj->reports, RPT_INFO, "Appended frame: %d", cfra);
-					printf("Appended frame %d\n", cfra);
+				if(mh->append_movie(&rd, rd.cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+					BKE_reportf(&sj->reports, RPT_INFO, "Appended frame: %d", rd.cfra);
+					printf("Appended frame %d\n", rd.cfra);
 				} else
 					break;
 			}
@@ -314,7 +313,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				char name[FILE_MAX];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, sj->bmain->name, cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
+				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
 				ok= BKE_write_ibuf(ibuf, name, &rd.im_format);
@@ -338,7 +337,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 			
 			*do_update= 1;
 			
-			cfra++;
+			rd.cfra++;
 
 		}
 		else 

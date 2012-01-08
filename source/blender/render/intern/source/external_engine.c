@@ -54,7 +54,7 @@
 #include "RE_pipeline.h"
 
 #include "render_types.h"
-#include "renderpipeline.h"
+#include "render_result.h"
 
 /* Render Engine Types */
 
@@ -168,8 +168,13 @@ RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, 
 	disprect.ymin= y;
 	disprect.ymax= y+h;
 
-	result= new_render_result(re, &disprect, 0, RR_USEMEM);
+	result= render_result_new(re, &disprect, 0, RR_USE_MEM);
 	BLI_addtail(&engine->fullresult, result);
+	
+	result->tilerect.xmin += re->disprect.xmin;
+	result->tilerect.xmax += re->disprect.xmin;
+	result->tilerect.ymin += re->disprect.ymin;
+	result->tilerect.ymax += re->disprect.ymin;
 
 	return result;
 }
@@ -190,15 +195,10 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 
 	if(!result)
 		return;
-	
-	result->tilerect.xmin += re->disprect.xmin;
-	result->tilerect.xmax += re->disprect.xmin;
-	result->tilerect.ymin += re->disprect.ymin;
-	result->tilerect.ymax += re->disprect.ymin;
 
 	/* merge. on break, don't merge in result for preview renders, looks nicer */
 	if(!(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS)))
-		merge_render_result(re->result, result);
+		render_result_merge(re->result, result);
 
 	/* draw */
 	if(!re->test_break(re->tbh)) {
@@ -207,7 +207,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
 	}
 
 	/* free */
-	free_render_result(&engine->fullresult, result);
+	render_result_free_list(&engine->fullresult, result);
 }
 
 /* Cancel */
@@ -286,8 +286,9 @@ int RE_engine_render(Render *re, int do_all)
 	/* create render result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
-		RE_FreeRenderResult(re->result);
-		re->result= new_render_result(re, &re->disprect, 0, 0);
+		if(re->result)
+			render_result_free(re->result);
+		re->result= render_result_new(re, &re->disprect, 0, 0);
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
@@ -316,7 +317,7 @@ int RE_engine_render(Render *re, int do_all)
 	if(type->render)
 		type->render(engine, re->scene);
 
-	free_render_result(&engine->fullresult, engine->fullresult.first);
+	render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
 	RE_engine_free(engine);
 

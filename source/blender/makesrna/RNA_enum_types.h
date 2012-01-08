@@ -104,6 +104,8 @@ extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_subtype_items[];
 extern EnumPropertyItem property_unit_items[];
 
+extern EnumPropertyItem gameproperty_type_items[];
+
 extern EnumPropertyItem viewport_shade_items[];
 
 extern EnumPropertyItem nodetree_type_items[];

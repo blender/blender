@@ -80,8 +80,6 @@
 
 #include "FRS_freestyle_config.h"
 
-//XXX #include "nla.h"
-
 #ifdef WIN32
 #else
 #include <sys/time.h>

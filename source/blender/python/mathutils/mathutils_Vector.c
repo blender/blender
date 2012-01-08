@@ -334,18 +334,18 @@ PyDoc_STRVAR(Vector_normalize_doc,
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
 "\n"
-"   .. warning:: Normalizing a vector where all values are zero results\n"
-"      in all axis having a nan value (not a number).\n"
+"   .. warning:: Normalizing a vector where all values are zero has no effect.\n"
 "\n"
 "   .. note:: Normalize works for vectors of all sizes,\n"
 "      however 4D Vectors w axis is left untouched.\n"
 );
 static PyObject *Vector_normalize(VectorObject *self)
 {
+	int size = (self->size == 4 ? 3 : self->size);
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	normalize_vn(self->vec, self->size);
+	normalize_vn(self->vec, size);
 
 	(void)BaseMath_WriteCallback(self);
 	Py_RETURN_NONE;
@@ -1480,10 +1480,10 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
   mulplication*/
 
 
-/* COLUMN VECTOR Multiplication (Vector X Matrix)
- * [a] * [1][4][7]
- * [b] * [2][5][8]
- * [c] * [3][6][9]
+/* COLUMN VECTOR Multiplication (Matrix X Vector)
+ * [1][4][7]   [a]
+ * [2][5][8] * [b]
+ * [3][6][9]   [c]
  *
  * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
  * note: assume read callbacks have been done first.
@@ -1500,8 +1500,8 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
 		else {
 			PyErr_SetString(PyExc_TypeError,
 			                "matrix * vector: "
-			                "matrix.row_size and len(vector) must be the same, "
-			                "except for 3D vector * 4x4 matrix.");
+							"len(matrix.col) and len(vector) must be the same, "
+			                "except for 4x4 matrix * 3D vector.");
 			return -1;
 		}
 	}

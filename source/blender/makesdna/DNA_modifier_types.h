@@ -313,13 +313,13 @@ typedef struct DisplaceModifierData {
 	char uvlayer_name[32];
 	int uvlayer_tmp;
 	int texmapping;
-	int pad10;
 	/* end MappingInfoModifierData */
 
 	float strength;
 	int direction;
 	char defgrp_name[32];
 	float midlevel;
+	int pad;
 } DisplaceModifierData;
 
 /* DisplaceModifierData->direction */
@@ -336,7 +336,7 @@ enum {
 	MOD_DISP_MAP_LOCAL,
 	MOD_DISP_MAP_GLOBAL,
 	MOD_DISP_MAP_OBJECT,
-	MOD_DISP_MAP_UV,
+	MOD_DISP_MAP_UV
 };
 
 typedef struct UVProjectModifierData {
@@ -401,13 +401,6 @@ typedef struct CastModifierData {
 	short flag, type;
 } CastModifierData;
 
-enum {
-	MOD_WAV_MAP_LOCAL,
-	MOD_WAV_MAP_GLOBAL,
-	MOD_WAV_MAP_OBJECT,
-	MOD_WAV_MAP_UV,
-};
-
 /* WaveModifierData.flag */
 #define MOD_WAVE_X      (1<<1)
 #define MOD_WAVE_Y      (1<<2)
@@ -420,19 +413,21 @@ enum {
 typedef struct WaveModifierData {
 	ModifierData modifier;
 
-	struct Object *objectcenter;
-	char defgrp_name[32];
+	/* keep in sync with MappingInfoModifierData */
 	struct Tex *texture;
 	struct Object *map_object;
+	char uvlayer_name[32];
+	int uvlayer_tmp;
+	int texmapping;
+	/* end MappingInfoModifierData */
+
+	struct Object *objectcenter;
+	char defgrp_name[32];
 
 	short flag, pad;
 
 	float startx, starty, height, width;
 	float narrow, speed, damp, falloff;
-
-	int texmapping, uvlayer_tmp;
-
-	char uvlayer_name[32];
 
 	float timeoffs, lifetime;
 	float pad1;
@@ -822,19 +817,17 @@ typedef struct WarpModifierData {
 	char uvlayer_name[32];
 	int uvlayer_tmp;
 	int texmapping;
-	int pad10;
 	/* end MappingInfoModifierData */
-
-	float strength;
 
 	struct Object *object_from;
 	struct Object *object_to;
 	struct CurveMapping *curfalloff;
 	char defgrp_name[32];			/* optional vertexgroup name */
+	float strength;
 	float falloff_radius;
 	char flag; /* not used yet */
 	char falloff_type;
-	char pad[2];
+	char pad[6];
 } WarpModifierData;
 
 #define MOD_WARP_VOLUME_PRESERVE 1

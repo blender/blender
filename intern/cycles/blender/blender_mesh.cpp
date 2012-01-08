@@ -78,8 +78,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
-		int n= (vi[3] == 0)? 3: 4;
-		int shader = used_shaders[f->material_index()];
+		int n = (vi[3] == 0)? 3: 4;
+		int mi = clamp(f->material_index(), 0, used_shaders.size()-1);
+		int shader = used_shaders[mi];
 		bool smooth = f->use_smooth();
 
 		mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);

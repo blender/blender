@@ -2711,8 +2711,8 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	calc_sequence(scene, seq_act);
 	calc_sequence(scene, seq_other);
 
-	if(seq_act->sound)		sound_add_scene_sound(scene, seq_act, seq_act->startdisp, seq_act->enddisp, seq_act->startofs + seq_act->anim_startofs);
-	if(seq_other->sound)	sound_add_scene_sound(scene, seq_other, seq_other->startdisp, seq_other->enddisp, seq_other->startofs + seq_other->anim_startofs);
+	if(seq_act->sound)		sound_add_scene_sound_defaults(scene, seq_act);
+	if(seq_other->sound)	sound_add_scene_sound_defaults(scene, seq_other);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

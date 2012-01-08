@@ -220,11 +220,22 @@ public:
 	}
 };
 
-Device *device_network_create(const char *address)
+Device *device_network_create(DeviceInfo& info, const char *address)
 {
 	return new NetworkDevice(address);
 }
 
+void device_network_info(vector<DeviceInfo>& devices)
+{
+	DeviceInfo info;
+
+	info.type = DEVICE_NETWORK;
+	info.description = "Network Device";
+	info.id = "NETWORK";
+	info.num = 0;
+
+	devices.push_back(info);
+}
 
 void Device::server_run()
 {

@@ -479,7 +479,7 @@ void BLF_rotation_default(float angle)
 	}
 }
 
-static void blf_draw__start(FontBLF *font)
+static void blf_draw__start(FontBLF *font, GLint *mode, GLint *param)
 {
 	/*
 	 * The pixmap alignment hack is handle
@@ -490,6 +490,14 @@ static void blf_draw__start(FontBLF *font)
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	/* Save the current matrix mode. */
+	glGetIntegerv(GL_MATRIX_MODE, mode);
+
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
 	if (font->flags & BLF_MATRIX)
@@ -509,11 +517,27 @@ static void blf_draw__start(FontBLF *font)
 	/* always bind the texture for the first glyph */
 	font->tex_bind_state= -1;
 
+	/* Save the current parameter to restore it later. */
+	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, param);
+	if (*param != GL_MODULATE)
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-static void blf_draw__end(void)
+static void blf_draw__end(GLint mode, GLint param)
 {
+	/* and restore the original value. */
+	if (param != GL_MODULATE)
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, param);
+
+	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	if (mode != GL_MODELVIEW)
+		glMatrixMode(mode);
+
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 }
@@ -521,22 +545,24 @@ static void blf_draw__end(void)
 void BLF_draw(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
+	GLint mode, param;
 
 	if (font && font->glyph_cache) {
-		blf_draw__start(font);
+		blf_draw__start(font, &mode, &param);
 		blf_font_draw(font, str, len);
-		blf_draw__end();
+		blf_draw__end(mode, param);
 	}
 }
 
 void BLF_draw_ascii(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
+	GLint mode, param;
 
 	if (font && font->glyph_cache) {
-		blf_draw__start(font);
+		blf_draw__start(font, &mode, &param);
 		blf_font_draw_ascii(font, str, len);
-		blf_draw__end();
+		blf_draw__end(mode, param);
 	}
 }
 

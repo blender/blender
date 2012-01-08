@@ -145,11 +145,11 @@ def draw(layout, context, context_member, property_type, use_edit=True):
 
         if use_edit:
             row = split.row(align=True)
-            prop = row.operator("wm.properties_edit", text="edit")
-            assign_props(prop, val_draw, key)
+            props = row.operator("wm.properties_edit", text="edit")
+            assign_props(props, val_draw, key)
 
-            prop = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
-            assign_props(prop, val_draw, key)
+            props = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
+            assign_props(props, val_draw, key)
 
 
 class PropertyPanel():

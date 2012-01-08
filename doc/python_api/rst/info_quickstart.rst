@@ -262,8 +262,7 @@ To run the script:
 
 #. Click on the button **Run Script**.
 
-#. Move you're mouse into the 3D view, press spacebar for the operator search
-   menu, and type "Simple".
+#. Move your mouse into the 3D view, press spacebar for the operator search menu, and type "Simple".
 
 #. Click on the "Simple Operator" item found in search.
 

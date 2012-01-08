@@ -67,6 +67,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_mesh.h"
 
 #include "UI_resources.h"
@@ -582,23 +583,47 @@ static void vgroup_select_verts(Object *ob, int select)
 
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditVert *eve;
 
-		for (eve=em->verts.first; eve; eve=eve->next) {
-			if (!eve->h) {
-				dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
-				if (defvert_find_index(dv, def_nr)) {
-					if (select)  eve->f |=  SELECT;
-					else         eve->f &= ~SELECT;
+		if (me->edit_mesh) {
+			EditMesh *em = BKE_mesh_get_editmesh(me);
+			EditVert *eve;
+
+			for (eve=em->verts.first; eve; eve=eve->next) {
+				if (!eve->h) {
+					dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+					if (defvert_find_index(dv, def_nr)) {
+						if (select)  eve->f |=  SELECT;
+						else         eve->f &= ~SELECT;
+					}
 				}
 			}
-		}
-		/* this has to be called, because this function operates on vertices only */
-		if(select) EM_select_flush(em);	// vertices to edges/faces
-		else EM_deselect_flush(em);
+			/* this has to be called, because this function operates on vertices only */
+			if(select) EM_select_flush(em);	// vertices to edges/faces
+			else EM_deselect_flush(em);
 
-		BKE_mesh_end_editmesh(me, em);
+			BKE_mesh_end_editmesh(me, em);
+		}
+		else {
+			if (me->dvert) {
+				MVert *mv;
+				MDeformVert *dv;
+				int i;
+
+				mv = me->mvert;
+				dv = me->dvert;
+
+				for (i=0; i<me->totvert; i++, mv++, dv++) {
+					if (!(mv->flag & ME_HIDE)) {
+						if (defvert_find_index(dv, def_nr)) {
+							if (select)  mv->flag |=  SELECT;
+							else         mv->flag &= ~SELECT;
+						}
+					}
+				}
+
+				paintvert_flush_flags(ob);
+			}
+		}
 	}
 	else if(ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
@@ -1740,23 +1765,47 @@ static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg)
 /* removes from active defgroup, if allverts==0 only selected vertices */
 static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGroup *dg)
 {
-	EditVert *eve;
 	MDeformVert *dv;
 	const int def_nr= BLI_findindex(&ob->defbase, dg);
 
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
 
-		for(eve=em->verts.first; eve; eve=eve->next){
-			dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+		if (me->edit_mesh) {
+			EditVert *eve;
+			EditMesh *em = BKE_mesh_get_editmesh(me);
 
-			if(dv && dv->dw && (allverts || (eve->f & SELECT))){
-				MDeformWeight *dw = defvert_find_index(dv, def_nr);
-				defvert_remove_group(dv, dw); /* dw can be NULL */
+			for (eve=em->verts.first; eve; eve=eve->next) {
+				dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+
+				if (dv && dv->dw && (allverts || (eve->f & SELECT))) {
+					MDeformWeight *dw = defvert_find_index(dv, def_nr);
+					defvert_remove_group(dv, dw); /* dw can be NULL */
+				}
+			}
+			BKE_mesh_end_editmesh(me, em);
+		}
+		else {
+			MVert *mv;
+			MDeformVert *dv;
+			int i;
+
+			if (!me->dvert) {
+				ED_vgroup_data_create(&me->id);
+			}
+
+			mv = me->mvert;
+			dv = me->dvert;
+
+			for (i=0; i<me->totvert; i++, mv++, dv++) {
+				if (mv->flag & SELECT) {
+					if (dv->dw && (allverts || (mv->flag & SELECT))) {
+						MDeformWeight *dw = defvert_find_index(dv, def_nr);
+						defvert_remove_group(dv, dw); /* dw can be NULL */
+					}
+				}
 			}
 		}
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
@@ -1861,6 +1910,18 @@ static int vgroup_object_in_edit_mode(Object *ob)
 	return 0;
 }
 
+static int vgroup_object_in_wpaint_vert_select(Object *ob)
+{
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		return ( (ob->mode & OB_MODE_WEIGHT_PAINT) &&
+		         (me->edit_mesh == NULL) &&
+		         (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX) );
+	}
+
+	return 0;
+}
+
 static void vgroup_delete(Object *ob)
 {
 	bDeformGroup *dg = BLI_findlink(&ob->defbase, ob->actdef-1);
@@ -1907,24 +1968,48 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
 	if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
-		EditVert *eve;
+		if (me->edit_mesh) {
+			EditMesh *em = BKE_mesh_get_editmesh(me);
+			EditVert *eve;
 
-		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT, NULL);
+			if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
+				EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT, NULL);
 
-		/* Go through the list of editverts and assign them */
-		for (eve=em->verts.first; eve; eve=eve->next) {
-			if (eve->f & SELECT) {
-				MDeformWeight *dw;
-				dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT); /* can be NULL */
-				dw= defvert_verify_index(dv, def_nr);
-				if (dw) {
-					dw->weight= weight;
+			/* Go through the list of editverts and assign them */
+			for (eve=em->verts.first; eve; eve=eve->next) {
+				if (eve->f & SELECT) {
+					MDeformWeight *dw;
+					dv= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT); /* can be NULL */
+					dw= defvert_verify_index(dv, def_nr);
+					if (dw) {
+						dw->weight= weight;
+					}
+				}
+			}
+			BKE_mesh_end_editmesh(me, em);
+		}
+		else {
+			MVert *mv;
+			MDeformVert *dv;
+			int i;
+
+			if (!me->dvert) {
+				ED_vgroup_data_create(&me->id);
+			}
+
+			mv = me->mvert;
+			dv = me->dvert;
+
+			for (i=0; i<me->totvert; i++, mv++, dv++) {
+				if (mv->flag & SELECT) {
+					MDeformWeight *dw;
+					dw= defvert_verify_index(dv, def_nr);
+					if (dw) {
+						dw->weight= weight;
+					}
 				}
 			}
 		}
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ob->type == OB_LATTICE) {
 		Lattice *lt= vgroup_edit_lattice(ob);
@@ -1968,14 +2053,14 @@ static void vgroup_remove_verts(Object *ob, int allverts)
 
 static int vertex_group_poll(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
 static int vertex_group_poll_edit(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
 
 	if(!(ob && !ob->id.lib && data && !data->lib))
@@ -1984,9 +2069,22 @@ static int vertex_group_poll_edit(bContext *C)
 	return vgroup_object_in_edit_mode(ob);
 }
 
+/* editmode _or_ weight paint vertex sel */
+static int vertex_group_poll_edit_or_wpaint_vert_select(bContext *C)
+{
+	Object *ob= ED_object_context(C);
+	ID *data= (ob)? ob->data: NULL;
+
+	if(!(ob && !ob->id.lib && data && !data->lib))
+		return 0;
+
+	return ( vgroup_object_in_edit_mode(ob) ||
+	         vgroup_object_in_wpaint_vert_select(ob) );
+}
+
 static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	ED_vgroup_add(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -2012,7 +2110,7 @@ void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 
 static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	if(RNA_boolean_get(op->ptr, "all"))
 		vgroup_delete_all(ob);
@@ -2049,7 +2147,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob= ED_object_context(C);
 
 	if(RNA_boolean_get(op->ptr, "new"))
 		ED_vgroup_add(ob);
@@ -2068,7 +2166,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_assign";
 	
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit;
+	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
 	ot->exec= vertex_group_assign_exec;
 
 	/* flags */
@@ -2083,7 +2181,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob= ED_object_context(C);
 
 	if(RNA_boolean_get(op->ptr, "all"))
 		vgroup_remove_verts(ob, 0);
@@ -2110,7 +2208,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_remove_from";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit;
+	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
 	ot->exec= vertex_group_remove_from_exec;
 
 	/* flags */
@@ -2125,7 +2223,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 
 static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob= ED_object_context(C);
 
 	if(!ob || ob->id.lib)
 		return OPERATOR_CANCELLED;
@@ -2143,7 +2241,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_select";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit;
+	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
 	ot->exec= vertex_group_select_exec;
 
 	/* flags */
@@ -2152,7 +2250,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 
 static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob= ED_object_context(C);
 
 	vgroup_select_verts(ob, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
@@ -2167,7 +2265,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_deselect";
 
 	/* api callbacks */
-	ot->poll= vertex_group_poll_edit;
+	ot->poll= vertex_group_poll_edit_or_wpaint_vert_select;
 	ot->exec= vertex_group_deselect_exec;
 
 	/* flags */
@@ -2176,7 +2274,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 
 static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	vgroup_duplicate(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -2202,7 +2300,7 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 
 static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	
 	float offset= RNA_float_get(op->ptr,"offset");
 	float gain= RNA_float_get(op->ptr,"gain");
@@ -2235,7 +2333,7 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 
 static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	vgroup_normalize(ob);
 
@@ -2262,7 +2360,7 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	int lock_active= RNA_boolean_get(op->ptr,"lock_active");
 
 	vgroup_normalize_all(ob, lock_active);
@@ -2372,7 +2470,7 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	int auto_assign= RNA_boolean_get(op->ptr,"auto_assign");
 	int auto_remove= RNA_boolean_get(op->ptr,"auto_remove");
 
@@ -2406,7 +2504,7 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 
 static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	vgroup_blend(ob);
 
@@ -2435,7 +2533,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 
 static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	float limit= RNA_float_get(op->ptr,"limit");
 	int all_groups= RNA_boolean_get(op->ptr,"all_groups");
@@ -2474,7 +2572,7 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 
 static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 
 	ED_vgroup_mirror(ob,
 	                 RNA_boolean_get(op->ptr,"mirror_weights"),
@@ -2513,7 +2611,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	Base *base;
 	int retval= OPERATOR_CANCELLED;
 
@@ -2553,7 +2651,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 
 static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
-	Object *obact= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *obact= ED_object_context(C);
 	int change= 0;
 	int fail= 0;
 
@@ -2596,7 +2694,7 @@ static EnumPropertyItem vgroup_items[]= {
 
 static int set_active_group_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	int nr= RNA_enum_get(op->ptr, "group");
 
 	BLI_assert(nr+1 >= 0);
@@ -2610,7 +2708,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	bDeformGroup *def;
@@ -2751,7 +2849,7 @@ static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
 
 static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	char *name_array;
 	int ret;
 
@@ -2790,7 +2888,7 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 
 static int vgroup_move_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob= ED_object_context(C);
 	bDeformGroup *def;
 	char *name_array;
 	int dir= RNA_enum_get(op->ptr, "direction"), ret;

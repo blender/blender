@@ -3309,7 +3309,6 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 static int scene_new_exec(bContext *C, wmOperator *op)
 {
 	Scene *newscene, *scene= CTX_data_scene(C);
-	bScreen *screen= CTX_wm_screen(C);
 	Main *bmain= CTX_data_main(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
@@ -3328,11 +3327,9 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* this notifier calls ED_screen_set_scene, doing a lot of UI stuff, not for inside event loops */
-	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
+	ED_screen_set_scene(C, newscene);
 	
-	if(screen)
-		screen->scene= newscene;
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3368,9 +3365,14 @@ static void SCENE_OT_new(wmOperatorType *ot)
 static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	
+
+	ED_screen_delete_scene(C, scene);
+
+	if(G.f & G_DEBUG)
+		printf("scene delete %p\n", scene);
+
 	WM_event_add_notifier(C, NC_SCENE|NA_REMOVED, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 

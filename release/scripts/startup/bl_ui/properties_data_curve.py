@@ -214,12 +214,11 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
         if is_poly:
             # These settings are below but its easier to have
             # poly's set aside since they use so few settings
-            col = split.column()
-            col.label(text="Cyclic:")
-            col.prop(act_spline, "use_smooth")
-            col = split.column()
-            col.prop(act_spline, "use_cyclic_u", text="U")
+            row = layout.row()
+            row.label(text="Cyclic:")
+            row.prop(act_spline, "use_cyclic_u", text="U")
 
+            layout.prop(act_spline, "use_smooth")
         else:
             col = split.column()
             col.label(text="Cyclic:")
@@ -257,13 +256,13 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 sub.prop(act_spline, "resolution_v", text="V")
 
             if not is_surf:
-                split = layout.split()
-                col = split.column()
-
+                col = layout.column()
                 col.label(text="Interpolation:")
-                colsub = col.column()
-                colsub.active = (curve.dimensions == '3D')
-                colsub.prop(act_spline, "tilt_interpolation", text="Tilt")
+
+                sub = col.column()
+                sub.active = (curve.dimensions == '3D')
+                sub.prop(act_spline, "tilt_interpolation", text="Tilt")
+
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")

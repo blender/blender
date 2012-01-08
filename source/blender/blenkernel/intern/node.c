@@ -1325,6 +1325,11 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 		node->flag |= NODE_ACTIVE_TEXTURE;
 }
 
+int nodeSocketIsHidden(bNodeSocket *sock)
+{
+	return ((sock->flag & (SOCK_HIDDEN | SOCK_AUTO_HIDDEN | SOCK_UNAVAIL)) != 0);
+}
+
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */

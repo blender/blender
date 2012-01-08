@@ -63,6 +63,7 @@
 /* local includes */
 #include "gammaCorrectionTables.h"
 #include "pixelblending.h"
+#include "render_result.h"
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "renderdatabase.h"

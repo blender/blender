@@ -287,41 +287,34 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		if(override_image || !image || tface->tpage == image) {
 			if(num_projectors == 1) {
 				if(projectors[0].uci) {
-					project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
-					project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
-					project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
-					if(mf->v4)
-						project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
+					unsigned int fidx= mf->v4 ? 3:2;
+					do {
+						unsigned int vidx= *(&mf->v1 + fidx);
+						project_from_camera(tface->uv[fidx], coords[vidx], projectors[0].uci);
+					} while (fidx--);
 				}
 				else {
 					/* apply transformed coords as UVs */
-					copy_v2_v2(tface->uv[0], coords[mf->v1]);
-					copy_v2_v2(tface->uv[1], coords[mf->v2]);
-					copy_v2_v2(tface->uv[2], coords[mf->v3]);
-					if (mf->v4) {
-						copy_v2_v2(tface->uv[3], coords[mf->v4]);
-					}
+					unsigned int fidx= mf->v4 ? 3:2;
+					do {
+						unsigned int vidx= *(&mf->v1 + fidx);
+						copy_v2_v2(tface->uv[fidx], coords[vidx]);
+					} while (fidx--);
 				}
 			} else {
 				/* multiple projectors, select the closest to face normal
 				* direction
 				*/
-				float co1[3], co2[3], co3[3], co4[3];
 				float face_no[3];
 				int j;
 				Projector *best_projector;
 				float best_dot;
 
-				copy_v3_v3(co1, coords[mf->v1]);
-				copy_v3_v3(co2, coords[mf->v2]);
-				copy_v3_v3(co3, coords[mf->v3]);
-
 				/* get the untransformed face normal */
 				if(mf->v4) {
-					copy_v3_v3(co4, coords[mf->v4]);
-					normal_quad_v3(face_no, co1, co2, co3, co4);
+					normal_quad_v3(face_no, coords[mf->v1], coords[mf->v2], coords[mf->v3], coords[mf->v4]);
 				} else { 
-					normal_tri_v3(face_no, co1, co2, co3);
+					normal_tri_v3(face_no, coords[mf->v1], coords[mf->v2], coords[mf->v3]);
 				}
 
 				/* find the projector which the face points at most directly
@@ -340,26 +333,23 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				}
 
 				if(best_projector->uci) {
-					project_from_camera(tface->uv[0], coords[mf->v1], best_projector->uci);
-					project_from_camera(tface->uv[1], coords[mf->v2], best_projector->uci);
-					project_from_camera(tface->uv[2], coords[mf->v3], best_projector->uci);
-					if(mf->v4)
-						project_from_camera(tface->uv[3], coords[mf->v4], best_projector->uci);
+					unsigned int fidx= mf->v4 ? 3:2;
+					do {
+						unsigned int vidx= *(&mf->v1 + fidx);
+						project_from_camera(tface->uv[fidx], coords[vidx], best_projector->uci);
+					} while (fidx--);
 				}
 				else {
-					mul_project_m4_v3(best_projector->projmat, co1);
-					mul_project_m4_v3(best_projector->projmat, co2);
-					mul_project_m4_v3(best_projector->projmat, co3);
-					if(mf->v4)
-						mul_project_m4_v3(best_projector->projmat, co4);
+					unsigned int fidx= mf->v4 ? 3:2;
+					do {
+						unsigned int vidx= *(&mf->v1 + fidx);
+						float tco[3];
 
-					/* apply transformed coords as UVs */
-					copy_v2_v2(tface->uv[0], co1);
-					copy_v2_v2(tface->uv[1], co2);
-					copy_v2_v2(tface->uv[2], co3);
-					if (mf->v4) {
-						copy_v2_v2(tface->uv[3], co4);
-					}
+						copy_v3_v3(tco, coords[vidx]);
+						mul_project_m4_v3(best_projector->projmat, tco);
+						copy_v2_v2(tface->uv[fidx], tco);
+
+					} while (fidx--);
 				}
 			}
 		}

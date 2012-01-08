@@ -118,7 +118,7 @@ void Device::pixels_free(device_memory& mem)
 	mem_free(mem);
 }
 
-void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height, bool transparent)
+void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int width, int height, bool transparent)
 {
 	pixels_copy_from(rgba, y, w, h);
 
@@ -128,7 +128,7 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 	}
 
 	glPixelZoom((float)width/(float)w, (float)height/(float)h);
-	glRasterPos2f(0, y);
+	glRasterPos2f(0, dy);
 
 	uint8_t *pixels = (uint8_t*)rgba.data_pointer;
 
@@ -145,36 +145,36 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 		glDisable(GL_BLEND);
 }
 
-Device *Device::create(DeviceType type, bool background, int threads)
+Device *Device::create(DeviceInfo& info, bool background, int threads)
 {
 	Device *device;
 
-	switch(type) {
+	switch(info.type) {
 		case DEVICE_CPU:
-			device = device_cpu_create(threads);
+			device = device_cpu_create(info, threads);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:
 			if(cuLibraryInit())
-				device = device_cuda_create(background);
+				device = device_cuda_create(info, background);
 			else
 				device = NULL;
 			break;
 #endif
 #ifdef WITH_MULTI
 		case DEVICE_MULTI:
-			device = device_multi_create(background);
+			device = device_multi_create(info, background);
 			break;
 #endif
 #ifdef WITH_NETWORK
 		case DEVICE_NETWORK:
-			device = device_network_create("127.0.0.1");
+			device = device_network_create(info, "127.0.0.1");
 			break;
 #endif
 #ifdef WITH_OPENCL
 		case DEVICE_OPENCL:
 			if(clLibraryInit())
-				device = device_opencl_create(background);
+				device = device_opencl_create(info, background);
 			else
 				device = NULL;
 			break;
@@ -218,30 +218,67 @@ string Device::string_from_type(DeviceType type)
 	return "";
 }
 
-vector<DeviceType> Device::available_types()
+vector<DeviceType>& Device::available_types()
 {
-	vector<DeviceType> types;
+	static vector<DeviceType> types;
+	static bool types_init = false;
 
-	types.push_back(DEVICE_CPU);
+	if(!types_init) {
+		types.push_back(DEVICE_CPU);
 
 #ifdef WITH_CUDA
-	if(cuLibraryInit())
-		types.push_back(DEVICE_CUDA);
+		if(cuLibraryInit())
+			types.push_back(DEVICE_CUDA);
 #endif
 
 #ifdef WITH_OPENCL
-	if(clLibraryInit())
-		types.push_back(DEVICE_OPENCL);
+		if(clLibraryInit())
+			types.push_back(DEVICE_OPENCL);
 #endif
 
 #ifdef WITH_NETWORK
-	types.push_back(DEVICE_NETWORK);
+		types.push_back(DEVICE_NETWORK);
 #endif
 #ifdef WITH_MULTI
-	types.push_back(DEVICE_MULTI);
+		types.push_back(DEVICE_MULTI);
 #endif
 
+		types_init = true;
+	}
+
 	return types;
+}
+
+vector<DeviceInfo>& Device::available_devices()
+{
+	static vector<DeviceInfo> devices;
+	static bool devices_init = false;
+
+	if(!devices_init) {
+		device_cpu_info(devices);
+
+#ifdef WITH_CUDA
+		if(cuLibraryInit())
+			device_cuda_info(devices);
+#endif
+
+#ifdef WITH_OPENCL
+		if(clLibraryInit())
+			device_opencl_info(devices);
+#endif
+
+#ifdef WITH_MULTI
+		device_multi_info(devices);
+#endif
+
+#ifdef WITH_NETWORK
+		device_network_info(devices);
+#endif
+
+		devices_init = true;
+	}
+
+	return devices;
 }
 
 CCL_NAMESPACE_END

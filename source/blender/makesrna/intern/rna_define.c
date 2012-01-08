@@ -1628,6 +1628,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	PropertyDefRNA *dp;
+	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
@@ -1651,6 +1652,11 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 					return;
 				}
 			}
+		}
+
+		if(dp->dnatype && strcmp(dp->dnatype, "char") == 0) {
+			fprop->hardmin= fprop->softmin= 0.0f;
+			fprop->hardmax= fprop->softmax= 1.0f;
 		}
 	}
 

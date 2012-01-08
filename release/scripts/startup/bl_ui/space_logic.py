@@ -36,10 +36,33 @@ class LOGIC_PT_properties(Panel):
 
         ob = context.active_object
         game = ob.game
+        is_font = (ob.type == 'FONT')
+
+        if is_font:
+            prop_index = game.properties.find("Text")
+            if prop_index != -1:
+                layout.operator("object.game_property_remove", text="Renove Text Game Property", icon='X').index = prop_index
+                row = layout.row()
+                sub = row.row()
+                sub.enabled = 0
+                prop = game.properties[prop_index]
+                sub.prop(prop, "name", text="")
+                row.prop(prop, "type", text="")
+                # get the property from the body, not the game property
+                # note, dont do this - its too slow and body can potentually be a really long string.
+                # row.prop(ob.data, "body", text="")
+                row.label("See Font Object")
+            else:
+                props = layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
+                props.name = 'Text'
+                props.type = 'STRING'
 
         layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
 
         for i, prop in enumerate(game.properties):
+
+            if is_font and i == prop_index:
+                continue
 
             box = layout.box()
             row = box.row()
