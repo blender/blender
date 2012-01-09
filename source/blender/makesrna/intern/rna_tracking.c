@@ -405,6 +405,31 @@ void rna_tracking_object_remove(MovieTracking *tracking, MovieTrackingObject *ob
 	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
+static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)
+{
+	MovieClip *clip = (MovieClip *) ptr->id.data;
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker = (MovieTrackingMarker *) ptr->data;
+
+	track = tracking->tracks.first;
+	while (track) {
+		if (marker >= track->markers && marker < track->markers+track->markersnr) {
+			break;
+		}
+
+		track = track->next;
+	}
+
+	if (track) {
+		MovieTrackingMarker new_marker = *marker;
+		new_marker.framenr = value;
+
+		BKE_tracking_delete_marker(track, marker->framenr);
+		BKE_tracking_insert_marker(track, &new_marker);
+	}
+}
+
 static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr)
 {
 	return BKE_tracking_exact_marker(track, framenr);
@@ -718,10 +743,10 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 
 	/* frame */
 	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	/* can't be safty edited for now, need to re-sort markers array after change */
 	RNA_def_property_int_sdna(prop, NULL, "framenr");
 	RNA_def_property_ui_text(prop, "Frame", "Frame number marker is keyframed on");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	RNA_def_property_int_funcs(prop, NULL, "rna_trackingMarker_frame_set", NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, 0);
 
 	/* enable */
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
