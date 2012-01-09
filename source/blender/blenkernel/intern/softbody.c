@@ -3728,6 +3728,8 @@ SoftBody *sbNew(Scene *scene)
 	if(!sb->effector_weights)
 		sb->effector_weights = BKE_add_effector_weights(NULL);
 
+	sb->last_frame= MINFRAME-1;
+
 	return sb;
 }
 
@@ -4108,6 +4110,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 		softbody_step(scene, ob, sb, dtime);
 		softbody_to_object(ob, vertexCos, numVerts, 0);
+		sb->last_frame = framenr;
 		return;
 	}
 
@@ -4123,6 +4126,9 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
+
+		sb->last_frame = framenr;
+
 		return;
 	}
 
@@ -4137,6 +4143,8 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
 			BKE_ptcache_write(&pid, framenr);
 
+		sb->last_frame = framenr;
+
 		return;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
@@ -4147,6 +4155,9 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		BKE_ptcache_invalidate(cache);
 		return;
 	}
+
+	if(framenr!=sb->last_frame+1)
+		return;
 
 	/* if on second frame, write cache for first frame */
 	if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
@@ -4164,5 +4175,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 	BKE_ptcache_validate(cache, framenr);
 	BKE_ptcache_write(&pid, framenr);
+
+	sb->last_frame = framenr;
 }
 

@@ -337,8 +337,8 @@ typedef struct SoftBody {
 	float lcom[3];
 	float lrot[3][3];
 	float lscale[3][3];
-	char  pad4[4];
 
+	int last_frame;
 } SoftBody;
 
 
