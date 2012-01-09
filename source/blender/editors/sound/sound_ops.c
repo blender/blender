@@ -365,6 +365,8 @@ static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_operator_filesel(C, op, event);
 }
 
+#ifdef WITH_AUDASPACE
+
 static int sound_mixdown_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	const char *prop_id= RNA_property_identifier(prop);
@@ -374,7 +376,6 @@ static int sound_mixdown_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *p
 	);
 }
 
-#ifdef WITH_AUDASPACE
 static void sound_mixdown_draw(bContext *C, wmOperator *op)
 {
 	static EnumPropertyItem pcm_format_items[] = {

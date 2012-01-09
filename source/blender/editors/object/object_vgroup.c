@@ -2058,7 +2058,7 @@ static int vertex_group_poll(bContext *C)
 	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
-static int vertex_group_poll_edit(bContext *C)
+static int UNUSED_FUNCTION(vertex_group_poll_edit)(bContext *C)
 {
 	Object *ob= ED_object_context(C);
 	ID *data= (ob)? ob->data: NULL;
