@@ -761,14 +761,28 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	Mesh *me = ob->data;
 	unsigned char *wtcol_v = calc_weightpaint_vert_array(ob, draw_flag, coba);
 	unsigned char *wtcol_f = MEM_mallocN (sizeof(unsigned char) * me->totface*4*4, "weightmap_f");
+	unsigned char *wtcol_f_step = wtcol_f;
 
 	MFace *mf = me->mface;
 	int i;
 
-	for (i=0; i<me->totface; i++, mf++) {
+	for (i=0; i<me->totface; i++, mf++, wtcol_f_step += (4 * 4)) {
+#if 0
 		unsigned int fidx= mf->v4 ? 3:2;
+
+#else	/* better zero out triangles 4th component. else valgrind complains when the buffer's copied */
+		unsigned int fidx;
+		if (mf->v4) {
+			fidx = 3;
+		}
+		else {
+			fidx = 2;
+			*(int *)(&wtcol_f_step[3 * 4]) = 0;
+		}
+#endif
+
 		do {
-			copy_v4_v4_char((char *)&wtcol_f[(4 * i + fidx) * 4],
+			copy_v4_v4_char((char *)&wtcol_f_step[fidx * 4],
 			                (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
 		} while (fidx--);
 	}
