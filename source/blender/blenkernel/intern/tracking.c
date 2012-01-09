@@ -261,7 +261,7 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	return track;
 }
 
-void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *marker)
+MovieTrackingMarker *BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
 	MovieTrackingMarker *old_marker= NULL;
 
@@ -270,6 +270,8 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 
 	if(old_marker) {
 		*old_marker= *marker;
+
+		return old_marker;
 	} else {
 		int a= track->markersnr;
 
@@ -287,6 +289,8 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 		track->markers[a+1]= *marker;
 
 		track->last_marker= a+1;
+
+		return &track->markers[a+1];
 	}
 }
 

@@ -53,7 +53,8 @@ void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int fla
 
 struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, struct ListBase *tracksbase,
 			float x, float y, int framenr, int width, int height);
-void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+struct MovieTrackingMarker *BKE_tracking_insert_marker(struct MovieTrackingTrack *track,
+			struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);

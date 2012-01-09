@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -372,7 +373,7 @@ static void rna_tracking_tracks_add(ID *id, MovieTracking *tracking, int frame, 
 
 	add_tracks_to_base(clip, tracking, &tracking->tracks, frame, number);
 
-	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, clip);
 }
 
 static void rna_trackingObject_tracks_add(ID *id, MovieTrackingObject *object, int frame, int number)
@@ -404,9 +405,34 @@ void rna_tracking_object_remove(MovieTracking *tracking, MovieTrackingObject *ob
 	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
-static MovieTrackingMarker *rna_trackingTrack_marker_find_frame(MovieTrackingTrack *track, int framenr)
+static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *track, int framenr)
 {
-	return BKE_tracking_get_marker(track, framenr);
+	return BKE_tracking_exact_marker(track, framenr);
+}
+
+static MovieTrackingMarker* rna_trackingMarkers_insert_frame(MovieTrackingTrack *track, int framenr, float *co)
+{
+	MovieTrackingMarker marker, *new_marker;
+
+	memset(&marker, 0, sizeof(marker));
+	marker.framenr = framenr;
+	copy_v2_v2(marker.pos, co);
+
+	new_marker = BKE_tracking_insert_marker(track, &marker);
+
+	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
+
+	return new_marker;
+}
+
+void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int framenr)
+{
+	if(track->markersnr==1)
+		return;
+
+	BKE_tracking_delete_marker(track, framenr);
+
+	WM_main_add_notifier(NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
 #else
@@ -704,13 +730,47 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
+static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MovieTrackingMarkers");
+	srna= RNA_def_struct(brna, "MovieTrackingMarkers", NULL);
+	RNA_def_struct_sdna(srna, "MovieTrackingTrack");
+	RNA_def_struct_ui_text(srna, "Movie Tracking Markers", "Collection of markers for movie tracking track");
+
+	func= RNA_def_function(srna, "find_frame", "rna_trackingMarkers_find_frame");
+	RNA_def_function_ui_description(func, "Get marker for specified frame");
+	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+			 "Frame number to find marker for", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "insert_frame", "rna_trackingMarkers_insert_frame");
+	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
+	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+			"Frame number to insert marker to", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_float_vector(func, "co", 2, 0, -1.0, 1.0, "Coordinate",
+			"Place new marker at the given frame using specified in normalized space coordinates", -1.0, 1.0);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Newly created marker");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "delete_frame", "rna_trackingMarkers_delete_frame");
+	RNA_def_function_ui_description(func, "Delete marker at specified frame");
+	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame",
+			"Frame number to delete marker from", MINFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_trackingTrack(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	FunctionRNA *func;
-	PropertyRNA *parm;
 
 	rna_def_trackingMarker(brna);
 
@@ -805,6 +865,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieTrackingMarker");
 	RNA_def_property_collection_sdna(prop, NULL, "markers", "markersnr");
 	RNA_def_property_ui_text(prop, "Markers", "Collection of markers in track");
+	rna_def_trackingMarkers(brna, prop);
 
 	/* ** channels ** */
 
@@ -899,15 +960,6 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "error");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Average Error", "Average error of re-projection");
-
-	/* ** api ** */
-
-	func= RNA_def_function(srna, "marker_find_frame", "rna_trackingTrack_marker_find_frame");
-	RNA_def_function_ui_description(func, "Get marker for specified frame");
-	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "type for the new spline", MINFRAME, MAXFRAME);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
-	RNA_def_function_return(func, parm);
 }
 
 static void rna_def_trackingStabilization(BlenderRNA *brna)
