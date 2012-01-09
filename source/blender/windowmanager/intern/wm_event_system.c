@@ -282,7 +282,7 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
 	for(win= wm->windows.first; win; win= win->next) {
-		win_combine_v3d_datamask |= ED_viewedit_datamask(win->screen);
+		win_combine_v3d_datamask |= ED_view3d_screen_datamask(win->screen);
 	}
 
 	/* cached: editor refresh callbacks now, they get context */

@@ -309,7 +309,13 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->rv3d= CTX_wm_region_view3d(C);
 
 		/* MUST be cleared on exit */
-		oglrender->scene->customdata_mask_modal= ED_view3d_datamask(oglrender->scene, oglrender->v3d);
+		oglrender->scene->customdata_mask_modal = (ED_view3d_datamask(oglrender->scene, oglrender->v3d) |
+		                                           ED_view3d_object_datamask(oglrender->scene) );
+
+		/* apply immediately incase we're rendeing from a script,
+		 * running notifiers again will overwrite */
+		oglrender->scene->customdata_mask |= oglrender->scene->customdata_mask_modal;
+
 	}
 
 	/* create render */
