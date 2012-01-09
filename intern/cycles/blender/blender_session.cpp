@@ -298,10 +298,8 @@ void BlenderSession::update_status_progress()
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	if(!background) {
-		BLI_timestr(total_time, time_str);
-		status = "Time: " + string(time_str) + " | " + status;
-	}
+	BLI_timestr(total_time, time_str);
+	status = "Elapsed: " + string(time_str) + " | " + status;
 
 	if(substatus.size() > 0)
 		status += " | " + substatus;
