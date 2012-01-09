@@ -81,6 +81,8 @@ typedef struct OGLRender {
 	RegionView3D *rv3d;
 	ARegion *ar;
 
+	short obcenter_dia_back; /* temp overwrite */
+
 	Image *ima;
 	ImageUser iuser;
 
@@ -303,6 +305,9 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	oglrender->write_still= is_write_still && !is_animation;
 
+	oglrender->obcenter_dia_back = U.obcenter_dia;
+	U.obcenter_dia = 0;
+
 	if(is_view_context) {
 		oglrender->v3d= CTX_wm_view3d(C);
 		oglrender->ar= CTX_wm_region(C);
@@ -359,6 +364,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
+
+	U.obcenter_dia = oglrender->obcenter_dia_back;
 
 	GPU_offscreen_free(oglrender->ofs);
 
