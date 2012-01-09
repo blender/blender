@@ -20,29 +20,9 @@
 
 from . import engine
 
-
-def get_gpu_device():
-    available_devices = engine.available_devices()
-    cuda = 'cuda' in available_devices
-    opencl = 'opencl' in available_devices
-    if cuda and opencl:
-        gpu_string = "GPU"
-    elif cuda and not opencl:
-        gpu_string = "CUDA GPU"
-    else:
-        gpu_string = "OpenCL GPU"
-
-    return gpu_string
-
 devices = (
-    ("CPU", "CPU", "Processor"),
-    ("GPU", get_gpu_device(), "Graphics card"),
-    )
-
-gpu_type = (
-    ("CUDA", "CUDA", "NVidia only"),
-    ("OPENCL", "OpenCL", ""),
-    )
+	("CPU", "CPU", "Use CPU for rendering"),
+	("GPU", "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"))
 
 feature_set = (
     ("SUPPORTED", "Supported", "Only use finished and supported features"),

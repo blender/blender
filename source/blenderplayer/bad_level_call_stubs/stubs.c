@@ -475,6 +475,9 @@ struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
 			    float scale,
 			    int depth) {return 0;}
 
+/* intern/cycles */
+struct CCLDeviceInfo;
+struct CCLDeviceInfo *CCL_compute_device_list(int opencl) { return NULL; }
 
 char blender_path[] = "";
 

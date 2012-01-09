@@ -8,7 +8,7 @@ objs += o
 
 incs = '#/intern/guardedalloc #/intern/memutil #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
 incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../blenfont ../blenloader'
-incs += ' ../render/extern/include'
+incs += ' ../render/extern/include #/intern/cycles/blender'
 incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 
@@ -57,6 +57,9 @@ if env['WITH_BF_COLLADA']:
 
 if env['WITH_BF_OCEANSIM']:
     defs.append('WITH_OCEANSIM')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'

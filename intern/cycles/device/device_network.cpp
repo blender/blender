@@ -103,7 +103,7 @@ public:
 #endif
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 #if 0
 		RPCSend snd(socket, "mem_copy_from");

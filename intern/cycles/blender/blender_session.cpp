@@ -39,8 +39,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_)
-: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL),
+BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b_userpref_,
+	BL::BlendData b_data_, BL::Scene b_scene_)
+: b_engine(b_engine_), b_userpref(b_userpref_), b_data(b_data_), b_scene(b_scene_),
+  b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL),
   b_rr(PointerRNA_NULL), b_rlay(PointerRNA_NULL)
 {
 	/* offline render */
@@ -54,10 +56,11 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_
 	create_session();
 }
 
-BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_,
+BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b_userpref_,
+	BL::BlendData b_data_, BL::Scene b_scene_,
 	BL::SpaceView3D b_v3d_, BL::RegionView3D b_rv3d_, int width_, int height_)
-: b_engine(b_engine_), b_data(b_data_), b_scene(b_scene_), b_v3d(b_v3d_), b_rv3d(b_rv3d_),
-  b_rr(PointerRNA_NULL), b_rlay(PointerRNA_NULL)
+: b_engine(b_engine_), b_userpref(b_userpref_), b_data(b_data_), b_scene(b_scene_),
+  b_v3d(b_v3d_), b_rv3d(b_rv3d_), b_rr(PointerRNA_NULL), b_rlay(PointerRNA_NULL)
 {
 	/* 3d view render */
 	width = width_;
@@ -77,7 +80,7 @@ BlenderSession::~BlenderSession()
 void BlenderSession::create_session()
 {
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
-	SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	/* reset status/progress */
 	last_status= "";
@@ -184,7 +187,7 @@ void BlenderSession::synchronize()
 {
 	/* on session/scene parameter changes, we recreate session entirely */
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
-	SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	if(session->params.modified(session_params) ||
 	   scene->params.modified(scene_params)) {
@@ -258,7 +261,7 @@ bool BlenderSession::draw(int w, int h)
 
 		/* reset if requested */
 		if(reset) {
-			SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
+			SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
 
 			session->reset(buffer_params, session_params.samples);

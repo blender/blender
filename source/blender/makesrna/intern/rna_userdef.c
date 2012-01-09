@@ -46,6 +46,14 @@
 
 #include "BKE_sound.h"
 
+#ifdef WITH_CYCLES
+static EnumPropertyItem compute_device_type_items[] = {
+	{USER_COMPUTE_DEVICE_NONE, "NONE", 0, "None", "Don't use compute device"},
+	{USER_COMPUTE_DEVICE_CUDA, "CUDA", 0, "CUDA", "Use CUDA for GPU acceleration"},
+	{USER_COMPUTE_DEVICE_OPENCL, "OPENCL", 0, "OpenCL", "Use OpenCL for GPU acceleration"},
+	{ 0, NULL, 0, NULL, NULL}};
+#endif
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_object_types.h"
@@ -64,6 +72,8 @@
 #include "MEM_CacheLimiterC-Api.h"
 
 #include "UI_interface.h"
+
+#include "CCL_api.h"
 
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
@@ -301,6 +311,68 @@ static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	BLF_cache_clear();
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
+
+#ifdef WITH_CYCLES
+static EnumPropertyItem *rna_userdef_compute_device_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	/* add supported device types */
+	RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_NONE);
+	if(CCL_compute_device_list(0))
+		RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_CUDA);
+	if(CCL_compute_device_list(1))
+		RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_OPENCL);
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
+}
+
+static int rna_userdef_compute_device_get(PointerRNA *UNUSED(ptr))
+{
+	if(U.compute_device_type == USER_COMPUTE_DEVICE_NONE)
+		return 0;
+
+	return U.compute_device_id;
+}
+
+static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem tmp= {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(U.compute_device_type == USER_COMPUTE_DEVICE_NONE) {
+		/* only add a single CPU device */
+		tmp.value = 0;
+		tmp.name = "CPU";
+		tmp.identifier = "CPU";
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	else {
+		/* get device list from cycles. it would be good to make this generic
+		   once we have more subsystems using opencl, for now this is easiest */
+		int opencl = (U.compute_device_type == USER_COMPUTE_DEVICE_OPENCL);
+		CCLDeviceInfo *devices = CCL_compute_device_list(opencl);
+		int a;
+
+		for(a = 0; devices[a].name; a++) {
+			tmp.value = devices[a].value;
+			tmp.identifier = devices[a].identifier;
+			tmp.name = devices[a].name;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free = 1;
+
+	return item;
+}
+#endif
 
 #else
 
@@ -2645,6 +2717,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, NULL, 0, NULL, NULL}};
 
+#ifdef WITH_CYCLES
+	static EnumPropertyItem compute_device_items[] = {
+		{0, "CPU", 0, "CPU", ""},
+		{ 0, NULL, 0, NULL, NULL}};
+#endif
+
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -2853,14 +2931,20 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 	
-#if 0
-	prop= RNA_def_property(srna, "verse_master", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "versemaster");
-	RNA_def_property_ui_text(prop, "Verse Master", "Verse Master-server IP");
+#ifdef WITH_CYCLES
+	prop= RNA_def_property(srna, "compute_device_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+	RNA_def_property_enum_sdna(prop, NULL, "compute_device_type");
+	RNA_def_property_enum_items(prop, compute_device_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_compute_device_type_itemf");
+	RNA_def_property_ui_text(prop, "Compute Device Type", "Device to use for computation (rendering with Cycles)");
 
-	prop= RNA_def_property(srna, "verse_username", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "verseuser");
-	RNA_def_property_ui_text(prop, "Verse Username", "Verse user name");
+	prop= RNA_def_property(srna, "compute_device", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+	RNA_def_property_enum_sdna(prop, NULL, "compute_device_id");
+	RNA_def_property_enum_items(prop, compute_device_items);
+	RNA_def_property_enum_funcs(prop, "rna_userdef_compute_device_get", NULL, "rna_userdef_compute_device_itemf");
+	RNA_def_property_ui_text(prop, "Compute Device", "Device to use for computation");
 #endif
 }
 

@@ -87,7 +87,7 @@ float4 *RenderBuffers::copy_from_device(float exposure, int sample)
 	if(!buffer.device_pointer)
 		return NULL;
 
-	device->mem_copy_from(buffer, 0, buffer.memory_size());
+	device->mem_copy_from(buffer, 0, params.width, params.height, sizeof(float4));
 
 	float4 *out = new float4[params.width*params.height];
 	float4 *in = (float4*)buffer.data_pointer;

@@ -18,9 +18,12 @@
 
 #include <Python.h>
 
+#include "CCL_api.h"
+
 #include "blender_sync.h"
 #include "blender_session.h"
 
+#include "util_foreach.h"
 #include "util_opengl.h"
 #include "util_path.h"
 
@@ -40,15 +43,19 @@ static PyObject *init_func(PyObject *self, PyObject *args)
 
 static PyObject *create_func(PyObject *self, PyObject *args)
 {
-	PyObject *pyengine, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
+	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
 
-	if(!PyArg_ParseTuple(args, "OOOOOO", &pyengine, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d))
+	if(!PyArg_ParseTuple(args, "OOOOOOO", &pyengine, &pyuserpref, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d))
 		return NULL;
 
 	/* RNA */
 	PointerRNA engineptr;
 	RNA_pointer_create(NULL, &RNA_RenderEngine, (void*)PyLong_AsVoidPtr(pyengine), &engineptr);
 	BL::RenderEngine engine(engineptr);
+
+	PointerRNA userprefptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyuserpref), &userprefptr);
+	BL::UserPreferences userpref(userprefptr);
 
 	PointerRNA dataptr;
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
@@ -78,11 +85,11 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 		int width = region.width();
 		int height = region.height();
 
-		session = new BlenderSession(engine, data, scene, v3d, rv3d, width, height);
+		session = new BlenderSession(engine, userpref, data, scene, v3d, rv3d, width, height);
 	}
 	else {
 		/* offline session */
-		session = new BlenderSession(engine, data, scene);
+		session = new BlenderSession(engine, userpref, data, scene);
 	}
 	
 	return PyLong_FromVoidPtr(session);
@@ -137,13 +144,12 @@ static PyObject *sync_func(PyObject *self, PyObject *value)
 
 static PyObject *available_devices_func(PyObject *self, PyObject *args)
 {
-	vector<DeviceType> types = Device::available_types();
+	vector<DeviceInfo>& devices = Device::available_devices();
+	PyObject *ret = PyTuple_New(devices.size());
 
-	PyObject *ret = PyTuple_New(types.size());
-
-	for(size_t i = 0; i < types.size(); i++) {
-		string name = Device::string_from_type(types[i]);
-		PyTuple_SET_ITEM(ret, i, PyUnicode_FromString(name.c_str()));
+	for(size_t i = 0; i < devices.size(); i++) {
+		DeviceInfo& device = devices[i];
+		PyTuple_SET_ITEM(ret, i, PyUnicode_FromString(device.description.c_str()));
 	}
 
 	return ret;
@@ -169,11 +175,44 @@ static struct PyModuleDef module = {
 	NULL, NULL, NULL, NULL
 };
 
+CCLDeviceInfo *compute_device_list(DeviceType type)
+{
+	/* device list stored static */
+	static ccl::vector<CCLDeviceInfo> device_list;
+	static ccl::DeviceType device_type = DEVICE_NONE;
+
+	/* create device list if it's not already done */
+	if(type != device_type) {
+		ccl::vector<DeviceInfo>& devices = ccl::Device::available_devices();
+
+		device_type = type;
+		device_list.clear();
+
+		/* add devices */
+		int i = 0;
+
+		foreach(DeviceInfo& info, devices) {
+			if(info.type == type ||
+			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type)) {
+				CCLDeviceInfo cinfo = {info.id.c_str(), info.description.c_str(), i++};
+				device_list.push_back(cinfo);
+			}
+		}
+
+		/* null terminate */
+		if(!device_list.empty()) {
+			CCLDeviceInfo cinfo = {NULL, NULL, 0};
+			device_list.push_back(cinfo);
+		}
+	}
+
+	return (device_list.empty())? NULL: &device_list[0];
+}
+
+
 CCL_NAMESPACE_END
 
-extern "C" PyObject *CYCLES_initPython();
-
-PyObject *CYCLES_initPython()
+void *CCL_python_module_init()
 {
 	PyObject *mod= PyModule_Create(&ccl::module);
 
@@ -185,6 +224,12 @@ PyObject *CYCLES_initPython()
 	Py_INCREF(Py_False);
 #endif
 
-	return mod;
+	return (void*)mod;
+}
+
+CCLDeviceInfo *CCL_compute_device_list(int opencl)
+{
+	ccl::DeviceType type = (opencl)? ccl::DEVICE_OPENCL: ccl::DEVICE_CUDA;
+	return ccl::compute_device_list(type);
 }
 
