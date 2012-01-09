@@ -24,11 +24,15 @@ __device_noinline float svm_checker(float3 p, float scale)
 {	
 	p *= scale;
 
-	/* 0.00001  because of unit sized stuff */
-	int xi = (int)fabsf(floor(0.00001f + p.x));
-	int yi = (int)fabsf(floor(0.00001f + p.y));
-	int zi = (int)fabsf(floor(0.00001f + p.z));
-	
+	/* avoid precision issues on unit coordinates */
+	p.x = (p.x + 0.00001f)*0.9999f;
+	p.y = (p.y + 0.00001f)*0.9999f;
+	p.z = (p.z + 0.00001f)*0.9999f;
+
+	int xi = (int)fabsf(floorf(p.x));
+	int yi = (int)fabsf(floorf(p.y));
+	int zi = (int)fabsf(floorf(p.z));
+
 	return ((xi % 2 == yi % 2) == (zi % 2))? 1.0f: 0.0f;
 }
 
