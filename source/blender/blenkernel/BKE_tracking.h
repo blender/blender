@@ -97,6 +97,12 @@ struct ListBase *BKE_tracking_object_tracks(struct MovieTracking *tracking, stru
 struct MovieTrackingReconstruction *BKE_tracking_object_reconstruction(struct MovieTracking *tracking,
 			struct MovieTrackingObject *object);
 
+/* clipboard */
+void BKE_tracking_free_clipboard(void);
+void BKE_tracking_clipboard_copy_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+int BKE_tracking_clipboard_has_tracks(void);
+void BKE_tracking_clipboard_paste_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+
 /* 2D tracking */
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,
 			short backwards, short sequence);

@@ -70,6 +70,10 @@ typedef struct MovieDistortion {
 	struct libmv_CameraIntrinsics *intrinsics;
 } MovieDistortion;
 
+static struct {
+	ListBase tracks;
+} tracking_clipboard;
+
 /*********************** common functions *************************/
 
 void BKE_tracking_init_settings(MovieTracking *tracking)
@@ -578,6 +582,72 @@ void BKE_tracking_free(MovieTracking *tracking)
 		BKE_tracking_distortion_destroy(tracking->camera.intrinsics);
 }
 
+static MovieTrackingTrack *duplicate_track(MovieTrackingTrack *track)
+{
+	MovieTrackingTrack *new_track;
+
+	new_track = MEM_callocN(sizeof(MovieTrackingTrack), "tracksMapMerge new_track");
+
+	*new_track= *track;
+	new_track->next = new_track->prev = NULL;
+
+	new_track->markers = MEM_dupallocN(new_track->markers);
+
+	return new_track;
+}
+
+/*********************** clipboard *************************/
+
+void BKE_tracking_free_clipboard(void)
+{
+	MovieTrackingTrack *track = tracking_clipboard.tracks.first, *next_track;
+
+	while (track) {
+		next_track = track->next;
+
+		BKE_tracking_free_track(track);
+		MEM_freeN(track);
+
+		track = next_track;
+	}
+}
+
+void BKE_tracking_clipboard_copy_tracks(MovieTracking *tracking, MovieTrackingObject *object)
+{
+	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+	MovieTrackingTrack *track = tracksbase->first;
+
+	while (track) {
+		if (TRACK_SELECTED(track)) {
+			MovieTrackingTrack *new_track = duplicate_track(track);
+
+			BLI_addtail(&tracking_clipboard.tracks, new_track);
+		}
+
+		track = track->next;
+	}
+}
+
+int BKE_tracking_clipboard_has_tracks(void)
+{
+	return tracking_clipboard.tracks.first != NULL;
+}
+
+void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingObject *object)
+{
+	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+	MovieTrackingTrack *track = tracking_clipboard.tracks.first;
+
+	while (track) {
+		MovieTrackingTrack *new_track = duplicate_track(track);
+
+		BLI_addtail(tracksbase, new_track);
+		BKE_track_unique_name(tracksbase, new_track);
+
+		track = track->next;
+	}
+}
+
 /*********************** tracks map *************************/
 
 typedef struct TracksMap {
@@ -700,9 +770,7 @@ static void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 			}
 		}
 
-		new_track= MEM_callocN(sizeof(MovieTrackingTrack), "tracksMapMerge new_track");
-		*new_track= *track;
-		new_track->markers= MEM_dupallocN(new_track->markers);
+		new_track= duplicate_track(track);
 
 		BLI_ghash_remove(map->hash, track, NULL, NULL); /* XXX: are we actually need this */
 		BLI_ghash_insert(map->hash, track, new_track);
