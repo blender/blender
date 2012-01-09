@@ -861,7 +861,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 					}
 
 					/* NOTE: margin should be kept in sync with value from ui_draw_but_TRACKPREVIEW */
-					tmpibuf= BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 2 /* margin */,
+					tmpibuf= BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 3 /* margin */,
 							1 /* anchor */, scopes->track_pos, NULL);
 
 					if(tmpibuf->rect_float)

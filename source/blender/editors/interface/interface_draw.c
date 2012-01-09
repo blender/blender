@@ -1511,8 +1511,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	else if(scopes->track_preview) {
 		/* additional margin around image */
 		/* NOTE: should be kept in sync with value from BKE_movieclip_update_scopes */
-		const int margin= 2;
-		float zoomx, zoomy, track_pos[2], off_x, off_y;
+		const int margin= 3;
+		float zoomx, zoomy, track_pos[2], off_x, off_y, x0, y0;
 		int a;
 		ImBuf *drawibuf;
 
@@ -1529,11 +1529,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		off_x= ((int)track_pos[0]-track_pos[0]+0.5)*zoomx;
 		off_y= ((int)track_pos[1]-track_pos[1]+0.5)*zoomy;
+		x0= (int)(off_x+rect.xmin-zoomx*(margin-0.5f))+1;
+		y0= (int)(off_y+rect.ymin-zoomy*(margin-0.5f))+1;
 
 		drawibuf= scale_trackpreview_ibuf(scopes->track_preview, zoomx, zoomy);
-		glaDrawPixelsSafe(off_x+rect.xmin-zoomx*(margin-0.5f), off_y+rect.ymin-zoomy*(margin-0.5f),
-		                  rect.xmax-rect.xmin+2+(int)(zoomx*(margin-0.5f)-off_x),
-		                  rect.ymax-rect.ymin+2+(int)(zoomy*(margin-0.5f)-off_y),
+		glaDrawPixelsSafe(x0, y0, rect.xmax-x0+1, rect.ymax-y0+1,
 		                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
 		IMB_freeImBuf(drawibuf);
 
