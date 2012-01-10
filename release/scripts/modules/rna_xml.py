@@ -298,3 +298,40 @@ def xml2rna(root_xml,
                             pass
 
     rna2xml_node(root_xml, root_rna)
+
+
+
+# -----------------------------------------------------------------------------
+# Utility function used by presets.
+# The idea is you can run a preset like a script with a few args.
+#
+# This roughly matches the operator 'bpy.ops.script.python_file_run'
+
+def xml_file_run(context, filepath, rna_map):
+
+    import rna_xml
+    import xml.dom.minidom
+
+    xml_nodes = xml.dom.minidom.parse(filepath)
+    bpy_xml = xml_nodes.getElementsByTagName("bpy")[0]
+
+    for rna_path, xml_tag in rna_map:
+
+        # first get xml
+        # TODO, error check
+        xml_node = bpy_xml.getElementsByTagName(xml_tag)[0]
+
+        # now get 
+        rna_path_full = "context." + rna_path
+        try:
+            value = eval(rna_path_full)
+        except:
+            import traceback
+            traceback.print_exc()
+            print("Error: %r could not be found" % rna_path_full)
+
+            value = Ellipsis
+
+        if value is not Ellipsis and value is not None:
+            print("Loading XML: %r" % rna_path_full)
+            rna_xml.xml2rna(xml_node, root_rna=value)

@@ -99,6 +99,8 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.theme_import")
             layout.operator("wm.theme_export")
 
+            layout.menu("USERPREF_MT_interface_theme_presets", text=bpy.types.USERPREF_MT_interface_theme_presets.bl_label)
+
 
 class USERPREF_PT_tabs(Panel):
     bl_label = ""
@@ -489,6 +491,15 @@ class USERPREF_PT_system(Panel):
             row.label(text="Translate:")
             row.prop(system, "use_translate_interface", text="Interface")
             row.prop(system, "use_translate_tooltips", text="Tooltips")
+
+
+class USERPREF_MT_interface_theme_presets(Menu):
+    bl_label = "Presets"
+    preset_subdir = "interface_theme"
+    preset_operator = "script.execute_preset"
+    preset_type = 'XML'
+    preset_xml_map = (("user_preferences.themes[0]", "Theme"), )
+    draw = Menu.draw_preset
 
 
 class USERPREF_PT_theme(Panel):

@@ -158,15 +158,27 @@ class ExecutePreset(Operator):
             )
 
     def execute(self, context):
-        from os.path import basename
+        from os.path import basename, splitext
         filepath = self.filepath
 
         # change the menu title to the most recently chosen option
         preset_class = getattr(bpy.types, self.menu_idname)
         preset_class.bl_label = bpy.path.display_name(basename(filepath))
 
+        ext = splitext(filepath)[1].lower()
+
         # execute the preset using script.python_file_run
-        bpy.ops.script.python_file_run(filepath=filepath)
+        if ext == ".py":
+            bpy.ops.script.python_file_run(filepath=filepath)
+        elif ext == ".xml":
+            import rna_xml
+            rna_xml.xml_file_run(context,
+                                 filepath,
+                                 preset_class.preset_xml_map)
+        else:
+            self.report({'ERROR'}, "unknown filetype: %r" % ext)
+            return {'CANCELLED '}
+
         return {'FINISHED'}
 
 

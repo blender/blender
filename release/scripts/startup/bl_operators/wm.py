@@ -1823,6 +1823,7 @@ class WM_OT_theme_export(Operator, ExportHelper):
         rna_xml.rna2xml(file.write,
                         root_rna=theme,
                         method='ATTR',
+                        root_node="bpy"
                         )
 
         return {'FINISHED'}
