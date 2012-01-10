@@ -2125,6 +2125,35 @@ static void def_cmp_id_mask(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_double_edge_mask(StructRNA * srna)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem BufEdgeMode_items[] = {
+		{0, "BLEED_OUT",  0, "Bleed Out",     "Allow mask pixels to bleed along edges"},
+		{1, "KEEP_IN",  0, "Keep In",     "Restrict mask pixels from touching edges"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem InnerEdgeMode_items[] = {
+		{0, "ALL", 0, "All", "All pixels on inner mask edge are considered during mask calculation"},
+		{1, "ADJACENT_ONLY", 0, "Adjacent Only", "Only inner mask pixels adjacent to outer mask pixels are considered during mask calculation"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	prop = RNA_def_property(srna, "inner_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom2");
+	RNA_def_property_enum_items(prop, InnerEdgeMode_items);
+	RNA_def_property_ui_text(prop, "Inner Edge Mode", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, BufEdgeMode_items);
+	RNA_def_property_ui_text(prop, "Buffer Edge Mode", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
 static void def_cmp_map_uv(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -3375,4 +3404,3 @@ void RNA_def_nodetree(BlenderRNA *brna)
 #undef NODE_DEFINE_SUBTYPES
 
 #endif
-

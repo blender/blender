@@ -642,6 +642,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_STABILIZE2D	263
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
+#define CMP_NODE_DOUBLEEDGEMASK    266
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302
