@@ -323,7 +323,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_STATICFFMPEG', 'Use static FFMPEG if true', False)),
         ('BF_FFMPEG_LIB_STATIC', 'Static FFMPEG libraries', ''),
         
-        (BoolVariable('WITH_BF_OGG', 'Use OGG, THEORA, VORBIS in FFMPEG if true',
+        (BoolVariable('WITH_BF_OGG', 'Link OGG, THEORA, VORBIS with FFMPEG if true',
                     False)),
         ('BF_OGG', 'OGG base path', ''),
         ('BF_OGG_LIB', 'OGG library', ''),

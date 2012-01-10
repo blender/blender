@@ -117,7 +117,7 @@ BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
-WITH_BF_OGG = True  # -DWITH_OGG 
+WITH_BF_OGG = True
 BF_OGG = '/usr/local'
 BF_OGG_INC = '${BF_OGG}/include'
 BF_OGG_LIB = 'ogg vorbis vorbisenc theoraenc theoradec'

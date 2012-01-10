@@ -60,9 +60,6 @@ if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
 
-if env['WITH_BF_OGG']:
-    defs.append('WITH_OGG')
-
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../../quicktime'
