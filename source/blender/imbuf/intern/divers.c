@@ -188,9 +188,9 @@ MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
 MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], DitherContext *di)
 {
 	b[0]= dither_value(us[0], di, 0);
-	b[1]= dither_value(us[0], di, 1);
-	b[2]= dither_value(us[0], di, 2);
-	b[3]= dither_value(us[0], di, 3);
+	b[1]= dither_value(us[1], di, 1);
+	b[2]= dither_value(us[2], di, 2);
+	b[3]= dither_value(us[3], di, 3);
 }
 
 MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext *di)

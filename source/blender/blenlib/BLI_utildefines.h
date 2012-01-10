@@ -108,7 +108,7 @@
 
 #define FTOCHAR(val) ((val)<=0.0f)? 0 : (((val)>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*(val))+0.5f))
 #define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
-#define USHORTTOUCHAR(val) ((unsigned char)(((val)+0x80)>>8))
+#define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535-128)? 255: ((val)+128)>>8))
 #define F3TOCHAR3(v2, v1) {                                                   \
 		(v1)[0]= FTOCHAR((v2[0]));                                            \
 		(v1)[1]= FTOCHAR((v2[1]));                                            \
