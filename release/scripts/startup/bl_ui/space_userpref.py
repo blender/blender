@@ -97,12 +97,6 @@ class USERPREF_HT_header(Header):
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
 
-            layout.label(text="Presets:")
-            layout.menu("USERPREF_MT_interface_theme_presets", text=bpy.types.USERPREF_MT_interface_theme_presets.bl_label)
-            row = layout.row(align=True)
-            row.operator("wm.interface_theme_preset_add", text="", icon='ZOOMIN')
-            row.operator("wm.interface_theme_preset_add", text="", icon='ZOOMOUT').remove_active = True
-
 
 class USERPREF_PT_tabs(Panel):
     bl_label = ""
@@ -551,7 +545,18 @@ class USERPREF_PT_theme(Panel):
         theme = context.user_preferences.themes[0]
 
         split_themes = layout.split(percentage=0.2)
-        split_themes.prop(theme, "theme_area", expand=True)
+
+        sub = split_themes.column()
+
+        sub.label(text="Presets:")
+        subrow = sub.row(align=True)
+
+        subrow.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMIN')
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        sub.separator()
+
+        sub.prop(theme, "theme_area", expand=True)
 
         split = layout.split(percentage=0.4)
 
