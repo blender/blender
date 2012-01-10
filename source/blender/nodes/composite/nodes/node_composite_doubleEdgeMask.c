@@ -1,6 +1,4 @@
 /*
- * $Id: node_composite_doubleEdgeMask.c 35237 2012-01-01 03:06:22Z xgl.asyliax $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
