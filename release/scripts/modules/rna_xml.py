@@ -307,9 +307,21 @@ def xml2rna(root_xml,
 #
 # This roughly matches the operator 'bpy.ops.script.python_file_run'
 
+def _get_context_val(context, path):
+    path_full = "context." + path
+    try:
+        value = eval(path_full)
+    except:
+        import traceback
+        traceback.print_exc()
+        print("Error: %r could not be found" % path_full)
+
+        value = Ellipsis
+
+    return value
+
 def xml_file_run(context, filepath, rna_map):
 
-    import rna_xml
     import xml.dom.minidom
 
     xml_nodes = xml.dom.minidom.parse(filepath)
@@ -321,17 +333,24 @@ def xml_file_run(context, filepath, rna_map):
         # TODO, error check
         xml_node = bpy_xml.getElementsByTagName(xml_tag)[0]
 
-        # now get 
-        rna_path_full = "context." + rna_path
-        try:
-            value = eval(rna_path_full)
-        except:
-            import traceback
-            traceback.print_exc()
-            print("Error: %r could not be found" % rna_path_full)
-
-            value = Ellipsis
+        value = _get_context_val(context, rna_path)
 
         if value is not Ellipsis and value is not None:
-            print("Loading XML: %r" % rna_path_full)
-            rna_xml.xml2rna(xml_node, root_rna=value)
+            print("  loading XML: %r" % rna_path)
+            xml2rna(xml_node, root_rna=value)
+
+
+def xml_file_write(context, filepath, rna_map):
+
+    file = open(filepath, 'w', encoding='utf-8')
+    fw = file.write
+
+    fw("<bpy>\n")
+
+    for rna_path, xml_tag in rna_map:
+        # xml_tag is ignored, we get this from the rna
+        value = _get_context_val(context, rna_path)
+        rna2xml(fw, root_rna=value, method='ATTR')
+
+    fw("</bpy>\n")
+    file.close()

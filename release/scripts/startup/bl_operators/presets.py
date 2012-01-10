@@ -55,6 +55,13 @@ class AddPresetBase():
 
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
+        is_xml = getattr(preset_menu_class, "preset_type", None) == 'XML'
+
+        if is_xml:
+            ext = ".xml"
+        else:
+            ext = ".py"
+
         if not self.remove_active:
             name = self.name.strip()
             if not name:
@@ -71,32 +78,40 @@ class AddPresetBase():
                 self.report({'WARNING'}, "Failed to create presets path")
                 return {'CANCELLED'}
 
-            filepath = os.path.join(target_path, filename) + ".py"
+            filepath = os.path.join(target_path, filename) + ext
 
             if hasattr(self, "add"):
                 self.add(context, filepath)
             else:
                 print("Writing Preset: %r" % filepath)
-                file_preset = open(filepath, 'w')
-                file_preset.write("import bpy\n")
 
-                if hasattr(self, "preset_defines"):
-                    for rna_path in self.preset_defines:
-                        exec(rna_path)
-                        file_preset.write("%s\n" % rna_path)
-                    file_preset.write("\n")
+                if is_xml:
+                    import rna_xml
+                    rna_xml.xml_file_write(context,
+                                           filepath,
+                                           preset_menu_class.preset_xml_map)
+                else:
+                    file_preset = open(filepath, 'w')
+                    file_preset.write("import bpy\n")
 
-                for rna_path in self.preset_values:
-                    value = eval(rna_path)
-                    # convert thin wrapped sequences to simple lists to repr()
-                    try:
-                        value = value[:]
-                    except:
-                        pass
+                    if hasattr(self, "preset_defines"):
+                        for rna_path in self.preset_defines:
+                            exec(rna_path)
+                            file_preset.write("%s\n" % rna_path)
+                        file_preset.write("\n")
 
-                    file_preset.write("%s = %r\n" % (rna_path, value))
+                    for rna_path in self.preset_values:
+                        value = eval(rna_path)
+                        # convert thin wrapped sequences
+                        # to simple lists to repr()
+                        try:
+                            value = value[:]
+                        except:
+                            pass
 
-                file_preset.close()
+                        file_preset.write("%s = %r\n" % (rna_path, value))
+
+                    file_preset.close()
 
             preset_menu_class.bl_label = bpy.path.display_name(filename)
 
@@ -104,12 +119,15 @@ class AddPresetBase():
             preset_active = preset_menu_class.bl_label
 
             # fairly sloppy but convenient.
-            filepath = bpy.utils.preset_find(preset_active, self.preset_subdir)
+            filepath = bpy.utils.preset_find(preset_active,
+                                             self.preset_subdir,
+                                             ext=ext)
 
             if not filepath:
                 filepath = bpy.utils.preset_find(preset_active,
                                                  self.preset_subdir,
-                                                 display_name=True)
+                                                 display_name=True,
+                                                 ext=ext)
 
             if not filepath:
                 return {'CANCELLED'}
@@ -395,6 +413,14 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
     ]
 
     preset_subdir = "tracking_settings"
+
+
+class AddPresetInterfaceTheme(AddPresetBase, Operator):
+    '''Add a theme preset'''
+    bl_idname = "wm.interface_theme_preset_add"
+    bl_label = "Add Tracking Settings Preset"
+    preset_menu = "USERPREF_MT_interface_theme_presets"
+    preset_subdir = "interface_theme"
 
 
 class AddPresetKeyconfig(AddPresetBase, Operator):

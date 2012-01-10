@@ -408,7 +408,7 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
     return smpte_from_seconds((frame * fps_base) / fps, fps)
 
 
-def preset_find(name, preset_path, display_name=False):
+def preset_find(name, preset_path, display_name=False, ext=".py"):
     if not name:
         return None
 
@@ -417,11 +417,11 @@ def preset_find(name, preset_path, display_name=False):
         if display_name:
             filename = ""
             for fn in _os.listdir(directory):
-                if fn.endswith(".py") and name == _bpy.path.display_name(fn):
+                if fn.endswith(ext) and name == _bpy.path.display_name(fn):
                     filename = fn
                     break
         else:
-            filename = name + ".py"
+            filename = name + ext
 
         if filename:
             filepath = _os.path.join(directory, filename)

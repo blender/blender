@@ -96,10 +96,12 @@ class USERPREF_HT_header(Header):
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
-            layout.operator("wm.theme_import")
-            layout.operator("wm.theme_export")
 
+            layout.label(text="Presets:")
             layout.menu("USERPREF_MT_interface_theme_presets", text=bpy.types.USERPREF_MT_interface_theme_presets.bl_label)
+            row = layout.row(align=True)
+            row.operator("wm.interface_theme_preset_add", text="", icon='ZOOMIN')
+            row.operator("wm.interface_theme_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
 
 class USERPREF_PT_tabs(Panel):
