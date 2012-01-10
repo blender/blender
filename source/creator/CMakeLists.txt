@@ -173,9 +173,7 @@ if(WITH_PYTHON_MODULE)
 				PREFIX ""
 				OUTPUT_NAME bpy
 				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-				RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
 		)
-		TARGET_LINK_LIBRARIES(blender -Wl,-undefined -Wl,dynamic_lookup)
 
 	else(APPLE)
 		add_library(blender SHARED ${SRC})
