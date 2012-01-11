@@ -12941,7 +12941,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
-		
+		{
+			/* convert Camera Actuator values to defines */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						if(ba->axis==(float) 'x') ba->axis=OB_POSX;
+						else if (ba->axis==(float)'y') ba->axis=OB_POSY;
+						/* don't do an if/else to avoid imediate subversion bump*/
+//					ba->axis=((ba->axis == (float) 'x')?OB_POSX_X:OB_POSY);
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

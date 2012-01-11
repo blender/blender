@@ -867,8 +867,10 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_axis_items[] ={
-		{ACT_CAMERA_X, "X", 0, "X", "Camera tries to get behind the X axis"},
-		{ACT_CAMERA_Y, "Y", 0, "Y", "Camera tries to get behind the Y axis"},
+		{OB_POSX, "POS_X", 0, "+X", "Camera tries to get behind the X axis"},
+		{OB_POSY, "POS_Y", 0, "+Y", "Camera tries to get behind the Y axis"},
+		{OB_NEGX, "NEG_X", 0, "-X", "Camera tries to get behind the -X axis"},
+		{OB_NEGY, "NEG_Y", 0, "-Y", "Camera tries to get behind the -Y axis"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "CameraActuator", "Actuator");
@@ -905,7 +907,7 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Damping", "Strength of the constraint that drives the camera behind the target");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	/* x/y */
+	/* +x/+y/-x/-y */
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis");
 	RNA_def_property_enum_items(prop, prop_axis_items);
