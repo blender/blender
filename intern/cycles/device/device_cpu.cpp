@@ -272,7 +272,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.id = "CPU";
 	info.num = 0;
 
-	devices.push_back(info);
+	devices.insert(devices.begin(), info);
 }
 
 CCL_NAMESPACE_END

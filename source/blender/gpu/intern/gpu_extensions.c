@@ -1156,7 +1156,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	GPU_print_error("Post Uniform Texture");
 }
 
-int GPU_shader_get_attribute(GPUShader *shader, char *name)
+int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
 	int index;
 	

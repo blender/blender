@@ -1777,7 +1777,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm;
-	char newname[32];
+	char newname[MAXBONENAME];
 	short axis= RNA_enum_get(op->ptr, "axis");
 	
 	/* paranoia checks */

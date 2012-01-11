@@ -2920,7 +2920,7 @@ static void autocomplete_id(bContext *C, char *str, void *arg_v)
 	
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
-		AutoComplete *autocpl= autocomplete_begin(str, 22);
+		AutoComplete *autocpl= autocomplete_begin(str, MAX_ID_NAME-2);
 		ID *id;
 		
 		for(id= listb->first; id; id= id->next)

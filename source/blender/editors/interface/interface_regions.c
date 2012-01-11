@@ -2109,7 +2109,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	uiBut *but= arg_but;
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
+	block= uiBeginBlock(C, handle->region, __func__, UI_EMBOSS);
 	
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
@@ -2299,8 +2299,8 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiStyle *style= UI_GetStyle();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
-	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
-	pup->block= uiBeginBlock(C, NULL, "ui_button_menu_create", UI_EMBOSSP);
+	pup= MEM_callocN(sizeof(uiPopupMenu), __func__);
+	pup->block= uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
 	pup->slideout= (but && (but->block->flag & UI_BLOCK_LOOP));
 	pup->but= but;
@@ -2361,7 +2361,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	uiPopupMenu *pup= MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 	
-	pup->block= uiBeginBlock(C, NULL, "uiPupMenuBegin", UI_EMBOSSP);
+	pup->block= uiBeginBlock(C, NULL, __func__, UI_EMBOSSP);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash= ui_popup_menu_hash(title);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);

@@ -67,7 +67,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->fac = smd->fac;
 	tsmd->repeat = smd->repeat;
 	tsmd->flag = smd->flag;
-	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
+	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
 }
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))

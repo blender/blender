@@ -192,7 +192,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Group *group= NULL;
-	char name[32]; /* id name */
+	char name[MAX_ID_NAME-2]; /* id name */
 	
 	RNA_string_get(op->ptr, "name", name);
 	
@@ -223,7 +223,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Group", 32, "Name", "Name of the new group");
+	RNA_def_string(ot->srna, "name", "Group", MAX_ID_NAME-2, "Name", "Name of the new group");
 }
 
 /****************** properties window operators *********************/

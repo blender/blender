@@ -647,7 +647,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			
 			uiItemL(row, "Driver Value:", ICON_NONE);
 			
-			sprintf(valBuf, "%.3f", driver->curval);
+			BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", driver->curval);
 			uiItemL(row, valBuf, ICON_NONE);
 		}
 	
@@ -702,18 +702,18 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 					graph_panel_driverVar__transChan(box, ale->id, dvar);
 					break;
 			}
-			
-		/* value of variable */
-		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
-			char valBuf[32];
-			
-			box= uiLayoutBox(col);
-			row= uiLayoutRow(box, 1);
+
+			/* value of variable */
+			if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+				char valBuf[32];
+
+				box= uiLayoutBox(col);
+				row= uiLayoutRow(box, 1);
 				uiItemL(row, "Value:", ICON_NONE);
 				
-				sprintf(valBuf, "%.3f", dvar->curval);
+				BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", dvar->curval);
 				uiItemL(row, valBuf, ICON_NONE);
-		}
+			}
 	}
 	
 	/* cleanup */

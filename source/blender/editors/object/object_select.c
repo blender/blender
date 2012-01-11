@@ -841,7 +841,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 static int object_select_same_group_exec(bContext *C, wmOperator *op)
 {
 	Group *group;
-	char group_name[32];
+	char group_name[MAX_ID_NAME];
 
 	/* passthrough if no objects are visible */
 	if (CTX_DATA_COUNT(C, visible_bases) == 0) return OPERATOR_PASS_THROUGH;
@@ -882,7 +882,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "group", "", 32, "Group", "Name of the group to select");
+	RNA_def_string(ot->srna, "group", "", MAX_ID_NAME, "Group", "Name of the group to select");
 }
 
 /**************************** Select Mirror ****************************/

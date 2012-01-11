@@ -261,7 +261,7 @@ typedef struct ParticleSystem
 
 	struct ListBase targets;				/* used for keyed and boid physics */
 
-	char name[32];							/* particle system name */
+	char name[64];							/* particle system name, MAX_NAME */
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra, tree_frame, bvhtree_frame;
@@ -269,7 +269,7 @@ typedef struct ParticleSystem
 	int flag, totpart, totunexist, totchild, totcached, totchildcache;
 	short recalc, target_psys, totkeyed, bakespace;
 
-	char bb_uvname[3][32];					/* billboard uv name */
+	char bb_uvname[3][64];					/* billboard uv name, MAX_CUSTOMDATA_LAYER_NAME */
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
 	short vgroup[12], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */

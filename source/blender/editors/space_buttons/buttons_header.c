@@ -108,7 +108,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 
 	buttons_context_compute(C, sbuts);
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
 	
 	xco= ED_area_header_switchbutton(C, block, yco);

@@ -1168,7 +1168,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		char *name = scene_find_last_marker_name(scene, CFRA);
 
 		if (name)	BLI_strncpy(text, name, sizeof(text));
-		else 		strcpy(text, "<none>");
+		else 		BLI_strncpy(text, "<none>", sizeof(text));
 
 		BLI_snprintf(stamp_data->marker, sizeof(stamp_data->marker), do_prefix ? "Marker %s":"%s", text);
 	} else {
@@ -1202,14 +1202,14 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 	
 	if (scene->r.stamp & R_STAMP_FRAME) {
-		char format[32];
+		char fmtstr[32];
 		int digits= 1;
 		
 		if(scene->r.efra>9)
 			digits= 1 + (int) log10(scene->r.efra);
 
-		BLI_snprintf(format, sizeof(format), do_prefix ? "Frame %%0%di":"%%0%di", digits);
-		BLI_snprintf (stamp_data->frame, sizeof(stamp_data->frame), format, scene->r.cfra);
+		BLI_snprintf(fmtstr, sizeof(fmtstr), do_prefix ? "Frame %%0%di":"%%0%di", digits);
+		BLI_snprintf (stamp_data->frame, sizeof(stamp_data->frame), fmtstr, scene->r.cfra);
 	} else {
 		stamp_data->frame[0] = '\0';
 	}
@@ -1224,7 +1224,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		if (camera && camera->type == OB_CAMERA) {
 			BLI_snprintf(text, sizeof(text), "%.2f", ((Camera *)camera->data)->lens);
 		}
-		else 		strcpy(text, "<none>");
+		else 		BLI_strncpy(text, "<none>", sizeof(text));
 
 		BLI_snprintf(stamp_data->cameralens, sizeof(stamp_data->cameralens), do_prefix ? "Lens %s":"%s", text);
 	} else {
@@ -1241,7 +1241,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		Sequence *seq= seq_foreground_frame_get(scene, scene->r.cfra);
 	
 		if (seq)	BLI_strncpy(text, seq->name+2, sizeof(text));
-		else 		strcpy(text, "<none>");
+		else 		BLI_strncpy(text, "<none>", sizeof(text));
 
 		BLI_snprintf(stamp_data->strip, sizeof(stamp_data->strip), do_prefix ? "Strip %s":"%s", text);
 	} else {

@@ -233,7 +233,7 @@ struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source)
 {
 	bSound* sound = NULL;
 
-	char name[25];
+	char name[MAX_ID_NAME+5];
 	strcpy(name, "buf_");
 	strcpy(name + 4, source->id.name);
 
@@ -257,7 +257,7 @@ struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 {
 	bSound* sound = NULL;
 
-	char name[25];
+	char name[MAX_ID_NAME+5];
 	strcpy(name, "lim_");
 	strcpy(name + 4, source->id.name);
 

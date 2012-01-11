@@ -48,6 +48,7 @@
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -379,7 +380,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 		param_flush(ms->handle);
 
 		if(sa) {
-			sprintf(str, "Minimize Stretch. Blend %.2f.", ms->blend);
+			BLI_snprintf(str, sizeof(str), "Minimize Stretch. Blend %.2f", ms->blend);
 			ED_area_headerprint(sa, str);
 		}
 

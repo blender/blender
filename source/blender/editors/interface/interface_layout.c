@@ -1208,7 +1208,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 
 		if(itemptr.type && RNA_struct_is_ID(itemptr.type)) {
 			ID *id= itemptr.data;
-			char name_ui[32];
+			char name_ui[MAX_ID_NAME];
 
 #if 0		/* this name is used for a string comparison and can't be modified, TODO */
 			name_uiprefix_id(name_ui, id);

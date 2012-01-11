@@ -112,7 +112,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
 void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w,
-                      Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[32],
+                      Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[MAX_VGROUP_NAME],
                       Tex *texture, int tex_use_channel, int tex_mapping,
                       Object *tex_map_object, const char *tex_uvlayer_name)
 {

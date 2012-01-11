@@ -75,7 +75,7 @@ static void text_font_end(SpaceText *UNUSED(st))
 static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 {
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, 65535); /* XXX, use real length */
+	BLF_draw(mono, str, BLF_DRAW_STR_DUMMY_MAX);
 
 	return BLF_width(mono, str);
 }
@@ -1766,7 +1766,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			sprintf(linenr, "%*d", st->linenrs_tot, i + linecount + 1);
+			BLI_snprintf(linenr, sizeof(linenr), "%*d", st->linenrs_tot, i + linecount + 1);
 			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
 			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 

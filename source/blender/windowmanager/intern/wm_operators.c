@@ -939,7 +939,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	int width= 300;
 	
 
-	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
@@ -1015,7 +1015,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	uiLayout *layout;
 	uiStyle *style= UI_GetStyle();
 
-	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
+	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
@@ -1056,7 +1056,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	uiLayout *layout;
 	uiStyle *style= UI_GetStyle();
 
-	block= uiBeginBlock(C, ar, "opui_popup", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
@@ -1257,8 +1257,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	version_str = &version_buf[0];
 	revision_str = &revision_buf[0];
 	
-	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-	sprintf(revision_str, "r%s", build_rev);
+	BLI_snprintf(version_str, sizeof(version_str),
+	             "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	BLI_snprintf(revision_str, sizeof(revision_str), "r%s", build_rev);
 	
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
 	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;

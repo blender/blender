@@ -2960,7 +2960,7 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 	View3D *v3d= CTX_wm_view3d(C);
 	Image *ima= NULL;
 	BGpic *bgpic;
-	char name[32];
+	char name[MAX_ID_NAME-2];
 	
 	/* check input variables */
 	if(RNA_property_is_set(op->ptr, "filepath")) {
@@ -3007,7 +3007,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	ot->flag   = 0;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign");
+	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME-2, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 

@@ -36,6 +36,7 @@
 /* ------------------------------------------------------------------------- */
 
 #include "DNA_color_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
@@ -306,8 +307,8 @@ typedef struct ObjectRen {
 	struct HaloRen **bloha;
 	struct StrandBuffer *strandbuf;
 
-	char (*mtface)[32];
-	char (*mcol)[32];
+	char (*mtface)[MAX_CUSTOMDATA_LAYER_NAME];
+	char (*mcol)[MAX_CUSTOMDATA_LAYER_NAME];
 	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */

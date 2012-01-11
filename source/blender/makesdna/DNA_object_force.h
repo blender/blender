@@ -274,7 +274,7 @@ typedef struct SoftBody {
 	
 	/* general options */
 	float nodemass;		/* softbody mass of *vertex* */
-	char  namedVG_Mass[32]; /* along with it introduce mass painting
+	char  namedVG_Mass[64]; /* MAX_VGROUP_NAME */ /* along with it introduce mass painting
 							starting to fix old bug .. nastyness that VG are indexes 
 								rather find them by name tag to find it -> jow20090613 */
 	float grav;			/* softbody amount of gravitaion to apply */
@@ -289,7 +289,7 @@ typedef struct SoftBody {
 	float maxgoal;
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
-	char  namedVG_Softgoal[32]; /* starting to fix old bug .. nastyness that VG are indexes 
+	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */ /* starting to fix old bug .. nastyness that VG are indexes 
 								rather find them by name tag to find it -> jow20090613 */
   
 	short fuzzyness;      /* */
@@ -297,7 +297,7 @@ typedef struct SoftBody {
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
-	char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
+	char  namedVG_Spring_K[64]; /* MAX_VGROUP_NAME */ /* along with it introduce Spring_K painting
 	                               starting to fix old bug .. nastyness that VG are indexes
 	                               rather find them by name tag to find it -> jow20090613 */
 	

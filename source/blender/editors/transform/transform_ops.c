@@ -268,7 +268,7 @@ static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
 
 static int create_orientation_exec(bContext *C, wmOperator *op)
 {
-	char name[36];
+	char name[MAX_NAME];
 	int use = RNA_boolean_get(op->ptr, "use");
 	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
 	
@@ -301,7 +301,7 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position");
+	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Text to insert at the cursor position");
 	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
 	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
 }

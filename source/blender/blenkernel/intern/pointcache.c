@@ -3096,7 +3096,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
 	}
 	closedir(dir);
 
-	strcpy(pid->cache->name, old_name);
+	BLI_strncpy(pid->cache->name, old_name, sizeof(pid->cache->name));
 }
 
 void BKE_ptcache_load_external(PTCacheID *pid)
@@ -3217,11 +3217,11 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 		/* smoke doesn't use frame 0 as info frame so can't check based on totpoint */
 		if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN && totframes)
-			sprintf(cache->info, "%i frames found!", totframes);
+			BLI_snprintf(cache->info, sizeof(cache->info), "%i frames found!", totframes);
 		else if(totframes && cache->totpoint)
-			sprintf(cache->info, "%i points found!", cache->totpoint);
+			BLI_snprintf(cache->info, sizeof(cache->info), "%i points found!", cache->totpoint);
 		else
-			sprintf(cache->info, "No valid data to read!");
+			BLI_snprintf(cache->info, sizeof(cache->info), "No valid data to read!");
 		return;
 	}
 
@@ -3231,9 +3231,9 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 			int totpoint = pid->totpoint(pid->calldata, 0);
 
 			if(cache->totpoint > totpoint)
-				sprintf(mem_info, "%i cells + High Resolution cached", totpoint);
+				BLI_snprintf(mem_info, sizeof(mem_info), "%i cells + High Resolution cached", totpoint);
 			else
-				sprintf(mem_info, "%i cells cached", totpoint);
+				BLI_snprintf(mem_info, sizeof(mem_info), "%i cells cached", totpoint);
 		}
 		else {
 			int cfra = cache->startframe;
@@ -3243,7 +3243,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 					totframes++;
 			}
 
-			sprintf(mem_info, "%i frames on disk", totframes);
+			BLI_snprintf(mem_info, sizeof(mem_info), "%i frames on disk", totframes);
 		}
 	}
 	else {
@@ -3267,20 +3267,21 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 		mb = (bytes > 1024.0f * 1024.0f);
 
-		sprintf(mem_info, "%i frames in memory (%.1f %s)",
+		BLI_snprintf(mem_info, sizeof(mem_info), "%i frames in memory (%.1f %s)",
 			totframes,
 			bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
 			mb ? "Mb" : "kb");
 	}
 
 	if(cache->flag & PTCACHE_OUTDATED) {
-		sprintf(cache->info, "%s, cache is outdated!", mem_info);
+		BLI_snprintf(cache->info, sizeof(cache->info), "%s, cache is outdated!", mem_info);
 	}
 	else if(cache->flag & PTCACHE_FRAMES_SKIPPED) {
-		sprintf(cache->info, "%s, not exact since frame %i.", mem_info, cache->last_exact);
+		BLI_snprintf(cache->info, sizeof(cache->info), "%s, not exact since frame %i.", mem_info, cache->last_exact);
 	}
-	else
-		sprintf(cache->info, "%s.", mem_info);
+	else {
+		BLI_snprintf(cache->info, sizeof(cache->info), "%s.", mem_info);
+	}
 }
 
 void BKE_ptcache_validate(PointCache *cache, int framenr)

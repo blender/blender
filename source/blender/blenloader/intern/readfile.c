@@ -6639,14 +6639,14 @@ static void customdata_version_242(Mesh *me)
 		if (layer->type == CD_MTFACE) {
 			if (layer->name[0] == 0) {
 				if (mtfacen == 0) strcpy(layer->name, "UVMap");
-				else sprintf(layer->name, "UVMap.%.3d", mtfacen);
+				else BLI_snprintf(layer->name, sizeof(layer->name), "UVMap.%.3d", mtfacen);
 			}
 			mtfacen++;
 		}
 		else if (layer->type == CD_MCOL) {
 			if (layer->name[0] == 0) {
 				if (mcoln == 0) strcpy(layer->name, "Col");
-				else sprintf(layer->name, "Col.%.3d", mcoln);
+				else BLI_snprintf(layer->name, sizeof(layer->name), "Col.%.3d", mcoln);
 			}
 			mcoln++;
 		}
@@ -9141,8 +9141,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							strcpy(kb->name, "Basis");
 					}
 					else {
-						if(kb->name[0]==0)
-							sprintf(kb->name, "Key %d", index);
+						if (kb->name[0]==0) {
+							BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", index);
+						}
 						kb->adrcode= index++;
 					}
 				}
@@ -10135,7 +10136,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				BLI_addtail(&ob->particlesystem, psys);
 
 				md= modifier_new(eModifierType_ParticleSystem);
-				sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+				BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 				psmd= (ParticleSystemModifierData*) md;
 				psmd->psys=psys;
 				BLI_addtail(&ob->modifiers, md);
@@ -13020,7 +13021,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
-		
+		{
+			/* convert Camera Actuator values to defines */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						if(ba->axis==(float) 'x') ba->axis=OB_POSX;
+						else if (ba->axis==(float)'y') ba->axis=OB_POSY;
+						/* don't do an if/else to avoid imediate subversion bump*/
+//					ba->axis=((ba->axis == (float) 'x')?OB_POSX_X:OB_POSY);
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

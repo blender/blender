@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
+#include "BLI_string.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_modifier.h"
@@ -1617,7 +1618,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 	NLContext *context;
 	float vec[3], gridvec[3];
 	int a, b, x, y, z, totvar;
-	char message[1024];
+	char message[256];
 
 	/* setup variable indices */
 	mdb->varidx= MEM_callocN(sizeof(int)*mdb->size3, "MeshDeformDSvaridx");
@@ -1719,7 +1720,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 			break;
 		}
 
-		sprintf(message, "Mesh deform solve %d / %d       |||", a+1, mdb->totcagevert);
+		BLI_snprintf(message, sizeof(message), "Mesh deform solve %d / %d       |||", a+1, mdb->totcagevert);
 		progress_bar((float)(a+1)/(float)(mdb->totcagevert), message);
 	}
 

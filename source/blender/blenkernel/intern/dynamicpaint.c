@@ -361,8 +361,8 @@ void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
 		surface->depth_clamp = 1.0f;
 	}
 	else {
-		sprintf(surface->output_name, "dp_");
-		strcpy(surface->output_name2,surface->output_name);
+		strcpy(surface->output_name, "dp_");
+		strcpy(surface->output_name2, surface->output_name);
 		surface->flags &= ~MOD_DPAINT_ANTIALIAS;
 		surface->depth_clamp = 0.0f;
 	}
@@ -1323,7 +1323,7 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 		MTFace *tface;
 		MFace *mface = dm->getTessFaceArray(dm);
 		int numOfFaces = dm->getNumTessFaces(dm);
-		char uvname[40];
+		char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
 		if (!tex) return;
 
@@ -1871,7 +1871,8 @@ struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scen
 *   px,py : origin pixel x and y
 *	n_index : lookup direction index (use neighX,neighY to get final index)
 */
-static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh *dm, char *uvname, int w, int h, int px, int py, int n_index)
+static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh *dm,
+                                           const char *uvname, int w, int h, int px, int py, int n_index)
 {
 	/* Note: Current method only uses polygon edges to detect neighbouring pixels.
 	*  -> It doesn't always lead to the optimum pixel but is accurate enough
@@ -2073,7 +2074,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	int ty;
 	int w,h;
 	int numOfFaces;
-	char uvname[32];
+	char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 	int active_points = 0;
 	int error = 0;
 

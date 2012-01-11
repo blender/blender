@@ -76,7 +76,7 @@ struct Object;
  */
 typedef struct bNodeSocketTemplate {
 	int type, limit;
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
 	PropertySubType subtype;
@@ -95,7 +95,7 @@ typedef void (*NodeSocketButtonFunction)(const struct bContext *C, struct uiBloc
  */
 typedef struct bNodeSocketType {
 	int type;
-	char ui_name[32];
+	char ui_name[64];	/* MAX_NAME */
 	char ui_description[128];
 	int ui_icon;
 	char ui_color[4];
@@ -125,7 +125,7 @@ typedef struct bNodeType {
 	short needs_free;		/* set for allocated types that need to be freed */
 	
 	int type;
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
 	short nclass, flag, compatibility;

@@ -833,8 +833,8 @@ void clear_scene_in_allseqs(Main *bmain, Scene *scene)
 
 typedef struct SeqUniqueInfo {
 	Sequence *seq;
-	char name_src[32];
-	char name_dest[32];
+	char name_src[SEQ_NAME_MAXSTR];
+	char name_dest[SEQ_NAME_MAXSTR];
 	int count;
 	int match;
 } SeqUniqueInfo;
@@ -850,7 +850,8 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 	Sequence *seq;
 	for(seq=seqbasep->first; seq; seq= seq->next) {
 		if (sui->seq != seq && strcmp(sui->name_dest, seq->name+2)==0) {
-			sprintf(sui->name_dest, "%.17s.%03d",  sui->name_src, sui->count++); /*24 - 2 for prefix, -1 for \0 */
+			/* SEQ_NAME_MAXSTR - 2 for prefix, -1 for \0, -4 for the number */
+			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.59s.%03d",  sui->name_src, sui->count++);
 			sui->match= 1; /* be sure to re-scan */
 		}
 	}
@@ -3388,13 +3389,13 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */
 void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
-	char str[32];
+	char str[SEQ_NAME_MAXSTR+3];
 	FCurve *fcu;
 
 	if(scene->adt==NULL || ofs==0 || scene->adt->action==NULL)
 		return;
 
-	sprintf(str, "[\"%s\"]", seq->name+2);
+	BLI_snprintf(str, sizeof(str), "[\"%s\"]", seq->name+2);
 
 	for (fcu= scene->adt->action->curves.first; fcu; fcu= fcu->next) {
 		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
@@ -3411,7 +3412,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 
 void seq_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 {
-	char str_from[32];
+	char str_from[SEQ_NAME_MAXSTR+3];
 	FCurve *fcu;
 	FCurve *fcu_last;
 	FCurve *fcu_cpy;
@@ -3420,7 +3421,7 @@ void seq_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 	if(scene->adt==NULL || scene->adt->action==NULL)
 		return;
 
-	sprintf(str_from, "[\"%s\"]", name_src);
+	BLI_snprintf(str_from, sizeof(str_from), "[\"%s\"]", name_src);
 
 	fcu_last= scene->adt->action->curves.last;
 
@@ -3441,13 +3442,13 @@ void seq_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
 /* XXX - hackish function needed to remove all fcurves belonging to a sequencer strip */
 static void seq_free_animdata(Scene *scene, Sequence *seq)
 {
-	char str[32];
+	char str[SEQ_NAME_MAXSTR+3];
 	FCurve *fcu;
 
 	if(scene->adt==NULL || scene->adt->action==NULL)
 		return;
 
-	sprintf(str, "[\"%s\"]", seq->name+2);
+	BLI_snprintf(str, sizeof(str), "[\"%s\"]", seq->name+2);
 
 	fcu= scene->adt->action->curves.first; 
 

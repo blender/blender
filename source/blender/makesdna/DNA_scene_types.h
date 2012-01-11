@@ -171,7 +171,7 @@ typedef struct AudioData {
 typedef struct SceneRenderLayer {
 	struct SceneRenderLayer *next, *prev;
 	
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	
 	struct Material *mat_override;
 	struct Group *light_override;
@@ -804,8 +804,9 @@ typedef struct VPaint {
 
 typedef struct TransformOrientation {
 	struct TransformOrientation *next, *prev;
-	char name[36];
+	char name[64];	/* MAX_NAME */
 	float mat[3][3];
+	int pad;
 } TransformOrientation;
 
 /* *************************************************************** */

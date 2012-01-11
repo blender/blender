@@ -3234,7 +3234,7 @@ static void rna_def_group_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int 
 	func= RNA_def_function(srna, "new", (in_out==SOCK_IN ? "rna_NodeTree_input_new" : "rna_NodeTree_output_new"));
 	RNA_def_function_ui_description(func, "Add a socket to the group tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_string(func, "name", "Socket", 32, "Name", "Name of the socket");
+	RNA_def_string(func, "name", "Socket", MAX_NAME, "Name", "Name of the socket");
 	RNA_def_enum(func, "type", node_socket_type_items, SOCK_FLOAT, "Type", "Type of socket");
 	/* return value */
 	parm= RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");

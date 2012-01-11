@@ -49,7 +49,7 @@ struct bGPdata;
 struct uiBlock;
 struct Image;
 
-#define NODE_MAXSTR 32
+#define NODE_MAXSTR 64
 
 typedef struct bNodeStack {
 	float vec[4];
@@ -71,7 +71,7 @@ typedef struct bNodeStack {
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
 	
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	
 	void *storage;				/* custom storage */
 	
@@ -142,7 +142,7 @@ typedef struct bNodePreview {
 typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
-	char name[32];
+	char name[64];	/* MAX_NAME */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
@@ -160,7 +160,7 @@ typedef struct bNode {
 	
 	int update;				/* update flags */
 	
-	char label[32];			/* custom user-defined label */
+	char label[64];			/* custom user-defined label, MAX_NAME */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
 	
@@ -369,12 +369,12 @@ typedef struct NodeTwoFloats {
 } NodeTwoFloats;
 
 typedef struct NodeGeometry {
-	char uvname[32];
-	char colname[32];
+	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
+	char colname[64];
 } NodeGeometry;
 
 typedef struct NodeVertexCol {
-	char name[32];
+	char name[64];
 } NodeVertexCol;
 
 /* qdn: Defocus blur node */
@@ -497,7 +497,7 @@ typedef struct NodeShaderAttribute {
 
 /* TEX_output */
 typedef struct TexNodeOutput {
-	char name[32];
+	char name[64];
 } TexNodeOutput;
 
 /* comp channel matte */

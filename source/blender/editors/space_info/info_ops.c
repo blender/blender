@@ -143,7 +143,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	Main *bmain= CTX_data_main(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	char title[128];
+	char title[64];
 	int count = 0;
 	
 	count = countPackedFiles(bmain);
@@ -155,9 +155,9 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	}
 
 	if(count == 1)
-		sprintf(title, "Unpack 1 file");
+		strcpy(title, "Unpack 1 file");
 	else
-		sprintf(title, "Unpack %d files", count);
+		BLI_snprintf(title, sizeof(title), "Unpack %d files", count);
 	
 	pup= uiPupMenuBegin(C, title, ICON_NONE);
 	layout= uiPupMenuLayout(pup);

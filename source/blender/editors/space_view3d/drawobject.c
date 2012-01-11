@@ -2719,7 +2719,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 {
 	Mesh *me= ob->data;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
-	char val[32]; /* Stores the measurement display text here */
+	char numstr[32]; /* Stores the measurement display text here */
 	const char *conv_float; /* Use a float conversion matching the grid size */
 	unsigned char col[4]= {0, 0, 0, 255}; /* color of the text to draw */
 	float area; /* area of the face */
@@ -2760,11 +2760,11 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					mul_mat3_m4_v3(ob->obmat, v2);
 				}
 				if(unit->system)
-					bUnit_AsString(val, sizeof(val), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
+					bUnit_AsString(numstr, sizeof(numstr), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
 				else
-					sprintf(val, conv_float, len_v3v3(v1, v2));
+					sprintf(numstr, conv_float, len_v3v3(v1, v2));
 
-				view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 		}
 	}
@@ -2775,15 +2775,15 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		BMFace *f;
 		int n;
 
-#define DRAW_EM_MEASURE_STATS_FACEAREA()\
-		if (BM_TestHFlag(f, BM_SELECT)) {\
-			mul_v3_fl(vmid, 1.0/n);\
-			if(unit->system)\
-				bUnit_AsString(val, sizeof(val), area*unit->scale_length,\
-					3, unit->system, B_UNIT_LENGTH, do_split, FALSE);\
-			else\
-				sprintf(val, conv_float, area);\
-			view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII, col);\
+#define DRAW_EM_MEASURE_STATS_FACEAREA()                                             \
+		if (BM_TestHFlag(f, BM_SELECT)) {                                            \
+			mul_v3_fl(vmid, 1.0/n);                                                  \
+			if(unit->system)                                                         \
+				bUnit_AsString(numstr, sizeof(numstr), area*unit->scale_length,      \
+					3, unit->system, B_UNIT_LENGTH, do_split, FALSE);                \
+			else                                                                     \
+				BLI_snprintf(numstr, sizeof(numstr), conv_float, area);              \
+			view3d_cached_text_draw_add(vmid, numstr, 0, V3D_CACHE_TEXT_ASCII, col); \
 		}
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
@@ -2851,11 +2851,12 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 					mul_mat3_m4_v3(ob->obmat, v3);
 				}
 
-				if(BM_TestHFlag(efa, BM_SELECT) ||
-				        (do_moving && BM_TestHFlag(loop->v, BM_SELECT))){
-					sprintf(val,"%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
+				if ( (BM_TestHFlag(efa, BM_SELECT)) ||
+				     (do_moving && BM_TestHFlag(loop->v, BM_SELECT)))
+				{
+					BLI_snprintf(numstr, sizeof(numstr), "%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
 					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
-					view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII, col);
+					view3d_cached_text_draw_add(fvec, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 				}
 			}
 		}
@@ -2868,7 +2869,7 @@ static void draw_em_indices(BMEditMesh *em)
 	BMFace *f;
 	BMVert *v;
 	int i;
-	char val[32];
+	char numstr[32];
 	float pos[3];
 	unsigned char col[4];
 
@@ -2881,8 +2882,8 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(v, BM_SELECT)) {
-				sprintf(val, "%d", i);
-				view3d_cached_text_draw_add(v->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				sprintf(numstr, "%d", i);
+				view3d_cached_text_draw_add(v->co, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 			i++;
 		}
@@ -2893,9 +2894,9 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if (BM_TestHFlag(e, BM_SELECT)) {
-				sprintf(val, "%d", i);
+				sprintf(numstr, "%d", i);
 				mid_v3_v3v3(pos, e->v1->co, e->v2->co);
-				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 			i++;
 		}
@@ -2907,8 +2908,8 @@ static void draw_em_indices(BMEditMesh *em)
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			if (BM_TestHFlag(f, BM_SELECT)) {
 				BM_Compute_Face_CenterMean(bm, f, pos);
-				sprintf(val, "%d", i);
-				view3d_cached_text_draw_add(pos, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				sprintf(numstr, "%d", i);
+				view3d_cached_text_draw_add(pos, numstr, 0, V3D_CACHE_TEXT_ASCII, col);
 			}
 			i++;
 		}
@@ -4115,7 +4116,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0, need_v=0;
 	GLint polygonmode[2];
-	char val[32];
+	char numstr[32];
 	unsigned char tcol[4]= {0, 0, 0, 255};
 
 /* 1. */
@@ -4503,8 +4504,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0){
 					float vec_txt[3];
-					char *val_pos= val;
-					val[0]= '\0';
+					char *val_pos= numstr;
+					numstr[0]= '\0';
 
 					if(part->draw&PART_DRAW_NUM) {
 						if(a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
@@ -4523,7 +4524,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					/* in path drawing state.co is the end point */
 					/* use worldspace beause object matrix is already applied */
 					mul_v3_m4v3(vec_txt, ob->imat, state.co);
-					view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
+					view3d_cached_text_draw_add(vec_txt, numstr, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
 				}
 			}
 		}
@@ -4612,10 +4613,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
 				float vec_txt[3];
-				sprintf(val, "%i", a);
+				BLI_snprintf(numstr, sizeof(numstr), "%i", a);
 				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
-				view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
+				view3d_cached_text_draw_add(vec_txt, numstr, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);
 			}
 		}
 	}

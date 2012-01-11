@@ -523,28 +523,28 @@ static void pose_slide_reset (tPoseSlideOp *pso)
 /* draw percentage indicator in header */
 static void pose_slide_draw_status (tPoseSlideOp *pso)
 {
-	char statusStr[32];
-	char mode[32];
+	char status_str[32];
+	char mode_str[32];
 	
 	switch (pso->mode) {
 		case POSESLIDE_PUSH:
-			strcpy(mode, "Push Pose");
+			strcpy(mode_str, "Push Pose");
 			break;
 		case POSESLIDE_RELAX:
-			strcpy(mode, "Relax Pose");
+			strcpy(mode_str, "Relax Pose");
 			break;
 		case POSESLIDE_BREAKDOWN:
-			strcpy(mode, "Breakdown");
+			strcpy(mode_str, "Breakdown");
 			break;
 		
 		default:
 			// unknown
-			strcpy(mode, "Sliding-Tool");
+			strcpy(mode_str, "Sliding-Tool");
 			break;
 	}
 	
-	sprintf(statusStr, "%s: %d %%", mode, (int)(pso->percentage*100.0f));
-	ED_area_headerprint(pso->sa, statusStr);
+	BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(pso->percentage*100.0f));
+	ED_area_headerprint(pso->sa, status_str);
 }
 
 /* common code for invoke() methods */

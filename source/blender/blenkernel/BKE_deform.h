@@ -69,7 +69,7 @@ void defvert_normalize_lock(struct MDeformVert *dvert, const int def_nr_lock);
 
 /* utility function, note that 32 chars is the maximum string length since its only
  * used with defgroups currently */
-void flip_side_name(char name[32], const char from_name[32], int strip_number);
+void flip_side_name(char name[64], const char from_name[64], int strip_number);
 
 #endif
 

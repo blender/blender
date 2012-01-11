@@ -651,7 +651,7 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
 /*********************** tracks map *************************/
 
 typedef struct TracksMap {
-	char object_name[32];
+	char object_name[MAX_NAME];
 	int is_camera;
 
 	int num_tracks;
@@ -669,7 +669,7 @@ static TracksMap *tracks_map_new(const char *object_name, int is_camera, int num
 {
 	TracksMap *map= MEM_callocN(sizeof(TracksMap), "TrackingsMap");
 
-	strcpy(map->object_name, object_name);
+	BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
 	map->is_camera= is_camera;
 
 	map->num_tracks= num_tracks;
@@ -1529,7 +1529,7 @@ typedef struct MovieReconstructContext {
 
 	struct libmv_Reconstruction *reconstruction;
 #endif
-	char object_name[32];
+	char object_name[MAX_NAME];
 	int is_camera;
 
 	float focal_length;
@@ -1784,7 +1784,7 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 	int sfra= INT_MAX, efra= INT_MIN;
 	MovieTrackingTrack *track;
 
-	strcpy(context->object_name, object->name);
+	BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
 	context->is_camera = object->flag&TRACKING_OBJECT_CAMERA;
 
 	context->tracks_map= tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);

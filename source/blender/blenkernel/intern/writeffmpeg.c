@@ -1077,9 +1077,9 @@ IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index,
 	}
 
 	if (parent_index) {
-		sprintf(name, "%s:%s", parent->name, o->name);
+		BLI_snprintf(name, sizeof(name), "%s:%s", parent->name, o->name);
 	} else {
-		strcpy(name, o->name);
+		BLI_strncpy(name, o->name, sizeof(name));
 	}
 
 	fprintf(stderr, "ffmpeg_property_add: %s %d %d %s\n",

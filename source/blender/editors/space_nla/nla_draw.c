@@ -514,7 +514,7 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 {
 	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
 	const char col[4] = {220, 220, 220, 255}; /* light grey */
-	char str[32] = "";
+	char numstr[32] = "";
 	
 	
 	/* Always draw times above the strip, whereas sequencer drew below + above.
@@ -524,12 +524,12 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 	 *	  while also preserving some accuracy, since we do use floats
 	 */
 		/* start frame */
-	BLI_snprintf(str, sizeof(str), "%.1f", strip->start);
-	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, str, col);
+	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->start);
+	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, numstr, col);
 	
 		/* end frame */
-	BLI_snprintf(str, sizeof(str), "%.1f", strip->end);
-	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, str, col);
+	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->end);
+	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, numstr, col);
 }
 
 /* ---------------------- */
@@ -715,7 +715,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					}
 						
 					sel = SEL_NLT(nlt);
-					strcpy(name, nlt->name);
+					BLI_strncpy(name, nlt->name, sizeof(name));
 					
 					// draw manually still
 					doDraw= 1;
@@ -958,7 +958,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
 	}
 	{	/* second pass: UI widgets */
-		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
+		uiBlock *block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
 		y= (float)(-NLACHANNEL_HEIGHT(snla));

@@ -64,7 +64,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 	tcmd->defaxis = cmd->defaxis;
 	tcmd->object = cmd->object;
-	BLI_strncpy(tcmd->name, cmd->name, 32);
+	BLI_strncpy(tcmd->name, cmd->name, sizeof(tcmd->name));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
