@@ -1172,7 +1172,7 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype) {
     static bNodeType ntype;      // allocate a node type data structure
 
-    node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+    node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
     node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
     node_type_size(&ntype, 210, 210, 210);
     node_type_exec(&ntype, node_composit_exec_doubleedgemask);
