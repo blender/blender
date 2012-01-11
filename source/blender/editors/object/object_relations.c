@@ -1056,7 +1056,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	int values[20], a;
 	unsigned int lay= 0;
 
-	if(!RNA_property_is_set(op->ptr, "layers")) {
+	if(!RNA_struct_property_is_set(op->ptr, "layers")) {
 		/* note: layers are set in bases, library objects work for this */
 		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 			lay |= base->lay;

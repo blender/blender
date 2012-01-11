@@ -96,7 +96,7 @@ static int edit_sensor_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "sensor", &RNA_Sensor);
 	
-	if (RNA_property_is_set(op->ptr, "sensor") && RNA_property_is_set(op->ptr, "object") )
+	if (RNA_struct_property_is_set(op->ptr, "sensor") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
 	
 	if (ptr.data) {
@@ -152,7 +152,7 @@ static int edit_controller_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "controller", &RNA_Controller);
 	
-	if (RNA_property_is_set(op->ptr, "controller") && RNA_property_is_set(op->ptr, "object") )
+	if (RNA_struct_property_is_set(op->ptr, "controller") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
 	
 	if (ptr.data) {
@@ -191,7 +191,7 @@ static int edit_actuator_invoke_properties(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "actuator", &RNA_Actuator);
 	
-	if (RNA_property_is_set(op->ptr, "actuator") && RNA_property_is_set(op->ptr, "object") )
+	if (RNA_struct_property_is_set(op->ptr, "actuator") && RNA_struct_property_is_set(op->ptr, "object") )
 		return 1;
 	
 	if (ptr.data) {

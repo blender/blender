@@ -736,7 +736,7 @@ static int edit_modifier_invoke_properties(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
 	ModifierData *md;
 	
-	if (RNA_property_is_set(op->ptr, "modifier"))
+	if (RNA_struct_property_is_set(op->ptr, "modifier"))
 		return 1;
 	
 	if (ptr.data) {
@@ -1209,7 +1209,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return multires_external_save_exec(C, op);
 	
 	op->customdata= me;

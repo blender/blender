@@ -2458,7 +2458,7 @@ static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
 
 static void linked_limit_default(bContext *C, wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "limit")) {
+	if(!RNA_struct_property_is_set(op->ptr, "limit")) {
 		Object *obedit= CTX_data_edit_object(C);
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 		if(em->selectmode == SCE_SELECT_FACE)

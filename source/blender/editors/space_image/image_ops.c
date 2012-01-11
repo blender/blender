@@ -817,7 +817,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	if(ima)
 		path= ima->name;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return image_open_exec(C, op);
 	
 	image_open_init(C, op);
@@ -876,10 +876,10 @@ static int image_replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return image_replace_exec(C, op);
 
-	if(!RNA_property_is_set(op->ptr, "relative_path"))
+	if(!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", (strncmp(sima->image->name, "//", 2))==0);
 
 	image_filesel(C, op, sima->image->name);
@@ -1011,7 +1011,7 @@ static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op
 		simopts->im_format= *(ImageFormatData *)op->customdata;
 	}
 
-	if (RNA_property_is_set(op->ptr, "filepath")) {
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		RNA_string_get(op->ptr, "filepath", simopts->filepath);
 		BLI_path_abs(simopts->filepath, G.main->name);
 	}
@@ -1176,7 +1176,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	Scene *scene= CTX_data_scene(C);
 	SaveImageOptions simopts;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return image_save_as_exec(C, op);
 
 	if (save_image_options_init(&simopts, sima, scene, TRUE) == 0)
@@ -1184,7 +1184,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	save_image_options_to_op(&simopts, op);
 
 	/* enable save_copy by default for render results */
-	if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_property_is_set(op->ptr, "copy")) {
+	if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_struct_property_is_set(op->ptr, "copy")) {
 		RNA_boolean_set(op->ptr, "copy", TRUE);
 	}
 
@@ -1676,7 +1676,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 	int method= RNA_enum_get(op->ptr, "method");
 
 	/* find the suppplied image by name */
-	if (RNA_property_is_set(op->ptr, "id")) {
+	if (RNA_struct_property_is_set(op->ptr, "id")) {
 		char imaname[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "id", imaname);
 		ima = BLI_findstring(&CTX_data_main(C)->image, imaname, offsetof(ID, name) + 2);
@@ -1708,7 +1708,7 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 {
 	Image *ima= CTX_data_edit_image(C);
 
-	if(RNA_property_is_set(op->ptr, "id"))
+	if(RNA_struct_property_is_set(op->ptr, "id"))
 		return image_unpack_exec(C, op);
 		
 	if(!ima || !ima->packedfile)

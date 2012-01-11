@@ -758,7 +758,7 @@ static void edit_node_properties(wmOperatorType *ot)
 
 static int edit_node_invoke_properties(bContext *C, wmOperator *op)
 {
-	if (!RNA_property_is_set(op->ptr, "node")) {
+	if (!RNA_struct_property_is_set(op->ptr, "node")) {
 		bNode *node= CTX_data_pointer_get_type(C, "node", &RNA_Node).data;
 		if (!node)
 			return 0;
@@ -766,10 +766,10 @@ static int edit_node_invoke_properties(bContext *C, wmOperator *op)
 			RNA_string_set(op->ptr, "node", node->name);
 	}
 	
-	if (!RNA_property_is_set(op->ptr, "in_out"))
+	if (!RNA_struct_property_is_set(op->ptr, "in_out"))
 		RNA_enum_set(op->ptr, "in_out", SOCK_IN);
 	
-	if (!RNA_property_is_set(op->ptr, "socket"))
+	if (!RNA_struct_property_is_set(op->ptr, "socket"))
 		RNA_int_set(op->ptr, "socket", 0);
 	
 	return 1;
@@ -896,13 +896,13 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	
 	ED_preview_kill_jobs(C);
 	
-	if (RNA_property_is_set(op->ptr, "name"))
+	if (RNA_struct_property_is_set(op->ptr, "name"))
 		RNA_string_get(op->ptr, "name", name);
 	
-	if (RNA_property_is_set(op->ptr, "type"))
+	if (RNA_struct_property_is_set(op->ptr, "type"))
 		type = RNA_enum_get(op->ptr, "type");
 	
-	if (RNA_property_is_set(op->ptr, "in_out"))
+	if (RNA_struct_property_is_set(op->ptr, "in_out"))
 		in_out = RNA_enum_get(op->ptr, "in_out");
 	else
 		return OPERATOR_CANCELLED;
@@ -948,12 +948,12 @@ static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
 	
 	ED_preview_kill_jobs(C);
 	
-	if (RNA_property_is_set(op->ptr, "index"))
+	if (RNA_struct_property_is_set(op->ptr, "index"))
 		index = RNA_int_get(op->ptr, "index");
 	else
 		return OPERATOR_CANCELLED;
 	
-	if (RNA_property_is_set(op->ptr, "in_out"))
+	if (RNA_struct_property_is_set(op->ptr, "in_out"))
 		in_out = RNA_enum_get(op->ptr, "in_out");
 	else
 		return OPERATOR_CANCELLED;
@@ -999,12 +999,12 @@ static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
 	
 	ED_preview_kill_jobs(C);
 	
-	if (RNA_property_is_set(op->ptr, "index"))
+	if (RNA_struct_property_is_set(op->ptr, "index"))
 		index = RNA_int_get(op->ptr, "index");
 	else
 		return OPERATOR_CANCELLED;
 	
-	if (RNA_property_is_set(op->ptr, "in_out"))
+	if (RNA_struct_property_is_set(op->ptr, "in_out"))
 		in_out = RNA_enum_get(op->ptr, "in_out");
 	else
 		return OPERATOR_CANCELLED;
@@ -1069,12 +1069,12 @@ static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
 	
 	ED_preview_kill_jobs(C);
 	
-	if (RNA_property_is_set(op->ptr, "index"))
+	if (RNA_struct_property_is_set(op->ptr, "index"))
 		index = RNA_int_get(op->ptr, "index");
 	else
 		return OPERATOR_CANCELLED;
 	
-	if (RNA_property_is_set(op->ptr, "in_out"))
+	if (RNA_struct_property_is_set(op->ptr, "in_out"))
 		in_out = RNA_enum_get(op->ptr, "in_out");
 	else
 		return OPERATOR_CANCELLED;
@@ -3435,7 +3435,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	ntemp.type = -1;
 
 	/* check input variables */
-	if (RNA_property_is_set(op->ptr, "filepath"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 	{
 		char path[FILE_MAX];
 		RNA_string_get(op->ptr, "filepath", path);
@@ -3449,7 +3449,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 	}
-	else if(RNA_property_is_set(op->ptr, "name"))
+	else if(RNA_struct_property_is_set(op->ptr, "name"))
 	{
 		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
@@ -3495,7 +3495,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 							 &snode->mx, &snode->my);
 	
-	if (RNA_property_is_set(op->ptr, "filepath") || RNA_property_is_set(op->ptr, "name"))
+	if (RNA_struct_property_is_set(op->ptr, "filepath") || RNA_struct_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);
 	else
 		return WM_operator_filesel(C, op, event);
@@ -3534,12 +3534,12 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	/* retrieve state */
 	snode= CTX_wm_space_node(C);
 	
-	if (RNA_property_is_set(op->ptr, "type"))
+	if (RNA_struct_property_is_set(op->ptr, "type"))
 		treetype = RNA_enum_get(op->ptr, "type");
 	else
 		treetype = snode->treetype;
 	
-	if (RNA_property_is_set(op->ptr, "name"))
+	if (RNA_struct_property_is_set(op->ptr, "name"))
 		RNA_string_get(op->ptr, "name", treename);
 	
 	ntree = ntreeAddTree(treename, treetype, 0);

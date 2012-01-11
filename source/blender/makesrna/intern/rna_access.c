@@ -4412,7 +4412,7 @@ int RNA_collection_length(PointerRNA *ptr, const char *name)
 	}
 }
 
-int RNA_property_is_set(PointerRNA *ptr, const char *name)
+int RNA_struct_property_is_set(PointerRNA *ptr, const char *name)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 

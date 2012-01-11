@@ -499,7 +499,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(RNA_property_is_set(op->ptr, "margin")) {
+	if(RNA_struct_property_is_set(op->ptr, "margin")) {
 		scene->toolsettings->uvcalc_margin= RNA_float_get(op->ptr, "margin");
 	}
 	else {

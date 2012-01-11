@@ -509,7 +509,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 /* note: also check ed_undo_step() in top if you change notifiers */
 static int undo_history_exec(bContext *C, wmOperator *op)
 {
-	if(RNA_property_is_set(op->ptr, "item")) {
+	if(RNA_struct_property_is_set(op->ptr, "item")) {
 		int undosys= get_undo_system(C);
 		int item= RNA_int_get(op->ptr, "item");
 		

@@ -429,7 +429,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(RNA_property_is_set(op->ptr, "value")) {
+	if(RNA_struct_property_is_set(op->ptr, "value")) {
 		return transform_exec(C, op);
 	}
 	else {

@@ -276,7 +276,7 @@ static int text_open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Text *text= CTX_data_edit_text(C);
 	char *path= (text && text->name)? text->name: G.main->name;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_open_exec(C, op);
 	
 	text_open_init(C, op);
@@ -534,7 +534,7 @@ static int text_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	Text *text= CTX_data_edit_text(C);
 	char *str;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return text_save_as_exec(C, op);
 
 	if(text->name)
@@ -2209,7 +2209,7 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceText *st= CTX_wm_space_text(C);
 	TextScroll *tsc;
 	
-	if(RNA_property_is_set(op->ptr, "lines"))
+	if(RNA_struct_property_is_set(op->ptr, "lines"))
 		return text_scroll_exec(C, op);
 	
 	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
@@ -2289,7 +2289,7 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const int *mval= event->mval;
 	int zone= -1;
 
-	if(RNA_property_is_set(op->ptr, "lines"))
+	if(RNA_struct_property_is_set(op->ptr, "lines"))
 		return text_scroll_exec(C, op);
 	
 	/* verify we are in the right zone */
@@ -2784,7 +2784,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int ret;
 
-	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	// if(!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
 		/* if alt/ctrl/super are pressed pass through */
 		if(event->ctrl || event->oskey) {

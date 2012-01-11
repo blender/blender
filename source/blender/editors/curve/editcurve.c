@@ -4636,7 +4636,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
-	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
+	if(rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
 		Curve *cu;
 		ViewContext vc;
 		float location[3];

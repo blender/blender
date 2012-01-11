@@ -398,7 +398,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 
 static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return paste_file_exec(C, op);
 
 	WM_event_add_fileselect(C, op); 
@@ -1190,7 +1190,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	wchar_t *inserted_text;
 	int a, len;
 
-	if(!RNA_property_is_set(op->ptr, "text"))
+	if(!RNA_struct_property_is_set(op->ptr, "text"))
 		return OPERATOR_CANCELLED;
 	
 	inserted_utf8= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
@@ -1223,10 +1223,10 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	int event= evt->type, val= evt->val;
 	wchar_t inserted_text[2]= {0};
 
-	if(RNA_property_is_set(op->ptr, "text"))
+	if(RNA_struct_property_is_set(op->ptr, "text"))
 		return insert_text_exec(C, op);
 
-	if(RNA_property_is_set(op->ptr, "accent")) {
+	if(RNA_struct_property_is_set(op->ptr, "accent")) {
 		if(cu->len!=0 && cu->pos>0)
 			accentcode= 1;
 		return OPERATOR_FINISHED;
@@ -1673,7 +1673,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return font_open_exec(C, op);
 
 	RNA_string_set(op->ptr, "filepath", path);

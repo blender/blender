@@ -160,7 +160,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneRenderLayer **srl)
 {
 	/* single layer re-render */
-	if(RNA_property_is_set(op->ptr, "scene")) {
+	if(RNA_struct_property_is_set(op->ptr, "scene")) {
 		Scene *scn;
 		char scene_name[MAX_ID_NAME-2];
 
@@ -176,7 +176,7 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 		}
 	}
 
-	if(RNA_property_is_set(op->ptr, "layer")) {
+	if(RNA_struct_property_is_set(op->ptr, "layer")) {
 		SceneRenderLayer *rl;
 		char rl_name[RE_MAXNAME];
 
@@ -537,7 +537,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
-	if(RNA_property_is_set(op->ptr, "layer"))
+	if(RNA_struct_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
 
 	/* job custom data */

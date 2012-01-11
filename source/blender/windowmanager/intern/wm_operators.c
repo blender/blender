@@ -665,7 +665,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		printf("%s: %s \"%s\" is not an enum property\n",
 		       __func__, op->type->idname, RNA_property_identifier(prop));
 	}
-	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+	else if (RNA_struct_property_is_set(op->ptr, RNA_property_identifier(prop))) {
 		const int retval= op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
 		return retval;
@@ -802,7 +802,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	if (RNA_property_is_set(op->ptr, "filepath")) {
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op); /* call exec direct */
 	} 
 	else {
@@ -1550,13 +1550,13 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 
 static void open_set_load_ui(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "load_ui"))
+	if(!RNA_struct_property_is_set(op->ptr, "load_ui"))
 		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
 }
 
 static void open_set_use_scripts(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
+	if(!RNA_struct_property_is_set(op->ptr, "use_scripts")) {
 		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
 		 * the flag has been disabled from the command line, then opening
 		 * from the menu wont enable this setting. */
@@ -1654,7 +1654,7 @@ int wm_link_append_poll(bContext *C)
 
 static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	if(RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op);
 	} 
 	else {
@@ -1918,7 +1918,7 @@ static void untitled(char *name)
 
 static void save_set_compress(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "compress")) {
+	if(!RNA_struct_property_is_set(op->ptr, "compress")) {
 		if(G.save_over) /* keep flag for existing file */
 			RNA_boolean_set(op->ptr, "compress", G.fileflags & G_FILE_COMPRESS);
 		else /* use userdef for new file */
@@ -1957,14 +1957,14 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	save_set_compress(op);
 	
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		RNA_string_get(op->ptr, "filepath", path);
 	else {
 		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
 
-	if(RNA_property_is_set(op->ptr, "copy"))
+	if(RNA_struct_property_is_set(op->ptr, "copy"))
 		copy = RNA_boolean_get(op->ptr, "copy");
 	
 	fileflags= G.fileflags;
@@ -2092,7 +2092,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
 		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
@@ -2110,7 +2110,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 	int selected;
 	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
@@ -2144,7 +2144,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}

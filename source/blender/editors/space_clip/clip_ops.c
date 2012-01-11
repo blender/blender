@@ -184,10 +184,10 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	if(clip)
 		path= clip->name;
 
-	if(!RNA_property_is_set(op->ptr, "relative_path"))
+	if(!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 
 	open_init(C, op);

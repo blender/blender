@@ -1406,18 +1406,18 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (t->flag & T_MODAL) {
 
 		/* save settings if not set in operator */
-		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_struct_property_is_set(op->ptr, "proportional")) {
 			if (t->obedit)
 				ts->proportional = proportional;
 			else
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
-		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_struct_property_is_set(op->ptr, "proportional_size")) {
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && !RNA_property_is_set(op->ptr, "proportional_edit_falloff")) {
+		if (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && !RNA_struct_property_is_set(op->ptr, "proportional_edit_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
@@ -1429,7 +1429,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		if(t->spacetype == SPACE_VIEW3D) {
-			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation")) {
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_struct_property_is_set(op->ptr, "constraint_orientation")) {
 				View3D *v3d = t->view;
 	
 				v3d->twmode = t->current_orientation;
@@ -1702,7 +1702,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 
 	/* overwrite initial values if operator supplied a non-null vector */
-	if (RNA_property_is_set(op->ptr, "value"))
+	if (RNA_struct_property_is_set(op->ptr, "value"))
 	{
 		float values[4]= {0}; /* incase value isn't length 4, avoid uninitialized memory  */
 		PropertyRNA *prop= RNA_struct_find_property(op->ptr, "value");
@@ -1719,7 +1719,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Transformation axis from operator */
-	if (RNA_struct_find_property(op->ptr, "axis") && RNA_property_is_set(op->ptr, "axis"))
+	if (RNA_struct_find_property(op->ptr, "axis") && RNA_struct_property_is_set(op->ptr, "axis"))
 	{
 		RNA_float_get_array(op->ptr, "axis", t->axis);
 		normalize_v3(t->axis);
@@ -1727,7 +1727,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Constraint init from operator */
-	if (RNA_struct_find_property(op->ptr, "constraint_axis") && RNA_property_is_set(op->ptr, "constraint_axis"))
+	if (RNA_struct_find_property(op->ptr, "constraint_axis") && RNA_struct_property_is_set(op->ptr, "constraint_axis"))
 	{
 		int constraint_axis[3];
 

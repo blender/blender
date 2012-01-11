@@ -3070,7 +3070,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 	}
 
 	/* double property lookup, could speed up */
-	/* return PyBool_FromLong(RNA_property_is_set(&self->ptr, name)); */
+	/* return PyBool_FromLong(RNA_struct_property_is_set(&self->ptr, name)); */
 	if (RNA_property_flag(prop) & PROP_IDPROPERTY) {
 		IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
 		if (group) {

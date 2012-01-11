@@ -368,7 +368,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* check input variables */
-	if(RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
