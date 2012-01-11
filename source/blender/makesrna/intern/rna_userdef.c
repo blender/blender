@@ -1970,6 +1970,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "theme_area", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "active_theme_area");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	RNA_def_property_enum_items(prop, active_theme_area);
 	RNA_def_property_ui_text(prop, "Active Theme Area", "");
 
