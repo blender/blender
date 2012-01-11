@@ -76,19 +76,19 @@ void clip_draw_curfra_label(SpaceClip *sc, float x, float y)
 	uiStyle *style= UI_GetStyle();
 	int fontid= style->widget.uifont_id;
 	char str[32];
-	float fontsize, fontwidth;
+	float font_dims[2] = {0.0f, 0.0f};
 
 	/* frame number */
 	BLF_size(fontid, 11.0f, U.dpi);
 	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
-	fontsize= BLF_height(fontid, str);
-	fontwidth= BLF_width(fontid, str);
 
-	glRecti(x, y, x+fontwidth+6, y+fontsize+4);
+	BLF_width_and_height(fontid, str, &font_dims[0], &font_dims[1]);
+
+	glRecti(x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
 
 	UI_ThemeColor(TH_TEXT);
 	BLF_position(fontid, x+2.0f, y+2.0f, 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	BLF_draw(fontid, str, sizeof(str));
 }
 
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
@@ -805,13 +805,13 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
 	BLF_position(fontid, pos[0], pos[1], 0.0f);
-	BLF_draw(fontid, str, strlen(str));
+	BLF_draw(fontid, str, sizeof(str));
 	pos[1]-= fontsize;
 
 	if(track->flag&TRACK_HAS_BUNDLE) {
 		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
 		BLF_position(fontid, pos[0], pos[1], 0.0f);
-		BLF_draw(fontid, str, strlen(str));
+		BLF_draw(fontid, str, sizeof(str));
 		pos[1]-= fontsize;
 	}
 

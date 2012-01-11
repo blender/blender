@@ -305,7 +305,7 @@ void GPC_RenderTools::RenderText3D(	int fontid,
 
 	BLF_size(fontid, size, dpi);
 	BLF_position(fontid, 0, 0, 0);
-	BLF_draw(fontid, (char *)text, strlen(text));
+	BLF_draw(fontid, text, 65535);
 
 	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
 	glEnable(GL_DEPTH_TEST);
@@ -350,11 +350,11 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	if (mode == RAS_IRenderTools::RAS_TEXT_PADDED)
 	{
 		glColor3ub(0, 0, 0);
-		BLF_draw_default(xco+1, height-yco-1, 0.f, text, strlen(text));
+		BLF_draw_default(xco+1, height-yco-1, 0.f, text, 65536);
 	}
 
 	glColor3ub(255, 255, 255);
-	BLF_draw_default(xco, height-yco, 0.f, text, strlen(text));
+	BLF_draw_default(xco, height-yco, 0.f, text, 65536);
 
 	// Restore view settings
 	glMatrixMode(GL_PROJECTION);

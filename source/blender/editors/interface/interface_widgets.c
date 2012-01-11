@@ -3264,7 +3264,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
 	rcti trect = *rect;
-	
+	float font_dims[2] = {0.0f, 0.0f};
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	
 	wt->state(wt, state);
@@ -3276,10 +3276,12 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		glColor3ubv((unsigned char*)wt->wcol.text);
 	else
 		glColor3ubv((unsigned char*)wt->wcol.text_sel);
-	
+
+	BLF_width_and_height(fstyle->uifont_id, name, &font_dims[0], &font_dims[1]);
+
 	trect.xmin += 0;
-	trect.xmax = trect.xmin + BLF_width(fstyle->uifont_id, name) + 10;
+	trect.xmax = trect.xmin + font_dims[0] + 10;
 	trect.ymin += 10;
-	trect.ymax = trect.ymin + BLF_height(fstyle->uifont_id, name);
+	trect.ymax = trect.ymin + font_dims[1];
 	uiStyleFontDraw(fstyle, &trect, name);
 }
