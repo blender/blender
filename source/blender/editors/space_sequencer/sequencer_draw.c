@@ -392,11 +392,11 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	if(G.moving || (seq->flag & whichsel)) {
 		const char col[4]= {255, 255, 255, 255};
 		if (direction == SEQ_LEFTHANDLE) {
-			sprintf(numstr, "%d", seq->startdisp);
+			BLI_snprintf(numstr, sizeof(numstr),"%d", seq->startdisp);
 			x1= rx1;
 			y1 -= 0.45f;
 		} else {
-			sprintf(numstr, "%d", seq->enddisp - 1);
+			BLI_snprintf(numstr, sizeof(numstr), "%d", seq->enddisp - 1);
 			x1= x2 - handsize*0.75f;
 			y1= y2 + 0.05f;
 		}

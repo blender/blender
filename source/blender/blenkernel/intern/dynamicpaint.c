@@ -1877,7 +1877,8 @@ struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scen
 *   px,py : origin pixel x and y
 *	n_index : lookup direction index (use neighX,neighY to get final index)
 */
-static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh *dm, char *uvname, int w, int h, int px, int py, int n_index)
+static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh *dm,
+                                           const char *uvname, int w, int h, int px, int py, int n_index)
 {
 	/* Note: Current method only uses polygon edges to detect neighbouring pixels.
 	*  -> It doesn't always lead to the optimum pixel but is accurate enough

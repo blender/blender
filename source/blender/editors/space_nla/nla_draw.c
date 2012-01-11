@@ -514,7 +514,7 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 {
 	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
 	const char col[4] = {220, 220, 220, 255}; /* light grey */
-	char str[32] = "";
+	char numstr[32] = "";
 	
 	
 	/* Always draw times above the strip, whereas sequencer drew below + above.
@@ -524,12 +524,12 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 	 *	  while also preserving some accuracy, since we do use floats
 	 */
 		/* start frame */
-	BLI_snprintf(str, sizeof(str), "%.1f", strip->start);
-	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, str, col);
+	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->start);
+	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, numstr, col);
 	
 		/* end frame */
-	BLI_snprintf(str, sizeof(str), "%.1f", strip->end);
-	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, str, col);
+	BLI_snprintf(numstr, sizeof(numstr), "%.1f", strip->end);
+	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, numstr, col);
 }
 
 /* ---------------------- */

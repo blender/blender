@@ -1342,7 +1342,7 @@ static int outliner_filter_has_name(TreeElement *te, const char *name, int flags
 	}
 	else {
 		char fn_name[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
-		sprintf(fn_name, "*%s*", name);
+		BLI_snprintf(fn_name, sizeof(fn_name), "*%s*", name);
 		found= fnmatch(fn_name, te->name, fn_flag)==0;
 	}
 	return found;

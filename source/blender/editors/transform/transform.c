@@ -2559,9 +2559,9 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		sprintf(&tvec[0], "%.4f", vec[0]);
-		sprintf(&tvec[20], "%.4f", vec[1]);
-		sprintf(&tvec[40], "%.4f", vec[2]);
+		BLI_snprintf(&tvec[0],  20, "%.4f", vec[0]);
+		BLI_snprintf(&tvec[20], 20, "%.4f", vec[1]);
+		BLI_snprintf(&tvec[40], 20, "%.4f", vec[2]);
 	}
 	
 	if (t->con.mode & CON_APPLY) {

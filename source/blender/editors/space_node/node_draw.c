@@ -201,7 +201,7 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 	
 	for (node= ntree->nodes.first; node; node= node->next) {
 		/* ui block */
-		sprintf(uiblockstr, "node buttons %p", (void *)node);
+		BLI_snprintf(uiblockstr, sizeof(uiblockstr), "node buttons %p", (void *)node);
 		node->block= uiBeginBlock(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
 		uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 
@@ -673,7 +673,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 	
 	//if(node->flag & NODE_MUTED)
-	//	sprintf(showname, "[%s]", showname);
+	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - dont print into self!
 	
 	uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
 			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
@@ -835,7 +835,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		BLI_strncpy(showname, nodeLabel(node), sizeof(showname));
 		
 		//if(node->flag & NODE_MUTED)
-		//	sprintf(showname, "[%s]", showname);
+		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); // XXX - dont print into self!
 
 		uiDefBut(node->block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
 				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
