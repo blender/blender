@@ -665,7 +665,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		printf("%s: %s \"%s\" is not an enum property\n",
 		       __func__, op->type->idname, RNA_property_identifier(prop));
 	}
-	else if (RNA_struct_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+	else if (RNA_property_is_set(op->ptr, prop)) {
 		const int retval= op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
 		return retval;

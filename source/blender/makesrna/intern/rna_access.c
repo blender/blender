@@ -4412,15 +4412,22 @@ int RNA_collection_length(PointerRNA *ptr, const char *name)
 	}
 }
 
-int RNA_struct_property_is_set(PointerRNA *ptr, const char *name)
+int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 {
-	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	if(prop->flag & PROP_IDPROPERTY) {
+		return (rna_idproperty_find(ptr, prop->identifier) != NULL);
+	}
+	else {
+		return 1;
+	}
+}
+
+int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, identifier);
 
 	if(prop) {
-		if(prop->flag & PROP_IDPROPERTY)
-			return (rna_idproperty_find(ptr, name) != NULL);
-		else
-			return 1;
+		return RNA_property_is_set(ptr, prop);
 	}
 	else {
 		/* python raises an error */
