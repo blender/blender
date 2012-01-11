@@ -1507,7 +1507,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 static void scroll_printstr(Scene *scene, float x, float y, float val, int power, short unit, char dir)
 {
 	int len;
-	char str[32];
+	char timecode_str[32];
 	
 	/* adjust the scale unit to work ok */
 	if (dir == 'v') {
@@ -1522,10 +1522,10 @@ static void scroll_printstr(Scene *scene, float x, float y, float val, int power
 	}
 	
 	/* get string to print */
-	ANIM_timecode_string_from_frame(str, scene, power, (unit == V2D_UNIT_SECONDS), val);
+	ANIM_timecode_string_from_frame(timecode_str, scene, power, (unit == V2D_UNIT_SECONDS), val);
 	
 	/* get length of string, and adjust printing location to fit it into the horizontal scrollbar */
-	len= strlen(str);
+	len= strlen(timecode_str);
 	if (dir == 'h') {
 		/* seconds/timecode display has slightly longer strings... */
 		if (unit == V2D_UNIT_SECONDS)
@@ -1536,12 +1536,12 @@ static void scroll_printstr(Scene *scene, float x, float y, float val, int power
 	
 	/* Add degree sympbol to end of string for vertical scrollbar? */
 	if ((dir == 'v') && (unit == V2D_UNIT_DEGREES)) {
-		str[len]= 186;
-		str[len+1]= 0;
+		timecode_str[len]= 186;
+		timecode_str[len+1]= 0;
 	}
 	
 	/* draw it */
-	BLF_draw_default_ascii(x, y, 0.0f, str, sizeof(str)-1);
+	BLF_draw_default_ascii(x, y, 0.0f, timecode_str, sizeof(timecode_str)-1);
 }
 
 /* Draw scrollbars in the given 2d-region */

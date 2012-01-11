@@ -1649,7 +1649,7 @@ void draw_outliner(const bContext *C)
 
 	/* draw outliner stuff (background, hierachy lines and names) */
 	outliner_back(ar);
-	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, ar, soops);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {

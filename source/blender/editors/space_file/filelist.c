@@ -970,7 +970,7 @@ int filelist_islibrary(struct FileList* filelist, char* dir, char* group)
 	return BLO_is_a_library(filelist->dir, dir, group);
 }
 
-static int groupname_to_code(char *group)
+static int groupname_to_code(const char *group)
 {
 	char buf[32];
 	char *lslash;

@@ -958,7 +958,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
 	}
 	{	/* second pass: UI widgets */
-		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
+		uiBlock *block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 		size_t channel_index = 0;
 		
 		y= (float)(-NLACHANNEL_HEIGHT(snla));

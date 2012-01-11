@@ -167,7 +167,7 @@ void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 	int arraysize, float *value);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);
 
-int GPU_shader_get_attribute(GPUShader *shader, char *name);
+int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 
 /* Vertex attributes for shaders */
 

@@ -2999,7 +2999,7 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	uiBlock *block;
 	int yco=0;
 	
-	block= uiBeginBlock(C, ar, "filemenu", UI_EMBOSSP);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_sensor_menu, NULL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3048,7 +3048,7 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	uiBlock *block;
 	int yco=0;
 	
-	block= uiBeginBlock(C, ar, "filemenu", UI_EMBOSSP);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_controller_menu, NULL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3097,7 +3097,7 @@ static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	uiBlock *block;
 	int xco=0;
 	
-	block= uiBeginBlock(C, ar, "filemenu", UI_EMBOSSP);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_actuator_menu, NULL);
 	
 	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3143,7 +3143,7 @@ static uiBlock *controller_state_mask_menu(bContext *C, ARegion *ar, void *arg_c
 
 	short yco = 12, xco = 0, stbit, offset;
 
-	block= uiBeginBlock(C, ar, "Controller state mask", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-5, -5, 200, 34, NULL, 0, 0, 0, 0, "");
@@ -3191,7 +3191,7 @@ static uiBlock *object_state_mask_menu(bContext *C, ARegion *ar, void *arg_obj)
 	uiBlock *block;
 	short xco = 0;
 
-	block= uiBeginBlock(C, ar, "obstatemenu", UI_EMBOSSP);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_object_state_menu, arg_obj);
 	
 	uiDefBut(block, BUTM, 1, "Set all bits",		0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4488,7 +4488,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiLayout *layout, *row, *box;
 	uiBlock *block;
 	uiBut *but;
-	char name[32];
+	char uiblockstr[32];
 	short a, count;
 	int xco, yco, width;
 	
@@ -4497,8 +4497,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	sprintf(name, "buttonswin %p", (void *)ar);
-	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
+	sprintf(uiblockstr, "buttonswin %p", (void *)ar);
+	block= uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
 	/* loop over all objects and set visible/linked flags for the logic bricks */
@@ -4802,7 +4802,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	int a, iact, stbit, offset;
 	int xco, yco, width, ycoo;
 	short count;
-	char name[32];
+	char numstr[32];
 	/* pin is a bool used for actuator and sensor drawing with states
 	 * pin so changing states dosnt hide the logic brick */
 	char pin;
@@ -4815,8 +4815,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 	if(ob==NULL) return;
 //	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	sprintf(name, "buttonswin %p", (void *)ar);
-	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
+	sprintf(numstr, "buttonswin %p", (void *)ar);
+	block= uiBeginBlock(C, ar, numstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
@@ -4932,8 +4932,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, UI_UNIT_Y, &cont->flag, 0, 0, 0, 0, "Controller settings");
 						uiDefIconButBitS(block, TOG, CONT_PRIO, B_REDR, ICON_BOOKMARKS, (short)(xco+width-66), yco, 22, UI_UNIT_Y, &cont->flag, 0, 0, 0, 0, "Mark controller for execution before all non-marked controllers (good for startup scripts)");
 
-						sprintf(name, "%d", first_bit(cont->state_mask)+1);
-						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
+						sprintf(numstr, "%d", first_bit(cont->state_mask)+1);
+						uiDefBlockBut(block, controller_state_mask_menu, cont, numstr, (short)(xco+width-44), yco, 22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
 				
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;

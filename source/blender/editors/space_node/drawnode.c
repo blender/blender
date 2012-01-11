@@ -132,7 +132,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	uiBlock *block;
 	uiLayout *layout;
 	
-	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
+	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, UI_GetStyle()), 0);
@@ -1203,10 +1203,10 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
 		Scene *scene= CTX_data_scene(C);
 		ImageUser *iuser= node->storage;
-		char tstr[32];
+		char numstr[32];
 		const int framenr= BKE_image_user_get_frame(iuser, CFRA, 0);
-		BLI_snprintf(tstr, sizeof(tstr), "Frame: %d", framenr);
-		uiItemL(layout, tstr, ICON_NONE);
+		BLI_snprintf(numstr, sizeof(numstr), "Frame: %d", framenr);
+		uiItemL(layout, numstr, ICON_NONE);
 	}
 
 	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {

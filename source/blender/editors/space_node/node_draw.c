@@ -195,18 +195,18 @@ static void node_scaling_widget(int color_id, float aspect, float xmin, float ym
 static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 {
 	bNode *node;
-	char str[32];
+	char uiblockstr[32];
 	
 	/* add node uiBlocks in drawing order - prevents events going to overlapping nodes */
 	
-	for(node= ntree->nodes.first; node; node=node->next) {
-			/* ui block */
-			sprintf(str, "node buttons %p", (void *)node);
-			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
-			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
-			
-			/* this cancels events for background nodes */
-			uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
+	for (node= ntree->nodes.first; node; node= node->next) {
+		/* ui block */
+		sprintf(uiblockstr, "node buttons %p", (void *)node);
+		node->block= uiBeginBlock(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
+		uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
+
+		/* this cancels events for background nodes */
+		uiBlockSetFlag(node->block, UI_BLOCK_CLIP_EVENTS);
 	}
 }
 

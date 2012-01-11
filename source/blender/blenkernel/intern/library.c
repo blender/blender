@@ -991,7 +991,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 		ID *id;
 		
 		for (i=0, id= lb->first; id; id= id->next, i++) {
-			char buf[32];
+			char numstr[32];
 			
 			if (nr && id==link) *nr= i+1;
 
@@ -1002,12 +1002,12 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 					if ( ((Image *)id)->source==IMA_SRC_VIEWER )
 						continue;
 			
-			get_flags_for_id(id, buf);
+			get_flags_for_id(id, numstr);
 				
-			BLI_dynstr_append(pupds, buf);
+			BLI_dynstr_append(pupds, numstr);
 			BLI_dynstr_append(pupds, id->name+2);
-			BLI_snprintf(buf, sizeof(buf), "%%x%d", i+1);
-			BLI_dynstr_append(pupds, buf);
+			BLI_snprintf(numstr, sizeof(numstr), "%%x%d", i+1);
+			BLI_dynstr_append(pupds, numstr);
 			
 			/* icon */
 			switch(GS(id->name))
@@ -1017,8 +1017,8 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			case ID_IM: /* fall through */
 			case ID_WO: /* fall through */
 			case ID_LA: /* fall through */
-				BLI_snprintf(buf, sizeof(buf), "%%i%d", BKE_icon_getid(id) );
-				BLI_dynstr_append(pupds, buf);
+				BLI_snprintf(numstr, sizeof(numstr), "%%i%d", BKE_icon_getid(id) );
+				BLI_dynstr_append(pupds, numstr);
 				break;
 			default:
 				break;

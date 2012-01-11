@@ -2890,14 +2890,14 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */
-		char tstr[32]= "";
+		char numstr[32]= "";
 
 		UI_ThemeColor(TH_TEXT_HI);
 		if(v3d->grid != 1.0f) {
-			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
+			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
-		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, numstr[0]?numstr : grid_unit, sizeof(numstr)); /* XXX, use real length */
 	}
 }
 
