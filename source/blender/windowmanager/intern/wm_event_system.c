@@ -747,19 +747,20 @@ static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
 
 		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
 			PropertyRNA *prop= itemptr.data;
-
 			if((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
-				const char *identifier= RNA_property_identifier(prop);
-				IDProperty *idp_src= IDP_GetPropertyFromGroup(lastop->properties, identifier);
-				if(idp_src) {
-					IDProperty *idp_dst = IDP_CopyProperty(idp_src);
+				if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
+					const char *identifier= RNA_property_identifier(prop);
+					IDProperty *idp_src= IDP_GetPropertyFromGroup(lastop->properties, identifier);
+					if(idp_src) {
+						IDProperty *idp_dst = IDP_CopyProperty(idp_src);
 
-					/* note - in the future this may need to be done recursively,
-					 * but for now RNA doesn't access nested operators */
-					idp_dst->flag |= IDP_FLAG_GHOST;
+						/* note - in the future this may need to be done recursively,
+						 * but for now RNA doesn't access nested operators */
+						idp_dst->flag |= IDP_FLAG_GHOST;
 
-					IDP_ReplaceInGroup(op->properties, idp_dst);
-					change= TRUE;
+						IDP_ReplaceInGroup(op->properties, idp_dst);
+						change= TRUE;
+					}
 				}
 			}
 		}
