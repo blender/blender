@@ -162,6 +162,9 @@ void Session::run_gpu()
 	reset_time = time_dt();
 	paused_time = 0.0;
 
+	if(!params.background)
+		progress.set_start_time(start_time - paused_time);
+
 	while(!progress.get_cancel()) {
 		/* advance to next tile */
 		bool no_tiles = !tile_manager.next();
@@ -185,6 +188,9 @@ void Session::run_gpu()
 					double pause_start = time_dt();
 					pause_cond.wait(pause_lock);
 					paused_time += time_dt() - pause_start;
+
+					if(!params.background)
+						progress.set_start_time(start_time - paused_time);
 
 					update_status_time(pause, no_tiles);
 					progress.set_update();
@@ -332,6 +338,9 @@ void Session::run_cpu()
 					pause_cond.wait(pause_lock);
 					paused_time += time_dt() - pause_start;
 
+					if(!params.background)
+						progress.set_start_time(start_time - paused_time);
+
 					update_status_time(pause, no_tiles);
 					progress.set_update();
 
@@ -457,6 +466,9 @@ void Session::reset_(BufferParams& buffer_params, int samples)
 	preview_time = 0.0;
 	paused_time = 0.0;
 	sample = 0;
+
+	if(!params.background)
+		progress.set_start_time(start_time - paused_time);
 }
 
 void Session::reset(BufferParams& buffer_params, int samples)
@@ -556,15 +568,13 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	/* update timing */
 	if(preview_time == 0.0 && resolution == 1)
 		preview_time = time_dt();
-
-	double total_time = time_dt() - start_time - paused_time;
+	
 	double sample_time = (sample == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
 
 	/* negative can happen when we pause a bit before rendering, can discard that */
-	if(total_time < 0.0) total_time = 0.0;
 	if(preview_time < 0.0) preview_time = 0.0;
 
-	progress.set_sample(sample + 1, total_time, sample_time);
+	progress.set_sample(sample + 1, sample_time);
 }
 
 void Session::path_trace(Tile& tile)

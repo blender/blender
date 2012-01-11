@@ -96,8 +96,6 @@ class USERPREF_HT_header(Header):
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
-            layout.operator("wm.theme_import")
-            layout.operator("wm.theme_export")
 
 
 class USERPREF_PT_tabs(Panel):
@@ -388,11 +386,7 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
-        col.prop(system, "author", text="Author")
-        col.prop(system, "use_scripts_auto_execute")
-        col.prop(system, "use_tabs_as_spaces")
 
-        col.separator()
         col.separator()
         col.separator()
 
@@ -408,14 +402,20 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
         col.separator()
-        col.separator()
 
         col.label(text="Screencast:")
         col.prop(system, "screencast_fps")
         col.prop(system, "screencast_wait_time")
+
         col.separator()
         col.separator()
-        col.separator()
+
+        if hasattr(system, 'compute_device'):
+            col.label(text="Compute Device:")
+            col.row().prop(system, "compute_device_type", expand=True)
+            sub = col.row()
+            sub.active = system.compute_device_type != 'CPU'
+            sub.prop(system, "compute_device", text="")
 
         # 2. Column
         column = split.column()
@@ -489,6 +489,15 @@ class USERPREF_PT_system(Panel):
             row.prop(system, "use_translate_tooltips", text="Tooltips")
 
 
+class USERPREF_MT_interface_theme_presets(Menu):
+    bl_label = "Presets"
+    preset_subdir = "interface_theme"
+    preset_operator = "script.execute_preset"
+    preset_type = 'XML'
+    preset_xml_map = (("user_preferences.themes[0]", "Theme"), )
+    draw = Menu.draw_preset
+
+
 class USERPREF_PT_theme(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Themes"
@@ -536,7 +545,18 @@ class USERPREF_PT_theme(Panel):
         theme = context.user_preferences.themes[0]
 
         split_themes = layout.split(percentage=0.2)
-        split_themes.prop(theme, "theme_area", expand=True)
+
+        sub = split_themes.column()
+
+        sub.label(text="Presets:")
+        subrow = sub.row(align=True)
+
+        subrow.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMIN')
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        sub.separator()
+
+        sub.prop(theme, "theme_area", expand=True)
 
         split = layout.split(percentage=0.4)
 
@@ -727,6 +747,7 @@ class USERPREF_PT_file(Panel):
 
         userpref = context.user_preferences
         paths = userpref.filepaths
+        system = userpref.system
 
         split = layout.split(percentage=0.7)
 
@@ -762,6 +783,14 @@ class USERPREF_PT_file(Panel):
         subsplit.prop(paths, "animation_player_preset", text="")
         subsplit.prop(paths, "animation_player", text="")
 
+        col.separator()
+        col.separator()
+
+        colsplit = col.split(percentage=0.95)
+        sub = colsplit.column()
+        sub.label(text="Author:")
+        sub.prop(system, "author", text="")
+
         col = split.column()
         col.label(text="Save & Load:")
         col.prop(paths, "use_relative_paths")
@@ -783,6 +812,13 @@ class USERPREF_PT_file(Panel):
         sub = col.column()
         sub.active = paths.use_auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
+
+        col.separator()
+
+        col.label(text="Scripts:")
+        col.prop(system, "use_scripts_auto_execute")
+        col.prop(system, "use_tabs_as_spaces")
+
 
 from .space_userpref_keymap import InputKeyMapPanel
 

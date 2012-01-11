@@ -53,7 +53,8 @@ void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int fla
 
 struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, struct ListBase *tracksbase,
 			float x, float y, int framenr, int width, int height);
-void BKE_tracking_insert_marker(struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
+struct MovieTrackingMarker *BKE_tracking_insert_marker(struct MovieTrackingTrack *track,
+			struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
@@ -95,6 +96,12 @@ struct MovieTrackingObject *BKE_tracking_get_camera_object(struct MovieTracking 
 struct ListBase *BKE_tracking_object_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
 struct MovieTrackingReconstruction *BKE_tracking_object_reconstruction(struct MovieTracking *tracking,
 			struct MovieTrackingObject *object);
+
+/* clipboard */
+void BKE_tracking_free_clipboard(void);
+void BKE_tracking_clipboard_copy_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+int BKE_tracking_clipboard_has_tracks(void);
+void BKE_tracking_clipboard_paste_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
 
 /* 2D tracking */
 struct MovieTrackingContext *BKE_tracking_context_new(struct MovieClip *clip, struct MovieClipUser *user,

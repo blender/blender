@@ -341,9 +341,11 @@ public:
 		cuda_pop_context();
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
-		/* todo: offset is ignored */
+		size_t offset = elem*y*w;
+		size_t size = elem*w*h;
+
 		cuda_push_context();
 		cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
 			(CUdeviceptr)((uchar*)mem.device_pointer + offset), size))
@@ -863,6 +865,8 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 	if(cuDeviceGetCount(&count) != CUDA_SUCCESS)
 		return;
 	
+	vector<DeviceInfo> display_devices;
+	
 	for(int num = 0; num < count; num++) {
 		char name[256];
 		int attr;
@@ -878,11 +882,16 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.num = num;
 
 		/* if device has a kernel timeout, assume it is used for display */
-		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1)
+		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {
 			info.display_device = true;
-
-		devices.push_back(info);
+			display_devices.push_back(info);
+		}
+		else
+			devices.push_back(info);
 	}
+
+	if(!display_devices.empty())
+		devices.insert(devices.end(), display_devices.begin(), display_devices.end());
 }
 
 CCL_NAMESPACE_END

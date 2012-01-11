@@ -1472,6 +1472,18 @@ static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C)
 	uiItemR(col, ptr, "factor", 0, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_double_edge_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col= uiLayoutColumn(layout, 0);
+
+	uiItemL(col, "Inner Edge:", ICON_NONE);
+	uiItemR(col, ptr, "inner_mode", 0, "", ICON_NONE);
+	uiItemL(col, "Buffer Edge:", ICON_NONE);
+	uiItemR(col, ptr, "edge_mode", 0, "", ICON_NONE);
+}
+
 static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *sub, *col;
@@ -1925,6 +1937,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_ID_MASK:
 			ntype->uifunc= node_composit_buts_id_mask;
+			break;
+		case CMP_NODE_DOUBLEEDGEMASK:
+			ntype->uifunc= node_composit_buts_double_edge_mask;
 			break;
 		case CMP_NODE_MATH:
 			ntype->uifunc= node_buts_math;

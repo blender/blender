@@ -1780,7 +1780,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
 	mdisps= CustomData_get_layer(&me->ldata, CD_MDISPS);
 
-	if(!mdisps || !mmd) return;
+	if(!mdisps || !mmd || !mmd->totlvl) return;
 
 	/* we need derived mesh created from highest resolution */
 	high_mmd= *mmd;

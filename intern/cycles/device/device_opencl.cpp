@@ -489,8 +489,11 @@ public:
 		opencl_assert(ciErr);
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
+		size_t offset = elem*y*w;
+		size_t size = elem*w*h;
+
 		ciErr = clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL);
 		opencl_assert(ciErr);
 	}
@@ -745,6 +748,8 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		info.description = string(name);
 		info.id = string_printf("OPENCL_%d", num);
 		info.num = num;
+		/* we don't know if it's used for display, but assume it is */
+		info.display_device = true;
 
 		devices.push_back(info);
 	}

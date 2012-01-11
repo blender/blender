@@ -143,6 +143,9 @@ set(INC_SYS
 
 )
 
+if(WITH_CYCLES)
+	add_definitions(-DWITH_CYCLES)
+endif()
 
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
@@ -247,6 +250,7 @@ blender_include_dirs(
 	../../editors/include
 	../../render/extern/include
 	../../../../intern/audaspace/intern
+	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
 )

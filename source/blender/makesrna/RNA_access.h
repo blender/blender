@@ -136,6 +136,7 @@ extern StructRNA RNA_CompositorNodeGamma;
 extern StructRNA RNA_CompositorNodeGlare;
 extern StructRNA RNA_CompositorNodeHueSat;
 extern StructRNA RNA_CompositorNodeIDMask;
+extern StructRNA RNA_CompositorNodeDoubleEdgeMask;
 extern StructRNA RNA_CompositorNodeImage;
 extern StructRNA RNA_CompositorNodeInvert;
 extern StructRNA RNA_CompositorNodeLensdist;

@@ -1027,15 +1027,29 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	MPoly *mp = dm->getPolyArray(dm);
 	int i, j, totface=dm->getNumTessFaces(dm), totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
+	unsigned char *wtcol_f_step = wtcol_f;
 
 	wtcol_f = MEM_mallocN(sizeof (unsigned char) * totface*4*4, "weightmap_f");
 
 	/*first add colors to the tesselation faces*/
-	for (i=0; i<totface; i++, mf++) {
+	for (i=0; i<totface; i++, mf++, wtcol_f_step += (4 * 4)) {
 		/*origindex being NULL means we're operating on original mesh data*/
+#if 0
 		unsigned int fidx= mf->v4 ? 3:2;
+
+#else	/* better zero out triangles 4th component. else valgrind complains when the buffer's copied */
+		unsigned int fidx;
+		if (mf->v4) {
+			fidx = 3;
+		}
+		else {
+			fidx = 2;
+			*(int *)(&wtcol_f_step[3 * 4]) = 0;
+		}
+#endif
+
 		do {
-			copy_v4_v4_char((char *)&wtcol_f[(4 * i + fidx) * 4],
+			copy_v4_v4_char((char *)&wtcol_f_step[fidx * 4],
 			                (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
 		} while (fidx--);
 	}

@@ -377,6 +377,10 @@ static void clip_operatortypes(void)
 	/* object tracking */
 	WM_operatortype_append(CLIP_OT_tracking_object_new);
 	WM_operatortype_append(CLIP_OT_tracking_object_remove);
+
+	/* clipboard */
+	WM_operatortype_append(CLIP_OT_copy_tracks);
+	WM_operatortype_append(CLIP_OT_paste_tracks);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)

@@ -57,11 +57,12 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
+
+#include "CCL_api.h"
 
 #include "BPY_extern.h"
 
@@ -176,8 +177,14 @@ void BPY_context_set(bContext *C)
 
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
-/* defined in cycles/blender */
-extern PyObject *CYCLES_initPython(void);
+
+#ifdef WITH_CYCLES
+/* defined in cycles module */
+static PyObject *CCL_initPython(void)
+{
+	return (PyObject*)CCL_python_module_init();
+}
+#endif
 
 static struct _inittab bpy_internal_modules[] = {
 	{(char *)"mathutils", PyInit_mathutils},
@@ -189,7 +196,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"aud", AUD_initPython},
 #endif
 #ifdef WITH_CYCLES
-	{(char *)"_cycles", CYCLES_initPython},
+	{(char *)"_cycles", CCL_initPython},
 #endif
 	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}

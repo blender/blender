@@ -110,7 +110,7 @@ void Device::pixels_alloc(device_memory& mem)
 
 void Device::pixels_copy_from(device_memory& mem, int y, int w, int h)
 {
-	mem_copy_from(mem, sizeof(uint8_t)*4*y*w, sizeof(uint8_t)*4*w*h);
+	mem_copy_from(mem, y, w, h, sizeof(uint8_t)*4);
 }
 
 void Device::pixels_free(device_memory& mem)

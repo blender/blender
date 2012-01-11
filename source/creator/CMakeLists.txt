@@ -165,7 +165,10 @@ if(WITH_PYTHON_MODULE)
 	add_definitions(-DWITH_PYTHON_MODULE)
 
 	# creates ./bin/bpy.so which can be imported as a python module.
-	add_library(blender SHARED ${SRC})
+	#
+	# note that 'SHARED' works on Linux and Windows,
+	# but not OSX which _must_ be 'MODULE'
+	add_library(blender MODULE ${SRC})
 	set_target_properties(
 		blender
 		PROPERTIES

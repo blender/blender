@@ -349,6 +349,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "noise_texture")) {
 			snode = new NoiseTextureNode();
 		}
+		else if(string_iequals(node.name(), "checker_texture")) {
+			snode = new CheckerTextureNode();
+		}
 		else if(string_iequals(node.name(), "gradient_texture")) {
 			GradientTextureNode *blend = new GradientTextureNode();
 			xml_read_enum(&blend->type, GradientTextureNode::type_enum, node, "type");

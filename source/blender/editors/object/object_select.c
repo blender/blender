@@ -939,63 +939,6 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 }
 
 
-static int object_select_name_exec(bContext *C, wmOperator *op)
-{
-	char *name= RNA_string_get_alloc(op->ptr, "name", NULL, 0);
-	short extend= RNA_boolean_get(op->ptr, "extend");
-	short changed = 0;
-
-	if(!extend) {
-		CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-			if(base->flag & SELECT) {
-				ED_base_object_select(base, BA_DESELECT);
-				changed= 1;
-			}
-		}
-		CTX_DATA_END;
-	}
-
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
-		if(strcmp(name, base->object->id.name+2)==0) {
-			ED_base_object_activate(C, base);
-			ED_base_object_select(base, BA_SELECT);
-			changed= 1;
-		}
-	}
-	CTX_DATA_END;
-
-	MEM_freeN(name);
-
-	/* undo? */
-	if(changed) {
-		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void OBJECT_OT_select_name(wmOperatorType *ot)
-{
-
-	/* identifiers */
-	ot->name= "Select Name";
-	ot->description = "Select an object with this name";
-	ot->idname= "OBJECT_OT_select_name";
-
-	/* api callbacks */
-	ot->exec= object_select_name_exec;
-	ot->poll= objects_selectable_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_string(ot->srna, "name", "", 0, "Name", "Object name to select");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-}
-
 /**************************** Select Random ****************************/
 
 static int object_select_random_exec(bContext *C, wmOperator *op)

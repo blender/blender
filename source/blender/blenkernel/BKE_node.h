@@ -522,6 +522,7 @@ struct ShadeResult;
 #define SH_NODE_VOLUME_TRANSPARENT		161
 #define SH_NODE_VOLUME_ISOTROPIC		162
 #define SH_NODE_GAMMA				163
+#define SH_NODE_TEX_CHECKER			164
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -641,6 +642,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_STABILIZE2D	263
 #define CMP_NODE_TRANSFORM	264
 #define CMP_NODE_MOVIEDISTORTION	265
+#define CMP_NODE_DOUBLEEDGEMASK    266
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

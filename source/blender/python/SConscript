@@ -6,7 +6,7 @@ Import ('env')
 
 incs = '. ../editors/include ../makesdna ../makesrna ../blenfont ../blenlib ../blenkernel ../nodes'
 incs += ' ../imbuf ../blenloader ../gpu ../render/extern/include ../windowmanager'
-incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include'
+incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include #intern/cycles/blender'
 incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
 
 is_debug = (env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc') and env['BF_DEBUG'])

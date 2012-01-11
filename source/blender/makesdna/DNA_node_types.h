@@ -448,6 +448,10 @@ typedef struct NodeTexImage {
 	int color_space, pad;
 } NodeTexImage;
 
+typedef struct NodeTexChecker {
+	NodeTexBase base;
+} NodeTexChecker;
+
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
 	int color_space, pad;

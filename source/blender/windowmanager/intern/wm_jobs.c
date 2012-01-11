@@ -491,6 +491,13 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 				WM_jobs_start(wm, steve);
 			}
 		}
+		else if(steve->threads.first && !steve->ready) {
+			if(steve->flag & WM_JOB_PROGRESS) {
+				/* accumulate global progress for running jobs */
+				jobs_progress++;
+				total_progress += steve->progress;
+			}
+		}
 	}
 	
 	/* on file load 'winactive' can be NULL, possibly it should not happen but for now do a NULL check - campbell */

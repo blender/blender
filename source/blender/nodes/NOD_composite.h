@@ -80,6 +80,7 @@ void register_node_type_cmp_bilateralblur(struct bNodeTreeType *ttype);
 void register_node_type_cmp_vecblur(struct bNodeTreeType *ttype);
 void register_node_type_cmp_dilateerode(struct bNodeTreeType *ttype);
 void register_node_type_cmp_defocus(struct bNodeTreeType *ttype);
+void register_node_type_cmp_doubleedgemask(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_valtorgb(struct bNodeTreeType *ttype);
 void register_node_type_cmp_rgbtobw(struct bNodeTreeType *ttype);

@@ -143,6 +143,11 @@ public:
 	int depth;
 };
 
+class CheckerTextureNode : public TextureNode {
+public:
+	SHADER_NODE_CLASS(CheckerTextureNode)
+};
+
 class MappingNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MappingNode)
