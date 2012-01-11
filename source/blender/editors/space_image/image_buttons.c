@@ -682,7 +682,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiButSetFunc(but, image_freecache_cb, ima, NULL);
 					
 					if(iuser->frames)
-						sprintf(str, "(%d) Frames:", iuser->framenr);
+						BLI_snprintf(str, sizeof(str), "(%d) Frames:", iuser->framenr);
 					else strcpy(str, "Frames:");
 					uiBlockBeginAlign(block);
 					uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Number of images of a movie to use");
@@ -763,7 +763,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 				col= uiLayoutColumn(split, 0);
 				 
-				sprintf(str, "(%d) Frames", iuser->framenr);
+				BLI_snprintf(str, sizeof(str), "(%d) Frames", iuser->framenr);
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(col);

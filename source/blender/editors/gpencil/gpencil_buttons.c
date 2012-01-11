@@ -143,9 +143,9 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, con
 		
 		/* name */
 		if (gpl->flag & GP_LAYER_HIDE)
-			sprintf(name, "%s (Hidden)", gpl->info);
+			BLI_snprintf(name, sizeof(name), "%s (Hidden)", gpl->info);
 		else
-			sprintf(name, "%s (Locked)", gpl->info);
+			BLI_snprintf(name, sizeof(name), "%s (Locked)", gpl->info);
 		uiItemL(sub, name, ICON_NONE);
 			
 		/* delete button (only if hidden but not locked!) */

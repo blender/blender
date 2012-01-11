@@ -203,7 +203,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 	char buf[256];
 	DIR *dir;
 
-	strcpy(buf,relname);
+	BLI_strncpy(buf, relname, sizeof(buf));
 	rellen=strlen(relname);
 
 	if (rellen){
@@ -220,7 +220,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 			if (dlink){
-				strcpy(buf+rellen,fname->d_name);
+				BLI_strncpy(buf + rellen ,fname->d_name, sizeof(buf) - rellen);
 				dlink->name = BLI_strdup(buf);
 				BLI_addhead(dirbase,dlink);
 				newnum++;
@@ -343,8 +343,8 @@ static void bli_adddirstrings(void)
 		tm= localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
 		if(tm==NULL) tm= localtime(&zero);
-		strftime(file->time, 8, "%H:%M", tm);
-		strftime(file->date, 16, "%d-%b-%y", tm);
+		strftime(file->time, sizeof(file->time), "%H:%M", tm);
+		strftime(file->date, sizeof(file->date), "%d-%b-%y", tm);
 
 		/*
 		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
@@ -354,38 +354,43 @@ static void bli_adddirstrings(void)
 		st_size= file->s.st_size;
 
 		if (st_size > 1024*1024*1024) {
-			sprintf(file->size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
+			BLI_snprintf(file->size, sizeof(file->size), "%.2f GB", ((double)st_size)/(1024*1024*1024));
 		}
 		else if (st_size > 1024*1024) {
-			sprintf(file->size, "%.1f MB", ((double)st_size)/(1024*1024));
+			BLI_snprintf(file->size, sizeof(file->size), "%.1f MB", ((double)st_size)/(1024*1024));
 		}
 		else if (st_size > 1024) {
-			sprintf(file->size, "%d KB", (int)(st_size/1024));
+			BLI_snprintf(file->size, sizeof(file->size), "%d KB", (int)(st_size/1024));
 		}
 		else {
-			sprintf(file->size, "%d B", (int)st_size);
+			BLI_snprintf(file->size, sizeof(file->size), "%d B", (int)st_size);
 		}
 
-		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
+		strftime(datum, 32, "%d-%b-%y %H:%M", tm); /* XXX, is this used? - campbell */
 
 		if (st_size < 1000) {
-			sprintf(size, "%10d", (int) st_size);
-		} else if (st_size < 1000 * 1000) {
-			sprintf(size, "%6d %03d", (int) (st_size / 1000), (int) (st_size % 1000));
-		} else if (st_size < 100 * 1000 * 1000) {
-			sprintf(size, "%2d %03d %03d", (int) (st_size / (1000 * 1000)), (int) ((st_size / 1000) % 1000), (int) ( st_size % 1000));
-		} else {
-			sprintf(size, "> %4.1f M", (double) (st_size / (1024.0 * 1024.0)));
-			sprintf(size, "%10d", (int) st_size);
+			BLI_snprintf(size, sizeof(size), "%10d",
+			             (int) st_size);
+		}
+		else if (st_size < 1000 * 1000) {
+			BLI_snprintf(size, sizeof(size), "%6d %03d",
+			             (int) (st_size / 1000), (int) (st_size % 1000));
+		}
+		else if (st_size < 100 * 1000 * 1000) {
+			BLI_snprintf(size, sizeof(size), "%2d %03d %03d",
+			             (int) (st_size / (1000 * 1000)), (int) ((st_size / 1000) % 1000), (int) ( st_size % 1000));
+		}
+		else {
+			/* XXX, whats going on here?. 2x calls - campbell */
+			BLI_snprintf(size, sizeof(size), "> %4.1f M", (double) (st_size / (1024.0 * 1024.0)));
+			BLI_snprintf(size, sizeof(size), "%10d", (int) st_size);
 		}
 
-		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, file->owner, file->date, file->time, size,
-			file->relname);
+		BLI_snprintf(buf, sizeof(buf), "%s %s %s %7s %s %s %10s %s",
+		             file->mode1, file->mode2, file->mode3, file->owner,
+		             file->date, file->time, size, file->relname);
 
-		file->string=MEM_mallocN(strlen(buf)+1, "filestring");
-		if (file->string){
-			strcpy(file->string,buf);
-		}
+		file->string = BLI_strdup(buf);
 	}
 }
 

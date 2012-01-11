@@ -1042,7 +1042,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	fsset->surfaceSmoothing = domainSettings->surfaceSmoothing; 
 	fsset->surfaceSubdivs = domainSettings->surfaceSubdivs; 
 	fsset->farFieldSize = domainSettings->farFieldSize; 
-	BLI_strncpy(fsset->outputPath, targetFile, 240);
+	BLI_strncpy(fsset->outputPath, targetFile, sizeof(fsset->outputPath));
 
 	// domain channels
 	fsset->channelSizeFrameTime = 

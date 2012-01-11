@@ -1453,7 +1453,7 @@ static void RIG_printCtrl(RigControl *ctrl, char *indent)
 	printf("%sBone: %s\n", indent, ctrl->bone->name);
 	printf("%sLink: %s\n", indent, ctrl->link ? ctrl->link->name : "!NONE!");
 	
-	sprintf(text, "%soffset", indent);
+	BLI_snprintf(text, sizeof(text), "%soffset", indent);
 	print_v3(text, ctrl->offset);
 	
 	printf("%sFlag: %i\n", indent, ctrl->flag);

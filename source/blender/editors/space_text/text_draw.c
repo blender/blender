@@ -75,7 +75,7 @@ static void text_font_end(SpaceText *UNUSED(st))
 static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 {
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, 65535); /* XXX, use real length */
+	BLF_draw(mono, str, BLF_DRAW_STR_DUMMY_MAX);
 
 	return BLF_width(mono, str);
 }

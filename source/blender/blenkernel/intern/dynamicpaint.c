@@ -361,8 +361,8 @@ void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
 		surface->depth_clamp = 1.0f;
 	}
 	else {
-		sprintf(surface->output_name, "dp_");
-		strcpy(surface->output_name2,surface->output_name);
+		strcpy(surface->output_name, "dp_");
+		strcpy(surface->output_name2, surface->output_name);
 		surface->flags &= ~MOD_DPAINT_ANTIALIAS;
 		surface->depth_clamp = 0.0f;
 	}

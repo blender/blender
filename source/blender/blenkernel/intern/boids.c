@@ -1503,7 +1503,7 @@ BoidState *boid_new_state(BoidSettings *boids)
 
 	state->id = boids->last_state_id++;
 	if(state->id)
-		sprintf(state->name, "State %i", state->id);
+		BLI_snprintf(state->name, sizeof(state->name), "State %i", state->id);
 	else
 		strcpy(state->name, "State");
 

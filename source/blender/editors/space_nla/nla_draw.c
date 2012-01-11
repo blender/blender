@@ -715,7 +715,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					}
 						
 					sel = SEL_NLT(nlt);
-					strcpy(name, nlt->name);
+					BLI_strncpy(name, nlt->name, sizeof(name));
 					
 					// draw manually still
 					doDraw= 1;

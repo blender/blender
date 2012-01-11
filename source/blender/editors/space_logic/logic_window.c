@@ -3580,7 +3580,7 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 	bController *cont= (bController *)ptr->data;
 
 	char state[3];
-	sprintf(state, "%d", RNA_int_get(ptr, "states"));
+	BLI_snprintf(state, sizeof(state), "%d", RNA_int_get(ptr, "states"));
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
@@ -4497,7 +4497,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 	
-	sprintf(uiblockstr, "buttonswin %p", (void *)ar);
+	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
@@ -4815,7 +4815,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	if(ob==NULL) return;
 //	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	sprintf(numstr, "buttonswin %p", (void *)ar);
+	BLI_snprintf(numstr, sizeof(numstr), "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, numstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 

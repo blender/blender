@@ -4539,7 +4539,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
 				float vec_txt[3];
-				sprintf(numstr, "%i", a);
+				BLI_snprintf(numstr, sizeof(numstr), "%i", a);
 				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
 				view3d_cached_text_draw_add(vec_txt, numstr, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII, tcol);

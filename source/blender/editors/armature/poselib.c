@@ -977,7 +977,9 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 	/* do header print - if interactively previewing */
 	if (pld->state == PL_PREVIEW_RUNNING) {
 		if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
-			sprintf(pld->headerstr, "PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again");
+			BLI_strncpy(pld->headerstr,
+			            "PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again",
+			            sizeof(pld->headerstr));
 			ED_area_headerprint(pld->sa, pld->headerstr);
 		}
 		else if (pld->searchstr[0]) {
@@ -988,10 +990,10 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 			/* get search-string */
 			index= pld->search_cursor;
 			
-			if (index >= 0 && index <= 64) {
+			if (index >= 0 && index <= sizeof(tempstr) - 1) {
 				memcpy(&tempstr[0], &pld->searchstr[0], index);
 				tempstr[index]= '|';
-				memcpy(&tempstr[index+1], &pld->searchstr[index], 64-index);
+				memcpy(&tempstr[index+1], &pld->searchstr[index], (sizeof(tempstr) - 1) - index);
 			}
 			else {
 				BLI_strncpy(tempstr, pld->searchstr, sizeof(tempstr));
@@ -1000,11 +1002,18 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 			/* get marker name */
 			BLI_strncpy(markern, pld->marker ? pld->marker->name : "No Matches", sizeof(markern));
 
-			sprintf(pld->headerstr, "PoseLib Previewing Pose: Filter - [%s] | Current Pose - \"%s\"  | Use ScrollWheel or PageUp/Down to change", tempstr, markern);
+			BLI_snprintf(pld->headerstr, sizeof(pld->headerstr),
+			             "PoseLib Previewing Pose: Filter - [%s] | "
+			             "Current Pose - \"%s\"  | "
+			             "Use ScrollWheel or PageUp/Down to change",
+			             tempstr, markern);
 			ED_area_headerprint(pld->sa, pld->headerstr);
 		}
 		else {
-			sprintf(pld->headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", pld->marker->name);
+			BLI_snprintf(pld->headerstr, sizeof(pld->headerstr),
+			             "PoseLib Previewing Pose: \"%s\"  | "
+			             "Use ScrollWheel or PageUp/Down to change",
+			             pld->marker->name);
 			ED_area_headerprint(pld->sa, pld->headerstr);
 		}
 	}

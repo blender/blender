@@ -1199,10 +1199,10 @@ void filelist_from_main(struct FileList *filelist)
 					if(idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
 						files->flags |= IMAGEFILE;
 					}
-					if(id->lib && fake) sprintf(files->extra, "LF %d", id->us);
-					else if(id->lib) sprintf(files->extra, "L    %d", id->us);
-					else if(fake) sprintf(files->extra, "F    %d", id->us);
-					else sprintf(files->extra, "      %d", id->us);
+					if(id->lib && fake) BLI_snprintf(files->extra, sizeof(files->extra), "LF %d", id->us);
+					else if(id->lib) BLI_snprintf(files->extra, sizeof(files->extra), "L    %d", id->us);
+					else if(fake) BLI_snprintf(files->extra, sizeof(files->extra), "F    %d", id->us);
+					else BLI_snprintf(files->extra, sizeof(files->extra), "      %d", id->us);
 					
 					if(id->lib) {
 						if(totlib==0) firstlib= files;

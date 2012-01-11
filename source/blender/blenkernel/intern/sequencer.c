@@ -850,7 +850,8 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 	Sequence *seq;
 	for(seq=seqbasep->first; seq; seq= seq->next) {
 		if (sui->seq != seq && strcmp(sui->name_dest, seq->name+2)==0) {
-			sprintf(sui->name_dest, "%.17s.%03d",  sui->name_src, sui->count++); /*24 - 2 for prefix, -1 for \0 */
+			/* SEQ_NAME_MAXSTR - 2 for prefix, -1 for \0, -4 for the number */
+			BLI_snprintf(sui->name_dest, sizeof(sui->name_dest), "%.59s.%03d",  sui->name_src, sui->count++);
 			sui->match= 1; /* be sure to re-scan */
 		}
 	}

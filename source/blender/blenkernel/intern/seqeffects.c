@@ -306,7 +306,7 @@ static struct ImBuf * do_plugin_effect(
 		/* XXX: it's crappy to limit copying buffer by it's lemgth,
 		 *      but assuming plugin stuff is using correct buffer size
 		 *      it should be fine */
-		if(cp) strncpy(cp, seq->name+2, sizeof(seq->name));
+		if(cp) strncpy(cp, seq->name+2, sizeof(seq->name)-2);
 
 		if (seq->plugin->current_private_data) {
 			*seq->plugin->current_private_data 

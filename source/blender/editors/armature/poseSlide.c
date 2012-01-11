@@ -543,7 +543,7 @@ static void pose_slide_draw_status (tPoseSlideOp *pso)
 			break;
 	}
 	
-	sprintf(status_str, "%s: %d %%", mode_str, (int)(pso->percentage*100.0f));
+	BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(pso->percentage*100.0f));
 	ED_area_headerprint(pso->sa, status_str);
 }
 
