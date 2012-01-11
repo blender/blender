@@ -255,8 +255,6 @@ vector<DeviceInfo>& Device::available_devices()
 	static bool devices_init = false;
 
 	if(!devices_init) {
-		device_cpu_info(devices);
-
 #ifdef WITH_CUDA
 		if(cuLibraryInit())
 			device_cuda_info(devices);
@@ -270,6 +268,8 @@ vector<DeviceInfo>& Device::available_devices()
 #ifdef WITH_MULTI
 		device_multi_info(devices);
 #endif
+
+		device_cpu_info(devices);
 
 #ifdef WITH_NETWORK
 		device_network_info(devices);
