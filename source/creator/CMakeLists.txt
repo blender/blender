@@ -165,36 +165,27 @@ if(WITH_PYTHON_MODULE)
 	add_definitions(-DWITH_PYTHON_MODULE)
 
 	# creates ./bin/bpy.so which can be imported as a python module.
-	if(APPLE)
-		add_library(blender MODULE ${SRC})
+	#
+	# note that 'SHARED' works on Linux and Windows,
+	# but not OSX which _must_ be 'MODULE'
+	add_library(blender MODULE ${SRC})
+	set_target_properties(
+		blender
+		PROPERTIES
+			PREFIX ""
+			OUTPUT_NAME bpy
+			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
+	)
+
+	if(WIN32)
+		# python modules use this
 		set_target_properties(
 			blender
 			PROPERTIES
-				PREFIX ""
-				OUTPUT_NAME bpy
-				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+			SUFFIX ".pyd"
 		)
-
-	else(APPLE)
-		add_library(blender SHARED ${SRC})
-		set_target_properties(
-			blender
-			PROPERTIES
-				PREFIX ""
-				OUTPUT_NAME bpy
-				LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-				RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
-		)
-
-		if(WIN32)
-			# python modules use this
-			set_target_properties(
-				blender
-				PROPERTIES
-				SUFFIX ".pyd"
-			)
-		endif()
-	endif(APPLE)
+	endif()
 
 else()
 	add_executable(blender ${EXETYPE} ${SRC})
