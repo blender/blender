@@ -2447,14 +2447,19 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "matrix_original", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "omat");
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object Matrix", "The original matrix of this object before it was duplicated");
 
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "mat");
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object Duplicate Matrix", "Object duplicate transformation matrix");
+
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "no_draw", 0);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE|PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Hide", "Don't show dupli object in viewport or render");
 
 	/* TODO: DupliObject has more properties that can be wrapped */
 }
