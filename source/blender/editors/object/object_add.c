@@ -189,19 +189,24 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	prop= RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
+	prop = RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
 	RNA_def_property_update_runtime(prop, view_align_update);
 
 	if(do_editmode) {
-		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
-		RNA_def_property_flag(prop, PROP_HIDDEN);
+		prop = RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode",
+		                      "Enter editmode when adding this object");
+		RNA_def_property_flag(prop, PROP_HIDDEN|PROP_SKIP_SAVE);
 	}
 	
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
+	prop = RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                               "Location for the newly added object", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation",
+	                             "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN|PROP_SKIP_SAVE);
 }
 
 static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
