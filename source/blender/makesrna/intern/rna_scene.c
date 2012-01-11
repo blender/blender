@@ -999,7 +999,7 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 				WM_main_add_notifier(NC_NODE|NA_EDITED, node);
 				
 				if (node->type == CMP_NODE_IMAGE)
-					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_RELOAD);
+					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_FREE);
 			}
 		}
 	}
