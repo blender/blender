@@ -264,7 +264,7 @@ int WM_init_game(bContext *C)
 		}
 
 		/* Fullscreen */
-		if(scene->gm.fullscreen) {
+		if((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
 			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
 			ar->winx = ar->winrct.xmax + 1;

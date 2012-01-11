@@ -583,8 +583,9 @@ typedef struct GameData {
 
 	/*  standalone player */
 	struct GameFraming framing;
-	short fullscreen, xplay, yplay, freqplay;
+	short playerflag, xplay, yplay, freqplay;
 	short depth, attrib, rt1, rt2;
+	short aasamples, pad4[3];
 
 	/* stereo/dome mode */
 	struct GameDome dome;
@@ -660,6 +661,10 @@ typedef struct GameData {
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 #define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
 /* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
+
+/* GameData.playerflag */
+#define GAME_PLAYER_FULLSCREEN				(1 << 0)
+#define GAME_PLAYER_DESKTOP_RESOLUTION		(1 << 1)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
