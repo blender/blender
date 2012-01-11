@@ -638,6 +638,25 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 	RNA_STRUCT_END;
 }
 
+/* remove all props without PROP_SKIP_SAVE */
+void WM_operator_properties_reset(wmOperator *op)
+{
+	if (op->ptr->data) {
+		PropertyRNA *iterprop;
+		iterprop= RNA_struct_iterator_property(op->type->srna);
+
+		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+			PropertyRNA *prop= itemptr.data;
+
+			if((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+				const char *identifier = RNA_property_identifier(prop);
+				RNA_struct_idprops_unset(op->ptr, identifier);
+			}
+		}
+		RNA_PROP_END;
+	}
+}
+
 void WM_operator_properties_free(PointerRNA *ptr)
 {
 	IDProperty *properties= ptr->data;

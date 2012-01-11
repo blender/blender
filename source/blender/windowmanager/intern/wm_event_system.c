@@ -729,6 +729,46 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
+static int wm_operator_init_from_last(wmWindowManager *wm, wmOperator *op)
+{
+	int change= FALSE;
+	wmOperator *lastop;
+
+	for(lastop= wm->operators.last; lastop; lastop= lastop->prev) {
+		/* equality check is a bit paranoid but just incase */
+		if((op != lastop) && (op->type == (lastop->type))) {
+			break;
+		}
+	}
+
+	if (lastop && op != lastop) {
+		PropertyRNA *iterprop;
+		iterprop= RNA_struct_iterator_property(op->type->srna);
+
+		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+			PropertyRNA *prop= itemptr.data;
+
+			if((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+				const char *identifier= RNA_property_identifier(prop);
+				IDProperty *idp_src= IDP_GetPropertyFromGroup(lastop->properties, identifier);
+				if(idp_src) {
+					IDProperty *idp_dst = IDP_CopyProperty(idp_src);
+
+					/* note - in the future this may need to be done recursively,
+					 * but for now RNA doesn't access nested operators */
+					idp_dst->flag |= IDP_FLAG_GHOST;
+
+					IDP_ReplaceInGroup(op->properties, idp_dst);
+					change= TRUE;
+				}
+			}
+		}
+		RNA_PROP_END;
+	}
+
+	return change;
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -741,6 +781,11 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 	if(WM_operator_poll(C, ot)) {
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
 		
+		/* initialize setting from previous run */
+		if(wm->op_undo_depth == 0 && (ot->flag & OPTYPE_REGISTER)) { /* not called by py script */
+			wm_operator_init_from_last(wm, op);
+		}
+
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
 		

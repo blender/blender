@@ -226,6 +226,12 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
 
 /* ID Properties */
 
+static void rna_idproperty_touch(IDProperty *idprop)
+{
+	/* so the property is seen as 'set' by rna */
+	idprop->flag &= ~IDP_FLAG_GHOST;
+}
+
 /* return a UI local ID prop definition for this prop */
 IDProperty *rna_idproperty_ui(PropertyRNA *prop)
 {
@@ -1621,8 +1627,10 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	/* just incase other values are passed */
 	if(value) value= 1;
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDP_Int(idprop)= value;
+		rna_idproperty_touch(idprop);
+	}
 	else if(bprop->set)
 		bprop->set(ptr, value);
 	else if(prop->flag & PROP_EDITABLE) {
@@ -1698,6 +1706,8 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 			IDP_Int(idprop)= values[0];
 		else
 			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
+
+		rna_idproperty_touch(idprop);
 	}
 	else if(prop->arraydimension == 0)
 		RNA_property_boolean_set(ptr, prop, values[0]);
@@ -1818,8 +1828,10 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	/* useful to check on bad values but set function should clamp */
 	/* BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0); */
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDP_Int(idprop)= value;
+		rna_idproperty_touch(idprop);
+	}
 	else if(iprop->set)
 		iprop->set(ptr, value);
 	else if(prop->flag & PROP_EDITABLE) {
@@ -1931,7 +1943,9 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 		if(prop->arraydimension == 0)
 			IDP_Int(idprop)= values[0];
 		else
-			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);\
+			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
+
+		rna_idproperty_touch(idprop);
 	}
 	else if(prop->arraydimension == 0)
 		RNA_property_int_set(ptr, prop, values[0]);
@@ -2054,6 +2068,8 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 			IDP_Float(idprop)= value;
 		else
 			IDP_Double(idprop)= value;
+
+		rna_idproperty_touch(idprop);
 	}
 	else if(fprop->set) {
 		fprop->set(ptr, value);
@@ -2185,6 +2201,8 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 			for(i=0; i<idprop->len; i++)
 				((double*)IDP_Array(idprop))[i]= values[i];
 		}
+
+		rna_idproperty_touch(idprop);
 	}
 	else if(prop->arraydimension == 0)
 		RNA_property_float_set(ptr, prop, values[0]);
@@ -2372,9 +2390,11 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		/* both IDP_STRING_SUB_BYTE / IDP_STRING_SUB_UTF8 */
 		IDP_AssignString(idprop, value, RNA_property_string_maxlength(prop) - 1);
+		rna_idproperty_touch(idprop);
+	}
 	else if(sprop->set)
 		sprop->set(ptr, value); /* set function needs to clamp its self */
 	else if(prop->flag & PROP_EDITABLE) {
@@ -2446,8 +2466,10 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 
 	BLI_assert(RNA_property_type(prop) == PROP_ENUM);
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDP_Int(idprop)= value;
+		rna_idproperty_touch(idprop);
+	}
 	else if(eprop->set) {
 		eprop->set(ptr, value);
 	}
@@ -2516,6 +2538,7 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 	if((/*idprop=*/ rna_idproperty_check(&prop, ptr))) {
 		/* not supported */
+		/* rna_idproperty_touch(idprop); */
 	}
 	else {
 		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
@@ -4415,7 +4438,8 @@ int RNA_collection_length(PointerRNA *ptr, const char *name)
 int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if(prop->flag & PROP_IDPROPERTY) {
-		return (rna_idproperty_find(ptr, prop->identifier) != NULL);
+		IDProperty *idprop = rna_idproperty_find(ptr, prop->identifier);
+		return ((idprop != NULL) && !(idprop->flag & IDP_FLAG_GHOST));
 	}
 	else {
 		return 1;

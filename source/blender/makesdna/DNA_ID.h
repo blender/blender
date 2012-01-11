@@ -86,6 +86,10 @@ typedef struct IDProperty {
 /* IDP_STRING */
 #define IDP_STRING_SUB_UTF8  0 /* default */
 #define IDP_STRING_SUB_BYTE  1 /* arbitrary byte array, _not_ null terminated */
+/*->flag*/
+#define IDP_FLAG_GHOST (1<<7)  /* this means the propery is set but RNA will return
+                                * false when checking 'RNA_property_is_set',
+                                * currently this is a runtime flag */
 
 
 /* add any future new id property types here.*/
