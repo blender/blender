@@ -1483,7 +1483,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bProperty *prop;
-	char name[32];
+	char name[MAX_NAME];
 	int type= RNA_enum_get(op->ptr, "type");
 
 	prop= new_property(type);
@@ -1516,7 +1516,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", gameproperty_type_items, 2, "Type", "Type of game property to add");
-	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the game property to add");
+	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the game property to add");
 }
 
 static int game_property_remove(bContext *C, wmOperator *op)

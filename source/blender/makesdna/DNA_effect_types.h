@@ -118,7 +118,7 @@ typedef struct PartEff {
 	short staticstep, omat, timetex, speedtex, flag2, flag2neg;
 	short disp, vertgroup_v;
 	
-	char vgroupname[32], vgroupname_v[32];
+	char vgroupname[64], vgroupname_v[64];	/* MAX_VGROUP_NAME */
 	float imat[4][4];	/* inverse matrix of parent Object */
 	
 	Particle *keys;

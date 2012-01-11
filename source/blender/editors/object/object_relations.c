@@ -335,7 +335,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 	if (ob) {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
-		char name[32];
+		char name[MAX_ID_NAME+4];
 		
 		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
@@ -1890,7 +1890,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	Main *bmain= CTX_data_main(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;
-	char name[32];
+	char name[MAX_ID_NAME-2];
 	
 	RNA_string_get(op->ptr, "name", name);
 	ma= (Material *)find_id("MA", name);
@@ -1923,5 +1923,5 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Material", 24, "Name", "Material name to assign");
+	RNA_def_string(ot->srna, "name", "Material", MAX_ID_NAME-2, "Name", "Material name to assign");
 }

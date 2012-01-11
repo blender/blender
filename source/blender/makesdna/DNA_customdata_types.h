@@ -48,9 +48,11 @@ typedef struct CustomDataLayer {
 	int active_clone; /* number of the layer to render*/
 	int active_mask; /* number of the layer to render*/
 	char pad[4];
-	char name[32];  /* layer name */
+	char name[64];  /* layer name, MAX_CUSTOMDATA_LAYER_AAME */
 	void *data;     /* layer data */
 } CustomDataLayer;
+
+#define MAX_CUSTOMDATA_LAYER_NAME 64
 
 typedef struct CustomDataExternal {
 	char filename[240]; /* FILE_MAX */

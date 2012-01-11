@@ -807,7 +807,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique name of track");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_trackingTrack_name_set");
-	RNA_def_property_string_maxlength(prop, MAX_ID_NAME);
+	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
@@ -1179,7 +1179,7 @@ static void rna_def_trackingObject(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique name of object");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_trackingObject_name_set");
-	RNA_def_property_string_maxlength(prop, MAX_ID_NAME);
+	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 	RNA_def_struct_name_property(srna, prop);
 

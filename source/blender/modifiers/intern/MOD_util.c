@@ -99,7 +99,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 			                         "get_texture_coords done");
 			int numFaces = dm->getNumFaces(dm);
-			char uvname[32];
+			char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 			MTFace *tf;
 
 			CustomData_validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name, uvname);

@@ -60,7 +60,7 @@ typedef struct MTex {
 	short texco, mapto, maptoneg, blendtype;
 	struct Object *object;
 	struct Tex *tex;
-	char uvname[32];
+	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	
 	char projx, projy, projz, mapping;
 	float ofs[3], size[3], rot;

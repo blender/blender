@@ -61,11 +61,11 @@ struct bGPdata;
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
-	char name[32];
+	char name[64];	/* MAX_VGROUP_NAME */
 	/* need this flag for locking weights */
 	char flag, pad[7];
 } bDeformGroup;
-#define MAX_VGROUP_NAME 32
+#define MAX_VGROUP_NAME 64
 
 /* bDeformGroup->flag */
 #define DG_LOCK_WEIGHT 1
@@ -107,7 +107,7 @@ typedef struct Object {
 	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
-	char parsubstr[32];	/* String describing subobject info */
+	char parsubstr[64];	/* String describing subobject info, MAX_ID_NAME-2 */
 	struct Object *parent, *track;
 	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
 	/* proxy_from is set in target back to the proxy. */
@@ -273,7 +273,7 @@ typedef struct ObHook {
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
 	
-	char name[32];
+	char name[64];	/* MAX_NAME */
 
 	int *indexar;
 	int totindex, curindex; /* curindex is cache for fast lookup */

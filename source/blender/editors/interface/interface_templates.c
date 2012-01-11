@@ -140,7 +140,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
-				char name_ui[32];
+				char name_ui[MAX_ID_NAME];
 				name_uiprefix_id(name_ui, id);
 
 				iconid= ui_id_icon_get((bContext*)C, id, 1);

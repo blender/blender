@@ -631,7 +631,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 	if (sock->flag & SOCK_DYNAMIC) {
 		bt = uiDefBut(gnode->block, TEX, 0, "", 
 					  sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
-					  sock->name, 0, 31, 0, 0, "");
+					  sock->name, 0, sizeof(sock->name), 0, 0, "");
 		if (in_out==SOCK_IN)
 			uiButSetFunc(bt, update_group_input_cb, snode, ngroup);
 		else
@@ -640,7 +640,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 	else {
 		uiDefBut(gnode->block, LABEL, 0, sock->name,
 		         sock->locx+xoffset, sock->locy+1+yoffset, 72, NODE_DY,
-		         NULL, 0, 31, 0, 0, "");
+		         NULL, 0, sizeof(sock->name), 0, 0, "");
 	}
 }
 

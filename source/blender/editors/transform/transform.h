@@ -281,7 +281,7 @@ typedef struct TransInfo {
 
 	char		*undostr;		/* if set, uses this string for undo		*/
 	float		spacemtx[3][3];	/* orientation matrix of the current space	*/
-	char		spacename[32];	/* name of the current space				*/
+	char		spacename[64];	/* name of the current space, MAX_NAME		*/
 
 	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
 

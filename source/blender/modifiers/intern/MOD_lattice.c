@@ -56,7 +56,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	LatticeModifierData *tlmd = (LatticeModifierData*) target;
 
 	tlmd->object = lmd->object;
-	BLI_strncpy(tlmd->name, lmd->name, 32);
+	BLI_strncpy(tlmd->name, lmd->name, sizeof(tlmd->name));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

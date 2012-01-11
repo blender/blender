@@ -145,7 +145,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 	/* use object name if no name is given */
 	if (name[0] == 0)
 	{
-		strncpy(name, ob->id.name+2, 35);
+		strncpy(name, ob->id.name+2, MAX_ID_NAME-2);
 	}
 
 	return addMatrixSpace(C, mat, name, overwrite);	
@@ -289,7 +289,7 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 	{
 		ts = MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix");
 		BLI_addtail(transform_spaces, ts);
-		strncpy(ts->name, name, 35);
+		strncpy(ts->name, name, sizeof(ts->name));
 	}
 
 	/* copy matrix into transform space */
@@ -422,10 +422,11 @@ const char * BIF_menustringTransformOrientation(const bContext *C, const char *t
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
+	const int elem_size = MAX_NAME + 4;
 
 	title = IFACE_(title);
 
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), TIP_("UserTransSpace from matrix"));
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), TIP_("UserTransSpace from matrix"));
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);

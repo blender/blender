@@ -728,7 +728,7 @@ static int edit_modifier_poll(bContext *C)
 
 static void edit_modifier_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "modifier", "", 32, "Modifier", "Name of the modifier to edit");
+	RNA_def_string(ot->srna, "modifier", "", MAX_NAME, "Modifier", "Name of the modifier to edit");
 }
 
 static int edit_modifier_invoke_properties(bContext *C, wmOperator *op)
@@ -750,7 +750,7 @@ static int edit_modifier_invoke_properties(bContext *C, wmOperator *op)
 
 static ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 {
-	char modifier_name[32];
+	char modifier_name[MAX_NAME];
 	ModifierData *md;
 	RNA_string_get(op->ptr, "modifier", modifier_name);
 	

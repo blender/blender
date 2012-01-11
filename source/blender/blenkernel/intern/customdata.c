@@ -1519,7 +1519,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	data->layers[index].data = newlayerdata;
 
 	if(name || (name=typeInfo->defaultname)) {
-		BLI_strncpy(data->layers[index].name, name, 32);
+		BLI_strncpy(data->layers[index].name, name, sizeof(data->layers[index].name));
 		CustomData_set_layer_unique_name(data, index);
 	}
 	else

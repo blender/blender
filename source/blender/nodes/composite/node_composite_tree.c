@@ -604,7 +604,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 				if(ntree->progress && totnode)
 					ntree->progress(ntree->prh, (1.0f - curnode/(float)totnode));
 				if(ntree->stats_draw) {
-					char str[64];
+					char str[128];
 					sprintf(str, "Compositing %d %s", curnode, node->name);
 					ntree->stats_draw(ntree->sdh, str);
 				}

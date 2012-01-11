@@ -71,8 +71,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	thmd->totindex = hmd->totindex;
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
-	BLI_strncpy(thmd->name, hmd->name, 32);
-	BLI_strncpy(thmd->subtarget, hmd->subtarget, 32);
+	BLI_strncpy(thmd->name, hmd->name, sizeof(thmd->name));
+	BLI_strncpy(thmd->subtarget, hmd->subtarget, sizeof(thmd->subtarget));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

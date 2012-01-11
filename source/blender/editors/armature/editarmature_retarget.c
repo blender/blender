@@ -450,7 +450,7 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 {
 	int i, j;
 	
-	for (i = 0, j = 0; template_name[i] != '\0' && i < 31 && j < 31; i++)
+	for (i = 0, j = 0; template_name[i] != '\0' && i < (MAXBONENAME-1) && j < (MAXBONENAME-1); i++)
 	{
 		if (template_name[i] == '&')
 		{
@@ -485,7 +485,7 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_ctrl, GHash *ptr_hash, char *side_string, char *num_string)
 {
 	RigControl *ctrl;
-	char name[32];
+	char name[MAXBONENAME];
 	
 	ctrl = newRigControl(rg);
 	
@@ -541,7 +541,7 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 		
 		if (src_edge->bone != NULL)
 		{
-			char name[32];
+			char name[MAXBONENAME];
 			renameTemplateBone(name, src_edge->bone->name, rg->editbones, side_string, num_string);
 			edge->bone = duplicateEditBoneObjects(src_edge->bone, name, rg->editbones, src_rg->ob, rg->ob);
 			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);

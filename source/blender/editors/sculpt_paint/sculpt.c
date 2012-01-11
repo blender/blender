@@ -236,7 +236,7 @@ typedef struct StrokeCache {
 
 	float vertex_rotation;
 
-	char saved_active_brush_name[24];
+	char saved_active_brush_name[MAX_ID_NAME];
 	int alt_smooth;
 
 	float plane_trim_squared;

@@ -1916,7 +1916,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	Object *ob;
 	int linked= RNA_boolean_get(op->ptr, "linked");
 	int dupflag= (linked)? 0: U.dupflag;
-	char name[32];
+	char name[MAX_ID_NAME-2];
 
 	/* find object, create fake base */
 	RNA_string_get(op->ptr, "name", name);
@@ -1971,7 +1971,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
-	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add");
+	RNA_def_string(ot->srna, "name", "Cube", MAX_ID_NAME-2, "Name", "Object name to add");
 }
 
 

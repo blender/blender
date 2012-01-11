@@ -1323,7 +1323,7 @@ void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 		MTFace *tface;
 		MFace *mface = dm->getFaceArray(dm);
 		int numOfFaces = dm->getNumFaces(dm);
-		char uvname[40];
+		char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
 		if (!tex) return;
 
@@ -2079,7 +2079,7 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 	int ty;
 	int w,h;
 	int numOfFaces;
-	char uvname[32];
+	char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 	int active_points = 0;
 	int error = 0;
 

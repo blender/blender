@@ -3457,7 +3457,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	EditBone *bone;
 	float obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
-	char name[32];
+	char name[MAXBONENAME];
 	
 	RNA_string_get(op->ptr, "name", name);
 	
@@ -3507,7 +3507,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Bone", 32, "Name", "Name of the newly created bone");
+	RNA_def_string(ot->srna, "name", "Bone", MAXBONENAME, "Name", "Name of the newly created bone");
 	
 }
 
@@ -5499,7 +5499,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
-	char newname[32];
+	char newname[MAXBONENAME];
 	short axis= RNA_enum_get(op->ptr, "type");
 	
 	/* paranoia checks */

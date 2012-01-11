@@ -176,7 +176,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				MEM_freeN(info);
 
 				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
-				if(cp) BLI_strncpy(cp, seqname, 21);
+				if(cp) BLI_strncpy(cp, seqname, SEQ_NAME_MAXSTR);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
@@ -303,7 +303,10 @@ static struct ImBuf * do_plugin_effect(
 		cp = BLI_dynlib_find_symbol(
 			seq->plugin->handle, "seqname");
 
-		if(cp) strncpy(cp, seq->name+2, 22);
+		/* XXX: it's crappy to limit copying buffer by it's lemgth,
+		 *      but assuming plugin stuff is using correct buffer size
+		 *      it should be fine */
+		if(cp) strncpy(cp, seq->name+2, sizeof(seq->name));
 
 		if (seq->plugin->current_private_data) {
 			*seq->plugin->current_private_data 

@@ -1969,7 +1969,7 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "particle_uv", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");
-	RNA_def_property_string_maxlength(prop, 32);
+	RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
 	RNA_def_property_ui_text(prop, "Particle UV", "UV map to change with particle age");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }

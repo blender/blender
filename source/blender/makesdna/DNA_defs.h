@@ -47,4 +47,7 @@
 
 #define USE_BMESH_FORWARD_COMPAT
 
+/* non-id name variables should use this length */
+#define MAX_NAME 64
+
 #endif /* DNA_DEFS_H */

@@ -155,7 +155,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
 	float aspect;
-	char uvname[32];
+	char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 	float aspx= umd->aspectx ? umd->aspectx : 1.0f;
 	float aspy= umd->aspecty ? umd->aspecty : 1.0f;
 	float scax= umd->scalex ? umd->scalex : 1.0f;

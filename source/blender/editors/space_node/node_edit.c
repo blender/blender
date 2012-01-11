@@ -751,7 +751,7 @@ static int edit_node_poll(bContext *C)
 static void edit_node_properties(wmOperatorType *ot)
 {
 	/* XXX could node be a context pointer? */
-	RNA_def_string(ot->srna, "node", "", 32, "Node", "");
+	RNA_def_string(ot->srna, "node", "", MAX_NAME, "Node", "");
 	RNA_def_int(ot->srna, "socket", 0, 0, MAX_SOCKET, "Socket", "", 0, MAX_SOCKET);
 	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Side", "");
 }
@@ -779,7 +779,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 {
 	bNode *node;
 	bNodeSocket *sock=NULL;
-	char nodename[32];
+	char nodename[MAX_NAME];
 	int sockindex;
 	int in_out;
 	
@@ -889,7 +889,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	int in_out= -1;
-	char name[32]= "";
+	char name[MAX_NAME]= "";
 	int type= SOCK_FLOAT;
 	bNodeTree *ngroup= snode->edittree;
 	/* bNodeSocket *sock; */ /* UNUSED */
@@ -932,7 +932,7 @@ void NODE_OT_group_socket_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
-	RNA_def_string(ot->srna, "name", "", 32, "Name", "Group socket name");
+	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Group socket name");
 	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_FLOAT, "Type", "Type of the group socket");
 }
 
@@ -3451,7 +3451,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	}
 	else if(RNA_property_is_set(op->ptr, "name"))
 	{
-		char name[32];
+		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
 
@@ -3517,7 +3517,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign");
+	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME-2, "Name", "Datablock name to assign");
 }
 
 /********************** New node tree operator *********************/
