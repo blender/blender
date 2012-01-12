@@ -110,7 +110,8 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 	BKE_image_release_renderresult(scene, ima);
 }
 
-void draw_image_info(ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4], int *zp, float *zpf)
+/* used by node view too */
+void ED_image_draw_info(ARegion *ar, int color_manage, int channels, int x, int y, const char cp[4], const float fp[4], int *zp, float *zpf)
 {
 	char str[256];
 	float dx= 6;

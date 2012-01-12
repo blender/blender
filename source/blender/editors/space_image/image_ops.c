@@ -1772,7 +1772,7 @@ static void image_sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_
 	ImageSampleInfo *info= arg_info;
 	if(info->draw) {
 		/* no color management needed for images (color_manage=0) */
-		draw_image_info(ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
+		ED_image_draw_info(ar, 0, info->channels, info->x, info->y, info->colp, info->colfp, info->zp, info->zfp);
 	}
 }
 

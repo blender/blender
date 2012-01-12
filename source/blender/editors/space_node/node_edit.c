@@ -71,6 +71,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_node.h"
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_render.h"
@@ -1343,8 +1344,10 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 
-	draw_nodespace_color_info(ar, (CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
-							  info->x, info->y, info->col, info->colf);
+	ED_image_draw_info(ar, (CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT), info->channels,
+	                   info->x, info->y, info->col, info->colf,
+	                   NULL, NULL /* zbuf - unused for nodes */
+	                   );
 }
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
