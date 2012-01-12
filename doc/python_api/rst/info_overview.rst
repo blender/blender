@@ -27,7 +27,7 @@ The Default Environment
 
 When developing your own scripts it may help to understand how blender sets up its python environment. Many python scripts come bundled with blender and can be used as a reference because they use the same API that script authors write tools in. Typical usage for scripts include: user interface, import/export, scene manipulation, automation, defining your own toolset and customization.
 
-On startup blender scans the ``scripts/startup/`` directory for python modules and imports them. The exact location of this directory depends on your installation. `See the directory layout docs <http://wiki.blender.org/index.php/Doc:2.5/Manual/Introduction/Installing_Blender/DirectoryLayout>`_
+On startup blender scans the ``scripts/startup/`` directory for python modules and imports them. The exact location of this directory depends on your installation. `See the directory layout docs <http://wiki.blender.org/index.php/Doc:2.6/Manual/Introduction/Installing_Blender/DirectoryLayout>`_
 
 
 Script Loading
@@ -71,7 +71,7 @@ The only difference between addons and built-in python modules is that addons mu
 
 The user preferences addon listing uses **bl_info** to display information about each addon.
 
-`See Addons <http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons>`_ for details on the **bl_info** dictionary.
+`See Addons <http://wiki.blender.org/index.php/Dev:2.6/Py/Scripts/Guidelines/Addons>`_ for details on the **bl_info** dictionary.
 
 
 Integration through Classes
