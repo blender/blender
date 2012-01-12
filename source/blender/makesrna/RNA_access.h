@@ -996,8 +996,6 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 
 
 /* macro which inserts the function name */
-/*
-*/
 #if defined __GNUC__ || defined __sun
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
 #else
