@@ -950,6 +950,7 @@ char BKE_imtype_valid_channels(const char imtype)
 	case R_IMF_IMTYPE_MULTILAYER:
 	case R_IMF_IMTYPE_DDS:
 	case R_IMF_IMTYPE_JP2:
+	case R_IMF_IMTYPE_QUICKTIME:
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 

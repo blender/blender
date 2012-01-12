@@ -604,13 +604,14 @@ int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int rect
 	OSStatus err = noErr;
 	unsigned char *from_Ptr,*to_Ptr;
 	int y,from_i,to_i;
+	BOOL alpha = (rd->im_format.planes == R_IMF_PLANES_RGBA)? YES: NO;
 	
 	
 	/* Create bitmap image rep in blender format (32bit RGBA) */
 	blBitmapFormatImage = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 																  pixelsWide:rectx 
 																  pixelsHigh:recty
-															   bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+															   bitsPerSample:8 samplesPerPixel:4 hasAlpha:alpha isPlanar:NO
 															  colorSpaceName:NSCalibratedRGBColorSpace 
 																bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
 																 bytesPerRow:rectx*4
