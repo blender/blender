@@ -52,7 +52,7 @@
 
 #include "GHOST_Path-api.h"
 
-#if defined WIN32 && !defined _LIBC
+#if defined WIN32 && !defined _LIBC  || defined __sun
 #  include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
 #  ifndef _GNU_SOURCE

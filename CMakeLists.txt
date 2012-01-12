@@ -620,6 +620,10 @@ if(UNIX AND NOT APPLE)
 	# CLang is the same as GCC for now.
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+	# Solaris CC
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "SunPro") 
+		set(PLATFORM_CFLAGS "-pipe -features=extensions -fPIC -D__FUNCTION__=__func__")
+		
 	# Intel C++ Compiler
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 		# think these next two are broken

@@ -47,6 +47,12 @@
 #undef _XOPEN_SOURCE
 #endif
 
+#if defined(__sun) || defined(sun) 
+#if defined(_XPG4) 
+#undef _XPG4 
+#endif 
+#endif 
+
 #include <Python.h>
 
 extern "C" {
