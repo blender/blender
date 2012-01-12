@@ -1628,12 +1628,12 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_struct_ui_text(srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
 
 	prop= RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCULPT_PAINT_USE_UNIFIED_SIZE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_SIZE);
 	RNA_def_property_ui_text(prop, "Use Unified Radius",
 	                         "Instead of per-brush radius, the radius is shared across brushes");
 
 	prop= RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCULPT_PAINT_USE_UNIFIED_ALPHA);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Unified Strength",
 	                         "Instead of per-brush strength, the strength is shared across brushes");
 

@@ -835,15 +835,17 @@ typedef struct UnifiedPaintSettings {
 } UnifiedPaintSettings;
 
 typedef enum {
-	SCULPT_PAINT_USE_UNIFIED_SIZE        = (1<<0),
-	SCULPT_PAINT_USE_UNIFIED_ALPHA       = (1<<1),
+	UNIFIED_PAINT_SIZE  = (1<<0),
+	UNIFIED_PAINT_ALPHA = (1<<1),
 
-	/* only used if unified size is enabled */
-	SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE = (1<<2),
-	SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   = (1<<3),
+	/* only used if unified size is enabled, mirros the brush flags
+	   BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
+	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1<<2),
+	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1<<3),
 
-	/* only used if unified alpha is enabled */
-	SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  = (1<<4)
+	/* only used if unified alpha is enabled, mirrors the brush flag
+	   BRUSH_ALPHA_PRESSURE */
+	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1<<4)
 } UnifiedPaintSettingsFlags;
 
 /* *************************************************************** */
