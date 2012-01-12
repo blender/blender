@@ -184,7 +184,7 @@ typedef struct bPoseChannel {
 	IDProperty 			*prop;		/* User-Defined Properties on this PoseChannel */			
 	
 	ListBase			constraints;/* Constraints that act on this PoseChannel */
-	char				name[72];	/* Channels need longer names than normal blender objects */
+	char				name[64];	/* need to match bone name length: MAXBONENAME */
 	
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				ikflag;		/* settings for IK bones */
