@@ -541,7 +541,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 	else {
 		fprintf(stderr, 
-			"imb_loadtiff: could not allocate memory for TIFF " \
+			"imb_loadtiff: could not allocate memory for TIFF "
 			"image.\n");
 		TIFFClose(image);
 		return NULL;
