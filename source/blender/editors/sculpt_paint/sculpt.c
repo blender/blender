@@ -549,7 +549,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	const float root_alpha = brush_alpha(brush);
 	float alpha        = root_alpha*root_alpha;
 	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
-	float pressure     = brush_use_alpha_pressure(brush) ? cache->pressure : 1;
+	float pressure     = brush_use_alpha_pressure(cache->vc->scene, brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
@@ -3017,6 +3017,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 										 struct PaintStroke *stroke,
 										 PointerRNA *ptr)
 {
+	const Scene *scene = CTX_data_scene(C);
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
@@ -3054,7 +3055,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	cache->pixel_radius = brush_size(brush);
 
 	if(cache->first_time) {
-		if (!brush_use_locked_size(brush)) {
+		if (!brush_use_locked_size(scene, brush)) {
 			cache->initial_radius= paint_calc_object_space_radius(cache->vc, cache->true_location, brush_size(brush));
 			brush_set_unprojected_radius(brush, cache->initial_radius);
 		}
@@ -3063,7 +3064,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	if(brush_use_size_pressure(brush)) {
+	if(brush_use_size_pressure(scene, brush)) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius= cache->initial_radius * cache->pressure;
 	}
@@ -3287,7 +3288,8 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 	/* Restore the mesh before continuing with anchored stroke */
 	if((brush->flag & BRUSH_ANCHORED) ||
-	   (brush->sculpt_tool == SCULPT_TOOL_GRAB && brush_use_size_pressure(brush)) ||
+	   (brush->sculpt_tool == SCULPT_TOOL_GRAB &&
+		brush_use_size_pressure(ss->cache->vc->scene, brush)) ||
 	   (brush->flag & BRUSH_RESTORE_MESH))
 	{
 		StrokeCache *cache = ss->cache;

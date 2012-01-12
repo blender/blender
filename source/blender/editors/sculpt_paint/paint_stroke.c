@@ -453,7 +453,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
-			if(sd->draw_pressure && brush_use_size_pressure(brush)) {
+			if(sd->draw_pressure && brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
 				glScalef(1.0f/sd->pressure_value, 1.0f/sd->pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
@@ -515,7 +515,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 
 	/* TODO: check whether this should really only be done when
 	   brush is over mesh? */
-	if(sd->draw_pressure && brush_use_alpha_pressure(brush))
+	if(sd->draw_pressure && brush_use_alpha_pressure(vc->scene, brush))
 		(*visual_strength) *= sd->pressure_value;
 
 	if(sd->draw_anchored)
@@ -529,16 +529,17 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 	unprojected_radius = paint_calc_object_space_radius(vc, location,
 							    projected_radius);
 
-	if(sd->draw_pressure && brush_use_size_pressure(brush))
+	if(sd->draw_pressure && brush_use_size_pressure(vc->scene, brush))
 		unprojected_radius *= sd->pressure_value;
 
-	if(!brush_use_locked_size(brush))
+	if(!brush_use_locked_size(vc->scene, brush))
 		brush_set_unprojected_radius(brush, unprojected_radius);
 }
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
-	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Scene *scene = CTX_data_scene(C);
+	Paint *paint = paint_get_active(scene);
 	Brush *brush = paint_brush(paint);
 	ViewContext vc;
 	float final_radius;
@@ -597,7 +598,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* draw overlay */
 		paint_draw_alpha_overlay(sd, brush, &vc, x, y);
 
-		if(brush_use_locked_size(brush))
+		if(brush_use_locked_size(scene, brush))
 			brush_set_size(brush, pixel_radius);
 
 		/* check if brush is subtracting, use different color then */
@@ -764,12 +765,13 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 		length = len_v2(vec);
 
 		if(length > FLT_EPSILON) {
+			const Scene *scene = CTX_data_scene(C);
 			int steps;
 			int i;
 			float pressure= 1.0f;
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
-			if(brush_use_size_pressure(stroke->brush))
+			if(brush_use_size_pressure(scene, stroke->brush))
 				pressure = event_tablet_data(event, NULL);
 			
 			if(pressure > FLT_EPSILON) {

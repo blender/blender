@@ -185,42 +185,6 @@ static int rna_Brush_get_size(PointerRNA *ptr)
 	return brush_size(me);
 }
 
-static void rna_Brush_set_use_locked_size(PointerRNA *ptr, int value)
-{
-	Brush* me = (Brush*)(ptr->data);
-	brush_set_use_locked_size(me, value);
-}
-
-static int rna_Brush_get_use_locked_size(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_use_locked_size(me);
-}
-
-static void rna_Brush_set_use_size_pressure(PointerRNA *ptr, int value)
-{
-	Brush* me = (Brush*)(ptr->data);
-	brush_set_use_size_pressure(me, value);
-}
-
-static int rna_Brush_get_use_size_pressure(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_use_size_pressure(me);
-}
-
-static void rna_Brush_set_use_alpha_pressure(PointerRNA *ptr, int value)
-{
-	Brush* me = (Brush*)(ptr->data);
-	brush_set_use_alpha_pressure(me, value);
-}
-
-static int rna_Brush_get_use_alpha_pressure(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_use_alpha_pressure(me);
-}
-
 static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 {
 	Brush* me = (Brush*)(ptr->data);
@@ -575,7 +539,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
-	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_alpha_pressure", "rna_Brush_set_use_alpha_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -588,7 +551,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
-	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_size_pressure", "rna_Brush_set_use_size_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -668,7 +630,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_locked_size", "rna_Brush_set_use_locked_size");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_LOCK_SIZE);
 	RNA_def_property_ui_text(prop, "Use Blender Units", "When locked brush stays same size relative to object; when unlocked brush size is given in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");

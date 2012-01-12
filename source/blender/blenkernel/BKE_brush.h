@@ -76,7 +76,7 @@ struct BrushPainter;
 typedef struct BrushPainter BrushPainter;
 typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, float *lastpos, float *pos);
 
-BrushPainter *brush_painter_new(struct Brush *brush);
+BrushPainter *brush_painter_new(struct Scene *scene, struct Brush *brush);
 void brush_painter_require_imbuf(BrushPainter *painter, short flt,
 	short texonly, int size);
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
@@ -95,14 +95,9 @@ struct ImBuf *brush_gen_radial_control_imbuf(struct Brush *br);
 int  brush_size(struct Brush *brush);
 void brush_set_size(struct Brush *brush, int value);
 
-int  brush_use_locked_size(struct Brush *brush);
-void brush_set_use_locked_size(struct Brush *brush, int value);
-
-int  brush_use_alpha_pressure(struct Brush *brush);
-void brush_set_use_alpha_pressure(struct Brush *brush, int value);
-
-int  brush_use_size_pressure(struct Brush *brush);
-void brush_set_use_size_pressure(struct Brush *brush, int value);
+int  brush_use_locked_size(const struct Scene *scene, struct Brush *brush);
+int  brush_use_alpha_pressure(const struct Scene *scene, struct Brush *brush);
+int  brush_use_size_pressure(const struct Scene *scene, struct Brush *brush);
 
 float brush_unprojected_radius(struct Brush *brush);
 void  brush_set_unprojected_radius(struct Brush *brush, float value);
