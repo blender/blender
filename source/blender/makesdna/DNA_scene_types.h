@@ -815,6 +815,38 @@ typedef struct TransformOrientation {
 } TransformOrientation;
 
 /* *************************************************************** */
+/* Unified Paint Settings */
+
+/* These settings can override the equivalent fields in the active
+   Brush for any paint mode; the flag field controls whether these
+   values are used */
+typedef struct UnifiedPaintSettings {
+	/* unified radius of brush in pixels */
+	int size;
+
+	/* unified radius of brush in Blender units */
+	float unprojected_radius;
+
+	/* unified strength of brush */
+	float alpha;
+
+	/* user preferences for sculpt and paint */
+	int flag;
+} UnifiedPaintSettings;
+
+typedef enum {
+	SCULPT_PAINT_USE_UNIFIED_SIZE        = (1<<0),
+	SCULPT_PAINT_USE_UNIFIED_ALPHA       = (1<<1),
+
+	/* only used if unified size is enabled */
+	SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE = (1<<2),
+	SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   = (1<<3),
+
+	/* only used if unified alpha is enabled */
+	SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  = (1<<4)
+} UnifiedPaintSettingsFlags;
+
+/* *************************************************************** */
 /* Tool Settings */
 
 typedef struct ToolSettings {
@@ -936,11 +968,16 @@ typedef struct ToolSettings {
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
 
-	short sculpt_paint_settings; /* user preferences for sculpt and paint */
+	/* XXX: these sculpt_paint_* fields are deprecated, use the
+	   unified_paint_settings field instead! */
+	short sculpt_paint_settings DNA_DEPRECATED;
 	short pad1;
-	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
-	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
-	float sculpt_paint_unified_alpha; /* unified strength of brush */
+	int sculpt_paint_unified_size DNA_DEPRECATED;
+	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
+	float sculpt_paint_unified_alpha DNA_DEPRECATED;
+
+	/* Unified Paint Settings */
+	struct UnifiedPaintSettings unified_paint_settings;
 } ToolSettings;
 
 /* *************************************************************** */
@@ -1366,13 +1403,6 @@ typedef enum SculptFlags {
 	SCULPT_USE_OPENMP = (1<<7),
 	SCULPT_ONLY_DEFORM = (1<<8),
 } SculptFlags;
-
-/* sculpt_paint_settings */
-#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
-#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
-#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
-#define SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   (1<<3)
-#define SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  (1<<4)
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1

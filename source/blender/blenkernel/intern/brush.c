@@ -1231,9 +1231,9 @@ static void set_unified_settings(Brush *brush, short flag, int value)
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
 			if (value)
-				sce->toolsettings->sculpt_paint_settings |= flag;
+				sce->toolsettings->unified_paint_settings.flag |= flag;
 			else
-				sce->toolsettings->sculpt_paint_settings &= ~flag;
+				sce->toolsettings->unified_paint_settings.flag &= ~flag;
 		}
 	}
 }
@@ -1249,7 +1249,7 @@ static short unified_settings(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_settings;
+			return sce->toolsettings->unified_paint_settings.flag;
 		}
 	}
 
@@ -1280,7 +1280,7 @@ static void set_unified_size(Brush *brush, int value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_size= value;
+			sce->toolsettings->unified_paint_settings.size= value;
 		}
 	}
 }
@@ -1296,7 +1296,7 @@ static int unified_size(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_size;
+			return sce->toolsettings->unified_paint_settings.size;
 		}
 	}
 
@@ -1314,7 +1314,7 @@ static void set_unified_alpha(Brush *brush, float value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_alpha= value;
+			sce->toolsettings->unified_paint_settings.alpha= value;
 		}
 	}
 }
@@ -1330,7 +1330,7 @@ static float unified_alpha(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_alpha;
+			return sce->toolsettings->unified_paint_settings.alpha;
 		}
 	}
 
@@ -1348,7 +1348,7 @@ static void set_unified_unprojected_radius(Brush *brush, float value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_unprojected_radius= value;
+			sce->toolsettings->unified_paint_settings.unprojected_radius= value;
 		}
 	}
 }
@@ -1364,7 +1364,7 @@ static float unified_unprojected_radius(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_unprojected_radius;
+			return sce->toolsettings->unified_paint_settings.unprojected_radius;
 		}
 	}
 

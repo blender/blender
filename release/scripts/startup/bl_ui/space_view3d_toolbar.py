@@ -468,6 +468,13 @@ class PaintPanel():
 
         return None
 
+    @staticmethod
+    def unified_paint_settings(parent, context):
+        ups = context.tool_settings.unified_paint_settings
+        parent.label(text="Unified Settings:")
+        parent.prop(ups, "use_unified_size", text="Size")
+        parent.prop(ups, "use_unified_strength", text="Strength")
+
 
 class VIEW3D_PT_tools_brush(PaintPanel, Panel):
     bl_label = "Brush"
@@ -950,9 +957,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, Panel):
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
 
-        layout.label(text="Unified Settings:")
-        layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
-        layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+        self.unified_paint_settings(layout, context)
 
 
 class VIEW3D_PT_sculpt_symmetry(PaintPanel, Panel):
@@ -1041,7 +1046,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_fix", text="Fix Deforms")
 
 
-class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):
+class VIEW3D_PT_tools_weightpaint_options(PaintPanel, Panel):
     bl_context = "weightpaint"
     bl_label = "Options"
 
@@ -1062,9 +1067,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):
             col.prop(mesh, "use_mirror_x")
             col.prop(mesh, "use_mirror_topology")
 
-        col.label(text="Unified Settings:")
-        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
-        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+        self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -1078,7 +1081,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):
 # ********** default tools for vertex-paint ****************
 
 
-class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
+class VIEW3D_PT_tools_vertexpaint(PaintPanel, Panel):
     bl_context = "vertexpaint"
     bl_label = "Options"
 
@@ -1094,9 +1097,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, Panel):
         col.prop(vpaint, "use_normal")
         col.prop(vpaint, "use_spray")
 
-        col.label(text="Unified Settings:")
-        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
-        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+        self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -1187,9 +1188,7 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
         tool_settings = context.tool_settings
 
         col = layout.column()
-        col.label(text="Unified Settings:")
-        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
-        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+        self.unified_paint_settings(col, context)
 
 
 class VIEW3D_MT_tools_projectpaint_clone(Menu):
