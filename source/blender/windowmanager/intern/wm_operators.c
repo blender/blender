@@ -766,7 +766,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
 	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
@@ -1397,12 +1397,15 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 				int len= strlen(ot->name);
 				
 				/* display name for menu, can hold hotkey */
-				BLI_strncpy(name, ot->name, 256);
+				BLI_strncpy(name, ot->name, sizeof(name));
 				
 				/* check for hotkey */
-				if(len < 256-6) {
-					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE, &name[len+1], 256-len-1))
+				if (len < sizeof(name) - 6) {
+					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE,
+					                                &name[len+1], sizeof(name)-len-1))
+					{
 						name[len]= '|';
+					}
 				}
 				
 				if(0==uiSearchItemAdd(items, name, ot, 0))
@@ -1424,7 +1427,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */

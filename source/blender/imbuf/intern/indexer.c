@@ -386,12 +386,12 @@ static void get_proxy_filename(struct anim * anim, IMB_Proxy_Size preview_size,
 	stream_suffix[0] = 0;
 
 	if (anim->streamindex > 0) {
-		BLI_snprintf(stream_suffix, 20, "_st%d", anim->streamindex);
+		BLI_snprintf(stream_suffix, sizeof(stream_suffix), "_st%d", anim->streamindex);
 	}
 
-	BLI_snprintf(proxy_name, 256, "proxy_%d%s.avi", 
+	BLI_snprintf(proxy_name, sizeof(proxy_name), "proxy_%d%s.avi",
 		     (int) (proxy_fac[i] * 100), stream_suffix);
-	BLI_snprintf(proxy_temp_name, 256, "proxy_%d%s_part.avi", 
+	BLI_snprintf(proxy_temp_name, sizeof(proxy_temp_name), "proxy_%d%s_part.avi",
 		     (int) (proxy_fac[i] * 100), stream_suffix);
 
 	get_index_dir(anim, index_dir);

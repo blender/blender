@@ -310,7 +310,7 @@ int frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 		}
 	}
 
-	len = recv(connsock, buf, 4095, 0);
+	len = recv(connsock, buf, sizeof(buf) - 1, 0);
 
 	if (len < 0) {
 		return -1;
