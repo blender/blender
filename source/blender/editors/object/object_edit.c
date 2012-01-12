@@ -321,9 +321,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		
 //		if(EM_texFaceCheck())
 		
-//		if(retopo_mesh_paint_check())
-//			retopo_end_okee();
-		
 		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;

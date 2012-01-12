@@ -4607,8 +4607,6 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 		}
 	}
 
-	// XXX retopo_do_all();
-
 	if(ok) {
 		test2DNurb(nu);
 

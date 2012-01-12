@@ -553,7 +553,6 @@ static void view3d_main_area_free(ARegion *ar)
 		if(rv3d->localvd) MEM_freeN(rv3d->localvd);
 		if(rv3d->clipbb) MEM_freeN(rv3d->clipbb);
 
-		// XXX	retopo_free_view_data(rv3d);
 		if(rv3d->ri) { 
 			// XXX		BIF_view3d_previewrender_free(rv3d);
 		}

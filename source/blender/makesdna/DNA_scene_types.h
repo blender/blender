@@ -920,13 +920,9 @@ typedef struct ToolSettings {
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
 	
-	/* Retopo */
-	char retopo_mode;
-	char retopo_paint_tool;
-	char line_div, ellipse_div, retopo_hotspot;
-
 	/* Multires */
 	char multires_subdiv_type;
+	char pad2[5];
 	
 	/* Skeleton generation */
 	short skgen_resolution;
@@ -1475,15 +1471,6 @@ typedef enum SculptFlags {
 #define PE_TYPE_PARTICLES	0
 #define PE_TYPE_SOFTBODY	1
 #define PE_TYPE_CLOTH		2
-
-/* toolsettings->retopo_mode */
-#define RETOPO 1
-#define RETOPO_PAINT 2
-
-/* toolsettings->retopo_paint_tool */ /*UNUSED*/
-/* #define RETOPO_PEN 1 */
-/* #define RETOPO_LINE 2 */
-/* #define RETOPO_ELLIPSE 4 */
 
 /* toolsettings->skgen_options */
 #define SKGEN_FILTER_INTERNAL	(1 << 0)
