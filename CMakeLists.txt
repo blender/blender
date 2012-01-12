@@ -461,7 +461,8 @@ if(UNIX AND NOT APPLE)
 		# use lib dir if available and nothing else specified
 		if(LIBDIR AND NOT FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
-			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora theoraenc theoradec vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
+			# XXX, some distros might need 'theoraenc theoradec' too
+			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
 		else()
 			set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
 			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
