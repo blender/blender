@@ -1579,6 +1579,10 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	
 	MDeformWeight *dw, *uw;
 
+	/* mirror vars */
+	int index_mirr;
+	int vgroup_mirr;
+
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(dv, wpi->vgroup_active);
 		uw= defvert_find_index(wp->wpaint_prev+index, wpi->vgroup_active);
@@ -1592,6 +1596,16 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		return;
 	}
 
+	/* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
+	if (me->editflag & ME_EDIT_MIRROR_X) {
+		index_mirr = mesh_get_x_mirror_vert(ob, index);
+		vgroup_mirr = (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active;
+	}
+	else {
+		index_mirr =  -1;
+		vgroup_mirr = -1; /* wont be used in this case, only set to avoid warnings */
+	}
+
 	/* TODO: De-duplicate the simple weight paint - jason */
 	/* ... or not, since its <10 SLOC - campbell */
 
@@ -1602,14 +1616,13 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	{
 		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, FALSE);
 
-		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-			int index_mirr= mesh_get_x_mirror_vert(ob, index);
-			if(index_mirr != -1) {
-				MDeformVert *dv_mirr= &me->dvert[index_mirr];
-				/* copy, not paint again */
-				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active);
-				uw->weight= dw->weight;
-			}
+		/* x mirror painting */
+		if(index_mirr != -1) {
+			MDeformVert *dv_mirr = &me->dvert[index_mirr];
+			MDeformWeight *dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+
+			/* copy, not paint again */
+			dw_mirr->weight = dw->weight;
 		}
 
 		/* important to normalize after mirror, otherwise mirror gets weight
@@ -1701,15 +1714,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		(void)dw;  /* quiet warnigns */
 #endif
 
-		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-			int index_mirr= mesh_get_x_mirror_vert(ob, index);
-			if(index_mirr != -1) {
-				MDeformVert *dv_mirr= &me->dvert[index_mirr];
-				/* copy, not paint again */
-				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active);
-				//uw->weight= dw->weight;
-				apply_mp_locks_normalize(me, wpi, index_mirr, uw, tdw, change, oldChange, oldw, neww);
-			}
+		/* x mirror painting */
+		if(index_mirr != -1) {
+			MDeformVert *dv_mirr= &me->dvert[index_mirr];
+			MDeformWeight *dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+			/* copy, not paint again */
+
+			/* dw_mirr->weight = dw->weight; */  /* TODO, explain the logic in not assigning weight! - campbell */
+			apply_mp_locks_normalize(me, wpi, index_mirr, dw_mirr, tdw, change, oldChange, oldw, neww);
 		}
 	}
 }
