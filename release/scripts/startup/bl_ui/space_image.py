@@ -143,7 +143,7 @@ class IMAGE_MT_image(Menu):
                 # only for dirty && specific image types, perhaps
                 # this could be done in operator poll too
                 if ima.is_dirty:
-                    if ima.source in {'FILE', 'GENERATED'} and ima.type != 'MULTILAYER':
+                    if ima.source in {'FILE', 'GENERATED'} and ima.type != 'OPEN_EXR_MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
             layout.separator()
