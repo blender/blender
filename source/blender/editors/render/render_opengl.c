@@ -83,6 +83,9 @@ typedef struct OGLRender {
 	RegionView3D *rv3d;
 	ARegion *ar;
 
+	ScrArea *prevsa;
+	ARegion *prevar;
+
 	short obcenter_dia_back; /* temp overwrite */
 
 	Image *ima;
@@ -250,6 +253,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 {
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
+	ScrArea *prevsa= CTX_wm_area(C);
+	ARegion *prevar= CTX_wm_region(C);
 	RenderResult *rr;
 	GPUOffScreen *ofs;
 	OGLRender *oglrender;
@@ -318,6 +323,9 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->obcenter_dia_back = U.obcenter_dia;
 	U.obcenter_dia = 0;
 
+	oglrender->prevsa= prevsa;
+	oglrender->prevar= prevar;
+
 	if(is_view_context) {
 		oglrender->v3d= CTX_wm_view3d(C);
 		oglrender->ar= CTX_wm_region(C);
@@ -380,6 +388,9 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	GPU_offscreen_free(oglrender->ofs);
 
 	oglrender->scene->customdata_mask_modal= 0;
+
+	CTX_wm_area_set(C, oglrender->prevsa);
+	CTX_wm_region_set(C, oglrender->prevar);
 
 	MEM_freeN(oglrender);
 }
