@@ -201,7 +201,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
+	int filter, mapping_flag;
 	
 	SpaceIpo *sipo= (SpaceIpo *)ac->sl;
 	KeyframeEditData ked;
@@ -226,8 +226,12 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	ked.data= &rectf;
 	
 	/* treat handles separately? */
-	if (incl_handles)
+	if (incl_handles) {
 		ked.iterflags |= KEYFRAME_ITER_INCL_HANDLES;
+		mapping_flag= 0;
+	}
+	else
+		mapping_flag= ANIM_UNITCONV_ONLYKEYS;
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -235,7 +239,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, mapping_flag);
 		
 		/* apply NLA mapping to all the keyframes, since it's easier than trying to
 		 * guess when a callback might use something different
@@ -274,7 +278,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, incl_handles==0);
 			
 		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|ANIM_UNITCONV_ONLYKEYS);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|mapping_flag);
 	}
 	
 	/* cleanup */
