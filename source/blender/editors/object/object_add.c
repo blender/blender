@@ -226,20 +226,18 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
 		int a, values[20], layer;
-		
+
 		if(v3d) {
 			layer = (v3d->scenelock && !v3d->localvd)? scene->layact: v3d->layact;
-
-			for(a=0; a<20; a++)
-				values[a]= (layer & (1<<a));
 		}
 		else {
 			layer = scene->layact;
-
-			for(a=0; a<20; a++)
-				values[a]= (layer & (1<<a));
 		}
-		
+
+		for (a=0; a<20; a++) {
+			values[a]= (layer & (1<<a));
+		}
+
 		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 }
