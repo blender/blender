@@ -3178,6 +3178,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			bglPolygonOffset(rv3d->dist, 0.0);
 			glDepthMask(1);
 			glDisable(GL_LINE_STIPPLE);
+			glDisable(GL_BLEND);
 
 			GPU_disable_material();
 			
