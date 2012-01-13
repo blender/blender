@@ -137,7 +137,7 @@ EnumPropertyItem snap_element_items[] = {
 #endif
 
 #ifdef WITH_OPENEXR
-#  define R_IMF_ENUM_EXR_MULTI  {R_IMF_IMTYPE_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", "Output image in multilayer OpenEXR format"},
+#  define R_IMF_ENUM_EXR_MULTI  {R_IMF_IMTYPE_MULTILAYER, "OPEN_EXR_MULTILAYER", ICON_FILE_IMAGE, "OpenEXR MultiLayer", "Output image in multilayer OpenEXR format"},
 #  define R_IMF_ENUM_EXR        {R_IMF_IMTYPE_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", "Output image in OpenEXR format"},
 #else
 #  define R_IMF_ENUM_EXR_MULTI
