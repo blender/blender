@@ -1062,76 +1062,32 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-
-#if 0 /* UNUSED */
-static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
-					   int paint_nr, char *map)
-{
-//	MDeformWeight *dw = dvert->dw;
-	float sum=0.0f, fac=0.0f, paintw=0.0f;
-	int i, tot=0;
-
-	if (!map)
-		return;
-
-	for (i=0; i<dvert->totweight; i++) {
-		if (dvert->dw[i].def_nr == paint_nr)
-			paintw = dvert->dw[i].weight;
-
-		if (map[dvert->dw[i].def_nr]) {
-			tot += 1;
-			if (dvert->dw[i].def_nr != paint_nr)
-				sum += dvert->dw[i].weight;
-		}
-	}
-	
-	if (!tot || sum <= (1.0f - paintw))
-		return;
-
-	fac = sum / (1.0f - paintw);
-	fac = fac==0.0f ? 1.0f : 1.0f / fac;
-
-	for (i=0; i<dvert->totweight; i++) {
-		if (map[dvert->dw[i].def_nr]) {
-			if (dvert->dw[i].def_nr != paint_nr)
-				dvert->dw[i].weight *= fac;
-		}
-	}
-}
-#endif
-
 /* the active group should be involved in auto normalize */
-static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, const int defbase_tot,
-                                                      const char *vgroup_validmap, char do_auto_normalize)
+static void do_weight_paint_normalize_all(MDeformVert *dvert, const int defbase_tot, const char *vgroup_validmap)
 {
-	if (do_auto_normalize == FALSE) {
-		return;
-	}
-	else {
-		float sum= 0.0f, fac;
-		unsigned int i, tot=0;
-		MDeformWeight *dw;
+	float sum= 0.0f, fac;
+	unsigned int i, tot=0;
+	MDeformWeight *dw;
 
-		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
-			if (dw->def_nr < defbase_tot) {
-				if (vgroup_validmap[dw->def_nr]) {
-					tot++;
-					sum += dw->weight;
-				}
+	for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+		if (dw->def_nr < defbase_tot) {
+			if (vgroup_validmap[dw->def_nr]) {
+				tot++;
+				sum += dw->weight;
 			}
 		}
+	}
 
-		if ((tot == 0) || (sum == 1.0f) || (sum == 0.0f)) {
-			return;
-		}
+	if ((tot == 0) || (sum == 1.0f) || (sum == 0.0f)) {
+		return;
+	}
 
-		fac= 1.0f / sum;
+	fac= 1.0f / sum;
 
-		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
-			if (dw->def_nr < defbase_tot) {
-				if (vgroup_validmap[dw->def_nr]) {
-					dw->weight *= fac;
-				}
+	for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+		if (dw->def_nr < defbase_tot) {
+			if (vgroup_validmap[dw->def_nr]) {
+				dw->weight *= fac;
 			}
 		}
 	}
@@ -1526,7 +1482,9 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 
 	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags, wpi->vgroup_validmap, wpi->do_auto_normalize, wpi->do_multipaint);
 
-	do_weight_paint_auto_normalize_all_groups(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->do_auto_normalize);
+	if (wpi->do_auto_normalize) {
+		do_weight_paint_normalize_all(dv, wpi->defbase_tot, wpi->vgroup_validmap);
+	}
 
 	if(oldChange && wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
 		if(tdw->weight != oldw) {
@@ -1629,7 +1587,9 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		 * which has already been scaled down in relation to other weights,
 		 * then scales a second time [#26193]. Tricky multi-paint code doesn't
 		 * suffer from this problem - campbell */
-		do_weight_paint_auto_normalize_all_groups(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->do_auto_normalize);
+		if (wpi->do_auto_normalize) {
+			do_weight_paint_normalize_all(dv, wpi->defbase_tot, wpi->vgroup_validmap);
+		}
 	}
 	else {
 		/* use locks and/or multipaint */
