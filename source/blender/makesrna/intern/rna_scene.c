@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -869,9 +868,10 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf
 #endif
 #endif
 
-static void rna_RenderSettings_ffmpegsettings_lossless_output_set(PointerRNA *ptr, int value)
+static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 {
-	RenderData *rd = (RenderData*)ptr->data;
+	Scene *scene = (Scene *) ptr->id.data;
+	RenderData *rd = &scene->r;
 
 	if (value)
 		rd->ffcodecdata.flags |= FFMPEG_LOSSLESS_OUTPUT;
@@ -2654,6 +2654,269 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 }
 
+static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+#ifdef WITH_FFMPEG
+	static EnumPropertyItem ffmpeg_format_items[] = {
+		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
+		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
+		{FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
+		{FFMPEG_AVI, "AVI", 0, "AVI", ""},
+		{FFMPEG_MOV, "QUICKTIME", 0, "Quicktime", ""},
+		{FFMPEG_DV, "DV", 0, "DV", ""},
+		{FFMPEG_H264, "H264", 0, "H.264", ""},
+		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},
+		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
+		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
+		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
+		{FFMPEG_WAV, "WAV", 0, "Wav", ""},
+		{FFMPEG_MP3, "MP3", 0, "Mp3", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem ffmpeg_codec_items[] = {
+		{CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
+		{CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
+		{CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
+		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
+		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
+		{CODEC_ID_H264, "H264", 0, "H.264", ""},
+		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
+		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
+		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
+		{CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{CODEC_ID_MP2, "MP2", 0, "MP2", ""},
+		{CODEC_ID_MP3, "MP3", 0, "MP3", ""},
+		{CODEC_ID_AC3, "AC3", 0, "AC3", ""},
+		{CODEC_ID_AAC, "AAC", 0, "AAC", ""},
+		{CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
+		{CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
+		{CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
+		{0, NULL, 0, NULL, NULL}};
+#endif
+
+	static EnumPropertyItem audio_channel_items[] = {
+		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna = RNA_def_struct(brna, "FFmpegSettings", NULL);
+	RNA_def_struct_sdna(srna, "FFMpegCodecData");
+	RNA_def_struct_ui_text(srna, "FFmpeg Settings", "FFmpeg related settings for the scene");
+
+#ifdef WITH_FFMPEG
+	prop = RNA_def_property(srna, "format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, ffmpeg_format_items);
+	RNA_def_property_ui_text(prop, "Format", "Output file format");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "codec");
+	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
+	RNA_def_property_ui_text(prop, "Codec", "FFmpeg codec to use");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "video_bitrate");
+	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "minrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "rc_min_rate");
+	RNA_def_property_range(prop, 0, 9000);
+	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "maxrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "rc_max_rate");
+	RNA_def_property_range(prop, 1, 14000);
+	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "muxrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mux_rate");
+	RNA_def_property_range(prop, 0, 100000000);
+	RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/s(!))");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "gopsize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "gop_size");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "GOP Size", "Distance between key frames");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "buffersize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "rc_buffer_size");
+	RNA_def_property_range(prop, 0, 2000);
+	RNA_def_property_ui_text(prop, "Buffersize", "Rate control: buffer size (kb)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "packetsize", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mux_packet_size");
+	RNA_def_property_range(prop, 0, 16384);
+	RNA_def_property_ui_text(prop, "Mux Packet Size", "Mux packet size (byte)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "use_autosplit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_AUTOSPLIT_OUTPUT);
+	RNA_def_property_ui_text(prop, "Autosplit Output", "Autosplit output at 2GB boundary");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use_lossless_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_LOSSLESS_OUTPUT);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_FFmpegSettings_lossless_output_set");
+	RNA_def_property_ui_text(prop, "Lossless Output", "Use losslecc output for video streams");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* FFMPEG Audio*/
+	prop = RNA_def_property(srna, "audio_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audio_codec");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, ffmpeg_audio_codec_items);
+	RNA_def_property_ui_text(prop, "Audio Codec", "FFmpeg audio codec to use");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "audio_bitrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "audio_bitrate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 32, 384);
+	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate (kb/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "audio_volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "audio_volume");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+
+	// the following two "ffmpeg" settings are general audio settings
+	prop= RNA_def_property(srna, "audio_mixrate", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "audio_mixrate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 8000, 192000);
+	RNA_def_property_ui_text(prop, "Samplerate", "Audio samplerate(samples/s)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "audio_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "audio_channels");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, audio_channel_items);
+	RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
+}
+
+#ifdef WITH_QUICKTIME
+static void rna_def_scene_quicktime_settings(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem quicktime_codec_type_items[] = {
+		{0, "codec", 0, "codec", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+#ifdef USE_QTKIT
+	static EnumPropertyItem quicktime_audio_samplerate_items[] = {
+		{22050, "22050", 0, "22kHz", ""},
+		{44100, "44100", 0, "44.1kHz", ""},
+		{48000, "48000", 0, "48kHz", ""},
+		{88200, "88200", 0, "88.2kHz", ""},
+		{96000, "96000", 0, "96kHz", ""},
+		{192000, "192000", 0, "192kHz", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem quicktime_audio_bitdepth_items[] = {
+		{AUD_FORMAT_U8, "8BIT", 0, "8bit", ""},
+		{AUD_FORMAT_S16, "16BIT", 0, "16bit", ""},
+		{AUD_FORMAT_S24, "24BIT", 0, "24bit", ""},
+		{AUD_FORMAT_S32, "32BIT", 0, "32bit", ""},
+		{AUD_FORMAT_FLOAT32, "FLOAT32", 0, "float32", ""},
+		{AUD_FORMAT_FLOAT64, "FLOAT64", 0, "float64", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem quicktime_audio_bitrate_items[] = {
+		{64000, "64000", 0, "64kbps", ""},
+		{112000, "112000", 0, "112kpbs", ""},
+		{128000, "128000", 0, "128kbps", ""},
+		{192000, "192000", 0, "192kbps", ""},
+		{256000, "256000", 0, "256kbps", ""},
+		{320000, "320000", 0, "320kbps", ""},
+		{0, NULL, 0, NULL, NULL}};
+#endif
+
+	/* QuickTime */
+	srna = RNA_def_struct(brna, "QuickTimeSettings", NULL);
+	RNA_def_struct_sdna(srna, "QuickTimeCodecData");
+	RNA_def_struct_ui_text(srna, "QuickTime Settings", "QuickTime related settings for the scene");
+
+	prop = RNA_def_property(srna, "codec_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "codecType");
+	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_qtcodecsettings_codecType_get",
+								"rna_RenderSettings_qtcodecsettings_codecType_set",
+								"rna_RenderSettings_qtcodecsettings_codecType_itemf");
+	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "codec_spatial_quality", PROP_INT, PROP_PERCENTAGE);
+	RNA_def_property_int_sdna(prop, NULL, "codecSpatialQuality");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+#ifdef USE_QTKIT
+	prop = RNA_def_property(srna, "audiocodec_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audiocodecType");
+	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_qtcodecsettings_audiocodecType_get",
+								"rna_RenderSettings_qtcodecsettings_audiocodecType_set",
+								"rna_RenderSettings_qtcodecsettings_audiocodecType_itemf");
+	RNA_def_property_ui_text(prop, "Audio Codec", "QuickTime audio codec type");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "audio_samplerate", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audioSampleRate");
+	RNA_def_property_enum_items(prop, quicktime_audio_samplerate_items);
+	RNA_def_property_ui_text(prop, "Smp Rate", "Sample Rate");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "audio_bitdepth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audioBitDepth");
+	RNA_def_property_enum_items(prop, quicktime_audio_bitdepth_items);
+	RNA_def_property_ui_text(prop, "Bit Depth", "Bit Depth");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "audio_resampling_hq", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "audioCodecFlags", QTAUDIO_FLAG_RESAMPLE_NOHQ);
+	RNA_def_property_ui_text(prop, "HQ", "Use High Quality resampling algorithm");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "audio_codec_isvbr", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "audioCodecFlags", QTAUDIO_FLAG_CODEC_ISCBR);
+	RNA_def_property_ui_text(prop, "VBR", "Use Variable Bit Rate compression (improves quality at same bitrate)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "audio_bitrate", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audioBitRate");
+	RNA_def_property_enum_items(prop, quicktime_audio_bitrate_items);
+	RNA_def_property_ui_text(prop, "Bitrate", "Compressed audio bitrate");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+}
+#endif
+
 static void rna_def_scene_render_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2744,95 +3007,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
-	
-#ifdef	WITH_QUICKTIME
-	static EnumPropertyItem quicktime_codec_type_items[] = {
-		{0, "codec", 0, "codec", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-#ifdef USE_QTKIT
-	static EnumPropertyItem quicktime_audio_samplerate_items[] = {
-		{22050, "22050", 0, "22kHz", ""},
-		{44100, "44100", 0, "44.1kHz", ""},
-		{48000, "48000", 0, "48kHz", ""},
-		{88200, "88200", 0, "88.2kHz", ""},
-		{96000, "96000", 0, "96kHz", ""},
-		{192000, "192000", 0, "192kHz", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem quicktime_audio_bitdepth_items[] = {
-		{AUD_FORMAT_U8, "8BIT", 0, "8bit", ""},
-		{AUD_FORMAT_S16, "16BIT", 0, "16bit", ""},
-		{AUD_FORMAT_S24, "24BIT", 0, "24bit", ""},
-		{AUD_FORMAT_S32, "32BIT", 0, "32bit", ""},
-		{AUD_FORMAT_FLOAT32, "FLOAT32", 0, "float32", ""},
-		{AUD_FORMAT_FLOAT64, "FLOAT64", 0, "float64", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem quicktime_audio_bitrate_items[] = {
-		{64000, "64000", 0, "64kbps", ""},
-		{112000, "112000", 0, "112kpbs", ""},
-		{128000, "128000", 0, "128kbps", ""},
-		{192000, "192000", 0, "192kbps", ""},
-		{256000, "256000", 0, "256kbps", ""},
-		{320000, "320000", 0, "320kbps", ""},
-		{0, NULL, 0, NULL, NULL}};
-#endif
-#endif
-
-#ifdef WITH_FFMPEG
-	static EnumPropertyItem ffmpeg_format_items[] = {
-		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
-		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
-		{FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
-		{FFMPEG_AVI, "AVI", 0, "AVI", ""},
-		{FFMPEG_MOV, "QUICKTIME", 0, "Quicktime", ""},
-		{FFMPEG_DV, "DV", 0, "DV", ""},
-		{FFMPEG_H264, "H264", 0, "H.264", ""},
-		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},
-		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
-		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
-		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
-		{FFMPEG_WAV, "WAV", 0, "Wav", ""},
-		{FFMPEG_MP3, "MP3", 0, "Mp3", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem ffmpeg_codec_items[] = {
-		{CODEC_ID_NONE, "NONE", 0, "None", ""},
-		{CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
-		{CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
-		{CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
-		{CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
-		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
-		{CODEC_ID_H264, "H264", 0, "H.264", ""},
-		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
-		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
-		{CODEC_ID_NONE, "NONE", 0, "None", ""},
-		{CODEC_ID_MP2, "MP2", 0, "MP2", ""},
-		{CODEC_ID_MP3, "MP3", 0, "MP3", ""},
-		{CODEC_ID_AC3, "AC3", 0, "AC3", ""},
-		{CODEC_ID_AAC, "AAC", 0, "AAC", ""},
-		{CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
-		{CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
-		{CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
-		{0, NULL, 0, NULL, NULL}};
-#endif
-
-	static EnumPropertyItem audio_channel_items[] = {
-		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
-		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
-		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
-		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
-		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem engine_items[] = {
 		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
 		{0, NULL, 0, NULL, NULL}};
+
+	rna_def_scene_ffmpeg_settings(brna);
+#ifdef WITH_QUICKTIME
+	rna_def_scene_quicktime_settings(brna);
+#endif
 
 	srna= RNA_def_struct(brna, "RenderSettings", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
@@ -2891,167 +3074,18 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 
 #ifdef WITH_QUICKTIME
-	/* QuickTime */
-	
-	prop= RNA_def_property(srna, "quicktime_codec_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.codecType");
-	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
-	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_qtcodecsettings_codecType_get",
-								"rna_RenderSettings_qtcodecsettings_codecType_set",
-								"rna_RenderSettings_qtcodecsettings_codecType_itemf");
-	RNA_def_property_ui_text(prop, "Codec", "QuickTime codec type");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "quicktime_codec_spatial_quality", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "qtcodecsettings.codecSpatialQuality");
-	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#ifdef USE_QTKIT
-	prop= RNA_def_property(srna, "quicktime_audiocodec_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audiocodecType");
-	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
-	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_qtcodecsettings_audiocodecType_get",
-								"rna_RenderSettings_qtcodecsettings_audiocodecType_set",
-								"rna_RenderSettings_qtcodecsettings_audiocodecType_itemf");
-	RNA_def_property_ui_text(prop, "Audio Codec", "QuickTime audio codec type");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "quicktime_audio_samplerate", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioSampleRate");
-	RNA_def_property_enum_items(prop, quicktime_audio_samplerate_items);
-	RNA_def_property_ui_text(prop, "Smp Rate", "Sample Rate");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "quicktime_audio_bitdepth", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioBitDepth");
-	RNA_def_property_enum_items(prop, quicktime_audio_bitdepth_items);
-	RNA_def_property_ui_text(prop, "Bit Depth", "Bit Depth");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "quicktime_audio_resampling_hq", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "qtcodecsettings.audioCodecFlags", QTAUDIO_FLAG_RESAMPLE_NOHQ);
-	RNA_def_property_ui_text(prop, "HQ", "Use High Quality resampling algorithm");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "quicktime_audio_codec_isvbr", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "qtcodecsettings.audioCodecFlags", QTAUDIO_FLAG_CODEC_ISCBR);
-	RNA_def_property_ui_text(prop, "VBR", "Use Variable Bit Rate compression (improves quality at same bitrate)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-	prop= RNA_def_property(srna, "quicktime_audio_bitrate", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioBitRate");
-	RNA_def_property_enum_items(prop, quicktime_audio_bitrate_items);
-	RNA_def_property_ui_text(prop, "Bitrate", "Compressed audio bitrate");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);	
-#endif
-#endif
-	
-#ifdef WITH_FFMPEG
-	/* FFMPEG Video*/
-	
-	prop= RNA_def_property(srna, "ffmpeg_format", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.type");
-	RNA_def_property_enum_items(prop, ffmpeg_format_items);
-	RNA_def_property_ui_text(prop, "Format", "Output file format");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_codec", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.codec");
-	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
-	RNA_def_property_ui_text(prop, "Codec", "FFMpeg codec to use");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_video_bitrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.video_bitrate");
-	RNA_def_property_range(prop, 1, 14000);
-	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_minrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_min_rate");
-	RNA_def_property_range(prop, 0, 9000);
-	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_maxrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_max_rate");
-	RNA_def_property_range(prop, 1, 14000);
-	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_muxrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.mux_rate");
-	RNA_def_property_range(prop, 0, 100000000);
-	RNA_def_property_ui_text(prop, "Mux Rate", "Mux rate (bits/s(!))");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_gopsize", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.gop_size");
-	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "GOP Size", "Distance between key frames");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_buffersize", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_buffer_size");
-	RNA_def_property_range(prop, 0, 2000);
-	RNA_def_property_ui_text(prop, "Buffersize", "Rate control: buffer size (kb)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_packetsize", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.mux_packet_size");
-	RNA_def_property_range(prop, 0, 16384);
-	RNA_def_property_ui_text(prop, "Mux Packet Size", "Mux packet size (byte)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_autosplit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_AUTOSPLIT_OUTPUT);
-	RNA_def_property_ui_text(prop, "Autosplit Output", "Autosplit output at 2GB boundary");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-	prop= RNA_def_property(srna, "ffmpeg_lossless_output", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_LOSSLESS_OUTPUT);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_RenderSettings_ffmpegsettings_lossless_output_set");
-	RNA_def_property_ui_text(prop, "Lossless Output", "Use losslecc output for video streams");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-	/* FFMPEG Audio*/
-	prop= RNA_def_property(srna, "ffmpeg_audio_codec", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.audio_codec");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_items(prop, ffmpeg_audio_codec_items);
-	RNA_def_property_ui_text(prop, "Audio Codec", "FFMpeg audio codec to use");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_audio_bitrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_bitrate");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 32, 384);
-	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate (kb/s)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
-	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ffcodecdata.audio_volume");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	prop= RNA_def_property(srna, "quicktime", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "QuickTimeSettings");
+	RNA_def_property_pointer_sdna(prop, NULL, "qtcodecsettings");
+	RNA_def_property_flag(prop, PROP_NEVER_UNLINK);
+	RNA_def_property_ui_text(prop, "QuickTime Settings", "QuickTime related settings for the scene");
 #endif
 
-	// the following two "ffmpeg" settings are general audio settings
-	prop= RNA_def_property(srna, "ffmpeg_audio_mixrate", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_mixrate");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 8000, 192000);
-	RNA_def_property_ui_text(prop, "Samplerate", "Audio samplerate(samples/s)");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-	prop= RNA_def_property(srna, "ffmpeg_audio_channels", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ffcodecdata.audio_channels");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_items(prop, audio_channel_items);
-	RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
+	prop= RNA_def_property(srna, "ffmpeg", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FFmpegSettings");
+	RNA_def_property_pointer_sdna(prop, NULL, "ffcodecdata");
+	RNA_def_property_flag(prop, PROP_NEVER_UNLINK);
+	RNA_def_property_ui_text(prop, "FFmpeg Settings", "FFmpeg related settings for the scene");
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");

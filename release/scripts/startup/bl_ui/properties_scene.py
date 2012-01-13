@@ -54,6 +54,7 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
         layout = self.layout
         scene = context.scene
         rd = context.scene.render
+        ffmpeg = rd.ffmpeg
 
         layout.prop(scene, "audio_volume")
         layout.operator("sound.bake_animation")
@@ -68,8 +69,8 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
         col = split.column()
         col.label("Format:")
-        col.prop(rd, "ffmpeg_audio_channels", text="")
-        col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")
+        col.prop(ffmpeg, "audio_channels", text="")
+        col.prop(ffmpeg, "audio_mixrate", text="Rate")
 
         layout.operator("sound.mixdown")
 
