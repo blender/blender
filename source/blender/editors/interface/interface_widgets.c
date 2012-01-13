@@ -130,9 +130,12 @@ typedef struct uiWidgetType {
 static float cornervec[WIDGET_CURVE_RESOLU][2]= {{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169},
 {0.707, 0.293}, {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}};
 
-static float jit[8][2]= {{0.468813 , -0.481430}, {-0.155755 , -0.352820}, 
-{0.219306 , -0.238501},  {-0.393286 , -0.110949}, {-0.024699 , 0.013908}, 
-{0.343805 , 0.147431}, {-0.272855 , 0.269918}, {0.095909 , 0.388710}};
+#define WIDGET_AA_JITTER 8
+static float jit[WIDGET_AA_JITTER][2]= {
+    { 0.468813 , -0.481430}, {-0.155755 , -0.352820},
+    { 0.219306 , -0.238501}, {-0.393286 , -0.110949},
+    {-0.024699 ,  0.013908}, { 0.343805 ,  0.147431},
+    {-0.272855 ,  0.269918}, { 0.095909 ,  0.388710}};
 
 static float num_tria_vert[3][2]= { 
 {-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.330000, -0.008353}};
@@ -192,7 +195,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glVertexPointer(2, GL_FLOAT, 0, tri_arr);
 
 	/* for each AA step */
-	for(j=0; j<8; j++) {
+	for (j = 0; j < WIDGET_AA_JITTER; j++) {
 		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
@@ -212,7 +215,7 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 	color[3] *= 0.125f;
 	glColor4fv(color);
 	
-	for(j=0; j<8; j++) {
+	for (j = 0;  j < WIDGET_AA_JITTER; j++) {
 		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 		uiDrawBox(mode, minx, miny, maxx, maxy, rad);
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
@@ -749,6 +752,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		float quad_strip[WIDGET_SIZE_MAX*2+2][2]; /* + 2 because the last pair is wrapped */
 		float quad_strip_emboss[WIDGET_SIZE_MAX*2][2]; /* only for emboss */
 
+		const GLubyte tcol[4] = {wcol->outline[0],
+		                         wcol->outline[1],
+		                         wcol->outline[2],
+		                         wcol->outline[3] / (WIDGET_AA_JITTER / 2)};
+
 		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
 
 		if(wtb->emboss) {
@@ -757,11 +765,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 
-		for(j=0; j<8; j++) {
+		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 			
 			/* outline */
-			glColor4ub(wcol->outline[0], wcol->outline[1], wcol->outline[2], 32);
+			glColor4ubv(tcol);
 
 			glVertexPointer(2, GL_FLOAT, 0, quad_strip);
 			glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert*2 + 2);
@@ -782,16 +790,20 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	
 	/* decoration */
 	if(wtb->tria1.tot || wtb->tria2.tot) {
+		const GLubyte tcol[4] = {wcol->item[0],
+		                         wcol->item[1],
+		                         wcol->item[2],
+		                         wcol->item[3] / (WIDGET_AA_JITTER / 2)};
 		/* for each AA step */
-		for(j=0; j<8; j++) {
+		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 
 			if(wtb->tria1.tot) {
-				glColor4ub(wcol->item[0], wcol->item[1], wcol->item[2], 32);
+				glColor4ubv(tcol);
 				widget_trias_draw(&wtb->tria1);
 			}
 			if(wtb->tria2.tot) {
-				glColor4ub(wcol->item[0], wcol->item[1], wcol->item[2], 32);
+				glColor4ubv(tcol);
 				widget_trias_draw(&wtb->tria2);
 			}
 		
