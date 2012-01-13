@@ -26,6 +26,27 @@ There are 3 main uses for the terminal, these are:
    For Linux and OSX users this means starting the terminal first, then running blender from within it. On Windows the terminal can be enabled from the help menu.
 
 
+Interface Tricks
+================
+
+
+Access Operator Commands
+------------------------
+
+You may have noticed that the tooltip for menu items and buttons includes the ``bpy.ops``... command to run that button, a handy (hidden) feature is that you can press Ctrl+C over any menu item/button to copy this command into the clipboard.
+
+
+Access Data Path
+----------------
+
+To find the path from an :class:`ID` datablock to its setting isn't always so simple since it may be nested away. To get this quickly you can right click on the setting and select select **Copy Data Path**,
+if this can't be generated, only the property name is copied.
+
+.. note::
+
+   This uses the same method for creating the animation path used by :class:`FCurve.data_path` and :class:`DriverTarget.data_path` drivers.
+
+
 Show All Operators
 ==================
 

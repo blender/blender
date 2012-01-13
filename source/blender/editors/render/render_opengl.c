@@ -46,6 +46,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -257,6 +258,11 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	const short is_animation= RNA_boolean_get(op->ptr, "animation");
 	const short is_write_still= RNA_boolean_get(op->ptr, "write_still");
 	char err_out[256]= "unknown";
+
+	if(G.background) {
+		BKE_report(op->reports, RPT_ERROR, "Can't use OpenGL render in background mode (no opengl context)");
+		return 0;
+	}
 
 	/* ensure we have a 3d view */
 
