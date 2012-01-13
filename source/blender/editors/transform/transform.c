@@ -2632,7 +2632,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	/* local constraint shouldn't alter center */
 	if ((t->around == V3D_LOCAL) &&
 	        (   (t->flag & (T_OBJECT|T_POSE)) ||
-	            ((t->flag & T_EDIT) && (t->settings->selectmode & SCE_SELECT_FACE)) ||
+	            ((t->flag & T_EDIT) && (t->settings->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE))) ||
 	            (t->obedit && t->obedit->type == OB_ARMATURE))
 	        )
 	{
@@ -2919,7 +2919,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	/* local constraint shouldn't alter center */
 	if (around == V3D_LOCAL) {
 		if (    (t->flag & (T_OBJECT|T_POSE)) ||
-		        (t->settings->selectmode & SCE_SELECT_FACE) ||
+	            (t->settings->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) ||
 		        (t->obedit && t->obedit->type == OB_ARMATURE))
 		{
 			center = td->center;
