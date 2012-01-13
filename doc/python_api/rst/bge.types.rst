@@ -1765,33 +1765,29 @@ Game Types (bge.types)
       #. Polygon shape (triangle/quad)
       #. Game Object
 
-   #. Verticies will be split by face if necessary.  Verticies can only be shared between faces if:
+   #. Vertices will be split by face if necessary.  Vertices can only be shared between faces if:
 
       #. They are at the same position
       #. UV coordinates are the same
       #. Their normals are the same (both polygons are "Set Smooth")
-      #. They are the same colour, for example: a cube has 24 verticies: 6 faces with 4 verticies per face.
+      #. They are the same colour, for example: a cube has 24 vertices: 6 faces with 4 vertices per face.
 
    The correct method of iterating over every :class:`KX_VertexProxy` in a game object
    
    .. code-block:: python
 
-      import GameLogic
+      from bge import logic
 
-      co = GameLogic.getCurrentController()
-      obj = co.owner
+      cont = logic.getCurrentController()
+      object = cont.owner
 
-      m_i = 0
-      mesh = obj.getMesh(m_i) # There can be more than one mesh...
-      while mesh != None:
-         for mat in range(mesh.getNumMaterials()):
+      for mesh in object.meshes:
+         for material in mesh.materials:
             for v_index in range(mesh.getVertexArrayLength(mat)):
                vertex = mesh.getVertex(mat, v_index)
                # Do something with vertex here...
                # ... eg: colour the vertex red.
                vertex.colour = [1.0, 0.0, 0.0, 1.0]
-         m_i += 1
-         mesh = obj.getMesh(m_i)
 
    .. attribute:: materials
 
@@ -2401,135 +2397,53 @@ Game Types (bge.types)
 
       Some of the methods/variables are CObjects.  If you mix these up, you will crash blender.
 
-   This example requires `PyOpenGL <http://pyopengl.sourceforge.net>`_ and `GLEWPy <http://glewpy.sourceforge.net>`_
-
    .. code-block:: python
 
-      import GameLogic
-      import OpenGL
-      from OpenGL.GL import *
-      from OpenGL.GLU import *
-      import glew
-      from glew import *
-      
-      glewInit()
+      from bge import logic
       
       vertex_shader = """
       
       void main(void)
       {
+         // original vertex position, no changes
          gl_Position = ftransform();
+         // coordinate of the 1st texture channel
+         gl_TexCoord[0] = gl_MultiTexCoord0;
+         // coordinate of the 2nd texture channel
+         gl_TexCoord[1] = gl_MultiTexCoord1;
       }
       """
       
       fragment_shader ="""
-      
+
+      uniform sampler2D color_0;
+      uniform sampler2D color_1;
+      uniform float factor;
+
       void main(void)
       {
-         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+         vec4 color_0 = texture2D(color_0, gl_TexCoord[0].st);
+         vec4 color_1 = texture2D(color_1, gl_TexCoord[1].st);
+         gl_FragColor = mix(color_0, color_1, factor);
       }
       """
-      
-      class MyMaterial:
-         def __init__(self):
-            self.pass_no = 0
-            # Create a shader
-            self.m_program = glCreateProgramObjectARB()
-            # Compile the vertex shader
-            self.shader(GL_VERTEX_SHADER_ARB, (vertex_shader))
-            # Compile the fragment shader
-            self.shader(GL_FRAGMENT_SHADER_ARB, (fragment_shader))
-            # Link the shaders together
-            self.link()
-            
-         def PrintInfoLog(self, tag, object):
-            """
-            PrintInfoLog prints the GLSL compiler log
-            """
-            print "Tag:    def PrintGLError(self, tag = ""):
-            
-         def PrintGLError(self, tag = ""):
-            """
-            Prints the current GL error status
-            """
-            if len(tag):
-               print tag
-            err = glGetError()
-            if err != GL_NO_ERROR:
-               print "GL Error: %s\\n"%(gluErrorString(err))
-      
-         def shader(self, type, shaders):
-            """
-            shader compiles a GLSL shader and attaches it to the current
-            program.
-            
-            type should be either GL_VERTEX_SHADER_ARB or GL_FRAGMENT_SHADER_ARB
-            shaders should be a sequence of shader source to compile.
-            """
-            # Create a shader object
-            shader_object = glCreateShaderObjectARB(type)
-      
-            # Add the source code
-            glShaderSourceARB(shader_object, len(shaders), shaders)
-            
-            # Compile the shader
-            glCompileShaderARB(shader_object)
-            
-            # Print the compiler log
-            self.PrintInfoLog("vertex shader", shader_object)
-            
-            # Check if compiled, and attach if it did
-            compiled = glGetObjectParameterivARB(shader_object, GL_OBJECT_COMPILE_STATUS_ARB)
-            if compiled:
-               glAttachObjectARB(self.m_program, shader_object)
-               
-            # Delete the object (glAttachObjectARB makes a copy)
-            glDeleteObjectARB(shader_object)
-            
-            # print the gl error log
-            self.PrintGLError()
-            
-         def link(self):
-            """
-            Links the shaders together.
-            """
-            # clear error indicator
-            glGetError()
-            
-            glLinkProgramARB(self.m_program)
-      
-            self.PrintInfoLog("link", self.m_program)
-         
-            linked = glGetObjectParameterivARB(self.m_program, GL_OBJECT_LINK_STATUS_ARB)
-            if not linked:
-               print "Shader failed to link"
-               return
-      
-            glValidateProgramARB(self.m_program)
-            valid = glGetObjectParameterivARB(self.m_program, GL_OBJECT_VALIDATE_STATUS_ARB)
-            if not valid:
-               print "Shader failed to validate"
-               return
-            
-         def activate(self, rasty, cachingInfo, mat):
-            self.pass_no+=1
-            if (self.pass_no == 1):
-               glDisable(GL_COLOR_MATERIAL)
-               glUseProgramObjectARB(self.m_program)
-               return True
-            
-            glEnable(GL_COLOR_MATERIAL)
-            glUseProgramObjectARB(0)
-            self.pass_no = 0   
-            return False
 
-      obj = GameLogic.getCurrentController().owner
-      
-      mesh = obj.meshes[0]
-      
-      for mat in mesh.materials:
-         mat.setCustomMaterial(MyMaterial())
-         print mat.texture
+      object = logic.getCurrentController().owner
+      object = cont.owner
+      for mesh in object.meshes:
+          for material in mesh.materials:
+              shader = material.getShader()
+              if shader != None:
+                  if not shader.isValid():
+                      shader.setSource(vertex_shader, fragment_shader, True)
+
+                  # get the first texture channel of the material
+                  shader.setSampler('color_0', 0)
+                  # get the second texture channel of the material
+                  shader.setSampler('color_1', 1)
+                  # pass another uniform to the shader
+                  shader.setUniform1f('factor', 0.3)
+
 
    .. attribute:: texture
 
@@ -2932,7 +2846,7 @@ Game Types (bge.types)
       # +----------+     +-----------+     +-------------------------------------+
       # | Always   +-----+ Python    +-----+ Edit Object (Replace Mesh) LOD.Mesh |
       # +----------+     +-----------+     +-------------------------------------+
-      import GameLogic
+      from bge import logic
 
       # List detail meshes here
       # Mesh (name, near, far)
@@ -2942,16 +2856,16 @@ Game Types (bge.types)
             (".Lo", -40.0, -100.0)
           )
       
-      co = GameLogic.getCurrentController()
-      obj = co.owner
-      act = co.actuators["LOD." + obj.name]
-      cam = GameLogic.getCurrentScene().active_camera
+      cont = logic.getCurrentController()
+      object = cont.owner
+      actuator = cont.actuators["LOD." + obj.name]
+      camera = logic.getCurrentScene().active_camera
       
       def Depth(pos, plane):
         return pos[0]*plane[0] + pos[1]*plane[1] + pos[2]*plane[2] + plane[3]
       
       # Depth is negative and decreasing further from the camera
-      depth = Depth(obj.position, cam.world_to_camera[2])
+      depth = Depth(object.position, camera.world_to_camera[2])
       
       newmesh = None
       curmesh = None
@@ -2959,15 +2873,15 @@ Game Types (bge.types)
       for mesh in meshes:
         if depth < mesh[1] and depth > mesh[2]:
           newmesh = mesh
-        if "ME" + obj.name + mesh[0] == act.getMesh():
+        if "ME" + object.name + mesh[0] == actuator.getMesh():
             curmesh = mesh
       
-      if newmesh != None and "ME" + obj.name + newmesh[0] != act.getMesh():
+      if newmesh != None and "ME" + object.name + newmesh[0] != actuator.mesh:
         # The mesh is a different mesh - switch it.
         # Check the current mesh is not a better fit.
         if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
-          act.mesh = obj.getName() + newmesh[0]
-          GameLogic.addActiveActuator(act, True)
+          actuator.mesh = object.name + newmesh[0]
+          cont.activate(actuator)
 
    .. attribute:: mesh
 
@@ -3003,31 +2917,31 @@ Game Types (bge.types)
 
    .. code-block:: python
 
-      import GameLogic
+      from bge import logic
 
       # get the scene
-      scene = GameLogic.getCurrentScene()
+      scene = logic.getCurrentScene()
 
       # print all the objects in the scene
-      for obj in scene.objects:
-         print obj.name
+      for object in scene.objects:
+         print(object.name)
 
       # get an object named 'Cube'
-      obj = scene.objects["Cube"]
+      object = scene.objects["Cube"]
 
       # get the first object in the scene.
-      obj = scene.objects[0]
+      object = scene.objects[0]
 
    .. code-block:: python
 
       # Get the depth of an object in the camera view.
-      import GameLogic
+      from bge import logic
 
-      obj = GameLogic.getCurrentController().owner
-      cam = GameLogic.getCurrentScene().active_camera
+      object = logic.getCurrentController().owner
+      cam = logic.getCurrentScene().active_camera
 
       # Depth is negative and decreasing further from the camera
-      depth = obj.position[0]*cam.world_to_camera[2][0] + obj.position[1]*cam.world_to_camera[2][1] + obj.position[2]*cam.world_to_camera[2][2] + cam.world_to_camera[2][3]
+      depth = object.position[0]*cam.world_to_camera[2][0] + object.position[1]*cam.world_to_camera[2][1] + object.position[2]*cam.world_to_camera[2][2] + cam.world_to_camera[2][3]
 
    @bug: All attributes are read only at the moment.
 
@@ -4361,9 +4275,9 @@ Game Types (bge.types)
 
       .. code-block:: python
 
-         import GameLogic
-         co = GameLogic.getCurrentController()
-         cam = co.owner
+         from bge import logic
+         cont = logic.getCurrentController()
+         cam = cont.owner
          
          # A sphere of radius 4.0 located at [x, y, z] = [1.0, 1.0, 1.0]
          if (cam.sphereInsideFrustum([1.0, 1.0, 1.0], 4) != cam.OUTSIDE):
@@ -4386,9 +4300,9 @@ Game Types (bge.types)
 
       .. code-block:: python
 
-         import GameLogic
-         co = GameLogic.getCurrentController()
-         cam = co.owner
+         from bge import logic
+         cont = logic.getCurrentController()
+         cam = cont.owner
 
          # Box to test...
          box = []
@@ -4422,9 +4336,9 @@ Game Types (bge.types)
 
       .. code-block:: python
 
-         import GameLogic
-         co = GameLogic.getCurrentController()
-         cam = co.owner
+         from bge import logic
+         cont = logic.getCurrentController()
+         cam = cont.owner
 
          # Test point [0.0, 0.0, 0.0]
          if (cam.pointInsideFrustum([0.0, 0.0, 0.0])):
