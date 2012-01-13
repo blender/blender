@@ -488,7 +488,8 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 
 		if(BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
+			ok= oglrender->mh->append_movie(&scene->r, SFRA, CFRA, (int*)ibuf->rect,
+			                                oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if(ok) {
 				printf("Append frame %d", scene->r.cfra);
 				BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);

@@ -236,13 +236,13 @@ static const char** get_file_extensions(int format)
 }
 
 /* Write a frame to the output file */
-static int write_video_frame(RenderData *rd, AVFrame* frame, ReportList *reports)
+static int write_video_frame(RenderData *rd, int cfra, AVFrame* frame, ReportList *reports)
 {
 	int outsize = 0;
 	int ret, success= 1;
 	AVCodecContext* c = video_stream->codec;
 
-	frame->pts = rd->cfra - rd->sfra;
+	frame->pts = cfra;
 
 	if (rd->mode & R_FIELDS) {
 		frame->top_field_first = ((rd->mode & R_ODDFIELD) != 0);
@@ -918,7 +918,7 @@ static void write_audio_frames(double to_pts)
 }
 #endif
 
-int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) 
+int append_ffmpeg(RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	AVFrame* avframe;
 	int success = 1;
@@ -933,7 +933,7 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 	if(video_stream)
 	{
 		avframe= generate_video_frame((unsigned char*) pixels, reports);
-		success= (avframe && write_video_frame(rd, avframe, reports));
+		success= (avframe && write_video_frame(rd, frame - start_frame, avframe, reports));
 
 		if (ffmpeg_autosplit) {
 			if (avio_tell(outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {

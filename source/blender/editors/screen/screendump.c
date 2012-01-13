@@ -302,7 +302,9 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 		if(sj->dumprect) {
 			
 			if(mh) {
-				if(mh->append_movie(&rd, rd.cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+				if(mh->append_movie(&rd, rd.sfra, rd.cfra, (int *)sj->dumprect,
+				                    sj->dumpsx, sj->dumpsy, &sj->reports))
+				{
 					BKE_reportf(&sj->reports, RPT_INFO, "Appended frame: %d", rd.cfra);
 					printf("Appended frame %d\n", rd.cfra);
 				} else

@@ -362,7 +362,8 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	connsock = -1;
 }
 
-int append_frameserver(RenderData *UNUSED(rd), int frame, int *pixels, int rectx, int recty, ReportList *UNUSED(reports))
+int append_frameserver(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
+                       int rectx, int recty, ReportList *UNUSED(reports))
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
 	if (write_ppm) {
