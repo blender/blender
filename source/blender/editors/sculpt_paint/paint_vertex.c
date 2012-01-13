@@ -390,7 +390,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
 	Mesh *me= ob->data;
 	MFace *mf;
-	MDeformWeight *dw, *uw;
+	MDeformWeight *dw, *dw_prev;
 	int vgroup_active, vgroup_mirror= -1;
 	unsigned int index;
 
@@ -425,8 +425,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 
 				dw= defvert_verify_index(&me->dvert[vidx], vgroup_active);
 				if(dw) {
-					uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup_active);
-					uw->weight= dw->weight; /* set the undo weight */
+					dw_prev= defvert_verify_index(wp->wpaint_prev+vidx, vgroup_active);
+					dw_prev->weight= dw->weight; /* set the undo weight */
 					dw->weight= paintweight;
 
 					if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
@@ -435,12 +435,12 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 							/* copy, not paint again */
 							if(vgroup_mirror != -1) {
 								dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
-								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
+								dw_prev= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
 							} else {
 								dw= defvert_verify_index(me->dvert+j, vgroup_active);
-								uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_active);
+								dw_prev= defvert_verify_index(wp->wpaint_prev+j, vgroup_active);
 							}
-							uw->weight= dw->weight; /* set the undo weight */
+							dw_prev->weight= dw->weight; /* set the undo weight */
 							dw->weight= paintweight;
 						}
 					}
@@ -787,7 +787,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 	return 0.0f;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip, int multipaint)
+static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *dw_prev, float alpha, float paintval, int flip, int multipaint)
 {
 	Brush *brush = paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
@@ -834,35 +834,35 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		
 		alpha= brush_alpha(brush);
 		if(tool==VP_MIX || tool==VP_BLUR)
-			testw = paintval*alpha + uw->weight*(1.0f-alpha);
+			testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
 		else if(tool==VP_ADD)
-			testw = uw->weight + paintval*alpha;
+			testw = dw_prev->weight + paintval*alpha;
 		else if(tool==VP_SUB) 
-			testw = uw->weight - paintval*alpha;
+			testw = dw_prev->weight - paintval*alpha;
 		else if(tool==VP_MUL) 
 			/* first mul, then blend the fac */
-			testw = ((1.0f-alpha) + alpha*paintval)*uw->weight;
+			testw = ((1.0f-alpha) + alpha*paintval)*dw_prev->weight;
 		else if(tool==VP_LIGHTEN) {
-			if (uw->weight < paintval)
-				testw = paintval*alpha + uw->weight*(1.0f-alpha);
+			if (dw_prev->weight < paintval)
+				testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
 			else
-				testw = uw->weight;
+				testw = dw_prev->weight;
 		} else if(tool==VP_DARKEN) {
-			if (uw->weight > paintval)
-				testw = paintval*alpha + uw->weight*(1.0f-alpha);
+			if (dw_prev->weight > paintval)
+				testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
 			else
-				testw = uw->weight;
+				testw = dw_prev->weight;
 		}
 
 		if(multipaint == FALSE) {
 			CLAMP(testw, 0.0f, 1.0f);
-			if( testw<uw->weight ) {
+			if( testw<dw_prev->weight ) {
 				if(dw->weight < testw) dw->weight= testw;
-				else if(dw->weight > uw->weight) dw->weight= uw->weight;
+				else if(dw->weight > dw_prev->weight) dw->weight= dw_prev->weight;
 			}
 			else {
 				if(dw->weight > testw) dw->weight= testw;
-				else if(dw->weight < uw->weight) dw->weight= uw->weight;
+				else if(dw->weight < dw_prev->weight) dw->weight= dw_prev->weight;
 			}
 		}
 	}
@@ -1604,7 +1604,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	Mesh *me= ob->data;
 	MDeformVert *dv= &me->dvert[index];
 	
-	MDeformWeight *dw, *uw;
+	MDeformWeight *dw, *dw_prev;
 
 	/* mirror vars */
 	int index_mirr;
@@ -1615,14 +1615,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(dv, wpi->vgroup_active);
-		uw= defvert_find_index(wp->wpaint_prev+index, wpi->vgroup_active);
+		dw_prev= defvert_find_index(wp->wpaint_prev+index, wpi->vgroup_active);
 	}
 	else {
 		dw= defvert_verify_index(dv, wpi->vgroup_active);
-		uw= defvert_verify_index(wp->wpaint_prev+index, wpi->vgroup_active);
+		dw_prev= defvert_verify_index(wp->wpaint_prev+index, wpi->vgroup_active);
 	}
 
-	if(dw==NULL || uw==NULL) {
+	if(dw==NULL || dw_prev==NULL) {
 		return;
 	}
 
@@ -1672,7 +1672,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	if ( (wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) &&
 	     (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
 	{
-		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, FALSE);
+		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, FALSE);
 
 		/* WATCH IT: take care of the ordering of applying mirror -> normalize,
 		 * can give wrong results [#26193], least confusing if normalize is done last */
@@ -1733,11 +1733,11 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		float change = 0;
 		float oldChange = 0;
 		int i;
-		MDeformWeight *tdw = NULL, *tuw;
+		MDeformWeight *tdw = NULL, *tdw_prev;
 		MDeformVert dv_copy= {NULL};
 
 		oldw = dw->weight;
-		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
+		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
 		neww = dw->weight;
 		dw->weight = oldw;
 		
@@ -1747,24 +1747,24 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			dv_copy.flag = dv->flag;
 			dv_copy.totweight = dv->totweight;
 			tdw = dw;
-			tuw = uw;
+			tdw_prev = dw_prev;
 			change = get_mp_change(&wp->wpaint_prev[index], wpi->defbase_tot, wpi->defbase_sel, neww - oldw);
 			if(change) {
 				if(!tdw->weight) {
 					i = get_first_selected_nonzero_weight(dv, wpi->defbase_tot, wpi->defbase_sel);
 					if(i>=0) {
 						tdw = &(dv->dw[i]);
-						tuw = defvert_verify_index(&wp->wpaint_prev[index], tdw->def_nr);
+						tdw_prev = defvert_verify_index(&wp->wpaint_prev[index], tdw->def_nr);
 					}
 					else {
 						change = 0;
 					}
 				}
-				if(change && tuw->weight && tuw->weight * change) {
-					if(tdw->weight != tuw->weight) {
-						oldChange = tdw->weight/tuw->weight;
-						testw = tuw->weight*change;
-						if( testw > tuw->weight ) {
+				if(change && tdw_prev->weight && tdw_prev->weight * change) {
+					if(tdw->weight != tdw_prev->weight) {
+						oldChange = tdw->weight/tdw_prev->weight;
+						testw = tdw_prev->weight*change;
+						if( testw > tdw_prev->weight ) {
 							if(change > oldChange) {
 								/* reset the weights and use the new change */
 								defvert_reset_to_prev(wp->wpaint_prev+index, dv);
