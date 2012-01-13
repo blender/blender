@@ -869,6 +869,19 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf
 #endif
 #endif
 
+static void rna_RenderSettings_ffmpegsettings_lossless_output_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd = (RenderData*)ptr->data;
+
+	if (value)
+		rd->ffcodecdata.flags |= FFMPEG_LOSSLESS_OUTPUT;
+	else
+		rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
+#ifdef WITH_FFMPEG
+	ffmpeg_verify_lossless_format(rd, &rd->im_format);
+#endif
+}
+
 static int rna_RenderSettings_active_layer_index_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -2996,7 +3009,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_AUTOSPLIT_OUTPUT);
 	RNA_def_property_ui_text(prop, "Autosplit Output", "Autosplit output at 2GB boundary");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+	prop= RNA_def_property(srna, "ffmpeg_lossless_output", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_LOSSLESS_OUTPUT);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RenderSettings_ffmpegsettings_lossless_output_set");
+	RNA_def_property_ui_text(prop, "Lossless Output", "Use losslecc output for video streams");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 	/* FFMPEG Audio*/
 	prop= RNA_def_property(srna, "ffmpeg_audio_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.audio_codec");

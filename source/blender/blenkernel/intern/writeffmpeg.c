@@ -1200,6 +1200,56 @@ int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * s
 	return 1;
 }
 
+static void ffmpeg_set_expert_options(RenderData *rd, int preset)
+{
+	if(rd->ffcodecdata.properties)
+		IDP_FreeProperty(rd->ffcodecdata.properties);
+
+	if(preset == FFMPEG_PRESET_H264) {
+		/*
+		 * All options here are for x264, but must be set via ffmpeg.
+		 * The names are therefore different - Search for "x264 to FFmpeg option mapping"
+		 * to get a list.
+		 */
+
+		/*
+		 * Use CABAC coder. Using "coder:1", which should be equivalent,
+		 * crashes Blender for some reason. Either way - this is no big deal.
+		 */
+		ffmpeg_property_add_string(rd, "video", "coder:vlc");
+
+		/*
+		 * The other options were taken from the libx264-default.preset
+		 * included in the ffmpeg distribution.
+		 */
+		ffmpeg_property_add_string(rd, "video", "flags:loop");
+		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
+		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
+		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
+		ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
+		ffmpeg_property_add_string(rd, "video", "me:hex");
+		ffmpeg_property_add_string(rd, "video", "subq:6");
+		ffmpeg_property_add_string(rd, "video", "me_range:16");
+		ffmpeg_property_add_string(rd, "video", "qdiff:4");
+		ffmpeg_property_add_string(rd, "video", "keyint_min:25");
+		ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
+		ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
+		ffmpeg_property_add_string(rd, "video", "b_strategy:1");
+		ffmpeg_property_add_string(rd, "video", "bf:3");
+		ffmpeg_property_add_string(rd, "video", "refs:2");
+		ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
+		ffmpeg_property_add_string(rd, "video", "directpred:3");
+		ffmpeg_property_add_string(rd, "video", "trellis:0");
+		ffmpeg_property_add_string(rd, "video", "flags2:wpred");
+		ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
+		ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
+		ffmpeg_property_add_string(rd, "video", "wpredp:2");
+
+		if(rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
+			ffmpeg_property_add_string(rd, "video", "cqp:0");
+	}
+}
+
 void ffmpeg_set_preset(RenderData *rd, int preset)
 {
 	int isntsc = (rd->frs_sec != 25);
@@ -1267,47 +1317,7 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 		rd->ffcodecdata.mux_packet_size = 2048;
 		rd->ffcodecdata.mux_rate = 10080000;
 
-		/*
-		 * All options here are for x264, but must be set via ffmpeg.
-		 * The names are therefore different - Search for "x264 to FFmpeg option mapping"
-		 * to get a list.
-		 */
-		
-		/*
-		 * Use CABAC coder. Using "coder:1", which should be equivalent,
-		 * crashes Blender for some reason. Either way - this is no big deal.
-		 */
-		ffmpeg_property_add_string(rd, "video", "coder:vlc");
-		
-		/* 
-		 * The other options were taken from the libx264-default.preset
-		 * included in the ffmpeg distribution.
-		 */
-		ffmpeg_property_add_string(rd, "video", "flags:loop");
-		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
-		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
-		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
-		ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
-		ffmpeg_property_add_string(rd, "video", "me:hex");
-		ffmpeg_property_add_string(rd, "video", "subq:6");
-		ffmpeg_property_add_string(rd, "video", "me_range:16");
-		ffmpeg_property_add_string(rd, "video", "qdiff:4");
-		ffmpeg_property_add_string(rd, "video", "keyint_min:25");
-		ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
-		ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
-		ffmpeg_property_add_string(rd, "video", "b_strategy:1");
-		ffmpeg_property_add_string(rd, "video", "bf:3");
-		ffmpeg_property_add_string(rd, "video", "refs:2");
-		ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
-		ffmpeg_property_add_string(rd, "video", "directpred:3");
-		ffmpeg_property_add_string(rd, "video", "trellis:0");
-		ffmpeg_property_add_string(rd, "video", "flags2:wpred");
-		ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
-		ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
-		ffmpeg_property_add_string(rd, "video", "wpredp:2");
-		
-		// This makes x264 output lossless. Will be a separate option later.
-		//ffmpeg_property_add_string(rd, "video", "cqp:0");
+		ffmpeg_set_expert_options(rd, preset);
 		break;
 
 	case FFMPEG_PRESET_THEORA:
@@ -1375,6 +1385,13 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 	if(audio && rd->ffcodecdata.audio_codec < 0) {
 		rd->ffcodecdata.audio_codec = CODEC_ID_NONE;
 		rd->ffcodecdata.audio_bitrate = 128;
+	}
+}
+
+void ffmpeg_verify_lossless_format(RenderData *rd, ImageFormatData *imf)
+{
+	if(imf->imtype == R_IMF_IMTYPE_H264) {
+		ffmpeg_set_expert_options(rd, FFMPEG_PRESET_H264);
 	}
 }
 
