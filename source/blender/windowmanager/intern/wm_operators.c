@@ -638,6 +638,25 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 	RNA_STRUCT_END;
 }
 
+/* remove all props without PROP_SKIP_SAVE */
+void WM_operator_properties_reset(wmOperator *op)
+{
+	if (op->ptr->data) {
+		PropertyRNA *iterprop;
+		iterprop= RNA_struct_iterator_property(op->type->srna);
+
+		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+			PropertyRNA *prop= itemptr.data;
+
+			if((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+				const char *identifier = RNA_property_identifier(prop);
+				RNA_struct_idprops_unset(op->ptr, identifier);
+			}
+		}
+		RNA_PROP_END;
+	}
+}
+
 void WM_operator_properties_free(PointerRNA *ptr)
 {
 	IDProperty *properties= ptr->data;
@@ -665,7 +684,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		printf("%s: %s \"%s\" is not an enum property\n",
 		       __func__, op->type->idname, RNA_property_identifier(prop));
 	}
-	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+	else if (RNA_property_is_set(op->ptr, prop)) {
 		const int retval= op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
 		return retval;
@@ -747,7 +766,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
 	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
@@ -802,7 +821,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	if (RNA_property_is_set(op->ptr, "filepath")) {
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op); /* call exec direct */
 	} 
 	else {
@@ -1378,12 +1397,15 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 				int len= strlen(ot->name);
 				
 				/* display name for menu, can hold hotkey */
-				BLI_strncpy(name, ot->name, 256);
+				BLI_strncpy(name, ot->name, sizeof(name));
 				
 				/* check for hotkey */
-				if(len < 256-6) {
-					if(WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE, &name[len+1], 256-len-1))
+				if (len < sizeof(name) - 6) {
+					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE,
+					                                &name[len+1], sizeof(name)-len-1))
+					{
 						name[len]= '|';
+					}
 				}
 				
 				if(0==uiSearchItemAdd(items, name, ot, 0))
@@ -1405,7 +1427,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
@@ -1550,13 +1572,13 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 
 static void open_set_load_ui(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "load_ui"))
+	if(!RNA_struct_property_is_set(op->ptr, "load_ui"))
 		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
 }
 
 static void open_set_use_scripts(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "use_scripts")) {
+	if(!RNA_struct_property_is_set(op->ptr, "use_scripts")) {
 		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
 		 * the flag has been disabled from the command line, then opening
 		 * from the menu wont enable this setting. */
@@ -1654,7 +1676,7 @@ int wm_link_append_poll(bContext *C)
 
 static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	if(RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op);
 	} 
 	else {
@@ -1918,7 +1940,7 @@ static void untitled(char *name)
 
 static void save_set_compress(wmOperator *op)
 {
-	if(!RNA_property_is_set(op->ptr, "compress")) {
+	if(!RNA_struct_property_is_set(op->ptr, "compress")) {
 		if(G.save_over) /* keep flag for existing file */
 			RNA_boolean_set(op->ptr, "compress", G.fileflags & G_FILE_COMPRESS);
 		else /* use userdef for new file */
@@ -1957,14 +1979,14 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	save_set_compress(op);
 	
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		RNA_string_get(op->ptr, "filepath", path);
 	else {
 		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
 
-	if(RNA_property_is_set(op->ptr, "copy"))
+	if(RNA_struct_property_is_set(op->ptr, "copy"))
 		copy = RNA_boolean_get(op->ptr, "copy");
 	
 	fileflags= G.fileflags;
@@ -2092,7 +2114,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
 		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
@@ -2110,7 +2132,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 	int selected;
 	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
@@ -2144,7 +2166,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(!RNA_property_is_set(op->ptr, "filepath")) {
+	if(!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}

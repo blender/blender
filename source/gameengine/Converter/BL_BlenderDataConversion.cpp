@@ -2152,6 +2152,155 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
 }
 
+/* helper for BL_ConvertBlenderObjects, avoids code duplication
+ * note: all var names match args are passed from the caller */
+static void bl_ConvertBlenderObject_Single(
+        KX_BlenderSceneConverter *converter,
+        Scene *blenderscene, Object *blenderobject,
+        vector<MT_Vector3> &inivel, vector<MT_Vector3> &iniang,
+        vector<parentChildLink> &vec_parent_child,
+        CListValue* logicbrick_conversionlist,
+        CListValue* objectlist, CListValue* inactivelist, CListValue*	sumolist,
+        KX_Scene* kxscene, KX_GameObject* gameobj,
+        SCA_LogicManager* logicmgr, SCA_TimeEventManager* timemgr,
+        bool isInActiveLayer
+        )
+{
+	MT_Point3 posPrev;
+	MT_Matrix3x3 angor;
+	if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
+
+	MT_Point3 pos(
+		blenderobject->loc[0]+blenderobject->dloc[0],
+		blenderobject->loc[1]+blenderobject->dloc[1],
+		blenderobject->loc[2]+blenderobject->dloc[2]
+	);
+	MT_Vector3 eulxyz(blenderobject->rot);
+	MT_Vector3 scale(blenderobject->size);
+	if (converter->addInitFromFrame){//rcruiz
+		float eulxyzPrev[3];
+		blenderscene->r.cfra=blenderscene->r.sfra-1;
+		//XXX update_for_newframe();
+		MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
+		                             blenderobject->loc[1]+blenderobject->dloc[1],
+		                             blenderobject->loc[2]+blenderobject->dloc[2]
+		                             );
+		eulxyzPrev[0]=blenderobject->rot[0];
+		eulxyzPrev[1]=blenderobject->rot[1];
+		eulxyzPrev[2]=blenderobject->rot[2];
+
+		double fps = (double) blenderscene->r.frs_sec/
+		        (double) blenderscene->r.frs_sec_base;
+
+		tmp.scale(fps, fps, fps);
+		inivel.push_back(tmp);
+		tmp=eulxyz-eulxyzPrev;
+		tmp.scale(fps, fps, fps);
+		iniang.push_back(tmp);
+		blenderscene->r.cfra=blenderscene->r.sfra;
+		//XXX update_for_newframe();
+	}
+
+	gameobj->NodeSetLocalPosition(pos);
+	gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
+	gameobj->NodeSetLocalScale(scale);
+	gameobj->NodeUpdateGS(0);
+
+	BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
+
+	sumolist->Add(gameobj->AddRef());
+
+	BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
+
+	gameobj->SetName(blenderobject->id.name + 2);
+
+	// update children/parent hierarchy
+	if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
+	{
+		// blender has an additional 'parentinverse' offset in each object
+		SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
+		SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
+
+		// define a normal parent relationship for this node.
+		KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
+		parentinversenode->SetParentRelation(parent_relation);
+
+		parentChildLink pclink;
+		pclink.m_blenderchild = blenderobject;
+		pclink.m_gamechildnode = parentinversenode;
+		vec_parent_child.push_back(pclink);
+
+		float* fl = (float*) blenderobject->parentinv;
+		MT_Transform parinvtrans(fl);
+		parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
+		// problem here: the parent inverse transform combines scaling and rotation
+		// in the basis but the scenegraph needs separate rotation and scaling.
+		// This is not important for OpenGL (it uses 4x4 matrix) but it is important
+		// for the physic engine that needs a separate scaling
+		//parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+
+		// Extract the rotation and the scaling from the basis
+		MT_Matrix3x3 ori(parinvtrans.getBasis());
+		MT_Vector3 x(ori.getColumn(0));
+		MT_Vector3 y(ori.getColumn(1));
+		MT_Vector3 z(ori.getColumn(2));
+		MT_Vector3 parscale(x.length(), y.length(), z.length());
+		if (!MT_fuzzyZero(parscale[0]))
+			x /= parscale[0];
+		if (!MT_fuzzyZero(parscale[1]))
+			y /= parscale[1];
+		if (!MT_fuzzyZero(parscale[2]))
+			z /= parscale[2];
+		ori.setColumn(0, x);
+		ori.setColumn(1, y);
+		ori.setColumn(2, z);
+		parentinversenode->SetLocalOrientation(ori);
+		parentinversenode->SetLocalScale(parscale);
+
+		parentinversenode->AddChild(gameobj->GetSGNode());
+	}
+
+	// needed for python scripting
+	logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
+
+	// needed for group duplication
+	logicmgr->RegisterGameObj(blenderobject, gameobj);
+	for (int i = 0; i < gameobj->GetMeshCount(); i++)
+		logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
+
+	converter->RegisterGameObject(gameobj, blenderobject);
+	// this was put in rapidly, needs to be looked at more closely
+	// only draw/use objects in active 'blender' layers
+
+	logicbrick_conversionlist->Add(gameobj->AddRef());
+
+	if (converter->addInitFromFrame){
+		posPrev=gameobj->NodeGetWorldPosition();
+		angor=gameobj->NodeGetWorldOrientation();
+	}
+	if (isInActiveLayer)
+	{
+		objectlist->Add(gameobj->AddRef());
+		//tf.Add(gameobj->GetSGNode());
+
+		gameobj->NodeUpdateGS(0);
+		gameobj->AddMeshUser();
+
+	}
+	else
+	{
+		//we must store this object otherwise it will be deleted
+		//at the end of this function if it is not a root object
+		inactivelist->Add(gameobj->AddRef());
+	}
+
+	if (converter->addInitFromFrame) {
+		gameobj->NodeSetLocalPosition(posPrev);
+		gameobj->NodeSetLocalOrientation(angor);
+	}
+}
+
+
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
 							  KX_Scene* kxscene,
@@ -2162,7 +2311,21 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  KX_BlenderSceneConverter* converter,
 							  bool alwaysUseExpandFraming
 							  )
-{	
+{
+
+#define BL_CONVERTBLENDEROBJECT_SINGLE                                 \
+	bl_ConvertBlenderObject_Single(converter,                          \
+	                               blenderscene, blenderobject,        \
+	                               inivel, iniang,                     \
+	                               vec_parent_child,                   \
+	                               logicbrick_conversionlist,          \
+	                               objectlist, inactivelist, sumolist, \
+	                               kxscene, gameobj,                   \
+	                               logicmgr, timemgr,                  \
+	                               isInActiveLayer                     \
+	                               )
+
+
 
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
@@ -2265,155 +2428,27 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (!isInActiveLayer)
 				addobj=false;
 
-		if (gameobj&&addobj)
-		{
-			MT_Point3 posPrev;			
-			MT_Matrix3x3 angor;			
-			if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
-			
-			MT_Point3 pos;
-			pos.setValue(
-				blenderobject->loc[0]+blenderobject->dloc[0],
-				blenderobject->loc[1]+blenderobject->dloc[1],
-				blenderobject->loc[2]+blenderobject->dloc[2]
-			);
-			MT_Vector3 eulxyz(blenderobject->rot);
-			MT_Vector3 scale(blenderobject->size);
-			if (converter->addInitFromFrame){//rcruiz
-				float eulxyzPrev[3];
-				blenderscene->r.cfra=blenderscene->r.sfra-1;
-				//XXX update_for_newframe();
-				MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
-											blenderobject->loc[1]+blenderobject->dloc[1],
-											blenderobject->loc[2]+blenderobject->dloc[2]
-									);
-				eulxyzPrev[0]=blenderobject->rot[0];
-				eulxyzPrev[1]=blenderobject->rot[1];
-				eulxyzPrev[2]=blenderobject->rot[2];
-
-				double fps = (double) blenderscene->r.frs_sec/
-					(double) blenderscene->r.frs_sec_base;
-
-				tmp.scale(fps, fps, fps);
-				inivel.push_back(tmp);
-				tmp=eulxyz-eulxyzPrev;
-				tmp.scale(fps, fps, fps);
-				iniang.push_back(tmp);
-				blenderscene->r.cfra=blenderscene->r.sfra;
-				//XXX update_for_newframe();
-			}		
-						
-			gameobj->NodeSetLocalPosition(pos);
-			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
-			gameobj->NodeSetLocalScale(scale);
-			gameobj->NodeUpdateGS(0);
-
-			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
-			
-			sumolist->Add(gameobj->AddRef());
-			
-			BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
-			
-			gameobj->SetName(blenderobject->id.name + 2);
-	
-			// update children/parent hierarchy
-			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
-			{
-				// blender has an additional 'parentinverse' offset in each object
-				SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
-				SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
-			
-				// define a normal parent relationship for this node.
-				KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
-				parentinversenode->SetParentRelation(parent_relation);
-	
-				parentChildLink pclink;
-				pclink.m_blenderchild = blenderobject;
-				pclink.m_gamechildnode = parentinversenode;
-				vec_parent_child.push_back(pclink);
-
-				float* fl = (float*) blenderobject->parentinv;
-				MT_Transform parinvtrans(fl);
-				parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
-				// problem here: the parent inverse transform combines scaling and rotation 
-				// in the basis but the scenegraph needs separate rotation and scaling.
-				// This is not important for OpenGL (it uses 4x4 matrix) but it is important
-				// for the physic engine that needs a separate scaling
-				//parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
-
-				// Extract the rotation and the scaling from the basis
-				MT_Matrix3x3 ori(parinvtrans.getBasis());
-				MT_Vector3 x(ori.getColumn(0));
-				MT_Vector3 y(ori.getColumn(1));
-				MT_Vector3 z(ori.getColumn(2));
-				MT_Vector3 parscale(x.length(), y.length(), z.length());
-				if (!MT_fuzzyZero(parscale[0]))
-					x /= parscale[0];
-				if (!MT_fuzzyZero(parscale[1]))
-					y /= parscale[1];
-				if (!MT_fuzzyZero(parscale[2]))
-					z /= parscale[2];
-				ori.setColumn(0, x);								
-				ori.setColumn(1, y);								
-				ori.setColumn(2, z);								
-				parentinversenode->SetLocalOrientation(ori);
-				parentinversenode->SetLocalScale(parscale);
-				
-				parentinversenode->AddChild(gameobj->GetSGNode());
-			}
-			
-			// needed for python scripting
-			logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
-
-			// needed for group duplication
-			logicmgr->RegisterGameObj(blenderobject, gameobj);
-			for (int i = 0; i < gameobj->GetMeshCount(); i++)
-				logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
-	
-			converter->RegisterGameObject(gameobj, blenderobject);	
-			// this was put in rapidly, needs to be looked at more closely
-			// only draw/use objects in active 'blender' layers
-	
-			logicbrick_conversionlist->Add(gameobj->AddRef());
-			
-			if (converter->addInitFromFrame){
-				posPrev=gameobj->NodeGetWorldPosition();
-				angor=gameobj->NodeGetWorldOrientation();
-			}
-			if (isInActiveLayer)
-			{
-				objectlist->Add(gameobj->AddRef());
-				//tf.Add(gameobj->GetSGNode());
-				
-				gameobj->NodeUpdateGS(0);
-				gameobj->AddMeshUser();
-		
-			}
-			else
-			{
-				//we must store this object otherwise it will be deleted 
-				//at the end of this function if it is not a root object
-				inactivelist->Add(gameobj->AddRef());
-			}
-			if (gameobj->IsDupliGroup())
-				grouplist.insert(blenderobject->dup_group);
-			if (converter->addInitFromFrame){
-				gameobj->NodeSetLocalPosition(posPrev);
-				gameobj->NodeSetLocalOrientation(angor);
-			}
-						
-		}
-		/* Note about memory leak issues:
-		   When a CValue derived class is created, m_refcount is initialized to 1
-		   so the class must be released after being used to make sure that it won't 
-		   hang in memory. If the object needs to be stored for a long time, 
-		   use AddRef() so that this Release() does not free the object.
-		   Make sure that for any AddRef() there is a Release()!!!! 
-		   Do the same for any object derived from CValue, CExpression and NG_NetworkMessage
-		 */
 		if (gameobj)
-			gameobj->Release();
+		{
+			if (addobj)
+			{	/* macro calls object conversion funcs */
+				BL_CONVERTBLENDEROBJECT_SINGLE;
 
+				if (gameobj->IsDupliGroup()) {
+					grouplist.insert(blenderobject->dup_group);
+				}
+			}
+
+			/* Note about memory leak issues:
+			 * When a CValue derived class is created, m_refcount is initialized to 1
+			 * so the class must be released after being used to make sure that it won't
+			 * hang in memory. If the object needs to be stored for a long time,
+			 * use AddRef() so that this Release() does not free the object.
+			 * Make sure that for any AddRef() there is a Release()!!!!
+			 * Do the same for any object derived from CValue, CExpression and NG_NetworkMessage
+			 */
+			gameobj->Release();
+		}
 	}
 
 	if (!grouplist.empty())
@@ -2453,147 +2488,26 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						if (converter->addInitFromFrame)
 							if (!isInActiveLayer)
 								addobj=false;
-														
-						if (gameobj&&addobj)
+
+						if (gameobj)
 						{
-							MT_Point3 posPrev;			
-							MT_Matrix3x3 angor;			
-							if (converter->addInitFromFrame) 
-								blenderscene->r.cfra=blenderscene->r.sfra;
-							
-							MT_Point3 pos(
-								blenderobject->loc[0]+blenderobject->dloc[0],
-								blenderobject->loc[1]+blenderobject->dloc[1],
-								blenderobject->loc[2]+blenderobject->dloc[2]
-							);
-							MT_Vector3 eulxyz(blenderobject->rot);
-							MT_Vector3 scale(blenderobject->size);
-							if (converter->addInitFromFrame){//rcruiz
-								float eulxyzPrev[3];
-								blenderscene->r.cfra=blenderscene->r.sfra-1;
-								//XXX update_for_newframe();
-								MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
-															blenderobject->loc[1]+blenderobject->dloc[1],
-															blenderobject->loc[2]+blenderobject->dloc[2]
-													);
-								eulxyzPrev[0]=blenderobject->rot[0];
-								eulxyzPrev[1]=blenderobject->rot[1];
-								eulxyzPrev[2]=blenderobject->rot[2];
-
-								double fps = (double) blenderscene->r.frs_sec/
-									(double) blenderscene->r.frs_sec_base;
-
-								tmp.scale(fps, fps, fps);
-								inivel.push_back(tmp);
-								tmp=eulxyz-eulxyzPrev;
-								tmp.scale(fps, fps, fps);
-								iniang.push_back(tmp);
-								blenderscene->r.cfra=blenderscene->r.sfra;
-								//XXX update_for_newframe();
-							}		
-										
-							gameobj->NodeSetLocalPosition(pos);
-							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
-							gameobj->NodeSetLocalScale(scale);
-							gameobj->NodeUpdateGS(0);
-	
-							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
-					
-							sumolist->Add(gameobj->AddRef());
-							
-							BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
-							
-					
-							gameobj->SetName(blenderobject->id.name + 2);
-					
-							// update children/parent hierarchy
-							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
-							{
-								// blender has an additional 'parentinverse' offset in each object
-								SG_Callbacks callback(NULL,NULL,NULL,KX_Scene::KX_ScenegraphUpdateFunc,KX_Scene::KX_ScenegraphRescheduleFunc);
-								SG_Node* parentinversenode = new SG_Node(NULL,kxscene,callback);
-							
-								// define a normal parent relationship for this node.
-								KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
-								parentinversenode->SetParentRelation(parent_relation);
-					
-								parentChildLink pclink;
-								pclink.m_blenderchild = blenderobject;
-								pclink.m_gamechildnode = parentinversenode;
-								vec_parent_child.push_back(pclink);
-
-								float* fl = (float*) blenderobject->parentinv;
-								MT_Transform parinvtrans(fl);
-								parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
-
-								// Extract the rotation and the scaling from the basis
-								MT_Matrix3x3 ori(parinvtrans.getBasis());
-								MT_Vector3 x(ori.getColumn(0));
-								MT_Vector3 y(ori.getColumn(1));
-								MT_Vector3 z(ori.getColumn(2));
-								MT_Vector3 localscale(x.length(), y.length(), z.length());
-								if (!MT_fuzzyZero(localscale[0]))
-									x /= localscale[0];
-								if (!MT_fuzzyZero(localscale[1]))
-									y /= localscale[1];
-								if (!MT_fuzzyZero(localscale[2]))
-									z /= localscale[2];
-								ori.setColumn(0, x);								
-								ori.setColumn(1, y);								
-								ori.setColumn(2, z);								
-								parentinversenode->SetLocalOrientation(ori);
-								parentinversenode->SetLocalScale(localscale);
-								
-								parentinversenode->AddChild(gameobj->GetSGNode());
+							if (addobj)
+							{	/* macro calls object conversion funcs */
+								BL_CONVERTBLENDEROBJECT_SINGLE;
 							}
-							
-							// needed for python scripting
-							logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
 
-							// needed for group duplication
-							logicmgr->RegisterGameObj(blenderobject, gameobj);
-							for (int i = 0; i < gameobj->GetMeshCount(); i++)
-								logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
-					
-							converter->RegisterGameObject(gameobj, blenderobject);	
-							// this was put in rapidly, needs to be looked at more closely
-							// only draw/use objects in active 'blender' layers
-					
-							logicbrick_conversionlist->Add(gameobj->AddRef());
-							
-							if (converter->addInitFromFrame){
-								posPrev=gameobj->NodeGetWorldPosition();
-								angor=gameobj->NodeGetWorldOrientation();
-							}
-							if (isInActiveLayer)
-							{
-								objectlist->Add(gameobj->AddRef());
-								//tf.Add(gameobj->GetSGNode());
-								
-								gameobj->NodeUpdateGS(0);
-								gameobj->AddMeshUser();
-							}
-							else
-							{
-								//we must store this object otherwise it will be deleted 
-								//at the end of this function if it is not a root object
-								inactivelist->Add(gameobj->AddRef());
-
-							}
 							if (gameobj->IsDupliGroup())
 							{
-								// check that the group is not already converted
 								if (allgrouplist.insert(blenderobject->dup_group).second)
+								{
 									grouplist.insert(blenderobject->dup_group);
+								}
 							}
-							if (converter->addInitFromFrame){
-								gameobj->NodeSetLocalPosition(posPrev);
-								gameobj->NodeSetLocalOrientation(angor);
-							}
-										
-						}
-						if (gameobj)
+
+
+							/* see comment above re: mem leaks */
 							gameobj->Release();
+						}
 					}
 				}
 			}

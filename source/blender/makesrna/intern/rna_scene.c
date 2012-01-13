@@ -32,6 +32,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -1276,8 +1277,6 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
-
-
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
  * is not for general use and only for the few cases where changing scene
@@ -1615,19 +1614,65 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Stroke conversion method", "Method used to convert stroke to bones");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	/* Sculpt/Paint Unified Size and Strength */
-
-	prop= RNA_def_property(srna, "sculpt_paint_use_unified_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_SIZE);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Radius",
-	                         "Instead of per brush radius, the radius is shared across brushes");
-
-	prop= RNA_def_property(srna, "sculpt_paint_use_unified_strength", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_ALPHA);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Strength",
-	                         "Instead of per brush strength, the strength is shared across brushes");
+	/* Unified Paint Settings */
+	prop= RNA_def_property(srna, "unified_paint_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UnifiedPaintSettings");
+	RNA_def_property_ui_text(prop, "Unified Paint Settings", NULL);
 }
 
+static void rna_def_unified_paint_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "UnifiedPaintSettings", NULL);
+	RNA_def_struct_ui_text(srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
+
+	/* high-level flags to enable or disable unified paint settings */
+	prop= RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_SIZE);
+	RNA_def_property_ui_text(prop, "Use Unified Radius",
+	                         "Instead of per-brush radius, the radius is shared across brushes");
+
+	prop= RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_ALPHA);
+	RNA_def_property_ui_text(prop, "Use Unified Strength",
+	                         "Instead of per-brush strength, the strength is shared across brushes");
+
+	/* unified paint settings that override the equivalent settings
+	   from the active brush */
+	prop= RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
+	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
+	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
+	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
+
+	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_range(prop, 0.001, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
+	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "alpha");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
+	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
+
+	prop= RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_SIZE_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size");
+
+	prop= RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength");
+
+	prop= RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_LOCK_SIZE);
+	RNA_def_property_ui_text(prop, "Use Blender Units", "When locked brush stays same size relative to object; when unlocked brush size is given in pixels");
+}
 
 static void rna_def_unit_settings(BlenderRNA  *brna)
 {
@@ -2038,6 +2083,14 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem aasamples_items[]  ={
+		{0, "SAMPLES_0", 0, "Off", ""},
+		{2, "SAMPLES_2", 0, "2x", ""},
+		{4, "SAMPLES_4", 0, "4x", ""},
+		{8, "SAMPLES_8", 0, "8x", ""},
+		{16, "SAMPLES_16", 0, "16x", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem framing_types_items[] ={
 		{SCE_GAMEFRAMING_BARS, "LETTERBOX", 0, "Letterbox",
 		                       "Show the entire viewport in the display window, using bar horizontally or vertically"},
@@ -2107,6 +2160,11 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the screen");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
+	prop= RNA_def_property(srna, "samples", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "aasamples");
+	RNA_def_property_enum_items(prop, aasamples_items);
+	RNA_def_property_ui_text(prop, "AA Samples", "The number of AA Samples to use for MSAA");
+	
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 8, 32);
@@ -2128,8 +2186,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop= RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "fullscreen", 1.0);
+	RNA_def_property_boolean_sdna(prop, NULL, "playerflag", GAME_PLAYER_FULLSCREEN);
 	RNA_def_property_ui_text(prop, "Fullscreen", "Start player in a new fullscreen display");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "use_desktop", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "playerflag", GAME_PLAYER_DESKTOP_RESOLUTION);
+	RNA_def_property_ui_text(prop, "Desktop", "Uses the current desktop resultion in fullscreen mode");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Framing */
@@ -4032,6 +4095,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Nestled Data  */
 	rna_def_tool_settings(brna);
+	rna_def_unified_paint_settings(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_image_format_data(brna);
 	rna_def_scene_render_data(brna);

@@ -40,6 +40,7 @@
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
+#include "BLI_jitter.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -150,28 +151,31 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 		else {
 			/* simple accumulation, less hassle then FSAA FBO's */
-#			define SAMPLES 5 /* fixed, easy to have more but for now this is ok */
-			const float jit_ofs[SAMPLES][2] = {{0, 0}, {0.5f, 0.5f}, {-0.5f,-0.5f}, {-0.5f, 0.5f}, {0.5f, -0.5f}};
+			static float jit_ofs[32][2];
 			float winmat_jitter[4][4];
 			float *accum_buffer= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum1");
 			float *accum_tmp= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
 			int j;
+
+			BLI_initjit(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_buffer);
 
 			/* skip the first sample */
-			for(j=1; j < SAMPLES; j++) {
+			for(j=1; j < scene->r.osa; j++) {
 				copy_m4_m4(winmat_jitter, winmat);
-				window_translate_m4(winmat_jitter, rv3d->persmat, jit_ofs[j][0] / sizex, jit_ofs[j][1] / sizey);
+				window_translate_m4(winmat_jitter, rv3d->persmat,
+				                    (jit_ofs[j][0] * 2.0f) / sizex,
+				                    (jit_ofs[j][1] * 2.0f) / sizey);
 
 				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter);
 				GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_tmp);
 				add_vn_vn(accum_buffer, accum_tmp, sizex*sizey*sizeof(float));
 			}
 
-			mul_vn_vn_fl(rr->rectf, accum_buffer, sizex*sizey*sizeof(float), 1.0/SAMPLES);
+			mul_vn_vn_fl(rr->rectf, accum_buffer, sizex*sizey*sizeof(float), 1.0f / scene->r.osa);
 
 			MEM_freeN(accum_buffer);
 			MEM_freeN(accum_tmp);

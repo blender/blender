@@ -642,6 +642,7 @@ typedef struct BrushPainterCache {
 } BrushPainterCache;
 
 struct BrushPainter {
+	Scene *scene;
 	Brush *brush;
 
 	float lastmousepos[2];	/* mouse position of last paint call */
@@ -665,11 +666,12 @@ struct BrushPainter {
 	BrushPainterCache cache;
 };
 
-BrushPainter *brush_painter_new(Brush *brush)
+BrushPainter *brush_painter_new(Scene *scene, Brush *brush)
 {
 	BrushPainter *painter= MEM_callocN(sizeof(BrushPainter), "BrushPainter");
 
 	painter->brush= brush;
+	painter->scene= scene;
 	painter->firsttouch= 1;
 	painter->cache.lastsize= -1; /* force ibuf create in refresh */
 
@@ -917,9 +919,9 @@ void brush_painter_break_stroke(BrushPainter *painter)
 
 static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pressure)
 {
-	if (brush_use_alpha_pressure(brush)) 
+	if (brush_use_alpha_pressure(painter->scene, brush)) 
 		brush_set_alpha(brush, MAX2(0.0f, painter->startalpha*pressure));
-	if (brush_use_size_pressure(brush))
+	if (brush_use_size_pressure(painter->scene, brush))
 		brush_set_size(brush, MAX2(1.0f, painter->startsize*pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
 		brush->jitter = MAX2(0.0f, painter->startjitter*pressure);
@@ -1219,25 +1221,6 @@ struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 /* XXX, wouldnt it be better to only pass the active scene?
  * this can return any old scene! - campbell*/
 
-static void set_unified_settings(Brush *brush, short flag, int value)
-{
-	Scene *sce;
-	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
-		if (sce->toolsettings && 
-			ELEM4(brush,
-			    paint_brush(&(sce->toolsettings->imapaint.paint)),
-			    paint_brush(&(sce->toolsettings->vpaint->paint)),
-			    paint_brush(&(sce->toolsettings->wpaint->paint)),
-			    paint_brush(&(sce->toolsettings->sculpt->paint))))
-		{
-			if (value)
-				sce->toolsettings->sculpt_paint_settings |= flag;
-			else
-				sce->toolsettings->sculpt_paint_settings &= ~flag;
-		}
-	}
-}
-
 static short unified_settings(Brush *brush)
 {
 	Scene *sce;
@@ -1249,7 +1232,7 @@ static short unified_settings(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_settings;
+			return sce->toolsettings->unified_paint_settings.flag;
 		}
 	}
 
@@ -1280,7 +1263,7 @@ static void set_unified_size(Brush *brush, int value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_size= value;
+			sce->toolsettings->unified_paint_settings.size= value;
 		}
 	}
 }
@@ -1296,7 +1279,7 @@ static int unified_size(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_size;
+			return sce->toolsettings->unified_paint_settings.size;
 		}
 	}
 
@@ -1314,7 +1297,7 @@ static void set_unified_alpha(Brush *brush, float value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_alpha= value;
+			sce->toolsettings->unified_paint_settings.alpha= value;
 		}
 	}
 }
@@ -1330,7 +1313,7 @@ static float unified_alpha(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_alpha;
+			return sce->toolsettings->unified_paint_settings.alpha;
 		}
 	}
 
@@ -1348,7 +1331,7 @@ static void set_unified_unprojected_radius(Brush *brush, float value)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			sce->toolsettings->sculpt_paint_unified_unprojected_radius= value;
+			sce->toolsettings->unified_paint_settings.unprojected_radius= value;
 		}
 	}
 }
@@ -1364,7 +1347,7 @@ static float unified_unprojected_radius(Brush *brush)
 			    paint_brush(&(sce->toolsettings->wpaint->paint)),
 			    paint_brush(&(sce->toolsettings->sculpt->paint))))
 		{
-			return sce->toolsettings->sculpt_paint_unified_unprojected_radius;
+			return sce->toolsettings->unified_paint_settings.unprojected_radius;
 		}
 	}
 
@@ -1374,7 +1357,7 @@ void brush_set_size(Brush *brush, int size)
 {
 	const short us_flag = unified_settings(brush);
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE)
+	if (us_flag & UNIFIED_PAINT_SIZE)
 		set_unified_size(brush, size);
 	else
 		brush->size= size;
@@ -1386,84 +1369,33 @@ int brush_size(Brush *brush)
 {
 	const short us_flag = unified_settings(brush);
 
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_size(brush) : brush->size;
+	return (us_flag & UNIFIED_PAINT_SIZE) ? unified_size(brush) : brush->size;
 }
 
-void brush_set_use_locked_size(Brush *brush, int value)
+int brush_use_locked_size(const Scene *scene, Brush *brush)
 {
-	const short us_flag = unified_settings(brush);
+	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) {
-		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE, value);
-	}
-	else {
-		if (value)
-			brush->flag |= BRUSH_LOCK_SIZE;
-		else
-			brush->flag &= ~BRUSH_LOCK_SIZE;
-	}
-
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
-}
-
-int brush_use_locked_size(Brush *brush)
-{
-	const short us_flag = unified_settings(brush);
-
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
-	        (us_flag & SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE) :
+	return (us_flag & UNIFIED_PAINT_SIZE) ?
+	        (us_flag & UNIFIED_PAINT_BRUSH_LOCK_SIZE) :
 	        (brush->flag & BRUSH_LOCK_SIZE);
 }
 
-void brush_set_use_size_pressure(Brush *brush, int value)
+int brush_use_size_pressure(const Scene *scene, Brush *brush)
 {
-	const short us_flag = unified_settings(brush);
+	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) {
-		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_SIZE_PRESSURE, value);
-	}
-	else {
-		if (value)
-			brush->flag |= BRUSH_SIZE_PRESSURE;
-		else
-			brush->flag &= ~BRUSH_SIZE_PRESSURE;
-	}
-
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
-}
-
-int brush_use_size_pressure(Brush *brush)
-{
-	const short us_flag = unified_settings(brush);
-
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
-	        (us_flag & SCULPT_PAINT_UNIFIED_SIZE_PRESSURE) :
+	return (us_flag & UNIFIED_PAINT_SIZE) ?
+	        (us_flag & UNIFIED_PAINT_BRUSH_SIZE_PRESSURE) :
 	        (brush->flag & BRUSH_SIZE_PRESSURE);
 }
 
-void brush_set_use_alpha_pressure(Brush *brush, int value)
+int brush_use_alpha_pressure(const Scene *scene, Brush *brush)
 {
-	const short us_flag = unified_settings(brush);
+	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) {
-		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE, value);
-	}
-	else {
-		if (value)
-			brush->flag |= BRUSH_ALPHA_PRESSURE;
-		else
-			brush->flag &= ~BRUSH_ALPHA_PRESSURE;
-	}
-
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
-}
-
-int brush_use_alpha_pressure(Brush *brush)
-{
-	const short us_flag = unified_settings(brush);
-
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) ?
-	        (us_flag & SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE) :
+	return (us_flag & UNIFIED_PAINT_ALPHA) ?
+	        (us_flag & UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE) :
 	        (brush->flag & BRUSH_ALPHA_PRESSURE);
 }
 
@@ -1471,7 +1403,7 @@ void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 {
 	const short us_flag = unified_settings(brush);
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE)
+	if (us_flag & UNIFIED_PAINT_SIZE)
 		set_unified_unprojected_radius(brush, unprojected_radius);
 	else
 		brush->unprojected_radius= unprojected_radius;
@@ -1483,7 +1415,7 @@ float brush_unprojected_radius(Brush *brush)
 {
 	const short us_flag = unified_settings(brush);
 
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_SIZE) ?
+	return (us_flag & UNIFIED_PAINT_SIZE) ?
 	        unified_unprojected_radius(brush) :
 	        brush->unprojected_radius;
 }
@@ -1492,7 +1424,7 @@ void brush_set_alpha(Brush *brush, float alpha)
 {
 	const short us_flag = unified_settings(brush);
 
-	if (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA)
+	if (us_flag & UNIFIED_PAINT_ALPHA)
 		set_unified_alpha(brush, alpha);
 	else
 		brush->alpha= alpha;
@@ -1504,7 +1436,7 @@ float brush_alpha(Brush *brush)
 {
 	const short us_flag = unified_settings(brush);
 
-	return (us_flag & SCULPT_PAINT_USE_UNIFIED_ALPHA) ?
+	return (us_flag & UNIFIED_PAINT_ALPHA) ?
 	        unified_alpha(brush) :
 	        brush->alpha;
 }

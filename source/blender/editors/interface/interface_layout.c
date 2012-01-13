@@ -2742,6 +2742,11 @@ const char *uiLayoutIntrospect(uiLayout *layout)
 	return str;
 }
 
+static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, void *UNUSED(arg_dummy2))
+{
+	WM_operator_properties_reset((wmOperator *)op_pt);
+}
+
 /* this function does not initialize the layout, functions can be called on the layout before and after */
 void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,int (*check_prop)(struct PointerRNA *, struct PropertyRNA *), const char label_align, const short flag)
 {
@@ -2803,7 +2808,22 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 			uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
 		}
 	}
-	
+
+	/* its possible that reset can do nothing if all have PROP_SKIP_SAVE enabled
+	 * but this is not so important if this button is drawn in those cases
+	 * (which isn't all that likely anyway) - campbell */
+	if (op->properties->len) {
+		uiBlock *block;
+		uiBut *but;
+		uiLayout *col; /* needed to avoid alignment errors with previous buttons */
+
+		col= uiLayoutColumn(layout, 0);
+		block= uiLayoutGetBlock(col);
+		but = uiDefIconTextBut(block , BUT, 0, ICON_FILE_REFRESH, "Reset", 0, 0, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0,
+		                       "Reset operator defaults");
+		uiButSetFunc(but, ui_layout_operator_buts__reset_cb, op, NULL);
+	}
+
 	/* set various special settings for buttons */
 	{
 		uiBut *but;

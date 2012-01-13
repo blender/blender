@@ -3074,8 +3074,6 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 	}
 	if(em) {
-// XXX		retopo_matrix_update(v3d);
-
 		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act);
 
 		if(me->drawflag & ME_DRAWNORMALS) {
@@ -5400,8 +5398,6 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	BevList *bl;
 	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
 	int index;
-
-// XXX	retopo_matrix_update(v3d);
 
 	/* DispList */
 	UI_ThemeColor(TH_WIRE);

@@ -938,7 +938,8 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 	}
 
 /* check if the idproperty exists, for operators */
-int RNA_property_is_set(PointerRNA *ptr, const char *name);
+int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
@@ -1000,7 +1001,7 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 
 
 /* macro which inserts the function name */
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __sun
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
 #else
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)

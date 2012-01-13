@@ -410,7 +410,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 
 static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	// if(!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
 		/* if alt/ctrl/super are pressed pass through */
 		if(event->ctrl || event->oskey) {

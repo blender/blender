@@ -553,7 +553,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 	bConstraint *con;
 	ListBase *list;
 	
-	if (RNA_property_is_set(op->ptr, "constraint") && RNA_property_is_set(op->ptr, "owner"))
+	if (RNA_struct_property_is_set(op->ptr, "constraint") && RNA_struct_property_is_set(op->ptr, "owner"))
 		return 1;
 	
 	if (ptr.data) {

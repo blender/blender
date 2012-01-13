@@ -2283,7 +2283,18 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	if(texco & TEXCO_REFL) {
 		/* not (yet?) */
 	}
-	
+	if(texco & TEXCO_STRESS) {
+		float *s= RE_vertren_get_stress(obr, vr, 0);
+
+		if(s) {
+			shi->stress= *s;
+			if(shi->stress<1.0f) shi->stress-= 1.0f;
+			else shi->stress= (shi->stress-1.0f)/shi->stress;
+		}
+		else
+			shi->stress= 0.0f;
+	}
+
 	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 	
 	do_material_tex(shi, re);
@@ -3536,6 +3547,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	}
 	
 	if(!timeoffset) {
+		if(need_stress)
+			calc_edge_stress(re, obr, me);
+
 		if (test_for_displace(re, ob ) ) {
 			recalc_normals= 1;
 			calc_vertexnormals(re, obr, 0, 0);
@@ -3552,9 +3566,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 		if(recalc_normals!=0 || need_tangent!=0)
 			calc_vertexnormals(re, obr, need_tangent, need_nmap_tangent);
-		
-		if(need_stress)
-			calc_edge_stress(re, obr, me);
 	}
 
 	dm->release(dm);

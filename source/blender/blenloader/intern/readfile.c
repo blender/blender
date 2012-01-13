@@ -10983,7 +10983,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.dome.warptext = sce->r.dometext;
 
 			//Stand Alone
-			sce->gm.fullscreen = sce->r.fullscreen;
+			sce->gm.playerflag |= (sce->r.fullscreen?GAME_PLAYER_FULLSCREEN:0);
 			sce->gm.xplay = sce->r.xplay;
 			sce->gm.yplay = sce->r.yplay;
 			sce->gm.freqplay = sce->r.freqplay;
@@ -13019,7 +13019,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 2))
 	{
 		{
 			/* convert Camera Actuator values to defines */
@@ -13038,6 +13038,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			/* convert deprecated sculpt_paint_unified_* fields to
+			   UnifiedPaintSettings */
+			Scene *scene;
+			for(scene= main->scene.first; scene; scene= scene->id.next) {
+				ToolSettings *ts= scene->toolsettings;
+				UnifiedPaintSettings *ups= &ts->unified_paint_settings;
+				ups->size= ts->sculpt_paint_unified_size;
+				ups->unprojected_radius= ts->sculpt_paint_unified_unprojected_radius;
+				ups->alpha= ts->sculpt_paint_unified_alpha;
+				ups->flag= ts->sculpt_paint_settings;
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

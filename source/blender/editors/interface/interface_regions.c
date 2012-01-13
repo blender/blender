@@ -409,7 +409,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		/* operator keymap (not menus, they already have it) */
 		prop= (but->opptr)? but->opptr->data: NULL;
 
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+		                                buf, sizeof(buf)))
+		{
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
 			data->color[data->totline]= 0x888888;
 			data->totline++;

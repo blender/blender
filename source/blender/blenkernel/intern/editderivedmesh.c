@@ -271,8 +271,6 @@ void BMEdit_Free(BMEditMesh *em)
 		em->derivedCage= NULL;
 	}
 
-	em->retopo_paint_data= NULL;
-
 	if (em->looptris) MEM_freeN(em->looptris);
 
 	if (em->vert_index) MEM_freeN(em->vert_index);

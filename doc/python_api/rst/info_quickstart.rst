@@ -40,14 +40,14 @@ The Blender/Python API **can't** (yet)...
 Before Starting
 ===============
 
-This document isn't intended to fully cover each topic. Rather, its purpose is to familiarize you with Blender 2.5's new Python API.
+This document isn't intended to fully cover each topic. Rather, its purpose is to familiarize you with Blender Python API.
 
 
 A quick list of helpful things to know before starting:
 
 * Blender uses Python 3.x; some 3rd party extensions are not available yet.
 
-* The interactive console in Blender 2.5 has been improved; testing one-liners in the console is a good way to learn.
+* The interactive console is great for testing one-liners, It also has autocompleation so you can inspect the api quickly.
 
 * Button tool tips show Python attributes and operator names.
 
@@ -113,7 +113,7 @@ Once you have a data block, such as a material, object, groups etc., its attribu
    bpy.data.materials['MyMaterial']
 
 
-For testing what data to access it's useful to use the "Console", which is its own space type in Blender 2.5. This supports auto-complete, giving you a fast way to dig into different data in your file.
+For testing what data to access it's useful to use the "Console", which is its own space type. This supports auto-complete, giving you a fast way to dig into different data in your file.
 
 Example of a data path that can be quickly found via the console:
 

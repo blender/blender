@@ -703,11 +703,11 @@ void DDSHeader::setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask)
 {
 	// Make sure the masks are correct.
-	if ((rmask & gmask) || \
-		(rmask & bmask) || \
-		(rmask & amask) || \
-		(gmask & bmask) || \
-		(gmask & amask) || \
+	if ((rmask & gmask) ||
+		(rmask & bmask) ||
+		(rmask & amask) ||
+		(gmask & bmask) ||
+		(gmask & amask) ||
 		(bmask & amask)) {
 		printf("DDS: bad RGBA masks, pixel format not set\n");
 		return;

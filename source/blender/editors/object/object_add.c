@@ -189,35 +189,40 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	prop= RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
+	prop = RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
 	RNA_def_property_update_runtime(prop, view_align_update);
 
 	if(do_editmode) {
-		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
-		RNA_def_property_flag(prop, PROP_HIDDEN);
+		prop = RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode",
+		                      "Enter editmode when adding this object");
+		RNA_def_property_flag(prop, PROP_HIDDEN|PROP_SKIP_SAVE);
 	}
 	
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
+	prop = RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
+	                               "Location for the newly added object", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation",
+	                             "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN|PROP_SKIP_SAVE);
 }
 
 static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 {
 	if(RNA_struct_find_property(op->ptr, "enter_editmode")) /* optional */
-		if (!RNA_property_is_set(op->ptr, "enter_editmode"))
+		if (!RNA_struct_property_is_set(op->ptr, "enter_editmode"))
 			RNA_boolean_set(op->ptr, "enter_editmode", U.flag & USER_ADD_EDITMODE);
 	
-	if(!RNA_property_is_set(op->ptr, "location")) {
+	if(!RNA_struct_property_is_set(op->ptr, "location")) {
 		float loc[3];
 		
 		ED_object_location_from_view(C, loc);
 		RNA_float_set_array(op->ptr, "location", loc);
 	}
 	 
-	if(!RNA_property_is_set(op->ptr, "layers")) {
+	if(!RNA_struct_property_is_set(op->ptr, "layers")) {
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
 		int a, values[20], layer;
@@ -257,7 +262,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 		*enter_editmode = TRUE;
 	}
 
-	if(RNA_property_is_set(op->ptr, "layers")) {
+	if(RNA_struct_property_is_set(op->ptr, "layers")) {
 		RNA_boolean_get_array(op->ptr, "layers", layer_values);
 		*layer= 0;
 		for(a=0; a<20; a++) {
@@ -278,9 +283,9 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 	if(v3d && v3d->localvd)
 		*layer |= v3d->lay;
 
-	if(RNA_property_is_set(op->ptr, "rotation"))
+	if(RNA_struct_property_is_set(op->ptr, "rotation"))
 		view_align = FALSE;
-	else if (RNA_property_is_set(op->ptr, "view_align"))
+	else if (RNA_struct_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
 	else {
 		view_align = U.flag & USER_ADD_VIEWALIGNED;

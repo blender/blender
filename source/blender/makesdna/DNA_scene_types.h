@@ -583,8 +583,9 @@ typedef struct GameData {
 
 	/*  standalone player */
 	struct GameFraming framing;
-	short fullscreen, xplay, yplay, freqplay;
+	short playerflag, xplay, yplay, freqplay;
 	short depth, attrib, rt1, rt2;
+	short aasamples, pad4[3];
 
 	/* stereo/dome mode */
 	struct GameDome dome;
@@ -660,6 +661,10 @@ typedef struct GameData {
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 #define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
 /* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
+
+/* GameData.playerflag */
+#define GAME_PLAYER_FULLSCREEN				(1 << 0)
+#define GAME_PLAYER_DESKTOP_RESOLUTION		(1 << 1)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -810,6 +815,40 @@ typedef struct TransformOrientation {
 } TransformOrientation;
 
 /* *************************************************************** */
+/* Unified Paint Settings */
+
+/* These settings can override the equivalent fields in the active
+   Brush for any paint mode; the flag field controls whether these
+   values are used */
+typedef struct UnifiedPaintSettings {
+	/* unified radius of brush in pixels */
+	int size;
+
+	/* unified radius of brush in Blender units */
+	float unprojected_radius;
+
+	/* unified strength of brush */
+	float alpha;
+
+	/* user preferences for sculpt and paint */
+	int flag;
+} UnifiedPaintSettings;
+
+typedef enum {
+	UNIFIED_PAINT_SIZE  = (1<<0),
+	UNIFIED_PAINT_ALPHA = (1<<1),
+
+	/* only used if unified size is enabled, mirros the brush flags
+	   BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
+	UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1<<2),
+	UNIFIED_PAINT_BRUSH_SIZE_PRESSURE   = (1<<3),
+
+	/* only used if unified alpha is enabled, mirrors the brush flag
+	   BRUSH_ALPHA_PRESSURE */
+	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1<<4)
+} UnifiedPaintSettingsFlags;
+
+/* *************************************************************** */
 /* Tool Settings */
 
 typedef struct ToolSettings {
@@ -881,13 +920,9 @@ typedef struct ToolSettings {
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
 	
-	/* Retopo */
-	char retopo_mode;
-	char retopo_paint_tool;
-	char line_div, ellipse_div, retopo_hotspot;
-
 	/* Multires */
 	char multires_subdiv_type;
+	char pad2[5];
 	
 	/* Skeleton generation */
 	short skgen_resolution;
@@ -931,11 +966,16 @@ typedef struct ToolSettings {
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
 
-	short sculpt_paint_settings; /* user preferences for sculpt and paint */
+	/* XXX: these sculpt_paint_* fields are deprecated, use the
+	   unified_paint_settings field instead! */
+	short sculpt_paint_settings DNA_DEPRECATED;
 	short pad1;
-	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
-	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
-	float sculpt_paint_unified_alpha; /* unified strength of brush */
+	int sculpt_paint_unified_size DNA_DEPRECATED;
+	float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
+	float sculpt_paint_unified_alpha DNA_DEPRECATED;
+
+	/* Unified Paint Settings */
+	struct UnifiedPaintSettings unified_paint_settings;
 } ToolSettings;
 
 /* *************************************************************** */
@@ -1362,13 +1402,6 @@ typedef enum SculptFlags {
 	SCULPT_ONLY_DEFORM = (1<<8),
 } SculptFlags;
 
-/* sculpt_paint_settings */
-#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
-#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
-#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
-#define SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   (1<<3)
-#define SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  (1<<4)
-
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
 // #define IMAGEPAINT_DRAW_TOOL			2 // deprecated
@@ -1438,15 +1471,6 @@ typedef enum SculptFlags {
 #define PE_TYPE_PARTICLES	0
 #define PE_TYPE_SOFTBODY	1
 #define PE_TYPE_CLOTH		2
-
-/* toolsettings->retopo_mode */
-#define RETOPO 1
-#define RETOPO_PAINT 2
-
-/* toolsettings->retopo_paint_tool */ /*UNUSED*/
-/* #define RETOPO_PEN 1 */
-/* #define RETOPO_LINE 2 */
-/* #define RETOPO_ELLIPSE 4 */
 
 /* toolsettings->skgen_options */
 #define SKGEN_FILTER_INTERNAL	(1 << 0)

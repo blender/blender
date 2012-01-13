@@ -4827,7 +4827,7 @@ static int export_obj_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	
 	BLI_strncpy(filename, "//untitled.obj", FILE_MAX);
 
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return mesh_export_obj_exec(C, op);
 	
 	export_obj_filesel(C, op, filename);

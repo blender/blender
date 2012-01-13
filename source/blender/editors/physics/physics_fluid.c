@@ -884,7 +884,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
-		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to envvar '%s'\n",strEnvName); 
+		BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"fluidsimBake::msg: Debug messages activated due to envvar '%s'\n",strEnvName);
 		elbeemDebugOut(debugStrBuffer);
 	}
 	
@@ -921,7 +921,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
-		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
+		BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz);
 		elbeemDebugOut(debugStrBuffer);
 		domainSettings->previewresxyz = domainSettings->resolutionxyz;
 	}
@@ -941,7 +941,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	} else {
 		gridlevels = domainSettings->maxRefine;
 	}
-	BLI_snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
+	BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels );
 	elbeemDebugOut(debugStrBuffer);
 	
 	
@@ -993,7 +993,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* ******** init domain object's matrix ******** */
 	copy_m4_m4(domainMat, fsDomain->obmat);
 	if(!invert_m4_m4(invDomMat, domainMat)) {
-		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
+		BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"fluidsimBake::error - Invalid obj matrix?\n");
 		elbeemDebugOut(debugStrBuffer);
 		BKE_report(reports, RPT_ERROR, "Invalid object matrix"); 
 

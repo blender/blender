@@ -42,7 +42,6 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 struct DerivedMesh;
-struct RetopoPaintData;
 struct BLI_mempool;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
@@ -186,8 +185,6 @@ typedef struct EditMesh
 	 * derivedCage and derivedFinal
 	 */
 	int lastDataMask;
-
-	struct RetopoPaintData *retopo_paint_data;
 
 	CustomData vdata, edata, fdata;
 

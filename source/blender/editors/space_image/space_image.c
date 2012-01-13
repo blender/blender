@@ -593,8 +593,13 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			/* new shading system, get image from material */
 			BMFace *efa = BM_get_actFace(em->bm, sloppy);
 
-			if(efa)
-				ED_object_get_active_image(obedit, efa->mat_nr, &sima->image, NULL, NULL);
+			if(efa) {
+				Image *node_ima;
+				ED_object_get_active_image(obedit, efa->mat_nr, &node_ima, NULL, NULL);
+
+				if(node_ima)
+					sima->image= node_ima;
+			}
 		}
 		else {
 			/* old shading system, we set texface */

@@ -4862,7 +4862,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		image_undo_restore, image_undo_free);
 
 	/* create painter */
-	pop->painter= brush_painter_new(pop->s.brush);
+	pop->painter= brush_painter_new(scene, pop->s.brush);
 
 	return 1;
 }
@@ -4968,6 +4968,7 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
+	const Scene *scene = CTX_data_scene(C);
 	PaintOperation *pop= op->customdata;
 	wmTabletData *wmtab;
 	PointerRNA itemptr;
@@ -4999,13 +5000,13 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		   windows for some tablets, then we just skip first touch ..  */
-		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
+		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 
 		/* This can be removed once fixed properly in
 		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
 		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
-		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
+		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 	
 	}

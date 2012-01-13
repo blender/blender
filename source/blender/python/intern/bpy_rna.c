@@ -3055,7 +3055,6 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 {
 	PropertyRNA *prop;
 	const char *name;
-	int ret;
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
@@ -3069,22 +3068,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 		return NULL;
 	}
 
-	/* double property lookup, could speed up */
-	/* return PyBool_FromLong(RNA_property_is_set(&self->ptr, name)); */
-	if (RNA_property_flag(prop) & PROP_IDPROPERTY) {
-		IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
-		if (group) {
-			ret = IDP_GetPropertyFromGroup(group, name) ? 1:0;
-		}
-		else {
-			ret = 0;
-		}
-	}
-	else {
-		ret = 1;
-	}
-
-	return PyBool_FromLong(ret);
+	return PyBool_FromLong(RNA_property_is_set(&self->ptr, prop));
 }
 
 PyDoc_STRVAR(pyrna_struct_is_property_hidden_doc,

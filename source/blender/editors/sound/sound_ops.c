@@ -162,7 +162,7 @@ static int sound_open_exec(bContext *UNUSED(C), wmOperator *op)
 
 static int sound_open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return sound_open_exec(C, op);
 
 	sound_open_init(C, op);
@@ -359,7 +359,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 
 static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(RNA_property_is_set(op->ptr, "filepath"))
+	if(RNA_struct_property_is_set(op->ptr, "filepath"))
 		return sound_mixdown_exec(C, op);
 
 	return WM_operator_filesel(C, op, event);
@@ -653,7 +653,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 	bSound* sound= NULL;
 
 	/* find the suppplied image by name */
-	if (RNA_property_is_set(op->ptr, "id")) {
+	if (RNA_struct_property_is_set(op->ptr, "id")) {
 		char sndname[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "id", sndname);
 		sound = BLI_findstring(&CTX_data_main(C)->sound, sndname, offsetof(ID, name) + 2);
@@ -675,7 +675,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	Editing* ed = CTX_data_scene(C)->ed;
 	bSound* sound;
 
-	if(RNA_property_is_set(op->ptr, "id"))
+	if(RNA_struct_property_is_set(op->ptr, "id"))
 		return sound_unpack_exec(C, op);
 
 	if(!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND)
