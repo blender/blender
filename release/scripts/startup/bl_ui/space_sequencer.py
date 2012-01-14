@@ -114,10 +114,7 @@ class SEQUENCER_MT_view(Menu):
 
         layout.operator("sequencer.view_selected")
 
-        if st.show_frames:
-            layout.operator("anim.time_toggle", text="Show Seconds")
-        else:
-            layout.operator("anim.time_toggle", text="Show Frames")
+        layout.prop(st, "show_seconds")
 
         layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':

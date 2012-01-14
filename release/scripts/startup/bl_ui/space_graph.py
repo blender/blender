@@ -87,7 +87,8 @@ class GRAPH_MT_view(Menu):
             layout.operator("graph.handles_view_toggle", icon='CHECKBOX_DEHLT', text="Show All Handles")
         layout.prop(st, "use_only_selected_curves_handles")
         layout.prop(st, "use_only_selected_keyframe_handles")
-        layout.operator("anim.time_toggle")
+
+        layout.prop(st, "show_seconds")
 
         layout.separator()
         layout.operator("anim.previewrange_set")

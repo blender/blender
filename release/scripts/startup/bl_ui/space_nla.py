@@ -62,7 +62,7 @@ class NLA_MT_view(Menu):
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
 
-        layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")
+        layout.prop(st, "show_seconds")
 
         layout.prop(st, "show_strip_curves")
 

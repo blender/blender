@@ -2139,7 +2139,6 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_DRAWTIME);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, only set with operator
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 	
@@ -2224,7 +2223,6 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIPO_DRAWTIME);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, only set with operator
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
@@ -2322,7 +2320,6 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNLA_DRAWTIME);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now, only set with operator
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
 	

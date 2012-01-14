@@ -152,10 +152,7 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "use_auto_merge_keyframes")
         layout.prop(st, "use_marker_sync")
 
-        if st.show_seconds:
-            layout.operator("anim.time_toggle", text="Show Frames")
-        else:
-            layout.operator("anim.time_toggle", text="Show Seconds")
+        layout.prop(st, "show_seconds")
 
         layout.separator()
         layout.operator("anim.previewrange_set")
