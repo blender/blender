@@ -34,6 +34,8 @@
 
 #include "BKE_context.h"
 
+#include "BLI_utildefines.h"
+
 #include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -138,12 +140,14 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	/* mouse select in nodes used to be both keys, but perhaps this should be reduced? 
 	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize
 	 */
-	WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0)->ptr, "tweak", 1);
 	
 	/* each of these falls through if not handled... */
