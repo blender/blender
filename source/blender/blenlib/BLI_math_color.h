@@ -69,8 +69,10 @@ void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *l
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
-float rgb_to_grayscale(float rgb[3]);
-unsigned char rgb_to_grayscale_byte(unsigned char rgb[3]);
+float rgb_to_grayscale(const float rgb[3]);
+unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
+float rgb_to_luma(const float rgb[3]);
+unsigned char rgb_to_luma_byte(const unsigned char rgb[3]);
 
 /**************** Profile Transformations *****************/
 
