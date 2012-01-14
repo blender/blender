@@ -1784,16 +1784,7 @@ static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset
 }
 #endif //PROJ_DEBUG_NOSEAMBLEED
 
-static float Vec2Lenf_nosqrt(const float *v1, const float *v2)
-{
-	float x, y;
-
-	x = v1[0]-v2[0];
-	y = v1[1]-v2[1];
-	return x*x+y*y;
-}
-
-static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const float v2_2)
+static float len_squared_v2v2_alt(const float *v1, const float v2_1, const float v2_2)
 {
 	float x, y;
 
@@ -1802,7 +1793,7 @@ static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const floa
 	return x*x+y*y;
 }
 
-/* note, use a squared value so we can use Vec2Lenf_nosqrt
+/* note, use a squared value so we can use len_squared_v2v2
  * be sure that you have done a bounds check first or this may fail */
 /* only give bucket_bounds as an arg because we need it elsewhere */
 static int project_bucket_isect_circle(const float cent[2], const float radius_squared, rctf *bucket_bounds)
@@ -1826,21 +1817,21 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	if (cent[0] < bucket_bounds->xmin) {
 		/* lower left out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
 		} 
 		/* top left test */
 		else if (cent[1] > bucket_bounds->ymax) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
 		}
 	}
 	else if (cent[0] > bucket_bounds->xmax) {
 		/* lower right out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
 		} 
 		/* top right test */
 		else if (cent[1] > bucket_bounds->ymax) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
 		}
 	}
 	
@@ -3901,8 +3892,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				projPixel = (ProjPixel *)node->link;
 
-				/*dist = len_v2v2(projPixel->projCoSS, pos);*/ /* correct but uses a sqrtf */
-				dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
+				dist_nosqrt = len_squared_v2v2(projPixel->projCoSS, pos);
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {

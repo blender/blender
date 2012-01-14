@@ -337,14 +337,14 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
-void rgb_byte_to_float(const unsigned char *in, float *out)
+void rgb_byte_to_float(const unsigned char in[3], float out[3])
 {
 	out[0]= ((float)in[0]) / 255.0f;
 	out[1]= ((float)in[1]) / 255.0f;
 	out[2]= ((float)in[2]) / 255.0f;
 }
 
-void rgb_float_to_byte(const float *in, unsigned char *out)
+void rgb_float_to_byte(const float in[3], unsigned char out[3])
 {
 	int r, g, b;
 	
