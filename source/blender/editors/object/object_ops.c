@@ -295,8 +295,10 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "OBJECT_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -304,15 +306,17 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set_identifier(kmi->ptr, "direction", "PARENT");
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set_identifier(kmi->ptr, "direction", "PARENT");
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set_identifier(kmi->ptr, "direction", "CHILD");
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set_identifier(kmi->ptr, "direction", "CHILD");
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_no_inverse_set", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);

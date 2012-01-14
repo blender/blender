@@ -158,7 +158,7 @@ void ED_operatormacros_curve(void)
 void ED_keymap_curve(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-//	wmKeyMapItem *kmi;
+	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "Font", 0, 0);
 	keymap->poll= ED_operator_editfont;
@@ -222,8 +222,10 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+	kmi = WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	kmi = WM_keymap_add_item(keymap, "CURVE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
