@@ -123,19 +123,19 @@ static int same_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 {
 	MTex* mtex = &brush->mtex;
 
-	return  ( (mtex->tex) &&
-	          equals_v3v3(mtex->ofs, snap->ofs) &&
-	          equals_v3v3(mtex->size, snap->size) &&
-	          mtex->rot == snap->rot
-	          ) &&
+	return (((mtex->tex) &&
+			 equals_v3v3(mtex->ofs, snap->ofs) &&
+			 equals_v3v3(mtex->size, snap->size) &&
+			 mtex->rot == snap->rot) &&
 
-	        /* make brush smaller shouldn't cause a resample */
-	        ( (mtex->brush_map_mode == MTEX_MAP_MODE_FIXED && (brush_size(brush) <= snap->brush_size)) ||
-	          (brush_size(brush) == snap->brush_size)) &&
+			/* make brush smaller shouldn't cause a resample */
+			((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED &&
+			  (brush_size(vc->scene, brush) <= snap->brush_size)) ||
+			 (brush_size(vc->scene, brush) == snap->brush_size)) &&
 
-	        (mtex->brush_map_mode == snap->brush_map_mode) &&
-	        (vc->ar->winx == snap->winx) &&
-	        (vc->ar->winy == snap->winy);
+			(mtex->brush_map_mode == snap->brush_map_mode) &&
+			(vc->ar->winx == snap->winx) &&
+			(vc->ar->winy == snap->winy));
 }
 
 static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
@@ -153,7 +153,7 @@ static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 		snap->rot = -1;
 	}
 
-	snap->brush_size = brush_size(brush);
+	snap->brush_size = brush_size(vc->scene, brush);
 	snap->winx = vc->ar->winx;
 	snap->winy = vc->ar->winy;
 }
@@ -198,7 +198,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 		make_snap(&snap, br, vc);
 
 		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
-			int s = brush_size(br);
+			int s = brush_size(vc->scene, br);
 			int r = 1;
 
 			for (s >>= 1; s > 0; s >>= 1)
@@ -239,7 +239,7 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 				// largely duplicated from tex_strength
 
 				const float rotation = -br->mtex.rot;
-				float radius = brush_size(br);
+				float radius = brush_size(vc->scene, br);
 				int index = j*size + i;
 				float x;
 				float avg;
@@ -373,6 +373,7 @@ static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radiu
 			      float location[3])
 {
 	struct PaintStroke *stroke;
+	const Scene *scene = CTX_data_scene(C);
 	float window[2];
 	int hit;
 
@@ -384,11 +385,11 @@ static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radiu
 	if(stroke->vc.obact->sculpt && stroke->vc.obact->sculpt->pbvh &&
 	   sculpt_stroke_get_location(C, stroke, location, window)) {
 		*pixel_radius = project_brush_radius(stroke->vc.rv3d,
-						     brush_unprojected_radius(stroke->brush),
+						     brush_unprojected_radius(scene, stroke->brush),
 						     location, &stroke->mats);
 
 		if (*pixel_radius == 0)
-			*pixel_radius = brush_size(stroke->brush);
+			*pixel_radius = brush_size(scene, stroke->brush);
 
 		mul_m4_v3(stroke->vc.obact->obmat, location);
 
@@ -398,7 +399,7 @@ static int sculpt_get_brush_geometry(bContext* C, int x, int y, int* pixel_radiu
 		Sculpt* sd    = CTX_data_tool_settings(C)->sculpt;
 		Brush*  brush = paint_brush(&sd->paint);
 
-		*pixel_radius = brush_size(brush);
+		*pixel_radius = brush_size(scene, brush);
 		hit = 0;
 	}
 
@@ -468,7 +469,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 				quad.ymax = aim[1]+sd->anchored_size - win->ymin;
 			}
 			else {
-				const int radius= brush_size(brush);
+				const int radius= brush_size(vc->scene, brush);
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
@@ -524,7 +525,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 		if(brush->flag & BRUSH_ANCHORED)
 			projected_radius = 8;
 		else
-			projected_radius = brush_size(brush);
+			projected_radius = brush_size(vc->scene, brush);
 	}
 	unprojected_radius = paint_calc_object_space_radius(vc, location,
 							    projected_radius);
@@ -533,7 +534,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 		unprojected_radius *= sd->pressure_value;
 
 	if(!brush_use_locked_size(vc->scene, brush))
-		brush_set_unprojected_radius(brush, unprojected_radius);
+		brush_set_unprojected_radius(vc->scene, brush, unprojected_radius);
 }
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
@@ -551,7 +552,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	translation[1] = y;
 	outline_alpha = 0.5;
 	outline_col = brush->add_col;
-	final_radius = brush_size(brush);
+	final_radius = brush_size(scene, brush);
 
 	/* check that brush drawing is enabled */
 	if(!(paint->flags & PAINT_SHOW_BRUSH))
@@ -567,7 +568,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		float location[3];
 		int pixel_radius, hit;
-		const float root_alpha = brush_alpha(brush);
+		const float root_alpha = brush_alpha(scene, brush);
 		float visual_strength = root_alpha*root_alpha;
 		const float min_alpha = 0.20f;
 		const float max_alpha = 0.80f;
@@ -599,7 +600,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		paint_draw_alpha_overlay(sd, brush, &vc, x, y);
 
 		if(brush_use_locked_size(scene, brush))
-			brush_set_size(brush, pixel_radius);
+			brush_set_size(scene, brush, pixel_radius);
 
 		/* check if brush is subtracting, use different color then */
 		/* TODO: no way currently to know state of pen flip or
@@ -669,7 +670,8 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
 {
-	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Scene *scene = CTX_data_scene(C);
+	Paint *paint = paint_get_active(scene);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse[3];
@@ -686,7 +688,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	if(stroke->vc.obact->sculpt) {
 		float delta[2];
 
-		brush_jitter_pos(brush, mouse_in, mouse);
+		brush_jitter_pos(scene, brush, mouse_in, mouse);
 
 		/* XXX: meh, this is round about because
 		   brush_jitter_pos isn't written in the best way to
@@ -775,7 +777,7 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 				pressure = event_tablet_data(event, NULL);
 			
 			if(pressure > FLT_EPSILON) {
-				scale = (brush_size(stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
+				scale = (brush_size(scene, stroke->brush)*pressure*stroke->brush->spacing/50.0f) / length;
 				if(scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 

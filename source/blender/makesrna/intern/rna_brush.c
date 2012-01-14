@@ -164,60 +164,21 @@ static void rna_Brush_icon_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 
 static void rna_Brush_set_size(PointerRNA *ptr, int value)
 {
-	Brush* me = (Brush*)(ptr->data);
+	Brush* brush = ptr->data;
 
-	float size= (float)brush_size(me);
-	float unprojected_radius;
-
-	// paranoia: previous checks should make sure we don't divide by zero
-	assert(size != 0);
-
-	// set unprojected radius, so it remains consistent with size
-	unprojected_radius= (float)(brush_unprojected_radius(me) * value / size);
-	brush_set_unprojected_radius(me, unprojected_radius);
-
-	brush_set_size(me, value);
-}
-
-static int rna_Brush_get_size(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_size(me);
+	/* scale unprojected radius so it stays consistent with brush size */
+	brush_scale_unprojected_radius(&brush->unprojected_radius,
+								   value, brush->size);
+	brush->size= value;
 }
 
 static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 {
-	Brush* me = (Brush*)(ptr->data);
+	Brush* brush = ptr->data;
 
-	float unprojected_radius= brush_unprojected_radius(me);
-	int size;
-
-	// paranoia: previous checks should make sure we don't divide by zero
-	assert(unprojected_radius != 0.0f);
-
-	// set size, so that it is consistent with unprojected_radius
-	size= (int)((float)brush_size(me) * value / unprojected_radius);
-	brush_set_size(me, size);
-
-	brush_set_unprojected_radius(me, value);
-}
-
-static float rna_Brush_get_unprojected_radius(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_unprojected_radius(me);
-}
-
-static void rna_Brush_set_alpha(PointerRNA *ptr, float value)
-{
-	Brush* me = (Brush*)(ptr->data);
-	brush_set_alpha(me, value);
-}
-
-static float rna_Brush_get_alpha(PointerRNA *ptr)
-{
-	Brush* me = (Brush*)(ptr->data);
-	return brush_alpha(me);
+	/* scale brush size so it stays consistent with unprojected_radius */
+	brush_scale_size(&brush->size, value, brush->unprojected_radius);
+	brush->unprojected_radius= value;
 }
 
 static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *UNUSED(free))
@@ -412,14 +373,14 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	/* number values */
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
-	RNA_def_property_int_funcs(prop, "rna_Brush_get_size", "rna_Brush_set_size", NULL);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_funcs(prop, "rna_Brush_get_unprojected_radius", "rna_Brush_set_unprojected_radius", NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_Brush_set_unprojected_radius", NULL);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
@@ -463,7 +424,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
-	RNA_def_property_float_funcs(prop, "rna_Brush_get_alpha", "rna_Brush_set_alpha", NULL);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);

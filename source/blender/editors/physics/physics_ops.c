@@ -116,11 +116,11 @@ static void keymap_particle(wmKeyConfig *keyconf)
 
 	/* size radial control */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.size");
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.size");
 
 	/* size radial control */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.particle_edit.brush.strength");
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.strength");
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
 	

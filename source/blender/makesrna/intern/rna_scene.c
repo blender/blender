@@ -244,6 +244,7 @@ EnumPropertyItem image_color_depth_items[] = {
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
 
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -1288,6 +1289,25 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
+static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
+{
+	UnifiedPaintSettings* ups = ptr->data;
+
+	/* scale unprojected radius so it stays consistent with brush size */
+	brush_scale_unprojected_radius(&ups->unprojected_radius,
+								   value, ups->size);
+	ups->size= value;
+}
+
+static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, float value)
+{
+	UnifiedPaintSettings* ups = ptr->data;
+
+	/* scale brush size so it stays consistent with unprojected_radius */
+	brush_scale_size(&ups->size, value, ups->unprojected_radius);
+	ups->unprojected_radius= value;
+}
+
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
  * is not for general use and only for the few cases where changing scene
@@ -1654,11 +1674,13 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	/* unified paint settings that override the equivalent settings
 	   from the active brush */
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
+	RNA_def_property_int_funcs(prop, NULL, "rna_UnifiedPaintSettings_size_set", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the brush in pixels");
 
 	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_funcs(prop, NULL, "rna_UnifiedPaintSettings_unprojected_radius_set", NULL);
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
 	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");

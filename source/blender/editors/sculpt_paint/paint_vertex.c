@@ -654,7 +654,7 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
+static void vpaint_blend(Scene *scene, VPaint *vp, unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
 	Brush *brush = paint_brush(&vp->paint);
 
@@ -670,7 +670,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0f*brush_alpha(brush));
+		alpha= (int)(255.0f*brush_alpha(scene, brush));
 		
 		if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(brush->vertexpaint_tool==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -787,7 +787,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 	return 0.0f;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *dw_prev, float alpha, float paintval, int flip, int multipaint)
+static void wpaint_blend(Scene *scene, VPaint *wp, MDeformWeight *dw, MDeformWeight *dw_prev, float alpha, float paintval, int flip, int multipaint)
 {
 	Brush *brush = paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
@@ -832,7 +832,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *dw_prev, 
 	if((wp->flag & VP_SPRAY)==0) {
 		float testw=0.0f;
 		
-		alpha= brush_alpha(brush);
+		alpha= brush_alpha(scene, brush);
 		if(tool==VP_MIX || tool==VP_BLUR)
 			testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
 		else if(tool==VP_ADD)
@@ -1596,7 +1596,8 @@ static char *wpaint_make_validmap(Object *ob);
 
 
 static void do_weight_paint_vertex( /* vars which remain the same for every vert */
-                                   VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
+                                   Scene *scene, VPaint *wp, Object *ob,
+								   const WeightPaintInfo *wpi,
                                     /* vars which change on each stroke */
                                    const unsigned int index, float alpha, float paintweight
                                    )
@@ -1685,7 +1686,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	if ( (wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) &&
 	     (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
 	{
-		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, FALSE);
+		wpaint_blend(scene, wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, FALSE);
 
 		/* WATCH IT: take care of the ordering of applying mirror -> normalize,
 		 * can give wrong results [#26193], least confusing if normalize is done last */
@@ -1750,7 +1751,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		MDeformVert dv_copy= {NULL};
 
 		oldw = dw->weight;
-		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
+		wpaint_blend(scene, wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
 		neww = dw->weight;
 		dw->weight = oldw;
 		
@@ -2091,7 +2092,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 
 static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
-	const Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
 	Brush *brush = paint_brush(&wp->paint);
@@ -2110,8 +2111,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_final = brush_alpha(brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_final = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_final = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	/* intentionally dont initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -2265,7 +2266,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx,
 					                        mval, brush_size_final, brush_alpha_final);
 					if(alpha) {
-						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
+						do_weight_paint_vertex(scene, wp, ob, &wpi, vidx, alpha, paintweight);
 					}
 					me->dvert[vidx].flag= 0;
 				}
@@ -2556,7 +2557,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i],
 		                         mval, brush_size_final, brush_alpha_final);
 		if(alpha) {
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
+			vpaint_blend(vc->scene, vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
 		}
 	}
 }
@@ -2577,8 +2578,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_final = brush_alpha(brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_final = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_final = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 	flip = RNA_boolean_get(itemptr, "pen_flip");

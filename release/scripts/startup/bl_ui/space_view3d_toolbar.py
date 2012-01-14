@@ -476,16 +476,16 @@ class PaintPanel():
         parent.prop(ups, "use_unified_strength", text="Strength")
 
     @staticmethod
-    def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text=""):
+    def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
         ups = context.tool_settings.unified_paint_settings
         ptr = ups if ups.use_unified_size else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text)
+        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
 
     @staticmethod
-    def prop_unified_strength(parent, context, brush, prop_name, icon='NONE', text=""):
+    def prop_unified_strength(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
         ups = context.tool_settings.unified_paint_settings
         ptr = ups if ups.use_unified_strength else brush
-        parent.prop(ptr, prop_name, icon=icon, text=text)
+        parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
 
 class VIEW3D_PT_tools_brush(PaintPanel, Panel):
     bl_label = "Brush"
@@ -545,10 +545,10 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             if ((ups.use_unified_size and ups.use_locked_size) or
                 ((not ups.use_unified_size) and brush.use_locked_size)):
                 self.prop_unified_size(row, context, brush, "use_locked_size", icon='LOCKED')
-                row.prop(brush, "unprojected_radius", text="Radius", slider=True)
+                self.prop_unified_size(row, context, brush, "unprojected_radius", slider=True, text="Radius")
             else:
                 self.prop_unified_size(row, context, brush, "use_locked_size", icon='UNLOCKED')
-                row.prop(brush, "size", slider=True)
+                self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
 
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
@@ -563,12 +563,12 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
                     else:
                         row.prop(brush, "use_space_atten", toggle=True, text="", icon='UNLOCKED')
 
-                row.prop(brush, "strength", text="Strength", slider=True)
+                self.prop_unified_strength(row, context, brush, "strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             if tool == 'ROTATE':
                 row = col.row(align=True)
-                row.prop(brush, "strength", text="Strength", slider=True)
+                self.prop_unified_strength(row, context, brush, "strength")
                 self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             if tool != 'SMOOTH':
@@ -656,11 +656,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", text="Strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
@@ -682,11 +682,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             col = layout.column()
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", text="Strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             row = col.row(align=True)
@@ -700,11 +700,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
             self.prop_unified_size(row, context, brush, "use_pressure_size")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", text="Strength", slider=True)
+            self.prop_unified_strength(row, context, brush, "strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             # XXX - TODO
