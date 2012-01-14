@@ -1180,10 +1180,11 @@ static unsigned char *get_ucharbuf(ImBuf *ibuf)
 			int pixel= ibuf->x*y + x;
 
 			if(ibuf->rect_float) {
-				float *rrgbf= ibuf->rect_float + pixel*4;
-				*cp= FTOCHAR(0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2]);
+				const float *rrgbf= ibuf->rect_float + pixel*4;
+				const float grey_f= 0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2];
+				*cp= FTOCHAR(grey_f);
 			} else {
-				unsigned char *rrgb= (unsigned char*)ibuf->rect + pixel*4;
+				const unsigned char *rrgb= (unsigned char*)ibuf->rect + pixel*4;
 				*cp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
 			}
 			cp++;

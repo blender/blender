@@ -328,8 +328,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	if(is_view_context) {
 		oglrender->v3d= CTX_wm_view3d(C);
-		oglrender->ar= CTX_wm_region(C);
-		oglrender->rv3d= CTX_wm_region_view3d(C);
+		oglrender->ar= ED_view3d_context_region_unlock(C); /* so quad view renders camera */
+		oglrender->rv3d= oglrender->ar->regiondata;
 
 		/* MUST be cleared on exit */
 		oglrender->scene->customdata_mask_modal = (ED_view3d_datamask(oglrender->scene, oglrender->v3d) |
