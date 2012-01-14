@@ -485,7 +485,7 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.operator("particle.select_all", text="Select/Deselect All").action = 'TOGGLE'
         layout.operator("particle.select_linked")
-        layout.operator("particle.select_inverse")
+        layout.operator("particle.select_all").action = 'INVERT'
 
         layout.separator()
 
@@ -1508,7 +1508,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.remove_doubles")
         layout.operator("mesh.hide", text="Hide")
         layout.operator("mesh.reveal", text="Reveal")
-        layout.operator("mesh.select_inverse")
+        layout.operator("mesh.select_all").action = 'INVERT'
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
         # layout.operator("mesh.bevel", text="Bevel")

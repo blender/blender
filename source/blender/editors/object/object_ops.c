@@ -94,7 +94,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_make_links_data);
 	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
-	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all);
 	WM_operatortype_append(OBJECT_OT_select_same_group);
@@ -297,7 +296,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "OBJECT_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);

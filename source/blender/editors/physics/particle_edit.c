@@ -1880,43 +1880,6 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	PEData data;
-	PTCacheEdit *edit;
-	POINT_P; KEY_K;
-
-	PE_set_data(C, &data);
-
-	edit= PE_get_current(data.scene, data.ob);
-
-	LOOP_VISIBLE_POINTS {
-		LOOP_KEYS {
-			key->flag ^= PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
-		}
-	}
-
-	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
-
-	return OPERATOR_FINISHED;
-}
-
-void PARTICLE_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "PARTICLE_OT_select_inverse";
-
-	/* api callbacks */
-	ot->exec= select_inverse_exec;
-	ot->poll= PE_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 /************************ rekey operator ************************/
 
 static void rekey_particle(PEData *data, int pa_index)

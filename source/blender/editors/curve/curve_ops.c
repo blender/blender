@@ -116,7 +116,6 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_de_select_first);
 	WM_operatortype_append(CURVE_OT_de_select_last);
 	WM_operatortype_append(CURVE_OT_select_all);
-	WM_operatortype_append(CURVE_OT_select_inverse);
 	WM_operatortype_append(CURVE_OT_select_linked);
 	WM_operatortype_append(CURVE_OT_select_linked_pick);
 	WM_operatortype_append(CURVE_OT_select_row);
@@ -224,10 +223,11 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "CURVE_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);

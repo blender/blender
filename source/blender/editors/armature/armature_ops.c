@@ -114,7 +114,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_paste);
 	
 	WM_operatortype_append(POSE_OT_select_all);
-	WM_operatortype_append(POSE_OT_select_inverse);
 
 	WM_operatortype_append(POSE_OT_select_parent);
 	WM_operatortype_append(POSE_OT_select_hierarchy);
@@ -322,7 +321,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "flipped", 1);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "POSE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 

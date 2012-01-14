@@ -62,7 +62,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_all);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
-	WM_operatortype_append(MESH_OT_select_inverse);
 	WM_operatortype_append(MESH_OT_select_non_manifold);
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
@@ -256,9 +255,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_select_shortest_path", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "MESH_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
+
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
