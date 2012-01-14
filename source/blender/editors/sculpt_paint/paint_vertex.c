@@ -1655,7 +1655,20 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			}
 		}
 		else {
-			dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+			if (index != index_mirr) {
+				dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+			}
+			else {
+				/* dv and dv_mirr are the same */
+				int totweight_prev = dv_mirr->totweight;
+				int dw_offset = (int)(dw - dv_mirr->dw);
+				dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+
+				/* if we added another, get our old one back */
+				if (totweight_prev != dv_mirr->totweight) {
+					dw = &dv_mirr->dw[dw_offset];
+				}
+			}
 		}
 	}
 	else {
