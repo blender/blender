@@ -148,8 +148,8 @@ class SEQUENCER_MT_select(Menu):
         layout.separator()
         layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
-        layout.operator("sequencer.select_all_toggle")
-        layout.operator("sequencer.select_inverse")
+        layout.operator("sequencer.select_all").action = 'TOGGLE'
+        layout.operator("sequencer.select_all").action = 'INVERT'
 
 
 class SEQUENCER_MT_marker(Menu):
