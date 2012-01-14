@@ -646,8 +646,8 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_all", text="Select/Deselect All")
-        layout.operator("armature.select_inverse", text="Inverse")
+        layout.operator("armature.select_all", text="Select/Deselect All").action = 'TOGGLE'
+        layout.operator("armature.select_all", text="Inverse").action = 'INVERT'
 
         layout.separator()
 
