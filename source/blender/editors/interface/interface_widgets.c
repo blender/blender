@@ -752,10 +752,10 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		float quad_strip[WIDGET_SIZE_MAX*2+2][2]; /* + 2 because the last pair is wrapped */
 		float quad_strip_emboss[WIDGET_SIZE_MAX*2][2]; /* only for emboss */
 
-		const GLubyte tcol[4] = {wcol->outline[0],
-		                         wcol->outline[1],
-		                         wcol->outline[2],
-		                         wcol->outline[3] / (WIDGET_AA_JITTER / 2)};
+		const unsigned char tcol[4] = {wcol->outline[0],
+		                               wcol->outline[1],
+		                               wcol->outline[2],
+		                               UCHAR_MAX / WIDGET_AA_JITTER};
 
 		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
 
@@ -790,10 +790,10 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	
 	/* decoration */
 	if(wtb->tria1.tot || wtb->tria2.tot) {
-		const GLubyte tcol[4] = {wcol->item[0],
-		                         wcol->item[1],
-		                         wcol->item[2],
-		                         wcol->item[3] / (WIDGET_AA_JITTER / 2)};
+		const unsigned char tcol[4] = {wcol->item[0],
+		                               wcol->item[1],
+		                               wcol->item[2],
+		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
 		/* for each AA step */
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
@@ -1887,7 +1887,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
+void ui_draw_gradient(rcti *rect, const float hsv[3], int type, float alpha)
 {
 	int a;
 	float h= hsv[0], s= hsv[1], v= hsv[2];
