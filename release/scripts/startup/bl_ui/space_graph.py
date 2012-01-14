@@ -111,7 +111,7 @@ class GRAPH_MT_select(Menu):
         layout = self.layout
 
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
-        layout.operator("graph.select_all_toggle")
+        layout.operator("graph.select_all_toggle").invert = False
         layout.operator("graph.select_all_toggle", text="Invert Selection").invert = True
 
         layout.separator()

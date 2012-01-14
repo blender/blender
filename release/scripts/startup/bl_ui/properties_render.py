@@ -551,7 +551,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         layout.separator()
 
         # Audio:
-        if ffmpeg.format not in {'MP3'}:
+        if ffmpeg.format != 'MP3':
             layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
 
         row = layout.row()

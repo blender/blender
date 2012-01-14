@@ -61,7 +61,7 @@ class TIME_HT_header(Header):
             # if using JACK and A/V sync:
             #   hide the play-reversed button
             #   since JACK transport doesn't support reversed playback
-            if (context.user_preferences.system.audio_device == 'JACK' and scene.sync_mode == 'AUDIO_SYNC'):
+            if scene.sync_mode == 'AUDIO_SYNC' and context.user_preferences.system.audio_device == 'JACK':
                 sub = row.row()
                 sub.scale_x = 2.0
                 sub.operator("screen.animation_play", text="", icon='PLAY')

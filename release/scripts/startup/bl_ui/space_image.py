@@ -85,7 +85,7 @@ class IMAGE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("uv.select_border")
+        layout.operator("uv.select_border").pinned = False
         layout.operator("uv.select_border").pinned = True
 
         layout.separator()
@@ -184,7 +184,7 @@ class IMAGE_MT_uvs_showhide(Menu):
         layout = self.layout
 
         layout.operator("uv.reveal")
-        layout.operator("uv.hide", text="Hide Selected")
+        layout.operator("uv.hide", text="Hide Selected").unselected = False
         layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 

@@ -86,11 +86,11 @@ class NLA_MT_select(Menu):
         layout = self.layout
 
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
-        layout.operator("nla.select_all_toggle")
+        layout.operator("nla.select_all_toggle").invert = False
         layout.operator("nla.select_all_toggle", text="Invert Selection").invert = True
 
         layout.separator()
-        layout.operator("nla.select_border")
+        layout.operator("nla.select_border").axis_range = False
         layout.operator("nla.select_border", text="Border Axis Range").axis_range = True
 
         layout.separator()
@@ -165,7 +165,7 @@ class NLA_MT_add(Menu):
         layout.operator("nla.meta_remove")
 
         layout.separator()
-        layout.operator("nla.tracks_add")
+        layout.operator("nla.tracks_add").above_selected = False
         layout.operator("nla.tracks_add", text="Add Tracks Above Selected").above_selected = True
 
 
