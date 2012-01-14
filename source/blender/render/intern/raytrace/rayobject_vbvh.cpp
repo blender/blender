@@ -148,7 +148,7 @@ int intersect(VBVHTree *obj, Isect* isec)
 }
 
 template<class Tree>
-void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
+void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(max))
 {
 	//TODO renable hint support
 	{
