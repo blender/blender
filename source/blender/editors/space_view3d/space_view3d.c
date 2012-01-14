@@ -154,15 +154,23 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 
 /* ideally would return an rv3d but in some cases the region is needed too
  * so return that, the caller can then access the ar->regiondata */
-ARegion *ED_view3d_context_region_unlock(bContext *C)
+int ED_view3d_context_user_region(bContext *C, View3D **v3d_r, ARegion **ar_r)
 {
 	ScrArea *sa= CTX_wm_area(C);
+
+	*v3d_r = NULL;
+	*ar_r = NULL;
+
 	if(sa && sa->spacetype==SPACE_VIEW3D) {
 		ARegion *ar= CTX_wm_region(C);
+		View3D *v3d = (View3D *)sa->spacedata.first;
+
 		if(ar) {
 			RegionView3D *rv3d= ar->regiondata;
 			if(rv3d && rv3d->viewlock == 0) {
-				return ar;
+				*v3d_r = v3d;
+				*ar_r = ar;
+				return 1;
 			}
 			else {
 				ARegion *ar_unlock_user= NULL;
@@ -182,12 +190,22 @@ ARegion *ED_view3d_context_region_unlock(bContext *C)
 				}
 
 				/* camera/perspective view get priority when the active region is locked */
-				if(ar_unlock_user) return ar_unlock_user;
-				if(ar_unlock) return ar_unlock;
+				if(ar_unlock_user) {
+					*v3d_r = v3d;
+					*ar_r = ar_unlock_user;
+					return 1;
+				}
+
+				if(ar_unlock) {
+					*v3d_r = v3d;
+					*ar_r = ar_unlock;
+					return 1;
+				}
 			}
 		}
 	}
-	return NULL;
+
+	return 0;
 }
 
 /* Most of the time this isn't needed since you could assume the view matrix was

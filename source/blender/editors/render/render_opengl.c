@@ -327,8 +327,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->prevar= prevar;
 
 	if(is_view_context) {
-		oglrender->v3d= CTX_wm_view3d(C);
-		oglrender->ar= ED_view3d_context_region_unlock(C); /* so quad view renders camera */
+		ED_view3d_context_user_region(C, &oglrender->v3d, &oglrender->ar); /* so quad view renders camera */
 		oglrender->rv3d= oglrender->ar->regiondata;
 
 		/* MUST be cleared on exit */
