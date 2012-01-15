@@ -69,13 +69,13 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 
 
 EnumPropertyItem brush_vertex_tool_items[] = {
-	{0, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
-	{1, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
-	{2, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
-	{3, "MUL", ICON_BRUSH_MULTIPLY, "Multiply", "Use multiply blending mode while painting"},
-	{4, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur the color with surrounding values"},
-	{5, "LIGHTEN", ICON_BRUSH_LIGHTEN, "Lighten", "Use lighten blending mode while painting"},
-	{6, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
+	{PAINT_BLEND_MIX, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
+	{PAINT_BLEND_ADD, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
+	{PAINT_BLEND_SUB, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
+	{PAINT_BLEND_MUL, "MUL", ICON_BRUSH_MULTIPLY, "Multiply", "Use multiply blending mode while painting"},
+	{PAINT_BLEND_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur the color with surrounding values"},
+	{PAINT_BLEND_LIGHTEN, "LIGHTEN", ICON_BRUSH_LIGHTEN, "Lighten", "Use lighten blending mode while painting"},
+	{PAINT_BLEND_DARKEN, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
 	{0, NULL, 0, NULL, NULL}};
 	
 EnumPropertyItem brush_image_tool_items[] = {
