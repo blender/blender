@@ -739,41 +739,6 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
 
-/************************** Select Inverse *************************/
-
-static int object_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (base->flag & SELECT)
-			ED_base_object_select(base, BA_DESELECT);
-		else
-			ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_select_inverse(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->description = "Invert selection of all visible objects";
-	ot->idname= "OBJECT_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= object_select_inverse_exec;
-	ot->poll= objects_selectable_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-}
-
 /**************************** (De)select All ****************************/
 
 static int object_select_all_exec(bContext *C, wmOperator *op)

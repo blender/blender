@@ -745,7 +745,7 @@ int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int
 
 static int pyrna_struct_compare(BPy_StructRNA *a, BPy_StructRNA *b)
 {
-	return (a->ptr.data == b->ptr.data) ? 0 : -1;
+	return (a->ptr.data == b->ptr.data && a->ptr.type == b->ptr.type) ? 0 : -1;
 }
 
 static int pyrna_prop_compare(BPy_PropertyRNA *a, BPy_PropertyRNA *b)

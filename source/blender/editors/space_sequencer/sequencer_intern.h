@@ -122,7 +122,7 @@ void SEQUENCER_OT_rebuild_proxy(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
-void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_select(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_more(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_less(struct wmOperatorType *ot);

@@ -219,7 +219,7 @@ kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.keymap_items.new('view3d.game_start', 'P', 'PRESS')
 kmi = km.keymap_items.new('object.select_all', 'A', 'PRESS')
-kmi = km.keymap_items.new('object.select_inverse', 'I', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('object.select_all', 'I', 'PRESS', ctrl=True).action = 'INVERT'
 kmi = km.keymap_items.new('object.select_linked', 'L', 'PRESS', shift=True)
 kmi = km.keymap_items.new('object.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('object.select_mirror', 'M', 'PRESS', shift=True, ctrl=True)
@@ -304,7 +304,8 @@ kmi = km.keymap_items.new('mesh.select_shortest_path', 'SELECTMOUSE', 'PRESS', c
 kmi = km.keymap_items.new('mesh.select_all', 'A', 'PRESS')
 kmi = km.keymap_items.new('mesh.select_more', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_less', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('mesh.select_inverse', 'I', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('mesh.select_all', 'I', 'PRESS', ctrl=True)
+kmi.properties.action = 'INVERT'
 kmi = km.keymap_items.new('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
 kmi = km.keymap_items.new('mesh.select_linked', 'L', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'PRESS')

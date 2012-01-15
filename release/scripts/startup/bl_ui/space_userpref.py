@@ -507,32 +507,40 @@ class USERPREF_PT_theme(Panel):
     @staticmethod
     def _theme_generic(split, themedata):
 
-        row = split.row()
+        col = split.column()
 
-        subsplit = row.split(percentage=0.95)
+        def theme_generic_recurse(data):
+            col.label(data.rna_type.name)
+            row = col.row()
+            subsplit = row.split(percentage=0.95)
 
-        padding1 = subsplit.split(percentage=0.15)
-        padding1.column()
+            padding1 = subsplit.split(percentage=0.15)
+            padding1.column()
 
-        subsplit = row.split(percentage=0.85)
+            subsplit = row.split(percentage=0.85)
 
-        padding2 = subsplit.split(percentage=0.15)
-        padding2.column()
+            padding2 = subsplit.split(percentage=0.15)
+            padding2.column()
 
-        colsub_pair = padding1.column(), padding2.column()
+            colsub_pair = padding1.column(), padding2.column()
 
-        props_type = {}
+            props_type = {}
 
-        for i, prop in enumerate(themedata.rna_type.properties):
-            attr = prop.identifier
-            if attr == "rna_type":
-                continue
+            for i, prop in enumerate(data.rna_type.properties):
+                if prop.identifier == "rna_type":
+                    continue
 
-            props_type.setdefault((prop.type, prop.subtype), []).append(prop.identifier)
+                props_type.setdefault((prop.type, prop.subtype), []).append(prop)
 
-        for props_type, props_ls in sorted(props_type.items()):
-            for i, attr in enumerate(props_ls):
-                colsub_pair[i % 2].row().prop(themedata, attr)
+            for props_type, props_ls in sorted(props_type.items()):
+                if props_type[0] == 'POINTER':
+                    for i, prop in enumerate(props_ls):
+                        theme_generic_recurse(getattr(data, prop.identifier))
+                else:
+                    for i, prop in enumerate(props_ls):
+                        colsub_pair[i % 2].row().prop(data, prop.identifier)
+
+        theme_generic_recurse(themedata)
 
     @classmethod
     def poll(cls, context):

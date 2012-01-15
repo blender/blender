@@ -152,10 +152,7 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "use_auto_merge_keyframes")
         layout.prop(st, "use_marker_sync")
 
-        if st.show_seconds:
-            layout.operator("anim.time_toggle", text="Show Frames")
-        else:
-            layout.operator("anim.time_toggle", text="Show Seconds")
+        layout.prop(st, "show_seconds")
 
         layout.separator()
         layout.operator("anim.previewrange_set")
@@ -179,11 +176,11 @@ class DOPESHEET_MT_select(Menu):
         layout = self.layout
 
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
-        layout.operator("action.select_all_toggle")
+        layout.operator("action.select_all_toggle").invert = False
         layout.operator("action.select_all_toggle", text="Invert Selection").invert = True
 
         layout.separator()
-        layout.operator("action.select_border")
+        layout.operator("action.select_border").axis_range = False
         layout.operator("action.select_border", text="Border Axis Range").axis_range = True
 
         layout.separator()

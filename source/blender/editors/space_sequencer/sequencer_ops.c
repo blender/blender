@@ -92,8 +92,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_change_path);
 
 	/* sequencer_select.c */
-	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
-	WM_operatortype_append(SEQUENCER_OT_select_inverse);
+	WM_operatortype_append(SEQUENCER_OT_select_all);
 	WM_operatortype_append(SEQUENCER_OT_select);
 	WM_operatortype_append(SEQUENCER_OT_select_more);
 	WM_operatortype_append(SEQUENCER_OT_select_less);
@@ -133,8 +132,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, 0, 0)->ptr, "type", SEQ_CUT_SOFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", SEQ_CUT_HARD);

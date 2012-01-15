@@ -32,30 +32,33 @@
 
 #include "rayobject.h"
 
+#include "BLI_utildefines.h"
+
 /*
  * Empty raytree
  */
 
-static int RE_rayobject_empty_intersect(RayObject *o, Isect *is)
+static int RE_rayobject_empty_intersect(RayObject *UNUSED(o), Isect *UNUSED(is))
 {
 	return 0;
 }
 
-static void RE_rayobject_empty_free(RayObject *o)
+static void RE_rayobject_empty_free(RayObject *UNUSED(o))
 {
 }
 
-static void RE_rayobject_empty_bb(RayObject *o, float *min, float *max)
+static void RE_rayobject_empty_bb(RayObject *UNUSED(o), float *UNUSED(min), float *UNUSED(max))
 {
 	return;
 }
 
-static float RE_rayobject_empty_cost(RayObject *o)
+static float RE_rayobject_empty_cost(RayObject *UNUSED(o))
 {
 	return 0.0;
 }
 
-static void RE_rayobject_empty_hint_bb(RayObject *o, RayHint *hint, float *min, float *max)
+static void RE_rayobject_empty_hint_bb(RayObject *UNUSED(o), RayHint *UNUSED(hint),
+                                       float *UNUSED(min), float *UNUSED(max))
 {}
 
 static RayObjectAPI empty_api =

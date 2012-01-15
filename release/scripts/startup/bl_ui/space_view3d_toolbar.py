@@ -155,7 +155,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.label(text="UV Mapping:")
         col.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
-        col.operator("mesh.mark_seam")
+        col.operator("mesh.mark_seam").clear = False
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
         col = layout.column(align=True)

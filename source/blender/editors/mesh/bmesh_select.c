@@ -1688,34 +1688,6 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 //	if (EM_texFaceCheck())
 }
 
-static int select_inverse_mesh_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	
-	EDBM_select_swap(em);
-	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "MESH_OT_select_inverse";
-	ot->description= "Select inverse of (un)selected vertices, edges or faces";
-	
-	/* api callbacks */
-	ot->exec= select_inverse_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);

@@ -1380,6 +1380,7 @@ typedef struct Scene {
 
 #define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
+#define FFMPEG_LOSSLESS_OUTPUT  4
 
 /* Paint.flags */
 typedef enum {

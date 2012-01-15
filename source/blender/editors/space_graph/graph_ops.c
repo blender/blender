@@ -182,43 +182,11 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "value", 0, FLT_MIN, FLT_MAX, "Value", "", -100.0f, 100.0f);
 }
 
-/* Toggle Handles ----------------------------------------------------------------- */
-
-static int view_toggle_handles_exec (bContext *C, wmOperator *UNUSED(op))
-{
-	SpaceIpo *sipo= CTX_wm_space_graph(C);
-	ARegion *ar= CTX_wm_region(C);
-	
-	if (sipo == NULL)
-		return OPERATOR_CANCELLED;
-	
-	/* toggle flag to hide handles */
-	sipo->flag ^= SIPO_NOHANDLES;
-	
-	/* request refresh of keys area */
-	ED_region_tag_redraw(ar);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void GRAPH_OT_view_togglehandles (wmOperatorType *ot)
-{
-	/* identification */
-	ot->name= "Show/Hide All Handles";
-	ot->idname= "GRAPH_OT_handles_view_toggle";
-	ot->description= "Toggle whether handles are drawn on all keyframes that need them";
-	
-	/* callbacks */
-	ot->exec= view_toggle_handles_exec;
-	ot->poll= ED_operator_graphedit_active;
-}
-
 /* ************************** registration - operator types **********************************/
 
 void graphedit_operatortypes(void)
 {
 	/* view */
-	WM_operatortype_append(GRAPH_OT_view_togglehandles);
 	WM_operatortype_append(GRAPH_OT_cursor_set);
 	
 	WM_operatortype_append(GRAPH_OT_previewrange_set);
@@ -290,7 +258,9 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	wmKeyMapItem *kmi;
 	
 	/* view */
-	WM_keymap_add_item(keymap, "GRAPH_OT_handles_view_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_handles");
+
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons
 		 * This keymap is supposed to override ANIM_OT_change_frame, which does the same except it doesn't do y-values
 		 */

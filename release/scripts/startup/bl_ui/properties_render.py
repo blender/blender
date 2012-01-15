@@ -472,33 +472,35 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
             layout.operator("scene.render_data_set_quicktime_codec")
 
         elif file_format == 'QUICKTIME_QTKIT':
+            quicktime = rd.quicktime
+
             split = layout.split()
             col = split.column()
-            col.prop(rd, "quicktime_codec_type", text="Video Codec")
-            col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
+            col.prop(quicktime, "codec_type", text="Video Codec")
+            col.prop(quicktime, "codec_spatial_quality", text="Quality")
 
             # Audio
-            col.prop(rd, "quicktime_audiocodec_type", text="Audio Codec")
-            if rd.quicktime_audiocodec_type != 'No audio':
+            col.prop(quicktime, "audiocodec_type", text="Audio Codec")
+            if quicktime.audiocodec_type != 'No audio':
                 split = layout.split()
-                if rd.quicktime_audiocodec_type == 'LPCM':
-                    split.prop(rd, "quicktime_audio_bitdepth", text="")
+                if quicktime.audiocodec_type == 'LPCM':
+                    split.prop(quicktime, "audio_bitdepth", text="")
 
-                split.prop(rd, "quicktime_audio_samplerate", text="")
+                split.prop(quicktime, "audio_samplerate", text="")
 
                 split = layout.split()
                 col = split.column()
-                if rd.quicktime_audiocodec_type == 'AAC':
-                    col.prop(rd, "quicktime_audio_bitrate")
+                if quicktime.audiocodec_type == 'AAC':
+                    col.prop(quicktime, "audio_bitrate")
 
                 subsplit = split.split()
                 col = subsplit.column()
 
-                if rd.quicktime_audiocodec_type == 'AAC':
-                    col.prop(rd, "quicktime_audio_codec_isvbr")
+                if rquicktime.audiocodec_type == 'AAC':
+                    col.prop(quicktime, "audio_codec_isvbr")
 
                 col = subsplit.column()
-                col.prop(rd, "quicktime_audio_resampling_hq")
+                col.prop(quicktime, "audio_resampling_hq")
 
 
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
@@ -515,43 +517,46 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         layout = self.layout
 
         rd = context.scene.render
+        ffmpeg = rd.ffmpeg
 
         layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
         split = layout.split()
-        split.prop(rd, "ffmpeg_format")
-        if rd.ffmpeg_format in {'AVI', 'QUICKTIME', 'MKV', 'OGG'}:
-            split.prop(rd, "ffmpeg_codec")
+        split.prop(rd.ffmpeg, "format")
+        if ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG'}:
+            split.prop(ffmpeg, "codec")
+        elif rd.ffmpeg.format == 'H264':
+            split.prop(ffmpeg, 'use_lossless_output')
         else:
             split.label()
 
         row = layout.row()
-        row.prop(rd, "ffmpeg_video_bitrate")
-        row.prop(rd, "ffmpeg_gopsize")
+        row.prop(ffmpeg, "video_bitrate")
+        row.prop(ffmpeg, "gopsize")
 
         split = layout.split()
 
         col = split.column()
         col.label(text="Rate:")
-        col.prop(rd, "ffmpeg_minrate", text="Minimum")
-        col.prop(rd, "ffmpeg_maxrate", text="Maximum")
-        col.prop(rd, "ffmpeg_buffersize", text="Buffer")
+        col.prop(ffmpeg, "minrate", text="Minimum")
+        col.prop(ffmpeg, "maxrate", text="Maximum")
+        col.prop(ffmpeg, "buffersize", text="Buffer")
 
         col = split.column()
-        col.prop(rd, "ffmpeg_autosplit")
+        col.prop(ffmpeg, "use_autosplit")
         col.label(text="Mux:")
-        col.prop(rd, "ffmpeg_muxrate", text="Rate")
-        col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
+        col.prop(ffmpeg, "muxrate", text="Rate")
+        col.prop(ffmpeg, "packetsize", text="Packet Size")
 
         layout.separator()
 
         # Audio:
-        if rd.ffmpeg_format not in {'MP3'}:
-            layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+        if ffmpeg.format != 'MP3':
+            layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
 
         row = layout.row()
-        row.prop(rd, "ffmpeg_audio_bitrate")
-        row.prop(rd, "ffmpeg_audio_volume", slider=True)
+        row.prop(ffmpeg, "audio_bitrate")
+        row.prop(ffmpeg, "audio_volume", slider=True)
 
 
 class RENDER_PT_bake(RenderButtonsPanel, Panel):

@@ -337,14 +337,14 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
-void rgb_byte_to_float(const unsigned char *in, float *out)
+void rgb_byte_to_float(const unsigned char in[3], float out[3])
 {
 	out[0]= ((float)in[0]) / 255.0f;
 	out[1]= ((float)in[1]) / 255.0f;
 	out[2]= ((float)in[2]) / 255.0f;
 }
 
-void rgb_float_to_byte(const float *in, unsigned char *out)
+void rgb_float_to_byte(const float in[3], unsigned char out[3])
 {
 	int r, g, b;
 	
@@ -434,14 +434,24 @@ int constrain_rgb(float *r, float *g, float *b)
 	return 0;                         /* Color within RGB gamut */
 }
 
-float rgb_to_grayscale(float rgb[3])
+float rgb_to_grayscale(const float rgb[3])
 {
 	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
 }
 
-unsigned char rgb_to_grayscale_byte(unsigned char rgb[3])
+unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
 {
 	return (76*(unsigned short)rgb[0] + 148*(unsigned short)rgb[1] + 31*(unsigned short)rgb[2]) / 255;
+}
+
+float rgb_to_luma(const float rgb[3])
+{
+	return 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
+}
+
+unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
+{
+	return (76*(unsigned short)rgb[0] + 150*(unsigned short)rgb[1] + 29*(unsigned short)rgb[2]) / 255;
 }
 
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */

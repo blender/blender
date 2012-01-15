@@ -29,7 +29,7 @@
  *  \ingroup cmpnodes
  */
 #include "node_composite_util.h"
-/* **************** DblEdgMatte  ******************** */
+/* **************** Double Edge Mask ******************** */
 
 
 static bNodeSocketTemplate cmp_node_doubleedgemask_in[]= {
@@ -1149,7 +1149,7 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
         }
 
         isz=rsize[0];                  // set edge and gradient buffer sizes once again...
-        osz=rsize[1];                  // the sizes in rsize[] have been modified (always increased)
+        osz=rsize[1];                  // the sizes in rsize[] may have been modified
         gsz=rsize[2];                  // by the do_*EdgeDetection() function.
 
         // quick check for existance of edges in the buffer...

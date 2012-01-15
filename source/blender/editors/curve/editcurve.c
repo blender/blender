@@ -2749,64 +2749,6 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** select invert operator *********************/
-
-static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Curve *cu= obedit->data;
-	ListBase *editnurb= object_editcurve_get(obedit);
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a;
-
-	cu->lastsel= NULL;
-
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->type == CU_BEZIER) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(bezt->hide==0) {
-					bezt->f2 ^= SELECT; /* always do the center point */
-					if((cu->drawflag & CU_HIDE_HANDLES)==0) {
-						bezt->f1 ^= SELECT;
-						bezt->f3 ^= SELECT;
-					}
-				}
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				swap_selection_bpoint(bp);
-				bp++;
-			}
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
-	return OPERATOR_FINISHED;	
-}
-
-void CURVE_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "CURVE_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= select_inverse_exec;
-	ot->poll= ED_operator_editsurfcurve;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 /********************** subdivide operator *********************/
 
 /** Divide the line segments associated with the currently selected

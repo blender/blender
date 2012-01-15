@@ -2016,14 +2016,14 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 				hist->data_r[i] = rgb[0];
 				hist->data_g[i] = rgb[1];
 				hist->data_b[i] = rgb[2];
-				hist->data_luma[i] = (0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2]);
+				hist->data_luma[i] = rgb_to_luma(rgb);
 			}
 			else if (ibuf->rect) {
 				cp= (unsigned char *)(ibuf->rect + y*ibuf->x + x);
 				hist->data_r[i] = (float)cp[0]/255.0f;
 				hist->data_g[i] = (float)cp[1]/255.0f;
 				hist->data_b[i] = (float)cp[2]/255.0f;
-				hist->data_luma[i] = (0.299f*cp[0] + 0.587f*cp[1] + 0.114f*cp[2])/255;
+				hist->data_luma[i] = (float)rgb_to_luma_byte(cp)/255.0f;
 			}
 		}
 	}

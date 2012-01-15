@@ -1178,7 +1178,7 @@ class WM_OT_copy_prev_settings(Operator):
         return {'CANCELLED'}
 
 
-class WM_OT_blenderplayer_start(bpy.types.Operator):
+class WM_OT_blenderplayer_start(Operator):
     '''Launch the Blenderplayer with the current blendfile'''
     bl_idname = "wm.blenderplayer_start"
     bl_label = "Start"

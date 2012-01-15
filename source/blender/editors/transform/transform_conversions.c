@@ -1931,6 +1931,19 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 	}
 }
 
+static void get_edge_center(float cent_r[3], BMesh *bm, BMVert *eve)
+{
+	BMEdge *eed;
+	BMIter iter;
+
+	BM_ITER(eed, &iter, bm, BM_EDGES_OF_VERT, eve) {
+		if (BM_Selected(bm, eed)) {
+			mid_v3_v3v3(cent_r, eed->v1->co, eed->v2->co);
+			break;
+		}
+	}
+}
+
 /* way to overwrite what data is edited with transform
  * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
 static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert *eve, float *bweight)
@@ -1942,8 +1955,13 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMEditMesh *em, BMVert
 	td->loc = eve->co;
 
 	copy_v3_v3(td->center, td->loc);
-	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
-		get_face_center(td->center, em->bm, eve);
+
+	if(t->around==V3D_LOCAL) {
+		if(em->selectmode & SCE_SELECT_FACE)
+			get_face_center(td->center, em->bm, eve);
+		else if(em->selectmode & SCE_SELECT_EDGE)
+			get_edge_center(td->center, em->bm, eve);
+	}
 	copy_v3_v3(td->iloc, td->loc);
 
 	// Setting normals

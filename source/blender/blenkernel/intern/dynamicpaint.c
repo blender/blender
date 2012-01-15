@@ -1624,8 +1624,8 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 										}
 										else {
 											col[l_index].a = 255;
-											col[l_index].r = FTOCHAR(pPoint[v_index].wetness);
-											col[l_index].g = FTOCHAR(pPoint[v_index].wetness);
+											col[l_index].r =
+											col[l_index].g =
 											col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
 										}
 									}
@@ -1667,8 +1667,8 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							for (i=0; i<totloop; i++) {
 								int index = mloop[i].v;
 								col[i].a = 255;
-								col[i].r = FTOCHAR(pPoint[index].wetness);
-								col[i].g = FTOCHAR(pPoint[index].wetness);
+								col[i].r =
+								col[i].g =
 								col[i].b = FTOCHAR(pPoint[index].wetness);
 							}
 						}

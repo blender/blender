@@ -487,7 +487,7 @@ int brush_clone_image_delete(Brush *brush)
 }
 
 /* Brush Sampling */
-void brush_sample_tex(Brush *brush, float *xy, float *rgba, const int thread)
+void brush_sample_tex(Brush *brush, const float xy[2], float rgba[4], const int thread)
 {
 	MTex *mtex= &brush->mtex;
 
@@ -515,15 +515,16 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba, const int thread)
 			rgba[3]= 1.0f;
 		}
 	}
-	else if (rgba)
+	else {
 		rgba[0]= rgba[1]= rgba[2]= rgba[3]= 1.0f;
+	}
 }
 
-
+/* TODO, use define for 'texfall' arg */
 void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf **outbuf, int use_color_correction)
 {
 	ImBuf *ibuf;
-	float xy[2], dist, rgba[4], *dstf;
+	float xy[2], rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
 	const int radius= brush_size(brush);
 	char *dst, crgb[3];
@@ -554,28 +555,23 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 				xy[1] = y + yoff;
 
 				if (texfall == 0) {
-					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
-
 					copy_v3_v3(dstf, brush_rgb);
-					dstf[3]= alpha*brush_curve_strength_clamp(brush, dist, radius);
+					dstf[3]= alpha*brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, dstf, 0);
 				}
 				else {
-					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
-
 					brush_sample_tex(brush, xy, rgba, 0);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
-					dstf[3] = rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius);
+					dstf[3] = rgba[3]*alpha*brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 			}
 		}
 	}
 	else {
-		crgb[0]= FTOCHAR(brush->rgb[0]);
-		crgb[1]= FTOCHAR(brush->rgb[1]);
-		crgb[2]= FTOCHAR(brush->rgb[2]);
+		float alpha_f; /* final float alpha to convert to char */
+		F3TOCHAR3(brush->rgb, crgb);
 
 		for (y=0; y < ibuf->y; y++) {
 			dst = (char*)ibuf->rect + y*rowbytes;
@@ -585,36 +581,38 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 				xy[1] = y + yoff;
 
 				if (texfall == 0) {
-					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+					alpha_f = alpha * brush_curve_strength(brush, len_v2(xy), radius);
 
-					dst[0]= crgb[0];
-					dst[1]= crgb[1];
-					dst[2]= crgb[2];
-					dst[3]= FTOCHAR(alpha*brush_curve_strength(brush, dist, radius));
+					dst[0] = crgb[0];
+					dst[1] = crgb[1];
+					dst[2] = crgb[2];
+					dst[3] = FTOCHAR(alpha_f);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, rgba, 0);
-					dst[0]= FTOCHAR(rgba[0]);
-					dst[1]= FTOCHAR(rgba[1]);
-					dst[2]= FTOCHAR(rgba[2]);
-					dst[3]= FTOCHAR(rgba[3]);
+					dst[0] = FTOCHAR(rgba[0]);
+					dst[1] = FTOCHAR(rgba[1]);
+					dst[2] = FTOCHAR(rgba[2]);
+					dst[3] = FTOCHAR(rgba[3]);
 				}
 				else if (texfall == 2) {
-					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
-
 					brush_sample_tex(brush, xy, rgba, 0);
-					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
-					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
-					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
-					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
-				} else {
-					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+					mul_v3_v3(rgba, brush->rgb);
+					alpha_f = rgba[3] * alpha * brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
+					dst[0] = FTOCHAR(rgba[0]);
+					dst[1] = FTOCHAR(rgba[1]);
+					dst[2] = FTOCHAR(rgba[2]);
+					dst[3] = FTOCHAR(alpha_f);
+				}
+				else {
 					brush_sample_tex(brush, xy, rgba, 0);
-					dst[0]= crgb[0];
-					dst[1]= crgb[1];
-					dst[2]= crgb[2];
-					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
+					alpha_f = rgba[3] * alpha * brush_curve_strength_clamp(brush, len_v2(xy), radius);
+
+					dst[0] = crgb[0];
+					dst[1] = crgb[1];
+					dst[2] = crgb[2];
+					dst[3] = FTOCHAR(alpha_f);
 				}
 			}
 		}
