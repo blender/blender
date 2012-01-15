@@ -2700,6 +2700,97 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 }
 #endif
 
+/* BMESH version of vpaint_paint_face (commented above) */
+
+static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
+                              const unsigned int index, const float mval[2],
+                              const float brush_size_pressure, const float brush_alpha_pressure,
+                              int UNUSED(flip)
+                              )
+{
+	ViewContext *vc = &vpd->vc;
+	Brush *brush = paint_brush(&vp->paint);
+	Mesh *me = get_mesh(ob);
+	MPoly *mpoly= &me->mpoly[index];
+	MFace *mf;
+	MCol *mc;
+	MLoop *ml;
+	MLoopCol *mlc;
+	polyfacemap_e *e;
+	unsigned int *lcol = ((unsigned int*)me->mloopcol) + mpoly->loopstart;
+	unsigned int *lcolorig = ((unsigned int*)vp->vpaint_prev) + mpoly->loopstart;
+	float alpha;
+	int i, j;
+
+	int brush_alpha_pressure_i = (int)(brush_alpha_pressure*255.0f);
+
+	if(brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+		unsigned int blend[4] = {0};
+		unsigned int tcol;
+		char *col;
+
+		for (j=0; j<mpoly->totloop; j += 2) {
+			col = (char *)(lcol + j);
+			blend[0] += col[0];
+			blend[1] += col[1];
+			blend[2] += col[2];
+			blend[3] += col[3];
+		}
+
+		blend[0] /= mpoly->totloop;
+		blend[1] /= mpoly->totloop;
+		blend[2] /= mpoly->totloop;
+		blend[3] /= mpoly->totloop;
+		col = (char *)&tcol;
+		col[0] = blend[0];
+		col[1] = blend[1];
+		col[2] = blend[2];
+		col[3] = blend[3];
+
+		vpd->paintcol = *((unsigned int *)col);
+	}
+
+	ml = me->mloop + mpoly->loopstart;
+	for (i=0; i<mpoly->totloop; i++, ml++) {
+		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat,
+								vpd->vertexcosnos+6*ml->v, mval,
+								brush_size_pressure, brush_alpha_pressure);
+		if(alpha > 0.0f) {
+			const int alpha_i = (int)(alpha*255.0f);
+			lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
+		}
+	}
+
+#ifdef CPYCOL
+#  undef CPYCOL
+#endif
+#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
+
+	/* update vertex colors for tesselations incrementally,
+	 * rather then regenerating the tesselation altogether .*/
+	for (e = vpd->polyfacemap[index].first; e; e = e->next) {
+		mf = me->mface + e->facenr;
+		mc = me->mcol + e->facenr*4;
+
+		ml = me->mloop + mpoly->loopstart;
+		mlc = me->mloopcol + mpoly->loopstart;
+		for (j=0; j<mpoly->totloop; j++, ml++, mlc++) {
+			if (ml->v == mf->v1)
+				CPYCOL(mc, mlc);
+			else if (ml->v == mf->v2)
+				CPYCOL(mc+1, mlc);
+			else if (ml->v == mf->v3)
+				CPYCOL(mc+2, mlc);
+			else if (mf->v4 && ml->v == mf->v4)
+				CPYCOL(mc+3, mlc);
+
+		}
+	}
+
+#undef CPYCOL
+
+}
+
 static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2709,7 +2800,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Brush *brush = paint_brush(&vp->paint);
 	ViewContext *vc= &vpd->vc;
 	Object *ob= vc->obact;
-	polyfacemap_e *e;
 	Mesh *me= ob->data;
 	float mat[4][4];
 	int *indexar= vpd->indexar;
@@ -2719,8 +2809,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
 	const float brush_alpha_pressure = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
-
-	int brush_alpha_pressure_i = (int)(brush_alpha_pressure*255.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 	flip = RNA_boolean_get(itemptr, "pen_flip");
@@ -2780,78 +2868,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for(index=0; index<totindex; index++) {
 				
 		if(indexar[index] && indexar[index]<=me->totpoly) {
-			MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
-			MFace *mf;
-			MCol *mc;
-			MLoop *ml;
-			MLoopCol *mlc;
-			unsigned int *lcol = ((unsigned int*)me->mloopcol) + mpoly->loopstart;
-			unsigned int *lcolorig = ((unsigned int*)vp->vpaint_prev) + mpoly->loopstart;
-			float alpha;
-			int i, j;
-					
-			if(brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-				unsigned int blend[5] = {0};
-				char *col;
-
-				for (j=0; j<mpoly->totloop; j += 2) {
-					col = (char*)(lcol + j);
-					blend[0] += col[0];
-					blend[1] += col[1];
-					blend[2] += col[2];
-					blend[3] += col[3];
-				}
-
-				blend[0] /= mpoly->totloop;
-				blend[1] /= mpoly->totloop;
-				blend[2] /= mpoly->totloop;
-				blend[3] /= mpoly->totloop;
-				col = (char*)(blend + 4);
-				col[0] = blend[0];
-				col[1] = blend[1];
-				col[2] = blend[2];
-				col[3] = blend[3];
-
-				vpd->paintcol = *((unsigned int*)col);
-			}
-
-			ml = me->mloop + mpoly->loopstart;
-			for (i=0; i<mpoly->totloop; i++, ml++) {
-				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, 
-				                        vpd->vertexcosnos+6*ml->v, mval,
-				                        brush_size_pressure, brush_alpha_pressure);
-				if(alpha > 0.0f) {
-					const int alpha_i = (int)(alpha*255.0f);
-					lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
-				}
-			}
-	
-			#ifdef CPYCOL
-			#undef CPYCOL
-			#endif
-			#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
-
-			/*update vertex colors for tesselations incrementally,
-			  rather then regenerating the tesselation altogether.*/
-			for (e=vpd->polyfacemap[(indexar[index]-1)].first; e; e=e->next) {
-				mf = me->mface + e->facenr;
-				mc = me->mcol + e->facenr*4;
-				
-				ml = me->mloop + mpoly->loopstart;
-				mlc = me->mloopcol + mpoly->loopstart;
-				for (j=0; j<mpoly->totloop; j++, ml++, mlc++) {
-					if (ml->v == mf->v1)
-						CPYCOL(mc, mlc);
-					else if (ml->v == mf->v2)
-						CPYCOL(mc+1, mlc);
-					else if (ml->v == mf->v3)
-						CPYCOL(mc+2, mlc);
-					else if (mf->v4 && ml->v == mf->v4)
-						CPYCOL(mc+3, mlc);
-
-				}
-			}
-			#undef CPYCOL
+			vpaint_paint_poly(vp, vpd, ob, indexar[index]-1, mval, brush_size_pressure, brush_alpha_pressure, flip);
 		}
 	}
 		
