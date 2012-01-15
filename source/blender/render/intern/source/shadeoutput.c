@@ -900,7 +900,7 @@ static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 
 	if(ma->ramp_col) {
 		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
-			float fac= 0.3f*diff[0] + 0.58f*diff[1] + 0.12f*diff[2];
+			float fac = rgb_to_grayscale(diff);
 			do_colorband(ma->ramp_col, fac, col);
 			
 			/* blending method */
@@ -932,6 +932,7 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 			/* input */
 			switch(ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
+				/* should use 'rgb_to_grayscale' but we only have a vector version */
 				fac= 0.3f*r + 0.58f*g + 0.12f*b;
 				break;
 			case MA_RAMP_IN_SHADER:
@@ -974,7 +975,7 @@ static void ramp_spec_result(float spec_col[3], ShadeInput *shi)
 
 	if(ma->ramp_spec && (ma->rampin_spec==MA_RAMP_IN_RESULT)) {
 		float col[4];
-		float fac= 0.3f*spec_col[0] + 0.58f*spec_col[1] + 0.12f*spec_col[2];
+		float fac = rgb_to_grayscale(spec_col);
 
 		do_colorband(ma->ramp_spec, fac, col);
 		

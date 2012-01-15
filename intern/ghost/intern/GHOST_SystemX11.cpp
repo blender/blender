@@ -767,10 +767,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case SelectionRequest:
 		{
 			XEvent nxe;
-			Atom target, string, compound_text, c_string;
+			Atom target, utf8_string, string, compound_text, c_string;
 			XSelectionRequestEvent *xse = &xe->xselectionrequest;
 			
 			target = XInternAtom(m_display, "TARGETS", False);
+			utf8_string = XInternAtom(m_display, "UTF8_STRING", False);
 			string = XInternAtom(m_display, "STRING", False);
 			compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
 			c_string = XInternAtom(m_display, "C_STRING", False);
@@ -789,7 +790,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			nxe.xselection.time = xse->time;
 			
 			/*Check to see if the requestor is asking for String*/
-			if(xse->target == string || xse->target == compound_text || xse->target == c_string) {
+			if(xse->target == utf8_string || xse->target == string || xse->target == compound_text || xse->target == c_string) {
 				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
 					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace,
 					                (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
@@ -798,13 +799,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
 				}
 			} else if (xse->target == target) {
-				Atom alist[4];
+				Atom alist[5];
 				alist[0] = target;
-				alist[1] = string;
-				alist[2] = compound_text;
-				alist[3] = c_string;
+				alist[1] = utf8_string;
+				alist[2] = string;
+				alist[3] = compound_text;
+				alist[4] = c_string;
 				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace,
-				                (unsigned char*)alist, 4);
+				                (unsigned char*)alist, 5);
 				XFlush(m_display);
 			} else  {
 				//Change property to None because we do not support anything but STRING
@@ -1342,7 +1344,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 {
 	Atom sseln;
-	Atom target= m_string;
+	Atom target= m_utf8_string;
 	Window owner;
 
 	// from xclip.c doOut() v0.11

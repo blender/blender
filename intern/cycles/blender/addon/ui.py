@@ -148,7 +148,6 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
 
-
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'DEFAULT_CLOSED'}
@@ -712,19 +711,12 @@ def draw_device(self, context):
         cscene = scene.cycles
 
         layout.prop(cscene, "feature_set")
-        experimental = cscene.feature_set == 'EXPERIMENTAL'
 
-        available_devices = engine.available_devices()
-        available_cuda = 'cuda' in available_devices
-        available_opencl = experimental and 'opencl' in available_devices
-
-        if available_cuda or available_opencl:
+        device_type = context.user_preferences.system.compute_device_type
+        if device_type == 'CUDA':
             layout.prop(cscene, "device")
-            if cscene.device == 'GPU' and available_cuda and available_opencl:
-                layout.prop(cscene, "gpu_type")
-        if experimental and cscene.device == 'CPU' and engine.with_osl():
-            layout.prop(cscene, "shading_system")
-
+        elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
+            layout.prop(cscene, "device")
 
 def draw_pause(self, context):
     layout = self.layout

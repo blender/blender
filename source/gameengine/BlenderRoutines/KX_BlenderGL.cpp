@@ -147,7 +147,7 @@ void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* 
 
 	BLF_size(fontid, size, dpi);
 	BLF_position(fontid, 0, 0, 0);
-	BLF_draw(fontid, (char *)text, strlen(text));
+	BLF_draw(fontid, (char *)text, 65535);
 
 	BLF_disable(fontid, BLF_MATRIX|BLF_ASPECT);
 }

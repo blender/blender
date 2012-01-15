@@ -133,8 +133,6 @@ typedef struct SpaceButs {
 	float blockscale  DNA_DEPRECATED;
 	
 	short blockhandler[8]  DNA_DEPRECATED;
-	
-	struct RenderInfo *ri;
 
 	View2D v2d  DNA_DEPRECATED;						/* deprecated, copied to region */
 	
@@ -518,6 +516,9 @@ typedef struct SpaceClip {
 	int pad;
 	float stabmat[4][4], unistabmat[4][4];		/* current stabilization matrix and the same matrix in unified space,
 												   defined when drawing and used for mouse position calculation */
+
+	/* movie postprocessing */
+	int postproc_flag, pad2;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */

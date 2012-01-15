@@ -36,6 +36,7 @@ set(INC
 	../../gpu
 	../../freestyle/intern/python
 	../../../../intern/guardedalloc
+	../../../../intern/cycles/blender
 )
 
 set(INC_SYS

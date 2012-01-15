@@ -133,6 +133,8 @@ void typecheck_compbuf_color(float *out, float *in, int outtype, int intype);
 
 /* **************************************************** */
 
+float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y, int xrad, int yrad);
+
 /* Pixel-to-Pixel operation, 1 Image in, 1 out */
 void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, float *src_col,
 									  void (*func)(bNode *, float *, float *), 

@@ -43,7 +43,6 @@ void MBALL_OT_delete_metaelems(struct wmOperatorType *ot);
 void MBALL_OT_duplicate_metaelems(struct wmOperatorType *ot);
 
 void MBALL_OT_select_all(struct wmOperatorType *ot);
-void MBALL_OT_select_inverse_metaelems(struct wmOperatorType *ot);
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot);
 
 #endif

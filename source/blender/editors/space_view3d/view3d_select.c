@@ -74,6 +74,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
@@ -1045,7 +1046,104 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 
 
 /* The max number of menu items in an object select menu */
+typedef struct SelMenuItemF {
+	char idname[MAX_ID_NAME-2];
+	int icon;
+} SelMenuItemF;
+
 #define SEL_MENU_SIZE	22
+static SelMenuItemF object_mouse_select_menu_data[SEL_MENU_SIZE];
+
+/* special (crappy) operator only for menu select */
+static EnumPropertyItem *object_select_menu_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
+{
+	EnumPropertyItem *item= NULL, item_tmp= {0};
+	int totitem= 0;
+	int i= 0;
+
+	/* dont need context but avoid docgen using this */
+	if (C == NULL || object_mouse_select_menu_data[i].idname[0] == '\0') {
+		return DummyRNA_NULL_items;
+	}
+
+	for (; i < SEL_MENU_SIZE && object_mouse_select_menu_data[i].idname[0] != '\0'; i++) {
+		item_tmp.name= object_mouse_select_menu_data[i].idname;
+		item_tmp.identifier= object_mouse_select_menu_data[i].idname;
+		item_tmp.value= i;
+		item_tmp.icon= object_mouse_select_menu_data[i].icon;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+static int object_select_menu_exec(bContext *C, wmOperator *op)
+{
+	int name_index= RNA_enum_get(op->ptr, "name");
+	short extend= RNA_boolean_get(op->ptr, "extend");
+	short changed = 0;
+	const char *name= object_mouse_select_menu_data[name_index].idname;
+
+	if(!extend) {
+		CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+			if(base->flag & SELECT) {
+				ED_base_object_select(base, BA_DESELECT);
+				changed= 1;
+			}
+		}
+		CTX_DATA_END;
+	}
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
+		if(strcmp(name, base->object->id.name+2)==0) {
+			ED_base_object_activate(C, base);
+			ED_base_object_select(base, BA_SELECT);
+			changed= 1;
+		}
+	}
+	CTX_DATA_END;
+
+	/* weak but ensures we activate menu again before using the enum */
+	memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
+
+	/* undo? */
+	if(changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_select_menu(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Select Menu";
+	ot->description = "Menu object selection";
+	ot->idname= "VIEW3D_OT_select_menu";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_menu_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* keyingset to use (dynamic enum) */
+	prop= RNA_def_enum(ot->srna, "name", DummyRNA_NULL_items, 0, "Object Name", "");
+	RNA_def_enum_funcs(prop, object_select_menu_enum_itemf);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	ot->prop= prop;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+}
 
 static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
 {
@@ -1060,7 +1158,7 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	}
 }
 
-static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short extend)
+static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short extend)
 {
 	short baseCount = 0;
 	short ok;
@@ -1098,9 +1196,6 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 	}
 	CTX_DATA_END;
 
-	if(baseCount)
-
-
 	if(baseCount==0) {
 		return NULL;
 	}
@@ -1110,34 +1205,29 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 		return base;
 	}
 	else {
-		/* UI */
-		uiPopupMenu *pup= uiPupMenuBegin(C, "Select Object", ICON_NONE);
-		uiLayout *layout= uiPupMenuLayout(pup);
-		uiLayout *split= uiLayoutSplit(layout, 0, 0);
-		uiLayout *column= uiLayoutColumn(split, 0);
+		/* UI, full in static array values that we later use in an enum function */
 		LinkNode *node;
+		int i;
 
-		node= linklist;
-		while(node) {
+		memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
+
+		for (node = linklist, i = 0; node; node= node->next, i++) {
 			Base *base=node->link;
 			Object *ob= base->object;
 			char *name= ob->id.name+2;
-			/* annoying!, since we need to set 2 props cant use this. */
-			/* uiItemStringO(column, name, 0, "OBJECT_OT_select_name", "name", name); */
 
-			{
-				PointerRNA ptr;
-
-				WM_operator_properties_create(&ptr, "OBJECT_OT_select_name");
-				RNA_string_set(&ptr, "name", name);
-				RNA_boolean_set(&ptr, "extend", extend);
-				uiItemFullO(column, "OBJECT_OT_select_name", name, uiIconFromID((ID *)ob), ptr.data, WM_OP_EXEC_DEFAULT, 0);
-			}
-
-			node= node->next;
+			BLI_strncpy(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME-2);
+			object_mouse_select_menu_data[i].icon = uiIconFromID(&ob->id);
 		}
 
-		uiPupMenuEnd(C, pup);
+		{
+			PointerRNA ptr;
+
+			WM_operator_properties_create(&ptr, "VIEW3D_OT_select_menu");
+			RNA_boolean_set(&ptr, "extend", extend);
+			WM_operator_name_call(C, "VIEW3D_OT_select_menu", WM_OP_INVOKE_DEFAULT, &ptr);
+			WM_operator_properties_free(&ptr);
+		}
 
 		BLI_linklist_free(linklist, NULL);
 		return NULL;
@@ -1364,7 +1454,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 		
 		/* note; shift+alt goes to group-flush-selecting */
 		if(enumerate) {
-			basact= mouse_select_menu(C, &vc, NULL, 0, mval, extend);
+			basact= object_mouse_select_menu(C, &vc, NULL, 0, mval, extend);
 		} else {
 			base= startbase;
 			while(base) {
@@ -1401,7 +1491,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 
 			/* note; shift+alt goes to group-flush-selecting */
 			if(has_bones==0 && enumerate) {
-				basact= mouse_select_menu(C, &vc, buffer, hits, mval, extend);
+				basact= object_mouse_select_menu(C, &vc, buffer, hits, mval, extend);
 			} else {
 				basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, has_bones);
 			}

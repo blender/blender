@@ -82,7 +82,7 @@ void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
 
-int bone_autoside_name (char name[32], int strip_number, short axis, float head, float tail);
+int bone_autoside_name (char name[64], int strip_number, short axis, float head, float tail);
 
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 

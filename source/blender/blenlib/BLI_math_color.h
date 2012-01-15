@@ -69,8 +69,10 @@ void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *l
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
-float rgb_to_grayscale(float rgb[3]);
-unsigned char rgb_to_grayscale_byte(unsigned char rgb[3]);
+float rgb_to_grayscale(const float rgb[3]);
+unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
+float rgb_to_luma(const float rgb[3]);
+unsigned char rgb_to_luma_byte(const unsigned char rgb[3]);
 
 /**************** Profile Transformations *****************/
 
@@ -89,6 +91,8 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4]);
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]);
 MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]);
 
+void BLI_init_srgb_conversion(void);
+
 /************************** Other *************************/
 
 int constrain_rgb(float *r, float *g, float *b);
@@ -97,12 +101,12 @@ void minmax_rgb(short c[3]);
 void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
 void rgb_byte_set_hue_float_offset(unsigned char * rgb, float hue_offset);
 
+void rgb_byte_to_float(const unsigned char in[3], float out[3]);
+void rgb_float_to_byte(const float in[3], unsigned char out[3]);
+
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
-
-void rgb_byte_to_float(const unsigned char *in, float *out);
-void rgb_float_to_byte(const float *in, unsigned char *out);
 
 #ifdef BLI_MATH_INLINE_H
 #include "intern/math_color_inline.c"

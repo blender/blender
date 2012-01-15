@@ -1220,21 +1220,39 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 	return tot;
 }
 
+static void clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
+{
+	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
+	int hidden = 0;
+
+	if ((sc->flag&SC_SHOW_MARKER_PATTERN)==0)
+		hidden |= TRACK_AREA_PAT;
+
+	if ((sc->flag&SC_SHOW_MARKER_SEARCH)==0)
+		hidden |= TRACK_AREA_SEARCH;
+
+	if (hidden) {
+		MovieTrackingTrack *track = tracksbase->first;
+
+		while(track) {
+			BKE_tracking_track_flag(track, hidden, SELECT, 1);
+
+			track = track->next;
+		}
+	}
+}
+
 static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit_r)
 {
 	ListBase *tracksbase= BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
-	int framenr= sc->user.framenr, hidden= 0;
+	int framenr= sc->user.framenr;
 	int frames_limit= 0;
 
-	if((sc->flag&SC_SHOW_MARKER_PATTERN)==0) hidden|= TRACK_AREA_PAT;
-	if((sc->flag&SC_SHOW_MARKER_SEARCH)==0) hidden|= TRACK_AREA_SEARCH;
+	clear_invisible_track_selection(sc, clip);
 
 	track= tracksbase->first;
 	while(track) {
-		if(hidden)
-			BKE_tracking_track_flag(track, hidden, SELECT, 1);
-
 		if(TRACK_SELECTED(track)) {
 			if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 				BKE_tracking_ensure_marker(track, framenr);
@@ -3500,6 +3518,77 @@ void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= tracking_object_remove_exec;
 	ot->poll= ED_space_clip_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** copy tracks to clipboard operator *********************/
+
+static int copy_tracks_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
+
+	clear_invisible_track_selection(sc, clip);
+
+	BKE_tracking_clipboard_copy_tracks(tracking, object);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_copy_tracks(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy Tracks";
+	ot->description = "Copy selected tracks to clipboard";
+	ot->idname = "CLIP_OT_copy_tracks";
+
+	/* api callbacks */
+	ot->exec = copy_tracks_exec;
+	ot->poll = ED_space_clip_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/********************** paste tracks from clipboard operator *********************/
+
+static int paste_tracks_poll(bContext *C)
+{
+	if (ED_space_clip_poll(C)) {
+		return BKE_tracking_clipboard_has_tracks();
+	}
+
+	return 0;
+}
+
+static int paste_tracks_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
+
+	BKE_tracking_clipboard_paste_tracks(tracking, object);
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_paste_tracks(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste Tracks";
+	ot->description = "Paste tracks from clipboard";
+	ot->idname = "CLIP_OT_paste_tracks";
+
+	/* api callbacks */
+	ot->exec = paste_tracks_exec;
+	ot->poll = paste_tracks_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

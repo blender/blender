@@ -4388,7 +4388,9 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		
 		/* complex code to change name of button */
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE, buf, sizeof(buf))) {
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
+		                                buf, sizeof(buf)))
+		{
 			char *butstr_orig;
 
 			// XXX but->str changed... should not, remove the hotkey from it

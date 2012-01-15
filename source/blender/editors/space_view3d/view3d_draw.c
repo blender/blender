@@ -863,24 +863,24 @@ static void draw_selected_name(Scene *scene, Object *ob)
 				}
 			}
 			if(name && markern)
-				sprintf(info, "(%d) %s %s <%s>", CFRA, ob->id.name+2, name, markern);
+				BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name+2, name, markern);
 			else if(name)
-				sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, name);
+				BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name+2, name);
 			else
-				sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+				BLI_snprintf(info, sizeof(info), "(%d) %s", CFRA, ob->id.name+2);
 		}
 		else if(ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			Key *key= NULL;
 			KeyBlock *kb = NULL;
-			char shapes[75];
+			char shapes[MAX_NAME + 10];
 			
 			/* try to display active shapekey too */
-			shapes[0] = 0;
+			shapes[0] = '\0';
 			key = ob_get_key(ob);
 			if(key){
 				kb = BLI_findlink(&key->block, ob->shapenr-1);
 				if(kb){
-					sprintf(shapes, ": %s ", kb->name);		
+					BLI_snprintf(shapes, sizeof(shapes), ": %s ", kb->name);
 					if(ob->shapeflag == OB_SHAPE_LOCK){
 						strcat(shapes, " (Pinned)");
 					}
@@ -888,16 +888,16 @@ static void draw_selected_name(Scene *scene, Object *ob)
 			}
 			
 			if(markern)
-				sprintf(info, "(%d) %s %s <%s>", CFRA, ob->id.name+2, shapes, markern);
+				BLI_snprintf(info, sizeof(info), "(%d) %s %s <%s>", CFRA, ob->id.name+2, shapes, markern);
 			else
-				sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, shapes);
+				BLI_snprintf(info, sizeof(info), "(%d) %s %s", CFRA, ob->id.name+2, shapes);
 		}
 		else {
 			/* standard object */
 			if (markern)
-				sprintf(info, "(%d) %s <%s>", CFRA, ob->id.name+2, markern);
+				BLI_snprintf(info, sizeof(info), "(%d) %s <%s>", CFRA, ob->id.name+2, markern);
 			else
-				sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+				BLI_snprintf(info, sizeof(info), "(%d) %s", CFRA, ob->id.name+2);
 		}
 		
 		/* color depends on whether there is a keyframe */
@@ -909,9 +909,9 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	else {
 		/* no object */
 		if (markern)
-			sprintf(info, "(%d) <%s>", CFRA, markern);
+			BLI_snprintf(info, sizeof(info), "(%d) <%s>", CFRA, markern);
 		else
-			sprintf(info, "(%d)", CFRA);
+			BLI_snprintf(info, sizeof(info), "(%d)", CFRA);
 		
 		/* color is always white */
 		UI_ThemeColor(TH_TEXT_HI);
@@ -920,7 +920,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = 14 + (U.rvisize * 2);
 
-	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
+	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info));
 }
 
 static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewborder_r, short no_shift, short no_zoom)
@@ -2251,17 +2251,37 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 
 	return mask;
 }
+
+CustomDataMask ED_view3d_object_datamask(Scene *scene)
+{
+	Object *ob= scene->basact ? scene->basact->object : NULL;
+	CustomDataMask mask= 0;
+
+	if (ob) {
+		/* check if we need tfaces & mcols due to face select or texture paint */
+		if (paint_facesel_test(ob) || (ob->mode & OB_MODE_TEXTURE_PAINT)) {
+			mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+		}
+
+		/* check if we need mcols due to vertex paint or weightpaint */
+		if (ob->mode & OB_MODE_VERTEX_PAINT) {
+			mask |= CD_MASK_MCOL;
+		}
+
+		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+			mask |= CD_MASK_WEIGHT_MCOL;
+		}
+	}
+
+	return mask;
+}
+
 /* goes over all modes and view3d settings */
-CustomDataMask ED_viewedit_datamask(bScreen *screen)
+CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 {
 	Scene *scene= screen->scene;
-	Object *ob= scene->basact ? scene->basact->object : NULL;
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
-	
-	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(paint_facesel_test(ob) || (ob && ob->mode & OB_MODE_TEXTURE_PAINT))
-		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	
 	/* check if we need tfaces & mcols due to view mode */
 	for(sa = screen->areabase.first; sa; sa = sa->next) {
@@ -2269,14 +2289,8 @@ CustomDataMask ED_viewedit_datamask(bScreen *screen)
 			mask |= ED_view3d_datamask(scene, (View3D *)sa->spacedata.first);
 		}
 	}
-	
-	/* check if we need mcols due to vertex paint or weightpaint */
-	if(ob) {
-		if(ob->mode & OB_MODE_VERTEX_PAINT)
-			mask |= CD_MASK_MCOL;
-		if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			mask |= CD_MASK_WEIGHT_MCOL;
-	}
+
+	mask |= ED_view3d_object_datamask(scene);
 
 	return mask;
 }
@@ -2609,7 +2623,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps+0.5f));
 	}
 	
-	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
+	BLF_draw_default_ascii(22,  ar->winy-17, 0.0f, printable, sizeof(printable));
 }
 
 static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
@@ -2876,14 +2890,15 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */
-		char tstr[32]= "";
+		char numstr[32]= "";
 
 		UI_ThemeColor(TH_TEXT_HI);
 		if(v3d->grid != 1.0f) {
-			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
+			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 		}
 
-		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f,
+		                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
 	}
 }
 

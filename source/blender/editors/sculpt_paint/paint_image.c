@@ -1784,16 +1784,7 @@ static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset
 }
 #endif //PROJ_DEBUG_NOSEAMBLEED
 
-static float Vec2Lenf_nosqrt(const float *v1, const float *v2)
-{
-	float x, y;
-
-	x = v1[0]-v2[0];
-	y = v1[1]-v2[1];
-	return x*x+y*y;
-}
-
-static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const float v2_2)
+static float len_squared_v2v2_alt(const float *v1, const float v2_1, const float v2_2)
 {
 	float x, y;
 
@@ -1802,7 +1793,7 @@ static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const floa
 	return x*x+y*y;
 }
 
-/* note, use a squared value so we can use Vec2Lenf_nosqrt
+/* note, use a squared value so we can use len_squared_v2v2
  * be sure that you have done a bounds check first or this may fail */
 /* only give bucket_bounds as an arg because we need it elsewhere */
 static int project_bucket_isect_circle(const float cent[2], const float radius_squared, rctf *bucket_bounds)
@@ -1826,21 +1817,21 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 	if (cent[0] < bucket_bounds->xmin) {
 		/* lower left out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
 		} 
 		/* top left test */
 		else if (cent[1] > bucket_bounds->ymax) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
 		}
 	}
 	else if (cent[0] > bucket_bounds->xmax) {
 		/* lower right out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
 		} 
 		/* top right test */
 		else if (cent[1] > bucket_bounds->ymax) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
+			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
 		}
 	}
 	
@@ -2946,7 +2937,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
 
-	const int diameter= 2*brush_size(ps->brush);
+	const int diameter= 2*brush_size(ps->scene, ps->brush);
 	
 	/* ---- end defines ---- */
 	
@@ -3589,7 +3580,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 {
 	if(ps->source==PROJ_SRC_VIEW) {
 		float min_brush[2], max_brush[2];
-		const float radius = (float)brush_size(ps->brush);
+		const float radius = (float)brush_size(ps->scene, ps->brush);
 
 		/* so we dont have a bucket bounds that is way too small to paint into */
 		// if (radius < 1.0f) radius = 1.0f; // this doesn't work yet :/
@@ -3627,7 +3618,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 
 static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
 {
-	const int diameter= 2*brush_size(ps->brush);
+	const int diameter= 2*brush_size(ps->scene, ps->brush);
 
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
@@ -3853,7 +3844,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
-	const float radius= (float)brush_size(ps->brush);
+	const float radius= (float)brush_size(ps->scene, ps->brush);
 	const float radius_squared= radius*radius; /* avoid a square root with every dist comparison */
 	
 	short lock_alpha= ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
@@ -3901,8 +3892,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				projPixel = (ProjPixel *)node->link;
 
-				/*dist = len_v2v2(projPixel->projCoSS, pos);*/ /* correct but uses a sqrtf */
-				dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
+				dist_nosqrt = len_squared_v2v2(projPixel->projCoSS, pos);
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {
@@ -3913,7 +3903,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							brush_sample_tex(ps->brush, projPixel->projCoSS, rgba, thread_index);
+							brush_sample_tex(ps->scene, ps->brush, projPixel->projCoSS, rgba, thread_index);
 							alpha = rgba[3];
 						} else {
 							alpha = 1.0f;
@@ -3921,7 +3911,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						
 						if (ps->is_airbrush) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * brush_alpha(ps->brush);
+							alpha *= falloff * brush_alpha(ps->scene, ps->brush);
 							mask = ((float)projPixel->mask)/65535.0f;
 						}
 						else {
@@ -3929,7 +3919,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 							
-							mask_short = (unsigned short)(projPixel->mask * (brush_alpha(ps->brush) * falloff));
+							mask_short = (unsigned short)(projPixel->mask * (brush_alpha(ps->scene, ps->brush) * falloff));
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short)/65535.0f;
 								projPixel->mask_max = mask_short;
@@ -4811,7 +4801,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = brush->blend;
-	pop->orig_brush_size= brush_size(brush);
+	pop->orig_brush_size= brush_size(scene, brush);
 
 	if(pop->mode != PAINT_MODE_2D) {
 		pop->s.ob = OBACT;
@@ -4847,8 +4837,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 
 		/* Dont allow brush size below 2 */
-		if (brush_size(brush) < 2)
-			brush_set_size(brush, 2);
+		if (brush_size(scene, brush) < 2)
+			brush_set_size(scene, brush, 2);
 
 		/* allocate and initialize spacial data structures */
 		project_paint_begin(&pop->ps);
@@ -4862,7 +4852,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		image_undo_restore, image_undo_free);
 
 	/* create painter */
-	pop->painter= brush_painter_new(pop->s.brush);
+	pop->painter= brush_painter_new(scene, pop->s.brush);
 
 	return 1;
 }
@@ -4932,7 +4922,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	brush_painter_free(pop->painter);
 
 	if(pop->mode == PAINT_MODE_3D_PROJECT) {
-		brush_set_size(pop->ps.brush, pop->orig_brush_size);
+		brush_set_size(scene, pop->ps.brush, pop->orig_brush_size);
 		paint_brush_exit_tex(pop->ps.brush);
 		
 		project_paint_end(&pop->ps);
@@ -4968,6 +4958,7 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
+	const Scene *scene = CTX_data_scene(C);
 	PaintOperation *pop= op->customdata;
 	wmTabletData *wmtab;
 	PointerRNA itemptr;
@@ -4999,13 +4990,13 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		   windows for some tablets, then we just skip first touch ..  */
-		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
+		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 
 		/* This can be removed once fixed properly in
 		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
 		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
-		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
+		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(scene, pop->s.brush) || brush_use_size_pressure(scene, pop->s.brush)))
 			return;
 	
 	}
@@ -5120,12 +5111,13 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 #define PX_SIZE_FADE_MAX 12.0f
 #define PX_SIZE_FADE_MIN 4.0f
 
+	Scene *scene= CTX_data_scene(C);
 	Brush *brush= image_paint_brush(C);
-	Paint *paint= paint_get_active(CTX_data_scene(C));
+	Paint *paint= paint_get_active(scene);
 
 	if(paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
 		float zoomx, zoomy;
-		const float size= (float)brush_size(brush);
+		const float size= (float)brush_size(scene, brush);
 		const short use_zoom= get_imapaint_zoom(C, &zoomx, &zoomy);
 		const float pixel_size= MAX2(size * zoomx, size * zoomy);
 		float alpha= 0.5f;
@@ -5579,8 +5571,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	/* override */
 	ps.is_texbrush= 0;
 	ps.is_airbrush= 1;
-	orig_brush_size= brush_size(ps.brush);
-	brush_set_size(ps.brush, 32); /* cover the whole image */
+	orig_brush_size= brush_size(scene, ps.brush);
+	brush_set_size(scene, ps.brush, 32); /* cover the whole image */
 
 	ps.tool= PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
 
@@ -5593,7 +5585,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_paint_begin(&ps);
 
 	if(ps.dm==NULL) {
-		brush_set_size(ps.brush, orig_brush_size);
+		brush_set_size(scene, ps.brush, orig_brush_size);
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -5617,7 +5609,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_paint_end(&ps);
 
 	scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-	brush_set_size(ps.brush, orig_brush_size);
+	brush_set_size(scene, ps.brush, orig_brush_size);
 
 	return OPERATOR_FINISHED;
 }

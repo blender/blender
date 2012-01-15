@@ -60,6 +60,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
+#include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -263,7 +264,7 @@ int WM_init_game(bContext *C)
 		}
 
 		/* Fullscreen */
-		if(scene->gm.fullscreen) {
+		if((scene->gm.playerflag & GAME_PLAYER_FULLSCREEN)) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
 			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
 			ar->winx = ar->winrct.xmax + 1;
@@ -375,6 +376,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
 
 	seq_free_clipboard(); /* sequencer.c */
+	BKE_tracking_free_clipboard();
 		
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();

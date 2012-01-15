@@ -414,6 +414,9 @@ typedef struct UserDef {
 	short pad3;
 
 	char author[80];	/* author name for file formats supporting it */
+
+	int compute_device_type;
+	int compute_device_id;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -628,6 +631,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_PANY_INVERT_AXIS (1 << 13)
 #define NDOF_PANZ_INVERT_AXIS (1 << 14)
 
+/* compute_device_type */
+#define USER_COMPUTE_DEVICE_NONE	0
+#define USER_COMPUTE_DEVICE_OPENCL	1
+#define USER_COMPUTE_DEVICE_CUDA	2
 
 #ifdef __cplusplus
 }

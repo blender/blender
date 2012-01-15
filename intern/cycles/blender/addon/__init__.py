@@ -23,7 +23,6 @@ bl_info = {
     "author": "",
     "version": (0, 0),
     "blender": (2, 6, 0),
-    "api": 41670,
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration.",
     "warning": "",

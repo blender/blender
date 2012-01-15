@@ -103,7 +103,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	char *str, path[FILE_MAX];
 	const char *path_prop= RNA_struct_find_property(op->ptr, "directory") ? "directory" : "filepath";
 	
-	if (RNA_property_is_set(op->ptr, path_prop)==0 || fbo==NULL)
+	if (RNA_struct_property_is_set(op->ptr, path_prop)==0 || fbo==NULL)
 		return OPERATOR_CANCELLED;
 	
 	str= RNA_string_get_alloc(op->ptr, path_prop, NULL, 0);
@@ -200,7 +200,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* normally ED_fileselect_get_params would handle this but we need to because of stupid
 		 * user-prefs exception - campbell */
 		if(RNA_struct_find_property(op->ptr, "relative_path")) {
-			if(!RNA_property_is_set(op->ptr, "relative_path")) {
+			if(!RNA_struct_property_is_set(op->ptr, "relative_path")) {
 				/* annoying exception!, if were dealign with the user prefs, default relative to be off */
 				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS && (ptr.data != &U));
 			}

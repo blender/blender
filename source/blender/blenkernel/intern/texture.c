@@ -168,7 +168,7 @@ PluginTex *add_plugin_tex(char *str)
 	
 	pit= MEM_callocN(sizeof(PluginTex), "plugintex");
 	
-	strcpy(pit->name, str);
+	BLI_strncpy(pit->name, str, sizeof(pit->name));
 	open_plugin_tex(pit);
 	
 	if(pit->doit==NULL) {

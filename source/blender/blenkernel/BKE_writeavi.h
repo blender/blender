@@ -44,7 +44,8 @@ struct Scene;
 
 typedef struct bMovieHandle {
 	int (*start_movie)(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
-	int (*append_movie)(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
+	int (*append_movie)(struct RenderData *rd, int start_frame, int frame, int *pixels,
+	                    int rectx, int recty, struct ReportList *reports);
 	void (*end_movie)(void);
 	int (*get_next_frame)(struct RenderData *rd, struct ReportList *reports); /* optional */
 	void (*get_movie_path)(char *string, struct RenderData *rd); /* optional */

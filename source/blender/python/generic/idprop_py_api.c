@@ -249,7 +249,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 	name = _PyUnicode_AsStringAndSize(value, &name_size);
 
 	if (name_size > MAX_IDPROP_NAME) {
-		PyErr_SetString(PyExc_TypeError, "string length cannot exceed 31 characters!");
+		PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
 		return -1;
 	}
 
@@ -359,7 +359,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		Py_ssize_t name_size;
 		name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
 		if (name_size > MAX_IDPROP_NAME) {
-			return "the length of IDProperty names is limited to 31 characters";
+			return "the length of IDProperty names is limited to 63 characters";
 		}
 	}
 

@@ -547,7 +547,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	return draw_tface__set_draw_legacy(tface, data->has_mcol, matnr);
 }
 
-static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
+static int wpaint__setSolidDrawOptions_material(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
 
@@ -558,6 +558,16 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 		}
 	}
 
+	*drawSmooth_r = 1;
+	return 1;
+}
+
+/* when face select is on, use face hidden flag */
+static int wpaint__setSolidDrawOptions_facemask(void *userData, int index, int *drawSmooth_r)
+{
+	Mesh *me = (Mesh*)userData;
+	MFace *mface = &me->mface[index];
+	if (mface->flag & ME_HIDE) return 0;
 	*drawSmooth_r = 1;
 	return 1;
 }
@@ -700,7 +710,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	}
 	else if(draw_flags & DRAW_FACE_SELECT) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, GPU_enable_material, NULL, me, 1);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_enable_material, NULL, me, 1);
 		else
 			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, NULL, me);
 	}
@@ -857,7 +867,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		/* weight paint mode exception */
 		int useColors= 1;
 
-		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions,
+		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_material,
 			GPU_enable_material, NULL, ob->data, useColors);
 	}
 	else {

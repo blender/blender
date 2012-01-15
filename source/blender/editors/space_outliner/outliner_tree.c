@@ -57,7 +57,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
-#if defined WIN32 && !defined _LIBC
+#if defined WIN32 && !defined _LIBC  || defined __sun
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
 #  ifndef _GNU_SOURCE
@@ -1342,7 +1342,7 @@ static int outliner_filter_has_name(TreeElement *te, const char *name, int flags
 	}
 	else {
 		char fn_name[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
-		sprintf(fn_name, "*%s*", name);
+		BLI_snprintf(fn_name, sizeof(fn_name), "*%s*", name);
 		found= fnmatch(fn_name, te->name, fn_flag)==0;
 	}
 	return found;

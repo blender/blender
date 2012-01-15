@@ -33,7 +33,7 @@ incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel ../../blenloader'
 incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
 incs += ' ../../windowmanager ../../editors/include ../../blenfont'
 incs += ' ../../render/extern/include'
-incs += ' #/intern/audaspace/intern '
+incs += ' #/intern/audaspace/intern #/intern/cycles/blender'
 incs += ' #/extern/glew/include '
 
 if env['WITH_BF_OPENEXR']:
@@ -59,9 +59,6 @@ defs.append('WITH_FRAMESERVER')  # TODO, make optional
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
-
-if env['WITH_BF_OGG']:
-    defs.append('WITH_OGG')
 
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
@@ -90,6 +87,9 @@ if env['WITH_BF_PYTHON']:
 
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'

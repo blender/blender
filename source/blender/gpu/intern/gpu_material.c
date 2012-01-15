@@ -173,7 +173,7 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 	 * removed by the glsl compiler by dead code elimination */
 
 	for(a=0, b=0; a<attribs->totlayer; a++) {
-		sprintf(name, "att%d", attribs->layer[a].attribid);
+		BLI_snprintf(name, sizeof(name), "att%d", attribs->layer[a].attribid);
 		attribs->layer[a].glindex = GPU_shader_get_attribute(shader, name);
 
 		if(attribs->layer[a].glindex >= 0) {

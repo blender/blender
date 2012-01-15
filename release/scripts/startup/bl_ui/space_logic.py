@@ -41,7 +41,7 @@ class LOGIC_PT_properties(Panel):
         if is_font:
             prop_index = game.properties.find("Text")
             if prop_index != -1:
-                layout.operator("object.game_property_remove", text="Renove Text Game Property", icon='X').index = prop_index
+                layout.operator("object.game_property_remove", text="Remove Text Game Property", icon='X').index = prop_index
                 row = layout.row()
                 sub = row.row()
                 sub.enabled = 0
@@ -49,9 +49,9 @@ class LOGIC_PT_properties(Panel):
                 sub.prop(prop, "name", text="")
                 row.prop(prop, "type", text="")
                 # get the property from the body, not the game property
-                # note, dont do this - its too slow and body can potentually be a really long string.
+                # note, don't do this - it's too slow and body can potentually be a really long string.
                 # row.prop(ob.data, "body", text="")
-                row.label("See Font Object")
+                row.label("See Text Object")
             else:
                 props = layout.operator("object.game_property_new", text="Add Text Game Property", icon='ZOOMIN')
                 props.name = 'Text'

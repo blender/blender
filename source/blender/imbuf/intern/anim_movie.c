@@ -1289,7 +1289,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position,
 
 	if (ibuf) {
 		if (filter_y) IMB_filtery(ibuf);
-		sprintf(ibuf->name, "%s.%04d", anim->name, anim->curposition + 1);
+		BLI_snprintf(ibuf->name, sizeof(ibuf->name), "%s.%04d", anim->name, anim->curposition + 1);
 		
 	}
 	return(ibuf);

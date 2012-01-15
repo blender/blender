@@ -840,7 +840,7 @@ Object *add_object(struct Scene *scene, int type)
 {
 	Object *ob;
 	Base *base;
-	char name[32];
+	char name[MAX_ID_NAME];
 
 	BLI_strncpy(name, get_obdata_defname(type), sizeof(name));
 	ob = add_only_object(type, name);

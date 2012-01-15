@@ -75,7 +75,7 @@ typedef struct MovieTrackingMarker {
 typedef struct MovieTrackingTrack {
 	struct MovieTrackingTrack *next, *prev;
 
-	char name[24];
+	char name[64];	/* MAX_NAME */
 
 	/* ** setings ** */
 	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
@@ -178,7 +178,7 @@ typedef struct MovieTrackingReconstruction {
 typedef struct MovieTrackingObject {
 	struct MovieTrackingObject *next, *prev;
 
-	char name[24];			/* Name of tracking object */
+	char name[64];			/* Name of tracking object, MAX_NAME */
 	int flag;
 	float scale;			/* scale of object solution in amera space */
 

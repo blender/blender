@@ -3409,14 +3409,14 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 	psys->part = psys_new_settings("ParticleSettings", NULL);
 
 	if(BLI_countlist(&ob->particlesystem)>1)
-		sprintf(psys->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+		BLI_snprintf(psys->name, sizeof(psys->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 	else
 		strcpy(psys->name, "ParticleSystem");
 
 	md= modifier_new(eModifierType_ParticleSystem);
 
 	if(name)	BLI_strncpy(md->name, name, sizeof(md->name));
-	else		sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	else		BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 	modifier_unique_name(&ob->modifiers, md);
 
 	psmd= (ParticleSystemModifierData*) md;

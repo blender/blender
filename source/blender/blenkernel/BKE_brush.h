@@ -59,7 +59,8 @@ int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
 /* jitter */
-void brush_jitter_pos(struct Brush *brush, float *pos, float *jitterpos);
+void brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
+					  float *pos, float *jitterpos);
 
 /* brush curve */
 void brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/int preset);
@@ -67,8 +68,8 @@ float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
 /* sampling */
-void brush_sample_tex(struct Brush *brush, float *xy, float *rgba, const int thread);
-void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
+void brush_sample_tex(const struct Scene *scene, struct Brush *brush, const float xy[2], float rgba[4], const int thread);
+void brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf, int use_color_correction);
 
 /* painting */
@@ -76,7 +77,7 @@ struct BrushPainter;
 typedef struct BrushPainter BrushPainter;
 typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, float *lastpos, float *pos);
 
-BrushPainter *brush_painter_new(struct Brush *brush);
+BrushPainter *brush_painter_new(struct Scene *scene, struct Brush *brush);
 void brush_painter_require_imbuf(BrushPainter *painter, short flt,
 	short texonly, int size);
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
@@ -92,23 +93,27 @@ struct ImBuf *brush_gen_radial_control_imbuf(struct Brush *br);
 
 /* unified strength and size */
 
-int  brush_size(struct Brush *brush);
-void brush_set_size(struct Brush *brush, int value);
+int  brush_size(const struct Scene *scene, struct Brush *brush);
+void brush_set_size(struct Scene *scene, struct Brush *brush, int value);
 
-int  brush_use_locked_size(struct Brush *brush);
-void brush_set_use_locked_size(struct Brush *brush, int value);
+float brush_unprojected_radius(const struct Scene *scene, struct Brush *brush);
+void  brush_set_unprojected_radius(struct Scene *scene, struct Brush *brush, float value);
 
-int  brush_use_alpha_pressure(struct Brush *brush);
-void brush_set_use_alpha_pressure(struct Brush *brush, int value);
+float brush_alpha(const struct Scene *scene, struct Brush *brush);
 
-int  brush_use_size_pressure(struct Brush *brush);
-void brush_set_use_size_pressure(struct Brush *brush, int value);
+int  brush_use_locked_size(const struct Scene *scene, struct Brush *brush);
+int  brush_use_alpha_pressure(const struct Scene *scene, struct Brush *brush);
+int  brush_use_size_pressure(const struct Scene *scene, struct Brush *brush);
 
-float brush_unprojected_radius(struct Brush *brush);
-void  brush_set_unprojected_radius(struct Brush *brush, float value);
+/* scale unprojected radius to reflect a change in the brush's 2D size */
+void brush_scale_unprojected_radius(float *unprojected_radius,
+									int new_brush_size,
+									int old_brush_size);
 
-float brush_alpha(struct Brush *brush);
-void  brush_set_alpha(struct Brush *brush, float value);
+/* scale brush size to reflect a change in the brush's unprojected radius */
+void brush_scale_size(int *brush_size,
+					  float new_unprojected_radius,
+					  float old_unprojected_radius);
 
 /* debugging only */
 void brush_debug_print_state(struct Brush *br);

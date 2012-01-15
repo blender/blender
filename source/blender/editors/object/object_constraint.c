@@ -542,7 +542,7 @@ static int edit_constraint_poll(bContext *C)
 
 static void edit_constraint_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "constraint", "", 32, "Constraint", "Name of the constraint to edit");
+	RNA_def_string(ot->srna, "constraint", "", MAX_NAME, "Constraint", "Name of the constraint to edit");
 	RNA_def_enum(ot->srna, "owner", constraint_owner_items, 0, "Owner", "The owner of this constraint");
 }
 
@@ -553,7 +553,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 	bConstraint *con;
 	ListBase *list;
 	
-	if (RNA_property_is_set(op->ptr, "constraint") && RNA_property_is_set(op->ptr, "owner"))
+	if (RNA_struct_property_is_set(op->ptr, "constraint") && RNA_struct_property_is_set(op->ptr, "owner"))
 		return 1;
 	
 	if (ptr.data) {
@@ -575,7 +575,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 
 static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int type)
 {
-	char constraint_name[32];
+	char constraint_name[MAX_NAME];
 	int owner = RNA_enum_get(op->ptr, "owner");
 	bConstraint *con;
 	ListBase *list=NULL;

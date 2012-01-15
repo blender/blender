@@ -180,7 +180,7 @@ void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short 
 static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 {
 	float xscale, yscale, x, y;
-	char str[32] = "    t";	/* t is the character to start replacing from */
+	char numstr[32] = "    t";	/* t is the character to start replacing from */
 	short slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
@@ -193,10 +193,10 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	 *	  but power = 1 is required for frames (to get integer frames)
 	 */
 	if (time)
-		ANIM_timecode_string_from_frame(&str[4], scene, 0, time, FRA2TIME(cfra));
+		ANIM_timecode_string_from_frame(&numstr[4], scene, 0, time, FRA2TIME(cfra));
 	else	
-		ANIM_timecode_string_from_frame(&str[4], scene, 1, time, cfra);
-	slen= (short)UI_GetStringWidth(str) - 1;
+		ANIM_timecode_string_from_frame(&numstr[4], scene, 1, time, cfra);
+	slen= (short)UI_GetStringWidth(numstr) - 1;
 	
 	/* get starting coordinates for drawing */
 	x= cfra * xscale;
@@ -208,7 +208,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	UI_DrawString(x-5, y+3, str);
+	UI_DrawString(x-5, y+3, numstr);
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);

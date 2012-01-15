@@ -516,7 +516,7 @@ When the texture object is deleted, the new texture is deleted and the old textu
       line by line starting from the bottom of the image. The pixel size and format is determined by the mode
       parameter.
 
-.. function materialID(object,name)
+.. function:: materialID(object,name)
 
    Returns a numeric value that can be used in :class:`Texture` to create a dynamic texture.
 
@@ -538,7 +538,7 @@ When the texture object is deleted, the new texture is deleted and the old textu
    :type name: string
    :rtype: integer
 
-.. function setLogFile(filename)
+.. function:: setLogFile(filename)
 
    Sets the name of a text file in which runtime error messages will be written, in addition to the printing
    of the messages on the Python console. Only the runtime errors specific to the VideoTexture module

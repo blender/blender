@@ -130,7 +130,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 
 	RNA_int_set(op->ptr, "frame_start", (int)mval_v2d[0]);
 	
-	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "frame_end")==0)
+	if ((flag & SEQPROP_ENDFRAME) && RNA_struct_property_is_set(op->ptr, "frame_end")==0)
 		RNA_int_set(op->ptr, "frame_end", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
 
 	if (!(flag & SEQPROP_NOPATHS)) {
@@ -264,7 +264,7 @@ static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		return OPERATOR_CANCELLED;
 	}
 
-	if(!RNA_property_is_set(op->ptr, "scene"))
+	if(!RNA_struct_property_is_set(op->ptr, "scene"))
 		return WM_enum_search_invoke(C, op, event);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
@@ -371,7 +371,7 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	}
 
 	/* This is for drag and drop */
-	if(RNA_collection_length(op->ptr, "files") || RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_collection_length(op->ptr, "files") || RNA_struct_property_is_set(op->ptr, "filepath")) {
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_NOPATHS);
 		return sequencer_add_movie_strip_exec(C, op);
 	}
@@ -423,7 +423,7 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	}
 	
 	/* This is for drag and drop */
-	if(RNA_collection_length(op->ptr, "files") || RNA_property_is_set(op->ptr, "filepath")) {
+	if(RNA_collection_length(op->ptr, "files") || RNA_struct_property_is_set(op->ptr, "filepath")) {
 		sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_NOPATHS);
 		return sequencer_add_sound_strip_exec(C, op);
 	}
@@ -650,7 +650,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	/* an unset channel is a special case where we automatically go above
 	 * the other strips. */
-	if(!RNA_property_is_set(op->ptr, "channel")) {
+	if(!RNA_struct_property_is_set(op->ptr, "channel")) {
 		if(seq->seq1) {
 			int chan= MAX3(	seq->seq1 ? seq->seq1->machine : 0,
 							seq->seq2 ? seq->seq2->machine : 0,
@@ -686,7 +686,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 /* add color */
 static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	short is_type_set= RNA_property_is_set(op->ptr, "type");
+	short is_type_set= RNA_struct_property_is_set(op->ptr, "type");
 	int type= -1;
 	int prop_flag= SEQPROP_ENDFRAME;
 

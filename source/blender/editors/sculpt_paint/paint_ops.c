@@ -89,7 +89,8 @@ static void BRUSH_OT_add(wmOperatorType *ot)
 
 static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
-	Paint  *paint=  paint_get_active(CTX_data_scene(C));
+	Scene *scene = CTX_data_scene(C);
+	Paint  *paint=  paint_get_active(scene);
 	struct Brush  *brush=  paint_brush(paint);
 	// Object *ob=     CTX_data_active_object(C);
 	float   scalar= RNA_float_get(op->ptr, "scalar");
@@ -97,7 +98,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 	if (brush) {
 		// pixel radius
 		{
-			const int old_size= brush_size(brush);
+			const int old_size= brush_size(scene, brush);
 			int size= (int)(scalar*old_size);
 
 			if (old_size == size) {
@@ -110,17 +111,17 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 			}
 			CLAMP(size, 1, 2000); // XXX magic number
 
-			brush_set_size(brush, size);
+			brush_set_size(scene, brush, size);
 		}
 
 		// unprojected radius
 		{
-			float unprojected_radius= scalar*brush_unprojected_radius(brush);
+			float unprojected_radius= scalar*brush_unprojected_radius(scene, brush);
 
 			if (unprojected_radius < 0.001f) // XXX magic number
 				unprojected_radius= 0.001f;
 
-			brush_set_unprojected_radius(brush, unprojected_radius);
+			brush_set_unprojected_radius(scene, brush, unprojected_radius);
 		}
 	}
 
@@ -475,7 +476,7 @@ typedef enum {
 } RCFlags;
 
 static void set_brush_rc_path(PointerRNA *ptr, const char *brush_path,
-			      const char *output_name, const char *input_name)
+							  const char *output_name, const char *input_name)
 {
 	char *path;
 
@@ -485,21 +486,35 @@ static void set_brush_rc_path(PointerRNA *ptr, const char *brush_path,
 }
 
 static void set_brush_rc_props(PointerRNA *ptr, const char *paint,
-			       const char *prop, RCFlags flags)
+							   const char *prop, const char *secondary_prop,
+							   RCFlags flags)
 {
+	const char *ups_path = "tool_settings.unified_paint_settings";
 	char *brush_path;
 
 	brush_path = BLI_sprintfN("tool_settings.%s.brush", paint);
 
-	set_brush_rc_path(ptr, brush_path, "data_path", prop);
+	set_brush_rc_path(ptr, brush_path, "data_path_primary", prop);
+	if(secondary_prop) {
+		set_brush_rc_path(ptr, ups_path, "use_secondary", secondary_prop);
+		set_brush_rc_path(ptr, ups_path, "data_path_secondary", prop);
+	}
+	else {
+		RNA_string_set(ptr, "use_secondary", "");
+		RNA_string_set(ptr, "data_path_secondary", "");
+	}
 	set_brush_rc_path(ptr, brush_path, "color_path", "cursor_color_add");
 	set_brush_rc_path(ptr, brush_path, "rotation_path", "texture_slot.angle");
 	RNA_string_set(ptr, "image_id", brush_path);
 
 	if(flags & RC_COLOR)
 		set_brush_rc_path(ptr, brush_path, "fill_color_path", "color");
+	else
+		RNA_string_set(ptr, "fill_color_path", "");
 	if(flags & RC_ZOOM)
 		RNA_string_set(ptr, "zoom_path", "space_data.zoom");
+	else
+		RNA_string_set(ptr, "zoom_path", "");
 
 	MEM_freeN(brush_path);
 }
@@ -510,14 +525,14 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 	wmKeyMapItem *kmi;
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	set_brush_rc_props(kmi->ptr, paint, "size", flags);
+	set_brush_rc_props(kmi->ptr, paint, "size", "use_unified_size", flags);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	set_brush_rc_props(kmi->ptr, paint, "strength", flags);
+	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags);
 
 	if(flags & RC_ROTATION) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
-		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", flags);
+		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", NULL, flags);
 	}
 }
 

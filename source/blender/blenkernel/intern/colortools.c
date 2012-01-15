@@ -1002,7 +1002,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 			}
 
 			/* we still need luma for histogram */
-			luma = 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
+			luma = rgb_to_luma(rgb);
 
 			/* check for min max */
 			if(ycc_mode == -1 ) {

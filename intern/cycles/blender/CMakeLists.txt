@@ -27,6 +27,7 @@ set(SRC
 	blender_shader.cpp
 	blender_sync.cpp
 
+	CCL_api.h
 	blender_sync.h
 	blender_session.h
 	blender_util.h

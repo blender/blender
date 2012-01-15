@@ -174,33 +174,33 @@ void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_he
 	
 	for (box=boxarray, box_index=0, i=0; box_index < len; box_index++, box++) {
 
-		vert->blb = vert->brb = vert->tlb =\
-			vert->isect_cache[0] = vert->isect_cache[1] =\
-			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		vert->blb = vert->brb = vert->tlb =
+		        vert->isect_cache[0] = vert->isect_cache[1] =
+		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS &~ TRF;
 		vert->trb = box;
 		vert->index = i; i++;
 		box->v[BL] = vert; vert++;
 		
-		vert->trb= vert->brb = vert->tlb =\
-			vert->isect_cache[0] = vert->isect_cache[1] =\
-			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		vert->trb= vert->brb = vert->tlb =
+		        vert->isect_cache[0] = vert->isect_cache[1] =
+		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS &~ BLF;
 		vert->blb = box;
 		vert->index = i; i++;
 		box->v[TR] = vert; vert++;
 		
-		vert->trb = vert->blb = vert->tlb =\
-			vert->isect_cache[0] = vert->isect_cache[1] =\
-			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		vert->trb = vert->blb = vert->tlb =
+		        vert->isect_cache[0] = vert->isect_cache[1] =
+		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS &~ BRF;
 		vert->brb = box;
 		vert->index = i; i++;
 		box->v[TL] = vert; vert++;
 		
-		vert->trb = vert->blb = vert->brb =\
-			vert->isect_cache[0] = vert->isect_cache[1] =\
-			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		vert->trb = vert->blb = vert->brb =
+		        vert->isect_cache[0] = vert->isect_cache[1] =
+		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS &~ TLF;
 		vert->tlb = box; 
 		vert->index = i; i++;

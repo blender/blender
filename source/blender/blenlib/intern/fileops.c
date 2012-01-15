@@ -82,7 +82,7 @@ int BLI_file_gzip(const char *from, const char *to)
 		return -2;
 
 	while(1) {
-		readsize = read(file, buffer, 10240);
+		readsize = read(file, buffer, sizeof(buffer));
 
 		if(readsize < 0) {
 			rval= -2; /* error happened in reading */

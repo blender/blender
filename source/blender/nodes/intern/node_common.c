@@ -530,7 +530,8 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		BLI_addtail(&ntree->links, link);
 	}
 	
-	/* and copy across the animation */
+	/* and copy across the animation,
+	 * note that the animation data's action can be NULL here */
 	if (wgroup->adt) {
 		LinkData *ld, *ldn=NULL;
 		bAction *waction;
@@ -550,7 +551,9 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		}
 		
 		/* free temp action too */
-		free_libblock(&G.main->action, waction);
+		if (waction) {
+			free_libblock(&G.main->action, waction);
+		}
 	}
 	
 	/* delete the group instance. this also removes old input links! */

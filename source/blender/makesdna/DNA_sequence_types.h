@@ -127,7 +127,7 @@ typedef struct Sequence {
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */
 	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
-	char name[24]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
+	char name[64]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
 
 	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
 	int len; /* the length of the contense of this strip - before handles are applied */
@@ -255,7 +255,7 @@ typedef struct SpeedControlVars {
 #define SEQ_SPEED_COMPRESS_IPO_Y 4
 
 /* ***************** SEQUENCE ****************** */
-#define SEQ_NAME_MAXSTR			24
+#define SEQ_NAME_MAXSTR			64
 
 /* seq->flag */
 #define SEQ_LEFTSEL                 (1<<1)

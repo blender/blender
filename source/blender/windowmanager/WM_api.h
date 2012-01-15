@@ -199,6 +199,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int con
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */
+void        WM_operator_properties_reset(struct wmOperator *op);
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);

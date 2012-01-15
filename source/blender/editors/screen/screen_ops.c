@@ -1348,12 +1348,12 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		int x, y;
 		
 		/* retrieve initial mouse coord, so we can find the active edge */
-		if(RNA_property_is_set(op->ptr, "mouse_x"))
+		if(RNA_struct_property_is_set(op->ptr, "mouse_x"))
 			x= RNA_int_get(op->ptr, "mouse_x");
 		else
 			x= event->x;
 		
-		if(RNA_property_is_set(op->ptr, "mouse_y"))
+		if(RNA_struct_property_is_set(op->ptr, "mouse_y"))
 			y= RNA_int_get(op->ptr, "mouse_y");
 		else
 			y= event->x;
@@ -3062,7 +3062,7 @@ static int screen_animation_play_exec(bContext *C, wmOperator *op)
 	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 	int sync= -1;
 	
-	if (RNA_property_is_set(op->ptr, "sync"))
+	if (RNA_struct_property_is_set(op->ptr, "sync"))
 		sync= (RNA_boolean_get(op->ptr, "sync"));
 	
 	return ED_screen_animation_play(C, sync, mode);

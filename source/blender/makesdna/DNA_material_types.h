@@ -121,7 +121,7 @@ typedef struct Material {
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease, strand_surfnor;
 	float strand_min, strand_widthfade;
-	char strand_uvname[32];
+	char strand_uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	
 	float sbias;			/* shadow bias to prevent terminator prob */
 	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */

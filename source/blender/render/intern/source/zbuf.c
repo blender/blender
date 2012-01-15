@@ -1036,6 +1036,9 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
+
+/* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
+ * commented below */
 static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
 {
 	double zxd, zyd, zy0, zverg;
@@ -1047,10 +1050,10 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 	int *rectmaskofs, *rm;
 	int *rz, x, y;
 	int sn1, sn2, rectx, *rectzofs, my0, my2;
-	
+
 	/* init */
 	zbuf_init_span(zspan);
-	
+
 	/* set spans */
 	zbuf_add_to_span(zspan, v1, v2);
 	zbuf_add_to_span(zspan, v2, v3);
@@ -1058,19 +1061,19 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 		zbuf_add_to_span(zspan, v3, v4);
 		zbuf_add_to_span(zspan, v4, v1);
 	}
-	else 
+	else
 		zbuf_add_to_span(zspan, v3, v1);
-	
+
 	/* clipped */
 	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
-	
+
 	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
 	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
-	
+
 	//	printf("my %d %d\n", my0, my2);
 	if(my2<my0) return;
-	
-	
+
+
 	/* ZBUF DX DY, in floats still */
 	x1= v1[0]- v2[0];
 	x2= v2[0]- v3[0];
@@ -1081,22 +1084,22 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
-	
+
 	if(z0==0.0f) return;
-	
+
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
-	
+
 	zxd= -(double)x0/(double)z0;
 	zyd= -(double)y0/(double)z0;
 	zy0= ((double)my2)*zyd + (double)xx1;
-	
+
 	/* start-offset in rect */
 	rectx= zspan->rectx;
 	rectzofs= (zspan->rectz+rectx*my2);
 	rectpofs= (zspan->rectp+rectx*my2);
 	rectoofs= (zspan->recto+rectx*my2);
 	rectmaskofs= (zspan->rectmask+rectx*my2);
-	
+
 	/* correct span */
 	sn1= (my0 + my2)/2;
 	if(zspan->span1[sn1] < zspan->span2[sn1]) {
@@ -1107,45 +1110,45 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 		span1= zspan->span2+my2;
 		span2= zspan->span1+my2;
 	}
-	
+
 	for(y=my2; y>=my0; y--, span1--, span2--) {
-		
+
 		sn1= floor(*span1);
 		sn2= floor(*span2);
-		sn1++; 
-		
+		sn1++;
+
 		if(sn2>=rectx) sn2= rectx-1;
 		if(sn1<0) sn1= 0;
-		
+
 		if(sn2>=sn1) {
 			int intzverg;
-			
+
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
 			ro= rectoofs+sn1;
 			rm= rectmaskofs+sn1;
 			x= sn2-sn1;
-			
+
 			while(x>=0) {
 				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
 
-				if( intzverg > *rz || *rz==0x7FFFFFFF) {
+				if( intzverg > *rz || *rz==0x7FFFFFFF) { /* UNIQUE LINE: see comment above */
 					if(!zspan->rectmask || intzverg > *rm) {
-						*ro= obi;
+						*ro= obi; /* UNIQUE LINE: see comment above (order differs) */
 						*rz= intzverg;
 						*rp= zvlnr;
 					}
 				}
 				zverg+= zxd;
-				rz++; 
-				rp++; 
+				rz++;
+				rp++;
 				ro++;
 				rm++;
 				x--;
 			}
 		}
-		
+
 		zy0-=zyd;
 		rectzofs-= rectx;
 		rectpofs-= rectx;
@@ -1156,6 +1159,8 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 
 /* uses spanbuffers */
 
+/* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
+ * commented below */
 static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
@@ -1167,10 +1172,10 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	int *rectmaskofs, *rm;
 	int *rz, x, y;
 	int sn1, sn2, rectx, *rectzofs, my0, my2;
-	
+
 	/* init */
 	zbuf_init_span(zspan);
-	
+
 	/* set spans */
 	zbuf_add_to_span(zspan, v1, v2);
 	zbuf_add_to_span(zspan, v2, v3);
@@ -1178,19 +1183,19 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		zbuf_add_to_span(zspan, v3, v4);
 		zbuf_add_to_span(zspan, v4, v1);
 	}
-	else 
+	else
 		zbuf_add_to_span(zspan, v3, v1);
-		
+
 	/* clipped */
 	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
-	
+
 	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
 	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
-	
-//	printf("my %d %d\n", my0, my2);
+
+	//	printf("my %d %d\n", my0, my2);
 	if(my2<my0) return;
-	
-	
+
+
 	/* ZBUF DX DY, in floats still */
 	x1= v1[0]- v2[0];
 	x2= v2[0]- v3[0];
@@ -1201,7 +1206,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	x0= y1*z2-z1*y2;
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
-	
+
 	if(z0==0.0f) return;
 
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
@@ -1227,45 +1232,45 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		span1= zspan->span2+my2;
 		span2= zspan->span1+my2;
 	}
-	
+
 	for(y=my2; y>=my0; y--, span1--, span2--) {
-		
+
 		sn1= floor(*span1);
 		sn2= floor(*span2);
-		sn1++; 
-		
+		sn1++;
+
 		if(sn2>=rectx) sn2= rectx-1;
 		if(sn1<0) sn1= 0;
-		
+
 		if(sn2>=sn1) {
 			int intzverg;
-			
+
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
 			ro= rectoofs+sn1;
 			rm= rectmaskofs+sn1;
 			x= sn2-sn1;
-			
+
 			while(x>=0) {
 				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
-				
-				if(intzverg < *rz) {
+
+				if(intzverg < *rz) { /* ONLY UNIQUE LINE: see comment above */
 					if(!zspan->rectmask || intzverg > *rm) {
 						*rz= intzverg;
 						*rp= zvlnr;
-						*ro= obi;
+						*ro= obi; /* UNIQUE LINE: see comment above (order differs) */
 					}
 				}
 				zverg+= zxd;
-				rz++; 
-				rp++; 
-				ro++; 
+				rz++;
+				rp++;
+				ro++;
 				rm++;
 				x--;
 			}
 		}
-		
+
 		zy0-=zyd;
 		rectzofs-= rectx;
 		rectpofs-= rectx;

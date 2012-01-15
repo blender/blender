@@ -1862,7 +1862,8 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_channel_matte(ttype);
 	register_node_type_cmp_color_spill(ttype);
 	register_node_type_cmp_luma_matte(ttype);
-	
+    register_node_type_cmp_doubleedgemask(ttype);
+
 	register_node_type_cmp_translate(ttype);
 	register_node_type_cmp_rotate(ttype);
 	register_node_type_cmp_scale(ttype);
@@ -1945,6 +1946,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_tex_musgrave(ttype);
 	register_node_type_sh_tex_gradient(ttype);
 	register_node_type_sh_tex_magic(ttype);
+	register_node_type_sh_tex_checker(ttype);
 }
 
 static void registerTextureNodes(bNodeTreeType *ttype)

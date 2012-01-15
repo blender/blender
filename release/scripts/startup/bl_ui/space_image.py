@@ -85,7 +85,7 @@ class IMAGE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("uv.select_border")
+        layout.operator("uv.select_border").pinned = False
         layout.operator("uv.select_border").pinned = True
 
         layout.separator()
@@ -143,7 +143,7 @@ class IMAGE_MT_image(Menu):
                 # only for dirty && specific image types, perhaps
                 # this could be done in operator poll too
                 if ima.is_dirty:
-                    if ima.source in {'FILE', 'GENERATED'} and ima.type != 'MULTILAYER':
+                    if ima.source in {'FILE', 'GENERATED'} and ima.type != 'OPEN_EXR_MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
             layout.separator()
@@ -184,7 +184,7 @@ class IMAGE_MT_uvs_showhide(Menu):
         layout = self.layout
 
         layout.operator("uv.reveal")
-        layout.operator("uv.hide", text="Hide Selected")
+        layout.operator("uv.hide", text="Hide Selected").unselected = False
         layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 

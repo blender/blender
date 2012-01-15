@@ -428,7 +428,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	HookModifierData *hmd = NULL;
 	float cent[3];
 	int tot, ok, *indexar;
-	char name[32];
+	char name[MAX_NAME];
 	
 	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 	
@@ -747,7 +747,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	Object *ob=NULL;
 	HookModifierData *hmd=NULL;
 	float cent[3];
-	char name[32];
+	char name[MAX_NAME];
 	int *indexar, tot;
 	
 	if (ptr.data) {		/* if modifier context is available, use that */

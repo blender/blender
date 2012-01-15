@@ -1926,6 +1926,19 @@ static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
 	}
 }
 
+static void get_edge_center(float *cent, EditMesh *em, EditVert *eve)
+{
+	EditEdge *eed;
+
+	for(eed= em->edges.first; eed; eed= eed->next)
+		if(eed->f & SELECT)
+			if(eed->v1==eve || eed->v2==eve)
+				break;
+	if(eed) {
+		mid_v3_v3v3(cent, eed->v1->co, eed->v2->co);
+	}
+}
+
 /* way to overwrite what data is edited with transform
  * static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key) */
 static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert *eve)
@@ -1937,8 +1950,12 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	td->loc = eve->co;
 
 	copy_v3_v3(td->center, td->loc);
-	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
-		get_face_center(td->center, em, eve);
+	if(t->around==V3D_LOCAL) {
+		if(em->selectmode & SCE_SELECT_FACE)
+			get_face_center(td->center, em, eve);
+		else if(em->selectmode & SCE_SELECT_EDGE)
+			get_edge_center(td->center, em, eve);
+	}
 	copy_v3_v3(td->iloc, td->loc);
 
 	// Setting normals

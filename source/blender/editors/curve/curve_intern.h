@@ -106,7 +106,6 @@ void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
-void CURVE_OT_select_inverse(struct wmOperatorType *ot);
 void CURVE_OT_select_linked(struct wmOperatorType *ot);
 void CURVE_OT_select_linked_pick(struct wmOperatorType *ot);
 void CURVE_OT_select_row(struct wmOperatorType *ot);

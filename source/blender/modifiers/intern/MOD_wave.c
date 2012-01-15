@@ -97,7 +97,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->texture = wmd->texture;
 	twmd->map_object = wmd->map_object;
 	twmd->texmapping = wmd->texmapping;
-	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, 32);
+	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
 }
 
 static int dependsOnTime(ModifierData *UNUSED(md))

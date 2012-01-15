@@ -213,7 +213,7 @@ __device void svm_node_tex_musgrave(KernelGlobals *kg, ShaderData *sd, float *st
 
 	decode_node_uchar4(node.y, &type, &co_offset, &color_offset, &fac_offset);
 	decode_node_uchar4(node.z, &dimension_offset, &lacunarity_offset, &detail_offset, &offset_offset);
-	decode_node_uchar4(node.z, &gain_offset, &scale_offset, NULL, NULL);
+	decode_node_uchar4(node.w, &gain_offset, &scale_offset, NULL, NULL);
 
 	float3 co = stack_load_float3(stack, co_offset);
 	float dimension = stack_load_float_default(stack, dimension_offset, node2.x);

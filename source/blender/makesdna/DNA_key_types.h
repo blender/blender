@@ -48,8 +48,8 @@ typedef struct KeyBlock {
 	
 	void *data;
 	float *weights;
-	char  name[32];
-	char vgroup[32];
+	char  name[64];	/* MAX_NAME */
+	char vgroup[64];	/* MAX_VGROUP_NAME */
 
 	float slidermin;
 	float slidermax;
@@ -61,7 +61,7 @@ typedef struct Key {
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	KeyBlock *refkey;
-	char elemstr[32];
+	char elemstr[64];	/* MAX_NAME */
 	int elemsize;
 	float curval  DNA_DEPRECATED;
 	

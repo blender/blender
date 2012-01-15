@@ -749,7 +749,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	TreeElement *last_find;
 	TreeStoreElem *tselem;
 	int ytop, xdelta, prevFound=0;
-	char name[32];
+	char name[sizeof(soops->search_string)];
 	
 	/* get last found tree-element based on stored search_tse */
 	last_find= outliner_find_tse(soops, &soops->search_tse);
@@ -803,7 +803,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			/* store selection */
 			soops->search_tse= *tselem;
 			
-			BLI_strncpy(soops->search_string, name, 33);
+			BLI_strncpy(soops->search_string, name, sizeof(soops->search_string));
 			soops->search_flags= flags;
 			
 			/* redraw */

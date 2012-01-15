@@ -31,9 +31,10 @@
 
 
 #include <math.h>			/* fabs */
-#include <stdio.h>			/* for sprintf		*/
+#include <stdio.h>			/* for size_t */
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "WM_types.h"
 
@@ -84,34 +85,34 @@ void outputNumInput(NumInput *n, char *str)
 			inv[0] = 0;
 
 		if( n->val[i] > 1e10f || n->val[i] < -1e10f )
-			sprintf(&str[j*20], "%s%.4e%c", inv, n->val[i], cur);
+			BLI_snprintf(&str[j*20], 20, "%s%.4e%c", inv, n->val[i], cur);
 		else
 			switch (n->ctrl[i]) {
 			case 0:
-				sprintf(&str[j*20], "%sNONE%c", inv, cur);
+				BLI_snprintf(&str[j*20], 20, "%sNONE%c", inv, cur);
 				break;
 			case 1:
 			case -1:
-				sprintf(&str[j*20], "%s%.0f%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.0f%c", inv, n->val[i], cur);
 				break;
 			case 10:
 			case -10:
-				sprintf(&str[j*20], "%s%.f.%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.f.%c", inv, n->val[i], cur);
 				break;
 			case 100:
 			case -100:
-				sprintf(&str[j*20], "%s%.1f%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.1f%c", inv, n->val[i], cur);
 				break;
 			case 1000:
 			case -1000:
-				sprintf(&str[j*20], "%s%.2f%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.2f%c", inv, n->val[i], cur);
 				break;
 			case 10000:
 			case -10000:
-				sprintf(&str[j*20], "%s%.3f%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.3f%c", inv, n->val[i], cur);
 				break;
 			default:
-				sprintf(&str[j*20], "%s%.4e%c", inv, n->val[i], cur);
+				BLI_snprintf(&str[j*20], 20, "%s%.4e%c", inv, n->val[i], cur);
 			}
 	}
 }

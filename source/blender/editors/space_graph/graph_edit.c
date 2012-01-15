@@ -1046,6 +1046,8 @@ void GRAPH_OT_bake (wmOperatorType *ot)
 	// todo: add props for start/end frames
 }
 
+#ifdef WITH_AUDASPACE
+
 /* ******************** Sound Bake F-Curve Operator *********************** */
 /* This operator bakes the given sound to the selected F-Curves */
 
@@ -1078,7 +1080,6 @@ static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float eva
 
 /* ------------------- */
 
-#ifdef WITH_AUDASPACE
 static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;

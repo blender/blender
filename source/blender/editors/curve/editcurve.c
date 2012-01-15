@@ -1069,17 +1069,17 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 			while (a--) {
 				keyIndex= getCVKeyIndex(editnurb, bezt);
 				if(keyIndex) {
-					sprintf(rna_path, "splines[%d].bezier_points[%d]", nu_index, pt_index);
-					sprintf(orig_rna_path, "splines[%d].bezier_points[%d]", keyIndex->nu_index, keyIndex->pt_index);
+					BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d].bezier_points[%d]", nu_index, pt_index);
+					BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d].bezier_points[%d]", keyIndex->nu_index, keyIndex->pt_index);
 
 					if(keyIndex->switched) {
 						char handle_path[64], orig_handle_path[64];
-						sprintf(orig_handle_path, "%s.handle_left", orig_rna_path);
-						sprintf(handle_path, "%s.handle_right", rna_path);
+						BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_left", orig_rna_path);
+						BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_right", rna_path);
 						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 
-						sprintf(orig_handle_path, "%s.handle_right", orig_rna_path);
-						sprintf(handle_path, "%s.handle_left", rna_path);
+						BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_right", orig_rna_path);
+						BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_left", rna_path);
 						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
 					}
 
@@ -1100,8 +1100,8 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 			while (a--) {
 				keyIndex= getCVKeyIndex(editnurb, bp);
 				if(keyIndex) {
-					sprintf(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
-					sprintf(orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
+					BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d].points[%d]", nu_index, pt_index);
+					BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
 					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index= nu_index;
@@ -1140,8 +1140,8 @@ static void curve_rename_fcurves(Object *obedit, ListBase *orig_curves)
 		}
 
 		if(keyIndex) {
-			sprintf(rna_path, "splines[%d]", nu_index);
-			sprintf(orig_rna_path, "splines[%d]", keyIndex->nu_index);
+			BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d]", nu_index);
+			BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d]", keyIndex->nu_index);
 			fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
 		}
 
@@ -2743,64 +2743,6 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= reveal_exec;
-	ot->poll= ED_operator_editsurfcurve;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/********************** select invert operator *********************/
-
-static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Curve *cu= obedit->data;
-	ListBase *editnurb= object_editcurve_get(obedit);
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a;
-
-	cu->lastsel= NULL;
-
-	for(nu= editnurb->first; nu; nu= nu->next) {
-		if(nu->type == CU_BEZIER) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(bezt->hide==0) {
-					bezt->f2 ^= SELECT; /* always do the center point */
-					if((cu->drawflag & CU_HIDE_HANDLES)==0) {
-						bezt->f1 ^= SELECT;
-						bezt->f3 ^= SELECT;
-					}
-				}
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				swap_selection_bpoint(bp);
-				bp++;
-			}
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
-	return OPERATOR_FINISHED;	
-}
-
-void CURVE_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "CURVE_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= select_inverse_exec;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
@@ -4607,8 +4549,6 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 		}
 	}
 
-	// XXX retopo_do_all();
-
 	if(ok) {
 		test2DNurb(nu);
 
@@ -4636,7 +4576,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
-	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
+	if(rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
 		Curve *cu;
 		ViewContext vc;
 		float location[3];

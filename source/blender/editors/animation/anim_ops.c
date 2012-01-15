@@ -277,78 +277,12 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* ****************** time display toggle operator ****************************/
-
-static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	
-	if (curarea == NULL)
-		return OPERATOR_CANCELLED;
-	
-	/* simply toggle draw frames flag in applicable spaces */
-	// XXX or should relevant spaces define their own version of this?
-	switch (curarea->spacetype) {
-		case SPACE_TIME: /* TimeLine */
-		{
-			SpaceTime *stime= CTX_wm_space_time(C);
-			stime->flag ^= TIME_DRAWFRAMES;
-		}
-			break;
-		case SPACE_ACTION: /* Action Editor */
-		{
-			SpaceAction *saction= CTX_wm_space_action(C);
-			saction->flag ^= SACTION_DRAWTIME;
-		}
-			break;
-		case SPACE_IPO: /* Graph Editor */
-		{
-			SpaceIpo *sipo= CTX_wm_space_graph(C);
-			sipo->flag ^= SIPO_DRAWTIME;
-		}
-			break;
-		case SPACE_NLA: /* NLA Editor */
-		{
-			SpaceNla *snla= CTX_wm_space_nla(C);
-			snla->flag ^= SNLA_DRAWTIME;
-		}
-			break;
-		case SPACE_SEQ: /* Sequencer */
-		{
-			SpaceSeq *sseq= CTX_wm_space_seq(C);
-			sseq->flag ^= SEQ_DRAWFRAMES;
-		}
-			break;
-			
-		default: /* editor doesn't show frames */
-			return OPERATOR_CANCELLED; // XXX or should we pass through instead?
-	}
-	
-	ED_area_tag_redraw(curarea);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_time_toggle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Toggle Frames/Seconds";
-	ot->idname= "ANIM_OT_time_toggle";
-	ot->description= "Toggle whether timing is displayed in frames or seconds for active timeline view";
-	
-	/* api callbacks */
-	ot->exec= toggle_time_exec;
-	
-	ot->poll= ED_operator_animview_active;
-}
-
 /* ************************** registration **********************************/
 
 void ED_operatortypes_anim(void)
 {
 	/* Animation Editors only -------------------------- */
 	WM_operatortype_append(ANIM_OT_change_frame);
-	WM_operatortype_append(ANIM_OT_time_toggle);
 	
 	WM_operatortype_append(ANIM_OT_previewrange_set);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
@@ -382,11 +316,14 @@ void ED_operatortypes_anim(void)
 void ED_keymap_anim(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Animation", 0, 0);
+	wmKeyMapItem *kmi;
 	
 	/* frame management */
 		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */
 	WM_keymap_add_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_time_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_seconds");
 	
 	/* preview range */
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_set", PKEY, KM_PRESS, 0, 0);

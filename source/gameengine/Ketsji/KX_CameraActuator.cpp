@@ -53,7 +53,7 @@ KX_CameraActuator::KX_CameraActuator(
 	float hght,
 	float minhght,
 	float maxhght,
-	bool  xytog,
+	short axis,
 	float damping
 ): 
 	SCA_IActuator(gameobj, KX_ACT_CAMERA),
@@ -61,7 +61,7 @@ KX_CameraActuator::KX_CameraActuator(
 	m_height (hght),
 	m_minHeight (minhght),
 	m_maxHeight (maxhght),
-	m_x (xytog),
+	m_axis(axis),
 	m_damping (damping)
 {
 	if (m_ob)
@@ -264,23 +264,50 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 
 
 	/* C4: camera behind actor   */
-	if (m_x) {
-		fp1[0] = actormat[0][0];
-		fp1[1] = actormat[1][0];
-		fp1[2] = actormat[2][0];
+	switch (m_axis) {
+		case OB_POSX:
+			/* X */
+			fp1[0] = actormat[0][0];
+			fp1[1] = actormat[1][0];
+			fp1[2] = actormat[2][0];
 
-		fp2[0] = frommat[0][0];
-		fp2[1] = frommat[1][0];
-		fp2[2] = frommat[2][0];
-	} 
-	else {
-		fp1[0] = actormat[0][1];
-		fp1[1] = actormat[1][1];
-		fp1[2] = actormat[2][1];
+			fp2[0] = frommat[0][0];
+			fp2[1] = frommat[1][0];
+			fp2[2] = frommat[2][0];
+			break;
+		case OB_POSY:
+			/* Y */
+			fp1[0] = actormat[0][1];
+			fp1[1] = actormat[1][1];
+			fp1[2] = actormat[2][1];
 
-		fp2[0] = frommat[0][1];
-		fp2[1] = frommat[1][1];
-		fp2[2] = frommat[2][1];
+			fp2[0] = frommat[0][1];
+			fp2[1] = frommat[1][1];
+			fp2[2] = frommat[2][1];
+			break;
+		case OB_NEGX:
+			/* -X */
+			fp1[0] = -actormat[0][0];
+			fp1[1] = -actormat[1][0];
+			fp1[2] = -actormat[2][0];
+
+			fp2[0] = frommat[0][0];
+			fp2[1] = frommat[1][0];
+			fp2[2] = frommat[2][0];
+			break;
+		case OB_NEGY:
+			/* -Y */
+			fp1[0] = -actormat[0][1];
+			fp1[1] = -actormat[1][1];
+			fp1[2] = -actormat[2][1];
+
+			fp2[0] = frommat[0][1];
+			fp2[1] = frommat[1][1];
+			fp2[2] = frommat[2][1];
+			break;
+		default:
+			assert(0);
+			break;
 	}
 	
 	inp= fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
@@ -389,7 +416,7 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("min",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_minHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_height),
-	KX_PYATTRIBUTE_BOOL_RW("useXY",KX_CameraActuator,m_x),
+	KX_PYATTRIBUTE_SHORT_RW("axis", 0, 3, true, KX_CameraActuator,m_axis),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
 	KX_PYATTRIBUTE_FLOAT_RW("damping",0.f,10.f,KX_CameraActuator,m_damping),
 	{NULL}

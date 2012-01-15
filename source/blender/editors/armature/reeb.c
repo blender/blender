@@ -2035,10 +2035,9 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 	
 	if (count == -1)
 	{
-		sprintf(filename, "test.txt");
+		strcpy(filename, "test.txt");
 	}
-	else
-	{
+	else {
 		sprintf(filename, "test%05i.txt", count);
 	}
 	f = fopen(filename, "w");

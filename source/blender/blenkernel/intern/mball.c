@@ -356,7 +356,7 @@ int is_basis_mball(Object *ob)
 int is_mball_basis_for(Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
-	char basis1name[32], basis2name[32];
+	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
 
 	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name+2, '.');
 	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name+2, '.');
@@ -378,7 +378,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	Object *ob;
 	MetaBall *active_mball = (MetaBall*)active_object->data;
 	int basisnr, obnr;
-	char basisname[32], obname[32];
+	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 	
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
@@ -423,7 +423,7 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	Object *ob,*bob= basis;
 	MetaElem *ml=NULL;
 	int basisnr, obnr;
-	char basisname[32], obname[32];
+	char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 
 	BLI_split_name_num(basisname, &basisnr, basis->id.name+2, '.');
 	totelem= 0;
@@ -1596,7 +1596,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	float size, totsize, obinv[4][4], obmat[4][4], vec[3];
 	//float max=0.0;
 	int a, obnr, zero_size=0;
-	char obname[32];
+	char obname[MAX_ID_NAME];
 	
 	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
 	invert_m4_m4(obinv, ob->obmat);
@@ -1619,7 +1619,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 				else ml= mb->elems.first;
 			}
 			else {
-				char name[32];
+				char name[MAX_ID_NAME];
 				int nr;
 				
 				BLI_split_name_num(name, &nr, bob->id.name+2, '.');

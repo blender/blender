@@ -478,7 +478,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		UI_ThemeColor(TH_TEXT);
-		BLF_draw_default(20, 8, 0.0f, ar->headerstr, 65535); /* XXX, use real length */
+		BLF_draw_default(20, 8, 0.0f, ar->headerstr, BLF_DRAW_STR_DUMMY_MAX);
 	}
 	else if(at->draw) {
 		at->draw(C, ar);
@@ -1809,5 +1809,5 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	/* text */
 	UI_ThemeColor(TH_TEXT_HI);
 	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
-	BLF_draw(fontid, text, strlen(text));
+	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 }

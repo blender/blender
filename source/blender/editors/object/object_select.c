@@ -739,41 +739,6 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
 
-/************************** Select Inverse *************************/
-
-static int object_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (base->flag & SELECT)
-			ED_base_object_select(base, BA_DESELECT);
-		else
-			ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_select_inverse(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->description = "Invert selection of all visible objects";
-	ot->idname= "OBJECT_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= object_select_inverse_exec;
-	ot->poll= objects_selectable_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-}
-
 /**************************** (De)select All ****************************/
 
 static int object_select_all_exec(bContext *C, wmOperator *op)
@@ -841,7 +806,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 static int object_select_same_group_exec(bContext *C, wmOperator *op)
 {
 	Group *group;
-	char group_name[32];
+	char group_name[MAX_ID_NAME];
 
 	/* passthrough if no objects are visible */
 	if (CTX_DATA_COUNT(C, visible_bases) == 0) return OPERATOR_PASS_THROUGH;
@@ -882,7 +847,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "group", "", 32, "Group", "Name of the group to select");
+	RNA_def_string(ot->srna, "group", "", MAX_ID_NAME, "Group", "Name of the group to select");
 }
 
 /**************************** Select Mirror ****************************/
@@ -938,63 +903,6 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
 
-
-static int object_select_name_exec(bContext *C, wmOperator *op)
-{
-	char *name= RNA_string_get_alloc(op->ptr, "name", NULL, 0);
-	short extend= RNA_boolean_get(op->ptr, "extend");
-	short changed = 0;
-
-	if(!extend) {
-		CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-			if(base->flag & SELECT) {
-				ED_base_object_select(base, BA_DESELECT);
-				changed= 1;
-			}
-		}
-		CTX_DATA_END;
-	}
-
-	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
-		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
-		if(strcmp(name, base->object->id.name+2)==0) {
-			ED_base_object_activate(C, base);
-			ED_base_object_select(base, BA_SELECT);
-			changed= 1;
-		}
-	}
-	CTX_DATA_END;
-
-	MEM_freeN(name);
-
-	/* undo? */
-	if(changed) {
-		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void OBJECT_OT_select_name(wmOperatorType *ot)
-{
-
-	/* identifiers */
-	ot->name= "Select Name";
-	ot->description = "Select an object with this name";
-	ot->idname= "OBJECT_OT_select_name";
-
-	/* api callbacks */
-	ot->exec= object_select_name_exec;
-	ot->poll= objects_selectable_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_string(ot->srna, "name", "", 0, "Name", "Object name to select");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-}
 
 /**************************** Select Random ****************************/
 

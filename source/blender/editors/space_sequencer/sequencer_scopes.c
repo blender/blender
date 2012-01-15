@@ -29,16 +29,17 @@
 #include <math.h>
 #include <string.h>
 
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
-
-
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "sequencer_intern.h"
 
-static void rgb_to_yuv(float rgb[3], float yuv[3]) 
+/* XXX, why is this function better then BLI_math version?
+ * only difference is it does some normalize after, need to double check on this - campbell */
+static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 {
 		yuv[0]= 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
 		yuv[1]= 0.492f*(rgb[2] - yuv[0]);
@@ -169,10 +170,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
-			float v = 1.0 * 
-				(  0.299*rgb[0] 
-				 + 0.587*rgb[1] 
-				 + 0.114*rgb[2]) / 255.0;
+			float v = (float)rgb_to_luma_byte(rgb) / 255.0;
 			unsigned char * p = tgt;
 			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
 
@@ -215,10 +213,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 
 		for (x = 0; x < ibuf->x; x++) {
 			float * rgb = src + 4 * (ibuf->x * y + x);
-			float v = 1.0f *
-				(  0.299f*rgb[0]
-				 + 0.587f*rgb[1]
-				 + 0.114f*rgb[2]);
+			float v = rgb_to_luma(rgb);
 			unsigned char * p = tgt;
 
 			CLAMP(v, 0.0f, 1.0f);
@@ -583,7 +578,7 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 	rgb[0]= (float)r/255.0f;
 	rgb[1]= (float)g/255.0f;
 	rgb[2]= (float)b/255.0f;
-	rgb_to_yuv(rgb, yuv);
+	rgb_to_yuv_normalized(rgb, yuv);
 			
 	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
 			   + (int) ((yuv[1] * (w - 3) + 1)));
@@ -634,7 +629,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 			rgb[0]= (float)src1[0]/255.0f;
 			rgb[1]= (float)src1[1]/255.0f;
 			rgb[2]= (float)src1[2]/255.0f;
-			rgb_to_yuv(rgb, yuv);
+			rgb_to_yuv_normalized(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
 					   + (int) ((yuv[1] * (w - 3) + 1)));
@@ -684,7 +679,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 			CLAMP(rgb[1], 0.0f, 1.0f);
 			CLAMP(rgb[2], 0.0f, 1.0f);
 
-			rgb_to_yuv(rgb, yuv);
+			rgb_to_yuv_normalized(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
 					   + (int) ((yuv[1] * (w - 3) + 1)));

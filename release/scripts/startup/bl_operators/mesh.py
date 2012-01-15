@@ -25,7 +25,7 @@ from bpy.props import EnumProperty
 
 
 class MeshSelectInteriorFaces(Operator):
-    '''Select faces where all edges have more then 2 face users'''
+    '''Select faces where all edges have more than 2 face users'''
 
     bl_idname = "mesh.faces_select_interior"
     bl_label = "Select Interior Faces"

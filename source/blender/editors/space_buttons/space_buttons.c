@@ -96,11 +96,6 @@ static SpaceLink *buttons_new(const bContext *UNUSED(C))
 static void buttons_free(SpaceLink *sl)
 {	
 	SpaceButs *sbuts= (SpaceButs*) sl;
-	
-	if(sbuts->ri) { 
-		if (sbuts->ri->rect) MEM_freeN(sbuts->ri->rect);
-		MEM_freeN(sbuts->ri);
-	}
 
 	if(sbuts->path)
 		MEM_freeN(sbuts->path);
@@ -131,7 +126,6 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 	SpaceButs *sbutsn= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	sbutsn->ri= NULL;
 	sbutsn->path= NULL;
 	sbutsn->texuser= NULL;
 	

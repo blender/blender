@@ -179,8 +179,6 @@ static void UNUSED_FUNCTION(select_single_seq)(Scene *scene, Sequence *seq, int 
 	recurs_sel_seq(seq);
 }
 
-// remove this function, replace with invert operator
-//void swap_select_seq(Scene *scene)
 #if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
@@ -214,48 +212,65 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 #endif
 
 /* (de)select operator */
-static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	Editing *ed= seq_give_editing(scene, FALSE);
+	int action = RNA_enum_get(op->ptr, "action");
+
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, FALSE);
 	Sequence *seq;
-	int desel = 0;
 
-	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
-		if(seq->flag & SEQ_ALLSEL) {
-			desel= 1;
-			break;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+			if (seq->flag & SEQ_ALLSEL) {
+				action = SEL_DESELECT;
+				break;
+			}
 		}
 	}
 
-	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
-		if (desel) {
-			seq->flag &= ~SEQ_ALLSEL;
-		}
-		else {
-			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			seq->flag |= SELECT;
+	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+		switch (action) {
+			case SEL_SELECT:
+				seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
+				seq->flag |= SELECT;
+				break;
+			case SEL_DESELECT:
+				seq->flag &= ~SEQ_ALLSEL;
+				break;
+			case SEL_INVERT:
+				if (seq->flag & SEQ_ALLSEL) {
+					seq->flag &= ~SEQ_ALLSEL;
+				}
+				else {
+					seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
+					seq->flag |= SELECT;
+				}
+				break;
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
-	
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
+void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "SEQUENCER_OT_select_all_toggle";
+	ot->idname= "SEQUENCER_OT_select_all";
 	ot->description="Select or deselect all strips";
 	
 	/* api callbacks */
-	ot->exec= sequencer_deselect_exec;
+	ot->exec= sequencer_de_select_all_exec;
 	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 

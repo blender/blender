@@ -251,7 +251,7 @@ static char *find_new_name(char *name)
 	
 	if (fop_exists(name)) {
 		for (number = 1; number <= 999; number++) {
-			sprintf(tempname, "%s.%03d", name, number);
+			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", name, number);
 			if (! fop_exists(tempname)) {
 				break;
 			}

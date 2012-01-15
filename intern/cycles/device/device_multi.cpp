@@ -163,15 +163,18 @@ public:
 		mem.device_pointer = tmp;
 	}
 
-	void mem_copy_from(device_memory& mem, size_t offset, size_t size)
+	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 		device_ptr tmp = mem.device_pointer;
+		int i = 0, sub_h = h/devices.size();
 
-		/* todo: how does this work? */
 		foreach(SubDevice& sub, devices) {
+			int sy = y + i*sub_h;
+			int sh = (i == (int)devices.size() - 1)? h - sub_h*i: sub_h;
+
 			mem.device_pointer = sub.ptr_map[tmp];
-			sub.device->mem_copy_from(mem, offset, size);
-			break;
+			sub.device->mem_copy_from(mem, sy, w, sh, elem);
+			i++;
 		}
 
 		mem.device_pointer = tmp;
@@ -332,37 +335,39 @@ Device *device_multi_create(DeviceInfo& info, bool background)
 	return new MultiDevice(info, background);
 }
 
-static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool skip_display, const char *id_fmt, int num)
+static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool with_display, const char *id_fmt, int num)
 {
 	DeviceInfo info;
 
 	/* create map to find duplicate descriptions */
 	map<string, int> dupli_map;
 	map<string, int>::iterator dt;
-	int num_added = 0, num_skipped = 0;
+	int num_added = 0, num_display = 0;
 
 	foreach(DeviceInfo& subinfo, devices) {
 		if(subinfo.type == type) {
-			if(skip_display && subinfo.display_device) {
-				num_skipped++;
-			}
-			else {
-				string key = subinfo.description;
-
-				if(dupli_map.find(key) == dupli_map.end())
-					dupli_map[key] = 1;
+			if(subinfo.display_device) {
+				if(with_display)
+					num_display++;
 				else
-					dupli_map[key]++;
-
-				info.multi_devices.push_back(subinfo);
-				if(subinfo.display_device)
-					info.display_device = true;
-				num_added++;
+					continue;
 			}
+
+			string key = subinfo.description;
+
+			if(dupli_map.find(key) == dupli_map.end())
+				dupli_map[key] = 1;
+			else
+				dupli_map[key]++;
+
+			info.multi_devices.push_back(subinfo);
+			if(subinfo.display_device)
+				info.display_device = true;
+			num_added++;
 		}
 	}
 
-	if(num_added <= 1 || (skip_display && num_skipped == 0))
+	if(num_added <= 1 || (with_display && num_display == 0))
 		return;
 
 	/* generate string */
@@ -410,20 +415,24 @@ static void device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 	info.type = DEVICE_MULTI;
 	info.description = desc.str();
 	info.id = string_printf(id_fmt, num);
+	info.display_device = with_display;
 	info.num = 0;
 
-	devices.push_back(info);
+	if(with_display)
+		devices.push_back(info);
+	else
+		devices.insert(devices.begin(), info);
 }
 
 void device_multi_info(vector<DeviceInfo>& devices)
 {
 	int num = 0;
-	device_multi_add(devices, DEVICE_CUDA, true, "CUDA_MULTI_%d", num++);
 	device_multi_add(devices, DEVICE_CUDA, false, "CUDA_MULTI_%d", num++);
+	device_multi_add(devices, DEVICE_CUDA, true, "CUDA_MULTI_%d", num++);
 
 	num = 0;
-	device_multi_add(devices, DEVICE_OPENCL, true, "OPENCL_MULTI_%d", num++);
 	device_multi_add(devices, DEVICE_OPENCL, false, "OPENCL_MULTI_%d", num++);
+	device_multi_add(devices, DEVICE_OPENCL, true, "OPENCL_MULTI_%d", num++);
 }
 
 CCL_NAMESPACE_END

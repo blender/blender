@@ -402,7 +402,7 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 	return inbuf;
 }
 
-static float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y, int xrad, int yrad)
+float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y, int xrad, int yrad)
 {
 	if(cbuf) {
 		if(cbuf->rect_procedural) {

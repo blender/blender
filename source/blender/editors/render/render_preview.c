@@ -104,7 +104,7 @@ ImBuf* get_brush_icon(Brush *brush)
 {
 	static const int flags = IB_rect|IB_multilayer|IB_metadata;
 
-	char path[240];
+	char path[FILE_MAX];
 	char *folder;
 
 	if (!(brush->icon_imbuf)) {

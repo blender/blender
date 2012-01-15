@@ -70,8 +70,8 @@ private :
 	/** max (float), */
 	float m_maxHeight;
 	
-	/** xy toggle (pick one): true == x, false == y */
-	bool m_x;
+	/** axis the camera tries to get behind: +x/+y/-x/-y */
+	short m_axis;
 	
 	/** damping (float), */
 	float m_damping;
@@ -97,7 +97,7 @@ private :
 		float hght,
 		float minhght,
 		float maxhght,
-		bool xytog,
+		short axis,
 		float damping
 	);
 

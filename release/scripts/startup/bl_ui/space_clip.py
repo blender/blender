@@ -166,25 +166,19 @@ class CLIP_PT_tools_tracking(Panel):
 
         row = layout.row(align=True)
 
-        props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
-        props.backwards = True
+        row.operator("clip.track_markers", text="", icon='FRAME_PREV').backwards = True
         props = row.operator("clip.track_markers", text="",
-             icon='PLAY_REVERSE')
+                             icon='PLAY_REVERSE')
         props.backwards = True
         props.sequence = True
-        props = row.operator("clip.track_markers", text="", icon='PLAY')
-        props.sequence = True
+        row.operator("clip.track_markers", text="", icon='PLAY').sequence = True
         row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
         col = layout.column(align=True)
-        props = col.operator("clip.clear_track_path", text="Clear After")
-        props.action = 'REMAINED'
+        col.operator("clip.clear_track_path", text="Clear After").action = 'REMAINED'
 
-        props = col.operator("clip.clear_track_path", text="Clear Before")
-        props.action = 'UPTO'
-
-        props = col.operator("clip.clear_track_path", text="Clear")
-        props.action = 'ALL'
+        col.operator("clip.clear_track_path", text="Clear Before").action = 'UPTO'
+        col.operator("clip.clear_track_path", text="Clear").action = 'ALL'
 
         layout.operator("clip.join_tracks", text="Join")
 
@@ -484,8 +478,7 @@ class CLIP_PT_tracking_camera(Panel):
         label = bpy.types.CLIP_MT_camera_presets.bl_label
         row.menu('CLIP_MT_camera_presets', text=label)
         row.operator("clip.camera_preset_add", text="", icon='ZOOMIN')
-        props = row.operator("clip.camera_preset_add", text="", icon='ZOOMOUT')
-        props.remove_active = True
+        row.operator("clip.camera_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         row = layout.row(align=True)
         sub = row.split(percentage=0.65)
@@ -521,6 +514,17 @@ class CLIP_PT_display(Panel):
     def draw(self, context):
         layout = self.layout
         sc = context.space_data
+
+        row = layout.row(align=True)
+        sub = row.row()
+        sub.prop(sc, "show_red_channel", text="R", toggle=True)
+        sub.prop(sc, "show_green_channel", text="G", toggle=True)
+        sub.prop(sc, "show_blue_channel", text="B", toggle=True)
+
+        row.separator()
+
+        sub = row.row()
+        sub.prop(sc, "use_grayscale_preview", text="B/W", toggle=True)
 
         col = layout.column(align=True)
 
@@ -856,6 +860,10 @@ class CLIP_MT_track(Menu):
         layout.operator("clip.clean_tracks")
 
         layout.separator()
+        layout.operator("clip.copy_tracks")
+        layout.operator("clip.paste_tracks")
+
+        layout.separator()
         props = layout.operator("clip.track_markers",
             text="Track Frame Backwards")
         props.backwards = True
@@ -934,7 +942,7 @@ class CLIP_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("clip.select_all", text="Select/Deselect all")
+        layout.operator("clip.select_all", text="Select/Deselect all").action = 'TOGGLE'
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
         layout.menu("CLIP_MT_select_grouped")
@@ -959,11 +967,8 @@ class CLIP_MT_tracking_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        props = layout.operator("clip.disable_markers", text="Enable Markers")
-        props.action = 'ENABLE'
-
-        props = layout.operator("clip.disable_markers", text="Disable markers")
-        props.action = 'DISABLE'
+        layout.operator("clip.disable_markers", text="Enable Markers").action = 'ENABLE'
+        layout.operator("clip.disable_markers", text="Disable markers").action = 'DISABLE'
 
         layout.separator()
         layout.operator("clip.set_origin")

@@ -352,7 +352,7 @@ void uiItemBooleanO(struct uiLayout *layout, char *name, int icon, char *opname,
 void uiItemIntO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, int value){}
 void uiItemFloatO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, float value){}
 void uiItemStringO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value){}
-void uiItemL(struct uiLayout *layout, char *name, int icon){}
+void uiItemL(struct uiLayout *layout, const char *name, int icon){}
 void uiItemM(struct uiLayout *layout, struct bContext *C, char *menuname, char *name, int icon){}
 void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, char *name, int icon){}
@@ -485,6 +485,9 @@ struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
 			    float scale,
 			    int depth) {return 0;}
 
+/* intern/cycles */
+struct CCLDeviceInfo;
+struct CCLDeviceInfo *CCL_compute_device_list(int opencl) { return NULL; }
 
 char blender_path[] = "";
 
