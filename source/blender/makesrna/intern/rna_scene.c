@@ -2798,7 +2798,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_lossless_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_LOSSLESS_OUTPUT);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_FFmpegSettings_lossless_output_set");
-	RNA_def_property_ui_text(prop, "Lossless Output", "Use losslecc output for video streams");
+	RNA_def_property_ui_text(prop, "Lossless Output", "Use lossless output for video streams");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	/* FFMPEG Audio*/
