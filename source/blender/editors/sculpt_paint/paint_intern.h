@@ -126,7 +126,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 							  const struct rcti *screen_rect);
 
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
-float paint_calc_object_space_radius(struct ViewContext *vc, float center[3], float pixel_radius);
+float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
 float paint_get_tex_pixel(struct Brush* br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, const int mval[2], unsigned int *index);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);

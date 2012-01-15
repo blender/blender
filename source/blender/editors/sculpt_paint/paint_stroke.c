@@ -510,31 +510,33 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 /* Special actions taken when paint cursor goes over mesh */
 /* TODO: sculpt only for now */
 static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
-				float location[3], float *visual_strength)
+								const float location[3])
 {
 	float unprojected_radius, projected_radius;
 
-	/* TODO: check whether this should really only be done when
-	   brush is over mesh? */
-	if(sd->draw_pressure && brush_use_alpha_pressure(vc->scene, brush))
-		(*visual_strength) *= sd->pressure_value;
+	/* update the brush's cached 3D radius */
+	if(!brush_use_locked_size(vc->scene, brush)) {
+		/* get 2D brush radius */
+		if(sd->draw_anchored)
+			projected_radius = sd->anchored_size;
+		else {
+			if(brush->flag & BRUSH_ANCHORED)
+				projected_radius = 8;
+			else
+				projected_radius = brush_size(vc->scene, brush);
+		}
+	
+		/* convert brush radius from 2D to 3D */
+		unprojected_radius = paint_calc_object_space_radius(vc, location,
+															projected_radius);
 
-	if(sd->draw_anchored)
-		projected_radius = sd->anchored_size;
-	else {
-		if(brush->flag & BRUSH_ANCHORED)
-			projected_radius = 8;
-		else
-			projected_radius = brush_size(vc->scene, brush);
-	}
-	unprojected_radius = paint_calc_object_space_radius(vc, location,
-							    projected_radius);
+		/* scale 3D brush radius by pressure */
+		if(sd->draw_pressure && brush_use_size_pressure(vc->scene, brush))
+			unprojected_radius *= sd->pressure_value;
 
-	if(sd->draw_pressure && brush_use_size_pressure(vc->scene, brush))
-		unprojected_radius *= sd->pressure_value;
-
-	if(!brush_use_locked_size(vc->scene, brush))
+		/* set cached value in either Brush or UnifiedPaintSettings */
 		brush_set_unprojected_radius(vc->scene, brush, unprojected_radius);
+	}
 }
 
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
@@ -613,8 +615,13 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			outline_col = brush->sub_col;
 
 		/* only do if brush is over the mesh */
-		if(hit)
-			paint_cursor_on_hit(sd, brush, &vc, location, &visual_strength);
+		if(hit) {
+			/* scale the alpha by pen pressure */
+			if(sd->draw_pressure && brush_use_alpha_pressure(vc.scene, brush))
+				visual_strength *= sd->pressure_value;
+
+			paint_cursor_on_hit(sd, brush, &vc, location);
+		}
 
 		/* don't show effect of strength past the soft limit */
 		if(visual_strength > 1)
