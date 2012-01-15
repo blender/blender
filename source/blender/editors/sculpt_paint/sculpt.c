@@ -543,13 +543,14 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache* cache)
    special multiplier found experimentally to scale the strength factor. */
 static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 {
+	const Scene *scene = cache->vc->scene;
 	Brush *brush = paint_brush(&sd->paint);
 
 	/* Primary strength input; square it to make lower values more sensitive */
-	const float root_alpha = brush_alpha(brush);
+	const float root_alpha = brush_alpha(scene, brush);
 	float alpha        = root_alpha*root_alpha;
 	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
-	float pressure     = brush_use_alpha_pressure(cache->vc->scene, brush) ? cache->pressure : 1;
+	float pressure     = brush_use_alpha_pressure(scene, brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
@@ -679,7 +680,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		else /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED),
 		        leave the coordinates relative to the screen */
 		{
-			radius = brush_size(br); // use unadjusted size for tiled mode
+			radius = brush_size(ss->cache->vc->scene, br); // use unadjusted size for tiled mode
 		
 			x = point_2d[0];
 			y = point_2d[1];
@@ -1167,6 +1168,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
+	const Scene *scene = ss->cache->vc->scene;
 	Brush *brush = paint_brush(&sd->paint);
 	float offset[3], area_normal[3];
 	float bstrength= ss->cache->bstrength;
@@ -1182,8 +1184,8 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	
 	/* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
 	
-	if(brush_alpha(brush) > 0.0f)
-		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor/(brush_alpha(brush)*brush_alpha(brush));
+	if(brush_alpha(scene, brush) > 0.0f)
+		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor/(brush_alpha(scene, brush)*brush_alpha(scene, brush));
 	else
 		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor;
 
@@ -2658,10 +2660,10 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob)
 	cache->first_time= 0;
 }
 
-static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
+static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush = paint_brush(&sd->paint);
-	const int radius= brush_size(brush);
+	const int radius= brush_size(scene, brush);
 
 	if(ss->texcache) {
 		MEM_freeN(ss->texcache);
@@ -3017,7 +3019,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 										 struct PaintStroke *stroke,
 										 PointerRNA *ptr)
 {
-	const Scene *scene = CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
@@ -3052,15 +3054,15 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sd->pressure_value= cache->pressure;
 
 	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = brush_size(brush);
+	cache->pixel_radius = brush_size(scene, brush);
 
 	if(cache->first_time) {
 		if (!brush_use_locked_size(scene, brush)) {
-			cache->initial_radius= paint_calc_object_space_radius(cache->vc, cache->true_location, brush_size(brush));
-			brush_set_unprojected_radius(brush, cache->initial_radius);
+			cache->initial_radius= paint_calc_object_space_radius(cache->vc, cache->true_location, brush_size(scene, brush));
+			brush_set_unprojected_radius(scene, brush, cache->initial_radius);
 		}
 		else {
-			cache->initial_radius= brush_unprojected_radius(brush);
+			cache->initial_radius= brush_unprojected_radius(scene, brush);
 		}
 	}
 
@@ -3246,7 +3248,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	return srd.hit;
 }
 
-static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
+static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush = paint_brush(&sd->paint);
 	MTex *mtex= &brush->mtex;
@@ -3258,7 +3260,7 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 	/* TODO: Shouldn't really have to do this at the start of every
 	   stroke, but sculpt would need some sort of notification when
 	   changes are made to the texture. */
-	sculpt_update_tex(sd, ss);
+	sculpt_update_tex(scene, sd, ss);
 }
 
 static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
@@ -3272,7 +3274,7 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	int is_smooth= 0;
 
 	view3d_operator_needs_opengl(C);
-	sculpt_brush_init_tex(sd, ss);
+	sculpt_brush_init_tex(scene, sd, ss);
 
 	is_smooth|= mode == BRUSH_STROKE_SMOOTH;
 	is_smooth|= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;

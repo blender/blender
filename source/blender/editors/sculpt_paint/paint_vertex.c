@@ -87,15 +87,6 @@
 
 #include "paint_intern.h"
 
-/* brush->vertexpaint_tool */
-#define VP_MIX	0
-#define VP_ADD	1
-#define VP_SUB	2
-#define VP_MUL	3
-#define VP_BLUR	4
-#define VP_LIGHTEN	5
-#define VP_DARKEN	6
-
 /* polling - retrieve whether cursor should be set or operator should be done */
 
 
@@ -735,34 +726,51 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
+/* wpaint has 'wpaint_blend_tool' */
+static unsigned int vpaint_blend_tool(const int tool, const unsigned int col,
+                                      const unsigned int paintcol, const int alpha_i)
+{
+	switch (tool) {
+		case PAINT_BLEND_MIX:
+		case PAINT_BLEND_BLUR:
+			return mcol_blend(col, paintcol, alpha_i);
+		case PAINT_BLEND_ADD:
+			return mcol_add(col, paintcol, alpha_i);
+		case PAINT_BLEND_SUB:
+			return mcol_sub(col, paintcol, alpha_i);
+		case PAINT_BLEND_MUL:
+			return mcol_mul(col, paintcol, alpha_i);
+		case PAINT_BLEND_LIGHTEN:
+			return mcol_lighten(col, paintcol, alpha_i);
+		case PAINT_BLEND_DARKEN:
+			return mcol_darken(col, paintcol, alpha_i);
+		default:
+			BLI_assert(0);
+			return 0;
+	}
+}
+
+/* wpaint has 'wpaint_blend' */
+static unsigned int vpaint_blend(VPaint *vp, unsigned int col, unsigned int colorig, const
+                                 unsigned int paintcol, const int alpha_i,
+                                 /* pre scaled from [0-1] --> [0-255] */
+                                 const int brush_alpha_value_i)
 {
 	Brush *brush = paint_brush(&vp->paint);
+	const int tool = brush->vertexpaint_tool;
 
-	if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
-	else if(brush->vertexpaint_tool==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
-	else if(brush->vertexpaint_tool==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
-	else if(brush->vertexpaint_tool==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
-	else if(brush->vertexpaint_tool==VP_LIGHTEN) *col= mcol_lighten( *col, paintcol, alpha);
-	else if(brush->vertexpaint_tool==VP_DARKEN) *col= mcol_darken( *col, paintcol, alpha);
-	
+	col = vpaint_blend_tool(tool, col, paintcol, alpha_i);
+
 	/* if no spray, clip color adding with colorig & orig alpha */
 	if((vp->flag & VP_SPRAY)==0) {
-		unsigned int testcol=0, a;
+		unsigned int testcol, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0f*brush_alpha(brush));
+		testcol = vpaint_blend_tool(tool, colorig, paintcol, brush_alpha_value_i);
 		
-		if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
-		else if(brush->vertexpaint_tool==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
-		else if(brush->vertexpaint_tool==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
-		else if(brush->vertexpaint_tool==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
-		else if(brush->vertexpaint_tool==VP_LIGHTEN)  testcol= mcol_lighten( *colorig, paintcol, alpha);
-		else if(brush->vertexpaint_tool==VP_DARKEN)   testcol= mcol_darken( *colorig, paintcol, alpha);
-		
-		cp= (char *)col;
+		cp= (char *)&col;
 		ct= (char *)&testcol;
-		co= (char *)colorig;
+		co= (char *)&colorig;
 		
 		for(a=0; a<4; a++) {
 			if( ct[a]<co[a] ) {
@@ -775,6 +783,8 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 			}
 		}
 	}
+
+	return col;
 }
 
 
@@ -817,7 +827,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 
 /* whats _dl mean? */
 static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float *vert_nor,
-                              const float mval[2], const float brush_size_final)
+                              const float mval[2], const float brush_size_pressure)
 {
 	Brush *brush = paint_brush(&vp->paint);
 	float dist_squared;
@@ -826,24 +836,24 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float *vert_
 	project_float_noclip(vc->ar, vert_nor, vertco);
 	sub_v2_v2v2(delta, mval, vertco);
 	dist_squared= dot_v2v2(delta, delta); /* len squared */
-	if (dist_squared > brush_size_final * brush_size_final) {
+	if (dist_squared > brush_size_pressure * brush_size_pressure) {
 		return 0.0f;
 	}
 	else {
 		const float dist = sqrtf(dist_squared);
-		return brush_curve_strength_clamp(brush, dist, brush_size_final);
+		return brush_curve_strength_clamp(brush, dist, brush_size_pressure);
 	}
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
                               float vpimat[][3], const float *vert_nor,
                               const float mval[2],
-                              const float brush_size_final, const float brush_alpha_final)
+                              const float brush_size_pressure, const float brush_alpha_pressure)
 {
-	float strength = calc_vp_strength_dl(vp, vc, vert_nor, mval, brush_size_final);
+	float strength = calc_vp_strength_dl(vp, vc, vert_nor, mval, brush_size_pressure);
 
 	if (strength > 0.0f) {
-		float alpha= brush_alpha_final * strength;
+		float alpha= brush_alpha_pressure * strength;
 
 		if(vp->flag & VP_NORMALS) {
 			float dvec[3];
@@ -868,86 +878,83 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 	return 0.0f;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *dw_prev, float alpha, float paintval, int flip, int multipaint)
+/* vpaint has 'vpaint_blend_tool' */
+/* result is not clamped from [0-1] */
+static float wpaint_blend_tool(const int tool,
+                               /* dw->weight */
+                               const float weight,
+                               const float paintval, const float alpha)
+{
+	switch (tool) {
+		case PAINT_BLEND_MIX:
+		case PAINT_BLEND_BLUR:
+			return (paintval * alpha) + (weight * (1.0f - alpha));
+		case PAINT_BLEND_ADD:
+			return (paintval * alpha) + weight;
+		case PAINT_BLEND_SUB:
+			return (paintval * alpha) - weight;
+		case PAINT_BLEND_MUL:
+			/* first mul, then blend the fac */
+			return ((1.0f - alpha) + alpha * paintval) * weight;
+		case PAINT_BLEND_LIGHTEN:
+			return (weight < paintval) ? (paintval * alpha) + (weight * (1.0f - alpha)) : weight;
+		case PAINT_BLEND_DARKEN:
+			return (weight > paintval) ? (paintval * alpha) + (weight * (1.0f - alpha)) : weight;
+		default:
+			BLI_assert(0);
+			return 0.0f;
+	}
+}
+
+/* vpaint has 'vpaint_blend' */
+static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
+                          const float alpha, float paintval,
+                          const float brush_alpha_value,
+                          const short do_flip, const short do_multipaint_totsel)
 {
 	Brush *brush = paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
 
-	if (flip) {
+	if (do_flip) {
 		switch(tool) {
-			case VP_MIX:
+			case PAINT_BLEND_MIX:
 				paintval = 1.f - paintval; break;
-			case VP_ADD:
-				tool= VP_SUB; break;
-			case VP_SUB:
-				tool= VP_ADD; break;
-			case VP_LIGHTEN:
-				tool= VP_DARKEN; break;
-			case VP_DARKEN:
-				tool= VP_LIGHTEN; break;
+			case PAINT_BLEND_ADD:
+				tool= PAINT_BLEND_SUB; break;
+			case PAINT_BLEND_SUB:
+				tool= PAINT_BLEND_ADD; break;
+			case PAINT_BLEND_LIGHTEN:
+				tool= PAINT_BLEND_DARKEN; break;
+			case PAINT_BLEND_DARKEN:
+				tool= PAINT_BLEND_LIGHTEN; break;
 		}
 	}
 	
-	if(tool==VP_MIX || tool==VP_BLUR)
-		dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
-	else if(tool==VP_ADD)
-		dw->weight += paintval*alpha;
-	else if(tool==VP_SUB) 
-		dw->weight -= paintval*alpha;
-	else if(tool==VP_MUL) 
-		/* first mul, then blend the fac */
-		dw->weight = ((1.0f-alpha) + alpha*paintval)*dw->weight;
-	else if(tool==VP_LIGHTEN) {
-		if (dw->weight < paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
-	} else if(tool==VP_DARKEN) {
-		if (dw->weight > paintval)
-			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
-	}
-	/*  delay clamping until the end so multi-paint can function when the active group is at the limits */
-	if(multipaint == FALSE) {
-		CLAMP(dw->weight, 0.0f, 1.0f);
+	weight = wpaint_blend_tool(tool, weight, paintval, alpha);
+
+	/* delay clamping until the end so multi-paint can function when the active group is at the limits */
+	if(do_multipaint_totsel == FALSE) {
+		CLAMP(weight, 0.0f, 1.0f);
 	}
 	
 	/* if no spray, clip result with orig weight & orig alpha */
-	if((wp->flag & VP_SPRAY)==0) {
-		float testw=0.0f;
-		
-		alpha= brush_alpha(brush);
-		if(tool==VP_MIX || tool==VP_BLUR)
-			testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
-		else if(tool==VP_ADD)
-			testw = dw_prev->weight + paintval*alpha;
-		else if(tool==VP_SUB) 
-			testw = dw_prev->weight - paintval*alpha;
-		else if(tool==VP_MUL) 
-			/* first mul, then blend the fac */
-			testw = ((1.0f-alpha) + alpha*paintval)*dw_prev->weight;
-		else if(tool==VP_LIGHTEN) {
-			if (dw_prev->weight < paintval)
-				testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
-			else
-				testw = dw_prev->weight;
-		} else if(tool==VP_DARKEN) {
-			if (dw_prev->weight > paintval)
-				testw = paintval*alpha + dw_prev->weight*(1.0f-alpha);
-			else
-				testw = dw_prev->weight;
-		}
+	if ((wp->flag & VP_SPRAY) == 0) {
+		if(do_multipaint_totsel == FALSE) {
+			float testw = wpaint_blend_tool(tool, weight_prev, paintval, brush_alpha_value);
 
-		if(multipaint == FALSE) {
 			CLAMP(testw, 0.0f, 1.0f);
-			if( testw<dw_prev->weight ) {
-				if(dw->weight < testw) dw->weight= testw;
-				else if(dw->weight > dw_prev->weight) dw->weight= dw_prev->weight;
+			if (testw < weight_prev) {
+				if(weight < testw) weight = testw;
+				else if(weight > weight_prev) weight = weight_prev;
 			}
 			else {
-				if(dw->weight > testw) dw->weight= testw;
-				else if(dw->weight < dw_prev->weight) dw->weight= dw_prev->weight;
+				if (weight > testw) weight = testw;
+				else if (weight < weight_prev) weight = weight_prev;
 			}
 		}
 	}
-	
+
+	return weight;
 }
 
 /* ----------------------------------------------------- */
@@ -1592,6 +1599,8 @@ typedef struct WeightPaintInfo {
 	char do_flip;
 	char do_multipaint;
 	char do_auto_normalize;
+
+	float brush_alpha_value;  /* result of brush_alpha() */
 } WeightPaintInfo;
 
 /* fresh start to make multi-paint and locking modular */
@@ -1676,9 +1685,9 @@ static int get_first_selected_nonzero_weight(MDeformVert *dvert, const int defba
 static char *wpaint_make_validmap(Object *ob);
 
 
-static void do_weight_paint_vertex( /* vars which remain the same for every vert */
+static void do_weight_paint_vertex(/* vars which remain the same for every vert */
                                    VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
-                                    /* vars which change on each stroke */
+                                   /* vars which change on each stroke */
                                    const unsigned int index, float alpha, float paintweight
                                    )
 {
@@ -1693,6 +1702,8 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 
 	MDeformVert *dv_mirr;
 	MDeformWeight *dw_mirr;
+
+	const short do_multipaint_totsel = (wpi->do_multipaint && wpi->defbase_tot_sel > 1);
 
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(dv, wpi->vgroup_active);
@@ -1736,7 +1747,20 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 			}
 		}
 		else {
-			dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+			if (index != index_mirr) {
+				dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+			}
+			else {
+				/* dv and dv_mirr are the same */
+				int totweight_prev = dv_mirr->totweight;
+				int dw_offset = (int)(dw - dv_mirr->dw);
+				dw_mirr = defvert_verify_index(dv_mirr, vgroup_mirr);
+
+				/* if we added another, get our old one back */
+				if (totweight_prev != dv_mirr->totweight) {
+					dw = &dv_mirr->dw[dw_offset];
+				}
+			}
 		}
 	}
 	else {
@@ -1750,10 +1774,11 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 
 	/* If there are no locks or multipaint,
 	 * then there is no need to run the more complicated checks */
-	if ( (wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) &&
+	if ( (do_multipaint_totsel == FALSE) &&
 	     (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == FALSE))
 	{
-		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, FALSE);
+		dw->weight = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
+		                          wpi->brush_alpha_value, wpi->do_flip, FALSE);
 
 		/* WATCH IT: take care of the ordering of applying mirror -> normalize,
 		 * can give wrong results [#26193], least confusing if normalize is done last */
@@ -1818,12 +1843,11 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		MDeformVert dv_copy= {NULL};
 
 		oldw = dw->weight;
-		wpaint_blend(wp, dw, dw_prev, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
-		neww = dw->weight;
-		dw->weight = oldw;
+		neww = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
+		                    wpi->brush_alpha_value, wpi->do_flip, do_multipaint_totsel);
 		
 		/* setup multi-paint */
-		if(wpi->defbase_tot_sel > 1 && wpi->do_multipaint) {
+		if (do_multipaint_totsel) {
 			dv_copy.dw= BLI_cellalloc_dupalloc(dv->dw);
 			dv_copy.flag = dv->flag;
 			dv_copy.totweight = dv->totweight;
@@ -2159,7 +2183,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 
 static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
-	const Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
 	Brush *brush = paint_brush(&wp->paint);
@@ -2178,8 +2202,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	char *defbase_sel;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_final = brush_alpha(brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_value = brush_alpha(scene, brush);
+	const float brush_alpha_pressure = brush_alpha_value * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	/* intentionally dont initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -2223,6 +2248,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	wpi.do_flip=            RNA_boolean_get(itemptr, "pen_flip");
 	wpi.do_multipaint=      (ts->multipaint != 0);
 	wpi.do_auto_normalize=	((ts->auto_normalize != 0) && (wpi.vgroup_validmap != NULL));
+	wpi.brush_alpha_value=  brush_alpha_value;
 	/* *** done setting up WeightPaintInfo *** */
 
 
@@ -2235,7 +2261,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if(wp->flag & VP_AREA) {
 		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
 		me->editflag &= ~ME_EDIT_VERT_SEL;
-		totindex= sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_final);
+		totindex= sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
 		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
 	}
 	else {
@@ -2271,7 +2297,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* make sure each vertex gets treated only once */
 	/* and calculate filter weight */
 	totw= 0.0f;
-	if(brush->vertexpaint_tool==VP_BLUR) 
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
 		paintweight= 0.0f;
 	else
 		paintweight= ts->vgroup_weight;
@@ -2293,7 +2319,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				}
 			}
 					
-			if(brush->vertexpaint_tool==VP_BLUR) {
+			if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
 						
 				if(wp->flag & VP_ONLYVGROUP)
@@ -2303,7 +2329,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 						
 				ml = me->mloop + mpoly->loopstart;
 				for (i=0; i<mpoly->totloop; i++, ml++) {
-					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos+6*ml->v, mval, brush_size_final);
+					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos+6*ml->v, mval, brush_size_pressure);
 					if (fac > 0.0f) {
 						dw = dw_func(&me->dvert[ml->v], wpi.vgroup_active);
 						paintweight += dw ? (dw->weight * fac) : 0.0f;
@@ -2314,7 +2340,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	if (brush->vertexpaint_tool==VP_BLUR) {
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		paintweight /= totw;
 	}
 
@@ -2328,7 +2354,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				unsigned int vidx= ml->v;
 				if (me->dvert[vidx].flag) {
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx,
-					                        mval, brush_size_final, brush_alpha_final);
+					                        mval, brush_size_pressure, brush_alpha_pressure);
 					if(alpha) {
 						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
 					}
@@ -2632,7 +2658,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 #if 0
 static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
                               const unsigned int index, const float mval[2],
-                              const float brush_size_final, const float brush_alpha_final,
+                              const float brush_size_pressure, const float brush_alpha_pressure,
                               int UNUSED(flip))
 {
 	ViewContext *vc = &vpd->vc;
@@ -2643,12 +2669,14 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
 	float alpha;
 	int i;
+
+	int brush_alpha_pressure_i;
 	
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
 	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
 		return;
 
-	if(brush->vertexpaint_tool==VP_BLUR) {
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
 		if(mface->v4) {
 			unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
@@ -2657,14 +2685,16 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 		else {
 			vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
 		}
-		
 	}
+
+	brush_alpha_pressure_i = (int)(brush_alpha_pressure*255.0f);
 
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
 		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i],
-		                         mval, brush_size_final, brush_alpha_final);
-		if(alpha) {
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
+		                         mval, brush_size_pressure, brush_alpha_pressure);
+		if (alpha) {
+			const int alpha_i = (int)(alpha*255.0f);
+			mcol[i] = vpaint_blend(vp, mcol[i], mcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
 		}
 	}
 }
@@ -2672,7 +2702,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 
 static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
-	const Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
 	VPaint *vp= ts->vpaint;
@@ -2687,8 +2717,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_final = brush_size(brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_final = brush_alpha(brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure = brush_size(scene, brush) * (brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_pressure = brush_alpha(scene, brush) * (brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+
+	int brush_alpha_pressure_i = (int)(brush_alpha_pressure*255.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 	flip = RNA_boolean_get(itemptr, "pen_flip");
@@ -2706,7 +2738,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* which faces are involved */
 	if(vp->flag & VP_AREA) {
-		totindex= sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_final);
+		totindex= sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -2742,7 +2774,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(vc->rv3d->persmat, mat);
 
 	/* was disabled because it is slow, but necessary for blur */
-	if(brush->vertexpaint_tool == VP_BLUR)
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
 		do_shared_vertexcol(me);
 			
 	for(index=0; index<totindex; index++) {
@@ -2758,7 +2790,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			float alpha;
 			int i, j;
 					
-			if(brush->vertexpaint_tool==VP_BLUR) {
+			if(brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 				unsigned int blend[5] = {0};
 				char *col;
 
@@ -2787,8 +2819,11 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			for (i=0; i<mpoly->totloop; i++, ml++) {
 				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, 
 				                        vpd->vertexcosnos+6*ml->v, mval,
-				                        brush_size_final, brush_alpha_final);
-				if(alpha > 0.0f) vpaint_blend(vp, lcol+i, lcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
+				                        brush_size_pressure, brush_alpha_pressure);
+				if(alpha > 0.0f) {
+					const int alpha_i = (int)(alpha*255.0f);
+					lcol[i] = vpaint_blend(vp, lcol[i], lcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
+				}
 			}
 	
 			#ifdef CPYCOL
@@ -2823,7 +2858,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	/* was disabled because it is slow, but necessary for blur */
-	if(brush->vertexpaint_tool == VP_BLUR) {
+	if(brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		do_shared_vertexcol(me);
 	}
 

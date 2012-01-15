@@ -192,28 +192,39 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* selection */
 		/* click select */
-	WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi= WM_keymap_add_item(keymap, "NLA_OT_click_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
 		
 		/* select left/right */
-	WM_keymap_add_item(keymap, "NLA_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
+		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_TEST);
 	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", 1);
+		RNA_boolean_set(kmi->ptr, "extend", TRUE);
+		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_TEST);
 	
 	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_LEFT);
 	kmi= WM_keymap_add_item(keymap, "NLA_OT_select_leftright", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 		RNA_enum_set(kmi->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
 		
 	
 		/* deselect all */
-	WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+		/* TODO: uniformize with other select_all ops? */
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "invert", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_boolean_set(kmi->ptr, "invert", TRUE);
 	
 		/* borderselect */
-	WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, 0, 0);
+		RNA_boolean_set(kmi->ptr, "axis_range", FALSE);
+	kmi = WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "axis_range", TRUE);
 	
 	/* view*/
 		/* auto-set range */

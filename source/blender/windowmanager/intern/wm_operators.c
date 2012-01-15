@@ -3083,23 +3083,35 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	glDisable(GL_LINE_SMOOTH);
 }
 
+typedef enum {
+	RC_PROP_ALLOW_MISSING = 1,
+	RC_PROP_REQUIRE_FLOAT = 2,
+	RC_PROP_REQUIRE_BOOL = 4,
+} RCPropFlags;
+
 /* attempt to retrieve the rna pointer/property from an rna path;
    returns 0 for failure, 1 for success, and also 1 if property is not
    set */
 static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 				   const char *name, PointerRNA *r_ptr,
-				   PropertyRNA **r_prop, int req_float,
-				   int req_length, int allow_missing)
+				   PropertyRNA **r_prop, int req_length, RCPropFlags flags)
 {
 	PropertyRNA *unused_prop;
 	int len;
 	char *str;
+
+	/* check flags */
+	if((flags & RC_PROP_REQUIRE_BOOL) && (flags & RC_PROP_REQUIRE_FLOAT)) {
+		BKE_reportf(op->reports, RPT_ERROR, "Property can't be both boolean and float");
+		return 0;
+	}
 
 	/* get an rna string path from the operator's properties */
 	if(!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0)))
 		return 1;
 
 	if(str[0] == '\0') {
+		if(r_prop) *r_prop = NULL;
 		MEM_freeN(str);
 		return 1;
 	}
@@ -3110,7 +3122,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 	/* get rna from path */
 	if(!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
 		MEM_freeN(str);
-		if(allow_missing)
+		if(flags & RC_PROP_ALLOW_MISSING)
 			return 1;
 		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't resolve path %s", name);
@@ -3118,9 +3130,12 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		}
 	}
 
-	/* if property is expected to be a float, check its type */
-	if(req_float) {
-		if(!(*r_prop) || (RNA_property_type(*r_prop) != PROP_FLOAT)) {
+	/* check property type */
+	if(flags & (RC_PROP_REQUIRE_BOOL | RC_PROP_REQUIRE_FLOAT)) {
+		PropertyType prop_type = RNA_property_type(*r_prop);
+
+		if(((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
+		   ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT)) {
 			MEM_freeN(str);
 			BKE_reportf(op->reports, RPT_ERROR,
 				    "Property from path %s is not a float", name);
@@ -3146,31 +3161,50 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
 	RadialControl *rc = op->customdata;
-	PointerRNA ctx_ptr;
+	PointerRNA ctx_ptr, use_secondary_ptr;
+	PropertyRNA *use_secondary_prop;
+	const char *data_path;
 
 	RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
 
-	if(!radial_control_get_path(&ctx_ptr, op, "data_path", &rc->ptr, &rc->prop, 0, 0, 0))
+	/* check if we use primary or secondary path */
+	if(!radial_control_get_path(&ctx_ptr, op, "use_secondary",
+								&use_secondary_ptr, &use_secondary_prop,
+								0, (RC_PROP_ALLOW_MISSING|
+									RC_PROP_REQUIRE_BOOL))) {
+		return 0;
+	}
+	else {
+		if(use_secondary_prop &&
+		   RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop))
+			data_path = "data_path_secondary";
+		else
+			data_path = "data_path_primary";
+	}
+
+	if(!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0))
 		return 0;
 
 	/* data path is required */
 	if(!rc->prop)
 		return 0;
 	
-	if(!radial_control_get_path(&ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 1, 0, 0))
+	if(!radial_control_get_path(&ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT))
 		return 0;
-	if(!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 1, 3, 0))
+	if(!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 3, RC_PROP_REQUIRE_FLOAT))
 		return 0;
-	if(!radial_control_get_path(&ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 1, 3, 0))
+	if(!radial_control_get_path(&ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 3, RC_PROP_REQUIRE_FLOAT))
 		return 0;
 	
 	/* slightly ugly; allow this property to not resolve
 	   correctly. needed because 3d texture paint shares the same
 	   keymap as 2d image paint */
-	if(!radial_control_get_path(&ctx_ptr, op, "zoom_path", &rc->zoom_ptr, &rc->zoom_prop, 1, 2, 1))
+	if(!radial_control_get_path(&ctx_ptr, op, "zoom_path",
+								&rc->zoom_ptr, &rc->zoom_prop, 2,
+								RC_PROP_REQUIRE_FLOAT|RC_PROP_ALLOW_MISSING))
 		return 0;
 	
-	if(!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0, 0))
+	if(!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0))
 		return 0;
 	else if(rc->image_id_ptr.data) {
 		/* extra check, pointer must be to an ID */
@@ -3363,7 +3397,9 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* all paths relative to the context */
-	RNA_def_string(ot->srna, "data_path", "", 0, "Data Path", "Path of property to be set by the radial control");
+	RNA_def_string(ot->srna, "data_path_primary", "", 0, "Primary Data Path", "Primary path of property to be set by the radial control");
+	RNA_def_string(ot->srna, "data_path_secondary", "", 0, "Secondary Data Path", "Secondary path of property to be set by the radial control");
+	RNA_def_string(ot->srna, "use_secondary", "", 0, "Use Secondary", "Path of property to select between the primary and secondary data paths");
 	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display");
 	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control");
 	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control");
