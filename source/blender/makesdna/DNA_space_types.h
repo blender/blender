@@ -133,8 +133,6 @@ typedef struct SpaceButs {
 	float blockscale  DNA_DEPRECATED;
 	
 	short blockhandler[8]  DNA_DEPRECATED;
-	
-	struct RenderInfo *ri;
 
 	View2D v2d  DNA_DEPRECATED;						/* deprecated, copied to region */
 	

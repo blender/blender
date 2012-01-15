@@ -5160,7 +5160,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->ri= NULL;
 						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						sbuts->mainbo= sbuts->mainb;
 						sbuts->mainbuser= sbuts->mainb;

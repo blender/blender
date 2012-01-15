@@ -45,7 +45,6 @@ typedef struct MetaElem {
 	struct MetaElem *next, *prev;
 
 	struct BoundBox *bb;        /* Bound Box of MetaElem */
-	int i1,j1,k1, i2,j2,k2;     /* corners of Bounding Box in lattice */
 
 	short type, flag, selcol1, selcol2;
 	float x, y, z;          /* Position of center of MetaElem */
