@@ -1010,19 +1010,19 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 /* zap channels from the imbuf that are disabled by the user. this can lead to
  * better tracks sometimes. however, instead of simply zeroing the channels
  * out, do a partial grayscale conversion so the display is better. */
-static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
+void BKE_tracking_disable_imbuf_channels(ImBuf *ibuf, int disable_red, int disable_green, int disable_blue, int grayscale)
 {
 	int x, y;
 	float scale;
 
-	if((track->flag&(TRACK_DISABLE_RED|TRACK_DISABLE_GREEN|TRACK_DISABLE_BLUE))==0 && !grayscale)
+	if(!disable_red && !disable_green && !disable_blue && !grayscale)
 		return;
 
 	/* If only some components are selected, it's important to rescale the result
 	 * appropriately so that e.g. if only blue is selected, it's not zeroed out. */
-	scale = ((track->flag&TRACK_DISABLE_RED  ) ? 0.0f : 0.2126f) +
-	        ((track->flag&TRACK_DISABLE_GREEN) ? 0.0f : 0.7152f) +
-	        ((track->flag&TRACK_DISABLE_BLUE)  ? 0.0f : 0.0722f);
+	scale = (disable_red   ? 0.0f : 0.2126f) +
+	        (disable_green ? 0.0f : 0.7152f) +
+	        (disable_blue  ? 0.0f : 0.0722f);
 
 	for(y= 0; y<ibuf->y; y++) {
 		for (x= 0; x<ibuf->x; x++) {
@@ -1030,9 +1030,9 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + pixel*4;
-				float r = (track->flag&TRACK_DISABLE_RED)   ? 0.0f : rrgbf[0];
-				float g = (track->flag&TRACK_DISABLE_GREEN) ? 0.0f : rrgbf[1];
-				float b = (track->flag&TRACK_DISABLE_BLUE)  ? 0.0f : rrgbf[2];
+				float r = disable_red   ? 0.0f : rrgbf[0];
+				float g = disable_green ? 0.0f : rrgbf[1];
+				float b = disable_blue  ? 0.0f : rrgbf[2];
 				if (grayscale) {
 					float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
 					rrgbf[0] = rrgbf[1] = rrgbf[2] = gray;
@@ -1043,9 +1043,9 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 				}
 			} else {
 				char *rrgb= (char*)ibuf->rect + pixel*4;
-				char r = (track->flag&TRACK_DISABLE_RED)   ? 0 : rrgb[0];
-				char g = (track->flag&TRACK_DISABLE_GREEN) ? 0 : rrgb[1];
-				char b = (track->flag&TRACK_DISABLE_BLUE)  ? 0 : rrgb[2];
+				char r = disable_red   ? 0 : rrgb[0];
+				char g = disable_green ? 0 : rrgb[1];
+				char b = disable_blue  ? 0 : rrgb[2];
 				if (grayscale) {
 					float gray = (0.2126f*r + 0.7152f*g + 0.0722f*b) / scale;
 					rrgb[0] = rrgb[1] = rrgb[2] = gray;
@@ -1057,6 +1057,12 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 			}
 		}
 	}
+}
+
+static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
+{
+	BKE_tracking_disable_imbuf_channels(ibuf, track->flag&TRACK_DISABLE_RED,
+			track->flag&TRACK_DISABLE_GREEN, track->flag&TRACK_DISABLE_RED, grayscale);
 }
 
 static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,

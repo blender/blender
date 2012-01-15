@@ -261,10 +261,12 @@ typedef struct MovieClipCache {
 	struct {
 		ImBuf *ibuf;
 		int framenr;
+		int flag;
 
 		/* cache for undistorted shot */
 		float principal[2];
 		float k1, k2, k3;
+		short undistoriton_used;
 
 		int proxy;
 		short render_flag;
@@ -511,9 +513,9 @@ static int need_undistortion_postprocess(MovieClipUser *user, int flag)
 	return result;
 }
 
-static int need_postprocessed_frame(MovieClipUser *user, int flag)
+static int need_postprocessed_frame(MovieClipUser *user, int flag, int postprocess_flag)
 {
-	int result = 0;
+	int result = postprocess_flag;
 
 	result |= need_undistortion_postprocess(user, flag);
 
@@ -535,7 +537,7 @@ static int check_undistortion_cache_flags(MovieClip *clip)
 	return 1;
 }
 
-static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *user, int flag)
+static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *user, int flag, int postprocess_flag)
 {
 	MovieClipCache *cache= clip->cache;
 	int framenr= user->framenr;
@@ -556,29 +558,35 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 		return NULL;
 
 	/* cached ibuf used different proxy settings */
-	if(cache->postprocessed.render_flag!=render_flag || cache->postprocessed.proxy!=proxy)
+	if(cache->postprocessed.render_flag != render_flag || cache->postprocessed.proxy != proxy)
+		return NULL;
+
+	if(cache->postprocessed.flag != postprocess_flag)
 		return NULL;
 
 	if(need_undistortion_postprocess(user, flag)) {
 		if(!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
+	else if(cache->postprocessed.undistoriton_used)
+		return NULL;
 
 	IMB_refImBuf(cache->postprocessed.ibuf);
 
 	return cache->postprocessed.ibuf;
 }
 
-static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int flag)
+static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int flag, int postprocess_flag)
 {
 	MovieClipCache *cache= clip->cache;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
-	ImBuf *postproc_ibuf;
+	ImBuf *postproc_ibuf = NULL;
 
 	if(cache->postprocessed.ibuf)
 		IMB_freeImBuf(cache->postprocessed.ibuf);
 
 	cache->postprocessed.framenr= user->framenr;
+	cache->postprocessed.flag = postprocess_flag;
 
 	if(flag&MCLIP_USE_PROXY) {
 		cache->postprocessed.proxy= rendersize_to_proxy(user, flag);
@@ -592,18 +600,38 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	if(need_undistortion_postprocess(user, flag)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
+		cache->postprocessed.undistoriton_used = 1;
+		postproc_ibuf= get_undistorted_ibuf(clip, NULL, ibuf);
 	}
+	else cache->postprocessed.undistoriton_used = 0;
 
-	postproc_ibuf= get_undistorted_ibuf(clip, NULL, ibuf);
+	if(postprocess_flag) {
+		int disable_red   = postprocess_flag & MOVIECLIP_DISABLE_RED,
+		    disable_green = postprocess_flag & MOVIECLIP_DISABLE_GREEN,
+			disable_blue  = postprocess_flag & MOVIECLIP_DISABLE_BLUE,
+			grayscale     = postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE;
+
+		if(!postproc_ibuf)
+			postproc_ibuf = IMB_dupImBuf(ibuf);
+
+		if(disable_red || disable_green || disable_blue || grayscale)
+			BKE_tracking_disable_imbuf_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
+	}
 
 	IMB_refImBuf(postproc_ibuf);
 
 	cache->postprocessed.ibuf= postproc_ibuf;
 
+	if(cache->stabilized.ibuf) {
+		/* force stable buffer be re-calculated */
+		IMB_freeImBuf(cache->stabilized.ibuf);
+		cache->stabilized.ibuf= NULL;
+	}
+
 	return postproc_ibuf;
 }
 
-static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int flag)
+static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int flag, int postprocess_flag)
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user->framenr, need_postprocess= 0;
@@ -613,8 +641,8 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
-	if(need_postprocessed_frame(user, flag)) {
-		ibuf= get_postprocessed_cached_frame(clip, user, flag);
+	if(need_postprocessed_frame(user, flag, postprocess_flag)) {
+		ibuf= get_postprocessed_cached_frame(clip, user, flag, postprocess_flag);
 
 		if(!ibuf)
 			need_postprocess= 1;
@@ -647,7 +675,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 		/* postprocess frame and put to cache */
 		if(need_postprocess) {
 			ImBuf *tmpibuf= ibuf;
-			ibuf= put_postprocessed_frame_to_cache(clip, user, tmpibuf, flag);
+			ibuf= put_postprocessed_frame_to_cache(clip, user, tmpibuf, flag, postprocess_flag);
 			IMB_freeImBuf(tmpibuf);
 		}
 	}
@@ -664,7 +692,12 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 
 ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
 {
-	return movieclip_get_postprocessed_ibuf(clip, user, flag);
+	return movieclip_get_postprocessed_ibuf(clip, user, flag, 0);
+}
+
+ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int postprocess_flag)
+{
+	return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag);
 }
 
 static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr)
@@ -738,12 +771,12 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	return stableibuf;
 }
 
-ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
+ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle, int postprocess_flag)
 {
 	ImBuf *ibuf, *stableibuf= NULL;
 	int framenr= user->framenr;
 
-	ibuf= BKE_movieclip_get_ibuf(clip, user);
+	ibuf= BKE_movieclip_get_postprocessed_ibuf(clip, user, postprocess_flag);
 
 	if(!ibuf)
 		return NULL;

@@ -47,7 +47,8 @@ struct MovieClip *BKE_add_movieclip_file(const char *name);
 void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
-struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale, float *angle);
+struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip, struct MovieClipUser *user, int postprocess_flag);
+struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale, float *angle, int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_ibuf_flag(struct MovieClip *clip, struct MovieClipUser *user, int flag);
 void BKE_movieclip_get_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
 void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
@@ -63,8 +64,10 @@ void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUs
 void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int clip_flag, struct MovieDistortion *distortion,
 			int cfra, int *build_sizes, int build_count, int undistorted);
 
-#define TRACK_CLEAR_UPTO		0
-#define TRACK_CLEAR_REMAINED	1
-#define TRACK_CLEAR_ALL			2
+/* postprocessing flags */
+#define MOVIECLIP_DISABLE_RED       (1<<0)
+#define MOVIECLIP_DISABLE_GREEN     (1<<1)
+#define MOVIECLIP_DISABLE_BLUE      (1<<2)
+#define MOVIECLIP_PREVIEW_GRAYSCALE (1<<3)
 
 #endif

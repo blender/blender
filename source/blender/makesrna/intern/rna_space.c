@@ -35,6 +35,7 @@
 #include "rna_internal.h"
 
 #include "BKE_key.h"
+#include "BKE_movieclip.h"
 
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
@@ -2984,6 +2985,32 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_TRACKS);
 	RNA_def_property_ui_text(prop, "Show Tracks", "Display the speed curves (in \"x\" direction red, in \"y\" direction green) for the selected tracks");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* ** channels ** */
+
+	/* show_red_channel */
+	prop= RNA_def_property(srna, "show_red_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "postproc_flag", MOVIECLIP_DISABLE_RED);
+	RNA_def_property_ui_text(prop, "Show Red Channel", "Show red channel in the frame");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show_green_channel */
+	prop= RNA_def_property(srna, "show_green_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "postproc_flag", MOVIECLIP_DISABLE_GREEN);
+	RNA_def_property_ui_text(prop, "Show Green Channel", "Show green channel in the frame");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show_blue_channel */
+	prop= RNA_def_property(srna, "show_blue_channel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "postproc_flag", MOVIECLIP_DISABLE_BLUE);
+	RNA_def_property_ui_text(prop, "Show Blue Channel", "Show blue channel in the frame");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* preview_grayscale */
+	prop= RNA_def_property(srna, "use_grayscale_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "postproc_flag", MOVIECLIP_PREVIEW_GRAYSCALE);
+	RNA_def_property_ui_text(prop, "Grayscale", "Display frame in grayscale mode");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
 
