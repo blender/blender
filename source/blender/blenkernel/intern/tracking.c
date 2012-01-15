@@ -1070,7 +1070,7 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 {
 	ImBuf *tmpibuf;
 	int x, y;
-	int x1, y1 /*, x2, y2 */ /* UNUSED */, w, h;
+	int x1, y1, w, h;
 	float mpos[2];
 
 	copy_v2_v2(mpos, marker->pos);
@@ -1091,11 +1091,6 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 
 	x1= x-(int)(w/2.0f);
 	y1= y-(int)(h/2.0f);
-
-#if 0 /* UNUSED */
-	x2= x+(int)(w/2.0f);
-	y2= y+(int)(h/2.0f);
-#endif
 
 	/* dimensions should be odd */
 	tmpibuf= IMB_allocImBuf(w+margin*2, h+margin*2, 32, IB_rect);
@@ -1118,9 +1113,6 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 	{
 		disable_imbuf_channels(tmpibuf, track, 1 /* grayscale */);
 	}
-
-	tmpibuf->ftype= PNG;
-	IMB_saveiff(tmpibuf, "/tmp/1.png", IB_rect);
 
 	return tmpibuf;
 }
