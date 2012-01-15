@@ -1207,6 +1207,7 @@ typedef struct v2dScrollerMove {
 	float delta;			/* amount moved by mouse on axis of interest */
 	
 	float scrollbarwidth;	/* width of the scrollbar itself, used for page up/down clicks */
+	int scrollbar_orig;      /* initial location of scrollbar x/y, mouse relative */
 	
 	int lastx, lasty;		/* previous mouse coordinates (in screen coordinates) for determining movement */
 } v2dScrollerMove;
@@ -1302,15 +1303,16 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	vsm->v2d= v2d;
 	vsm->ar= ar;
 	vsm->scroller= in_scroller;
-	
+
 	/* store mouse-coordinates, and convert mouse/screen coordinates to region coordinates */
 	vsm->lastx = event->x;
 	vsm->lasty = event->y;
-	
 	/* 'zone' depends on where mouse is relative to bubble 
 	 *	- zooming must be allowed on this axis, otherwise, default to pan
 	 */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+
+
 	if (in_scroller == 'h') {
 		/* horizontal scroller - calculate adjustment factor first */
 		mask_size= (float)(v2d->hor.xmax - v2d->hor.xmin);
@@ -1325,6 +1327,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		}
 
 		vsm->scrollbarwidth = scrollers->hor_max - scrollers->hor_min;
+		vsm->scrollbar_orig = ((scrollers->hor_max + scrollers->hor_min) / 2) + ar->winrct.xmin;
 	}
 	else {
 		/* vertical scroller - calculate adjustment factor first */
@@ -1340,6 +1343,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		}
 		
 		vsm->scrollbarwidth = scrollers->vert_max - scrollers->vert_min;
+		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) +  + ar->winrct.ymin;
 	}
 	
 	UI_view2d_scrollers_free(scrollers);
@@ -1464,6 +1468,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
+		case MIDDLEMOUSE:
 			if (event->val==KM_RELEASE) {
 				/* single-click was in empty space outside bubble, so scroll by 1 'page' */
 				if (ELEM(vsm->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
@@ -1484,6 +1489,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			break;
+
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1508,6 +1514,21 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scroller_activate_init(C, op, event, in_scroller);
 		vsm= (v2dScrollerMove *)op->customdata;
 		
+		/* support for quick jump to location - gtk and qt do this on linux */
+		if (event->type == MIDDLEMOUSE) {
+			switch (vsm->scroller) {
+				case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves opposite to mouse) */
+					vsm->delta= (float)(event->x - vsm->scrollbar_orig);
+					break;
+				case 'v': /* vertical scroller - so only vertical movement ('cur' moves opposite to mouse) */
+					vsm->delta= (float)(event->y - vsm->scrollbar_orig);
+					break;
+			}
+			scroller_activate_apply(C, op);
+
+			vsm->zone= SCROLLHANDLE_BAR;
+		}
+
 		/* check if zoom zones are inappropriate (i.e. zoom widgets not shown), so cannot continue
 		 * NOTE: see view2d.c for latest conditions, and keep this in sync with that
 		 */
@@ -1669,6 +1690,10 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "View2D", 0, 0);
 	
+	/* scrollers */
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", MIDDLEMOUSE, KM_PRESS, 0, 0);
+
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
@@ -1713,12 +1738,13 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	
 	/* borderzoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
-	
-	/* scrollers */
-	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	/* Alternative keymap for buttons listview */
 	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
+
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", MIDDLEMOUSE, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
@@ -1732,6 +1758,5 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 }
 
