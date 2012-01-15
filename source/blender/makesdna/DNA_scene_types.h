@@ -797,12 +797,12 @@ typedef struct VPaint {
 
 /* VPaint flag */
 #define VP_COLINDEX	1
-#define VP_AREA		2
+#define VP_AREA		2  /* vertex paint only */
 
 #define VP_NORMALS	8
 #define VP_SPRAY	16
 // #define VP_MIRROR_X	32 // deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X)
-#define VP_ONLYVGROUP	128
+#define VP_ONLYVGROUP	128  /* weight paint only */
 
 /* *************************************************************** */
 /* Transform Orientations */
