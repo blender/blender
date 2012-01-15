@@ -257,18 +257,28 @@ typedef struct MovieClipCache {
 	/* regular movie cache */
 	struct MovieCache *moviecache;
 
-	/* cache for stable shot */
-	int stable_framenr;
-	float stable_loc[2], stable_scale, stable_angle;
-	ImBuf *stableibuf;
-	int proxy;
-	short render_flag;
+	/* cached postprocessed shot */
+	struct {
+		ImBuf *ibuf;
+		int framenr;
 
-	/* cache for undistorted shot */
-	int undist_framenr;
-	float principal[2];
-	float k1, k2, k3;
-	ImBuf *undistibuf;
+		/* cache for undistorted shot */
+		float principal[2];
+		float k1, k2, k3;
+
+		int proxy;
+		short render_flag;
+	} postprocessed;
+
+	/* cache for stable shot */
+	struct {
+		ImBuf *ibuf;
+		int framenr;
+
+		float loc[2], scale, angle;
+		int proxy;
+		short render_flag;
+	} stabilized;
 } MovieClipCache;
 
 typedef struct MovieClipImBufCacheKey {
@@ -465,44 +475,6 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	}
 }
 
-static int need_undistorted_cache(MovieClipUser *user, int flag)
-{
-	/* only full undistorted render can be used as on-fly undistorting image */
-	if(flag&MCLIP_USE_PROXY) {
-		if(user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL || (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT)==0)
-			return 0;
-	}
-	else return 0;
-
-	return 1;
-}
-
-static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
-{
-	MovieClipCache *cache= clip->cache;
-	MovieTrackingCamera *camera= &clip->tracking.camera;
-	int framenr= user->framenr;
-
-	/* no cache or no cached undistorted image */
-	if(!clip->cache || !clip->cache->undistibuf)
-		return NULL;
-
-	/* undistortion happened for other frame */
-	if(cache->undist_framenr!=framenr)
-		return NULL;
-
-	/* check for distortion model changes */
-	if(!equals_v2v2(camera->principal, cache->principal))
-		return NULL;
-
-	if(!equals_v3v3(&camera->k1, &cache->k1))
-		return NULL;
-
-	IMB_refImBuf(cache->undistibuf);
-
-	return cache->undistibuf;
-}
-
 static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distortion, ImBuf *ibuf)
 {
 	ImBuf *undistibuf;
@@ -526,50 +498,130 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	return undistibuf;
 }
 
-static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
+static int need_undistortion_postprocess(MovieClipUser *user, int flag)
+{
+	int result = 0;
+
+	/* only full undistorted render can be used as on-fly undistorting image */
+	if(flag & MCLIP_USE_PROXY) {
+		result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
+		          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
+	}
+
+	return result;
+}
+
+static int need_postprocessed_frame(MovieClipUser *user, int flag)
+{
+	int result = 0;
+
+	result |= need_undistortion_postprocess(user, flag);
+
+	return result;
+}
+
+static int check_undistortion_cache_flags(MovieClip *clip)
 {
 	MovieClipCache *cache= clip->cache;
 	MovieTrackingCamera *camera= &clip->tracking.camera;
 
-	copy_v2_v2(cache->principal, camera->principal);
-	copy_v3_v3(&cache->k1, &camera->k1);
-	cache->undist_framenr= user->framenr;
+	/* check for distortion model changes */
+	if(!equals_v2v2(camera->principal, cache->postprocessed.principal))
+		return 0;
 
-	if(cache->undistibuf)
-		IMB_freeImBuf(cache->undistibuf);
+	if(!equals_v3v3(&camera->k1, &cache->postprocessed.k1))
+		return 0;
 
-	cache->undistibuf= get_undistorted_ibuf(clip, NULL, ibuf);
-
-	if(cache->stableibuf) {
-		/* force stable buffer be re-calculated */
-		IMB_freeImBuf(cache->stableibuf);
-		cache->stableibuf= NULL;
-	}
-
-	IMB_refImBuf(cache->undistibuf);
-
-	return cache->undistibuf;
+	return 1;
 }
 
-ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
+static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *user, int flag)
+{
+	MovieClipCache *cache= clip->cache;
+	int framenr= user->framenr;
+	short proxy= IMB_PROXY_NONE;
+	int render_flag= 0;
+
+	if(flag&MCLIP_USE_PROXY) {
+		proxy= rendersize_to_proxy(user, flag);
+		render_flag= user->render_flag;
+	}
+
+	/* no cache or no cached postprocessed image */
+	if(!clip->cache || !clip->cache->postprocessed.ibuf)
+		return NULL;
+
+	/* postprocessing happened for other frame */
+	if(cache->postprocessed.framenr != framenr)
+		return NULL;
+
+	/* cached ibuf used different proxy settings */
+	if(cache->postprocessed.render_flag!=render_flag || cache->postprocessed.proxy!=proxy)
+		return NULL;
+
+	if(need_undistortion_postprocess(user, flag)) {
+		if(!check_undistortion_cache_flags(clip))
+			return NULL;
+	}
+
+	IMB_refImBuf(cache->postprocessed.ibuf);
+
+	return cache->postprocessed.ibuf;
+}
+
+static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int flag)
+{
+	MovieClipCache *cache= clip->cache;
+	MovieTrackingCamera *camera= &clip->tracking.camera;
+	ImBuf *postproc_ibuf;
+
+	if(cache->postprocessed.ibuf)
+		IMB_freeImBuf(cache->postprocessed.ibuf);
+
+	cache->postprocessed.framenr= user->framenr;
+
+	if(flag&MCLIP_USE_PROXY) {
+		cache->postprocessed.proxy= rendersize_to_proxy(user, flag);
+		cache->postprocessed.render_flag= user->render_flag;
+	}
+	else {
+		cache->postprocessed.proxy = IMB_PROXY_NONE;
+		cache->postprocessed.render_flag = 0;
+	}
+
+	if(need_undistortion_postprocess(user, flag)) {
+		copy_v2_v2(cache->postprocessed.principal, camera->principal);
+		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
+	}
+
+	postproc_ibuf= get_undistorted_ibuf(clip, NULL, ibuf);
+
+	IMB_refImBuf(postproc_ibuf);
+
+	cache->postprocessed.ibuf= postproc_ibuf;
+
+	return postproc_ibuf;
+}
+
+static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	ImBuf *ibuf= NULL;
-	int framenr= user->framenr;
-	int cache_undistorted= 0;
+	int framenr= user->framenr, need_postprocess= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
 	   can't happen from concurent threads that's why we use lock here */
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
-	/* try to obtain cached undistorted image first */
-	if(need_undistorted_cache(user, clip->flag)) {
-		ibuf= get_undistorted_cache(clip, user);
+	/* try to obtain cached postprocessed frame first */
+	if(need_postprocessed_frame(user, flag)) {
+		ibuf= get_postprocessed_cached_frame(clip, user, flag);
+
 		if(!ibuf)
-			cache_undistorted= 1;
+			need_postprocess= 1;
 	}
 
 	if(!ibuf)
-		ibuf= get_imbuf_cache(clip, user, clip->flag);
+		ibuf= get_imbuf_cache(clip, user, flag);
 
 	if(!ibuf) {
 		int use_sequence= 0;
@@ -579,23 +631,23 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 			(user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL);
 
 		if(clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
-			ibuf= movieclip_load_sequence_file(clip, user, framenr, clip->flag);
+			ibuf= movieclip_load_sequence_file(clip, user, framenr, flag);
 		else {
-			ibuf= movieclip_load_movie_file(clip, user, framenr, clip->flag);
+			ibuf= movieclip_load_movie_file(clip, user, framenr, flag);
 		}
 
 		if(ibuf)
-			put_imbuf_cache(clip, user, ibuf, clip->flag);
+			put_imbuf_cache(clip, user, ibuf, flag);
 	}
 
 	if(ibuf) {
 		clip->lastframe= framenr;
 		real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 
-		/* put undistorted frame to cache */
-		if(cache_undistorted) {
+		/* postprocess frame and put to cache */
+		if(need_postprocess) {
 			ImBuf *tmpibuf= ibuf;
-			ibuf= put_undistorted_cache(clip, user, tmpibuf);
+			ibuf= put_postprocessed_frame_to_cache(clip, user, tmpibuf, flag);
 			IMB_freeImBuf(tmpibuf);
 		}
 	}
@@ -605,50 +657,85 @@ ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
+ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
+{
+	return BKE_movieclip_get_ibuf_flag(clip, user, clip->flag);
+}
+
 ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
 {
-	ImBuf *ibuf= NULL;
-	int framenr= user->framenr;
-	int cache_undistorted= 0;
+	return movieclip_get_postprocessed_ibuf(clip, user, flag);
+}
 
-	/* cache isn't threadsafe itself and also loading of movies
-	   can't happen from concurent threads that's why we use lock here */
-	BLI_lock_thread(LOCK_MOVIECLIP);
+static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int framenr)
+{
+	MovieClipCache *cache = clip->cache;
+	ImBuf *stableibuf;
+	float tloc[2], tscale, tangle;
+	short proxy = IMB_PROXY_NONE;
+	int render_flag = 0;
 
-	/* try to obtain cached undistorted image first */
-	if(need_undistorted_cache(user, flag)) {
-		ibuf= get_undistorted_cache(clip, user);
-		if(!ibuf)
-			cache_undistorted= 1;
+	if(clip->flag&MCLIP_USE_PROXY) {
+		proxy = rendersize_to_proxy(user, clip->flag);
+		render_flag = user->render_flag;
 	}
 
-	ibuf= get_imbuf_cache(clip, user, flag);
+	/* there's no cached frame or it was calculated for another frame */
+	if(!cache->stabilized.ibuf || cache->stabilized.framenr != framenr)
+		return NULL;
 
-	if(!ibuf) {
-		if(clip->source==MCLIP_SRC_SEQUENCE) {
-			ibuf= movieclip_load_sequence_file(clip, user, framenr, flag);
-		} else {
-			ibuf= movieclip_load_movie_file(clip, user, framenr, flag);
-		}
+	/* cached ibuf used different proxy settings */
+	if(cache->stabilized.render_flag!=render_flag || cache->stabilized.proxy!=proxy)
+		return NULL;
 
-		if(ibuf) {
-			int bits= MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR;
+	stableibuf = cache->stabilized.ibuf;
 
-			if((flag&bits)==(clip->flag&bits))
-				put_imbuf_cache(clip, user, ibuf, clip->flag);
-		}
+	BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+
+	/* check for stabilization parameters */
+	if(tscale != cache->stabilized.scale ||
+	   tangle != cache->stabilized.angle ||
+	   !equals_v2v2(tloc, cache->stabilized.loc))
+	{
+		return NULL;
 	}
 
-	/* put undistorted frame to cache */
-	if(ibuf && cache_undistorted) {
-		ImBuf *tmpibuf= ibuf;
-		ibuf= put_undistorted_cache(clip, user, tmpibuf);
-		IMB_freeImBuf(tmpibuf);
+	IMB_refImBuf(stableibuf);
+
+	return stableibuf;
+}
+
+static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int framenr)
+{
+	MovieClipCache *cache = clip->cache;
+	ImBuf *stableibuf;
+	float tloc[2], tscale, tangle;
+
+	if(cache->stabilized.ibuf)
+		IMB_freeImBuf(cache->stabilized.ibuf);
+
+	stableibuf = BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
+
+	cache->stabilized.ibuf= stableibuf;
+
+	copy_v2_v2(cache->stabilized.loc, tloc);
+
+	cache->stabilized.scale = tscale;
+	cache->stabilized.angle = tangle;
+	cache->stabilized.framenr = framenr;
+
+	if(clip->flag&MCLIP_USE_PROXY) {
+		cache->stabilized.proxy= rendersize_to_proxy(user, clip->flag);
+		cache->stabilized.render_flag= user->render_flag;
+	}
+	else {
+		cache->stabilized.proxy = IMB_PROXY_NONE;
+		cache->stabilized.render_flag = 0;
 	}
 
-	BLI_unlock_thread(LOCK_MOVIECLIP);
+	IMB_refImBuf(stableibuf);
 
-	return ibuf;
+	return stableibuf;
 }
 
 ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
@@ -662,48 +749,16 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float
 		return NULL;
 
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-		float tloc[2], tscale, tangle;
-		short proxy= IMB_PROXY_NONE;
-		int render_flag= 0;
+		MovieClipCache *cache= clip->cache;
 
-		if(clip->flag&MCLIP_USE_PROXY) {
-			proxy= rendersize_to_proxy(user, clip->flag);
-			render_flag= user->render_flag;
-		}
+		stableibuf= get_stable_cached_frame(clip, user, framenr);
 
-		if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {	/* there's cached ibuf */
-			if(clip->cache->render_flag==render_flag && clip->cache->proxy==proxy) {	/* cached ibuf used the same proxy settings */
-				stableibuf= clip->cache->stableibuf;
+		if(!stableibuf)
+			stableibuf= put_stabilized_frame_to_cache(clip, user, ibuf, framenr);
 
-				BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
-
-				/* check for stabilization parameters */
-				if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale || tangle!=clip->cache->stable_angle) {
-					stableibuf= NULL;
-				}
-			}
-		}
-
-		if(!stableibuf) {
-			if(clip->cache->stableibuf)
-				IMB_freeImBuf(clip->cache->stableibuf);
-
-			stableibuf= BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
-
-			copy_v2_v2(clip->cache->stable_loc, tloc);
-			clip->cache->stable_scale= tscale;
-			clip->cache->stable_angle= tangle;
-			clip->cache->stable_framenr= framenr;
-			clip->cache->stableibuf= stableibuf;
-			clip->cache->proxy= proxy;
-			clip->cache->render_flag= render_flag;
-		}
-
-		IMB_refImBuf(stableibuf);
-
-		if(loc)		copy_v2_v2(loc, tloc);
-		if(scale)	*scale= tscale;
-		if(angle)	*angle= tangle;
+		if(loc)		copy_v2_v2(loc, cache->stabilized.loc);
+		if(scale)	*scale= cache->stabilized.scale;
+		if(angle)	*angle= cache->stabilized.angle;
 	} else {
 		if(loc)		zero_v2(loc);
 		if(scale)	*scale= 1.0f;
@@ -786,11 +841,11 @@ static void free_buffers(MovieClip *clip)
 	if(clip->cache) {
 		IMB_moviecache_free(clip->cache->moviecache);
 
-		if(clip->cache->stableibuf)
-			IMB_freeImBuf(clip->cache->stableibuf);
+		if(clip->cache->postprocessed.ibuf)
+			IMB_freeImBuf(clip->cache->postprocessed.ibuf);
 
-		if(clip->cache->undistibuf)
-			IMB_freeImBuf(clip->cache->undistibuf);
+		if(clip->cache->stabilized.ibuf)
+			IMB_freeImBuf(clip->cache->stabilized.ibuf);
 
 		MEM_freeN(clip->cache);
 		clip->cache= NULL;
