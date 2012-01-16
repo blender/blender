@@ -147,6 +147,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Acceleration structure:")
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
+        sub.prop(cscene, "use_cache")
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"

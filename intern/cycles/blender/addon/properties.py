@@ -103,6 +103,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             items=enums.bvh_types, default="DYNAMIC_BVH")
         cls.debug_use_spatial_splits = BoolProperty(name="Use Spatial Splits", description="Use BVH spatial splits: longer builder time, faster render",
             default=False)
+        cls.use_cache = BoolProperty(name="Cache BVH", description="Cache last built BVH to disk for faster re-render if no geometry changed",
+            default=False)
 
     @classmethod
     def unregister(cls):

@@ -75,12 +75,18 @@ bool BVH::cache_read(CacheData& key)
 	foreach(Object *ob, objects) {
 		key.add(ob->mesh->verts);
 		key.add(ob->mesh->triangles);
+		key.add(&ob->bounds, sizeof(ob->bounds));
+		key.add(&ob->visibility, sizeof(ob->visibility));
+		key.add(&ob->mesh->transform_applied, sizeof(bool));
 	}
 
 	CacheData value;
 
 	if(Cache::global.lookup(key, value)) {
+		cache_filename = key.get_filename();
+
 		value.read(pack.root_index);
+		value.read(pack.SAH);
 
 		value.read(pack.nodes);
 		value.read(pack.object_node);
@@ -101,6 +107,7 @@ void BVH::cache_write(CacheData& key)
 	CacheData value;
 
 	value.add(pack.root_index);
+	value.add(pack.SAH);
 
 	value.add(pack.nodes);
 	value.add(pack.object_node);
@@ -111,6 +118,26 @@ void BVH::cache_write(CacheData& key)
 	value.add(pack.is_leaf);
 
 	Cache::global.insert(key, value);
+
+	cache_filename = key.get_filename();
+}
+
+void BVH::clear_cache_except()
+{
+	set<string> except;
+
+	if(!cache_filename.empty())
+		except.insert(cache_filename);
+
+	foreach(Object *ob, objects) {
+		Mesh *mesh = ob->mesh;
+		BVH *bvh = mesh->bvh;
+
+		if(bvh && !bvh->cache_filename.empty())
+			except.insert(bvh->cache_filename);
+	}
+
+	Cache::global.clear_except("bvh", except);
 }
 
 /* Building */
@@ -177,6 +204,10 @@ void BVH::build(Progress& progress)
 	if(params.use_cache) {
 		progress.set_substatus("Writing BVH cache");
 		cache_write(key);
+
+		/* clear other bvh files from cache */
+		if(params.top_level)
+			clear_cache_except();
 	}
 }
 
