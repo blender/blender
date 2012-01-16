@@ -2049,7 +2049,7 @@ static PyNumberMethods Matrix_NumMethods = {
 		(unaryfunc) 	0,	/*tp_positive*/
 		(unaryfunc) 	0,	/*tp_absolute*/
 		(inquiry)	0,	/*tp_bool*/
-		(unaryfunc)	Matrix_inv,	/*nb_invert*/
+		(unaryfunc)	Matrix_inverted,	/*nb_invert*/
 		NULL,				/*nb_lshift*/
 		(binaryfunc)0,	/*nb_rshift*/
 		NULL,				/*nb_and*/
