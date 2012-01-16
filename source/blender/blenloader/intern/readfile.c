@@ -135,6 +135,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_text.h" // for txt_extended_ascii_as_utf8
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
@@ -12976,6 +12977,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put compatibility code here until next subversion bump */
 	{
+		{
+			/* convert extended ascii to utf-8 for text editor */
+			Text *text;
+			for (text= main->text.first; text; text= text->id.next)
+				if(!(text->flags & TXT_ISEXT)) {
+					TextLine *tl;
+					
+					for (tl= text->lines.first; tl; tl= tl->next) {
+						int added= txt_extended_ascii_as_utf8(&tl->line);
+						tl->len+= added;
+						
+						/* reset cursor position if line was changed */
+						if (added && tl == text->curl)
+							text->curc = 0;
+					}
+				}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -46,6 +46,7 @@ void			free_text		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
 struct Text*	add_empty_text	(const char *name);
+int             txt_extended_ascii_as_utf8(char **str);
 int	            reopen_text		(struct Text *text);
 struct Text*	add_text		(const char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
@@ -59,6 +60,8 @@ void	txt_order_cursors	(struct Text *text);
 int		txt_find_string		(struct Text *text, const char *findstr, int wrap, int match_case);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
+int     txt_utf8_offset_to_index(char *str, int offset);
+int     txt_utf8_index_to_offset(char *str, int index);
 void	txt_move_up			(struct Text *text, short sel);
 void	txt_move_down		(struct Text *text, short sel);
 void	txt_move_left		(struct Text *text, short sel);
@@ -86,9 +89,9 @@ void	txt_do_redo			(struct Text *text);
 void	txt_split_curline	(struct Text *text);
 void	txt_backspace_char	(struct Text *text);
 void	txt_backspace_word	(struct Text *text);
-int		txt_add_char		(struct Text *text, char add);
-int		txt_add_raw_char	(struct Text *text, char add);
-int		txt_replace_char	(struct Text *text, char add);
+int		txt_add_char		(struct Text *text, unsigned int add);
+int		txt_add_raw_char	(struct Text *text, unsigned int add);
+int		txt_replace_char	(struct Text *text, unsigned int add);
 void	txt_export_to_object(struct Text *text);
 void	txt_export_to_objects(struct Text *text);
 void	txt_unindent		(struct Text *text);
@@ -127,34 +130,48 @@ int text_check_whitespace(char ch);
 #define UNDO_SLEFT		005
 #define UNDO_SRIGHT		006
 #define UNDO_SUP		007
-#define UNDO_SDOWN		021
+#define UNDO_SDOWN		010
 
 /* Complex movement (opcode is followed
  * by 4 character line ID + a 2 character
  * position ID and opcode (repeat)) */
-#define UNDO_CTO		022
-#define UNDO_STO		023
+#define UNDO_CTO		011
+#define UNDO_STO		012
 
-/* Complex editing (opcode is followed
- * by 1 character ID and opcode (repeat)) */
-#define UNDO_INSERT		024
-#define UNDO_BS			025
-#define UNDO_DEL		026
+/* Complex editing */
+/* 1 - opcode is followed by 1 byte for ascii character and opcode (repeat)) */
+/* 2 - opcode is followed by 2 bytes for utf-8 character and opcode (repeat)) */
+/* 3 - opcode is followed by 3 bytes for utf-8 character and opcode (repeat)) */
+/* 4 - opcode is followed by 4 bytes for unicode character and opcode (repeat)) */
+#define UNDO_INSERT_1   013
+#define UNDO_INSERT_2   014
+#define UNDO_INSERT_3   015
+#define UNDO_INSERT_4   016
+
+#define UNDO_BS_1       017
+#define UNDO_BS_2       020
+#define UNDO_BS_3       021
+#define UNDO_BS_4       022
+
+#define UNDO_DEL_1      023
+#define UNDO_DEL_2      024
+#define UNDO_DEL_3      025
+#define UNDO_DEL_4      026
 
 /* Text block (opcode is followed
  * by 4 character length ID + the text
  * block itself + the 4 character length
  * ID (repeat) and opcode (repeat)) */
-#define UNDO_DBLOCK		027 /* Delete block */
-#define UNDO_IBLOCK		030 /* Insert block */
+#define UNDO_DBLOCK	    027 /* Delete block */
+#define UNDO_IBLOCK	    030 /* Insert block */
 
 /* Misc */
-#define UNDO_SWAP		031	/* Swap cursors */
+#define UNDO_SWAP       031	/* Swap cursors */
 
-#define UNDO_INDENT		032
-#define UNDO_UNINDENT		033
-#define UNDO_COMMENT		034
-#define UNDO_UNCOMMENT		035
+#define UNDO_INDENT     032
+#define UNDO_UNINDENT   033
+#define UNDO_COMMENT    034
+#define UNDO_UNCOMMENT  035
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */
