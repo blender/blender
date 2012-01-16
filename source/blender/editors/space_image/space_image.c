@@ -543,7 +543,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	/* toggle editmode is handy to have while UV unwrapping */
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 }
 
 /* dropboxes */

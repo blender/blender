@@ -268,19 +268,19 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 0);
+	RNA_boolean_set(kmi->ptr, "reverse", FALSE);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 1);
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 0);
+	RNA_boolean_set(kmi->ptr, "reverse", FALSE);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
-	RNA_boolean_set(kmi->ptr, "reverse", 1);
+	RNA_boolean_set(kmi->ptr, "reverse", TRUE);
 	
 	WM_keymap_add_item(keymap, "TEXT_OT_new", NKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_open", OKEY, KM_PRESS, KM_ALT, 0);

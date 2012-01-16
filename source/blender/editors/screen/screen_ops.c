@@ -3606,11 +3606,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 #if 0 // XXX: disabled for restoring later... bad implementation
 	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
-		RNA_boolean_set(kmi->ptr, "cycle_speed", 1);
+		RNA_boolean_set(kmi->ptr, "cycle_speed", TRUE);
 	
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
-		RNA_boolean_set(kmi->ptr, "reverse", 1);
-		RNA_boolean_set(kmi->ptr, "cycle_speed", 1);
+		RNA_boolean_set(kmi->ptr, "reverse", TRUE);
+		RNA_boolean_set(kmi->ptr, "cycle_speed", TRUE);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", DOWNARROWKEY, KM_PRESS, KM_ALT, 0);
 #endif

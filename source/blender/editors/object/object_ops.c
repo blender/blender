@@ -269,19 +269,19 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* Note: this keymap works disregarding mode */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_POSE);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
-	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
@@ -348,7 +348,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* conflicts, removing */
 #if 0
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_set", HKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)
-	RNA_boolean_set(kmi->ptr, "unselected", 1);
+	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 #endif
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
