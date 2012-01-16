@@ -178,6 +178,15 @@ if(WITH_PYTHON_MODULE)
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
 	)
 
+	if(APPLE)
+		set_target_properties(
+			blender
+			PROPERTIES
+				LINK_FLAGS_RELEASE "${PLATFORM_LINKFLAGS}"
+				LINK_FLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG}"
+		)
+	endif()
+
 	if(WIN32)
 		# python modules use this
 		set_target_properties(
@@ -234,7 +243,11 @@ elseif(WIN32)
 	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
 
 elseif(APPLE)
-	set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+	if(WITH_PYTHON_MODULE)
+		set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
+	else()
+		set(TARGETDIR_VER ${TARGETDIR}/blender.app/Contents/MacOS/${BLENDER_VERSION})
+	endif()
 
 endif()
 

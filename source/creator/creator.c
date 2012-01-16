@@ -1108,6 +1108,13 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 /* allow python module to call main */
 #define main main_python_enter
 static void *evil_C= NULL;
+
+#ifdef __APPLE__
+/* environ is not available in mac shared libraries */
+#include <crt_externs.h>
+char **environ = NULL;
+#endif
+
 #endif
 
 int main(int argc, const char **argv)
@@ -1117,6 +1124,10 @@ int main(int argc, const char **argv)
 	bArgs *ba;
 
 #ifdef WITH_PYTHON_MODULE
+#ifdef __APPLE__
+	environ = *_NSGetEnviron();
+#endif
+
 #undef main
 	evil_C= C;
 #endif
@@ -1130,7 +1141,7 @@ int main(int argc, const char **argv)
 #endif
 
 	setCallbacks();
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
 		/* patch to ignore argument finder gives us (pid?) */
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
 		extern int GHOST_HACK_getFirstFile(char buf[]);
