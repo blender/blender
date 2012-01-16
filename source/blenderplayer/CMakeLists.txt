@@ -150,6 +150,7 @@ endif()
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
 		extern_recastnavigation
+		extern_carve
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
