@@ -150,7 +150,6 @@ endif()
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
 		extern_recastnavigation
-		extern_carve
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
@@ -179,6 +178,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_bop)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
+	endif()
+
+	if(WITH_CARVE)
+		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 
 	if(WITH_CODEC_QUICKTIME)
