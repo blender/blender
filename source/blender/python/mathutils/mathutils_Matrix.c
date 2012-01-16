@@ -1939,13 +1939,6 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 	             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 	return NULL;
 }
-static PyObject *Matrix_inv(MatrixObject *self)
-{
-	if (BaseMath_ReadCallback(self) == -1)
-		return NULL;
-
-	return Matrix_invert(self);
-}
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {

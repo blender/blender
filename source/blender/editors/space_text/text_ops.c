@@ -2232,8 +2232,8 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		text_scroll_apply(C, op, event);
 		scroll_exit(C, op);
 		return OPERATOR_FINISHED;
-	}	
-	
+	}
+
 	WM_event_add_modal_handler(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -2314,8 +2314,19 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	tsc->scrollbar= 1;
 	tsc->zone= zone;
 	op->customdata= tsc;
-	
 	st->flags|= ST_SCROLL_SELECT;
+
+	/* jump scroll, works in v2d but needs to be added here too :S */
+	if (event->type == MIDDLEMOUSE) {
+		tsc->old[0] = ar->winrct.xmin + (st->txtbar.xmax + st->txtbar.xmin) / 2;
+		tsc->old[1] = ar->winrct.ymin + (st->txtbar.ymax + st->txtbar.ymin) / 2;
+
+		tsc->delta[0] = 0;
+		tsc->delta[1] = 0;
+		tsc->first = 0;
+		tsc->zone= SCROLLHANDLE_BAR;
+		text_scroll_apply(C, op, event);
+	}
 
 	WM_event_add_modal_handler(C, op);
 
