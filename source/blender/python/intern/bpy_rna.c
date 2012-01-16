@@ -743,14 +743,28 @@ int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int
 	return 0;
 }
 
+/* note on __cmp__:
+ * checking the 'ptr->data' matches works in almost all cases,
+ * however there are a few RNA properties that are fake sub-structs and
+ * share the pointer with the parent, in those cases this happens 'a.b == a'
+ * see: r43352 for example.
+ *
+ * So compare the 'ptr->type' as well to avoid this problem.
+ * It's highly unlikely this would happen that 'ptr->data' and 'ptr->prop' would match,
+ * but _not_ 'ptr->type' but include this check for completeness.
+ * - campbell */
+
 static int pyrna_struct_compare(BPy_StructRNA *a, BPy_StructRNA *b)
 {
-	return (a->ptr.data == b->ptr.data && a->ptr.type == b->ptr.type) ? 0 : -1;
+	return ( (a->ptr.data == b->ptr.data) &&
+	         (a->ptr.type == b->ptr.type)) ? 0 : -1;
 }
 
 static int pyrna_prop_compare(BPy_PropertyRNA *a, BPy_PropertyRNA *b)
 {
-	return (a->prop == b->prop && a->ptr.data == b->ptr.data) ? 0 : -1;
+	return ( (a->prop == b->prop) &&
+	         (a->ptr.data == b->ptr.data) &&
+	         (a->ptr.type == b->ptr.type) ) ? 0 : -1;
 }
 
 static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)

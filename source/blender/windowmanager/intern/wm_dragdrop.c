@@ -248,7 +248,7 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 
 /* ************** draw ***************** */
 
-static void wm_drop_operator_draw(char *name, int x, int y)
+static void wm_drop_operator_draw(const char *name, int x, int y)
 {
 	int width= UI_GetStringWidth(name);
 	

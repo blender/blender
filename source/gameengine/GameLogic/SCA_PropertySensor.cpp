@@ -377,7 +377,7 @@ PyMethodDef SCA_PropertySensor::Methods[] = {
 
 PyAttributeDef SCA_PropertySensor::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW_CHECK("mode",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype,modeChange),
-	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,MAX_PROP_NAME,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("min",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForIntervalProperty),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("max",0,100,false,SCA_PropertySensor,m_checkpropmaxval,validValueForIntervalProperty),

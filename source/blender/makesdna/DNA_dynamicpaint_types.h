@@ -125,7 +125,7 @@ typedef struct DynamicPaintSurface {
 	int pad_;
 
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	char image_output_path[240];
+	char image_output_path[240];  /* 240 = FILE_MAX */
 	char output_name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
 	char output_name2[64]; /* MAX_CUSTOMDATA_LAYER_NAME */ /* some surfaces have 2 outputs */
 

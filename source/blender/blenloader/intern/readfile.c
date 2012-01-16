@@ -5239,7 +5239,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->ri= NULL;
 						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
 						sbuts->mainbo= sbuts->mainb;
 						sbuts->mainbuser= sbuts->mainb;
@@ -14517,7 +14516,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					/* allow typing in a new lib path */
 					if(G.rt==-666) {
 						while(fd==NULL) {
-							char newlib_path[240] = { 0 };
+							char newlib_path[FILE_MAX] = { 0 };
 							printf("Missing library...'\n");
 							printf("	current file: %s\n", G.main->name);
 							printf("	absolute lib: %s\n", mainptr->curlib->filepath);

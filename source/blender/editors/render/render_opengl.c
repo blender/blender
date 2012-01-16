@@ -240,7 +240,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			}
 
 			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-			ok= BKE_write_ibuf(ibuf, name, &scene->r.im_format); /* no need to stamp here */
+			ok= BKE_write_ibuf_as(ibuf, name, &scene->r.im_format, TRUE); /* no need to stamp here */
 			if(ok)	printf("OpenGL Render written to '%s'\n", name);
 			else	printf("OpenGL Render failed to write '%s'\n", name);
 		}

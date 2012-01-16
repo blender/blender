@@ -921,6 +921,22 @@ static int view3d_camera_active_poll(bContext *C)
 	return 0;
 }
 
+/* test for unlocked camera view in quad view */
+static int view3d_camera_user_poll(bContext *C)
+{
+	View3D *v3d;
+	ARegion *ar;
+
+	if (ED_view3d_context_user_region(C, &v3d, &ar)) {
+		RegionView3D *rv3d = ar->regiondata;
+		if(rv3d->persp==RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int viewrotate_cancel(bContext *C, wmOperator *op)
 {
 	viewops_data_free(C, op);
@@ -2257,12 +2273,17 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	float xfac, yfac;
 	float size[2];
+
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
 
 	rv3d->camdx= rv3d->camdy= 0.0f;
 
@@ -2289,7 +2310,7 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_center_camera_exec;
-	ot->poll= view3d_camera_active_poll;
+	ot->poll= view3d_camera_user_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2543,11 +2564,16 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
 
-	view3d_set_1_to_1_viewborder(scene, ar, CTX_wm_view3d(C));
+	View3D *v3d;
+	ARegion *ar;
 
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+
+	view3d_set_1_to_1_viewborder(scene, ar, v3d);
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return OPERATOR_FINISHED;
 }
@@ -2561,7 +2587,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_zoom_1_to_1_camera_exec;
-	ot->poll= view3d_camera_active_poll;
+	ot->poll= view3d_camera_user_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2660,6 +2686,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	static int perspo = RV3D_PERSP;
 	int viewnum, align_active, nextperspo;
 
+	/* no NULL check is needed, poll checks */
 	ED_view3d_context_user_region(C, &v3d, &ar);
 	rv3d = ar->regiondata;
 

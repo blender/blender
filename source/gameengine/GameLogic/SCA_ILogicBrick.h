@@ -133,8 +133,8 @@ public:
 
 
 	/* for moving logic bricks between scenes */
-	virtual void		Replace_IScene(SCA_IScene *val) {};
-	virtual void		Replace_NetworkScene(NG_NetworkScene *val) {};
+	virtual void		Replace_IScene(SCA_IScene *val) {}
+	virtual void		Replace_NetworkScene(NG_NetworkScene *val) {}
 
 #ifdef WITH_PYTHON
 	// python methods

@@ -55,7 +55,8 @@ void ED_keymap_gpencil(wmKeyConfig *keyconf)
 	
 	/* Draw */
 		/* draw */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, DKEY);
+	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, DKEY);
+		RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
 		/* draw - straight lines */
 	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL, DKEY);
 		RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_STRAIGHT);

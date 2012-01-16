@@ -97,6 +97,8 @@ struct ListBase *BKE_tracking_object_tracks(struct MovieTracking *tracking, stru
 struct MovieTrackingReconstruction *BKE_tracking_object_reconstruction(struct MovieTracking *tracking,
 			struct MovieTrackingObject *object);
 
+void BKE_tracking_disable_imbuf_channels(struct ImBuf *ibuf, int disable_red, int disable_green, int disable_blue, int grayscale);
+
 /* clipboard */
 void BKE_tracking_free_clipboard(void);
 void BKE_tracking_clipboard_copy_tracks(struct MovieTracking *tracking, struct MovieTrackingObject *object);
@@ -165,6 +167,10 @@ void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 #define TRACK_VIEW_SELECTED(sc, track)		((TRACK_AREA_SELECTED(track, TRACK_AREA_POINT) || (((sc)->flag&SC_SHOW_MARKER_PATTERN && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))) || (((sc)->flag&SC_SHOW_MARKER_SEARCH && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)))))
 
 #define MARKER_VISIBLE(sc, marker)			(((marker)->flag&MARKER_DISABLED)==0 || ((sc)->flag&SC_HIDE_DISABLED)==0)
+
+#define TRACK_CLEAR_UPTO		0
+#define TRACK_CLEAR_REMAINED	1
+#define TRACK_CLEAR_ALL			2
 
 #define CLAMP_PAT_DIM		1
 #define CLAMP_PAT_POS		2

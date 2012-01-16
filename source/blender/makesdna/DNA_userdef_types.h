@@ -318,16 +318,16 @@ typedef struct SolidLight {
 typedef struct UserDef {
 	int flag, dupflag;
 	int savetime;
-	char tempdir[160];	// FILE_MAXDIR length
+	char tempdir[160];	/* FILE_MAXDIR length */
 	char fontdir[160];
-	char renderdir[240]; // FILE_MAX length
+	char renderdir[240]; /* FILE_MAX length */
 	char textudir[160];
 	char plugtexdir[160];
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
-	char image_editor[240];	// FILE_MAX length
-	char anim_player[240];	// FILE_MAX length
+	char image_editor[240];	/* 240 = FILE_MAX */
+	char anim_player[240];	/* 240 = FILE_MAX */
 	int anim_player_preset;
 	
 	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */

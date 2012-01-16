@@ -515,6 +515,17 @@ class CLIP_PT_display(Panel):
         layout = self.layout
         sc = context.space_data
 
+        row = layout.row(align=True)
+        sub = row.row()
+        sub.prop(sc, "show_red_channel", text="R", toggle=True)
+        sub.prop(sc, "show_green_channel", text="G", toggle=True)
+        sub.prop(sc, "show_blue_channel", text="B", toggle=True)
+
+        row.separator()
+
+        sub = row.row()
+        sub.prop(sc, "use_grayscale_preview", text="B/W", toggle=True)
+
         col = layout.column(align=True)
 
         col.prop(sc, "show_marker_pattern", text="Pattern")

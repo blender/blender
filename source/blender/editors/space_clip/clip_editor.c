@@ -86,7 +86,7 @@ ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 	if(sc->clip) {
 		ImBuf *ibuf;
 
-		ibuf= BKE_movieclip_get_ibuf(sc->clip, &sc->user);
+		ibuf= BKE_movieclip_get_postprocessed_ibuf(sc->clip, &sc->user, sc->postproc_flag);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -103,7 +103,7 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 	if(sc->clip) {
 		ImBuf *ibuf;
 
-		ibuf= BKE_movieclip_get_stable_ibuf(sc->clip, &sc->user, loc, scale, angle);
+		ibuf= BKE_movieclip_get_stable_ibuf(sc->clip, &sc->user, loc, scale, angle, sc->postproc_flag);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;

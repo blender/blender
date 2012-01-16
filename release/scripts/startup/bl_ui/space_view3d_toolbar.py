@@ -1070,9 +1070,10 @@ class VIEW3D_PT_tools_weightpaint_options(PaintPanel, Panel):
         wpaint = tool_settings.weight_paint
 
         col = layout.column()
-        col.prop(wpaint, "use_all_faces")
+
         col.prop(wpaint, "use_normal")
         col.prop(wpaint, "use_spray")
+        col.prop(wpaint, "use_group_restrict")
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':

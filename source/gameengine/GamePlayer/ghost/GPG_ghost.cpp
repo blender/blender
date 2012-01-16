@@ -765,7 +765,7 @@ int main(int argc, char** argv)
 					// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
 					if (exitcode == KX_EXIT_REQUEST_START_OTHER_GAME)
 					{
-						char basedpath[240];
+						char basedpath[FILE_MAX];
 						
 						// base the actuator filename relative to the last file
 						BLI_strncpy(basedpath, exitstring.Ptr(), sizeof(basedpath));

@@ -250,9 +250,9 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(0.0f, 0.0f);
-			glVertex2f(ibuf->x, 0.0f);
-			glVertex2f(ibuf->x, ibuf->y);
-			glVertex2f(0.0f, ibuf->y);
+			glVertex2f(width, 0.0f);
+			glVertex2f(width, height);
+			glVertex2f(0.0f, height);
 		glEnd();
 
 		glPopMatrix();
@@ -1259,14 +1259,24 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		float smat[4][4], ismat[4][4];
 
 		ibuf= ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
-		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
 
-		unit_m4(smat);
-		smat[0][0]= 1.0f/width;
-		smat[1][1]= 1.0f/height;
-		invert_m4_m4(ismat, smat);
+		if(ibuf) {
+			float loc[2];
 
-		mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
+			if(width != ibuf->x)
+				mul_v2_v2fl(loc, sc->loc, (float)width / ibuf->x);
+			else
+				copy_v2_v2(loc, sc->loc);
+
+			BKE_tracking_stabdata_to_mat4(width, height, loc, sc->scale, sc->angle, sc->stabmat);
+
+			unit_m4(smat);
+			smat[0][0]= 1.0f/width;
+			smat[1][1]= 1.0f/height;
+			invert_m4_m4(ismat, smat);
+
+			mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
+		}
 	} else {
 		ibuf= ED_space_clip_get_buffer(sc);
 

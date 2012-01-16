@@ -295,7 +295,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		RNA_boolean_set(kmi->ptr, "column", FALSE);
 	
 	/* select left/right */
-	WM_keymap_add_item(keymap, "GRAPH_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "GRAPH_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 		RNA_boolean_set(kmi->ptr, "extend", FALSE);
 		RNA_enum_set(kmi->ptr, "mode", GRAPHKEYS_LRSEL_TEST);
 	kmi= WM_keymap_add_item(keymap, "GRAPH_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);

@@ -655,7 +655,11 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(sa);
 
-	console_scroll_bottom(ar);
+	/* when calling render modally this can be NULL when calling:
+	 * bpy.ops.render.render('INVOKE_DEFAULT') */
+	if (ar) {
+		console_scroll_bottom(ar);
+	}
 
 	return OPERATOR_FINISHED;
 }
