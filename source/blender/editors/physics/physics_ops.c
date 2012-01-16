@@ -39,7 +39,10 @@
 #include "ED_physics.h"
 #include "ED_object.h"
 
+#include "BLI_utildefines.h"
+
 #include "physics_intern.h" // own include
+
 
 /***************************** particles ***********************************/
 
@@ -109,7 +112,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 
 	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-	RNA_boolean_set(kmi->ptr, "release_confirm", 1);
+	RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);

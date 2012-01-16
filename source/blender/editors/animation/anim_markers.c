@@ -1494,11 +1494,12 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 
 #ifdef DURIAN_CAMERA_SWITCH
 	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "camera", 1);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "camera", TRUE);
 
 	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", 1);
-	RNA_boolean_set(kmi->ptr, "camera", 1);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "camera", TRUE);
 #else
 	(void)kmi;
 #endif

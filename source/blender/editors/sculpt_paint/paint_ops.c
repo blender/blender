@@ -556,11 +556,11 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	/* multires switch */
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "level", 1);
-	RNA_boolean_set(kmi->ptr, "relative", 1);
+	RNA_boolean_set(kmi->ptr, "relative", TRUE);
 
 	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEDOWNKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "level", -1);
-	RNA_boolean_set(kmi->ptr, "relative", 1);
+	RNA_boolean_set(kmi->ptr, "relative", TRUE);
 
 	ed_keymap_paint_brush_switch(keymap, "sculpt");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.sculpt.brush.size");
