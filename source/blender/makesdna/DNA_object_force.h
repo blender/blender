@@ -195,7 +195,7 @@ typedef struct PointCache {
 	char name[64];
 	char prev_name[64];
 	char info[64];
-	char path[240]; /* file path */
+	char path[240]; /* file path, 240 = FILE_MAX */
 	char *cached_frames;	/* array of length endframe-startframe+1 with flags to indicate cached frames */
 							/* can be later used for other per frame flags too if needed */
 	struct ListBase mem_cache;

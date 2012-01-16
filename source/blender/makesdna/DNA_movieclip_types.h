@@ -64,7 +64,7 @@ typedef struct MovieClipProxy {
 typedef struct MovieClip {
 	ID id;
 
-	char name[240];		/* file path */
+	char name[240];		/* file path, 240 = FILE_MAX */
 
 	int source;			/* sequence or movie */
 	int lastframe;		/* last accessed frame number */

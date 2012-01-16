@@ -14437,7 +14437,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					/* allow typing in a new lib path */
 					if(G.rt==-666) {
 						while(fd==NULL) {
-							char newlib_path[240] = { 0 };
+							char newlib_path[FILE_MAX] = { 0 };
 							printf("Missing library...'\n");
 							printf("	current file: %s\n", G.main->name);
 							printf("	absolute lib: %s\n", mainptr->curlib->filepath);

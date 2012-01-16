@@ -471,7 +471,7 @@ typedef struct RenderData {
 	float bake_maxdist, bake_biasdist, bake_pad;
 
 	/* path to render output */
-	char pic[240];
+	char pic[240]; /* 240 = FILE_MAX */
 
 	/* stamps flags. */
 	int stamp;

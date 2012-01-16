@@ -200,7 +200,7 @@ typedef struct VoxelData {
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	
 	int still_frame;
-	char source_path[240];
+	char source_path[240];  /* 240 = FILE_MAX */
 
 	/* temporary data */
 	float *dataset;

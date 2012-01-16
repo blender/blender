@@ -858,7 +858,9 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", str);
-	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
+
+	/* we cant do much if the str is longer then FILE_MAX :/ */
+	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name));
 
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(C);

@@ -32,6 +32,8 @@
 
 #include "rna_internal.h"
 
+#include "BKE_utildefines.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
@@ -323,7 +325,7 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_BLENDER);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_maxlength(prop, 240);
+	RNA_def_property_string_maxlength(prop, FILE_MAX);
 	RNA_def_property_string_funcs(prop, "rna_Main_filepath_get", "rna_Main_filepath_length", "rna_Main_filepath_set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
